@@ -1,0 +1,333 @@
+# 📂 Legacy Source Refactoring Tracker
+
+> **Purpose**: Use this document to track every single file from the old monolithic `finxui` project.
+> **Legend**: `[ ]` = Not Started | `[/]` = Partially Migrated | `[x]` = Fully Migrated/Obsoleted
+
+- 📁 `src/`
+  - 📁 `app/`
+    - 📁 `(core)/`
+      - 📁 `controls/`
+        - 📁 `printer/`
+          - [ ] `ReportRenderer_bk.tsx`
+          - [ ] `ReportRenderer.tsx`
+          - [ ] `SCPrintControl.tsx`
+          - [ ] `SCPrinter_bk_1.tsx`
+          - [ ] `SCPrinter_bk_2.tsx`
+          - [ ] `SCPrinter_jspdf.tsx`
+          - [ ] `scprinter.css`
+          - [ ] `SCPrinter.tsx`
+          - [ ] `SCPrinterControl.tsx`
+        - 📁 `tags/`
+          - [ ] `SCBoolean.tsx`
+          - [ ] `SCComboBox.tsx`
+          - [ ] `SCDate.tsx`
+          - [ ] `SCDropDown.tsx`
+          - [ ] `SCDropDownList.tsx`
+          - [ ] `SCTags.js`
+        - [ ] `Accordion.tsx`
+        - [ ] `ButtonControl.tsx`
+        - [ ] `DataListView.tsx`
+        - [ ] `DesignElementRender.tsx`
+        - [ ] `HelpText.tsx`
+        - [ ] `IDTextControl.tsx`
+        - [ ] `loading.tsx`
+        - [ ] `loadingStyle.css`
+        - [ ] `MessageBox.tsx`
+        - [ ] `PopUp.tsx`
+        - [ ] `ReportStudio.tsx`
+        - [ ] `SCAlert.tsx`
+        - [ ] `SCDataTable.tsx`
+        - [ ] `SCGrid.tsx`
+        - [ ] `SessionTimeOut.tsx`
+        - [ ] `ShowAlert.tsx`
+        - [ ] `SVGButtons.tsx`
+        - [ ] `treestyle.css`
+        - [ ] `TreeView.tsx`
+      - 📁 `reportstudio/`
+        - 📁 `canvas/`
+          - 📁 `interactions/`
+            - [ ] `useBandDrag.ts`
+          - [ ] `BandCanvas.tsx`
+          - [ ] `BodyCanvas.tsx`
+          - [ ] `CanvasAddRowStrip.tsx`
+          - [ ] `index.ts`
+          - [ ] `types.ts`
+        - 📁 `components/`
+          - 📁 `common/`
+            - 📁 `Button/`
+              - [ ] `index.tsx`
+            - 📁 `ContextMenu/`
+              - [ ] `index.tsx`
+            - 📁 `Modal/`
+              - [ ] `index.tsx`
+            - [ ] `Toggle.tsx`
+            - [ ] `Tooltip.tsx`
+          - 📁 `form/`
+            - [ ] `AlignInput.tsx`
+            - [ ] `ColorInput.tsx`
+            - [ ] `ColorPickerPopup.tsx`
+            - [ ] `Input.tsx`
+            - [ ] `NumberInput.tsx`
+            - [ ] `RadiusInput.tsx`
+            - [ ] `RotationStrip.tsx`
+            - [ ] `Select.tsx`
+            - [ ] `SpacingInput.tsx`
+            - [ ] `Swatch.tsx`
+          - 📁 `layout/`
+            - [ ] `PropCard.tsx`
+            - [ ] `PropCell.tsx`
+            - [ ] `PropDivider.tsx`
+            - [ ] `PropGrid2.tsx`
+            - [ ] `PropRow.tsx`
+            - [ ] `PropSection.tsx`
+            - [ ] `PropTitle.tsx`
+            - [ ] `Tabs.tsx`
+        - 📁 `constants/`
+          - [ ] `alignment.ts`
+          - [ ] `fonts.ts`
+          - [ ] `pages.ts`
+          - [ ] `preview-data.ts`
+          - [ ] `quill.ts`
+        - 📁 `data/`
+          - [ ] `deltaToParas.ts`
+          - [ ] `resolveCompData.ts`
+          - [ ] `resolveVariables.ts`
+          - [ ] `resolveVariablesToRuns.ts`
+          - [ ] `tokens.ts`
+        - 📁 `features/`
+          - 📁 `body/`
+            - [ ] `BodyCompHeader.tsx`
+            - [ ] `BodyComponentListPanel.tsx`
+            - [ ] `BodyCompPropsPanel.tsx`
+            - [ ] `BodyLayoutSection.tsx`
+            - [ ] `BodyLayoutSpacingTabs.tsx`
+            - [ ] `BodyRowPropsPanel.tsx`
+            - [ ] `BodyRowSpacingTabs.tsx`
+            - [ ] `meta.ts`
+          - 📁 `chart/`
+            - [ ] `ChartPreview.tsx`
+            - [ ] `ChartPropsPanel.tsx`
+          - 📁 `context-menu/`
+            - [ ] `BodyContextMenu.tsx`
+            - [ ] `ZoneContextMenu.tsx`
+          - 📁 `data-sources/`
+            - [ ] `CentralDataEditor.tsx`
+            - [ ] `ComponentDataEditor.tsx`
+            - [ ] `DataSourceLink.tsx`
+            - [ ] `InlineDataManager.tsx`
+          - 📁 `image/`
+            - [ ] `ImagePreview.tsx`
+            - [ ] `ImagePropsPanel.tsx`
+          - 📁 `import-export/`
+            - [ ] `ImportJsonModal.tsx`
+            - [ ] `JsonExportModal.tsx`
+            - [ ] `JsonNode.tsx`
+          - 📁 `page-setup/`
+            - [ ] `PageSetupPanel.tsx`
+          - 📁 `table/`
+            - [ ] `ColumnListPanel.tsx`
+            - [ ] `ColumnPropsPanel.tsx`
+            - [ ] `DataRowsEditor.tsx`
+            - [ ] `TablePreviewCanvas.tsx`
+            - [ ] `TablePropsPanel.tsx`
+            - [ ] `TableStylePanel.tsx`
+          - 📁 `templates/`
+            - [ ] `TemplateModal.tsx`
+            - [ ] `ThemesPicker.tsx`
+            - [ ] `ZoneSvgPreview.tsx`
+          - 📁 `text-block/`
+            - [ ] `index.ts`
+            - [ ] `quillTableStyle.ts`
+            - [ ] `QuillTableStylePanel.tsx`
+            - [ ] `TextBlockPropsPanel.tsx`
+            - [ ] `TextBlockRichEditor.tsx`
+          - 📁 `zones/`
+            - [ ] `ElementListPanel.tsx`
+            - [ ] `ElementPropsPanel.tsx`
+            - [ ] `MultiSelectPanel.tsx`
+            - [ ] `ZoneRowPropsPanel.tsx`
+            - [ ] `ZoneStylePanel.tsx`
+        - 📁 `lib/`
+          - [ ] `chart-register.ts`
+        - 📁 `pdf/`
+          - 📁 `helpers/`
+            - [ ] `index.ts`
+          - 📁 `renderers/`
+            - [ ] `index.ts`
+            - [ ] `renderBand.ts`
+            - [ ] `renderChart.ts`
+            - [ ] `renderTable.ts`
+            - [ ] `renderTextBlock.ts`
+          - 📁 `text/`
+            - [ ] `textEngine.ts`
+          - [ ] `PdfPreviewModal.tsx`
+        - 📁 `theme/`
+          - [ ] `icons.tsx`
+          - [ ] `inputStyle.ts`
+          - [ ] `themes.ts`
+          - [ ] `tokens.ts`
+        - 📁 `types/`
+          - [ ] `app-state.ts`
+          - [ ] `body.ts`
+          - [ ] `chart.ts`
+          - [ ] `element.ts`
+          - [ ] `index.ts`
+          - [ ] `primitives.ts`
+          - [ ] `report-page.ts`
+          - [ ] `table.ts`
+          - [ ] `text-block.ts`
+          - [ ] `zone.ts`
+        - 📁 `utils/`
+          - [ ] `buildReportJson.ts`
+          - [ ] `color.ts`
+          - [ ] `csv.ts`
+          - [ ] `deepClone.ts`
+          - [ ] `id.ts`
+          - [ ] `number-format.ts`
+          - [ ] `rand.ts`
+          - [ ] `string.ts`
+          - [ ] `units.ts`
+        - [ ] `index.tsx`
+        - [ ] `initial-state.ts`
+        - [ ] `reducer.ts`
+      - 📁 `screenbuilder/`
+        - [ ] `EnquiryFrame.tsx`
+        - [ ] `Frame.tsx`
+        - [ ] `frameApi.ts`
+        - [ ] `index.tsx`
+        - [ ] `VersionFrame.tsx`
+      - 📁 `syscomp/`
+        - [ ] `AuditInfo.tsx`
+        - [ ] `GIR.tsx`
+        - [ ] `INQ.tsx`
+        - [ ] `SC.CHANGE.PASS.tsx`
+        - [ ] `SC.COB.REGISTRY.tsx`
+        - [ ] `SC.CONTROL.LIST.tsx`
+        - [ ] `SC.DYNAMIC.tsx`
+        - [ ] `SC.FORM.BUILDER.tsx`
+        - [ ] `SC.FORM.tsx`
+        - [ ] `SC.HELP.TEXT.tsx`
+        - [ ] `SC.INQUIRY.tsx`
+        - [ ] `SC.MENU.DESIGN.tsx`
+        - [ ] `SC.MODEL.CONFIG.tsx`
+        - [ ] `SC.NF.tsx`
+        - [ ] `SC.REPORT.LINE.tsx`
+        - [ ] `SC.RPT.tsx`
+        - [ ] `SC.SCREEN.BUILDER.tsx`
+        - [ ] `SC.SE.tsx`
+        - [ ] `SC.SEARCH.tsx`
+        - [ ] `SC.SPC.tsx`
+        - [ ] `SC.USER.GROUP.tsx`
+        - [ ] `SC.USER.PASS.RESET.tsx`
+        - [ ] `SIR.tsx`
+      - 📁 `utils/`
+        - [ ] `FWCommon.ts`
+        - [ ] `GlobalEnums.ts`
+        - [ ] `GlobalFunc.ts`
+        - [ ] `RequestStatus.json`
+        - [ ] `RequisitionStatus.json`
+      - [ ] `APIService.ts`
+      - [ ] `command.tsx`
+      - [ ] `componentLoader.tsx`
+      - [ ] `pannelLoader.tsx`
+      - [ ] `windowLoader.tsx`
+    - 📁 `api/`
+      - 📁 `cache/`
+        - [ ] `route.ts`
+      - 📁 `checksession/`
+        - [ ] `route.ts`
+      - 📁 `getpdf/`
+        - [ ] `route.ts`
+      - 📁 `getsession/`
+        - [ ] `route.ts`
+      - 📁 `login/`
+        - [ ] `route.ts`
+      - 📁 `logout/`
+        - [ ] `route.ts`
+      - 📁 `menu/`
+        - [ ] `route.ts`
+      - 📁 `model/`
+        - 📁 `[command]/`
+          - [ ] `route.ts`
+      - 📁 `proxy/`
+        - [ ] `route.ts`
+      - 📁 `setsession/`
+        - [ ] `route.ts`
+    - 📁 `client/`
+      - 📁 `event/`
+        - 📁 `component/`
+          - [ ] `page.tsx`
+    - 📁 `login/`
+      - [ ] `page.tsx`
+    - 📁 `stores/`
+      - [x] `alertStore.ts`
+    - [ ] `fonts.ts`
+    - [ ] `globals.css`
+    - [ ] `layout.tsx`
+    - [ ] `page.tsx`
+  - 📁 `components/`
+    - 📁 `auth/`
+      - [ ] `sign-on-form.tsx`
+    - 📁 `command/`
+      - [ ] `command-input.tsx`
+    - 📁 `component-view/`
+      - [ ] `component-loader.tsx`
+      - [ ] `component-registry.ts`
+      - [ ] `component-view.tsx`
+      - [ ] `sc-dynamic.tsx`
+      - [ ] `toolbar.tsx`
+    - 📁 `dashboard/`
+      - [ ] `charts.tsx`
+      - [ ] `dashboard.tsx`
+    - 📁 `shell/`
+      - [ ] `app-header.tsx`
+      - [ ] `shell.tsx`
+    - 📁 `theme/`
+      - [x] `theme-key.ts`
+      - [x] `theme-provider.tsx`
+      - [x] `theme-script.tsx`
+      - [x] `theme-toggle.tsx`
+    - 📁 `tree/`
+      - [ ] `menu-search.tsx`
+      - [ ] `tree-view.tsx`
+    - 📁 `ui/`
+      - [ ] `badge.tsx`
+      - [ ] `button.tsx`
+      - [ ] `card.tsx`
+      - [ ] `input.tsx`
+    - 📁 `window/`
+      - [ ] `open-component-window.ts`
+      - [ ] `window-frame.tsx`
+    - 📁 `workspace/`
+      - [ ] `workspace-provider.tsx`
+  - 📁 `grpc/`
+    - 📁 `generated/`
+      - 📁 `google/`
+        - 📁 `protobuf/`
+          - [ ] `struct.ts`
+      - [ ] `service.ts`
+    - [ ] `client.ts`
+    - [ ] `dispatch.ts`
+    - [ ] `service.proto`
+  - 📁 `lib/`
+    - 📁 `model/`
+      - [ ] `spec-cache.ts`
+      - [ ] `static-menu.ts`
+      - [ ] `static-specs.ts`
+      - [ ] `types.ts`
+    - [ ] `callService.ts`
+    - [x] `cn.ts`
+    - [ ] `command.ts`
+    - [ ] `component-target.ts`
+    - [ ] `menu.ts`
+    - [ ] `rateLimit.ts`
+    - [ ] `redis.ts`
+    - [ ] `redisSession.ts`
+    - [ ] `registry.ts`
+    - [x] `services.ts`
+  - 📁 `server/`
+    - [ ] `model-source.ts`
+    - [ ] `redis.ts`
+  - 📁 `types/`
+    - [ ] `global.d.ts`
+    - [ ] `index.ts`

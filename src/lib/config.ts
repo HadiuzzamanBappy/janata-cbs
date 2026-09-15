@@ -1,5 +1,4 @@
-﻿import { env } from "@/lib/env";
-import { SERVICES } from "@/lib/services";
+import { env } from "@/lib/env";
 
 export const appConfig = {
   isDev: env.NODE_ENV === "development",
@@ -36,7 +35,6 @@ export const appConfig = {
   },
 
   services: {
-    registry: SERVICES,
     apiBaseUrl: env.API_BASE_URL,
   },
 } as const;

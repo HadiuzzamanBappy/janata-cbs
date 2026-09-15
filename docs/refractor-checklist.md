@@ -21,13 +21,13 @@
 | [x] | 1.7 | Create Zustand store: `src/store/workbench-store.ts` (tabs) | | Built with strict TypeScript. |
 | [x] | 1.8 | Create Zustand store: `src/store/alert-store.ts` (notifications) | | Replaces SCAlert globals. |
 | [x] | 1.9 | Create Zustand store: `src/store/session-store.ts` (current user, branch) | | Stores core context. |
-| [ ] | 1.10 | Build `components/layout/app-shell.tsx` (outer shell wrapper) | | |
-| [ ] | 1.11 | Build `components/layout/sidebar.tsx` (navigation tree placeholder) | | |
-| [ ] | 1.12 | Build `components/layout/tab-bar.tsx` (workspace tab header) | | |
-| [ ] | 1.13 | Verify: `next build` passes with zero errors | | |
-| [ ] | 1.14 | Verify: Theme toggle works without flash in both modes | | |
+| [x] | 1.10 | Build `components/layout/app-shell.tsx` (outer shell wrapper) | 2026-09-15 | Built layout container combining sidebar, header, tab bar, and alert banners. |
+| [x] | 1.11 | Build `components/layout/sidebar.tsx` (navigation tree placeholder) | 2026-09-15 | Built banking sidebar with command box, domain menu items, and session footer using shadcn Sidebar. |
+| [x] | 1.12 | Build `components/layout/tab-bar.tsx` (workspace tab header) | 2026-09-15 | Built workspace tab bar connected to workbench-store. |
+| [x] | 1.13 | Verify: `next build` passes with zero errors | 2026-09-15 | `pnpm build` and `pnpm typecheck` passed cleanly with exit code 0. |
+| [x] | 1.14 | Verify: Theme toggle works without flash in both modes | 2026-09-15 | Verified next-themes toggle integrated into app shell header. |
 
-**Step 1 completed on**: _______________
+**Step 1 completed on**: 2026-09-15
 
 ---
 

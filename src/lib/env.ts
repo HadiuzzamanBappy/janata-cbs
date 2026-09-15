@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 const envSchema = z.object({
   // Server Execution Environment
@@ -37,7 +37,7 @@ const envSchema = z.object({
 
   // Client-exposed Environment Variables (NEXT_PUBLIC_)
   NEXT_PUBLIC_BASE_URL: z.string().default("http://localhost:3000"),
-  NEXT_PUBLIC_COMPONENT_TARGET: z.enum(["panel", "window"]).default("panel"),
+  NEXT_PUBLIC_COMPONENT_TARGET: z.enum(["panel", "window", "tab"]).default("panel"),
   NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().default(10),
   NEXT_PUBLIC_CENTRAL_BRANCH: z.string().default("JB9999"),
   NEXT_PUBLIC_DEFAULT_SERVICE_PATH: z.string().default("default"),

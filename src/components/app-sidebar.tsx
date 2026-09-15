@@ -182,11 +182,13 @@ interface TreeItemProps {
 
 function RecursiveTreeItem({ node }: TreeItemProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const { addTab, activeTabId } = useWorkbenchStore();
+  const { addTab, tabs, activeTabId } = useWorkbenchStore();
+  const activeTab = tabs.find((t) => t.id === activeTabId);
 
   const hasChildren = Boolean(node.children && node.children.length > 0);
   const isLeaf = !hasChildren;
-  const isActive = isLeaf && activeTabId === (node.command ?? node.id);
+  const isActive =
+    isLeaf && (activeTab?.screenId === (node.command ?? node.id) || activeTab?.id === (node.command ?? node.id));
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -208,7 +210,7 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
       <div
         onClick={handleClick}
         className={cn(
-          "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium cursor-pointer transition-colors duration-150 group",
+          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors duration-150 group",
           isActive
             ? "bg-primary/15 text-primary font-semibold"
             : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"

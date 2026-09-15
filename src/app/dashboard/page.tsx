@@ -1,9 +1,8 @@
 "use client";
 
 import { useWorkbenchStore } from "@/store/workbench-store";
-import { Terminal, Sparkles } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Sparkles } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export default function DashboardPage() {
   const { tabs, activeTabId } = useWorkbenchStore();
@@ -11,36 +10,18 @@ export default function DashboardPage() {
 
   if (activeTab) {
     return (
-      <Card className="max-w-5xl mx-auto shadow-xs border-border/80">
-        <CardHeader className="border-b border-border/50 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
-                <Terminal className="size-4" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold">{activeTab.title}</CardTitle>
-                <CardDescription className="text-xs">
-                  Screen ID: <span className="font-mono">{activeTab.id}</span> • Component:{" "}
-                  <span className="font-mono">{activeTab.componentName}</span>
-                </CardDescription>
-              </div>
-            </div>
-            <Badge variant="outline" className="font-mono text-xs">
-              Active Workspace
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-6 flex flex-col gap-4 text-xs text-muted-foreground">
-          <div className="p-4 rounded-lg bg-muted/40 border border-border/50 flex flex-col gap-2">
-            <p className="font-medium text-foreground">
-              Component Loader Target: <code className="text-primary font-mono">{activeTab.componentName}</code>
-            </p>
-            <p>
-              This tab is active in the Zustand <code className="font-mono">workbench-store</code>. In Step 3 (Schema Engine), opening this leaf will dynamically hydrate form properties over gRPC or load bespoke components from the registry.
-            </p>
-          </div>
-        </CardContent>
+      <Card className="w-full flex-1 shadow-xs border-border/80 p-6 flex flex-col gap-4">
+        <div className="p-4 rounded-lg bg-muted/40 border border-border/50 flex flex-col gap-2 text-xs text-muted-foreground">
+          <p className="font-medium text-foreground">
+            Component Loader Target: <code className="text-primary font-mono">{activeTab.componentName}</code>
+          </p>
+          <p>
+            Screen ID: <code className="font-mono">{activeTab.screenId || activeTab.id}</code> • Instance ID: <code className="font-mono">{activeTab.id}</code>
+          </p>
+          <p className="pt-1 leading-relaxed">
+            This workspace area renders only the screen body. Opening this leaf hydrates form properties over gRPC or loads bespoke components from the registry directly.
+          </p>
+        </div>
       </Card>
     );
   }

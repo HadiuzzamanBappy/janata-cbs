@@ -1,0 +1,49 @@
+syntax = "proto3";
+package grpc.service.v1;
+
+option java_package = "com.jb.finx.grpc.v1";
+option java_multiple_files = true;
+
+import "google/protobuf/struct.proto";
+
+service GrpcService {
+  // Login: exchanges credentials for a bearer token. This is the ONLY
+  // unauthenticated RPC — every other channel requires the token it issues.
+  rpc LoginProcess (LoginRequest) returns (GrpcResponse);
+
+  // Financial: money movement (postings, transfers). Blocking, strong
+  // consistency, strict idempotency. Runs on a small dedicated pool.
+  rpc FinancialProcess (GrpcRequest) returns (GrpcResponse);
+
+  // Non-financial: maintenance/lookups/authorizations. Higher concurrency.
+  rpc NonFinancialProcess (GrpcRequest) returns (GrpcResponse);
+}
+
+message LoginRequest {
+  string clientId   = 1;
+  string username   = 2;
+  string password   = 3;
+}
+
+message GrpcRequest {
+  string idempotencyKey = 1;
+  string clientId       = 2;
+  string requestType    = 3;
+  string controlName    = 4;
+  string recordFunction = 5;
+  string recordId       = 6;
+  string branchCode     = 7;
+  int32  authLevel      = 8;
+  string userId         = 9;
+  google.protobuf.Struct data = 10;
+}
+
+message GrpcResponse {
+  string status                 = 1; // SUCCESS, FAIL, ERROR, RETRY
+  int32 statusCode              = 2;
+  string idempotencyKey         = 3;
+  string message                = 4;
+  google.protobuf.Struct data   = 5;
+  repeated string errors        = 6;
+  string timestamp              = 7;
+}

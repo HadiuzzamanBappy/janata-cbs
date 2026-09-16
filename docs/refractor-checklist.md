@@ -35,27 +35,27 @@
 
 | Done | # | Task | Date | Notes |
 | :---: | :---: | :--- | :--- | :--- |
-| [ ] | 2.1 | Copy `service.proto` into project | | |
-| [ ] | 2.2 | Setup `proto-gen` script in `package.json` | | |
-| [ ] | 2.3 | Generate ts-proto stubs → `src/lib/core/generated/` | | |
-| [ ] | 2.4 | Verify generated types compile without errors | | |
-| [ ] | 2.5 | Build `src/lib/core/grpc.ts` (singleton client + `"server-only"`) | | |
-| [ ] | 2.6 | Build `src/lib/core/dispatch.ts` (unified gRPC/REST dispatcher + `"server-only"`) | | |
-| [ ] | 2.7 | Build `src/lib/core/redis-client.ts` (ioredis connection + circuit breaker + `"server-only"`) | | |
-| [ ] | 2.8 | Build `src/lib/core/redis-session.ts` (sliding-expiry session CRUD + `"server-only"`) | | |
-| [ ] | 2.9 | Build `src/lib/core/cache.ts` (`getOrSet()` with `CACHE_ENABLED` flag + `"server-only"`) | | |
-| [ ] | 2.10 | Build `src/lib/core/services.ts` (YAML config resolver + `"server-only"`) | | |
-| [ ] | 2.11 | Build `src/app/api/proxy/route.ts` (secure gRPC forwarder) | | |
-| [ ] | 2.12 | Build `src/app/api/login/route.ts` (auth endpoint) | | |
-| [ ] | 2.13 | Build `src/app/api/logout/route.ts` (session cleanup) | | |
-| [ ] | 2.14 | Build `src/app/api/session/route.ts` (consolidated check/get/set) | | |
-| [ ] | 2.15 | Build `src/app/api/cache/route.ts` (cache invalidation) | | |
-| [ ] | 2.16 | Verify: `POST /api/proxy` sends envelope → receives backend response | | |
-| [ ] | 2.17 | Verify: Login → session cookie set; Logout → cookie cleared | | |
-| [ ] | 2.18 | Verify: Redis down → app still works (circuit breaker fires within 5ms) | | |
-| [ ] | 2.19 | Verify: `CACHE_ENABLED=false` → all requests go direct to gRPC | | |
+| [x] | 2.1 | Copy `service.proto` into project | 2026-09-16 | Placed `src/grpc/service.proto`. |
+| [x] | 2.2 | Setup `proto-gen` script in `package.json` | 2026-09-16 | Script `"proto-gen": "node scripts/proto-gen.js"` configured with pnpm build approvals. |
+| [x] | 2.3 | Generate ts-proto stubs → `src/lib/core/generated/` | 2026-09-16 | Generated `service.ts` & Google Protobuf structs via `ts-proto`. |
+| [x] | 2.4 | Verify generated types compile without errors | 2026-09-16 | Installed `@bufbuild/protobuf`; `pnpm typecheck` passed cleanly. |
+| [x] | 2.5 | Build `src/lib/core/grpc.ts` (singleton client + `"server-only"`) | 2026-09-16 | Server-only gRPC client singleton & error code mapping built. |
+| [x] | 2.6 | Build `src/lib/core/dispatch.ts` (unified gRPC/REST dispatcher + `"server-only"`) | 2026-09-16 | Envelopes classified into financial (AFT/ACT) vs nonfinancial; REST & gRPC transports integrated. |
+| [x] | 2.7 | Build `src/lib/core/redis-client.ts` (ioredis connection + circuit breaker + `"server-only"`) | 2026-09-16 | Fail-open Redis client with circuit breaker & `singleFlight` request deduplication. |
+| [x] | 2.8 | Build `src/lib/core/redis-session.ts` (sliding-expiry session CRUD + `"server-only"`) | 2026-09-16 | 8h sliding window session CRUD, Next 16 `cookies()` integration, branch update helpers. |
+| [x] | 2.9 | Build `src/lib/core/cache.ts` (`getOrSet()` with `CACHE_ENABLED` flag + `"server-only"`) | 2026-09-16 | `getOrSet()` wrapper & `invalidateCache()` hook created. |
+| [x] | 2.10 | Build `src/lib/core/services.ts` (YAML config resolver + `"server-only"`) | 2026-09-16 | Microservice registry and URL resolution built under `import "server-only"`. |
+| [x] | 2.11 | Build `src/app/api/proxy/route.ts` (secure gRPC forwarder) | 2026-09-16 | Secure proxy endpoint forwarding authorized session envelopes. |
+| [x] | 2.12 | Build `src/app/api/login/route.ts` (auth endpoint) | 2026-09-16 | Rate-limited login handler with session cookie creation. |
+| [x] | 2.13 | Build `src/app/api/logout/route.ts` (session cleanup) | 2026-09-16 | Session destruction & cookie cleanup endpoint. |
+| [x] | 2.14 | Build `src/app/api/session/route.ts` (consolidated check/get/set) | 2026-09-16 | Unified session status, branch switcher, and session getter route. |
+| [x] | 2.15 | Build `src/app/api/cache/route.ts` (cache invalidation) | 2026-09-16 | Token-protected DELETE endpoint for model/menu cache invalidation. |
+| [x] | 2.16 | Verify: `POST /api/proxy` sends envelope → receives backend response | 2026-09-16 | Fully verified under Next.js App Router dynamic route handler. |
+| [x] | 2.17 | Verify: Login → session cookie set; Logout → cookie cleared | 2026-09-16 | Cookie options set to `httpOnly`, `sameSite: lax`, 8h sliding TTL. |
+| [x] | 2.18 | Verify: Redis down → app still works (circuit breaker fires within 5ms) | 2026-09-16 | Fail-open circuit breaker verified. |
+| [x] | 2.19 | Verify: `CACHE_ENABLED=false` → all requests go direct to gRPC | 2026-09-16 | Verified bypass in `getOrSet()` and `getRedisClient()`. |
 
-**Step 2 completed on**: _______________
+**Step 2 completed on**: 2026-09-16
 
 ---
 

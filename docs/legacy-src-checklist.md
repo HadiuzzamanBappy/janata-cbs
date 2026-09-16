@@ -233,26 +233,26 @@
       - [ ] `windowLoader.tsx`
     - 📁 `api/`
       - 📁 `cache/`
-        - [ ] `route.ts`
+        - [x] `route.ts`
       - 📁 `checksession/`
-        - [ ] `route.ts`
+        - [x] `route.ts` (Consolidated into `/api/session`)
       - 📁 `getpdf/`
         - [ ] `route.ts`
       - 📁 `getsession/`
-        - [ ] `route.ts`
+        - [x] `route.ts` (Consolidated into `/api/session`)
       - 📁 `login/`
-        - [ ] `route.ts`
+        - [x] `route.ts`
       - 📁 `logout/`
-        - [ ] `route.ts`
+        - [x] `route.ts`
       - 📁 `menu/`
         - [ ] `route.ts`
       - 📁 `model/`
         - 📁 `[command]/`
           - [ ] `route.ts`
       - 📁 `proxy/`
-        - [ ] `route.ts`
+        - [x] `route.ts`
       - 📁 `setsession/`
-        - [ ] `route.ts`
+        - [x] `route.ts` (Consolidated into `/api/session`)
     - 📁 `client/`
       - 📁 `event/`
         - 📁 `component/`
@@ -304,11 +304,11 @@
     - 📁 `generated/`
       - 📁 `google/`
         - 📁 `protobuf/`
-          - [ ] `struct.ts`
-      - [ ] `service.ts`
-    - [ ] `client.ts`
-    - [ ] `dispatch.ts`
-    - [ ] `service.proto`
+          - [x] `struct.ts`
+      - [x] `service.ts`
+    - [x] `client.ts`
+    - [x] `dispatch.ts`
+    - [x] `service.proto`
   - 📁 `lib/`
     - 📁 `model/`
       - [ ] `spec-cache.ts`
@@ -320,14 +320,14 @@
     - [ ] `command.ts`
     - [ ] `component-target.ts`
     - [ ] `menu.ts`
-    - [ ] `rateLimit.ts`
-    - [ ] `redis.ts`
-    - [ ] `redisSession.ts`
+    - [x] `rateLimit.ts`
+    - [x] `redis.ts`
+    - [x] `redisSession.ts`
     - [ ] `registry.ts`
     - [x] `services.ts`
   - 📁 `server/`
     - [ ] `model-source.ts`
-    - [ ] `redis.ts`
+    - [x] `redis.ts`
   - 📁 `types/`
     - [ ] `global.d.ts`
     - [ ] `index.ts`

@@ -18,28 +18,28 @@
           - [ ] `SCPrinter.tsx`
           - [ ] `SCPrinterControl.tsx`
         - 📁 `tags/`
-          - [ ] `SCBoolean.tsx`
-          - [ ] `SCComboBox.tsx`
-          - [ ] `SCDate.tsx`
-          - [ ] `SCDropDown.tsx`
-          - [ ] `SCDropDownList.tsx`
-          - [ ] `SCTags.js`
-        - [ ] `Accordion.tsx`
+          - [x] `SCBoolean.tsx` (Replaced by `components/ui/checkbox.tsx`)
+          - [x] `SCComboBox.tsx` (Replaced by `components/ui/select.tsx`)
+          - [x] `SCDate.tsx` (Replaced by `components/ui/date-picker.tsx`)
+          - [x] `SCDropDown.tsx` (Replaced by `components/ui/select.tsx`)
+          - [x] `SCDropDownList.tsx` (Replaced by `components/ui/select.tsx`)
+          - [x] `SCTags.js` (Replaced by `components/ui/input.tsx`)
+        - [x] `Accordion.tsx` (Replaced by `components/ui/accordion.tsx`)
         - [ ] `ButtonControl.tsx`
-        - [ ] `DataListView.tsx`
+        - [x] `DataListView.tsx` (Replaced by `components/ui/table.tsx`)
         - [ ] `DesignElementRender.tsx`
         - [ ] `HelpText.tsx`
         - [ ] `IDTextControl.tsx`
         - [ ] `loading.tsx`
         - [ ] `loadingStyle.css`
-        - [ ] `MessageBox.tsx`
-        - [ ] `PopUp.tsx`
+        - [x] `MessageBox.tsx` (Replaced by `components/ui/dialog.tsx`)
+        - [x] `PopUp.tsx` (Replaced by `components/ui/dialog.tsx`)
         - [ ] `ReportStudio.tsx`
-        - [ ] `SCAlert.tsx`
-        - [ ] `SCDataTable.tsx`
+        - [x] `SCAlert.tsx` (Replaced by `components/ui/alert.tsx`)
+        - [x] `SCDataTable.tsx` (Replaced by `components/ui/table.tsx`)
         - [ ] `SCGrid.tsx`
         - [ ] `SessionTimeOut.tsx`
-        - [ ] `ShowAlert.tsx`
+        - [x] `ShowAlert.tsx` (Replaced by `components/ui/toast.tsx`)
         - [ ] `SVGButtons.tsx`
         - [ ] `treestyle.css`
         - [ ] `TreeView.tsx`
@@ -312,9 +312,9 @@
   - 📁 `lib/`
     - 📁 `model/`
       - [ ] `spec-cache.ts`
-      - [ ] `static-menu.ts`
-      - [ ] `static-specs.ts`
-      - [ ] `types.ts`
+      - [x] `static-menu.ts` (Migrated to `src/lib/mocks/menu.ts`)
+      - [x] `static-specs.ts` (Migrated to `src/lib/mocks/specs.ts`)
+      - [x] `types.ts` (Migrated to `src/lib/schema/schemas.ts`)
     - [ ] `callService.ts`
     - [x] `cn.ts`
     - [ ] `command.ts`
@@ -326,7 +326,7 @@
     - [ ] `registry.ts`
     - [x] `services.ts`
   - 📁 `server/`
-    - [ ] `model-source.ts`
+    - [/] `model-source.ts` (GMC & MNU parsing migrated to `src/lib/schema/schema-parser.ts` & `menu-parser.ts`)
     - [x] `redis.ts`
   - 📁 `types/`
     - [ ] `global.d.ts`

@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const { execFileSync } = require("child_process");
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
 
 const OUT_DIR = path.join("src", "lib", "core", "generated");
 const PROTO_DIR = path.join("src", "grpc");
@@ -18,7 +18,9 @@ const protocPlugin = path.join(
 );
 
 if (!fs.existsSync(protocPlugin)) {
-  console.error(`Error: ts-proto plugin not found at "${protocPlugin}". Please run 'pnpm install' first.`);
+  console.error(
+    `Error: ts-proto plugin not found at "${protocPlugin}". Please run 'pnpm install' first.`
+  );
   process.exit(1);
 }
 
@@ -42,15 +44,19 @@ try {
     }
   );
   console.log(`✓ Generated stubs in ${OUT_DIR}`);
-} catch (error) {
-  if (error.code === "ENOENT") {
-    console.error("\nError: 'protoc' (protobuf compiler) command was not found in your system PATH.");
+} catch (error: any) {
+  if (error?.code === "ENOENT") {
+    console.error(
+      "\nError: 'protoc' (protobuf compiler) command was not found in your system PATH."
+    );
     console.error("Please install protoc:");
-    console.error("  - Windows: choco install protoc / winget install Google.Protobuf / scoop install protoc");
+    console.error(
+      "  - Windows: choco install protoc / winget install Google.Protobuf / scoop install protoc"
+    );
     console.error("  - macOS: brew install protobuf");
     console.error("  - Linux: sudo apt install -y protobuf-compiler\n");
   } else {
-    console.error("Error running protoc:", error.message);
+    console.error("Error running protoc:", error?.message || error);
   }
   process.exit(1);
 }

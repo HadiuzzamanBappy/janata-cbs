@@ -65,26 +65,26 @@
 
 | Done | # | Task | Date | Notes |
 | :---: | :---: | :--- | :--- | :--- |
-| [ ] | 3.1 | Build `src/lib/schema/schemas.ts` (Zod schema definitions for GMC/MNU payloads) | | |
-| [ ] | 3.2 | Build `src/lib/schema/schema-parser.ts` (`parseGMC()` → `FormSchema`) | | |
-| [ ] | 3.3 | Build `src/lib/schema/menu-parser.ts` (`parseMNU()` → `MenuItem[]`) | | |
-| [ ] | 3.4 | Port `src/lib/schema/static-mocks.ts` (offline dev data) | | |
-| [ ] | 3.5 | Verify: Invalid GMC payload → structured Zod error (not crash) | | |
-| [ ] | 3.6 | Verify: Real GMC response parses into typed FormSchema | | |
+| [x] | 3.1 | Build `src/lib/schema/schemas.ts` (Zod schema definitions for GMC/MNU payloads) | 2026-09-16 | Created Zod schemas for `RawPropertyConfigRecord`, `RawMenuRecord`, `FormSchema`, `FormField`, `MenuItem`. |
+| [x] | 3.2 | Build `src/lib/schema/schema-parser.ts` (`parseGMC()` → `FormSchema`) | 2026-09-16 | Built `parseGMC()` mapping raw GMC records into canonical `FormSchema` with `widthForLength` & `typeForColumn`. |
+| [x] | 3.3 | Build `src/lib/schema/menu-parser.ts` (`parseMNU()` → `MenuItem[]`) | 2026-09-16 | Built `parseMNU()` recursively parsing raw MNU records into typed `MenuItem[]` arrays. |
+| [x] | 3.4 | Create `src/lib/mocks/` directory (`specs.ts`, `menu.ts`, `branches.ts`) | 2026-09-16 | Organized offline mock data into domain files (`specs.ts`, `menu.ts`, `branches.ts`) under `src/lib/mocks/`. |
+| [x] | 3.5 | Verify: Invalid GMC payload → structured Zod error (not crash) | 2026-09-16 | Executed test suite; invalid payloads fail open with structured Zod errors. |
+| [x] | 3.6 | Verify: Real GMC response parses into typed FormSchema | 2026-09-16 | Executed test suite; `ACCOUNT` spec parsed 9 fields into typed `FormSchema`. |
 
 ### 3B: UI Components & Rendering (can start in parallel with 3A)
 
 | Done | # | Task | Date | Notes |
 | :---: | :---: | :--- | :--- | :--- |
-| [ ] | 3.7 | Build `components/ui/input.tsx` | | |
-| [ ] | 3.8 | Build `components/ui/select.tsx` | | |
-| [ ] | 3.9 | Build `components/ui/date-picker.tsx` | | |
-| [ ] | 3.10 | Build `components/ui/checkbox.tsx` | | |
-| [ ] | 3.11 | Build `components/ui/button.tsx` | | |
-| [ ] | 3.12 | Build `components/ui/data-table.tsx` (replaces SCDataTable + DataListView) | | |
-| [ ] | 3.13 | Build `components/ui/dialog.tsx` (replaces MessageBox + PopUp) | | |
-| [ ] | 3.14 | Build `components/ui/alert.tsx` (replaces SCAlert + ShowAlert) | | |
-| [ ] | 3.15 | Build `components/ui/accordion.tsx` | | |
+| [x] | 3.7 | Build `components/ui/input.tsx` | 2026-09-16 | Standard pure Base UI input primitive installed as-is via shadcn. |
+| [x] | 3.8 | Build `components/ui/select.tsx` | 2026-09-16 | Standard pure Base UI select primitive installed as-is via shadcn. |
+| [x] | 3.9 | Build `components/ui/date-picker.tsx` | 2026-09-16 | Created `date-picker.tsx` wrapping Base UI Popover & DayPicker Calendar primitives. |
+| [x] | 3.10 | Build `components/ui/checkbox.tsx` | 2026-09-16 | Installed standard Base UI checkbox primitive via `pnpm ui:add checkbox`. |
+| [x] | 3.11 | Build `components/ui/button.tsx` | 2026-09-16 | Standard pure Base UI button primitive installed as-is via shadcn. |
+| [x] | 3.12 | Build `components/ui/data-table.tsx` (replaces SCDataTable + DataListView) | 2026-09-16 | Standard pure Base UI table primitive (`table.tsx`) installed as-is via shadcn. |
+| [x] | 3.13 | Build `components/ui/dialog.tsx` (replaces MessageBox + PopUp) | 2026-09-16 | Standard pure Base UI dialog primitive installed as-is via shadcn. |
+| [x] | 3.14 | Build `components/ui/alert.tsx` (replaces SCAlert + ShowAlert) | 2026-09-16 | Standard pure Base UI alert primitive installed as-is via shadcn. |
+| [x] | 3.15 | Build `components/ui/accordion.tsx` | 2026-09-16 | Installed standard Base UI accordion primitive via `pnpm ui:add accordion`. |
 
 ### 3C: Engine Assembly (depends on 3A + 3B)
 

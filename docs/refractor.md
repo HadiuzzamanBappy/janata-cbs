@@ -247,8 +247,13 @@ finxui-v2/
 │   │   ├── schema/                     # Data Dictionary & Validation
 │   │   │   ├── schema-parser.ts        # Zod-validated GMC → FormSchema mapper
 │   │   │   ├── menu-parser.ts          # Zod-validated MNU → MenuItem mapper
-│   │   │   ├── schemas.ts              # Zod schema definitions
-│   │   │   └── static-mocks.ts         # Offline dev mock data
+│   │   │   └── schemas.ts              # Zod schema definitions
+│   │   │
+│   │   ├── mocks/                      # Domain Mock Data (Offline Dev)
+│   │   │   ├── specs.ts                # Model specs (FUNDS.TRANSFER, ACCOUNT, etc.)
+│   │   │   ├── menu.ts                 # Menu hierarchy tree
+│   │   │   ├── branches.ts             # Banking branch directory
+│   │   │   └── index.ts                # Barrel export
 │   │   │
 │   │   └── utils/                      # Shared utilities (client + server safe)
 │   │       ├── cn.ts                   # classnames helper (clsx + twMerge)

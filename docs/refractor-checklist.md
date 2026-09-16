@@ -278,3 +278,18 @@
 - [ ] `src/server/grpc-client.ts` — Consolidated into `src/lib/core/grpc.ts`
 - [ ] `api/menu/` route — RSC fetches menu directly in layout
 - [ ] `api/checksession/` + `api/getsession/` + `api/setsession/` — Consolidated into `api/session/`
+
+---
+
+## 📌 Pending TODOs & Technical Debt Registry (For Final Review Stage)
+
+> **Purpose**: Every future enhancement, optimization, or security check marked in code with `// TODO:` is logged here so you can review and resolve all remaining items in the final production stage.
+
+| ID | File Path | Phase / Step Target | Description | Status |
+| :---: | :--- | :---: | :--- | :---: |
+| **TODO-1** | [`src/lib/core/grpc.ts`](file:///d:/CBS/In_house/finxui-ref/src/lib/core/grpc.ts#L26) | Step 8 (Production Tuning) | Implement multi-channel gRPC connection pooling for high-concurrency peak load. | Pending |
+| **TODO-2** | [`src/lib/core/dispatch.ts`](file:///d:/CBS/In_house/finxui-ref/src/lib/core/dispatch.ts#L68) | Step 8 (Resilience) | Implement exponential backoff retry policy for REST microservice endpoints. | Pending |
+| **TODO-3** | [`src/lib/core/redis-session.ts`](file:///d:/CBS/In_house/finxui-ref/src/lib/core/redis-session.ts#L94) | Step 4 (Auth Flow) | Implement automatic JWT refresh token rotation on sliding session renewal. | Pending |
+| **TODO-4** | [`src/app/api/cache/route.ts`](file:///d:/CBS/In_house/finxui-ref/src/app/api/cache/route.ts#L11) | Step 8 (Security Audit) | Enforce HMAC SHA-256 signature verification for Java core webhook calls. | Pending |
+| **TODO-5** | [`docs/legacy-src-checklist.md`](file:///d:/CBS/In_house/finxui-ref/docs/legacy-src-checklist.md#L240) | Step 6 (Reporting) | Port `/api/getpdf/route.ts` for PDF generation streaming. | Pending |
+

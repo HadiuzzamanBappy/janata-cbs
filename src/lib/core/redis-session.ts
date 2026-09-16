@@ -91,6 +91,7 @@ export async function getSession(): Promise<SessionData | null> {
     if (!raw) return null;
 
     await redis.expire(sessionKey(id), TTL_SECONDS);
+    // TODO: [Step 4 - Auth Flow] Implement automatic JWT refresh token rotation on sliding session renewal.
     return JSON.parse(raw) as SessionData;
   } catch {
     return null;

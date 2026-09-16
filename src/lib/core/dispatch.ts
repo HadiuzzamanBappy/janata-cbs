@@ -65,6 +65,7 @@ export async function dispatch(
 
     if (!isDefault) {
       // ---- REST Microservice Transport ----
+      // TODO: [Step 8 - Resilience] Implement exponential backoff retry policy for REST microservice endpoints.
       const restEndpoint = `${serviceUrl}/${envelope.requestType}`;
       const response = await fetch(restEndpoint, {
         method: "POST",

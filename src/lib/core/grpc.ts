@@ -23,6 +23,7 @@ declare global {
   var __grpcClient: GrpcServiceClient | undefined;
 }
 
+// TODO: [Step 8 - Production Tuning] Implement multi-channel gRPC connection pooling for high-concurrency peak load.
 function buildClient(address: string): GrpcServiceClient {
   const creds: ChannelCredentials = env.GRPC_TLS
     ? credentials.createSsl()

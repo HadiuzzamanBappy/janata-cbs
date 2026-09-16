@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   const secret = env.CACHE_INVALIDATE_TOKEN;
 
+  // TODO: [Step 8 - Security Audit] Enforce HMAC SHA-256 signature verification for Java core webhook calls.
   if (secret) {
     const provided = request.headers.get("x-cache-token");
     if (provided !== secret) {

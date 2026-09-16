@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import { useSessionStore } from "@/store/session-store";
 import { useWorkbenchStore } from "@/store/workbench-store";
-import { useAlertStore } from "@/store/alert-store";
 import { launchScreen } from "@/lib/screen-launcher";
 import { Badge } from "@/components/ui/badge";
 
@@ -243,7 +242,6 @@ interface GlobalSearchProps {
 export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
   const { user, clearSession } = useSessionStore();
   const { addTab } = useWorkbenchStore();
-  const { showAlert } = useAlertStore();
 
   const userRole = user?.role ?? "Administrator";
   const isAdmin = userRole === "Administrator" || userRole === "ADMIN";
@@ -280,11 +278,6 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
       });
     } else if (cmd.actionType === "LOGOUT") {
       clearSession();
-      showAlert({
-        type: "info",
-        title: "Session Terminated",
-        message: "You have signed out of Janata Bank Core Banking System.",
-      });
     } else if (cmd.actionType === "THEME") {
       const isDark = document.documentElement.classList.contains("dark");
       if (isDark) {
@@ -292,29 +285,26 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
       } else {
         document.documentElement.classList.add("dark");
       }
-      showAlert({
-        type: "info",
-        title: "Theme Toggled",
-        message: `Switched theme to ${isDark ? "Light" : "Dark"} mode.`,
-      });
     }
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-2xl sm:max-w-3xl">
-      <CommandInput placeholder="Type command name, screen ID, or search..." className="text-base py-3" />
-      <CommandList className="max-h-[440px]">
-        <CommandEmpty className="py-10 text-base">No results matching your permission level.</CommandEmpty>
+    <CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-lg sm:max-w-xl">
+      <CommandInput placeholder="Type command name, screen ID, or search..." />
+      <CommandList className="max-h-72">
+        <CommandEmpty className="py-6 text-xs text-muted-foreground">
+          No results matching your permission level.
+        </CommandEmpty>
 
         {/* RBAC Permission Banner Header */}
-        <div className="px-4 py-2 flex items-center justify-between border-b border-border/40 text-xs text-muted-foreground bg-muted/20">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">Role RBAC Filter:</span>
-            <Badge variant="outline" className="text-xs font-mono px-2 py-0.5">
+        <div className="px-3 py-1 flex items-center justify-between border-b border-border/40 text-[11px] text-muted-foreground bg-muted/20">
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium">RBAC Filter:</span>
+            <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
               {userRole}
             </Badge>
           </div>
-          <span className="font-mono text-xs opacity-80">
+          <span className="font-mono text-[10px] opacity-80">
             {authorizedCommands.length} commands authorized
           </span>
         </div>
@@ -327,23 +317,23 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
                 <CommandItem
                   key={cmd.id}
                   onSelect={() => handleSelectCommand(cmd)}
-                  className="group flex items-center justify-between py-2.5 px-3.5"
+                  className="group flex items-center justify-between py-1.5 px-2.5 cursor-pointer"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <IconComp className="size-4" />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="size-6.5 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <IconComp className="size-3.5" />
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-semibold text-sm truncate group-data-[selected=true]:text-accent-foreground">
+                      <span className="font-medium text-xs truncate group-data-[selected=true]:text-accent-foreground">
                         {cmd.title}
                       </span>
-                      <span className="text-xs text-muted-foreground truncate">
+                      <span className="text-[11px] text-muted-foreground truncate">
                         {cmd.description}
                       </span>
                     </div>
                   </div>
                   {cmd.command && (
-                    <CommandShortcut className="font-mono text-xs bg-muted/60 px-2 py-0.5 rounded border border-border/40">
+                    <CommandShortcut className="font-mono text-[10px] bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 shrink-0 ml-2">
                       {cmd.command}
                     </CommandShortcut>
                   )}
@@ -354,20 +344,20 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
         ))}
       </CommandList>
       {/* Keyboard Shortcut Footer Instructions */}
-      <div className="px-4 py-3 flex items-center justify-between border-t border-border/50 text-xs text-muted-foreground bg-muted/30 select-none">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-xs">↑</kbd>
-            <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-xs">↓</kbd>
+      <div className="px-3 py-2 flex items-center justify-between border-t border-border/50 text-[11px] text-muted-foreground bg-muted/30 select-none">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1">
+            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↑</kbd>
+            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↓</kbd>
             <span>Navigate</span>
           </span>
-          <span className="flex items-center gap-1.5">
-            <kbd className="px-2 py-0.5 bg-background border rounded font-mono text-xs">↵</kbd>
+          <span className="flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">↵</kbd>
             <span>Select</span>
           </span>
         </div>
-        <span className="flex items-center gap-1.5">
-          <kbd className="px-2 py-0.5 bg-background border rounded font-mono text-xs">ESC</kbd>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">ESC</kbd>
           <span>Close</span>
         </span>
       </div>

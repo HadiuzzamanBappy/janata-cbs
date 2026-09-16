@@ -4,7 +4,6 @@ import * as React from "react";
 import {
   Building2,
   ChevronsUpDown,
-  Command as CommandIcon,
   Check,
   LogOut,
   UserCheck,
@@ -20,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useSessionStore } from "@/store/session-store";
-import { useAlertStore } from "@/store/alert-store";
+import { toast } from "@/components/ui/toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,7 +45,6 @@ export function TopBar() {
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [branchSearch, setBranchSearch] = React.useState("");
   const { user, currentBranch, setBranch, clearSession } = useSessionStore();
-  const { showAlert } = useAlertStore();
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -80,10 +78,10 @@ export function TopBar() {
 
   const handleBranchSwitch = (code: string, name: string) => {
     setBranch(code);
-    showAlert({
-      type: "success",
+    toast.add({
       title: "Branch Context Switched",
-      message: `Active session context roaming changed to ${name} [${code}].`,
+      description: `Active session roaming changed to ${name} [${code}].`,
+      type: "success",
     });
   };
 
@@ -91,28 +89,31 @@ export function TopBar() {
     <>
       <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 transition-[width] ease-linear select-none">
         {/* Header Left: Sidebar Trigger, Vertical Divider, Global Search Trigger */}
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="-ml-1" />
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+          <SidebarTrigger className="-ml-1 shrink-0" />
           <Separator
             orientation="vertical"
-            className="mr-2 data-vertical:h-4 data-vertical:self-auto"
+            className="mr-1 sm:mr-2 data-vertical:h-4 data-vertical:self-auto shrink-0"
           />
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setSearchOpen(true)}
-            className="relative w-64 h-8 px-2.5 flex items-center justify-between rounded-lg bg-muted/50 border border-border/60 text-xs text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors cursor-pointer"
+            className="h-8 justify-between bg-muted/30 border-border/60 text-xs text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors cursor-pointer w-32 sm:w-44 md:w-56 px-2.5 shrink min-w-0"
+            title="Search commands & screens (Ctrl+K)"
           >
-            <div className="flex items-center gap-2">
-              <CommandIcon className="size-3.5 opacity-60" />
-              <span>Search commands & screens...</span>
+            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+              <Search className="size-3.5 opacity-60 shrink-0" />
+              <span className="truncate text-xs font-normal">Search...</span>
             </div>
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-border/60 bg-background px-1.5 font-mono text-[10px] font-medium opacity-80">
-              <span className="text-[10px]">⌘</span>K
+            <kbd className="pointer-events-none hidden sm:inline-flex h-4.5 select-none items-center gap-0.5 rounded border border-border/60 bg-background px-1 font-mono text-[9px] font-medium opacity-80 shrink-0 ml-1">
+              <span className="text-[9px]">⌘</span>K
             </kbd>
-          </button>
+          </Button>
         </div>
 
         {/* Header Right: Branch Switcher, Theme Toggle, User Avatar Profile Dropdown */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Branch Roaming Dropdown Switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -120,17 +121,17 @@ export function TopBar() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-2 px-2.5 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground"
+                  className="h-8 gap-1.5 sm:gap-2 px-2 sm:px-2.5 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 max-w-[130px] sm:max-w-none"
                 />
               }
             >
               <div className="size-5 rounded-sm bg-primary/10 text-primary flex items-center justify-center shrink-0">
                 <Building2 className="size-3.5" />
               </div>
-              <span className="font-semibold text-xs font-mono tracking-tight text-foreground">
+              <span className="font-semibold text-xs font-mono tracking-tight text-foreground truncate max-w-[70px] sm:max-w-none">
                 [{activeBranchObj.code}] • {activeBranchObj.type}
               </span>
-              <ChevronsUpDown className="size-3.5 text-muted-foreground ml-1" />
+              <ChevronsUpDown className="size-3.5 text-muted-foreground ml-0.5 sm:ml-1 shrink-0" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-72 p-0 overflow-hidden">
               {/* Header: Branch Search Field without extra header text */}

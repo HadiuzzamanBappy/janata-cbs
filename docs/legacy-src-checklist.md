@@ -261,15 +261,15 @@
       - [ ] `page.tsx`
     - 📁 `stores/`
       - [x] `alertStore.ts`
-    - [ ] `fonts.ts`
-    - [ ] `globals.css`
-    - [ ] `layout.tsx`
-    - [ ] `page.tsx`
+    - [x] `fonts.ts`
+    - [x] `globals.css`
+    - [x] `layout.tsx`
+    - [x] `page.tsx`
   - 📁 `components/`
     - 📁 `auth/`
       - [ ] `sign-on-form.tsx`
     - 📁 `command/`
-      - [ ] `command-input.tsx`
+      - [x] `command-input.tsx`
     - 📁 `component-view/`
       - [ ] `component-loader.tsx`
       - [ ] `component-registry.ts`
@@ -280,26 +280,26 @@
       - [ ] `charts.tsx`
       - [ ] `dashboard.tsx`
     - 📁 `shell/`
-      - [ ] `app-header.tsx`
-      - [ ] `shell.tsx`
+      - [x] `app-header.tsx`
+      - [x] `shell.tsx`
     - 📁 `theme/`
       - [x] `theme-key.ts`
       - [x] `theme-provider.tsx`
       - [x] `theme-script.tsx`
       - [x] `theme-toggle.tsx`
     - 📁 `tree/`
-      - [ ] `menu-search.tsx`
-      - [ ] `tree-view.tsx`
+      - [x] `menu-search.tsx`
+      - [x] `tree-view.tsx`
     - 📁 `ui/`
-      - [ ] `badge.tsx`
-      - [ ] `button.tsx`
-      - [ ] `card.tsx`
-      - [ ] `input.tsx`
+      - [x] `badge.tsx`
+      - [x] `button.tsx`
+      - [x] `card.tsx`
+      - [x] `input.tsx`
     - 📁 `window/`
-      - [ ] `open-component-window.ts`
-      - [ ] `window-frame.tsx`
+      - [x] `open-component-window.ts`
+      - [x] `window-frame.tsx`
     - 📁 `workspace/`
-      - [ ] `workspace-provider.tsx`
+      - [x] `workspace-provider.tsx`
   - 📁 `grpc/`
     - 📁 `generated/`
       - 📁 `google/`

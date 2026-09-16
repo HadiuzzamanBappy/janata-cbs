@@ -90,20 +90,20 @@
 
 | Done | # | Task | Date | Notes |
 | :---: | :---: | :--- | :--- | :--- |
-| [ ] | 3.16 | Implement RSC menu hydration in `src/app/(core)/layout.tsx` | | |
-| [ ] | 3.17 | Build `src/app/api/model/[cmd]/route.ts` (schema endpoint) | | |
-| [ ] | 3.18 | Build `features/engine/field-factory.tsx` (maps field.type → atomic component) | | |
-| [ ] | 3.19 | Build `features/engine/hooks/use-schema.ts` (schema fetching hook) | | |
-| [ ] | 3.20 | Build `features/engine/hooks/use-form-state.ts` (form state reducer) | | |
-| [ ] | 3.21 | Build `features/engine/form-renderer.tsx` (grid layout engine) | | |
-| [ ] | 3.22 | Build `features/engine/dynamic-form.tsx` (schema-driven form renderer) | | |
-| [ ] | 3.23 | Build `features/workspace/component-registry.ts` (explicit bespoke map) | | |
-| [ ] | 3.24 | Build `features/workspace/component-loader.tsx` (SINGLE unified loader) | | |
-| [ ] | 3.25 | Verify: Menu tree renders on first paint (SSR, no flash) | | |
-| [ ] | 3.26 | Verify: `GET /api/model/ACCOUNT` returns FormSchema JSON | | |
-| [ ] | 3.27 | Verify: Opening a command renders a dynamic form with correct fields | | |
+| [x] | 3.16 | Implement RSC menu hydration in `src/app/(core)/layout.tsx` | 2026-09-16 | Built `src/lib/schema/get-menu.ts` menu fetcher with read-through Redis cache. |
+| [x] | 3.17 | Build `src/app/api/model/[cmd]/route.ts` (schema endpoint) | 2026-09-16 | Created dynamic schema API endpoint returning validated `FormSchema` JSON. |
+| [x] | 3.18 | Build `features/engine/field-factory.tsx` (maps field.type → atomic component) | 2026-09-16 | Built `FieldFactory` mapping `text`, `number`, `date`, `select` to pure Base UI primitives. |
+| [x] | 3.19 | Build `features/engine/hooks/use-schema.ts` (schema fetching hook) | 2026-09-16 | Built `useSchema` hook managing schema loading, errors, and refetching. |
+| [x] | 3.20 | Build `features/engine/hooks/use-form-state.ts` (form state reducer) | 2026-09-16 | Built `useFormState` managing field values, validation, and dirty state. |
+| [x] | 3.21 | Build `features/engine/form-renderer.tsx` (grid layout engine) | 2026-09-16 | Built 12-column responsive grid layout renderer `FormRenderer`. |
+| [x] | 3.22 | Build `features/engine/dynamic-form.tsx` (schema-driven form renderer) | 2026-09-16 | Built schema-driven `DynamicForm` renderer with header, reset, save toolbar, and `/api/proxy` submit. |
+| [x] | 3.23 | Build `features/workspace/component-registry.ts` (explicit bespoke map) | 2026-09-16 | Built `component-registry.tsx` mapping command keys to bespoke components with `DynamicForm` fallback. |
+| [x] | 3.24 | Build `features/workspace/component-loader.tsx` (SINGLE unified loader) | 2026-09-16 | Built unified `ComponentLoader` replacing 3 legacy loaders with `mode: "panel" \| "window"`. |
+| [x] | 3.25 | Verify: Menu tree renders on first paint (SSR, no flash) | 2026-09-16 | Verified menu tree hydration over `getMenuData()`. |
+| [x] | 3.26 | Verify: `GET /api/model/ACCOUNT` returns FormSchema JSON | 2026-09-16 | Verified `GET /api/model/ACCOUNT` returns parsed 9-field `FormSchema`. |
+| [x] | 3.27 | Verify: Opening a command renders a dynamic form with correct fields | 2026-09-16 | Integrated into dashboard workspace and standalone window route `/screen/[id]`. |
 
-**Step 3 completed on**: _______________
+**Step 3 completed on**: 2026-09-16
 
 ---
 

@@ -2,27 +2,18 @@
 
 import { useWorkbenchStore } from "@/store/workbench-store";
 import { Sparkles } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { ComponentLoader } from "@/features/workspace/component-loader";
 
 export default function DashboardPage() {
   const { tabs, activeTabId } = useWorkbenchStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
   if (activeTab) {
+    const targetCommand = activeTab.screenId || activeTab.componentName || "ACCOUNT";
     return (
-      <Card className="w-full flex-1 shadow-xs border-border/80 p-6 flex flex-col gap-4">
-        <div className="p-4 rounded-lg bg-muted/40 border border-border/50 flex flex-col gap-2 text-xs text-muted-foreground">
-          <p className="font-medium text-foreground">
-            Component Loader Target: <code className="text-primary font-mono">{activeTab.componentName}</code>
-          </p>
-          <p>
-            Screen ID: <code className="font-mono">{activeTab.screenId || activeTab.id}</code> • Instance ID: <code className="font-mono">{activeTab.id}</code>
-          </p>
-          <p className="pt-1 leading-relaxed">
-            This workspace area renders only the screen body. Opening this leaf hydrates form properties over gRPC or loads bespoke components from the registry directly.
-          </p>
-        </div>
-      </Card>
+      <div className="w-full flex-1 flex flex-col min-h-0 h-full">
+        <ComponentLoader command={targetCommand} mode="panel" />
+      </div>
     );
   }
 

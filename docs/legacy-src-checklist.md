@@ -203,9 +203,9 @@
         - [ ] `SC.CHANGE.PASS.tsx`
         - [ ] `SC.COB.REGISTRY.tsx`
         - [ ] `SC.CONTROL.LIST.tsx`
-        - [ ] `SC.DYNAMIC.tsx`
+        - [x] `SC.DYNAMIC.tsx` (Migrated to `features/engine/dynamic-form.tsx`)
         - [ ] `SC.FORM.BUILDER.tsx`
-        - [ ] `SC.FORM.tsx`
+        - [x] `SC.FORM.tsx` (Migrated to `features/engine/form-renderer.tsx`)
         - [ ] `SC.HELP.TEXT.tsx`
         - [ ] `SC.INQUIRY.tsx`
         - [ ] `SC.MENU.DESIGN.tsx`
@@ -228,9 +228,9 @@
         - [ ] `RequisitionStatus.json`
       - [ ] `APIService.ts`
       - [ ] `command.tsx`
-      - [ ] `componentLoader.tsx`
-      - [ ] `pannelLoader.tsx`
-      - [ ] `windowLoader.tsx`
+      - [x] `componentLoader.tsx` (Consolidated into `features/workspace/component-loader.tsx`)
+      - [x] `pannelLoader.tsx` (Consolidated into `features/workspace/component-loader.tsx`)
+      - [x] `windowLoader.tsx` (Consolidated into `features/workspace/component-loader.tsx`)
     - 📁 `api/`
       - 📁 `cache/`
         - [x] `route.ts`
@@ -248,7 +248,7 @@
         - [ ] `route.ts`
       - 📁 `model/`
         - 📁 `[command]/`
-          - [ ] `route.ts`
+          - [x] `route.ts` (Migrated to `src/app/api/model/[cmd]/route.ts`)
       - 📁 `proxy/`
         - [x] `route.ts`
       - 📁 `setsession/`

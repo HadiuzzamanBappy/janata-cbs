@@ -112,48 +112,39 @@ export function ChangePassword({ command: _command }: { command?: string }) {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto mt-8 bg-surface border border-gray-200 dark:border-gray-800 rounded-lg shadow-sm">
-      <div className="mb-6 border-b pb-4">
-        <h2 className="text-xl font-semibold">Change Password</h2>
-        <p className="text-sm text-fg-muted mt-1">Update your account password. Ensure it meets the security requirements.</p>
-      </div>
+    <div className="max-w-2xl">
+      <div className="bg-background rounded-lg border border-border/50 p-6 shadow-sm">
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+        {success && (
+          <Alert className="mb-6 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-400">
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
 
-      {success && (
-        <Alert className="mb-6 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-400">
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{success}</AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={handleChangePassword} className="space-y-5">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right font-medium">User Name</Label>
-          <div className="col-span-3">
-            <Input value={userId} disabled className="bg-gray-50 dark:bg-gray-900" />
+        <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+          <div className="space-y-1.5">
+            <Label className="font-medium text-sm">User Name</Label>
+            <Input value={userId} disabled className="bg-muted/50" />
           </div>
-        </div>
 
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right font-medium">New User Name <span className="text-red-500">*</span></Label>
-          <div className="col-span-3">
+          <div className="space-y-1.5 pt-2">
+            <Label className="font-medium text-sm">New User Name <span className="text-destructive">*</span></Label>
             <Input 
               value={newUserName} 
               onChange={(e) => setNewUserName(e.target.value)} 
               required
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right font-medium">Current Password <span className="text-red-500">*</span></Label>
-          <div className="col-span-3">
+          <div className="space-y-1.5">
+            <Label className="font-medium text-sm">Current Password <span className="text-destructive">*</span></Label>
             <Input 
               type="password" 
               value={currPass} 
@@ -161,11 +152,9 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               required
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right font-medium">New Password <span className="text-red-500">*</span></Label>
-          <div className="col-span-3">
+          <div className="space-y-1.5">
+            <Label className="font-medium text-sm">New Password <span className="text-destructive">*</span></Label>
             <Input 
               type="password" 
               value={newPass} 
@@ -173,11 +162,9 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               required
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label className="text-right font-medium">Confirm Password <span className="text-red-500">*</span></Label>
-          <div className="col-span-3">
+          <div className="space-y-1.5">
+            <Label className="font-medium text-sm">Confirm Password <span className="text-destructive">*</span></Label>
             <Input 
               type="password" 
               value={confPass} 
@@ -185,17 +172,15 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               required
             />
           </div>
-        </div>
 
-        <div className="grid grid-cols-4 pt-4">
-          <div className="col-start-2 col-span-3">
-            <Button type="submit" disabled={loading} className="w-32 bg-blue-600 hover:bg-blue-700 text-white">
+          <div className="pt-4">
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Change
+              Change Password
             </Button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

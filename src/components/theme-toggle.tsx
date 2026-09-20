@@ -1,6 +1,7 @@
 "use client"
 
-import { Moon, Sun } from "lucide-react"
+import * as React from "react"
+import { Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -10,15 +11,74 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
-export function ThemeToggle() {
-  const { setTheme } = useTheme()
+interface ThemeToggleProps {
+  variant?: "dropdown" | "group"
+}
+
+export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (variant === "group") {
+    if (!mounted) {
+      return (
+        <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg border border-border/50 opacity-50">
+          <div className="w-10 h-8 rounded-md" />
+          <div className="w-10 h-8 rounded-md" />
+          <div className="w-10 h-8 rounded-md" />
+        </div>
+      )
+    }
+
+    return (
+      <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg border border-border/50">
+        <button
+          onClick={() => setTheme("light")}
+          className={cn(
+            "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
+            theme === "light" && "bg-background shadow-sm text-foreground"
+          )}
+          title="Light Mode"
+        >
+          <Sun className="size-4" />
+        </button>
+        <button
+          onClick={() => setTheme("system")}
+          className={cn(
+            "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
+            theme === "system" && "bg-background shadow-sm text-foreground"
+          )}
+          title="System Preference"
+        >
+          <Monitor className="size-4" />
+        </button>
+        <button
+          onClick={() => setTheme("dark")}
+          className={cn(
+            "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
+            theme === "dark" && "bg-background shadow-sm text-foreground"
+          )}
+          title="Dark Mode"
+        >
+          <Moon className="size-4" />
+        </button>
+      </div>
+    )
+  }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
-        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="bg-background border-border/80 hover:bg-accent hover:text-accent-foreground" />}>
+        {mounted && theme === "system" && <Monitor className="h-4 w-4" />}
+        {mounted && theme === "light" && <Sun className="h-4 w-4" />}
+        {mounted && theme === "dark" && <Moon className="h-4 w-4" />}
+        {!mounted && <Sun className="h-4 w-4 opacity-50" />}
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

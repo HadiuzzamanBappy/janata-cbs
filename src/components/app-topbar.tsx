@@ -8,7 +8,6 @@ import {
   LogOut,
   UserCheck,
   KeyRound,
-  ShieldAlert,
   Search,
   User,
 } from "lucide-react";
@@ -31,14 +30,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { GlobalSearchModal } from "@/components/global-search";
+import { SettingsDialog } from "@/components/settings-dialog";
 
 export function TopBar() {
   const [searchOpen, setSearchOpen] = React.useState(false);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [settingsTab, setSettingsTab] = React.useState("profile");
   const [branchSearch, setBranchSearch] = React.useState("");
   const [branches, setBranches] = React.useState<Array<{ code: string; name: string; type: string }>>([
     { code: "JB9999", name: "Central Office (Headquarters)", type: "Head Office" },
   ]);
-  const { user, currentBranch, setBranch, clearSession } = useSessionStore();
+  const { user, currentBranch, setBranch, logout } = useSessionStore();
 
   React.useEffect(() => {
     fetch("/api/branches")
@@ -54,7 +56,7 @@ export function TopBar() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   React.useEffect(() => {
@@ -83,8 +85,9 @@ export function TopBar() {
     );
   }, [branchSearch, branches]);
 
-  const displayUser = user?.username ?? "System User";
-  const displayRole = user?.role ?? "Administrator";
+  const displayUser = user?.username;
+  const displayRole = user?.role;
+  // TODO: Fetch business date from session context instead of hardcoding
   const businessDate = "2026-09-15";
 
   const handleBranchSwitch = (code: string, name: string) => {
@@ -110,21 +113,18 @@ export function TopBar() {
             variant="outline"
             size="sm"
             onClick={() => setSearchOpen(true)}
-            className="h-8 justify-between bg-muted/30 border-border/60 text-xs text-muted-foreground hover:bg-accent/50 hover:text-foreground transition-colors cursor-pointer w-32 sm:w-44 md:w-56 px-2.5 shrink min-w-0"
-            title="Search commands & screens (Ctrl+K)"
+            className="h-8 gap-2 bg-background px-2 sm:px-3 text-muted-foreground hover:text-foreground shrink-0"
           >
-            <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-              <Search className="size-3.5 opacity-60 shrink-0" />
-              <span className="truncate text-xs font-normal">Search...</span>
-            </div>
-            <kbd className="pointer-events-none hidden sm:inline-flex h-4.5 select-none items-center gap-0.5 rounded border border-border/60 bg-background px-1 font-mono text-[9px] font-medium opacity-80 shrink-0 ml-1">
-              <span className="text-[9px]">⌘</span>K
+            <Search className="size-4" />
+            <span className="hidden sm:inline-block">Search / Run</span>
+            <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
+              <span className="text-xs">⌘</span>K
             </kbd>
           </Button>
         </div>
 
         {/* Header Right: Branch Switcher, Theme Toggle, User Avatar Profile Dropdown */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {/* Branch Roaming Dropdown Switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -132,55 +132,49 @@ export function TopBar() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 sm:gap-2 px-2 sm:px-2.5 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 max-w-[130px] sm:max-w-none"
+                  className="h-8 px-2 sm:px-3 border-border/80 hover:bg-accent min-w-0"
                 />
               }
             >
-              <div className="size-5 rounded-sm bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <Building2 className="size-3.5" />
-              </div>
-              <span className="font-semibold text-xs font-mono tracking-tight text-foreground truncate max-w-[70px] sm:max-w-none">
-                [{activeBranchObj.code}] • {activeBranchObj.type}
+              <Building2 className="mr-2 size-3.5 shrink-0 text-muted-foreground" />
+              <span className="truncate max-w-[120px] sm:max-w-[200px] text-xs font-medium">
+                {activeBranchObj.name}
               </span>
-              <ChevronsUpDown className="size-3.5 text-muted-foreground ml-0.5 sm:ml-1 shrink-0" />
+              <ChevronsUpDown className="ml-2 size-3 shrink-0 opacity-50" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72 p-0 overflow-hidden">
-              {/* Header: Branch Search Field without extra header text */}
-              <div className="p-2 border-b border-border/60 bg-muted/30 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <DropdownMenuContent align="end" className="w-[300px]">
+              <DropdownMenuLabel className="font-normal p-2">
+                <div className="text-xs text-muted-foreground mb-2">Switch Active Branch</div>
                 <Input
+                  placeholder="Filter branches..."
+                  className="h-8 text-xs bg-muted/50"
                   value={branchSearch}
                   onChange={(e) => setBranchSearch(e.target.value)}
-                  placeholder="Search branch name or code..."
-                  className="pl-8 h-8 text-xs bg-background border-border/70 focus-visible:ring-1"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
                 />
-              </div>
-              <DropdownMenuGroup className="max-h-60 overflow-y-auto p-1">
-                {filteredBranches.length > 0 ? (
-                  filteredBranches.map((branch) => {
-                    const isCurrent = branch.code === activeBranchCode;
-                    return (
-                      <DropdownMenuItem
-                        key={branch.code}
-                        onClick={() => handleBranchSwitch(branch.code, branch.name)}
-                        className="flex items-center justify-between py-2 cursor-pointer"
-                      >
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-medium text-xs">{branch.name}</span>
-                          <span className="font-mono text-[10px] text-muted-foreground">
-                            {branch.code} • {branch.type}
-                          </span>
-                        </div>
-                        {isCurrent && <Check className="size-4 text-primary shrink-0" />}
-                      </DropdownMenuItem>
-                    );
-                  })
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1">
+                {filteredBranches.length === 0 ? (
+                  <div className="p-2 text-center text-xs text-muted-foreground">No branches found</div>
                 ) : (
-                  <div className="p-4 text-center text-xs text-muted-foreground">
-                    No matching branches found.
-                  </div>
+                  filteredBranches.map((b) => (
+                    <DropdownMenuItem
+                      key={b.code}
+                      onSelect={() => handleBranchSwitch(b.code, b.name)}
+                      className="flex flex-col items-start gap-1 p-2 cursor-pointer focus:bg-accent"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-xs font-medium truncate pr-2">{b.name}</span>
+                        {activeBranchCode === b.code && <Check className="size-3.5 shrink-0 text-primary" />}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1 rounded-sm">
+                          [{b.code}]
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/80">{b.type}</span>
+                      </div>
+                    </DropdownMenuItem>
+                  ))
                 )}
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -197,7 +191,7 @@ export function TopBar() {
                   variant="outline"
                   size="icon"
                   className="size-8 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground"
-                  title={displayUser}
+                  title={displayUser || "No User"}
                 />
               }
             >
@@ -213,14 +207,14 @@ export function TopBar() {
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="font-semibold text-xs leading-tight truncate">
-                      {displayUser}
+                      {displayUser || "null"}
                     </span>
                     <span className="text-[11px] text-muted-foreground font-mono truncate">
-                      sysadmin@janatabank.org.bd
+                      {displayUser ? `${displayUser.toLowerCase()}@janatabank.org.bd` : "null"}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1">
                       <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0">
-                        {displayRole}
+                        {displayRole || "null"}
                       </Badge>
                       <span className="text-[10px] text-muted-foreground font-mono">
                         {businessDate}
@@ -231,23 +225,19 @@ export function TopBar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer text-xs gap-2 py-2">
+                <DropdownMenuItem className="cursor-pointer text-xs gap-2 py-2" onClick={() => { setSettingsTab("profile"); setSettingsOpen(true); }}>
                   <UserCheck className="size-3.5 text-muted-foreground" />
                   <span>User Profile & Privileges</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer text-xs gap-2 py-2">
+                <DropdownMenuItem className="cursor-pointer text-xs gap-2 py-2" onClick={() => { setSettingsTab("security"); setSettingsOpen(true); }}>
                   <KeyRound className="size-3.5 text-muted-foreground" />
                   <span>Security & Password</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer text-xs gap-2 py-2">
-                  <ShieldAlert className="size-3.5 text-muted-foreground" />
-                  <span>Audit Log History</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onClick={clearSession}
+                onClick={logout}
                 className="cursor-pointer text-xs gap-2 py-2"
               >
                 <LogOut className="size-3.5" />
@@ -258,6 +248,7 @@ export function TopBar() {
         </div>
       </header>
       <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} activeTab={settingsTab} onTabChange={setSettingsTab} />
     </>
   );
 }

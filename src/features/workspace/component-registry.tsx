@@ -1,6 +1,6 @@
 import * as React from "react";
 import { DynamicForm } from "@/features/engine/dynamic-form";
-import { ChangePassword } from "@/features/auth/change-password";
+import { ChangePassword } from "@/features/settings/security-tab";
 import { ResetPassword } from "@/features/auth/reset-password";
 import { UserGroups } from "@/features/auth/user-groups";
 

@@ -32,19 +32,30 @@ import {
 
 import { GlobalSearchModal } from "@/components/global-search";
 
-const AUTHORIZED_BRANCHES = [
-  { code: "JB9999", name: "Central Office (Headquarters)", type: "Head Office" },
-  { code: "JB0001", name: "Main Branch (Dhaka)", type: "General" },
-  { code: "JB0002", name: "Corporate Branch (Dilkusha)", type: "Corporate" },
-  { code: "JB0003", name: "Motijheel Branch", type: "General" },
-  { code: "JB0004", name: "Gulshan Branch", type: "Specialized" },
-  { code: "JB0005", name: "Agrabad Branch (Chittagong)", type: "Regional" },
-];
-
 export function TopBar() {
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [branchSearch, setBranchSearch] = React.useState("");
+  const [branches, setBranches] = React.useState<Array<{ code: string; name: string; type: string }>>([
+    { code: "JB9999", name: "Central Office (Headquarters)", type: "Head Office" },
+  ]);
   const { user, currentBranch, setBranch, clearSession } = useSessionStore();
+
+  React.useEffect(() => {
+    fetch("/api/branches")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setBranches(
+            json.data.map((b: any) => ({
+              code: b.recordId,
+              name: b.branchTitle,
+              type: b.recordId === "JB9999" ? "Head Office" : "General",
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -59,18 +70,18 @@ export function TopBar() {
 
   const activeBranchCode = currentBranch ?? "JB9999";
   const activeBranchObj =
-    AUTHORIZED_BRANCHES.find((b) => b.code === activeBranchCode) ?? AUTHORIZED_BRANCHES[0];
+    branches.find((b) => b.code === activeBranchCode) ?? branches[0];
 
   const filteredBranches = React.useMemo(() => {
-    if (!branchSearch.trim()) return AUTHORIZED_BRANCHES;
+    if (!branchSearch.trim()) return branches;
     const q = branchSearch.trim().toLowerCase();
-    return AUTHORIZED_BRANCHES.filter(
+    return branches.filter(
       (b) =>
         b.name.toLowerCase().includes(q) ||
         b.code.toLowerCase().includes(q) ||
         b.type.toLowerCase().includes(q)
     );
-  }, [branchSearch]);
+  }, [branchSearch, branches]);
 
   const displayUser = user?.username ?? "System User";
   const displayRole = user?.role ?? "Administrator";

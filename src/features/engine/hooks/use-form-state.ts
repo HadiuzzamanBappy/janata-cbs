@@ -11,11 +11,13 @@ export function useFormState(
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState<boolean>(false);
 
+  const serializedInitial = JSON.stringify(initialData);
+
   useEffect(() => {
     setValues(initialData);
     setIsDirty(false);
     setErrors({});
-  }, [initialData]);
+  }, [serializedInitial]);
 
   const setValue = useCallback((name: string, val: any) => {
     setValues((prev) => ({ ...prev, [name]: val }));

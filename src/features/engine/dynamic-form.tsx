@@ -15,9 +15,11 @@ export interface DynamicFormProps {
   onSuccess?: (response: any) => void;
 }
 
+const EMPTY_INITIAL_VALUES: Record<string, any> = {};
+
 export function DynamicForm({
   command,
-  initialValues = {},
+  initialValues = EMPTY_INITIAL_VALUES,
   onSuccess,
 }: DynamicFormProps) {
   const { schema, loading, error, refetch } = useSchema(command);
@@ -109,9 +111,9 @@ export function DynamicForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col h-full w-full max-w-5xl mx-auto p-4 gap-4">
-      {/* Header Banner */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-3">
+    <div className="flex flex-col h-full w-full">
+      {/* Sticky Screen Header + Toolbar */}
+      <div className="sticky top-0 z-10 bg-background border-b border-border/60 px-6 py-3 flex items-center justify-between shrink-0">
         <div>
           <h2 className="text-base font-bold tracking-tight text-foreground flex items-center gap-2">
             {schema.title}
@@ -142,6 +144,7 @@ export function DynamicForm({
             size="sm"
             disabled={submitting}
             className="h-8 text-xs gap-1.5"
+            onClick={handleSubmit}
           >
             <Save className="size-3.5" />
             {submitting ? "Saving..." : "Save Record"}
@@ -149,14 +152,16 @@ export function DynamicForm({
         </div>
       </div>
 
-      {/* Grid Form Renderer */}
-      <FormRenderer
-        schema={schema}
-        values={values}
-        onChange={setValue}
-        errors={errors}
-        disabled={submitting}
-      />
-    </form>
+      {/* Scrollable Form Body */}
+      <div className="flex-1 overflow-auto px-6 py-4">
+        <FormRenderer
+          schema={schema}
+          values={values}
+          onChange={setValue}
+          errors={errors}
+          disabled={submitting}
+        />
+      </div>
+    </div>
   );
 }

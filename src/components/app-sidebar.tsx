@@ -8,6 +8,9 @@ import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils";
 import { launchScreen } from "@/lib/screen-launcher";
 
+import { STATIC_MENU } from "@/lib/mocks";
+import type { MenuItem } from "@/lib/schema/schemas";
+
 export interface TreeNode {
   id: string;
   title: string;
@@ -16,164 +19,17 @@ export interface TreeNode {
   children?: TreeNode[];
 }
 
-export const NAVIGATION_TREE: TreeNode[] = [
-  {
-    id: "operational",
-    title: "Operational",
-    children: [
-      {
-        id: "user.mgmt",
-        title: "User Management",
-        children: [
-          {
-            id: "user.request.folder",
-            title: "User Request",
-            children: [
-              {
-                id: "user.request",
-                title: "User Request",
-                command: "user.request",
-                componentName: "USER_REQUEST",
-              },
-              {
-                id: "user.request.create",
-                title: "Create User Request",
-                command: "user.request.create",
-                componentName: "USER_REQUEST_CREATE",
-              },
-              {
-                id: "user.request.unauth",
-                title: "Unauthorized User Req...",
-                command: "user.request.unauth",
-                componentName: "USER_REQUEST_UNAUTH",
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: "customer.manage",
-        title: "Customer Manage",
-        children: [
-          {
-            id: "customer.create",
-            title: "Create Customer",
-            command: "customer.create",
-            componentName: "CUSTOMER_CREATE",
-          },
-        ],
-      },
-      {
-        id: "account.manage",
-        title: "Account Manage",
-        children: [
-          {
-            id: "account.create",
-            title: "Create Account",
-            command: "account.create",
-            componentName: "ACCOUNT_CREATE",
-          },
-        ],
-      },
-      {
-        id: "funds.manage",
-        title: "Funds Manage",
-        children: [
-          {
-            id: "funds.transfer",
-            title: "Funds Transfer",
-            command: "funds.transfer",
-            componentName: "FUNDS_TRANSFER",
-          },
-        ],
-      },
-      {
-        id: "daily.inquiry",
-        title: "Daily Inquiry",
-        children: [
-          {
-            id: "today.txn.report",
-            title: "Today Txn Report",
-            command: "today.txn.report",
-            componentName: "TODAY_TXN_REPORT",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "inquiries.reports",
-    title: "Inquiries & Reports",
-    children: [
-      {
-        id: "general.inquiry",
-        title: "General Inquiry (GIR)",
-        command: "gir",
-        componentName: "GIR",
-      },
-      {
-        id: "specific.inquiry",
-        title: "Specific Inquiry (SIR)",
-        command: "sir",
-        componentName: "SIR",
-      },
-      {
-        id: "report.viewer",
-        title: "Report Viewer",
-        command: "sc.rpt",
-        componentName: "REPORT_VIEWER",
-      },
-    ],
-  },
-  {
-    id: "sys.config",
-    title: "System Configuration",
-    children: [
-      {
-        id: "model.config",
-        title: "Model Configuration",
-        command: "model.config",
-        componentName: "MODEL_CONFIG",
-      },
-      {
-        id: "form.builder",
-        title: "Form Builder",
-        command: "form.builder",
-        componentName: "FORM_BUILDER",
-      },
-      {
-        id: "cob.registry",
-        title: "COB Registry",
-        command: "cob.registry",
-        componentName: "COB_REGISTRY",
-      },
-    ],
-  },
-  {
-    id: "auth.admin",
-    title: "Auth & Administration",
-    children: [
-      {
-        id: "user.groups",
-        title: "User Groups",
-        command: "user.groups",
-        componentName: "USER_GROUPS",
-      },
-      {
-        id: "change.pass",
-        title: "Change Password",
-        command: "change.pass",
-        componentName: "CHANGE_PASSWORD",
-      },
-      {
-        id: "pass.reset",
-        title: "Reset Password",
-        command: "pass.reset",
-        componentName: "RESET_PASSWORD",
-      },
-    ],
-  },
-];
+function mapMenuItemToTreeNode(item: MenuItem): TreeNode {
+  return {
+    id: item.id,
+    title: item.label,
+    command: item.command,
+    componentName: item.command ? item.command.replace(/\./g, "_") : undefined,
+    children: item.children?.map(mapMenuItemToTreeNode),
+  };
+}
+
+export const NAVIGATION_TREE: TreeNode[] = STATIC_MENU.map(mapMenuItemToTreeNode);
 
 interface TreeItemProps {
   node: TreeNode;
@@ -243,6 +99,19 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [treeNodes, setTreeNodes] = React.useState<TreeNode[]>(NAVIGATION_TREE);
+
+  React.useEffect(() => {
+    fetch("/api/menu")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setTreeNodes(json.data.map(mapMenuItemToTreeNode));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-border/60" {...props}>
       {/* Sidebar Header: Brand Info matching TopBar height */}
@@ -267,7 +136,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Sidebar Content: Arrow-based Recursive Tree Menu */}
       <SidebarContent className="p-3 overflow-y-auto">
         <div className="flex flex-col space-y-1">
-          {NAVIGATION_TREE.map((node) => (
+          {treeNodes.map((node) => (
             <RecursiveTreeItem key={node.id} node={node} />
           ))}
         </div>

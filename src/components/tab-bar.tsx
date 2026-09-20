@@ -13,6 +13,7 @@ import {
 import { useWorkbenchStore } from "@/store/workbench-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -152,19 +153,11 @@ export function TabBar() {
                     : "bg-transparent text-muted-foreground border-transparent hover:bg-muted/80 hover:text-foreground"
                 )}
               >
-                {/* Universal Tab Position Badge on left side */}
-                <span
-                  className={cn(
-                    "size-4 rounded-xs text-[10px] font-mono font-bold flex items-center justify-center shrink-0 border leading-none",
-                    isActive
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted/80 text-muted-foreground border-border/60"
-                  )}
-                >
-                  {universalTabNumber}
-                </span>
-
-                <span className="truncate max-w-[160px] text-xs">
+                {/* Subtle Tab Number & Title */}
+                <span className="truncate max-w-[160px] text-xs flex items-center gap-1.5">
+                  <Badge variant="secondary" className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent">
+                    {universalTabNumber}
+                  </Badge>
                   {tab.title}
                 </span>
 
@@ -242,22 +235,17 @@ export function TabBar() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={cn(
-                          "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group",
+                          "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group hover:bg-accent hover:text-accent-foreground",
                           isActive && "bg-accent text-accent-foreground font-semibold"
                         )}
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <span
-                            className={cn(
-                              "size-4 rounded-xs text-[10px] font-mono font-bold flex items-center justify-center shrink-0 border leading-none",
-                              isActive
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-muted text-muted-foreground border-border/60"
-                            )}
-                          >
-                            {originalIndex + 1}
+                          <span className="truncate flex items-center gap-1.5">
+                            <Badge variant="secondary" className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent">
+                              {originalIndex + 1}
+                            </Badge>
+                            {tab.title}
                           </span>
-                          <span className="truncate">{tab.title}</span>
                         </div>
 
                         <div className="flex items-center gap-1 shrink-0">

@@ -14,15 +14,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <SidebarProvider defaultOpen>
       <AppSidebar />
-      <SidebarInset className="min-w-0 overflow-hidden">
-        {/* Modular TopBar with Branch Roaming & Search */}
-        <TopBar />
+      <SidebarInset className="flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Sticky TopBar — stays at top on scroll */}
+        <div className="sticky top-0 z-20 shrink-0">
+          <TopBar />
+        </div>
 
-        {/* Workspace TabBar */}
-        <TabBar />
+        {/* Sticky TabBar — docked just below TopBar */}
+        <div className="sticky top-16 z-10 shrink-0">
+          <TabBar />
+        </div>
 
-        {/* Main Content Area */}
-        <main className="flex flex-1 flex-col gap-4 p-6 overflow-auto bg-muted/15">
+        {/* Main Content Area — fills remaining height, scrolls independently */}
+        <main className="flex-1 min-h-0 overflow-auto bg-muted/15">
           {children}
         </main>
       </SidebarInset>

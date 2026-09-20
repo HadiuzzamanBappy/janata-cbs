@@ -11,7 +11,7 @@ export default function DashboardPage() {
   if (activeTab) {
     const targetCommand = activeTab.screenId || activeTab.componentName || "ACCOUNT";
     return (
-      <div className="w-full flex-1 flex flex-col min-h-0 h-full">
+      <div className="w-full h-full flex flex-col">
         <ComponentLoader command={targetCommand} mode="panel" />
       </div>
     );
@@ -24,8 +24,9 @@ export default function DashboardPage() {
       </div>
       <div className="flex flex-col gap-1 max-w-md">
         <h3 className="text-lg font-semibold tracking-tight text-foreground">
-          FinX Core Banking Workbench
+          Janata Bank PLC.
         </h3>
+        <h2 className="text-sm text-muted-foreground leading-relaxed">Core Banking Solution</h2>
         <p className="text-xs text-muted-foreground leading-relaxed">
           Select any workflow or configuration item from the navigation sidebar or enter a command above to open a tab.
         </p>

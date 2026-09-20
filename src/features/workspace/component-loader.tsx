@@ -63,7 +63,7 @@ export function ComponentLoader({
   return (
     <div
       data-render-mode={mode}
-      className={`w-full h-full min-h-0 flex flex-col flex-1 overflow-auto ${className}`}
+      className={`w-full h-full min-h-0 flex flex-col flex-1 ${className}`}
     >
       <ComponentErrorBoundary command={command}>
         <React.Suspense

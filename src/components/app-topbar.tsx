@@ -40,9 +40,24 @@ export function TopBar() {
   const [branches, setBranches] = React.useState<Array<{ code: string; name: string; type: string }>>([
     { code: "JB9999", name: "Central Office (Headquarters)", type: "Head Office" },
   ]);
-  const { user, currentBranch, setBranch, logout } = useSessionStore();
+  const { user, currentBranch, setBranch, setSession, logout } = useSessionStore();
 
   React.useEffect(() => {
+    // Hydrate User Session
+    if (!user) {
+      fetch("/api/session")
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && json.currUser) {
+            setSession(json.currUser);
+            if (json.currUser.branchCode && !currentBranch) {
+              setBranch(json.currUser.branchCode);
+            }
+          }
+        })
+        .catch((err) => console.error("Failed to hydrate session", err));
+    }
+
     fetch("/api/branches")
       .then((res) => res.json())
       .then((json) => {
@@ -57,7 +72,7 @@ export function TopBar() {
         }
       })
       .catch(() => { });
-  }, []);
+  }, [user, currentBranch, setSession, setBranch]);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -85,10 +100,10 @@ export function TopBar() {
     );
   }, [branchSearch, branches]);
 
-  const displayUser = user?.username;
-  const displayRole = user?.role;
-  // TODO: Fetch business date from session context instead of hardcoding
-  const businessDate = "2026-09-15";
+  const displayUser = user?.fullName;
+  const displayId = user?.userId;
+  const displayRole = user?.userRole?.join(", ") || user?.userRole?.[0];
+  const businessDate = user?.txnDate;
 
   const handleBranchSwitch = (code: string, name: string) => {
     setBranch(code);
@@ -209,15 +224,16 @@ export function TopBar() {
                     <span className="font-semibold text-xs leading-tight truncate">
                       {displayUser || "null"}
                     </span>
-                    <span className="text-[11px] text-muted-foreground font-mono truncate">
-                      {displayUser ? `${displayUser.toLowerCase()}@janatabank.org.bd` : "null"}
-                    </span>
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0">
+                    <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
+                      <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0 shrink-0">
+                        {displayId || "null"}
+                      </Badge>
+                      <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0 shrink-0">
                         {displayRole || "null"}
                       </Badge>
-                      <span className="text-[10px] text-muted-foreground font-mono">
-                        {businessDate}
+                      <span className="text-[10px] opacity-50 shrink-0">&bull;</span>
+                      <span className="text-[10px] font-mono shrink-0">
+                        {businessDate || "null"}
                       </span>
                     </div>
                   </div>

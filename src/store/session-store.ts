@@ -1,16 +1,11 @@
 import { create } from "zustand";
-
-export interface UserSession {
-  id: string;
-  username: string;
-  role: string;
-}
+import { UserDetails } from "@/types";
 
 interface SessionState {
-  user: UserSession | null;
+  user: UserDetails | null;
   currentBranch: string | null;
   isAuthenticated: boolean;
-  setSession: (user: UserSession) => void;
+  setSession: (user: UserDetails) => void;
   clearSession: () => void;
   logout: () => Promise<void>;
   setBranch: (branch: string) => void;

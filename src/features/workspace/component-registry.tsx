@@ -1,12 +1,18 @@
 import * as React from "react";
 import { DynamicForm } from "@/features/engine/dynamic-form";
+import { ChangePassword } from "@/features/auth/change-password";
+import { ResetPassword } from "@/features/auth/reset-password";
+import { UserGroups } from "@/features/auth/user-groups";
 
 /**
  * Registry mapping bespoke screen command keys to React components.
  * If a command key is NOT in this map, it falls back to the DynamicForm engine.
  */
 export const BESPOKE_COMPONENTS: Record<string, React.ComponentType<{ command: string }>> = {
-  // Bespoke screen overrides will be registered here as ported (e.g. USER.CHANGE.PASS, INQ, etc.)
+  // Auth & Admin Screens
+  "USER.CHANGE.PASS": ChangePassword,
+  "USER.PASS.RESET": ResetPassword,
+  "USER.GROUP": UserGroups,
 };
 
 export function resolveControl(command: string): React.ComponentType<{ command: string }> {

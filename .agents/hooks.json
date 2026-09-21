@@ -1,0 +1,12 @@
+{
+  "post_edit": [
+    {
+      "command": "pnpm prettier --write {{files}}",
+      "description": "Auto-format files after AI edits"
+    },
+    {
+      "command": "pnpm eslint --fix {{files}}",
+      "description": "Auto-lint files after AI edits"
+    }
+  ]
+}

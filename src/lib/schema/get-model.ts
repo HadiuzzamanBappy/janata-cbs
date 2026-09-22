@@ -3,7 +3,7 @@ import { getOrSet } from "@/lib/core/cache";
 import { grpcProcess } from "@/lib/core/grpc";
 import { getServiceUrl } from "@/lib/core/services";
 import { env } from "@/lib/env";
-import { STATIC_SPECS } from "@/lib/mocks";
+import { STATIC_SPECS } from "@fixtures";
 import { parseGMC } from "@/lib/schema/schema-parser";
 import type { FormSchema } from "@/lib/schema/schemas";
 

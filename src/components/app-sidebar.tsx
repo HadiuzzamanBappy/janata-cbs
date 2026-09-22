@@ -8,7 +8,7 @@ import {
   SidebarContent,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { STATIC_MENU } from "@/lib/mocks";
+import { STATIC_MENU } from "@fixtures";
 import type { MenuItem } from "@/lib/schema/schemas";
 import { launchScreen } from "@/lib/screen-launcher";
 import { cn } from "@/lib/utils";

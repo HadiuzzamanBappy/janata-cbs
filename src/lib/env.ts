@@ -51,9 +51,6 @@ const envSchema = z.object({
 
   // Client-exposed Environment Variables (NEXT_PUBLIC_)
   NEXT_PUBLIC_BASE_URL: z.string().default("http://localhost:3000"),
-  NEXT_PUBLIC_COMPONENT_TARGET: z
-    .enum(["panel", "window", "tab"])
-    .default("panel"),
   NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().default(10),
   NEXT_PUBLIC_CENTRAL_BRANCH: z.string().default("JB9999"),
   NEXT_PUBLIC_DEFAULT_SERVICE_PATH: z.string().default("default"),
@@ -89,7 +86,6 @@ export const env = envSchema.parse({
   API_BASE_URL: process.env.API_BASE_URL,
 
   NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
-  NEXT_PUBLIC_COMPONENT_TARGET: process.env.NEXT_PUBLIC_COMPONENT_TARGET,
   NEXT_PUBLIC_LOGOUT_TIME: process.env.NEXT_PUBLIC_LOGOUT_TIME,
   NEXT_PUBLIC_CENTRAL_BRANCH: process.env.NEXT_PUBLIC_CENTRAL_BRANCH,
   NEXT_PUBLIC_DEFAULT_SERVICE_PATH:

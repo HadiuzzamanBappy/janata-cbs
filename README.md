@@ -96,9 +96,8 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 You will need to configure your environment variables. Key variables to understand:
 
 ```ini
-# --- Workspace Mode ---
-NEXT_PUBLIC_COMPONENT_TARGET=panel    # Render screens as tabs within the dashboard
-# NEXT_PUBLIC_COMPONENT_TARGET=window # Render screens as external browser popups
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+NEXT_PUBLIC_LOGOUT_TIME=10            # In minutes
 
 # --- Data Source & Caching ---
 MODEL_SOURCE=grpc             # 'grpc' for live backend, 'static' for offline mocks

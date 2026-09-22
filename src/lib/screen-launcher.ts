@@ -1,11 +1,12 @@
-import { appConfig } from "@/lib/config";
 
-export type DisplayTargetMode = "panel" | "window" | "tab";
+
+export type DisplayTargetMode = "workspace" | "popup";
 
 export interface LaunchScreenOptions {
   id: string;
   title: string;
   componentName?: string;
+  target?: DisplayTargetMode;
   addTab: (tab: { id: string; title: string; componentName: string }) => void;
 }
 
@@ -13,22 +14,20 @@ export interface LaunchScreenOptions {
  * Domain-driven Launcher for Core Banking Screens & Workflows.
  *
  * Target Modes:
- * - `panel`: Embeds the screen as an active tab inside the multi-tab AppShell layout.
- * - `window`: Opens a standalone popup window for the screen (without full sidebar navigation).
- * - `tab`: Opens a new browser tab targeting the standalone screen URL.
+ * - `workspace`: Embeds the screen as an active tab inside the multi-tab AppShell layout.
+ * - `popup`: Opens a standalone popup window for the screen (without full sidebar navigation).
  */
 export function launchScreen({
   id,
   title,
   componentName = "DYNAMIC_FORM",
+  target = "workspace",
   addTab,
 }: LaunchScreenOptions) {
-  const target: DisplayTargetMode =
-    (appConfig.componentTarget as DisplayTargetMode) || "panel";
 
   const screenUrl = `/screen/${encodeURIComponent(id)}?title=${encodeURIComponent(title)}&component=${encodeURIComponent(componentName)}`;
 
-  if (target === "window") {
+  if (target === "popup") {
     // Popup window specification
     const popupFeatures = [
       "popup=yes",
@@ -41,11 +40,8 @@ export function launchScreen({
     const windowName = `screen_${id.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
     const win = window.open(screenUrl, windowName, popupFeatures);
     if (win) win.focus();
-  } else if (target === "tab") {
-    // New browser tab
-    window.open(screenUrl, "_blank");
   } else {
-    // In-page workbench tab (Panel mode)
+    // In-page workbench tab (Workspace mode)
     addTab({
       id,
       title,

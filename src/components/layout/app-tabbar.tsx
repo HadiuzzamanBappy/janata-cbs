@@ -8,8 +8,10 @@ import {
   Search,
   X,
   XCircle,
+  ExternalLink,
 } from "lucide-react";
 import * as React from "react";
+import { launchScreen } from "@/lib/screen-launcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +41,7 @@ import { useWorkbenchStore } from "@/store/workbench-store";
 export function AppTabBar() {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [tabSearch, setTabSearch] = React.useState("");
-  const { tabs, activeTabId, setActiveTab, removeTab, closeAllTabs } =
+  const { tabs, activeTabId, setActiveTab, removeTab, closeAllTabs, addTab } =
     useWorkbenchStore();
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -168,21 +170,40 @@ export function AppTabBar() {
                   {tab.title}
                 </span>
 
-                {/* Close Tab Button */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeTab(tab.id);
-                  }}
-                  className={cn(
-                    "size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0",
-                    !isActive && "opacity-60 group-hover:opacity-100",
-                  )}
-                  aria-label={`Close tab ${tab.title}`}
-                >
-                  <X className="size-3" />
-                </button>
+                {/* Tab Actions */}
+                <div className={cn("flex items-center gap-0.5", !isActive && "opacity-60 group-hover:opacity-100")}>
+                  {/* Pop Out Tab Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      launchScreen({
+                        id: tab.screenId ?? tab.id,
+                        title: tab.title,
+                        componentName: tab.componentName,
+                        target: "popup",
+                        addTab,
+                      });
+                      removeTab(tab.id);
+                    }}
+                    className="size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
+                    title={`Pop out ${tab.title}`}
+                  >
+                    <ExternalLink className="size-3" />
+                  </button>
+                  {/* Close Tab Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeTab(tab.id);
+                    }}
+                    className="size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                    aria-label={`Close tab ${tab.title}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </div>
               </div>
             );
           })}

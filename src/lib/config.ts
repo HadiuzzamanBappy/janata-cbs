@@ -3,7 +3,6 @@ import { env } from "@/lib/env";
 export const appConfig = {
   isDev: env.NODE_ENV === "development",
   baseUrl: env.NEXT_PUBLIC_BASE_URL,
-  componentTarget: env.NEXT_PUBLIC_COMPONENT_TARGET,
   logoutTimeMinutes: env.NEXT_PUBLIC_LOGOUT_TIME,
   defaultBranch: env.NEXT_PUBLIC_CENTRAL_BRANCH,
   defaultServicePath: env.NEXT_PUBLIC_DEFAULT_SERVICE_PATH,

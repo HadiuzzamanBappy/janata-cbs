@@ -11,9 +11,9 @@ import {
   UserCheck,
 } from "lucide-react";
 import * as React from "react";
-import { GlobalSearchModal } from "@/components/global-search";
-import { SettingsDialog } from "@/components/settings-dialog";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { AppSearch } from "@/components/layout/app-search";
+import { AppSettings } from "@/components/layout/app-settings";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -299,8 +299,11 @@ export function TopBar() {
           </DropdownMenu>
         </div>
       </header>
-      <GlobalSearchModal open={searchOpen} onOpenChange={setSearchOpen} />
-      <SettingsDialog
+      <AppSearch
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+      />
+      <AppSettings
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         activeTab={settingsTab}

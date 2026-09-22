@@ -60,7 +60,7 @@ interface SettingsDialogProps {
   onTabChange?: (tab: string) => void;
 }
 
-export function SettingsDialog({
+export function AppSettings({
   open,
   onOpenChange,
   activeTab: controlledTab,

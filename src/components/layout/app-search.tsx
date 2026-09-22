@@ -242,21 +242,24 @@ interface GlobalSearchProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
+export function AppSearch({
+  open,
+  onOpenChange,
+}: GlobalSearchProps) {
   const { user, clearSession } = useSessionStore();
   const { addTab } = useWorkbenchStore();
 
-  const userRole = user?.role ?? "Administrator";
-  const isAdmin = userRole === "Administrator" || userRole === "ADMIN";
+  const userRole = user?.userRole ?? ["Administrator"];
+  const isAdmin = userRole.includes("Administrator") || userRole.includes("ADMIN");
 
   // Filter commands based on User RBAC Role Permissions
   const authorizedCommands = React.useMemo(() => {
     return MASTER_COMMAND_REGISTRY.filter((cmd) => {
       if (cmd.allowedRoles.includes("*")) return true;
       if (isAdmin && cmd.allowedRoles.includes("Administrator")) return true;
-      return cmd.allowedRoles.includes(userRole);
+      return cmd.allowedRoles.some(role => userRole.includes(role));
     });
-  }, [userRole, isAdmin]);
+  }, [isAdmin, userRole]);
 
   // Group authorized commands by category
   const categories = React.useMemo(() => {

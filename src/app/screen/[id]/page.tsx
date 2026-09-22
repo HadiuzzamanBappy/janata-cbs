@@ -2,7 +2,7 @@
 
 import { ShieldCheck } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { ComponentLoader } from "@/features/workspace/component-loader";
 

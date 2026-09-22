@@ -36,7 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useWorkbenchStore } from "@/store/workbench-store";
 
-export function TabBar() {
+export function AppTabBar() {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [tabSearch, setTabSearch] = React.useState("");
   const { tabs, activeTabId, setActiveTab, removeTab, closeAllTabs } =

@@ -1,9 +1,9 @@
 "use client";
 
 import type * as React from "react";
-import { AppSidebar } from "@/components/app-sidebar";
-import { TopBar } from "@/components/app-topbar";
-import { TabBar } from "@/components/tab-bar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { TopBar } from "@/components/layout/app-topbar";
+import { AppTabBar } from "@/components/layout/app-tabbar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toast";
 
@@ -23,7 +23,7 @@ export default function DashboardLayout({
 
         {/* Sticky TabBar — docked just below TopBar */}
         <div className="sticky top-16 z-10 shrink-0">
-          <TabBar />
+          <AppTabBar />
         </div>
 
         {/* Main Content Area — fills remaining height, scrolls independently */}

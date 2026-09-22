@@ -46,16 +46,13 @@ finx-ui/
     │   ├── (auth)/
     │   │   └── login/
     │   │       └── page.tsx
-    │   ├── (workbench)/
-    │   │   ├── layout.tsx             # server: verifySession() → <WorkbenchShell/>
-    │   │   ├── error.tsx
-    │   │   ├── _registry/
-    │   │   │   └── screens.ts         # command → lazy screen. Only file that imports every feature
+    │   ├── (workbench)/               # Route group purely for organizing authenticated routes
     │   │   ├── dashboard/
+    │   │   │   ├── layout.tsx         # server: verifySession() → <WorkbenchShell/> (Strictly here to prevent layout bleed)
     │   │   │   └── page.tsx           # server page → client host
     │   │   └── screen/
     │   │       └── [id]/
-    │   │           ├── page.tsx
+    │   │           ├── page.tsx       # Standalone popup window (no dashboard shell inherited)
     │   │           ├── loading.tsx
     │   │           └── not-found.tsx
     │   └── api/

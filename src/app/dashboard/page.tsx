@@ -1,15 +1,16 @@
 "use client";
 
-import { useWorkbenchStore } from "@/store/workbench-store";
 import { Sparkles } from "lucide-react";
 import { ComponentLoader } from "@/features/workspace/component-loader";
+import { useWorkbenchStore } from "@/store/workbench-store";
 
 export default function DashboardPage() {
   const { tabs, activeTabId } = useWorkbenchStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
   if (activeTab) {
-    const targetCommand = activeTab.screenId || activeTab.componentName || "ACCOUNT";
+    const targetCommand =
+      activeTab.screenId || activeTab.componentName || "ACCOUNT";
     return (
       <div className="w-full h-full flex flex-col">
         <ComponentLoader command={targetCommand} mode="panel" />
@@ -26,9 +27,12 @@ export default function DashboardPage() {
         <h3 className="text-lg font-semibold tracking-tight text-foreground">
           Janata Bank PLC.
         </h3>
-        <h2 className="text-sm text-muted-foreground leading-relaxed">Core Banking Solution</h2>
+        <h2 className="text-sm text-muted-foreground leading-relaxed">
+          Core Banking Solution
+        </h2>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Select any workflow or configuration item from the navigation sidebar or enter a command above to open a tab.
+          Select any workflow or configuration item from the navigation sidebar
+          or enter a command above to open a tab.
         </p>
       </div>
     </div>

@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import * as React from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const router = useRouter();
@@ -29,7 +29,9 @@ export function LoginForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Login failed. Please check your credentials.");
+        throw new Error(
+          data.error || "Login failed. Please check your credentials.",
+        );
       }
 
       router.push("/");
@@ -49,7 +51,12 @@ export function LoginForm() {
         </Alert>
       )}
       <div className="space-y-2">
-        <Label htmlFor="username" className="text-[13px] font-semibold text-foreground">Username</Label>
+        <Label
+          htmlFor="username"
+          className="text-[13px] font-semibold text-foreground"
+        >
+          Username
+        </Label>
         <Input
           id="username"
           type="text"
@@ -63,7 +70,12 @@ export function LoginForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password" className="text-[13px] font-semibold text-foreground">Password</Label>
+        <Label
+          htmlFor="password"
+          className="text-[13px] font-semibold text-foreground"
+        >
+          Password
+        </Label>
         <Input
           id="password"
           type="password"
@@ -75,7 +87,11 @@ export function LoginForm() {
           className="h-11"
         />
       </div>
-      <Button type="submit" className="w-full h-11 font-semibold text-[15px]" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full h-11 font-semibold text-[15px]"
+        disabled={loading}
+      >
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

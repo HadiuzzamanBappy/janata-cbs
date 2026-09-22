@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { UserDetails } from "@/types";
+import type { UserDetails } from "@/types";
 
 interface SessionState {
   user: UserDetails | null;

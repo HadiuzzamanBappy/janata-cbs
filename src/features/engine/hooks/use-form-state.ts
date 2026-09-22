@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { type FormSchema } from "@/lib/schema/schemas";
+import { useCallback, useEffect, useState } from "react";
+import type { FormSchema } from "@/lib/schema/schemas";
 
 export function useFormState(
   schema: FormSchema | null,
-  initialData: Record<string, any> = {}
+  initialData: Record<string, any> = {},
 ) {
   const [values, setValues] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,14 +51,11 @@ export function useFormState(
     return Object.keys(newErrors).length === 0;
   }, [schema, values]);
 
-  const resetForm = useCallback(
-    (newValues: Record<string, any> = {}) => {
-      setValues(newValues);
-      setErrors({});
-      setIsDirty(false);
-    },
-    []
-  );
+  const resetForm = useCallback((newValues: Record<string, any> = {}) => {
+    setValues(newValues);
+    setErrors({});
+    setIsDirty(false);
+  }, []);
 
   return {
     values,

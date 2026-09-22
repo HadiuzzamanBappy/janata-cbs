@@ -1,16 +1,17 @@
 "use client";
 
-import * as React from "react";
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar";
+import type * as React from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { TopBar } from "@/components/app-topbar";
 import { TabBar } from "@/components/tab-bar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toast";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <SidebarProvider defaultOpen>
       <AppSidebar />

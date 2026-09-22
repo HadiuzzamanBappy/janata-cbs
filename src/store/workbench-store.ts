@@ -13,7 +13,12 @@ export interface WorkbenchTab {
 interface WorkbenchState {
   tabs: WorkbenchTab[];
   activeTabId: string | null;
-  addTab: (tab: Omit<WorkbenchTab, "id" | "instanceNumber"> & { id?: string; instanceNumber?: number }) => void;
+  addTab: (
+    tab: Omit<WorkbenchTab, "id" | "instanceNumber"> & {
+      id?: string;
+      instanceNumber?: number;
+    },
+  ) => void;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   closeAllTabs: () => void;
@@ -25,15 +30,15 @@ export const useWorkbenchStore = create<WorkbenchState>((set) => ({
   addTab: (tab) =>
     set((state) => {
       const baseId = tab.id || tab.screenId || "screen";
-      const cleanTitle = tab.title.replace(/\s*\(\d+\)$/, "").replace(/\s*#\d+$/, "");
-      
+      const cleanTitle = tab.title
+        .replace(/\s*\(\d+\)$/, "")
+        .replace(/\s*#\d+$/, "");
+
       // Count how many instances of this same screen are currently open
       const sameScreenCount = state.tabs.filter(
-        (t) =>
-          (t.screenId || t.id) === baseId ||
-          t.title === cleanTitle
+        (t) => (t.screenId || t.id) === baseId || t.title === cleanTitle,
       ).length;
-      
+
       const instanceNumber = sameScreenCount + 1;
       const uniqueInstanceId = `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
@@ -55,7 +60,7 @@ export const useWorkbenchStore = create<WorkbenchState>((set) => ({
       const newTabs = state.tabs.filter((t) => t.id !== id);
       const newActive =
         state.activeTabId === id
-          ? newTabs[newTabs.length - 1]?.id ?? null
+          ? (newTabs[newTabs.length - 1]?.id ?? null)
           : state.activeTabId;
       return { tabs: newTabs, activeTabId: newActive };
     }),

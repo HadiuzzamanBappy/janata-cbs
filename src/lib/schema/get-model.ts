@@ -1,17 +1,17 @@
 import "server-only";
-import { parseGMC } from "@/lib/schema/schema-parser";
-import { STATIC_SPECS } from "@/lib/mocks";
+import { getOrSet } from "@/lib/core/cache";
 import { grpcProcess } from "@/lib/core/grpc";
 import { getServiceUrl } from "@/lib/core/services";
-import { getOrSet } from "@/lib/core/cache";
 import { env } from "@/lib/env";
-import { type FormSchema } from "@/lib/schema/schemas";
+import { STATIC_SPECS } from "@/lib/mocks";
+import { parseGMC } from "@/lib/schema/schema-parser";
+import type { FormSchema } from "@/lib/schema/schemas";
 
 const SPEC_TTL_SECONDS = env.SPEC_TTL_SECONDS || 3600;
 
 async function fetchSchemaFromBackend(
   command: string,
-  token?: string
+  token?: string,
 ): Promise<FormSchema | null> {
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
@@ -42,7 +42,7 @@ async function fetchSchemaFromBackend(
         userId: "SYSUSER",
         data: {},
       },
-      { token }
+      { token },
     );
 
     if (res.statusCode !== 200 || !res.data) {
@@ -60,7 +60,10 @@ async function fetchSchemaFromBackend(
     const fallbackParsed = parseGMC(rawMock, cleanCmd);
     return fallbackParsed.success ? fallbackParsed.data : null;
   } catch (err) {
-    console.warn(`[model-fetcher] gRPC GMC fetch failed for ${cleanCmd}, falling back to static mock:`, err);
+    console.warn(
+      `[model-fetcher] gRPC GMC fetch failed for ${cleanCmd}, falling back to static mock:`,
+      err,
+    );
     const rawMock = STATIC_SPECS[cleanCmd];
     if (!rawMock) return null;
     const parsed = parseGMC(rawMock, cleanCmd);
@@ -73,13 +76,13 @@ async function fetchSchemaFromBackend(
  */
 export async function getModelData(
   command: string,
-  token?: string
+  token?: string,
 ): Promise<FormSchema | null> {
   const cleanCommand = command.toUpperCase();
   const cacheKey = `spec:${cleanCommand}`;
   return getOrSet(
     cacheKey,
     () => fetchSchemaFromBackend(cleanCommand, token),
-    SPEC_TTL_SECONDS
+    SPEC_TTL_SECONDS,
   );
 }

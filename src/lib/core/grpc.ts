@@ -1,21 +1,21 @@
 import "server-only";
 import {
-  credentials,
-  Metadata,
   type CallOptions,
   type ChannelCredentials,
-  type ServiceError,
+  credentials,
   status as grpcStatus,
+  Metadata,
+  type ServiceError,
 } from "@grpc/grpc-js";
 import {
-  GrpcServiceClient,
-  type LoginRequest,
   type GrpcRequest,
   type GrpcResponse,
-} from "@/lib/core/generated/service";
+  GrpcServiceClient,
+  type LoginRequest,
+} from "@/grpc/service";
 import { env } from "@/lib/env";
 
-export type { LoginRequest, GrpcRequest, GrpcResponse };
+export type { GrpcRequest, GrpcResponse, LoginRequest };
 
 /* ---------- Singleton gRPC Client ---------- */
 declare global {
@@ -55,7 +55,7 @@ export interface CallOpts {
 /* ---------- Unauthenticated RPC: Login ---------- */
 export function loginProcess(
   req: LoginRequest,
-  _opts: CallOpts = {}
+  _opts: CallOpts = {},
 ): Promise<GrpcResponse> {
   const address =
     process.env.NODE_ENV === "development"
@@ -78,7 +78,7 @@ export function grpcProcess(
   address: string,
   kind: ProcessKind,
   req: GrpcRequest,
-  opts: CallOpts = {}
+  opts: CallOpts = {},
 ): Promise<GrpcResponse> {
   const client = new GrpcServiceClient(address, credentials.createInsecure());
 

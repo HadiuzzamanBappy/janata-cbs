@@ -1,24 +1,25 @@
-import {
-  rawMenuRecordSchema,
-  menuItemSchema,
-  type MenuItem,
-  type RawMenuRecord,
-} from "@/lib/schema/schemas";
 import { z } from "zod";
+import {
+  type MenuItem,
+  menuItemSchema,
+  type RawMenuRecord,
+  rawMenuRecordSchema,
+} from "@/lib/schema/schemas";
 
 function toMenuItemNode(
   record: RawMenuRecord,
   index: number,
-  parentId = "m"
+  parentId = "m",
 ): MenuItem {
   const id = String(
-    record.id ?? record.menuId ?? record.code ?? `${parentId}-${index}`
+    record.id ?? record.menuId ?? record.code ?? `${parentId}-${index}`,
   );
   const childrenRecords = record.children ?? record.items;
   const command = record.command ?? record.application;
   const menuId = Number(record.menuId ?? 0);
 
-  const hasChildren = Array.isArray(childrenRecords) && childrenRecords.length > 0;
+  const hasChildren =
+    Array.isArray(childrenRecords) && childrenRecords.length > 0;
 
   return {
     id,
@@ -32,7 +33,7 @@ function toMenuItemNode(
 }
 
 export function parseMNU(
-  rawPayload: unknown
+  rawPayload: unknown,
 ): { success: true; data: MenuItem[] } | { success: false; error: string } {
   if (!rawPayload) {
     return { success: true, data: [] };
@@ -40,9 +41,11 @@ export function parseMNU(
 
   const rawArray = Array.isArray(rawPayload)
     ? rawPayload
-    : typeof rawPayload === "object" && rawPayload !== null && "menu" in rawPayload
-    ? (rawPayload as { menu: unknown }).menu
-    : [rawPayload];
+    : typeof rawPayload === "object" &&
+        rawPayload !== null &&
+        "menu" in rawPayload
+      ? (rawPayload as { menu: unknown }).menu
+      : [rawPayload];
 
   if (!Array.isArray(rawArray)) {
     return {
@@ -60,7 +63,7 @@ export function parseMNU(
   }
 
   const parsedItems: MenuItem[] = arrayResult.data.map((rec, idx) =>
-    toMenuItemNode(rec, idx)
+    toMenuItemNode(rec, idx),
   );
 
   const finalCheck = z.array(menuItemSchema).safeParse(parsedItems);

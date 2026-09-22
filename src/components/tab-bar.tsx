@@ -1,27 +1,17 @@
 "use client";
 
-import * as React from "react";
 import {
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  Layers,
+  Search,
   X,
   XCircle,
-  AlertTriangle,
-  Layers,
-  ChevronDown,
-  Search,
-  Check,
 } from "lucide-react";
-import { useWorkbenchStore } from "@/store/workbench-store";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +20,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useWorkbenchStore } from "@/store/workbench-store";
 
 export function TabBar() {
   const [confirmOpen, setConfirmOpen] = React.useState(false);
@@ -75,7 +79,7 @@ export function TabBar() {
   React.useEffect(() => {
     if (activeTabId && scrollRef.current) {
       const activeEl = scrollRef.current.querySelector(
-        `[data-tab-id="${activeTabId}"]`
+        `[data-tab-id="${activeTabId}"]`,
       );
       if (activeEl) {
         activeEl.scrollIntoView({
@@ -116,7 +120,7 @@ export function TabBar() {
   };
 
   const filteredTabs = tabs.filter((t) =>
-    t.title.toLowerCase().includes(tabSearch.trim().toLowerCase())
+    t.title.toLowerCase().includes(tabSearch.trim().toLowerCase()),
   );
 
   return (
@@ -129,7 +133,7 @@ export function TabBar() {
           onWheel={handleWheel}
           className={cn(
             "flex-1 min-w-0 flex items-center gap-1 overflow-x-auto py-1 px-2 no-scrollbar h-full select-none",
-            isDragging ? "cursor-grabbing" : "cursor-grab"
+            isDragging ? "cursor-grabbing" : "cursor-grab",
           )}
         >
           {tabs.map((tab, index) => {
@@ -150,12 +154,15 @@ export function TabBar() {
                   "group relative flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 border whitespace-nowrap shrink-0 h-8 cursor-pointer select-none",
                   isActive
                     ? "bg-background text-foreground border-border shadow-2xs font-semibold"
-                    : "bg-transparent text-muted-foreground border-transparent hover:bg-muted/80 hover:text-foreground"
+                    : "bg-transparent text-muted-foreground border-transparent hover:bg-muted/80 hover:text-foreground",
                 )}
               >
                 {/* Subtle Tab Number & Title */}
                 <span className="truncate max-w-[160px] text-xs flex items-center gap-1.5">
-                  <Badge variant="secondary" className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent">
+                  <Badge
+                    variant="secondary"
+                    className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent"
+                  >
                     {universalTabNumber}
                   </Badge>
                   {tab.title}
@@ -170,7 +177,7 @@ export function TabBar() {
                   }}
                   className={cn(
                     "size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0",
-                    !isActive && "opacity-60 group-hover:opacity-100"
+                    !isActive && "opacity-60 group-hover:opacity-100",
                   )}
                   aria-label={`Close tab ${tab.title}`}
                 >
@@ -227,7 +234,7 @@ export function TabBar() {
                 {filteredTabs.length > 0 ? (
                   filteredTabs.map((tab) => {
                     const originalIndex = tabs.findIndex(
-                      (t) => t.id === tab.id
+                      (t) => t.id === tab.id,
                     );
                     const isActive = tab.id === activeTabId;
                     return (
@@ -236,12 +243,16 @@ export function TabBar() {
                         onClick={() => setActiveTab(tab.id)}
                         className={cn(
                           "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group hover:bg-accent hover:text-accent-foreground",
-                          isActive && "bg-accent text-accent-foreground font-semibold"
+                          isActive &&
+                            "bg-accent text-accent-foreground font-semibold",
                         )}
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           <span className="truncate flex items-center gap-1.5">
-                            <Badge variant="secondary" className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent">
+                            <Badge
+                              variant="secondary"
+                              className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent"
+                            >
                               {originalIndex + 1}
                             </Badge>
                             {tab.title}
@@ -340,4 +351,3 @@ export function TabBar() {
     </>
   );
 }
-

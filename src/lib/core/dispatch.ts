@@ -1,16 +1,20 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { getServiceUrl } from "@/lib/services";
-import { grpcProcess, type GrpcRequest, type ProcessKind } from "@/lib/core/grpc";
-import { APIResponse, Envelope } from "@/types";
+import {
+  type GrpcRequest,
+  grpcProcess,
+  type ProcessKind,
+} from "@/lib/core/grpc";
 import { env } from "@/lib/env";
+import { getServiceUrl } from "@/lib/services";
+import type { APIResponse, Envelope } from "@/types";
 
 export type { Envelope };
 
 const FINANCIAL_REQUEST_TYPES = new Set(
   (env.GRPC_FINANCIAL_TYPES || "AFT,ACT")
     .split(",")
-    .map((s) => s.trim().toUpperCase())
+    .map((s) => s.trim().toUpperCase()),
 );
 
 function classify(requestType: string): ProcessKind {
@@ -21,10 +25,11 @@ function classify(requestType: string): ProcessKind {
 
 export async function dispatch(
   envelope: Envelope,
-  token: string
+  token: string,
 ): Promise<APIResponse> {
   try {
-    const isDefault = envelope.servicePath === "default" || !envelope.servicePath;
+    const isDefault =
+      envelope.servicePath === "default" || !envelope.servicePath;
     const targetServiceKey = isDefault
       ? process.env.NODE_ENV === "development"
         ? "defaultdev"
@@ -53,12 +58,12 @@ export async function dispatch(
       controlNameArray.includes("USER") && envelope.requestType === "AUT"
         ? "UAU"
         : controlNameArray.includes("FUNDS.TRANSFER") &&
-          ["PUT", "AUT", "REV"].includes(envelope.requestType)
-        ? "AFT"
-        : controlNameArray.includes("CASH.TRANSFER") &&
-          ["PUT", "AUT", "REV"].includes(envelope.requestType)
-        ? "ACT"
-        : envelope.requestType;
+            ["PUT", "AUT", "REV"].includes(envelope.requestType)
+          ? "AFT"
+          : controlNameArray.includes("CASH.TRANSFER") &&
+              ["PUT", "AUT", "REV"].includes(envelope.requestType)
+            ? "ACT"
+            : envelope.requestType;
 
     envelope.requestType = requestType;
     const kind = classify(envelope.requestType);

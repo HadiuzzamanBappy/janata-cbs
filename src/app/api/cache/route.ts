@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { invalidateCache } from "@/lib/core/cache";
 import { env } from "@/lib/env";
 
@@ -16,8 +16,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     }
   }
 
-  const control =
-    new URL(request.url).searchParams.get("control") ?? undefined;
+  const control = new URL(request.url).searchParams.get("control") ?? undefined;
   const removed = await invalidateCache(control);
 
   return NextResponse.json({ removed, control: control ?? "*" });

@@ -1,11 +1,11 @@
 "use client";
 
+import { Check, Loader2, Save, Search } from "lucide-react";
 import * as React from "react";
-import { Loader2, Search, Check, Save } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function ResetPassword({ command: _command }: { command?: string }) {
   const [loading, setLoading] = React.useState(false);
@@ -23,12 +23,12 @@ export function ResetPassword({ command: _command }: { command?: string }) {
       setError("An ID is required to get record details.");
       return;
     }
-    
+
     setLoading(true);
     setError(null);
     setSuccess(null);
     setShowForm(false);
-    
+
     try {
       const response = await fetch("/api/proxy", {
         method: "POST",
@@ -52,9 +52,11 @@ export function ResetPassword({ command: _command }: { command?: string }) {
           setIsLocked(true);
         }
       } else if (res.statusCode === 404) {
-         setError(res.message || "Record not found.");
+        setError(res.message || "Record not found.");
       } else {
-        setError(res.errors ? res.errors.join(", ") : "Failed to fetch record.");
+        setError(
+          res.errors ? res.errors.join(", ") : "Failed to fetch record.",
+        );
       }
     } catch (err: any) {
       setError(err.message);
@@ -86,7 +88,7 @@ export function ResetPassword({ command: _command }: { command?: string }) {
           authLevel: 1,
           data: {
             bankId,
-            fullName
+            fullName,
           },
         }),
       });
@@ -98,7 +100,11 @@ export function ResetPassword({ command: _command }: { command?: string }) {
         setIdText("");
         setIsLocked(false);
       } else {
-        setError(res.errors ? res.errors.join(", ") : res.message || "Failed to reset password.");
+        setError(
+          res.errors
+            ? res.errors.join(", ")
+            : res.message || "Failed to reset password.",
+        );
       }
     } catch (err: any) {
       setError(err.message);
@@ -108,7 +114,7 @@ export function ResetPassword({ command: _command }: { command?: string }) {
   };
 
   const handleAuthorize = async () => {
-     if (!idText) {
+    if (!idText) {
       setError("An ID is required to authorize record.");
       return;
     }
@@ -138,7 +144,11 @@ export function ResetPassword({ command: _command }: { command?: string }) {
         setIdText("");
         setIsLocked(false);
       } else {
-        setError(res.errors ? res.errors.join(", ") : res.message || "Failed to authorize record.");
+        setError(
+          res.errors
+            ? res.errors.join(", ")
+            : res.message || "Failed to authorize record.",
+        );
       }
     } catch (err: any) {
       setError(err.message);
@@ -152,31 +162,66 @@ export function ResetPassword({ command: _command }: { command?: string }) {
       {/* Action Bar */}
       <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
         <div className="flex gap-2">
-           <Button variant="outline" size="sm" onClick={handleReset} disabled={!showForm || loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleReset}
+            disabled={!showForm || loading}
+          >
             <Save className="w-4 h-4 mr-2 text-blue-500" /> Save/Reset
           </Button>
-          <Button variant="outline" size="sm" onClick={handleAuthorize} disabled={loading || !idText}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAuthorize}
+            disabled={loading || !idText}
+          >
             <Check className="w-4 h-4 mr-2 text-green-500" /> Authorize
           </Button>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-gray-700 dark:text-gray-300 mr-2">USER.PASS.RESET</span>
+          <span className="font-semibold text-sm text-gray-700 dark:text-gray-300 mr-2">
+            USER.PASS.RESET
+          </span>
           <div className="flex relative">
-            <Input 
-              className="w-64 h-8 text-sm pr-8" 
-              placeholder="Enter User ID" 
+            <Input
+              className="w-64 h-8 text-sm pr-8"
+              placeholder="Enter User ID"
               value={idText}
               onChange={(e) => setIdText(e.target.value.toUpperCase())}
               disabled={isLocked || loading}
-              onKeyDown={(e) => e.key === 'Enter' && fetchUser()}
+              onKeyDown={(e) => e.key === "Enter" && fetchUser()}
             />
-            <Button size="sm" variant="ghost" className="absolute right-0 h-8 w-8 p-0" onClick={fetchUser} disabled={loading || isLocked}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+            <Button
+              size="sm"
+              variant="ghost"
+              className="absolute right-0 h-8 w-8 p-0"
+              onClick={fetchUser}
+              disabled={loading || isLocked}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
             </Button>
           </div>
           {isLocked && (
-             <Button size="sm" variant="ghost" onClick={() => { setIsLocked(false); setShowForm(false); setIdText(""); setError(null); setSuccess(null); }} className="h-8 text-xs">Clear</Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setIsLocked(false);
+                setShowForm(false);
+                setIdText("");
+                setError(null);
+                setSuccess(null);
+              }}
+              className="h-8 text-xs"
+            >
+              Clear
+            </Button>
           )}
         </div>
       </div>
@@ -201,25 +246,43 @@ export function ResetPassword({ command: _command }: { command?: string }) {
           <div className="max-w-2xl mx-auto mt-4 bg-white border border-gray-200 dark:border-gray-800 dark:bg-gray-950 rounded-lg shadow-sm p-6 space-y-6">
             <div className="border-b pb-4 border-gray-100 dark:border-gray-800">
               <h3 className="text-lg font-semibold">User Details</h3>
-              <p className="text-sm text-fg-muted">Review details before executing a password reset.</p>
+              <p className="text-sm text-fg-muted">
+                Review details before executing a password reset.
+              </p>
             </div>
-            
+
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Bank ID <span className="text-red-500">*</span></Label>
+              <Label className="text-right font-medium">
+                Bank ID <span className="text-red-500">*</span>
+              </Label>
               <div className="col-span-3">
-                <Input value={bankId} disabled className="bg-gray-50 dark:bg-gray-900 w-32" />
+                <Input
+                  value={bankId}
+                  disabled
+                  className="bg-gray-50 dark:bg-gray-900 w-32"
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right font-medium">Full Name <span className="text-red-500">*</span></Label>
+              <Label className="text-right font-medium">
+                Full Name <span className="text-red-500">*</span>
+              </Label>
               <div className="col-span-3">
-                <Input value={fullName} disabled className="bg-gray-50 dark:bg-gray-900" />
+                <Input
+                  value={fullName}
+                  disabled
+                  className="bg-gray-50 dark:bg-gray-900"
+                />
               </div>
             </div>
-            
+
             <div className="pt-4 border-t border-gray-100 dark:border-gray-800 text-sm text-gray-500 dark:text-gray-400">
-              <p>Click <strong className="text-blue-500">Save/Reset</strong> in the toolbar to initiate the administrative password reset for this user.</p>
+              <p>
+                Click <strong className="text-blue-500">Save/Reset</strong> in
+                the toolbar to initiate the administrative password reset for
+                this user.
+              </p>
             </div>
           </div>
         )}

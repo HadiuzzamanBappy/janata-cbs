@@ -1,11 +1,11 @@
 import "server-only";
 import {
-  cacheGet,
-  cacheSet,
   cacheDelete,
+  cacheGet,
   cacheKey,
-  singleFlight,
+  cacheSet,
   circuitOpen,
+  singleFlight,
 } from "@/lib/core/redis-client";
 import { env } from "@/lib/env";
 
@@ -17,7 +17,7 @@ const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24 Hours
 export async function getOrSet<T>(
   key: string,
   fetcher: () => Promise<T>,
-  ttlSeconds: number = DEFAULT_TTL_SECONDS
+  ttlSeconds: number = DEFAULT_TTL_SECONDS,
 ): Promise<T> {
   const fullKey = cacheKey(key);
 

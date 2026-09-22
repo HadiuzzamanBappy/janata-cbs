@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { loginProcess, grpcStatusToHttp } from "@/lib/core/grpc";
-import { createSession, type CurrentUser } from "@/lib/core/redis-session";
+import { type NextRequest, NextResponse } from "next/server";
+import { grpcStatusToHttp, loginProcess } from "@/lib/core/grpc";
 import { rateLimit } from "@/lib/core/rate-limit";
+import { type CurrentUser, createSession } from "@/lib/core/redis-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!username || !password) {
       return NextResponse.json(
         { message: "Username and password are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!allowed) {
       return NextResponse.json(
         { message: `Too many login attempts. Try again in ${resetSec}s.` },
-        { status: 429, headers: { "Retry-After": String(resetSec) } }
+        { status: 429, headers: { "Retry-After": String(resetSec) } },
       );
     }
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (res.statusCode !== 200) {
       return NextResponse.json(
         { message: res.message || "Invalid credentials", errors: res.errors },
-        { status: res.statusCode || 401 }
+        { status: res.statusCode || 401 },
       );
     }
 
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!payload.token || !payload.userId) {
       return NextResponse.json(
         { message: "Login response missing required authentication token" },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
@@ -88,7 +88,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       currUser,
     });
 
-    return NextResponse.json({ message: "Logged in successfully", user: currUser });
+    return NextResponse.json({
+      message: "Logged in successfully",
+      user: currUser,
+    });
   } catch (err) {
     const { status, message } = grpcStatusToHttp(err);
     return NextResponse.json({ message }, { status: status || 500 });

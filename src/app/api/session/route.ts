@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
-  getSession,
-  getFromSession,
-  updateBranchCodeAndName,
   destroySession,
+  getFromSession,
+  getSession,
+  updateBranchCodeAndName,
 } from "@/lib/core/redis-session";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function GET(): Promise<NextResponse> {
     if (!currUser) {
       return NextResponse.json(
         { success: false, message: "No active session" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -24,7 +24,7 @@ export async function GET(): Promise<NextResponse> {
   } catch (error) {
     return NextResponse.json(
       { success: false, errors: "Internal server error retrieving session" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!session) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -44,25 +44,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (body.branchCode && body.branchName) {
       const updatedUser = await updateBranchCodeAndName(
         body.branchCode,
-        body.branchName
+        body.branchName,
       );
       if (!updatedUser) {
         return NextResponse.json(
           { success: false, message: "Failed to update session branch" },
-          { status: 500 }
+          { status: 500 },
         );
       }
       return NextResponse.json(
         { success: true, currUser: updatedUser },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
-    return NextResponse.json({ success: true, currUser: session.currUser }, { status: 200 });
+    return NextResponse.json(
+      { success: true, currUser: session.currUser },
+      { status: 200 },
+    );
   } catch (error) {
     return NextResponse.json(
       { success: false, errors: "Internal server error updating session" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

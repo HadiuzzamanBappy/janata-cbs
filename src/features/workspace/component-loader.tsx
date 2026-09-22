@@ -1,9 +1,9 @@
 "use client";
 
-import * as React from "react";
-import { resolveControl } from "@/features/workspace/component-registry";
-import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
+import * as React from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { resolveControl } from "@/features/workspace/component-registry";
 
 export interface ComponentLoaderProps {
   command: string;
@@ -30,7 +30,11 @@ class ComponentErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error(`ComponentLoader error rendering "${this.props.command}":`, error, errorInfo);
+    console.error(
+      `ComponentLoader error rendering "${this.props.command}":`,
+      error,
+      errorInfo,
+    );
   }
 
   render() {
@@ -38,9 +42,12 @@ class ComponentErrorBoundary extends React.Component<
       return (
         <div className="p-6 my-auto text-center flex flex-col items-center gap-2 bg-destructive/10 rounded-lg border border-destructive/20 max-w-md mx-auto">
           <AlertCircle className="size-6 text-destructive" />
-          <h3 className="font-semibold text-xs text-destructive">Failed to Load Control</h3>
+          <h3 className="font-semibold text-xs text-destructive">
+            Failed to Load Control
+          </h3>
           <p className="text-[11px] text-muted-foreground font-mono">
-            {this.state.error?.message || `Render error on "${this.props.command}"`}
+            {this.state.error?.message ||
+              `Render error on "${this.props.command}"`}
           </p>
         </div>
       );
@@ -58,7 +65,10 @@ export function ComponentLoader({
   mode = "panel",
   className = "",
 }: ComponentLoaderProps) {
-  const ControlComponent = React.useMemo(() => resolveControl(command), [command]);
+  const ControlComponent = React.useMemo(
+    () => resolveControl(command),
+    [command],
+  );
 
   return (
     <div

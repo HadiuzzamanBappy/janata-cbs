@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/core/redis-session";
+import { type NextRequest, NextResponse } from "next/server";
 import { dispatch, type Envelope } from "@/lib/core/dispatch";
+import { getSession } from "@/lib/core/redis-session";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           message: "User session expired or unauthorized",
           timestamp: new Date().toISOString(),
         },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           message: "Request type is missing in proxy payload",
           timestamp: new Date().toISOString(),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         message: err?.message || "Internal Proxy Dispatch Error",
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

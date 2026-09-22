@@ -1,7 +1,7 @@
 "use client";
 
-import { useSearchParams, useParams } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
+import { useParams, useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { ComponentLoader } from "@/features/workspace/component-loader";
@@ -23,7 +23,10 @@ export default function StandaloneScreenPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold">{title}</span>
-            <Badge variant="outline" className="font-mono text-[10px] px-1.5 py-0">
+            <Badge
+              variant="outline"
+              className="font-mono text-[10px] px-1.5 py-0"
+            >
               {screenId}
             </Badge>
           </div>

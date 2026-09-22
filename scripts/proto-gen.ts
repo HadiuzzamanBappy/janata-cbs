@@ -1,9 +1,9 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 
-const OUT_DIR = path.join("src", "lib", "core", "generated");
-const PROTO_DIR = path.join("src", "grpc");
+const OUT_DIR = path.join("src", "grpc");
+const PROTO_DIR = path.join("proto");
 
 // Ensure output directory exists
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -14,12 +14,12 @@ const protocPlugin = path.join(
   process.cwd(),
   "node_modules",
   ".bin",
-  isWindows ? "protoc-gen-ts_proto.cmd" : "protoc-gen-ts_proto"
+  isWindows ? "protoc-gen-ts_proto.cmd" : "protoc-gen-ts_proto",
 );
 
 if (!fs.existsSync(protocPlugin)) {
   console.error(
-    `Error: ts-proto plugin not found at "${protocPlugin}". Please run 'pnpm install' first.`
+    `Error: ts-proto plugin not found at "${protocPlugin}". Please run 'pnpm install' first.`,
   );
   process.exit(1);
 }
@@ -41,17 +41,17 @@ try {
     ],
     {
       stdio: "inherit",
-    }
+    },
   );
   console.log(`✓ Generated stubs in ${OUT_DIR}`);
 } catch (error: any) {
   if (error?.code === "ENOENT") {
     console.error(
-      "\nError: 'protoc' (protobuf compiler) command was not found in your system PATH."
+      "\nError: 'protoc' (protobuf compiler) command was not found in your system PATH.",
     );
     console.error("Please install protoc:");
     console.error(
-      "  - Windows: choco install protoc / winget install Google.Protobuf / scoop install protoc"
+      "  - Windows: choco install protoc / winget install Google.Protobuf / scoop install protoc",
     );
     console.error("  - macOS: brew install protobuf");
     console.error("  - Linux: sudo apt install -y protobuf-compiler\n");

@@ -1,10 +1,10 @@
 "use client";
 
-import * as React from "react";
-import { type FormField } from "@/lib/schema/schemas";
+import { cn } from "cn";
+import type * as React from "react";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
 import {
   Select,
   SelectContent,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "cn";
+import type { FormField } from "@/lib/schema/schemas";
 
 export interface FieldFactoryProps {
   field: FormField;
@@ -35,10 +35,10 @@ export function FieldFactory({
     field.width === "xs"
       ? "col-span-12 sm:col-span-3"
       : field.width === "sm"
-      ? "col-span-12 sm:col-span-4"
-      : field.width === "lg"
-      ? "col-span-12 sm:col-span-12"
-      : "col-span-12 sm:col-span-6";
+        ? "col-span-12 sm:col-span-4"
+        : field.width === "lg"
+          ? "col-span-12 sm:col-span-12"
+          : "col-span-12 sm:col-span-6";
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(field.name, e.target.value);
@@ -50,7 +50,10 @@ export function FieldFactory({
   };
 
   const handleDateChange = (selectedDate?: Date) => {
-    onChange(field.name, selectedDate ? selectedDate.toISOString().split("T")[0] : "");
+    onChange(
+      field.name,
+      selectedDate ? selectedDate.toISOString().split("T")[0] : "",
+    );
   };
 
   const handleSelectChange = (selectedValue: string | null) => {
@@ -67,9 +70,14 @@ export function FieldFactory({
 
   return (
     <div className={cn("flex flex-col gap-1.5", widthClass)}>
-      <Label htmlFor={field.name} className="text-xs font-medium flex items-center gap-1">
+      <Label
+        htmlFor={field.name}
+        className="text-xs font-medium flex items-center gap-1"
+      >
         {field.label}
-        {field.required && <span className="text-destructive font-bold">*</span>}
+        {field.required && (
+          <span className="text-destructive font-bold">*</span>
+        )}
       </Label>
 
       {field.type === "select" ? (
@@ -118,7 +126,9 @@ export function FieldFactory({
         />
       )}
 
-      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
+      {error && (
+        <p className="text-[11px] font-medium text-destructive">{error}</p>
+      )}
     </div>
   );
 }

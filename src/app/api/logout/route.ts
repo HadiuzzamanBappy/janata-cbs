@@ -6,5 +6,8 @@ export const dynamic = "force-dynamic";
 
 export async function POST(): Promise<NextResponse> {
   await destroySession();
-  return NextResponse.json({ message: "Logged out successfully", success: true });
+  return NextResponse.json({
+    message: "Logged out successfully",
+    success: true,
+  });
 }

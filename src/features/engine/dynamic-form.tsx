@@ -1,13 +1,13 @@
 "use client";
 
+import { AlertTriangle, RotateCcw, Save } from "lucide-react";
 import * as React from "react";
-import { useSchema } from "@/features/engine/hooks/use-schema";
-import { useFormState } from "@/features/engine/hooks/use-form-state";
-import { FormRenderer } from "@/features/engine/form-renderer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
-import { Save, RotateCcw, AlertTriangle } from "lucide-react";
+import { FormRenderer } from "@/features/engine/form-renderer";
+import { useFormState } from "@/features/engine/hooks/use-form-state";
+import { useSchema } from "@/features/engine/hooks/use-schema";
 
 export interface DynamicFormProps {
   command: string;
@@ -25,7 +25,7 @@ export function DynamicForm({
   const { schema, loading, error, refetch } = useSchema(command);
   const { values, errors, setValue, validate, resetForm } = useFormState(
     schema,
-    initialValues
+    initialValues,
   );
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
@@ -60,7 +60,8 @@ export function DynamicForm({
       if (res.ok && json.status === "SUCCESS") {
         toast.add({
           title: "Transaction Saved",
-          description: json.message || `Record saved successfully for ${schema.title}`,
+          description:
+            json.message || `Record saved successfully for ${schema.title}`,
           type: "success",
         });
         if (onSuccess) onSuccess(json);
@@ -102,7 +103,9 @@ export function DynamicForm({
       <div className="p-8 max-w-md mx-auto my-12 flex flex-col items-center text-center gap-3 bg-muted/40 rounded-lg border border-border">
         <AlertTriangle className="size-8 text-destructive" />
         <h3 className="font-semibold text-sm">Failed to Load Command Schema</h3>
-        <p className="text-xs text-muted-foreground">{error || `No schema found for "${command}"`}</p>
+        <p className="text-xs text-muted-foreground">
+          {error || `No schema found for "${command}"`}
+        </p>
         <Button size="sm" variant="outline" onClick={refetch}>
           Retry Fetching Schema
         </Button>
@@ -122,7 +125,8 @@ export function DynamicForm({
             </span>
           </h2>
           <p className="text-xs text-muted-foreground">
-            Command: <code className="font-mono">{command}</code> | ID Prefix: <code className="font-mono">{schema.idPrefix}</code>
+            Command: <code className="font-mono">{command}</code> | ID Prefix:{" "}
+            <code className="font-mono">{schema.idPrefix}</code>
           </p>
         </div>
 

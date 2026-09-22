@@ -15,7 +15,7 @@ export interface RateLimitResult {
 export async function rateLimit(
   key: string,
   limit = env.LOGIN_LIMIT || 3,
-  windowSec = 60
+  windowSec = 60,
 ): Promise<RateLimitResult> {
   const redis = getRedisClient();
   if (!redis) {

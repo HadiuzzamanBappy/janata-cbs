@@ -1,8 +1,8 @@
 import "server-only";
-import { STATIC_BRANCHES, type BranchMock } from "@/lib/mocks";
-import { env } from "@/lib/env";
 import { grpcProcess } from "@/lib/core/grpc";
 import { getServiceUrl } from "@/lib/core/services";
+import { env } from "@/lib/env";
+import { type BranchMock, STATIC_BRANCHES } from "@/lib/mocks";
 
 export async function getBranches(token?: string): Promise<BranchMock[]> {
   if (env.MODEL_SOURCE === "static") {
@@ -29,7 +29,7 @@ export async function getBranches(token?: string): Promise<BranchMock[]> {
         userId: "SYSUSER",
         data: {},
       },
-      { token }
+      { token },
     );
 
     if (res.statusCode === 200 && Array.isArray(res.data)) {
@@ -38,7 +38,10 @@ export async function getBranches(token?: string): Promise<BranchMock[]> {
 
     return STATIC_BRANCHES;
   } catch (err) {
-    console.warn("[branches] gRPC branch fetch failed, falling back to static branches:", err);
+    console.warn(
+      "[branches] gRPC branch fetch failed, falling back to static branches:",
+      err,
+    );
     return STATIC_BRANCHES;
   }
 }

@@ -11,7 +11,7 @@ export async function GET() {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error?.message || "Failed to fetch menu items" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { LoginForm } from "@/features/auth/login-form";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LoginForm } from "@/features/auth/login-form";
 
 export const metadata: Metadata = {
   title: "Sign on — Janata Bank PLC.",
@@ -39,7 +39,7 @@ export default function LoginPage() {
               Business date
             </p>
             <p className="mt-1 text-3xl font-bold tracking-tight">
-              {new Date().toISOString().split('T')[0]}
+              {new Date().toISOString().split("T")[0]}
             </p>
             <p className="mt-1 text-[11px] tracking-[0.18em] opacity-75">
               HQ · 001

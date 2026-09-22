@@ -24,15 +24,16 @@ export type RawPropertyConfigRecord = {
   PROPERTIES?: RawPropertyRecord[];
 };
 
-export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.lazy(() =>
-  z.object({
-    record: rawPropertyConfigSchema.optional(),
-    DESCRIPTION: z.string().optional(),
-    TABLENAME: z.string().optional(),
-    IDDEF: z.object({ IDPREFIX: z.string().optional() }).optional(),
-    PROPERTIES: z.array(rawPropertyRecordSchema).optional(),
-  })
-);
+export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> =
+  z.lazy(() =>
+    z.object({
+      record: rawPropertyConfigSchema.optional(),
+      DESCRIPTION: z.string().optional(),
+      TABLENAME: z.string().optional(),
+      IDDEF: z.object({ IDPREFIX: z.string().optional() }).optional(),
+      PROPERTIES: z.array(rawPropertyRecordSchema).optional(),
+    }),
+  );
 
 export type RawMenuRecord = {
   id?: string | number;
@@ -59,7 +60,7 @@ export const rawMenuRecordSchema: z.ZodType<RawMenuRecord> = z.lazy(() =>
     application: z.string().optional(),
     children: z.array(rawMenuRecordSchema).optional(),
     items: z.array(rawMenuRecordSchema).optional(),
-  })
+  }),
 );
 
 /* -------------------------------------------------------------------------- */
@@ -100,7 +101,7 @@ export const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
     label: z.string(),
     command: z.string().optional(),
     children: z.array(menuItemSchema).optional(),
-  })
+  }),
 );
 
 export interface MenuItem {

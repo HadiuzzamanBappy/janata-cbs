@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import { LogOut, PaintbrushIcon, ShieldIcon, UserIcon } from "lucide-react";
+import * as React from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,13 +9,13 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@/components/ui/breadcrumb";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Sidebar,
   SidebarContent,
@@ -26,32 +27,31 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { ShieldIcon, PaintbrushIcon, UserIcon, LogOut } from "lucide-react"
-import { ChangePassword } from "@/features/settings/security-tab"
-import { ProfileTab } from "@/features/settings/profile-tab"
-import { AppearanceTab } from "@/features/settings/appearance-tab"
-import { useSessionStore } from "@/store/session-store"
+} from "@/components/ui/sidebar";
+import { AppearanceTab } from "@/features/settings/appearance-tab";
+import { ProfileTab } from "@/features/settings/profile-tab";
+import { ChangePassword } from "@/features/settings/security-tab";
+import { useSessionStore } from "@/store/session-store";
 
 const data = {
   nav: [
     {
       name: "User Profile",
       icon: <UserIcon />,
-      id: "profile"
+      id: "profile",
     },
     {
       name: "Security & Password",
       icon: <ShieldIcon />,
-      id: "security"
+      id: "security",
     },
     {
       name: "Appearance",
       icon: <PaintbrushIcon />,
-      id: "appearance"
+      id: "appearance",
     },
   ],
-}
+};
 
 interface SettingsDialogProps {
   open: boolean;
@@ -60,7 +60,12 @@ interface SettingsDialogProps {
   onTabChange?: (tab: string) => void;
 }
 
-export function SettingsDialog({ open, onOpenChange, activeTab: controlledTab, onTabChange }: SettingsDialogProps) {
+export function SettingsDialog({
+  open,
+  onOpenChange,
+  activeTab: controlledTab,
+  onTabChange,
+}: SettingsDialogProps) {
   const [internalTab, setInternalTab] = React.useState("profile");
 
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
@@ -68,7 +73,7 @@ export function SettingsDialog({ open, onOpenChange, activeTab: controlledTab, o
 
   const { logout } = useSessionStore();
 
-  const activeNavItem = data.nav.find(n => n.id === activeTab) || data.nav[0];
+  const activeNavItem = data.nav.find((n) => n.id === activeTab) || data.nav[0];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,7 +82,10 @@ export function SettingsDialog({ open, onOpenChange, activeTab: controlledTab, o
         <DialogDescription className="sr-only">
           Customize your system settings and profile.
         </DialogDescription>
-        <SidebarProvider className="items-start flex-1 min-h-0" style={{ "--sidebar-width": "14rem" } as React.CSSProperties}>
+        <SidebarProvider
+          className="items-start flex-1 min-h-0"
+          style={{ "--sidebar-width": "14rem" } as React.CSSProperties}
+        >
           <Sidebar className="border-r border-border/50 h-full bg-sidebar/50">
             <SidebarContent>
               <SidebarGroup>
@@ -116,7 +124,9 @@ export function SettingsDialog({ open, onOpenChange, activeTab: controlledTab, o
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink className="cursor-default">Settings</BreadcrumbLink>
+                      <BreadcrumbLink className="cursor-default">
+                        Settings
+                      </BreadcrumbLink>
                     </BreadcrumbItem>
                     <BreadcrumbSeparator className="hidden md:block" />
                     <BreadcrumbItem>
@@ -137,5 +147,5 @@ export function SettingsDialog({ open, onOpenChange, activeTab: controlledTab, o
         </SidebarProvider>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

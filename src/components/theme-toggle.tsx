@@ -1,29 +1,29 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Monitor, Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+import { Monitor, Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import * as React from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface ThemeToggleProps {
-  variant?: "dropdown" | "group"
+  variant?: "dropdown" | "group";
 }
 
 export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (variant === "group") {
     if (!mounted) {
@@ -33,7 +33,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           <div className="w-10 h-8 rounded-md" />
           <div className="w-10 h-8 rounded-md" />
         </div>
-      )
+      );
     }
 
     return (
@@ -42,7 +42,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           onClick={() => setTheme("light")}
           className={cn(
             "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
-            theme === "light" && "bg-background shadow-sm text-foreground"
+            theme === "light" && "bg-background shadow-sm text-foreground",
           )}
           title="Light Mode"
         >
@@ -52,7 +52,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           onClick={() => setTheme("system")}
           className={cn(
             "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
-            theme === "system" && "bg-background shadow-sm text-foreground"
+            theme === "system" && "bg-background shadow-sm text-foreground",
           )}
           title="System Preference"
         >
@@ -62,19 +62,27 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           onClick={() => setTheme("dark")}
           className={cn(
             "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
-            theme === "dark" && "bg-background shadow-sm text-foreground"
+            theme === "dark" && "bg-background shadow-sm text-foreground",
           )}
           title="Dark Mode"
         >
           <Moon className="size-4" />
         </button>
       </div>
-    )
+    );
   }
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="outline" size="icon" className="bg-background border-border/80 hover:bg-accent hover:text-accent-foreground" />}>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-background border-border/80 hover:bg-accent hover:text-accent-foreground"
+          />
+        }
+      >
         {mounted && theme === "system" && <Monitor className="h-4 w-4" />}
         {mounted && theme === "light" && <Sun className="h-4 w-4" />}
         {mounted && theme === "dark" && <Moon className="h-4 w-4" />}
@@ -93,5 +101,5 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

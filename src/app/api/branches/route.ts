@@ -10,8 +10,11 @@ export async function GET() {
     return NextResponse.json({ success: true, data: branches });
   } catch (error: any) {
     return NextResponse.json(
-      { success: false, error: error?.message || "Failed to fetch branch list" },
-      { status: 500 }
+      {
+        success: false,
+        error: error?.message || "Failed to fetch branch list",
+      },
+      { status: 500 },
     );
   }
 }

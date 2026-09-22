@@ -11,7 +11,7 @@ export interface LaunchScreenOptions {
 
 /**
  * Domain-driven Launcher for Core Banking Screens & Workflows.
- * 
+ *
  * Target Modes:
  * - `panel`: Embeds the screen as an active tab inside the multi-tab AppShell layout.
  * - `window`: Opens a standalone popup window for the screen (without full sidebar navigation).
@@ -37,7 +37,7 @@ export function launchScreen({
       "resizable=yes",
       "scrollbars=yes",
     ].join(",");
-    
+
     const windowName = `screen_${id.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
     const win = window.open(screenUrl, windowName, popupFeatures);
     if (win) win.focus();

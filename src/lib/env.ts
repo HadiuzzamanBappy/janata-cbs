@@ -2,7 +2,9 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // Server Execution Environment
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
 
   // Core Banking gRPC Settings & Microservice Endpoints
   MODEL_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
@@ -12,7 +14,10 @@ const envSchema = z.object({
   SERVICE_URL_CUSTOMER: z.string().default("http://customer:8383"),
   SERVICE_URL_FINXURM: z.string().default("http://finxurm:8282"),
 
-  GRPC_TLS: z.string().transform((val) => val === "true").default(false),
+  GRPC_TLS: z
+    .string()
+    .transform((val) => val === "true")
+    .default(false),
   GRPC_DEADLINE_MS: z.coerce.number().default(8000),
   GRPC_FINANCIAL_TYPES: z.string().default("AFT,ACT"),
   MODEL_REQUEST_TYPE: z.string().default("GMC"),
@@ -22,14 +27,22 @@ const envSchema = z.object({
   // Redis & Session Cache Settings
   REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
   REDIS_KEY_PREFIX: z.string().default("finx"),
-  CACHE_ENABLED: z.string().transform((val) => val !== "false").default(true),
+  CACHE_ENABLED: z
+    .string()
+    .transform((val) => val !== "false")
+    .default(true),
   CACHE_COOLDOWN_MS: z.coerce.number().default(5000),
   SPEC_TTL_SECONDS: z.coerce.number().default(3600),
   MENU_TTL_SECONDS: z.coerce.number().default(600),
   CACHE_INVALIDATE_TOKEN: z.string().default("super-secret-cache-token"),
 
   // Security & Authentication Settings
-  SESSION_SECRET: z.string().min(16, "SESSION_SECRET must be at least 16 characters").default("a960b9e379952ddc2699ae9259b9c28597c6a59a199fbf4b7357bd8e978095ac"),
+  SESSION_SECRET: z
+    .string()
+    .min(16, "SESSION_SECRET must be at least 16 characters")
+    .default(
+      "a960b9e379952ddc2699ae9259b9c28597c6a59a199fbf4b7357bd8e978095ac",
+    ),
   LOGIN_LIMIT: z.coerce.number().default(3),
 
   // External Microservice Endpoints
@@ -37,7 +50,9 @@ const envSchema = z.object({
 
   // Client-exposed Environment Variables (NEXT_PUBLIC_)
   NEXT_PUBLIC_BASE_URL: z.string().default("http://localhost:3000"),
-  NEXT_PUBLIC_COMPONENT_TARGET: z.enum(["panel", "window", "tab"]).default("panel"),
+  NEXT_PUBLIC_COMPONENT_TARGET: z
+    .enum(["panel", "window", "tab"])
+    .default("panel"),
   NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().default(10),
   NEXT_PUBLIC_CENTRAL_BRANCH: z.string().default("JB9999"),
   NEXT_PUBLIC_DEFAULT_SERVICE_PATH: z.string().default("default"),
@@ -75,5 +90,6 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_COMPONENT_TARGET: process.env.NEXT_PUBLIC_COMPONENT_TARGET,
   NEXT_PUBLIC_LOGOUT_TIME: process.env.NEXT_PUBLIC_LOGOUT_TIME,
   NEXT_PUBLIC_CENTRAL_BRANCH: process.env.NEXT_PUBLIC_CENTRAL_BRANCH,
-  NEXT_PUBLIC_DEFAULT_SERVICE_PATH: process.env.NEXT_PUBLIC_DEFAULT_SERVICE_PATH,
+  NEXT_PUBLIC_DEFAULT_SERVICE_PATH:
+    process.env.NEXT_PUBLIC_DEFAULT_SERVICE_PATH,
 });

@@ -20,7 +20,11 @@ export const metadata: Metadata = {
   description: "Core banking client.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"

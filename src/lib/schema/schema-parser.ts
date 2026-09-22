@@ -1,12 +1,12 @@
 import {
-  rawPropertyConfigSchema,
-  formSchemaSchema,
-  type FormSchema,
-  type FormField,
   type FieldType,
   type FieldWidth,
-  type RawPropertyRecord,
+  type FormField,
+  type FormSchema,
+  formSchemaSchema,
   type RawPropertyConfigRecord,
+  type RawPropertyRecord,
+  rawPropertyConfigSchema,
 } from "@/lib/schema/schemas";
 
 export function widthForLength(length?: number): FieldWidth {
@@ -33,7 +33,9 @@ export function typeForColumn(sqlType?: string): FieldType {
 }
 
 function truthy(val: unknown): boolean {
-  return val === true || val === "Y" || val === "YES" || val === "1" || val === 1;
+  return (
+    val === true || val === "Y" || val === "YES" || val === "1" || val === 1
+  );
 }
 
 export function toField(record: RawPropertyRecord): FormField {
@@ -77,7 +79,7 @@ export function toField(record: RawPropertyRecord): FormField {
  */
 export function parseGMC(
   rawPayload: unknown,
-  commandFallback: string = "FORM"
+  commandFallback: string = "FORM",
 ): { success: true; data: FormSchema } | { success: false; error: string } {
   if (!rawPayload || typeof rawPayload !== "object") {
     return {
@@ -107,9 +109,7 @@ export function parseGMC(
       .join("")
       .slice(0, 2);
 
-  const fields = properties
-    .map(toField)
-    .filter((f) => Boolean(f.name));
+  const fields = properties.map(toField).filter((f) => Boolean(f.name));
 
   const candidateForm: FormSchema = {
     code,

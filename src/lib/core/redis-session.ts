@@ -39,7 +39,7 @@ async function currentSessionId(): Promise<string | null> {
  * Creates a new session in Redis and sets the HTTP-only opaque cookie.
  */
 export async function createSession(
-  data: Omit<SessionData, "createdAt">
+  data: Omit<SessionData, "createdAt">,
 ): Promise<string> {
   const store = await cookies();
   const oldId = store.get(COOKIE_NAME)?.value;
@@ -67,7 +67,8 @@ export async function createSession(
 
   store.set(COOKIE_NAME, id, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
+    secure:
+      process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
     sameSite: "lax",
     path: "/",
     maxAge: TTL_SECONDS,
@@ -102,7 +103,7 @@ export async function getSession(): Promise<SessionData | null> {
  * Utility to extract a single property from the current session.
  */
 export async function getFromSession<K extends keyof SessionData>(
-  key: K
+  key: K,
 ): Promise<SessionData[K] | null> {
   const session = await getSession();
   return session ? session[key] : null;
@@ -112,7 +113,7 @@ export async function getFromSession<K extends keyof SessionData>(
  * Patches the existing active session while preserving remaining TTL.
  */
 export async function updateSession(
-  patch: Partial<Omit<SessionData, "createdAt">>
+  patch: Partial<Omit<SessionData, "createdAt">>,
 ): Promise<SessionData | null> {
   const id = await currentSessionId();
   if (!id) return null;
@@ -146,7 +147,7 @@ export async function updateSession(
  */
 export async function updateBranchCodeAndName(
   branchCode: string,
-  branchName: string
+  branchName: string,
 ): Promise<CurrentUser | null> {
   const session = await getSession();
   if (!session) return null;

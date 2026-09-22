@@ -1,15 +1,18 @@
 "use client";
 
-import * as React from "react";
 import Image from "next/image";
+import * as React from "react";
 import logo from "@/app/icon.png";
-import { useWorkbenchStore } from "@/store/workbench-store";
-import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { launchScreen } from "@/lib/screen-launcher";
-
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
 import { STATIC_MENU } from "@/lib/mocks";
 import type { MenuItem } from "@/lib/schema/schemas";
+import { launchScreen } from "@/lib/screen-launcher";
+import { cn } from "@/lib/utils";
+import { useWorkbenchStore } from "@/store/workbench-store";
 
 export interface TreeNode {
   id: string;
@@ -29,7 +32,9 @@ function mapMenuItemToTreeNode(item: MenuItem): TreeNode {
   };
 }
 
-export const NAVIGATION_TREE: TreeNode[] = STATIC_MENU.map(mapMenuItemToTreeNode);
+export const NAVIGATION_TREE: TreeNode[] = STATIC_MENU.map(
+  mapMenuItemToTreeNode,
+);
 
 interface TreeItemProps {
   node: TreeNode;
@@ -44,7 +49,9 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
   const hasChildren = Boolean(node.children && node.children.length > 0);
   const isLeaf = !hasChildren;
   const isActive =
-    isLeaf && (activeTab?.screenId === (node.command ?? node.id) || activeTab?.id === (node.command ?? node.id));
+    isLeaf &&
+    (activeTab?.screenId === (node.command ?? node.id) ||
+      activeTab?.id === (node.command ?? node.id));
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,7 +76,7 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
           "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors duration-150 group",
           isActive
             ? "bg-primary/15 text-primary font-semibold"
-            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground"
+            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground",
         )}
       >
         {/* Arrow-based indicators matching tree UI specification */}
@@ -113,7 +120,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, []);
 
   return (
-    <Sidebar collapsible="offcanvas" className="border-r border-border/60" {...props}>
+    <Sidebar
+      collapsible="offcanvas"
+      className="border-r border-border/60"
+      {...props}
+    >
       {/* Sidebar Header: Brand Info matching TopBar height */}
       <SidebarHeader className="h-16 shrink-0 border-b border-border/60 px-4 py-0 flex flex-row items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">

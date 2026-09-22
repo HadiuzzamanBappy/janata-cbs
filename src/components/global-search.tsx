@@ -1,38 +1,41 @@
 "use client";
 
-import * as React from "react";
 import {
-  CommandDialog,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandShortcut,
-} from "@/components/ui/command";
-import {
+  BadgeAlert,
+  Building2,
+  Database,
+  FileText,
+  Lock,
+  LogOut,
+  Search,
+  SendHorizontal,
+  Settings,
+  Sliders,
+  Sun,
   UserCheck,
   UserPlus,
   Users,
-  Building2,
-  FileText,
-  Search,
-  Settings,
-  Sliders,
-  Database,
-  Lock,
-  LogOut,
-  Sun,
-  SendHorizontal,
-  BadgeAlert,
 } from "lucide-react";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "@/components/ui/command";
+import { launchScreen } from "@/lib/screen-launcher";
 import { useSessionStore } from "@/store/session-store";
 import { useWorkbenchStore } from "@/store/workbench-store";
-import { launchScreen } from "@/lib/screen-launcher";
-import { Badge } from "@/components/ui/badge";
 
 // Helper map for resolving database icon string keys (e.g., "UserCheck" -> <UserCheck />)
-export const DYNAMIC_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+export const DYNAMIC_ICON_MAP: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   UserCheck,
   UserPlus,
   Users,
@@ -289,7 +292,11 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
   };
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-lg sm:max-w-xl">
+    <CommandDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      className="max-w-lg sm:max-w-xl"
+    >
       <CommandInput placeholder="Type command name, screen ID, or search..." />
       <CommandList className="max-h-72">
         <CommandEmpty className="py-6 text-xs text-muted-foreground">
@@ -300,7 +307,10 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
         <div className="px-3 py-1 flex items-center justify-between border-b border-border/40 text-[11px] text-muted-foreground bg-muted/20">
           <div className="flex items-center gap-1.5">
             <span className="font-medium">RBAC Filter:</span>
-            <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
+            <Badge
+              variant="outline"
+              className="text-[10px] font-mono px-1.5 py-0"
+            >
               {userRole}
             </Badge>
           </div>
@@ -347,17 +357,25 @@ export function GlobalSearchModal({ open, onOpenChange }: GlobalSearchProps) {
       <div className="px-3 py-2 flex items-center justify-between border-t border-border/50 text-[11px] text-muted-foreground bg-muted/30 select-none">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↑</kbd>
-            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↓</kbd>
+            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">
+              ↑
+            </kbd>
+            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">
+              ↓
+            </kbd>
             <span>Navigate</span>
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">↵</kbd>
+            <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">
+              ↵
+            </kbd>
             <span>Select</span>
           </span>
         </div>
         <span className="flex items-center gap-1">
-          <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">ESC</kbd>
+          <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">
+            ESC
+          </kbd>
           <span>Close</span>
         </span>
       </div>

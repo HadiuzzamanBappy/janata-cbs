@@ -7,3 +7,4 @@
 - **Zod Boundary Trust**: NEVER trust raw `req.json()` or external API responses. All incoming data MUST pass through a `.parse()` or `.safeParse()` Zod schema before hitting business logic.
 - **Safe Server Actions**: Server Actions MUST catch errors internally and return typed `{ error: string }` objects. Do NOT throw raw unhandled exceptions to the client.
 - **Base UI Type Preservation**: Use Base UI's `render={<Component />}` pattern for triggers (e.g., `DropdownMenuTrigger`) instead of `asChild` to preserve exact TypeScript signatures.
+- **Future Work Labeling**: When writing code that contains stubs, mock integrations, or placeholders for future work, you MUST explicitly label it using a `// TODO:` comment so it can be easily tracked.

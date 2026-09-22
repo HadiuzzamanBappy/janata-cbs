@@ -8,6 +8,7 @@ const envSchema = z.object({
 
   // Core Banking gRPC Settings & Microservice Endpoints
   MODEL_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
+  USER_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
   GRPC_ADDRESS: z.string().default("localhost:9090"),
   GRPC_ADDRESS_DEFAULTDEV: z.string().default("172.18.18.66:50055"),
   GRPC_ADDRESS_DEFAULT: z.string().default("finx-server:50055"),
@@ -61,6 +62,7 @@ const envSchema = z.object({
 export const env = envSchema.parse({
   NODE_ENV: process.env.NODE_ENV,
   MODEL_SOURCE: process.env.MODEL_SOURCE,
+  USER_SOURCE: process.env.USER_SOURCE,
   GRPC_ADDRESS: process.env.GRPC_ADDRESS,
   GRPC_ADDRESS_DEFAULTDEV: process.env.GRPC_ADDRESS_DEFAULTDEV,
   GRPC_ADDRESS_DEFAULT: process.env.GRPC_ADDRESS_DEFAULT,

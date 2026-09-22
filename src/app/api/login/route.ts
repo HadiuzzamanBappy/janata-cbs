@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { grpcStatusToHttp, loginProcess } from "@/lib/core/grpc";
 import { rateLimit } from "@/lib/core/rate-limit";
 import { type CurrentUser, createSession } from "@/lib/core/redis-session";
+import { env } from "@/lib/env";
+import { STATIC_USERS } from "@fixtures";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +39,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const clientId = "web-client";
+
+    if (env.USER_SOURCE === "static") {
+      const mockUser = STATIC_USERS[username.toLowerCase()];
+      if (!mockUser) {
+        return NextResponse.json(
+          { message: "Invalid static credentials. Try 'admin', 'teller', or 'new_user'." },
+          { status: 401 }
+        );
+      }
+
+      await createSession({
+        userId: mockUser.userId,
+        token: "static-mock-token-xyz123",
+        currUser: mockUser,
+      });
+
+      return NextResponse.json({
+        message: "Logged in successfully (STATIC)",
+        user: mockUser,
+      });
+    }
+
     const res = await loginProcess({ clientId, username, password });
 
     if (res.statusCode !== 200) {

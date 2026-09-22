@@ -74,6 +74,19 @@ export async function createSession(
     maxAge: TTL_SECONDS,
   });
 
+  if (payload.currUser.initLogin) {
+    store.set("initLogin", "true", {
+      httpOnly: true,
+      secure:
+        process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
+      sameSite: "lax",
+      path: "/",
+      maxAge: TTL_SECONDS,
+    });
+  } else {
+    store.delete("initLogin");
+  }
+
   return id;
 }
 
@@ -176,4 +189,5 @@ export async function destroySession(): Promise<void> {
 
   const store = await cookies();
   store.delete(COOKIE_NAME);
+  store.delete("initLogin");
 }

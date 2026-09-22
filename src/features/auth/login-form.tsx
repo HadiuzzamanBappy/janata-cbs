@@ -27,14 +27,20 @@ export function LoginForm() {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await res.json().catch(() => ({}));
+      
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(
-          data.error || "Login failed. Please check your credentials.",
+          data.error || data.message || "Login failed. Please check your credentials.",
         );
       }
 
-      router.push("/");
+      if (data.user?.initLogin) {
+        router.push("/change-password");
+      } else {
+        router.push("/");
+      }
+      
       router.refresh();
     } catch (err: any) {
       setError(err.message);

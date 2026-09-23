@@ -1,6 +1,6 @@
 import type * as React from "react";
 import { DynamicForm } from "@/features/engine/dynamic-form";
-import { ChangePassword } from "@/features/settings/security-tab";
+import { SecurityTab } from "@/features/settings";
 
 /**
  * Registry mapping bespoke screen command keys to React components.
@@ -11,7 +11,7 @@ export const BESPOKE_COMPONENTS: Record<
   React.ComponentType<{ command: string }>
 > = {
   // Auth & Admin Screens
-  "USER.CHANGE.PASS": ChangePassword,
+  "USER.CHANGE.PASS": SecurityTab,
 };
 
 export function resolveControl(

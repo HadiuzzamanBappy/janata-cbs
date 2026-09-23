@@ -28,9 +28,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { AppearanceTab } from "@/features/settings/appearance-tab";
-import { ProfileTab } from "@/features/settings/profile-tab";
-import { ChangePassword } from "@/features/settings/security-tab";
+import { AppearanceTab, ProfileTab, SecurityTab } from "@/features/settings";
 import { useSessionStore } from "@/components/providers/session-provider";
 
 const data = {
@@ -139,7 +137,7 @@ export function AppSettings({
             <div className="flex flex-1 flex-col overflow-y-auto p-6">
               {activeTab === "profile" && <ProfileTab />}
 
-              {activeTab === "security" && <ChangePassword />}
+              {activeTab === "security" && <SecurityTab />}
 
               {activeTab === "appearance" && <AppearanceTab />}
             </div>

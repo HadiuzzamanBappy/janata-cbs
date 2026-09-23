@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { securityPasswordSchema } from "../schemas";
 
 export function ChangePassword({ command: _command }: { command?: string }) {
   const [loading, setLoading] = React.useState(false);
@@ -19,7 +20,6 @@ export function ChangePassword({ command: _command }: { command?: string }) {
   const [newUserName, setNewUserName] = React.useState("");
 
   React.useEffect(() => {
-    // Attempt to fetch current user session from API if no global store is strictly hooked up
     fetch("/api/session")
       .then((res) => res.json())
       .then((data) => {
@@ -31,52 +31,21 @@ export function ChangePassword({ command: _command }: { command?: string }) {
       .catch(() => {});
   }, []);
 
-  const isValidPass = () => {
-    if (!currPass || !newPass || !confPass) {
-      setError("Please fill up the form completely.");
-      return false;
-    }
-
-    if (newPass !== confPass) {
-      setError("New password and confirm password do not match.");
-      return false;
-    }
-
-    if (newPass.length < 6) {
-      setError("Minimum 6 characters required!");
-      return false;
-    }
-
-    if (!newPass.match(".*[A-Z].*")) {
-      setError("At least 1 upper case character required!");
-      return false;
-    }
-
-    if (!newPass.match(".*[a-z].*")) {
-      setError("At least 1 lower case character required!");
-      return false;
-    }
-
-    if (!newPass.match(".*\\d.*")) {
-      setError("At least 1 digit required!");
-      return false;
-    }
-
-    const globalRegex = /[!@#$%^&*(),.?":{}|<>]/g;
-    if (!globalRegex.test(newPass)) {
-      setError("At least 1 special character required!");
-      return false;
-    }
-
-    return true;
-  };
-
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
-    if (!isValidPass()) {
+    const validationResult = securityPasswordSchema.safeParse({
+      newUserName,
+      currPass,
+      newPass,
+      confPass,
+    });
+
+    if (!validationResult.success) {
+      const firstIssue = validationResult.error.issues[0];
+      setError(firstIssue?.message || "Invalid security password fields.");
       return;
     }
 

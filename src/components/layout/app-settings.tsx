@@ -31,7 +31,7 @@ import {
 import { AppearanceTab } from "@/features/settings/appearance-tab";
 import { ProfileTab } from "@/features/settings/profile-tab";
 import { ChangePassword } from "@/features/settings/security-tab";
-import { useSessionStore } from "@/store/session-store";
+import { useSessionStore } from "@/components/providers/session-provider";
 
 const data = {
   nav: [

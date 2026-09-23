@@ -2,7 +2,7 @@
 
 import { Calendar, MapPin, Shield, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useSessionStore } from "@/store/session-store";
+import { useSessionStore } from "@/components/providers/session-provider";
 
 export function ProfileTab() {
   const { user } = useSessionStore();

@@ -12,7 +12,7 @@ import { STATIC_MENU } from "@fixtures";
 import type { MenuItem } from "@/lib/schema/schemas";
 import { launchScreen } from "@/lib/screen-launcher";
 import { cn } from "@/lib/utils";
-import { useWorkbenchStore } from "@/store/workbench-store";
+import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 
 export interface TreeNode {
   id: string;

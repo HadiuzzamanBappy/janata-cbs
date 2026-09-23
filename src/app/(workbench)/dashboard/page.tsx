@@ -2,7 +2,7 @@
 
 import { Sparkles } from "lucide-react";
 import { ComponentLoader } from "@/features/workspace/component-loader";
-import { useWorkbenchStore } from "@/store/workbench-store";
+import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 
 export default function DashboardPage() {
   const { tabs, activeTabId } = useWorkbenchStore();

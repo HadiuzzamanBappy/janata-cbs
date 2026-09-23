@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  AlertTriangle,
   Check,
   ChevronDown,
   Layers,
@@ -14,14 +13,6 @@ import * as React from "react";
 import { launchScreen } from "@/lib/screen-launcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,13 +27,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useWorkbenchStore } from "@/store/workbench-store";
+import { useWorkbenchStore } from "@/components/providers/workbench-provider";
+import { useAlertStore } from "@/components/providers/alert-provider";
 
 export function AppTabBar() {
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [tabSearch, setTabSearch] = React.useState("");
   const { tabs, activeTabId, setActiveTab, removeTab, closeAllTabs, addTab } =
     useWorkbenchStore();
+  const { confirm } = useAlertStore();
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = React.useState(false);
@@ -116,10 +108,6 @@ export function AppTabBar() {
     }
   };
 
-  const handleConfirmCloseAll = () => {
-    closeAllTabs();
-    setConfirmOpen(false);
-  };
 
   const filteredTabs = tabs.filter((t) =>
     t.title.toLowerCase().includes(tabSearch.trim().toLowerCase()),
@@ -265,7 +253,7 @@ export function AppTabBar() {
                         className={cn(
                           "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group hover:bg-accent hover:text-accent-foreground",
                           isActive &&
-                            "bg-accent text-accent-foreground font-semibold",
+                          "bg-accent text-accent-foreground font-semibold",
                         )}
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -315,7 +303,15 @@ export function AppTabBar() {
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  onClick={() => setConfirmOpen(true)}
+                  onClick={() =>
+                    confirm({
+                      title: "Close All Active Tabs?",
+                      message: `Are you sure you want to close all ${tabs.length} open workspace window tabs? Any unsaved form progress will be discarded.`,
+                      variant: "destructive",
+                      confirmText: "Close All Tabs",
+                      onConfirm: () => closeAllTabs(),
+                    })
+                  }
                   className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
                   aria-label="Close all open tabs"
                 />
@@ -330,45 +326,6 @@ export function AppTabBar() {
         </div>
       </div>
 
-      {/* Close All Tabs Confirmation Dialog */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-md p-5 rounded-xl border border-border/80"
-        >
-          <DialogHeader className="gap-1.5">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="size-5 shrink-0" />
-              <DialogTitle className="text-base font-semibold">
-                Close All Active Tabs?
-              </DialogTitle>
-            </div>
-            <DialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
-              Are you sure you want to close all {tabs.length} open workspace
-              window tabs? Any unsaved form progress will be discarded.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4 flex flex-row items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setConfirmOpen(false)}
-              className="text-xs h-8"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleConfirmCloseAll}
-              className="text-xs h-8 gap-1.5"
-            >
-              <XCircle className="size-3.5" />
-              Close All Tabs
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

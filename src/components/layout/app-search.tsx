@@ -28,8 +28,8 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { launchScreen } from "@/lib/screen-launcher";
-import { useSessionStore } from "@/store/session-store";
-import { useWorkbenchStore } from "@/store/workbench-store";
+import { useSessionStore } from "@/components/providers/session-provider";
+import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 
 // Helper map for resolving database icon string keys (e.g., "UserCheck" -> <UserCheck />)
 export const DYNAMIC_ICON_MAP: Record<

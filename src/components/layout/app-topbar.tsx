@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { toast } from "@/components/ui/toast";
-import { useSessionStore } from "@/store/session-store";
+import { useSessionStore } from "@/components/providers/session-provider";
 
 export function TopBar() {
   const [searchOpen, setSearchOpen] = React.useState(false);

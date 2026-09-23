@@ -1,6 +1,4 @@
 import type * as React from "react";
-import { ResetPassword } from "@/features/auth/reset-password";
-import { UserGroups } from "@/features/auth/user-groups";
 import { DynamicForm } from "@/features/engine/dynamic-form";
 import { ChangePassword } from "@/features/settings/security-tab";
 
@@ -14,8 +12,6 @@ export const BESPOKE_COMPONENTS: Record<
 > = {
   // Auth & Admin Screens
   "USER.CHANGE.PASS": ChangePassword,
-  "USER.PASS.RESET": ResetPassword,
-  "USER.GROUP": UserGroups,
 };
 
 export function resolveControl(

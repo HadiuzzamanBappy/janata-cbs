@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { clearInitLoginCookie } from "./actions";
+import { clearInitLoginCookie } from "../actions";
 
 export function ChangePassword() {
   const router = useRouter();

@@ -1,5 +1,5 @@
 import { createStore } from "zustand/vanilla";
-import type { UserDetails } from "@/types";
+import type { UserDetails } from "@/features/auth";
 
 export interface SessionState {
   user: UserDetails | null;

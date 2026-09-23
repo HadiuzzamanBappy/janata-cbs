@@ -13,22 +13,6 @@ export interface APIResponse<T = any> {
   data?: T;
 }
 
-export interface UserDetails {
-  userId: string;
-  fullName: string;
-  userRole: string[];
-  accessibility: string;
-  branchCode: string;
-  branchName: string;
-  txnDate: string;
-  lastTxnDate?: string;
-  nextDate?: string;
-  isLoggedIn: boolean;
-  commandLine: boolean;
-  initLogin: boolean;
-  userStatus: number;
-}
-
 export interface Envelope {
   servicePath: string;
   requestType: string;

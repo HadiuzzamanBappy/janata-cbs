@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ChangePassword } from "@/features/auth/change-password";
+import { ChangePassword } from "@/features/auth";
 
 export const metadata: Metadata = {
   title: "Change Password — Janata Bank PLC.",

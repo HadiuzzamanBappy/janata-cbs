@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { dispatch, type Envelope } from "@/lib/core/dispatch";
 import { getSession } from "@/lib/core/redis-session";
-import { env } from "@/lib/env";
+import { env } from "@/lib/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

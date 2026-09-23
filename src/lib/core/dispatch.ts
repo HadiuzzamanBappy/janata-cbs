@@ -5,8 +5,8 @@ import {
   grpcProcess,
   type ProcessKind,
 } from "@/lib/core/grpc";
-import { env } from "@/lib/env";
-import { getServiceUrl } from "@/lib/services";
+import { env } from "@/lib/config";
+import { getServiceUrl } from "@/lib/core/services";
 import type { APIResponse, Envelope } from "@/types";
 
 export type { Envelope };
@@ -58,10 +58,10 @@ export async function dispatch(
       controlNameArray.includes("USER") && envelope.requestType === "AUT"
         ? "UAU"
         : controlNameArray.includes("FUNDS.TRANSFER") &&
-            ["PUT", "AUT", "REV"].includes(envelope.requestType)
+          ["PUT", "AUT", "REV"].includes(envelope.requestType)
           ? "AFT"
           : controlNameArray.includes("CASH.TRANSFER") &&
-              ["PUT", "AUT", "REV"].includes(envelope.requestType)
+            ["PUT", "AUT", "REV"].includes(envelope.requestType)
             ? "ACT"
             : envelope.requestType;
 

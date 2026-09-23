@@ -1,6 +1,6 @@
 import "server-only";
 import Redis from "ioredis";
-import { env } from "@/lib/env";
+import { env } from "@/lib/config";
 
 /**
  * Redis client with circuit breaker and fail-open guarantees.

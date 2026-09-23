@@ -2,7 +2,7 @@ import "server-only";
 import { getOrSet } from "@/lib/core/cache";
 import { grpcProcess } from "@/lib/core/grpc";
 import { getServiceUrl } from "@/lib/core/services";
-import { env } from "@/lib/env";
+import { env } from "@/lib/config/env";
 import { STATIC_MENU } from "@fixtures";
 import { parseMNU, type MenuItem } from "@/features/workspace";
 

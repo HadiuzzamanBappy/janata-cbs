@@ -7,7 +7,7 @@ import {
   circuitOpen,
   singleFlight,
 } from "@/lib/core/redis-client";
-import { env } from "@/lib/env";
+import { env } from "@/lib/config";
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24 Hours
 

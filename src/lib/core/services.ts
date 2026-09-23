@@ -1,5 +1,5 @@
 import "server-only";
-import { env } from "@/lib/env";
+import { env } from "@/lib/config";
 
 export interface ServiceDef {
   url: string;

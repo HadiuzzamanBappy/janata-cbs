@@ -1,6 +1,6 @@
 import "server-only";
 import { getRedisClient } from "@/lib/core/redis-client";
-import { env } from "@/lib/env";
+import { env } from "@/lib/config";
 
 export interface RateLimitResult {
   allowed: boolean;

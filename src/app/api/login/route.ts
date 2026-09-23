@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { grpcStatusToHttp, loginProcess } from "@/lib/core/grpc";
 import { rateLimit } from "@/lib/core/rate-limit";
 import { type CurrentUser, createSession } from "@/lib/core/redis-session";
-import { env } from "@/lib/env";
+import { env } from "@/lib/config";
 import { STATIC_USERS } from "@fixtures";
 
 export const runtime = "nodejs";

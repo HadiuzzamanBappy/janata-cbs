@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { ComponentLoader } from "@/features/workspace/component-loader";
+import { ComponentLoader } from "@/features/workspace";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 
 export default function DashboardPage() {

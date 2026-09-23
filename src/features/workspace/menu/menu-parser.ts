@@ -4,7 +4,7 @@ import {
   menuItemSchema,
   type RawMenuRecord,
   rawMenuRecordSchema,
-} from "@/lib/schema/schemas";
+} from "./schemas";
 
 function toMenuItemNode(
   record: RawMenuRecord,

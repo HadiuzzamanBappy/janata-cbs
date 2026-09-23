@@ -4,8 +4,7 @@ import { grpcProcess } from "@/lib/core/grpc";
 import { getServiceUrl } from "@/lib/core/services";
 import { env } from "@/lib/env";
 import { STATIC_MENU } from "@fixtures";
-import { parseMNU } from "@/lib/schema/menu-parser";
-import type { MenuItem } from "@/lib/schema/schemas";
+import { parseMNU, type MenuItem } from "@/features/workspace";
 
 const MENU_TTL_SECONDS = env.MENU_TTL_SECONDS || 600;
 

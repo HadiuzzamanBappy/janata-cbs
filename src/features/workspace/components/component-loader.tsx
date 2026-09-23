@@ -3,13 +3,8 @@
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { resolveControl } from "@/features/workspace/component-registry";
-
-export interface ComponentLoaderProps {
-  command: string;
-  mode?: "panel" | "window";
-  className?: string;
-}
+import type { ComponentLoaderProps } from "../types";
+import { resolveControl } from "./component-registry";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -58,7 +53,7 @@ class ComponentErrorBoundary extends React.Component<
 }
 
 /**
- * SINGLE UNIFIED component loader replacing legacy componentLoader, pannelLoader, and windowLoader.
+ * SINGLE UNIFIED component loader replacing legacy componentLoader, panelLoader, and windowLoader.
  */
 export function ComponentLoader({
   command,

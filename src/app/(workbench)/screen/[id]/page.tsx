@@ -4,7 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Badge } from "@/components/ui/badge";
-import { ComponentLoader } from "@/features/workspace/component-loader";
+import { ComponentLoader } from "@/features/workspace";
 
 export default function StandaloneScreenPage() {
   const params = useParams();

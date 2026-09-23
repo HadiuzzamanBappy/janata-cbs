@@ -8,11 +8,12 @@ export async function GET() {
   try {
     const branches = await getBranches();
     return NextResponse.json({ success: true, data: branches });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string };
     return NextResponse.json(
       {
         success: false,
-        error: error?.message || "Failed to fetch branch list",
+        error: err?.message || "Failed to fetch branch list",
       },
       { status: 500 },
     );

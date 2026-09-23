@@ -16,6 +16,7 @@
       "!**/next-env.d.ts",
       "!**/src/components/ui",
       "!**/src/hooks/use-mobile.ts",
+      "!**/src/lib/grpc/generated",
       "!**/public"
     ]
   },
@@ -46,6 +47,9 @@
             }
           }
         }
+      },
+      "suspicious": {
+        "noExplicitAny": "error"
       }
     }
   },

@@ -27,9 +27,13 @@ export async function GET(
     }
 
     return NextResponse.json({ success: true, data: schema }, { status: 200 });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as { message?: string };
     return NextResponse.json(
-      { success: false, error: err?.message || "Internal Schema Fetch Error" },
+      {
+        success: false,
+        error: error?.message || "Internal Schema Fetch Error",
+      },
       { status: 500 },
     );
   }

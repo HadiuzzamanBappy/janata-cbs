@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { FileQuestion } from "lucide-react";
+import Link from "next/link";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -11,7 +11,10 @@ export default function GlobalNotFound() {
         title="Page Not Found"
         description="The URL you are looking for does not exist or has been moved."
         action={
-          <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
+          <Link
+            href="/dashboard"
+            className={buttonVariants({ variant: "outline" })}
+          >
             Return to Dashboard
           </Link>
         }

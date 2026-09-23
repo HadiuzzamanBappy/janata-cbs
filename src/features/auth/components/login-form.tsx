@@ -28,10 +28,12 @@ export function LoginForm() {
       });
 
       const data = await res.json().catch(() => ({}));
-      
+
       if (!res.ok) {
         throw new Error(
-          data.error || data.message || "Login failed. Please check your credentials.",
+          data.error ||
+            data.message ||
+            "Login failed. Please check your credentials.",
         );
       }
 
@@ -40,10 +42,10 @@ export function LoginForm() {
       } else {
         router.push("/");
       }
-      
+
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,8 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { ComponentLoader } from "@/features/workspace";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
+import { ComponentLoader } from "@/features/workspace";
 
 export default function DashboardPage() {
   const { tabs, activeTabId } = useWorkbenchStore();

@@ -1,11 +1,11 @@
 "use client";
 
-import { type ReactNode, createContext, useRef, useContext } from "react";
+import { createContext, type ReactNode, useContext, useRef } from "react";
 import { useStore } from "zustand";
 import {
-  createAlertStore,
-  type AlertStore,
   type AlertState,
+  type AlertStore,
+  createAlertStore,
 } from "@/store/alert-store";
 
 export const AlertStoreContext = createContext<AlertStore | null>(null);
@@ -36,5 +36,8 @@ export function useAlertStore<T>(selector?: (state: AlertState) => T) {
     throw new Error(`useAlertStore must be used within AlertStoreProvider`);
   }
 
-  return useStore(alertStoreContext, selector ?? ((state) => state as any));
+  return useStore(
+    alertStoreContext,
+    selector ?? ((state) => state as unknown as T),
+  );
 }

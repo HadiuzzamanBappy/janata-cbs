@@ -18,14 +18,14 @@ export type {
 
 export interface DynamicFormProps {
   command: string;
-  initialData?: Record<string, any>;
-  onSuccess?: (response: any) => void;
+  initialData?: Record<string, unknown>;
+  onSuccess?: (response: unknown) => void;
   className?: string;
 }
 
 export interface FormRendererProps {
   schema: FormSchema;
-  values: Record<string, any>;
-  onChange: (field: string, value: any) => void;
+  values: Record<string, unknown>;
+  onChange: (field: string, value: unknown) => void;
   readOnly?: boolean;
 }

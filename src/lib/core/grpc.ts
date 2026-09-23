@@ -7,13 +7,13 @@ import {
   Metadata,
   type ServiceError,
 } from "@grpc/grpc-js";
+import { env } from "@/lib/config";
 import {
   type GrpcRequest,
   type GrpcResponse,
   GrpcServiceClient,
   type LoginRequest,
 } from "@/lib/grpc/generated/service";
-import { env } from "@/lib/config";
 
 export type { GrpcRequest, GrpcResponse, LoginRequest };
 

@@ -1,15 +1,15 @@
 "use client";
 
 import type * as React from "react";
+import { GlobalAlertSystem } from "@/components/feedback/global-alert-system";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { TopBar } from "@/components/layout/app-topbar";
 import { AppTabBar } from "@/components/layout/app-tabbar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { Toaster } from "@/components/ui/toast";
+import { TopBar } from "@/components/layout/app-topbar";
+import { AlertStoreProvider } from "@/components/providers/alert-provider";
 import { SessionStoreProvider } from "@/components/providers/session-provider";
 import { WorkbenchStoreProvider } from "@/components/providers/workbench-provider";
-import { AlertStoreProvider } from "@/components/providers/alert-provider";
-import { GlobalAlertSystem } from "@/components/feedback/global-alert-system";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toast";
 
 export function WorkbenchShell({ children }: { children: React.ReactNode }) {
   return (

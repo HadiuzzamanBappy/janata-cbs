@@ -80,8 +80,10 @@ export function ChangePassword({ command: _command }: { command?: string }) {
             : res.message || "Failed to change password.",
         );
       }
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred.",
+      );
     } finally {
       setLoading(false);
     }

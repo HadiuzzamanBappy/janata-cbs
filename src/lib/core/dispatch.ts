@@ -1,11 +1,11 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { env } from "@/lib/config";
 import {
   type GrpcRequest,
   grpcProcess,
   type ProcessKind,
 } from "@/lib/core/grpc";
-import { env } from "@/lib/config";
 import { getServiceUrl } from "@/lib/core/services";
 import type { APIResponse, Envelope } from "@/types";
 
@@ -58,10 +58,10 @@ export async function dispatch(
       controlNameArray.includes("USER") && envelope.requestType === "AUT"
         ? "UAU"
         : controlNameArray.includes("FUNDS.TRANSFER") &&
-          ["PUT", "AUT", "REV"].includes(envelope.requestType)
+            ["PUT", "AUT", "REV"].includes(envelope.requestType)
           ? "AFT"
           : controlNameArray.includes("CASH.TRANSFER") &&
-            ["PUT", "AUT", "REV"].includes(envelope.requestType)
+              ["PUT", "AUT", "REV"].includes(envelope.requestType)
             ? "ACT"
             : envelope.requestType;
 
@@ -118,13 +118,14 @@ export async function dispatch(
         data: res.data ?? null,
       };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { details?: string; message?: string };
     return {
       status: "FAIL",
       statusCode: 500,
-      message: error?.details || error?.message || "Internal Dispatch Error",
+      message: err?.details || err?.message || "Internal Dispatch Error",
       idempotencyKey: "",
-      errors: [error?.message || "Internal Server Error"],
+      errors: [err?.message || "Internal Server Error"],
       timestamp: new Date().toISOString(),
       data: null,
     };

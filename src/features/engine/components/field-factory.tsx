@@ -16,8 +16,8 @@ import type { FormField } from "../types";
 
 export interface FieldFactoryProps {
   field: FormField;
-  value: any;
-  onChange: (name: string, value: any) => void;
+  value: unknown;
+  onChange: (name: string, value: unknown) => void;
   error?: string;
   disabled?: boolean;
 }
@@ -62,10 +62,10 @@ export function FieldFactory({
     }
   };
 
-  const parseDateValue = (val: any): Date | undefined => {
+  const parseDateValue = (val: unknown): Date | undefined => {
     if (!val) return undefined;
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? undefined : d;
+    const d = new Date(val as string | number | Date);
+    return Number.isNaN(d.getTime()) ? undefined : d;
   };
 
   return (
@@ -109,7 +109,7 @@ export function FieldFactory({
           id={field.name}
           type="number"
           disabled={isReadOnly}
-          value={value ?? ""}
+          value={(value as string | number) ?? ""}
           onChange={handleNumberChange}
           placeholder={`Enter ${field.label}`}
           className="h-9 text-xs"
@@ -119,7 +119,7 @@ export function FieldFactory({
           id={field.name}
           type="text"
           disabled={isReadOnly}
-          value={value ?? ""}
+          value={(value as string | number) ?? ""}
           onChange={handleTextChange}
           placeholder={`Enter ${field.label}`}
           className="h-9 text-xs"

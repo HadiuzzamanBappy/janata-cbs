@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/config";
 import { dispatch, type Envelope } from "@/lib/core/dispatch";
 import { getSession } from "@/lib/core/redis-session";
-import { env } from "@/lib/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const session = await getSession();
 
-    if (!session || !session.currUser) {
+    if (!session?.currUser) {
       return NextResponse.json(
         {
           status: "FAIL",
@@ -66,12 +66,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const response = await dispatch(envelope, token);
     return NextResponse.json(response, { status: response.statusCode || 200 });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as { message?: string };
     return NextResponse.json(
       {
         status: "ERROR",
         statusCode: 500,
-        message: err?.message || "Internal Proxy Dispatch Error",
+        message: error?.message || "Internal Proxy Dispatch Error",
         timestamp: new Date().toISOString(),
       },
       { status: 500 },

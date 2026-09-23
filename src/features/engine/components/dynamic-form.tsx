@@ -10,13 +10,13 @@ import { useSchema } from "../hooks/use-schema";
 import type { DynamicFormProps } from "../types";
 import { FormRenderer } from "./form-renderer";
 
-const EMPTY_INITIAL_VALUES: Record<string, any> = {};
+const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
 
 export function DynamicForm({
   command,
   initialValues = EMPTY_INITIAL_VALUES,
   onSuccess,
-}: DynamicFormProps & { initialValues?: Record<string, any> }) {
+}: DynamicFormProps & { initialValues?: Record<string, unknown> }) {
   const { schema, loading, error, refetch } = useSchema(command);
   const { values, errors, setValue, validate, resetForm } = useFormState(
     schema,
@@ -67,10 +67,11 @@ export function DynamicForm({
           type: "error",
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       toast.add({
         title: "Network Error",
-        description: err?.message || "Communication failed",
+        description: error?.message || "Communication failed",
         type: "error",
       });
     } finally {

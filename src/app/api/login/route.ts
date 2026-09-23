@@ -1,9 +1,9 @@
+import { STATIC_USERS } from "@fixtures";
 import { type NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/config";
 import { grpcStatusToHttp, loginProcess } from "@/lib/core/grpc";
 import { rateLimit } from "@/lib/core/rate-limit";
 import { type CurrentUser, createSession } from "@/lib/core/redis-session";
-import { env } from "@/lib/config";
-import { STATIC_USERS } from "@fixtures";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,8 +44,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const mockUser = STATIC_USERS[username.toLowerCase()];
       if (!mockUser) {
         return NextResponse.json(
-          { message: "Invalid static credentials. Try 'admin', 'teller', or 'new_user'." },
-          { status: 401 }
+          {
+            message:
+              "Invalid static credentials. Try 'admin', 'teller', or 'new_user'.",
+          },
+          { status: 401 },
         );
       }
 

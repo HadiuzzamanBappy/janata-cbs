@@ -78,7 +78,8 @@ export async function createSession(
     store.set("initLogin", "true", {
       httpOnly: true,
       secure:
-        process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
+        process.env.NODE_ENV === "production" &&
+        process.env.USE_HTTPS === "true",
       sameSite: "lax",
       path: "/",
       maxAge: TTL_SECONDS,

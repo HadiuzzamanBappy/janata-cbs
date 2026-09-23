@@ -44,8 +44,9 @@ try {
     },
   );
   console.log(`✓ Generated stubs in ${OUT_DIR}`);
-} catch (error: any) {
-  if (error?.code === "ENOENT") {
+} catch (error: unknown) {
+  const err = error as { code?: string; message?: string };
+  if (err?.code === "ENOENT") {
     console.error(
       "\nError: 'protoc' (protobuf compiler) command was not found in your system PATH.",
     );
@@ -56,7 +57,7 @@ try {
     console.error("  - macOS: brew install protobuf");
     console.error("  - Linux: sudo apt install -y protobuf-compiler\n");
   } else {
-    console.error("Error running protoc:", error?.message || error);
+    console.error("Error running protoc:", err?.message || error);
   }
   process.exit(1);
 }

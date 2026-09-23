@@ -13,7 +13,7 @@ export interface AlertState {
   // Confirm Dialog State
   isConfirmOpen: boolean;
   confirmOptions: ConfirmDialogOptions | null;
-  
+
   // Actions
   confirm: (options: ConfirmDialogOptions) => void;
   closeConfirm: () => void;

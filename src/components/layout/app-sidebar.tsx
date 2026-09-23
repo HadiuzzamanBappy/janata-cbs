@@ -1,17 +1,17 @@
 "use client";
 
+import { STATIC_MENU } from "@fixtures";
 import Image from "next/image";
 import * as React from "react";
 import logo from "@/app/icon.png";
+import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
 } from "@/components/ui/sidebar";
-import { STATIC_MENU } from "@fixtures";
 import { launchScreen, type MenuItem } from "@/features/workspace";
 import { cn } from "@/lib/utils";
-import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 
 export interface TreeNode {
   id: string;
@@ -52,8 +52,8 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
     (activeTab?.screenId === (node.command ?? node.id) ||
       activeTab?.id === (node.command ?? node.id));
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleClick = (e?: React.SyntheticEvent) => {
+    e?.stopPropagation();
     if (hasChildren) {
       setIsOpen((prev) => !prev);
     } else {
@@ -69,10 +69,17 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
   return (
     <div className="flex flex-col select-none">
       {/* Node Row Header */}
-      <div
+      <button
+        type="button"
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick(e);
+          }
+        }}
         className={cn(
-          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors duration-150 group",
+          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors duration-150 group w-full text-left border-0 bg-transparent p-0",
           isActive
             ? "bg-primary/15 text-primary font-semibold"
             : "text-foreground/90 hover:bg-accent/60 hover:text-foreground",
@@ -90,7 +97,7 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
         )}
 
         <span className="truncate">{node.title}</span>
-      </div>
+      </button>
 
       {/* Recursive Children Sub-Tree with Guide Lines */}
       {hasChildren && isOpen && (

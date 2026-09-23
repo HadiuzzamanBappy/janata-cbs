@@ -45,7 +45,8 @@ export class ErrorBoundary extends React.Component<
             <AlertTitle>Something went wrong</AlertTitle>
             <AlertDescription className="mt-2 flex flex-col gap-4">
               <p className="text-sm opacity-90">
-                {this.state.error?.message || "An unexpected error occurred while rendering this component."}
+                {this.state.error?.message ||
+                  "An unexpected error occurred while rendering this component."}
               </p>
               <Button
                 variant="outline"

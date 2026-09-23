@@ -3,7 +3,7 @@ export interface ICommand {
   cmdLabel?: string;
 }
 
-export interface APIResponse<T = any> {
+export interface APIResponse<T = unknown> {
   status: string;
   statusCode: number;
   idempotencyKey?: string;

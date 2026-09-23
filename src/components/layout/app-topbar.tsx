@@ -14,6 +14,7 @@ import * as React from "react";
 import { AppSearch } from "@/components/layout/app-search";
 import { AppSettings } from "@/components/layout/app-settings";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { useSessionStore } from "@/components/providers/session-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +30,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { toast } from "@/components/ui/toast";
-import { useSessionStore } from "@/components/providers/session-provider";
 
 export function TopBar() {
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -69,7 +69,7 @@ export function TopBar() {
       .then((json) => {
         if (json.success && Array.isArray(json.data)) {
           setBranches(
-            json.data.map((b: any) => ({
+            json.data.map((b: { recordId: string; branchTitle: string }) => ({
               code: b.recordId,
               name: b.branchTitle,
               type: b.recordId === "JB9999" ? "Head Office" : "General",
@@ -299,10 +299,7 @@ export function TopBar() {
           </DropdownMenu>
         </div>
       </header>
-      <AppSearch
-        open={searchOpen}
-        onOpenChange={setSearchOpen}
-      />
+      <AppSearch open={searchOpen} onOpenChange={setSearchOpen} />
       <AppSettings
         open={settingsOpen}
         onOpenChange={setSettingsOpen}

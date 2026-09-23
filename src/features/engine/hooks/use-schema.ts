@@ -28,8 +28,10 @@ export function useSchema(command: string) {
       } else {
         setError(json.error || `Failed to fetch schema for ${cleanCmd}`);
       }
-    } catch (err: any) {
-      setError(err?.message || "Network error fetching schema");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Network error fetching schema",
+      );
     } finally {
       setLoading(false);
     }

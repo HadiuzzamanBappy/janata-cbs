@@ -9,12 +9,12 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import {
   type CallOptions,
   type ChannelCredentials,
-  Client,
+  type Client,
   type ClientOptions,
   type ClientUnaryCall,
   type handleUnaryCall,
-  makeGenericClientConstructor,
   type Metadata,
+  makeGenericClientConstructor,
   type ServiceError,
   type UntypedServiceImplementation,
 } from "@grpc/grpc-js";
@@ -57,7 +57,10 @@ function createBaseLoginRequest(): LoginRequest {
 }
 
 export const LoginRequest: MessageFns<LoginRequest> = {
-  encode(message: LoginRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: LoginRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.clientId !== "") {
       writer.uint32(10).string(message.clientId);
     }
@@ -71,7 +74,8 @@ export const LoginRequest: MessageFns<LoginRequest> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): LoginRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
     if (previousRecursionDepth >= 100) {
       throw new globalThis.Error("protobuf decode recursion limit exceeded");
@@ -121,9 +125,15 @@ export const LoginRequest: MessageFns<LoginRequest> = {
 
   fromJSON(object: any): LoginRequest {
     return {
-      clientId: isSet(object.clientId) ? globalThis.String(object.clientId) : "",
-      username: isSet(object.username) ? globalThis.String(object.username) : "",
-      password: isSet(object.password) ? globalThis.String(object.password) : "",
+      clientId: isSet(object.clientId)
+        ? globalThis.String(object.clientId)
+        : "",
+      username: isSet(object.username)
+        ? globalThis.String(object.username)
+        : "",
+      password: isSet(object.password)
+        ? globalThis.String(object.password)
+        : "",
     };
   },
 
@@ -141,10 +151,14 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<LoginRequest>, I>>(base?: I): LoginRequest {
+  create<I extends Exact<DeepPartial<LoginRequest>, I>>(
+    base?: I,
+  ): LoginRequest {
     return LoginRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<LoginRequest>, I>>(object: I): LoginRequest {
+  fromPartial<I extends Exact<DeepPartial<LoginRequest>, I>>(
+    object: I,
+  ): LoginRequest {
     const message = createBaseLoginRequest();
     message.clientId = object.clientId ?? "";
     message.username = object.username ?? "";
@@ -169,7 +183,10 @@ function createBaseGrpcRequest(): GrpcRequest {
 }
 
 export const GrpcRequest: MessageFns<GrpcRequest> = {
-  encode(message: GrpcRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GrpcRequest,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.idempotencyKey !== "") {
       writer.uint32(10).string(message.idempotencyKey);
     }
@@ -204,7 +221,8 @@ export const GrpcRequest: MessageFns<GrpcRequest> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): GrpcRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
     if (previousRecursionDepth >= 100) {
       throw new globalThis.Error("protobuf decode recursion limit exceeded");
@@ -293,7 +311,9 @@ export const GrpcRequest: MessageFns<GrpcRequest> = {
               break;
             }
 
-            message.data = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+            message.data = Struct.unwrap(
+              Struct.decode(reader, reader.uint32()),
+            );
             continue;
           }
         }
@@ -310,14 +330,30 @@ export const GrpcRequest: MessageFns<GrpcRequest> = {
 
   fromJSON(object: any): GrpcRequest {
     return {
-      idempotencyKey: isSet(object.idempotencyKey) ? globalThis.String(object.idempotencyKey) : "",
-      clientId: isSet(object.clientId) ? globalThis.String(object.clientId) : "",
-      requestType: isSet(object.requestType) ? globalThis.String(object.requestType) : "",
-      controlName: isSet(object.controlName) ? globalThis.String(object.controlName) : "",
-      recordFunction: isSet(object.recordFunction) ? globalThis.String(object.recordFunction) : "",
-      recordId: isSet(object.recordId) ? globalThis.String(object.recordId) : "",
-      branchCode: isSet(object.branchCode) ? globalThis.String(object.branchCode) : "",
-      authLevel: isSet(object.authLevel) ? globalThis.Number(object.authLevel) : 0,
+      idempotencyKey: isSet(object.idempotencyKey)
+        ? globalThis.String(object.idempotencyKey)
+        : "",
+      clientId: isSet(object.clientId)
+        ? globalThis.String(object.clientId)
+        : "",
+      requestType: isSet(object.requestType)
+        ? globalThis.String(object.requestType)
+        : "",
+      controlName: isSet(object.controlName)
+        ? globalThis.String(object.controlName)
+        : "",
+      recordFunction: isSet(object.recordFunction)
+        ? globalThis.String(object.recordFunction)
+        : "",
+      recordId: isSet(object.recordId)
+        ? globalThis.String(object.recordId)
+        : "",
+      branchCode: isSet(object.branchCode)
+        ? globalThis.String(object.branchCode)
+        : "",
+      authLevel: isSet(object.authLevel)
+        ? globalThis.Number(object.authLevel)
+        : 0,
       userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
       data: isObject(object.data) ? object.data : undefined,
     };
@@ -361,7 +397,9 @@ export const GrpcRequest: MessageFns<GrpcRequest> = {
   create<I extends Exact<DeepPartial<GrpcRequest>, I>>(base?: I): GrpcRequest {
     return GrpcRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GrpcRequest>, I>>(object: I): GrpcRequest {
+  fromPartial<I extends Exact<DeepPartial<GrpcRequest>, I>>(
+    object: I,
+  ): GrpcRequest {
     const message = createBaseGrpcRequest();
     message.idempotencyKey = object.idempotencyKey ?? "";
     message.clientId = object.clientId ?? "";
@@ -378,11 +416,22 @@ export const GrpcRequest: MessageFns<GrpcRequest> = {
 };
 
 function createBaseGrpcResponse(): GrpcResponse {
-  return { status: "", statusCode: 0, idempotencyKey: "", message: "", data: undefined, errors: [], timestamp: "" };
+  return {
+    status: "",
+    statusCode: 0,
+    idempotencyKey: "",
+    message: "",
+    data: undefined,
+    errors: [],
+    timestamp: "",
+  };
 }
 
 export const GrpcResponse: MessageFns<GrpcResponse> = {
-  encode(message: GrpcResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(
+    message: GrpcResponse,
+    writer: BinaryWriter = new BinaryWriter(),
+  ): BinaryWriter {
     if (message.status !== "") {
       writer.uint32(10).string(message.status);
     }
@@ -408,7 +457,8 @@ export const GrpcResponse: MessageFns<GrpcResponse> = {
   },
 
   decode(input: BinaryReader | Uint8Array, length?: number): GrpcResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const reader =
+      input instanceof BinaryReader ? input : new BinaryReader(input);
     const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
     if (previousRecursionDepth >= 100) {
       throw new globalThis.Error("protobuf decode recursion limit exceeded");
@@ -457,7 +507,9 @@ export const GrpcResponse: MessageFns<GrpcResponse> = {
               break;
             }
 
-            message.data = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+            message.data = Struct.unwrap(
+              Struct.decode(reader, reader.uint32()),
+            );
             continue;
           }
           case 6: {
@@ -491,12 +543,20 @@ export const GrpcResponse: MessageFns<GrpcResponse> = {
   fromJSON(object: any): GrpcResponse {
     return {
       status: isSet(object.status) ? globalThis.String(object.status) : "",
-      statusCode: isSet(object.statusCode) ? globalThis.Number(object.statusCode) : 0,
-      idempotencyKey: isSet(object.idempotencyKey) ? globalThis.String(object.idempotencyKey) : "",
+      statusCode: isSet(object.statusCode)
+        ? globalThis.Number(object.statusCode)
+        : 0,
+      idempotencyKey: isSet(object.idempotencyKey)
+        ? globalThis.String(object.idempotencyKey)
+        : "",
       message: isSet(object.message) ? globalThis.String(object.message) : "",
       data: isObject(object.data) ? object.data : undefined,
-      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => globalThis.String(e)) : [],
-      timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : "",
+      errors: globalThis.Array.isArray(object?.errors)
+        ? object.errors.map((e: any) => globalThis.String(e))
+        : [],
+      timestamp: isSet(object.timestamp)
+        ? globalThis.String(object.timestamp)
+        : "",
     };
   },
 
@@ -526,10 +586,14 @@ export const GrpcResponse: MessageFns<GrpcResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GrpcResponse>, I>>(base?: I): GrpcResponse {
+  create<I extends Exact<DeepPartial<GrpcResponse>, I>>(
+    base?: I,
+  ): GrpcResponse {
     return GrpcResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GrpcResponse>, I>>(object: I): GrpcResponse {
+  fromPartial<I extends Exact<DeepPartial<GrpcResponse>, I>>(
+    object: I,
+  ): GrpcResponse {
     const message = createBaseGrpcResponse();
     message.status = object.status ?? "";
     message.statusCode = object.statusCode ?? 0;
@@ -552,10 +616,14 @@ export const GrpcServiceService = {
     path: "/grpc.service.v1.GrpcService/LoginProcess" as const,
     requestStream: false as const,
     responseStream: false as const,
-    requestSerialize: (value: LoginRequest): Buffer => Buffer.from(LoginRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): LoginRequest => LoginRequest.decode(value),
-    responseSerialize: (value: GrpcResponse): Buffer => Buffer.from(GrpcResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): GrpcResponse => GrpcResponse.decode(value),
+    requestSerialize: (value: LoginRequest): Buffer =>
+      Buffer.from(LoginRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): LoginRequest =>
+      LoginRequest.decode(value),
+    responseSerialize: (value: GrpcResponse): Buffer =>
+      Buffer.from(GrpcResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GrpcResponse =>
+      GrpcResponse.decode(value),
   },
   /**
    * Financial: money movement (postings, transfers). Blocking, strong
@@ -565,20 +633,28 @@ export const GrpcServiceService = {
     path: "/grpc.service.v1.GrpcService/FinancialProcess" as const,
     requestStream: false as const,
     responseStream: false as const,
-    requestSerialize: (value: GrpcRequest): Buffer => Buffer.from(GrpcRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): GrpcRequest => GrpcRequest.decode(value),
-    responseSerialize: (value: GrpcResponse): Buffer => Buffer.from(GrpcResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): GrpcResponse => GrpcResponse.decode(value),
+    requestSerialize: (value: GrpcRequest): Buffer =>
+      Buffer.from(GrpcRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GrpcRequest =>
+      GrpcRequest.decode(value),
+    responseSerialize: (value: GrpcResponse): Buffer =>
+      Buffer.from(GrpcResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GrpcResponse =>
+      GrpcResponse.decode(value),
   },
   /** Non-financial: maintenance/lookups/authorizations. Higher concurrency. */
   nonFinancialProcess: {
     path: "/grpc.service.v1.GrpcService/NonFinancialProcess" as const,
     requestStream: false as const,
     responseStream: false as const,
-    requestSerialize: (value: GrpcRequest): Buffer => Buffer.from(GrpcRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer): GrpcRequest => GrpcRequest.decode(value),
-    responseSerialize: (value: GrpcResponse): Buffer => Buffer.from(GrpcResponse.encode(value).finish()),
-    responseDeserialize: (value: Buffer): GrpcResponse => GrpcResponse.decode(value),
+    requestSerialize: (value: GrpcRequest): Buffer =>
+      Buffer.from(GrpcRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GrpcRequest =>
+      GrpcRequest.decode(value),
+    responseSerialize: (value: GrpcResponse): Buffer =>
+      Buffer.from(GrpcResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GrpcResponse =>
+      GrpcResponse.decode(value),
   },
 } as const;
 
@@ -658,22 +734,40 @@ export const GrpcServiceClient = makeGenericClientConstructor(
   GrpcServiceService,
   "grpc.service.v1.GrpcService",
 ) as unknown as {
-  new (address: string, credentials: ChannelCredentials, options?: Partial<ClientOptions>): GrpcServiceClient;
+  new (
+    address: string,
+    credentials: ChannelCredentials,
+    options?: Partial<ClientOptions>,
+  ): GrpcServiceClient;
   service: typeof GrpcServiceService;
   serviceName: string;
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type Builtin =
+  | Date
+  | Function
+  | Uint8Array
+  | string
+  | number
+  | boolean
+  | undefined;
 
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;
+export type DeepPartial<T> = T extends Builtin
+  ? T
+  : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
+    : T extends ReadonlyArray<infer U>
+      ? ReadonlyArray<DeepPartial<U>>
+      : T extends {}
+        ? { [K in keyof T]?: DeepPartial<T[K]> }
+        : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+export type Exact<P, I extends P> = P extends Builtin
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & {
+      [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
+    };
 
 function isObject(value: any): boolean {
   return typeof value === "object" && value !== null;

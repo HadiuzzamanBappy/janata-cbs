@@ -2,6 +2,7 @@
 
 import { LogOut, PaintbrushIcon, ShieldIcon, UserIcon } from "lucide-react";
 import * as React from "react";
+import { useSessionStore } from "@/components/providers/session-provider";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,7 +30,6 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AppearanceTab, ProfileTab, SecurityTab } from "@/features/settings";
-import { useSessionStore } from "@/components/providers/session-provider";
 
 const data = {
   nav: [

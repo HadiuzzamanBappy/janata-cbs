@@ -5,8 +5,8 @@ import { FieldFactory } from "./field-factory";
 
 export interface FormRendererProps {
   schema: FormSchema;
-  values: Record<string, any>;
-  onChange: (name: string, value: any) => void;
+  values: Record<string, unknown>;
+  onChange: (name: string, value: unknown) => void;
   errors?: Record<string, string>;
   disabled?: boolean;
 }

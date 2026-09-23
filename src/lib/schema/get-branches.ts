@@ -1,8 +1,8 @@
 import "server-only";
+import { type BranchMock, STATIC_BRANCHES } from "@fixtures";
+import { env } from "@/lib/config/env";
 import { grpcProcess } from "@/lib/core/grpc";
 import { getServiceUrl } from "@/lib/core/services";
-import { env } from "@/lib/config/env";
-import { type BranchMock, STATIC_BRANCHES } from "@fixtures";
 
 export async function getBranches(token?: string): Promise<BranchMock[]> {
   if (env.MODEL_SOURCE === "static") {

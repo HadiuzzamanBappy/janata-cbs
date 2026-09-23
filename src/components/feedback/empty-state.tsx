@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import * as React from "react";
+import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -21,7 +21,7 @@ export function EmptyState({
     <div
       className={cn(
         "flex min-h-[300px] w-full flex-col items-center justify-center rounded-md border border-dashed p-8 text-center animate-in fade-in-50",
-        className
+        className,
       )}
       {...props}
     >

@@ -17,6 +17,8 @@ import {
   Users,
 } from "lucide-react";
 import * as React from "react";
+import { useSessionStore } from "@/components/providers/session-provider";
+import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { Badge } from "@/components/ui/badge";
 import {
   CommandDialog,
@@ -28,8 +30,6 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { launchScreen } from "@/features/workspace";
-import { useSessionStore } from "@/components/providers/session-provider";
-import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 
 // Helper map for resolving database icon string keys (e.g., "UserCheck" -> <UserCheck />)
 export const DYNAMIC_ICON_MAP: Record<
@@ -242,22 +242,20 @@ interface GlobalSearchProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function AppSearch({
-  open,
-  onOpenChange,
-}: GlobalSearchProps) {
+export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
   const { user, clearSession } = useSessionStore();
   const { addTab } = useWorkbenchStore();
 
   const userRole = user?.userRole ?? ["Administrator"];
-  const isAdmin = userRole.includes("Administrator") || userRole.includes("ADMIN");
+  const isAdmin =
+    userRole.includes("Administrator") || userRole.includes("ADMIN");
 
   // Filter commands based on User RBAC Role Permissions
   const authorizedCommands = React.useMemo(() => {
     return MASTER_COMMAND_REGISTRY.filter((cmd) => {
       if (cmd.allowedRoles.includes("*")) return true;
       if (isAdmin && cmd.allowedRoles.includes("Administrator")) return true;
-      return cmd.allowedRoles.some(role => userRole.includes(role));
+      return cmd.allowedRoles.some((role) => userRole.includes(role));
     });
   }, [isAdmin, userRole]);
 

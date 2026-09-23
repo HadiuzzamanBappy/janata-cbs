@@ -5,21 +5,19 @@ import type { FormSchema } from "../types";
 
 export function useFormState(
   schema: FormSchema | null,
-  initialData: Record<string, any> = {},
+  initialData: Record<string, unknown> = {},
 ) {
-  const [values, setValues] = useState<Record<string, any>>(initialData);
+  const [values, setValues] = useState<Record<string, unknown>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState<boolean>(false);
-
-  const serializedInitial = JSON.stringify(initialData);
 
   useEffect(() => {
     setValues(initialData);
     setIsDirty(false);
     setErrors({});
-  }, [serializedInitial]);
+  }, [initialData]);
 
-  const setValue = useCallback((name: string, val: any) => {
+  const setValue = useCallback((name: string, val: unknown) => {
     setValues((prev) => ({ ...prev, [name]: val }));
     setIsDirty(true);
 
@@ -51,7 +49,7 @@ export function useFormState(
     return Object.keys(newErrors).length === 0;
   }, [schema, values]);
 
-  const resetForm = useCallback((newValues: Record<string, any> = {}) => {
+  const resetForm = useCallback((newValues: Record<string, unknown> = {}) => {
     setValues(newValues);
     setErrors({});
     setIsDirty(false);

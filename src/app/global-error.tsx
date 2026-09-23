@@ -19,7 +19,9 @@ export default function GlobalError({
           <EmptyState
             icon={AlertOctagon}
             title="Fatal Application Error"
-            description={error.message || "A critical error occurred at the root layout."}
+            description={
+              error.message || "A critical error occurred at the root layout."
+            }
             action={
               <Button onClick={() => reset()} variant="destructive">
                 Hard Reset Application

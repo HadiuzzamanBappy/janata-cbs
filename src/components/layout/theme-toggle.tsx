@@ -39,6 +39,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
     return (
       <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-lg border border-border/50">
         <button
+          type="button"
           onClick={() => setTheme("light")}
           className={cn(
             "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
@@ -49,6 +50,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           <Sun className="size-4" />
         </button>
         <button
+          type="button"
           onClick={() => setTheme("system")}
           className={cn(
             "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",
@@ -59,6 +61,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           <Monitor className="size-4" />
         </button>
         <button
+          type="button"
           onClick={() => setTheme("dark")}
           className={cn(
             "flex items-center justify-center w-10 h-8 rounded-md transition-all text-muted-foreground hover:text-foreground",

@@ -1,14 +1,14 @@
-# 🏛️ FinXUI Core Banking Workbench (v2)
+# 🏛️ Janata CBS Core Banking Workbench (v2)
 
 > A modern, highly optimized, and enterprise-ready Next.js application serving as the dynamic frontend for the Java Core Banking system.
 
-This project is a complete refactor of the legacy FinXUI application. It migrates away from a monolithic, tightly-coupled React structure into a clean, **Domain-Driven Architecture**. It maintains powerful capabilities like dynamic schema-driven form rendering and bespoke workflows, but with strict security boundaries, efficient state management, and a robust component library.
+This project is a complete refactor of the legacy Janata Core Banking application. It migrates away from a monolithic, tightly-coupled React structure into a clean, **Domain-Driven Architecture**. It maintains powerful capabilities like dynamic schema-driven form rendering and bespoke workflows, but with strict security boundaries, efficient state management, and a robust component library.
 
 ---
 
 ## 🌍 Scope & Position in the Ecosystem
 
-FinXUI operates **strictly at the Presentation/Frontend Layer** of the Core Banking System. 
+Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of the Core Banking System. 
 
 ### What it DOES:
 - Provides a fast, interactive user interface for banking officers and administrators.
@@ -18,7 +18,7 @@ FinXUI operates **strictly at the Presentation/Frontend Layer** of the Core Bank
 ### What it DOES NOT DO (Limitations):
 - **No Direct Database Access:** This application has zero direct connection to the underlying banking database. All data persists via the core backend.
 - **No Direct gRPC from Browser:** The browser client NEVER talks to the gRPC backend directly. It must go through the Next.js API/Server Action boundary.
-- **No Business Logic Execution:** Complex banking calculations, ledger updates, and transactional logic are handled by the Java Core. FinXUI only handles UI validation and presentation logic.
+- **No Business Logic Execution:** Complex banking calculations, ledger updates, and transactional logic are handled by the Java Core. Janata CBS only handles UI validation and presentation logic.
 
 ### System Flow
 1. **Browser (Client):** User interacts with the React UI (Tailwind, shadcn/ui).

@@ -12,7 +12,7 @@ import {
   type GrpcResponse,
   GrpcServiceClient,
   type LoginRequest,
-} from "@/grpc/service";
+} from "@/lib/grpc/generated/service";
 import { env } from "@/lib/config";
 
 export type { GrpcRequest, GrpcResponse, LoginRequest };

@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-const OUT_DIR = path.join("src", "grpc");
+const OUT_DIR = path.join("src", "lib", "grpc", "generated");
 const PROTO_DIR = path.join("proto");
 
 // Ensure output directory exists

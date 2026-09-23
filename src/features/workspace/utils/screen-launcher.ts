@@ -1,5 +1,3 @@
-
-
 export type DisplayTargetMode = "workspace" | "popup";
 
 export interface LaunchScreenOptions {
@@ -24,7 +22,6 @@ export function launchScreen({
   target = "workspace",
   addTab,
 }: LaunchScreenOptions) {
-
   const screenUrl = `/screen/${encodeURIComponent(id)}?title=${encodeURIComponent(title)}&component=${encodeURIComponent(componentName)}`;
 
   if (target === "popup") {

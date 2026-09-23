@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { DynamicForm } from "@/features/engine/dynamic-form";
+import { DynamicForm } from "@/features/engine";
 import { SecurityTab } from "@/features/settings";
 
 /**

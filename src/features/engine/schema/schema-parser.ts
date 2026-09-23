@@ -7,7 +7,7 @@ import {
   type RawPropertyConfigRecord,
   type RawPropertyRecord,
   rawPropertyConfigSchema,
-} from "@/lib/schema/schemas";
+} from "./schemas";
 
 export function widthForLength(length?: number): FieldWidth {
   if (!length) return "md";

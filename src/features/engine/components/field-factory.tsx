@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "cn";
 import type * as React from "react";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { FormField } from "@/lib/schema/schemas";
+import { cn } from "@/lib/utils";
+import type { FormField } from "../types";
 
 export interface FieldFactoryProps {
   field: FormField;

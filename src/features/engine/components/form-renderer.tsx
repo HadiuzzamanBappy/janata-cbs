@@ -1,7 +1,7 @@
 "use client";
 
-import { FieldFactory } from "@/features/engine/field-factory";
-import type { FormSchema } from "@/lib/schema/schemas";
+import type { FormSchema } from "../types";
+import { FieldFactory } from "./field-factory";
 
 export interface FormRendererProps {
   schema: FormSchema;

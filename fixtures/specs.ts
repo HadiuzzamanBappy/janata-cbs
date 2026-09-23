@@ -1,4 +1,4 @@
-import type { RawPropertyConfigRecord } from "@/lib/schema/schemas";
+import type { RawPropertyConfigRecord } from "@/features/engine";
 
 /**
  * Offline development mock specs matching the GMC backend schema.
@@ -174,7 +174,7 @@ export const STATIC_SPECS: Record<string, RawPropertyConfigRecord> = {
         LABEL: "Full Name",
         TYPE: "VARCHAR",
         REQUIRED: true,
-        LENGTH: 50,
+        LENGTH: 15,
       },
       {
         NAME: "ROLE",

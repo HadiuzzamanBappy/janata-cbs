@@ -10,7 +10,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import * as React from "react";
-import { launchScreen } from "@/lib/screen-launcher";
+import { launchScreen } from "@/features/workspace";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

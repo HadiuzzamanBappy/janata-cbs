@@ -9,8 +9,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { STATIC_MENU } from "@fixtures";
-import type { MenuItem } from "@/features/workspace";
-import { launchScreen } from "@/lib/screen-launcher";
+import { launchScreen, type MenuItem } from "@/features/workspace";
 import { cn } from "@/lib/utils";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 

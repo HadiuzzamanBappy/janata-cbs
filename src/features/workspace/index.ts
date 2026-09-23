@@ -2,6 +2,7 @@
 export * from "./menu/menu-parser";
 export * from "./menu/schemas";
 export * from "./types";
+export * from "./utils/screen-launcher";
 
 // Workspace Components
 export { ComponentLoader } from "./components/component-loader";

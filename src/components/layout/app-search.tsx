@@ -27,7 +27,7 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/command";
-import { launchScreen } from "@/lib/screen-launcher";
+import { launchScreen } from "@/features/workspace";
 import { useSessionStore } from "@/components/providers/session-provider";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 

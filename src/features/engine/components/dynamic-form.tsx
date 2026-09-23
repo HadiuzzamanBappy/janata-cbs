@@ -5,15 +5,10 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
-import { FormRenderer } from "@/features/engine/form-renderer";
-import { useFormState } from "@/features/engine/hooks/use-form-state";
-import { useSchema } from "@/features/engine/hooks/use-schema";
-
-export interface DynamicFormProps {
-  command: string;
-  initialValues?: Record<string, any>;
-  onSuccess?: (response: any) => void;
-}
+import { useFormState } from "../hooks/use-form-state";
+import { useSchema } from "../hooks/use-schema";
+import type { DynamicFormProps } from "../types";
+import { FormRenderer } from "./form-renderer";
 
 const EMPTY_INITIAL_VALUES: Record<string, any> = {};
 
@@ -21,7 +16,7 @@ export function DynamicForm({
   command,
   initialValues = EMPTY_INITIAL_VALUES,
   onSuccess,
-}: DynamicFormProps) {
+}: DynamicFormProps & { initialValues?: Record<string, any> }) {
   const { schema, loading, error, refetch } = useSchema(command);
   const { values, errors, setValue, validate, resetForm } = useFormState(
     schema,

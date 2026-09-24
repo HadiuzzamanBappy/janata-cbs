@@ -157,12 +157,33 @@ export function AppTabBar() {
             >
               {/* Subtle Tab Number & Title */}
               <span className="truncate max-w-[160px] text-xs flex items-center gap-1.5">
-                <Badge
-                  variant="secondary"
-                  className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent"
-                >
-                  {universalTabNumber}
-                </Badge>
+                <div className="relative flex items-center justify-center h-4 min-w-[16px]">
+                  <Badge
+                    variant="secondary"
+                    className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent group-hover:opacity-0 transition-opacity"
+                  >
+                    {universalTabNumber}
+                  </Badge>
+                  {/* Pop Out Tab Button (Visible over tab number only on hover) */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      launchScreen({
+                        id: tab.screenId ?? tab.id,
+                        title: tab.title,
+                        componentName: tab.componentName,
+                        target: "popup",
+                        addTab,
+                      });
+                      removeTab(tab.id);
+                    }}
+                    className="absolute inset-0 size-4 rounded-xs hidden group-hover:flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0 m-auto"
+                    title={`Pop out ${tab.title}`}
+                  >
+                    <ExternalLink className="size-3" />
+                  </button>
+                </div>
                 {tab.title}
               </span>
 
@@ -173,25 +194,6 @@ export function AppTabBar() {
                   !isActive && "opacity-60 group-hover:opacity-100",
                 )}
               >
-                {/* Pop Out Tab Button */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    launchScreen({
-                      id: tab.screenId ?? tab.id,
-                      title: tab.title,
-                      componentName: tab.componentName,
-                      target: "popup",
-                      addTab,
-                    });
-                    removeTab(tab.id);
-                  }}
-                  className="size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
-                  title={`Pop out ${tab.title}`}
-                >
-                  <ExternalLink className="size-3" />
-                </button>
                 {/* Close Tab Button */}
                 <button
                   type="button"

@@ -51,7 +51,7 @@ export function ConfirmDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="pt-2">{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-4 gap-2 sm:gap-0">
+        <DialogFooter className="mt-4 gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}

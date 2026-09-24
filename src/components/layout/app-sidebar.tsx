@@ -106,7 +106,7 @@ function RecursiveTreeItem({
   };
 
   return (
-    <div className="flex flex-col select-none">
+    <div className="flex flex-col select-none my-0.5">
       <button
         type="button"
         onClick={handleClick}
@@ -117,7 +117,7 @@ function RecursiveTreeItem({
           }
         }}
         className={cn(
-          "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors duration-150 group w-full text-left border-0 bg-transparent p-0",
+          "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors duration-150 group w-full text-left border-0 bg-transparent",
           isActive
             ? "bg-primary/15 text-primary font-semibold"
             : "text-foreground/90 hover:bg-accent/60 hover:text-foreground",
@@ -137,7 +137,7 @@ function RecursiveTreeItem({
       </button>
 
       {hasChildren && isOpen && (
-        <div className="flex flex-col border-l border-border/50 ml-3.5 pl-2 py-0.5 space-y-0.5">
+        <div className="flex flex-col border-l border-border/50 ml-4 pl-2.5 py-1 space-y-1">
           {node.children!.map((child) => (
             <RecursiveTreeItem
               key={child.id}

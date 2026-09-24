@@ -5,7 +5,7 @@ import {
   type GrpcRequest,
   grpcProcess,
   type ProcessKind,
-} from "@/lib/core/grpc";
+} from "@/lib/grpc/client";
 import { getServiceUrl } from "@/lib/core/services";
 import type { APIResponse, Envelope } from "@/types";
 

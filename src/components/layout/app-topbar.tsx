@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  AlertCircle,
   Building2,
   Check,
   ChevronsUpDown,
   KeyRound,
   LogOut,
+  RefreshCw,
   Search,
   User,
   UserCheck,
@@ -40,16 +42,39 @@ export function TopBar() {
   const [branchSearch, setBranchSearch] = React.useState("");
   const [branches, setBranches] = React.useState<
     Array<{ code: string; name: string; type: string }>
-  >([
-    {
-      code: "JB9999",
-      name: "Central Office (Headquarters)",
-      type: "Head Office",
-    },
-  ]);
+  >([]);
+  const [branchLoading, setBranchLoading] = React.useState(true);
+  const [branchError, setBranchError] = React.useState<string | null>(null);
+
   const { user, currentBranch, setBranch, setSession, logout } =
     useSessionStore();
   const { confirm: confirmAlert } = useAlertStore();
+
+  const loadBranches = React.useCallback(() => {
+    setBranchLoading(true);
+    setBranchError(null);
+    fetch("/api/branches")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setBranches(
+            json.data.map((b: { recordId: string; branchTitle: string }) => ({
+              code: b.recordId,
+              name: b.branchTitle,
+              type: b.recordId === "JB9999" ? "Head Office" : "General",
+            })),
+          );
+        } else {
+          setBranchError(json.error || "Failed to load branch list");
+        }
+      })
+      .catch((err) => {
+        setBranchError(err?.message || "Failed to connect to branch service");
+      })
+      .finally(() => {
+        setBranchLoading(false);
+      });
+  }, []);
 
   React.useEffect(() => {
     // Hydrate User Session
@@ -67,21 +92,8 @@ export function TopBar() {
         .catch((err) => console.error("Failed to hydrate session", err));
     }
 
-    fetch("/api/branches")
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && Array.isArray(json.data)) {
-          setBranches(
-            json.data.map((b: { recordId: string; branchTitle: string }) => ({
-              code: b.recordId,
-              name: b.branchTitle,
-              type: b.recordId === "JB9999" ? "Head Office" : "General",
-            })),
-          );
-        }
-      })
-      .catch(() => {});
-  }, [user, currentBranch, setSession, setBranch]);
+    loadBranches();
+  }, [user, currentBranch, setSession, setBranch, loadBranches]);
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -96,7 +108,8 @@ export function TopBar() {
 
   const activeBranchCode = currentBranch ?? "JB9999";
   const activeBranchObj =
-    branches.find((b) => b.code === activeBranchCode) ?? branches[0];
+    branches.find((b) => b.code === activeBranchCode) ??
+    (branches.length > 0 ? branches[0] : null);
 
   const filteredBranches = React.useMemo(() => {
     if (!branchSearch.trim()) return branches;
@@ -166,26 +179,59 @@ export function TopBar() {
               }
             >
               <Building2 className="mr-2 size-3.5 shrink-0 text-muted-foreground" />
-              <span className="truncate max-w-[120px] sm:max-w-[200px] text-xs font-medium">
-                {activeBranchObj.name}
+              <span className="truncate max-w-[140px] sm:max-w-[220px] text-xs font-medium">
+                {branchLoading
+                  ? "Loading..."
+                  : branchError
+                    ? "Branch Load Error"
+                    : activeBranchObj
+                      ? `[${activeBranchObj.code}] ${activeBranchObj.name}`
+                      : `[${activeBranchCode}]`}
               </span>
               <ChevronsUpDown className="ml-2 size-3 shrink-0 opacity-50" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[300px]">
+            <DropdownMenuContent align="end" className="w-[320px]">
               <DropdownMenuLabel className="font-normal p-2">
                 <div className="text-xs text-muted-foreground mb-2">
                   Switch Active Branch
                 </div>
                 <Input
-                  placeholder="Filter branches..."
+                  placeholder="Search by code or name..."
                   className="h-8 text-xs bg-muted/50"
                   value={branchSearch}
                   onChange={(e) => setBranchSearch(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  disabled={Boolean(branchError)}
                 />
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup className="max-h-[300px] overflow-y-auto overflow-x-hidden p-1">
-                {filteredBranches.length === 0 ? (
+                {branchLoading ? (
+                  <div className="p-4 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+                    <RefreshCw className="size-3.5 animate-spin text-primary" />
+                    <span>Loading branches...</span>
+                  </div>
+                ) : branchError ? (
+                  <div className="p-3 text-center text-xs space-y-2">
+                    <div className="flex items-center justify-center gap-1.5 text-destructive font-medium">
+                      <AlertCircle className="size-4 shrink-0" />
+                      <span>Failed to load branches</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-tight px-1">
+                      {branchError}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="xs"
+                      onClick={() => loadBranches()}
+                      className="mt-1 h-7 text-xs gap-1.5 w-full border-destructive/40 text-destructive hover:bg-destructive/10"
+                    >
+                      <RefreshCw className="size-3" />
+                      <span>Refresh / Retry</span>
+                    </Button>
+                  </div>
+                ) : filteredBranches.length === 0 ? (
                   <div className="p-2 text-center text-xs text-muted-foreground">
                     No branches found
                   </div>
@@ -194,24 +240,17 @@ export function TopBar() {
                     <DropdownMenuItem
                       key={b.code}
                       onSelect={() => handleBranchSwitch(b.code, b.name)}
-                      className="flex flex-col items-start gap-1 p-2 cursor-pointer focus:bg-accent"
+                      className="flex items-center justify-between py-2 px-2.5 cursor-pointer focus:bg-accent text-xs gap-2"
                     >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="text-xs font-medium truncate pr-2">
-                          {b.name}
-                        </span>
-                        {activeBranchCode === b.code && (
-                          <Check className="size-3.5 shrink-0 text-primary" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1 rounded-sm">
+                      <span className="truncate flex items-center gap-1.5 font-medium">
+                        <span className="font-mono text-[10px] text-muted-foreground bg-muted px-1 py-0.5 rounded shrink-0">
                           [{b.code}]
                         </span>
-                        <span className="text-[10px] text-muted-foreground/80">
-                          {b.type}
-                        </span>
-                      </div>
+                        <span className="truncate">{b.name}</span>
+                      </span>
+                      {activeBranchCode === b.code && (
+                        <Check className="size-3.5 shrink-0 text-primary" />
+                      )}
                     </DropdownMenuItem>
                   ))
                 )}

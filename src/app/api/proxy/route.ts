@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/config";
-import { dispatch, type Envelope } from "@/lib/core/dispatch";
+import { dispatch, type Envelope } from "@/lib/grpc/dispatch";
 import { getSession } from "@/lib/core/redis-session";
 
 export const runtime = "nodejs";

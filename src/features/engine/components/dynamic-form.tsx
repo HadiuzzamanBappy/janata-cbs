@@ -142,10 +142,6 @@ export function DynamicForm({
               {schema.code}
             </span>
           </h2>
-          <p className="text-xs text-muted-foreground">
-            Command: <code className="font-mono">{command}</code> | ID Prefix:{" "}
-            <code className="font-mono">{schema.idPrefix}</code>
-          </p>
         </div>
 
         {/* Action Controls */}

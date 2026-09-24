@@ -2,11 +2,13 @@
 
 import { AlertTriangle, RotateCcw, Save } from "lucide-react";
 import * as React from "react";
+import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { useFormState } from "../hooks/use-form-state";
 import { useSchema } from "../hooks/use-schema";
+
 import type { DynamicFormProps } from "../types";
 import { FormRenderer } from "./form-renderer";
 
@@ -14,15 +16,35 @@ const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
 
 export function DynamicForm({
   command,
+  tabId,
   initialValues = EMPTY_INITIAL_VALUES,
   onSuccess,
-}: DynamicFormProps & { initialValues?: Record<string, unknown> }) {
+}: DynamicFormProps & {
+  tabId?: string;
+  initialValues?: Record<string, unknown>;
+}) {
   const { schema, loading, error, refetch } = useSchema(command);
+  const { tabs, updateFormData } = useWorkbenchStore();
+  const currentTab = tabs.find((t) => t.id === tabId);
+
+  // Merge initialValues with saved tab draft data
+  const mergedInitialValues = React.useMemo(() => {
+    return { ...initialValues, ...currentTab?.formData };
+  }, [initialValues, currentTab?.formData]);
+
   const { values, errors, setValue, validate, resetForm } = useFormState(
     schema,
-    initialValues,
+    mergedInitialValues,
   );
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+
+  // Sync typed form field changes back into the tab store
+  const handleFieldChange = (name: string, val: unknown) => {
+    setValue(name, val);
+    if (tabId) {
+      updateFormData(tabId, { [name]: val });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +179,7 @@ export function DynamicForm({
         <FormRenderer
           schema={schema}
           values={values}
-          onChange={setValue}
+          onChange={handleFieldChange}
           errors={errors}
           disabled={submitting}
         />

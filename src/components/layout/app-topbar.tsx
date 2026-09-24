@@ -14,7 +14,9 @@ import * as React from "react";
 import { AppSearch } from "@/components/layout/app-search";
 import { AppSettings } from "@/components/layout/app-settings";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { useAlertStore } from "@/components/providers/alert-provider";
 import { useSessionStore } from "@/components/providers/session-provider";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +49,7 @@ export function TopBar() {
   ]);
   const { user, currentBranch, setBranch, setSession, logout } =
     useSessionStore();
+  const { confirm: confirmAlert } = useAlertStore();
 
   React.useEffect(() => {
     // Hydrate User Session
@@ -288,7 +291,16 @@ export function TopBar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 variant="destructive"
-                onClick={logout}
+                onClick={() =>
+                  confirmAlert({
+                    title: "Sign Out Confirmation",
+                    message:
+                      "Are you sure you want to terminate your current active session? Any unsaved form progress will be lost.",
+                    variant: "destructive",
+                    confirmText: "Sign Out",
+                    onConfirm: () => logout(),
+                  })
+                }
                 className="cursor-pointer text-xs gap-2 py-2"
               >
                 <LogOut className="size-3.5" />

@@ -10,6 +10,13 @@ export interface LaunchScreenOptions {
   addTab: (tab: { id: string; title: string; componentName: string }) => void;
   openSettingsTab?: (tabId: string) => void;
   clearSession?: () => void;
+  confirmAlert?: (options: {
+    title: string;
+    message: string;
+    variant?: "destructive" | "default";
+    confirmText?: string;
+    onConfirm: () => void;
+  }) => void;
 }
 
 /**
@@ -24,6 +31,7 @@ export function launchScreen({
   addTab,
   openSettingsTab,
   clearSession,
+  confirmAlert,
 }: LaunchScreenOptions) {
   if (!id) return;
 
@@ -46,7 +54,7 @@ export function launchScreen({
 
   dispatchCommand(
     normalizedCmd,
-    { addTab, openSettingsTab, clearSession },
+    { addTab, openSettingsTab, clearSession, confirmAlert },
     title,
     componentName,
   );

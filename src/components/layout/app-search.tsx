@@ -1,8 +1,12 @@
 "use client";
 
 import * as React from "react";
+
+import { useAlertStore } from "@/components/providers/alert-provider";
+
 import { useSessionStore } from "@/components/providers/session-provider";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
+
 import { Badge } from "@/components/ui/badge";
 import {
   CommandDialog,
@@ -56,8 +60,10 @@ export function AppSearch({
   onOpenChange,
   openSettingsTab,
 }: GlobalSearchProps) {
-  const { user, clearSession } = useSessionStore();
+  const { user, logout } = useSessionStore();
   const { addTab } = useWorkbenchStore();
+  const { confirm } = useAlertStore();
+
   const [apiMenuItems, setApiMenuItems] = React.useState<SystemCommandItem[]>(
     [],
   );
@@ -123,7 +129,8 @@ export function AppSearch({
       componentName: cmd.componentName,
       addTab,
       openSettingsTab,
-      clearSession,
+      clearSession: logout,
+      confirmAlert: confirm,
     });
   };
 

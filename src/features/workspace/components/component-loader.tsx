@@ -57,9 +57,10 @@ class ComponentErrorBoundary extends React.Component<
  */
 export function ComponentLoader({
   command,
+  tabId,
   mode = "panel",
   className = "",
-}: ComponentLoaderProps) {
+}: ComponentLoaderProps & { tabId?: string }) {
   const ControlComponent = React.useMemo(
     () => resolveControl(command),
     [command],
@@ -79,7 +80,7 @@ export function ComponentLoader({
             </div>
           }
         >
-          <ControlComponent command={command} />
+          <ControlComponent command={command} tabId={tabId} />
         </React.Suspense>
       </ComponentErrorBoundary>
     </div>

@@ -13,6 +13,13 @@ export interface CommandExecutionContext {
   addTab?: (tab: { id: string; title: string; componentName: string }) => void;
   openSettingsTab?: (tabId: string) => void;
   clearSession?: () => void;
+  confirmAlert?: (options: {
+    title: string;
+    message: string;
+    variant?: "destructive" | "default";
+    confirmText?: string;
+    onConfirm: () => void;
+  }) => void;
 }
 
 export const ICON_REGISTRY = CONFIG_ICON_REGISTRY;
@@ -102,7 +109,18 @@ export function dispatchCommand(
   // 3. Logout Action
   if (registered?.actionType === "LOGOUT" || cleanCmd === "action:logout") {
     if (context.clearSession) {
-      context.clearSession();
+      if (context.confirmAlert) {
+        context.confirmAlert({
+          title: "Sign Out Confirmation",
+          message:
+            "Are you sure you want to terminate your current active session? Any unsaved form progress will be lost.",
+          variant: "destructive",
+          confirmText: "Sign Out",
+          onConfirm: () => context.clearSession?.(),
+        });
+      } else {
+        context.clearSession();
+      }
     }
     return;
   }

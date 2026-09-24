@@ -3,17 +3,33 @@
 import { Sparkles } from "lucide-react";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { ComponentLoader } from "@/features/workspace";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { tabs, activeTabId } = useWorkbenchStore();
-  const activeTab = tabs.find((t) => t.id === activeTabId);
 
-  if (activeTab) {
-    const targetCommand =
-      activeTab.screenId || activeTab.componentName || "ACCOUNT";
+  if (tabs.length > 0) {
     return (
-      <div className="w-full h-full flex flex-col">
-        <ComponentLoader command={targetCommand} mode="panel" />
+      <div className="w-full h-full flex flex-col relative overflow-hidden">
+        {tabs.map((tab) => {
+          const isActive = tab.id === activeTabId;
+          const targetCommand = tab.screenId || tab.componentName || tab.id;
+          return (
+            <div
+              key={tab.id}
+              className={cn(
+                "w-full h-full flex-col flex-1",
+                isActive ? "flex" : "hidden",
+              )}
+            >
+              <ComponentLoader
+                command={targetCommand}
+                tabId={tab.id}
+                mode="panel"
+              />
+            </div>
+          );
+        })}
       </div>
     );
   }

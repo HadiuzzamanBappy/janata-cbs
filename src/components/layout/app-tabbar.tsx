@@ -197,7 +197,24 @@ export function AppTabBar() {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    removeTab(tab.id);
+                    const hasUserInput =
+                      tab.formData &&
+                      Object.values(tab.formData).some(
+                        (v) => v !== undefined && v !== null && v !== "",
+                      );
+
+                    if (hasUserInput) {
+                      confirm({
+                        title: `Close "${tab.title}"?`,
+                        message:
+                          "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
+                        variant: "destructive",
+                        confirmText: "Discard & Close",
+                        onConfirm: () => removeTab(tab.id),
+                      });
+                    } else {
+                      removeTab(tab.id);
+                    }
                   }}
                   className="size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
                   aria-label={`Close tab ${tab.title}`}
@@ -287,7 +304,25 @@ export function AppTabBar() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            removeTab(tab.id);
+                            const hasUserInput =
+                              tab.formData &&
+                              Object.values(tab.formData).some(
+                                (v) =>
+                                  v !== undefined && v !== null && v !== "",
+                              );
+
+                            if (hasUserInput) {
+                              confirm({
+                                title: `Close "${tab.title}"?`,
+                                message:
+                                  "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
+                                variant: "destructive",
+                                confirmText: "Discard & Close",
+                                onConfirm: () => removeTab(tab.id),
+                              });
+                            } else {
+                              removeTab(tab.id);
+                            }
                           }}
                           className="size-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-70 group-hover:opacity-100"
                           title="Close Window"

@@ -9,7 +9,7 @@ import { getRegisteredCommand } from "@/lib/core/commands";
  */
 export function resolveControl(
   command: string,
-): React.ComponentType<{ command: string }> {
+): React.ComponentType<{ command: string; tabId?: string }> {
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
   // 1. Check statically registered component from single source of truth registry
@@ -19,7 +19,12 @@ export function resolveControl(
   }
 
   // 2. Dynamic API Schema Fallback via DynamicForm engine
-  return function DynamicFormWrapper(props: { command: string }) {
-    return <DynamicForm command={props.command || cleanCmd} />;
+  return function DynamicFormWrapper(props: {
+    command: string;
+    tabId?: string;
+  }) {
+    return (
+      <DynamicForm command={props.command || cleanCmd} tabId={props.tabId} />
+    );
   };
 }

@@ -69,17 +69,24 @@ export function AppSearch({
   );
 
   React.useEffect(() => {
-    fetch("/api/menu")
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && Array.isArray(json.data)) {
-          setApiMenuItems(extractMenuCommands(json.data));
-        }
-      })
-      .catch((err) =>
-        console.error("Failed to load menu commands for search", err),
-      );
-  }, []);
+    if (!open) return;
+
+    Promise.all([
+      fetch("/api/menu").then((res) => res.json()).catch(() => ({ success: false })),
+      fetch("/api/controls").then((res) => res.json()).catch(() => ({ success: false })),
+    ]).then(([menuJson, controlsJson]) => {
+      const menuCmds =
+        menuJson.success && Array.isArray(menuJson.data)
+          ? extractMenuCommands(menuJson.data)
+          : [];
+      const controlCmds =
+        controlsJson.success && Array.isArray(controlsJson.data)
+          ? controlsJson.data
+          : [];
+
+      setApiMenuItems([...menuCmds, ...controlCmds]);
+    });
+  }, [open]);
 
   const userRole = user?.userRole ?? ["Administrator"];
   const isAdmin =

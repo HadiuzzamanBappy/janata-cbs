@@ -6,13 +6,16 @@ import { getServiceUrl } from "@/lib/core/services";
 
 import { getSession } from "@/lib/core/redis-session";
 
-export async function getBranches(tokenParam?: string): Promise<BranchMock[]> {
+import { getOrSet } from "@/lib/core/cache";
+
+const BRANCH_TTL_SECONDS = 3600; // 1 hour cache
+
+async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock[]> {
   if (env.MODEL_SOURCE === "static") {
     return STATIC_BRANCHES;
   }
 
   try {
-    // 1. Obtain session token and active user context
     const session = await getSession();
     const token = tokenParam || session?.token;
     const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
@@ -25,7 +28,6 @@ export async function getBranches(tokenParam?: string): Promise<BranchMock[]> {
       process.env.NODE_ENV === "development" ? "defaultdev" : "default";
     const address = getServiceUrl(targetServiceKey);
 
-    // 2. Dispatch gRPC call with exact requestType: "GRL"
     const res = await grpcProcess(
       address,
       "nonfinancial",
@@ -59,7 +61,6 @@ export async function getBranches(tokenParam?: string): Promise<BranchMock[]> {
         else rawItems = [obj];
       }
 
-      // 3. Unpack gRPC Struct / Protobuf fields format if present
       const formattedBranches = rawItems.map((item: any) => {
         const fields = item?.struct_value?.fields || item?.fields || item;
         const getString = (key: string) =>
@@ -76,17 +77,26 @@ export async function getBranches(tokenParam?: string): Promise<BranchMock[]> {
         } as BranchMock;
       });
 
-      return formattedBranches;
+      if (formattedBranches.length > 0) {
+        return formattedBranches;
+      }
     }
 
-    throw new Error(
-      res.message || `gRPC server returned status code ${res.statusCode}`,
-    );
+    return STATIC_BRANCHES;
   } catch (err: unknown) {
-    const error = err as { message?: string };
-    console.error("[branches] gRPC branch fetch failed:", error);
-    throw new Error(
-      error?.message || "Failed to fetch branch list from gRPC service",
+    console.warn(
+      "[branches] gRPC branch fetch failed, using static fallback:",
+      err,
     );
+    return STATIC_BRANCHES;
   }
+}
+
+export async function getBranches(tokenParam?: string): Promise<BranchMock[]> {
+  const cacheKey = "branches:list";
+  return getOrSet(
+    cacheKey,
+    () => fetchBranchesFromBackend(tokenParam),
+    BRANCH_TTL_SECONDS,
+  );
 }

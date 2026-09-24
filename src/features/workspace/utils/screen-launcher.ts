@@ -1,3 +1,5 @@
+import { dispatchCommand } from "@/lib/core/commands";
+
 export type DisplayTargetMode = "workspace" | "popup";
 
 export interface LaunchScreenOptions {
@@ -6,14 +8,13 @@ export interface LaunchScreenOptions {
   componentName?: string;
   target?: DisplayTargetMode;
   addTab: (tab: { id: string; title: string; componentName: string }) => void;
+  openSettingsTab?: (tabId: string) => void;
+  clearSession?: () => void;
 }
 
 /**
  * Domain-driven Launcher for Core Banking Screens & Workflows.
- *
- * Target Modes:
- * - `workspace`: Embeds the screen as an active tab inside the multi-tab AppShell layout.
- * - `popup`: Opens a standalone popup window for the screen (without full sidebar navigation).
+ * Delegates directly to single source of truth core `dispatchCommand`.
  */
 export function launchScreen({
   id,
@@ -21,11 +22,15 @@ export function launchScreen({
   componentName = "DYNAMIC_FORM",
   target = "workspace",
   addTab,
+  openSettingsTab,
+  clearSession,
 }: LaunchScreenOptions) {
-  const screenUrl = `/screen/${encodeURIComponent(id)}?title=${encodeURIComponent(title)}&component=${encodeURIComponent(componentName)}`;
+  if (!id) return;
+
+  const normalizedCmd = id.trim();
 
   if (target === "popup") {
-    // Popup window specification
+    const screenUrl = `/screen/${encodeURIComponent(normalizedCmd)}?title=${encodeURIComponent(title)}&component=${encodeURIComponent(componentName)}`;
     const popupFeatures = [
       "popup=yes",
       "width=1160",
@@ -33,16 +38,16 @@ export function launchScreen({
       "resizable=yes",
       "scrollbars=yes",
     ].join(",");
-
-    const windowName = `screen_${id.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
+    const windowName = `screen_${normalizedCmd.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
     const win = window.open(screenUrl, windowName, popupFeatures);
     if (win) win.focus();
-  } else {
-    // In-page workbench tab (Workspace mode)
-    addTab({
-      id,
-      title,
-      componentName,
-    });
+    return;
   }
+
+  dispatchCommand(
+    normalizedCmd,
+    { addTab, openSettingsTab, clearSession },
+    title,
+    componentName,
+  );
 }

@@ -129,10 +129,12 @@ export function AppTabBar() {
           const isActive = tab.id === activeTabId;
           const universalTabNumber = index + 1;
           return (
-            <button
-              type="button"
+            // biome-ignore lint/a11y/useSemanticElements: outer container is interactive tab item holding nested action buttons
+            <div
               key={tab.id}
               data-tab-id={tab.id}
+              role="button"
+              tabIndex={0}
               onClick={(e) => {
                 if (hasMovedRef.current) {
                   e.preventDefault();
@@ -203,7 +205,7 @@ export function AppTabBar() {
                   <X className="size-3" />
                 </button>
               </div>
-            </button>
+            </div>
           );
         })}
       </section>

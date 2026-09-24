@@ -15,94 +15,126 @@ janata-cbs/
 │   ├── project.md
 │   ├── rules/
 │   ├── workflows/
-├── .env.example                       # Every env var template (no secrets)
-├── package.json
-├── pnpm-lock.yaml
-├── tsconfig.json
-├── biome.json                         # Biome linter & formatter rules
+├── .env.example                       # Environment variable template
+├── .env                               # Local runtime environment settings
+├── package.json                       # Dependencies & build scripts
+├── pnpm-lock.yaml                     # Locked package tree
+├── tsconfig.json                      # Strict TypeScript compiler options
+├── biome.json                         # Biome linter & formatter rules (strict any enforcement)
 ├── next.config.ts                     # Standalone output, security headers, typedRoutes
-├── proto/                             # .proto sources for ts-proto
+├── proto/                             # Raw .proto backend contracts
 │   └── service.proto                  # Core banking gRPC service definitions
-├── fixtures/                          # Sanitized menu + GMC schemas (offline mocks)
-├── scripts/                           # Tooling (proto-gen.ts, audit greps)
+├── fixtures/                          # Sanitized GMC, menu & user schemas (offline mocks)
+│   ├── users.ts                       # Static mock user accounts
+│   ├── menu.ts                        # Static menu fallback data
+├── scripts/                           # Utility tooling
+│   └── proto-gen.ts                   # Output generator for gRPC stubs
 ├── docs/                              # Architectural documentation & runbooks
 │   ├── ultimate-folder-architecture.md
 │   ├── legacy-src-checklist.md
 │   ├── refractor-checklist.md
 │   └── future-architecture-upgrades.md
 └── src/
-    ├── proxy.ts                       # Middleware proxy helper
-    ├── app/                           # App Router routes (thin pages)
-    │   ├── layout.tsx                 # Root layout (zero-flash theme + providers)
-    │   ├── globals.css                # OKLCH design tokens & CSS utilities
-    │   ├── page.tsx                   # Entry redirect
-    │   ├── not-found.tsx
-    │   ├── global-error.tsx
-    │   ├── (auth)/                    # Route group: Authentication
+    ├── proxy.ts                       # Next.js Middleware proxy & route protection helper
+    ├── app/                           # Next.js App Router (Thin routing & API gateways)
+    │   ├── layout.tsx                 # Root layout (zero-flash theme + global providers)
+    │   ├── globals.css                # OKLCH design tokens & Tailwind v4 CSS utilities
+    │   ├── page.tsx                   # Entry point redirect
+    │   ├── not-found.tsx              # Generic 404 fallback page
+    │   ├── global-error.tsx           # Global error boundary fallback page
+    │   ├── favicon.ico / icon.png     # Application icons
+    │   ├── (auth)/                    # Route group: Unauthenticated Auth pages
     │   │   ├── layout.tsx
     │   │   ├── login/
-    │   │   │   └── page.tsx
+    │   │   │   └── page.tsx           # Login screen host
     │   │   └── change-password/
-    │   │       └── page.tsx
-    │   ├── (workbench)/               # Route group: Authenticated workspace
+    │   │       └── page.tsx           # First-time password change screen host
+    │   ├── (workbench)/               # Route group: Authenticated Workspace pages
     │   │   ├── dashboard/
+    │   │   │   ├── layout.tsx
+    │   │   │   ├── error.tsx
     │   │   │   └── page.tsx           # Officer dashboard / home
-    │   │   └── screen/[id]
-    │   │       └── page.tsx           # Dynamic screen engine host
-    │   └── api/                       # BFF Server Gateways
-    │       └── proxy/
-    │           └── route.ts           # Sole secure gateway to Java gRPC
+    │   │   └── screen/[id]/
+    │   │       ├── loading.tsx
+    │   │       ├── error.tsx
+    │   │       └── page.tsx           # Dynamic GMC form screen host
+    │   └── api/                       # BFF Server Gateways (Backend-For-Frontend)
+    │       ├── branches/route.ts      # Branch list endpoint
+    │       ├── cache/route.ts         # Redis cache invalidation endpoint
+    │       ├── login/route.ts         # User login endpoint
+    │       ├── logout/route.ts        # User logout endpoint
+    │       ├── menu/route.ts          # Navigation menu schema endpoint
+    │       ├── model/[cmd]/route.ts   # Dynamic form schema fetcher
+    │       ├── session/route.ts       # Active user session manager endpoint
+    │       └── proxy/route.ts         # Sole secure gateway to Java gRPC backend
     │
-    ├── components/                    # Generic presentation components
-    │   ├── ui/                        # primitive design tokens (shadcn/ui)
-    │   │   ├── button.tsx
-    │   │   ├── dialog.tsx
-    │   │   ├── input.tsx
-    │   │   └── sidebar.tsx
-    │   ├── layout/                    # Header, sidebar, tab-bar
-    │   │   ├── app-header.tsx
-    │   │   ├── app-sidebar.tsx
-    │   │   └── tab-bar.tsx
-    │   ├── feedback/                  # Toasts, boundaries, empty states
-    │   │   └── toast.tsx
-    │   └── providers/                 # Theme & state context providers
-    │       ├── theme-provider.tsx
-    │       └── workbench-provider.tsx
+    ├── components/                    # Pure, Domain-Agnostic UI Components
+    │   ├── ui/                        # Low-level primitive design tokens (shadcn/ui)
+    │   │   ├── button.tsx, dialog.tsx, input.tsx, sidebar.tsx, etc.
+    │   ├── layout/                    # Application Shell structural components
+    │   │   ├── app-header.tsx, app-sidebar.tsx, app-tabbar.tsx, app-topbar.tsx
+    │   │   ├── app-search.tsx, app-settings.tsx, theme-toggle.tsx, workbench-shell.tsx
+    │   ├── feedback/                  # Generic status & feedback components
+    │   │   ├── confirm-dialog.tsx, empty-state.tsx, error-boundary.tsx
+    │   │   ├── global-alert-system.tsx, screen-loader.tsx
+    │   └── providers/                 # React Context Providers
+    │       ├── alert-provider.tsx, session-provider.tsx
+    │       ├── theme-provider.tsx, workbench-provider.tsx
     │
-    ├── features/                      # Domain-driven feature modules
-    │   ├── auth/                      # Login & authentication logic
-    │   ├── engine/                    # Platform: Schema → dynamic form engine
-    │   │   ├── types.ts
-    │   │   ├── components/            # FormGrid, ControlRenderer, DynamicForm
-    │   │   ├── hooks/
-    │   │   └── schema/
-    │   ├── workspace/                 # Workspace tab/window managers
-    │   │   ├── types.ts
-    │   │   ├── components/            # ComponentLoader
-    │   │   ├── menu/                  # Menu parsing & normalization
-    │   │   └── utils/                 # Window pop-out management
-    │   └── settings/                  # User options & theme controls
+    ├── features/                      # Domain-Driven Design (DDD) Feature Modules
+    │   ├── auth/                      # Authentication domain module
+    │   │   ├── index.ts               # Public API barrel export
+    │   │   ├── actions.ts             # Server actions (logout/password reset)
+    │   │   ├── schemas.ts             # Auth validation Zod schemas
+    │   │   ├── types.ts               # Auth domain types
+    │   │   └── components/            # LoginForm, ChangePassword
+    │   ├── engine/                    # Platform: Dynamic Form Rendering Engine
+    │   │   ├── index.ts               # Public API barrel export
+    │   │   ├── types.ts               # Engine types & FormRendererProps
+    │   │   ├── components/            # DynamicForm, FieldFactory, FormRenderer
+    │   │   ├── hooks/                 # useFormState, useSchema
+    │   │   └── schema/                # schema-parser.ts, schemas.ts (Zod GMC parser)
+    │   ├── workspace/                 # Application Workspace & Shell Managers
+    │   │   ├── index.ts               # Public API barrel export
+    │   │   ├── types.ts               # Workspace state & tab types
+    │   │   ├── components/            # ComponentLoader, ComponentRegistry
+    │   │   ├── menu/                  # menu-parser.ts, schemas.ts (Menu parser)
+    │   │   └── utils/                 # screen-launcher.ts (Window pop-outs)
+    │   └── settings/                  # User Options & Preference Controls
+    │       ├── index.ts               # Public API barrel export
+    │       ├── schemas.ts, types.ts
+    │       └── components/            # AppearanceTab, ProfileTab, SecurityTab
     │
-    ├── lib/                           # Infrastructure layer
-    │   ├── utils.ts                   # Classname utility (`cn`)
-    │   ├── config/                    # Environment validation (`env.ts`)
-    │   ├── core/                      # `server-only` guarded services
-    │   │   ├── grpc-client.ts         # gRPC client connection
+    ├── hooks/                         # Shared React Client Hooks
+    │   ├── use-local-storage.ts       # LocalStorage sync hook
+    │   └── use-mobile.ts              # Responsive viewport detection hook
+    │
+    ├── lib/                           # Core Infrastructure & Backend Tools Layer
+    │   ├── utils.ts                   # Classname merger (`cn`)
+    │   ├── config/                    # Validated environment variables (`env.ts`, `constants.ts`)
+    │   ├── core/                      # `server-only` locked infrastructure services
+    │   │   ├── grpc.ts                # gRPC client connection pool & auth headers
     │   │   ├── redis-client.ts        # ioredis client with circuit breaker
-    │   │   ├── redis-session.ts       # Session management
-    │   │   └── dispatch.ts            # Network dispatch strategy
-    │   └── schema/                    # Zod schemas (auth, screen payloads)
-    │       ├── auth.schema.ts
-    │       └── screen.schema.ts
+    │   │   ├── redis-session.ts       # Opaque cookie & Redis session manager
+    │   │   ├── dispatch.ts            # Dynamic network request dispatcher
+    │   │   ├── cache.ts               # Multi-level spec & menu cache
+    │   │   ├── rate-limit.ts          # Login IP rate limiter
+    │   │   └── services.ts            # Backend microservice registry
+    │   ├── grpc/                      # Compiled Protocol Buffer Stubs
+    │   │   └── generated/             # AUTO-GENERATED STUBS BY PROTO-GEN
+    │   │       ├── service.ts         # Main gRPC service definitions & binary codecs
+    │   │       └── google/protobuf/   # Google protobuf struct helpers
+    │   └── schema/                    # High-level data retrieval helpers
+    │       ├── get-branches.ts, get-menu.ts, get-model.ts
     │
-    ├── store/                         # Zustand global state stores
-    │   ├── workbench-store.ts
-    │   ├── session-store.ts
-    │   └── alert-store.ts
+    ├── store/                         # Zustand Global State Stores
+    │   ├── alert-store.ts             # Global confirmation dialog & alert state
+    │   ├── session-store.ts           # Active officer session & branch state
+    │   └── workbench-store.ts         # Tab workspace, active screens & window state
     │
-    └── types/                         # TypeScript ambient type definitions
-        ├── index.ts
-        └── images.d.ts
+    └── types/                         # Global TypeScript Ambient Definitions
+        ├── index.ts                   # APIResponse envelope & ICommand definitions
+        └── images.d.ts                # Static asset type declarations
 ```
 
 ---

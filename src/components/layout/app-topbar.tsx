@@ -120,6 +120,11 @@ export function TopBar() {
     });
   };
 
+  const openSettingsTab = (tabId: string) => {
+    setSettingsTab(tabId);
+    setSettingsOpen(true);
+  };
+
   return (
     <>
       <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 transition-[width] ease-linear select-none">
@@ -267,20 +272,14 @@ export function TopBar() {
               <DropdownMenuGroup>
                 <DropdownMenuItem
                   className="cursor-pointer text-xs gap-2 py-2"
-                  onClick={() => {
-                    setSettingsTab("profile");
-                    setSettingsOpen(true);
-                  }}
+                  onClick={() => openSettingsTab("profile")}
                 >
                   <UserCheck className="size-3.5 text-muted-foreground" />
                   <span>User Profile & Privileges</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer text-xs gap-2 py-2"
-                  onClick={() => {
-                    setSettingsTab("security");
-                    setSettingsOpen(true);
-                  }}
+                  onClick={() => openSettingsTab("security")}
                 >
                   <KeyRound className="size-3.5 text-muted-foreground" />
                   <span>Security & Password</span>
@@ -299,7 +298,11 @@ export function TopBar() {
           </DropdownMenu>
         </div>
       </header>
-      <AppSearch open={searchOpen} onOpenChange={setSearchOpen} />
+      <AppSearch
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        openSettingsTab={openSettingsTab}
+      />
       <AppSettings
         open={settingsOpen}
         onOpenChange={setSettingsOpen}

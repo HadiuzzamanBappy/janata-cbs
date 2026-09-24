@@ -1,6 +1,5 @@
 "use client";
 
-import { STATIC_MENU } from "@fixtures";
 import Image from "next/image";
 import * as React from "react";
 import logo from "@/app/icon.png";
@@ -10,6 +9,7 @@ import {
   SidebarContent,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { launchScreen, type MenuItem } from "@/features/workspace";
 import { cn } from "@/lib/utils";
 
@@ -31,26 +31,63 @@ function mapMenuItemToTreeNode(item: MenuItem): TreeNode {
   };
 }
 
-export const NAVIGATION_TREE: TreeNode[] = STATIC_MENU.map(
-  mapMenuItemToTreeNode,
-);
-
 interface TreeItemProps {
   node: TreeNode;
   level?: number;
+  openSettingsTab?: (tabId: string) => void;
+  clearSession?: () => void;
 }
 
-function RecursiveTreeItem({ node }: TreeItemProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+/**
+ * Helper to check if a tree node or any of its descendants matches the active command/screen ID
+ */
+function hasActiveChild(node: TreeNode, activeId?: string): boolean {
+  if (!activeId) return false;
+  if (
+    node.command === activeId ||
+    node.id === activeId ||
+    node.command?.toUpperCase() === activeId.toUpperCase()
+  ) {
+    return true;
+  }
+  if (node.children && node.children.length > 0) {
+    return node.children.some((child) => hasActiveChild(child, activeId));
+  }
+  return false;
+}
+
+function RecursiveTreeItem({
+  node,
+  openSettingsTab,
+  clearSession,
+}: TreeItemProps) {
   const { addTab, tabs, activeTabId } = useWorkbenchStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
+  const activeCommand = activeTab?.screenId || activeTab?.id;
+
   const hasChildren = Boolean(node.children && node.children.length > 0);
   const isLeaf = !hasChildren;
+
+  // Check if this node or any child node is currently active
+  const isChildActive = React.useMemo(
+    () => hasActiveChild(node, activeCommand),
+    [node, activeCommand],
+  );
+
+  const [isOpen, setIsOpen] = React.useState(isChildActive);
+
+  // Automatically expand parent node when a child screen is launched (e.g. via Search)
+  React.useEffect(() => {
+    if (isChildActive) {
+      setIsOpen(true);
+    }
+  }, [isChildActive]);
+
   const isActive =
     isLeaf &&
-    (activeTab?.screenId === (node.command ?? node.id) ||
-      activeTab?.id === (node.command ?? node.id));
+    (activeCommand === (node.command ?? node.id) ||
+      activeCommand?.toUpperCase() === (node.command ?? node.id).toUpperCase());
 
   const handleClick = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();
@@ -62,13 +99,14 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
         title: node.title,
         componentName: node.componentName,
         addTab,
+        openSettingsTab,
+        clearSession,
       });
     }
   };
 
   return (
     <div className="flex flex-col select-none">
-      {/* Node Row Header */}
       <button
         type="button"
         onClick={handleClick}
@@ -85,7 +123,6 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
             : "text-foreground/90 hover:bg-accent/60 hover:text-foreground",
         )}
       >
-        {/* Arrow-based indicators matching tree UI specification */}
         {hasChildren ? (
           <span className="size-4 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground transition-colors shrink-0 text-[10px]">
             {isOpen ? "▼" : "▶"}
@@ -99,11 +136,15 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
         <span className="truncate">{node.title}</span>
       </button>
 
-      {/* Recursive Children Sub-Tree with Guide Lines */}
       {hasChildren && isOpen && (
         <div className="flex flex-col border-l border-border/50 ml-3.5 pl-2 py-0.5 space-y-0.5">
           {node.children!.map((child) => (
-            <RecursiveTreeItem key={child.id} node={child} />
+            <RecursiveTreeItem
+              key={child.id}
+              node={child}
+              openSettingsTab={openSettingsTab}
+              clearSession={clearSession}
+            />
           ))}
         </div>
       )}
@@ -111,10 +152,21 @@ function RecursiveTreeItem({ node }: TreeItemProps) {
   );
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [treeNodes, setTreeNodes] = React.useState<TreeNode[]>(NAVIGATION_TREE);
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  openSettingsTab?: (tabId: string) => void;
+  clearSession?: () => void;
+}
+
+export function AppSidebar({
+  openSettingsTab,
+  clearSession,
+  ...props
+}: AppSidebarProps) {
+  const [treeNodes, setTreeNodes] = React.useState<TreeNode[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(true);
 
   React.useEffect(() => {
+    setLoading(true);
     fetch("/api/menu")
       .then((res) => res.json())
       .then((json) => {
@@ -122,7 +174,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           setTreeNodes(json.data.map(mapMenuItemToTreeNode));
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Failed to load sidebar menu API", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   return (
@@ -131,7 +188,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className="border-r border-border/60"
       {...props}
     >
-      {/* Sidebar Header: Brand Info matching TopBar height */}
+      {/* Sidebar Header */}
       <SidebarHeader className="h-16 shrink-0 border-b border-border/60 px-4 py-0 flex flex-row items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <Image
@@ -150,13 +207,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
 
-      {/* Sidebar Content: Arrow-based Recursive Tree Menu */}
+      {/* Sidebar Content */}
       <SidebarContent className="p-3 overflow-y-auto">
-        <div className="flex flex-col space-y-1">
-          {treeNodes.map((node) => (
-            <RecursiveTreeItem key={node.id} node={node} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex flex-col space-y-2 p-1">
+            <Skeleton className="h-6 w-3/4 rounded-md" />
+            <Skeleton className="h-6 w-5/6 rounded-md ml-3" />
+            <Skeleton className="h-6 w-2/3 rounded-md ml-3" />
+            <Skeleton className="h-6 w-4/5 rounded-md" />
+            <Skeleton className="h-6 w-3/4 rounded-md ml-3" />
+            <Skeleton className="h-6 w-1/2 rounded-md" />
+          </div>
+        ) : (
+          <div className="flex flex-col space-y-1">
+            {treeNodes.map((node) => (
+              <RecursiveTreeItem
+                key={node.id}
+                node={node}
+                openSettingsTab={openSettingsTab}
+                clearSession={clearSession}
+              />
+            ))}
+          </div>
+        )}
       </SidebarContent>
     </Sidebar>
   );

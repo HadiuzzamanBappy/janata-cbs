@@ -1,27 +1,24 @@
 import type * as React from "react";
 import { DynamicForm } from "@/features/engine";
-import { SecurityTab } from "@/features/settings";
+import { getRegisteredCommand } from "@/lib/core/commands";
 
 /**
- * Registry mapping bespoke screen command keys to React components.
- * If a command key is NOT in this map, it falls back to the DynamicForm engine.
+ * Resolves a React component for a given command.
+ * 1. Checks statically registered custom component from single source of truth core registry.
+ * 2. If not registered, falls back to schema-driven DynamicForm engine.
  */
-export const BESPOKE_COMPONENTS: Record<
-  string,
-  React.ComponentType<{ command: string }>
-> = {
-  // Auth & Admin Screens
-  "USER.CHANGE.PASS": SecurityTab,
-};
-
 export function resolveControl(
   command: string,
 ): React.ComponentType<{ command: string }> {
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
-  const bespoke = BESPOKE_COMPONENTS[cleanCmd];
-  if (bespoke) return bespoke;
 
-  // Fallback to schema-driven DynamicForm engine
+  // 1. Check statically registered component from single source of truth registry
+  const registered = getRegisteredCommand(cleanCmd);
+  if (registered?.component) {
+    return registered.component;
+  }
+
+  // 2. Dynamic API Schema Fallback via DynamicForm engine
   return function DynamicFormWrapper(props: { command: string }) {
     return <DynamicForm command={props.command || cleanCmd} />;
   };

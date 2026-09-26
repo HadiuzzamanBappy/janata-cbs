@@ -38,7 +38,7 @@ export function TabWindowMenu() {
       >
         <Layers className="size-3.5 text-primary shrink-0" />
         <span>
-          {tabs.length} {tabs.length === 1 ? "Tab" : "Tabs"}
+          {tabs.length}
         </span>
         <ChevronDown className="size-3 text-muted-foreground ml-0.5 shrink-0 opacity-70" />
       </DropdownMenuTrigger>

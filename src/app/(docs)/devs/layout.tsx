@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DevHeader, DevSearchDialog, DevSidebar } from "@/features/docs";
+import {
+  DEV_NAV_GROUPS,
+  DocHeader,
+  DocSearchDialog,
+  DocSidebar,
+} from "@/features/docs";
 
 export default function DevDocLayout({
   children,
@@ -26,12 +31,16 @@ export default function DevDocLayout({
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground antialiased">
       {/* Fixed Left Sidebar */}
-      <DevSidebar />
+      <DocSidebar
+        portalTitle="CBS - Developer"
+        portalHomeHref="/devs"
+        navGroups={DEV_NAV_GROUPS}
+      />
 
       {/* Main Container Right (Top Header + Scrollable Content) */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Fixed Top Header */}
-        <DevHeader onOpenSearch={() => setSearchOpen(true)} />
+        <DocHeader onOpenSearch={() => setSearchOpen(true)} />
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-8 lg:p-12">
@@ -40,7 +49,11 @@ export default function DevDocLayout({
       </div>
 
       {/* Search Command Palette Modal */}
-      <DevSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      <DocSearchDialog
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        navGroups={DEV_NAV_GROUPS}
+      />
     </div>
   );
 }

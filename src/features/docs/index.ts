@@ -1,6 +1,12 @@
 // Docs Feature Module Public API Barrier
-export * from "./components/dev-header";
-export * from "./components/dev-search-dialog";
-export * from "./components/dev-sidebar";
+
+// Components
+export * from "./components/doc-header";
+export * from "./components/doc-search-dialog";
+export * from "./components/doc-sidebar";
 export * from "./components/mermaid-diagram";
-export * from "./config/nav-config";
+
+// Configs & Types
+export * from "./config/dev-nav-config";
+export * from "./config/manual-nav-config";
+export * from "./config/types";

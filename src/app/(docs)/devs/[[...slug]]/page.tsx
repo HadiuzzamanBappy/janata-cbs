@@ -1,10 +1,9 @@
-import fs from "node:fs";
-import path from "node:path";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MermaidDiagram } from "@/features/docs";
+import { readDocFile } from "@/features/docs/utils/doc-file-reader";
 
 export const dynamic = "force-dynamic";
 
@@ -14,24 +13,22 @@ export default async function DevDocPage({
   params: Promise<{ slug?: string[] }>;
 }) {
   const { slug } = await params;
+  const {
+    relativePath,
+    content: fileContent,
+    exists,
+  } = readDocFile(slug, "devs");
 
-  // Resolve markdown path: /devs -> docs/README.md, /devs/01-architecture/overview -> docs/01-architecture/overview.md
-  const relativePath =
-    slug && slug.length > 0 ? `${slug.join("/")}.md` : "README.md";
-  const filePath = path.join(process.cwd(), "docs", relativePath);
-
-  if (!fs.existsSync(filePath)) {
+  if (!exists) {
     notFound();
   }
-
-  const fileContent = fs.readFileSync(filePath, "utf-8");
 
   return (
     <article className="space-y-6">
       {/* File Breadcrumb Badge */}
       <div className="flex items-center justify-between border-b pb-4 text-xs text-muted-foreground font-mono">
         <div className="flex items-center gap-2">
-          <span className="text-primary font-semibold">docs/</span>
+          <span className="text-primary font-semibold">devs/</span>
           <span>{relativePath}</span>
         </div>
         <span className="text-muted-foreground/60">Markdown Render Engine</span>

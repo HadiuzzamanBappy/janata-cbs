@@ -4,7 +4,7 @@ import { Home, Search } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
-export function DevHeader({ onOpenSearch }: { onOpenSearch: () => void }) {
+export function DocHeader({ onOpenSearch }: { onOpenSearch: () => void }) {
   return (
     <header className="h-14 border-b bg-card/30 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-20">
       {/* Left: Functional Search Trigger Bar */}
@@ -37,3 +37,5 @@ export function DevHeader({ onOpenSearch }: { onOpenSearch: () => void }) {
     </header>
   );
 }
+
+export { DocHeader as DevHeader };

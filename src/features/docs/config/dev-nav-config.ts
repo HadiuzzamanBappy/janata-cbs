@@ -6,21 +6,9 @@ import {
   Shield,
   Terminal,
 } from "lucide-react";
+import type { NavGroup } from "./types";
 
-export interface NavItem {
-  label: string;
-  href: string;
-  keywords: string[];
-}
-
-export interface NavGroup {
-  id: string;
-  title: string;
-  icon: typeof Shield;
-  items: NavItem[];
-}
-
-export const NAV_GROUPS: NavGroup[] = [
+export const DEV_NAV_GROUPS: NavGroup[] = [
   {
     id: "00-refactor",
     title: "00. Refactoring Progress",
@@ -180,6 +168,11 @@ export const NAV_GROUPS: NavGroup[] = [
         label: "Offline Static Mock Mode",
         href: "/devs/05-developer-guides/static-mock-mode",
         keywords: ["MODEL_SOURCE=static", "fixtures", "specs"],
+      },
+      {
+        label: "Extending & Creating Doc Modules",
+        href: "/devs/05-developer-guides/extending-doc-portal-or-module",
+        keywords: ["docs", "portal", "manual", "scaffold", "navigation"],
       },
       {
         label: "Git Workflow & Commit Rules",

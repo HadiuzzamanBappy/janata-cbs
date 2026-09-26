@@ -43,6 +43,7 @@ This application is an enterprise-grade Next.js App Router (React 19) frontend r
 - [Quickstart Local Setup](05-developer-guides/quickstart-setup.md) — Local setup, environment variables (`.env.local`), and `pnpm` scripts.
 - [Scaffold New DDD Feature](05-developer-guides/adding-new-domain-feature.md) — Step-by-step runbook for scaffolding a new domain module under `src/features/`.
 - [Offline Static Mock Mode](05-developer-guides/static-mock-mode.md) — Running offline with static fixture specs (`MODEL_SOURCE=static`).
+- [Extending & Creating Doc Modules](05-developer-guides/extending-doc-portal-or-module.md) — Step-by-step guide for adding doc pages or scaffolding new documentation portals.
 - [Git Workflow & Commit Rules](05-developer-guides/git-workflow-and-commits.md) — Git commit conventions, imperative mood summaries, commit scopes, and Husky hooks.
 
 ---

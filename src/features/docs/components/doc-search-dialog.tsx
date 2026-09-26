@@ -10,15 +10,20 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { NAV_GROUPS } from "../config/nav-config";
+import { DEV_NAV_GROUPS } from "../config/dev-nav-config";
+import type { NavGroup } from "../config/types";
 
-export function DevSearchDialog({
-  open,
-  onOpenChange,
-}: {
+export interface DocSearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}) {
+  navGroups?: NavGroup[];
+}
+
+export function DocSearchDialog({
+  open,
+  onOpenChange,
+  navGroups = DEV_NAV_GROUPS,
+}: DocSearchDialogProps) {
   const router = useRouter();
 
   const handleSelect = (href: string) => {
@@ -31,7 +36,7 @@ export function DevSearchDialog({
       <CommandInput placeholder="Type a keyword or page title to search..." />
       <CommandList>
         <CommandEmpty>No matching documentation pages found.</CommandEmpty>
-        {NAV_GROUPS.map((group) => (
+        {navGroups.map((group) => (
           <CommandGroup key={group.title} heading={group.title}>
             {group.items.map((item) => (
               <CommandItem
@@ -50,3 +55,8 @@ export function DevSearchDialog({
     </CommandDialog>
   );
 }
+
+export {
+  DocSearchDialog as DevSearchDialog,
+  type DocSearchDialogProps as DevSearchDialogProps,
+};

@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import logo from "@/app/icon.png";
@@ -106,7 +107,7 @@ function RecursiveTreeItem({
   };
 
   return (
-    <div className="flex flex-col select-none my-0.5">
+    <div className="flex flex-col select-none relative">
       <button
         type="button"
         onClick={handleClick}
@@ -117,27 +118,37 @@ function RecursiveTreeItem({
           }
         }}
         className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-colors duration-150 group w-full text-left border-0 bg-transparent",
+          "flex items-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all duration-150 group w-full text-left border-0 bg-transparent relative z-10",
           isActive
-            ? "bg-primary/15 text-primary font-semibold"
-            : "text-foreground/90 hover:bg-accent/60 hover:text-foreground",
+            ? "bg-accent/80 text-foreground font-semibold shadow-xs"
+            : isChildActive
+              ? "text-foreground font-medium"
+              : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
         )}
       >
         {hasChildren ? (
-          <span className="size-4 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground transition-colors shrink-0 text-[10px]">
-            {isOpen ? "▼" : "▶"}
+          <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground shrink-0">
+            {isOpen ? (
+              <ChevronDown className="size-3.5" />
+            ) : (
+              <ChevronRight className="size-3.5" />
+            )}
           </span>
         ) : (
-          <span className="size-4 flex items-center justify-center text-muted-foreground/60 shrink-0 text-[10px] font-mono">
-            ▸
+          <span className="size-3.5 flex items-center justify-center text-muted-foreground/60 group-hover:text-foreground shrink-0 text-[10px]">
+            •
           </span>
         )}
 
-        <span className="truncate">{node.title}</span>
+        <span className="truncate leading-none">{node.title}</span>
       </button>
 
+      {/* Tree Indentation & Vertical Guide Connector Line */}
       {hasChildren && isOpen && (
-        <div className="flex flex-col border-l border-border/50 ml-4 pl-2.5 py-1 space-y-1">
+        <div className="flex flex-col relative ml-3.5 pl-3.5 my-0.5 space-y-0.5">
+          {/* Subtle Vertical Connector Guide Line */}
+          <div className="absolute left-1.5 top-0 bottom-1.5 w-px bg-border/50" />
+
           {node.children!.map((child) => (
             <RecursiveTreeItem
               key={child.id}

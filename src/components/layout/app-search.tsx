@@ -1,12 +1,17 @@
 "use client";
 
+import {
+  Compass,
+  Layers,
+  Settings,
+  ShieldCheck,
+  Sliders,
+  Terminal,
+} from "lucide-react";
 import * as React from "react";
-
 import { useAlertStore } from "@/components/providers/alert-provider";
-
 import { useSessionStore } from "@/components/providers/session-provider";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
-
 import { Badge } from "@/components/ui/badge";
 import {
   CommandDialog,
@@ -21,7 +26,6 @@ import type { MenuItem } from "@/features/workspace";
 import { launchScreen } from "@/features/workspace";
 import {
   getAllRegisteredCommands,
-  ICON_REGISTRY,
   type SystemCommandItem,
 } from "@/lib/core/commands";
 
@@ -176,7 +180,30 @@ export function AppSearch({
         {categories.map(([category, items]) => (
           <CommandGroup key={category} heading={category}>
             {items.map((cmd) => {
-              const IconComp = cmd.icon || ICON_REGISTRY.Search;
+              // Resolve distinct icons per menu & action category
+              let IconComp = cmd.icon;
+              if (!IconComp) {
+                if (cmd.category === "System Settings Modal") {
+                  IconComp = Settings;
+                } else if (cmd.category === "Security & Authentication") {
+                  IconComp = ShieldCheck;
+                } else if (cmd.category === "Quick Actions") {
+                  IconComp = Terminal;
+                } else if (
+                  category.includes("System") ||
+                  category.includes("Control")
+                ) {
+                  IconComp = Sliders;
+                } else if (
+                  category.includes("Navigation") ||
+                  category.includes("Operation")
+                ) {
+                  IconComp = Compass;
+                } else {
+                  IconComp = Layers;
+                }
+              }
+
               return (
                 <CommandItem
                   key={cmd.id}

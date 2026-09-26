@@ -40,7 +40,12 @@ export default function ManualLayout({
       {/* Main Container Right (Top Header + Scrollable Content) */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Fixed Top Header */}
-        <DocHeader onOpenSearch={() => setSearchOpen(true)} />
+        <DocHeader
+          onOpenSearch={() => setSearchOpen(true)}
+          portalSubFolder="manual"
+          portalTitle="CBS Officer Operating Manual"
+          navGroups={MANUAL_NAV_GROUPS}
+        />
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto p-8 lg:p-12">

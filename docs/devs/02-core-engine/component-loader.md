@@ -9,23 +9,11 @@ The `ComponentLoader` serves as the single unified component resolution registry
 
 ## 2. Dynamic Resolution & Load Flow
 
-```text
-┌───────────────────────────────┐
-│ Command Trigger (dispatchCmd) │
-└───────────────┬───────────────┘
-                │
-                ▼
-┌───────────────────────────────┐
-│ ComponentLoader               │  [src/features/workspace/components/component-loader.tsx]
-└───────────────┬───────────────┘
-                │
-                ├───────────────────────────────┐
-                │ Override Exists?              │ No (Default Fallback)
-                ▼                               ▼
-┌───────────────────────────────┐   ┌───────────────────────────────┐
-│ Bespoke Component Registry    │   │ DynamicForm Engine            │
-│ (e.g. INQ.tsx, SC.CHANGE.PASS)│   │ (src/features/engine)         │
-└───────────────────────────────┘   └───────────────────────────────┘
+```mermaid
+flowchart TD
+    Cmd["Command Trigger (dispatchCmd)"] --> Loader["ComponentLoader"]
+    Loader -->|Override Exists| Bespoke["Bespoke Component Registry<br/>(INQ.tsx, SC.CHANGE.PASS)"]
+    Loader -->|No Override| Dynamic["DynamicForm Engine<br/>(src/features/engine)"]
 ```
 
 ---

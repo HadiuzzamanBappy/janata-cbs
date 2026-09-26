@@ -1,3 +1,4 @@
+// Unified Documentation Portal Catch-All Page (Powers /devs/*, /manual/*, etc.)
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -7,36 +8,39 @@ import { readDocFile } from "@/features/docs/utils/doc-file-reader";
 
 export const dynamic = "force-dynamic";
 
-export default async function ManualPage({
+export default async function GenericDocPage({
   params,
 }: {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ docs: string; slug?: string[] }>;
 }) {
-  const { slug } = await params;
+  const { docs: portal, slug } = await params;
   const {
     relativePath,
     content: fileContent,
     exists,
-  } = readDocFile(slug, "manual");
+  } = readDocFile(slug, portal);
 
   if (!exists) {
     notFound();
   }
+
+  const isManual = portal === "manual";
+  const portalLabel = isManual
+    ? "Officer Operating Manual"
+    : "Markdown Render Engine";
 
   return (
     <article className="space-y-6">
       {/* File Breadcrumb Badge */}
       <div className="flex items-center justify-between border-b pb-4 text-xs text-muted-foreground font-mono">
         <div className="flex items-center gap-2">
-          <span className="text-primary font-semibold">manual/</span>
+          <span className="text-primary font-semibold">{portal}/</span>
           <span>{relativePath}</span>
         </div>
-        <span className="text-muted-foreground/60">
-          Officer Operating Manual
-        </span>
+        <span className="text-muted-foreground/60">{portalLabel}</span>
       </div>
 
-      {/* Beautiful Rich Markdown Container */}
+      {/* Rich Markdown Container */}
       <div className="rounded-xl border bg-card p-8 md:p-10 shadow-xs leading-relaxed text-foreground">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -94,7 +98,7 @@ export default async function ManualPage({
                 );
               }
               return (
-                <div className="my-4 overflow-x-auto rounded-lg border bg-zinc-950 p-4 text-zinc-50 font-mono text-xs shadow-xs">
+                <div className="my-4 overflow-x-auto rounded-lg border border-border bg-slate-100/80 dark:bg-zinc-950 p-4 text-slate-900 dark:text-zinc-50 font-mono text-xs shadow-xs">
                   <code {...props}>{children}</code>
                 </div>
               );
@@ -145,13 +149,13 @@ export default async function ManualPage({
                 );
               }
 
-              if (targetHref.includes("manual/")) {
+              if (targetHref.includes(`${portal}/`)) {
                 const cleanPath = targetHref
-                  .split("manual/")[1]
+                  .split(`${portal}/`)[1]
                   ?.replace(/\.md$/, "");
-                targetHref = `/manual/${cleanPath}`;
+                targetHref = `/${portal}/${cleanPath}`;
               } else {
-                targetHref = `/manual/${targetHref.replace(/\.md$/, "")}`;
+                targetHref = `/${portal}/${targetHref.replace(/\.md$/, "")}`;
               }
 
               return (

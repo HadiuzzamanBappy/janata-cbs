@@ -9,15 +9,11 @@ In Janata CBS, UI forms are not statically hardcoded. The backend database retur
 
 ## 2. Source-of-Truth & Data Lifecycle
 
-```text
-┌─────────────────────────┐
-│ Java Core DB (GMC Spec) │ ── (gRPC Model Payload) ──> [ Next.js BFF /api/model/[cmd] ]
-└─────────────────────────┘                                           │
-                                                                      │ Zod Schema Parsing
-                                                                      ▼
-┌─────────────────────────┐                                ┌─────────────────────┐
-│ Client UI (DynamicForm) │ <── (Normalized UI Model) ───── │ schema-parser.ts    │
-└─────────────────────────┘                                └─────────────────────┘
+```mermaid
+flowchart LR
+    DB["Java Core DB (GMC Spec)"] -->|gRPC Model Payload| BFF["Next.js BFF /api/model/[cmd]"]
+    BFF -->|Zod Schema Parsing| Parser["schema-parser.ts"]
+    Parser -->|Normalized UI Model| UI["Client UI (DynamicForm)"]
 ```
 
 1. **Source-of-Truth:** Java Core Backend database model configuration table.

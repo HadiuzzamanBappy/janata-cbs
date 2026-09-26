@@ -14,6 +14,33 @@ The goal is to rebuild the **FinXUI Core Banking Workbench** from a tangled, mon
 - **Session Management**: User auth tokens, branch IDs, and idempotency keys are managed through a sliding-expiry Redis session.
 - **Tab/Window Panel Mode**: Users interact with the workbench either in browser popups (`window`) or an internal tabbed workspace (`panel`).
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Banking Officer
+    participant UI as Workbench Tab Manager
+    participant Reg as Component Registry
+    participant BFF as API Gateway (/api/proxy)
+    participant Core as gRPC Core & Java Backend
+
+    User->>UI: Select Screen / Command (e.g. ACCOUNT or SC.CHANGE.PASS)
+    UI->>Reg: Resolve Command Handler
+    alt Bespoke Screen Override Exists
+        Reg-->>UI: Render Bespoke Component (e.g. ChangePassword)
+    else Dynamic Schema Screen
+        UI->>BFF: Request GMC Model Schema
+        BFF->>Core: Fetch GMC Schema Payload (gRPC)
+        Core-->>BFF: Raw GMC Schema
+        BFF-->>UI: Validated Zod FormSchema
+        UI->>UI: DynamicForm & FieldFactory Render Grid
+    end
+    User->>UI: Fill Form & Click Submit
+    UI->>BFF: Submit Transaction Envelope
+    BFF->>Core: Forward Transaction Payload
+    Core-->>BFF: Return Transaction Status
+    BFF-->>UI: Display Success / Exception Toast
+```
+
 ### B. Complete Old Project Inventory
 
 #### Syscomp Files (23 files — the core of the migration)
@@ -125,7 +152,37 @@ The goal is to rebuild the **FinXUI Core Banking Workbench** from a tangled, mon
 4. **Data Dictionary Layer**: Zod schemas (`src/lib/schema`) representing canonical Core Banking definitions.
 
 **Dependency Direction:**
-UI Components → Feature Hooks / RSC → API Route Handlers / Server Actions → gRPC Core → Java Backend
+
+```mermaid
+flowchart LR
+    subgraph Layer1["1. Presentation Layer (Client Browser)"]
+        UI["Atomic UI Components<br/>(src/components/ui)"]
+        Features["Smart Feature Domains<br/>(src/features/*)"]
+    end
+
+    subgraph Layer2["2. Gateway Layer (Next.js Node Server)"]
+        RSC["React Server Components<br/>(Menu / Layout Hydration)"]
+        Proxy["BFF Route Handler<br/>(/api/proxy/route.ts)"]
+    end
+
+    subgraph Layer3["3. Transport Layer (server-only)"]
+        Dispatch["Unified Dispatcher<br/>(src/lib/core/dispatch.ts)"]
+        gRPC["gRPC Singleton Client<br/>(src/lib/core/grpc.ts)"]
+        Redis["ioredis Session & Cache<br/>(src/lib/core/redis-client.ts)"]
+    end
+
+    subgraph Layer4["4. Core Banking Host"]
+        JavaBackend["Java SE Core Banking Backend<br/>(gRPC Port 50051)"]
+    end
+
+    UI --> Features
+    Features --> Proxy
+    RSC --> Dispatch
+    Proxy --> Dispatch
+    Dispatch --> Redis
+    Dispatch --> gRPC
+    gRPC --> JavaBackend
+```
 
 ### 3.3 Code Quality Rules (Enforced Throughout)
 

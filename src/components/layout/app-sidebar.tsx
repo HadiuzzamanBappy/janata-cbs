@@ -147,7 +147,7 @@ function RecursiveTreeItem({
       {hasChildren && isOpen && (
         <div className="flex flex-col relative ml-3.5 pl-3.5 my-0.5 space-y-0.5">
           {/* Subtle Vertical Connector Guide Line */}
-          <div className="absolute left-1.5 top-0 bottom-1.5 w-px bg-border/50" />
+          <div className="absolute left-0 top-0 bottom-1.5 w-px bg-border/50" />
 
           {node.children!.map((child) => (
             <RecursiveTreeItem

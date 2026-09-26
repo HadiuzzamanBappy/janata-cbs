@@ -88,96 +88,33 @@ In `src/features/docs/index.ts`:
 export * from "./config/audit-nav-config";
 ```
 
-### Step 4: Create App Router Route Portal
-Create directory `src/app/(docs)/audit-manual/`:
+### Step 4: Register Portal in Unified Layout
+Add a matching branch in [src/app/[docs]/layout.tsx](file:///d:/Work/React/cbs/finx-ui/src/app/[docs]/layout.tsx):
 
-#### 1. Layout (`src/app/(docs)/audit-manual/layout.tsx`):
 ```tsx
-"use client";
+const isManual = portal === "manual";
+const isAudit = portal === "audit-manual";
 
-import { useState } from "react";
-import {
-  AUDIT_NAV_GROUPS,
-  DocHeader,
-  DocSearchDialog,
-  DocSidebar,
-} from "@/features/docs";
+const navGroups = isAudit
+  ? AUDIT_NAV_GROUPS
+  : isManual
+  ? MANUAL_NAV_GROUPS
+  : DEV_NAV_GROUPS;
 
-export default function AuditDocLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [searchOpen, setSearchOpen] = useState(false);
+const sidebarTitle = isAudit
+  ? "CBS - Audit Manual"
+  : isManual
+  ? "CBS - User Manual"
+  : "CBS - Developer";
 
-  return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground antialiased">
-      <DocSidebar
-        portalTitle="CBS - Audit Manual"
-        portalHomeHref="/audit-manual"
-        navGroups={AUDIT_NAV_GROUPS}
-      />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
-        <DocHeader onOpenSearch={() => setSearchOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-8 lg:p-12">
-          <div className="max-w-6xl mx-auto">{children}</div>
-        </main>
-      </div>
-      <DocSearchDialog
-        open={searchOpen}
-        onOpenChange={setSearchOpen}
-        navGroups={AUDIT_NAV_GROUPS}
-      />
-    </div>
-  );
-}
+const headerTitle = isAudit
+  ? "CBS Compliance & Audit Manual"
+  : isManual
+  ? "CBS Officer Operating Manual"
+  : "CBS Developer Hub";
 ```
 
-#### 2. Catch-All Page (`src/app/(docs)/audit-manual/[[...slug]]/page.tsx`):
-```tsx
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { MermaidDiagram } from "@/features/docs";
-import { readDocFile } from "@/features/docs/utils/doc-file-reader";
-
-export const dynamic = "force-dynamic";
-
-export default async function AuditDocPage({
-  params,
-}: {
-  params: Promise<{ slug?: string[] }>;
-}) {
-  const { slug } = await params;
-  const {
-    relativePath,
-    content: fileContent,
-    exists,
-  } = readDocFile(slug, "audit-manual");
-
-  if (!exists) {
-    notFound();
-  }
-
-  return (
-    <article className="space-y-6">
-      <div className="flex items-center justify-between border-b pb-4 text-xs text-muted-foreground font-mono">
-        <div className="flex items-center gap-2">
-          <span className="text-primary font-semibold">audit-manual/</span>
-          <span>{relativePath}</span>
-        </div>
-        <span className="text-muted-foreground/60">Audit System Manual</span>
-      </div>
-      <div className="rounded-xl border bg-card p-8 md:p-10 shadow-xs leading-relaxed text-foreground">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {fileContent}
-        </ReactMarkdown>
-      </div>
-    </article>
-  );
-}
-```
+That's it! Because [src/app/[docs]/[[...slug]]/page.tsx](file:///d:/Work/React/cbs/finx-ui/src/app/[docs]/[[...slug]]/page.tsx) uses a dynamic route segment (`[docs]`), it automatically renders all markdown documents under `docs/audit-manual/` at `http://localhost:3000/audit-manual/` with zero app folder cloning!
 
 ---
 
@@ -196,3 +133,29 @@ Always run typecheck and formatting after adding pages or portals:
 pnpm typecheck
 pnpm format
 ```
+
+---
+
+## 6. Quick Documentation Checklist for Developers
+
+When authoring or modifying documentation:
+
+### A. Developer Docs (`docs/devs/`)
+- **Accurate & Verified:** Verify file paths, code symbols, and APIs against current codebase before writing.
+- **Define Boundaries:** Explicitly define invariants using `MUST` / `MUST NOT` rules and security boundaries (`"server-only"`, session isolation).
+- **Clean Diagrams:** Use un-filled, theme-adaptive bordered-box Mermaid diagrams with transparent connector labels. Avoid hardcoded fixed background fill styles (`style ... fill:#...`).
+
+### B. User Manual (`docs/manual/`)
+- **Zero Tech Jargon:** Write strictly for banking tellers and officers—do not mention code, gRPC, React, APIs, or internal databases.
+- **Exact UI Match:** Use exact button names, menu titles, form field labels, and messages as seen in the application.
+- **Standard Structure:** Every manual page MUST include: Overview, Target Audience, Prerequisites, Step-by-Step Procedure, Validation Errors, and Related Tasks.
+
+### C. Mermaid Diagram & Visualization Standards
+- **No Hardcoded Fills:** Do NOT add fixed fill styles inside Mermaid blocks (e.g. `style Node fill:#0f172a`).
+- **Theme Adaptability:** Use clean, un-filled bordered box nodes that adapt dynamically to light/dark themes.
+- **Transparent Labels:** Connector text labels MUST render transparently over lines without blocky background boxes.
+- **ASCII Conversions:** Only convert existing ASCII box-art into compact Mermaid flowcharts (`flowchart TD`/`LR`). Do NOT create unrequested new diagrams.
+
+> 💡 *For the full AI agent ruleset, see [`.agents/rules/07-documentation-rules.md`](file:///d:/Work/React/cbs/finx-ui/.agents/rules/07-documentation-rules.md).*
+
+

@@ -9,21 +9,10 @@ This feature manages generic and specialized inquiry screens (`INQ.tsx`, `GIR.ts
 
 ## 2. Inquiries Flow & Components
 
-```text
-┌─────────────────────────────────┐
-│ Inquiry Screen Host             │  [e.g. INQ.tsx / GIR.tsx]
-└────────────────┬────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────┐
-│ Search Filter Builder           │  [Form controls for query criteria]
-└────────────────┬────────────────┘
-                 │
-                 │ Execute Query (/api/proxy -> gRPC INQ Service)
-                 ▼
-┌─────────────────────────────────┐
-│ High-Density Data Table         │  [@tanstack/react-table + shadcn/ui Table]
-└─────────────────────────────────┘
+```mermaid
+flowchart TD
+    Host["Inquiry Screen Host<br/>(INQ.tsx / GIR.tsx)"] --> Builder["Search Filter Builder"]
+    Builder -->|/api/proxy gRPC| Table["High-Density Data Table<br/>(@tanstack/react-table + shadcn/ui)"]
 ```
 
 ---

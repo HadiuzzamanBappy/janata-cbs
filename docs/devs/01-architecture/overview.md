@@ -9,33 +9,26 @@ This project acts strictly as the **Presentation Layer and Backend-for-Frontend 
 
 ## 2. 3-Tier Core Banking Boundary Topology
 
-```text
-┌───────────────────────────────────────────────────────────────────────────────────┐
-│                                BROWSER CLIENT (TIER 1)                            │
-│  React 19 / Next.js Client Components ("use client") + Zustand + shadcn/ui        │
-└────────────────────────────────────────┬──────────────────────────────────────────┘
-                                         │
-                                         │  HTTP / HTTPS REST & Server Actions
-                                         │  Strict Zod-validated JSON Payloads
-                                         ▼
-┌───────────────────────────────────────────────────────────────────────────────────┐
-│                          NEXT.JS BFF SERVER LAYER (TIER 2)                        │
-│  src/app/api/proxy/route.ts + Server Actions + import "server-only"              │
-│  - Session Authentication & Validation (Redis / opaque cookies)                   │
-│  - Payload Validation & Schema Sanitization (Zod Boundary)                        │
-│  - Rate Limiting & Audit Logging                                                  │
-└────────────────────────────────────────┬──────────────────────────────────────────┘
-                                         │
-                                         │  Internal gRPC Protocol Buffers
-                                         │  @grpc/grpc-js + Protobuf Codecs
-                                         ▼
-┌───────────────────────────────────────────────────────────────────────────────────┐
-│                             JAVA CORE BACKEND (TIER 3)                            │
-│  Core Banking Ledger Engine + Database Access Layer                               │
-│  - General Ledger Updates & Transaction Processing                                │
-│  - Account, Customer, & Loan Domain Logic                                         │
-│  - Database Persistence                                                           │
-└───────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Tier1["Tier 1: Browser Client"]
+        Client["React 19 Client UI & Zustand State"]
+    end
+
+    subgraph Tier2["Tier 2: Next.js BFF Server Layer"]
+        BFF["/api/proxy Route & Server Actions"]
+        Session["Redis Session Manager"]
+        Zod["Zod Payload Validator"]
+        BFF --- Session
+        BFF --- Zod
+    end
+
+    subgraph Tier3["Tier 3: Java Core Backend"]
+        JavaCore["Java Core Ledger & Database"]
+    end
+
+    Client -- "HTTP/HTTPS REST" --> BFF
+    BFF -- "Internal gRPC" --> JavaCore
 ```
 
 ---

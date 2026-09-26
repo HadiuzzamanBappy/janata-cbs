@@ -21,13 +21,6 @@ flowchart TD
     
     T3 --> WriteBack["Write-Back to Redis & Memory Cache"]
     WriteBack --> Ret2["Return Schema to Client"]
-
-    style Req fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
-    style T1 fill:#0f172a,stroke:#64748b,stroke-width:1px,color:#cbd5e1
-    style T2 fill:#0f172a,stroke:#64748b,stroke-width:1px,color:#cbd5e1
-    style T3 fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
-    style Ret1 fill:#064e3b,stroke:#10b981,stroke-width:1px,color:#fff
-    style Ret2 fill:#064e3b,stroke:#10b981,stroke-width:1px,color:#fff
 ```
 
 ---

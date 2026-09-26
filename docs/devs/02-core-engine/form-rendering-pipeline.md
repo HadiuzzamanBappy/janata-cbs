@@ -9,41 +9,15 @@ The engine transforms parsed GMC model schemas into interactive, high-density Re
 
 ## 2. Rendering Pipeline Architecture
 
-```text
-┌─────────────────────────┐
-│ Raw GMC Payload (gRPC)  │
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ Zod GMC Schema Parser   │  [src/features/engine/schema/schema-parser.ts]
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ useSchema Hook          │  [src/features/engine/hooks/use-schema.ts]
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ DynamicForm Host        │  [src/features/engine/components/dynamic-form.tsx]
-└────────────┬────────────┘
-             │
-             ├──────────────────────────┐
-             ▼                          ▼
-┌─────────────────────────┐  ┌─────────────────────────┐
-│ FormRenderer / Grid     │  │ useFormState Hook       │ [src/features/engine/hooks/use-form-state.ts]
-└────────────┬────────────┘  └─────────────────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ FieldFactory            │  [src/features/engine/components/field-factory.tsx]
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ shadcn/ui Control       │  [src/components/ui/input.tsx, select.tsx, etc.]
-└─────────────────────────┘
+```mermaid
+flowchart TD
+    Payload["Raw GMC Payload (gRPC)"] --> Parser["Zod GMC Schema Parser"]
+    Parser --> Hook["useSchema Hook"]
+    Hook --> Host["DynamicForm Host"]
+    Host --> Renderer["FormRenderer / Grid"]
+    Host --> State["useFormState Hook"]
+    Renderer --> Factory["FieldFactory"]
+    Factory --> Control["shadcn/ui Control"]
 ```
 
 ---

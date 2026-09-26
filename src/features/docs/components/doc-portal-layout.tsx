@@ -1,18 +1,29 @@
+// Generic Reusable Documentation Portal Layout Component
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  DEV_NAV_GROUPS,
-  DocHeader,
-  DocSearchDialog,
-  DocSidebar,
-} from "@/features/docs";
+import type { NavGroup } from "../config/types";
+import { DocHeader } from "./doc-header";
+import { DocSearchDialog } from "./doc-search-dialog";
+import { DocSidebar } from "./doc-sidebar";
 
-export default function DevDocLayout({
-  children,
-}: {
+interface DocPortalLayoutProps {
   children: React.ReactNode;
-}) {
+  navGroups: NavGroup[];
+  portalSidebarTitle: string;
+  portalHeaderTitle: string;
+  portalHomeHref: string;
+  portalSubFolder: string;
+}
+
+export function DocPortalLayout({
+  children,
+  navGroups,
+  portalSidebarTitle,
+  portalHeaderTitle,
+  portalHomeHref,
+  portalSubFolder,
+}: DocPortalLayoutProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   // Keyboard shortcut listener (Cmd+K / Ctrl+K)
@@ -32,9 +43,9 @@ export default function DevDocLayout({
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground antialiased">
       {/* Fixed Left Sidebar */}
       <DocSidebar
-        portalTitle="CBS - Developer"
-        portalHomeHref="/devs"
-        navGroups={DEV_NAV_GROUPS}
+        portalTitle={portalSidebarTitle}
+        portalHomeHref={portalHomeHref}
+        navGroups={navGroups}
       />
 
       {/* Main Container Right (Top Header + Scrollable Content) */}
@@ -42,9 +53,9 @@ export default function DevDocLayout({
         {/* Fixed Top Header */}
         <DocHeader
           onOpenSearch={() => setSearchOpen(true)}
-          portalSubFolder="devs"
-          portalTitle="CBS Developer Hub"
-          navGroups={DEV_NAV_GROUPS}
+          portalSubFolder={portalSubFolder}
+          portalTitle={portalHeaderTitle}
+          navGroups={navGroups}
         />
 
         {/* Main Content Area */}
@@ -57,7 +68,7 @@ export default function DevDocLayout({
       <DocSearchDialog
         open={searchOpen}
         onOpenChange={setSearchOpen}
-        navGroups={DEV_NAV_GROUPS}
+        navGroups={navGroups}
       />
     </div>
   );

@@ -9,33 +9,12 @@ This domain handles banking officer authentication, first-time mandatory passwor
 
 ## 2. Authentication Flow & Boundaries
 
-```text
-┌─────────────────────────┐
-│ LoginForm Component     │  [src/features/auth/components/login-form.tsx]
-└────────────┬────────────┘
-             │
-             │ Zod Validation (loginSchema)
-             ▼
-┌─────────────────────────┐
-│ Next.js Route Handler   │  [src/app/api/login/route.ts]
-└────────────┬────────────┘
-             │
-             │ gRPC Authenticate User
-             ▼
-┌─────────────────────────┐
-│ Java Core Backend       │
-└────────────┬────────────┘
-             │
-             │ Auth Success (Officer Metadata + Token)
-             ▼
-┌─────────────────────────┐
-│ Redis Session Manager   │  [src/lib/core/redis-session.ts] -> Sets HTTP-Only Session Cookie
-└────────────┬────────────┘
-             │
-             ▼
-┌─────────────────────────┐
-│ Officer Workspace       │  [useSessionStore in src/store/session-store.ts]
-└─────────────────────────┘
+```mermaid
+flowchart TD
+    Login["LoginForm Component"] -->|loginSchema| Route["Next.js Route Handler (/api/login)"]
+    Route -->|gRPC Authenticate| Backend["Java Core Backend"]
+    Backend -->|Auth Success & Token| Redis["Redis Session Manager (HTTP-Only Cookie)"]
+    Redis --> Store["Officer Workspace (useSessionStore)"]
 ```
 
 ---

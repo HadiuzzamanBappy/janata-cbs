@@ -9,23 +9,11 @@ The workspace module manages officer navigation, dynamic tab switching (`panel` 
 
 ## 2. Command Execution & Workspace Flow
 
-```text
-┌────────────────────────────────┐
-│ User Action / Menu Selection   │
-└───────────────┬────────────────┘
-                │
-                ▼
-┌────────────────────────────────┐
-│ dispatchCommand (launcher)     │  [src/features/workspace/utils/screen-launcher.ts]
-└───────────────┬────────────────┘
-                │
-                ├────────────────────────────────┐
-                │ Mode == "panel"                │ Mode == "window"
-                ▼                                ▼
-┌────────────────────────────────┐   ┌────────────────────────────────┐
-│ Add Tab to useWorkbenchStore   │   │ Open / Focus Window Instance   │
-│ (src/store/workbench-store.ts) │   │ (open-component-window.ts)     │
-└────────────────────────────────┘   └────────────────────────────────┘
+```mermaid
+flowchart TD
+    User["User Action / Menu Selection"] --> Dispatch["dispatchCommand (screen-launcher.ts)"]
+    Dispatch -->|Mode == panel| TabStore["Add Tab to useWorkbenchStore<br/>(workbench-store.ts)"]
+    Dispatch -->|Mode == window| WinStore["Open / Focus Window Instance<br/>(open-component-window.ts)"]
 ```
 
 ---

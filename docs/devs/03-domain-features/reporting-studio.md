@@ -9,21 +9,10 @@ Reporting enables banking officers to view daily ledger summaries, transaction j
 
 ## 2. Reporting System Architecture
 
-```text
-┌───────────────────────────────┐
-│ Report Request / Parameters   │
-└───────────────┬───────────────┘
-                │
-                │ Fetch Report Definition (/api/proxy)
-                ▼
-┌───────────────────────────────┐
-│ Report Viewer Component       │  [src/features/reporting/components/report-viewer.tsx]
-└───────────────┬───────────────┘
-                │
-                ▼
-┌───────────────────────────────┐
-│ Report Line Designer          │  [Custom screen override: SC.REPORT.LINE.tsx]
-└───────────────────────────────┘
+```mermaid
+flowchart TD
+    Req["Report Request / Parameters"] -->|Fetch Report Definition /api/proxy| Viewer["Report Viewer Component<br/>(report-viewer.tsx)"]
+    Viewer --> Designer["Report Line Designer<br/>(SC.REPORT.LINE.tsx)"]
 ```
 
 ---

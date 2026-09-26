@@ -6,6 +6,7 @@ export * from "./actions/fetch-portal-docs";
 // Components
 export * from "./components/doc-header";
 export * from "./components/doc-pdf-modal";
+export * from "./components/doc-portal-layout";
 export * from "./components/doc-search-dialog";
 export * from "./components/doc-sidebar";
 export * from "./components/mermaid-diagram";

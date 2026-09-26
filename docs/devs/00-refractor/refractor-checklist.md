@@ -6,6 +6,19 @@
 > **Rule**: Never skip ahead. Complete all tasks in a step before moving to the next.
 > Steps 6 and 7 can run in parallel after Step 5 is done.
 
+```mermaid
+flowchart LR
+    S1["Step 1: Core Foundation"] --> S2["Step 2: Secure Infrastructure Bridge"]
+    S2 --> S3A["Step 3A: Data Dictionary"]
+    S2 --> S3B["Step 3B: UI Components"]
+    S3A --> S3C["Step 3C: Engine Assembly"]
+    S3B --> S3C
+    S3C --> S4["Step 4: Auth & Session"]
+    S4 --> S5["Step 5: Tabbed Workspace"]
+    S5 --> S6["Step 6: Inquiries Engine"]
+    S5 --> S7["Step 7: Reporting Studio"]
+```
+
 ---
 
 ## Step 1: Core Foundation

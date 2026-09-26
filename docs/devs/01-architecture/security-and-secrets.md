@@ -38,24 +38,20 @@ If any client component (`"use client"`) or client-imported module attempts to i
 
 ## 4. Session Authorization & Token Lifecycle
 
-```text
-┌───────────────┐        HTTP-Only Session Cookie         ┌───────────────────┐
-│ Browser Client│ ──────────────────────────────────────> │ Next.js BFF Server│
-└───────────────┘                                         └─────────┬─────────┘
-                                                                    │
-                                                           Read Session from Redis
-                                                                    │
-                                                                    ▼
-                                                          ┌───────────────────┐
-                                                          │   Redis Session   │
-                                                          └─────────┬─────────┘
-                                                                    │
-                                                           Valid Session Metadata
-                                                                    │
-                                                                    ▼
-                                                          ┌───────────────────┐
-                                                          │ gRPC Core Backend │
-                                                          └───────────────────┘
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Browser as Browser Client
+    participant BFF as Next.js BFF Server
+    participant Redis as Redis Session Cache
+    participant Java as gRPC Core Backend
+
+    Browser->>BFF: Request with HTTP-Only Session Cookie
+    BFF->>Redis: Read & Validate Officer Session
+    Redis-->>BFF: Valid Session Metadata (User ID, Branch Code)
+    BFF->>Java: Dispatch Authorized gRPC Request
+    Java-->>BFF: gRPC Ledger Response
+    BFF-->>Browser: Return Sanitized JSON Response
 ```
 
 ### Authorization Requirements

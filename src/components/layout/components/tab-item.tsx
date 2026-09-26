@@ -43,8 +43,8 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
       className={cn(
         "group relative flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 border whitespace-nowrap shrink-0 h-8 cursor-pointer select-none",
         isActive
-          ? "bg-background text-foreground border-border shadow-2xs font-semibold"
-          : "bg-transparent text-muted-foreground border-transparent hover:bg-muted/80 hover:text-foreground",
+          ? "bg-background text-foreground border-border shadow-2xs font-semibold ring-1 ring-border/50"
+          : "bg-muted/40 text-muted-foreground border-border/40 hover:bg-muted/80 hover:text-foreground hover:border-border/60",
       )}
     >
       {/* Subtle Tab Number & Title */}

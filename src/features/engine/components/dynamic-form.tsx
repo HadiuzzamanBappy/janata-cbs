@@ -3,8 +3,10 @@
 import { AlertTriangle, RotateCcw, Save } from "lucide-react";
 import * as React from "react";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { toast } from "@/components/ui/toast";
 import { useFormState } from "../hooks/use-form-state";
 import { useSchema } from "../hooks/use-schema";
@@ -117,15 +119,22 @@ export function DynamicForm({
 
   if (error || !schema) {
     return (
-      <div className="p-8 max-w-md mx-auto my-12 flex flex-col items-center text-center gap-3 bg-muted/40 rounded-lg border border-border">
-        <AlertTriangle className="size-8 text-destructive" />
-        <h3 className="font-semibold text-sm">Failed to Load Command Schema</h3>
-        <p className="text-xs text-muted-foreground">
-          {error || `No schema found for "${command}"`}
-        </p>
-        <Button size="sm" variant="outline" onClick={refetch}>
-          Retry Fetching Schema
-        </Button>
+      <div className="p-6 max-w-md mx-auto my-8">
+        <Alert variant="destructive">
+          <AlertTriangle className="size-4" />
+          <AlertTitle className="text-xs font-semibold">Failed to Load Command Schema</AlertTitle>
+          <AlertDescription className="mt-1.5 flex flex-col gap-3">
+            <p className="text-xs opacity-90">{error || `No schema found for "${command}"`}</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={refetch}
+              className="w-fit text-xs h-7 px-2.5"
+            >
+              Retry Fetching Schema
+            </Button>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }

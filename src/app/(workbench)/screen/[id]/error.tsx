@@ -18,7 +18,7 @@ export default function ScreenError({
         title="Screen Crash"
         description={error.message || "An error occurred while rendering this popup window."}
         action={
-          <Button onClick={() => reset()} variant="outline">
+          <Button onClick={() => reset()} variant="outline" size="sm" className="h-8 text-xs">
             Reload Screen
           </Button>
         }

@@ -100,21 +100,26 @@ export function ChangePassword({ command: _command }: { command?: string }) {
           </Alert>
         )}
 
-        <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
-          <div className="space-y-1.5">
-            <Label className="font-medium text-sm">User Name</Label>
-            <Input value={userId} disabled className="bg-muted/50" />
+        <form onSubmit={handleChangePassword} className="space-y-3 max-w-md">
+          <div className="space-y-1">
+            <Label className="font-medium text-xs">User Name</Label>
+            <Input value={userId} disabled className="bg-muted/50 h-9 text-xs" />
           </div>
 
-          <div className="space-y-1.5 pt-2">
-            <Label className="font-medium text-sm">
+          <div className="space-y-1 pt-1">
+            <Label className="font-medium text-xs">
               New User Name <span className="text-destructive">*</span>
             </Label>
-            <Input value={newUserName} onChange={(e) => setNewUserName(e.target.value)} required />
+            <Input
+              value={newUserName}
+              onChange={(e) => setNewUserName(e.target.value)}
+              required
+              className="h-9 text-xs"
+            />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="font-medium text-sm">
+          <div className="space-y-1">
+            <Label className="font-medium text-xs">
               Current Password <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -122,11 +127,12 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               value={currPass}
               onChange={(e) => setCurrPass(e.target.value)}
               required
+              className="h-9 text-xs"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="font-medium text-sm">
+          <div className="space-y-1">
+            <Label className="font-medium text-xs">
               New Password <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -134,11 +140,12 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               value={newPass}
               onChange={(e) => setNewPass(e.target.value)}
               required
+              className="h-9 text-xs"
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="font-medium text-sm">
+          <div className="space-y-1">
+            <Label className="font-medium text-xs">
               Confirm Password <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -146,12 +153,18 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               value={confPass}
               onChange={(e) => setConfPass(e.target.value)}
               required
+              className="h-9 text-xs"
             />
           </div>
 
-          <div className="pt-4">
-            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+          <div className="pt-2">
+            <Button
+              type="submit"
+              size="sm"
+              disabled={loading}
+              className="w-full sm:w-auto h-9 text-xs font-medium"
+            >
+              {loading ? <Loader2 className="size-3.5 animate-spin mr-2" /> : null}
               Change Password
             </Button>
           </div>

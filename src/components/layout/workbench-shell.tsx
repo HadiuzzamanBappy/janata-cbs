@@ -1,7 +1,7 @@
 "use client";
 
 import type * as React from "react";
-import { GlobalAlertSystem } from "@/components/feedback/global-alert-system";
+import { AppAlert } from "@/components/layout/app-alert";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTabBar } from "@/components/layout/app-tabbar";
 import { TopBar } from "@/components/layout/app-topbar";
@@ -35,7 +35,7 @@ export function WorkbenchShell({ children }: { children: React.ReactNode }) {
 
             {/* Global UI Overlays */}
             <Toaster />
-            <GlobalAlertSystem />
+            <AppAlert />
           </SidebarProvider>
         </AlertStoreProvider>
       </WorkbenchStoreProvider>

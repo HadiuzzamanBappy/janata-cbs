@@ -27,7 +27,7 @@ export function FormRenderer({
   }
 
   return (
-    <div className="grid grid-cols-12 gap-4 p-4 bg-background rounded-md border border-border/60">
+    <div className="grid grid-cols-12 gap-3 p-3 bg-card rounded-lg border border-border/60 shadow-xs">
       {schema.fields.map((field) => (
         <FieldFactory
           key={field.name}

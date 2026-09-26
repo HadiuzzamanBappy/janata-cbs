@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <>
-      <div className="mb-8 text-center">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">Sign on</h2>
-        <p className="mt-1 text-[13px] text-fg-muted">
+      <div className="mb-6 text-center space-y-1">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Welcome User</h2>
+        <p className="text-xs text-muted-foreground">
           Use the credentials issued by your branch administrator.
         </p>
       </div>

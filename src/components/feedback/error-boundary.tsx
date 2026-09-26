@@ -36,12 +36,12 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       }
 
       return (
-        <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center">
+        <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
           <Alert variant="destructive" className="max-w-md text-left">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Something went wrong</AlertTitle>
-            <AlertDescription className="mt-2 flex flex-col gap-4">
-              <p className="text-sm opacity-90">
+            <AlertTitle className="text-xs font-semibold">Something went wrong</AlertTitle>
+            <AlertDescription className="mt-1.5 flex flex-col gap-3">
+              <p className="text-xs opacity-90 leading-relaxed">
                 {this.state.error?.message ||
                   "An unexpected error occurred while rendering this component."}
               </p>
@@ -49,7 +49,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 variant="outline"
                 size="sm"
                 onClick={() => this.setState({ hasError: false, error: null })}
-                className="w-fit"
+                className="w-fit text-xs h-7 px-2.5"
               >
                 Try again
               </Button>

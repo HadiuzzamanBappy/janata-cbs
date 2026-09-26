@@ -56,8 +56,8 @@ export function LoginForm() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div className="space-y-2">
-        <Label htmlFor="username" className="text-[13px] font-semibold text-foreground">
+      <div className="space-y-1.5">
+        <Label htmlFor="username" className="text-xs font-medium text-foreground">
           Username
         </Label>
         <Input
@@ -69,11 +69,11 @@ export function LoginForm() {
           required
           disabled={loading}
           autoComplete="username"
-          className="h-11"
+          className="h-9 text-xs"
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="password" className="text-[13px] font-semibold text-foreground">
+      <div className="space-y-1.5">
+        <Label htmlFor="password" className="text-xs font-medium text-foreground">
           Password
         </Label>
         <Input
@@ -84,13 +84,13 @@ export function LoginForm() {
           required
           disabled={loading}
           autoComplete="current-password"
-          className="h-11"
+          className="h-9 text-xs"
         />
       </div>
-      <Button type="submit" className="w-full h-11 font-semibold text-[15px]" disabled={loading}>
+      <Button type="submit" size="sm" className="w-full h-9 font-medium text-xs" disabled={loading}>
         {loading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 size-3.5 animate-spin" />
             Authenticating...
           </>
         ) : (

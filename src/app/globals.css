@@ -55,7 +55,7 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.67 0.19 232);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -90,8 +90,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.72 0.18 232);
+  --primary-foreground: oklch(0.1 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -115,6 +115,21 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* --- Theme Accent Presets (Only B&W needs explicit override; Default is Brand Color) --- */
+[data-theme="bw"],
+[data-theme="monochrome"],
+.theme-bw,
+.theme-monochrome {
+  --primary: oklch(0.205 0 0);
+}
+
+.dark[data-theme="bw"],
+.dark[data-theme="monochrome"],
+.dark .theme-bw,
+.dark .theme-monochrome {
+  --primary: oklch(0.985 0 0);
 }
 
 @layer base {

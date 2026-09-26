@@ -3,8 +3,8 @@ import { STATIC_MENU } from "@fixtures";
 import { type MenuItem, parseMNU } from "@/features/workspace";
 import { env } from "@/lib/config/env";
 import { getOrSet } from "@/lib/core/cache";
-import { grpcProcess } from "@/lib/grpc";
 import { getServiceUrl } from "@/lib/core/services";
+import { grpcProcess } from "@/lib/grpc";
 
 const MENU_TTL_SECONDS = env.MENU_TTL_SECONDS || 600;
 

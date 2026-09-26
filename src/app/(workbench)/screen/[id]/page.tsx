@@ -3,9 +3,9 @@
 import { ShieldCheck } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { Badge } from "@/components/ui/badge";
 import { AlertStoreProvider } from "@/components/providers/alert-provider";
 import { WorkbenchStoreProvider } from "@/components/providers/workbench-provider";
+import { Badge } from "@/components/ui/badge";
 import { ComponentLoader } from "@/features/workspace";
 
 export default function StandaloneScreenPage() {

@@ -1,16 +1,16 @@
 import "server-only";
 import { type BranchMock, STATIC_BRANCHES } from "@fixtures";
 import { env } from "@/lib/config/env";
-import { grpcProcess } from "@/lib/grpc";
-import { getServiceUrl } from "@/lib/core/services";
-
-import { getSession } from "@/lib/core/redis-session";
-
 import { getOrSet } from "@/lib/core/cache";
+import { getSession } from "@/lib/core/redis-session";
+import { getServiceUrl } from "@/lib/core/services";
+import { grpcProcess } from "@/lib/grpc";
 
 const BRANCH_TTL_SECONDS = 3600; // 1 hour cache
 
-async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock[]> {
+async function fetchBranchesFromBackend(
+  tokenParam?: string,
+): Promise<BranchMock[]> {
   if (env.MODEL_SOURCE === "static") {
     return STATIC_BRANCHES;
   }
@@ -61,16 +61,36 @@ async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock
         else rawItems = [obj];
       }
 
-      const formattedBranches = rawItems.map((item: any) => {
-        const fields = item?.struct_value?.fields || item?.fields || item;
-        const getString = (key: string) =>
-          fields?.[key]?.string_value ?? fields?.[key] ?? "";
+      const formattedBranches = rawItems.map((item: unknown) => {
+        const itemObj =
+          typeof item === "object" && item !== null
+            ? (item as Record<string, unknown>)
+            : undefined;
+        const structVal = itemObj?.struct_value as
+          | Record<string, unknown>
+          | undefined;
+        const fields = (structVal?.fields || itemObj?.fields || itemObj) as
+          | Record<string, { string_value?: string } | string>
+          | undefined;
+        const getString = (key: string) => {
+          const val = fields?.[key];
+          if (
+            typeof val === "object" &&
+            val !== null &&
+            "string_value" in val
+          ) {
+            return val.string_value ?? "";
+          }
+          return typeof val === "string" ? val : "";
+        };
 
         return {
           recordId: getString("recordId"),
           branchTitle: getString("branchTitle").trim(),
-          branchAddress: getString("branchAddress") || getString("address") || "",
-          branchOpenDate: getString("branchOpenDate") || getString("openDate") || "",
+          branchAddress:
+            getString("branchAddress") || getString("address") || "",
+          branchOpenDate:
+            getString("branchOpenDate") || getString("openDate") || "",
           currTxnDate: getString("currTxnDate") || getString("txnDate") || "",
           divCode: getString("divCode"),
           areaCode: getString("areaCode"),

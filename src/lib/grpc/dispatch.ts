@@ -1,12 +1,12 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { env } from "@/lib/config";
+import { getServiceUrl } from "@/lib/core/services";
 import {
   type GrpcRequest,
   grpcProcess,
   type ProcessKind,
 } from "@/lib/grpc/client";
-import { getServiceUrl } from "@/lib/core/services";
 import type { APIResponse, Envelope } from "@/types";
 
 export type { Envelope };

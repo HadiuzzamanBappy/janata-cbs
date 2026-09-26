@@ -3,8 +3,8 @@ import { STATIC_SPECS } from "@fixtures";
 import { type FormSchema, parseGMC } from "@/features/engine";
 import { env } from "@/lib/config/env";
 import { getOrSet } from "@/lib/core/cache";
-import { grpcProcess } from "@/lib/grpc";
 import { getServiceUrl } from "@/lib/core/services";
+import { grpcProcess } from "@/lib/grpc";
 
 const SPEC_TTL_SECONDS = env.SPEC_TTL_SECONDS || 3600;
 

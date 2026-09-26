@@ -72,8 +72,12 @@ export function AppSearch({
     if (!open) return;
 
     Promise.all([
-      fetch("/api/menu").then((res) => res.json()).catch(() => ({ success: false })),
-      fetch("/api/controls").then((res) => res.json()).catch(() => ({ success: false })),
+      fetch("/api/menu")
+        .then((res) => res.json())
+        .catch(() => ({ success: false })),
+      fetch("/api/controls")
+        .then((res) => res.json())
+        .catch(() => ({ success: false })),
     ]).then(([menuJson, controlsJson]) => {
       const menuCmds =
         menuJson.success && Array.isArray(menuJson.data)

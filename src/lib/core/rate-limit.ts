@@ -24,11 +24,13 @@ export async function rateLimit(
 
   const redisKey = `rl:${key}`;
   try {
-    const count = await redis.incr(redisKey);
-    if (count === 1) {
-      await redis.expire(redisKey, windowSec);
-    }
-    const ttl = await redis.ttl(redisKey);
+    const pipeline = redis.pipeline();
+    pipeline.incr(redisKey);
+    pipeline.expire(redisKey, windowSec);
+    const results = await pipeline.exec();
+    const count = (results?.[0]?.[1] as number) ?? 1;
+    const ttl = (results?.[1]?.[1] as number) ?? windowSec;
+
     return {
       allowed: count <= limit,
       remaining: Math.max(0, limit - count),

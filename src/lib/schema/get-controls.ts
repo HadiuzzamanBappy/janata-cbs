@@ -2,33 +2,52 @@ import "server-only";
 import { STATIC_COMMANDS } from "@fixtures";
 import { env } from "@/lib/config/env";
 import { getOrSet } from "@/lib/core/cache";
-import { grpcProcess } from "@/lib/grpc";
-import { getServiceUrl } from "@/lib/core/services";
-import { getSession } from "@/lib/core/redis-session";
 import type { SystemCommandItem } from "@/lib/core/commands";
+import { getSession } from "@/lib/core/redis-session";
+import { getServiceUrl } from "@/lib/core/services";
+import { grpcProcess } from "@/lib/grpc";
 
 const CONTROLS_TTL_SECONDS = 600;
 
-function parseControlsPayload(data: any): SystemCommandItem[] {
+function parseControlsPayload(data: unknown): SystemCommandItem[] {
   if (!data) return [];
 
-  let rawList: any[] = [];
+  let rawList: unknown[] = [];
   if (Array.isArray(data)) {
     rawList = data;
-  } else if (data?.fields?.records?.list_value?.values) {
-    rawList = data.fields.records.list_value.values;
-  } else if (data?.records && Array.isArray(data.records)) {
-    rawList = data.records;
-  } else if (data?.items && Array.isArray(data.items)) {
-    rawList = data.items;
+  } else if (typeof data === "object" && data !== null) {
+    const obj = data as Record<string, unknown>;
+    const fields = obj.fields as Record<string, unknown> | undefined;
+    const records = fields?.records as Record<string, unknown> | undefined;
+    const listValue = records?.list_value as
+      | Record<string, unknown>
+      | undefined;
+    if (Array.isArray(listValue?.values)) {
+      rawList = listValue.values;
+    } else if (Array.isArray(obj.records)) {
+      rawList = obj.records;
+    } else if (Array.isArray(obj.items)) {
+      rawList = obj.items;
+    }
   }
 
   const result: SystemCommandItem[] = [];
 
   for (const item of rawList) {
-    const fields = item?.struct_value?.fields || item?.fields || item;
-    const getString = (key: string) =>
-      fields?.[key]?.string_value ?? fields?.[key] ?? "";
+    const itemObj = item as Record<string, unknown> | undefined;
+    const structVal = itemObj?.struct_value as
+      | Record<string, unknown>
+      | undefined;
+    const fields = (structVal?.fields || itemObj?.fields || itemObj) as
+      | Record<string, { string_value?: string } | string>
+      | undefined;
+    const getString = (key: string) => {
+      const val = fields?.[key];
+      if (typeof val === "object" && val !== null && "string_value" in val) {
+        return val.string_value ?? "";
+      }
+      return typeof val === "string" ? val : "";
+    };
 
     const cmdName = getString("controlName") || getString("recordId");
     const desc = getString("description") || cmdName;
@@ -49,7 +68,9 @@ function parseControlsPayload(data: any): SystemCommandItem[] {
   return result;
 }
 
-async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemCommandItem[]> {
+async function fetchControlsFromBackend(
+  tokenParam?: string,
+): Promise<SystemCommandItem[]> {
   if (env.MODEL_SOURCE === "static") {
     return parseControlsPayload(STATIC_COMMANDS.data);
   }
@@ -100,7 +121,9 @@ async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemComm
   }
 }
 
-export async function getControlsData(token?: string): Promise<SystemCommandItem[]> {
+export async function getControlsData(
+  token?: string,
+): Promise<SystemCommandItem[]> {
   const cacheKey = "controls:list";
   return getOrSet(
     cacheKey,

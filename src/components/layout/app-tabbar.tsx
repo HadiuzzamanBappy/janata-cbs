@@ -1,39 +1,21 @@
 "use client";
 
-import {
-  Check,
-  ChevronDown,
-  ExternalLink,
-  Layers,
-  Search,
-  X,
-  XCircle,
-} from "lucide-react";
+import { XCircle } from "lucide-react";
 import * as React from "react";
+import { TabItem } from "@/components/layout/components/tab-item";
+import { TabWindowMenu } from "@/components/layout/components/tab-window-menu";
 import { useAlertStore } from "@/components/providers/alert-provider";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { launchScreen } from "@/features/workspace";
 import { cn } from "@/lib/utils";
 
 export function AppTabBar() {
-  const [tabSearch, setTabSearch] = React.useState("");
-  const { tabs, activeTabId, setActiveTab, removeTab, closeAllTabs, addTab } =
-    useWorkbenchStore();
+  const { tabs, activeTabId, closeAllTabs } = useWorkbenchStore();
   const { confirm } = useAlertStore();
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -108,10 +90,6 @@ export function AppTabBar() {
     }
   };
 
-  const filteredTabs = tabs.filter((t) =>
-    t.title.toLowerCase().includes(tabSearch.trim().toLowerCase()),
-  );
-
   return (
     <div className="h-10 border-b border-border/60 bg-muted/30 flex items-center justify-between select-none relative overflow-hidden w-full max-w-full min-w-0 shrink-0">
       {/* Left Section: Scrollable & Draggable Tabs Strip */}
@@ -125,224 +103,21 @@ export function AppTabBar() {
           isDragging ? "cursor-grabbing" : "cursor-grab",
         )}
       >
-        {tabs.map((tab, index) => {
-          const isActive = tab.id === activeTabId;
-          const universalTabNumber = index + 1;
-          return (
-            // biome-ignore lint/a11y/useSemanticElements: outer container is interactive tab item holding nested action buttons
-            <div
-              key={tab.id}
-              data-tab-id={tab.id}
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
-                if (hasMovedRef.current) {
-                  e.preventDefault();
-                  return;
-                }
-                setActiveTab(tab.id);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setActiveTab(tab.id);
-                }
-              }}
-              className={cn(
-                "group relative flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-150 border whitespace-nowrap shrink-0 h-8 cursor-pointer select-none",
-                isActive
-                  ? "bg-background text-foreground border-border shadow-2xs font-semibold"
-                  : "bg-transparent text-muted-foreground border-transparent hover:bg-muted/80 hover:text-foreground",
-              )}
-            >
-              {/* Subtle Tab Number & Title */}
-              <span className="truncate max-w-[160px] text-xs flex items-center gap-1.5">
-                <div className="relative flex items-center justify-center h-4 min-w-[16px]">
-                  <Badge
-                    variant="secondary"
-                    className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent group-hover:opacity-0 transition-opacity"
-                  >
-                    {universalTabNumber}
-                  </Badge>
-                  {/* Pop Out Tab Button (Visible over tab number only on hover) */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      launchScreen({
-                        id: tab.screenId ?? tab.id,
-                        title: tab.title,
-                        componentName: tab.componentName,
-                        target: "popup",
-                        addTab,
-                      });
-                      removeTab(tab.id);
-                    }}
-                    className="absolute inset-0 size-4 rounded-xs hidden group-hover:flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0 m-auto"
-                    title={`Pop out ${tab.title}`}
-                  >
-                    <ExternalLink className="size-3" />
-                  </button>
-                </div>
-                {tab.title}
-              </span>
-
-              {/* Tab Actions */}
-              <div
-                className={cn(
-                  "flex items-center gap-0.5",
-                  !isActive && "opacity-60 group-hover:opacity-100",
-                )}
-              >
-                {/* Close Tab Button */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const hasUserInput =
-                      tab.formData &&
-                      Object.values(tab.formData).some(
-                        (v) => v !== undefined && v !== null && v !== "",
-                      );
-
-                    if (hasUserInput) {
-                      confirm({
-                        title: `Close "${tab.title}"?`,
-                        message:
-                          "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
-                        variant: "destructive",
-                        confirmText: "Discard & Close",
-                        onConfirm: () => removeTab(tab.id),
-                      });
-                    } else {
-                      removeTab(tab.id);
-                    }
-                  }}
-                  className="size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
-                  aria-label={`Close tab ${tab.title}`}
-                >
-                  <X className="size-3" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        {tabs.map((tab, index) => (
+          <TabItem
+            key={tab.id}
+            tab={tab}
+            index={index}
+            isActive={tab.id === activeTabId}
+            hasMovedRef={hasMovedRef}
+          />
+        ))}
       </section>
 
       {/* Right Section: Fixed Hug-Content Action Bar */}
       <div className="shrink-0 flex items-center gap-1.5 px-2 border-l border-border/50 bg-background/50 h-full z-10">
         {/* Tab Count Window Switcher Dropdown CTA */}
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="outline"
-                size="xs"
-                className="h-7 gap-1.5 px-2 text-xs font-mono font-medium bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 shadow-2xs"
-              />
-            }
-          >
-            <Layers className="size-3.5 text-primary shrink-0" />
-            <span>
-              {tabs.length} {tabs.length === 1 ? "Tab" : "Tabs"}
-            </span>
-            <ChevronDown className="size-3 text-muted-foreground ml-0.5 shrink-0 opacity-70" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="w-72 sm:w-80 p-0 overflow-hidden"
-          >
-            {/* Header: Search Open Tabs */}
-            {tabs.length > 3 && (
-              <div className="p-2 border-b border-border/60 bg-muted/30 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                <Input
-                  value={tabSearch}
-                  onChange={(e) => setTabSearch(e.target.value)}
-                  placeholder="Search opened windows..."
-                  className="pl-8 h-8 text-xs bg-background border-border/70 focus-visible:ring-1"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                />
-              </div>
-            )}
-
-            <div className="px-3 py-1.5 text-[10px] font-mono text-muted-foreground border-b border-border/40 uppercase tracking-wider bg-muted/20">
-              Opened Windows ({tabs.length})
-            </div>
-
-            <DropdownMenuGroup className="max-h-64 overflow-y-auto p-1">
-              {filteredTabs.length > 0 ? (
-                filteredTabs.map((tab) => {
-                  const originalIndex = tabs.findIndex((t) => t.id === tab.id);
-                  const isActive = tab.id === activeTabId;
-                  return (
-                    <DropdownMenuItem
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={cn(
-                        "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group hover:bg-accent hover:text-accent-foreground",
-                        isActive &&
-                          "bg-accent text-accent-foreground font-semibold",
-                      )}
-                    >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className="truncate flex items-center gap-1.5">
-                          <Badge
-                            variant="secondary"
-                            className="h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent"
-                          >
-                            {originalIndex + 1}
-                          </Badge>
-                          {tab.title}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        {isActive && (
-                          <Check className="size-3.5 text-primary shrink-0" />
-                        )}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const hasUserInput =
-                              tab.formData &&
-                              Object.values(tab.formData).some(
-                                (v) =>
-                                  v !== undefined && v !== null && v !== "",
-                              );
-
-                            if (hasUserInput) {
-                              confirm({
-                                title: `Close "${tab.title}"?`,
-                                message:
-                                  "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
-                                variant: "destructive",
-                                confirmText: "Discard & Close",
-                                onConfirm: () => removeTab(tab.id),
-                              });
-                            } else {
-                              removeTab(tab.id);
-                            }
-                          }}
-                          className="size-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-70 group-hover:opacity-100"
-                          title="Close Window"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </div>
-                    </DropdownMenuItem>
-                  );
-                })
-              ) : (
-                <div className="p-4 text-center text-xs text-muted-foreground">
-                  No matching open windows found.
-                </div>
-              )}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <TabWindowMenu />
 
         {/* Close All CTA Button */}
         <Tooltip>

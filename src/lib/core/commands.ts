@@ -13,6 +13,7 @@ export interface CommandExecutionContext {
   addTab?: (tab: { id: string; title: string; componentName: string }) => void;
   openSettingsTab?: (tabId: string) => void;
   clearSession?: () => void;
+  toggleTheme?: () => void;
   confirmAlert?: (options: {
     title: string;
     message: string;
@@ -97,11 +98,10 @@ export function dispatchCommand(
     registered?.actionType === "THEME" ||
     cleanCmd === "action:toggle_theme"
   ) {
-    const isDark = document.documentElement.classList.contains("dark");
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-    } else {
-      document.documentElement.classList.add("dark");
+    if (context.toggleTheme) {
+      context.toggleTheme();
+    } else if (typeof document !== "undefined") {
+      document.documentElement.classList.toggle("dark");
     }
     return;
   }

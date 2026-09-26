@@ -80,7 +80,7 @@ export function grpcProcess(
   req: GrpcRequest,
   opts: CallOpts = {},
 ): Promise<GrpcResponse> {
-  const client = new GrpcServiceClient(address, credentials.createInsecure());
+  const client = getClient(address);
 
   const metadata = new Metadata();
   if (opts.token) {

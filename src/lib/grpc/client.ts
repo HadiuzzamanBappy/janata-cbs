@@ -53,10 +53,7 @@ export interface CallOpts {
 }
 
 /* ---------- Unauthenticated RPC: Login ---------- */
-export function loginProcess(
-  req: LoginRequest,
-  _opts: CallOpts = {},
-): Promise<GrpcResponse> {
+export function loginProcess(req: LoginRequest, _opts: CallOpts = {}): Promise<GrpcResponse> {
   const address =
     process.env.NODE_ENV === "development"
       ? env.GRPC_ADDRESS_DEFAULTDEV || env.GRPC_ADDRESS

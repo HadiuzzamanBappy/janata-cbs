@@ -1,25 +1,13 @@
 import { z } from "zod";
-import {
-  type MenuItem,
-  menuItemSchema,
-  type RawMenuRecord,
-  rawMenuRecordSchema,
-} from "./schemas";
+import { type MenuItem, menuItemSchema, type RawMenuRecord, rawMenuRecordSchema } from "./schemas";
 
-function toMenuItemNode(
-  record: RawMenuRecord,
-  index: number,
-  parentId = "m",
-): MenuItem {
-  const id = String(
-    record.id ?? record.menuId ?? record.code ?? `${parentId}-${index}`,
-  );
+function toMenuItemNode(record: RawMenuRecord, index: number, parentId = "m"): MenuItem {
+  const id = String(record.id ?? record.menuId ?? record.code ?? `${parentId}-${index}`);
   const childrenRecords = record.children ?? record.items;
   const command = record.command ?? record.application;
   const menuId = Number(record.menuId ?? 0);
 
-  const hasChildren =
-    Array.isArray(childrenRecords) && childrenRecords.length > 0;
+  const hasChildren = Array.isArray(childrenRecords) && childrenRecords.length > 0;
 
   return {
     id,
@@ -41,9 +29,7 @@ export function parseMNU(
 
   const rawArray = Array.isArray(rawPayload)
     ? rawPayload
-    : typeof rawPayload === "object" &&
-        rawPayload !== null &&
-        "menu" in rawPayload
+    : typeof rawPayload === "object" && rawPayload !== null && "menu" in rawPayload
       ? (rawPayload as { menu: unknown }).menu
       : [rawPayload];
 
@@ -62,9 +48,7 @@ export function parseMNU(
     };
   }
 
-  const parsedItems: MenuItem[] = arrayResult.data.map((rec, idx) =>
-    toMenuItemNode(rec, idx),
-  );
+  const parsedItems: MenuItem[] = arrayResult.data.map((rec, idx) => toMenuItemNode(rec, idx));
 
   const finalCheck = z.array(menuItemSchema).safeParse(parsedItems);
   if (!finalCheck.success) {

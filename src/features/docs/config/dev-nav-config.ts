@@ -1,11 +1,4 @@
-import {
-  Code,
-  Folder,
-  RefreshCw,
-  Server,
-  Shield,
-  Terminal,
-} from "lucide-react";
+import { Code, Folder, RefreshCw, Server, Shield, Terminal } from "lucide-react";
 import type { NavGroup } from "./types";
 
 export const DEV_NAV_GROUPS: NavGroup[] = [

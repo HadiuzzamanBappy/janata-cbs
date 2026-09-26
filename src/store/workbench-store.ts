@@ -38,9 +38,7 @@ export const createWorkbenchStore = () => {
         addTab: (tab) =>
           set((state) => {
             const baseId = tab.id || tab.screenId || "screen";
-            const cleanTitle = tab.title
-              .replace(/\s*\(\d+\)$/, "")
-              .replace(/\s*#\d+$/, "");
+            const cleanTitle = tab.title.replace(/\s*\(\d+\)$/, "").replace(/\s*#\d+$/, "");
 
             const sameScreenCount = state.tabs.filter(
               (t) => (t.screenId || t.id) === baseId || t.title === cleanTitle,
@@ -76,9 +74,7 @@ export const createWorkbenchStore = () => {
         updateFormData: (tabId, data) =>
           set((state) => ({
             tabs: state.tabs.map((tab) =>
-              tab.id === tabId
-                ? { ...tab, formData: { ...tab.formData, ...data } }
-                : tab,
+              tab.id === tabId ? { ...tab, formData: { ...tab.formData, ...data } } : tab,
             ),
           })),
       }),

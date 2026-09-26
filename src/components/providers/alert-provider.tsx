@@ -2,11 +2,7 @@
 
 import { createContext, type ReactNode, useContext, useRef } from "react";
 import { useStore } from "zustand";
-import {
-  type AlertState,
-  type AlertStore,
-  createAlertStore,
-} from "@/store/alert-store";
+import { type AlertState, type AlertStore, createAlertStore } from "@/store/alert-store";
 
 export const AlertStoreContext = createContext<AlertStore | null>(null);
 
@@ -21,9 +17,7 @@ export const AlertStoreProvider = ({ children }: AlertStoreProviderProps) => {
   }
 
   return (
-    <AlertStoreContext.Provider value={storeRef.current}>
-      {children}
-    </AlertStoreContext.Provider>
+    <AlertStoreContext.Provider value={storeRef.current}>{children}</AlertStoreContext.Provider>
   );
 };
 
@@ -36,8 +30,5 @@ export function useAlertStore<T>(selector?: (state: AlertState) => T) {
     throw new Error(`useAlertStore must be used within AlertStoreProvider`);
   }
 
-  return useStore(
-    alertStoreContext,
-    selector ?? ((state) => state as unknown as T),
-  );
+  return useStore(alertStoreContext, selector ?? ((state) => state as unknown as T));
 }

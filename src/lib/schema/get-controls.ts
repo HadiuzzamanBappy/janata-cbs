@@ -19,9 +19,7 @@ function parseControlsPayload(data: unknown): SystemCommandItem[] {
     const obj = data as Record<string, unknown>;
     const fields = obj.fields as Record<string, unknown> | undefined;
     const records = fields?.records as Record<string, unknown> | undefined;
-    const listValue = records?.list_value as
-      | Record<string, unknown>
-      | undefined;
+    const listValue = records?.list_value as Record<string, unknown> | undefined;
     if (Array.isArray(listValue?.values)) {
       rawList = listValue.values;
     } else if (Array.isArray(obj.records)) {
@@ -35,9 +33,7 @@ function parseControlsPayload(data: unknown): SystemCommandItem[] {
 
   for (const item of rawList) {
     const itemObj = item as Record<string, unknown> | undefined;
-    const structVal = itemObj?.struct_value as
-      | Record<string, unknown>
-      | undefined;
+    const structVal = itemObj?.struct_value as Record<string, unknown> | undefined;
     const fields = (structVal?.fields || itemObj?.fields || itemObj) as
       | Record<string, { string_value?: string } | string>
       | undefined;
@@ -68,9 +64,7 @@ function parseControlsPayload(data: unknown): SystemCommandItem[] {
   return result;
 }
 
-async function fetchControlsFromBackend(
-  tokenParam?: string,
-): Promise<SystemCommandItem[]> {
+async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemCommandItem[]> {
   if (env.MODEL_SOURCE === "static") {
     return parseControlsPayload(STATIC_COMMANDS.data);
   }
@@ -79,13 +73,9 @@ async function fetchControlsFromBackend(
     const session = await getSession();
     const token = tokenParam || session?.token;
     const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-    const branchCode =
-      session?.currUser?.branchCode ||
-      env.NEXT_PUBLIC_CENTRAL_BRANCH ||
-      "JB9999";
+    const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
 
-    const targetServiceKey =
-      process.env.NODE_ENV === "development" ? "defaultdev" : "default";
+    const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
     const address = getServiceUrl(targetServiceKey);
 
     const res = await grpcProcess(
@@ -113,21 +103,12 @@ async function fetchControlsFromBackend(
 
     return parseControlsPayload(STATIC_COMMANDS.data);
   } catch (err) {
-    console.warn(
-      "[controls] gRPC fetch failed, falling back to static commands:",
-      err,
-    );
+    console.warn("[controls] gRPC fetch failed, falling back to static commands:", err);
     return parseControlsPayload(STATIC_COMMANDS.data);
   }
 }
 
-export async function getControlsData(
-  token?: string,
-): Promise<SystemCommandItem[]> {
+export async function getControlsData(token?: string): Promise<SystemCommandItem[]> {
   const cacheKey = "controls:list";
-  return getOrSet(
-    cacheKey,
-    () => fetchControlsFromBackend(token),
-    CONTROLS_TTL_SECONDS,
-  );
+  return getOrSet(cacheKey, () => fetchControlsFromBackend(token), CONTROLS_TTL_SECONDS);
 }

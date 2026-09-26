@@ -34,17 +34,11 @@ export function ProfileTab() {
             <div className="flex items-center text-sm text-muted-foreground gap-2">
               <span className="font-mono">{user.userId || "No ID"}</span>
               <span>&bull;</span>
-              <span className="text-primary">
-                {user.userStatus === 1 ? "Active" : "Inactive"}
-              </span>
+              <span className="text-primary">{user.userStatus === 1 ? "Active" : "Inactive"}</span>
             </div>
             <div className="flex flex-wrap gap-2 pt-2">
               {(user.userRole || []).map((role) => (
-                <Badge
-                  key={role}
-                  variant="secondary"
-                  className="font-mono text-[10px]"
-                >
+                <Badge key={role} variant="secondary" className="font-mono text-[10px]">
                   {role}
                 </Badge>
               ))}
@@ -62,12 +56,8 @@ export function ProfileTab() {
             Branch Assignment
           </div>
           <div className="pl-6 space-y-1">
-            <p className="text-sm font-medium">
-              {user.branchName || "Unknown Branch"}
-            </p>
-            <p className="text-xs text-muted-foreground font-mono">
-              {user.branchCode || "N/A"}
-            </p>
+            <p className="text-sm font-medium">{user.branchName || "Unknown Branch"}</p>
+            <p className="text-xs text-muted-foreground font-mono">{user.branchCode || "N/A"}</p>
           </div>
         </div>
 
@@ -79,8 +69,7 @@ export function ProfileTab() {
           </div>
           <div className="pl-6 space-y-1">
             <p className="text-sm">
-              Txn Date:{" "}
-              <span className="font-mono">{user.txnDate || "N/A"}</span>
+              Txn Date: <span className="font-mono">{user.txnDate || "N/A"}</span>
             </p>
             {user.lastTxnDate && (
               <p className="text-xs text-muted-foreground">

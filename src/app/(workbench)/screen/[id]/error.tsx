@@ -16,10 +16,7 @@ export default function ScreenError({
       <EmptyState
         icon={AlertTriangle}
         title="Screen Crash"
-        description={
-          error.message ||
-          "An error occurred while rendering this popup window."
-        }
+        description={error.message || "An error occurred while rendering this popup window."}
         action={
           <Button onClick={() => reset()} variant="outline">
             Reload Screen

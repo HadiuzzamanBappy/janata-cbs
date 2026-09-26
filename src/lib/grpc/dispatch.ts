@@ -2,34 +2,22 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { env } from "@/lib/config";
 import { getServiceUrl } from "@/lib/core/services";
-import {
-  type GrpcRequest,
-  grpcProcess,
-  type ProcessKind,
-} from "@/lib/grpc/client";
+import { type GrpcRequest, grpcProcess, type ProcessKind } from "@/lib/grpc/client";
 import type { APIResponse, Envelope } from "@/types";
 
 export type { Envelope };
 
 const FINANCIAL_REQUEST_TYPES = new Set(
-  (env.GRPC_FINANCIAL_TYPES || "AFT,ACT")
-    .split(",")
-    .map((s) => s.trim().toUpperCase()),
+  (env.GRPC_FINANCIAL_TYPES || "AFT,ACT").split(",").map((s) => s.trim().toUpperCase()),
 );
 
 function classify(requestType: string): ProcessKind {
-  return FINANCIAL_REQUEST_TYPES.has(requestType.toUpperCase())
-    ? "financial"
-    : "nonfinancial";
+  return FINANCIAL_REQUEST_TYPES.has(requestType.toUpperCase()) ? "financial" : "nonfinancial";
 }
 
-export async function dispatch(
-  envelope: Envelope,
-  token: string,
-): Promise<APIResponse> {
+export async function dispatch(envelope: Envelope, token: string): Promise<APIResponse> {
   try {
-    const isDefault =
-      envelope.servicePath === "default" || !envelope.servicePath;
+    const isDefault = envelope.servicePath === "default" || !envelope.servicePath;
     const targetServiceKey = isDefault
       ? process.env.NODE_ENV === "development"
         ? "defaultdev"
@@ -50,9 +38,7 @@ export async function dispatch(
       };
     }
 
-    const controlNameArray = envelope.controlName
-      ? envelope.controlName.split(",")
-      : [];
+    const controlNameArray = envelope.controlName ? envelope.controlName.split(",") : [];
 
     const requestType =
       controlNameArray.includes("USER") && envelope.requestType === "AUT"

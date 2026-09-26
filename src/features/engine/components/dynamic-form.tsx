@@ -77,8 +77,7 @@ export function DynamicForm({
       if (res.ok && json.status === "SUCCESS") {
         toast.add({
           title: "Transaction Saved",
-          description:
-            json.message || `Record saved successfully for ${schema.title}`,
+          description: json.message || `Record saved successfully for ${schema.title}`,
           type: "success",
         });
         if (onSuccess) onSuccess(json);

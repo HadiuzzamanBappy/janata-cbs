@@ -17,10 +17,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const { username, password } = (await req.json()) as LoginBody;
     if (!username || !password) {
-      return NextResponse.json(
-        { message: "Username and password are required" },
-        { status: 400 },
-      );
+      return NextResponse.json({ message: "Username and password are required" }, { status: 400 });
     }
 
     // Rate limiting: 3 attempts per minute per IP + username combination
@@ -44,8 +41,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       if (!mockUser) {
         return NextResponse.json(
           {
-            message:
-              "Invalid static credentials. Try 'admin', 'teller', or 'new_user'.",
+            message: "Invalid static credentials. Try 'admin', 'teller', or 'new_user'.",
           },
           { status: 401 },
         );

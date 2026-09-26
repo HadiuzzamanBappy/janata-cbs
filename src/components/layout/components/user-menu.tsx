@@ -55,22 +55,14 @@ export function UserMenu({ onOpenSettingsTab }: UserMenuProps) {
                 {displayUser || "null"}
               </span>
               <div className="flex items-center gap-1.5 mt-1 text-muted-foreground">
-                <Badge
-                  variant="secondary"
-                  className="text-[9px] font-mono px-1 py-0 shrink-0"
-                >
+                <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0 shrink-0">
                   {displayId || "null"}
                 </Badge>
-                <Badge
-                  variant="secondary"
-                  className="text-[9px] font-mono px-1 py-0 shrink-0"
-                >
+                <Badge variant="secondary" className="text-[9px] font-mono px-1 py-0 shrink-0">
                   {displayRole || "null"}
                 </Badge>
                 <span className="text-[10px] opacity-50 shrink-0">&bull;</span>
-                <span className="text-[10px] font-mono shrink-0">
-                  {businessDate || "null"}
-                </span>
+                <span className="text-[10px] font-mono shrink-0">{businessDate || "null"}</span>
               </div>
             </div>
           </div>

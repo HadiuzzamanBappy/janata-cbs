@@ -10,10 +10,7 @@ export const securityPasswordSchema = z
       .regex(/.*[A-Z].*/, "At least 1 uppercase character required!")
       .regex(/.*[a-z].*/, "At least 1 lowercase character required!")
       .regex(/.*\d.*/, "At least 1 digit required!")
-      .regex(
-        /[!@#$%^&*(),.?":{}|<>]/,
-        "At least 1 special character required!",
-      ),
+      .regex(/[!@#$%^&*(),.?":{}|<>]/, "At least 1 special character required!"),
     confPass: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.newPass === data.confPass, {

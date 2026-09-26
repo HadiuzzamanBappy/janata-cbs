@@ -12,6 +12,8 @@
       "!**/.next",
       "!**/out",
       "!**/build",
+      "!**/coverage",
+      "!**/dist",
       "!**/node_modules",
       "!**/next-env.d.ts",
       "!**/src/components/ui",
@@ -22,16 +24,47 @@
   },
   "formatter": {
     "enabled": true,
+    "formatWithErrors": false,
+    "attributePosition": "auto",
     "indentStyle": "space",
-    "indentWidth": 2
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 100
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {
       "preset": "recommended",
+      "a11y": {
+        "recommended": true
+      },
+      "complexity": {
+        "noForEach": "off",
+        "noStaticOnlyClass": "warn",
+        "useLiteralKeys": "error"
+      },
+      "correctness": {
+        "recommended": true,
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        "useExhaustiveDependencies": "warn"
+      },
+      "security": {
+        "recommended": true
+      },
       "style": {
+        "recommended": true,
         "noNonNullAssertion": "off",
+        "useConst": "error",
+        "useImportType": "error",
+        "useNodejsImportProtocol": "off",
         "noRestrictedImports": {
           "level": "error",
           "options": {
@@ -49,18 +82,34 @@
         }
       },
       "suspicious": {
-        "noExplicitAny": "error"
+        "recommended": true,
+        "noExplicitAny": "error",
+        "noConsole": "off"
       }
     }
   },
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
       "trailingCommas": "all",
-      "semicolons": "always"
-    }
+      "semicolons": "always",
+      "arrowParentheses": "always"
+    },
+    "globals": ["React", "JSX"]
   },
   "css": {
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineEnding": "lf",
+      "lineWidth": 100
+    },
+    "linter": {
+      "enabled": true
+    },
     "parser": {
       "cssModules": true,
       "tailwindDirectives": true

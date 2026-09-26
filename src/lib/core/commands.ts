@@ -52,9 +52,7 @@ export function getAllRegisteredCommands(): SystemCommandItem[] {
 /**
  * Look up a registered command by command string.
  */
-export function getRegisteredCommand(
-  commandStr: string,
-): SystemCommandItem | undefined {
+export function getRegisteredCommand(commandStr: string): SystemCommandItem | undefined {
   if (!commandStr) return undefined;
   return MASTER_COMMAND_MAP.get(commandStr.trim().toUpperCase());
 }
@@ -94,10 +92,7 @@ export function dispatchCommand(
   }
 
   // 2. Theme Toggle Action
-  if (
-    registered?.actionType === "THEME" ||
-    cleanCmd === "action:toggle_theme"
-  ) {
+  if (registered?.actionType === "THEME" || cleanCmd === "action:toggle_theme") {
     if (context.toggleTheme) {
       context.toggleTheme();
     } else if (typeof document !== "undefined") {
@@ -130,8 +125,7 @@ export function dispatchCommand(
     context.addTab({
       id: cleanCmd,
       title: title || registered?.title || cleanCmd,
-      componentName:
-        componentName || registered?.componentName || "DYNAMIC_FORM",
+      componentName: componentName || registered?.componentName || "DYNAMIC_FORM",
     });
   }
 }

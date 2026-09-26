@@ -33,9 +33,7 @@ export function typeForColumn(sqlType?: string): FieldType {
 }
 
 function truthy(val: unknown): boolean {
-  return (
-    val === true || val === "Y" || val === "YES" || val === "1" || val === 1
-  );
+  return val === true || val === "Y" || val === "YES" || val === "1" || val === 1;
 }
 
 export function toField(record: RawPropertyRecord): FormField {
@@ -52,11 +50,7 @@ export function toField(record: RawPropertyRecord): FormField {
     fieldType = "select";
   } else if (rawType.includes("date")) {
     fieldType = "date";
-  } else if (
-    rawType.includes("number") ||
-    rawType.includes("numeric") ||
-    rawType.includes("int")
-  ) {
+  } else if (rawType.includes("number") || rawType.includes("numeric") || rawType.includes("int")) {
     fieldType = "number";
   } else {
     fieldType = typeForColumn(record.TYPE);

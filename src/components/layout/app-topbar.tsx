@@ -84,11 +84,7 @@ export function TopBar() {
           <UserMenu onOpenSettingsTab={openSettingsTab} />
         </div>
       </header>
-      <AppSearch
-        open={searchOpen}
-        onOpenChange={setSearchOpen}
-        openSettingsTab={openSettingsTab}
-      />
+      <AppSearch open={searchOpen} onOpenChange={setSearchOpen} openSettingsTab={openSettingsTab} />
       <AppSettings
         open={settingsOpen}
         onOpenChange={setSettingsOpen}

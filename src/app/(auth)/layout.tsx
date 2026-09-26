@@ -1,10 +1,6 @@
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
-export default function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Brand panel. Ruled like ledger paper rather than washed with a
@@ -24,23 +20,18 @@ export default function AuthLayout({
           </h1>
 
           <p className="mt-6 max-w-md text-[15px] leading-relaxed opacity-85">
-            State-owned, nationwide, and answerable to the people it is named
-            for. Formed from United Bank and Union Bank under the Bank
-            Nationalization Order.
+            State-owned, nationwide, and answerable to the people it is named for. Formed from
+            United Bank and Union Bank under the Bank Nationalization Order.
           </p>
 
           {/* Everything a teller posts is dated by the business date, not the
               wall clock — so it gets stamped here like a voucher. */}
           <div className="date-stamp mt-10 inline-block border-2 border-current/45 px-5 py-3 font-mono uppercase">
-            <p className="text-[10px] tracking-[0.25em] opacity-75">
-              Business date
-            </p>
+            <p className="text-[10px] tracking-[0.25em] opacity-75">Business date</p>
             <p className="mt-1 text-3xl font-bold tracking-tight">
               {new Date().toISOString().split("T")[0]}
             </p>
-            <p className="mt-1 text-[11px] tracking-[0.18em] opacity-75">
-              HQ · 001
-            </p>
+            <p className="mt-1 text-[11px] tracking-[0.18em] opacity-75">HQ · 001</p>
           </div>
         </div>
 
@@ -60,8 +51,8 @@ export default function AuthLayout({
           {children}
 
           <p className="mt-10 border-t border-border pt-5 text-[12px] leading-relaxed text-fg-muted text-center">
-            Restricted system. Access is limited to authorised staff, and every
-            sign-on attempt is recorded against your terminal and office.
+            Restricted system. Access is limited to authorised staff, and every sign-on attempt is
+            recorded against your terminal and office.
           </p>
         </div>
       </section>

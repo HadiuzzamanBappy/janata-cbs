@@ -5,11 +5,7 @@ import Image from "next/image";
 import * as React from "react";
 import logo from "@/app/icon.png";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-} from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { launchScreen, type MenuItem } from "@/features/workspace";
 import { cn } from "@/lib/utils";
@@ -57,11 +53,7 @@ function hasActiveChild(node: TreeNode, activeId?: string): boolean {
   return false;
 }
 
-function RecursiveTreeItem({
-  node,
-  openSettingsTab,
-  clearSession,
-}: TreeItemProps) {
+function RecursiveTreeItem({ node, openSettingsTab, clearSession }: TreeItemProps) {
   const { addTab, tabs, activeTabId } = useWorkbenchStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
@@ -128,11 +120,7 @@ function RecursiveTreeItem({
       >
         {hasChildren ? (
           <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground shrink-0">
-            {isOpen ? (
-              <ChevronDown className="size-3.5" />
-            ) : (
-              <ChevronRight className="size-3.5" />
-            )}
+            {isOpen ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
           </span>
         ) : (
           <span className="size-3.5 flex items-center justify-center text-muted-foreground/60 group-hover:text-foreground shrink-0 text-[10px]">
@@ -168,11 +156,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   clearSession?: () => void;
 }
 
-export function AppSidebar({
-  openSettingsTab,
-  clearSession,
-  ...props
-}: AppSidebarProps) {
+export function AppSidebar({ openSettingsTab, clearSession, ...props }: AppSidebarProps) {
   const [treeNodes, setTreeNodes] = React.useState<TreeNode[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
 
@@ -194,11 +178,7 @@ export function AppSidebar({
   }, []);
 
   return (
-    <Sidebar
-      collapsible="offcanvas"
-      className="border-r border-border/60"
-      {...props}
-    >
+    <Sidebar collapsible="offcanvas" className="border-r border-border/60" {...props}>
       {/* Sidebar Header */}
       <SidebarHeader className="h-16 shrink-0 border-b border-border/60 px-4 py-0 flex flex-row items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">

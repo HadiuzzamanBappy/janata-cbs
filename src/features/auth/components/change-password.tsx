@@ -54,10 +54,7 @@ export function ChangePassword() {
         </Alert>
       )}
       <div className="space-y-2">
-        <Label
-          htmlFor="oldPassword"
-          className="text-[13px] font-semibold text-foreground"
-        >
+        <Label htmlFor="oldPassword" className="text-[13px] font-semibold text-foreground">
           Current Password
         </Label>
         <Input
@@ -72,10 +69,7 @@ export function ChangePassword() {
         />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="newPassword"
-          className="text-[13px] font-semibold text-foreground"
-        >
+        <Label htmlFor="newPassword" className="text-[13px] font-semibold text-foreground">
           New Password
         </Label>
         <Input
@@ -90,10 +84,7 @@ export function ChangePassword() {
         />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="confirmPassword"
-          className="text-[13px] font-semibold text-foreground"
-        >
+        <Label htmlFor="confirmPassword" className="text-[13px] font-semibold text-foreground">
           Confirm New Password
         </Label>
         <Input
@@ -107,11 +98,7 @@ export function ChangePassword() {
           className="h-11"
         />
       </div>
-      <Button
-        type="submit"
-        className="w-full h-11 font-semibold text-[15px]"
-        disabled={loading}
-      >
+      <Button type="submit" className="w-full h-11 font-semibold text-[15px]" disabled={loading}>
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

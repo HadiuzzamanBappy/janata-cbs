@@ -23,10 +23,7 @@ const APP_LOGO_SRC = "/icon.png";
 function renderInlinePdfText(text: string, keyPrefix: string = "inl") {
   // Strip emojis to prevent glyph encoding overlap in standard PDF fonts
   const cleanText = text
-    .replace(
-      /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu,
-      "",
-    )
+    .replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, "")
     .trim();
   const parts = cleanText.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
   let inlineCounter = 0;
@@ -57,10 +54,7 @@ function renderInlinePdfText(text: string, keyPrefix: string = "inl") {
  * Parses markdown block elements into vector React-PDF components.
  * Uses content-derived keys instead of array indices.
  */
-function renderMarkdownPdfBlocks(
-  content: string,
-  itemKeyPrefix: string = "doc",
-) {
+function renderMarkdownPdfBlocks(content: string, itemKeyPrefix: string = "doc") {
   const lines = content.split("\n");
   const elements: React.ReactNode[] = [];
   let tableRows: string[][] = [];
@@ -88,10 +82,7 @@ function renderMarkdownPdfBlocks(
                   key={`th-${itemKeyPrefix}-${tableId}-c${colCounter}-${cellSlug}`}
                   style={pdfStyles.tableCellHeader}
                 >
-                  {renderInlinePdfText(
-                    cell.trim(),
-                    `th-${tableId}-c${colCounter}`,
-                  )}
+                  {renderInlinePdfText(cell.trim(), `th-${tableId}-c${colCounter}`)}
                 </Text>
               );
             })}
@@ -118,10 +109,7 @@ function renderMarkdownPdfBlocks(
                     key={`td-${rowKey}-c${cellCounter}-${cellSlug}`}
                     style={pdfStyles.tableCell}
                   >
-                    {renderInlinePdfText(
-                      cell.trim(),
-                      `${rowKey}-c${cellCounter}`,
-                    )}
+                    {renderInlinePdfText(cell.trim(), `${rowKey}-c${cellCounter}`)}
                   </Text>
                 );
               })}
@@ -149,9 +137,7 @@ function renderMarkdownPdfBlocks(
         // End of code block
         elements.push(
           <View key={`code-${lineKey}`} style={pdfStyles.codeBlock}>
-            <Text style={pdfStyles.codeBlockText}>
-              {codeBlockLines.join("\n")}
-            </Text>
+            <Text style={pdfStyles.codeBlockText}>{codeBlockLines.join("\n")}</Text>
           </View>,
         );
         codeBlockLines = [];
@@ -220,9 +206,7 @@ function renderMarkdownPdfBlocks(
       elements.push(
         <View key={lineKey} style={pdfStyles.listRow}>
           <Text style={pdfStyles.bulletDot}>•</Text>
-          <Text style={pdfStyles.listText}>
-            {renderInlinePdfText(line.slice(2), lineKey)}
-          </Text>
+          <Text style={pdfStyles.listText}>{renderInlinePdfText(line.slice(2), lineKey)}</Text>
         </View>,
       );
     } else if (/^\d+\.\s/.test(line)) {
@@ -231,9 +215,7 @@ function renderMarkdownPdfBlocks(
         elements.push(
           <View key={lineKey} style={pdfStyles.listRow}>
             <Text style={pdfStyles.bulletDot}>{match[1]}</Text>
-            <Text style={pdfStyles.listText}>
-              {renderInlinePdfText(match[2]!, lineKey)}
-            </Text>
+            <Text style={pdfStyles.listText}>{renderInlinePdfText(match[2]!, lineKey)}</Text>
           </View>,
         );
       }
@@ -271,13 +253,9 @@ function PortalPdfDocument({ bundle }: { bundle: PortalDocsBundle }) {
       <Page size="A4" style={pdfStyles.page}>
         <View style={pdfStyles.coverPage}>
           <Image src={APP_LOGO_SRC} style={pdfStyles.coverLogo} />
-          <Text style={pdfStyles.coverSub}>
-            Janata CBS Core Banking Workbench
-          </Text>
+          <Text style={pdfStyles.coverSub}>Janata CBS Core Banking Workbench</Text>
           <Text style={pdfStyles.coverTitle}>{bundle.portalTitle}</Text>
-          <Text style={pdfStyles.coverDate}>
-            Generated on: {bundle.generatedAt}
-          </Text>
+          <Text style={pdfStyles.coverDate}>Generated on: {bundle.generatedAt}</Text>
           <Text style={pdfStyles.coverBadge}>Official Dynamic Export</Text>
         </View>
       </Page>
@@ -293,18 +271,13 @@ function PortalPdfDocument({ bundle }: { bundle: PortalDocsBundle }) {
           <View key={`toc-${item.href}`} style={pdfStyles.listRow}>
             <Text style={pdfStyles.bulletDot}>•</Text>
             <Text style={pdfStyles.listText}>
-              <Text style={pdfStyles.bold}>[{item.sectionTitle}]</Text>{" "}
-              {item.itemTitle}
+              <Text style={pdfStyles.bold}>[{item.sectionTitle}]</Text> {item.itemTitle}
             </Text>
           </View>
         ))}
         <View style={pdfStyles.footer} fixed>
           <Text>Janata CBS Documentation</Text>
-          <Text
-            render={({ pageNumber, totalPages }) =>
-              `Page ${pageNumber} of ${totalPages}`
-            }
-          />
+          <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
         </View>
       </Page>
 
@@ -312,12 +285,7 @@ function PortalPdfDocument({ bundle }: { bundle: PortalDocsBundle }) {
       {bundle.items.map((item, itemIdx) => {
         const sectionNum = itemIdx + 1;
         return (
-          <Page
-            key={`chapter-${item.href}`}
-            size="A4"
-            style={pdfStyles.page}
-            wrap
-          >
+          <Page key={`chapter-${item.href}`} size="A4" style={pdfStyles.page} wrap>
             <View style={pdfStyles.headerBadge}>
               <Text style={pdfStyles.headerPath}>
                 {item.href.startsWith("/manual") ? "manual/" : "devs/"}
@@ -328,16 +296,11 @@ function PortalPdfDocument({ bundle }: { bundle: PortalDocsBundle }) {
               </Text>
             </View>
             <Text style={pdfStyles.sectionTitle}>{item.sectionTitle}</Text>
-            {renderMarkdownPdfBlocks(
-              item.content,
-              item.href.replace(/[^\w-]/g, "_"),
-            )}
+            {renderMarkdownPdfBlocks(item.content, item.href.replace(/[^\w-]/g, "_"))}
             <View style={pdfStyles.footer} fixed>
               <Text>{bundle.portalTitle}</Text>
               <Text
-                render={({ pageNumber, totalPages }) =>
-                  `Page ${pageNumber} of ${totalPages}`
-                }
+                render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
               />
             </View>
           </Page>
@@ -372,9 +335,7 @@ export async function generatePortalPdf(
     percent: 100,
   });
 
-  const fileName = `${bundle.portalTitle
-    .replace(/[^a-zA-Z0-9]/g, "-")
-    .toLowerCase()}.pdf`;
+  const fileName = `${bundle.portalTitle.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}.pdf`;
 
   const save = () => {
     const link = document.createElement("a");

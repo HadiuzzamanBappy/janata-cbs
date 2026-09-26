@@ -14,12 +14,8 @@ export interface DocFileResult {
  * @param slug Route slug array from Next.js dynamic route
  * @param baseSubFolder Subfolder under process.cwd()/docs (e.g. "" for devs hub, "manual" for officer manual)
  */
-export function readDocFile(
-  slug?: string[],
-  baseSubFolder = "",
-): DocFileResult {
-  const relativePath =
-    slug && slug.length > 0 ? `${slug.join("/")}.md` : "README.md";
+export function readDocFile(slug?: string[], baseSubFolder = ""): DocFileResult {
+  const relativePath = slug && slug.length > 0 ? `${slug.join("/")}.md` : "README.md";
 
   const filePath = baseSubFolder
     ? path.join(process.cwd(), "docs", baseSubFolder, relativePath)

@@ -10,9 +10,7 @@ export default function LoginPage() {
   return (
     <>
       <div className="mb-8 text-center">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
-          Sign on
-        </h2>
+        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">Sign on</h2>
         <p className="mt-1 text-[13px] text-fg-muted">
           Use the credentials issued by your branch administrator.
         </p>

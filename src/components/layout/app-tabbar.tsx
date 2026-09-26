@@ -7,11 +7,7 @@ import { TabWindowMenu } from "@/components/layout/components/tab-window-menu";
 import { useAlertStore } from "@/components/providers/alert-provider";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export function AppTabBar() {
@@ -54,9 +50,7 @@ export function AppTabBar() {
   // Auto-scroll active tab into view when activeTabId changes
   React.useEffect(() => {
     if (activeTabId && scrollRef.current) {
-      const activeEl = scrollRef.current.querySelector(
-        `[data-tab-id="${activeTabId}"]`,
-      );
+      const activeEl = scrollRef.current.querySelector(`[data-tab-id="${activeTabId}"]`);
       if (activeEl) {
         activeEl.scrollIntoView({
           behavior: "smooth",

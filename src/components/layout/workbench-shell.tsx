@@ -30,9 +30,7 @@ export function WorkbenchShell({ children }: { children: React.ReactNode }) {
               </div>
 
               {/* Main Content Area — fills remaining height, scrolls independently */}
-              <main className="flex-1 min-h-0 overflow-auto bg-muted/15">
-                {children}
-              </main>
+              <main className="flex-1 min-h-0 overflow-auto bg-muted/15">{children}</main>
             </SidebarInset>
 
             {/* Global UI Overlays */}

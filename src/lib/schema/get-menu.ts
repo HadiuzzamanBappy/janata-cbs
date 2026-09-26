@@ -15,8 +15,7 @@ async function fetchMenuFromBackend(token?: string): Promise<MenuItem[]> {
   }
 
   try {
-    const targetServiceKey =
-      process.env.NODE_ENV === "development" ? "defaultdev" : "default";
+    const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
     const address = getServiceUrl(targetServiceKey);
 
     const res = await grpcProcess(
@@ -50,10 +49,7 @@ async function fetchMenuFromBackend(token?: string): Promise<MenuItem[]> {
     const fallbackResult = parseMNU(STATIC_MENU);
     return fallbackResult.success ? fallbackResult.data : [];
   } catch (err) {
-    console.warn(
-      "[menu] gRPC menu fetch failed, falling back to static menu:",
-      err,
-    );
+    console.warn("[menu] gRPC menu fetch failed, falling back to static menu:", err);
     const fallbackResult = parseMNU(STATIC_MENU);
     return fallbackResult.success ? fallbackResult.data : [];
   }
@@ -64,9 +60,5 @@ async function fetchMenuFromBackend(token?: string): Promise<MenuItem[]> {
  */
 export async function getMenuData(token?: string): Promise<MenuItem[]> {
   const cacheKey = `menu:${env.MENU_CONTROL_NAME || "MAIN_MENU"}`;
-  return getOrSet(
-    cacheKey,
-    () => fetchMenuFromBackend(token),
-    MENU_TTL_SECONDS,
-  );
+  return getOrSet(cacheKey, () => fetchMenuFromBackend(token), MENU_TTL_SECONDS);
 }

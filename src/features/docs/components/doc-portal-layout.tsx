@@ -65,11 +65,7 @@ export function DocPortalLayout({
       </div>
 
       {/* Search Command Palette Modal */}
-      <DocSearchDialog
-        open={searchOpen}
-        onOpenChange={setSearchOpen}
-        navGroups={navGroups}
-      />
+      <DocSearchDialog open={searchOpen} onOpenChange={setSearchOpen} navGroups={navGroups} />
     </div>
   );
 }

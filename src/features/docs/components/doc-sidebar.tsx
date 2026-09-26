@@ -27,22 +27,22 @@ export function DocSidebar({
 }: DocSidebarProps) {
   const pathname = usePathname();
 
-  const [expandedGroups, setExpandedGroups] = useState<string[]>(() =>
-    navGroups
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(() => {
+    const matching = navGroups
       .filter((group) => group.items.some((item) => item.href === pathname))
-      .map((group) => group.id),
-  );
+      .map((group) => group.id);
+    // Default to expanding all groups so menu is fully visible on first load
+    return matching.length > 0 ? matching : navGroups.map((g) => g.id);
+  });
 
-  // Auto-expand group containing active route on route change / refresh
+  // Auto-expand group containing active route on route change
   useEffect(() => {
     const matchingGroups = navGroups
       .filter((group) => group.items.some((item) => item.href === pathname))
       .map((group) => group.id);
 
     if (matchingGroups.length > 0) {
-      setExpandedGroups((prev) =>
-        Array.from(new Set([...prev, ...matchingGroups])),
-      );
+      setExpandedGroups((prev) => Array.from(new Set([...prev, ...matchingGroups])));
     }
   }, [pathname, navGroups]);
 
@@ -70,11 +70,7 @@ export function DocSidebar({
           className="space-y-3"
         >
           {navGroups.map((group) => (
-            <AccordionItem
-              key={group.id}
-              value={group.id}
-              className="border-none"
-            >
+            <AccordionItem key={group.id} value={group.id} className="border-none">
               <AccordionTrigger className="hover:no-underline no-underline py-1.5 px-2 rounded-md hover:bg-accent/50 transition">
                 <div className="flex items-center gap-2 font-semibold text-[11px] uppercase tracking-wider text-muted-foreground/80">
                   <group.icon className="h-3.5 w-3.5 text-primary" />

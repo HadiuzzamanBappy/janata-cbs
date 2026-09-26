@@ -14,20 +14,14 @@ export default async function GenericDocPage({
   params: Promise<{ docs: string; slug?: string[] }>;
 }) {
   const { docs: portal, slug } = await params;
-  const {
-    relativePath,
-    content: fileContent,
-    exists,
-  } = readDocFile(slug, portal);
+  const { relativePath, content: fileContent, exists } = readDocFile(slug, portal);
 
   if (!exists) {
     notFound();
   }
 
   const isManual = portal === "manual";
-  const portalLabel = isManual
-    ? "Officer Operating Manual"
-    : "Markdown Render Engine";
+  const portalLabel = isManual ? "Officer Operating Manual" : "Markdown Render Engine";
 
   return (
     <article className="space-y-6">
@@ -81,9 +75,7 @@ export default async function GenericDocPage({
               const isMermaid = match && match[1] === "mermaid";
 
               if (isMermaid) {
-                return (
-                  <MermaidDiagram chart={String(children).replace(/\n$/, "")} />
-                );
+                return <MermaidDiagram chart={String(children).replace(/\n$/, "")} />;
               }
 
               const isInline = !className && !String(children).includes("\n");
@@ -111,9 +103,7 @@ export default async function GenericDocPage({
             ),
             table: ({ children }) => (
               <div className="my-6 overflow-x-auto rounded-lg border">
-                <table className="w-full text-left text-xs md:text-sm">
-                  {children}
-                </table>
+                <table className="w-full text-left text-xs md:text-sm">{children}</table>
               </div>
             ),
             thead: ({ children }) => (
@@ -122,21 +112,14 @@ export default async function GenericDocPage({
               </thead>
             ),
             tr: ({ children }) => (
-              <tr className="border-b last:border-0 hover:bg-muted/20 transition">
-                {children}
-              </tr>
+              <tr className="border-b last:border-0 hover:bg-muted/20 transition">{children}</tr>
             ),
             th: ({ children }) => <th className="p-3">{children}</th>,
-            td: ({ children }) => (
-              <td className="p-3 text-muted-foreground">{children}</td>
-            ),
+            td: ({ children }) => <td className="p-3 text-muted-foreground">{children}</td>,
             a: ({ href, children }) => {
               let targetHref = href || "#";
 
-              if (
-                targetHref.startsWith("http://") ||
-                targetHref.startsWith("https://")
-              ) {
+              if (targetHref.startsWith("http://") || targetHref.startsWith("https://")) {
                 return (
                   <a
                     href={targetHref}
@@ -150,9 +133,7 @@ export default async function GenericDocPage({
               }
 
               if (targetHref.includes(`${portal}/`)) {
-                const cleanPath = targetHref
-                  .split(`${portal}/`)[1]
-                  ?.replace(/\.md$/, "");
+                const cleanPath = targetHref.split(`${portal}/`)[1]?.replace(/\.md$/, "");
                 targetHref = `/${portal}/${cleanPath}`;
               } else {
                 targetHref = `/${portal}/${targetHref.replace(/\.md$/, "")}`;

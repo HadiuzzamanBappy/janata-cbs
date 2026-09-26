@@ -19,12 +19,7 @@ export function resolveControl(
   }
 
   // 2. Dynamic API Schema Fallback via DynamicForm engine
-  return function DynamicFormWrapper(props: {
-    command: string;
-    tabId?: string;
-  }) {
-    return (
-      <DynamicForm command={props.command || cleanCmd} tabId={props.tabId} />
-    );
+  return function DynamicFormWrapper(props: { command: string; tabId?: string }) {
+    return <DynamicForm command={props.command || cleanCmd} tabId={props.tabId} />;
   };
 }

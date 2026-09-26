@@ -17,16 +17,9 @@ export default function DashboardPage() {
           return (
             <div
               key={tab.id}
-              className={cn(
-                "w-full h-full flex-col flex-1",
-                isActive ? "flex" : "hidden",
-              )}
+              className={cn("w-full h-full flex-col flex-1", isActive ? "flex" : "hidden")}
             >
-              <ComponentLoader
-                command={targetCommand}
-                tabId={tab.id}
-                mode="panel"
-              />
+              <ComponentLoader command={targetCommand} tabId={tab.id} mode="panel" />
             </div>
           );
         })}
@@ -40,15 +33,11 @@ export default function DashboardPage() {
         <Sparkles className="size-6" />
       </div>
       <div className="flex flex-col gap-1 max-w-md">
-        <h3 className="text-lg font-semibold tracking-tight text-foreground">
-          Janata Bank PLC.
-        </h3>
-        <h2 className="text-sm text-muted-foreground leading-relaxed">
-          Core Banking Solution
-        </h2>
+        <h3 className="text-lg font-semibold tracking-tight text-foreground">Janata Bank PLC.</h3>
+        <h2 className="text-sm text-muted-foreground leading-relaxed">Core Banking Solution</h2>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Select any workflow or configuration item from the navigation sidebar
-          or enter a command above to open a tab.
+          Select any workflow or configuration item from the navigation sidebar or enter a command
+          above to open a tab.
         </p>
       </div>
     </div>

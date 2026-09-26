@@ -2,9 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // Server Execution Environment
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 
   // Core Banking gRPC Settings & Microservice Endpoints
   MODEL_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
@@ -41,9 +39,7 @@ const envSchema = z.object({
   SESSION_SECRET: z
     .string()
     .min(16, "SESSION_SECRET must be at least 16 characters")
-    .default(
-      "a960b9e379952ddc2699ae9259b9c28597c6a59a199fbf4b7357bd8e978095ac",
-    ),
+    .default("a960b9e379952ddc2699ae9259b9c28597c6a59a199fbf4b7357bd8e978095ac"),
   LOGIN_LIMIT: z.coerce.number().default(3),
 
   // External Microservice Endpoints
@@ -88,6 +84,5 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
   NEXT_PUBLIC_LOGOUT_TIME: process.env.NEXT_PUBLIC_LOGOUT_TIME,
   NEXT_PUBLIC_CENTRAL_BRANCH: process.env.NEXT_PUBLIC_CENTRAL_BRANCH,
-  NEXT_PUBLIC_DEFAULT_SERVICE_PATH:
-    process.env.NEXT_PUBLIC_DEFAULT_SERVICE_PATH,
+  NEXT_PUBLIC_DEFAULT_SERVICE_PATH: process.env.NEXT_PUBLIC_DEFAULT_SERVICE_PATH,
 });

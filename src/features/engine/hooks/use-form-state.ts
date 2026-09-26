@@ -3,10 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormSchema } from "../types";
 
-export function useFormState(
-  schema: FormSchema | null,
-  initialData: Record<string, unknown> = {},
-) {
+export function useFormState(schema: FormSchema | null, initialData: Record<string, unknown> = {}) {
   const [values, setValues] = useState<Record<string, unknown>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState<boolean>(false);

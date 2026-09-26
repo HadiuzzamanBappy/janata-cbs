@@ -42,10 +42,7 @@ export function TabWindowMenu() {
         </span>
         <ChevronDown className="size-3 text-muted-foreground ml-0.5 shrink-0 opacity-70" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-72 sm:w-80 p-0 overflow-hidden"
-      >
+      <DropdownMenuContent align="end" className="w-72 sm:w-80 p-0 overflow-hidden">
         {/* Header: Search Open Tabs */}
         {tabs.length > 3 && (
           <div className="p-2 border-b border-border/60 bg-muted/30 relative">
@@ -76,8 +73,7 @@ export function TabWindowMenu() {
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
                     "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group hover:bg-accent hover:text-accent-foreground",
-                    isActive &&
-                      "bg-accent text-accent-foreground font-semibold",
+                    isActive && "bg-accent text-accent-foreground font-semibold",
                   )}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -93,9 +89,7 @@ export function TabWindowMenu() {
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
-                    {isActive && (
-                      <Check className="size-3.5 text-primary shrink-0" />
-                    )}
+                    {isActive && <Check className="size-3.5 text-primary shrink-0" />}
                     <button
                       type="button"
                       onClick={(e) => {

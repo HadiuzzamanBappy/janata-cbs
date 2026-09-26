@@ -2,11 +2,7 @@
 "use client";
 
 import { use } from "react";
-import {
-  DEV_NAV_GROUPS,
-  DocPortalLayout,
-  MANUAL_NAV_GROUPS,
-} from "@/features/docs";
+import { DEV_NAV_GROUPS, DocPortalLayout, MANUAL_NAV_GROUPS } from "@/features/docs";
 
 export default function GenericDocLayout({
   children,
@@ -21,9 +17,7 @@ export default function GenericDocLayout({
   const isManual = portal === "manual";
   const navGroups = isManual ? MANUAL_NAV_GROUPS : DEV_NAV_GROUPS;
   const sidebarTitle = isManual ? "CBS - User Manual" : "CBS - Developer";
-  const headerTitle = isManual
-    ? "CBS Officer Operating Manual"
-    : "CBS Developer Hub";
+  const headerTitle = isManual ? "CBS Officer Operating Manual" : "CBS Developer Hub";
 
   return (
     <DocPortalLayout

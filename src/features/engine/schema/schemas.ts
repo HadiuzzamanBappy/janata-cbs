@@ -24,16 +24,15 @@ export type RawPropertyConfigRecord = {
   PROPERTIES?: RawPropertyRecord[];
 };
 
-export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> =
-  z.lazy(() =>
-    z.object({
-      record: rawPropertyConfigSchema.optional(),
-      DESCRIPTION: z.string().optional(),
-      TABLENAME: z.string().optional(),
-      IDDEF: z.object({ IDPREFIX: z.string().optional() }).optional(),
-      PROPERTIES: z.array(rawPropertyRecordSchema).optional(),
-    }),
-  );
+export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.lazy(() =>
+  z.object({
+    record: rawPropertyConfigSchema.optional(),
+    DESCRIPTION: z.string().optional(),
+    TABLENAME: z.string().optional(),
+    IDDEF: z.object({ IDPREFIX: z.string().optional() }).optional(),
+    PROPERTIES: z.array(rawPropertyRecordSchema).optional(),
+  }),
+);
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Internal UI Schemas (Form & Field Specs)                         */

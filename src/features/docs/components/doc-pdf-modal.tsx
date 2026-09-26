@@ -4,10 +4,7 @@ import { CheckCircle2, Download, FileText, Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { fetchAllPortalDocsAction } from "../actions/fetch-portal-docs";
 import type { NavGroup } from "../config/types";
-import {
-  generatePortalPdf,
-  type PdfGenerationResult,
-} from "../utils/pdf-generator";
+import { generatePortalPdf, type PdfGenerationResult } from "../utils/pdf-generator";
 
 export interface DocPdfModalProps {
   open: boolean;
@@ -54,9 +51,7 @@ export function DocPdfModal({
       setIsGenerating(false);
     } catch (err: unknown) {
       console.error("PDF generation error:", err);
-      setErrorText(
-        err instanceof Error ? err.message : "Failed to generate PDF manual.",
-      );
+      setErrorText(err instanceof Error ? err.message : "Failed to generate PDF manual.");
       setIsGenerating(false);
     }
   }, [portalSubFolder]);
@@ -97,12 +92,8 @@ export function DocPdfModal({
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold tracking-tight">
-              Export Dynamic PDF Manual
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {portalTitle}
-            </p>
+            <h3 className="text-base font-bold tracking-tight">Export Dynamic PDF Manual</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{portalTitle}</p>
           </div>
         </div>
 
@@ -150,12 +141,8 @@ export function DocPdfModal({
             {/* Progress Bar Container */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-medium">
-                <span className="text-muted-foreground truncate max-w-[260px]">
-                  {stageText}
-                </span>
-                <span className="text-primary font-mono font-bold">
-                  {progressPercent}%
-                </span>
+                <span className="text-muted-foreground truncate max-w-[260px]">{stageText}</span>
+                <span className="text-primary font-mono font-bold">{progressPercent}%</span>
               </div>
               <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
                 <div
@@ -168,9 +155,7 @@ export function DocPdfModal({
             {/* Checklist */}
             <div className="border rounded-lg p-3 bg-muted/30 space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">
-                  1. Fetching documentation content
-                </span>
+                <span className="text-muted-foreground">1. Fetching documentation content</span>
                 {progressPercent >= 30 ? (
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                 ) : (
@@ -178,9 +163,7 @@ export function DocPdfModal({
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">
-                  2. Building PDF cover & layout
-                </span>
+                <span className="text-muted-foreground">2. Building PDF cover & layout</span>
                 {progressPercent >= 65 ? (
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                 ) : progressPercent >= 30 ? (
@@ -190,9 +173,7 @@ export function DocPdfModal({
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">
-                  3. Compiling native vector pages
-                </span>
+                <span className="text-muted-foreground">3. Compiling native vector pages</span>
                 {progressPercent >= 100 ? (
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                 ) : progressPercent >= 65 ? (

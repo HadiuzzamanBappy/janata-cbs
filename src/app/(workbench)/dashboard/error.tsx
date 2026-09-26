@@ -16,10 +16,7 @@ export default function DashboardError({
       <EmptyState
         icon={AlertTriangle}
         title="Dashboard Error"
-        description={
-          error.message ||
-          "An unexpected error occurred in the dashboard interface."
-        }
+        description={error.message || "An unexpected error occurred in the dashboard interface."}
         action={
           <Button onClick={() => reset()} variant="outline">
             Try Again

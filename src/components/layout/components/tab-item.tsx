@@ -93,9 +93,7 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
             e.stopPropagation();
             const hasUserInput =
               tab.formData &&
-              Object.values(tab.formData).some(
-                (v) => v !== undefined && v !== null && v !== "",
-              );
+              Object.values(tab.formData).some((v) => v !== undefined && v !== null && v !== "");
 
             if (hasUserInput) {
               confirm({

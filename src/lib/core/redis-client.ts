@@ -49,9 +49,7 @@ export function getRedisClient(): Client | null {
     client.on("error", (error) => {
       if (!client.__warned) {
         client.__warned = true;
-        console.warn(
-          `[cache] Redis unavailable, serving from core: ${error.message}`,
-        );
+        console.warn(`[cache] Redis unavailable, serving from core: ${error.message}`);
       }
       tripCircuit();
     });
@@ -90,11 +88,7 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   }
 }
 
-export async function cacheSet(
-  key: string,
-  value: unknown,
-  ttlSeconds: number,
-): Promise<void> {
+export async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promise<void> {
   if (circuitOpen()) return;
 
   const redis = getRedisClient();
@@ -119,13 +113,7 @@ export async function cacheDelete(pattern: string): Promise<number> {
     let cursor = "0";
     let removed = 0;
     do {
-      const [next, batch] = await redis.scan(
-        cursor,
-        "MATCH",
-        pattern,
-        "COUNT",
-        200,
-      );
+      const [next, batch] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 200);
       cursor = next;
       if (batch.length > 0) {
         removed += await redis.del(...batch);
@@ -141,10 +129,7 @@ export async function cacheDelete(pattern: string): Promise<number> {
 /** In-process single-flight request deduplication wrapper */
 const inflight = new Map<string, Promise<unknown>>();
 
-export function singleFlight<T>(
-  key: string,
-  run: () => Promise<T>,
-): Promise<T> {
+export function singleFlight<T>(key: string, run: () => Promise<T>): Promise<T> {
   const pending = inflight.get(key) as Promise<T> | undefined;
   if (pending) return pending;
 

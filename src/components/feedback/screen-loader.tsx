@@ -17,10 +17,7 @@ export function ScreenLoader() {
       {/* Grid Content Skeleton */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {SKELETON_IDS.map((id) => (
-          <div
-            key={id}
-            className="flex flex-col space-y-3 rounded-xl border p-4"
-          >
+          <div key={id} className="flex flex-col space-y-3 rounded-xl border p-4">
             <Skeleton className="h-32 w-full rounded-lg" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-3/4" />

@@ -38,9 +38,7 @@ async function currentSessionId(): Promise<string | null> {
 /**
  * Creates a new session in Redis and sets the HTTP-only opaque cookie.
  */
-export async function createSession(
-  data: Omit<SessionData, "createdAt">,
-): Promise<string> {
+export async function createSession(data: Omit<SessionData, "createdAt">): Promise<string> {
   const store = await cookies();
   const oldId = store.get(COOKIE_NAME)?.value;
   const redis = getRedisClient();
@@ -67,8 +65,7 @@ export async function createSession(
 
   store.set(COOKIE_NAME, id, {
     httpOnly: true,
-    secure:
-      process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
+    secure: process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
     sameSite: "lax",
     path: "/",
     maxAge: TTL_SECONDS,
@@ -77,9 +74,7 @@ export async function createSession(
   if (payload.currUser.initLogin) {
     store.set("initLogin", "true", {
       httpOnly: true,
-      secure:
-        process.env.NODE_ENV === "production" &&
-        process.env.USE_HTTPS === "true",
+      secure: process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
       sameSite: "lax",
       path: "/",
       maxAge: TTL_SECONDS,
@@ -144,9 +139,7 @@ export async function updateSession(
       ...current,
       ...patch,
       createdAt: current.createdAt,
-      currUser: patch.currUser
-        ? { ...current.currUser, ...patch.currUser }
-        : current.currUser,
+      currUser: patch.currUser ? { ...current.currUser, ...patch.currUser } : current.currUser,
     };
 
     await redis.set(sessionKey(id), JSON.stringify(next), "EX", TTL_SECONDS);

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  AlertCircle,
-  Building2,
-  Check,
-  ChevronsUpDown,
-  RefreshCw,
-} from "lucide-react";
+import { AlertCircle, Building2, Check, ChevronsUpDown, RefreshCw } from "lucide-react";
 import * as React from "react";
 import { useSessionStore } from "@/components/providers/session-provider";
 import { Button } from "@/components/ui/button";
@@ -64,8 +58,7 @@ export function BranchSwitcher() {
 
   const activeBranchCode = currentBranch ?? "JB9999";
   const activeBranchObj =
-    branches.find((b) => b.code === activeBranchCode) ??
-    (branches.length > 0 ? branches[0] : null);
+    branches.find((b) => b.code === activeBranchCode) ?? (branches.length > 0 ? branches[0] : null);
 
   const filteredBranches = React.useMemo(() => {
     if (!branchSearch.trim()) return branches;
@@ -112,9 +105,7 @@ export function BranchSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[320px]">
         <DropdownMenuLabel className="font-normal p-2">
-          <div className="text-xs text-muted-foreground mb-2">
-            Switch Active Branch
-          </div>
+          <div className="text-xs text-muted-foreground mb-2">Switch Active Branch</div>
           <Input
             placeholder="Search by code or name..."
             className="h-8 text-xs bg-muted/50"
@@ -138,9 +129,7 @@ export function BranchSwitcher() {
                 <AlertCircle className="size-4 shrink-0" />
                 <span>Failed to load branches</span>
               </div>
-              <p className="text-[11px] text-muted-foreground leading-tight px-1">
-                {branchError}
-              </p>
+              <p className="text-[11px] text-muted-foreground leading-tight px-1">{branchError}</p>
               <Button
                 variant="outline"
                 size="xs"
@@ -152,9 +141,7 @@ export function BranchSwitcher() {
               </Button>
             </div>
           ) : filteredBranches.length === 0 ? (
-            <div className="p-2 text-center text-xs text-muted-foreground">
-              No branches found
-            </div>
+            <div className="p-2 text-center text-xs text-muted-foreground">No branches found</div>
           ) : (
             filteredBranches.map((b) => (
               <DropdownMenuItem

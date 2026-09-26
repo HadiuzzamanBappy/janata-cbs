@@ -33,10 +33,7 @@ export interface SystemCommandItem {
   settingsTabId?: string;
 }
 
-export const ICON_REGISTRY: Record<
-  string,
-  React.ComponentType<{ className?: string }>
-> = {
+export const ICON_REGISTRY: Record<string, React.ComponentType<{ className?: string }>> = {
   UserCheck,
   UserPlus,
   Users,

@@ -74,16 +74,10 @@ export function ChangePassword({ command: _command }: { command?: string }) {
         setNewPass("");
         setConfPass("");
       } else {
-        setError(
-          res.errors
-            ? res.errors.join(", ")
-            : res.message || "Failed to change password.",
-        );
+        setError(res.errors ? res.errors.join(", ") : res.message || "Failed to change password.");
       }
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred.",
-      );
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -116,11 +110,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
             <Label className="font-medium text-sm">
               New User Name <span className="text-destructive">*</span>
             </Label>
-            <Input
-              value={newUserName}
-              onChange={(e) => setNewUserName(e.target.value)}
-              required
-            />
+            <Input value={newUserName} onChange={(e) => setNewUserName(e.target.value)} required />
           </div>
 
           <div className="space-y-1.5">
@@ -160,14 +150,8 @@ export function ChangePassword({ command: _command }: { command?: string }) {
           </div>
 
           <div className="pt-4">
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full sm:w-auto"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : null}
+            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Change Password
             </Button>
           </div>

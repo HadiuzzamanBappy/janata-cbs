@@ -31,9 +31,7 @@ export function LoginForm() {
 
       if (!res.ok) {
         throw new Error(
-          data.error ||
-            data.message ||
-            "Login failed. Please check your credentials.",
+          data.error || data.message || "Login failed. Please check your credentials.",
         );
       }
 
@@ -59,10 +57,7 @@ export function LoginForm() {
         </Alert>
       )}
       <div className="space-y-2">
-        <Label
-          htmlFor="username"
-          className="text-[13px] font-semibold text-foreground"
-        >
+        <Label htmlFor="username" className="text-[13px] font-semibold text-foreground">
           Username
         </Label>
         <Input
@@ -78,10 +73,7 @@ export function LoginForm() {
         />
       </div>
       <div className="space-y-2">
-        <Label
-          htmlFor="password"
-          className="text-[13px] font-semibold text-foreground"
-        >
+        <Label htmlFor="password" className="text-[13px] font-semibold text-foreground">
           Password
         </Label>
         <Input
@@ -95,11 +87,7 @@ export function LoginForm() {
           className="h-11"
         />
       </div>
-      <Button
-        type="submit"
-        className="w-full h-11 font-semibold text-[15px]"
-        disabled={loading}
-      >
+      <Button type="submit" className="w-full h-11 font-semibold text-[15px]" disabled={loading}>
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -8,10 +8,7 @@ import { grpcProcess } from "@/lib/grpc";
 
 const SPEC_TTL_SECONDS = env.SPEC_TTL_SECONDS || 3600;
 
-async function fetchSchemaFromBackend(
-  command: string,
-  token?: string,
-): Promise<FormSchema | null> {
+async function fetchSchemaFromBackend(command: string, token?: string): Promise<FormSchema | null> {
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
   if (env.MODEL_SOURCE === "static") {
@@ -22,8 +19,7 @@ async function fetchSchemaFromBackend(
   }
 
   try {
-    const targetServiceKey =
-      process.env.NODE_ENV === "development" ? "defaultdev" : "default";
+    const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
     const address = getServiceUrl(targetServiceKey);
 
     const res = await grpcProcess(
@@ -73,15 +69,8 @@ async function fetchSchemaFromBackend(
 /**
  * Server Component / RSC model specification fetcher with read-through Redis cache.
  */
-export async function getModelData(
-  command: string,
-  token?: string,
-): Promise<FormSchema | null> {
+export async function getModelData(command: string, token?: string): Promise<FormSchema | null> {
   const cleanCommand = command.toUpperCase();
   const cacheKey = `spec:${cleanCommand}`;
-  return getOrSet(
-    cacheKey,
-    () => fetchSchemaFromBackend(cleanCommand, token),
-    SPEC_TTL_SECONDS,
-  );
+  return getOrSet(cacheKey, () => fetchSchemaFromBackend(cleanCommand, token), SPEC_TTL_SECONDS);
 }

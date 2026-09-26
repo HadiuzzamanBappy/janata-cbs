@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Compass,
-  Layers,
-  Settings,
-  ShieldCheck,
-  Sliders,
-  Terminal,
-} from "lucide-react";
+import { Compass, Layers, Settings, ShieldCheck, Sliders, Terminal } from "lucide-react";
 import * as React from "react";
 import { useAlertStore } from "@/components/providers/alert-provider";
 import { useSessionStore } from "@/components/providers/session-provider";
@@ -24,10 +17,7 @@ import {
 } from "@/components/ui/command";
 import type { MenuItem } from "@/features/workspace";
 import { launchScreen } from "@/features/workspace";
-import {
-  getAllRegisteredCommands,
-  type SystemCommandItem,
-} from "@/lib/core/commands";
+import { getAllRegisteredCommands, type SystemCommandItem } from "@/lib/core/commands";
 
 interface GlobalSearchProps {
   open: boolean;
@@ -59,18 +49,12 @@ function extractMenuCommands(items: MenuItem[]): SystemCommandItem[] {
   return result;
 }
 
-export function AppSearch({
-  open,
-  onOpenChange,
-  openSettingsTab,
-}: GlobalSearchProps) {
+export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchProps) {
   const { user, logout } = useSessionStore();
   const { addTab } = useWorkbenchStore();
   const { confirm } = useAlertStore();
 
-  const [apiMenuItems, setApiMenuItems] = React.useState<SystemCommandItem[]>(
-    [],
-  );
+  const [apiMenuItems, setApiMenuItems] = React.useState<SystemCommandItem[]>([]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -84,21 +68,16 @@ export function AppSearch({
         .catch(() => ({ success: false })),
     ]).then(([menuJson, controlsJson]) => {
       const menuCmds =
-        menuJson.success && Array.isArray(menuJson.data)
-          ? extractMenuCommands(menuJson.data)
-          : [];
+        menuJson.success && Array.isArray(menuJson.data) ? extractMenuCommands(menuJson.data) : [];
       const controlCmds =
-        controlsJson.success && Array.isArray(controlsJson.data)
-          ? controlsJson.data
-          : [];
+        controlsJson.success && Array.isArray(controlsJson.data) ? controlsJson.data : [];
 
       setApiMenuItems([...menuCmds, ...controlCmds]);
     });
   }, [open]);
 
   const userRole = user?.userRole ?? ["Administrator"];
-  const isAdmin =
-    userRole.includes("Administrator") || userRole.includes("ADMIN");
+  const isAdmin = userRole.includes("Administrator") || userRole.includes("ADMIN");
 
   // Merge static registry commands + dynamic API menu commands (deduplicated by command string)
   const allCommands = React.useMemo(() => {
@@ -150,11 +129,7 @@ export function AppSearch({
   };
 
   return (
-    <CommandDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      className="max-w-lg sm:max-w-xl"
-    >
+    <CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-lg sm:max-w-xl">
       <CommandInput placeholder="Type command name, screen ID, or search..." />
       <CommandList className="max-h-72">
         <CommandEmpty className="py-6 text-xs text-muted-foreground">
@@ -165,10 +140,7 @@ export function AppSearch({
         <div className="px-3 py-1 flex items-center justify-between border-b border-border/40 text-[11px] text-muted-foreground bg-muted/20">
           <div className="flex items-center gap-1.5">
             <span className="font-medium">RBAC Filter:</span>
-            <Badge
-              variant="outline"
-              className="text-[10px] font-mono px-1.5 py-0"
-            >
+            <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
               {userRole}
             </Badge>
           </div>
@@ -189,15 +161,9 @@ export function AppSearch({
                   IconComp = ShieldCheck;
                 } else if (cmd.category === "Quick Actions") {
                   IconComp = Terminal;
-                } else if (
-                  category.includes("System") ||
-                  category.includes("Control")
-                ) {
+                } else if (category.includes("System") || category.includes("Control")) {
                   IconComp = Sliders;
-                } else if (
-                  category.includes("Navigation") ||
-                  category.includes("Operation")
-                ) {
+                } else if (category.includes("Navigation") || category.includes("Operation")) {
                   IconComp = Compass;
                 } else {
                   IconComp = Layers;
@@ -234,12 +200,8 @@ export function AppSearch({
       <div className="px-3 py-2 flex items-center justify-between border-t border-border/50 text-[11px] text-muted-foreground bg-muted/30 select-none">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">
-              ↑
-            </kbd>
-            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">
-              ↓
-            </kbd>
+            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↑</kbd>
+            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↓</kbd>
             <span>Navigate</span>
           </span>
           <span className="flex items-center gap-1">

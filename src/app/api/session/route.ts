@@ -14,10 +14,7 @@ export async function GET(): Promise<NextResponse> {
     const currUser = await getFromSession("currUser");
 
     if (!currUser) {
-      return NextResponse.json(
-        { success: false, message: "No active session" },
-        { status: 401 },
-      );
+      return NextResponse.json({ success: false, message: "No active session" }, { status: 401 });
     }
 
     return NextResponse.json({ success: true, currUser }, { status: 200 });
@@ -33,35 +30,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 },
-      );
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
 
     if (body.branchCode && body.branchName) {
-      const updatedUser = await updateBranchCodeAndName(
-        body.branchCode,
-        body.branchName,
-      );
+      const updatedUser = await updateBranchCodeAndName(body.branchCode, body.branchName);
       if (!updatedUser) {
         return NextResponse.json(
           { success: false, message: "Failed to update session branch" },
           { status: 500 },
         );
       }
-      return NextResponse.json(
-        { success: true, currUser: updatedUser },
-        { status: 200 },
-      );
+      return NextResponse.json({ success: true, currUser: updatedUser }, { status: 200 });
     }
 
-    return NextResponse.json(
-      { success: true, currUser: session.currUser },
-      { status: 200 },
-    );
+    return NextResponse.json({ success: true, currUser: session.currUser }, { status: 200 });
   } catch (_error) {
     return NextResponse.json(
       { success: false, errors: "Internal server error updating session" },

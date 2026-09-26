@@ -50,10 +50,7 @@ export function FieldFactory({
   };
 
   const handleDateChange = (selectedDate?: Date) => {
-    onChange(
-      field.name,
-      selectedDate ? selectedDate.toISOString().split("T")[0] : "",
-    );
+    onChange(field.name, selectedDate ? selectedDate.toISOString().split("T")[0] : "");
   };
 
   const handleSelectChange = (selectedValue: string | null) => {
@@ -70,14 +67,9 @@ export function FieldFactory({
 
   return (
     <div className={cn("flex flex-col gap-1.5", widthClass)}>
-      <Label
-        htmlFor={field.name}
-        className="text-xs font-medium flex items-center gap-1"
-      >
+      <Label htmlFor={field.name} className="text-xs font-medium flex items-center gap-1">
         {field.label}
-        {field.required && (
-          <span className="text-destructive font-bold">*</span>
-        )}
+        {field.required && <span className="text-destructive font-bold">*</span>}
       </Label>
 
       {field.type === "select" ? (
@@ -126,9 +118,7 @@ export function FieldFactory({
         />
       )}
 
-      {error && (
-        <p className="text-[11px] font-medium text-destructive">{error}</p>
-      )}
+      {error && <p className="text-[11px] font-medium text-destructive">{error}</p>}
     </div>
   );
 }

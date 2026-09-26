@@ -9,24 +9,20 @@ In core banking workflows, error states must be handled predictably. Silent fail
 
 ## 2. Error Boundary Architecture
 
-```text
-┌─────────────────────────────────┐
-│ Client Interaction / API Call   │
-└────────────────┬────────────────┘
-                 │
-                 │ Exception Thrown / FAIL Response
-                 ▼
-┌─────────────────────────────────┐
-│ Response Sanitizer & Parser     │  [src/lib/schema/ schemas & APIResponse]
-└────────────────┬────────────────┘
-                 │
-                 ├─────────────────────────────────┐
-                 │ System/Fatal Error              │ Business Validation Error
-                 ▼                                 ▼
-┌─────────────────────────────────┐   ┌─────────────────────────────────┐
-│ Global Error Boundary           │   │ Global Alert System             │
-│ (src/app/global-error.tsx)      │   │ (src/store/alert-store.ts)      │
-└─────────────────────────────────┘   └─────────────────────────────────┘
+```mermaid
+graph TD
+    Client["Client Interaction / API Call"] --> Parser{"Response Sanitizer & Parser<br/>(APIResponse Envelope)"}
+    
+    Parser -->|Fatal System / Runtime Error| Boundary["Global Error Boundary<br/>(src/app/global-error.tsx)"]
+    Parser -->|Business Validation / API Error| AlertStore["Global Alert System<br/>(src/store/alert-store.ts)"]
+    
+    AlertStore --> Modal["Toast / Confirmation Dialog UI<br/>(src/components/feedback/confirm-dialog.tsx)"]
+
+    style Client fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style Parser fill:#0f172a,stroke:#64748b,stroke-width:1px,color:#cbd5e1
+    style Boundary fill:#7f1d1d,stroke:#ef4444,stroke-width:1px,color:#fff
+    style AlertStore fill:#4c1d95,stroke:#8b5cf6,stroke-width:1px,color:#fff
+    style Modal fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
 ```
 
 ---

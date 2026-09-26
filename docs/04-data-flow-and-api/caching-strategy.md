@@ -9,32 +9,25 @@ To guarantee high performance and sub-millisecond dynamic schema rendering for b
 
 ## 2. Multi-Layer Caching Flow
 
-```text
-                               ┌────────────────────────────────┐
-                               │ Schema / Spec Query Request    │
-                               └───────────────┬────────────────┘
-                                               │
-                                 Check Tier 1: In-Memory Cache
-                                               │
-                                ┌──────────────┴──────────────┐
-                                │ Hit                         │ Miss
-                                ▼                             ▼
-                    ┌──────────────────────┐      ┌────────────────────────┐
-                    │ Return Fast Memory   │      │ Check Tier 2: Redis    │  [src/lib/core/redis-client.ts]
-                    │ Schema Copy          │      └───────────┬────────────┘
-                    └──────────────────────┘                  │
-                                                   ┌──────────┴──────────┐
-                                                   │ Hit                 │ Miss / Circuit Open
-                                                   ▼                     ▼
-                                       ┌──────────────────────┐  ┌────────────────────────┐
-                                       │ Write Memory & Return│  │ Query Tier 3: Core DB  │  (Java gRPC Backend)
-                                       └──────────────────────┘  └───────────┬────────────┘
-                                                                             │
-                                                                 Write-Back Cache Layers
-                                                                             ▼
-                                                                 ┌────────────────────────┐
-                                                                 │ Return Schema to Client│
-                                                                 └────────────────────────┘
+```mermaid
+flowchart TD
+    Req["Schema / Spec Query Request"] --> T1{"Tier 1: In-Memory Cache"}
+    
+    T1 -- Cache Hit --> Ret1["Return Fast Memory Schema Copy"]
+    T1 -- Cache Miss --> T2{"Tier 2: Redis Cache (ioredis)"}
+    
+    T2 -- Cache Hit --> Write1["Write Memory & Return"]
+    T2 -- Cache Miss / Circuit Open --> T3["Query Tier 3: Core DB (gRPC)"]
+    
+    T3 --> WriteBack["Write-Back to Redis & Memory Cache"]
+    WriteBack --> Ret2["Return Schema to Client"]
+
+    style Req fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style T1 fill:#0f172a,stroke:#64748b,stroke-width:1px,color:#cbd5e1
+    style T2 fill:#0f172a,stroke:#64748b,stroke-width:1px,color:#cbd5e1
+    style T3 fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
+    style Ret1 fill:#064e3b,stroke:#10b981,stroke-width:1px,color:#fff
+    style Ret2 fill:#064e3b,stroke:#10b981,stroke-width:1px,color:#fff
 ```
 
 ---

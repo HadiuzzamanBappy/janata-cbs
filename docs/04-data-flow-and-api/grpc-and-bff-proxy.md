@@ -3,38 +3,28 @@
 ## 1. Executive Summary & Purpose
 This document specifies the architecture, envelope format, authorization checks, and gRPC translation logic for the central Backend-for-Frontend (BFF) proxy gateway at [src/app/api/proxy/route.ts](file:///d:/Work/React/cbs/finx-ui/src/app/api/proxy/route.ts).
 
-In Janata CBS, client components in the browser **MUST NEVER** communicate directly with internal Java Core gRPC services. All HTTP requests from the browser route to `/api/proxy`. The Next.js server validates officer session credentials, constructs a signed gRPC request envelope, and dispatches the payload to the backend over gRPC via [src/lib/core/dispatch.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/core/dispatch.ts).
+In Janata CBS, client components in the browser **MUST NEVER** communicate directly with internal Java Core gRPC services. All HTTP requests from the browser route to `/api/proxy`. The Next.js server validates officer session credentials, constructs a signed gRPC request envelope, and dispatches the payload to the backend over gRPC via [src/lib/grpc/dispatch.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/grpc/dispatch.ts).
 
 ---
 
 ## 2. Request Dispatch Flow & Envelope Contract
 
-```text
-┌────────────────────────────────┐
-│ Browser Client Component       │  (fetch('/api/proxy', { method: 'POST', body: JSON }))
-└───────────────┬────────────────┘
-                │
-                │ HTTP POST + Body JSON Payload
-                ▼
-┌────────────────────────────────┐
-│ Next.js /api/proxy Route       │  [src/app/api/proxy/route.ts]
-│ - Verify session via Redis     │  (getSession() in src/lib/core/redis-session.ts)
-│ - Inject userId, branchCode    │
-└───────────────┬────────────────┘
-                │
-                │ Construct Signed Envelope Payload
-                ▼
-┌────────────────────────────────┐
-│ gRPC Dispatcher Engine         │  [src/lib/core/dispatch.ts]
-│ - Fetch gRPC Client from Pool │  (grpc.ts in src/lib/core/grpc.ts)
-│ - Protocol Buffer Codec        │
-└───────────────┬────────────────┘
-                │
-                │ Binary gRPC Proto Stream
-                ▼
-┌────────────────────────────────┐
-│ Java Core Backend Service      │
-└────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Browser as Browser Client Component
+    participant Proxy as Next.js BFF (/api/proxy)
+    participant Dispatcher as gRPC Dispatcher (dispatch.ts)
+    participant JavaCore as Java Core Backend
+
+    Browser->>Proxy: HTTP POST (Payload Data)
+    Note over Proxy: Validate Redis Session & Inject userId/branchCode
+    Proxy->>Dispatcher: Signed Envelope Contract
+    Note over Dispatcher: Resolve Microservice & Classify Transaction
+    Dispatcher->>JavaCore: Binary gRPC Stream over HTTP/2
+    JavaCore-->>Dispatcher: gRPC Response Payload
+    Dispatcher-->>Proxy: Parsed APIResponse Envelope
+    Proxy-->>Browser: HTTP JSON APIResponse
 ```
 
 ---

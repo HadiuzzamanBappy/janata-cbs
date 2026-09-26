@@ -9,21 +9,22 @@ Instead of exposing thousands of individual REST endpoints for every banking mod
 
 ## 2. Dynamic Model Architecture & Unified Routing
 
-```text
-                               ┌────────────────────────────────┐
-                               │ Dynamic Proxy Gateway          │
-                               │ (/api/proxy)                   │
-                               └───────────────┬────────────────┘
-                                               │
-                                 Generic Request Envelope
-                                               │
-                                               ▼
-     ┌──────────────────┬──────────────────┬───┴──────────────┬──────────────────┐
-     ▼                  ▼                  ▼                  ▼                  ▼
-┌───────────┐      ┌───────────┐      ┌───────────┐      ┌───────────┐      ┌───────────┐
-│ CUSTOMER  │      │  ACCOUNT  │      │   LOAN    │      │  DEPOSIT  │      │  CONTROL  │
-│  Model    │      │   Model   │      │   Model   │      │   Model   │      │   Model   │
-└───────────┘      └───────────┘      └───────────┘      └───────────┘      └───────────┘
+```mermaid
+graph TD
+    Gateway["Dynamic Proxy Gateway<br/>(/api/proxy)"] -->|Generic Request Envelope| Router{"Dynamic Model Router"}
+    Router --> Customer["CUSTOMER Model"]
+    Router --> Account["ACCOUNT Model"]
+    Router --> Loan["LOAN Model"]
+    Router --> Deposit["DEPOSIT Model"]
+    Router --> Control["CONTROL Model"]
+
+    style Gateway fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+    style Router fill:#0f172a,stroke:#64748b,stroke-width:1px,color:#cbd5e1
+    style Customer fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
+    style Account fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
+    style Loan fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
+    style Deposit fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
+    style Control fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#fff
 ```
 
 ---

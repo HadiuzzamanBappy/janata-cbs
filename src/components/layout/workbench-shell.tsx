@@ -19,13 +19,9 @@ export function WorkbenchShell({ children }: { children: React.ReactNode }) {
           <SidebarProvider defaultOpen>
             <AppSidebar />
             <SidebarInset className="flex flex-col min-w-0 h-screen overflow-hidden">
-              {/* Sticky TopBar — stays at top on scroll */}
-              <div className="sticky top-0 z-20 shrink-0">
+              {/* TopBar & TabBar Header Stack */}
+              <div className="shrink-0 z-20">
                 <TopBar />
-              </div>
-
-              {/* Sticky TabBar — docked just below TopBar */}
-              <div className="sticky top-16 z-10 shrink-0">
                 <AppTabBar />
               </div>
 

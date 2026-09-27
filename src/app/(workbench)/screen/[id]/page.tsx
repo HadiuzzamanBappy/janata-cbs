@@ -1,53 +1,28 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
-import { useParams, useSearchParams } from "next/navigation";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { useParams } from "next/navigation";
 import { AlertStoreProvider } from "@/components/providers/alert-provider";
+import { SessionStoreProvider } from "@/components/providers/session-provider";
 import { WorkbenchStoreProvider } from "@/components/providers/workbench-provider";
-import { Badge } from "@/components/ui/badge";
 import { ComponentLoader } from "@/features/workspace";
 
 export default function StandaloneScreenPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
-
-  const screenId = (params?.id as string) ?? "ACCOUNT";
-  const title = searchParams.get("title") ?? screenId.toUpperCase();
+  const rawId = (params?.id as string) ?? "ACCOUNT";
+  const screenId = decodeURIComponent(rawId);
 
   return (
-    <WorkbenchStoreProvider>
-      <AlertStoreProvider>
-        <div className="min-h-screen w-full flex flex-col bg-background text-foreground antialiased select-none">
-          {/* Standalone Window Header */}
-          <header className="h-12 border-b border-border/60 bg-background/95 backdrop-blur-md px-4 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="size-6 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                JBP
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold">{title}</span>
-                <Badge variant="outline" className="font-mono text-[10px] px-1.5 py-0">
-                  {screenId}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <ShieldCheck className="size-3.5 text-emerald-500" />
-                <span>Standalone Window Mode</span>
-              </div>
-              <ThemeToggle />
-            </div>
-          </header>
-
-          {/* Screen Canvas Container */}
-          <main className="flex-1 overflow-auto bg-muted/15 flex flex-col">
-            <ComponentLoader command={screenId} mode="window" />
-          </main>
-        </div>
-      </AlertStoreProvider>
-    </WorkbenchStoreProvider>
+    <SessionStoreProvider>
+      <WorkbenchStoreProvider>
+        <AlertStoreProvider>
+          <div className="h-screen w-screen overflow-hidden flex flex-col bg-background text-foreground antialiased select-none">
+            {/* Screen Canvas Container (Takes 100% viewport height cleanly) */}
+            <main className="flex-1 min-h-0 w-full overflow-hidden flex flex-col bg-background">
+              <ComponentLoader command={screenId} mode="window" className="flex-1 h-full min-h-0" />
+            </main>
+          </div>
+        </AlertStoreProvider>
+      </WorkbenchStoreProvider>
+    </SessionStoreProvider>
   );
 }

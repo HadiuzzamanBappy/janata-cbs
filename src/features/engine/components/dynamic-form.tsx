@@ -30,13 +30,30 @@ export function DynamicForm({
   const { tabs, updateFormData, updateTabState } = useWorkbenchStore();
   const currentTab = tabs.find((t) => t.id === tabId);
 
-  // Read persisted screenMode and searchRecordId from tab state on refresh
-  const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT">(
-    currentTab?.screenMode || "IDLE",
-  );
-  const [searchRecordId, setSearchRecordIdState] = React.useState<string>(
-    currentTab?.searchRecordId || "",
-  );
+  // Read persisted screenMode and searchRecordId from tab state or URL query params (for popups)
+  const initialMode = React.useMemo(() => {
+    if (currentTab?.screenMode) return currentTab.screenMode;
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      const modeParam = p.get("mode");
+      if (modeParam === "CREATE" || modeParam === "EDIT" || modeParam === "IDLE") {
+        return modeParam;
+      }
+    }
+    return "IDLE";
+  }, [currentTab]);
+
+  const initialRecordId = React.useMemo(() => {
+    if (currentTab?.searchRecordId) return currentTab.searchRecordId;
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      return p.get("recordId") || "";
+    }
+    return "";
+  }, [currentTab]);
+
+  const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT">(initialMode);
+  const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialRecordId);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
   const setScreenMode = React.useCallback(
@@ -58,10 +75,25 @@ export function DynamicForm({
     },
     [tabId, updateTabState],
   );
-  // Merge initialValues with saved tab draft data
+  // Merge initialValues with saved tab draft data or URL query params (for popups)
+  const urlFormData = React.useMemo(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      const raw = p.get("data");
+      if (raw) {
+        try {
+          return JSON.parse(raw) as Record<string, unknown>;
+        } catch {
+          // Safe parse fallback
+        }
+      }
+    }
+    return {};
+  }, []);
+
   const mergedInitialValues = React.useMemo(() => {
-    return { ...initialValues, ...currentTab?.formData };
-  }, [initialValues, currentTab?.formData]);
+    return { ...initialValues, ...urlFormData, ...currentTab?.formData };
+  }, [initialValues, urlFormData, currentTab?.formData]);
 
   const { values, errors, setValue, validate, resetForm } = useFormState(
     schema,

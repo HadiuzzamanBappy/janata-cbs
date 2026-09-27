@@ -20,8 +20,8 @@ export interface UserRights {
 export function useUserRights(): UserRights {
   const user = useSessionStore((state) => state.user);
 
-  // Default to standard rights if not explicitly restricted
-  const functionRights = user?.functionRights ?? ["R", "I", "S", "H"];
+  // Default to full standard rights if not explicitly restricted
+  const functionRights = user?.functionRights ?? ["R", "I", "D", "A", "S", "H"];
 
   const hasRight = (code: "R" | "I" | "D" | "A" | "S" | "H"): boolean => {
     return functionRights.includes(code);

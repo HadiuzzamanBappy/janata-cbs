@@ -10,6 +10,8 @@ export interface WorkbenchTab {
   componentName: string;
   props?: Record<string, unknown>;
   formData?: Record<string, unknown>; // Draft form input values typed by user
+  screenMode?: "IDLE" | "CREATE" | "EDIT";
+  searchRecordId?: string;
 }
 
 export interface WorkbenchState {
@@ -25,6 +27,7 @@ export interface WorkbenchState {
   setActiveTab: (id: string) => void;
   closeAllTabs: () => void;
   updateFormData: (tabId: string, data: Record<string, unknown>) => void;
+  updateTabState: (tabId: string, patch: Partial<WorkbenchTab>) => void;
 }
 
 export type WorkbenchStore = ReturnType<typeof createWorkbenchStore>;
@@ -76,6 +79,10 @@ export const createWorkbenchStore = () => {
             tabs: state.tabs.map((tab) =>
               tab.id === tabId ? { ...tab, formData: { ...tab.formData, ...data } } : tab,
             ),
+          })),
+        updateTabState: (tabId, patch) =>
+          set((state) => ({
+            tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, ...patch } : tab)),
           })),
       }),
 

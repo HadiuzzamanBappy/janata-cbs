@@ -7,7 +7,7 @@ import {
   type RawPropertyConfigRecord,
   type RawPropertyRecord,
   rawPropertyConfigSchema,
-} from "./schemas";
+} from "./engine-schema";
 
 export function widthForLength(length?: number | string): FieldWidth {
   const num = typeof length === "string" ? Number.parseInt(length, 10) : length;

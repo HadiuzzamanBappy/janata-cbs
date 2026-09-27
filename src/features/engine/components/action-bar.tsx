@@ -144,7 +144,7 @@ export function ActionBar({
                     if (onRecordIdChange) onRecordIdChange(e.target.value);
                   }}
                   disabled={!rights.canSee && !rights.canRead}
-                  className="h-8 pl-8 pr-2 w-48 sm:w-64 text-xs font-mono bg-muted/30 focus-visible:bg-background rounded-r-none border-r-0 focus-visible:z-10"
+                  className="h-8 pl-8 pr-2 w-48 sm:w-64 text-xs md:text-xs font-mono bg-muted/30 focus-visible:bg-background rounded-r-none border-r-0 focus-visible:z-10"
                 />
               </form>
 
@@ -208,11 +208,11 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onCreateNew?.()}
                   disabled={!onCreateNew || submitting || !rights.canInput}
-                  className="size-8 text-muted-foreground hover:text-foreground shrink-0"
+                  className="size-8 text-foreground shrink-0 border-transparent"
                 >
                   <Plus className="size-3.5" />
                 </Button>
@@ -229,11 +229,11 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onAmend?.()}
                   disabled={!onAmend || submitting || !searchVal.trim() || !rights.canAmend}
-                  className="size-8 text-muted-foreground hover:text-foreground shrink-0 disabled:opacity-40"
+                  className="size-8 text-foreground shrink-0 disabled:opacity-40 border-transparent"
                 >
                   <Edit3 className="size-3.5" />
                 </Button>
@@ -254,7 +254,7 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onView?.()}
                   disabled={
@@ -263,7 +263,7 @@ export function ActionBar({
                     !searchVal.trim() ||
                     (!rights.canSee && !rights.canRead)
                   }
-                  className="size-8 text-muted-foreground hover:text-foreground shrink-0 disabled:opacity-40"
+                  className="size-8 text-foreground shrink-0 disabled:opacity-40 border-transparent"
                 >
                   <Eye className="size-3.5" />
                 </Button>
@@ -287,11 +287,11 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onSubmit?.()}
                   disabled={!onSubmit || submitting || (!rights.canInput && !rights.canAmend)}
-                  className="size-8 text-primary shrink-0"
+                  className="size-8 bg-primary/10 text-primary hover:bg-primary/20 shrink-0 border-transparent"
                 >
                   <Check className="size-3.5 stroke-[2.5]" />
                 </Button>
@@ -310,11 +310,11 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onValidate?.()}
                   disabled={!onValidate || submitting || (!rights.canInput && !rights.canAmend)}
-                  className="size-8 text-muted-foreground hover:text-foreground shrink-0"
+                  className="size-8 text-foreground shrink-0 border-transparent"
                 >
                   <CheckCheck className="size-3.5 stroke-[2.5]" />
                 </Button>
@@ -331,13 +331,13 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onHold?.()}
                   disabled={!onHold || submitting || !rights.canHold}
-                  className="size-8 shrink-0"
+                  className="size-8 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 shrink-0 border-transparent"
                 >
-                  <Clock className="size-3.5 text-amber-500" />
+                  <Clock className="size-3.5" />
                 </Button>
               }
             />
@@ -352,11 +352,11 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onDelete?.()}
                   disabled={!onDelete || submitting || !rights.canDelete}
-                  className="size-8 text-destructive shrink-0"
+                  className="size-8 bg-destructive/10 text-destructive hover:bg-destructive/20 shrink-0 border-transparent"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
@@ -373,11 +373,11 @@ export function ActionBar({
               render={
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="icon-sm"
                   onClick={() => onReset?.()}
                   disabled={!onReset || submitting}
-                  className="size-8 text-muted-foreground shrink-0"
+                  className="size-8 text-muted-foreground shrink-0 border-transparent"
                 >
                   <RotateCcw className="size-3.5" />
                 </Button>
@@ -391,9 +391,9 @@ export function ActionBar({
             <DropdownMenuTrigger
               render={
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
-                  className="h-8 px-2.5 text-xs gap-2 min-w-[180px] max-w-[220px] justify-between"
+                  className="h-8 px-2.5 text-xs gap-2 min-w-[180px] max-w-[220px] justify-between border-transparent"
                 >
                   <span className="truncate">
                     {selectedAction ? selectedAction.label : "More Actions..."}

@@ -78,7 +78,7 @@ export function FieldFactory({
   };
 
   return (
-    <div className="col-span-12 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-1.5 border-b border-border/30 last:border-0">
+    <div className="col-span-12 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
       {/* Horizontal Left Label (Required Sign) */}
       <div className="w-full sm:w-64 shrink-0 flex items-center gap-1">
         <Label

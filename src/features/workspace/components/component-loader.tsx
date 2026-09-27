@@ -2,7 +2,7 @@
 
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ScreenSkeleton } from "@/features/engine/components/screen-skeleton";
 import type { ComponentLoaderProps } from "../types";
 import { resolveControl } from "./component-registry";
 
@@ -62,14 +62,7 @@ export function ComponentLoader({
       className={`w-full h-full min-h-0 flex flex-col flex-1 ${className}`}
     >
       <ComponentErrorBoundary command={command}>
-        <React.Suspense
-          fallback={
-            <div className="p-6 space-y-4 max-w-3xl mx-auto w-full">
-              <Skeleton className="h-8 w-48" />
-              <Skeleton className="h-64 w-full rounded-md" />
-            </div>
-          }
-        >
+        <React.Suspense fallback={<ScreenSkeleton rowCount={4} />}>
           <ControlComponent command={command} tabId={tabId} />
         </React.Suspense>
       </ComponentErrorBoundary>

@@ -5,7 +5,6 @@ import * as React from "react";
 import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { toast } from "@/components/ui/toast";
 import { useFormState } from "../hooks/use-form-state";
@@ -13,6 +12,7 @@ import { useSchema } from "../hooks/use-schema";
 
 import type { DynamicFormProps } from "../types";
 import { FormRenderer } from "./form-renderer";
+import { ScreenSkeleton } from "./screen-skeleton";
 
 const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
 
@@ -103,18 +103,7 @@ export function DynamicForm({
   };
 
   if (loading) {
-    return (
-      <div className="p-6 space-y-4 max-w-4xl mx-auto">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-4 w-96" />
-        <div className="grid grid-cols-12 gap-4 mt-6">
-          <Skeleton className="col-span-6 h-12" />
-          <Skeleton className="col-span-6 h-12" />
-          <Skeleton className="col-span-6 h-12" />
-          <Skeleton className="col-span-6 h-12" />
-        </div>
-      </div>
-    );
+    return <ScreenSkeleton />;
   }
 
   if (error || !schema) {

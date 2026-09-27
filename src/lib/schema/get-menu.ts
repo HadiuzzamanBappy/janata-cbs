@@ -3,56 +3,59 @@ import { STATIC_MENU } from "@fixtures";
 import { type MenuItem, parseMNU } from "@/features/workspace";
 import { env } from "@/lib/config/env";
 import { getOrSet } from "@/lib/core/cache";
+import { getSession } from "@/lib/core/redis-session";
 import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
 
 const MENU_TTL_SECONDS = env.MENU_TTL_SECONDS || 600;
 
-async function fetchMenuFromBackend(token?: string): Promise<MenuItem[]> {
+async function fetchMenuFromBackend(tokenParam?: string): Promise<MenuItem[]> {
+  // Static environment mode
   if (env.MODEL_SOURCE === "static") {
     const parseResult = parseMNU(STATIC_MENU);
-    return parseResult.success ? parseResult.data : [];
+    if (!parseResult.success) {
+      throw new Error(`Failed to parse static menu: ${parseResult.error}`);
+    }
+    return parseResult.data;
   }
 
-  try {
-    const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
-    const address = getServiceUrl(targetServiceKey);
+  // gRPC environment mode (Strict execution, no fallbacks)
+  const session = await getSession();
+  const token = tokenParam || session?.token;
+  const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
+  const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
 
-    const res = await grpcProcess(
-      address,
-      "nonfinancial",
-      {
-        idempotencyKey: "",
-        clientId: "WEB-CLIENT",
-        requestType: env.MENU_REQUEST_TYPE || "MNU",
-        controlName: env.MENU_CONTROL_NAME || "MAIN_MENU",
-        recordFunction: "L",
-        recordId: "",
-        branchCode: env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999",
-        authLevel: 1,
-        userId: "SYSUSER",
-        data: {},
-      },
-      { token },
-    );
+  const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
+  const address = getServiceUrl(targetServiceKey);
 
-    if (res.statusCode !== 200 || !res.data) {
-      const fallbackResult = parseMNU(STATIC_MENU);
-      return fallbackResult.success ? fallbackResult.data : [];
-    }
+  const res = await grpcProcess(
+    address,
+    "nonfinancial",
+    {
+      idempotencyKey: "",
+      clientId: "WEB-CLIENT",
+      requestType: env.MENU_REQUEST_TYPE || "MNU",
+      controlName: env.MENU_CONTROL_NAME || "MAIN_MENU",
+      recordFunction: "L",
+      recordId: "",
+      branchCode,
+      authLevel: 1,
+      userId,
+      data: {},
+    },
+    { token },
+  );
 
-    const parsed = parseMNU(res.data);
-    if (parsed.success) {
-      return parsed.data;
-    }
-
-    const fallbackResult = parseMNU(STATIC_MENU);
-    return fallbackResult.success ? fallbackResult.data : [];
-  } catch (err) {
-    console.warn("[menu] gRPC menu fetch failed, falling back to static menu:", err);
-    const fallbackResult = parseMNU(STATIC_MENU);
-    return fallbackResult.success ? fallbackResult.data : [];
+  if (res.statusCode !== 200 || !res.data) {
+    throw new Error(`gRPC menu fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`);
   }
+
+  const parsed = parseMNU(res.data);
+  if (!parsed.success) {
+    throw new Error(`gRPC menu schema parsing failed: ${parsed.error}`);
+  }
+
+  return parsed.data;
 }
 
 /**

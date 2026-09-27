@@ -69,43 +69,38 @@ async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemComm
     return parseControlsPayload(STATIC_COMMANDS.data);
   }
 
-  try {
-    const session = await getSession();
-    const token = tokenParam || session?.token;
-    const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-    const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
+  // gRPC environment mode (Strict execution, no fallbacks)
+  const session = await getSession();
+  const token = tokenParam || session?.token;
+  const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
+  const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
 
-    const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
-    const address = getServiceUrl(targetServiceKey);
+  const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
+  const address = getServiceUrl(targetServiceKey);
 
-    const res = await grpcProcess(
-      address,
-      "nonfinancial",
-      {
-        idempotencyKey: "",
-        clientId: "WEB-CLIENT",
-        requestType: "GRL",
-        controlName: "CONTROL",
-        recordFunction: "L",
-        recordId: "",
-        branchCode,
-        authLevel: 1,
-        userId,
-        data: {},
-      },
-      { token },
-    );
+  const res = await grpcProcess(
+    address,
+    "nonfinancial",
+    {
+      idempotencyKey: "",
+      clientId: "WEB-CLIENT",
+      requestType: "GRL",
+      controlName: "CONTROL",
+      recordFunction: "L",
+      recordId: "",
+      branchCode,
+      authLevel: 1,
+      userId,
+      data: {},
+    },
+    { token },
+  );
 
-    if (res.statusCode === 200 && res.data) {
-      const items = parseControlsPayload(res.data);
-      if (items.length > 0) return items;
-    }
-
-    return parseControlsPayload(STATIC_COMMANDS.data);
-  } catch (err) {
-    console.warn("[controls] gRPC fetch failed, falling back to static commands:", err);
-    return parseControlsPayload(STATIC_COMMANDS.data);
+  if (res.statusCode !== 200 || !res.data) {
+    throw new Error(`gRPC controls fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`);
   }
+
+  return parseControlsPayload(res.data);
 }
 
 export async function getControlsData(token?: string): Promise<SystemCommandItem[]> {

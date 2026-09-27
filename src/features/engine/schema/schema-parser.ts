@@ -9,11 +9,12 @@ import {
   rawPropertyConfigSchema,
 } from "./schemas";
 
-export function widthForLength(length?: number): FieldWidth {
-  if (!length) return "md";
-  if (length <= 4) return "xs";
-  if (length <= 12) return "sm";
-  if (length <= 24) return "md";
+export function widthForLength(length?: number | string): FieldWidth {
+  const num = typeof length === "string" ? Number.parseInt(length, 10) : length;
+  if (!num || Number.isNaN(num)) return "md";
+  if (num <= 4) return "xs";
+  if (num <= 12) return "sm";
+  if (num <= 24) return "md";
   return "lg";
 }
 
@@ -71,6 +72,38 @@ export function toField(record: RawPropertyRecord): FormField {
  * Parses raw GMC backend payloads into a validated FormSchema object.
  * Guarantees zero crashes on malformed backend responses by returning structured errors.
  */
+function extractRawField(fieldNode: unknown): RawPropertyRecord {
+  if (!fieldNode || typeof fieldNode !== "object") return {};
+  const obj = fieldNode as Record<string, unknown>;
+
+  const structVal = (obj.struct_value || obj) as Record<string, unknown>;
+  const fields = (structVal.fields || structVal) as Record<string, unknown>;
+
+  const getValue = (val: unknown): unknown => {
+    if (typeof val === "object" && val !== null) {
+      const v = val as Record<string, unknown>;
+      if ("string_value" in v) return v.string_value;
+      if ("number_value" in v) return v.number_value;
+      if ("bool_value" in v) return v.bool_value;
+      if ("list_value" in v && typeof v.list_value === "object" && v.list_value !== null) {
+        const lv = v.list_value as Record<string, unknown>;
+        if (Array.isArray(lv.values)) {
+          return lv.values.map(getValue);
+        }
+      }
+      if ("struct_value" in v) return extractRawField(v);
+    }
+    return val;
+  };
+
+  const result: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(fields)) {
+    result[k] = getValue(v);
+  }
+
+  return result as RawPropertyRecord;
+}
+
 export function parseGMC(
   rawPayload: unknown,
   commandFallback: string = "FORM",
@@ -82,7 +115,45 @@ export function parseGMC(
     };
   }
 
-  const parseResult = rawPropertyConfigSchema.safeParse(rawPayload);
+  const obj = rawPayload as Record<string, unknown>;
+  const topFields = (obj.fields || obj) as Record<string, unknown>;
+  const recordWrapper = (topFields.record || topFields) as Record<string, unknown>;
+  const recordStruct = (recordWrapper.struct_value || recordWrapper) as Record<string, unknown>;
+  const recordFields = (recordStruct.fields || recordStruct) as Record<string, unknown>;
+
+  const getScalar = (fieldVal: unknown): unknown => {
+    if (typeof fieldVal === "object" && fieldVal !== null) {
+      const v = fieldVal as Record<string, unknown>;
+      if ("string_value" in v) return v.string_value;
+      if ("number_value" in v) return v.number_value;
+      if ("bool_value" in v) return v.bool_value;
+    }
+    return fieldVal;
+  };
+
+  const tableName = String(getScalar(recordFields.TABLENAME) ?? commandFallback);
+  const description = String(getScalar(recordFields.DESCRIPTION) ?? tableName);
+
+  let propertiesRaw: unknown[] = [];
+  const propsField = recordFields.PROPERTIES as Record<string, unknown> | undefined;
+  if (propsField && typeof propsField === "object" && "list_value" in propsField) {
+    const listVal = propsField.list_value as Record<string, unknown>;
+    if (Array.isArray(listVal.values)) {
+      propertiesRaw = listVal.values;
+    }
+  } else if (Array.isArray(recordFields.PROPERTIES)) {
+    propertiesRaw = recordFields.PROPERTIES;
+  }
+
+  const rawProperties = propertiesRaw.map(extractRawField);
+
+  const rawConfig: RawPropertyConfigRecord = {
+    TABLENAME: tableName,
+    DESCRIPTION: description,
+    PROPERTIES: rawProperties,
+  };
+
+  const parseResult = rawPropertyConfigSchema.safeParse(rawConfig);
   if (!parseResult.success) {
     return {
       success: false,
@@ -90,8 +161,7 @@ export function parseGMC(
     };
   }
 
-  const rawConfig: RawPropertyConfigRecord = parseResult.data;
-  const record = rawConfig.record ?? rawConfig;
+  const record = parseResult.data;
   const code = (record.TABLENAME ?? commandFallback).toUpperCase();
   const properties = record.PROPERTIES ?? [];
 

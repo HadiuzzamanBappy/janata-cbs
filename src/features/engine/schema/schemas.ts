@@ -10,7 +10,7 @@ export const rawPropertyRecordSchema = z.object({
   TYPE: z.string().optional(),
   REQUIRED: z.union([z.boolean(), z.string()]).optional(),
   DISABLED: z.union([z.boolean(), z.string()]).optional(),
-  LENGTH: z.number().optional(),
+  LENGTH: z.union([z.number(), z.string()]).optional(),
   DATASOURCE: z.array(z.string()).optional(),
 });
 

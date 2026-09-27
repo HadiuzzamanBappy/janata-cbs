@@ -47,7 +47,9 @@ async function fetchMenuFromBackend(tokenParam?: string): Promise<MenuItem[]> {
   );
 
   if (res.statusCode !== 200 || !res.data) {
-    throw new Error(`gRPC menu fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`);
+    throw new Error(
+      `gRPC menu fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`,
+    );
   }
 
   const parsed = parseMNU(res.data);

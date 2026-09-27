@@ -97,7 +97,9 @@ async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemComm
   );
 
   if (res.statusCode !== 200 || !res.data) {
-    throw new Error(`gRPC controls fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`);
+    throw new Error(
+      `gRPC controls fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`,
+    );
   }
 
   return parseControlsPayload(res.data);

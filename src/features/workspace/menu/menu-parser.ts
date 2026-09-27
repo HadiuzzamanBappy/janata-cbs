@@ -51,7 +51,7 @@ function toMenuItemNode(record: RawMenuRecord, index: number, parentId = "m"): M
     id,
     menuId,
     label: record.label ?? record.description ?? record.menuName ?? id,
-    command: hasChildren ? undefined : (command ? String(command).toUpperCase() : undefined),
+    command: hasChildren ? undefined : command ? String(command).toUpperCase() : undefined,
     children: hasChildren
       ? childrenRecords.map((child, i) => toMenuItemNode(child, i, id))
       : undefined,

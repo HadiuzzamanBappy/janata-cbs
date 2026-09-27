@@ -41,7 +41,9 @@ async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock
   );
 
   if (res.statusCode !== 200 || !res.data) {
-    throw new Error(`gRPC branch fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`);
+    throw new Error(
+      `gRPC branch fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`,
+    );
   }
 
   let rawItems: unknown[] = [];

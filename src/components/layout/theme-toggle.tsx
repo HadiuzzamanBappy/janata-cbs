@@ -82,7 +82,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           <Button
             variant="outline"
             size="icon"
-            className="bg-background border-border/80 hover:bg-accent hover:text-accent-foreground"
+            className="size-8 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0"
           />
         }
       >

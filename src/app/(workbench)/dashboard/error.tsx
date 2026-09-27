@@ -18,7 +18,7 @@ export default function DashboardError({
         title="Dashboard Error"
         description={error.message || "An unexpected error occurred in the dashboard interface."}
         action={
-          <Button onClick={() => reset()} variant="outline">
+          <Button onClick={() => reset()} variant="outline" size="sm" className="h-8 text-xs">
             Try Again
           </Button>
         }

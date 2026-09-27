@@ -52,10 +52,15 @@ export function ConfirmDialog({
           <DialogDescription className="pt-2">{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="mt-4 gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             {cancelText}
           </Button>
-          <Button variant={variant} onClick={handleConfirm} disabled={loading}>
+          <Button variant={variant} size="sm" onClick={handleConfirm} disabled={loading}>
             {loading ? "Please wait..." : confirmText}
           </Button>
         </DialogFooter>

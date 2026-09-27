@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { clearInitLoginCookie } from "../actions";
 
 export function ChangePassword() {
   const router = useRouter();
@@ -29,13 +28,16 @@ export function ChangePassword() {
     setLoading(true);
 
     try {
-      // TODO: Here we will eventually send the password change request.
-      // await fetch("/api/proxy", { ... })
+      const res = await fetch("/api/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldPassword, newPassword }),
+      });
 
-      // TODO: Replace this simulated network request once the API is ready.
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      await clearInitLoginCookie();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to update password");
+      }
 
       router.push("/");
       router.refresh();

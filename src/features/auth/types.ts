@@ -3,6 +3,7 @@ export interface UserDetails {
   fullName: string;
   userRole: string[];
   accessibility: string;
+  functionRights?: string[];
   branchCode: string;
   branchName: string;
   txnDate: string;

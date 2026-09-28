@@ -1,4 +1,4 @@
-import type { CurrentUser } from "@/lib/core/redis-session";
+import type { CurrentUser } from "@/lib/redis";
 
 export const STATIC_USERS: Record<string, CurrentUser> = {
   // A standard teller login (Username: ZZ028459)

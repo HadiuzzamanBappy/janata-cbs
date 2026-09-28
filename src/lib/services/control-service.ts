@@ -1,11 +1,10 @@
 import "server-only";
 import { STATIC_COMMANDS } from "@fixtures";
 import { env } from "@/lib/config/env";
-import { getOrSet } from "@/lib/core/cache";
 import type { SystemCommandItem } from "@/lib/core/commands";
-import { getSession } from "@/lib/core/redis-session";
 import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
+import { getOrSet, getSession } from "@/lib/redis";
 
 const CONTROLS_TTL_SECONDS = 600;
 

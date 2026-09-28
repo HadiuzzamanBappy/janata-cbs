@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { destroySession } from "@/lib/core/redis-session";
+import { destroySession } from "@/lib/redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

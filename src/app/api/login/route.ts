@@ -1,8 +1,8 @@
 import { STATIC_USERS } from "@fixtures";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/config";
-import { type CurrentUser, createSession, rateLimit } from "@/lib/core";
 import { grpcStatusToHttp, loginProcess } from "@/lib/grpc";
+import { type CurrentUser, createSession, rateLimit } from "@/lib/redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

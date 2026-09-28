@@ -2,10 +2,9 @@ import "server-only";
 import { STATIC_SPECS } from "@fixtures";
 import { type FormSchema, parseGMC } from "@/features/screens";
 import { env } from "@/lib/config/env";
-import { getOrSet } from "@/lib/core/cache";
-import { getSession } from "@/lib/core/redis-session";
 import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
+import { getOrSet, getSession } from "@/lib/redis";
 
 const SPEC_TTL_SECONDS = env.SPEC_TTL_SECONDS || 3600;
 

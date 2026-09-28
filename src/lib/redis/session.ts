@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
-import { getRedisClient } from "@/lib/core/redis-client";
+import { getRedisClient } from "./client";
 
 export interface CurrentUser {
   userId: string;

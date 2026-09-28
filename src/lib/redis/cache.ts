@@ -1,13 +1,6 @@
 import "server-only";
 import { env } from "@/lib/config";
-import {
-  cacheDelete,
-  cacheGet,
-  cacheKey,
-  cacheSet,
-  circuitOpen,
-  singleFlight,
-} from "@/lib/core/redis-client";
+import { cacheDelete, cacheGet, cacheKey, cacheSet, circuitOpen, singleFlight } from "./client";
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24 Hours
 

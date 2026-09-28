@@ -1,3 +1,5 @@
+import "server-only";
+
 // Core Server Services Public API
 export * from "./branch-service";
 export * from "./control-service";

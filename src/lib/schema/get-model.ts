@@ -9,7 +9,10 @@ import { grpcProcess } from "@/lib/grpc";
 
 const SPEC_TTL_SECONDS = env.SPEC_TTL_SECONDS || 3600;
 
-async function fetchSchemaFromBackend(command: string, tokenParam?: string): Promise<FormSchema | null> {
+async function fetchSchemaFromBackend(
+  command: string,
+  tokenParam?: string,
+): Promise<FormSchema | null> {
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
   if (env.MODEL_SOURCE === "static") {
@@ -47,7 +50,9 @@ async function fetchSchemaFromBackend(command: string, tokenParam?: string): Pro
   );
 
   if (res.statusCode !== 200 || !res.data) {
-    throw new Error(`gRPC GMC fetch failed for ${cleanCmd} with status code ${res.statusCode}: ${res.message || "No data returned"}`);
+    throw new Error(
+      `gRPC GMC fetch failed for ${cleanCmd} with status code ${res.statusCode}: ${res.message || "No data returned"}`,
+    );
   }
 
   const parsed = parseGMC(res.data, cleanCmd);

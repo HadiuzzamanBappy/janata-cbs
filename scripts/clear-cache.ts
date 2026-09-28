@@ -24,9 +24,12 @@ async function clearCache() {
       }
     } while (cursor !== "0");
 
-    console.log(`✓ Cache cleared successfully! Removed ${count} key(s) matching pattern "${pattern}".`);
-  } catch (err: any) {
-    console.error(`✕ Failed to clear Redis cache: ${err?.message || err}`);
+    console.log(
+      `✓ Cache cleared successfully! Removed ${count} key(s) matching pattern "${pattern}".`,
+    );
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error(`✕ Failed to clear Redis cache: ${errorMessage}`);
   } finally {
     redis.disconnect();
     process.exit(0);

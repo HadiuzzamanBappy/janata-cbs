@@ -105,7 +105,7 @@ export function FieldFactory({
               <SelectTrigger
                 id={field.name}
                 className={cn(
-                  "h-8 text-xs",
+                  "h-8 text-xs md:text-xs",
                   field.width === "lg"
                     ? "w-full max-w-2xl"
                     : field.width === "md"
@@ -130,7 +130,7 @@ export function FieldFactory({
               onSelect={handleDateChange}
               placeholder={`Select ${field.label}`}
               className={cn(
-                "h-8 text-xs",
+                "h-8 text-xs md:text-xs",
                 field.width === "lg"
                   ? "w-full max-w-2xl"
                   : field.width === "md"
@@ -147,7 +147,7 @@ export function FieldFactory({
               onChange={handleNumberChange}
               placeholder={`Enter ${field.label}`}
               className={cn(
-                "h-8 text-xs",
+                "h-8 text-xs md:text-xs",
                 field.width === "lg"
                   ? "w-full max-w-2xl"
                   : field.width === "md"
@@ -164,7 +164,7 @@ export function FieldFactory({
               onChange={handleTextChange}
               placeholder={`Enter ${field.label}`}
               className={cn(
-                "h-8 text-xs",
+                "h-8 text-xs md:text-xs",
                 field.width === "lg"
                   ? "w-full max-w-2xl"
                   : field.width === "md"

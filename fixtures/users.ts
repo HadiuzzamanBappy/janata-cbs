@@ -7,6 +7,7 @@ export const STATIC_USERS: Record<string, CurrentUser> = {
     fullName: "Teller User",
     userRole: ["TELLER"],
     accessibility: "STANDARD",
+    functionRights: ["R", "I", "S", "H"], // Read, Input, See, Hold (No Delete 'D' or Amend 'A')
     branchCode: "JB1001",
     branchName: "Motijheel Branch",
     txnDate: new Date().toISOString().split("T")[0],
@@ -15,12 +16,13 @@ export const STATIC_USERS: Record<string, CurrentUser> = {
     initLogin: false,
     userStatus: 1,
   },
-  // An admin login (Username: ZZ028460)
+  // An admin / supervisor login (Username: ZZ028460)
   zz028460: {
     userId: "ZZ028460",
     fullName: "System Administrator",
     userRole: ["ADMIN"],
     accessibility: "FULL",
+    functionRights: ["R", "I", "D", "A", "S", "H"], // Full RIDASH capabilities
     branchCode: "JB9999",
     branchName: "Head Office",
     txnDate: new Date().toISOString().split("T")[0],
@@ -35,6 +37,7 @@ export const STATIC_USERS: Record<string, CurrentUser> = {
     fullName: "New Staff Member",
     userRole: ["TELLER"],
     accessibility: "STANDARD",
+    functionRights: ["R", "S"], // Read-only / See
     branchCode: "JB1002",
     branchName: "Gulshan Branch",
     txnDate: new Date().toISOString().split("T")[0],

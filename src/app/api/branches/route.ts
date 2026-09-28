@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBranches } from "@/lib/schema/get-branches";
+import { getBranches } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

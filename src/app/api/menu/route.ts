@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMenuData } from "@/lib/schema/get-menu";
+import { getMenuData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

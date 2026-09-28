@@ -1,7 +1,7 @@
 "use client";
 
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
-import { useAlertStore } from "@/components/providers/alert-provider";
+import { useAlertStore } from "@/store";
 
 export function AppAlert() {
   const { isConfirmOpen, confirmOptions, closeConfirm } = useAlertStore();

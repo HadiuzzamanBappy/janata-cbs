@@ -1,8 +1,8 @@
 "use client";
 
 import { Calendar, MapPin, Shield, User } from "lucide-react";
-import { useSessionStore } from "@/components/providers/session-provider";
 import { Badge } from "@/components/ui/badge";
+import { useSessionStore } from "@/store";
 
 export function ProfileTab() {
   const { user } = useSessionStore();

@@ -2,9 +2,6 @@
 
 import { Compass, Layers, Settings, ShieldCheck, Sliders, Terminal } from "lucide-react";
 import * as React from "react";
-import { useAlertStore } from "@/components/providers/alert-provider";
-import { useSessionStore } from "@/components/providers/session-provider";
-import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { Badge } from "@/components/ui/badge";
 import {
   CommandDialog,
@@ -15,9 +12,9 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/command";
-import type { MenuItem } from "@/features/workspace";
-import { launchScreen } from "@/features/workspace";
+import { launchScreen, type MenuItem } from "@/features/screens";
 import { getAllRegisteredCommands, type SystemCommandItem } from "@/lib/core/commands";
+import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
 
 interface GlobalSearchProps {
   open: boolean;

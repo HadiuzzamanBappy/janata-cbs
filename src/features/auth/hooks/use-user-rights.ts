@@ -1,6 +1,6 @@
 "use client";
 
-import { useSessionStore } from "@/components/providers/session-provider";
+import { useSessionStore } from "@/store";
 
 export interface UserRights {
   canRead: boolean;

@@ -1,4 +1,4 @@
-import { ScreenSkeleton } from "@/features/engine/components/screen-skeleton";
+import { FormSkeleton as ScreenSkeleton } from "@/features/screens";
 
 export default function ScreenLoadingState() {
   return <ScreenSkeleton />;

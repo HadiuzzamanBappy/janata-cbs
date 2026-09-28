@@ -2,13 +2,12 @@
 
 import { XCircle } from "lucide-react";
 import * as React from "react";
-import { TabItem } from "@/components/layout/components/tab-item";
-import { TabWindowMenu } from "@/components/layout/components/tab-window-menu";
-import { useAlertStore } from "@/components/providers/alert-provider";
-import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useAlertStore, useWorkbenchStore } from "@/store";
+import { TabItem } from "./tabs/tab-item";
+import { TabWindowMenu } from "./tabs/tab-window-menu";
 
 export function AppTabBar() {
   const { tabs, activeTabId, closeAllTabs } = useWorkbenchStore();

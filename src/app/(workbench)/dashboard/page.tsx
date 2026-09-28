@@ -1,9 +1,9 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { useWorkbenchStore } from "@/components/providers/workbench-provider";
-import { ComponentLoader } from "@/features/workspace";
+import { ScreenLoader } from "@/features/screens";
 import { cn } from "@/lib/utils";
+import { useWorkbenchStore } from "@/store";
 
 export default function DashboardPage() {
   const { tabs, activeTabId } = useWorkbenchStore();
@@ -19,7 +19,7 @@ export default function DashboardPage() {
               key={tab.id}
               className={cn("w-full h-full flex-col flex-1", isActive ? "flex" : "hidden")}
             >
-              <ComponentLoader command={targetCommand} tabId={tab.id} mode="panel" />
+              <ScreenLoader command={targetCommand} tabId={tab.id} mode="panel" />
             </div>
           );
         })}

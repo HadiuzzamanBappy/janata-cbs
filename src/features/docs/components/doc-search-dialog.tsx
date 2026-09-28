@@ -10,8 +10,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { DEV_NAV_GROUPS } from "../config/dev-nav-config";
-import type { NavGroup } from "../config/types";
+import { DEV_NAV_GROUPS } from "../config";
+import type { NavGroup } from "../types";
 
 export interface DocSearchDialogProps {
   open: boolean;

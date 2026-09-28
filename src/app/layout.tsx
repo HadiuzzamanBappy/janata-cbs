@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ThemeProvider } from "@/store";
 
 export const metadata: Metadata = {
   title: "Janata Bank PLc.",

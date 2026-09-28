@@ -1,9 +1,14 @@
 import { z } from "zod";
 
-export const securityPasswordSchema = z
+export const changeUsernameSchema = z.object({
+  oldUserName: z.string().min(1, "Old user name is required"),
+  newUserName: z.string().min(1, "New user name is required"),
+  password: z.string().min(1, "Password is required to confirm"),
+});
+
+export const changePasswordSchema = z
   .object({
-    newUserName: z.string().min(1, "New user name is required"),
-    currPass: z.string().min(1, "Current password is required"),
+    oldPass: z.string().min(1, "Old password is required"),
     newPass: z
       .string()
       .min(6, "Minimum 6 characters required!")
@@ -11,11 +16,12 @@ export const securityPasswordSchema = z
       .regex(/.*[a-z].*/, "At least 1 lowercase character required!")
       .regex(/.*\d.*/, "At least 1 digit required!")
       .regex(/[!@#$%^&*(),.?":{}|<>]/, "At least 1 special character required!"),
-    confPass: z.string().min(1, "Please confirm your password"),
+    confPass: z.string().min(1, "Please confirm your new password"),
   })
   .refine((data) => data.newPass === data.confPass, {
     message: "New password and confirm password do not match.",
     path: ["confPass"],
   });
 
-export type SecurityPasswordInput = z.infer<typeof securityPasswordSchema>;
+export type ChangeUsernameInput = z.infer<typeof changeUsernameSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

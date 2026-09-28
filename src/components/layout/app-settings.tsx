@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, PaintbrushIcon, ShieldIcon, UserIcon } from "lucide-react";
+import { LogOut, PaintbrushIcon, ShieldIcon, UserIcon, BanIcon } from "lucide-react";
 import * as React from "react";
 import { useSessionStore } from "@/components/providers/session-provider";
 import {
@@ -24,7 +24,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { AppearanceTab, ProfileTab, SecurityTab } from "@/features/settings";
+import { AppearanceTab, ProfileTab, SecurityTab, DeactivateTab } from "@/features/settings";
 
 const data = {
   nav: [
@@ -42,6 +42,11 @@ const data = {
       name: "Appearance",
       icon: <PaintbrushIcon />,
       id: "appearance",
+    },
+    {
+      name: "Deactivate",
+      icon: <BanIcon />,
+      id: "deactivate",
     },
   ],
 };
@@ -133,6 +138,8 @@ export function AppSettings({
               {activeTab === "security" && <SecurityTab />}
 
               {activeTab === "appearance" && <AppearanceTab />}
+
+              {activeTab === "deactivate" && <DeactivateTab />}
             </div>
           </main>
         </SidebarProvider>

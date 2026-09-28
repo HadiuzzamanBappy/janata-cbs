@@ -180,7 +180,7 @@ export function AppSidebar({ openSettingsTab, clearSession, ...props }: AppSideb
   return (
     <Sidebar collapsible="offcanvas" className="border-r border-border/60" {...props}>
       {/* Sidebar Header */}
-      <SidebarHeader className="h-16 shrink-0 border-b border-border/60 px-4 py-0 flex flex-row items-center gap-3">
+      <SidebarHeader className="h-12 shrink-0 border-b border-border/60 px-3.5 py-0 flex flex-row items-center gap-2.5">
         <div className="flex items-center gap-3 min-w-0">
           <Image
             src={logo}

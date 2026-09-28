@@ -111,7 +111,7 @@ export function AppSettings({
             </SidebarFooter>
           </Sidebar>
           <main className="flex h-full flex-1 flex-col overflow-hidden bg-surface min-w-0">
-            <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-border/50">
+            <header className="flex h-12 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-border/50">
               <div className="flex items-center gap-2 px-4">
                 <SidebarTrigger className="md:hidden" />
                 <Breadcrumb>

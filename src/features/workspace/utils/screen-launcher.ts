@@ -7,6 +7,10 @@ export interface LaunchScreenOptions {
   title: string;
   componentName?: string;
   target?: DisplayTargetMode;
+  screenMode?: "IDLE" | "CREATE" | "EDIT";
+  searchRecordId?: string;
+  step?: "SELECTION" | "RESULTS";
+  formData?: Record<string, unknown>;
   addTab: (tab: { id: string; title: string; componentName: string }) => void;
   openSettingsTab?: (tabId: string) => void;
   clearSession?: () => void;
@@ -28,6 +32,10 @@ export function launchScreen({
   title,
   componentName = "DYNAMIC_FORM",
   target = "workspace",
+  screenMode,
+  searchRecordId,
+  step,
+  formData,
   addTab,
   openSettingsTab,
   clearSession,
@@ -38,7 +46,21 @@ export function launchScreen({
   const normalizedCmd = id.trim();
 
   if (target === "popup") {
-    const screenUrl = `/screen/${encodeURIComponent(normalizedCmd)}?title=${encodeURIComponent(title)}&component=${encodeURIComponent(componentName)}`;
+    const params = new URLSearchParams();
+    params.set("title", title);
+    params.set("component", componentName);
+    if (screenMode) params.set("mode", screenMode);
+    if (searchRecordId) params.set("recordId", searchRecordId);
+    if (step) params.set("step", step);
+    if (formData && Object.keys(formData).length > 0) {
+      try {
+        params.set("data", JSON.stringify(formData));
+      } catch {
+        // Safe JSON serialization fallback
+      }
+    }
+
+    const screenUrl = `/screen/${encodeURIComponent(normalizedCmd)}?${params.toString()}`;
     const popupFeatures = [
       "popup=yes",
       "width=1160",

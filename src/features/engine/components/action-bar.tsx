@@ -116,7 +116,7 @@ export function ActionBar({
           {/* Title & Command Code Sub-Label */}
           <div className="flex items-center gap-2 shrink-0 mr-3 sm:mr-6">
             <div className="size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <CheckCircle2 className="size-4" />
+              <CheckCircle2 className="size-3.5" />
             </div>
             <div className="flex flex-col justify-center min-w-0">
               <h2 className="text-sm font-bold tracking-tight text-foreground truncate max-w-[150px] sm:max-w-xs">
@@ -133,8 +133,8 @@ export function ActionBar({
           {/* Combined Left Search Bar + Integrated Chevron Dropdown Trigger */}
           {onRecordSearch && (
             <div className="flex items-center shrink-0">
-              <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground z-10 pointer-events-none" />
+              <form onSubmit={handleSearchSubmit} className="group relative flex items-center">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground group-focus-within:text-primary z-20 pointer-events-none transition-colors" />
                 <Input
                   type="text"
                   placeholder="Record ID..."
@@ -144,7 +144,7 @@ export function ActionBar({
                     if (onRecordIdChange) onRecordIdChange(e.target.value);
                   }}
                   disabled={!rights.canSee && !rights.canRead}
-                  className="h-8 pl-8 pr-2 w-32 sm:w-44 text-xs font-mono bg-muted/30 focus-visible:bg-background rounded-r-none border-r-0 focus-visible:z-10"
+                  className="h-8 pl-8 pr-2 w-48 sm:w-64 text-xs font-mono bg-muted/30 focus-visible:bg-background rounded-r-none border-r-0 focus-visible:z-10"
                 />
               </form>
 
@@ -293,7 +293,7 @@ export function ActionBar({
                   disabled={!onSubmit || submitting || (!rights.canInput && !rights.canAmend)}
                   className="size-8 text-primary shrink-0"
                 >
-                  <Check className="size-4 stroke-[2.5]" />
+                  <Check className="size-3.5 stroke-[2.5]" />
                 </Button>
               }
             />
@@ -316,7 +316,7 @@ export function ActionBar({
                   disabled={!onValidate || submitting || (!rights.canInput && !rights.canAmend)}
                   className="size-8 text-muted-foreground hover:text-foreground shrink-0"
                 >
-                  <CheckCheck className="size-4 stroke-[2.5]" />
+                  <CheckCheck className="size-3.5 stroke-[2.5]" />
                 </Button>
               }
             />
@@ -464,7 +464,7 @@ export function ActionBar({
                       : "bg-secondary text-muted-foreground opacity-60 cursor-not-allowed"
                   }`}
                 >
-                  <CheckCircle2 className="size-4" />
+                  <CheckCircle2 className="size-3.5" />
                 </Button>
               }
             />

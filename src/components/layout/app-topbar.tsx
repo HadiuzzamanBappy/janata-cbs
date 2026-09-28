@@ -55,7 +55,7 @@ export function TopBar() {
 
   return (
     <>
-      <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 transition-[width] ease-linear select-none">
+      <header className="flex h-12 shrink-0 items-center justify-between border-b px-3.5 transition-[width] ease-linear select-none">
         {/* Header Left: Sidebar Trigger, Vertical Divider, Global Search Trigger */}
         <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <SidebarTrigger className="-ml-1 shrink-0" />

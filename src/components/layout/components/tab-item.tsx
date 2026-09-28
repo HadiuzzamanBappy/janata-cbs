@@ -66,6 +66,9 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
                 title: tab.title,
                 componentName: tab.componentName,
                 target: "popup",
+                screenMode: tab.screenMode,
+                searchRecordId: tab.searchRecordId,
+                formData: tab.formData,
                 addTab,
               });
               removeTab(tab.id);

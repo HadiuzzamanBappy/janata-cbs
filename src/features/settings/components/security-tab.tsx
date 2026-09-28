@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { securityPasswordSchema } from "../schemas";
+import { securityPasswordSchema } from "../schema";
 
 export function ChangePassword({ command: _command }: { command?: string }) {
   const [loading, setLoading] = React.useState(false);

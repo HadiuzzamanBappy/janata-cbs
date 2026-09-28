@@ -7,7 +7,7 @@ export const STATIC_USERS: Record<string, CurrentUser> = {
     fullName: "Teller User",
     userRole: ["TELLER"],
     accessibility: "STANDARD",
-    functionRights: ["R", "I", "S", "H"], // Read, Input, See, Hold (No Delete 'D' or Amend 'A')
+    functionRights: ["R", "I", "D", "A", "S", "H"], // Read, Input, Delete, Amend, See, Hold
     branchCode: "JB1001",
     branchName: "Motijheel Branch",
     txnDate: new Date().toISOString().split("T")[0],

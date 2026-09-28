@@ -5,7 +5,7 @@ import type {
   FormSchema,
   RawPropertyConfigRecord,
   RawPropertyRecord,
-} from "./schema/schemas";
+} from "./schema/engine-schema";
 
 export type {
   FieldType,

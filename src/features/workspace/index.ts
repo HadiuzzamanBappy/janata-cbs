@@ -5,6 +5,6 @@ export { ComponentLoader } from "./components/component-loader";
 export { resolveControl } from "./components/component-registry";
 
 export * from "./menu/menu-parser";
-export * from "./menu/schemas";
+export * from "./menu/menu-schema";
 export * from "./types";
 export * from "./utils/screen-launcher";

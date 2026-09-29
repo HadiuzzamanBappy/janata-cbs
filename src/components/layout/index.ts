@@ -4,6 +4,7 @@ export * from "./app-alert";
 export * from "./app-search";
 export * from "./app-sidebar";
 export * from "./app-tabbar";
+export * from "./app-timeout-watcher";
 // Layout sections
 export * from "./app-topbar";
 // Header widgets

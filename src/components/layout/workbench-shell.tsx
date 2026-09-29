@@ -7,6 +7,7 @@ import { AlertStoreProvider, SessionStoreProvider, WorkbenchStoreProvider } from
 import { AppAlert } from "./app-alert";
 import { AppSidebar } from "./app-sidebar";
 import { AppTabBar } from "./app-tabbar";
+import { AppTimeoutWatcher } from "./app-timeout-watcher";
 import { TopBar } from "./app-topbar";
 
 export function WorkbenchShell({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ export function WorkbenchShell({ children }: { children: React.ReactNode }) {
             {/* Global UI Overlays */}
             <Toaster />
             <AppAlert />
+            <AppTimeoutWatcher />
           </SidebarProvider>
         </AlertStoreProvider>
       </WorkbenchStoreProvider>

@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { getMenuData } from "@/lib/services";
+import { getSession } from "@/lib/redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const menuItems = await getMenuData();
+    const session = await getSession();
+    if (!session?.token) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Active session required" },
+        { status: 401 },
+      );
+    }
+
+    const menuItems = await getMenuData(session.token);
     return NextResponse.json({ success: true, data: menuItems });
   } catch (error: unknown) {
     const err = error as { message?: string };

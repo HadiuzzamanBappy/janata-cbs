@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { getBranchesData } from "@/lib/services";
+import { getSession } from "@/lib/redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const branches = await getBranchesData();
+    const session = await getSession();
+    if (!session?.token) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Active session required" },
+        { status: 401 },
+      );
+    }
+
+    const branches = await getBranchesData(session.token);
     return NextResponse.json({ success: true, data: branches });
   } catch (error: unknown) {
     const err = error as { message?: string };

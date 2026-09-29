@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getModelData } from "@/lib/services";
+import { getSession } from "@/lib/redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,15 @@ export async function GET(
       );
     }
 
-    const schema = await getModelData(cmd);
+    const session = await getSession();
+    if (!session?.token) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized: Active session required" },
+        { status: 401 },
+      );
+    }
+
+    const schema = await getModelData(cmd, session.token);
 
     if (!schema) {
       return NextResponse.json(

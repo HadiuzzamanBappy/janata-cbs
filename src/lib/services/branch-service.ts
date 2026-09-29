@@ -21,6 +21,10 @@ async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock
   // gRPC environment mode (Strict execution, no fallbacks)
   const session = await getSession();
   const token = tokenParam || session?.token;
+  if (!token) {
+    throw new Error("UNAUTHENTICATED: No valid session token available for gRPC branch fetch");
+  }
+
   const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
   const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
 

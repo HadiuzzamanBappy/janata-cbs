@@ -40,6 +40,3 @@ export async function compilePortalPdf(
 
   return { blob, fileName, save };
 }
-
-// Backward-compatible alias
-export const generatePortalPdf = compilePortalPdf;

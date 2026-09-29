@@ -1,10 +1,9 @@
 import "server-only";
 import { type BranchMock, STATIC_BRANCHES } from "@fixtures";
 import { env } from "@/lib/config/env";
-import { getOrSet } from "@/lib/core/cache";
-import { getSession } from "@/lib/core/redis-session";
 import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
+import { getOrSet, getSession } from "@/lib/redis";
 
 const BRANCH_TTL_SECONDS = 3600; // 1 hour cache
 

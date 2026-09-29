@@ -9,10 +9,9 @@ export interface ServiceDef {
  * Microservice Endpoint Registry for CBS core & REST services.
  */
 export const SERVICES: Record<string, ServiceDef> = {
-  default: { url: env.GRPC_ADDRESS_DEFAULT || env.GRPC_ADDRESS },
-  defaultdev: { url: env.GRPC_ADDRESS_DEFAULTDEV },
-  customer: { url: env.SERVICE_URL_CUSTOMER },
-  finxurm: { url: env.SERVICE_URL_FINXURM },
+  default: { url: env.GRPC_HOST },
+  customer: { url: env.SERVICE_CUSTOMER_BASE_URL },
+  finxurm: { url: env.SERVICE_URM_BASE_URL },
 };
 
 export function getServices(): Record<string, ServiceDef> {

@@ -16,5 +16,5 @@ export * from "./components/pdf/portal-pdf-doc";
 // Configs & Types
 export * from "./config";
 export * from "./types";
-export * from "./utils/doc-file-reader";
+
 export * from "./utils/pdf-compiler";

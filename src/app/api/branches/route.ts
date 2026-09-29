@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getBranches } from "@/lib/services";
+import { getBranchesData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const branches = await getBranches();
+    const branches = await getBranchesData();
     return NextResponse.json({ success: true, data: branches });
   } catch (error: unknown) {
     const err = error as { message?: string };

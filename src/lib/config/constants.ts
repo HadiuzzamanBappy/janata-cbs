@@ -8,14 +8,11 @@ export const appConfig = {
   defaultServicePath: env.NEXT_PUBLIC_DEFAULT_SERVICE_PATH,
 
   grpc: {
-    address: env.GRPC_ADDRESS,
-    useTls: env.GRPC_TLS,
-    deadlineMs: env.GRPC_DEADLINE_MS,
+    address: env.GRPC_HOST,
+    useTls: env.GRPC_USE_TLS,
+    deadlineMs: env.GRPC_TIMEOUT_MS,
     modelSource: env.MODEL_SOURCE,
-    financialTypes: env.GRPC_FINANCIAL_TYPES.split(","),
-    modelRequestType: env.MODEL_REQUEST_TYPE,
-    menuRequestType: env.MENU_REQUEST_TYPE,
-    menuControlName: env.MENU_CONTROL_NAME,
+    financialTypes: env.GRPC_FINANCIAL_TRANSACTION_TYPES.split(","),
   },
 
   redis: {

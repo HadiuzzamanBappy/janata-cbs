@@ -6,14 +6,20 @@ import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
 import { getOrSet, getSession } from "@/lib/redis";
 
+/* ---------- Domain & Cache Constants ---------- */
 const SPEC_TTL_SECONDS = env.SPEC_TTL_SECONDS || 3600;
+const MODEL_REQUEST_TYPE = "GMC";
+const MODEL_CONTROL_NAME = "?";
+const MODEL_RECORD_FUNCTION = "S";
 
+/* ---------- Backend RPC Fetcher ---------- */
 async function fetchSchemaFromBackend(
   command: string,
   tokenParam?: string,
 ): Promise<FormSchema | null> {
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
+  // Static mock fallback
   if (env.MODEL_SOURCE === "static") {
     const rawMock = STATIC_SPECS[cleanCmd];
     if (!rawMock) return null;
@@ -27,8 +33,7 @@ async function fetchSchemaFromBackend(
   const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
   const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
 
-  const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
-  const address = getServiceUrl(targetServiceKey);
+  const address = getServiceUrl("default");
 
   const res = await grpcProcess(
     address,
@@ -36,9 +41,9 @@ async function fetchSchemaFromBackend(
     {
       idempotencyKey: "",
       clientId: "WEB-CLIENT",
-      requestType: env.MODEL_REQUEST_TYPE || "GMC",
-      controlName: "?",
-      recordFunction: "S",
+      requestType: MODEL_REQUEST_TYPE,
+      controlName: MODEL_CONTROL_NAME,
+      recordFunction: MODEL_RECORD_FUNCTION,
       recordId: cleanCmd,
       branchCode,
       authLevel: 1,
@@ -62,9 +67,7 @@ async function fetchSchemaFromBackend(
   return parsed.data;
 }
 
-/**
- * Server Component / RSC model specification fetcher with read-through Redis cache.
- */
+/* ---------- Exported Cached Readers ---------- */
 export async function getModelData(command: string, token?: string): Promise<FormSchema | null> {
   const cleanCommand = command.toUpperCase();
   const cacheKey = `spec:${cleanCommand}`;

@@ -362,5 +362,3 @@ export function FormScreen({
   );
 }
 
-// Backward-compatible alias
-export const DynamicForm = FormScreen;

@@ -25,7 +25,7 @@ declare global {
 
 // TODO: [Step 8 - Production Tuning] Implement multi-channel gRPC connection pooling for high-concurrency peak load.
 function buildClient(address: string): GrpcServiceClient {
-  const creds: ChannelCredentials = env.GRPC_TLS
+  const creds: ChannelCredentials = env.GRPC_USE_TLS
     ? credentials.createSsl()
     : credentials.createInsecure();
   return new GrpcServiceClient(address, creds, {
@@ -54,10 +54,7 @@ export interface CallOpts {
 
 /* ---------- Unauthenticated RPC: Login ---------- */
 export function loginProcess(req: LoginRequest, _opts: CallOpts = {}): Promise<GrpcResponse> {
-  const address =
-    process.env.NODE_ENV === "development"
-      ? env.GRPC_ADDRESS_DEFAULTDEV || env.GRPC_ADDRESS
-      : env.GRPC_ADDRESS_DEFAULT || env.GRPC_ADDRESS;
+  const address = env.GRPC_HOST;
 
   const client = getClient(address);
   return new Promise<GrpcResponse>((resolve, reject) => {

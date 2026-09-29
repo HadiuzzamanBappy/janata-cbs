@@ -6,10 +6,18 @@ import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
 import { getOrSet, getSession } from "@/lib/redis";
 
+/* ---------- Domain & Cache Constants ---------- */
 const MENU_TTL_SECONDS = env.MENU_TTL_SECONDS || 600;
+const MENU_REQUEST_TYPE = "GUM";
+const DEFAULT_MENU_CONTROL = "MAIN_MENU";
+const MENU_RECORD_FUNCTION = "L";
 
-async function fetchMenuFromBackend(tokenParam?: string): Promise<MenuItem[]> {
-  // Static environment mode
+/* ---------- Backend RPC Fetcher ---------- */
+async function fetchMenuFromBackend(
+  controlName: string = DEFAULT_MENU_CONTROL,
+  tokenParam?: string,
+): Promise<MenuItem[]> {
+  // Static mock fallback
   if (env.MODEL_SOURCE === "static") {
     const parseResult = parseMNU(STATIC_MENU);
     if (!parseResult.success) {
@@ -24,8 +32,7 @@ async function fetchMenuFromBackend(tokenParam?: string): Promise<MenuItem[]> {
   const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
   const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
 
-  const targetServiceKey = process.env.NODE_ENV === "development" ? "defaultdev" : "default";
-  const address = getServiceUrl(targetServiceKey);
+  const address = getServiceUrl("default");
 
   const res = await grpcProcess(
     address,
@@ -33,9 +40,9 @@ async function fetchMenuFromBackend(tokenParam?: string): Promise<MenuItem[]> {
     {
       idempotencyKey: "",
       clientId: "WEB-CLIENT",
-      requestType: env.MENU_REQUEST_TYPE || "MNU",
-      controlName: env.MENU_CONTROL_NAME || "MAIN_MENU",
-      recordFunction: "L",
+      requestType: MENU_REQUEST_TYPE,
+      controlName,
+      recordFunction: MENU_RECORD_FUNCTION,
       recordId: "",
       branchCode,
       authLevel: 1,
@@ -59,10 +66,11 @@ async function fetchMenuFromBackend(tokenParam?: string): Promise<MenuItem[]> {
   return parsed.data;
 }
 
-/**
- * Server Component / RSC menu fetcher with read-through Redis cache.
- */
-export async function getMenuData(token?: string): Promise<MenuItem[]> {
-  const cacheKey = `menu:${env.MENU_CONTROL_NAME || "MAIN_MENU"}`;
-  return getOrSet(cacheKey, () => fetchMenuFromBackend(token), MENU_TTL_SECONDS);
+/* ---------- Exported Cached Readers ---------- */
+export async function getMenuData(
+  token?: string,
+  controlName: string = DEFAULT_MENU_CONTROL,
+): Promise<MenuItem[]> {
+  const cacheKey = `menu:${controlName}`;
+  return getOrSet(cacheKey, () => fetchMenuFromBackend(controlName, token), MENU_TTL_SECONDS);
 }

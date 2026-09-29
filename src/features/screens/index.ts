@@ -5,8 +5,6 @@ export * from "./enquiries";
 export * from "./forms";
 export * from "./launcher";
 export * from "./loader";
-// Alias for backwards-compatibility
-export { ScreenLoader as ComponentLoader } from "./loader";
 export * from "./registry";
 export * from "./schemas";
 export * from "./types";

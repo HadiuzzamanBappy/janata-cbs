@@ -1,7 +1,7 @@
 import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/icon.png";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { ThemeToggle } from "@/components/layout";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const currentDate = new Date().toISOString().split("T")[0];

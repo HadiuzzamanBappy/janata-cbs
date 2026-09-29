@@ -1,17 +1,20 @@
-// Docs Feature Module Public API Barrier
+// Docs Feature Module Public API
 
-// Actions
-export * from "./actions/fetch-portal-docs";
-
-// Components
+// Server Actions
+export * from "./actions";
 export * from "./components/doc-header";
-export * from "./components/doc-pdf-modal";
+// Layout & Core UI Components
 export * from "./components/doc-portal-layout";
 export * from "./components/doc-search-dialog";
 export * from "./components/doc-sidebar";
 export * from "./components/mermaid-diagram";
 
+// PDF Subsystem Components & Compiler
+export * from "./components/pdf/doc-pdf-modal";
+export * from "./components/pdf/pdf-styles";
+export * from "./components/pdf/portal-pdf-doc";
 // Configs & Types
-export * from "./config/dev-nav-config";
-export * from "./config/manual-nav-config";
-export * from "./config/types";
+export * from "./config";
+export * from "./types";
+export * from "./utils/doc-file-reader";
+export * from "./utils/pdf-compiler";

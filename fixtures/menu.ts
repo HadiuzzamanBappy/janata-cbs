@@ -1,4 +1,4 @@
-import type { MenuItem } from "@/features/workspace";
+import type { MenuItem } from "@/features/screens";
 
 /**
  * Offline development mock menu hierarchy tree.

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getModelData } from "@/lib/schema/get-model";
+import { getModelData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

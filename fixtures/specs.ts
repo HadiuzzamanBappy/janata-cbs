@@ -1,4 +1,4 @@
-import type { RawPropertyConfigRecord } from "@/features/engine";
+import type { RawPropertyConfigRecord } from "@/features/screens";
 
 /**
  * Offline development mock specs matching the GMC backend schema.

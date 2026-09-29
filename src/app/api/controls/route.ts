@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getControlsData } from "@/lib/schema/get-controls";
+import { getControlsData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

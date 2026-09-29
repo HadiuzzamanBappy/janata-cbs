@@ -51,7 +51,7 @@ export function DeactivateTab() {
     try {
       // Simulate API call for deactivation
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       setSuccess("Account marked for deactivation successfully!");
       setDeactivateDate("");
       setReactivationDate("");

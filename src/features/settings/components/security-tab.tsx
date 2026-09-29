@@ -6,7 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { changeUsernameSchema, changePasswordSchema } from "../schema";
+import { changePasswordSchema, changeUsernameSchema } from "../schemas";
 
 export function ChangePassword({ command: _command }: { command?: string }) {
   // Username State
@@ -81,7 +81,9 @@ export function ChangePassword({ command: _command }: { command?: string }) {
         setOldUserName(newUserName);
         setNewUserName("");
       } else {
-        setUnameError(res.errors ? res.errors.join(", ") : res.message || "Failed to change sign-on name.");
+        setUnameError(
+          res.errors ? res.errors.join(", ") : res.message || "Failed to change sign-on name.",
+        );
       }
     } catch (err: unknown) {
       setUnameError(err instanceof Error ? err.message : "An unexpected error occurred.");
@@ -132,7 +134,9 @@ export function ChangePassword({ command: _command }: { command?: string }) {
         setNewPass("");
         setConfPass("");
       } else {
-        setPassError(res.errors ? res.errors.join(", ") : res.message || "Failed to change password.");
+        setPassError(
+          res.errors ? res.errors.join(", ") : res.message || "Failed to change password.",
+        );
       }
     } catch (err: unknown) {
       setPassError(err instanceof Error ? err.message : "An unexpected error occurred.");
@@ -146,7 +150,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
       {/* Change Sign-on Name Section */}
       <div className="bg-background rounded-lg border border-border/50 p-6 shadow-sm">
         <h3 className="text-sm font-semibold mb-4">Change Sign-on Name</h3>
-        
+
         {unameError && (
           <Alert variant="destructive" className="mb-6">
             <AlertTitle>Error</AlertTitle>
@@ -164,11 +168,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
         <form onSubmit={handleChangeUsername} className="space-y-3 max-w-md">
           <div className="space-y-1">
             <Label className="font-medium text-xs">Old Sign-on Name</Label>
-            <Input 
-              value={oldUserName} 
-              disabled 
-              className="bg-muted/50 h-9 text-xs" 
-            />
+            <Input value={oldUserName} disabled className="bg-muted/50 h-9 text-xs" />
           </div>
 
           <div className="space-y-1 pt-1">

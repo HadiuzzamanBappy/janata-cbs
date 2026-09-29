@@ -3,15 +3,14 @@
 import { Search } from "lucide-react";
 import * as React from "react";
 import { AppSearch } from "@/components/layout/app-search";
-import { AppSettings } from "@/components/layout/app-settings";
-import { BranchSwitcher } from "@/components/layout/components/branch-switcher";
-import { UserMenu } from "@/components/layout/components/user-menu";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { useSessionStore } from "@/components/providers/session-provider";
-
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SettingsDialog } from "@/features/settings";
+import { useSessionStore } from "@/store";
+import { BranchSwitcher } from "./header/branch-switcher";
+import { ThemeToggle } from "./header/theme-toggle";
+import { UserMenu } from "./header/user-menu";
 
 export function TopBar() {
   const [searchOpen, setSearchOpen] = React.useState(false);
@@ -85,7 +84,7 @@ export function TopBar() {
         </div>
       </header>
       <AppSearch open={searchOpen} onOpenChange={setSearchOpen} openSettingsTab={openSettingsTab} />
-      <AppSettings
+      <SettingsDialog
         open={settingsOpen}
         onOpenChange={setSettingsOpen}
         activeTab={settingsTab}

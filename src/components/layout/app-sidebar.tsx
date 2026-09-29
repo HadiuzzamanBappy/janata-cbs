@@ -4,11 +4,11 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import logo from "@/app/icon.png";
-import { useWorkbenchStore } from "@/components/providers/workbench-provider";
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { launchScreen, type MenuItem } from "@/features/workspace";
+import { launchScreen, type MenuItem } from "@/features/screens";
 import { cn } from "@/lib/utils";
+import { useWorkbenchStore } from "@/store";
 
 export interface TreeNode {
   id: string;

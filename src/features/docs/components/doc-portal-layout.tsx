@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { NavGroup } from "../config/types";
+import type { NavGroup } from "../types";
 import { DocHeader } from "./doc-header";
 import { DocSearchDialog } from "./doc-search-dialog";
 import { DocSidebar } from "./doc-sidebar";

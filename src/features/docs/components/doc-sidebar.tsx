@@ -11,8 +11,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { DEV_NAV_GROUPS } from "../config/dev-nav-config";
-import type { NavGroup } from "../config/types";
+import { DEV_NAV_GROUPS } from "../config";
+import type { NavGroup } from "../types";
 
 export interface DocSidebarProps {
   portalTitle?: string;

@@ -3,10 +3,10 @@
 import { Download, Home, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { DEV_NAV_GROUPS } from "../config/dev-nav-config";
-import type { NavGroup } from "../config/types";
-import { DocPdfModal } from "./doc-pdf-modal";
+import { ThemeToggle } from "@/components/layout";
+import { DEV_NAV_GROUPS } from "../config";
+import type { NavGroup } from "../types";
+import { DocPdfModal } from "./pdf/doc-pdf-modal";
 
 export interface DocHeaderProps {
   onOpenSearch: () => void;

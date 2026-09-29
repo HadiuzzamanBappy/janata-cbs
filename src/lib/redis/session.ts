@@ -23,11 +23,12 @@ export interface SessionData {
   token: string;
   currUser: CurrentUser;
   createdAt: number;
+  lastActiveAt: number;
 }
 
 const COOKIE_NAME = "sid";
 const SESSION_PREFIX = "sess:";
-const TTL_SECONDS = 60 * 60 * 8; // 8-hour sliding window
+const TTL_SECONDS = 60 * 60 * 8; // 8-hour max session lifespan
 
 const sessionKey = (id: string): string => `${SESSION_PREFIX}${id}`;
 
@@ -39,7 +40,7 @@ async function currentSessionId(): Promise<string | null> {
 /**
  * Creates a new session in Redis and sets the HTTP-only opaque cookie.
  */
-export async function createSession(data: Omit<SessionData, "createdAt">): Promise<string> {
+export async function createSession(data: Omit<SessionData, "createdAt" | "lastActiveAt">): Promise<string> {
   const store = await cookies();
   const oldId = store.get(COOKIE_NAME)?.value;
   const redis = getRedisClient();
@@ -53,7 +54,8 @@ export async function createSession(data: Omit<SessionData, "createdAt">): Promi
   }
 
   const id = randomUUID();
-  const payload: SessionData = { ...data, createdAt: Date.now() };
+  const now = Date.now();
+  const payload: SessionData = { ...data, createdAt: now, lastActiveAt: now };
   const key = sessionKey(id);
 
   if (redis) {
@@ -88,7 +90,7 @@ export async function createSession(data: Omit<SessionData, "createdAt">): Promi
 }
 
 /**
- * Reads the session from Redis and resets its TTL (sliding window expiry).
+ * Reads the session from Redis and validates the 10-minute inactivity window.
  */
 export async function getSession(): Promise<SessionData | null> {
   const id = await currentSessionId();
@@ -101,9 +103,24 @@ export async function getSession(): Promise<SessionData | null> {
     const raw = await redis.get(sessionKey(id));
     if (!raw) return null;
 
-    await redis.expire(sessionKey(id), TTL_SECONDS);
-    // TODO: [Step 4 - Auth Flow] Implement automatic JWT refresh token rotation on sliding session renewal.
-    return JSON.parse(raw) as SessionData;
+    const session = JSON.parse(raw) as SessionData;
+
+    // Server-side Inactivity Guard (default 10 minutes)
+    const timeoutMinutes = Number(process.env.NEXT_PUBLIC_LOGOUT_TIME || 10);
+    const maxInactiveMs = timeoutMinutes * 60 * 1000;
+    const now = Date.now();
+
+    if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
+      console.warn(`[session] Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
+      await destroySession();
+      return null;
+    }
+
+    // Refresh lastActiveAt and extend Redis TTL
+    session.lastActiveAt = now;
+    await redis.set(sessionKey(id), JSON.stringify(session), "EX", TTL_SECONDS);
+
+    return session;
   } catch {
     return null;
   }

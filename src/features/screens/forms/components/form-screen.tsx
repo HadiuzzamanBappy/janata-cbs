@@ -126,12 +126,12 @@ export function FormScreen({
     return "";
   }, [currentTab]);
 
-  const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT">(initialMode);
+  const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT" | "VIEW">(initialMode);
   const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialRecordId);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
   const setScreenMode = React.useCallback(
-    (mode: "IDLE" | "CREATE" | "EDIT") => {
+    (mode: "IDLE" | "CREATE" | "EDIT" | "VIEW") => {
       setScreenModeState(mode);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, { screenMode: mode });
@@ -319,10 +319,81 @@ export function FormScreen({
             return;
           }
 
-          setScreenMode("EDIT");
+          setScreenMode("VIEW");
           toast.add({
             title: "View Record",
             description: `Viewing record details for #${id} (${schema.title})`,
+            type: "info",
+          });
+        }}
+        onPerformAction={() => {
+          const id = searchRecordId.trim();
+          if (!id) {
+            toast.add({
+              title: "Input Required",
+              description: "Please enter or select a Record ID to perform action.",
+              type: "warning",
+            });
+            return;
+          }
+
+          setScreenMode("EDIT");
+          toast.add({
+            title: "Perform Action",
+            description: `Executing action on record #${id} (${schema.title})`,
+            type: "info",
+          });
+        }}
+        onHold={
+          screenMode !== "IDLE"
+            ? () => {
+                toast.add({
+                  title: "Transaction Held",
+                  description: `Record draft for ${schema.title} placed on Hold (HLD status).`,
+                  type: "info",
+                });
+              }
+            : undefined
+        }
+        onDelete={
+          screenMode !== "IDLE"
+            ? () => {
+                toast.add({
+                  title: "Record Reversal Queued",
+                  description: `Transaction marked for reversal/deletion in ${schema.title}.`,
+                  type: "warning",
+                });
+              }
+            : undefined
+        }
+        onAuthorizeReverse={
+          screenMode !== "IDLE"
+            ? () => {
+                toast.add({
+                  title: "Authorize Reversal",
+                  description: `Authorizing transaction reversal for record #${searchRecordId || "CURRENT"}.`,
+                  type: "warning",
+                });
+              }
+            : undefined
+        }
+        onProcessAction={
+          screenMode !== "IDLE"
+            ? () => {
+                toast.add({
+                  title: "Process / Verify Record",
+                  description: `Executing verification & end-of-stage process for ${schema.title}.`,
+                  type: "success",
+                });
+              }
+            : undefined
+        }
+        onReturnToSearch={() => {
+          resetForm(initialValues);
+          setScreenMode("IDLE");
+          toast.add({
+            title: "Returned to Search",
+            description: "Returned to initial dashboard / lookup state.",
             type: "info",
           });
         }}

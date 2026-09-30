@@ -10,7 +10,7 @@ export interface WorkbenchTab {
   componentName: string;
   props?: Record<string, unknown>;
   formData?: Record<string, unknown>; // Draft form input values typed by user
-  screenMode?: "IDLE" | "CREATE" | "EDIT";
+  screenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
   searchRecordId?: string;
 }
 

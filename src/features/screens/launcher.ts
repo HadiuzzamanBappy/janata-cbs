@@ -7,7 +7,7 @@ export interface LaunchScreenOptions {
   title: string;
   componentName?: string;
   target?: DisplayTargetMode;
-  screenMode?: "IDLE" | "CREATE" | "EDIT";
+  screenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
   searchRecordId?: string;
   step?: "SELECTION" | "RESULTS";
   formData?: Record<string, unknown>;

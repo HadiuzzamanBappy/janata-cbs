@@ -1,7 +1,7 @@
 # 🔐 Authentication & Session Domain Architecture
 
 ## 1. Executive Summary & Purpose
-This document specifies the architecture, data flow, state ownership, and security constraints of the Authentication & Session feature module in `finx-ui` located at [src/features/auth/](file:///d:/Work/React/cbs/finx-ui/src/features/auth).
+This document specifies the architecture, data flow, state ownership, and security constraints of the Authentication & Session feature module in `finx-ui` located at [src/features/auth/](file:///d:/CBS/In_house/finx/finxui-ref/src/features/auth).
 
 This domain handles banking officer authentication, first-time mandatory password change workflows (`SC.CHANGE.PASS.tsx`), sliding-expiry Redis session management, and branch switching authorization.
 
@@ -21,17 +21,17 @@ flowchart TD
 
 ## 3. Domain Components & Responsibilities
 
-### 1. `LoginForm` ([src/features/auth/components/login-form.tsx](file:///d:/Work/React/cbs/finx-ui/src/features/auth/components/login-form.tsx))
+### 1. `LoginForm` ([src/features/auth/components/login-form.tsx](file:///d:/CBS/In_house/finx/finxui-ref/src/features/auth/components/login-form.tsx))
 - **Role:** Handles username, password, and branch selection inputs.
-- **Validation:** Uses `loginSchema` in [src/features/auth/schemas.ts](file:///d:/Work/React/cbs/finx-ui/src/features/auth/schemas.ts).
+- **Validation:** Uses `loginSchema` in [src/features/auth/schemas.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/features/auth/schemas.ts).
 
-### 2. `ChangePassword` ([src/features/auth/components/change-password.tsx](file:///d:/Work/React/cbs/finx-ui/src/features/auth/components/change-password.tsx))
+### 2. `ChangePassword` ([src/features/auth/components/change-password.tsx](file:///d:/CBS/In_house/finx/finxui-ref/src/features/auth/components/change-password.tsx))
 - **Role:** Forces mandatory password updates for expired credentials or first-time officer logins.
 - **Override Command:** Resolves custom screen override `SC.CHANGE.PASS.tsx` via `ComponentLoader`.
 
 ### 3. Server Actions & Session Store
-- **Server Actions:** `logoutAction` and `changePasswordAction` in [src/features/auth/actions.ts](file:///d:/Work/React/cbs/finx-ui/src/features/auth/actions.ts).
-- **Session State:** Managed on the client via `useSessionStore` in [src/store/session-store.ts](file:///d:/Work/React/cbs/finx-ui/src/store/session-store.ts).
+- **Server Actions:** `logoutAction` and `changePasswordAction` in [src/features/auth/actions.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/features/auth/actions.ts).
+- **Session State:** Managed on the client via `useSessionStore` in [src/store/session-store.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/store/session-store.ts).
 
 ---
 
@@ -71,5 +71,5 @@ pnpm lint
 
 ## 7. Affected Documentation Updates
 When modifying authentication logic or schemas, update:
-- [docs/03-domain-features/auth-and-session.md](file:///d:/Work/React/cbs/finx-ui/docs/03-domain-features/auth-and-session.md)
-- [docs/01-architecture/security-and-secrets.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/security-and-secrets.md)
+- [docs/03-domain-features/auth-and-session.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/03-domain-features/auth-and-session.md)
+- [docs/01-architecture/security-and-secrets.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/security-and-secrets.md)

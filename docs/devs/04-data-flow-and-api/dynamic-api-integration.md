@@ -36,7 +36,7 @@ Dynamic operations specify the exact database action using standard single-chara
 
 ## 4. Generic Response Envelope Contract (`APIResponse<T>`)
 
-All Dynamic API operations return a standardized response envelope defined in [src/types/index.ts](file:///d:/Work/React/cbs/finx-ui/src/types/index.ts):
+All Dynamic API operations return a standardized response envelope defined in [src/types/index.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/types/index.ts):
 
 ```typescript
 export interface APIResponse<T = unknown> {
@@ -72,5 +72,5 @@ pnpm lint
 
 ## 7. Affected Documentation Updates
 When modifying Dynamic API contracts, update:
-- [docs/04-data-flow-and-api/dynamic-api-integration.md](file:///d:/Work/React/cbs/finx-ui/docs/04-data-flow-and-api/dynamic-api-integration.md)
-- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/Work/React/cbs/finx-ui/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)
+- [docs/04-data-flow-and-api/dynamic-api-integration.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/dynamic-api-integration.md)
+- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)

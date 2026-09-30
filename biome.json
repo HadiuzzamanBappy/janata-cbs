@@ -71,13 +71,10 @@
           "options": {
             "paths": {
               "@/features/auth/components": "Deep feature imports are forbidden. Import from '@/features/auth' public barrel instead.",
-              "@/features/engine/components": "Deep feature imports are forbidden. Import from '@/features/engine' public barrel instead.",
-              "@/features/engine/hooks": "Deep feature imports are forbidden. Import from '@/features/engine' public barrel instead.",
-              "@/features/engine/schema": "Deep feature imports are forbidden. Import from '@/features/engine' public barrel instead.",
-              "@/features/settings/components": "Deep feature imports are forbidden. Import from '@/features/settings' public barrel instead.",
-              "@/features/workspace/components": "Deep feature imports are forbidden. Import from '@/features/workspace' public barrel instead.",
-              "@/features/workspace/menu": "Deep feature imports are forbidden. Import from '@/features/workspace' public barrel instead.",
-              "@/features/workspace/utils": "Deep feature imports are forbidden. Import from '@/features/workspace' public barrel instead."
+              "@/features/docs/components": "Deep feature imports are forbidden. Import from '@/features/docs' public barrel instead.",
+              "@/features/screens/forms/components": "Deep feature imports are forbidden. Import from '@/features/screens' public barrel instead.",
+              "@/features/screens/enquiries/components": "Deep feature imports are forbidden. Import from '@/features/screens' public barrel instead.",
+              "@/features/settings/components": "Deep feature imports are forbidden. Import from '@/features/settings' public barrel instead."
             }
           }
         }

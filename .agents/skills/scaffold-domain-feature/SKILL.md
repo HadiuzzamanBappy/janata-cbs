@@ -28,5 +28,12 @@ Generate the foundational files for this feature domain. Every domain should ide
 - Ensure all Server Actions in `actions.ts` are marked with `"use server"`.
 - Do not import `server-only` global config files into client components.
 
-### Step 4: Verify Formatting
-Ensure the UI uses standard `shadcn/ui` components imported from `src/components/ui/` and styled with Tailwind OKLCH variables.
+### Step 4: Register in Screen Registry (If Screen Component)
+If the feature exposes a CBS screen override for a specific command, register it in `src/features/screens/registry.tsx`:
+```typescript
+"MY.NEW.CMD": lazy(() => import("@/features/my-domain").then(m => ({ default: m.MyScreenComponent })))
+```
+
+### Step 5: Verify Formatting & Types
+Ensure the UI uses standard `shadcn/ui` components imported from `src/components/ui/` and styled with Tailwind OKLCH variables. Verify with `pnpm typecheck`.
+

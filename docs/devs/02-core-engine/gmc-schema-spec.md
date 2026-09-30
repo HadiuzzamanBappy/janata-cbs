@@ -1,9 +1,9 @@
 # 📋 Dynamic GMC Payload & Schema Specification
 
 ## 1. Executive Summary & Purpose
-This document specifies the format, structure, and validation rules for General Model Configuration (`GMC`) payloads in the Janata CBS Core Banking Workbench (`finx-ui`).
+This document specifies the format, structure, and validation rules for General Model Configuration (`GMC`) payloads in the Janata CBS Core Banking Workbench (`finxui-ref`).
 
-In Janata CBS, UI forms are not statically hardcoded. The backend database returns dynamic `GMC` model definitions over gRPC. The engine in [src/features/engine/](file:///d:/Work/React/cbs/finx-ui/src/features/engine) parses these raw backend payloads via Zod, normalizes control specifications, and computes a responsive 12-column form grid.
+In Janata CBS, UI forms are not statically hardcoded. The backend database returns dynamic `GMC` model definitions over gRPC. The engine in [src/features/screens/forms/](file:///d:/CBS/In_house/finx/finxui-ref/src/features/screens/forms) parses these raw backend payloads via Zod, normalizes control specifications, and computes a responsive 12-column form grid.
 
 ---
 
@@ -13,13 +13,13 @@ In Janata CBS, UI forms are not statically hardcoded. The backend database retur
 flowchart LR
     DB["Java Core DB (GMC Spec)"] -->|gRPC Model Payload| BFF["Next.js BFF /api/model/[cmd]"]
     BFF -->|Zod Schema Parsing| Parser["schema-parser.ts"]
-    Parser -->|Normalized UI Model| UI["Client UI (DynamicForm)"]
+    Parser -->|Normalized UI Model| UI["Client UI (FormScreen)"]
 ```
 
 1. **Source-of-Truth:** Java Core Backend database model configuration table.
-2. **BFF Fetcher:** [src/lib/schema/get-model.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/schema/get-model.ts) or `src/app/api/model/[cmd]/route.ts`.
-3. **Parser & Normalizer:** [src/features/engine/schema/schema-parser.ts](file:///d:/Work/React/cbs/finx-ui/src/features/engine/schema/schema-parser.ts) using Zod definitions in [src/features/engine/schema/schemas.ts](file:///d:/Work/React/cbs/finx-ui/src/features/engine/schema/schemas.ts).
-4. **Render Consumer:** [src/features/engine/components/dynamic-form.tsx](file:///d:/Work/React/cbs/finx-ui/src/features/engine/components/dynamic-form.tsx).
+2. **BFF Endpoint:** [src/app/api/model/[cmd]/route.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/app/api/model/%5Bcmd%5D/route.ts) with [src/lib/services/model-service.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/services/model-service.ts).
+3. **Parser & Normalizer:** [src/features/screens/forms/utils/schema-parser.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/features/screens/forms/utils/schema-parser.ts) using Zod definitions in [src/features/screens/forms/schemas.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/features/screens/forms/schemas.ts).
+4. **Render Consumer:** [src/features/screens/forms/components/form-screen.tsx](file:///d:/CBS/In_house/finx/finxui-ref/src/features/screens/forms/components/form-screen.tsx).
 
 ---
 
@@ -66,7 +66,7 @@ Dynamic form layouts calculate control widths using standard 12-column grid span
 
 ## 5. Security & Sensitive Field Masking
 
-- **Sensitive Fields:** Account numbers, national ID numbers, and security passcodes MUST specify `type: "password"` or mask controls appropriately in [field-factory.tsx](file:///d:/Work/React/cbs/finx-ui/src/features/engine/components/field-factory.tsx).
+- **Sensitive Fields:** Account numbers, national ID numbers, and security passcodes MUST specify `type: "password"` or mask controls appropriately in [field-factory.tsx](file:///d:/CBS/In_house/finx/finxui-ref/src/features/screens/forms/components/field-factory.tsx).
 - **Sanitization:** All text inputs sanitize HTML tags to prevent XSS attacks when rendering dynamic labels.
 
 ---
@@ -86,5 +86,6 @@ pnpm lint
 
 ## 7. Affected Documentation Updates
 When modifying GMC schema definitions or grid rules, update:
-- [docs/02-core-engine/gmc-schema-spec.md](file:///d:/Work/React/cbs/finx-ui/docs/02-core-engine/gmc-schema-spec.md)
-- [docs/02-core-engine/form-rendering-pipeline.md](file:///d:/Work/React/cbs/finx-ui/docs/02-core-engine/form-rendering-pipeline.md)
+- [docs/devs/02-core-engine/gmc-schema-spec.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/devs/02-core-engine/gmc-schema-spec.md)
+- [docs/devs/02-core-engine/form-rendering-pipeline.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/devs/02-core-engine/form-rendering-pipeline.md)
+

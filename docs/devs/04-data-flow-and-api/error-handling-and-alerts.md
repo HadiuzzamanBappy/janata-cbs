@@ -23,7 +23,7 @@ flowchart TD
 
 ## 3. Global Alert & Modal State (`useAlertStore`)
 
-Global notifications and confirmation dialogs are managed outside the React render tree via `useAlertStore` located at [src/store/alert-store.ts](file:///d:/Work/React/cbs/finx-ui/src/store/alert-store.ts).
+Global notifications and confirmation dialogs are managed outside the React render tree via `useAlertStore` located at [src/store/alert-store.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/store/alert-store.ts).
 
 ### Alert Types
 - **`showAlert({ title, message, variant: "destructive" })`:** Displays modal error message to officer.
@@ -52,5 +52,5 @@ pnpm lint
 
 ## 6. Affected Documentation Updates
 When modifying error handling or alert stores, update:
-- [docs/04-data-flow-and-api/error-handling-and-alerts.md](file:///d:/Work/React/cbs/finx-ui/docs/04-data-flow-and-api/error-handling-and-alerts.md)
-- [docs/01-architecture/code-review-standards.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/code-review-standards.md)
+- [docs/04-data-flow-and-api/error-handling-and-alerts.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/error-handling-and-alerts.md)
+- [docs/01-architecture/code-review-standards.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/code-review-standards.md)

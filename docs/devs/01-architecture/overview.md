@@ -48,21 +48,21 @@ flowchart TD
 - **Source of Truth:** Session verification, request dispatching, Redis caching, gRPC client pool lifecycle, and Zod boundary validation.
 - **Dependencies:** `import "server-only"`, `@grpc/grpc-js`, `ioredis`, `zod`.
 - **MUST:**
-  - Enforce `import "server-only"` on top of all files in [src/lib/core/](file:///d:/Work/React/cbs/finx-ui/src/lib/core).
-  - Intercept all browser requests via `/api/proxy` or marked Server Actions (`"use server"`).
-  - Validate and sanitize payloads using Zod schemas in [src/lib/schema/](file:///d:/Work/React/cbs/finx-ui/src/lib/schema) before sending over gRPC.
+  - Enforce `import "server-only"` on top of all files in [src/lib/grpc/](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/grpc) and [src/lib/redis/](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/redis).
+  - Intercept all browser requests via `/api/proxy` or route handlers in `src/app/api/`.
+  - Validate and sanitize payloads using Zod schemas before sending over gRPC.
   - Inject officer credentials, branch context, and authorization tokens into gRPC metadata headers.
 
 ### Tier 3: Java Core Backend
 - **Source of Truth:** Account balances, general ledger state, database persistence, transaction settlement, and GMC form schema configurations.
-- **Boundary:** Isolated behind internal network interfaces. Communicates solely via gRPC defined in [proto/service.proto](file:///d:/Work/React/cbs/finx-ui/proto/service.proto).
+- **Boundary:** Isolated behind internal network interfaces. Communicates solely via gRPC defined in [proto/service.proto](file:///d:/CBS/In_house/finx/finxui-ref/proto/service.proto).
 
 ---
 
 ## 4. Architectural Invariants & Rules
 
 ### Mandatory Rules (MUST)
-1. **MUST** route all client backend requests through [src/app/api/proxy/route.ts](file:///d:/Work/React/cbs/finx-ui/src/app/api/proxy/route.ts) or Server Actions.
+1. **MUST** route all client backend requests through [src/app/api/proxy/route.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/app/api/proxy/route.ts) or domain route handlers.
 2. **MUST** protect server-side utilities with `import "server-only"`.
 3. **MUST** validate incoming payloads via Zod before gRPC conversion.
 4. **MUST NOT** expose gRPC connection strings or Redis credentials to client bundles.
@@ -73,7 +73,7 @@ flowchart TD
 ## 5. Security & Sensitive-Data Handling
 
 - **Authentication Tokens:** Officer session keys are stored in HTTP-only, secure, samesite cookies.
-- **Session Caching:** Session state is managed via `ioredis` in [src/lib/core/redis-session.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/core/redis-session.ts) with sliding expiry.
+- **Session Caching:** Session state is managed via `ioredis` in [src/lib/core/redis-session.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/core/redis-session.ts) with sliding expiry.
 - **Fail-Open Circuit Breaker:** If Redis is unreachable, session/cache retrieval fails open to query the Java Core directly without interrupting critical teller workflows.
 
 ---
@@ -96,6 +96,6 @@ pnpm lint
 
 ## 7. Affected Documentation Updates
 When modifying the system topology or network interfaces, the following files MUST be updated:
-- [docs/01-architecture/overview.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/overview.md)
-- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/Work/React/cbs/finx-ui/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)
-- [README.md](file:///d:/Work/React/cbs/finx-ui/README.md)
+- [docs/01-architecture/overview.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/overview.md)
+- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)
+- [README.md](file:///d:/CBS/In_house/finx/finxui-ref/README.md)

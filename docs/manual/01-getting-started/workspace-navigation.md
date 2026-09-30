@@ -80,6 +80,6 @@ The **Global Command Search** tool allows officers to find any banking operation
 
 ## 8. Related Tasks
 
-- [Officer Login & Password Reset](file:///d:/Work/React/cbs/finx-ui/docs/manual/01-getting-started/officer-login.md)
+- [Officer Login & Password Reset](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/01-getting-started/officer-login.md)
 - Customizing Appearance & Theme Settings
 - Managing User Profile & Display Preferences

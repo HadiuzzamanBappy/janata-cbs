@@ -1,7 +1,7 @@
 # 📊 Reporting Studio & Viewer Architecture
 
 ## 1. Executive Summary & Purpose
-This document specifies the architecture, report line designer, and viewer subsystem of the Reporting domain in `finx-ui` located at [src/features/reporting/](file:///d:/Work/React/cbs/finx-ui/src/features/reporting).
+This document specifies the architecture, report line designer, and viewer subsystem of the Reporting domain in `finx-ui` located at [src/features/reporting/](file:///d:/CBS/In_house/finx/finxui-ref/src/features/reporting).
 
 Reporting enables banking officers to view daily ledger summaries, transaction journals, close-of-business (COB) audit logs, and configure custom financial report layouts.
 
@@ -44,4 +44,4 @@ pnpm lint
 
 ## 6. Affected Documentation Updates
 When modifying report viewers or line designers, update:
-- [docs/03-domain-features/reporting-studio.md](file:///d:/Work/React/cbs/finx-ui/docs/03-domain-features/reporting-studio.md)
+- [docs/03-domain-features/reporting-studio.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/03-domain-features/reporting-studio.md)

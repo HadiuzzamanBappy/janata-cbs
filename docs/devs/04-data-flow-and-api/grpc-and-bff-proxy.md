@@ -1,9 +1,9 @@
 # 🔌 gRPC & BFF Proxy API Architecture
 
 ## 1. Executive Summary & Purpose
-This document specifies the architecture, envelope format, authorization checks, and gRPC translation logic for the central Backend-for-Frontend (BFF) proxy gateway at [src/app/api/proxy/route.ts](file:///d:/Work/React/cbs/finx-ui/src/app/api/proxy/route.ts).
+This document specifies the architecture, envelope format, authorization checks, and gRPC translation logic for the central Backend-for-Frontend (BFF) proxy gateway at [src/app/api/proxy/route.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/app/api/proxy/route.ts).
 
-In Janata CBS, client components in the browser **MUST NEVER** communicate directly with internal Java Core gRPC services. All HTTP requests from the browser route to `/api/proxy`. The Next.js server validates officer session credentials, constructs a signed gRPC request envelope, and dispatches the payload to the backend over gRPC via [src/lib/grpc/dispatch.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/grpc/dispatch.ts).
+In Janata CBS, client components in the browser **MUST NEVER** communicate directly with internal Java Core gRPC services. All HTTP requests from the browser route to `/api/proxy`. The Next.js server validates officer session credentials, constructs a signed gRPC request envelope, and dispatches the payload to the backend over gRPC via [src/lib/grpc/dispatch.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/grpc/dispatch.ts).
 
 ---
 
@@ -89,6 +89,6 @@ pnpm lint
 
 ## 7. Affected Documentation Updates
 When modifying proxy route handlers or envelope contracts, update:
-- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/Work/React/cbs/finx-ui/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)
-- [docs/01-architecture/overview.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/overview.md)
-- [docs/01-architecture/security-and-secrets.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/security-and-secrets.md)
+- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)
+- [docs/01-architecture/overview.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/overview.md)
+- [docs/01-architecture/security-and-secrets.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/security-and-secrets.md)

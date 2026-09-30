@@ -20,12 +20,17 @@ export function useIdleTimeout({
   const warningThresholdMs = Math.max(totalTimeoutMs - WARNING_BEFORE_LOGOUT_MS, 0);
 
   const [isWarningOpen, setIsWarningOpen] = useState(false);
+  const [isLoggedOut, setIsLoggedOut] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(60);
   const isLoggingOutRef = useRef(false);
 
   const performLogout = useCallback(async () => {
     if (isLoggingOutRef.current) return;
     isLoggingOutRef.current = true;
+
+    // Immediately close the warning countdown and display the uncloseable logged-out modal
+    setIsWarningOpen(false);
+    setIsLoggedOut(true);
 
     try {
       if (onLogout) {
@@ -37,12 +42,16 @@ export function useIdleTimeout({
       // Fail-safe cleanup
     } finally {
       localStorage.removeItem(STORAGE_KEY);
-      router.push("/login?reason=inactivity");
-      router.refresh();
     }
-  }, [onLogout, router]);
+  }, [onLogout]);
+
+  const handleLogoutConfirm = useCallback(() => {
+    router.push("/login");
+    router.refresh();
+  }, [router]);
 
   const keepAlive = useCallback(async () => {
+    if (isLoggedOut) return;
     const now = Date.now();
     localStorage.setItem(STORAGE_KEY, String(now));
     setIsWarningOpen(false);
@@ -53,7 +62,7 @@ export function useIdleTimeout({
     } catch {
       // Ignore heartbeat network drop
     }
-  }, []);
+  }, [isLoggedOut]);
 
   useEffect(() => {
     // Initialize timestamp if missing
@@ -78,14 +87,19 @@ export function useIdleTimeout({
 
     // User interaction listeners
     const events = ["mousedown", "keydown", "scroll", "touchstart", "wheel"];
-    events.forEach((evt) => window.addEventListener(evt, handleUserActivity, { passive: true }));
+    if (!isLoggedOut) {
+      events.forEach((evt) => window.addEventListener(evt, handleUserActivity, { passive: true }));
+    }
 
     // Storage event for multi-tab synchronization
     const handleStorageChange = (e: StorageEvent) => {
+      if (isLoggedOut) return;
       if (e.key === STORAGE_KEY && e.newValue) {
         const remoteTime = Number(e.newValue);
         const elapsed = Date.now() - remoteTime;
-        if (elapsed < warningThresholdMs) {
+        if (elapsed >= totalTimeoutMs) {
+          performLogout();
+        } else if (elapsed < warningThresholdMs) {
           setIsWarningOpen(false);
         }
       }
@@ -94,6 +108,11 @@ export function useIdleTimeout({
 
     // 1-second wall-clock ticker
     const ticker = setInterval(() => {
+      if (isLoggedOut) {
+        clearInterval(ticker);
+        return;
+      }
+
       const storedTime = Number(localStorage.getItem(STORAGE_KEY) || Date.now());
       const elapsed = Date.now() - storedTime;
 
@@ -116,12 +135,14 @@ export function useIdleTimeout({
       window.removeEventListener("storage", handleStorageChange);
       clearInterval(ticker);
     };
-  }, [totalTimeoutMs, warningThresholdMs, isWarningOpen, performLogout]);
+  }, [totalTimeoutMs, warningThresholdMs, isWarningOpen, isLoggedOut, performLogout]);
 
   return {
     isWarningOpen,
+    isLoggedOut,
     remainingSeconds,
     keepAlive,
     performLogout,
+    handleLogoutConfirm,
   };
 }

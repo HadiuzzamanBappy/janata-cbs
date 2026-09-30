@@ -18,7 +18,7 @@ CACHE_ENABLED=false
 ```
 
 ### Step 2: Static Fixture Directory (`fixtures/`)
-When `MODEL_SOURCE=static`, the mock model fetcher in [src/lib/schema/get-model.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/schema/get-model.ts) bypasses gRPC and reads sanitized GMC schemas directly from [fixtures/](file:///d:/Work/React/cbs/finx-ui/fixtures):
+When `MODEL_SOURCE=static`, the mock model fetcher in [src/lib/schema/get-model.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/schema/get-model.ts) bypasses gRPC and reads sanitized GMC schemas directly from [fixtures/](file:///d:/CBS/In_house/finx/finxui-ref/fixtures):
 
 ```text
 fixtures/
@@ -63,5 +63,5 @@ pnpm lint
 
 ## 5. Affected Documentation Updates
 When modifying static mock mode or fixtures, update:
-- [docs/05-developer-guides/static-mock-mode.md](file:///d:/Work/React/cbs/finx-ui/docs/05-developer-guides/static-mock-mode.md)
-- [README.md](file:///d:/Work/React/cbs/finx-ui/README.md)
+- [docs/05-developer-guides/static-mock-mode.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/05-developer-guides/static-mock-mode.md)
+- [README.md](file:///d:/CBS/In_house/finx/finxui-ref/README.md)

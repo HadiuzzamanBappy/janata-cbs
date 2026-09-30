@@ -62,7 +62,7 @@ If an issue cannot be resolved using the self-service steps above:
 
 ## 6. Related Tasks
 
-- [Officer Login & Password Reset](file:///d:/Work/React/cbs/finx-ui/docs/manual/01-getting-started/officer-login.md)
-- [Workspace Navigation Guide](file:///d:/Work/React/cbs/finx-ui/docs/manual/01-getting-started/workspace-navigation.md)
-- [Financial Transaction Entry](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/transaction-entry.md)
-- [Maker-Checker Transaction Authorization](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/maker-checker-authorization.md)
+- [Officer Login & Password Reset](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/01-getting-started/officer-login.md)
+- [Workspace Navigation Guide](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/01-getting-started/workspace-navigation.md)
+- [Financial Transaction Entry](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/transaction-entry.md)
+- [Maker-Checker Transaction Authorization](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/maker-checker-authorization.md)

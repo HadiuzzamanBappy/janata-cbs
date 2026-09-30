@@ -63,5 +63,5 @@ pnpm build
 
 ## 4. Affected Documentation Updates
 When modifying review standards or code quality rules, update:
-- [docs/01-architecture/code-review-standards.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/code-review-standards.md)
-- [AGENTS.md](file:///d:/Work/React/cbs/finx-ui/AGENTS.md)
+- [docs/01-architecture/code-review-standards.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/code-review-standards.md)
+- [AGENTS.md](file:///d:/CBS/In_house/finx/finxui-ref/AGENTS.md)

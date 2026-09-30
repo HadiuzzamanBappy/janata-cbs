@@ -81,5 +81,5 @@ pnpm build
 
 ## 7. Affected Documentation Updates
 When modifying setup instructions or dev scripts, update:
-- [docs/05-developer-guides/quickstart-setup.md](file:///d:/Work/React/cbs/finx-ui/docs/05-developer-guides/quickstart-setup.md)
-- [README.md](file:///d:/Work/React/cbs/finx-ui/README.md)
+- [docs/05-developer-guides/quickstart-setup.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/05-developer-guides/quickstart-setup.md)
+- [README.md](file:///d:/CBS/In_house/finx/finxui-ref/README.md)

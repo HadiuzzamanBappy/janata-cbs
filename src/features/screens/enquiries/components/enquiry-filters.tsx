@@ -15,6 +15,8 @@ import type { SelectionField, SelectionOperand } from "../types";
 
 export interface EnquiryFiltersProps {
   fields: SelectionField[];
+  criteria?: Record<string, { value: string; operand: SelectionOperand }>;
+  onCriteriaChange?: (criteria: Record<string, { value: string; operand: SelectionOperand }>) => void;
   onSearch: (criteria: Record<string, { value: string; operand: SelectionOperand }>) => void;
   onReset: () => void;
   onExportCSV?: () => void;
@@ -22,10 +24,12 @@ export interface EnquiryFiltersProps {
 
 export function EnquiryFilters({
   fields,
+  criteria: controlledCriteria,
+  onCriteriaChange,
   onSearch,
   onReset,
 }: Omit<EnquiryFiltersProps, "onExportCSV">) {
-  const [criteria, setCriteria] = React.useState<
+  const [internalCriteria, setInternalCriteria] = React.useState<
     Record<string, { value: string; operand: SelectionOperand }>
   >(() => {
     let urlData: Record<string, unknown> = {};
@@ -50,15 +54,31 @@ export function EnquiryFilters({
     return initial;
   });
 
+  const criteria = controlledCriteria ?? internalCriteria;
+
+  const updateCriteria = (
+    updater: (
+      prev: Record<string, { value: string; operand: SelectionOperand }>,
+    ) => Record<string, { value: string; operand: SelectionOperand }>,
+  ) => {
+    const next = updater(criteria);
+    if (!controlledCriteria) {
+      setInternalCriteria(next);
+    }
+    if (onCriteriaChange) {
+      onCriteriaChange(next);
+    }
+  };
+
   const handleValueChange = (id: string, val: string) => {
-    setCriteria((prev) => ({
+    updateCriteria((prev) => ({
       ...prev,
       [id]: { ...prev[id], value: val },
     }));
   };
 
   const handleOperandChange = (id: string, op: SelectionOperand) => {
-    setCriteria((prev) => ({
+    updateCriteria((prev) => ({
       ...prev,
       [id]: { ...prev[id], operand: op },
     }));
@@ -74,7 +94,12 @@ export function EnquiryFilters({
     for (const f of fields) {
       cleared[f.id] = { value: "", operand: f.operand };
     }
-    setCriteria(cleared);
+    if (!controlledCriteria) {
+      setInternalCriteria(cleared);
+    }
+    if (onCriteriaChange) {
+      onCriteriaChange(cleared);
+    }
     onReset();
   };
 

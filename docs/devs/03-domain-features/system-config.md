@@ -1,7 +1,7 @@
 # 🛠️ System Configuration Domain Architecture
 
 ## 1. Executive Summary & Purpose
-This document specifies the architecture, visual form designer, database model configuration, and menu tree designer of the System Configuration domain in `finx-ui` located at [src/features/system-config/](file:///d:/Work/React/cbs/finx-ui/src/features/system-config).
+This document specifies the architecture, visual form designer, database model configuration, and menu tree designer of the System Configuration domain in `finx-ui` located at [src/features/system-config/](file:///d:/CBS/In_house/finx/finxui-ref/src/features/system-config).
 
 System Configuration is an administrative module used by core banking system administrators to design form layouts, configure database model schemas, manage navigation menu trees, and configure close-of-business (COB) registries.
 
@@ -38,5 +38,5 @@ pnpm lint
 
 ## 5. Affected Documentation Updates
 When modifying system configuration screens, update:
-- [docs/03-domain-features/system-config.md](file:///d:/Work/React/cbs/finx-ui/docs/03-domain-features/system-config.md)
-- [docs/02-core-engine/gmc-schema-spec.md](file:///d:/Work/React/cbs/finx-ui/docs/02-core-engine/gmc-schema-spec.md)
+- [docs/03-domain-features/system-config.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/03-domain-features/system-config.md)
+- [docs/02-core-engine/gmc-schema-spec.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/02-core-engine/gmc-schema-spec.md)

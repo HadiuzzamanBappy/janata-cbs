@@ -28,12 +28,12 @@ flowchart TD
 ## 3. Tier Responsibilities & Implementations
 
 ### Tier 1: Client / Server Memory Cache
-- **Scope:** In-memory schema cache ([src/lib/core/cache.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/core/cache.ts)).
+- **Scope:** In-memory schema cache ([src/lib/core/cache.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/core/cache.ts)).
 - **Content:** GMC form specs, menu tree structures, and branch lists.
 - **TTL:** Short window (5 minutes) or until explicitly invalidated.
 
 ### Tier 2: Redis Shared Cache (`ioredis`)
-- **Scope:** Redis connection client ([src/lib/core/redis-client.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/core/redis-client.ts)) and Redis session manager ([src/lib/core/redis-session.ts](file:///d:/Work/React/cbs/finx-ui/src/lib/core/redis-session.ts)).
+- **Scope:** Redis connection client ([src/lib/core/redis-client.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/core/redis-client.ts)) and Redis session manager ([src/lib/core/redis-session.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/core/redis-session.ts)).
 - **Content:** Sliding officer sessions, branch metadata, GMC backend model schemas.
 - **Fail-Open Circuit Breaker:** If Redis connection drops, the circuit breaker opens, suppressing Redis timeouts and allowing requests to query the Java Core directly.
 
@@ -66,5 +66,5 @@ pnpm lint
 
 ## 6. Affected Documentation Updates
 When modifying cache configuration or Redis integration, update:
-- [docs/04-data-flow-and-api/caching-strategy.md](file:///d:/Work/React/cbs/finx-ui/docs/04-data-flow-and-api/caching-strategy.md)
-- [README.md](file:///d:/Work/React/cbs/finx-ui/README.md)
+- [docs/04-data-flow-and-api/caching-strategy.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/caching-strategy.md)
+- [README.md](file:///d:/CBS/In_house/finx/finxui-ref/README.md)

@@ -89,7 +89,7 @@ export * from "./config/audit-nav-config";
 ```
 
 ### Step 4: Register Portal in Unified Layout
-Add a matching branch in [src/app/[docs]/layout.tsx](file:///d:/Work/React/cbs/finx-ui/src/app/[docs]/layout.tsx):
+Add a matching branch in [src/app/[docs]/layout.tsx](file:///d:/CBS/In_house/finx/finxui-ref/src/app/[docs]/layout.tsx):
 
 ```tsx
 const isManual = portal === "manual";
@@ -114,7 +114,7 @@ const headerTitle = isAudit
   : "CBS Developer Hub";
 ```
 
-That's it! Because [src/app/[docs]/[[...slug]]/page.tsx](file:///d:/Work/React/cbs/finx-ui/src/app/[docs]/[[...slug]]/page.tsx) uses a dynamic route segment (`[docs]`), it automatically renders all markdown documents under `docs/audit-manual/` at `http://localhost:3000/audit-manual/` with zero app folder cloning!
+That's it! Because [src/app/[docs]/[[...slug]]/page.tsx](file:///d:/CBS/In_house/finx/finxui-ref/src/app/[docs]/[[...slug]]/page.tsx) uses a dynamic route segment (`[docs]`), it automatically renders all markdown documents under `docs/audit-manual/` at `http://localhost:3000/audit-manual/` with zero app folder cloning!
 
 ---
 
@@ -156,6 +156,6 @@ When authoring or modifying documentation:
 - **Transparent Labels:** Connector text labels MUST render transparently over lines without blocky background boxes.
 - **ASCII Conversions:** Only convert existing ASCII box-art into compact Mermaid flowcharts (`flowchart TD`/`LR`). Do NOT create unrequested new diagrams.
 
-> 💡 *For the full AI agent ruleset, see [`.agents/rules/07-documentation-rules.md`](file:///d:/Work/React/cbs/finx-ui/.agents/rules/07-documentation-rules.md).*
+> 💡 *For the full AI agent ruleset, see [`.agents/rules/07-documentation-rules.md`](file:///d:/CBS/In_house/finx/finxui-ref/.agents/rules/07-documentation-rules.md).*
 
 

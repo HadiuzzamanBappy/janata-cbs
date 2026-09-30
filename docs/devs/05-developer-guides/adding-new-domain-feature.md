@@ -38,12 +38,12 @@ export const transferPayloadSchema = z.object({
 export type TransferPayload = z.infer<typeof transferPayloadSchema>;
 ```
 
-### Step 3: Implement Server Actions (`actions.ts`)
-Create server actions with mandatory `"use server"` guard:
+### Step 3: Implement Server Actions or Route Handlers (`actions.ts`)
+Create server actions or domain endpoints with session validation:
 ```typescript
 "use server";
 
-import { getSession } from "@/lib/core/redis-session";
+import { getSession } from "@/lib/redis/session";
 import { transferPayloadSchema } from "./schemas";
 
 export async function submitTransferAction(payload: unknown) {
@@ -65,6 +65,12 @@ export * from "./actions";
 export { TransferMain } from "./components/transfer-main";
 export * from "./schemas";
 export * from "./types";
+```
+
+### Step 5: Register Screen in Component Registry
+If the feature provides a bespoke CBS screen override, register it in [src/features/screens/registry.tsx](file:///d:/CBS/In_house/finx/finxui-ref/src/features/screens/registry.tsx):
+```typescript
+"TRANSFER.EXECUTE": lazy(() => import("@/features/transfers").then(m => ({ default: m.TransferMain })))
 ```
 
 ---
@@ -90,5 +96,6 @@ pnpm build
 
 ## 5. Affected Documentation Updates
 When creating a new domain feature, update:
-- [docs/05-developer-guides/adding-new-domain-feature.md](file:///d:/Work/React/cbs/finx-ui/docs/05-developer-guides/adding-new-domain-feature.md)
-- [docs/01-architecture/folder-structure.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/folder-structure.md)
+- [docs/devs/05-developer-guides/adding-new-domain-feature.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/devs/05-developer-guides/adding-new-domain-feature.md)
+- [docs/devs/01-architecture/folder-structure.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/devs/01-architecture/folder-structure.md)
+

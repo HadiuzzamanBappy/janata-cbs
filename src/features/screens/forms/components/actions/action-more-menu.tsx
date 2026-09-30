@@ -37,14 +37,14 @@ export function ActionMoreMenu({
 
   return (
     <>
-      {/* More Actions Dropdown Selector */}
+      {/* More Actions Dropdown Selector - Bordered Field */}
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
             <Button
-              variant="secondary"
+              variant="outline"
               size="sm"
-              className="h-8 px-2.5 text-xs gap-2 min-w-[180px] max-w-[220px] justify-between border-transparent"
+              className="h-8 px-2.5 text-xs gap-2 min-w-[180px] max-w-[220px] justify-between border-border bg-background hover:bg-muted/50 text-foreground shadow-xs"
             >
               <span className="truncate">
                 {selectedAction ? selectedAction.label : "More Actions..."}
@@ -106,11 +106,11 @@ export function ActionMoreMenu({
                   ? !rights.hasRight(selectedAction.requiredRight)
                   : false)
               }
-              variant={selectedAction ? "default" : "secondary"}
+              variant={selectedAction ? "default" : "outline"}
               className={`size-8 shrink-0 transition-colors ${
                 selectedAction
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 border-0 shadow-sm"
-                  : "bg-secondary text-muted-foreground opacity-60 cursor-not-allowed"
+                  ? "shadow-xs"
+                  : "text-muted-foreground opacity-50 cursor-not-allowed"
               }`}
             >
               <CheckCircle2 className="size-3.5" />

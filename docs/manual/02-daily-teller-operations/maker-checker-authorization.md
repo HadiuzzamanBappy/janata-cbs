@@ -71,6 +71,6 @@ Branch Supervisors review and authorize pending queues:
 
 ## 7. Related Tasks
 
-- [Financial Transaction Entry](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/transaction-entry.md)
-- [Customer & Account Inquiries](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/customer-inquiry.md)
+- [Financial Transaction Entry](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/transaction-entry.md)
+- [Customer & Account Inquiries](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/customer-inquiry.md)
 - Managing User Roles & Financial Approval Limits

@@ -270,12 +270,11 @@ export function FormScreen({
         mode={screenMode}
         recordId={searchRecordId}
         onRecordIdChange={setSearchRecordId}
-        onRecordSearch={(id) => {
-          setSearchRecordId(id);
-          setScreenMode("EDIT");
+        onRecordSearch={(query) => {
+          // Keep screen in current mode while user searches / filters
           toast.add({
-            title: "Record Loaded",
-            description: `Fetched record #${id} for ${schema.code}`,
+            title: "Searching Records",
+            description: `Filtering records matching "${query}"`,
             type: "info",
           });
         }}
@@ -283,23 +282,47 @@ export function FormScreen({
           resetForm(initialValues);
           setScreenMode("CREATE");
           toast.add({
-            title: "New Record",
-            description: `Ready to input new transaction for ${schema.title}`,
+            title: "New Record Entry",
+            description: searchRecordId.trim()
+              ? `Creating new entry with ID #${searchRecordId.trim()} for ${schema.title}`
+              : `Ready to input new transaction for ${schema.title}`,
             type: "info",
           });
         }}
         onAmend={() => {
+          const id = searchRecordId.trim();
+          if (!id) {
+            toast.add({
+              title: "Input Required",
+              description: "Please enter or select a Record ID to edit.",
+              type: "warning",
+            });
+            return;
+          }
+
+          // Open data with form for editing the record
           setScreenMode("EDIT");
           toast.add({
-            title: "Amend Record",
-            description: `Switched to Amend mode for ${schema.title}`,
+            title: "Edit Record",
+            description: `Opening record #${id} in edit mode for ${schema.title}`,
             type: "info",
           });
         }}
         onView={() => {
+          const id = searchRecordId.trim();
+          if (!id) {
+            toast.add({
+              title: "Input Required",
+              description: "Please enter or select a Record ID to view.",
+              type: "warning",
+            });
+            return;
+          }
+
+          setScreenMode("EDIT");
           toast.add({
             title: "View Record",
-            description: `Viewing record details for ${schema.title}`,
+            description: `Viewing record details for #${id} (${schema.title})`,
             type: "info",
           });
         }}

@@ -65,5 +65,5 @@ npx commitlint --from=HEAD~1
 
 ## 6. Affected Documentation Updates
 When modifying commit rules or branching strategies, update:
-- [docs/05-developer-guides/git-workflow-and-commits.md](file:///d:/Work/React/cbs/finx-ui/docs/05-developer-guides/git-workflow-and-commits.md)
-- [AGENTS.md](file:///d:/Work/React/cbs/finx-ui/AGENTS.md)
+- [docs/05-developer-guides/git-workflow-and-commits.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/05-developer-guides/git-workflow-and-commits.md)
+- [AGENTS.md](file:///d:/CBS/In_house/finx/finxui-ref/AGENTS.md)

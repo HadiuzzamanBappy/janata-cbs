@@ -72,6 +72,6 @@ When logging in the morning after COB:
 
 ## 7. Related Tasks
 
-- [Generating & Printing Daily Branch Reports](file:///d:/Work/React/cbs/finx-ui/docs/manual/03-reports-and-end-of-day/printing-daily-reports.md)
-- [Maker-Checker Transaction Authorization](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/maker-checker-authorization.md)
+- [Generating & Printing Daily Branch Reports](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/03-reports-and-end-of-day/printing-daily-reports.md)
+- [Maker-Checker Transaction Authorization](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/maker-checker-authorization.md)
 - Vault Cash Balancing & Transfer Procedures

@@ -54,19 +54,33 @@ Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of 
 ```text
 src/
 ├── app/               # Next.js App Router (RSC Hydration, API proxy routes, Session endpoints)
+│   ├── (auth)/        # Unauthenticated routes (login)
+│   ├── (workbench)/   # Authenticated workbench (dashboard, screen/[id])
+│   ├── [docs]/        # Built-in documentation portal
+│   └── api/           # BFF API route handlers (proxy, session, model, menu, branches, etc.)
 ├── components/        # Reusable, Domain-Agnostic UI (shadcn primitives, app shell, toolbars)
-├── features/          # Domain-Driven Business Logic (Where most development happens)
-│   ├── engine/        # The dynamic form rendering engine
-│   ├── auth/          # Login, password changes, user groups
-│   ├── inquiries/     # Inquiry screens and tables (INQ, GIR, SIR)
-│   ├── reporting/     # Report viewers and ReportStudio subsystem
-│   ├── system-config/ # Screen builders, model configuration, menu design
-│   └── workspace/     # Command executor, component loader, window frame
-├── lib/               # Core Infrastructure & Tools
-│   ├── core/          # 'server-only' gRPC, Redis, and Dispatcher tools
-│   ├── schema/        # Zod payload validators and parsers
-│   └── utils/         # Client-safe shared utilities
-└── store/             # Zustand Global Stores (Tabs, Alerts, Session)
+│   ├── ui/            # Base atomic UI primitives
+│   ├── layout/        # App shell (workbench-shell, sidebar, topbar, tabbar)
+│   └── feedback/      # Alert dialogs, error boundaries, empty states
+├── features/          # Domain-Driven Business Logic
+│   ├── auth/          # Login, password changes, user rights
+│   ├── docs/          # Interactive doc portal, search, and PDF generation
+│   ├── screens/       # Dynamic screen subsystem
+│   │   ├── forms/     # 12-column dynamic GMC form engine & field factory
+│   │   ├── enquiries/ # High-density enquiry screens, filters, and data tables
+│   │   ├── launcher.ts# Command launcher (window vs panel routing)
+│   │   ├── loader.tsx # Unified Dynamic ComponentLoader
+│   │   └── registry.tsx # Bespoke screen component overrides registry
+│   └── settings/      # User preferences and workstation configuration
+├── lib/               # Core Infrastructure & Backend Services
+│   ├── config/        # Environment and constants validation
+│   ├── core/          # Command definitions and core orchestration
+│   ├── grpc/          # Server-only gRPC client, dispatch, and ts-proto generated stubs
+│   ├── redis/         # Caching, sessions, and rate-limiting with circuit breakers
+│   ├── services/      # Domain service layer (branches, controls, menus, models)
+│   └── utils/         # Client-safe shared utilities & formatters
+├── store/             # Zustand Global Stores (workbench tabs, alerts, session)
+└── types/             # Shared TypeScript types and ambient declarations
 ```
 
 ---

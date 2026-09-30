@@ -34,38 +34,38 @@ export function ActionButtons({
 
   return (
     <>
-      {/* Create New Record ('+' Right) */}
+      {/* Create New Record ('+' Right) - Primary */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="default"
               size="icon-sm"
               onClick={() => onCreateNew?.()}
               disabled={!onCreateNew || submitting || !rights.canInput}
-              className="size-8 text-foreground shrink-0 border-transparent"
+              className="size-8 shadow-xs shrink-0"
             >
-              <Plus className="size-3.5" />
+              <Plus className="size-3.5 stroke-[2.5]" />
             </Button>
           }
         />
         <TooltipContent className="text-xs">
-          {!rights.canInput ? "Requires Input ('I') permission" : "Create New Record"}
+          {!rights.canInput ? "Requires Input ('I') permission" : "Create New Record (+)"}
         </TooltipContent>
       </Tooltip>
 
-      {/* Amend Control ('A' Right) */}
+      {/* Amend Control ('A' Right) - Clean Outline */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="icon-sm"
               onClick={() => onAmend?.()}
               disabled={!onAmend || submitting || !searchVal.trim() || !rights.canAmend}
-              className="size-8 text-foreground shrink-0 disabled:opacity-40 border-transparent"
+              className="size-8 shrink-0 disabled:opacity-40"
             >
               <Edit3 className="size-3.5" />
             </Button>
@@ -73,26 +73,26 @@ export function ActionButtons({
         />
         <TooltipContent className="text-xs">
           {!searchVal.trim()
-            ? "Enter a Record ID to amend"
+            ? "Enter or select a Record ID to amend"
             : !rights.canAmend
               ? "Requires Amend ('A') permission"
-              : "Amend Record"}
+              : "Amend / Edit Record"}
         </TooltipContent>
       </Tooltip>
 
-      {/* View Control ('See' / 'Read' Right) */}
+      {/* View Control ('See' / 'Read' Right) - Clean Outline */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="icon-sm"
               onClick={() => onView?.()}
               disabled={
                 !onView || submitting || !searchVal.trim() || (!rights.canSee && !rights.canRead)
               }
-              className="size-8 text-foreground shrink-0 disabled:opacity-40 border-transparent"
+              className="size-8 shrink-0 disabled:opacity-40"
             >
               <Eye className="size-3.5" />
             </Button>
@@ -100,24 +100,24 @@ export function ActionButtons({
         />
         <TooltipContent className="text-xs">
           {!searchVal.trim()
-            ? "Enter a Record ID to view details"
+            ? "Enter or select a Record ID to view details"
             : !rights.canSee && !rights.canRead
               ? "Requires View permission"
               : "View Details"}
         </TooltipContent>
       </Tooltip>
 
-      {/* Save Record Icon Button (Single Tick) */}
+      {/* Save Record Button (Single Tick) - Primary CTA */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="default"
               size="icon-sm"
               onClick={() => onSubmit?.()}
               disabled={!onSubmit || submitting || (!rights.canInput && !rights.canAmend)}
-              className="size-8 bg-primary/10 text-primary hover:bg-primary/20 shrink-0 border-transparent"
+              className="size-8 shadow-xs shrink-0 disabled:opacity-40"
             >
               <Check className="size-3.5 stroke-[2.5]" />
             </Button>
@@ -130,17 +130,17 @@ export function ActionButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* Validate Control (Double Tick CheckCheck icon button) */}
+      {/* Validate Control (Double Tick) - Clean Outline */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="icon-sm"
               onClick={() => onValidate?.()}
               disabled={!onValidate || submitting || (!rights.canInput && !rights.canAmend)}
-              className="size-8 text-foreground shrink-0 border-transparent"
+              className="size-8 shrink-0 disabled:opacity-40"
             >
               <CheckCheck className="size-3.5 stroke-[2.5]" />
             </Button>
@@ -151,17 +151,17 @@ export function ActionButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* Hold Draft Control ('H' Right) */}
+      {/* Hold Draft Control ('H' Right) - Clean Outline */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="icon-sm"
               onClick={() => onHold?.()}
               disabled={!onHold || submitting || !rights.canHold}
-              className="size-8 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 shrink-0 border-transparent"
+              className="size-8 shrink-0 disabled:opacity-40"
             >
               <Clock className="size-3.5" />
             </Button>
@@ -172,17 +172,17 @@ export function ActionButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* Delete Control ('D' Right) */}
+      {/* Delete Control ('D' Right) - Subdued Destructive */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="icon-sm"
               onClick={() => onDelete?.()}
               disabled={!onDelete || submitting || !rights.canDelete}
-              className="size-8 bg-destructive/10 text-destructive hover:bg-destructive/20 shrink-0 border-transparent"
+              className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 shrink-0 disabled:opacity-40"
             >
               <Trash2 className="size-3.5" />
             </Button>
@@ -193,17 +193,17 @@ export function ActionButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* Reset Control */}
+      {/* Reset Control - Clean Outline */}
       <Tooltip>
         <TooltipTrigger
           render={
             <Button
               type="button"
-              variant="secondary"
+              variant="outline"
               size="icon-sm"
               onClick={() => onReset?.()}
               disabled={!onReset || submitting}
-              className="size-8 text-muted-foreground shrink-0 border-transparent"
+              className="size-8 text-muted-foreground hover:text-foreground shrink-0 disabled:opacity-40"
             >
               <RotateCcw className="size-3.5" />
             </Button>

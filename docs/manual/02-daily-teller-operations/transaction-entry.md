@@ -82,6 +82,6 @@ To prevent data loss during customer interruptions:
 
 ## 8. Related Tasks
 
-- [Maker-Checker Transaction Authorization](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/maker-checker-authorization.md)
-- [Customer & Account Inquiries](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/customer-inquiry.md)
+- [Maker-Checker Transaction Authorization](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/maker-checker-authorization.md)
+- [Customer & Account Inquiries](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/customer-inquiry.md)
 - Teller Cash Balancing & End-of-Day Closing

@@ -10,7 +10,7 @@ In a core banking environment, frontend code runs in an untrusted browser enviro
 ## 2. Server Boundary Enforcement (`import "server-only"`)
 
 ### The `server-only` Guard Rule
-All files residing in [src/lib/core/](file:///d:/Work/React/cbs/finx-ui/src/lib/core) and server infrastructure utilities **MUST** contain the following import on Line 1:
+All files residing in [src/lib/core/](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/core) and server infrastructure utilities **MUST** contain the following import on Line 1:
 
 ```typescript
 import "server-only";
@@ -92,5 +92,5 @@ pnpm lint
 
 ## 7. Affected Documentation Updates
 When modifying authorization rules or session management, update:
-- [docs/01-architecture/security-and-secrets.md](file:///d:/Work/React/cbs/finx-ui/docs/01-architecture/security-and-secrets.md)
-- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/Work/React/cbs/finx-ui/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)
+- [docs/01-architecture/security-and-secrets.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/security-and-secrets.md)
+- [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)

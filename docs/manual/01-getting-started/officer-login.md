@@ -90,6 +90,6 @@ To ensure security when leaving your workstation:
 
 ## 8. Related Tasks
 
-- [Workspace Navigation Guide](file:///d:/Work/React/cbs/finx-ui/docs/manual/01-getting-started/workspace-navigation.md)
+- [Workspace Navigation Guide](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/01-getting-started/workspace-navigation.md)
 - Updating Profile & Display Settings
 - Contacting System Support & Administrator Helpdesk

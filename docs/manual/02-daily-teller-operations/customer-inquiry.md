@@ -69,6 +69,6 @@ To provide account statements or audit printouts to customers:
 
 ## 7. Related Tasks
 
-- [Financial Transaction Entry](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/transaction-entry.md)
+- [Financial Transaction Entry](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/transaction-entry.md)
 - Generating Daily Branch Reports
 - Account Status Change & Lien Management

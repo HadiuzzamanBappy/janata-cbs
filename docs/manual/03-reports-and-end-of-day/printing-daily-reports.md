@@ -81,6 +81,6 @@ Once the report is displayed on screen:
 
 ## 8. Related Tasks
 
-- [Close of Business (COB) Operational Overview](file:///d:/Work/React/cbs/finx-ui/docs/manual/03-reports-and-end-of-day/cob-process-overview.md)
-- [Financial Transaction Entry](file:///d:/Work/React/cbs/finx-ui/docs/manual/02-daily-teller-operations/transaction-entry.md)
+- [Close of Business (COB) Operational Overview](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/03-reports-and-end-of-day/cob-process-overview.md)
+- [Financial Transaction Entry](file:///d:/CBS/In_house/finx/finxui-ref/docs/manual/02-daily-teller-operations/transaction-entry.md)
 - Teller Cash Balancing & Vault Transfer Procedure

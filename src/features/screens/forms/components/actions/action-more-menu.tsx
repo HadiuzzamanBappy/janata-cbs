@@ -108,9 +108,7 @@ export function ActionMoreMenu({
               }
               variant={selectedAction ? "default" : "outline"}
               className={`size-8 shrink-0 transition-colors ${
-                selectedAction
-                  ? "shadow-xs"
-                  : "text-muted-foreground opacity-50 cursor-not-allowed"
+                selectedAction ? "shadow-xs" : "text-muted-foreground opacity-50 cursor-not-allowed"
               }`}
             >
               <CheckCircle2 className="size-3.5" />

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
+import { appConfig } from "@/lib/config";
 import { useSessionStore } from "@/store";
 
 export function BranchSwitcher() {
@@ -29,7 +30,7 @@ export function BranchSwitcher() {
   const loadBranches = React.useCallback(() => {
     setBranchLoading(true);
     setBranchError(null);
-    fetch("/api/branches")
+    fetch(appConfig.routes.api.branches)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data)) {
@@ -37,7 +38,7 @@ export function BranchSwitcher() {
             json.data.map((b: { recordId: string; branchTitle: string }) => ({
               code: b.recordId,
               name: b.branchTitle,
-              type: b.recordId === "JB9999" ? "Head Office" : "General",
+              type: b.recordId === appConfig.centralBranch ? "Head Office" : "General",
             })),
           );
         } else {
@@ -56,7 +57,7 @@ export function BranchSwitcher() {
     loadBranches();
   }, [loadBranches]);
 
-  const activeBranchCode = currentBranch ?? "JB9999";
+  const activeBranchCode = currentBranch ?? appConfig.centralBranch;
   const activeBranchObj =
     branches.find((b) => b.code === activeBranchCode) ?? (branches.length > 0 ? branches[0] : null);
 

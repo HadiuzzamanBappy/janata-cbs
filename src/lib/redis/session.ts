@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
+import { appConfig } from "@/lib/config";
 import { getRedisClient } from "./client";
 
 export interface CurrentUser {
@@ -26,9 +27,9 @@ export interface SessionData {
   lastActiveAt: number;
 }
 
-const COOKIE_NAME = "sid";
-const SESSION_PREFIX = "sess:";
-const TTL_SECONDS = 60 * 60 * 8; // 8-hour max session lifespan
+const COOKIE_NAME = appConfig.auth.cookieName;
+const SESSION_PREFIX = appConfig.auth.sessionPrefix;
+const TTL_SECONDS = appConfig.auth.sessionMaxAgeSeconds;
 
 const sessionKey = (id: string): string => `${SESSION_PREFIX}${id}`;
 
@@ -40,7 +41,9 @@ async function currentSessionId(): Promise<string | null> {
 /**
  * Creates a new session in Redis and sets the HTTP-only opaque cookie.
  */
-export async function createSession(data: Omit<SessionData, "createdAt" | "lastActiveAt">): Promise<string> {
+export async function createSession(
+  data: Omit<SessionData, "createdAt" | "lastActiveAt">,
+): Promise<string> {
   const store = await cookies();
   const oldId = store.get(COOKIE_NAME)?.value;
   const redis = getRedisClient();
@@ -66,24 +69,26 @@ export async function createSession(data: Omit<SessionData, "createdAt" | "lastA
     }
   }
 
+  const isSecure = !appConfig.isDev && appConfig.useHttps;
+
   store.set(COOKIE_NAME, id, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
+    secure: isSecure,
     sameSite: "lax",
     path: "/",
     maxAge: TTL_SECONDS,
   });
 
   if (payload.currUser.initLogin) {
-    store.set("initLogin", "true", {
+    store.set(appConfig.auth.initLoginCookie, "true", {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production" && process.env.USE_HTTPS === "true",
+      secure: isSecure,
       sameSite: "lax",
       path: "/",
       maxAge: TTL_SECONDS,
     });
   } else {
-    store.delete("initLogin");
+    store.delete(appConfig.auth.initLoginCookie);
   }
 
   return id;
@@ -105,8 +110,8 @@ export async function getSession(): Promise<SessionData | null> {
 
     const session = JSON.parse(raw) as SessionData;
 
-    // Server-side Inactivity Guard (default 10 minutes)
-    const timeoutMinutes = Number(process.env.NEXT_PUBLIC_LOGOUT_TIME || 10);
+    // Server-side Inactivity Guard
+    const timeoutMinutes = appConfig.logoutTime;
     const maxInactiveMs = timeoutMinutes * 60 * 1000;
     const now = Date.now();
 

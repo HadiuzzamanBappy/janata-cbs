@@ -9,18 +9,21 @@ const envSchema = z.object({
   // 2. Security & Authentication
   LOGIN_LIMIT: z.coerce.number().default(3),
   USE_HTTPS: z
-    .string()
-    .transform((val) => val === "true")
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((val) => val === true || val === "true")
     .default(false),
 
   // 3. Core Banking Engine (gRPC)
   GRPC_HOST: z.string().default("localhost:9090"),
   GRPC_USE_TLS: z
-    .string()
-    .transform((val) => val === "true")
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((val) => val === true || val === "true")
     .default(false),
   GRPC_TIMEOUT_MS: z.coerce.number().default(8000),
   GRPC_FINANCIAL_TRANSACTION_TYPES: z.string().default("AFT,ACT"),
+  CLIENT_ID: z.string().default("WEB-CLIENT"),
 
   // 4. Downstream Microservices (HTTP / REST)
   SERVICE_CUSTOMER_BASE_URL: z.string().default("http://customer:8383"),
@@ -30,10 +33,14 @@ const envSchema = z.object({
   REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
   REDIS_KEY_PREFIX: z.string().default("finx"),
   CACHE_ENABLED: z
-    .string()
-    .transform((val) => val !== "false")
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((val) => val !== false && val !== "false")
     .default(true),
+  CACHE_COOLDOWN_MS: z.coerce.number().default(5000),
   CACHE_INVALIDATE_TOKEN: z.string().default("super-secret-cache-token"),
+  MENU_TTL_SECONDS: z.coerce.number().default(600),
+  SPEC_TTL_SECONDS: z.coerce.number().default(3600),
 
   // 6. Client-exposed Config (Next.js Public Bundle)
   NEXT_PUBLIC_CENTRAL_BRANCH: z.string().default("JB9999"),
@@ -52,6 +59,7 @@ export const env = envSchema.parse({
   GRPC_USE_TLS: process.env.GRPC_USE_TLS,
   GRPC_TIMEOUT_MS: process.env.GRPC_TIMEOUT_MS,
   GRPC_FINANCIAL_TRANSACTION_TYPES: process.env.GRPC_FINANCIAL_TRANSACTION_TYPES,
+  CLIENT_ID: process.env.CLIENT_ID,
 
   SERVICE_CUSTOMER_BASE_URL: process.env.SERVICE_CUSTOMER_BASE_URL,
   SERVICE_URM_BASE_URL: process.env.SERVICE_URM_BASE_URL,
@@ -59,7 +67,10 @@ export const env = envSchema.parse({
   REDIS_URL: process.env.REDIS_URL,
   REDIS_KEY_PREFIX: process.env.REDIS_KEY_PREFIX,
   CACHE_ENABLED: process.env.CACHE_ENABLED,
+  CACHE_COOLDOWN_MS: process.env.CACHE_COOLDOWN_MS,
   CACHE_INVALIDATE_TOKEN: process.env.CACHE_INVALIDATE_TOKEN,
+  MENU_TTL_SECONDS: process.env.MENU_TTL_SECONDS,
+  SPEC_TTL_SECONDS: process.env.SPEC_TTL_SECONDS,
 
   NEXT_PUBLIC_CENTRAL_BRANCH: process.env.NEXT_PUBLIC_CENTRAL_BRANCH,
   NEXT_PUBLIC_LOGOUT_TIME: process.env.NEXT_PUBLIC_LOGOUT_TIME,

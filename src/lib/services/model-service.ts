@@ -1,13 +1,13 @@
 import "server-only";
 import { STATIC_SPECS } from "@fixtures";
 import { type FormSchema, parseGMC } from "@/features/screens";
-import { env } from "@/lib/config/env";
+import { appConfig } from "@/lib/config";
 import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
 import { getOrSet, getSession } from "@/lib/redis";
 
 /* ---------- Domain & Cache Constants ---------- */
-const SPEC_TTL_SECONDS = env.SPEC_TTL_SECONDS || 3600;
+const SPEC_TTL_SECONDS = appConfig.redis.specTtlSeconds;
 const MODEL_REQUEST_TYPE = "GMC";
 const MODEL_CONTROL_NAME = "?";
 const MODEL_RECORD_FUNCTION = "S";
@@ -20,7 +20,7 @@ async function fetchSchemaFromBackend(
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
   // Static mock fallback
-  if (env.MODEL_SOURCE === "static") {
+  if (appConfig.modelSource === "static") {
     const rawMock = STATIC_SPECS[cleanCmd];
     if (!rawMock) return null;
     const parsed = parseGMC(rawMock, cleanCmd);
@@ -31,11 +31,13 @@ async function fetchSchemaFromBackend(
   const session = await getSession();
   const token = tokenParam || session?.token;
   if (!token) {
-    throw new Error(`UNAUTHENTICATED: No valid session token available for gRPC schema fetch (${cleanCmd})`);
+    throw new Error(
+      `UNAUTHENTICATED: No valid session token available for gRPC schema fetch (${cleanCmd})`,
+    );
   }
 
   const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-  const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
+  const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
 
   const address = getServiceUrl("default");
 
@@ -44,7 +46,7 @@ async function fetchSchemaFromBackend(
     "nonfinancial",
     {
       idempotencyKey: "",
-      clientId: "WEB-CLIENT",
+      clientId: appConfig.grpc.clientId,
       requestType: MODEL_REQUEST_TYPE,
       controlName: MODEL_CONTROL_NAME,
       recordFunction: MODEL_RECORD_FUNCTION,

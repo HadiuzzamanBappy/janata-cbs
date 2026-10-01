@@ -5,6 +5,7 @@ import * as React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
+import { appConfig } from "@/lib/config";
 import { useWorkbenchStore } from "@/store";
 import { useFormSchema } from "../hooks/use-form-schema";
 import { useFormState } from "../hooks/use-form-state";
@@ -126,7 +127,9 @@ export function FormScreen({
     return "";
   }, [currentTab]);
 
-  const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT" | "VIEW">(initialMode);
+  const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT" | "VIEW">(
+    initialMode,
+  );
   const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialRecordId);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
@@ -197,7 +200,7 @@ export function FormScreen({
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/proxy", {
+      const res = await fetch(appConfig.routes.api.proxy, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -455,4 +458,3 @@ export function FormScreen({
     </div>
   );
 }
-

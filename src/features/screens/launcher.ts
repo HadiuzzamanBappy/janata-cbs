@@ -1,3 +1,4 @@
+import { appConfig } from "@/lib/config";
 import { dispatchCommand } from "@/lib/core/commands";
 
 export type DisplayTargetMode = "workspace" | "popup";
@@ -60,7 +61,7 @@ export function launchScreen({
       }
     }
 
-    const screenUrl = `/screen/${encodeURIComponent(normalizedCmd)}?${params.toString()}`;
+    const screenUrl = `${appConfig.routes.screen}/${encodeURIComponent(normalizedCmd)}?${params.toString()}`;
     const popupFeatures = [
       "popup=yes",
       "width=1160",

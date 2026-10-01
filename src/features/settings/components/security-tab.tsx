@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { appConfig } from "@/lib/config";
 import { changePasswordSchema, changeUsernameSchema } from "../schemas";
 
 export function ChangePassword({ command: _command }: { command?: string }) {
@@ -28,7 +29,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
   const [confPass, setConfPass] = React.useState("");
 
   React.useEffect(() => {
-    fetch("/api/session")
+    fetch(appConfig.routes.api.session)
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
@@ -58,7 +59,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
     setUnameLoading(true);
     try {
       // Sending request to backend
-      const response = await fetch("/api/proxy", {
+      const response = await fetch(appConfig.routes.api.proxy, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -112,7 +113,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
     setPassLoading(true);
 
     try {
-      const response = await fetch("/api/proxy", {
+      const response = await fetch(appConfig.routes.api.proxy, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

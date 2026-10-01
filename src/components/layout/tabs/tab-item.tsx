@@ -21,7 +21,6 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
   const universalTabNumber = index + 1;
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: outer container is interactive tab item holding nested action buttons
     <div
       data-tab-id={tab.id}
       role="button"

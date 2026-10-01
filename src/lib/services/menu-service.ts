@@ -1,13 +1,13 @@
 import "server-only";
 import { STATIC_MENU } from "@fixtures";
 import { type MenuItem, parseMNU } from "@/features/screens";
-import { env } from "@/lib/config/env";
+import { appConfig } from "@/lib/config";
 import { getServiceUrl } from "@/lib/core/services";
 import { grpcProcess } from "@/lib/grpc";
 import { getOrSet, getSession } from "@/lib/redis";
 
 /* ---------- Domain & Cache Constants ---------- */
-const MENU_TTL_SECONDS = env.MENU_TTL_SECONDS || 600;
+const MENU_TTL_SECONDS = appConfig.redis.menuTtlSeconds;
 const MENU_REQUEST_TYPE = "GUM";
 const DEFAULT_MENU_CONTROL = "MAIN_MENU";
 const MENU_RECORD_FUNCTION = "L";
@@ -18,7 +18,7 @@ async function fetchMenuFromBackend(
   tokenParam?: string,
 ): Promise<MenuItem[]> {
   // Static mock fallback
-  if (env.MODEL_SOURCE === "static") {
+  if (appConfig.modelSource === "static") {
     const parseResult = parseMNU(STATIC_MENU);
     if (!parseResult.success) {
       throw new Error(`Failed to parse static menu: ${parseResult.error}`);
@@ -34,7 +34,7 @@ async function fetchMenuFromBackend(
   }
 
   const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-  const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
+  const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
 
   const address = getServiceUrl("default");
 
@@ -43,7 +43,7 @@ async function fetchMenuFromBackend(
     "nonfinancial",
     {
       idempotencyKey: "",
-      clientId: "WEB-CLIENT",
+      clientId: appConfig.grpc.clientId,
       requestType: MENU_REQUEST_TYPE,
       controlName,
       recordFunction: MENU_RECORD_FUNCTION,

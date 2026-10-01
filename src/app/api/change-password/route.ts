@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { appConfig } from "@/lib/config";
 import { getSession, updateSession } from "@/lib/redis";
 
 export const runtime = "nodejs";
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // 3. Remove the initLogin HTTP cookie restriction
     const store = await cookies();
-    store.delete("initLogin");
+    store.delete(appConfig.auth.initLoginCookie);
 
     return NextResponse.json({
       message: "Password updated successfully.",

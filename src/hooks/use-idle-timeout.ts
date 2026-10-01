@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { appConfig } from "@/lib/config";
 
-const STORAGE_KEY = "finx_last_activity";
-const WARNING_BEFORE_LOGOUT_MS = 60 * 1000; // 60 seconds warning window
+const STORAGE_KEY = appConfig.storageKeys.lastActivity;
+const WARNING_BEFORE_LOGOUT_MS = appConfig.storageKeys.idleWarningWindowMs;
 
 interface UseIdleTimeoutOptions {
   timeoutMinutes?: number;
@@ -12,7 +13,7 @@ interface UseIdleTimeoutOptions {
 }
 
 export function useIdleTimeout({
-  timeoutMinutes = 10,
+  timeoutMinutes = appConfig.logoutTime,
   onLogout,
 }: UseIdleTimeoutOptions = {}) {
   const router = useRouter();
@@ -36,7 +37,7 @@ export function useIdleTimeout({
       if (onLogout) {
         onLogout();
       } else {
-        await fetch("/api/logout", { method: "POST" });
+        await fetch(appConfig.routes.api.logout, { method: "POST" });
       }
     } catch {
       // Fail-safe cleanup
@@ -46,7 +47,7 @@ export function useIdleTimeout({
   }, [onLogout]);
 
   const handleLogoutConfirm = useCallback(() => {
-    router.push("/login");
+    router.push(appConfig.routes.login);
     router.refresh();
   }, [router]);
 
@@ -58,7 +59,7 @@ export function useIdleTimeout({
 
     // Heartbeat to update server-side session lastActiveAt
     try {
-      await fetch("/api/session");
+      await fetch(appConfig.routes.api.session);
     } catch {
       // Ignore heartbeat network drop
     }

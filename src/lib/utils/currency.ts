@@ -1,3 +1,5 @@
+import { appConfig } from "@/lib/config";
+
 /**
  * Core Banking Currency & Number Formatting Utilities
  */
@@ -20,12 +22,16 @@ export function formatCurrency(
   const num = typeof value === "string" ? Number.parseFloat(value.replace(/,/g, "")) : value;
   if (Number.isNaN(num)) return String(value);
 
-  const { currency = "BDT", decimals = 2, accountingNegative = false } = options;
+  const {
+    currency = appConfig.format.currency,
+    decimals = 2,
+    accountingNegative = false,
+  } = options;
 
   const isNegative = num < 0;
   const absNum = Math.abs(num);
 
-  const formattedAbs = new Intl.NumberFormat("en-IN", {
+  const formattedAbs = new Intl.NumberFormat(appConfig.format.locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(absNum);
@@ -49,7 +55,7 @@ export function formatNumber(
   const num = typeof value === "string" ? Number.parseFloat(value.replace(/,/g, "")) : value;
   if (Number.isNaN(num)) return String(value);
 
-  return new Intl.NumberFormat("en-IN", {
+  return new Intl.NumberFormat(appConfig.format.locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(num);

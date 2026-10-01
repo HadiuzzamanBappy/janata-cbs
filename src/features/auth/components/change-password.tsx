@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { appConfig } from "@/lib/config";
 
 export function ChangePassword() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export function ChangePassword() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/change-password", {
+      const res = await fetch(appConfig.routes.api.changePassword, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ oldPassword, newPassword }),
@@ -39,7 +40,7 @@ export function ChangePassword() {
         throw new Error(data.message || "Failed to update password");
       }
 
-      router.push("/");
+      router.push(appConfig.routes.dashboard);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");

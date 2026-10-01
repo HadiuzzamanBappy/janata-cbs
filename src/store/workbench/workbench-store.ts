@@ -1,5 +1,6 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
+import { appConfig } from "@/lib/config";
 
 export interface WorkbenchTab {
   id: string; // Unique instance ID for every tab opened
@@ -87,7 +88,7 @@ export const createWorkbenchStore = () => {
       }),
 
       {
-        name: "cbs_workbench_tabs_store",
+        name: appConfig.storageKeys.workbenchTabs,
         storage: createJSONStorage(() => sessionStorage),
       },
     ),

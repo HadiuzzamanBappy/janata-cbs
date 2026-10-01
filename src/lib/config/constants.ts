@@ -1,44 +1,94 @@
 import { env } from "./env";
 
 export const appConfig = {
+  // 1. Application & Runtime Mode
+  nodeEnv: env.NODE_ENV,
   isDev: env.NODE_ENV === "development",
-  useHttps: env.USE_HTTPS,
-  logoutTimeMinutes: env.NEXT_PUBLIC_LOGOUT_TIME,
-  defaultBranch: env.NEXT_PUBLIC_CENTRAL_BRANCH,
+  modelSource: env.MODEL_SOURCE,
+  userSource: env.USER_SOURCE,
 
+  // 2. Security & Authentication
+  loginLimit: env.LOGIN_LIMIT,
+  useHttps: env.USE_HTTPS,
+
+  // 3. Core Banking Engine (gRPC)
   grpc: {
-    address: env.GRPC_HOST,
+    host: env.GRPC_HOST,
     useTls: env.GRPC_USE_TLS,
-    deadlineMs: env.GRPC_TIMEOUT_MS,
+    timeoutMs: env.GRPC_TIMEOUT_MS,
+    financialTransactionTypes: env.GRPC_FINANCIAL_TRANSACTION_TYPES.split(","),
+    clientId: env.CLIENT_ID,
+    modelSource: env.MODEL_SOURCE,
     keepaliveTimeMs: 60_000,
     keepaliveTimeoutMs: 20_000,
-    modelSource: env.MODEL_SOURCE,
-    financialTypes: env.GRPC_FINANCIAL_TRANSACTION_TYPES.split(","),
   },
 
+  // 4. Downstream Microservices (HTTP / REST)
   services: {
-    customerUrl: env.SERVICE_CUSTOMER_BASE_URL,
-    urmUrl: env.SERVICE_URM_BASE_URL,
+    customerBaseUrl: env.SERVICE_CUSTOMER_BASE_URL,
+    urmBaseUrl: env.SERVICE_URM_BASE_URL,
   },
 
+  // 5. Caching Layer (Redis)
   redis: {
     url: env.REDIS_URL,
-    prefix: env.REDIS_KEY_PREFIX,
+    keyPrefix: env.REDIS_KEY_PREFIX,
     enabled: env.CACHE_ENABLED,
+    cooldownMs: env.CACHE_COOLDOWN_MS,
     invalidateToken: env.CACHE_INVALIDATE_TOKEN,
-    cooldownMs: 5000,
-    // Unified TTL Tiers:
-    metadataTtlSeconds: 3600, // 1 Hour: GMC Screen Specs, Branches, Controls
-    menuTtlSeconds: 600, // 10 Minutes: Navigation hierarchy
-    defaultTtlSeconds: 86400, // 24 Hours: Generic fallback
+    menuTtlSeconds: env.MENU_TTL_SECONDS,
+    specTtlSeconds: env.SPEC_TTL_SECONDS,
+    defaultTtlSeconds: 86400,
   },
 
+  // 6. Client-exposed Config & Session
+  centralBranch: env.NEXT_PUBLIC_CENTRAL_BRANCH,
+  logoutTime: env.NEXT_PUBLIC_LOGOUT_TIME,
   auth: {
     loginLimit: env.LOGIN_LIMIT,
+    userSource: env.USER_SOURCE,
     rateLimitWindowSec: 60,
     cookieName: "sid",
+    initLoginCookie: "initLogin",
     sessionPrefix: "sess:",
-    userSource: env.USER_SOURCE,
     sessionMaxAgeSeconds: (env.NEXT_PUBLIC_LOGOUT_TIME + 2) * 60,
+    minPasswordLength: 6,
+  },
+
+  // 7. Core Banking Presentation & Formatting Standards
+  format: {
+    currency: "BDT",
+    locale: "en-IN",
+    dateLocale: "en-GB",
+    accountNumberLength: 13,
+  },
+
+  // 8. Canonical Application Routes & Endpoints
+  routes: {
+    home: "/",
+    dashboard: "/dashboard",
+    screen: "/screen",
+    login: "/login",
+    changePassword: "/change-password",
+    api: {
+      login: "/api/login",
+      logout: "/api/logout",
+      session: "/api/session",
+      proxy: "/api/proxy",
+      cache: "/api/cache",
+      model: "/api/model",
+      menu: "/api/menu",
+      controls: "/api/controls",
+      branches: "/api/branches",
+      changePassword: "/api/change-password",
+    },
+  },
+
+  // 9. Client Storage & Sync Keys
+  storageKeys: {
+    lastActivity: "finx_last_activity",
+    workbenchTabs: "cbs_workbench_tabs_store",
+    themeAccent: "cbs-theme-accent",
+    idleWarningWindowMs: 60 * 1000, // 60s warning before timeout
   },
 } as const;

@@ -1,12 +1,12 @@
 import "server-only";
 import { type BranchMock, STATIC_BRANCHES } from "@fixtures";
-import { env } from "@/lib/config/env";
+import { appConfig } from "@/lib/config";
 import { getServiceUrl } from "@/lib/core/services";
 import { extractStringField, getItemFields, grpcProcess, unwrapRecordsPayload } from "@/lib/grpc";
 import { getOrSet, getSession } from "@/lib/redis";
 
 /* ---------- Domain & Cache Constants ---------- */
-const BRANCH_TTL_SECONDS = 3600; // 1 hour cache
+const BRANCH_TTL_SECONDS = appConfig.redis.specTtlSeconds;
 const BRANCH_REQUEST_TYPE = "GRL";
 const BRANCH_CONTROL_NAME = "BRANCH";
 const BRANCH_RECORD_FUNCTION = "L";
@@ -14,7 +14,7 @@ const BRANCH_RECORD_FUNCTION = "L";
 /* ---------- Backend RPC Fetcher ---------- */
 async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock[]> {
   // Static mock fallback
-  if (env.MODEL_SOURCE === "static") {
+  if (appConfig.modelSource === "static") {
     return STATIC_BRANCHES;
   }
 
@@ -26,7 +26,7 @@ async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock
   }
 
   const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-  const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
+  const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
 
   const address = getServiceUrl("default");
 
@@ -35,7 +35,7 @@ async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock
     "nonfinancial",
     {
       idempotencyKey: "",
-      clientId: "WEB-CLIENT",
+      clientId: appConfig.grpc.clientId,
       requestType: BRANCH_REQUEST_TYPE,
       controlName: BRANCH_CONTROL_NAME,
       recordFunction: BRANCH_RECORD_FUNCTION,
@@ -61,9 +61,14 @@ async function fetchBranchesFromBackend(tokenParam?: string): Promise<BranchMock
     return {
       recordId: extractStringField(fields, "recordId"),
       branchTitle: extractStringField(fields, "branchTitle").trim(),
-      branchAddress: extractStringField(fields, "branchAddress") || extractStringField(fields, "address") || "",
-      branchOpenDate: extractStringField(fields, "branchOpenDate") || extractStringField(fields, "openDate") || "",
-      currTxnDate: extractStringField(fields, "currTxnDate") || extractStringField(fields, "txnDate") || "",
+      branchAddress:
+        extractStringField(fields, "branchAddress") || extractStringField(fields, "address") || "",
+      branchOpenDate:
+        extractStringField(fields, "branchOpenDate") ||
+        extractStringField(fields, "openDate") ||
+        "",
+      currTxnDate:
+        extractStringField(fields, "currTxnDate") || extractStringField(fields, "txnDate") || "",
       divCode: extractStringField(fields, "divCode"),
       areaCode: extractStringField(fields, "areaCode"),
     } as BranchMock;

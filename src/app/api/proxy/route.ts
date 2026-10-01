@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { appConfig } from "@/lib/config";
 import { dispatch, type Envelope } from "@/lib/grpc/dispatch";
 import { getSession } from "@/lib/redis";
 
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       recordId: body.recordId || "",
       authLevel: body.authLevel ?? 1,
       userId,
-      clientId: "WEB-CLIENT",
+      clientId: appConfig.grpc.clientId,
       data: body.data ?? {},
     };
 

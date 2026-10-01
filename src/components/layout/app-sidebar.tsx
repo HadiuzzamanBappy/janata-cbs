@@ -7,6 +7,7 @@ import logo from "@/app/icon.png";
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { launchScreen, type MenuItem } from "@/features/screens";
+import { appConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import { useWorkbenchStore } from "@/store";
 
@@ -162,7 +163,7 @@ export function AppSidebar({ openSettingsTab, clearSession, ...props }: AppSideb
 
   React.useEffect(() => {
     setLoading(true);
-    fetch("/api/menu")
+    fetch(appConfig.routes.api.menu)
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data)) {

@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { env } from "@/lib/config";
+import { appConfig } from "@/lib/config";
 import { getServiceUrl } from "@/lib/core/services";
 import { type GrpcRequest, grpcProcess, type ProcessKind } from "@/lib/grpc/client";
 import type { APIResponse, Envelope } from "@/types";
@@ -8,9 +8,7 @@ import type { APIResponse, Envelope } from "@/types";
 export type { Envelope };
 
 const FINANCIAL_REQUEST_TYPES = new Set(
-  (env.GRPC_FINANCIAL_TRANSACTION_TYPES || "AFT,ACT")
-    .split(",")
-    .map((s) => s.trim().toUpperCase()),
+  appConfig.grpc.financialTransactionTypes.map((s) => s.trim().toUpperCase()),
 );
 
 function classify(requestType: string): ProcessKind {

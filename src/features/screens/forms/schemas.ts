@@ -16,12 +16,33 @@ export const rawPropertyRecordSchema = z.object({
 
 export type RawPropertyRecord = z.infer<typeof rawPropertyRecordSchema>;
 
+export type RawEnquiryColumn = {
+  id: string;
+  label: string;
+  align?: "left" | "center" | "right";
+  width?: string;
+  isMono?: boolean;
+  isDrilldown?: boolean;
+  drilldownTargetCommand?: string;
+};
+
+export const rawEnquiryColumnSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  align: z.enum(["left", "center", "right"]).optional(),
+  width: z.string().optional(),
+  isMono: z.boolean().optional(),
+  isDrilldown: z.boolean().optional(),
+  drilldownTargetCommand: z.string().optional(),
+});
+
 export type RawPropertyConfigRecord = {
   record?: RawPropertyConfigRecord;
   DESCRIPTION?: string;
   TABLENAME?: string;
   IDDEF?: { IDPREFIX?: string };
   PROPERTIES?: RawPropertyRecord[];
+  COLUMNS?: RawEnquiryColumn[];
 };
 
 export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.lazy(() =>
@@ -31,6 +52,7 @@ export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.laz
     TABLENAME: z.string().optional(),
     IDDEF: z.object({ IDPREFIX: z.string().optional() }).optional(),
     PROPERTIES: z.array(rawPropertyRecordSchema).optional(),
+    COLUMNS: z.array(rawEnquiryColumnSchema).optional(),
   }),
 );
 
@@ -61,6 +83,7 @@ export const formSchemaSchema = z.object({
   title: z.string(),
   idPrefix: z.string(),
   fields: z.array(formFieldSchema),
+  columns: z.array(rawEnquiryColumnSchema).optional(),
 });
 
 export type FormSchema = z.infer<typeof formSchemaSchema>;

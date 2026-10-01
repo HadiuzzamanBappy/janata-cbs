@@ -31,6 +31,12 @@ const COOKIE_NAME = appConfig.auth.cookieName;
 const SESSION_PREFIX = appConfig.auth.sessionPrefix;
 const TTL_SECONDS = appConfig.auth.sessionMaxAgeSeconds;
 
+// In-memory fallback session store for offline / dev when Redis is disabled or unavailable
+declare global {
+  var __memorySessionStore: Map<string, SessionData> | undefined;
+}
+const memoryStore = (globalThis.__memorySessionStore ??= new Map<string, SessionData>());
+
 const sessionKey = (id: string): string => `${SESSION_PREFIX}${id}`;
 
 async function currentSessionId(): Promise<string | null> {
@@ -48,12 +54,15 @@ export async function createSession(
   const oldId = store.get(COOKIE_NAME)?.value;
   const redis = getRedisClient();
 
-  if (oldId && redis) {
-    try {
-      await redis.del(sessionKey(oldId));
-    } catch {
-      // Ignore Redis delete failure on cleanup
+  if (oldId) {
+    if (redis) {
+      try {
+        await redis.del(sessionKey(oldId));
+      } catch {
+        // Ignore Redis delete failure on cleanup
+      }
     }
+    memoryStore.delete(oldId);
   }
 
   const id = randomUUID();
@@ -68,6 +77,8 @@ export async function createSession(
       console.warn("[session] Failed to persist session in Redis:", error);
     }
   }
+  // Store in memory cache as reliable fallback
+  memoryStore.set(id, payload);
 
   const isSecure = !appConfig.isDev && appConfig.useHttps;
 
@@ -95,40 +106,56 @@ export async function createSession(
 }
 
 /**
- * Reads the session from Redis and validates the 10-minute inactivity window.
+ * Reads the session from Redis (or in-memory fallback) and validates the inactivity window.
  */
 export async function getSession(): Promise<SessionData | null> {
   const id = await currentSessionId();
   if (!id) return null;
 
   const redis = getRedisClient();
-  if (!redis) return null;
+  let session: SessionData | null = null;
 
-  try {
-    const raw = await redis.get(sessionKey(id));
-    if (!raw) return null;
-
-    const session = JSON.parse(raw) as SessionData;
-
-    // Server-side Inactivity Guard
-    const timeoutMinutes = appConfig.logoutTime;
-    const maxInactiveMs = timeoutMinutes * 60 * 1000;
-    const now = Date.now();
-
-    if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
-      console.warn(`[session] Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
-      await destroySession();
-      return null;
+  if (redis) {
+    try {
+      const raw = await redis.get(sessionKey(id));
+      if (raw) {
+        session = JSON.parse(raw) as SessionData;
+      }
+    } catch {
+      // Fall through to memoryStore on Redis error
     }
+  }
 
-    // Refresh lastActiveAt and extend Redis TTL
-    session.lastActiveAt = now;
-    await redis.set(sessionKey(id), JSON.stringify(session), "EX", TTL_SECONDS);
+  // Fallback to in-memory store if Redis was offline or disabled
+  if (!session) {
+    session = memoryStore.get(id) ?? null;
+  }
 
-    return session;
-  } catch {
+  if (!session) return null;
+
+  // Server-side Inactivity Guard
+  const timeoutMinutes = appConfig.logoutTime;
+  const maxInactiveMs = timeoutMinutes * 60 * 1000;
+  const now = Date.now();
+
+  if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
+    console.warn(`[session] Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
+    await destroySession();
     return null;
   }
+
+  // Refresh lastActiveAt and extend TTL
+  session.lastActiveAt = now;
+  if (redis) {
+    try {
+      await redis.set(sessionKey(id), JSON.stringify(session), "EX", TTL_SECONDS);
+    } catch {
+      // Ignore Redis update error
+    }
+  }
+  memoryStore.set(id, session);
+
+  return session;
 }
 
 /**
@@ -151,25 +178,25 @@ export async function updateSession(
   if (!id) return null;
 
   const redis = getRedisClient();
-  if (!redis) return null;
+  const session = await getSession();
+  if (!session) return null;
 
-  try {
-    const raw = await redis.get(sessionKey(id));
-    if (!raw) return null;
+  const next: SessionData = {
+    ...session,
+    ...patch,
+    createdAt: session.createdAt,
+    currUser: patch.currUser ? { ...session.currUser, ...patch.currUser } : session.currUser,
+  };
 
-    const current = JSON.parse(raw) as SessionData;
-    const next: SessionData = {
-      ...current,
-      ...patch,
-      createdAt: current.createdAt,
-      currUser: patch.currUser ? { ...current.currUser, ...patch.currUser } : current.currUser,
-    };
-
-    await redis.set(sessionKey(id), JSON.stringify(next), "EX", TTL_SECONDS);
-    return next;
-  } catch {
-    return null;
+  if (redis) {
+    try {
+      await redis.set(sessionKey(id), JSON.stringify(next), "EX", TTL_SECONDS);
+    } catch {
+      // Fallback
+    }
   }
+  memoryStore.set(id, next);
+  return next;
 }
 
 /**
@@ -202,6 +229,7 @@ export async function destroySession(): Promise<void> {
         // Ignore deletion errors during logout
       }
     }
+    memoryStore.delete(id);
   }
 
   const store = await cookies();

@@ -20,6 +20,26 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
   const { confirm } = useAlertStore();
   const universalTabNumber = index + 1;
 
+  const handleCloseTab = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const hasUserInput =
+      tab.formData &&
+      Object.values(tab.formData).some((v) => v !== undefined && v !== null && v !== "");
+
+    if (hasUserInput) {
+      confirm({
+        title: `Close "${tab.title}"?`,
+        message:
+          "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
+        variant: "destructive",
+        confirmText: "Discard & Close",
+        onConfirm: () => removeTab(tab.id),
+      });
+    } else {
+      removeTab(tab.id);
+    }
+  };
+
   return (
     <div
       data-tab-id={tab.id}
@@ -31,6 +51,29 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
           return;
         }
         setActiveTab(tab.id);
+      }}
+      onMouseDown={(e) => {
+        // Prevent default browser autoscroll icon when middle clicking on tab
+        if (e.button === 1) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }}
+      onMouseUp={(e) => {
+        // Middle mouse button (button === 1) release closes tab
+        if (e.button === 1) {
+          e.preventDefault();
+          e.stopPropagation();
+          handleCloseTab(e);
+        }
+      }}
+      onAuxClick={(e) => {
+        // Auxiliary middle mouse click fallback
+        if (e.button === 1) {
+          e.preventDefault();
+          e.stopPropagation();
+          handleCloseTab(e);
+        }
       }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -91,23 +134,7 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
         <button
           type="button"
           onClick={(e) => {
-            e.stopPropagation();
-            const hasUserInput =
-              tab.formData &&
-              Object.values(tab.formData).some((v) => v !== undefined && v !== null && v !== "");
-
-            if (hasUserInput) {
-              confirm({
-                title: `Close "${tab.title}"?`,
-                message:
-                  "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
-                variant: "destructive",
-                confirmText: "Discard & Close",
-                onConfirm: () => removeTab(tab.id),
-              });
-            } else {
-              removeTab(tab.id);
-            }
+            handleCloseTab(e);
           }}
           className="size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
           aria-label={`Close tab ${tab.title}`}

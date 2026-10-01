@@ -143,10 +143,29 @@ export function parseGMC(
 
   const rawProperties = propertiesRaw.map(extractRawField);
 
+  // Extract IDDEF if present
+  let idDefRaw: { IDPREFIX?: string } | undefined;
+  if (recordFields.IDDEF && typeof recordFields.IDDEF === "object") {
+    const idDefObj = recordFields.IDDEF as Record<string, unknown>;
+    const idDefFields = (idDefObj.struct_value as { fields?: Record<string, unknown> })?.fields || idDefObj;
+    const prefix = getScalar((idDefFields as Record<string, unknown>).IDPREFIX);
+    if (prefix) {
+      idDefRaw = { IDPREFIX: String(prefix) };
+    }
+  }
+
+  // Extract COLUMNS if present (for enquiry screens)
+  let columnsRaw: RawPropertyConfigRecord["COLUMNS"] = undefined;
+  if (Array.isArray(recordFields.COLUMNS)) {
+    columnsRaw = recordFields.COLUMNS as RawPropertyConfigRecord["COLUMNS"];
+  }
+
   const rawConfig: RawPropertyConfigRecord = {
     TABLENAME: tableName,
     DESCRIPTION: description,
+    IDDEF: idDefRaw,
     PROPERTIES: rawProperties,
+    COLUMNS: columnsRaw,
   };
 
   const parseResult = rawPropertyConfigSchema.safeParse(rawConfig);
@@ -176,6 +195,7 @@ export function parseGMC(
     title: record.DESCRIPTION ?? code,
     idPrefix,
     fields,
+    columns: record.COLUMNS,
   };
 
   const finalCheck = formSchemaSchema.safeParse(candidateForm);

@@ -70,28 +70,6 @@ export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
     component: SecurityTab,
   },
 
-  // Temenos Core Enquiries
-  {
-    id: "enq.user.list",
-    title: "System Users List",
-    category: "Enquiries & Reports",
-    description: "Enquiry listing active banking users and assigned function rights",
-    command: "ENQ USER.LIST",
-    allowedRoles: ["*"],
-    icon: Search,
-    actionType: "SCREEN",
-  },
-  {
-    id: "enq.stmt.ent.book",
-    title: "Account Statement Entries",
-    category: "Enquiries & Reports",
-    description: "Booked statement entries enquiry for customer accounts",
-    command: "ENQ STMT.ENT.BOOK",
-    allowedRoles: ["*"],
-    icon: FileText,
-    actionType: "SCREEN",
-  },
-
   // App Settings Modals
   {
     id: "settings:profile",

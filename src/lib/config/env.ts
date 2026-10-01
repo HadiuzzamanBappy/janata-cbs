@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const envSchema = z.object({
+export const envSchema = z.object({
   // 1. Application & Runtime Mode
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   MODEL_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
@@ -26,8 +26,8 @@ const envSchema = z.object({
   CLIENT_ID: z.string().default("WEB-CLIENT"),
 
   // 4. Downstream Microservices (HTTP / REST)
-  SERVICE_CUSTOMER_BASE_URL: z.string().default("http://customer:8383"),
-  SERVICE_URM_BASE_URL: z.string().default("http://finxurm:8282"),
+  SERVICE_CUSTOMER_BASE_URL: z.string().default("http://localhost:8383"),
+  SERVICE_URM_BASE_URL: z.string().default("http://localhost:8282"),
 
   // 5. Caching Layer (Redis)
   REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
@@ -45,6 +45,24 @@ const envSchema = z.object({
   // 6. Client-exposed Config (Next.js Public Bundle)
   NEXT_PUBLIC_CENTRAL_BRANCH: z.string().default("JB9999"),
   NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().default(10),
+}).superRefine((data, ctx) => {
+  if (data.MODEL_SOURCE === "grpc" || data.USER_SOURCE === "grpc") {
+    if (!data.GRPC_HOST || data.GRPC_HOST.trim() === "") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["GRPC_HOST"],
+        message: "GRPC_HOST must be provided when MODEL_SOURCE or USER_SOURCE is set to 'grpc'",
+      });
+    }
+  }
+
+  if (data.CACHE_ENABLED && (!data.REDIS_URL || data.REDIS_URL.trim() === "")) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["REDIS_URL"],
+      message: "REDIS_URL must be provided when CACHE_ENABLED is true",
+    });
+  }
 });
 
 export const env = envSchema.parse({

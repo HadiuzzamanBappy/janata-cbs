@@ -3,7 +3,7 @@ import type { RawPropertyConfigRecord } from "@/features/screens";
 /**
  * Offline development mock specs matching the GMC backend schema.
  */
-export const STATIC_SPECS: Record<string, RawPropertyConfigRecord> = {
+export const STATIC_MODELS: Record<string, RawPropertyConfigRecord> = {
   "FUNDS.TRANSFER": {
     DESCRIPTION: "Funds Transfer",
     TABLENAME: "FUNDS.TRANSFER",
@@ -157,6 +157,40 @@ export const STATIC_SPECS: Record<string, RawPropertyConfigRecord> = {
     ],
   },
 
+  CUSTOMER: {
+    DESCRIPTION: "Create Customer",
+    TABLENAME: "CUSTOMER",
+    IDDEF: { IDPREFIX: "CU" },
+    PROPERTIES: [
+      { NAME: "CUSTOMER.ID", LABEL: "Customer Number", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 12 },
+      { NAME: "NAME.1", LABEL: "Customer Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 35 },
+      { NAME: "SHORT.NAME", LABEL: "Short Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 15 },
+      { NAME: "SECTOR", LABEL: "Sector", TYPE: "VARCHAR", LENGTH: 4, DATASOURCE: ["Individual", "Corporate", "SME"] },
+      { NAME: "NATIONALITY", LABEL: "Nationality", TYPE: "VARCHAR", LENGTH: 2, DATASOURCE: ["BD", "US", "UK"] },
+      { NAME: "STREET", LABEL: "Street Address", TYPE: "VARCHAR", LENGTH: 35 },
+      { NAME: "TOWN.COUNTRY", LABEL: "Town / District", TYPE: "VARCHAR", LENGTH: 35 },
+      { NAME: "DATE.OF.BIRTH", LABEL: "Date of Birth", TYPE: "DATE" },
+      { NAME: "POST.CODE", LABEL: "Postal Code", TYPE: "VARCHAR", LENGTH: 10 },
+      { NAME: "RECORD.STATUS", LABEL: "Record Status", TYPE: "VARCHAR", DISABLED: true, LENGTH: 4 },
+    ],
+  },
+
+  "USER.MGT": {
+    DESCRIPTION: "User Management",
+    TABLENAME: "USER.MGT",
+    IDDEF: { IDPREFIX: "UM" },
+    PROPERTIES: [
+      { NAME: "USER.ID", LABEL: "User ID", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 15 },
+      { NAME: "SIGN.ON.NAME", LABEL: "Sign On Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 15 },
+      { NAME: "FULL.NAME", LABEL: "Full Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 35 },
+      { NAME: "ROLE", LABEL: "Role", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 20, DATASOURCE: ["Teller", "Officer", "Supervisor", "Administrator"] },
+      { NAME: "BRANCH", LABEL: "Branch", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 6 },
+      { NAME: "START.DATE", LABEL: "Start Date", TYPE: "DATE" },
+      { NAME: "END.DATE", LABEL: "End Date", TYPE: "DATE" },
+      { NAME: "RECORD.STATUS", LABEL: "Record Status", TYPE: "VARCHAR", DISABLED: true, LENGTH: 4 },
+    ],
+  },
+
   "USER.CREATE": {
     DESCRIPTION: "Create User",
     TABLENAME: "USER.CREATE",
@@ -208,6 +242,7 @@ export const STATIC_SPECS: Record<string, RawPropertyConfigRecord> = {
     TABLENAME: "USER.LIST",
     IDDEF: { IDPREFIX: "UL" },
     PROPERTIES: [
+      { NAME: "USER.ID", LABEL: "User ID", TYPE: "VARCHAR" },
       { NAME: "BRANCH", LABEL: "Branch", TYPE: "VARCHAR", LENGTH: 6 },
       {
         NAME: "STATUS",
@@ -217,6 +252,70 @@ export const STATIC_SPECS: Record<string, RawPropertyConfigRecord> = {
         DATASOURCE: ["All", "Active", "Locked", "Closed"],
       },
       { NAME: "AS.OF.DATE", LABEL: "As Of Date", TYPE: "DATE" },
+    ],
+    COLUMNS: [
+      { id: "id", label: "User ID", isMono: true, isDrilldown: true, drilldownTargetCommand: "USER.MGT" },
+      { id: "fullName", label: "Full Name" },
+      { id: "userRole", label: "Role", align: "center" },
+      { id: "branchCode", label: "Branch", align: "center" },
+      { id: "accessibility", label: "Rights", align: "center", isMono: true },
+      { id: "status", label: "Status", align: "center" },
+    ],
+  },
+
+  "GET.EMP.INFO": {
+    DESCRIPTION: "User Request Inquiry",
+    TABLENAME: "GET.EMP.INFO",
+    PROPERTIES: [
+      { NAME: "EMP.ID", LABEL: "Employee / User ID", TYPE: "VARCHAR", REQUIRED: true },
+      { NAME: "BRANCH.CODE", LABEL: "Branch Code", TYPE: "VARCHAR", LENGTH: 6 },
+    ],
+    COLUMNS: [
+      { id: "id", label: "Employee ID", isMono: true, isDrilldown: true },
+      { id: "empName", label: "Employee Name" },
+      { id: "designation", label: "Designation" },
+      { id: "branchCode", label: "Branch Code", align: "center" },
+      { id: "status", label: "Status", align: "center" },
+    ],
+  },
+
+  "GET.USER.MGT": {
+    DESCRIPTION: "Unauthorized User Request List",
+    TABLENAME: "GET.USER.MGT",
+    PROPERTIES: [
+      { NAME: "REQUEST.ID", LABEL: "Request ID", TYPE: "VARCHAR" },
+      { NAME: "BRANCH.CODE", LABEL: "Branch Code", TYPE: "VARCHAR", LENGTH: 6 },
+    ],
+    COLUMNS: [
+      { id: "id", label: "Request ID", isMono: true, isDrilldown: true, drilldownTargetCommand: "USER.MGT" },
+      { id: "userId", label: "User ID", isMono: true },
+      { id: "operation", label: "Operation Type", align: "center" },
+      { id: "inputter", label: "Inputter" },
+      { id: "inputTime", label: "Time", align: "center" },
+      { id: "status", label: "Auth Status", align: "center" },
+    ],
+  },
+
+  "GET.TO.TXN": {
+    DESCRIPTION: "Today Transaction Report",
+    TABLENAME: "GET.TO.TXN",
+    PROPERTIES: [
+      { NAME: "BRANCH.CODE", LABEL: "Branch Code", TYPE: "VARCHAR", LENGTH: 6 },
+      { NAME: "TELLER.ID", LABEL: "Teller ID", TYPE: "VARCHAR" },
+      {
+        NAME: "TXN.TYPE",
+        LABEL: "Transaction Type",
+        TYPE: "VARCHAR",
+        DATASOURCE: ["All", "AFT", "ACT"],
+      },
+    ],
+    COLUMNS: [
+      { id: "id", label: "Txn ID", isMono: true, isDrilldown: true },
+      { id: "txnTime", label: "Time", align: "center" },
+      { id: "account", label: "Account", isMono: true },
+      { id: "amount", label: "Amount", align: "right", isMono: true },
+      { id: "currency", label: "Ccy", align: "center" },
+      { id: "status", label: "Status", align: "center" },
     ],
   },
 
@@ -241,6 +340,12 @@ export const STATIC_SPECS: Record<string, RawPropertyConfigRecord> = {
         TYPE: "DATE",
         REQUIRED: true,
       },
+    ],
+    COLUMNS: [
+      { id: "id", label: "Entry Ref", isMono: true },
+      { id: "account", label: "Account", isMono: true },
+      { id: "amount", label: "Amount", align: "right" },
+      { id: "time", label: "Time", align: "center" },
     ],
   },
 
@@ -270,6 +375,12 @@ export const STATIC_SPECS: Record<string, RawPropertyConfigRecord> = {
         REQUIRED: true,
       },
       { NAME: "CURRENCY", LABEL: "Currency", TYPE: "VARCHAR", LENGTH: 3 },
+    ],
+    COLUMNS: [
+      { id: "id", label: "Txn Ref", isMono: true },
+      { id: "description", label: "Description" },
+      { id: "totalDebit", label: "Debit Total", align: "right" },
+      { id: "totalCredit", label: "Credit Total", align: "right" },
     ],
   },
 };

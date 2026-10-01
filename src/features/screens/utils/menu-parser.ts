@@ -72,18 +72,10 @@ export function parseMNU(
   } else if (typeof rawPayload === "object" && rawPayload !== null) {
     const obj = rawPayload as Record<string, unknown>;
     const fields = (obj.fields || obj) as Record<string, unknown>;
-    const records = (fields.records || fields.menu) as Record<string, unknown> | undefined;
+    const records = fields.records as Record<string, unknown> | undefined;
     const listValue = records?.list_value as Record<string, unknown> | undefined;
     if (Array.isArray(listValue?.values)) {
       rawList = listValue.values;
-    } else if (Array.isArray(obj.records)) {
-      rawList = obj.records;
-    } else if (Array.isArray(obj.items)) {
-      rawList = obj.items;
-    } else if (Array.isArray(obj.menu)) {
-      rawList = obj.menu;
-    } else {
-      rawList = [rawPayload];
     }
   }
 

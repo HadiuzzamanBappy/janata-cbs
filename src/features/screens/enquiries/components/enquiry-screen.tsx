@@ -3,7 +3,7 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { useWorkbenchStore } from "@/store";
-import { getEnquirySchema } from "../schemas";
+import { useEnquirySchema } from "../hooks/use-enquiry-schema";
 import type { EnquiryRow, SelectionOperand } from "../types";
 import { EnquiryFilters } from "./enquiry-filters";
 import { EnquiryHeader } from "./enquiry-header";
@@ -16,7 +16,7 @@ export interface EnquiryScreenProps {
 }
 
 export function EnquiryScreen({ command, tabId: _tabId, className = "" }: EnquiryScreenProps) {
-  const schema = React.useMemo(() => getEnquirySchema(command), [command]);
+  const { schema, loading, error, refetch } = useEnquirySchema(command);
   const { addTab } = useWorkbenchStore();
 
   const initialStep = React.useMemo(() => {
@@ -28,28 +28,29 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
   }, []);
 
   const [step, setStep] = React.useState<"SELECTION" | "RESULTS">(initialStep);
-  const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>(schema.sampleData);
+  const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>([]);
   const [currentPage, setCurrentPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [currentCriteria, setCurrentCriteria] = React.useState<
     Record<string, { value: string; operand: SelectionOperand }>
-  >(() => {
+  >({});
+
+  React.useEffect(() => {
+    if (!schema) return;
     const initial: Record<string, { value: string; operand: SelectionOperand }> = {};
     for (const f of schema.selectionFields) {
       initial[f.id] = { value: f.value || "", operand: f.operand };
     }
-    return initial;
-  });
-
-  React.useEffect(() => {
-    setFilteredRows(schema.sampleData);
+    setCurrentCriteria(initial);
+    setFilteredRows(schema.sampleData || []);
     setStep(initialStep);
   }, [schema, initialStep]);
 
   const handleFilterSearch = (
     criteria: Record<string, { value: string; operand: SelectionOperand }>,
   ) => {
-    let result = [...schema.sampleData];
+    if (!schema) return;
+    let result = [...(schema.sampleData || [])];
 
     for (const [key, filter] of Object.entries(criteria)) {
       if (!filter.value.trim()) continue;
@@ -74,17 +75,19 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
   };
 
   const handleResetFilters = () => {
+    if (!schema) return;
     const cleared: Record<string, { value: string; operand: SelectionOperand }> = {};
     for (const f of schema.selectionFields) {
       cleared[f.id] = { value: "", operand: f.operand };
     }
     setCurrentCriteria(cleared);
-    setFilteredRows(schema.sampleData);
+    setFilteredRows(schema.sampleData || []);
     setCurrentPage(1);
   };
 
   // View individual record callback from table magnifying glass
   const handleViewRecord = (recordId: string, row: EnquiryRow) => {
+    if (!schema) return;
     const cmd = "ACCOUNT";
     const fullCmd = `${cmd},${recordId}`;
     addTab({
@@ -103,6 +106,7 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
   };
 
   const handleExportCSV = () => {
+    if (!schema) return;
     if (filteredRows.length === 0) {
       toast.add({
         title: "Export Failed",
@@ -133,6 +137,7 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
   };
 
   const handleExportHTML = () => {
+    if (!schema) return;
     if (filteredRows.length === 0) {
       toast.add({
         title: "Export Failed",
@@ -168,6 +173,7 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
   };
 
   const handleExportXML = () => {
+    if (!schema) return;
     if (filteredRows.length === 0) {
       toast.add({
         title: "Export Failed",
@@ -208,12 +214,41 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
   };
 
   const handlePrintServer = () => {
+    if (!schema) return;
     toast.add({
       title: "Server Print Spooled",
       description: `Enquiry report spooled to central printer for ${schema.code}`,
       type: "info",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4 p-6 animate-pulse">
+        <div className="h-8 w-64 bg-muted rounded" />
+        <div className="h-32 w-full bg-muted/60 rounded" />
+        <div className="h-64 w-full bg-muted/40 rounded" />
+      </div>
+    );
+  }
+
+  if (error || !schema) {
+    return (
+      <div className="p-6 max-w-md mx-auto my-8">
+        <div className="p-4 border border-destructive/50 bg-destructive/10 rounded-lg text-sm">
+          <p className="font-semibold text-destructive mb-1">Failed to Load Enquiry Schema</p>
+          <p className="text-muted-foreground mb-3">{error || "Unknown error"}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const startRecord = filteredRows.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
   const endRecord = Math.min(startRecord + pageSize - 1, filteredRows.length);
@@ -228,11 +263,11 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
           commandCode={schema.code}
           step={step}
           rowCount={filteredRows.length}
-          totalCount={schema.sampleData.length > 20000 ? 24798 : filteredRows.length}
+          totalCount={filteredRows.length}
           pageRange={pageRangeStr}
           onBackToSelection={() => setStep("SELECTION")}
           onRefresh={() => {
-            setFilteredRows([...schema.sampleData]);
+            setFilteredRows([...(schema.sampleData || [])]);
             toast.add({
               title: "Data Refreshed",
               description: `Refreshed enquiry records for ${schema.code}`,

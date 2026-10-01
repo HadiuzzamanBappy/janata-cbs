@@ -24,12 +24,13 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useSessionStore } from "@/store";
+import type { SettingsTabId } from "../types";
 import { AppearanceTab } from "./appearance-tab";
 import { DeactivateTab } from "./deactivate-tab";
 import { ProfileTab } from "./profile-tab";
 import { ChangePassword as SecurityTab } from "./security-tab";
 
-const data = {
+const data: { nav: Array<{ name: string; icon: React.ReactNode; id: SettingsTabId }> } = {
   nav: [
     {
       name: "User Profile",
@@ -57,8 +58,8 @@ const data = {
 interface SettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  activeTab?: string;
-  onTabChange?: (tab: string) => void;
+  activeTab?: SettingsTabId | string;
+  onTabChange?: (tab: any) => void;
 }
 
 export function SettingsDialog({
@@ -67,7 +68,7 @@ export function SettingsDialog({
   activeTab: controlledTab,
   onTabChange,
 }: SettingsDialogProps) {
-  const [internalTab, setInternalTab] = React.useState("profile");
+  const [internalTab, setInternalTab] = React.useState<SettingsTabId>("profile");
 
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
   const setActiveTab = onTabChange || setInternalTab;

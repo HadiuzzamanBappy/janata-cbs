@@ -2,7 +2,8 @@
 
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/components/layout";
+import { ThemeToggle } from "@/components/layout/header/theme-toggle";
+import { appConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 const THEME_PRESETS = [
@@ -18,14 +19,14 @@ export function AppearanceTab() {
   const [activeTheme, setActiveTheme] = useState("color");
 
   useEffect(() => {
-    const saved = localStorage.getItem("cbs-theme-accent") || "color";
+    const saved = localStorage.getItem(appConfig.storageKeys.themeAccent) || "color";
     setActiveTheme(saved);
     document.documentElement.setAttribute("data-theme", saved);
   }, []);
 
   const handleThemeChange = (themeId: string) => {
     setActiveTheme(themeId);
-    localStorage.setItem("cbs-theme-accent", themeId);
+    localStorage.setItem(appConfig.storageKeys.themeAccent, themeId);
     document.documentElement.setAttribute("data-theme", themeId);
   };
 

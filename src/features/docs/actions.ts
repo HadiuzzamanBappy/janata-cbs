@@ -2,6 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { appConfig } from "@/lib/config";
 import { DEV_NAV_GROUPS, MANUAL_NAV_GROUPS } from "./config";
 import type { CompiledDocItem, PortalDocsBundle } from "./types";
 
@@ -52,7 +53,7 @@ export async function fetchAllPortalDocsAction(portalSubFolder: string): Promise
 
   return {
     portalTitle,
-    generatedAt: new Date().toLocaleString("en-US", {
+    generatedAt: new Date().toLocaleString(appConfig.format.dateLocale, {
       dateStyle: "medium",
       timeStyle: "short",
     }),

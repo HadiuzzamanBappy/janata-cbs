@@ -13,6 +13,7 @@ import {
   CommandShortcut,
 } from "@/components/ui/command";
 import { launchScreen, type MenuItem } from "@/features/screens";
+import { appConfig } from "@/lib/config";
 import { getAllRegisteredCommands, type SystemCommandItem } from "@/lib/core/commands";
 import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
 
@@ -57,10 +58,10 @@ export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchP
     if (!open) return;
 
     Promise.all([
-      fetch("/api/menu")
+      fetch(appConfig.routes.api.menu)
         .then((res) => res.json())
         .catch(() => ({ success: false })),
-      fetch("/api/controls")
+      fetch(appConfig.routes.api.controls)
         .then((res) => res.json())
         .catch(() => ({ success: false })),
     ]).then(([menuJson, controlsJson]) => {

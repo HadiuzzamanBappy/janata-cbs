@@ -1,5 +1,5 @@
 import "server-only";
-import { env } from "@/lib/config";
+import { appConfig } from "@/lib/config";
 
 export interface ServiceDef {
   url: string;
@@ -9,9 +9,9 @@ export interface ServiceDef {
  * Microservice Endpoint Registry for CBS core & REST services.
  */
 export const SERVICES: Record<string, ServiceDef> = {
-  default: { url: env.GRPC_HOST },
-  customer: { url: env.SERVICE_CUSTOMER_BASE_URL },
-  finxurm: { url: env.SERVICE_URM_BASE_URL },
+  default: { url: appConfig.grpc.host },
+  customer: { url: appConfig.services.customerBaseUrl },
+  finxurm: { url: appConfig.services.urmBaseUrl },
 };
 
 export function getServices(): Record<string, ServiceDef> {

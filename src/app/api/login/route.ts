@@ -1,6 +1,6 @@
 import { STATIC_USERS } from "@fixtures";
 import { type NextRequest, NextResponse } from "next/server";
-import { env } from "@/lib/config";
+import { appConfig } from "@/lib/config";
 import { grpcStatusToHttp, loginProcess } from "@/lib/grpc";
 import { type CurrentUser, createSession, rateLimit } from "@/lib/redis";
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ message: "Username and password are required" }, { status: 400 });
     }
 
-    // Rate limiting: 3 attempts per minute per IP + username combination
+    // Rate limiting: configured attempts per minute per IP + username combination
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       req.headers.get("x-real-ip") ??
@@ -34,9 +34,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const clientId = "web-client";
+    const clientId = appConfig.grpc.clientId;
 
-    if (env.USER_SOURCE === "static") {
+    if (appConfig.auth.userSource === "static") {
       const mockUser = STATIC_USERS[username.toLowerCase()];
       if (!mockUser) {
         return NextResponse.json(
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const currUser: CurrentUser = {
       userId: payload.userId,
       fullName: payload.fullName || username,
-      branchCode: payload.branchCode || "JB9999",
+      branchCode: payload.branchCode || appConfig.centralBranch,
       userRole: payload.userRole || ["TELLER"],
       commandLine: Boolean(payload.commandLine),
       branchName: payload.branchName || "Head Office",

@@ -1,5 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import type { UserDetails } from "@/features/auth";
+import { appConfig } from "@/lib/config";
 
 export interface SessionState {
   user: UserDetails | null;
@@ -22,12 +23,12 @@ export const createSessionStore = () => {
     clearSession: () => set({ user: null, isAuthenticated: false }),
     logout: async () => {
       try {
-        await fetch("/api/logout", { method: "POST" });
+        await fetch(appConfig.routes.api.logout, { method: "POST" });
       } catch (e) {
         console.error("Logout failed", e);
       }
       set({ user: null, isAuthenticated: false });
-      window.location.href = "/login";
+      window.location.href = appConfig.routes.login;
     },
     setBranch: (branch) => set({ currentBranch: branch }),
   }));

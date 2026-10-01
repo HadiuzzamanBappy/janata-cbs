@@ -7,7 +7,7 @@ import {
   Metadata,
   type ServiceError,
 } from "@grpc/grpc-js";
-import { env } from "@/lib/config";
+import { appConfig } from "@/lib/config";
 import {
   type GrpcRequest,
   type GrpcResponse,
@@ -25,17 +25,17 @@ declare global {
 
 // TODO: [Step 8 - Production Tuning] Implement multi-channel gRPC connection pooling for high-concurrency peak load.
 function buildClient(address: string): GrpcServiceClient {
-  const creds: ChannelCredentials = env.GRPC_USE_TLS
+  const creds: ChannelCredentials = appConfig.grpc.useTls
     ? credentials.createSsl()
     : credentials.createInsecure();
   return new GrpcServiceClient(address, creds, {
-    "grpc.keepalive_time_ms": 60_000,
-    "grpc.keepalive_timeout_ms": 20_000,
+    "grpc.keepalive_time_ms": appConfig.grpc.keepaliveTimeMs,
+    "grpc.keepalive_timeout_ms": appConfig.grpc.keepaliveTimeoutMs,
   });
 }
 
 function getClient(address: string): GrpcServiceClient {
-  if (process.env.NODE_ENV === "production") {
+  if (appConfig.nodeEnv === "production") {
     if (!globalThis.__grpcClient) {
       globalThis.__grpcClient = buildClient(address);
     }
@@ -54,7 +54,7 @@ export interface CallOpts {
 
 /* ---------- Unauthenticated RPC: Login ---------- */
 export function loginProcess(req: LoginRequest, _opts: CallOpts = {}): Promise<GrpcResponse> {
-  const address = env.GRPC_HOST;
+  const address = appConfig.grpc.host;
 
   const client = getClient(address);
   return new Promise<GrpcResponse>((resolve, reject) => {
@@ -86,7 +86,7 @@ export function grpcProcess(
     }
   }
 
-  const ms = opts.deadlineMs ?? 15_000;
+  const ms = opts.deadlineMs ?? appConfig.grpc.timeoutMs;
   const options: CallOptions = { deadline: new Date(Date.now() + ms) };
 
   return new Promise<GrpcResponse>((resolve, reject) => {

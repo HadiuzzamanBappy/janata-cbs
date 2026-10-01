@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { appConfig } from "@/lib/config";
 
 export function LoginForm() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export function LoginForm() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch(appConfig.routes.api.login, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -38,9 +39,9 @@ export function LoginForm() {
       }
 
       if (data.user?.initLogin) {
-        router.push("/change-password");
+        router.push(appConfig.routes.changePassword);
       } else {
-        router.push("/");
+        router.push(appConfig.routes.dashboard);
       }
 
       router.refresh();

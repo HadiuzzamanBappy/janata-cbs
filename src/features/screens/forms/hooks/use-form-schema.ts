@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { appConfig } from "@/lib/config";
 import type { FormSchema } from "../types";
 
 export function useFormSchema(command: string) {
@@ -20,7 +21,7 @@ export function useFormSchema(command: string) {
 
     try {
       const cleanCmd = command.split(",")[0].trim().toUpperCase();
-      const res = await fetch(`/api/model/${cleanCmd}`);
+      const res = await fetch(`${appConfig.routes.api.model}/${cleanCmd}`);
       const json = await res.json();
 
       if (json.success && json.data) {

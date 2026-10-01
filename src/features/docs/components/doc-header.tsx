@@ -3,7 +3,8 @@
 import { Download, Home, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { ThemeToggle } from "@/components/layout";
+import { ThemeToggle } from "@/components/layout/header/theme-toggle";
+import { appConfig } from "@/lib/config";
 import { DEV_NAV_GROUPS } from "../config";
 import type { NavGroup } from "../types";
 import { DocPdfModal } from "./pdf/doc-pdf-modal";
@@ -54,7 +55,7 @@ export function DocHeader({
           </button>
 
           <Link
-            href="/dashboard"
+            href={appConfig.routes.dashboard}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-medium transition"
             title="Return to Officer Dashboard"
           >

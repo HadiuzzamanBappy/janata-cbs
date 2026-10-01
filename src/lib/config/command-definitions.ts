@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import type * as React from "react";
-import { SecurityTab } from "@/features/settings";
+import { ChangePassword as SecurityTab } from "@/features/settings/components/security-tab";
 
 export type CommandActionType = "SCREEN" | "SETTINGS" | "THEME" | "LOGOUT";
 

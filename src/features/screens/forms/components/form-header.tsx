@@ -59,7 +59,9 @@ export function FormHeader({
 }: FormHeaderProps) {
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
-  const [searchResults, setSearchResults] = React.useState<Array<{ id: string; label?: string; details?: string }>>([]);
+  const [searchResults, setSearchResults] = React.useState<
+    Array<{ id: string; label?: string; details?: string }>
+  >([]);
   const [hasSearched, setHasSearched] = React.useState(false);
 
   React.useEffect(() => {
@@ -72,9 +74,17 @@ export function FormHeader({
     const prefix = commandCode || "REC";
     return [
       { id: `${prefix}-1001`, label: "Primary Active Record", details: "Status: Live | Auth: YES" },
-      { id: `${prefix}-1002`, label: "Corporate Account Holder", details: "Status: Live | Auth: YES" },
+      {
+        id: `${prefix}-1002`,
+        label: "Corporate Account Holder",
+        details: "Status: Live | Auth: YES",
+      },
       { id: `${prefix}-1003`, label: "Retail Term Deposit", details: "Status: Pending | Auth: NO" },
-      { id: `${prefix}-1004`, label: "Special Clearing Facility", details: "Status: Closed | Auth: YES" },
+      {
+        id: `${prefix}-1004`,
+        label: "Special Clearing Facility",
+        details: "Status: Closed | Auth: YES",
+      },
     ];
   }, [availableItems, commandCode]);
 
@@ -86,11 +96,11 @@ export function FormHeader({
     // If query is present, filter matching entries. If empty, show all available items.
     const matches = query
       ? demoItems.filter(
-        (item) =>
-          item.id.toLowerCase().includes(query) ||
-          item.label?.toLowerCase().includes(query) ||
-          item.details?.toLowerCase().includes(query),
-      )
+          (item) =>
+            item.id.toLowerCase().includes(query) ||
+            item.label?.toLowerCase().includes(query) ||
+            item.details?.toLowerCase().includes(query),
+        )
       : demoItems;
 
     setSearchResults(matches);
@@ -119,11 +129,9 @@ export function FormHeader({
   // When dropdown is triggered: display matched items if user queried, or all items if field is empty
   const matchingItemsToDisplay = hasSearched
     ? searchResults
-    : (inputVal.trim()
-        ? demoItems.filter((item) =>
-            item.id.toLowerCase().includes(inputVal.trim().toLowerCase()),
-          )
-        : demoItems);
+    : inputVal.trim()
+      ? demoItems.filter((item) => item.id.toLowerCase().includes(inputVal.trim().toLowerCase()))
+      : demoItems;
 
   return (
     <TooltipProvider delay={150}>

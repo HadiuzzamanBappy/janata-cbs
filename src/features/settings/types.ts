@@ -1,4 +1,4 @@
-export type SettingsTabId = "profile" | "security" | "appearance";
+export type SettingsTabId = "profile" | "security" | "appearance" | "deactivate";
 
 export interface SettingsTabItem {
   id: SettingsTabId;

@@ -14,7 +14,7 @@ import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { appConfig } from "@/lib/config";
 
 export function AppTimeoutWatcher() {
-  const timeoutMinutes = appConfig.logoutTimeMinutes;
+  const timeoutMinutes = appConfig.logoutTime;
   const { isWarningOpen, isLoggedOut, remainingSeconds, keepAlive, handleLogoutConfirm } =
     useIdleTimeout({
       timeoutMinutes,

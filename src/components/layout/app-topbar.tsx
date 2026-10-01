@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SettingsDialog } from "@/features/settings";
+import { appConfig } from "@/lib/config";
 import { useSessionStore } from "@/store";
 import { BranchSwitcher } from "./header/branch-switcher";
 import { ThemeToggle } from "./header/theme-toggle";
@@ -22,7 +23,7 @@ export function TopBar() {
   React.useEffect(() => {
     // Hydrate User Session
     if (!user) {
-      fetch("/api/session")
+      fetch(appConfig.routes.api.session)
         .then((res) => res.json())
         .then((json) => {
           if (json.success && json.currUser) {

@@ -1,16 +1,16 @@
 import "server-only";
 import Redis from "ioredis";
-import { env } from "@/lib/config";
+import { appConfig } from "@/lib/config";
 
 /**
  * Redis client with circuit breaker and fail-open guarantees.
  * Ensures that Redis outages never bring down core banking application flows.
  */
 
-const URL = env.REDIS_URL || "redis://127.0.0.1:6379";
-const PREFIX = env.REDIS_KEY_PREFIX || "finx";
-const ENABLED = env.CACHE_ENABLED;
-const COOLDOWN_MS = Number(env.CACHE_COOLDOWN_MS || 5000);
+const URL = appConfig.redis.url;
+const PREFIX = appConfig.redis.keyPrefix;
+const ENABLED = appConfig.redis.enabled;
+const COOLDOWN_MS = appConfig.redis.cooldownMs;
 
 type Client = Redis & { __warned?: boolean };
 
@@ -25,7 +25,6 @@ export function tripCircuit(): void {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __redisClient: Client | null | undefined;
 }
 

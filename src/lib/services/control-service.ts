@@ -1,13 +1,13 @@
 import "server-only";
 import { STATIC_COMMANDS } from "@fixtures";
-import { env } from "@/lib/config/env";
+import { appConfig } from "@/lib/config";
 import type { SystemCommandItem } from "@/lib/core/commands";
 import { getServiceUrl } from "@/lib/core/services";
 import { extractStringField, getItemFields, grpcProcess, unwrapRecordsPayload } from "@/lib/grpc";
 import { getOrSet, getSession } from "@/lib/redis";
 
 /* ---------- Domain & Cache Constants ---------- */
-const CONTROLS_TTL_SECONDS = 600;
+const CONTROLS_TTL_SECONDS = appConfig.redis.menuTtlSeconds;
 const CONTROL_REQUEST_TYPE = "GRL";
 const CONTROL_CONTROL_NAME = "CONTROL";
 const CONTROL_RECORD_FUNCTION = "L";
@@ -19,7 +19,8 @@ function parseControlsPayload(data: unknown): SystemCommandItem[] {
 
   for (const item of rawList) {
     const fields = getItemFields(item);
-    const cmdName = extractStringField(fields, "controlName") || extractStringField(fields, "recordId");
+    const cmdName =
+      extractStringField(fields, "controlName") || extractStringField(fields, "recordId");
     const desc = extractStringField(fields, "description") || cmdName;
 
     if (cmdName) {
@@ -41,7 +42,7 @@ function parseControlsPayload(data: unknown): SystemCommandItem[] {
 /* ---------- Backend RPC Fetcher ---------- */
 async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemCommandItem[]> {
   // Static mock fallback
-  if (env.MODEL_SOURCE === "static") {
+  if (appConfig.modelSource === "static") {
     return parseControlsPayload(STATIC_COMMANDS.data);
   }
 
@@ -53,7 +54,7 @@ async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemComm
   }
 
   const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-  const branchCode = session?.currUser?.branchCode || env.NEXT_PUBLIC_CENTRAL_BRANCH || "JB9999";
+  const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
 
   const address = getServiceUrl("default");
 
@@ -62,7 +63,7 @@ async function fetchControlsFromBackend(tokenParam?: string): Promise<SystemComm
     "nonfinancial",
     {
       idempotencyKey: "",
-      clientId: "WEB-CLIENT",
+      clientId: appConfig.grpc.clientId,
       requestType: CONTROL_REQUEST_TYPE,
       controlName: CONTROL_CONTROL_NAME,
       recordFunction: CONTROL_RECORD_FUNCTION,

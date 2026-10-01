@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appConfig } from "@/lib/config";
 
 export const changeUsernameSchema = z.object({
   oldUserName: z.string().min(1, "Old user name is required"),
@@ -11,7 +12,10 @@ export const changePasswordSchema = z
     oldPass: z.string().min(1, "Old password is required"),
     newPass: z
       .string()
-      .min(6, "Minimum 6 characters required!")
+      .min(
+        appConfig.auth.minPasswordLength,
+        `Minimum ${appConfig.auth.minPasswordLength} characters required!`,
+      )
       .regex(/.*[A-Z].*/, "At least 1 uppercase character required!")
       .regex(/.*[a-z].*/, "At least 1 lowercase character required!")
       .regex(/.*\d.*/, "At least 1 digit required!")

@@ -70,7 +70,7 @@ export function ActionButtons({
   onDelete,
   onAuthorizeReverse,
   onProcessAction,
-  onReturnToSearch
+  onReturnToSearch,
 }: ActionButtonsProps) {
   const rights = useUserRights();
 
@@ -279,9 +279,7 @@ export function ActionButtons({
             </Button>
           }
         />
-        <TooltipContent className="text-xs">
-          Validate Rules &amp; Integrity (?✓)
-        </TooltipContent>
+        <TooltipContent className="text-xs">Validate Rules &amp; Integrity (?✓)</TooltipContent>
       </Tooltip>
 
       {/* 3. Hold Draft (❚❚ / Pause) */}

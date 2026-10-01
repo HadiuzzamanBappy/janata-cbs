@@ -1,8 +1,8 @@
 import "server-only";
-import { env } from "@/lib/config";
+import { appConfig } from "@/lib/config";
 import { cacheDelete, cacheGet, cacheKey, cacheSet, circuitOpen, singleFlight } from "./client";
 
-const DEFAULT_TTL_SECONDS = 60 * 60 * 24; // 24 Hours
+const DEFAULT_TTL_SECONDS = appConfig.redis.defaultTtlSeconds;
 
 /**
  * Gets a cached item by key or executes the fetcher function on miss / circuit trip.
@@ -14,7 +14,7 @@ export async function getOrSet<T>(
 ): Promise<T> {
   const fullKey = cacheKey(key);
 
-  if (env.CACHE_ENABLED && !circuitOpen()) {
+  if (appConfig.redis.enabled && !circuitOpen()) {
     const cached = await cacheGet<T>(fullKey);
     if (cached !== null) {
       return cached;
@@ -25,7 +25,7 @@ export async function getOrSet<T>(
   return singleFlight(fullKey, async () => {
     const freshData = await fetcher();
 
-    if (env.CACHE_ENABLED && !circuitOpen() && freshData) {
+    if (appConfig.redis.enabled && !circuitOpen() && freshData) {
       await cacheSet(fullKey, freshData, ttlSeconds);
     }
 

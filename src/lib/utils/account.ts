@@ -1,3 +1,5 @@
+import { appConfig } from "@/lib/config";
+
 /**
  * Core Banking Account Number & Sensitive Field Formatting / Masking Utilities
  */
@@ -28,7 +30,7 @@ export function maskAccountNumber(
 export function formatAccountNumber(accountNo: string | null | undefined): string {
   if (!accountNo) return "";
   const cleaned = String(accountNo).replace(/\D/g, "");
-  if (cleaned.length === 13) {
+  if (cleaned.length === appConfig.format.accountNumberLength) {
     return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 10)}-${cleaned.slice(10)}`;
   }
   return accountNo;

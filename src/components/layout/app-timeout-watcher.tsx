@@ -14,16 +14,11 @@ import { useIdleTimeout } from "@/hooks/use-idle-timeout";
 import { appConfig } from "@/lib/config";
 
 export function AppTimeoutWatcher() {
-  const timeoutMinutes = appConfig.logoutTimeMinutes || 10;
-  const {
-    isWarningOpen,
-    isLoggedOut,
-    remainingSeconds,
-    keepAlive,
-    handleLogoutConfirm,
-  } = useIdleTimeout({
-    timeoutMinutes,
-  });
+  const timeoutMinutes = appConfig.logoutTimeMinutes;
+  const { isWarningOpen, isLoggedOut, remainingSeconds, keepAlive, handleLogoutConfirm } =
+    useIdleTimeout({
+      timeoutMinutes,
+    });
 
   return (
     <>
@@ -38,7 +33,8 @@ export function AppTimeoutWatcher() {
               Inactivity Timeout Warning
             </DialogTitle>
             <DialogDescription className="text-center text-muted-foreground text-sm">
-              You have been inactive. For banking security, your active session will be logged out in:
+              You have been inactive. For banking security, your active session will be logged out
+              in:
             </DialogDescription>
           </DialogHeader>
 
@@ -74,11 +70,10 @@ export function AppTimeoutWatcher() {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <LogOut className="h-7 w-7" />
             </div>
-            <DialogTitle className="text-center text-xl font-bold">
-              Session Expired
-            </DialogTitle>
+            <DialogTitle className="text-center text-xl font-bold">Session Expired</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground text-sm leading-relaxed">
-              You have been automatically logged out due to inactivity. To protect sensitive banking operations, please log in again to continue your work.
+              You have been automatically logged out due to inactivity. To protect sensitive banking
+              operations, please log in again to continue your work.
             </DialogDescription>
           </DialogHeader>
 

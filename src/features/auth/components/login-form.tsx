@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,6 +12,8 @@ export function LoginForm() {
   const router = useRouter();
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [showUsername, setShowUsername] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -60,32 +62,56 @@ export function LoginForm() {
         <Label htmlFor="username" className="text-xs font-medium text-foreground">
           Username
         </Label>
-        <Input
-          id="username"
-          type="text"
-          placeholder="e.g. TELLER01"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          disabled={loading}
-          autoComplete="username"
-          className="h-9 text-xs"
-        />
+        <div className="relative">
+          <Input
+            id="username"
+            name="username"
+            type={showUsername ? "text" : "password"}
+            placeholder="e.g. TELLER01"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            disabled={loading}
+            autoComplete="username"
+            className="h-9 text-xs pr-8"
+          />
+          <button
+            type="button"
+            onClick={() => setShowUsername((prev) => !prev)}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+            aria-label={showUsername ? "Hide username" : "Show username"}
+            tabIndex={-1}
+          >
+            {showUsername ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+          </button>
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="password" className="text-xs font-medium text-foreground">
           Password
         </Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          disabled={loading}
-          autoComplete="current-password"
-          className="h-9 text-xs"
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+            autoComplete="current-password"
+            className="h-9 text-xs pr-8"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            tabIndex={-1}
+          >
+            {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+          </button>
+        </div>
       </div>
       <Button type="submit" size="sm" className="w-full h-9 font-medium text-xs" disabled={loading}>
         {loading ? (

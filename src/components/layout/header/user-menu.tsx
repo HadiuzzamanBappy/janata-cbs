@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, LogOut, User, UserCheck } from "lucide-react";
+import { BanIcon, KeyRound, LogOut, User, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,6 +80,13 @@ export function UserMenu({ onOpenSettingsTab }: UserMenuProps) {
           >
             <KeyRound className="size-3.5 text-muted-foreground" />
             <span>Security & Password</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer text-xs gap-2 py-2"
+            onClick={() => onOpenSettingsTab("deactivate")}
+          >
+            <BanIcon className="size-3.5 text-muted-foreground" />
+            <span>Deactivate Account</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

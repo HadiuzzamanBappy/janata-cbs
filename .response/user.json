@@ -1,0 +1,45 @@
+{
+    "errors": [],
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "idempotencyKey": "",
+    "message": "",
+    "data": {
+        "fields": {
+            "userId": {
+                "string_value": "ZZ0284590"
+            },
+            "fullName": {
+                "string_value": "MD. HADIUZZAMAN BAPPY"
+            },
+            "accessibility": {
+                "string_value": "RIDASH"
+            },
+            "userRole": {
+                "null_value": "NULL_VALUE"
+            },
+            "commandLine": {
+                "bool_value": true
+            },
+            "branchName": {
+                "string_value": "CENTRAL OFFICE, HO, DHAKA   "
+            },
+            "branchCode": {
+                "string_value": "JB9999"
+            },
+            "txnDate": {
+                "string_value": "2026-01-07"
+            },
+            "userStatus": {
+                "number_value": 1
+            },
+            "authenticated": {
+                "bool_value": true
+            },
+            "token": {
+                "string_value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJaWjAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.54uGYTHHZYvUSJ1h4wW6Z7qHYv08RAsntswJ8Pk7GD0"
+            }
+        }
+    },
+    "timestamp": "2026-10-01T09:07:15.421489436Z"
+}

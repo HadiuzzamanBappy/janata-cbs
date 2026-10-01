@@ -73,7 +73,7 @@ export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
   // Temenos Core Enquiries
   {
     id: "enq.user.list",
-    title: "Enquiry: System Users List",
+    title: "System Users List",
     category: "Enquiries & Reports",
     description: "Enquiry listing active banking users and assigned function rights",
     command: "ENQ USER.LIST",
@@ -83,7 +83,7 @@ export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
   },
   {
     id: "enq.stmt.ent.book",
-    title: "Enquiry: Account Statement Entries",
+    title: "Account Statement Entries",
     category: "Enquiries & Reports",
     description: "Booked statement entries enquiry for customer accounts",
     command: "ENQ STMT.ENT.BOOK",

@@ -39,16 +39,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 Janata Bank PLc.
               </span>
               <span className="text-[11px] text-white/80 font-mono mt-1">
-                Core Banking Solution
+                Your committed partner in progress
               </span>
             </div>
           </div>
 
           {/* Hero Content */}
           <div className="relative z-10 my-8 space-y-4">
-            <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight leading-snug text-white">
-              The People’s Bank.
-            </h1>
             <p className="text-xs leading-relaxed text-white/85">
               Formed in 1972. State-owned commercial banking infrastructure powering financial
               transactions across Bangladesh.

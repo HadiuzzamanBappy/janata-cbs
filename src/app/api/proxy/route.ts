@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { env } from "@/lib/config";
 import { dispatch, type Envelope } from "@/lib/grpc/dispatch";
 import { getSession } from "@/lib/redis";
 
@@ -47,9 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const servicePath = body.servicePath
-      ? body.servicePath
-      : env.NEXT_PUBLIC_DEFAULT_SERVICE_PATH || "default";
+    const servicePath = body.servicePath || "default";
 
     const envelope: Envelope = {
       servicePath,

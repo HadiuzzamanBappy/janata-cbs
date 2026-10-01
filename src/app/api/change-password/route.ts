@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { env } from "@/lib/config";
 import { getSession, updateSession } from "@/lib/redis";
 
 export const runtime = "nodejs";
@@ -27,12 +26,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         { message: "Old password and new password are required." },
         { status: 400 },
       );
-    }
-
-    // 1. If backend mode, call gRPC password change service
-    if (env.USER_SOURCE !== "static") {
-      // TODO: Wire gRPC password change RPC when backend proto endpoint is ready
-      // const res = await changePasswordProcess({ userId: session.userId, oldPassword, newPassword });
     }
 
     // 2. Update active Redis session to set initLogin = false

@@ -13,11 +13,10 @@ export async function GET(): Promise<NextResponse> {
     }
 
     return NextResponse.json({ success: true, currUser }, { status: 200 });
-  } catch (_error) {
-    return NextResponse.json(
-      { success: false, errors: "Internal server error retrieving session" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error retrieving session";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
@@ -42,11 +41,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     return NextResponse.json({ success: true, currUser: session.currUser }, { status: 200 });
-  } catch (_error) {
-    return NextResponse.json(
-      { success: false, errors: "Internal server error updating session" },
-      { status: 500 },
-    );
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error updating session";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 

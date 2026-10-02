@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUserRights } from "@/features/auth";
+import { useUserRights } from "@/hooks";
 
 export interface MoreActionItem {
   label: string;
@@ -70,14 +70,9 @@ export function ActionMoreMenu({
                   key={action.command || action.label}
                   disabled={!allowed}
                   onClick={() => setSelectedAction(action)}
-                  className="text-xs cursor-pointer flex items-center justify-between"
+                  className="text-xs cursor-pointer"
                 >
                   <span className="truncate">{action.label}</span>
-                  {action.requiredRight && (
-                    <span className="text-[10px] font-mono opacity-60 uppercase ml-1 shrink-0">
-                      ({action.requiredRight})
-                    </span>
-                  )}
                 </DropdownMenuItem>
               );
             })

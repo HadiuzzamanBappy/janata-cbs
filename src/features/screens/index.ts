@@ -6,6 +6,4 @@ export * from "./forms";
 export * from "./launcher";
 export * from "./loader";
 export * from "./registry";
-export * from "./schemas";
 export * from "./types";
-export * from "./utils/menu-parser";

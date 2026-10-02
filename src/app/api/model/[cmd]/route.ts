@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getModelData } from "@/lib/services";
 import { getSession } from "@/lib/redis";
+import { getModelData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,11 +37,11 @@ export async function GET(
 
     return NextResponse.json({ success: true, data: schema }, { status: 200 });
   } catch (err: unknown) {
-    const error = err as { message?: string };
+    const message = err instanceof Error ? err.message : "Internal Schema Fetch Error";
     return NextResponse.json(
       {
         success: false,
-        error: error?.message || "Internal Schema Fetch Error",
+        error: message,
       },
       { status: 500 },
     );

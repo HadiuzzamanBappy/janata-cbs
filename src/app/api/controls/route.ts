@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getControlsData } from "@/lib/services";
 import { getSession } from "@/lib/redis";
+import { getControlsData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,11 +18,11 @@ export async function GET() {
     const controls = await getControlsData(session.token);
     return NextResponse.json({ success: true, data: controls });
   } catch (error: unknown) {
-    const err = error as { message?: string };
+    const message = error instanceof Error ? error.message : "Failed to fetch system controls";
     return NextResponse.json(
       {
         success: false,
-        error: err?.message || "Failed to fetch system controls",
+        error: message,
       },
       { status: 500 },
     );

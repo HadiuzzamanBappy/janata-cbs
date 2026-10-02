@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /* -------------------------------------------------------------------------- */
-/* Raw gRPC Payload Schemas (Boundary Validation)                             */
+/* Raw gRPC Payload Schemas (Boundary Validation for GMC)                     */
 /* -------------------------------------------------------------------------- */
 
 export const rawPropertyRecordSchema = z.object({
@@ -57,7 +57,7 @@ export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.laz
 );
 
 /* -------------------------------------------------------------------------- */
-/* Canonical Internal UI Schemas (Form & Field Specs)                         */
+/* Canonical Internal UI & Domain Schemas (Form & Enquiry Specs)              */
 /* -------------------------------------------------------------------------- */
 
 export const fieldTypeSchema = z.enum(["text", "number", "date", "select"]);
@@ -87,3 +87,4 @@ export const formSchemaSchema = z.object({
 });
 
 export type FormSchema = z.infer<typeof formSchemaSchema>;
+export type ModelSchema = FormSchema;

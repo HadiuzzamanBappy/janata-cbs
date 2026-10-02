@@ -16,7 +16,9 @@ import type { SelectionField, SelectionOperand } from "../types";
 export interface EnquiryFiltersProps {
   fields: SelectionField[];
   criteria?: Record<string, { value: string; operand: SelectionOperand }>;
-  onCriteriaChange?: (criteria: Record<string, { value: string; operand: SelectionOperand }>) => void;
+  onCriteriaChange?: (
+    criteria: Record<string, { value: string; operand: SelectionOperand }>,
+  ) => void;
   onSearch: (criteria: Record<string, { value: string; operand: SelectionOperand }>) => void;
   onReset: () => void;
   onExportCSV?: () => void;

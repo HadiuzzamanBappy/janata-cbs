@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { type MenuItem, menuItemSchema, type RawMenuRecord, rawMenuRecordSchema } from "../schemas";
+import {
+  type MenuItem,
+  menuItemSchema,
+  type RawMenuRecord,
+  rawMenuRecordSchema,
+} from "@/lib/schemas";
 
 function extractRawNode(node: unknown): RawMenuRecord {
   if (!node || typeof node !== "object") return {};

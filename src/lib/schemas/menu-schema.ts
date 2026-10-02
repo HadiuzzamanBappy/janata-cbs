@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /* -------------------------------------------------------------------------- */
-/* Menu Schemas (Sidebar & Navigation Tree)                                   */
+/* Raw gRPC Menu Schemas (Boundary Validation)                                */
 /* -------------------------------------------------------------------------- */
 
 export type RawMenuRecord = {
@@ -31,6 +31,10 @@ export const rawMenuRecordSchema: z.ZodType<RawMenuRecord> = z.lazy(() =>
     items: z.array(rawMenuRecordSchema).optional(),
   }),
 );
+
+/* -------------------------------------------------------------------------- */
+/* Canonical Domain Menu Item Schemas                                         */
+/* -------------------------------------------------------------------------- */
 
 export interface MenuItem {
   id: string;

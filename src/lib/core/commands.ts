@@ -1,13 +1,110 @@
 import {
-  ICON_REGISTRY as CONFIG_ICON_REGISTRY,
-  DEFAULT_STATIC_COMMANDS,
-  type SystemCommandItem,
-} from "@/lib/config/command-definitions";
+  BadgeAlert,
+  Building2,
+  Database,
+  FileText,
+  Lock,
+  LogOut,
+  Search,
+  SendHorizontal,
+  Settings,
+  Sliders,
+  Sun,
+  UserCheck,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import type * as React from "react";
+import type { CommandActionType, SystemCommandItem } from "@/lib/schemas";
 
-export type {
-  CommandActionType,
-  SystemCommandItem,
-} from "@/lib/config/command-definitions";
+export type { CommandActionType, SystemCommandItem };
+
+export const ICON_REGISTRY: Record<string, React.ComponentType<{ className?: string }>> = {
+  UserCheck,
+  UserPlus,
+  Users,
+  Building2,
+  FileText,
+  Search,
+  Settings,
+  Sliders,
+  Database,
+  Lock,
+  LogOut,
+  Sun,
+  SendHorizontal,
+  BadgeAlert,
+};
+
+/**
+ * MASTER STATIC COMMANDS
+ * Default application commands for navigation, settings, and quick actions.
+ */
+export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
+  // Bespoke React Screens
+  {
+    id: "user.change.pass",
+    title: "Change Password",
+    category: "Security & Authentication",
+    description: "User change security password profile",
+    command: "USER.CHANGE.PASS",
+    componentName: "USER_CHANGE_PASS",
+    allowedRoles: ["*"],
+    actionType: "SCREEN",
+  },
+
+  // App Settings Modals
+  {
+    id: "settings:profile",
+    title: "User Profile Settings",
+    category: "System Settings Modal",
+    description: "Open user profile modal dialog",
+    command: "SETTINGS:PROFILE",
+    allowedRoles: ["*"],
+    actionType: "SETTINGS",
+    settingsTabId: "profile",
+  },
+  {
+    id: "settings:security",
+    title: "Security & Password Settings",
+    category: "System Settings Modal",
+    description: "Open security & password modal dialog",
+    command: "SETTINGS:SECURITY",
+    allowedRoles: ["*"],
+    actionType: "SETTINGS",
+    settingsTabId: "security",
+  },
+  {
+    id: "settings:appearance",
+    title: "Appearance & Display Settings",
+    category: "System Settings Modal",
+    description: "Open appearance theme settings modal dialog",
+    command: "SETTINGS:APPEARANCE",
+    allowedRoles: ["*"],
+    actionType: "SETTINGS",
+    settingsTabId: "appearance",
+  },
+
+  // Quick System Actions
+  {
+    id: "action:toggle_theme",
+    title: "Toggle Light / Dark Theme",
+    category: "Quick Actions",
+    command: "ACTION:TOGGLE_THEME",
+    description: "Switch application theme mode",
+    allowedRoles: ["*"],
+    actionType: "THEME",
+  },
+  {
+    id: "action:logout",
+    title: "Sign Out Session",
+    category: "Quick Actions",
+    command: "ACTION:LOGOUT",
+    description: "Terminate current active user session",
+    allowedRoles: ["*"],
+    actionType: "LOGOUT",
+  },
+];
 
 export interface CommandExecutionContext {
   addTab?: (tab: { id: string; title: string; componentName: string }) => void;
@@ -23,14 +120,12 @@ export interface CommandExecutionContext {
   }) => void;
 }
 
-export const ICON_REGISTRY = CONFIG_ICON_REGISTRY;
-
 /**
  * MASTER SINGLE SOURCE OF TRUTH COMMAND MAP (Runtime Store)
  */
 const MASTER_COMMAND_MAP = new Map<string, SystemCommandItem>();
 
-// Initialize Master Map with config definitions
+// Initialize Master Map with default static commands
 for (const cmd of DEFAULT_STATIC_COMMANDS) {
   MASTER_COMMAND_MAP.set(cmd.command.toUpperCase(), cmd);
 }
@@ -59,10 +154,6 @@ export function getRegisteredCommand(commandStr: string): SystemCommandItem | un
 
 /**
  * Central Command Dispatcher.
- * 1. Checks if command exists in single source of truth registry.
- * 2. If it's a SETTINGS modal action, opens App Settings Dialog.
- * 3. If it's a quick action (THEME, LOGOUT), executes action.
- * 4. If it's a SCREEN command (Bespoke or Dynamic API schema fallback), opens Workbench tab.
  */
 export function dispatchCommand(
   commandStr: string,

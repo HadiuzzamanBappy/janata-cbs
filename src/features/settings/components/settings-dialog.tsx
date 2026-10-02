@@ -59,7 +59,7 @@ interface SettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   activeTab?: SettingsTabId | string;
-  onTabChange?: (tab: any) => void;
+  onTabChange?: (tab: SettingsTabId) => void;
 }
 
 export function SettingsDialog({

@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { appConfig } from "@/lib/config";
 
 const STORAGE_KEY = appConfig.storageKeys.lastActivity;
@@ -89,7 +89,9 @@ export function useIdleTimeout({
     // User interaction listeners
     const events = ["mousedown", "keydown", "scroll", "touchstart", "wheel"];
     if (!isLoggedOut) {
-      events.forEach((evt) => window.addEventListener(evt, handleUserActivity, { passive: true }));
+      for (const evt of events) {
+        window.addEventListener(evt, handleUserActivity, { passive: true });
+      }
     }
 
     // Storage event for multi-tab synchronization
@@ -132,7 +134,9 @@ export function useIdleTimeout({
     }, 1000);
 
     return () => {
-      events.forEach((evt) => window.removeEventListener(evt, handleUserActivity));
+      for (const evt of events) {
+        window.removeEventListener(evt, handleUserActivity);
+      }
       window.removeEventListener("storage", handleStorageChange);
       clearInterval(ticker);
     };

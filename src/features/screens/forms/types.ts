@@ -1,20 +1,4 @@
-import type {
-  FieldType,
-  FieldWidth,
-  FormField,
-  FormSchema,
-  RawPropertyConfigRecord,
-  RawPropertyRecord,
-} from "./schemas";
-
-export type {
-  FieldType,
-  FieldWidth,
-  FormField,
-  FormSchema,
-  RawPropertyConfigRecord,
-  RawPropertyRecord,
-};
+import type { FormSchema } from "@/lib/schemas";
 
 export interface DynamicFormProps {
   command: string;

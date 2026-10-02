@@ -1,13 +1,14 @@
 import { createStore } from "zustand/vanilla";
-import type { UserDetails } from "@/features/auth";
 import { appConfig } from "@/lib/config";
+import type { CurrentUser } from "@/lib/schemas";
 
 export interface SessionState {
-  user: UserDetails | null;
+  user: CurrentUser | null;
   currentBranch: string | null;
   isAuthenticated: boolean;
-  setSession: (user: UserDetails) => void;
+  setSession: (user: CurrentUser) => void;
   clearSession: () => void;
+
   logout: () => Promise<void>;
   setBranch: (branch: string) => void;
 }

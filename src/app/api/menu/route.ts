@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getMenuData } from "@/lib/services";
 import { getSession } from "@/lib/redis";
+import { getMenuData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,10 +18,7 @@ export async function GET() {
     const menuItems = await getMenuData(session.token);
     return NextResponse.json({ success: true, data: menuItems });
   } catch (error: unknown) {
-    const err = error as { message?: string };
-    return NextResponse.json(
-      { success: false, error: err?.message || "Failed to fetch menu items" },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : "Failed to fetch menu items";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

@@ -12,9 +12,10 @@ import {
   CommandList,
   CommandShortcut,
 } from "@/components/ui/command";
-import { launchScreen, type MenuItem } from "@/features/screens";
+import { launchScreen } from "@/features/screens";
 import { appConfig } from "@/lib/config";
 import { getAllRegisteredCommands, type SystemCommandItem } from "@/lib/core/commands";
+import type { MenuItem } from "@/lib/schemas";
 import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
 
 interface GlobalSearchProps {
@@ -151,21 +152,19 @@ export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchP
           <CommandGroup key={category} heading={category}>
             {items.map((cmd) => {
               // Resolve distinct icons per menu & action category
-              let IconComp = cmd.icon;
-              if (!IconComp) {
-                if (cmd.category === "System Settings Modal") {
-                  IconComp = Settings;
-                } else if (cmd.category === "Security & Authentication") {
-                  IconComp = ShieldCheck;
-                } else if (cmd.category === "Quick Actions") {
-                  IconComp = Terminal;
-                } else if (category.includes("System") || category.includes("Control")) {
-                  IconComp = Sliders;
-                } else if (category.includes("Navigation") || category.includes("Operation")) {
-                  IconComp = Compass;
-                } else {
-                  IconComp = Layers;
-                }
+              let IconComp = Settings;
+              if (cmd.category === "System Settings Modal") {
+                IconComp = Settings;
+              } else if (cmd.category === "Security & Authentication") {
+                IconComp = ShieldCheck;
+              } else if (cmd.category === "Quick Actions") {
+                IconComp = Terminal;
+              } else if (category.includes("System") || category.includes("Control")) {
+                IconComp = Sliders;
+              } else if (category.includes("Navigation") || category.includes("Operation")) {
+                IconComp = Compass;
+              } else {
+                IconComp = Layers;
               }
 
               return (

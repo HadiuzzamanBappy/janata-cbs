@@ -27,6 +27,9 @@ export interface WorkbenchState {
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   closeAllTabs: () => void;
+  closeOthers: (id: string) => void;
+  closeToRight: (id: string) => void;
+  duplicateTab: (id: string) => void;
   updateFormData: (tabId: string, data: Record<string, unknown>) => void;
   updateTabState: (tabId: string, patch: Partial<WorkbenchTab>) => void;
 }
@@ -75,6 +78,47 @@ export const createWorkbenchStore = () => {
           }),
         setActiveTab: (id) => set({ activeTabId: id }),
         closeAllTabs: () => set({ tabs: [], activeTabId: null }),
+        closeOthers: (id) =>
+          set((state) => ({
+            tabs: state.tabs.filter((t) => t.id === id),
+            activeTabId: id,
+          })),
+        closeToRight: (id) =>
+          set((state) => {
+            const idx = state.tabs.findIndex((t) => t.id === id);
+            const newTabs = idx === -1 ? state.tabs : state.tabs.slice(0, idx + 1);
+            const stillActive = newTabs.some((t) => t.id === state.activeTabId);
+            return {
+              tabs: newTabs,
+              activeTabId: stillActive
+                ? state.activeTabId
+                : (newTabs[newTabs.length - 1]?.id ?? null),
+            };
+          }),
+        duplicateTab: (id) =>
+          set((state) => {
+            const source = state.tabs.find((t) => t.id === id);
+            if (!source) return state;
+            const baseId = source.screenId || source.id;
+            const cleanTitle = source.title.replace(/\s*\(\d+\)$/, "").replace(/\s*#\d+$/, "");
+            const sameScreenCount = state.tabs.filter(
+              (t) => (t.screenId || t.id) === baseId || t.title === cleanTitle,
+            ).length;
+            const uniqueInstanceId = `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            const newTab: WorkbenchTab = {
+              ...source,
+              id: uniqueInstanceId,
+              instanceNumber: sameScreenCount + 1,
+              formData: undefined, // fresh — no stale draft
+            };
+            const insertIndex = state.tabs.findIndex((t) => t.id === id) + 1;
+            const newTabs = [
+              ...state.tabs.slice(0, insertIndex),
+              newTab,
+              ...state.tabs.slice(insertIndex),
+            ];
+            return { tabs: newTabs, activeTabId: uniqueInstanceId };
+          }),
         updateFormData: (tabId, data) =>
           set((state) => ({
             tabs: state.tabs.map((tab) =>

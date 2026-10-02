@@ -4,6 +4,7 @@
 import mermaid from "mermaid";
 import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
+import { logger } from "@/lib/logger";
 
 export function MermaidDiagram({ chart }: { chart: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,7 +60,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
         }
       })
       .catch((err) => {
-        console.error("Mermaid rendering error:", err);
+        logger.error("Mermaid rendering error:", err, "MERMAID");
       });
 
     return () => {

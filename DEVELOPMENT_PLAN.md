@@ -39,16 +39,16 @@
 ### Phase 1: Banking-Grade Structured Logger (`src/lib/logger/`)
 **Objective:** Replace raw `console.log` statements with a centralized, server-safe, PII-redacted logger compliant with banking audit standards.
 
-- [ ] **1.1 Core Logger Engine (`src/lib/logger/index.ts`):**
+- [x] **1.1 Core Logger Engine (`src/lib/logger/index.ts`):**
   - Implement log levels: `debug`, `info`, `warn`, `error`.
   - In `development`: Human-readable colored console output with timestamps.
   - In `production`: Machine-readable JSON output streaming to `process.stdout` / `process.stderr`.
-- [ ] **1.2 PII & Sensitive Data Redaction:**
+- [x] **1.2 PII & Sensitive Data Redaction:**
   - Automatically detect and redact sensitive keys: `password`, `token`, `secret`, `authorization`, `confPass`, `accountNumber`.
   - Mask account numbers: Display only last 4 digits (e.g. `AC****1234`).
-- [ ] **1.3 Replace Raw Console Usages:**
+- [x] **1.3 Replace Raw Console Usages:**
   - Refactor Redis warnings, session timeout logs, and gRPC error dumps to use `logger.warn`, `logger.info`, and `logger.error`.
-- [ ] **1.4 Verification:**
+- [x] **1.4 Verification:**
   - Verify that `pnpm typecheck` and `pnpm verify:matrix` pass with 0 errors.
   - Test redaction utility with simulated login/password payloads.
 

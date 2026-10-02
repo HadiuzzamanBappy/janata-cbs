@@ -9,6 +9,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SettingsDialog } from "@/features/settings";
 import { useHotkeys } from "@/hooks";
 import { appConfig } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import { useSessionStore } from "@/store";
 import { BranchSwitcher } from "./header/branch-switcher";
 import { ThemeToggle } from "./header/theme-toggle";
@@ -34,7 +35,7 @@ export function TopBar() {
             }
           }
         })
-        .catch((err) => console.error("Failed to hydrate session", err));
+        .catch((err) => logger.error("Failed to hydrate session", err, "TOPBAR"));
     }
   }, [user, currentBranch, setSession, setBranch]);
 

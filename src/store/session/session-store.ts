@@ -1,5 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import { appConfig } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import type { CurrentUser } from "@/lib/schemas";
 
 export interface SessionState {
@@ -26,7 +27,7 @@ export const createSessionStore = () => {
       try {
         await fetch(appConfig.routes.api.logout, { method: "POST" });
       } catch (e) {
-        console.error("Logout failed", e);
+        logger.error("Logout failed", e, "SESSION_STORE");
       }
       set({ user: null, isAuthenticated: false });
       window.location.href = appConfig.routes.login;

@@ -212,6 +212,15 @@ export function FormScreen({
         }),
       });
 
+      if (res.status === 401) {
+        toast.add({
+          title: "Session Expired",
+          description: "Your session has expired. Please re-login on the main dashboard tab and submit again.",
+          type: "error",
+        });
+        return;
+      }
+
       const json = await res.json();
       if (res.ok && json.status === "SUCCESS") {
         toast.add({

@@ -4,6 +4,7 @@ export const envSchema = z
   .object({
     // 1. Application & Runtime Mode
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
     MODEL_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
     USER_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
 
@@ -32,7 +33,7 @@ export const envSchema = z
 
     // 5. Caching Layer (Redis)
     REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
-    REDIS_KEY_PREFIX: z.string().default("finx"),
+    REDIS_KEY_PREFIX: z.string().default("cbs"),
     CACHE_ENABLED: z
       .union([z.boolean(), z.string()])
       .optional()
@@ -69,6 +70,7 @@ export const envSchema = z
 
 export const env = envSchema.parse({
   NODE_ENV: process.env.NODE_ENV,
+  LOG_LEVEL: process.env.LOG_LEVEL,
   MODEL_SOURCE: process.env.MODEL_SOURCE,
   USER_SOURCE: process.env.USER_SOURCE,
 

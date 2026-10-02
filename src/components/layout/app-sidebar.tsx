@@ -8,6 +8,7 @@ import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton";
 import { launchScreen } from "@/features/screens";
 import { appConfig } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import type { MenuItem } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 import { useWorkbenchStore } from "@/store";
@@ -173,7 +174,7 @@ export function AppSidebar({ openSettingsTab, clearSession, ...props }: AppSideb
         }
       })
       .catch((err) => {
-        console.error("Failed to load sidebar menu API", err);
+        logger.error("Failed to load sidebar menu API", err, "SIDEBAR");
       })
       .finally(() => {
         setLoading(false);

@@ -2,6 +2,7 @@
 
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
+import { logger } from "@/lib/logger";
 import { FormSkeleton } from "./forms/components/form-skeleton";
 import { resolveScreen } from "./registry";
 import type { ScreenLoaderProps } from "./types";
@@ -25,7 +26,11 @@ class ScreenErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error(`ScreenLoader error rendering "${this.props.command}":`, error, errorInfo);
+    logger.error(
+      `ScreenLoader error rendering "${this.props.command}":`,
+      { error, errorInfo },
+      "SCREEN_LOADER",
+    );
   }
 
   render() {

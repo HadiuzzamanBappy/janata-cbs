@@ -30,11 +30,6 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isPublicPath && hasSession && request.nextUrl.pathname === appConfig.routes.login) {
-    // Redirect logged-in users directly to dashboard
-    return NextResponse.redirect(new URL(appConfig.routes.dashboard, request.url));
-  }
-
   return NextResponse.next();
 }
 

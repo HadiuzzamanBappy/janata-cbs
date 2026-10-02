@@ -1,5 +1,5 @@
 /**
- * Universal API Transport Contracts for FinX-UI Core Banking
+ * Universal API Transport Contracts for CBS Core Banking
  */
 
 export interface APIResponse<T = unknown> {

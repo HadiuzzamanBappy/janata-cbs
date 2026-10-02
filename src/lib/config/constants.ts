@@ -4,6 +4,7 @@ export const appConfig = {
   // 1. Application & Runtime Mode
   nodeEnv: env.NODE_ENV,
   isDev: env.NODE_ENV === "development",
+  logLevel: env.LOG_LEVEL,
   modelSource: env.MODEL_SOURCE,
   userSource: env.USER_SOURCE,
 
@@ -86,9 +87,9 @@ export const appConfig = {
 
   // 9. Client Storage & Sync Keys
   storageKeys: {
-    lastActivity: "finx_last_activity",
-    workbenchTabs: "cbs_workbench_tabs_store",
-    themeAccent: "cbs-theme-accent",
+    lastActivity: "cbs:session:last_activity",
+    workbenchTabs: "cbs:workbench:tabs",
+    themeAccent: "cbs:theme:accent",
     idleWarningWindowMs: 60 * 1000, // 60s warning before timeout
   },
 } as const;

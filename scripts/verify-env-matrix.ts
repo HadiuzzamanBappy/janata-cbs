@@ -180,6 +180,47 @@ suite("3. Environment Permutations", () => {
   });
 });
 
+suite("4. Banking-Grade Logger & PII Redaction", () => {
+  const { redactSensitiveData, maskAccountNumber } = require("../src/lib/logger");
+
+  test("masks financial account numbers correctly (e.g. AC****1234)", () => {
+    const masked = maskAccountNumber("AC12345678");
+    return masked === "AC****5678";
+  });
+
+  test("redacts sensitive credential keys in nested payloads", () => {
+    const payload = {
+      user: "ZZ028459",
+      password: "SuperSecretPassword123!",
+      token: "jwt_bearer_token_xyz",
+      accountNumber: "AC98765432",
+      nested: {
+        pin: "1234",
+        safeData: "visible",
+      },
+    };
+    interface CleanedPayload {
+      user: string;
+      password: string;
+      token: string;
+      accountNumber: string;
+      nested: {
+        pin: string;
+        safeData: string;
+      };
+    }
+    const cleaned = redactSensitiveData(payload) as unknown as CleanedPayload;
+    return (
+      cleaned.user === "ZZ028459" &&
+      cleaned.password === "[REDACTED]" &&
+      cleaned.token === "[REDACTED]" &&
+      cleaned.accountNumber === "AC****5432" &&
+      cleaned.nested.pin === "[REDACTED]" &&
+      cleaned.nested.safeData === "visible"
+    );
+  });
+});
+
 // ============================================================================
 // Execution Summary
 // ============================================================================

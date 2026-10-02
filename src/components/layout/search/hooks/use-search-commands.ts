@@ -3,10 +3,10 @@
 import * as React from "react";
 import { appConfig } from "@/lib/config";
 import {
+  extractMenuCommands,
   getAllRegisteredCommands,
   type SystemCommandItem,
 } from "@/lib/core";
-import { extractMenuCommands } from "./search-utils";
 
 interface UseSearchCommandsOptions {
   open: boolean;

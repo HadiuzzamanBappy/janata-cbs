@@ -1,6 +1,6 @@
 import { Compass, Layers, Settings, ShieldCheck, Sliders, Terminal } from "lucide-react";
 import { CommandItem } from "@/components/ui/command";
-import type { CommandItemRowProps } from "./types";
+import type { CommandItemRowProps } from "../types";
 
 export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps) {
   // Resolve distinct icons per menu & action category

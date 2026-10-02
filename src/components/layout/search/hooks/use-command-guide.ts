@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { SystemCommandItem } from "@/lib/core";
-import type { CommandGuideInfo } from "./types";
+import type { CommandGuideInfo } from "../types";
 
 interface UseCommandGuideOptions {
   searchQuery: string;

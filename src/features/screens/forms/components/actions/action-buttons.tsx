@@ -6,13 +6,14 @@ import {
   ChevronDown,
   Edit3,
   Eye,
+  Lock,
   Pause,
   Play,
   Plus,
   Wrench,
   X,
 } from "lucide-react";
-import type * as React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -237,11 +238,33 @@ export function ActionButtons({
   }
 
   // ==========================================
-  // STATE 2: ACTIVE FORM STATE TOOLBAR
-  // [✓ Save] [?✓ Validate] [❚❚ Hold] [✕ Reverse] [✓✓ AuthReverse] [▶ Process] [⬆ Return]
+  // STATE 2: ACTIVE FORM STATE TOOLBAR (CREATE / EDIT / VIEW)
+  // [Locked Record ID] [✓ Save] [?✓ Validate] [❚❚ Hold] [✕ Reverse] [✓✓ AuthReverse] [▶ Process] [⬆ Return]
   // ==========================================
+  const displayId = searchVal.trim() || (mode === "CREATE" ? "NEW" : "CURRENT");
+
   return (
-    <div className="flex items-center gap-1 shrink-0">
+    <div className="flex items-center gap-1.5 shrink-0">
+      {/* Locked Record ID Indicator in place of Search Input */}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <div className="flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-border/80 bg-muted/40 text-foreground select-none">
+              <Lock className="size-3 text-muted-foreground shrink-0" />
+              <span className="font-mono text-xs font-semibold tracking-tight text-foreground truncate max-w-[120px] sm:max-w-[160px]">
+                {displayId}
+              </span>
+              <span className="text-[9px] font-mono px-1 py-0 rounded bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
+                {mode}
+              </span>
+            </div>
+          }
+        />
+        <TooltipContent className="text-xs">
+          Record ID is locked in {mode} mode
+        </TooltipContent>
+      </Tooltip>
+
       {/* 1. Commit / Save Record (✓) */}
       <Tooltip>
         <TooltipTrigger
@@ -333,7 +356,7 @@ export function ActionButtons({
               variant="outline"
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
-              disabled={!onAuthorizeReverse || submitting}
+              disabled={!onAuthorizeReverse || submitting || !rights.canAuthorise}
               className="size-8 shrink-0 disabled:opacity-40"
             >
               <span className="text-[12px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -342,7 +365,9 @@ export function ActionButtons({
             </Button>
           }
         />
-        <TooltipContent className="text-xs">Authorize Record (✓✓)</TooltipContent>
+        <TooltipContent className="text-xs">
+          {!rights.canAuthorise ? "Requires Authorise ('A') permission" : "Authorize Record (✓✓)"}
+        </TooltipContent>
       </Tooltip>
 
       {/* 6. Authorize Reversal (✕✓) */}
@@ -354,7 +379,7 @@ export function ActionButtons({
               variant="outline"
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
-              disabled={!onAuthorizeReverse || submitting}
+              disabled={!onAuthorizeReverse || submitting || (!rights.canAuthorise && !rights.canReverse)}
               className="size-8 shrink-0 disabled:opacity-40"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -363,7 +388,11 @@ export function ActionButtons({
             </Button>
           }
         />
-        <TooltipContent className="text-xs">Authorize Reversal (✕✓)</TooltipContent>
+        <TooltipContent className="text-xs">
+          {!rights.canAuthorise && !rights.canReverse
+            ? "Requires Authorise/Reverse ('A'/'R') permission"
+            : "Authorize Reversal (✕✓)"}
+        </TooltipContent>
       </Tooltip>
 
       {/* 7. Verify / Process Action (▶ / Play) */}

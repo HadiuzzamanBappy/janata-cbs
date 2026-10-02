@@ -20,6 +20,9 @@ import {
   parseGMC,
   parseMNU,
 } from "../src/lib/parsers";
+import { parseCbsCommand } from "../src/lib/core/command-parser";
+import { validateCommandForUser } from "../src/lib/core/command-validator";
+import type { CurrentUser } from "../src/lib/schemas";
 
 // ============================================================================
 // Minimalist Test Runner Pattern
@@ -220,6 +223,171 @@ suite("4. Banking-Grade Logger & PII Redaction", () => {
     );
   });
 });
+
+suite("Phase 1: CBS Command Grammar Parser", () => {
+  test("parses pure application code into IDLE mode", () => {
+    const cmd = parseCbsCommand("ACCOUNT");
+    return cmd.isValid && cmd.type === "FORM" && cmd.application === "ACCOUNT" && cmd.screenMode === "IDLE";
+  });
+
+  test("parses comma-separated application and recordId into EDIT mode", () => {
+    const cmd = parseCbsCommand("ACCOUNT,1001");
+    return cmd.isValid && cmd.application === "ACCOUNT" && cmd.recordId === "1001" && cmd.screenMode === "EDIT";
+  });
+
+  test("parses space-separated application and recordId into EDIT mode", () => {
+    const cmd = parseCbsCommand("CUSTOMER 2002");
+    return cmd.isValid && cmd.application === "CUSTOMER" && cmd.recordId === "2002" && cmd.screenMode === "EDIT";
+  });
+
+  test("parses application with function code (I) into CREATE mode", () => {
+    const cmd = parseCbsCommand("ACCOUNT I");
+    return cmd.isValid && cmd.application === "ACCOUNT" && cmd.functionCode === "I" && cmd.screenMode === "CREATE";
+  });
+
+  test("parses application with function (I) and new ID placeholder (F3)", () => {
+    const cmd = parseCbsCommand("ACCOUNT I F3");
+    return (
+      cmd.isValid &&
+      cmd.application === "ACCOUNT" &&
+      cmd.functionCode === "I" &&
+      cmd.recordId === "F3" &&
+      cmd.screenMode === "CREATE"
+    );
+  });
+
+  test("parses application with See function (S) into VIEW mode", () => {
+    const cmd = parseCbsCommand("ACCOUNT S 1001");
+    return (
+      cmd.isValid &&
+      cmd.application === "ACCOUNT" &&
+      cmd.functionCode === "S" &&
+      cmd.recordId === "1001" &&
+      cmd.screenMode === "VIEW"
+    );
+  });
+
+  test("parses application with Authorise function (A) into EDIT mode", () => {
+    const cmd = parseCbsCommand("ACCOUNT A 1001");
+    return (
+      cmd.isValid &&
+      cmd.application === "ACCOUNT" &&
+      cmd.functionCode === "A" &&
+      cmd.recordId === "1001" &&
+      cmd.screenMode === "EDIT"
+    );
+  });
+
+  test("parses ENQ enquiry queries correctly", () => {
+    const cmd = parseCbsCommand("ENQ USER.LIST");
+    return cmd.isValid && cmd.type === "ENQUIRY" && cmd.application === "USER.LIST" && cmd.screenMode === "VIEW";
+  });
+
+  test("parses SETTINGS:<TAB> shortcuts into SETTINGS type", () => {
+    const cmd = parseCbsCommand("SETTINGS:SECURITY");
+    return cmd.isValid && cmd.type === "SETTINGS" && cmd.settingsTabId === "security";
+  });
+
+  test("parses standalone fixed shortcuts (PROFILE, THEME, DARK, LOGOUT)", () => {
+    const profileCmd = parseCbsCommand("PROFILE");
+    const themeCmd = parseCbsCommand("THEME");
+    const darkCmd = parseCbsCommand("DARK");
+    const logoutCmd = parseCbsCommand("LOGOUT");
+    return (
+      profileCmd.isValid &&
+      profileCmd.type === "SETTINGS" &&
+      profileCmd.settingsTabId === "profile" &&
+      themeCmd.isValid &&
+      themeCmd.type === "SETTINGS" &&
+      themeCmd.settingsTabId === "appearance" &&
+      darkCmd.isValid &&
+      darkCmd.type === "ACTION" &&
+      darkCmd.actionId === "toggle_theme" &&
+      logoutCmd.isValid &&
+      logoutCmd.type === "ACTION" &&
+      logoutCmd.actionId === "logout"
+    );
+  });
+
+  test("parses ACTION:<ACT> shortcuts into ACTION type", () => {
+    const cmd = parseCbsCommand("ACTION:TOGGLE_THEME");
+    return cmd.isValid && cmd.type === "ACTION" && cmd.actionId === "toggle_theme";
+  });
+
+  test("rejects empty string or invalid syntax safely", () => {
+    const emptyCmd = parseCbsCommand("");
+    const invalidCharCmd = parseCbsCommand("###@@@");
+    return !emptyCmd.isValid && !invalidCharCmd.isValid;
+  });
+});
+
+suite("Phase 2: User Profile & Function Rights Enforcement Validator", () => {
+  const fullUser: CurrentUser = {
+    userId: "ZZ0284590",
+    fullName: "MD. HADIUZZAMAN BAPPY",
+    userRole: ["Administrator"],
+    accessibility: "RIDASH",
+    functionRights: ["R", "I", "D", "A", "S", "H"],
+    branchCode: "JB9999",
+    branchName: "CENTRAL OFFICE, HO, DHAKA",
+    txnDate: "2026-01-07",
+    isLoggedIn: true,
+    commandLine: true,
+    initLogin: false,
+    userStatus: 1,
+  };
+
+  const restrictedUser: CurrentUser = {
+    ...fullUser,
+    userId: "ST010001",
+    commandLine: false, // No commandLine right
+    accessibility: "R---S-",
+    functionRights: ["R", "S"], // Only Read & See
+  };
+
+  test("allows valid command for user with commandLine=true and full RIDASH", () => {
+    const parsed = parseCbsCommand("ACCOUNT I F3");
+    const result = validateCommandForUser(parsed, fullUser);
+    return result.allowed;
+  });
+
+  test("blocks raw application command if user has commandLine=false", () => {
+    const parsed = parseCbsCommand("ACCOUNT");
+    const result = validateCommandForUser(parsed, restrictedUser);
+    return !result.allowed && Boolean(result.reason?.includes("does not have Command Line access"));
+  });
+
+  test("blocks specific function if user lacks RIDASH code (e.g. lacks 'I')", () => {
+    const tellerWithCLI: CurrentUser = {
+      ...restrictedUser,
+      commandLine: true, // CLI enabled, but only R and S rights
+    };
+    const parsed = parseCbsCommand("ACCOUNT I F3");
+    const result = validateCommandForUser(parsed, tellerWithCLI);
+    return !result.allowed && Boolean(result.reason?.includes("User lacks Input / Create ('I') rights"));
+  });
+
+  test("allows permitted function for user (e.g. has 'S')", () => {
+    const tellerWithCLI: CurrentUser = {
+      ...restrictedUser,
+      commandLine: true,
+    };
+    const parsed = parseCbsCommand("ACCOUNT S 1001");
+    const result = validateCommandForUser(parsed, tellerWithCLI);
+    return result.allowed;
+  });
+
+  test("universally allows SETTINGS and ACTION regardless of user role", () => {
+    const parsedSettings = parseCbsCommand("SETTINGS:PROFILE");
+    const parsedAction = parseCbsCommand("ACTION:TOGGLE_THEME");
+    return (
+      validateCommandForUser(parsedSettings, restrictedUser).allowed &&
+      validateCommandForUser(parsedAction, restrictedUser).allowed
+    );
+  });
+});
+
+
 
 // ============================================================================
 // Execution Summary

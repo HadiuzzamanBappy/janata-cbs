@@ -4,9 +4,11 @@ import { useSessionStore } from "@/store";
 
 export interface UserRights {
   canRead: boolean;
+  canReverse: boolean;
   canInput: boolean;
   canDelete: boolean;
   canAmend: boolean;
+  canAuthorise: boolean;
   canSee: boolean;
   canHold: boolean;
   functionRights: string[];
@@ -15,7 +17,7 @@ export interface UserRights {
 
 /**
  * Universal hook to evaluate active user's Temenos RIDASH Function Rights.
- * Evaluates R (Read), I (Input), D (Delete), A (Amend), S (See), H (Hold).
+ * Evaluates R (Read / Reverse), I (Input), D (Delete), A (Amend / Authorise), S (See), H (Hold).
  */
 export function useUserRights(): UserRights {
   const user = useSessionStore((state) => state.user);
@@ -29,9 +31,11 @@ export function useUserRights(): UserRights {
 
   return {
     canRead: hasRight("R"),
+    canReverse: hasRight("R"),
     canInput: hasRight("I"),
     canDelete: hasRight("D"),
     canAmend: hasRight("A"),
+    canAuthorise: hasRight("A"),
     canSee: hasRight("S"),
     canHold: hasRight("H"),
     functionRights,

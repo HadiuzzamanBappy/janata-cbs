@@ -11,17 +11,36 @@ export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
 
   for (const item of rawList) {
     const fields = getItemFields(item);
-    const cmdName =
-      extractStringField(fields, "controlName") || extractStringField(fields, "recordId");
-    const desc = extractStringField(fields, "description") || cmdName;
+    const recordId = extractStringField(fields, "recordId");
+    const controlName = extractStringField(fields, "controlName") || recordId;
+    const desc = extractStringField(fields, "description") || controlName;
 
-    if (cmdName) {
+    // Primary entry for the canonical controlName
+    if (controlName) {
       result.push({
-        id: cmdName,
-        title: desc || cmdName,
+        id: controlName,
+        title: desc,
         category: "System Controls & Commands",
         description: desc,
-        command: cmdName,
+        command: controlName,
+        controlName,
+        recordId: recordId || controlName,
+        allowedRoles: ["*"],
+        actionType: "SCREEN",
+      });
+    }
+
+    // Secondary alias entry if recordId differs (e.g., AE -> ACCOUNT.ENTRY, CMD -> SC.CONTROL.LIST)
+    if (recordId && recordId !== controlName) {
+      result.push({
+        id: recordId,
+        title: `${desc} [${recordId}]`,
+        category: "System Controls & Commands",
+        description: `Alias for ${controlName}`,
+        command: recordId,
+        componentName: controlName, // Routes to canonical target
+        controlName,
+        recordId,
         allowedRoles: ["*"],
         actionType: "SCREEN",
       });

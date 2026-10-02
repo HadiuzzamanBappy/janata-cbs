@@ -43,11 +43,14 @@ export const ICON_REGISTRY: Record<string, React.ComponentType<{ className?: str
 export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
   // Bespoke React Screens
   {
-    id: "user.change.pass",
+    id: "USER.CHANGE.PASS",
     title: "Change Password",
     category: "Security & Authentication",
     description: "User change security password profile",
     command: "USER.CHANGE.PASS",
+    controlName: "USER.CHANGE.PASS",
+    recordId: "PASS",
+    aliases: ["PASS", "PWD"],
     componentName: "USER_CHANGE_PASS",
     allowedRoles: ["*"],
     actionType: "SCREEN",
@@ -55,31 +58,40 @@ export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
 
   // App Settings Modals
   {
-    id: "settings:profile",
+    id: "SETTINGS:PROFILE",
     title: "User Profile Settings",
     category: "System Settings Modal",
     description: "Open user profile modal dialog",
     command: "SETTINGS:PROFILE",
+    controlName: "SETTINGS:PROFILE",
+    recordId: "PROFILE",
+    aliases: ["PROFILE"],
     allowedRoles: ["*"],
     actionType: "SETTINGS",
     settingsTabId: "profile",
   },
   {
-    id: "settings:security",
+    id: "SETTINGS:SECURITY",
     title: "Security & Password Settings",
     category: "System Settings Modal",
     description: "Open security & password modal dialog",
     command: "SETTINGS:SECURITY",
+    controlName: "SETTINGS:SECURITY",
+    recordId: "SECURITY",
+    aliases: ["SECURITY"],
     allowedRoles: ["*"],
     actionType: "SETTINGS",
     settingsTabId: "security",
   },
   {
-    id: "settings:appearance",
+    id: "SETTINGS:APPEARANCE",
     title: "Appearance & Display Settings",
     category: "System Settings Modal",
     description: "Open appearance theme settings modal dialog",
     command: "SETTINGS:APPEARANCE",
+    controlName: "SETTINGS:APPEARANCE",
+    recordId: "THEME",
+    aliases: ["THEME"],
     allowedRoles: ["*"],
     actionType: "SETTINGS",
     settingsTabId: "appearance",
@@ -87,19 +99,25 @@ export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
 
   // Quick System Actions
   {
-    id: "action:toggle_theme",
+    id: "ACTION:TOGGLE_THEME",
     title: "Toggle Light / Dark Theme",
     category: "Quick Actions",
     command: "ACTION:TOGGLE_THEME",
+    controlName: "ACTION:TOGGLE_THEME",
+    recordId: "DARK",
+    aliases: ["DARK"],
     description: "Switch application theme mode",
     allowedRoles: ["*"],
     actionType: "THEME",
   },
   {
-    id: "action:logout",
+    id: "ACTION:LOGOUT",
     title: "Sign Out Session",
     category: "Quick Actions",
     command: "ACTION:LOGOUT",
+    controlName: "ACTION:LOGOUT",
+    recordId: "LOGOUT",
+    aliases: ["LOGOUT", "EXIT"],
     description: "Terminate current active user session",
     allowedRoles: ["*"],
     actionType: "LOGOUT",
@@ -107,7 +125,13 @@ export const DEFAULT_STATIC_COMMANDS: SystemCommandItem[] = [
 ];
 
 export interface CommandExecutionContext {
-  addTab?: (tab: { id: string; title: string; componentName: string }) => void;
+  addTab?: (tab: {
+    id: string;
+    title: string;
+    componentName: string;
+    screenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+    searchRecordId?: string;
+  }) => void;
   openSettingsTab?: (tabId: string) => void;
   clearSession?: () => void;
   toggleTheme?: () => void;
@@ -124,24 +148,32 @@ export interface CommandExecutionContext {
  * MASTER SINGLE SOURCE OF TRUTH COMMAND MAP (Runtime Store)
  */
 const MASTER_COMMAND_MAP = new Map<string, SystemCommandItem>();
+const UNIQUE_COMMAND_LIST = new Set<SystemCommandItem>();
+
+/**
+ * Register a command and automatically bind all its shorthand aliases.
+ */
+export function registerCommand(item: SystemCommandItem): void {
+  UNIQUE_COMMAND_LIST.add(item);
+  MASTER_COMMAND_MAP.set(item.command.toUpperCase(), item);
+
+  if (item.aliases && item.aliases.length > 0) {
+    for (const alias of item.aliases) {
+      MASTER_COMMAND_MAP.set(alias.toUpperCase(), item);
+    }
+  }
+}
 
 // Initialize Master Map with default static commands
 for (const cmd of DEFAULT_STATIC_COMMANDS) {
-  MASTER_COMMAND_MAP.set(cmd.command.toUpperCase(), cmd);
+  registerCommand(cmd);
 }
 
 /**
- * Register a command dynamically from anywhere in the application.
- */
-export function registerCommand(item: SystemCommandItem): void {
-  MASTER_COMMAND_MAP.set(item.command.toUpperCase(), item);
-}
-
-/**
- * Get all registered commands as an array.
+ * Get all unique registered commands.
  */
 export function getAllRegisteredCommands(): SystemCommandItem[] {
-  return Array.from(MASTER_COMMAND_MAP.values());
+  return Array.from(UNIQUE_COMMAND_LIST);
 }
 
 /**
@@ -160,6 +192,8 @@ export function dispatchCommand(
   context: CommandExecutionContext,
   title?: string,
   componentName?: string,
+  screenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW",
+  searchRecordId?: string,
 ): void {
   if (!commandStr) return;
 
@@ -217,6 +251,8 @@ export function dispatchCommand(
       id: cleanCmd,
       title: title || registered?.title || cleanCmd,
       componentName: componentName || registered?.componentName || "DYNAMIC_FORM",
+      screenMode,
+      searchRecordId,
     });
   }
 }

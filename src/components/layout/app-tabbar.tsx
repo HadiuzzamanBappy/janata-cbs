@@ -64,8 +64,9 @@ export function AppTabBar() {
     return null;
   }
 
-  // Mouse Drag-to-Scroll Handlers
+  // Mouse Drag-to-Scroll Handlers (Only on left-click button 0)
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
     if (!scrollRef.current) return;
     if ((e.target as HTMLElement).closest("button")) return;
 

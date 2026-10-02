@@ -20,7 +20,12 @@ export function resolveScreen(command: string): ScreenComponent {
   }
 
   // 2. Check if command is a Temenos Enquiry screen
-  if (cleanCmd.startsWith("ENQ ") || cleanCmd.startsWith("ENQUIRY")) {
+  if (
+    cleanCmd.startsWith("ENQ ") ||
+    cleanCmd.startsWith("ENQUIRY") ||
+    cleanCmd.startsWith("INQ ") ||
+    cleanCmd.startsWith("INQUIRY")
+  ) {
     return function EnquiryWrapper(props: { command: string; tabId?: string }) {
       return <EnquiryScreen command={props.command || cleanCmd} tabId={props.tabId} />;
     };

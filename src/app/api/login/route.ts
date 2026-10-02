@@ -1,7 +1,13 @@
 import { STATIC_USERS } from "@fixtures";
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/config";
-import { grpcStatusToHttp, loginProcess } from "@/lib/grpc";
+import {
+  extractBooleanField,
+  extractNumberField,
+  extractStringField,
+  grpcStatusToHttp,
+  loginProcess,
+} from "@/lib/grpc";
 import { type CurrentUser, createSession, rateLimit } from "@/lib/redis";
 
 export const runtime = "nodejs";
@@ -68,45 +74,61 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const payload = (res.data ?? {}) as {
-      userId: string;
-      token: string;
-      fullName: string;
-      branchCode: string;
-      userRole: string[];
-      commandLine: boolean;
-      branchName: string;
-      txnDate: string;
-      accessibility: string;
-      isLoggedIn: boolean;
-      initLogin: boolean;
-      userStatus: number;
-    };
+    const rawData = res.data ?? {};
+    const fields = (
+      typeof rawData === "object" && rawData !== null && "fields" in rawData
+        ? (rawData as { fields: Record<string, unknown> }).fields
+        : rawData
+    ) as Record<string, unknown>;
 
-    if (!payload.token || !payload.userId) {
+    const userId = (extractStringField(fields, "userId") || (fields.userId as string) || "").trim();
+    const token = (extractStringField(fields, "token") || (fields.token as string) || "").trim();
+
+    if (!token || !userId) {
       return NextResponse.json(
-        { message: "Login response missing required authentication token" },
+        { message: "Login response missing required authentication token or userId" },
         { status: 502 },
       );
     }
 
+    const fullName = extractStringField(fields, "fullName") || (fields.fullName as string) || username;
+    const branchCode = extractStringField(fields, "branchCode") || (fields.branchCode as string) || appConfig.centralBranch;
+    const branchName = extractStringField(fields, "branchName") || (fields.branchName as string) || "Central Office";
+    const txnDate = extractStringField(fields, "txnDate") || (fields.txnDate as string) || new Date().toISOString().split("T")[0];
+    const accessibility = extractStringField(fields, "accessibility") || (fields.accessibility as string) || "FULL";
+    const commandLine = extractBooleanField(fields, "commandLine", false);
+    const initLogin = extractBooleanField(fields, "initLogin", false);
+    const userStatus = extractNumberField(fields, "userStatus", 1);
+    
+    // Extract role
+    let userRole = ["TELLER"];
+    if (Array.isArray(fields.userRole)) {
+      userRole = fields.userRole.map(String);
+    } else if (typeof fields.userRole === "string" && fields.userRole.trim()) {
+      userRole = [fields.userRole.trim()];
+    }
+
+    // Extract function rights if present in accessibility or dedicated field
+    const functionRights = accessibility ? accessibility.split("").filter(Boolean) : ["R", "I", "D", "A", "S", "H"];
+
     const currUser: CurrentUser = {
-      userId: payload.userId,
-      fullName: payload.fullName || username,
-      branchCode: payload.branchCode || appConfig.centralBranch,
-      userRole: payload.userRole || ["TELLER"],
-      commandLine: Boolean(payload.commandLine),
-      branchName: payload.branchName || "Head Office",
-      txnDate: payload.txnDate || new Date().toISOString().split("T")[0],
-      accessibility: payload.accessibility || "FULL",
+      userId,
+      fullName: fullName.trim(),
+      branchCode: branchCode.trim(),
+      userRole,
+      accessibility,
+      functionRights,
+      commandLine,
+      branchName: branchName.trim(),
+      txnDate: txnDate.trim(),
       isLoggedIn: true,
-      initLogin: Boolean(payload.initLogin),
-      userStatus: payload.userStatus ?? 1,
+      initLogin,
+      userStatus,
     };
 
     await createSession({
-      userId: payload.userId,
-      token: payload.token,
+      userId,
+      token,
       currUser,
     });
 

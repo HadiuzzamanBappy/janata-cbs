@@ -30,5 +30,5 @@ export interface EnquirySchema {
   description?: string;
   selectionFields: SelectionField[];
   columns: EnquiryColumn[];
-  sampleData: EnquiryRow[];
+  sampleData?: EnquiryRow[];
 }

@@ -1,49 +1,69 @@
 import type { CurrentUser } from "@/lib/redis";
 
+/**
+ * STATIC_USERS mirrors the CBS authentication response format.
+ * Includes user credentials, authority level, accessibility rights,
+ * branch assignment, and flags extracted from live CBS wire format (.response/user.json).
+ */
 export const STATIC_USERS: Record<string, CurrentUser> = {
-  // A standard teller login (Username: ZZ028459)
-  zz028459: {
-    userId: "ZZ028459",
-    fullName: "Teller User",
+  // Real CBS user payload replica matching .response/user.json
+  zz0284590: {
+    userId: "ZZ0284590",
+    fullName: "MD. HADIUZZAMAN BAPPY",
     userRole: ["TELLER"],
-    accessibility: "STANDARD",
+    accessibility: "RIDASH",
     functionRights: ["R", "I", "D", "A", "S", "H"], // Read, Input, Delete, Amend, See, Hold
-    branchCode: "JB1001",
-    branchName: "Motijheel Branch",
-    txnDate: new Date().toISOString().split("T")[0],
-    isLoggedIn: true,
-    commandLine: false,
-    initLogin: false,
-    userStatus: 1,
-  },
-  // An admin / supervisor login (Username: ZZ028460)
-  zz028460: {
-    userId: "ZZ028460",
-    fullName: "System Administrator",
-    userRole: ["ADMIN"],
-    accessibility: "FULL",
-    functionRights: ["R", "I", "D", "A", "S", "H"], // Full RIDASH capabilities
     branchCode: "JB9999",
-    branchName: "Head Office",
-    txnDate: new Date().toISOString().split("T")[0],
+    branchName: "CENTRAL OFFICE, HO, DHAKA",
+    txnDate: "2026-01-07",
     isLoggedIn: true,
     commandLine: true,
     initLogin: false,
     userStatus: 1,
   },
-  // A new user that must change their password (Username: ZZ028461)
-  zz028461: {
+  // Alias for ZZ028459 (convenience for development)
+  zz028459: {
+    userId: "ZZ028459",
+    fullName: "MD. HADIUZZAMAN BAPPY",
+    userRole: ["TELLER"],
+    accessibility: "RIDASH",
+    functionRights: ["R", "I", "D", "A", "S", "H"],
+    branchCode: "JB9999",
+    branchName: "CENTRAL OFFICE, HO, DHAKA",
+    txnDate: "2026-01-07",
+    isLoggedIn: true,
+    commandLine: true,
+    initLogin: false,
+    userStatus: 1,
+  },
+  // Administrator / Supervisor profile
+  admin: {
+    userId: "ZZ028460",
+    fullName: "System Administrator",
+    userRole: ["ADMIN", "SUPERVISOR"],
+    accessibility: "RIDASH",
+    functionRights: ["R", "I", "D", "A", "S", "H"],
+    branchCode: "JB9999",
+    branchName: "CENTRAL OFFICE, HO, DHAKA",
+    txnDate: "2026-01-07",
+    isLoggedIn: true,
+    commandLine: true,
+    initLogin: false,
+    userStatus: 1,
+  },
+  // First-time login user (testing password change redirect workflow)
+  new_user: {
     userId: "ZZ028461",
     fullName: "New Staff Member",
     userRole: ["TELLER"],
-    accessibility: "STANDARD",
-    functionRights: ["R", "S"], // Read-only / See
+    accessibility: "RS",
+    functionRights: ["R", "S"],
     branchCode: "JB1002",
     branchName: "Gulshan Branch",
-    txnDate: new Date().toISOString().split("T")[0],
+    txnDate: "2026-01-07",
     isLoggedIn: true,
     commandLine: false,
-    initLogin: true, // This triggers the redirect to /change-password
+    initLogin: true, // Triggers redirect to /change-password
     userStatus: 1,
   },
 };

@@ -1,5 +1,7 @@
-import "server-only";
-
+/**
+ * Pure data transformation helpers for normalizing dynamic CBS Protobuf struct payloads.
+ * Safe for both server execution and node test runners.
+ */
 /**
  * Extracts a flattened string map or primitive values from a dynamic gRPC struct payload.
  * Normalizes differences between direct JSON objects and Protobuf struct/list values.
@@ -18,7 +20,58 @@ export function extractStringField(
 }
 
 /**
- * Unwraps an array of record items from various backend response envelope structures.
+ * Extracts a boolean value from either a raw boolean or a protobuf bool_value struct.
+ */
+export function extractBooleanField(
+  fields: Record<string, unknown> | undefined,
+  key: string,
+  defaultValue = false,
+): boolean {
+  if (!fields) return defaultValue;
+  const val = fields[key];
+  if (typeof val === "object" && val !== null && "bool_value" in val) {
+    const boolVal = (val as { bool_value?: boolean }).bool_value;
+    return typeof boolVal === "boolean" ? boolVal : defaultValue;
+  }
+  if (typeof val === "boolean") return val;
+  if (typeof val === "string") return val.toLowerCase() === "true";
+  return defaultValue;
+}
+
+/**
+ * Extracts a number value from either a raw number or a protobuf number_value struct.
+ */
+export function extractNumberField(
+  fields: Record<string, unknown> | undefined,
+  key: string,
+  defaultValue = 0,
+): number {
+  if (!fields) return defaultValue;
+  const val = fields[key];
+  if (typeof val === "object" && val !== null && "number_value" in val) {
+    const numVal = (val as { number_value?: number }).number_value;
+    return typeof numVal === "number" ? numVal : defaultValue;
+  }
+  if (typeof val === "number") return val;
+  if (typeof val === "string" && !Number.isNaN(Number(val))) return Number(val);
+  return defaultValue;
+}
+
+/**
+ * Normalizes either raw plain objects or protobuf struct_value wrappers into a flat dictionary.
+ */
+export function unwrapStructPayload(data: unknown): Record<string, unknown> {
+  if (!data || typeof data !== "object") return {};
+  const obj = data as Record<string, unknown>;
+  if (obj.fields && typeof obj.fields === "object") {
+    return obj.fields as Record<string, unknown>;
+  }
+  return obj;
+}
+
+/**
+ * Strictly unwraps an array of record items from canonical gRPC response envelopes
+ * (data.fields.records.list_value.values) or direct arrays from static fixtures.
  */
 export function unwrapRecordsPayload(data: unknown): unknown[] {
   if (!data) return [];
@@ -31,12 +84,6 @@ export function unwrapRecordsPayload(data: unknown): unknown[] {
     const listValue = records?.list_value as Record<string, unknown> | undefined;
 
     if (Array.isArray(listValue?.values)) return listValue.values;
-    if (Array.isArray(obj.records)) return obj.records;
-    if (Array.isArray(obj.items)) return obj.items;
-    if (Array.isArray(obj.data)) return obj.data;
-    if (Array.isArray(obj.branches)) return obj.branches;
-    if (Array.isArray(obj.list)) return obj.list;
-    return [obj];
   }
 
   return [];

@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormSchema } from "../types";
+import type { FormSchema } from "@/lib/schemas";
 import { FieldFactory } from "./field-factory";
 
 export interface FormGridProps {

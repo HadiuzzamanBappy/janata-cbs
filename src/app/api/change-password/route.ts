@@ -42,13 +42,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     store.delete(appConfig.auth.initLoginCookie);
 
     return NextResponse.json({
+      success: true,
       message: "Password updated successfully.",
     });
   } catch (err: unknown) {
-    const error = err as { message?: string };
-    return NextResponse.json(
-      { message: error?.message || "Failed to update password." },
-      { status: 500 },
-    );
+    const message = err instanceof Error ? err.message : "Failed to update password.";
+    return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

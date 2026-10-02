@@ -19,7 +19,8 @@
       "!**/src/components/ui",
       "!**/src/hooks/use-mobile.ts",
       "!**/src/lib/grpc/generated",
-      "!**/public"
+      "!**/public",
+      "!**/.response"
     ]
   },
   "formatter": {
@@ -42,26 +43,20 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      "a11y": {
-        "recommended": true
-      },
       "complexity": {
         "noForEach": "off",
         "noStaticOnlyClass": "warn",
         "useLiteralKeys": "error"
       },
       "correctness": {
-        "recommended": true,
         "noUnusedVariables": "error",
         "noUnusedImports": "error",
         "useExhaustiveDependencies": "warn"
       },
       "security": {
-        "recommended": true,
         "noDangerouslySetInnerHtml": "off"
       },
       "style": {
-        "recommended": true,
         "noNonNullAssertion": "off",
         "useConst": "error",
         "useImportType": "error",
@@ -80,7 +75,6 @@
         }
       },
       "suspicious": {
-        "recommended": true,
         "noExplicitAny": "error",
         "noConsole": "off"
       }
@@ -94,22 +88,10 @@
       "trailingCommas": "all",
       "semicolons": "always",
       "arrowParentheses": "always"
-    },
-    "globals": ["React", "JSX"]
+    }
   },
   "css": {
-    "formatter": {
-      "enabled": true,
-      "indentStyle": "space",
-      "indentWidth": 2,
-      "lineEnding": "lf",
-      "lineWidth": 100
-    },
-    "linter": {
-      "enabled": true
-    },
     "parser": {
-      "cssModules": true,
       "tailwindDirectives": true
     }
   }

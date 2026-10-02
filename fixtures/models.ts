@@ -1,386 +1,559 @@
-import type { RawPropertyConfigRecord } from "@/features/screens";
+import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * Offline development mock specs matching the GMC backend schema.
+ * STATIC_MODELS mirrors the GMC backend wire responses (.response/model.json).
+ * Formatted exactly as GrpcResponse with Protobuf struct payload.
+ * 100% pure wire data without custom classes or legacy baggage.
  */
-export const STATIC_MODELS: Record<string, RawPropertyConfigRecord> = {
-  "FUNDS.TRANSFER": {
-    DESCRIPTION: "Funds Transfer",
-    TABLENAME: "FUNDS.TRANSFER",
-    IDDEF: { IDPREFIX: "FT" },
-    PROPERTIES: [
-      {
-        NAME: "TXN.CODE",
-        LABEL: "Txn Code",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 4,
+export const STATIC_MODELS: Record<string, GrpcResponse> = {
+  ACCOUNT: {
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        record: {
+          struct_value: {
+            fields: {
+              TABLENAME: { string_value: "ACCOUNT" },
+              DESCRIPTION: { string_value: "Create Account" },
+              IDDEF: {
+                struct_value: {
+                  fields: {
+                    IDPREFIX: { string_value: "AC" },
+                  },
+                },
+              },
+              PROPERTIES: {
+                list_value: {
+                  values: [
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "CUSTOMER.ID" },
+                          LABEL: { string_value: "Customer Id" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 12 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "CATEGORY" },
+                          LABEL: { string_value: "Category" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "PRODUCT" },
+                          LABEL: { string_value: "Product" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 20 },
+                          DATASOURCE: {
+                            list_value: {
+                              values: [
+                                { string_value: "Savings" },
+                                { string_value: "Current" },
+                                { string_value: "Term Deposit" },
+                                { string_value: "Staff Savings" },
+                              ],
+                            },
+                          },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "CURRENCY" },
+                          LABEL: { string_value: "Currency" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 3 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "BRANCH" },
+                          LABEL: { string_value: "Branch" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "OPENING.DATE" },
+                          LABEL: { string_value: "Opening Date" },
+                          TYPE: { string_value: "DATE" },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "ACCOUNT.TITLE" },
+                          LABEL: { string_value: "Account Title" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 50 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "MAILING.ADDRESS" },
+                          LABEL: { string_value: "Mailing Address" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 100 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "RECORD.STATUS" },
+                          LABEL: { string_value: "Record Status" },
+                          TYPE: { string_value: "VARCHAR" },
+                          DISABLED: { bool_value: true },
+                          LENGTH: { number_value: 4 },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
       },
-      {
-        NAME: "DEBIT.ACCOUNT",
-        LABEL: "Debit Account",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 16,
-      },
-      {
-        NAME: "DEBIT.CURRENCY",
-        LABEL: "Debit Currency",
-        TYPE: "VARCHAR",
-        LENGTH: 3,
-      },
-      {
-        NAME: "CREDIT.ACCOUNT",
-        LABEL: "Credit Account",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 16,
-      },
-      {
-        NAME: "CREDIT.CURRENCY",
-        LABEL: "Credit Currency",
-        TYPE: "VARCHAR",
-        LENGTH: 3,
-      },
-      {
-        NAME: "AMOUNT",
-        LABEL: "Transaction Amount",
-        TYPE: "NUMERIC",
-        REQUIRED: true,
-        LENGTH: 15,
-      },
-      { NAME: "VALUE.DATE", LABEL: "Value Date", TYPE: "DATE", REQUIRED: true },
-      { NAME: "TXN.DATE", LABEL: "Transaction Date", TYPE: "DATE" },
-      {
-        NAME: "DEBIT.BRANCH",
-        LABEL: "Debit Branch",
-        TYPE: "VARCHAR",
-        LENGTH: 6,
-      },
-      {
-        NAME: "CREDIT.BRANCH",
-        LABEL: "Credit Branch",
-        TYPE: "VARCHAR",
-        LENGTH: 6,
-      },
-      {
-        NAME: "DEBIT.DETAILS",
-        LABEL: "Debit Details",
-        TYPE: "VARCHAR",
-        LENGTH: 50,
-      },
-      {
-        NAME: "CREDIT.DETAILS",
-        LABEL: "Credit Details",
-        TYPE: "VARCHAR",
-        LENGTH: 50,
-      },
-      {
-        NAME: "ENTRY.ID.1",
-        LABEL: "Account Entry Id 1",
-        TYPE: "VARCHAR",
-        LENGTH: 35,
-      },
-      {
-        NAME: "RECORD.STATUS",
-        LABEL: "Record Status",
-        TYPE: "VARCHAR",
-        DISABLED: true,
-        LENGTH: 4,
-      },
-      {
-        NAME: "CURR.NUMBER",
-        LABEL: "Curr Number",
-        TYPE: "NUMERIC",
-        DISABLED: true,
-        LENGTH: 4,
-      },
-    ],
+    },
   },
 
-  ACCOUNT: {
-    DESCRIPTION: "Create Account",
-    TABLENAME: "ACCOUNT.OPEN",
-    IDDEF: { IDPREFIX: "AC" },
-    PROPERTIES: [
-      {
-        NAME: "CUSTOMER.ID",
-        LABEL: "Customer Id",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 12,
+  "FUNDS.TRANSFER": {
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        record: {
+          struct_value: {
+            fields: {
+              TABLENAME: { string_value: "FUNDS.TRANSFER" },
+              DESCRIPTION: { string_value: "Funds Transfer" },
+              IDDEF: {
+                struct_value: {
+                  fields: {
+                    IDPREFIX: { string_value: "FT" },
+                  },
+                },
+              },
+              PROPERTIES: {
+                list_value: {
+                  values: [
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "TXN.CODE" },
+                          LABEL: { string_value: "Txn Code" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 4 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "DEBIT.ACCOUNT" },
+                          LABEL: { string_value: "Debit Account" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 16 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "DEBIT.CURRENCY" },
+                          LABEL: { string_value: "Debit Currency" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 3 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "CREDIT.ACCOUNT" },
+                          LABEL: { string_value: "Credit Account" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 16 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "CREDIT.CURRENCY" },
+                          LABEL: { string_value: "Credit Currency" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 3 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "AMOUNT" },
+                          LABEL: { string_value: "Transaction Amount" },
+                          TYPE: { string_value: "NUMERIC" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 15 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "VALUE.DATE" },
+                          LABEL: { string_value: "Value Date" },
+                          TYPE: { string_value: "DATE" },
+                          REQUIRED: { bool_value: true },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "TXN.DATE" },
+                          LABEL: { string_value: "Transaction Date" },
+                          TYPE: { string_value: "DATE" },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "DEBIT.BRANCH" },
+                          LABEL: { string_value: "Debit Branch" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "CREDIT.BRANCH" },
+                          LABEL: { string_value: "Credit Branch" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
       },
-      {
-        NAME: "CATEGORY",
-        LABEL: "Category",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 6,
-      },
-      {
-        NAME: "PRODUCT",
-        LABEL: "Product",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 20,
-        DATASOURCE: ["Savings", "Current", "Term Deposit", "Staff Savings"],
-      },
-      {
-        NAME: "CURRENCY",
-        LABEL: "Currency",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 3,
-      },
-      { NAME: "BRANCH", LABEL: "Branch", TYPE: "VARCHAR", LENGTH: 6 },
-      { NAME: "OPENING.DATE", LABEL: "Opening Date", TYPE: "DATE" },
-      {
-        NAME: "ACCOUNT.TITLE",
-        LABEL: "Account Title",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 50,
-      },
-      {
-        NAME: "MAILING.ADDRESS",
-        LABEL: "Mailing Address",
-        TYPE: "VARCHAR",
-        LENGTH: 100,
-      },
-      {
-        NAME: "RECORD.STATUS",
-        LABEL: "Record Status",
-        TYPE: "VARCHAR",
-        DISABLED: true,
-        LENGTH: 4,
-      },
-    ],
+    },
   },
 
   CUSTOMER: {
-    DESCRIPTION: "Create Customer",
-    TABLENAME: "CUSTOMER",
-    IDDEF: { IDPREFIX: "CU" },
-    PROPERTIES: [
-      { NAME: "CUSTOMER.ID", LABEL: "Customer Number", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 12 },
-      { NAME: "NAME.1", LABEL: "Customer Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 35 },
-      { NAME: "SHORT.NAME", LABEL: "Short Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 15 },
-      { NAME: "SECTOR", LABEL: "Sector", TYPE: "VARCHAR", LENGTH: 4, DATASOURCE: ["Individual", "Corporate", "SME"] },
-      { NAME: "NATIONALITY", LABEL: "Nationality", TYPE: "VARCHAR", LENGTH: 2, DATASOURCE: ["BD", "US", "UK"] },
-      { NAME: "STREET", LABEL: "Street Address", TYPE: "VARCHAR", LENGTH: 35 },
-      { NAME: "TOWN.COUNTRY", LABEL: "Town / District", TYPE: "VARCHAR", LENGTH: 35 },
-      { NAME: "DATE.OF.BIRTH", LABEL: "Date of Birth", TYPE: "DATE" },
-      { NAME: "POST.CODE", LABEL: "Postal Code", TYPE: "VARCHAR", LENGTH: 10 },
-      { NAME: "RECORD.STATUS", LABEL: "Record Status", TYPE: "VARCHAR", DISABLED: true, LENGTH: 4 },
-    ],
-  },
-
-  "USER.MGT": {
-    DESCRIPTION: "User Management",
-    TABLENAME: "USER.MGT",
-    IDDEF: { IDPREFIX: "UM" },
-    PROPERTIES: [
-      { NAME: "USER.ID", LABEL: "User ID", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 15 },
-      { NAME: "SIGN.ON.NAME", LABEL: "Sign On Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 15 },
-      { NAME: "FULL.NAME", LABEL: "Full Name", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 35 },
-      { NAME: "ROLE", LABEL: "Role", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 20, DATASOURCE: ["Teller", "Officer", "Supervisor", "Administrator"] },
-      { NAME: "BRANCH", LABEL: "Branch", TYPE: "VARCHAR", REQUIRED: true, LENGTH: 6 },
-      { NAME: "START.DATE", LABEL: "Start Date", TYPE: "DATE" },
-      { NAME: "END.DATE", LABEL: "End Date", TYPE: "DATE" },
-      { NAME: "RECORD.STATUS", LABEL: "Record Status", TYPE: "VARCHAR", DISABLED: true, LENGTH: 4 },
-    ],
-  },
-
-  "USER.CREATE": {
-    DESCRIPTION: "Create User",
-    TABLENAME: "USER.CREATE",
-    IDDEF: { IDPREFIX: "US" },
-    PROPERTIES: [
-      {
-        NAME: "SIGN.ON.NAME",
-        LABEL: "Sign On Name",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 15,
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        record: {
+          struct_value: {
+            fields: {
+              TABLENAME: { string_value: "CUSTOMER" },
+              DESCRIPTION: { string_value: "Create Customer" },
+              IDDEF: {
+                struct_value: {
+                  fields: {
+                    IDPREFIX: { string_value: "CU" },
+                  },
+                },
+              },
+              PROPERTIES: {
+                list_value: {
+                  values: [
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "CUSTOMER.ID" },
+                          LABEL: { string_value: "Customer Number" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 12 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "NAME.1" },
+                          LABEL: { string_value: "Customer Name" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 35 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "SHORT.NAME" },
+                          LABEL: { string_value: "Short Name" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 15 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "DATE.OF.BIRTH" },
+                          LABEL: { string_value: "Date of Birth" },
+                          TYPE: { string_value: "DATE" },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
       },
-      {
-        NAME: "FULL.NAME",
-        LABEL: "Full Name",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 15,
-      },
-      {
-        NAME: "ROLE",
-        LABEL: "Role",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 20,
-        DATASOURCE: ["Teller", "Officer", "Supervisor", "Administrator"],
-      },
-      {
-        NAME: "BRANCH",
-        LABEL: "Branch",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 6,
-      },
-      { NAME: "START.DATE", LABEL: "Start Date", TYPE: "DATE" },
-      { NAME: "END.DATE", LABEL: "End Date", TYPE: "DATE" },
-      {
-        NAME: "RECORD.STATUS",
-        LABEL: "Record Status",
-        TYPE: "VARCHAR",
-        DISABLED: true,
-        LENGTH: 4,
-      },
-    ],
+    },
   },
 
   "USER.LIST": {
-    DESCRIPTION: "User List",
-    TABLENAME: "USER.LIST",
-    IDDEF: { IDPREFIX: "UL" },
-    PROPERTIES: [
-      { NAME: "USER.ID", LABEL: "User ID", TYPE: "VARCHAR" },
-      { NAME: "BRANCH", LABEL: "Branch", TYPE: "VARCHAR", LENGTH: 6 },
-      {
-        NAME: "STATUS",
-        LABEL: "Status",
-        TYPE: "VARCHAR",
-        LENGTH: 15,
-        DATASOURCE: ["All", "Active", "Locked", "Closed"],
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        record: {
+          struct_value: {
+            fields: {
+              TABLENAME: { string_value: "USER.LIST" },
+              DESCRIPTION: { string_value: "User List" },
+              IDDEF: {
+                struct_value: {
+                  fields: {
+                    IDPREFIX: { string_value: "UL" },
+                  },
+                },
+              },
+              PROPERTIES: {
+                list_value: {
+                  values: [
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "USER.ID" },
+                          LABEL: { string_value: "User ID" },
+                          TYPE: { string_value: "VARCHAR" },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "BRANCH" },
+                          LABEL: { string_value: "Branch" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              COLUMNS: [
+                {
+                  id: "id",
+                  label: "User ID",
+                  isMono: true,
+                  isDrilldown: true,
+                  drilldownTargetCommand: "USER.MGT",
+                },
+                { id: "fullName", label: "Full Name" },
+                { id: "userRole", label: "Role", align: "center" },
+                { id: "branchCode", label: "Branch", align: "center" },
+                { id: "accessibility", label: "Rights", align: "center", isMono: true },
+                { id: "status", label: "Status", align: "center" },
+              ],
+            },
+          },
+        },
       },
-      { NAME: "AS.OF.DATE", LABEL: "As Of Date", TYPE: "DATE" },
-    ],
-    COLUMNS: [
-      { id: "id", label: "User ID", isMono: true, isDrilldown: true, drilldownTargetCommand: "USER.MGT" },
-      { id: "fullName", label: "Full Name" },
-      { id: "userRole", label: "Role", align: "center" },
-      { id: "branchCode", label: "Branch", align: "center" },
-      { id: "accessibility", label: "Rights", align: "center", isMono: true },
-      { id: "status", label: "Status", align: "center" },
-    ],
+    },
   },
 
   "GET.EMP.INFO": {
-    DESCRIPTION: "User Request Inquiry",
-    TABLENAME: "GET.EMP.INFO",
-    PROPERTIES: [
-      { NAME: "EMP.ID", LABEL: "Employee / User ID", TYPE: "VARCHAR", REQUIRED: true },
-      { NAME: "BRANCH.CODE", LABEL: "Branch Code", TYPE: "VARCHAR", LENGTH: 6 },
-    ],
-    COLUMNS: [
-      { id: "id", label: "Employee ID", isMono: true, isDrilldown: true },
-      { id: "empName", label: "Employee Name" },
-      { id: "designation", label: "Designation" },
-      { id: "branchCode", label: "Branch Code", align: "center" },
-      { id: "status", label: "Status", align: "center" },
-    ],
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        record: {
+          struct_value: {
+            fields: {
+              TABLENAME: { string_value: "GET.EMP.INFO" },
+              DESCRIPTION: { string_value: "User Request Inquiry" },
+              PROPERTIES: {
+                list_value: {
+                  values: [
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "EMP.ID" },
+                          LABEL: { string_value: "Employee / User ID" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "BRANCH.CODE" },
+                          LABEL: { string_value: "Branch Code" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+              COLUMNS: [
+                { id: "id", label: "Employee ID", isMono: true, isDrilldown: true },
+                { id: "empName", label: "Employee Name" },
+                { id: "designation", label: "Designation" },
+                { id: "branchCode", label: "Branch Code", align: "center" },
+                { id: "status", label: "Status", align: "center" },
+              ],
+            },
+          },
+        },
+      },
+    },
   },
 
-  "GET.USER.MGT": {
-    DESCRIPTION: "Unauthorized User Request List",
-    TABLENAME: "GET.USER.MGT",
-    PROPERTIES: [
-      { NAME: "REQUEST.ID", LABEL: "Request ID", TYPE: "VARCHAR" },
-      { NAME: "BRANCH.CODE", LABEL: "Branch Code", TYPE: "VARCHAR", LENGTH: 6 },
-    ],
-    COLUMNS: [
-      { id: "id", label: "Request ID", isMono: true, isDrilldown: true, drilldownTargetCommand: "USER.MGT" },
-      { id: "userId", label: "User ID", isMono: true },
-      { id: "operation", label: "Operation Type", align: "center" },
-      { id: "inputter", label: "Inputter" },
-      { id: "inputTime", label: "Time", align: "center" },
-      { id: "status", label: "Auth Status", align: "center" },
-    ],
-  },
-
-  "GET.TO.TXN": {
-    DESCRIPTION: "Today Transaction Report",
-    TABLENAME: "GET.TO.TXN",
-    PROPERTIES: [
-      { NAME: "BRANCH.CODE", LABEL: "Branch Code", TYPE: "VARCHAR", LENGTH: 6 },
-      { NAME: "TELLER.ID", LABEL: "Teller ID", TYPE: "VARCHAR" },
-      {
-        NAME: "TXN.TYPE",
-        LABEL: "Transaction Type",
-        TYPE: "VARCHAR",
-        DATASOURCE: ["All", "AFT", "ACT"],
+  "USER.MGT": {
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        record: {
+          struct_value: {
+            fields: {
+              TABLENAME: { string_value: "USER.MGT" },
+              DESCRIPTION: { string_value: "User Management" },
+              IDDEF: {
+                struct_value: {
+                  fields: {
+                    IDPREFIX: { string_value: "UM" },
+                  },
+                },
+              },
+              PROPERTIES: {
+                list_value: {
+                  values: [
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "USER.ID" },
+                          LABEL: { string_value: "User ID" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 15 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "FULL.NAME" },
+                          LABEL: { string_value: "Full Name" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 35 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "ROLE" },
+                          LABEL: { string_value: "Role" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 20 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "BRANCH" },
+                          LABEL: { string_value: "Branch" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
       },
-    ],
-    COLUMNS: [
-      { id: "id", label: "Txn ID", isMono: true, isDrilldown: true },
-      { id: "txnTime", label: "Time", align: "center" },
-      { id: "account", label: "Account", isMono: true },
-      { id: "amount", label: "Amount", align: "right", isMono: true },
-      { id: "currency", label: "Ccy", align: "center" },
-      { id: "status", label: "Status", align: "center" },
-    ],
-  },
-
-  "REPORT.TXN.ENTRY": {
-    DESCRIPTION: "Today Txn Entry",
-    TABLENAME: "REPORT.TXN.ENTRY",
-    IDDEF: { IDPREFIX: "TE" },
-    PROPERTIES: [
-      {
-        NAME: "BRANCH",
-        LABEL: "Branch",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 6,
-      },
-      { NAME: "TELLER", LABEL: "Teller Id", TYPE: "VARCHAR", LENGTH: 12 },
-      { NAME: "FROM.TIME", LABEL: "From Time", TYPE: "VARCHAR", LENGTH: 8 },
-      { NAME: "TO.TIME", LABEL: "To Time", TYPE: "VARCHAR", LENGTH: 8 },
-      {
-        NAME: "TXN.DATE",
-        LABEL: "Transaction Date",
-        TYPE: "DATE",
-        REQUIRED: true,
-      },
-    ],
-    COLUMNS: [
-      { id: "id", label: "Entry Ref", isMono: true },
-      { id: "account", label: "Account", isMono: true },
-      { id: "amount", label: "Amount", align: "right" },
-      { id: "time", label: "Time", align: "center" },
-    ],
-  },
-
-  "REPORT.TXN.DAILY": {
-    DESCRIPTION: "Today Txn Report",
-    TABLENAME: "REPORT.TXN.DAILY",
-    IDDEF: { IDPREFIX: "TR" },
-    PROPERTIES: [
-      {
-        NAME: "BRANCH",
-        LABEL: "Branch",
-        TYPE: "VARCHAR",
-        REQUIRED: true,
-        LENGTH: 6,
-      },
-      {
-        NAME: "FORMAT",
-        LABEL: "Output Format",
-        TYPE: "VARCHAR",
-        LENGTH: 10,
-        DATASOURCE: ["Screen", "PDF", "CSV"],
-      },
-      {
-        NAME: "REPORT.DATE",
-        LABEL: "Report Date",
-        TYPE: "DATE",
-        REQUIRED: true,
-      },
-      { NAME: "CURRENCY", LABEL: "Currency", TYPE: "VARCHAR", LENGTH: 3 },
-    ],
-    COLUMNS: [
-      { id: "id", label: "Txn Ref", isMono: true },
-      { id: "description", label: "Description" },
-      { id: "totalDebit", label: "Debit Total", align: "right" },
-      { id: "totalCredit", label: "Credit Total", align: "right" },
-    ],
+    },
   },
 };

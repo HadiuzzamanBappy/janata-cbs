@@ -1,69 +1,152 @@
-import type { CurrentUser } from "@/lib/redis";
+import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_USERS mirrors the CBS authentication response format.
- * Includes user credentials, authority level, accessibility rights,
- * branch assignment, and flags extracted from live CBS wire format (.response/user.json).
+ * STATIC_USER_RESPONSES mirrors the exact CBS authentication wire responses (matching .response/user.json 1:1).
+ * Number sequence remains identical (028459 -> 0284590).
+ * Prefix letters vary by role/department (ZZ = Teller/Lead, AD = Administrator, ST = Staff).
  */
-export const STATIC_USERS: Record<string, CurrentUser> = {
-  // Real CBS user payload replica matching .response/user.json
-  zz0284590: {
-    userId: "ZZ0284590",
-    fullName: "MD. HADIUZZAMAN BAPPY",
-    userRole: ["TELLER"],
-    accessibility: "RIDASH",
-    functionRights: ["R", "I", "D", "A", "S", "H"], // Read, Input, Delete, Amend, See, Hold
-    branchCode: "JB9999",
-    branchName: "CENTRAL OFFICE, HO, DHAKA",
-    txnDate: "2026-01-07",
-    isLoggedIn: true,
-    commandLine: true,
-    initLogin: false,
-    userStatus: 1,
+export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
+  // Primary Teller / Lead (Signon: ZZ028459, User ID: ZZ0284590)
+  ZZ028459: {
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "",
+    errors: [],
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        userId: {
+          string_value: "ZZ0284590",
+        },
+        fullName: {
+          string_value: "MD. HADIUZZAMAN BAPPY",
+        },
+        accessibility: {
+          string_value: "RIDASH",
+        },
+        userRole: {
+          null_value: "NULL_VALUE",
+        },
+        commandLine: {
+          bool_value: true,
+        },
+        branchName: {
+          string_value: "CENTRAL OFFICE, HO, DHAKA   ",
+        },
+        branchCode: {
+          string_value: "JB9999",
+        },
+        txnDate: {
+          string_value: "2026-01-07",
+        },
+        userStatus: {
+          number_value: 1,
+        },
+        authenticated: {
+          bool_value: true,
+        },
+        token: {
+          string_value:
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJaWjAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.54uGYTHHZYvUSJ1h4wW6Z7qHYv08RAsntswJ8Pk7GD0",
+        },
+      },
+    },
   },
-  // Alias for ZZ028459 (convenience for development)
-  zz028459: {
-    userId: "ZZ028459",
-    fullName: "MD. HADIUZZAMAN BAPPY",
-    userRole: ["TELLER"],
-    accessibility: "RIDASH",
-    functionRights: ["R", "I", "D", "A", "S", "H"],
-    branchCode: "JB9999",
-    branchName: "CENTRAL OFFICE, HO, DHAKA",
-    txnDate: "2026-01-07",
-    isLoggedIn: true,
-    commandLine: true,
-    initLogin: false,
-    userStatus: 1,
+
+  // Supervisor / Administrator (Signon: AD028459, User ID: AD0284590)
+  AD028459: {
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "",
+    errors: [],
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        userId: {
+          string_value: "AD0284590",
+        },
+        fullName: {
+          string_value: "System Administrator",
+        },
+        accessibility: {
+          string_value: "RIDASH",
+        },
+        userRole: {
+          null_value: "NULL_VALUE",
+        },
+        commandLine: {
+          bool_value: true,
+        },
+        branchName: {
+          string_value: "CENTRAL OFFICE, HO, DHAKA   ",
+        },
+        branchCode: {
+          string_value: "JB9999",
+        },
+        txnDate: {
+          string_value: "2026-01-07",
+        },
+        userStatus: {
+          number_value: 1,
+        },
+        authenticated: {
+          bool_value: true,
+        },
+        token: {
+          string_value:
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBRDAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.admin_signature_token_cbs",
+        },
+      },
+    },
   },
-  // Administrator / Supervisor profile
-  admin: {
-    userId: "ZZ028460",
-    fullName: "System Administrator",
-    userRole: ["ADMIN", "SUPERVISOR"],
-    accessibility: "RIDASH",
-    functionRights: ["R", "I", "D", "A", "S", "H"],
-    branchCode: "JB9999",
-    branchName: "CENTRAL OFFICE, HO, DHAKA",
-    txnDate: "2026-01-07",
-    isLoggedIn: true,
-    commandLine: true,
-    initLogin: false,
-    userStatus: 1,
-  },
-  // First-time login user (testing password change redirect workflow)
-  new_user: {
-    userId: "ZZ028461",
-    fullName: "New Staff Member",
-    userRole: ["TELLER"],
-    accessibility: "RS",
-    functionRights: ["R", "S"],
-    branchCode: "JB1002",
-    branchName: "Gulshan Branch",
-    txnDate: "2026-01-07",
-    isLoggedIn: true,
-    commandLine: false,
-    initLogin: true, // Triggers redirect to /change-password
-    userStatus: 1,
+
+  // Staff / First-time user (Signon: ST028459, User ID: ST0284590)
+  ST028459: {
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "",
+    errors: [],
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        userId: {
+          string_value: "ST0284590",
+        },
+        fullName: {
+          string_value: "New Staff Member",
+        },
+        accessibility: {
+          string_value: "RS",
+        },
+        userRole: {
+          null_value: "NULL_VALUE",
+        },
+        commandLine: {
+          bool_value: false,
+        },
+        branchName: {
+          string_value: "Gulshan Branch",
+        },
+        branchCode: {
+          string_value: "JB1002",
+        },
+        txnDate: {
+          string_value: "2026-01-07",
+        },
+        userStatus: {
+          number_value: 1,
+        },
+        authenticated: {
+          bool_value: true,
+        },
+        token: {
+          string_value:
+            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTVDAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.new_user_signature_token_cbs",
+        },
+      },
+    },
   },
 };

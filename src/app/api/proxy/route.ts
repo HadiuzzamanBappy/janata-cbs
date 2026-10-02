@@ -65,12 +65,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const response = await dispatch(envelope, token);
     return NextResponse.json(response, { status: response.statusCode || 200 });
   } catch (err: unknown) {
-    const error = err as { message?: string };
+    const message = err instanceof Error ? err.message : "Internal Proxy Dispatch Error";
     return NextResponse.json(
       {
         status: "ERROR",
         statusCode: 500,
-        message: error?.message || "Internal Proxy Dispatch Error",
+        message,
         timestamp: new Date().toISOString(),
       },
       { status: 500 },

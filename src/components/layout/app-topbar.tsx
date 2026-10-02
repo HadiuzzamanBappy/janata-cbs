@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SettingsDialog } from "@/features/settings";
+import { useHotkeys } from "@/hooks";
 import { appConfig } from "@/lib/config";
 import { useSessionStore } from "@/store";
 import { BranchSwitcher } from "./header/branch-switcher";
@@ -37,16 +38,9 @@ export function TopBar() {
     }
   }, [user, currentBranch, setSession, setBranch]);
 
-  React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setSearchOpen((prev) => !prev);
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+  useHotkeys("ctrl+k", () => setSearchOpen((prev) => !prev), {
+    enableOnFormTags: true,
+  });
 
   const openSettingsTab = (tabId: string) => {
     setSettingsTab(tabId);

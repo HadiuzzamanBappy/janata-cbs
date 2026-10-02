@@ -7,7 +7,7 @@ import {
   type RawPropertyConfigRecord,
   type RawPropertyRecord,
   rawPropertyConfigSchema,
-} from "../schemas";
+} from "@/lib/schemas";
 
 export function widthForLength(length?: number | string): FieldWidth {
   const num = typeof length === "string" ? Number.parseInt(length, 10) : length;
@@ -147,7 +147,8 @@ export function parseGMC(
   let idDefRaw: { IDPREFIX?: string } | undefined;
   if (recordFields.IDDEF && typeof recordFields.IDDEF === "object") {
     const idDefObj = recordFields.IDDEF as Record<string, unknown>;
-    const idDefFields = (idDefObj.struct_value as { fields?: Record<string, unknown> })?.fields || idDefObj;
+    const idDefFields =
+      (idDefObj.struct_value as { fields?: Record<string, unknown> })?.fields || idDefObj;
     const prefix = getScalar((idDefFields as Record<string, unknown>).IDPREFIX);
     if (prefix) {
       idDefRaw = { IDPREFIX: String(prefix) };
@@ -155,9 +156,23 @@ export function parseGMC(
   }
 
   // Extract COLUMNS if present (for enquiry screens)
-  let columnsRaw: RawPropertyConfigRecord["COLUMNS"] = undefined;
+  let columnsRaw: RawPropertyConfigRecord["COLUMNS"];
   if (Array.isArray(recordFields.COLUMNS)) {
     columnsRaw = recordFields.COLUMNS as RawPropertyConfigRecord["COLUMNS"];
+  } else if (
+    recordFields.COLUMNS &&
+    typeof recordFields.COLUMNS === "object" &&
+    "list_value" in recordFields.COLUMNS
+  ) {
+    const listVal = (recordFields.COLUMNS as Record<string, unknown>).list_value as Record<
+      string,
+      unknown
+    >;
+    if (Array.isArray(listVal?.values)) {
+      columnsRaw = listVal.values.map(
+        extractRawField,
+      ) as unknown as RawPropertyConfigRecord["COLUMNS"];
+    }
   }
 
   const rawConfig: RawPropertyConfigRecord = {

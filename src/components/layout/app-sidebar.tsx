@@ -6,8 +6,9 @@ import * as React from "react";
 import logo from "@/app/icon.png";
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { launchScreen, type MenuItem } from "@/features/screens";
+import { launchScreen } from "@/features/screens";
 import { appConfig } from "@/lib/config";
+import type { MenuItem } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 import { useWorkbenchStore } from "@/store";
 
@@ -104,6 +105,7 @@ function RecursiveTreeItem({ node, openSettingsTab, clearSession }: TreeItemProp
       <button
         type="button"
         onClick={handleClick}
+        title={node.title}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -111,32 +113,32 @@ function RecursiveTreeItem({ node, openSettingsTab, clearSession }: TreeItemProp
           }
         }}
         className={cn(
-          "flex items-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all duration-150 group w-full text-left border-0 bg-transparent relative z-10",
+          "flex items-center gap-1.5 px-1.5 py-1.5 rounded-md text-[11px] font-medium cursor-pointer transition-colors duration-200 ease-out group w-full text-left border-0 bg-transparent relative z-10 leading-snug",
           isActive
-            ? "bg-accent/80 text-foreground font-semibold shadow-xs"
+            ? "bg-accent/80 text-foreground font-semibold shadow-2xs"
             : isChildActive
-              ? "text-foreground font-medium"
+              ? "text-foreground font-medium hover:bg-accent/30"
               : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
         )}
       >
         {hasChildren ? (
-          <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground shrink-0">
+          <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground shrink-0 transition-colors duration-200">
             {isOpen ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
           </span>
         ) : (
-          <span className="size-3.5 flex items-center justify-center text-muted-foreground/60 group-hover:text-foreground shrink-0 text-[10px]">
-            •
+          <span className="size-3.5 flex items-center justify-center text-muted-foreground/50 group-hover:text-foreground shrink-0 transition-colors duration-200">
+            <span className="size-1 rounded-full bg-current opacity-70" />
           </span>
         )}
 
-        <span className="truncate leading-none">{node.title}</span>
+        <span className="truncate">{node.title}</span>
       </button>
 
       {/* Tree Indentation & Vertical Guide Connector Line */}
       {hasChildren && isOpen && (
-        <div className="flex flex-col relative ml-3.5 pl-3.5 my-0.5 space-y-0.5">
+        <div className="flex flex-col relative ml-2.5 pl-2.5 my-0.5 space-y-0.5">
           {/* Subtle Vertical Connector Guide Line */}
-          <div className="absolute left-0 top-0 bottom-1.5 w-px bg-border/50" />
+          <div className="absolute left-0 top-0 bottom-1 w-px bg-border/40" />
 
           {node.children!.map((child) => (
             <RecursiveTreeItem
@@ -200,18 +202,18 @@ export function AppSidebar({ openSettingsTab, clearSession, ...props }: AppSideb
       </SidebarHeader>
 
       {/* Sidebar Content */}
-      <SidebarContent className="p-3 overflow-y-auto">
+      <SidebarContent className="p-1.5 overflow-y-auto">
         {loading ? (
-          <div className="flex flex-col space-y-2 p-1">
-            <Skeleton className="h-6 w-3/4 rounded-md" />
-            <Skeleton className="h-6 w-5/6 rounded-md ml-3" />
-            <Skeleton className="h-6 w-2/3 rounded-md ml-3" />
-            <Skeleton className="h-6 w-4/5 rounded-md" />
-            <Skeleton className="h-6 w-3/4 rounded-md ml-3" />
-            <Skeleton className="h-6 w-1/2 rounded-md" />
+          <div className="flex flex-col space-y-1.5 p-1">
+            <Skeleton className="h-5 w-3/4 rounded-sm" />
+            <Skeleton className="h-5 w-5/6 rounded-sm ml-2" />
+            <Skeleton className="h-5 w-2/3 rounded-sm ml-2" />
+            <Skeleton className="h-5 w-4/5 rounded-sm" />
+            <Skeleton className="h-5 w-3/4 rounded-sm ml-2" />
+            <Skeleton className="h-5 w-1/2 rounded-sm" />
           </div>
         ) : (
-          <div className="flex flex-col space-y-1">
+          <div className="flex flex-col space-y-0.5">
             {treeNodes.map((node) => (
               <RecursiveTreeItem
                 key={node.id}

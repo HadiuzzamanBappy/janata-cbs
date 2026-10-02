@@ -6,7 +6,7 @@ export interface ServiceDef {
 }
 
 /**
- * Microservice Endpoint Registry for CBS core & REST services.
+ * Microservice Endpoint Registry for CBS core & REST downstream services.
  */
 export const SERVICES: Record<string, ServiceDef> = {
   default: { url: appConfig.grpc.host },

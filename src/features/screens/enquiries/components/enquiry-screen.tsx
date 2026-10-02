@@ -149,10 +149,7 @@ export function EnquiryScreen({ command, tabId: _tabId, className = "" }: Enquir
 
     const tableHeaders = schema.columns.map((c) => `<th>${c.label}</th>`).join("");
     const tableBody = filteredRows
-      .map(
-        (r) =>
-          `<tr>${schema.columns.map((c) => `<td>${r[c.id] ?? ""}</td>`).join("")}</tr>`,
-      )
+      .map((r) => `<tr>${schema.columns.map((c) => `<td>${r[c.id] ?? ""}</td>`).join("")}</tr>`)
       .join("");
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${schema.title}</title><style>body{font-family:sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#f4f4f4}</style></head><body><h2>${schema.title} (${schema.code})</h2><table><thead><tr>${tableHeaders}</tr></thead><tbody>${tableBody}</tbody></table></body></html>`;
 

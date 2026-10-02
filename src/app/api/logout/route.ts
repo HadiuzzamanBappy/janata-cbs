@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { destroySession } from "@/lib/redis";
+import { logoutUser } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(): Promise<NextResponse> {
-  await destroySession();
+  await logoutUser();
   return NextResponse.json({
-    message: "Logged out successfully",
     success: true,
+    message: "Logged out successfully",
   });
 }

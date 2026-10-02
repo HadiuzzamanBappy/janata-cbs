@@ -69,8 +69,9 @@ export function TabWindowMenu() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group hover:bg-accent hover:text-accent-foreground",
-                    isActive && "bg-accent text-accent-foreground font-semibold",
+                    "flex items-center justify-between py-2 px-2.5 cursor-pointer rounded-sm text-xs gap-2 group hover:bg-accent hover:text-accent-foreground focus:bg-transparent focus-visible:bg-accent focus-visible:text-accent-foreground data-highlighted:bg-transparent hover:data-highlighted:bg-accent",
+                    isActive &&
+                      "bg-accent/80 text-accent-foreground font-semibold data-highlighted:bg-accent/80",
                   )}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1">

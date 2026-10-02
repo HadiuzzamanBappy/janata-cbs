@@ -14,7 +14,7 @@ export interface UserRights {
 }
 
 /**
- * Hook to evaluate active user's Temenos RIDASH Function Rights.
+ * Universal hook to evaluate active user's Temenos RIDASH Function Rights.
  * Evaluates R (Read), I (Input), D (Delete), A (Amend), S (See), H (Hold).
  */
 export function useUserRights(): UserRights {

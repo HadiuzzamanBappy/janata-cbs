@@ -25,3 +25,26 @@ export const changePasswordSchema = z
   });
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+
+/**
+ * Universal authenticated CBS user profile and session contract.
+ */
+export const currentUserSchema = z.object({
+  userId: z.string(),
+  fullName: z.string(),
+  userRole: z.array(z.string()),
+  accessibility: z.string(),
+  functionRights: z.array(z.string()).optional(),
+  branchCode: z.string(),
+  branchName: z.string(),
+  txnDate: z.string(),
+  lastTxnDate: z.string().optional(),
+  nextDate: z.string().optional(),
+  isLoggedIn: z.boolean().default(true),
+  commandLine: z.boolean().default(false),
+  initLogin: z.boolean().default(false),
+  userStatus: z.number().default(1),
+});
+
+export type CurrentUser = z.infer<typeof currentUserSchema>;
+export type UserDetails = CurrentUser;

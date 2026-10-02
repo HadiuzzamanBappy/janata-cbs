@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { appConfig } from "@/lib/config";
-import type { FormSchema } from "../types";
+import type { FormSchema } from "@/lib/schemas";
 
 export function useFormSchema(command: string) {
   const [schema, setSchema] = useState<FormSchema | null>(null);

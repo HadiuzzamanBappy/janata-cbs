@@ -1,11 +1,18 @@
-import { getRegisteredCommand } from "@/lib/core/commands";
+import { ChangePassword } from "@/features/settings/components/security-tab";
 import { EnquiryScreen } from "./enquiries";
 import { FormScreen } from "./forms";
 import type { ScreenComponent } from "./types";
 
 /**
+ * Dedicated registry for custom/bespoke React screen components.
+ */
+const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
+  "USER.CHANGE.PASS": ChangePassword,
+};
+
+/**
  * Universal Screen Resolver.
- * 1. Checks statically registered custom component (from core command registry).
+ * 1. Checks statically registered custom component.
  * 2. If command starts with ENQ or ENQUIRY, resolves to EnquiryScreen.
  * 3. Fallbacks to schema-driven FormScreen engine.
  */
@@ -14,9 +21,8 @@ export function resolveScreen(command: string): ScreenComponent {
   const cleanCmd = decodedCmd.split(",")[0].trim().toUpperCase();
 
   // 1. Check statically registered custom component
-  const registered = getRegisteredCommand(cleanCmd);
-  if (registered?.component) {
-    return registered.component;
+  if (BESPOKE_SCREENS[cleanCmd]) {
+    return BESPOKE_SCREENS[cleanCmd];
   }
 
   // 2. Check if command is a Temenos Enquiry screen

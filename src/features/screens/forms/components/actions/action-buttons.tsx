@@ -12,7 +12,7 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import * as React from "react";
+import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUserRights } from "@/features/auth";
+import { useUserRights } from "@/hooks";
 
 export interface ActionButtonsProps {
   mode: "IDLE" | "CREATE" | "EDIT" | "VIEW";
@@ -334,7 +334,7 @@ export function ActionButtons({
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
               disabled={!onAuthorizeReverse || submitting}
-              className="size-8 shrink-0 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 font-bold"
+              className="size-8 shrink-0 disabled:opacity-40"
             >
               <span className="text-[12px] font-mono leading-none tracking-tighter select-none font-bold">
                 ✓✓
@@ -355,7 +355,7 @@ export function ActionButtons({
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
               disabled={!onAuthorizeReverse || submitting}
-              className="size-8 shrink-0 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-bold"
+              className="size-8 shrink-0 disabled:opacity-40"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
                 ✕✓
@@ -395,7 +395,7 @@ export function ActionButtons({
               size="icon-sm"
               onClick={() => onReturnToSearch?.()}
               disabled={!onReturnToSearch || submitting}
-              className="size-8 text-primary hover:bg-primary/10 shrink-0 font-bold"
+              className="size-8 shrink-0 disabled:opacity-40"
             >
               <ArrowUp className="size-3.5 stroke-[2.5]" />
             </Button>

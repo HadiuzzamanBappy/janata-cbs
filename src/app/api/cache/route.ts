@@ -12,12 +12,12 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   if (secret) {
     const provided = request.headers.get("x-cache-token");
     if (provided !== secret) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
   }
 
-  const control = new URL(request.url).searchParams.get("control") ?? undefined;
+  const control = request.nextUrl.searchParams.get("control") ?? undefined;
   const removed = await invalidateCache(control);
 
-  return NextResponse.json({ removed, control: control ?? "*" });
+  return NextResponse.json({ success: true, removed, control: control ?? "*" });
 }

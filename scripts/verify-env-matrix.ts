@@ -1,116 +1,193 @@
 /**
- * Environment Matrix Verification Script
- * Validates the 4 configuration matrix permutations:
- *  1. Pure Offline:   MODEL_SOURCE=static, CACHE_ENABLED=false
- *  2. Cached Offline: MODEL_SOURCE=static, CACHE_ENABLED=true
- *  3. Live gRPC:      MODEL_SOURCE=grpc,   CACHE_ENABLED=false
- *  4. Production:     MODEL_SOURCE=grpc,   CACHE_ENABLED=true
+ * Environment Matrix & Wire Fixture Verification Script
+ *
+ * Verifies system configuration permutations & wire fixture parsing integrity
+ * with zero clutter and a clear, readable test suite pattern.
  */
 
+import {
+  STATIC_BRANCH_RESPONSE,
+  STATIC_COMMANDS,
+  STATIC_MENU,
+  STATIC_MODELS,
+  STATIC_USER_RESPONSES,
+} from "../fixtures";
 import { envSchema } from "../src/lib/config/env";
-import { STATIC_MODELS, STATIC_MENU, STATIC_COMMANDS, STATIC_BRANCHES, STATIC_USERS } from "../fixtures";
-import { parseGMC } from "../src/features/screens/forms/utils/schema-parser";
-import { parseMNU } from "../src/features/screens/utils/menu-parser";
+import {
+  parseAuthWirePayload,
+  parseBranchesWirePayload,
+  parseControlsWirePayload,
+  parseGMC,
+  parseMNU,
+} from "../src/lib/parsers";
 
-console.log("==================================================");
-console.log(" FinX-UI Environment & Fixtures Verification Test ");
-console.log("==================================================\n");
+// ============================================================================
+// Minimalist Test Runner Pattern
+// ============================================================================
 
-let passedCount = 0;
-let totalCount = 0;
+interface TestContext {
+  passed: number;
+  total: number;
+  suite: string;
+}
 
-function assert(condition: boolean, testName: string, detail?: string) {
-  totalCount++;
-  if (condition) {
-    console.log(`  [PASS] ${testName}`);
-    passedCount++;
-  } else {
-    console.error(`  [FAIL] ${testName}${detail ? ` - ${detail}` : ""}`);
+const ctx: TestContext = {
+  passed: 0,
+  total: 0,
+  suite: "",
+};
+
+function suite(name: string, fn: () => void): void {
+  ctx.suite = name;
+  console.log(`\n── ${name} ──────────────────────────────────────`);
+  fn();
+}
+
+function test(description: string, assertion: () => boolean): void {
+  ctx.total++;
+  try {
+    const passed = assertion();
+    if (passed) {
+      ctx.passed++;
+      console.log(`  ✓ ${description}`);
+    } else {
+      console.error(`  ✗ ${description} [ASSERTION FAILED]`);
+    }
+  } catch (err) {
+    console.error(`  ✗ ${description} [THREW ERROR]:`, err instanceof Error ? err.message : err);
   }
 }
 
-// --- 1. Fixture Integrity Tests ---
-console.log("1. Validating Aligned Wire Fixtures:");
-assert(Object.keys(STATIC_USERS).length >= 2, "STATIC_USERS contains valid user records");
-assert(Boolean(STATIC_MENU?.fields?.records?.list_value?.values?.length), "STATIC_MENU has protobuf wire format");
-assert(Boolean(STATIC_COMMANDS?.data?.fields?.records?.list_value?.values?.length), "STATIC_COMMANDS has protobuf wire format");
-assert(Array.isArray(STATIC_BRANCHES) && STATIC_BRANCHES.length > 0, "STATIC_BRANCHES contains branch records");
+// ============================================================================
+// Test Suites
+// ============================================================================
 
-const menuParsed = parseMNU(STATIC_MENU);
-assert(menuParsed.success && menuParsed.data.length > 0, "parseMNU successfully parses STATIC_MENU wire payload");
+suite("1. Wire Fixture Structs (Protobuf 1:1 Format)", () => {
+  test("STATIC_USER_RESPONSES contains valid user wire structures", () => {
+    return Object.keys(STATIC_USER_RESPONSES).length >= 2;
+  });
 
-// Test form and enquiry specs in STATIC_MODELS
-const formAccount = parseGMC(STATIC_MODELS["ACCOUNT"], "ACCOUNT");
-assert(formAccount.success && formAccount.data.idPrefix === "AC", "ACCOUNT parsed as Form schema (idPrefix='AC')");
+  test("STATIC_USER_RESPONSES matches .response/user.json Protobuf fields", () => {
+    return STATIC_USER_RESPONSES.ZZ028459?.data?.fields?.userId?.string_value === "ZZ0284590";
+  });
 
-const enqUserList = parseGMC(STATIC_MODELS["USER.LIST"], "USER.LIST");
-assert(enqUserList.success && Array.isArray(enqUserList.data.columns) && enqUserList.data.columns.length > 0, "USER.LIST parsed with Enquiry columns");
+  test("STATIC_BRANCH_RESPONSE contains records list in Protobuf struct format", () => {
+    return Boolean(STATIC_BRANCH_RESPONSE?.data?.fields?.records?.list_value?.values?.length);
+  });
 
-const enqEmpInfo = parseGMC(STATIC_MODELS["GET.EMP.INFO"], "GET.EMP.INFO");
-assert(enqEmpInfo.success && Array.isArray(enqEmpInfo.data.columns) && enqEmpInfo.data.columns.length > 0, "GET.EMP.INFO parsed with Enquiry columns");
+  test("STATIC_COMMANDS contains records list in Protobuf struct format", () => {
+    return Boolean(STATIC_COMMANDS?.data?.fields?.records?.list_value?.values?.length);
+  });
 
-// --- 2. Permutation 1: Pure Offline (MODEL_SOURCE=static, CACHE_ENABLED=false) ---
-console.log("\n2. Testing Permutation 1: Pure Offline (static + cache: false):");
-const p1 = envSchema.safeParse({
-  MODEL_SOURCE: "static",
-  USER_SOURCE: "static",
-  CACHE_ENABLED: "false",
+  test("STATIC_MENU contains records list in Protobuf struct format", () => {
+    return Boolean(STATIC_MENU?.data?.fields?.records?.list_value?.values?.length);
+  });
 });
-assert(p1.success, "Validates without requiring gRPC or Redis credentials");
 
-// --- 3. Permutation 2: Cached Offline (MODEL_SOURCE=static, CACHE_ENABLED=true) ---
-console.log("\n3. Testing Permutation 2: Cached Offline (static + cache: true):");
-const p2Fail = envSchema.safeParse({
-  MODEL_SOURCE: "static",
-  USER_SOURCE: "static",
-  CACHE_ENABLED: "true",
-  REDIS_URL: "",
-});
-assert(!p2Fail.success, "Rejects CACHE_ENABLED=true if REDIS_URL is empty");
+suite("2. Wire Payload Domain Parsers", () => {
+  test("parseAuthWirePayload extracts CurrentUser and RIDASH rights", () => {
+    const parsed = parseAuthWirePayload(STATIC_USER_RESPONSES.ZZ028459.data);
+    return parsed.currUser.userId === "ZZ0284590" && parsed.currUser.accessibility === "RIDASH";
+  });
 
-const p2Pass = envSchema.safeParse({
-  MODEL_SOURCE: "static",
-  USER_SOURCE: "static",
-  CACHE_ENABLED: "true",
-  REDIS_URL: "redis://127.0.0.1:6379",
-});
-assert(p2Pass.success, "Accepts CACHE_ENABLED=true when REDIS_URL is provided");
+  test("parseBranchesWirePayload extracts list of branches (recordId JB9999)", () => {
+    const branches = parseBranchesWirePayload(STATIC_BRANCH_RESPONSE.data);
+    return branches.length >= 4 && branches[0].recordId === "JB9999";
+  });
 
-// --- 4. Permutation 3: Direct gRPC (MODEL_SOURCE=grpc, CACHE_ENABLED=false) ---
-console.log("\n4. Testing Permutation 3: Direct gRPC (grpc + cache: false):");
-const p3Fail = envSchema.safeParse({
-  MODEL_SOURCE: "grpc",
-  USER_SOURCE: "grpc",
-  CACHE_ENABLED: "false",
-  GRPC_HOST: "",
-});
-assert(!p3Fail.success, "Rejects MODEL_SOURCE=grpc if GRPC_HOST is empty");
+  test("parseControlsWirePayload extracts system commands from control payload", () => {
+    const commands = parseControlsWirePayload(STATIC_COMMANDS.data);
+    return commands.length >= 6 && commands.some((c) => c.command === "ACCOUNT");
+  });
 
-const p3Pass = envSchema.safeParse({
-  MODEL_SOURCE: "grpc",
-  USER_SOURCE: "grpc",
-  CACHE_ENABLED: "false",
-  GRPC_HOST: "127.0.0.1:9090",
-  CLIENT_ID: "CBS_CLIENT",
-});
-assert(p3Pass.success, "Accepts MODEL_SOURCE=grpc when gRPC credentials provided");
+  test("parseMNU transforms 2-level hierarchy from menu wire payload", () => {
+    const menuResult = parseMNU(STATIC_MENU.data);
+    return menuResult.success && menuResult.data.length > 0;
+  });
 
-// --- 5. Permutation 4: Full Production (MODEL_SOURCE=grpc, CACHE_ENABLED=true) ---
-console.log("\n5. Testing Permutation 4: Full Production (grpc + cache: true):");
-const p4Pass = envSchema.safeParse({
-  MODEL_SOURCE: "grpc",
-  USER_SOURCE: "grpc",
-  CACHE_ENABLED: "true",
-  GRPC_HOST: "127.0.0.1:9090",
-  CLIENT_ID: "CBS_CLIENT",
-  REDIS_URL: "redis://127.0.0.1:6379",
+  test("parseGMC parses form model schema (idPrefix='AC')", () => {
+    const formAccount = parseGMC(STATIC_MODELS.ACCOUNT.data, "ACCOUNT");
+    return formAccount.success && formAccount.data.idPrefix === "AC";
+  });
+
+  test("parseGMC parses enquiry model schema (columns for USER.LIST)", () => {
+    const enq = parseGMC(STATIC_MODELS["USER.LIST"].data, "USER.LIST");
+    return enq.success && Array.isArray(enq.data.columns) && enq.data.columns.length > 0;
+  });
 });
-assert(p4Pass.success, "Accepts production configuration with both gRPC and Redis");
+
+suite("3. Environment Permutations", () => {
+  test("Permutation 1 [Pure Offline]: static + cache disabled", () => {
+    const res = envSchema.safeParse({
+      MODEL_SOURCE: "static",
+      USER_SOURCE: "static",
+      CACHE_ENABLED: "false",
+    });
+    return res.success;
+  });
+
+  test("Permutation 2 [Cached Offline]: rejects when REDIS_URL is missing", () => {
+    const res = envSchema.safeParse({
+      MODEL_SOURCE: "static",
+      USER_SOURCE: "static",
+      CACHE_ENABLED: "true",
+      REDIS_URL: "",
+    });
+    return !res.success;
+  });
+
+  test("Permutation 2 [Cached Offline]: accepts when REDIS_URL is provided", () => {
+    const res = envSchema.safeParse({
+      MODEL_SOURCE: "static",
+      USER_SOURCE: "static",
+      CACHE_ENABLED: "true",
+      REDIS_URL: "redis://127.0.0.1:6379",
+    });
+    return res.success;
+  });
+
+  test("Permutation 3 [Direct gRPC]: rejects when GRPC_HOST is missing", () => {
+    const res = envSchema.safeParse({
+      MODEL_SOURCE: "grpc",
+      USER_SOURCE: "grpc",
+      CACHE_ENABLED: "false",
+      GRPC_HOST: "",
+    });
+    return !res.success;
+  });
+
+  test("Permutation 3 [Direct gRPC]: accepts when GRPC_HOST is provided", () => {
+    const res = envSchema.safeParse({
+      MODEL_SOURCE: "grpc",
+      USER_SOURCE: "grpc",
+      CACHE_ENABLED: "false",
+      GRPC_HOST: "127.0.0.1:9090",
+      CLIENT_ID: "CBS_CLIENT",
+    });
+    return res.success;
+  });
+
+  test("Permutation 4 [Full Production]: accepts valid gRPC + Redis configuration", () => {
+    const res = envSchema.safeParse({
+      MODEL_SOURCE: "grpc",
+      USER_SOURCE: "grpc",
+      CACHE_ENABLED: "true",
+      GRPC_HOST: "127.0.0.1:9090",
+      CLIENT_ID: "CBS_CLIENT",
+      REDIS_URL: "redis://127.0.0.1:6379",
+    });
+    return res.success;
+  });
+});
+
+// ============================================================================
+// Execution Summary
+// ============================================================================
 
 console.log("\n==================================================");
-console.log(` Summary: ${passedCount}/${totalCount} tests passed`);
+console.log(` Results: ${ctx.passed}/${ctx.total} passed`);
 console.log("==================================================\n");
 
-if (passedCount !== totalCount) {
+if (ctx.passed !== ctx.total) {
   process.exit(1);
 }

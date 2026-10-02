@@ -2,22 +2,10 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { appConfig } from "@/lib/config";
+import type { CurrentUser } from "@/lib/schemas";
 import { getRedisClient } from "./client";
 
-export interface CurrentUser {
-  userId: string;
-  fullName: string;
-  userRole: string[];
-  accessibility: string;
-  functionRights?: string[];
-  branchCode: string;
-  branchName: string;
-  txnDate: string;
-  isLoggedIn: boolean;
-  commandLine: boolean;
-  initLogin: boolean;
-  userStatus: number;
-}
+export type { CurrentUser };
 
 export interface SessionData {
   userId: string;
@@ -31,11 +19,13 @@ const COOKIE_NAME = appConfig.auth.cookieName;
 const SESSION_PREFIX = appConfig.auth.sessionPrefix;
 const TTL_SECONDS = appConfig.auth.sessionMaxAgeSeconds;
 
-// In-memory fallback session store for offline / dev when Redis is disabled or unavailable
 declare global {
   var __memorySessionStore: Map<string, SessionData> | undefined;
 }
-const memoryStore = (globalThis.__memorySessionStore ??= new Map<string, SessionData>());
+if (!globalThis.__memorySessionStore) {
+  globalThis.__memorySessionStore = new Map<string, SessionData>();
+}
+const memoryStore = globalThis.__memorySessionStore;
 
 const sessionKey = (id: string): string => `${SESSION_PREFIX}${id}`;
 

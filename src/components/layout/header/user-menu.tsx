@@ -33,13 +33,13 @@ export function UserMenu({ onOpenSettingsTab }: UserMenuProps) {
         render={
           <Button
             variant="outline"
-            size="icon"
-            className="size-8 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0"
+            size="icon-sm"
+            className="size-7 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0"
             title={displayUser || "No User"}
           />
         }
       >
-        <User className="size-4 text-primary" />
+        <User className="size-3.5 text-primary" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-64">

@@ -1,8 +1,9 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { FileText, X } from "lucide-react";
 import * as React from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ActionButtons } from "./actions/action-buttons";
 import { ActionMoreMenu, type MoreActionItem } from "./actions/action-more-menu";
 
@@ -31,6 +32,7 @@ export interface FormHeaderProps {
   moreActions?: MoreActionItem[];
   availableItems?: Array<{ id: string; label?: string; details?: string }>;
   className?: string;
+  onExitPopup?: () => void;
 }
 
 export function FormHeader({
@@ -56,6 +58,7 @@ export function FormHeader({
   moreActions = [],
   availableItems = [],
   className = "",
+  onExitPopup,
 }: FormHeaderProps) {
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -136,7 +139,7 @@ export function FormHeader({
   return (
     <TooltipProvider delay={150}>
       <div
-        className={`sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/60 px-4 py-2 flex flex-wrap items-center justify-between gap-3 shrink-0 ${className}`}
+        className={`sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/60 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0 ${className}`}
       >
         {/* Left Title & Command Code Block (Mirrors Enquiry Header Layout) */}
         <div className="flex items-center gap-2.5 min-w-0">
@@ -144,7 +147,7 @@ export function FormHeader({
             <FileText className="size-3.5" />
           </div>
           <div className="flex flex-col justify-center min-w-0">
-            <h2 className="text-sm font-bold tracking-tight text-foreground truncate max-w-[240px] sm:max-w-sm">
+            <h2 className="text-xs sm:text-sm font-bold tracking-tight text-foreground whitespace-nowrap leading-tight">
               {title}
             </h2>
             {commandCode && (
@@ -156,7 +159,7 @@ export function FormHeader({
         </div>
 
         {/* Right Section: All Actions + More Actions presented together on the right */}
-        <div className="flex items-center gap-2 shrink-0 ml-auto">
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           {/* Action Buttons Toolbar (Switches between State 1: IDLE and State 2: ACTIVE) */}
           <ActionButtons
             mode={mode}
@@ -189,6 +192,29 @@ export function FormHeader({
           <div className="flex items-center gap-1.5">
             <ActionMoreMenu moreActions={moreActions} submitting={submitting} onSubmit={onSubmit} />
           </div>
+
+          {/* Optional Exit Popup Window Button — on the very right after More Actions */}
+          {onExitPopup && (
+            <>
+              <div className="h-4 w-px bg-border/60 mx-0.5" />
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={onExitPopup}
+                      className="size-8 text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 shrink-0 transition-colors"
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  }
+                />
+                <TooltipContent className="text-xs">Exit Popup Window</TooltipContent>
+              </Tooltip>
+            </>
+          )}
         </div>
       </div>
     </TooltipProvider>

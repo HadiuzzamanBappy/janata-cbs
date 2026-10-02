@@ -81,15 +81,15 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
         render={
           <Button
             variant="outline"
-            size="icon"
-            className="size-8 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0"
+            size="icon-sm"
+            className="size-7 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0"
           />
         }
       >
-        {mounted && theme === "system" && <Monitor className="h-4 w-4" />}
-        {mounted && theme === "light" && <Sun className="h-4 w-4" />}
-        {mounted && theme === "dark" && <Moon className="h-4 w-4" />}
-        {!mounted && <Sun className="h-4 w-4 opacity-50" />}
+        {mounted && theme === "system" && <Monitor className="size-3.5" />}
+        {mounted && theme === "light" && <Sun className="size-3.5" />}
+        {mounted && theme === "dark" && <Moon className="size-3.5" />}
+        {!mounted && <Sun className="size-3.5 opacity-50" />}
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

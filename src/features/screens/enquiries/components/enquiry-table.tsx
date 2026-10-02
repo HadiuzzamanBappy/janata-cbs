@@ -103,10 +103,9 @@ export function EnquiryTable({
   ) => {
     if (!recordId) return;
     const cmd = targetCommand || "ACCOUNT";
-    const fullCmd = `${cmd},${recordId}`;
     addTab({
-      screenId: fullCmd,
-      title: `${mode === "EDIT" ? "Edit " : ""}${cmd} #${recordId}`,
+      screenId: `${cmd} ${mode === "EDIT" ? "A" : "S"} ${recordId}`,
+      title: `${cmd} #${recordId}`,
       componentName: "DYNAMIC_FORM",
       screenMode: mode,
       searchRecordId: recordId,
@@ -133,7 +132,7 @@ export function EnquiryTable({
 
   return (
     <TooltipProvider delay={150}>
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-4">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-3">
         {/* Table Container */}
         <div className="flex-1 overflow-auto border border-border/60 rounded-lg bg-card shadow-xs">
           {rows.length === 0 ? (
@@ -227,7 +226,6 @@ export function EnquiryTable({
                                   type="button"
                                   onClick={() => handleView(recordKey, row)}
                                   className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                  title={`View details for #${recordKey}`}
                                 >
                                   <Eye className="size-3.5" />
                                 </button>
@@ -245,7 +243,6 @@ export function EnquiryTable({
                                   type="button"
                                   onClick={() => handleEdit(recordKey, row)}
                                   className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                  title={`Edit record #${recordKey}`}
                                 >
                                   <Edit3 className="size-3.5" />
                                 </button>
@@ -266,11 +263,11 @@ export function EnquiryTable({
           )}
         </div>
 
-        {/* ALWAYS VISIBLE Pagination & Status Footer */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-2 py-2.5 mt-2 bg-card border border-border/60 rounded-lg text-xs shrink-0 select-none">
-          {/* Left: Record Range Display */}
+        {/* ALWAYS VISIBLE Pagination & Status Controls (Text & CTAs only, no card container) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1 pt-2 text-xs shrink-0 select-none">
+          {/* Left: Record Range Display & Rows Dropdown */}
           <div className="flex items-center gap-3">
-            <span className="font-mono text-muted-foreground">
+            <span className="font-mono text-muted-foreground text-xs">
               {rows.length > 0 ? (
                 <>
                   Showing <strong className="text-foreground">{startIndex + 1}</strong> -{" "}
@@ -282,7 +279,7 @@ export function EnquiryTable({
               )}
             </span>
 
-            {/* Page Size Selector */}
+            {/* Page Size Selector - Same height and button size as navigation buttons */}
             <div className="flex items-center gap-1.5 pl-3 border-l border-border/60">
               <span className="text-muted-foreground text-[11px]">Rows:</span>
               <Select
@@ -294,7 +291,10 @@ export function EnquiryTable({
                   }
                 }}
               >
-                <SelectTrigger className="h-7 w-16 text-xs font-mono px-2 bg-muted/20">
+                <SelectTrigger
+                  size="sm"
+                  className="h-7 w-auto min-w-[50px] text-xs font-mono px-2 py-0 gap-1.5 bg-background hover:bg-muted text-foreground border-border rounded-lg shadow-none [&_svg]:size-3.5 [&_svg]:text-muted-foreground"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="text-xs font-mono min-w-[70px]">
@@ -309,7 +309,7 @@ export function EnquiryTable({
 
           {/* Right: Pagination Navigation Controls */}
           <div className="flex items-center gap-1.5">
-            <span className="font-mono text-muted-foreground mr-2 text-[11px]">
+            <span className="font-mono text-muted-foreground mr-1 text-[11px]">
               Page {page} of {totalPages}
             </span>
 
@@ -320,7 +320,6 @@ export function EnquiryTable({
               onClick={() => setPage(1)}
               disabled={page <= 1}
               className="size-7"
-              title="First Page"
             >
               <ChevronsLeft className="size-3.5" />
             </Button>
@@ -331,7 +330,6 @@ export function EnquiryTable({
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page <= 1}
               className="size-7"
-              title="Previous Page"
             >
               <ChevronLeft className="size-3.5" />
             </Button>
@@ -342,7 +340,6 @@ export function EnquiryTable({
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page >= totalPages}
               className="size-7"
-              title="Next Page"
             >
               <ChevronRight className="size-3.5" />
             </Button>
@@ -353,7 +350,6 @@ export function EnquiryTable({
               onClick={() => setPage(totalPages)}
               disabled={page >= totalPages}
               className="size-7"
-              title="Last Page"
             >
               <ChevronsRight className="size-3.5" />
             </Button>

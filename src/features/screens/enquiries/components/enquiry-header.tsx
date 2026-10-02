@@ -9,6 +9,7 @@ import {
   Printer,
   RefreshCw,
   Search,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ export interface EnquiryHeaderProps {
   onExportCSV?: () => void;
   onExportHTML?: () => void;
   onExportXML?: () => void;
+  onExitPopup?: () => void;
 }
 
 export function EnquiryHeader({
@@ -45,23 +47,25 @@ export function EnquiryHeader({
   totalCount: _totalCount,
   pageRange: _pageRange,
   onBackToSelection,
+  onExecuteSelection: _onExecuteSelection,
   onRefresh,
   onPrintLocal,
   onPrintServer,
   onExportCSV,
   onExportHTML,
   onExportXML,
+  onExitPopup,
 }: EnquiryHeaderProps) {
   return (
     <TooltipProvider delay={150}>
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/60 px-4 py-2 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/60 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0">
         {/* Left Title & Status Badge */}
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <Search className="size-3.5" />
           </div>
           <div className="flex flex-col justify-center min-w-0">
-            <h2 className="text-sm font-bold tracking-tight text-foreground truncate max-w-[240px] sm:max-w-sm">
+            <h2 className="text-xs sm:text-sm font-bold tracking-tight text-foreground whitespace-nowrap leading-tight">
               {title}
             </h2>
             <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider leading-none mt-0.5">
@@ -71,7 +75,7 @@ export function EnquiryHeader({
         </div>
 
         {/* Right Action Toolbar (Icon Buttons styled like Form toolbar) */}
-        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
           {/* 1. Refresh Enquiry Data */}
           <Tooltip>
             <TooltipTrigger
@@ -165,6 +169,29 @@ export function EnquiryHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* 4. Exit Popup Window Button */}
+          {onExitPopup && (
+            <>
+              <div className="h-4 w-px bg-border/60 mx-0.5" />
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={onExitPopup}
+                      className="size-8 text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 shrink-0 transition-colors"
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  }
+                />
+                <TooltipContent className="text-xs">Exit Popup Window</TooltipContent>
+              </Tooltip>
+            </>
+          )}
         </div>
       </div>
     </TooltipProvider>

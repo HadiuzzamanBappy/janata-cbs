@@ -57,14 +57,14 @@
 ### Phase 2: CBS Command Grammar Parser (`src/lib/core/command-parser.ts`)
 **Objective:** Support standard banking command line syntax used by tellers and CBS power users.
 
-- [ ] **2.1 Temenos Command Syntax Parsing:**
+- [x] **2.1 Temenos Command Syntax Parsing:**
   - Support:
     - `<APPLICATION>` (e.g., `ACCOUNT`, `CUSTOMER`) $\rightarrow$ Opens in `IDLE` mode.
     - `<APPLICATION>,<ID>` or `<APPLICATION> <ID>` (e.g., `ACCOUNT,1001` or `ACCOUNT 1001`) $\rightarrow$ Opens in `EDIT` mode with record ID.
     - `<APPLICATION> <FUNCTION> <ID>` (e.g., `ACCOUNT I`, `ACCOUNT I F3`, `ACCOUNT S 1001`, `ACCOUNT A 1001`, `ACCOUNT D 1001`) $\rightarrow$ Parses function code (`I` = Input/Create, `S` = See/View, `A` = Authorise, `D` = Delete, `H` = Hold) and record ID.
     - `ENQ <QUERY>` / `INQ <QUERY>` (e.g., `ENQ USER.LIST`, `ENQ STMT.ENT.BOOK`) $\rightarrow$ Routes to `EnquiryScreen`.
     - `SETTINGS:<TAB>` / `ACTION:<ACT>` $\rightarrow$ Routes to settings dialog or quick actions.
-- [ ] **2.2 Parser Return Contract (`ParsedCommand`):**
+- [x] **2.2 Parser Return Contract (`ParsedCommand`):**
   ```ts
   export interface ParsedCommand {
     raw: string;
@@ -91,9 +91,9 @@
 | **`S`** | **See** | View-only read of live files and enquiry lists (`Eye` button) | `canSee` |
 | **`H`** | **Hold** | Park records in unapproved draft status without validation | `canHold` |
 
-- [ ] **3.1 Command-Level Permission Guard:**
+- [x] **3.1 Command-Level Permission Guard:**
   - If a user types `ACCOUNT I` but their accessibility rights string lacks `I`, display an immediate error toast: `"Permission Denied: User lacks Input ('I') rights for this application"`.
-- [ ] **3.2 Action Button Alignment:**
+- [x] **3.2 Action Button Alignment:**
   - Ensure all action buttons in [FormHeader](file:///d:/Work/React/cbs/finx-ui/src/features/screens/forms/components/form-header.tsx) and [ActionButtons](file:///d:/Work/React/cbs/finx-ui/src/features/screens/forms/components/actions/action-buttons.tsx) evaluate against the active user's `useUserRights()`.
 
 ---
@@ -101,11 +101,11 @@
 ### Phase 4: Full Command Bar & Keyboard Integration
 **Objective:** Enable executing raw commands directly from the Command Bar (`⌘K` / `Ctrl+K`) and Top Bar with enter-key dispatching.
 
-- [ ] **4.1 Command Bar Direct Execution:**
+- [x] **4.1 Command Bar Direct Execution:**
   - Update [AppSearch](file:///d:/Work/React/cbs/finx-ui/src/components/layout/app-search.tsx) so when a user types a raw command (e.g. `ACCOUNT I`, `ENQ USER.LIST`, `FUNDS.TRANSFER 2001`) and hits Enter, it parses and executes immediately even if not in the pre-indexed list.
-- [ ] **4.2 Screen Mode Hand-off:**
+- [x] **4.2 Screen Mode Hand-off:**
   - Pass the parsed `screenMode` (`CREATE`, `EDIT`, `VIEW`, `IDLE`) and `searchRecordId` directly to `launchScreen` and workbench tabs.
-- [ ] **4.3 Verification & End-to-End Testing:**
+- [x] **4.3 Verification & End-to-End Testing:**
   - Test all RIDASH permutations:
     - User with `RIDASH` (All actions permitted).
     - User with `R---S-` (View only, input/delete disabled).

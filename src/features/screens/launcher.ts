@@ -80,5 +80,7 @@ export function launchScreen({
     { addTab, openSettingsTab, clearSession, confirmAlert },
     title,
     componentName,
+    screenMode,
+    searchRecordId,
   );
 }

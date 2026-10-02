@@ -1,220 +1,111 @@
 "use client";
 
-import { Compass, Layers, Settings, ShieldCheck, Sliders, Terminal } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandShortcut,
-} from "@/components/ui/command";
-import { launchScreen } from "@/features/screens";
-import { appConfig } from "@/lib/config";
-import { getAllRegisteredCommands, type SystemCommandItem } from "@/lib/core/commands";
-import type { MenuItem } from "@/lib/schemas";
+import { CommandDialog } from "@/components/ui/command";
+import { useUserRights } from "@/hooks";
 import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
 
-interface GlobalSearchProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  openSettingsTab?: (tabId: string) => void;
-}
-
-function extractMenuCommands(items: MenuItem[]): SystemCommandItem[] {
-  const result: SystemCommandItem[] = [];
-  function traverse(list: MenuItem[]) {
-    for (const item of list) {
-      if (item.command) {
-        result.push({
-          id: item.id || item.command,
-          title: item.label,
-          category: "Navigation & Operations",
-          description: `Execute ${item.label} [${item.command}]`,
-          command: item.command,
-          allowedRoles: ["*"],
-          actionType: "SCREEN",
-        });
-      }
-      if (item.children && item.children.length > 0) {
-        traverse(item.children);
-      }
-    }
-  }
-  traverse(items);
-  return result;
-}
+import type { GlobalSearchProps, RidashOption } from "./search/types";
+import { filterVisibleCommands, groupCommandsByCategory } from "./search/search-utils";
+import { useSearchCommands } from "./search/use-search-commands";
+import { useCommandGuide } from "./search/use-command-guide";
+import { useCommandExecutor } from "./search/use-command-executor";
+import { SearchInputBar } from "./search/search-input-bar";
+import { CommandGuidance } from "./search/command-guidance";
+import { SearchResultsList } from "./search/search-results-list";
+import { SearchFooterHelp } from "./search/search-footer-help";
 
 export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchProps) {
   const { user, logout } = useSessionStore();
   const { addTab } = useWorkbenchStore();
   const { confirm } = useAlertStore();
+  const rights = useUserRights();
 
-  const [apiMenuItems, setApiMenuItems] = React.useState<SystemCommandItem[]>([]);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const userHasCommandLine = user?.commandLine !== false;
 
+  // Clear query on close
   React.useEffect(() => {
-    if (!open) return;
-
-    Promise.all([
-      fetch(appConfig.routes.api.menu)
-        .then((res) => res.json())
-        .catch(() => ({ success: false })),
-      fetch(appConfig.routes.api.controls)
-        .then((res) => res.json())
-        .catch(() => ({ success: false })),
-    ]).then(([menuJson, controlsJson]) => {
-      const menuCmds =
-        menuJson.success && Array.isArray(menuJson.data) ? extractMenuCommands(menuJson.data) : [];
-      const controlCmds =
-        controlsJson.success && Array.isArray(controlsJson.data) ? controlsJson.data : [];
-
-      setApiMenuItems([...menuCmds, ...controlCmds]);
-    });
+    if (!open) setSearchQuery("");
   }, [open]);
 
-  const userRole = user?.userRole ?? ["Administrator"];
-  const isAdmin = userRole.includes("Administrator") || userRole.includes("ADMIN");
+  // Hook 1: Fetch and merge all system commands
+  const { allCommands, authorizedCommands } = useSearchCommands({
+    open,
+    userHasCommandLine,
+  });
 
-  // Merge static registry commands + dynamic API menu commands (deduplicated by command string)
-  const allCommands = React.useMemo(() => {
-    const staticCmds = getAllRegisteredCommands();
-    const map = new Map<string, SystemCommandItem>();
-    for (const cmd of apiMenuItems) {
-      if (!map.has(cmd.command.toUpperCase())) {
-        map.set(cmd.command.toUpperCase(), cmd);
-      }
-    }
-    for (const cmd of staticCmds) {
-      map.set(cmd.command.toUpperCase(), cmd);
-    }
-    return Array.from(map.values());
-  }, [apiMenuItems]);
+  // Hook 2: CBS Command Grammar Execution
+  const { handleSelectCommand, handleExecuteRawInput } = useCommandExecutor({
+    user,
+    allCommands,
+    addTab,
+    openSettingsTab,
+    logout,
+    confirm,
+    onClose: () => onOpenChange(false),
+  });
 
-  // Filter commands based on User RBAC Role Permissions
-  const authorizedCommands = React.useMemo(() => {
-    return allCommands.filter((cmd) => {
-      if (cmd.allowedRoles.includes("*")) return true;
-      if (isAdmin && cmd.allowedRoles.includes("Administrator")) return true;
-      return cmd.allowedRoles.some((role: string) => userRole.includes(role));
-    });
-  }, [allCommands, isAdmin, userRole]);
+  // Filter commands strictly on what's visible on view & group into categories
+  const filteredCommands = React.useMemo(() => {
+    return filterVisibleCommands(authorizedCommands, searchQuery);
+  }, [authorizedCommands, searchQuery]);
 
-  // Group authorized commands by category
   const categories = React.useMemo(() => {
-    const map = new Map<string, SystemCommandItem[]>();
-    for (const cmd of authorizedCommands) {
-      const list = map.get(cmd.category) ?? [];
-      list.push(cmd);
-      map.set(cmd.category, list);
-    }
-    return Array.from(map.entries());
-  }, [authorizedCommands]);
+    return groupCommandsByCategory(filteredCommands);
+  }, [filteredCommands]);
 
-  const handleSelectCommand = (cmd: SystemCommandItem) => {
-    onOpenChange(false);
+  // Hook 3: Proactive RIDASH & Space Guidance
+  const commandGuideInfo = useCommandGuide({
+    searchQuery,
+    allCommands,
+    userHasCommandLine,
+  });
 
-    launchScreen({
-      id: cmd.command ?? cmd.id,
-      title: cmd.title,
-      componentName: cmd.componentName,
-      addTab,
-      openSettingsTab,
-      clearSession: logout,
-      confirmAlert: confirm,
-    });
-  };
+  const RIDASH_OPTIONS: RidashOption[] = React.useMemo(
+    () =>
+      [
+        { code: "I", label: "Input / Create", right: rights.canInput },
+        { code: "S", label: "See / View", right: rights.canSee || rights.canRead },
+        { code: "A", label: "Amend / Edit", right: rights.canAmend || rights.canAuthorise },
+        { code: "D", label: "Delete", right: rights.canDelete },
+        { code: "R", label: "Read / Reverse", right: rights.canRead || rights.canReverse },
+        { code: "H", label: "Hold Draft", right: rights.canHold },
+      ].filter((opt) => opt.right),
+    [rights],
+  );
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-lg sm:max-w-xl">
-      <CommandInput placeholder="Type command name, screen ID, or search..." />
-      <CommandList className="max-h-72">
-        <CommandEmpty className="py-6 text-xs text-muted-foreground">
-          No results matching your permission level.
-        </CommandEmpty>
+      <SearchInputBar
+        userHasCommandLine={userHasCommandLine}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        authorizedCommands={authorizedCommands}
+        filteredCount={filteredCommands.length}
+        totalCount={authorizedCommands.length}
+        onSelectCommand={handleSelectCommand}
+        onExecuteRawInput={handleExecuteRawInput}
+      />
 
-        {/* RBAC Permission Banner Header */}
-        <div className="px-3 py-1 flex items-center justify-between border-b border-border/40 text-[11px] text-muted-foreground bg-muted/20">
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium">RBAC Filter:</span>
-            <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
-              {userRole}
-            </Badge>
-          </div>
-          <span className="font-mono text-[10px] opacity-80">
-            {authorizedCommands.length} commands authorized
-          </span>
-        </div>
+      {commandGuideInfo && (
+        <CommandGuidance
+          guideInfo={commandGuideInfo}
+          options={RIDASH_OPTIONS}
+          permittedRights={rights.functionRights}
+          hasRight={rights.hasRight}
+          onSelectOption={(code) => {
+            setSearchQuery(`${commandGuideInfo.appName} ${code} `);
+          }}
+        />
+      )}
 
-        {categories.map(([category, items]) => (
-          <CommandGroup key={category} heading={category}>
-            {items.map((cmd) => {
-              // Resolve distinct icons per menu & action category
-              let IconComp = Settings;
-              if (cmd.category === "System Settings Modal") {
-                IconComp = Settings;
-              } else if (cmd.category === "Security & Authentication") {
-                IconComp = ShieldCheck;
-              } else if (cmd.category === "Quick Actions") {
-                IconComp = Terminal;
-              } else if (category.includes("System") || category.includes("Control")) {
-                IconComp = Sliders;
-              } else if (category.includes("Navigation") || category.includes("Operation")) {
-                IconComp = Compass;
-              } else {
-                IconComp = Layers;
-              }
+      <SearchResultsList
+        categories={categories}
+        onSelectCommand={handleSelectCommand}
+      />
 
-              return (
-                <CommandItem
-                  key={cmd.id}
-                  onSelect={() => handleSelectCommand(cmd)}
-                  className="group flex items-center justify-between py-1.5 px-2.5 cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-6.5 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <IconComp className="size-3.5" />
-                    </div>
-                    <span className="font-medium text-xs truncate group-data-[selected=true]:text-accent-foreground">
-                      {cmd.title}
-                    </span>
-                  </div>
-                  {cmd.command && (
-                    <CommandShortcut className="font-mono text-[10px] bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 shrink-0 ml-2">
-                      {cmd.command}
-                    </CommandShortcut>
-                  )}
-                </CommandItem>
-              );
-            })}
-          </CommandGroup>
-        ))}
-      </CommandList>
-
-      {/* Keyboard Shortcut Footer Instructions */}
-      <div className="px-3 py-2 flex items-center justify-between border-t border-border/50 text-[11px] text-muted-foreground bg-muted/30 select-none">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1">
-            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↑</kbd>
-            <kbd className="px-1 py-0.5 bg-background border rounded font-mono text-[10px]">↓</kbd>
-            <span>Navigate</span>
-          </span>
-          <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">
-              ↵
-            </kbd>
-            <span>Select</span>
-          </span>
-        </div>
-        <span className="flex items-center gap-1">
-          <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">
-            ESC
-          </kbd>
-          <span>Close</span>
-        </span>
-      </div>
+      <SearchFooterHelp />
     </CommandDialog>
   );
 }

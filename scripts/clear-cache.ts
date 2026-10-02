@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 
 const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6379";
-const prefix = process.env.REDIS_KEY_PREFIX || "finx";
+const prefix = process.env.REDIS_KEY_PREFIX || "cbs";
 
 async function clearCache() {
   console.log(`Connecting to Redis at ${redisUrl}...`);

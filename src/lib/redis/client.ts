@@ -1,6 +1,9 @@
 import "server-only";
 import Redis from "ioredis";
 import { appConfig } from "@/lib/config";
+import { logger } from "@/lib/logger";
+
+const redisLogger = logger.withContext("REDIS");
 
 /**
  * Redis client with circuit breaker and fail-open guarantees.
@@ -48,7 +51,7 @@ export function getRedisClient(): Client | null {
     client.on("error", (error) => {
       if (!client.__warned) {
         client.__warned = true;
-        console.warn(`[cache] Redis unavailable, serving from core: ${error.message}`);
+        redisLogger.warn(`Redis unavailable, serving from core: ${error.message}`);
       }
       tripCircuit();
     });
@@ -56,13 +59,13 @@ export function getRedisClient(): Client | null {
     client.on("ready", () => {
       client.__warned = false;
       openUntil = 0;
-      console.info(`[cache] Redis connected successfully at ${URL}`);
+      redisLogger.info(`Redis connected successfully at ${URL}`);
     });
 
     globalThis.__redisClient = client;
     return client;
   } catch (error) {
-    console.warn("[cache] Failed to initialize Redis client:", error);
+    redisLogger.warn("Failed to initialize Redis client:", error);
     globalThis.__redisClient = null;
     return null;
   }

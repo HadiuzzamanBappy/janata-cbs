@@ -11,7 +11,7 @@ export interface ServiceDef {
 export const SERVICES: Record<string, ServiceDef> = {
   default: { url: appConfig.grpc.host },
   customer: { url: appConfig.services.customerBaseUrl },
-  finxurm: { url: appConfig.services.urmBaseUrl },
+  urm: { url: appConfig.services.urmBaseUrl },
 };
 
 export function getServices(): Record<string, ServiceDef> {

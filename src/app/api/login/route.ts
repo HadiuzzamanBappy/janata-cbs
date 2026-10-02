@@ -1,9 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/redis";
 import { loginUser } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const authLogger = logger.withContext("AUTH_API");
 
 interface LoginBody {
   username?: string;
@@ -12,7 +15,12 @@ interface LoginBody {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const { username, password } = (await req.json()) as LoginBody;
+    const body = (await req.json()) as LoginBody;
+    const { username, password } = body;
+
+    // Log login attempt (passwords automatically redacted)
+    authLogger.info("Login attempt received", { username, body });
+
     if (!username || !password) {
       return NextResponse.json(
         { success: false, message: "Username and password are required" },
@@ -28,6 +36,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const { allowed, resetSec } = await rateLimit(`login:${ip}:${username}`);
     if (!allowed) {
+      authLogger.warn(`Rate limit exceeded for login: ${username}`, { ip, resetSec });
       return NextResponse.json(
         { success: false, message: `Too many login attempts. Try again in ${resetSec}s.` },
         { status: 429, headers: { "Retry-After": String(resetSec) } },
@@ -37,6 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const result = await loginUser({ username, password });
 
     if (!result.success || !result.user) {
+      authLogger.warn(`Failed login for ${username}`, { error: result.error });
       return NextResponse.json(
         {
           success: false,
@@ -47,12 +57,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
+    authLogger.info(`Successful login for ${username}`, {
+      userId: result.user.userId,
+      branchCode: result.user.branchCode,
+      accessibility: result.user.accessibility,
+    });
+
     return NextResponse.json({
       success: true,
       message: "Logged in successfully",
       user: result.user,
     });
   } catch (err: unknown) {
+    authLogger.error("Internal login server error", err);
     const message = err instanceof Error ? err.message : "Internal login server error";
     return NextResponse.json({ success: false, message }, { status: 500 });
   }

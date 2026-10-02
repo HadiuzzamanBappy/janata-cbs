@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth";
+import { appConfig } from "@/lib/config";
+import { getSession } from "@/lib/redis";
 
 export const metadata: Metadata = {
   title: "Sign on — Janata Bank PLC.",
   description: "Core banking sign-on for Janata Bank PLC. staff.",
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await getSession();
+  if (session) {
+    redirect(appConfig.routes.dashboard);
+  }
+
   return (
     <>
       <div className="mb-6 text-center space-y-1">

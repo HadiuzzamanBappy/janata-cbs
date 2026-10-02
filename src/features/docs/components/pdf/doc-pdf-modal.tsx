@@ -2,6 +2,7 @@
 
 import { CheckCircle2, Download, FileText, Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { logger } from "@/lib/logger";
 import { fetchAllPortalDocsAction } from "../../actions";
 import type { NavGroup, PdfGenerationResult } from "../../types";
 import { compilePortalPdf } from "../../utils/pdf-compiler";
@@ -50,7 +51,7 @@ export function DocPdfModal({
       setIsCompleted(true);
       setIsGenerating(false);
     } catch (err: unknown) {
-      console.error("PDF generation error:", err);
+      logger.error("PDF generation error:", err, "DOC_PDF");
       setErrorText(err instanceof Error ? err.message : "Failed to generate PDF manual.");
       setIsGenerating(false);
     }

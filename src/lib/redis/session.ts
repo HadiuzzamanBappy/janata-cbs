@@ -2,8 +2,11 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { appConfig } from "@/lib/config";
+import { logger } from "@/lib/logger";
 import type { CurrentUser } from "@/lib/schemas";
 import { getRedisClient } from "./client";
+
+const sessionLogger = logger.withContext("SESSION");
 
 export type { CurrentUser };
 
@@ -64,7 +67,7 @@ export async function createSession(
     try {
       await redis.set(key, JSON.stringify(payload), "EX", TTL_SECONDS);
     } catch (error) {
-      console.warn("[session] Failed to persist session in Redis:", error);
+      sessionLogger.warn("Failed to persist session in Redis:", error);
     }
   }
   // Store in memory cache as reliable fallback
@@ -121,7 +124,9 @@ export async function getSession(): Promise<SessionData | null> {
     session = memoryStore.get(id) ?? null;
   }
 
-  if (!session) return null;
+  if (!session) {
+    return null;
+  }
 
   // Server-side Inactivity Guard
   const timeoutMinutes = appConfig.logoutTime;
@@ -129,8 +134,15 @@ export async function getSession(): Promise<SessionData | null> {
   const now = Date.now();
 
   if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
-    console.warn(`[session] Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
-    await destroySession();
+    sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
+    if (redis) {
+      try {
+        await redis.del(sessionKey(id));
+      } catch {
+        // Ignore redis cleanup error
+      }
+    }
+    memoryStore.delete(id);
     return null;
   }
 

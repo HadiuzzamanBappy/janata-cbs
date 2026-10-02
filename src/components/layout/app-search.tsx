@@ -6,14 +6,18 @@ import { useUserRights } from "@/hooks";
 import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
 
 import type { GlobalSearchProps, RidashOption } from "./search/types";
-import { filterVisibleCommands, groupCommandsByCategory } from "./search/search-utils";
-import { useSearchCommands } from "./search/use-search-commands";
-import { useCommandGuide } from "./search/use-command-guide";
-import { useCommandExecutor } from "./search/use-command-executor";
-import { SearchInputBar } from "./search/search-input-bar";
-import { CommandGuidance } from "./search/command-guidance";
-import { SearchResultsList } from "./search/search-results-list";
-import { SearchFooterHelp } from "./search/search-footer-help";
+import { filterVisibleCommands, groupCommandsByCategory } from "./search/search-filter";
+import {
+  useCommandExecutor,
+  useCommandGuide,
+  useSearchCommands,
+} from "./search/hooks";
+import {
+  CommandGuidance,
+  SearchFooterHelp,
+  SearchInputBar,
+  SearchResultsList,
+} from "./search/components";
 
 export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchProps) {
   const { user, logout } = useSessionStore();

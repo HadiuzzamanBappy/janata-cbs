@@ -1,30 +1,9 @@
-import type { MenuItem } from "@/lib/schemas";
 import type { SystemCommandItem } from "@/lib/core";
 
-export function extractMenuCommands(items: MenuItem[]): SystemCommandItem[] {
-  const result: SystemCommandItem[] = [];
-  function traverse(list: MenuItem[]) {
-    for (const item of list) {
-      if (item.command) {
-        result.push({
-          id: item.id || item.command,
-          title: item.label,
-          category: "Navigation & Operations",
-          description: `Execute ${item.label} [${item.command}]`,
-          command: item.command,
-          allowedRoles: ["*"],
-          actionType: "SCREEN",
-        });
-      }
-      if (item.children && item.children.length > 0) {
-        traverse(item.children);
-      }
-    }
-  }
-  traverse(items);
-  return result;
-}
-
+/**
+ * Filter commands strictly on visible UI fields:
+ * Title, Command, Alias ID, and Control Name.
+ */
 export function filterVisibleCommands(
   commands: SystemCommandItem[],
   searchQuery: string,
@@ -41,6 +20,9 @@ export function filterVisibleCommands(
   });
 }
 
+/**
+ * Group search results by category for <CommandGroup /> sections.
+ */
 export function groupCommandsByCategory(
   commands: SystemCommandItem[],
 ): [string, SystemCommandItem[]][] {

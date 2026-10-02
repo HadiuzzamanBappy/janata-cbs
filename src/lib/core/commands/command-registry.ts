@@ -15,7 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import type * as React from "react";
-import type { CommandActionType, SystemCommandItem } from "@/lib/schemas";
+import type { CommandActionType, MenuItem, SystemCommandItem } from "@/lib/schemas";
 
 export type { CommandActionType, SystemCommandItem };
 
@@ -182,6 +182,33 @@ export function getAllRegisteredCommands(): SystemCommandItem[] {
 export function getRegisteredCommand(commandStr: string): SystemCommandItem | undefined {
   if (!commandStr) return undefined;
   return MASTER_COMMAND_MAP.get(commandStr.trim().toUpperCase());
+}
+
+/**
+ * Traverse menu hierarchy and extract screen execution commands.
+ */
+export function extractMenuCommands(items: MenuItem[]): SystemCommandItem[] {
+  const result: SystemCommandItem[] = [];
+  function traverse(list: MenuItem[]) {
+    for (const item of list) {
+      if (item.command) {
+        result.push({
+          id: item.id || item.command,
+          title: item.label,
+          category: "Navigation & Operations",
+          description: `Execute ${item.label} [${item.command}]`,
+          command: item.command,
+          allowedRoles: ["*"],
+          actionType: "SCREEN",
+        });
+      }
+      if (item.children && item.children.length > 0) {
+        traverse(item.children);
+      }
+    }
+  }
+  traverse(items);
+  return result;
 }
 
 /**

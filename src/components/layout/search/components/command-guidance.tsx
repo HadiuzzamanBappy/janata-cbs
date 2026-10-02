@@ -1,4 +1,4 @@
-import type { CommandGuideInfo, RidashOption } from "./types";
+import type { CommandGuideInfo, RidashOption } from "../types";
 
 interface CommandGuidanceProps {
   guideInfo: CommandGuideInfo;

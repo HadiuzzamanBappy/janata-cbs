@@ -9,6 +9,7 @@ export interface FormGridProps {
   onChange: (name: string, value: unknown) => void;
   errors?: Record<string, string>;
   disabled?: boolean;
+  mode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
 }
 
 export function FormGrid({
@@ -17,6 +18,7 @@ export function FormGrid({
   onChange,
   errors = {},
   disabled = false,
+  mode = "EDIT",
 }: FormGridProps) {
   if (!schema.fields || schema.fields.length === 0) {
     return (
@@ -36,6 +38,7 @@ export function FormGrid({
           onChange={onChange}
           error={errors[field.name]}
           disabled={disabled}
+          mode={mode}
         />
       ))}
     </div>

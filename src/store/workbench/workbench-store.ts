@@ -11,8 +11,15 @@ export interface WorkbenchTab {
   componentName: string;
   props?: Record<string, unknown>;
   formData?: Record<string, unknown>; // Draft form input values typed by user
+  isDirty?: boolean; // True only when the user has actually edited/typed changes
   screenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
   searchRecordId?: string;
+  enquiryState?: {
+    step?: "SELECTION" | "RESULTS";
+    criteria?: Record<string, { value: string; operand: string }>;
+    currentPage?: number;
+    pageSize?: number;
+  };
 }
 
 export interface WorkbenchState {

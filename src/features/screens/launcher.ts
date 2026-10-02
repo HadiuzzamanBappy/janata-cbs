@@ -1,5 +1,5 @@
 import { appConfig } from "@/lib/config";
-import { dispatchCommand } from "@/lib/core/commands";
+import { dispatchCommand } from "@/lib/core";
 
 export type DisplayTargetMode = "workspace" | "popup";
 
@@ -11,6 +11,10 @@ export interface LaunchScreenOptions {
   screenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
   searchRecordId?: string;
   step?: "SELECTION" | "RESULTS";
+  /** Enquiry filter criteria – keyed by field id */
+  criteria?: Record<string, { value: string; operand: string }>;
+  currentPage?: number;
+  pageSize?: number;
   formData?: Record<string, unknown>;
   addTab: (tab: { id: string; title: string; componentName: string }) => void;
   openSettingsTab?: (tabId: string) => void;
@@ -36,6 +40,9 @@ export function launchScreen({
   screenMode,
   searchRecordId,
   step,
+  criteria,
+  currentPage,
+  pageSize,
   formData,
   addTab,
   openSettingsTab,
@@ -53,6 +60,15 @@ export function launchScreen({
     if (screenMode) params.set("mode", screenMode);
     if (searchRecordId) params.set("recordId", searchRecordId);
     if (step) params.set("step", step);
+    if (currentPage && currentPage > 1) params.set("page", String(currentPage));
+    if (pageSize && pageSize !== 10) params.set("pageSize", String(pageSize));
+    if (criteria && Object.keys(criteria).length > 0) {
+      try {
+        params.set("criteria", JSON.stringify(criteria));
+      } catch {
+        // Safe JSON serialization fallback
+      }
+    }
     if (formData && Object.keys(formData).length > 0) {
       try {
         params.set("data", JSON.stringify(formData));

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { appConfig } from "@/lib/config";
-import type { EnquiryColumn, EnquirySchema, SelectionField, SelectionOperand } from "../types";
+import { STATIC_TABLE_DATA } from "@fixtures";
+import type { EnquiryColumn, EnquiryRow, EnquirySchema, SelectionField, SelectionOperand } from "../types";
 
 export function useEnquirySchema(command: string) {
   const [schema, setSchema] = useState<EnquirySchema | null>(null);
@@ -64,12 +65,20 @@ export function useEnquirySchema(command: string) {
             label: f.label || f.name,
           }));
 
+        // Load realistic database rows from STATIC_TABLE_DATA if available
+        const modelTable = STATIC_TABLE_DATA[cleanCmd];
+        const sampleData = (modelTable?.enquiryRows || []).map((row, idx) => ({
+          id: String(row.id || idx),
+          ...row,
+        })) as EnquiryRow[];
+
         setSchema({
           code: cleanCmd,
           title,
           description: rawModel.title,
           selectionFields,
           columns,
+          sampleData,
         });
       } else {
         setError(json.error || `Failed to fetch enquiry schema for ${cleanCmd}`);

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Plus } from "lucide-react";
+import { AlertTriangle, Layers } from "lucide-react";
 import * as React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { useWorkbenchStore } from "@/store";
 import { useFormSchema } from "../hooks/use-form-schema";
 import { useFormState } from "../hooks/use-form-state";
 import type { DynamicFormProps } from "../types";
+import { STATIC_TABLE_DATA } from "@fixtures";
 import { FormGrid } from "./form-grid";
 import { FormHeader, type MoreActionItem } from "./form-header";
 import { FormSkeleton } from "./form-skeleton";
@@ -93,6 +94,8 @@ function getDefaultMoreActions(code: string): MoreActionItem[] {
 
 export type FormScreenProps = DynamicFormProps & {
   initialValues?: Record<string, unknown>;
+  /** Optional override for the ⬆ Return action — used by inline popup drill-down to go back to the enquiry list */
+  onReturn?: () => void;
 };
 
 export function FormScreen({
@@ -100,6 +103,7 @@ export function FormScreen({
   tabId,
   initialValues = EMPTY_INITIAL_VALUES,
   onSuccess,
+  onReturn,
 }: FormScreenProps) {
   const { schema, loading, error, refetch } = useFormSchema(command);
   const { tabs, updateFormData, updateTabState } = useWorkbenchStore();
@@ -111,7 +115,12 @@ export function FormScreen({
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       const modeParam = p.get("mode");
-      if (modeParam === "CREATE" || modeParam === "EDIT" || modeParam === "IDLE") {
+      if (
+        modeParam === "CREATE" ||
+        modeParam === "EDIT" ||
+        modeParam === "VIEW" ||
+        modeParam === "IDLE"
+      ) {
         return modeParam;
       }
     }
@@ -153,6 +162,18 @@ export function FormScreen({
     [tabId, updateTabState],
   );
 
+  // Use the full invocation command if versioned (e.g. "USER.MGT,NEW1"), else schema.code
+  const displayCommandCode = React.useMemo(() => {
+    if (command && command.includes(",")) {
+      const parts = command.split(",");
+      // If version syntax like "USER.MGT,NEW1"
+      if (parts[1] && !parts[1].match(/^\d+$/) && isNaN(Number(parts[1]))) {
+        return command.trim().toUpperCase();
+      }
+    }
+    return schema?.code || command;
+  }, [command, schema?.code]);
+
   // Merge initialValues with saved tab draft data or URL query params (for popups)
   const urlFormData = React.useMemo(() => {
     if (typeof window !== "undefined") {
@@ -173,15 +194,192 @@ export function FormScreen({
     return { ...initialValues, ...urlFormData, ...currentTab?.formData };
   }, [initialValues, urlFormData, currentTab?.formData]);
 
-  const { values, errors, setValue, validate, resetForm } = useFormState(
+  const { values, errors, setValue, validate, resetForm, setValues } = useFormState(
     schema,
     mergedInitialValues,
   );
+
+  // Helper to map and normalize incoming enquiry row / raw DB records to match current schema fields
+  const normalizeRecordData = React.useCallback(
+    (raw: Record<string, unknown>, targetSchema: typeof schema): Record<string, unknown> => {
+      if (!targetSchema || !raw) return raw || {};
+      const result: Record<string, unknown> = { ...raw };
+
+      // Helper to strip non-alphanumeric chars for fuzzy matching
+      const simplify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+      // Known semantic aliases across enquiry columns and form schema fields
+      const semanticMap: Record<string, string[]> = {
+        "user.id": ["userid", "empid", "id", "employeeid", "user_id"],
+        "full.name": ["fullname", "empname", "name", "employeename", "name1", "full_name"],
+        "role": ["role", "userrole", "designation", "user_role"],
+        "branch": ["branch", "branchcode", "branch_code"],
+        "customer.id": ["customerid", "custid", "id", "customer_id"],
+        "name.1": ["name1", "name", "customername", "fullname", "shortname"],
+        "account.title": ["accounttitle", "title", "customername", "name"],
+        "status": ["status", "recordstatus", "record_status"],
+      };
+
+      for (const field of targetSchema.fields) {
+        // If field already has a value, preserve it
+        if (result[field.name] !== undefined && result[field.name] !== null && result[field.name] !== "") {
+          continue;
+        }
+
+        const simplifiedFieldName = simplify(field.name);
+        const aliases = semanticMap[field.name.toLowerCase()] || [simplifiedFieldName];
+
+        // 1. Look for direct or alias matches in raw record
+        for (const [k, v] of Object.entries(raw)) {
+          if (v === undefined || v === null || v === "") continue;
+          const simplifiedKey = simplify(k);
+          if (simplifiedKey === simplifiedFieldName || aliases.includes(simplifiedKey)) {
+            result[field.name] = v;
+            break;
+          }
+        }
+      }
+
+      return result;
+    },
+    [],
+  );
+
+  // Load record from database (or mock database) when in VIEW or EDIT mode with a recordId
+  const loadRecordData = React.useCallback(
+    async (recordIdToLoad: string, modeToSet: "EDIT" | "VIEW") => {
+      if (!schema || !recordIdToLoad.trim()) return;
+
+      const cleanModel = schema.code.toUpperCase();
+      const cleanId = recordIdToLoad.trim();
+
+      // Check static database records fixture first (check target model or any alias model)
+      const modelTable = STATIC_TABLE_DATA[cleanModel];
+      let foundRecord = modelTable?.records?.[cleanId];
+
+      // If not directly in target table, check other tables for matching record ID
+      if (!foundRecord) {
+        for (const tbl of Object.values(STATIC_TABLE_DATA)) {
+          if (tbl.records?.[cleanId]) {
+            foundRecord = tbl.records[cleanId];
+            break;
+          }
+        }
+      }
+
+      if (foundRecord) {
+        const normalized = normalizeRecordData(foundRecord, schema);
+        setValues(normalized);
+        setScreenMode(modeToSet);
+        toast.add({
+          title: modeToSet === "VIEW" ? "Viewing Record" : "Editing Record",
+          description: `Loaded record #${cleanId} for ${schema.title}`,
+          type: "success",
+        });
+        return;
+      }
+
+      // If not in static fixtures, query the live backend via proxy
+      try {
+        const res = await fetch(appConfig.routes.api.proxy, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            requestType: "INQ",
+            controlName: schema.code,
+            recordFunction: "S",
+            recordId: cleanId,
+          }),
+        });
+
+        const json = await res.json();
+        if (json.status === "SUCCESS" && json.data) {
+          const normalized = normalizeRecordData(json.data, schema);
+          setValues(normalized);
+          setScreenMode(modeToSet);
+        } else {
+          toast.add({
+            title: "Record Not Found",
+            description: `Record #${cleanId} does not exist in ${schema.title}.`,
+            type: "warning",
+          });
+        }
+      } catch {
+        // Fallback to empty record
+        setScreenMode(modeToSet);
+      }
+    },
+    [schema, setScreenMode, setValues, normalizeRecordData],
+  );
+
+  // Auto-populate & synchronize record when schema loads or searchRecordId / formData changes
+  React.useEffect(() => {
+    if (!schema) return;
+
+    const cleanModel = schema.code.toUpperCase();
+    const cleanId = (searchRecordId || "").trim();
+
+    // 1. Try finding existing record in fixtures
+    let found = cleanId ? STATIC_TABLE_DATA[cleanModel]?.records?.[cleanId] : undefined;
+    if (!found && cleanId) {
+      for (const tbl of Object.values(STATIC_TABLE_DATA)) {
+        if (tbl.records?.[cleanId]) {
+          found = tbl.records[cleanId];
+          break;
+        }
+      }
+    }
+
+    // 2. Or fallback to row data passed via tab.formData
+    const rawData = found || (currentTab?.formData as Record<string, unknown>) || undefined;
+
+    if (rawData && Object.keys(rawData).length > 0) {
+      const normalized = normalizeRecordData(rawData, schema);
+      // Ensure record ID is set on appropriate key if missing
+      if (cleanId) {
+        const idField = schema.fields.find(
+          (f) =>
+            f.name.toUpperCase().includes("ID") ||
+            f.name.toUpperCase().includes("CODE") ||
+            f.name.toUpperCase().includes("NUMBER"),
+        );
+        if (idField && !normalized[idField.name]) {
+          normalized[idField.name] = cleanId;
+        }
+      }
+
+      setValues(normalized);
+
+      if (screenMode === "CREATE" && found) {
+        // Record already exists: switch to EDIT mode and notify
+        setScreenMode("EDIT");
+        toast.add({
+          title: "Existing Record Found",
+          description: `Record #${cleanId} already exists. Loaded in Edit mode.`,
+          type: "info",
+        });
+      }
+    } else if (cleanId) {
+      // Record does not exist: populate ID into the target ID field in CREATE mode
+      const idField = schema.fields.find(
+        (f) =>
+          f.name.toUpperCase().includes("ID") ||
+          f.name.toUpperCase().includes("CODE") ||
+          f.name.toUpperCase().includes("NUMBER"),
+      );
+      if (idField) {
+        setValue(idField.name, cleanId);
+      }
+    }
+  }, [schema, searchRecordId, currentTab?.formData, screenMode, setValues, setValue, setScreenMode, normalizeRecordData]);
 
   const handleFieldChange = (name: string, val: unknown) => {
     setValue(name, val);
     if (tabId) {
       updateFormData(tabId, { [name]: val });
+      if (typeof updateTabState === "function") {
+        updateTabState(tabId, { isDirty: true });
+      }
     }
   };
 
@@ -278,7 +476,7 @@ export function FormScreen({
     <div className="flex flex-col h-full w-full">
       <FormHeader
         title={schema.title}
-        commandCode={schema.code}
+        commandCode={displayCommandCode}
         mode={screenMode}
         recordId={searchRecordId}
         onRecordIdChange={setSearchRecordId}
@@ -312,13 +510,7 @@ export function FormScreen({
             return;
           }
 
-          // Open data with form for editing the record
-          setScreenMode("EDIT");
-          toast.add({
-            title: "Edit Record",
-            description: `Opening record #${id} in edit mode for ${schema.title}`,
-            type: "info",
-          });
+          loadRecordData(id, "EDIT");
         }}
         onView={() => {
           const id = searchRecordId.trim();
@@ -331,12 +523,7 @@ export function FormScreen({
             return;
           }
 
-          setScreenMode("VIEW");
-          toast.add({
-            title: "View Record",
-            description: `Viewing record details for #${id} (${schema.title})`,
-            type: "info",
-          });
+          loadRecordData(id, "VIEW");
         }}
         onPerformAction={() => {
           const id = searchRecordId.trim();
@@ -349,12 +536,7 @@ export function FormScreen({
             return;
           }
 
-          setScreenMode("EDIT");
-          toast.add({
-            title: "Perform Action",
-            description: `Executing action on record #${id} (${schema.title})`,
-            type: "info",
-          });
+          loadRecordData(id, "EDIT");
         }}
         onHold={
           screenMode !== "IDLE"
@@ -401,6 +583,11 @@ export function FormScreen({
             : undefined
         }
         onReturnToSearch={() => {
+          if (onReturn) {
+            // In popup inline drill-down: delegate back to enquiry list
+            onReturn();
+            return;
+          }
           resetForm(initialValues);
           setScreenMode("IDLE");
           toast.add({
@@ -423,6 +610,25 @@ export function FormScreen({
             : undefined
         }
         submitting={submitting}
+        availableItems={
+          STATIC_TABLE_DATA[schema.code.toUpperCase()]
+            ? Object.keys(STATIC_TABLE_DATA[schema.code.toUpperCase()].records).map((recId) => {
+                const rec = STATIC_TABLE_DATA[schema.code.toUpperCase()].records[recId];
+                const label =
+                  (rec["ACCOUNT.TITLE"] as string) ||
+                  (rec["NAME.1"] as string) ||
+                  (rec["FULL.NAME"] as string) ||
+                  (rec["TXN.CODE"] as string) ||
+                  `Record #${recId}`;
+                const status = (rec["RECORD.STATUS"] as string) || (rec["STATUS"] as string) || "LIVE";
+                return {
+                  id: recId,
+                  label,
+                  details: `Status: ${status} | Auth: YES`,
+                };
+              })
+            : []
+        }
         moreActions={getDefaultMoreActions(schema.code)}
       />
 
@@ -431,28 +637,15 @@ export function FormScreen({
         {screenMode === "IDLE" ? (
           <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
             <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <Plus className="size-6" />
+              <Layers className="size-6" />
             </div>
             <h3 className="text-sm font-semibold text-foreground">
               {schema.title} ({schema.code})
             </h3>
-            <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
-              Select an action from the top toolbar to begin. Click <strong>+ New Record</strong> to
-              create a record or enter a <strong>Record ID</strong> in the search bar.
+            <p className="text-xs text-muted-foreground max-w-sm mt-1">
+              Select an action from the top toolbar to begin. Use <strong>+</strong> to create a new
+              entry, or enter / search a <strong>Record ID</strong> to view or edit existing records.
             </p>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                onClick={() => {
-                  resetForm(initialValues);
-                  setScreenMode("CREATE");
-                }}
-                className="h-8 text-xs font-medium gap-1.5"
-              >
-                <Plus className="size-3.5" />
-                Create New Record
-              </Button>
-            </div>
           </div>
         ) : (
           <FormGrid
@@ -461,6 +654,7 @@ export function FormScreen({
             onChange={handleFieldChange}
             errors={errors}
             disabled={submitting}
+            mode={screenMode}
           />
         )}
       </div>

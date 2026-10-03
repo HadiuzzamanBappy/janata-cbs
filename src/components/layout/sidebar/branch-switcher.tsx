@@ -12,9 +12,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { appConfig } from "@/lib/config";
-import { cn } from "@/lib/utils";
+import { cn, toTitleCase } from "@/lib/utils";
 import { useSessionStore } from "@/store";
 
 interface BranchSwitcherProps {
@@ -106,17 +107,19 @@ export function BranchSwitcher({
             />
           }
         >
-          <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate text-xs font-medium">
-              {branchLoading
-                ? "Loading..."
-                : branchError
+            {branchLoading ? (
+              <Skeleton className="h-3.5 w-32 rounded" />
+            ) : (
+              <span className="truncate text-xs font-medium">
+                {branchError
                   ? "Branch Error"
                   : activeBranchObj
-                    ? activeBranchObj.name
+                    ? toTitleCase(activeBranchObj.name)
                     : `[${activeBranchCode}]`}
-            </span>
+              </span>
+            )}
           </div>
           <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-40" />
         </DropdownMenuTrigger>
@@ -169,7 +172,7 @@ export function BranchSwitcher({
                     <span className="font-mono text-[9px] text-muted-foreground bg-muted px-1 py-0.2 rounded shrink-0">
                       {b.code}
                     </span>
-                    <span className="truncate text-xs font-normal">{b.name}</span>
+                    <span className="truncate text-xs font-normal">{toTitleCase(b.name)}</span>
                   </div>
                   {activeBranchCode === b.code && (
                     <Check className="size-3 shrink-0 text-primary" />

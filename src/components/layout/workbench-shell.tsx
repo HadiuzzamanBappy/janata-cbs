@@ -8,19 +8,23 @@ import { AppAlert } from "./app-alert";
 import { AppSidebar } from "./app-sidebar";
 import { AppTabBar } from "./app-tabbar";
 import { AppTimeoutWatcher } from "./app-timeout-watcher";
-import { TopBar } from "./app-topbar";
 
-export function WorkbenchShell({ children }: { children: React.ReactNode }) {
+export function WorkbenchShell({
+  children,
+  defaultOpen = true,
+}: {
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
   return (
     <SessionStoreProvider>
       <WorkbenchStoreProvider>
         <AlertStoreProvider>
-          <SidebarProvider defaultOpen>
+          <SidebarProvider defaultOpen={defaultOpen}>
             <AppSidebar />
             <SidebarInset className="flex flex-col min-w-0 h-screen overflow-hidden">
-              {/* TopBar & TabBar Header Stack */}
+              {/* TabBar Header Strip */}
               <div className="shrink-0 z-20">
-                <TopBar />
                 <AppTabBar />
               </div>
 

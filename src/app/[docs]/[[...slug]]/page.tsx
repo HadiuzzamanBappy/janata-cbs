@@ -14,26 +14,14 @@ export default async function GenericDocPage({
   params: Promise<{ docs: string; slug?: string[] }>;
 }) {
   const { docs: portal, slug } = await params;
-  const { relativePath, content: fileContent, exists } = readDocFile(slug, portal);
+  const { content: fileContent, exists } = readDocFile(slug, portal);
 
   if (!exists) {
     notFound();
   }
 
-  const isManual = portal === "manual";
-  const portalLabel = isManual ? "Officer Operating Manual" : "Markdown Render Engine";
-
   return (
     <article className="space-y-6">
-      {/* File Breadcrumb Badge */}
-      <div className="flex items-center justify-between border-b pb-4 text-xs text-muted-foreground font-mono">
-        <div className="flex items-center gap-2">
-          <span className="text-primary font-semibold">{portal}/</span>
-          <span>{relativePath}</span>
-        </div>
-        <span className="text-muted-foreground/60">{portalLabel}</span>
-      </div>
-
       {/* Rich Markdown Container */}
       <div className="rounded-xl border bg-card p-8 md:p-10 shadow-xs leading-relaxed text-foreground">
         <ReactMarkdown

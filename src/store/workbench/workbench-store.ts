@@ -39,6 +39,7 @@ export interface WorkbenchState {
   duplicateTab: (id: string) => void;
   updateFormData: (tabId: string, data: Record<string, unknown>) => void;
   updateTabState: (tabId: string, patch: Partial<WorkbenchTab>) => void;
+  reorderTabs: (sourceIndex: number, destinationIndex: number) => void;
 }
 
 export type WorkbenchStore = ReturnType<typeof createWorkbenchStore>;
@@ -136,11 +137,31 @@ export const createWorkbenchStore = () => {
           set((state) => ({
             tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, ...patch } : tab)),
           })),
+        reorderTabs: (sourceIndex, destinationIndex) =>
+          set((state) => {
+            if (
+              sourceIndex < 0 ||
+              sourceIndex >= state.tabs.length ||
+              destinationIndex < 0 ||
+              destinationIndex >= state.tabs.length ||
+              sourceIndex === destinationIndex
+            ) {
+              return state;
+            }
+            const nextTabs = [...state.tabs];
+            const [moved] = nextTabs.splice(sourceIndex, 1);
+            nextTabs.splice(destinationIndex, 0, moved);
+            return { tabs: nextTabs };
+          }),
       }),
 
       {
         name: appConfig.storageKeys.workbenchTabs,
         storage: createJSONStorage(() => sessionStorage),
+        partialize: (state) => ({
+          tabs: state.tabs,
+          activeTabId: state.activeTabId,
+        }) as WorkbenchState,
       },
     ),
   );

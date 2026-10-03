@@ -106,9 +106,9 @@ export function EnquiryFilters({
   };
 
   return (
-    <div className="flex-1 overflow-auto p-4 sm:p-6 pt-6 sm:pt-8 flex flex-col items-center justify-start">
-      <div className="w-full max-w-xl bg-card border border-border/60 rounded-xl shadow-xs overflow-hidden mt-4">
-        <div className="bg-muted/30 px-4 py-2.5 border-b border-border/60 flex items-center justify-between">
+    <div className="flex-1 overflow-auto p-3 flex flex-col items-center justify-start">
+      <div className="w-full max-w-xl bg-card border border-border/60 rounded-xl shadow-xs overflow-hidden mt-1">
+        <div className="bg-muted/30 px-3.5 py-2 border-b border-border/60 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter className="size-3.5 text-primary" />
             <h3 className="text-xs font-bold text-foreground">Enquiry Selection Criteria</h3>

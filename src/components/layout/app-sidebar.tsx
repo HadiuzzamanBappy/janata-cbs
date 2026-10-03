@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
+import { createPortal } from "react-dom";
 import logo from "@/app/icon.png";
 import { Sidebar, SidebarContent, SidebarHeader } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,12 +102,44 @@ function RecursiveTreeItem({ node, openSettingsTab, clearSession }: TreeItemProp
     }
   };
 
+  const textRef = React.useRef<HTMLSpanElement>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [isOverflowed, setIsOverflowed] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [popoutPos, setPopoutPos] = React.useState<{ top: number; left: number; height: number } | null>(null);
+
+  const checkOverflow = () => {
+    if (textRef.current) {
+      const hasOverflow = textRef.current.scrollWidth > textRef.current.clientWidth;
+      setIsOverflowed(hasOverflow);
+    }
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPopoutPos({
+        top: rect.top,
+        left: rect.left,
+        height: rect.height,
+      });
+    }
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
+  const shouldPopout = isOverflowed && isHovered && popoutPos !== null;
+
   return (
-    <div className="flex flex-col select-none relative">
+    <div
+      className="flex flex-col select-none relative"
+      onMouseLeave={handleMouseLeave}
+    >
       <button
+        ref={buttonRef}
         type="button"
         onClick={handleClick}
-        title={node.title}
+        onMouseEnter={checkOverflow}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -114,11 +147,11 @@ function RecursiveTreeItem({ node, openSettingsTab, clearSession }: TreeItemProp
           }
         }}
         className={cn(
-          "flex items-center gap-1.5 px-1.5 py-1.5 rounded-md text-[11px] font-medium cursor-pointer transition-colors duration-200 ease-out group w-full text-left border-0 bg-transparent relative z-10 leading-snug",
+          "flex items-center gap-1 px-1 py-1.5 rounded-md text-xs font-normal cursor-pointer transition-all duration-150 ease-out group w-full text-left border-0 bg-transparent relative leading-snug",
           isActive
-            ? "bg-accent/80 text-foreground font-semibold shadow-2xs"
+            ? "bg-accent/80 text-foreground font-medium shadow-2xs"
             : isChildActive
-              ? "text-foreground font-medium hover:bg-accent/30"
+              ? "text-foreground font-normal hover:bg-accent/30"
               : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
         )}
       >
@@ -132,12 +165,46 @@ function RecursiveTreeItem({ node, openSettingsTab, clearSession }: TreeItemProp
           </span>
         )}
 
-        <span className="truncate">{node.title}</span>
+        <span
+          ref={textRef}
+          className="flex-1 min-w-0 truncate"
+        >
+          {node.title}
+        </span>
       </button>
+
+      {/* Floating Popout via Portal to completely bypass overflow/clipping containers */}
+      {shouldPopout && typeof document !== "undefined" &&
+        createPortal(
+          <div
+            style={{
+              position: "fixed",
+              top: `${popoutPos.top}px`,
+              left: `${popoutPos.left}px`,
+              minHeight: `${popoutPos.height}px`,
+            }}
+            onClick={handleClick}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={handleMouseLeave}
+            className="z-5000 flex items-center gap-1 px-1.5 py-1.5 rounded-md text-xs font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100"
+          >
+            {hasChildren ? (
+              <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 shrink-0">
+                {isOpen ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+              </span>
+            ) : (
+              <span className="size-3.5 flex items-center justify-center text-muted-foreground/50 shrink-0">
+                <span className="size-1 rounded-full bg-current opacity-70" />
+              </span>
+            )}
+            <span>{node.title}</span>
+          </div>,
+          document.body,
+        )}
 
       {/* Tree Indentation & Vertical Guide Connector Line */}
       {hasChildren && isOpen && (
-        <div className="flex flex-col relative ml-2.5 pl-2.5 my-0.5 space-y-0.5">
+        <div className="flex flex-col relative ml-1.5 pl-1.5 my-0.5 space-y-0.5">
           {/* Subtle Vertical Connector Guide Line */}
           <div className="absolute left-0 top-0 bottom-1 w-px bg-border/40" />
 
@@ -203,7 +270,7 @@ export function AppSidebar({ openSettingsTab, clearSession, ...props }: AppSideb
       </SidebarHeader>
 
       {/* Sidebar Content */}
-      <SidebarContent className="p-1.5 overflow-y-auto">
+      <SidebarContent className="p-1.5 overflow-y-auto overflow-x-visible">
         {loading ? (
           <div className="flex flex-col space-y-1.5 p-1">
             <Skeleton className="h-5 w-3/4 rounded-sm" />

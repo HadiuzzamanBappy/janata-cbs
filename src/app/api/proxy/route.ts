@@ -63,6 +63,32 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       data: body.data ?? {},
     };
 
+    // If modelSource is static, return offline fixtures immediately without waiting for gRPC timeout
+    const cleanModel = (body.controlName || "").trim().toUpperCase();
+    const modelTable = STATIC_TABLE_DATA[cleanModel];
+
+    if (appConfig.modelSource === "static" && modelTable) {
+      if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
+        return NextResponse.json({
+          status: "SUCCESS",
+          statusCode: 200,
+          message: "Record loaded from offline fixture",
+          data: modelTable.records[body.recordId.trim()],
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      if (modelTable.enquiryRows && modelTable.enquiryRows.length > 0) {
+        return NextResponse.json({
+          status: "SUCCESS",
+          statusCode: 200,
+          message: "Enquiry data loaded from offline fixture",
+          data: modelTable.enquiryRows,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
     try {
       const response = await dispatch(envelope, token);
       if (response && response.status === "SUCCESS") {
@@ -74,9 +100,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Graceful Fallback: Check local STATIC_TABLE_DATA fixture
-    const cleanModel = (body.controlName || "").trim().toUpperCase();
-    const modelTable = STATIC_TABLE_DATA[cleanModel];
-
     if (modelTable) {
       if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
         return NextResponse.json({

@@ -93,7 +93,7 @@ export function AppTabBar() {
         onMouseDown={handleMouseDown}
         onWheel={handleWheel}
         className={cn(
-          "flex-1 min-w-0 flex items-center gap-1 overflow-x-auto py-1 px-2 no-scrollbar h-full select-none",
+          "flex-1 min-w-0 flex items-center gap-1 overflow-x-auto py-1 px-3 no-scrollbar h-full select-none",
           isDragging ? "cursor-grabbing" : "cursor-grab",
         )}
       >

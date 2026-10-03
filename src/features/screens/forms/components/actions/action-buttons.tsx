@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserRights } from "@/hooks";
+import { cn } from "@/lib/utils";
 
 export interface ActionButtonsProps {
   mode: "IDLE" | "CREATE" | "EDIT" | "VIEW";
@@ -81,7 +82,7 @@ export function ActionButtons({
   // ==========================================
   if (mode === "IDLE") {
     return (
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         {/* Integrated Record Key Search Input with Arrow Dropdown anchor */}
         <div className="relative flex items-center">
           <form onSubmit={onSearchSubmit} className="relative flex items-center">
@@ -90,8 +91,27 @@ export function ActionButtons({
               placeholder="Search or enter ID..."
               value={searchVal}
               onChange={(e) => onSearchChange?.(e.target.value)}
-              className="h-8 w-36 sm:w-44 text-xs font-mono pr-8 bg-muted/20 focus-visible:bg-background"
+              className={cn(
+                "h-7 w-32 sm:w-40 text-xs font-mono bg-muted/20 focus-visible:bg-background",
+                searchVal ? "pr-12" : "pr-6"
+              )}
             />
+
+            {/* Clear Input Button (visible when input has text) */}
+            {searchVal && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onSearchChange?.("");
+                }}
+                className="absolute right-5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer"
+                aria-label="Clear input"
+              >
+                <X className="size-3" />
+              </button>
+            )}
 
             <DropdownMenu open={isDropdownOpen} onOpenChange={onDropdownOpenChange}>
               <DropdownMenuTrigger
@@ -102,10 +122,9 @@ export function ActionButtons({
                       e.preventDefault();
                       onSearchSubmit?.();
                     }}
-                    title="Open list of matching or all record IDs"
-                    className="absolute right-1 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-1 rounded cursor-pointer"
+                    className="absolute right-1 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer"
                   >
-                    <ChevronDown className="size-3.5" />
+                    <ChevronDown className="size-3" />
                   </button>
                 }
               />

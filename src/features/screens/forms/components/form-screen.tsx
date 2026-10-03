@@ -94,6 +94,10 @@ function getDefaultMoreActions(code: string): MoreActionItem[] {
 
 export type FormScreenProps = DynamicFormProps & {
   initialValues?: Record<string, unknown>;
+  /** Override starting screen mode — used by inline drill-down so form opens in VIEW/EDIT immediately */
+  initialScreenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+  /** Override starting record ID — used by inline drill-down to pre-seed the record key */
+  initialRecordId?: string;
   /** Optional override for the ⬆ Return action — used by inline popup drill-down to go back to the enquiry list */
   onReturn?: () => void;
 };
@@ -102,6 +106,8 @@ export function FormScreen({
   command,
   tabId,
   initialValues = EMPTY_INITIAL_VALUES,
+  initialScreenMode,
+  initialRecordId: initialRecordIdProp,
   onSuccess,
   onReturn,
 }: FormScreenProps) {
@@ -110,7 +116,9 @@ export function FormScreen({
   const currentTab = tabs.find((t) => t.id === tabId);
 
   // Read persisted screenMode and searchRecordId from tab state or URL query params (for popups)
+  // Priority: prop override → tab store → URL params → default
   const initialMode = React.useMemo(() => {
+    if (initialScreenMode) return initialScreenMode;
     if (currentTab?.screenMode) return currentTab.screenMode;
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
@@ -125,22 +133,35 @@ export function FormScreen({
       }
     }
     return "IDLE";
-  }, [currentTab]);
+  }, [initialScreenMode, currentTab]);
 
   const initialRecordId = React.useMemo(() => {
+    if (initialRecordIdProp) return initialRecordIdProp;
     if (currentTab?.searchRecordId) return currentTab.searchRecordId;
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       return p.get("recordId") || "";
     }
     return "";
-  }, [currentTab]);
+  }, [initialRecordIdProp, currentTab]);
 
   const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT" | "VIEW">(
     initialMode,
   );
   const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialRecordId);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+
+  // Check if currently mounted within a standalone popup window
+  const isPopup = React.useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.location.pathname.startsWith("/screen/") || !tabId;
+  }, [tabId]);
+
+  const handleExitPopup = React.useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.close();
+    }
+  }, []);
 
   const setScreenMode = React.useCallback(
     (mode: "IDLE" | "CREATE" | "EDIT" | "VIEW") => {
@@ -630,10 +651,11 @@ export function FormScreen({
             : []
         }
         moreActions={getDefaultMoreActions(schema.code)}
+        onExitPopup={isPopup ? handleExitPopup : undefined}
       />
 
       {/* Screen Body */}
-      <div className="flex-1 overflow-auto px-6 py-4">
+      <div className="flex-1 overflow-auto p-3">
         {screenMode === "IDLE" ? (
           <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
             <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">

@@ -1,7 +1,9 @@
 "use client";
 
+import { X } from "lucide-react";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { appConfig } from "@/lib/config";
 import { useWorkbenchStore } from "@/store";
 import { FormScreen } from "../../forms";
@@ -27,13 +29,10 @@ interface DrillRecord {
 
 export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenProps) {
   const { schema, loading, error, refetch } = useEnquirySchema(command);
-  const { addTab, tabs, updateTabState } = useWorkbenchStore();
+  const { tabs, updateTabState } = useWorkbenchStore();
   const currentTab = tabs.find((t) => t.id === tabId);
 
-  // Popup mode: tabId is absent — this screen runs standalone without a tab store
-  const isPopup = !tabId;
-
-  // Inline drill-down state: set when a record is opened from results in popup mode
+  // Inline drill-down state: set when a record is opened from the enquiry results
   const [drillRecord, setDrillRecord] = React.useState<DrillRecord | null>(null);
 
   // Restore step from tab state or URL query params (for popups)
@@ -106,6 +105,18 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
   const [currentCriteria, setCurrentCriteriaState] = React.useState<
     Record<string, { value: string; operand: SelectionOperand }>
   >(initialCriteria);
+
+  // Check if currently mounted within a standalone popup window
+  const isPopup = React.useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.location.pathname.startsWith("/screen/") || !tabId;
+  }, [tabId]);
+
+  const handleExitPopup = React.useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.close();
+    }
+  }, []);
 
   const setStep = React.useCallback(
     (newStep: "SELECTION" | "RESULTS") => {
@@ -310,77 +321,39 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
   };
 
   // View individual record callback from table CTA
+  // Always opens inline within the same screen (tab or popup) — CBS/Temenos drill-down style
   const handleViewRecord = (recordId: string, row: EnquiryRow) => {
     if (!schema) return;
     const targetCmd = resolveFormCmd(recordId);
-    const fullCmd = `${targetCmd},${recordId}`;
-
-    if (isPopup) {
-      // Popup mode: open inline within the same window (CBS/Temenos drill-down style)
-      setDrillRecord({
-        formCommand: fullCmd,
-        recordId,
-        screenMode: "VIEW",
-        formData: row as Record<string, unknown>,
-      });
-      toast.add({
-        title: "Viewing Record",
-        description: `Opened record #${recordId} in ${targetCmd} (View mode)`,
-        type: "info",
-      });
-    } else {
-      // Workbench mode: open as a new tab
-      addTab({
-        screenId: fullCmd,
-        title: `${targetCmd} #${recordId}`,
-        componentName: "DYNAMIC_FORM",
-        screenMode: "VIEW",
-        searchRecordId: recordId,
-        formData: row as Record<string, unknown>,
-      });
-      toast.add({
-        title: "Opening Record Details",
-        description: `Viewing record #${recordId} in ${targetCmd}`,
-        type: "info",
-      });
-    }
+    setDrillRecord({
+      formCommand: targetCmd,
+      recordId,
+      screenMode: "VIEW",
+      formData: row as Record<string, unknown>,
+    });
+    toast.add({
+      title: "Viewing Record",
+      description: `Opened record #${recordId} in ${targetCmd} (View mode)`,
+      type: "info",
+    });
   };
 
   // Edit individual record callback from table CTA
+  // Always opens inline within the same screen (tab or popup) — CBS/Temenos drill-down style
   const handleEditRecord = (recordId: string, row: EnquiryRow) => {
     if (!schema) return;
     const targetCmd = resolveFormCmd(recordId);
-    const fullCmd = `${targetCmd},${recordId}`;
-
-    if (isPopup) {
-      // Popup mode: open inline within the same window
-      setDrillRecord({
-        formCommand: fullCmd,
-        recordId,
-        screenMode: "EDIT",
-        formData: row as Record<string, unknown>,
-      });
-      toast.add({
-        title: "Editing Record",
-        description: `Opened record #${recordId} in ${targetCmd} (Edit mode)`,
-        type: "info",
-      });
-    } else {
-      // Workbench mode: open as a new tab
-      addTab({
-        screenId: fullCmd,
-        title: `Edit ${targetCmd} #${recordId}`,
-        componentName: "DYNAMIC_FORM",
-        screenMode: "EDIT",
-        searchRecordId: recordId,
-        formData: row as Record<string, unknown>,
-      });
-      toast.add({
-        title: "Editing Record",
-        description: `Opened record #${recordId} for edit in ${targetCmd}`,
-        type: "info",
-      });
-    }
+    setDrillRecord({
+      formCommand: targetCmd,
+      recordId,
+      screenMode: "EDIT",
+      formData: row as Record<string, unknown>,
+    });
+    toast.add({
+      title: "Editing Record",
+      description: `Opened record #${recordId} in ${targetCmd} (Edit mode)`,
+      type: "info",
+    });
   };
 
   const handleExportCSV = () => {
@@ -529,46 +502,82 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
   const endRecord = Math.min(startRecord + pageSize - 1, filteredRows.length);
   const pageRangeStr = filteredRows.length > 0 ? `${startRecord} - ${endRecord}` : "0";
 
-  // ── POPUP INLINE DRILL-DOWN: Show FormScreen within the same popup window ──
-  // When user clicks View/Edit in popup mode, drillRecord is set and we render
-  // the form inline. The form's ⬆ Return button clears drillRecord → back to list.
-  if (isPopup && drillRecord) {
-    return (
-      <div className={`flex flex-col h-full w-full bg-background ${className}`}>
-        {/* Slim breadcrumb bar: back to enquiry list */}
-        <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border/60 bg-muted/30 shrink-0">
-          <button
-            type="button"
-            onClick={() => setDrillRecord(null)}
-            className="flex items-center gap-1.5 text-xs font-mono text-primary hover:text-primary/80 transition-colors"
-          >
-            <span className="text-base leading-none">⬅</span>
-            <span>Back to {schema.code} list</span>
-          </button>
-          <span className="text-muted-foreground text-xs opacity-40 mx-1">/</span>
-          <span className="text-xs font-mono font-semibold text-foreground">
-            {drillRecord.formCommand} — {drillRecord.screenMode}
-          </span>
-        </div>
+  // ── INLINE DRILL-DOWN: Show FormScreen within the same screen (tab or popup) ──
+  // When user clicks View/Edit, drillRecord is set and we render the form inline.
+  // The breadcrumb ← button and the form's ⬆ Return button both clear drillRecord → back to list.
+  if (drillRecord) {
+    const modeBadgeColor =
+      drillRecord.screenMode === "VIEW"
+        ? "bg-sky-500/15 text-sky-400 border-sky-500/30"
+        : "bg-amber-500/15 text-amber-400 border-amber-500/30";
 
-        {/* FormScreen renders inline — onReturn / ⬆ Return button clears drill state */}
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <FormScreen
-            command={drillRecord.formCommand}
-            initialValues={drillRecord.formData}
-            onReturn={() => setDrillRecord(null)}
-            onSuccess={() => {
-              // After save: return to list automatically
-              setDrillRecord(null);
-              toast.add({
-                title: "Saved",
-                description: `Record saved. Returning to ${schema.code} list.`,
-                type: "success",
-              });
-            }}
-          />
+    return (
+      <TooltipProvider delay={150}>
+        <div className={`flex flex-col h-full w-full bg-background ${className}`}>
+          {/* Breadcrumb navigation bar */}
+          <nav className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border/60 bg-muted/20 shrink-0 select-none">
+            {/* Back crumb: Enquiry title */}
+            <button
+              type="button"
+              onClick={() => setDrillRecord(null)}
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 hover:underline underline-offset-2 transition-colors font-medium"
+            >
+              <span className="text-[11px] leading-none">◀</span>
+              <span>{schema.title}</span>
+            </button>
+
+            {/* Separator */}
+            <span className="text-muted-foreground/40 text-xs select-none">›</span>
+
+            {/* Current crumb: Record ID + mode badge */}
+            <span className="flex items-center gap-1.5 text-xs font-mono font-semibold text-foreground">
+              {drillRecord.recordId}
+              <span
+                className={`text-[9px] font-mono px-1 py-0 rounded border font-medium ${modeBadgeColor}`}
+              >
+                {drillRecord.screenMode}
+              </span>
+            </span>
+
+            {/* Exit Popup button in breadcrumb bar */}
+            {isPopup && (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <button
+                      type="button"
+                      onClick={handleExitPopup}
+                      className="ml-auto inline-flex items-center justify-center size-6 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  }
+                />
+                <TooltipContent className="text-xs">Exit Popup Window</TooltipContent>
+              </Tooltip>
+            )}
+          </nav>
+
+          {/* FormScreen renders inline — opens in the correct VIEW/EDIT state with record pre-loaded */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <FormScreen
+              command={drillRecord.formCommand}
+              initialValues={drillRecord.formData}
+              initialScreenMode={drillRecord.screenMode}
+              initialRecordId={drillRecord.recordId}
+              onReturn={() => setDrillRecord(null)}
+              onSuccess={() => {
+                setDrillRecord(null);
+                toast.add({
+                  title: "Saved",
+                  description: `Record saved. Returning to ${schema.title} list.`,
+                  type: "success",
+                });
+              }}
+            />
+          </div>
         </div>
-      </div>
+      </TooltipProvider>
     );
   }
 
@@ -597,6 +606,7 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
           onExportCSV={handleExportCSV}
           onExportHTML={handleExportHTML}
           onExportXML={handleExportXML}
+          onExitPopup={isPopup ? handleExitPopup : undefined}
         />
       )}
 

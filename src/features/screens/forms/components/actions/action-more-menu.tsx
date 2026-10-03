@@ -44,7 +44,7 @@ export function ActionMoreMenu({
             <Button
               variant="outline"
               size="sm"
-              className="h-8 px-2.5 text-xs gap-2 min-w-[180px] max-w-[220px] justify-between border-border bg-background hover:bg-muted/50 text-foreground shadow-xs"
+              className="h-8 px-2.5 text-xs gap-2 min-w-[180px] max-w-[220px] justify-between border-border bg-background hover:bg-muted/50 text-foreground shadow-xs shrink-0"
             >
               <span className="truncate">
                 {selectedAction ? selectedAction.label : "More Actions..."}

@@ -88,11 +88,11 @@ export function BranchSwitcher() {
           <Button
             variant="outline"
             size="sm"
-            className="h-8 px-2 sm:px-3 border-border/80 hover:bg-accent min-w-0"
+            className="h-7 px-2 border-border/80 hover:bg-accent min-w-0"
           />
         }
       >
-        <Building2 className="mr-2 size-3.5 shrink-0 text-muted-foreground" />
+        <Building2 className="mr-1.5 size-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate max-w-[140px] sm:max-w-[220px] text-xs font-medium">
           {branchLoading
             ? "Loading..."

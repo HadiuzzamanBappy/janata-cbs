@@ -20,6 +20,7 @@ export interface FieldFactoryProps {
   onChange: (name: string, value: unknown) => void;
   error?: string;
   disabled?: boolean;
+  mode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
 }
 
 export function FieldFactory({
@@ -28,8 +29,10 @@ export function FieldFactory({
   onChange,
   error,
   disabled = false,
+  mode = "EDIT",
 }: FieldFactoryProps) {
-  const isReadOnly = disabled || field.readOnly;
+  const isViewMode = mode === "VIEW";
+  const isReadOnly = disabled || field.readOnly || isViewMode;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(field.name, e.target.value);
@@ -86,7 +89,9 @@ export function FieldFactory({
           className="text-xs font-medium text-foreground flex items-center gap-1 leading-none select-none"
         >
           {field.label}
-          {field.required && <span className="text-destructive font-bold text-xs">*</span>}
+          {field.required && !isViewMode && (
+            <span className="text-destructive font-bold text-xs">*</span>
+          )}
         </Label>
       </div>
 
@@ -96,7 +101,24 @@ export function FieldFactory({
           :
         </span>
         <div className="flex-1 min-w-0 space-y-1">
-          {field.type === "select" ? (
+          {isViewMode ? (
+            <div
+              className={cn(
+                "min-h-8 flex items-center px-2.5 py-1 rounded-md bg-muted/30 border border-border/40 font-mono text-xs text-foreground select-text",
+                field.width === "lg"
+                  ? "w-full max-w-2xl"
+                  : field.width === "md"
+                    ? "w-full max-w-md"
+                    : "w-full max-w-xs",
+              )}
+            >
+              {value !== undefined && value !== null && value !== "" ? (
+                <span className="font-medium">{String(value)}</span>
+              ) : (
+                <span className="text-muted-foreground/60 italic text-[11px]">Not specified</span>
+              )}
+            </div>
+          ) : field.type === "select" ? (
             <Select
               disabled={isReadOnly}
               value={String(value ?? "")}
@@ -105,7 +127,7 @@ export function FieldFactory({
               <SelectTrigger
                 id={field.name}
                 className={cn(
-                  "h-8 text-xs md:text-xs",
+                  "h-8 text-xs font-mono bg-muted/20 focus-visible:bg-background",
                   field.width === "lg"
                     ? "w-full max-w-2xl"
                     : field.width === "md"
@@ -115,9 +137,9 @@ export function FieldFactory({
               >
                 <SelectValue placeholder={`Select ${field.label}`} />
               </SelectTrigger>
-              <SelectContent className="z-50">
+              <SelectContent className="z-50 font-mono text-xs">
                 {(field.options ?? []).map((opt) => (
-                  <SelectItem key={opt} value={opt} className="text-xs">
+                  <SelectItem key={opt} value={opt} className="text-xs font-mono">
                     {opt}
                   </SelectItem>
                 ))}
@@ -130,7 +152,7 @@ export function FieldFactory({
               onSelect={handleDateChange}
               placeholder={`Select ${field.label}`}
               className={cn(
-                "h-8 text-xs md:text-xs",
+                "h-8 text-xs font-mono bg-muted/20 focus-visible:bg-background",
                 field.width === "lg"
                   ? "w-full max-w-2xl"
                   : field.width === "md"
@@ -147,7 +169,7 @@ export function FieldFactory({
               onChange={handleNumberChange}
               placeholder={`Enter ${field.label}`}
               className={cn(
-                "h-8 text-xs md:text-xs",
+                "h-8 text-xs font-mono bg-muted/20 focus-visible:bg-background",
                 field.width === "lg"
                   ? "w-full max-w-2xl"
                   : field.width === "md"
@@ -164,7 +186,7 @@ export function FieldFactory({
               onChange={handleTextChange}
               placeholder={`Enter ${field.label}`}
               className={cn(
-                "h-8 text-xs md:text-xs",
+                "h-8 text-xs font-mono bg-muted/20 focus-visible:bg-background",
                 field.width === "lg"
                   ? "w-full max-w-2xl"
                   : field.width === "md"

@@ -63,7 +63,6 @@ export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchP
   const commandGuideInfo = useCommandGuide({
     searchQuery,
     allCommands,
-    userHasCommandLine,
   });
 
   const RIDASH_OPTIONS: RidashOption[] = React.useMemo(

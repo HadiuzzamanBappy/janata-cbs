@@ -41,14 +41,24 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
 
   const handleCloseTab = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    const hasUserInput =
-      tab.formData &&
-      Object.values(tab.formData).some((v) => v !== undefined && v !== null && v !== "");
 
-    if (hasUserInput) {
+    // VIEW mode tabs or IDLE mode tabs NEVER show a confirmation dialog
+    if (tab.screenMode === "VIEW" || tab.screenMode === "IDLE") {
+      removeTab(tab.id);
+      return;
+    }
+
+    // In EDIT or CREATE mode, only confirm if the user has actually modified/typed changes
+    const isDirty =
+      tab.isDirty === true ||
+      (tab.screenMode === "CREATE" &&
+        tab.formData &&
+        Object.values(tab.formData).some((v) => v !== undefined && v !== null && v !== ""));
+
+    if (isDirty) {
       confirm({
         title: `Close "${tab.title}"?`,
-        message: "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
+        message: "You have unsaved changes in this tab. Closing it will discard your edits.",
         variant: "destructive",
         confirmText: "Discard & Close",
         onConfirm: () => removeTab(tab.id),

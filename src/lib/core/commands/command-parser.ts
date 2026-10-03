@@ -140,15 +140,49 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   }
 
   // 4. Standard Application Syntax (Form / Workflow)
-  // Clean comma separation: "ACCOUNT,1001" -> ["ACCOUNT", "1001"]
-  const normalized = trimmed.includes(",")
-    ? trimmed.split(",").map((s) => s.trim())
-    : trimmed.split(/\s+/).map((s) => s.trim());
+  // Handles commands like:
+  // - "USER.MGT" -> Base app
+  // - "USER.MGT,NEW1" -> Versioned app (NEW1 is the version, not record ID)
+  // - "USER.MGT,NEW1 I USR001" -> Versioned app with Function I and Record ID USR001
+  // - "USER.MGT,USR001" -> Base app with Record ID USR001
+  // - "ACCOUNT I 1001" -> Function I and Record ID 1001
+  
+  // First, split by space into main tokens
+  const spaceTokens = trimmed.split(/\s+/).map((s) => s.trim());
+  const firstToken = spaceTokens[0].toUpperCase();
 
-  const app = normalized[0].toUpperCase();
+  let app = firstToken;
+  let remainingTokens = spaceTokens.slice(1);
 
-  // Basic check: application name must start with letter/alphanumeric or dot
-  if (!/^[A-Z][A-Z0-9._-]*$/i.test(app)) {
+  // If first token contains a comma: e.g. "USER.MGT,NEW1" or "ACCOUNT,1001"
+  if (firstToken.includes(",")) {
+    const commaParts = firstToken.split(",").map((s) => s.trim());
+    const baseApp = commaParts[0];
+    const afterComma = commaParts.slice(1).join(",");
+
+    // If there are additional space tokens (e.g. "USER.MGT,NEW1 I USR001"):
+    // Then "USER.MGT,NEW1" is unequivocally the versioned application command!
+    if (spaceTokens.length > 1) {
+      app = `${baseApp},${afterComma}`;
+    } else {
+      // If only "APPLICATION,SECOND" was provided:
+      // If the part after comma looks like a version identifier (starts with letters or not purely digits)
+      // or if it matches a known version pattern:
+      // Treat as versioned app if user explicitly wrote VERSION syntax or if SECOND is not a standard DB record ID
+      // Otherwise, "APP,RECORD_ID" opens that record.
+      if (/^[A-Z][A-Z0-9._-]*$/i.test(afterComma) && !afterComma.match(/^\d+$/) && afterComma.startsWith("NEW")) {
+        app = `${baseApp},${afterComma}`;
+      } else {
+        // Standard "APP,RECORD_ID"
+        app = baseApp;
+        remainingTokens = [afterComma, ...remainingTokens];
+      }
+    }
+  }
+
+  // Basic check: application name base must be valid
+  const baseCheck = app.split(",")[0];
+  if (!/^[A-Z][A-Z0-9._-]*$/i.test(baseCheck)) {
     return {
       raw: trimmed,
       type: "FORM",
@@ -160,8 +194,8 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // Case A: Just <APP> (e.g., "ACCOUNT") -> IDLE mode
-  if (normalized.length === 1) {
+  // Case A: Just <APP> or <APP,VERSION> (e.g., "USER.MGT", "USER.MGT,NEW1") -> IDLE mode
+  if (remainingTokens.length === 0) {
     return {
       raw: trimmed,
       type: "FORM",
@@ -172,9 +206,9 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // Case B: <APP> <TOKEN2> (e.g., "ACCOUNT I", "ACCOUNT 1001", "ACCOUNT,1001")
-  if (normalized.length === 2) {
-    const second = normalized[1].toUpperCase();
+  // Case B: <APP> <TOKEN2> (e.g., "USER.MGT I", "USER.MGT USR001")
+  if (remainingTokens.length === 1) {
+    const second = remainingTokens[0].toUpperCase();
 
     // Check if second token is a function code (R, I, D, A, S, H)
     if (VALID_FUNCTION_CODES.has(second as FunctionRightCode)) {
@@ -202,9 +236,9 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // Case C: <APP> <FUNCTION> <RECORD_ID> (e.g., "ACCOUNT I F3", "ACCOUNT S 1001", "ACCOUNT A 1001")
-  const second = normalized[1].toUpperCase();
-  const third = normalized.slice(2).join(" ").trim();
+  // Case C: <APP> <FUNCTION> <RECORD_ID> (e.g., "USER.MGT,NEW1 I USR001", "ACCOUNT S 1001")
+  const second = remainingTokens[0].toUpperCase();
+  const third = remainingTokens.slice(1).join(" ").trim();
 
   if (VALID_FUNCTION_CODES.has(second as FunctionRightCode)) {
     const fnCode = second as FunctionRightCode;
@@ -221,8 +255,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   }
 
   // Case D: <APP> <PART1> <PART2> without valid function code
-  // Example: "ACCOUNT 1001 EXTRA" -> treated as recordId "1001 EXTRA" in EDIT mode
-  const recordId = normalized.slice(1).join(" ");
+  const recordId = remainingTokens.join(" ");
   return {
     raw: trimmed,
     type: "FORM",

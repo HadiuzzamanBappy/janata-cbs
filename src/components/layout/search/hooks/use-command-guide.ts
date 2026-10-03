@@ -7,21 +7,20 @@ import type { CommandGuideInfo } from "../types";
 interface UseCommandGuideOptions {
   searchQuery: string;
   allCommands: SystemCommandItem[];
-  userHasCommandLine: boolean;
 }
 
 export function useCommandGuide({
   searchQuery,
   allCommands,
-  userHasCommandLine,
 }: UseCommandGuideOptions): CommandGuideInfo | null {
   return React.useMemo(() => {
-    if (!userHasCommandLine) return null;
     const trimmedLeft = searchQuery.trimStart();
-    const parts = trimmedLeft.split(/\s+/);
-    if (parts.length < 2) return null;
+    if (!trimmedLeft) return null;
 
+    // Check if query starts with a known command or application token
+    const parts = trimmedLeft.split(/\s+/);
     const potentialApp = parts[0].toUpperCase();
+
     // Exclude special prefixes
     if (
       potentialApp.startsWith("SETTINGS:") ||
@@ -41,6 +40,13 @@ export function useCommandGuide({
         c.aliases?.some((a) => a.toUpperCase() === potentialApp),
     );
 
+    // If there is no trailing space or second token yet:
+    // Only show guidance if the first token is an EXACT match to an application/command
+    const hasSpace = /\s/.test(trimmedLeft);
+    if (!hasSpace && !matched) {
+      return null;
+    }
+
     if (!matched && !/^[A-Z][A-Z0-9._-]*$/i.test(potentialApp)) {
       return null;
     }
@@ -54,5 +60,5 @@ export function useCommandGuide({
       typedFn,
       typedRecordId,
     };
-  }, [allCommands, searchQuery, userHasCommandLine]);
+  }, [allCommands, searchQuery]);
 }

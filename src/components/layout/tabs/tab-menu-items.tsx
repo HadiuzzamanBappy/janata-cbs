@@ -28,8 +28,17 @@ export function TabMenuItems({
   const isRightmost = tabs[tabs.length - 1]?.id === tab.id;
 
   const hasDirtyData = (t: WorkbenchTab) => {
+    // VIEW mode and IDLE mode tabs never require a confirmation dialog
+    if (t.screenMode === "VIEW" || t.screenMode === "IDLE") {
+      return false;
+    }
+
+    // In EDIT or CREATE mode, only require confirm if user modified/typed changes
     return (
-      t.formData && Object.values(t.formData).some((v) => v !== undefined && v !== null && v !== "")
+      t.isDirty === true ||
+      (t.screenMode === "CREATE" &&
+        t.formData &&
+        Object.values(t.formData).some((v) => v !== undefined && v !== null && v !== ""))
     );
   };
 
@@ -93,6 +102,11 @@ export function TabMenuItems({
       target: "popup",
       screenMode: tab.screenMode,
       searchRecordId: tab.searchRecordId,
+      // Enquiry state: pass step, criteria, pagination so popup restores exactly
+      step: tab.enquiryState?.step,
+      criteria: tab.enquiryState?.criteria as Record<string, { value: string; operand: string }> | undefined,
+      currentPage: tab.enquiryState?.currentPage,
+      pageSize: tab.enquiryState?.pageSize,
       formData: tab.formData,
       addTab,
     });

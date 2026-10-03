@@ -274,14 +274,28 @@ export function ActionButtons({
               variant="default"
               size="icon-sm"
               onClick={() => onSubmit?.()}
-              disabled={!onSubmit || submitting || (!rights.canInput && !rights.canAmend)}
+              disabled={
+                mode === "VIEW" ||
+                !onSubmit ||
+                submitting ||
+                (mode === "CREATE" && !rights.canInput) ||
+                (mode === "EDIT" && !rights.canAmend)
+              }
               className="size-8 shadow-xs shrink-0 disabled:opacity-40"
             >
               <Check className="size-3.5 stroke-[2.5]" />
             </Button>
           }
         />
-        <TooltipContent className="text-xs">Save / Commit Record (✓)</TooltipContent>
+        <TooltipContent className="text-xs">
+          {mode === "VIEW"
+            ? "Disabled in View mode (Read-Only)"
+            : mode === "CREATE" && !rights.canInput
+              ? "Requires Input ('I') permission"
+              : mode === "EDIT" && !rights.canAmend
+                ? "Requires Amend ('A') permission"
+                : "Save / Commit Record (✓)"}
+        </TooltipContent>
       </Tooltip>
 
       {/* 2. Validate Onsite Rules (?✓) */}
@@ -293,7 +307,13 @@ export function ActionButtons({
               variant="outline"
               size="icon-sm"
               onClick={() => onValidate?.()}
-              disabled={!onValidate || submitting || (!rights.canInput && !rights.canAmend)}
+              disabled={
+                mode === "VIEW" ||
+                !onValidate ||
+                submitting ||
+                (mode === "CREATE" && !rights.canInput) ||
+                (mode === "EDIT" && !rights.canAmend)
+              }
               className="size-8 shrink-0 disabled:opacity-40 font-bold"
             >
               <span className="text-[12px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -302,7 +322,9 @@ export function ActionButtons({
             </Button>
           }
         />
-        <TooltipContent className="text-xs">Validate Rules &amp; Integrity (?✓)</TooltipContent>
+        <TooltipContent className="text-xs">
+          {mode === "VIEW" ? "Disabled in View mode" : "Validate Rules & Integrity (?✓)"}
+        </TooltipContent>
       </Tooltip>
 
       {/* 3. Hold Draft (❚❚ / Pause) */}
@@ -314,7 +336,12 @@ export function ActionButtons({
               variant="outline"
               size="icon-sm"
               onClick={() => onHold?.()}
-              disabled={!onHold || submitting || !rights.canHold}
+              disabled={
+                mode === "VIEW" ||
+                !onHold ||
+                submitting ||
+                !rights.canHold
+              }
               className="size-8 shrink-0 disabled:opacity-40"
             >
               <Pause className="size-3.5 fill-current" />
@@ -322,7 +349,11 @@ export function ActionButtons({
           }
         />
         <TooltipContent className="text-xs">
-          {!rights.canHold ? "Requires Hold ('H') permission" : "Hold Draft (❚❚)"}
+          {mode === "VIEW"
+            ? "Disabled in View mode"
+            : !rights.canHold
+              ? "Requires Hold ('H') permission"
+              : "Hold Draft (❚❚)"}
         </TooltipContent>
       </Tooltip>
 
@@ -335,7 +366,12 @@ export function ActionButtons({
               variant="outline"
               size="icon-sm"
               onClick={() => onDelete?.()}
-              disabled={!onDelete || submitting || !rights.canDelete}
+              disabled={
+                mode !== "EDIT" ||
+                !onDelete ||
+                submitting ||
+                !rights.canDelete
+              }
               className="size-8 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 shrink-0 disabled:opacity-40"
             >
               <X className="size-3.5 stroke-[2.5]" />
@@ -343,7 +379,13 @@ export function ActionButtons({
           }
         />
         <TooltipContent className="text-xs">
-          {!rights.canDelete ? "Requires Delete ('D') permission" : "Delete (✕)"}
+          {mode === "VIEW"
+            ? "Disabled in View mode"
+            : mode === "CREATE"
+              ? "Cannot delete an unsaved new record"
+              : !rights.canDelete
+                ? "Requires Delete ('D') permission"
+                : "Delete / Reverse Record (✕)"}
         </TooltipContent>
       </Tooltip>
 
@@ -356,7 +398,12 @@ export function ActionButtons({
               variant="outline"
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
-              disabled={!onAuthorizeReverse || submitting || !rights.canAuthorise}
+              disabled={
+                mode !== "EDIT" ||
+                !onAuthorizeReverse ||
+                submitting ||
+                !rights.canAuthorise
+              }
               className="size-8 shrink-0 disabled:opacity-40"
             >
               <span className="text-[12px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -366,7 +413,13 @@ export function ActionButtons({
           }
         />
         <TooltipContent className="text-xs">
-          {!rights.canAuthorise ? "Requires Authorise ('A') permission" : "Authorize Record (✓✓)"}
+          {mode === "VIEW"
+            ? "Disabled in View mode"
+            : mode === "CREATE"
+              ? "Cannot authorize an uncommitted record"
+              : !rights.canAuthorise
+                ? "Requires Authorise ('A') permission"
+                : "Authorize Record (✓✓)"}
         </TooltipContent>
       </Tooltip>
 
@@ -379,7 +432,12 @@ export function ActionButtons({
               variant="outline"
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
-              disabled={!onAuthorizeReverse || submitting || (!rights.canAuthorise && !rights.canReverse)}
+              disabled={
+                mode !== "EDIT" ||
+                !onAuthorizeReverse ||
+                submitting ||
+                (!rights.canAuthorise && !rights.canReverse)
+              }
               className="size-8 shrink-0 disabled:opacity-40"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -389,9 +447,13 @@ export function ActionButtons({
           }
         />
         <TooltipContent className="text-xs">
-          {!rights.canAuthorise && !rights.canReverse
-            ? "Requires Authorise/Reverse ('A'/'R') permission"
-            : "Authorize Reversal (✕✓)"}
+          {mode === "VIEW"
+            ? "Disabled in View mode"
+            : mode === "CREATE"
+              ? "Cannot reverse an uncommitted record"
+              : !rights.canAuthorise && !rights.canReverse
+                ? "Requires Authorise/Reverse ('A'/'R') permission"
+                : "Authorize Reversal (✕✓)"}
         </TooltipContent>
       </Tooltip>
 

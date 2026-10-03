@@ -6,8 +6,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  ExternalLink,
-  Search,
+  Edit3,
+  Eye,
 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,7 @@ interface EnquiryTableProps {
   columns: EnquiryColumn[];
   rows: EnquiryRow[];
   onViewRecord?: (recordId: string, row: EnquiryRow) => void;
+  onEditRecord?: (recordId: string, row: EnquiryRow) => void;
   pageSize?: number;
   onPageSizeChange?: (size: number) => void;
   currentPage?: number;
@@ -45,6 +46,7 @@ export function EnquiryTable({
   columns,
   rows,
   onViewRecord,
+  onEditRecord,
   pageSize: controlledPageSize,
   onPageSizeChange,
   currentPage: controlledPage,
@@ -93,14 +95,22 @@ export function EnquiryTable({
   const endIndex = Math.min(startIndex + pageSize, sortedRows.length);
   const paginatedRows = sortedRows.slice(startIndex, endIndex);
 
-  const handleDrilldown = (targetCommand?: string, recordId?: string) => {
+  const handleDrilldown = (
+    targetCommand?: string,
+    recordId?: string,
+    mode: "VIEW" | "EDIT" = "VIEW",
+    row?: EnquiryRow,
+  ) => {
     if (!recordId) return;
-    const cmd = targetCommand || "USER.RECORD";
+    const cmd = targetCommand || "ACCOUNT";
     const fullCmd = `${cmd},${recordId}`;
     addTab({
       screenId: fullCmd,
-      title: `${cmd} #${recordId}`,
+      title: `${mode === "EDIT" ? "Edit " : ""}${cmd} #${recordId}`,
       componentName: "DYNAMIC_FORM",
+      screenMode: mode,
+      searchRecordId: recordId,
+      formData: (row as Record<string, unknown>) || {},
     });
   };
 
@@ -109,7 +119,15 @@ export function EnquiryTable({
       onViewRecord(recordId, row);
     } else {
       // Default fallback: open record in form tab
-      handleDrilldown("ACCOUNT", recordId);
+      handleDrilldown("ACCOUNT", recordId, "VIEW", row);
+    }
+  };
+
+  const handleEdit = (recordId: string, row: EnquiryRow) => {
+    if (onEditRecord) {
+      onEditRecord(recordId, row);
+    } else {
+      handleDrilldown("ACCOUNT", recordId, "EDIT", row);
     }
   };
 
@@ -129,21 +147,15 @@ export function EnquiryTable({
             <Table>
               <TableHeader className="bg-muted/40 sticky top-0 z-10 shadow-xs">
                 <TableRow className="hover:bg-transparent">
-                  {/* Dedicated View Column Header */}
-                  <TableHead className="w-10 px-2 py-2 text-center text-xs font-semibold text-muted-foreground">
-                    <span>View</span>
-                  </TableHead>
-
                   {columns.map((col) => (
                     <TableHead
                       key={col.id}
-                      className={`text-xs font-semibold text-foreground py-2.5 px-3 h-9 ${
-                        col.align === "right"
-                          ? "text-right"
-                          : col.align === "center"
-                            ? "text-center"
-                            : "text-left"
-                      }`}
+                      className={`text-xs font-semibold text-foreground py-2.5 px-3 h-9 ${col.align === "right"
+                        ? "text-right"
+                        : col.align === "center"
+                          ? "text-center"
+                          : "text-left"
+                        }`}
                       style={{ width: col.width }}
                     >
                       <button
@@ -156,6 +168,11 @@ export function EnquiryTable({
                       </button>
                     </TableHead>
                   ))}
+
+                  {/* Dedicated Actions Column Header (View & Edit) on the Right */}
+                  <TableHead className="w-16 px-2 py-2 text-center text-xs font-semibold text-muted-foreground">
+                    <span>Actions</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
 
@@ -166,29 +183,8 @@ export function EnquiryTable({
                   return (
                     <TableRow
                       key={row.id || index}
-                      className="hover:bg-muted/30 transition-colors border-b border-border/40"
+                      className="hover:bg-muted/30 transition-colors border-b border-border/40 font-mono text-xs"
                     >
-                      {/* View Action Column (Temenos Magnifier Icon) */}
-                      <TableCell className="w-10 px-2 py-1.5 text-center">
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={
-                              <button
-                                type="button"
-                                onClick={() => handleView(recordKey, row)}
-                                className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                title={`View details for ${recordKey}`}
-                              >
-                                <Search className="size-3.5" />
-                              </button>
-                            }
-                          />
-                          <TooltipContent className="text-xs">
-                            View Record #{recordKey}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-
                       {columns.map((col) => {
                         const val = row[col.id];
                         const displayVal = val !== undefined && val !== null ? String(val) : "";
@@ -196,28 +192,14 @@ export function EnquiryTable({
                         return (
                           <TableCell
                             key={col.id}
-                            className={`py-2 px-3 text-xs ${col.isMono ? "font-mono" : ""} ${
-                              col.align === "right"
-                                ? "text-right"
-                                : col.align === "center"
-                                  ? "text-center"
-                                  : "text-left"
-                            }`}
+                            className={`py-2 px-3 text-xs ${col.isMono ? "font-mono" : ""} ${col.align === "right"
+                              ? "text-right"
+                              : col.align === "center"
+                                ? "text-center"
+                                : "text-left"
+                              }`}
                           >
-                            {col.isDrilldown ? (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  handleDrilldown(col.drilldownTargetCommand, String(row.id))
-                                }
-                                className="h-6 px-1.5 font-mono text-primary font-bold hover:underline gap-1 -ml-1 text-xs"
-                              >
-                                <span>{displayVal}</span>
-                                <ExternalLink className="size-3 text-primary/70" />
-                              </Button>
-                            ) : col.id === "status" ? (
+                            {col.id === "status" ? (
                               <Badge
                                 variant={
                                   displayVal === "ACTIVE" || displayVal === "AUTHORIZED"
@@ -234,6 +216,48 @@ export function EnquiryTable({
                           </TableCell>
                         );
                       })}
+
+                      {/* Action Column with View and Edit CTA Buttons on the Right */}
+                      <TableCell className="w-16 px-2 py-1.5 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Tooltip>
+                            <TooltipTrigger
+                              render={
+                                <button
+                                  type="button"
+                                  onClick={() => handleView(recordKey, row)}
+                                  className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                  title={`View details for #${recordKey}`}
+                                >
+                                  <Eye className="size-3.5" />
+                                </button>
+                              }
+                            />
+                            <TooltipContent className="text-xs">
+                              View Record #{recordKey}
+                            </TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger
+                              render={
+                                <button
+                                  type="button"
+                                  onClick={() => handleEdit(recordKey, row)}
+                                  className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                  title={`Edit record #${recordKey}`}
+                                >
+                                  <Edit3 className="size-3.5" />
+                                </button>
+                              }
+                            />
+                            <TooltipContent className="text-xs">
+                              Edit Record #{recordKey}
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      </TableCell>
+
                     </TableRow>
                   );
                 })}

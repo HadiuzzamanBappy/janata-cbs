@@ -46,13 +46,13 @@ export function DocPortalLayout({
         portalTitle={portalSidebarTitle}
         portalHomeHref={portalHomeHref}
         navGroups={navGroups}
+        onOpenSearch={() => setSearchOpen(true)}
       />
 
       {/* Main Container Right (Top Header + Scrollable Content) */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
         {/* Fixed Top Header */}
         <DocHeader
-          onOpenSearch={() => setSearchOpen(true)}
           portalSubFolder={portalSubFolder}
           portalTitle={portalHeaderTitle}
           navGroups={navGroups}

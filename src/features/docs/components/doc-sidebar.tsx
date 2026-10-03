@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, FileText } from "lucide-react";
+import { BookOpen, FileText, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -18,12 +18,14 @@ export interface DocSidebarProps {
   portalTitle?: string;
   portalHomeHref?: string;
   navGroups?: NavGroup[];
+  onOpenSearch?: () => void;
 }
 
 export function DocSidebar({
   portalTitle = "CBS - Developer",
   portalHomeHref = "/devs",
   navGroups = DEV_NAV_GROUPS,
+  onOpenSearch,
 }: DocSidebarProps) {
   const pathname = usePathname();
 
@@ -48,17 +50,32 @@ export function DocSidebar({
 
   return (
     <aside className="w-80 h-screen border-r bg-card/50 backdrop-blur-xs flex flex-col shrink-0 z-30 select-none">
-      {/* Sidebar Header */}
-      <div className="h-14 px-5 flex items-center justify-between border-b shrink-0">
+      {/* Sidebar Header with minimal search command on the right */}
+      <div className="h-14 px-4 flex items-center justify-between border-b shrink-0 gap-2">
         <Link
           href={portalHomeHref}
-          className="flex items-center gap-2.5 font-bold text-base text-primary hover:opacity-90 transition no-underline"
+          className="flex items-center gap-2.5 font-bold text-sm text-primary hover:opacity-90 transition no-underline min-w-0 truncate"
         >
-          <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+          <div className="p-1.5 rounded-lg bg-primary/10 text-primary shrink-0">
             <BookOpen className="h-4 w-4" />
           </div>
-          <span>{portalTitle}</span>
+          <span className="truncate">{portalTitle}</span>
         </Link>
+
+        {/* Minimal Search Command Trigger on Sidebar Header Right */}
+        {onOpenSearch && (
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md border border-input/60 bg-muted/40 text-muted-foreground hover:bg-accent hover:text-foreground hover:border-input transition cursor-pointer text-xs shrink-0"
+            title="Search documentation (⌘K / Ctrl+K)"
+          >
+            <Search className="h-3 w-3 shrink-0" />
+            <span className="font-mono text-[10px] tracking-tight bg-background/80 border border-border/80 px-1 py-0.5 rounded leading-none text-muted-foreground">
+              ⌘K
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Sidebar Nav Items (Accordion Driven) */}

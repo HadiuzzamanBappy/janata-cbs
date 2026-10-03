@@ -31,14 +31,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
           {/* Header Branding */}
           <div className="relative z-10 flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md shrink-0 border border-white/50">
+            <div className="size-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md shrink-0 border border-border/40">
               <Image src={logo} alt="Janata Bank PLC" className="size-full object-contain" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-base tracking-tight text-white leading-none">
+              <span className="font-bold text-base tracking-tight text-primary-foreground leading-none">
                 Janata Bank PLc.
               </span>
-              <span className="text-[11px] text-white/80 font-mono mt-1">
+              <span className="text-[11px] text-primary-foreground/80 font-mono mt-1">
                 Your committed partner in progress
               </span>
             </div>
@@ -46,24 +46,24 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
           {/* Hero Content */}
           <div className="relative z-10 my-8 space-y-4">
-            <p className="text-xs leading-relaxed text-white/85">
+            <p className="text-xs leading-relaxed text-primary-foreground/85">
               Formed in 1972. State-owned commercial banking infrastructure powering financial
               transactions across Bangladesh.
             </p>
 
             {/* Voucher Date Badge */}
             <div className="pt-2">
-              <div className="inline-flex flex-col rounded-lg bg-white/10 border border-white/20 px-3.5 py-2.5 font-mono">
-                <span className="text-[10px] text-white/70 uppercase tracking-wider">
+              <div className="inline-flex flex-col rounded-lg bg-primary-foreground/10 border border-primary-foreground/20 px-3.5 py-2.5 font-mono">
+                <span className="text-[10px] text-primary-foreground/70 uppercase tracking-wider">
                   Active Business Date
                 </span>
-                <span className="text-lg font-bold text-white mt-0.5">{currentDate}</span>
+                <span className="text-lg font-bold text-primary-foreground mt-0.5">{currentDate}</span>
               </div>
             </div>
           </div>
 
           {/* Bottom Footer */}
-          <p className="relative z-10 font-mono text-[11px] uppercase tracking-[0.18em] opacity-70">
+          <p className="relative z-10 font-mono text-[11px] uppercase tracking-[0.18em] text-primary-foreground/70">
             Core banking · Motijheel, Dhaka
           </p>
         </section>

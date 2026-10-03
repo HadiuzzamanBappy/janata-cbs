@@ -30,10 +30,27 @@ interface TabItemProps {
   tab: WorkbenchTab;
   index: number;
   isActive: boolean;
-  hasMovedRef: React.RefObject<boolean>;
+  showSeparator?: boolean;
+  isDraggingThis?: boolean;
+  isDragOver?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: () => void;
+  onDragEnd?: () => void;
 }
 
-export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
+export function TabItem({
+  tab,
+  index,
+  isActive,
+  showSeparator,
+  isDraggingThis,
+  isDragOver,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+}: TabItemProps) {
   const { setActiveTab, removeTab } = useWorkbenchStore();
   const { confirm } = useAlertStore();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -74,11 +91,28 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
         render={
           <div
             data-tab-id={tab.id}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData("text/plain", tab.id);
+              e.dataTransfer.effectAllowed = "move";
+              onDragStart?.();
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              onDragOver?.(e);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              onDrop?.();
+            }}
+            onDragEnd={onDragEnd}
             className={cn(
-              "group relative flex items-center rounded-md text-xs font-medium transition-all duration-150 border whitespace-nowrap shrink-0 h-8 select-none",
+              "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-9",
               isActive
-                ? "bg-background text-foreground border-border shadow-2xs font-semibold ring-1 ring-border/50"
-                : "bg-muted/40 text-muted-foreground border-border/40 hover:bg-muted/80 hover:text-foreground hover:border-border/60",
+                ? "bg-background text-foreground font-semibold rounded-t-lg z-20 border-t border-l border-r border-border border-b-0 shadow-xs overflow-hidden after:absolute after:top-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:rounded-t-lg"
+                : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t-md border border-transparent",
+              isDraggingThis && "opacity-40 scale-[0.98] ring-1 ring-primary/40",
+              isDragOver && !isDraggingThis && "border-primary/60 bg-primary/10 shadow-inner",
             )}
           />
         }
@@ -86,11 +120,7 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
         {/* Primary Tab Select Button */}
         <button
           type="button"
-          onClick={(e) => {
-            if (hasMovedRef.current) {
-              e.preventDefault();
-              return;
-            }
+          onClick={() => {
             setActiveTab(tab.id);
           }}
           onMouseDown={(e) => {
@@ -113,14 +143,17 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
               handleCloseTab(e);
             }
           }}
-          className="flex items-center gap-2 pl-2.5 pr-1.5 py-1 h-full text-left truncate cursor-pointer bg-transparent border-0 outline-none"
+          className="flex items-center gap-2 pl-3 pr-1.5 py-1 h-full text-left truncate cursor-pointer bg-transparent border-0 outline-none"
         >
           <span className="truncate max-w-[160px] text-xs flex items-center gap-1.5">
             <Badge
-              variant="secondary"
+              variant={isActive ? "default" : "secondary"}
               className={cn(
-                "h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center opacity-70 border-transparent transition-opacity",
-                isDropdownOpen || "group-hover:opacity-0",
+                "h-4 min-w-[16px] px-1 rounded-xs text-[10px] font-mono flex items-center justify-center transition-opacity",
+                isActive
+                  ? "bg-primary/15 text-primary border-transparent font-semibold"
+                  : "opacity-70 border-transparent",
+                isDropdownOpen ? "opacity-0" : "group-hover:opacity-0",
               )}
             >
               {universalTabNumber}
@@ -129,7 +162,7 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
           </span>
         </button>
 
-        {/* More Actions (...) Button */}
+        {/* More Actions (...) Button - Replaces number badge on hover */}
         <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
           <DropdownMenuTrigger
             render={
@@ -139,7 +172,7 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
                   e.stopPropagation();
                 }}
                 className={cn(
-                  "absolute left-2.5 size-4 rounded-xs items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 m-auto cursor-pointer",
+                  "absolute left-3 size-4 rounded-xs items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer z-10",
                   isDropdownOpen ? "flex" : "hidden group-hover:flex",
                 )}
                 title={`Options for ${tab.title}`}
@@ -159,24 +192,32 @@ export function TabItem({ tab, index, isActive, hasMovedRef }: TabItemProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Tab Actions */}
-        <div
-          className={cn(
-            "flex items-center pr-1.5",
-            !isActive && "opacity-60 group-hover:opacity-100",
-          )}
-        >
+        {/* Tab Close Action - Always Visible */}
+        <div className="flex items-center pr-2 pl-0.5">
           <button
             type="button"
             onClick={(e) => {
               handleCloseTab(e);
             }}
-            className="size-4 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 cursor-pointer"
+            className={cn(
+              "size-4 rounded-full flex items-center justify-center transition-colors shrink-0 cursor-pointer",
+              isActive
+                ? "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/80 group-hover:text-muted-foreground",
+            )}
             aria-label={`Close tab ${tab.title}`}
           >
             <X className="size-3" />
           </button>
         </div>
+
+        {/* Vertical Separator between inactive tabs (never around active tab) */}
+        {showSeparator && (
+          <span
+            aria-hidden="true"
+            className="absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-[1px] bg-border/60 pointer-events-none"
+          />
+        )}
       </ContextMenuTrigger>
 
       <ContextMenuContent className="w-52 text-xs">

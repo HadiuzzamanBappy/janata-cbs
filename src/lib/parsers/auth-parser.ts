@@ -39,10 +39,10 @@ export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): Pars
   const initLogin = extractBooleanField(fields, "initLogin", false);
   const userStatus = extractNumberField(fields, "userStatus", 1);
 
-  // Extract roles
-  let userRole = ["TELLER"];
+  // Extract roles (only if present on CBS wire response)
+  let userRole: string[] = [];
   if (Array.isArray(fields.userRole)) {
-    userRole = fields.userRole.map(String);
+    userRole = fields.userRole.map(String).filter(Boolean);
   } else if (typeof fields.userRole === "string" && fields.userRole.trim()) {
     userRole = [fields.userRole.trim()];
   }

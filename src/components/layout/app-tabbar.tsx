@@ -4,47 +4,17 @@ import { XCircle } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { useAlertStore, useWorkbenchStore } from "@/store";
 import { TabItem } from "./tabs/tab-item";
 import { TabWindowMenu } from "./tabs/tab-window-menu";
 
 export function AppTabBar() {
-  const { tabs, activeTabId, closeAllTabs } = useWorkbenchStore();
+  const { tabs, activeTabId, closeAllTabs, reorderTabs } = useWorkbenchStore();
   const { confirm } = useAlertStore();
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = React.useState(false);
-  const isMouseDownRef = React.useRef(false);
-  const startXRef = React.useRef(0);
-  const scrollLeftRef = React.useRef(0);
-  const hasMovedRef = React.useRef(false);
-
-  // Global Mouse Drag Listeners for 100% Reliable Drag-to-Scroll
-  React.useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!isMouseDownRef.current || !scrollRef.current) return;
-      const dx = e.clientX - startXRef.current;
-      if (Math.abs(dx) > 3) {
-        hasMovedRef.current = true;
-      }
-      scrollRef.current.scrollLeft = scrollLeftRef.current - dx * 1.2;
-    };
-
-    const handleGlobalMouseUp = () => {
-      if (isMouseDownRef.current) {
-        isMouseDownRef.current = false;
-        setIsDragging(false);
-      }
-    };
-
-    window.addEventListener("mousemove", handleGlobalMouseMove);
-    window.addEventListener("mouseup", handleGlobalMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", handleGlobalMouseMove);
-      window.removeEventListener("mouseup", handleGlobalMouseUp);
-    };
-  }, []);
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = React.useState<number | null>(null);
 
   // Auto-scroll active tab into view when activeTabId changes
   React.useEffect(() => {
@@ -64,48 +34,72 @@ export function AppTabBar() {
     return null;
   }
 
-  // Mouse Drag-to-Scroll Handlers (Only on left-click button 0)
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.button !== 0) return;
-    if (!scrollRef.current) return;
-    if ((e.target as HTMLElement).closest("button")) return;
-
-    isMouseDownRef.current = true;
-    hasMovedRef.current = false;
-    startXRef.current = e.clientX;
-    scrollLeftRef.current = scrollRef.current.scrollLeft;
-    setIsDragging(true);
-  };
-
-  // Convert Vertical Wheel Scroll to Horizontal Tab Scroll
+  // Convert Vertical Wheel Scroll to Horizontal Tab Scroll and lock vertical movement
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft += e.deltaY;
+      scrollRef.current.scrollTop = 0;
     }
   };
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDrop = (index: number) => {
+    if (draggedIndex !== null && draggedIndex !== index) {
+      if (typeof reorderTabs === "function") {
+        reorderTabs(draggedIndex, index);
+      }
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
   return (
-    <div className="h-10 border-b border-border/60 bg-muted/30 flex items-center justify-between select-none relative overflow-hidden w-full max-w-full min-w-0 shrink-0">
-      {/* Left Section: Scrollable & Draggable Tabs Strip */}
+    <div className="h-10 border-b border-border/60 bg-muted/40 flex items-end justify-between select-none relative w-full max-w-full min-w-0 shrink-0 overflow-hidden">
+      {/* Left Section: Scrollable Tabs Strip */}
       <section
         ref={scrollRef}
         aria-label="Tab list scroll container"
-        onMouseDown={handleMouseDown}
         onWheel={handleWheel}
-        className={cn(
-          "flex-1 min-w-0 flex items-center gap-1 overflow-x-auto py-1 px-3 no-scrollbar h-full select-none",
-          isDragging ? "cursor-grabbing" : "cursor-grab",
-        )}
+        className="flex-1 min-w-0 flex items-end gap-0 overflow-x-auto overflow-y-hidden pt-1 px-0 no-scrollbar h-full select-none cursor-default"
       >
-        {tabs.map((tab, index) => (
-          <TabItem
-            key={tab.id}
-            tab={tab}
-            index={index}
-            isActive={tab.id === activeTabId}
-            hasMovedRef={hasMovedRef}
-          />
-        ))}
+        {tabs.map((tab, index) => {
+          const isActive = tab.id === activeTabId;
+          const nextTab = tabs[index + 1];
+          // Show separator between inactive tab and next inactive tab (never around active tab)
+          const showSeparator = !isActive && Boolean(nextTab && nextTab.id !== activeTabId);
+
+          return (
+            <TabItem
+              key={tab.id}
+              tab={tab}
+              index={index}
+              isActive={isActive}
+              showSeparator={showSeparator}
+              isDraggingThis={draggedIndex === index}
+              isDragOver={dragOverIndex === index}
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={() => handleDrop(index)}
+              onDragEnd={handleDragEnd}
+            />
+          );
+        })}
       </section>
 
       {/* Right Section: Fixed Hug-Content Action Bar */}

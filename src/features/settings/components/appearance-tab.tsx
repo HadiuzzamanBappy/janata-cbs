@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/components/layout/header/theme-toggle";
+import { ThemeToggle } from "@/components/layout/sidebar/theme-toggle";
 import { appConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 

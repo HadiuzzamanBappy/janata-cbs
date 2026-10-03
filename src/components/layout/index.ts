@@ -5,12 +5,9 @@ export * from "./app-search";
 export * from "./app-sidebar";
 export * from "./app-tabbar";
 export * from "./app-timeout-watcher";
-// Layout sections
-export * from "./app-topbar";
-// Header widgets
-export * from "./header/branch-switcher";
-export * from "./header/theme-toggle";
-export * from "./header/user-menu";
+// Sidebar widgets
+export * from "./sidebar/branch-switcher";
+export * from "./sidebar/theme-toggle";
 // Tab widgets
 export * from "./tabs/tab-item";
 export * from "./tabs/tab-window-menu";

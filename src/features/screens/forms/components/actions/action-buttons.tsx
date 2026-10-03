@@ -92,7 +92,7 @@ export function ActionButtons({
               value={searchVal}
               onChange={(e) => onSearchChange?.(e.target.value)}
               className={cn(
-                "h-7 w-32 sm:w-40 text-xs font-mono bg-muted/20 focus-visible:bg-background",
+                "h-8 w-32 sm:w-40 text-xs font-mono bg-muted/20 focus-visible:bg-background",
                 searchVal ? "pr-12" : "pr-6"
               )}
             />

@@ -90,6 +90,7 @@ export const appConfig = {
     lastActivity: "cbs:session:last_activity",
     workbenchTabs: "cbs:workbench:tabs",
     themeAccent: "cbs:theme:accent",
+    sidebarState: "cbs:sidebar:state",
     idleWarningWindowMs: 60 * 1000, // 60s warning before timeout
   },
 } as const;

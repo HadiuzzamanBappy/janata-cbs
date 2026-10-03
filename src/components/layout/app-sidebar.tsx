@@ -20,6 +20,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarRail,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,7 +31,7 @@ import { useHotkeys } from "@/hooks";
 import { appConfig } from "@/lib/config";
 import { logger } from "@/lib/logger";
 import type { MenuItem } from "@/lib/schemas";
-import { cn } from "@/lib/utils";
+import { cn, toTitleCase } from "@/lib/utils";
 import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
 
 export interface TreeNode {
@@ -251,11 +252,13 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
   const [settingsTab, setSettingsTab] = React.useState("profile");
 
   const { user, currentBranch, setSession, setBranch, logout } = useSessionStore();
+  const [userLoading, setUserLoading] = React.useState<boolean>(!user);
   const { confirm: confirmAlert } = useAlertStore();
 
   React.useEffect(() => {
     // Hydrate User Session
     if (!user) {
+      setUserLoading(true);
       fetch(appConfig.routes.api.session)
         .then((res) => res.json())
         .then((json) => {
@@ -266,7 +269,10 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
             }
           }
         })
-        .catch((err) => logger.error("Failed to hydrate session", err, "SIDEBAR"));
+        .catch((err) => logger.error("Failed to hydrate session", err, "SIDEBAR"))
+        .finally(() => setUserLoading(false));
+    } else {
+      setUserLoading(false);
     }
   }, [user, currentBranch, setSession, setBranch]);
 
@@ -296,14 +302,14 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       });
   }, []);
 
-  const displayUser = user?.fullName;
+  const displayUser = user?.fullName ? toTitleCase(user.fullName) : "";
   const displayId = user?.userId;
   const displayRole = user?.userRole?.join(", ") || user?.userRole?.[0];
   const businessDate = user?.txnDate;
 
   return (
     <>
-      <Sidebar collapsible="icon" className="border-r border-border/60" {...props}>
+      <Sidebar collapsible="icon" className="border-r border-sidebar-border shadow-xs" {...props}>
         {/* Sidebar Header: In expanded state, shows logo + title on left, Search icon & Toggle on right.
             In collapsed state, shows logo with toggle overlay/hover on top */}
         <SidebarHeader className="h-10 shrink-0 border-b border-border/60 p-0 flex flex-row items-center justify-between group-data-[collapsible=icon]:justify-center">
@@ -421,15 +427,20 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
                 variant="outline"
                 size="sm"
                 onClick={() => openSettingsTab("profile")}
+                disabled={userLoading}
                 className="flex-1 h-7 px-2 justify-start gap-1.5 min-w-0 text-xs font-normal border-border/80 hover:bg-accent"
-                title={`User: ${displayUser || displayId || "User"}${displayRole ? ` (${displayRole})` : ""}${businessDate ? ` • ${businessDate}` : ""} — Click to open settings`}
+                title={userLoading ? "Loading user session..." : `User: ${displayUser || displayId || "User"}${displayRole ? ` (${displayRole})` : ""}${businessDate ? ` • ${businessDate}` : ""} — Click to open settings`}
               >
                 <div className="size-4 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <User className="size-2.5" />
                 </div>
-                <span className="truncate text-xs text-foreground font-medium flex-1 text-left">
-                  {displayUser || displayId || "User"}
-                </span>
+                {userLoading ? (
+                  <Skeleton className="h-3.5 w-24 rounded" />
+                ) : (
+                  <span className="truncate text-xs text-foreground font-medium flex-1 text-left">
+                    {displayUser || displayId || "User"}
+                  </span>
+                )}
               </Button>
 
               {/* Theme Toggle Button */}
@@ -520,6 +531,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
             </TooltipProvider>
           </div>
         </SidebarFooter>
+        <SidebarRail />
       </Sidebar>
 
       {/* Global Search Dialog */}

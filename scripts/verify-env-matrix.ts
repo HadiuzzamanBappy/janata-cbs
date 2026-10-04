@@ -92,9 +92,9 @@ suite("2. Wire Payload Domain Parsers", () => {
     return parsed.currUser.userId === "ZZ0284590" && parsed.currUser.accessibility === "RIDASH";
   });
 
-  test("parseBranchesWirePayload extracts list of branches (recordId JB9999)", () => {
+  test("parseBranchesWirePayload extracts list of branches (recordId JB0001)", () => {
     const branches = parseBranchesWirePayload(STATIC_BRANCH_RESPONSE.data);
-    return branches.length >= 4 && branches[0].recordId === "JB9999";
+    return branches.length >= 4 && branches[0].recordId === "JB0001";
   });
 
   test("parseControlsWirePayload extracts system commands from control payload", () => {
@@ -226,22 +226,42 @@ suite("4. Banking-Grade Logger & PII Redaction", () => {
 suite("Phase 1: CBS Command Grammar Parser", () => {
   test("parses pure application code into IDLE mode", () => {
     const cmd = parseCbsCommand("ACCOUNT");
-    return cmd.isValid && cmd.type === "FORM" && cmd.application === "ACCOUNT" && cmd.screenMode === "IDLE";
+    return (
+      cmd.isValid &&
+      cmd.type === "FORM" &&
+      cmd.application === "ACCOUNT" &&
+      cmd.screenMode === "IDLE"
+    );
   });
 
   test("parses comma-separated application and recordId into EDIT mode", () => {
     const cmd = parseCbsCommand("ACCOUNT,1001");
-    return cmd.isValid && cmd.application === "ACCOUNT" && cmd.recordId === "1001" && cmd.screenMode === "EDIT";
+    return (
+      cmd.isValid &&
+      cmd.application === "ACCOUNT" &&
+      cmd.recordId === "1001" &&
+      cmd.screenMode === "EDIT"
+    );
   });
 
   test("parses space-separated application and recordId into EDIT mode", () => {
     const cmd = parseCbsCommand("CUSTOMER 2002");
-    return cmd.isValid && cmd.application === "CUSTOMER" && cmd.recordId === "2002" && cmd.screenMode === "EDIT";
+    return (
+      cmd.isValid &&
+      cmd.application === "CUSTOMER" &&
+      cmd.recordId === "2002" &&
+      cmd.screenMode === "EDIT"
+    );
   });
 
   test("parses application with function code (I) into CREATE mode", () => {
     const cmd = parseCbsCommand("ACCOUNT I");
-    return cmd.isValid && cmd.application === "ACCOUNT" && cmd.functionCode === "I" && cmd.screenMode === "CREATE";
+    return (
+      cmd.isValid &&
+      cmd.application === "ACCOUNT" &&
+      cmd.functionCode === "I" &&
+      cmd.screenMode === "CREATE"
+    );
   });
 
   test("parses application with function (I) and new ID placeholder (F3)", () => {
@@ -279,7 +299,12 @@ suite("Phase 1: CBS Command Grammar Parser", () => {
 
   test("parses ENQ enquiry queries correctly", () => {
     const cmd = parseCbsCommand("ENQ USER.LIST");
-    return cmd.isValid && cmd.type === "ENQUIRY" && cmd.application === "USER.LIST" && cmd.screenMode === "VIEW";
+    return (
+      cmd.isValid &&
+      cmd.type === "ENQUIRY" &&
+      cmd.application === "USER.LIST" &&
+      cmd.screenMode === "VIEW"
+    );
   });
 
   test("parses SETTINGS:<TAB> shortcuts into SETTINGS type", () => {
@@ -363,7 +388,9 @@ suite("Phase 2: User Profile & Function Rights Enforcement Validator", () => {
     };
     const parsed = parseCbsCommand("ACCOUNT I F3");
     const result = validateCommandForUser(parsed, tellerWithCLI);
-    return !result.allowed && Boolean(result.reason?.includes("User lacks Input / Create ('I') rights"));
+    return (
+      !result.allowed && Boolean(result.reason?.includes("User lacks Input / Create ('I') rights"))
+    );
   });
 
   test("allows permitted function for user (e.g. has 'S')", () => {
@@ -385,8 +412,6 @@ suite("Phase 2: User Profile & Function Rights Enforcement Validator", () => {
     );
   });
 });
-
-
 
 // ============================================================================
 // Execution Summary

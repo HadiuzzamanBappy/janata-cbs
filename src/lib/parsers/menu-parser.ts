@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { unwrapRecordsPayload } from "@/lib/grpc/struct";
 import {
   type MenuItem,
   menuItemSchema,
@@ -70,19 +71,7 @@ export function parseMNU(
     return { success: true, data: [] };
   }
 
-  let rawList: unknown[] = [];
-
-  if (Array.isArray(rawPayload)) {
-    rawList = rawPayload;
-  } else if (typeof rawPayload === "object" && rawPayload !== null) {
-    const obj = rawPayload as Record<string, unknown>;
-    const fields = (obj.fields || obj) as Record<string, unknown>;
-    const records = fields.records as Record<string, unknown> | undefined;
-    const listValue = records?.list_value as Record<string, unknown> | undefined;
-    if (Array.isArray(listValue?.values)) {
-      rawList = listValue.values;
-    }
-  }
+  const rawList = unwrapRecordsPayload(rawPayload);
 
   if (!Array.isArray(rawList)) {
     return {

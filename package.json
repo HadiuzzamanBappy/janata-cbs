@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "verify:matrix": "tsx scripts/verify-env-matrix.ts",
     "cache:clear": "tsx scripts/clear-cache.ts",
+    "cache:inspect": "tsx scripts/inspect-cache.ts",
     "proto-gen": "tsx scripts/proto-gen.ts",
     "ui:add": "npx shadcn@latest add"
   },

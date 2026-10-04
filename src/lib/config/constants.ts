@@ -51,7 +51,7 @@ export const appConfig = {
     rateLimitWindowSec: 60,
     cookieName: "sid",
     initLoginCookie: "initLogin",
-    sessionPrefix: "sess:",
+    sessionPrefix: `${env.REDIS_KEY_PREFIX}:sess:`,
     sessionMaxAgeSeconds: (env.NEXT_PUBLIC_LOGOUT_TIME + 2) * 60,
     minPasswordLength: 6,
   },

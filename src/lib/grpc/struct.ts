@@ -79,11 +79,29 @@ export function unwrapRecordsPayload(data: unknown): unknown[] {
 
   if (typeof data === "object" && data !== null) {
     const obj = data as Record<string, unknown>;
-    const fields = obj.fields as Record<string, unknown> | undefined;
-    const records = fields?.records as Record<string, unknown> | undefined;
-    const listValue = records?.list_value as Record<string, unknown> | undefined;
 
-    if (Array.isArray(listValue?.values)) return listValue.values;
+    // Case 1: Already unwrapped by ts-proto (obj.records is a direct array)
+    if (Array.isArray(obj.records)) {
+      return obj.records;
+    }
+
+    // Case 2: obj.records wrapped in list_value
+    const directRecords = obj.records as Record<string, unknown> | undefined;
+    if (directRecords && typeof directRecords === "object") {
+      const listVal = directRecords.list_value as Record<string, unknown> | undefined;
+      if (Array.isArray(listVal?.values)) return listVal.values;
+    }
+
+    // Case 3: Canonical protobuf wrapper (obj.fields.records...)
+    const fields = obj.fields as Record<string, unknown> | undefined;
+    if (fields && typeof fields === "object") {
+      if (Array.isArray(fields.records)) {
+        return fields.records;
+      }
+      const records = fields.records as Record<string, unknown> | undefined;
+      const listValue = records?.list_value as Record<string, unknown> | undefined;
+      if (Array.isArray(listValue?.values)) return listValue.values;
+    }
   }
 
   return [];

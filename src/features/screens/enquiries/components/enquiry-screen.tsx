@@ -1,9 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { appConfig } from "@/lib/config";
 import { useWorkbenchStore } from "@/store";
 import { FormScreen } from "../../forms";
@@ -106,17 +104,6 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
     Record<string, { value: string; operand: SelectionOperand }>
   >(initialCriteria);
 
-  // Check if currently mounted within a standalone popup window
-  const isPopup = React.useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.location.pathname.startsWith("/screen/") || !tabId;
-  }, [tabId]);
-
-  const handleExitPopup = React.useCallback(() => {
-    if (typeof window !== "undefined") {
-      window.close();
-    }
-  }, []);
 
   const setStep = React.useCallback(
     (newStep: "SELECTION" | "RESULTS") => {
@@ -512,72 +499,52 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
         : "bg-amber-500/15 text-amber-400 border-amber-500/30";
 
     return (
-      <TooltipProvider delay={150}>
-        <div className={`flex flex-col h-full w-full bg-background ${className}`}>
-          {/* Breadcrumb navigation bar */}
-          <nav className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border/60 bg-muted/20 shrink-0 select-none">
-            {/* Back crumb: Enquiry title */}
-            <button
-              type="button"
-              onClick={() => setDrillRecord(null)}
-              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 hover:underline underline-offset-2 transition-colors font-medium"
+      <div className={`flex flex-col h-full w-full bg-background ${className}`}>
+        {/* Breadcrumb navigation bar */}
+        <nav className="flex items-center gap-1.5 px-3 py-1.5 border-b border-border/60 bg-muted/20 shrink-0 select-none">
+          {/* Back crumb: Enquiry title */}
+          <button
+            type="button"
+            onClick={() => setDrillRecord(null)}
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 hover:underline underline-offset-2 transition-colors font-medium"
+          >
+            <span className="text-[11px] leading-none">◀</span>
+            <span>{schema.title}</span>
+          </button>
+
+          {/* Separator */}
+          <span className="text-muted-foreground/40 text-xs select-none">›</span>
+
+          {/* Current crumb: Record ID + mode badge */}
+          <span className="flex items-center gap-1.5 text-xs font-mono font-semibold text-foreground">
+            {drillRecord.recordId}
+            <span
+              className={`text-[9px] font-mono px-1 py-0 rounded border font-medium ${modeBadgeColor}`}
             >
-              <span className="text-[11px] leading-none">◀</span>
-              <span>{schema.title}</span>
-            </button>
-
-            {/* Separator */}
-            <span className="text-muted-foreground/40 text-xs select-none">›</span>
-
-            {/* Current crumb: Record ID + mode badge */}
-            <span className="flex items-center gap-1.5 text-xs font-mono font-semibold text-foreground">
-              {drillRecord.recordId}
-              <span
-                className={`text-[9px] font-mono px-1 py-0 rounded border font-medium ${modeBadgeColor}`}
-              >
-                {drillRecord.screenMode}
-              </span>
+              {drillRecord.screenMode}
             </span>
+          </span>
+        </nav>
 
-            {/* Exit Popup button in breadcrumb bar */}
-            {isPopup && (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <button
-                      type="button"
-                      onClick={handleExitPopup}
-                      className="ml-auto inline-flex items-center justify-center size-6 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-                    >
-                      <X className="size-3.5" />
-                    </button>
-                  }
-                />
-                <TooltipContent className="text-xs">Exit Popup Window</TooltipContent>
-              </Tooltip>
-            )}
-          </nav>
-
-          {/* FormScreen renders inline — opens in the correct VIEW/EDIT state with record pre-loaded */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <FormScreen
-              command={drillRecord.formCommand}
-              initialValues={drillRecord.formData}
-              initialScreenMode={drillRecord.screenMode}
-              initialRecordId={drillRecord.recordId}
-              onReturn={() => setDrillRecord(null)}
-              onSuccess={() => {
-                setDrillRecord(null);
-                toast.add({
-                  title: "Saved",
-                  description: `Record saved. Returning to ${schema.title} list.`,
-                  type: "success",
-                });
-              }}
-            />
-          </div>
+        {/* FormScreen renders inline — opens in the correct VIEW/EDIT state with record pre-loaded */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <FormScreen
+            command={drillRecord.formCommand}
+            initialValues={drillRecord.formData}
+            initialScreenMode={drillRecord.screenMode}
+            initialRecordId={drillRecord.recordId}
+            onReturn={() => setDrillRecord(null)}
+            onSuccess={() => {
+              setDrillRecord(null);
+              toast.add({
+                title: "Saved",
+                description: `Record saved. Returning to ${schema.title} list.`,
+                type: "success",
+              });
+            }}
+          />
         </div>
-      </TooltipProvider>
+      </div>
     );
   }
 
@@ -606,7 +573,6 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
           onExportCSV={handleExportCSV}
           onExportHTML={handleExportHTML}
           onExportXML={handleExportXML}
-          onExitPopup={isPopup ? handleExitPopup : undefined}
         />
       )}
 

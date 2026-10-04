@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import * as React from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +36,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
           setOldUserName(data.user.userId || "");
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleChangeUsername = async (e: React.FormEvent) => {
@@ -147,45 +147,43 @@ export function ChangePassword({ command: _command }: { command?: string }) {
   };
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-xl space-y-3">
       {/* Change Sign-on Name Section */}
-      <div className="bg-background rounded-lg border border-border/50 p-6 shadow-sm">
-        <h3 className="text-sm font-semibold mb-4">Change Sign-on Name</h3>
+      <div className="bg-background rounded-lg border border-border/50 p-3.5 shadow-xs">
+        <h3 className="text-xs font-semibold mb-2.5 text-foreground">Change Sign-on Name</h3>
 
         {unameError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{unameError}</AlertDescription>
+          <Alert variant="destructive" className="mb-3 py-2 px-3 text-xs">
+            <AlertDescription className="text-xs">{unameError}</AlertDescription>
           </Alert>
         )}
 
         {unameSuccess && (
-          <Alert className="mb-6 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-400">
-            <AlertTitle>Success</AlertTitle>
-            <AlertDescription>{unameSuccess}</AlertDescription>
+          <Alert className="mb-3 py-2 px-3 text-xs border-emerald-500/30 text-emerald-600 bg-emerald-500/10 dark:text-emerald-400">
+            <AlertDescription className="text-xs">{unameSuccess}</AlertDescription>
           </Alert>
         )}
 
-        <form onSubmit={handleChangeUsername} className="space-y-3 max-w-md">
+        <form onSubmit={handleChangeUsername} className="space-y-2.5 max-w-sm">
           <div className="space-y-1">
-            <Label className="font-medium text-xs">Old Sign-on Name</Label>
-            <Input value={oldUserName} disabled className="bg-muted/50 h-9 text-xs" />
+            <Label className="text-[11px] font-medium text-muted-foreground">Old Sign-on Name</Label>
+            <Input value={oldUserName} disabled className="bg-muted/40 h-8 text-xs font-mono" />
           </div>
 
-          <div className="space-y-1 pt-1">
-            <Label className="font-medium text-xs">
+          <div className="space-y-1">
+            <Label className="text-[11px] font-medium text-foreground">
               New Sign-on Name <span className="text-destructive">*</span>
             </Label>
             <Input
               value={newUserName}
               onChange={(e) => setNewUserName(e.target.value)}
               required
-              className="h-9 text-xs"
+              className="h-8 text-xs font-mono"
             />
           </div>
 
           <div className="space-y-1">
-            <Label className="font-medium text-xs">
+            <Label className="text-[11px] font-medium text-foreground">
               Password (to confirm) <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -193,18 +191,18 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="h-9 text-xs"
+              className="h-8 text-xs"
             />
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               type="submit"
               size="sm"
               disabled={unameLoading}
-              className="w-full sm:w-auto h-9 text-xs font-medium"
+              className="h-7.5 px-3 text-xs font-medium"
             >
-              {unameLoading ? <Loader2 className="size-3.5 animate-spin mr-2" /> : null}
+              {unameLoading ? <Loader2 className="size-3 animate-spin mr-1.5" /> : null}
               Change Sign-on Name
             </Button>
           </div>
@@ -212,26 +210,24 @@ export function ChangePassword({ command: _command }: { command?: string }) {
       </div>
 
       {/* Change Password Section */}
-      <div className="bg-background rounded-lg border border-border/50 p-6 shadow-sm">
-        <h3 className="text-sm font-semibold mb-4">Change Password</h3>
+      <div className="bg-background rounded-lg border border-border/50 p-3.5 shadow-xs">
+        <h3 className="text-xs font-semibold mb-2.5 text-foreground">Change Password</h3>
 
         {passError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{passError}</AlertDescription>
+          <Alert variant="destructive" className="mb-3 py-2 px-3 text-xs">
+            <AlertDescription className="text-xs">{passError}</AlertDescription>
           </Alert>
         )}
 
         {passSuccess && (
-          <Alert className="mb-6 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-400">
-            <AlertTitle>Success</AlertTitle>
-            <AlertDescription>{passSuccess}</AlertDescription>
+          <Alert className="mb-3 py-2 px-3 text-xs border-emerald-500/30 text-emerald-600 bg-emerald-500/10 dark:text-emerald-400">
+            <AlertDescription className="text-xs">{passSuccess}</AlertDescription>
           </Alert>
         )}
 
-        <form onSubmit={handleChangePassword} className="space-y-3 max-w-md">
+        <form onSubmit={handleChangePassword} className="space-y-2.5 max-w-sm">
           <div className="space-y-1">
-            <Label className="font-medium text-xs">
+            <Label className="text-[11px] font-medium text-foreground">
               Old Password <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -239,12 +235,12 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               value={oldPass}
               onChange={(e) => setOldPass(e.target.value)}
               required
-              className="h-9 text-xs"
+              className="h-8 text-xs"
             />
           </div>
 
           <div className="space-y-1">
-            <Label className="font-medium text-xs">
+            <Label className="text-[11px] font-medium text-foreground">
               New Password <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -252,12 +248,12 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               value={newPass}
               onChange={(e) => setNewPass(e.target.value)}
               required
-              className="h-9 text-xs"
+              className="h-8 text-xs"
             />
           </div>
 
           <div className="space-y-1">
-            <Label className="font-medium text-xs">
+            <Label className="text-[11px] font-medium text-foreground">
               Confirm New Password <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -265,18 +261,18 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               value={confPass}
               onChange={(e) => setConfPass(e.target.value)}
               required
-              className="h-9 text-xs"
+              className="h-8 text-xs"
             />
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               type="submit"
               size="sm"
               disabled={passLoading}
-              className="w-full sm:w-auto h-9 text-xs font-medium"
+              className="h-7.5 px-3 text-xs font-medium"
             >
-              {passLoading ? <Loader2 className="size-3.5 animate-spin mr-2" /> : null}
+              {passLoading ? <Loader2 className="size-3 animate-spin mr-1.5" /> : null}
               Change Password
             </Button>
           </div>

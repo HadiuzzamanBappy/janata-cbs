@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ChevronDown, LifeBuoy } from "lucide-react";
+import { CheckCircle2, ChevronDown } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,7 +102,7 @@ export function ActionMoreMenu({
                   : false)
               }
               variant="default"
-              className="size-7 rounded shrink-0 shadow-xs disabled:opacity-40"
+              className="h-7 w-9 rounded shrink-0 shadow-xs disabled:opacity-40"
             >
               <CheckCircle2 className="size-3.5" />
             </Button>
@@ -113,24 +113,6 @@ export function ActionMoreMenu({
             ? `Execute: ${selectedAction.label}`
             : "Select an action from More Actions to enable"}
         </TooltipContent>
-      </Tooltip>
-
-      {/* Temenos Support / Help LifeBuoy Icon Button */}
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              className="size-7 rounded shrink-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
-              aria-label="Online Help"
-            >
-              <LifeBuoy className="size-4" />
-            </Button>
-          }
-        />
-        <TooltipContent className="text-xs">Online Documentation &amp; Help</TooltipContent>
       </Tooltip>
     </>
   );

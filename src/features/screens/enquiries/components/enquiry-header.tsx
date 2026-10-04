@@ -6,7 +6,6 @@ import {
   FileCode,
   FileSpreadsheet,
   FileText,
-  LifeBuoy,
   Printer,
   RefreshCw,
   Search,
@@ -69,7 +68,7 @@ export function EnquiryHeader({
                   size="icon-sm"
                   onClick={onRefresh}
                   disabled={!onRefresh}
-                  className="size-7 rounded shadow-xs shrink-0"
+                  className="h-7 w-9 rounded shadow-xs shrink-0"
                 >
                   <RefreshCw className="size-3" />
                 </Button>
@@ -88,7 +87,7 @@ export function EnquiryHeader({
                   size="icon-sm"
                   onClick={onBackToSelection}
                   disabled={!onBackToSelection}
-                  className="size-7 rounded shadow-xs shrink-0"
+                  className="h-7 w-9 rounded shadow-xs shrink-0"
                 >
                   <Search className="size-3" />
                 </Button>
@@ -148,24 +147,6 @@ export function EnquiryHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* 4. Support / Help LifeBuoy Icon Button */}
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  type="button"
-                  size="icon-sm"
-                  variant="ghost"
-                  className="size-7 rounded shrink-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                  aria-label="Online Help"
-                >
-                  <LifeBuoy className="size-4" />
-                </Button>
-              }
-            />
-            <TooltipContent className="text-xs">Online Documentation &amp; Help</TooltipContent>
-          </Tooltip>
         </div>
 
         {/* ROW 2: Ultra-compact Temenos Record Title */}

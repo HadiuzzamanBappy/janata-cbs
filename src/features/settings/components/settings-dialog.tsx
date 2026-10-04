@@ -23,6 +23,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store";
 import type { SettingsTabId } from "../types";
 import { AppearanceTab } from "./appearance-tab";
@@ -79,29 +80,36 @@ export function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 w-[95vw] sm:max-w-[95vw] md:max-w-[80vw] lg:max-w-4xl h-[85vh] md:h-[75vh] max-h-[800px] flex rounded-xl">
+      <DialogContent className="overflow-hidden p-0 w-[92vw] sm:max-w-2xl md:max-w-3xl h-[70vh] max-h-[580px] flex rounded-xl border border-border/60 shadow-lg">
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <DialogDescription className="sr-only">
           Customize your system settings and profile.
         </DialogDescription>
         <SidebarProvider
           className="items-start flex-1 min-h-0"
-          style={{ "--sidebar-width": "14rem" } as React.CSSProperties}
+          style={{ "--sidebar-width": "11.5rem" } as React.CSSProperties}
         >
-          <Sidebar className="border-r border-border/50 h-full bg-sidebar/50">
-            <SidebarContent>
-              <SidebarGroup>
+          <Sidebar className="border-r border-border/50 h-full bg-muted/20 shrink-0">
+            <SidebarContent className="p-1">
+              <SidebarGroup className="p-1">
                 <SidebarGroupContent>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-0.5">
                     {data.nav.map((item) => (
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton
                           isActive={item.id === activeTab}
                           onClick={() => setActiveTab(item.id)}
-                          className="cursor-pointer"
+                          className={cn(
+                            "cursor-pointer text-xs h-8 px-2.5 rounded-md gap-2 font-medium transition-colors",
+                            item.id === activeTab
+                              ? "bg-primary/10 text-primary font-semibold"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                          )}
                         >
-                          {item.icon}
-                          <span>{item.name}</span>
+                          <span className="[&>svg]:size-3.5 shrink-0 text-muted-foreground group-data-[active=true]/menu-button:text-primary">
+                            {item.icon}
+                          </span>
+                          <span className="truncate">{item.name}</span>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
@@ -109,34 +117,38 @@ export function SettingsDialog({
                 </SidebarGroupContent>
               </SidebarGroup>
             </SidebarContent>
-            <SidebarFooter className="p-4 border-t border-border/50">
+            <SidebarFooter className="p-2 border-t border-border/40">
               <SidebarMenuButton
                 onClick={logout}
-                className="cursor-pointer text-destructive hover:bg-destructive/10 hover:text-destructive gap-2"
+                className="cursor-pointer text-destructive/90 hover:bg-destructive/10 hover:text-destructive gap-2 text-xs h-8 px-2.5 rounded-md transition-colors"
               >
-                <LogOut className="size-4" />
-                <span>Sign Out</span>
+                <LogOut className="size-3.5" />
+                <span className="font-medium">Sign Out</span>
               </SidebarMenuButton>
             </SidebarFooter>
           </Sidebar>
-          <main className="flex h-full flex-1 flex-col overflow-hidden bg-surface min-w-0">
-            <header className="flex h-12 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-border/50">
-              <div className="flex items-center gap-2 px-4">
-                <SidebarTrigger className="md:hidden" />
+          <main className="flex h-full flex-1 flex-col overflow-hidden bg-background min-w-0">
+            <header className="flex h-10 shrink-0 items-center justify-between gap-2 px-3.5 border-b border-border/50 bg-muted/10">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger className="md:hidden size-7" />
                 <Breadcrumb>
-                  <BreadcrumbList>
+                  <BreadcrumbList className="text-xs">
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink className="cursor-default">Settings</BreadcrumbLink>
+                      <BreadcrumbLink className="cursor-default text-muted-foreground/70">
+                        Settings
+                      </BreadcrumbLink>
                     </BreadcrumbItem>
-                    <BreadcrumbSeparator className="hidden md:block" />
+                    <BreadcrumbSeparator className="hidden md:block text-muted-foreground/40" />
                     <BreadcrumbItem>
-                      <BreadcrumbPage>{activeNavItem.name}</BreadcrumbPage>
+                      <BreadcrumbPage className="font-medium text-foreground">
+                        {activeNavItem.name}
+                      </BreadcrumbPage>
                     </BreadcrumbItem>
                   </BreadcrumbList>
                 </Breadcrumb>
               </div>
             </header>
-            <div className="flex flex-1 flex-col overflow-y-auto p-6">
+            <div className="flex flex-1 flex-col overflow-y-auto p-4 scrollbar-thin">
               {activeTab === "profile" && <ProfileTab />}
 
               {activeTab === "security" && <SecurityTab />}

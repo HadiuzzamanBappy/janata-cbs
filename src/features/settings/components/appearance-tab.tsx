@@ -31,47 +31,47 @@ export function AppearanceTab() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-xl space-y-3">
       {/* Light / Dark Mode Toggle */}
-      <div className="flex items-center justify-between p-4 bg-background rounded-lg border border-border/50 shadow-xs">
+      <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border/50 shadow-xs">
         <div>
-          <h4 className="font-medium text-sm">Theme Mode</h4>
-          <p className="text-xs text-muted-foreground">Switch between light and dark mode</p>
+          <h4 className="font-medium text-xs text-foreground">Theme Mode</h4>
+          <p className="text-[11px] text-muted-foreground">Switch between light, dark, or system preference</p>
         </div>
         <ThemeToggle variant="group" />
       </div>
 
       {/* Brand Accent Theme Picker */}
-      <div className="p-4 bg-background rounded-lg border border-border/50 shadow-xs space-y-3">
+      <div className="p-3 bg-background rounded-lg border border-border/50 shadow-xs space-y-2.5">
         <div>
-          <h4 className="font-medium text-sm">Brand Accent Color</h4>
-          <p className="text-xs text-muted-foreground">
+          <h4 className="font-medium text-xs text-foreground">Brand Accent Color</h4>
+          <p className="text-[11px] text-muted-foreground">
             Select a primary color theme for buttons, active tabs, and focus indicators
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-1">
+        <div className="grid grid-cols-2 gap-2 pt-0.5">
           {THEME_PRESETS.map((preset) => (
             <button
               key={preset.id}
               type="button"
               onClick={() => handleThemeChange(preset.id)}
               className={cn(
-                "flex flex-col items-center gap-1.5 p-2 rounded-lg border transition text-xs font-medium cursor-pointer",
+                "flex items-center gap-2 p-2 rounded-md border transition text-xs font-medium cursor-pointer",
                 activeTheme === preset.id
                   ? "border-primary bg-primary/10 text-primary font-semibold"
-                  : "border-border/60 hover:bg-accent hover:text-accent-foreground text-muted-foreground",
+                  : "border-border/60 hover:bg-muted/40 hover:text-foreground text-muted-foreground",
               )}
             >
               <div
                 className={cn(
-                  "w-6 h-6 rounded-full flex items-center justify-center shadow-xs",
+                  "size-5 rounded-full flex items-center justify-center shrink-0 shadow-xs",
                   preset.color,
                 )}
               >
-                {activeTheme === preset.id && <Check className="w-3.5 h-3.5 text-white" />}
+                {activeTheme === preset.id && <Check className="size-3 text-white" />}
               </div>
-              <span className="text-[11px] truncate w-full text-center">{preset.name}</span>
+              <span className="text-[11px] truncate text-left">{preset.name}</span>
             </button>
           ))}
         </div>

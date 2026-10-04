@@ -151,17 +151,6 @@ export function FormScreen({
   const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialRecordId);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
-  // Check if currently mounted within a standalone popup window
-  const isPopup = React.useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.location.pathname.startsWith("/screen/") || !tabId;
-  }, [tabId]);
-
-  const handleExitPopup = React.useCallback(() => {
-    if (typeof window !== "undefined") {
-      window.close();
-    }
-  }, []);
 
   const setScreenMode = React.useCallback(
     (mode: "IDLE" | "CREATE" | "EDIT" | "VIEW") => {
@@ -651,7 +640,6 @@ export function FormScreen({
             : []
         }
         moreActions={getDefaultMoreActions(schema.code)}
-        onExitPopup={isPopup ? handleExitPopup : undefined}
       />
 
       {/* Screen Body */}

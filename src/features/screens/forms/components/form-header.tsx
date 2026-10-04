@@ -1,9 +1,8 @@
 "use client";
 
-import { FileText, X } from "lucide-react";
+import { FileText } from "lucide-react";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ActionButtons } from "./actions/action-buttons";
 import { ActionMoreMenu, type MoreActionItem } from "./actions/action-more-menu";
 
@@ -32,7 +31,6 @@ export interface FormHeaderProps {
   moreActions?: MoreActionItem[];
   availableItems?: Array<{ id: string; label?: string; details?: string }>;
   className?: string;
-  onExitPopup?: () => void;
 }
 
 export function FormHeader({
@@ -58,7 +56,6 @@ export function FormHeader({
   moreActions = [],
   availableItems = [],
   className = "",
-  onExitPopup,
 }: FormHeaderProps) {
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -99,11 +96,11 @@ export function FormHeader({
     // If query is present, filter matching entries. If empty, show all available items.
     const matches = query
       ? demoItems.filter(
-          (item) =>
-            item.id.toLowerCase().includes(query) ||
-            item.label?.toLowerCase().includes(query) ||
-            item.details?.toLowerCase().includes(query),
-        )
+        (item) =>
+          item.id.toLowerCase().includes(query) ||
+          item.label?.toLowerCase().includes(query) ||
+          item.details?.toLowerCase().includes(query),
+      )
       : demoItems;
 
     setSearchResults(matches);
@@ -192,29 +189,6 @@ export function FormHeader({
           <div className="flex items-center gap-1.5">
             <ActionMoreMenu moreActions={moreActions} submitting={submitting} onSubmit={onSubmit} />
           </div>
-
-          {/* Optional Exit Popup Window Button — on the very right after More Actions */}
-          {onExitPopup && (
-            <>
-              <div className="h-4 w-px bg-border/60 mx-0.5" />
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon-sm"
-                      onClick={onExitPopup}
-                      className="size-8 text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 shrink-0 transition-colors"
-                    >
-                      <X className="size-3.5" />
-                    </Button>
-                  }
-                />
-                <TooltipContent className="text-xs">Exit Popup Window</TooltipContent>
-              </Tooltip>
-            </>
-          )}
         </div>
       </div>
     </TooltipProvider>

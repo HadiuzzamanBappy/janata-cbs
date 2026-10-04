@@ -9,7 +9,6 @@ import {
   Printer,
   RefreshCw,
   Search,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +35,6 @@ export interface EnquiryHeaderProps {
   onExportCSV?: () => void;
   onExportHTML?: () => void;
   onExportXML?: () => void;
-  onExitPopup?: () => void;
 }
 
 export function EnquiryHeader({
@@ -54,7 +52,6 @@ export function EnquiryHeader({
   onExportCSV,
   onExportHTML,
   onExportXML,
-  onExitPopup,
 }: EnquiryHeaderProps) {
   return (
     <TooltipProvider delay={150}>
@@ -169,29 +166,6 @@ export function EnquiryHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* 4. Exit Popup Window Button */}
-          {onExitPopup && (
-            <>
-              <div className="h-4 w-px bg-border/60 mx-0.5" />
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon-sm"
-                      onClick={onExitPopup}
-                      className="size-8 text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 shrink-0 transition-colors"
-                    >
-                      <X className="size-3.5" />
-                    </Button>
-                  }
-                />
-                <TooltipContent className="text-xs">Exit Popup Window</TooltipContent>
-              </Tooltip>
-            </>
-          )}
         </div>
       </div>
     </TooltipProvider>

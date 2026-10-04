@@ -2,7 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import * as React from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,27 +63,25 @@ export function DeactivateTab() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <div className="bg-background rounded-lg border border-border/50 p-6 shadow-sm">
-        <h3 className="text-sm font-semibold mb-4">Deactivate Account</h3>
+    <div className="max-w-xl">
+      <div className="bg-background rounded-lg border border-border/50 p-3.5 shadow-xs">
+        <h3 className="text-xs font-semibold mb-2.5 text-foreground">Deactivate Account</h3>
 
         {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
+          <Alert variant="destructive" className="mb-3 py-2 px-3 text-xs">
+            <AlertDescription className="text-xs">{error}</AlertDescription>
           </Alert>
         )}
 
         {success && (
-          <Alert className="mb-6 border-green-500 text-green-700 bg-green-50 dark:bg-green-950 dark:text-green-400">
-            <AlertTitle>Success</AlertTitle>
-            <AlertDescription>{success}</AlertDescription>
+          <Alert className="mb-3 py-2 px-3 text-xs border-emerald-500/30 text-emerald-600 bg-emerald-500/10 dark:text-emerald-400">
+            <AlertDescription className="text-xs">{success}</AlertDescription>
           </Alert>
         )}
 
-        <form onSubmit={handleDeactivate} className="space-y-3 max-w-md">
+        <form onSubmit={handleDeactivate} className="space-y-2.5 max-w-sm">
           <div className="space-y-1">
-            <Label className="font-medium text-xs">
+            <Label className="text-[11px] font-medium text-foreground">
               Deactivate Date <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -91,12 +89,12 @@ export function DeactivateTab() {
               value={deactivateDate}
               onChange={(e) => setDeactivateDate(e.target.value)}
               required
-              className="h-9 text-xs"
+              className="h-8 text-xs"
             />
           </div>
 
-          <div className="space-y-1 pt-1">
-            <Label className="font-medium text-xs">
+          <div className="space-y-1">
+            <Label className="text-[11px] font-medium text-foreground">
               Reactivation Date <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -104,19 +102,20 @@ export function DeactivateTab() {
               value={reactivationDate}
               onChange={(e) => setReactivationDate(e.target.value)}
               required
-              className="h-9 text-xs"
+              className="h-8 text-xs"
             />
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               type="submit"
               size="sm"
               disabled={loading}
-              className="w-full sm:w-auto h-9 text-xs font-medium"
+              variant="destructive"
+              className="h-7.5 px-3 text-xs font-medium"
             >
-              {loading ? <Loader2 className="size-3.5 animate-spin mr-2" /> : null}
-              Schedule Deactivation
+              {loading ? <Loader2 className="size-3 animate-spin mr-1.5" /> : null}
+              Submit Deactivation
             </Button>
           </div>
         </form>

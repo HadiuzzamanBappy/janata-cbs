@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/config";
 import { dispatch, type Envelope } from "@/lib/grpc/dispatch";
 import { getSession } from "@/lib/redis";
-import { STATIC_TABLE_DATA } from "@fixtures";
+import { STATIC_INQUIRY_DATA, STATIC_TABLE_DATA } from "@fixtures";
+import { parseInquiryRecords } from "@/lib/parsers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,6 +66,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // If modelSource is static, return offline fixtures immediately without waiting for gRPC timeout
     const cleanModel = (body.controlName || "").trim().toUpperCase();
+    const cleanRecordId = (body.recordId || "").trim().toUpperCase();
+
+    // 1. INQ request handling (Inquiry datasets)
+    if (body.requestType === "INQ") {
+      if (appConfig.modelSource === "static") {
+        const rawInquiry =
+          STATIC_INQUIRY_DATA[cleanModel] ||
+          STATIC_INQUIRY_DATA[cleanRecordId] ||
+          (cleanModel === "TODAY.TXN.ENTRY" ? STATIC_INQUIRY_DATA["GET.TODAY.ENTRY"] : null);
+
+        if (rawInquiry) {
+          const records = parseInquiryRecords(rawInquiry);
+          return NextResponse.json({
+            status: "SUCCESS",
+            statusCode: 200,
+            message: "Inquiry data loaded from offline fixture",
+            data: records,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+    }
+
+    // 2. Standard Model Table handling
     const modelTable = STATIC_TABLE_DATA[cleanModel];
 
     if (appConfig.modelSource === "static" && modelTable) {
@@ -92,6 +117,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
       const response = await dispatch(envelope, token);
       if (response && response.status === "SUCCESS") {
+        if (body.requestType === "INQ" && response.data) {
+          const parsedRows = parseInquiryRecords(response);
+          return NextResponse.json({
+            ...response,
+            data: parsedRows,
+          }, { status: 200 });
+        }
         return NextResponse.json(response, { status: 200 });
       }
       // If dispatch failed or returned an error, attempt fixture fallback below

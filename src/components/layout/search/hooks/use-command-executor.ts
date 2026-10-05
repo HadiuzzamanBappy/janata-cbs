@@ -107,7 +107,7 @@ export function useCommandExecutor({
       title: targetTitle,
       screenMode: parsed.screenMode,
       searchRecordId: parsed.recordId,
-      componentName: parsed.type === "ENQUIRY" ? "DYNAMIC_ENQUIRY" : "DYNAMIC_FORM",
+      componentName: parsed.type === "INQUIRY" ? "DYNAMIC_ENQUIRY" : "DYNAMIC_FORM",
       addTab,
       openSettingsTab,
       clearSession: logout,

@@ -6,9 +6,10 @@ import { appConfig } from "@/lib/config";
 import { useWorkbenchStore } from "@/store";
 import { FormScreen } from "../../forms";
 import { useEnquirySchema } from "../hooks/use-enquiry-schema";
-import type { EnquiryRow, SelectionOperand } from "../types";
+import type { EnquiryRow, SelectionOperand } from "@/lib/schemas";
 import { EnquiryFilters } from "./enquiry-filters";
 import { EnquiryHeader } from "./enquiry-header";
+import { EnquirySkeleton } from "./enquiry-skeleton";
 import { EnquiryTable } from "./enquiry-table";
 
 export interface EnquiryScreenProps {
@@ -295,7 +296,7 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
   /** Resolve the target form application command from the enquiry schema code */
   const resolveFormCmd = (recordId: string): string => {
     if (!schema) return recordId;
-    const baseCode = schema.code.replace(/^(ENQ\s+|INQ\s+)/i, "").trim();
+    const baseCode = schema.code.replace(/^(?:INQ\s+|INQUIRY\s+)/i, "").trim();
     const targetCmd =
       baseCode === "USER.LIST" || baseCode === "GET.EMP.INFO"
         ? "USER.MGT"
@@ -458,13 +459,7 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
   };
 
   if (loading) {
-    return (
-      <div className="flex flex-col gap-4 p-6 animate-pulse">
-        <div className="h-8 w-64 bg-muted rounded" />
-        <div className="h-32 w-full bg-muted/60 rounded" />
-        <div className="h-64 w-full bg-muted/40 rounded" />
-      </div>
-    );
+    return <EnquirySkeleton />;
   }
 
   if (error || !schema) {

@@ -28,8 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { EnquiryColumn, EnquiryRow } from "@/lib/schemas";
 import { useWorkbenchStore } from "@/store";
-import type { EnquiryColumn, EnquiryRow } from "../types";
 
 interface EnquiryTableProps {
   columns: EnquiryColumn[];

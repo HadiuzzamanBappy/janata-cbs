@@ -10,7 +10,7 @@
  * - ACTION:<ACT>                  -> Type: ACTION (e.g., "ACTION:TOGGLE_THEME", "ACTION:LOGOUT")
  */
 
-export type CommandType = "FORM" | "ENQUIRY" | "SETTINGS" | "ACTION";
+export type CommandType = "FORM" | "INQUIRY" | "SETTINGS" | "ACTION";
 export type FunctionRightCode = "R" | "I" | "D" | "A" | "S" | "H";
 export type ScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
 
@@ -125,15 +125,15 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // 3. Enquiry / Inquiry: ENQ <QUERY> or INQ <QUERY>
-  const enqMatch = trimmed.match(/^(?:enq|inq)\s+(.+)$/i);
-  if (enqMatch) {
-    const query = enqMatch[1].trim().toUpperCase();
+  // 3. Inquiry: INQ <QUERY> or INQUIRY <QUERY>
+  const inqMatch = trimmed.match(/^(?:inq|inquiry)\s+(.+)$/i);
+  if (inqMatch) {
+    const query = inqMatch[1].trim().toUpperCase();
     return {
       raw: trimmed,
-      type: "ENQUIRY",
+      type: "INQUIRY",
       application: query,
-      title: `Enquiry: ${query}`,
+      title: `Inquiry: ${query}`,
       screenMode: "VIEW",
       isValid: true,
     };
@@ -146,7 +146,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   // - "USER.MGT,NEW1 I USR001" -> Versioned app with Function I and Record ID USR001
   // - "USER.MGT,USR001" -> Base app with Record ID USR001
   // - "ACCOUNT I 1001" -> Function I and Record ID 1001
-  
+
   // First, split by space into main tokens
   const spaceTokens = trimmed.split(/\s+/).map((s) => s.trim());
   const firstToken = spaceTokens[0].toUpperCase();

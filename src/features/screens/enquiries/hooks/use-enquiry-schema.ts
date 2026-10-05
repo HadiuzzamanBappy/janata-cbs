@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { appConfig } from "@/lib/config";
-import { STATIC_TABLE_DATA } from "@fixtures";
-import type { EnquiryColumn, EnquiryRow, EnquirySchema, SelectionField, SelectionOperand } from "../types";
+import type { EnquirySchema } from "@/lib/schemas";
 
 export function useEnquirySchema(command: string) {
   const [schema, setSchema] = useState<EnquirySchema | null>(null);
@@ -21,65 +20,21 @@ export function useEnquirySchema(command: string) {
     setError(null);
 
     try {
-      // 1. Clean command: strip ENQ or INQ prefix to get pure model name
+      // 1. Clean command: strip INQ and record functions (e.g. S, R) to get recordId
       const cleanCmd = command
         .split(",")[0]
         .trim()
         .toUpperCase()
-        .replace(/^(ENQ\s+|INQ\s+|ENQUIRY\s+|INQUIRY\s+)/i, "")
+        .replace(/^(?:INQ\s+|INQUIRY\s+)/i, "")
+        .replace(/^(?:[SRIDAH]\s+)/i, "")
         .trim();
 
-      // 2. Fetch from same dynamic backend endpoint as FormScreen
-      const res = await fetch(`${appConfig.routes.api.model}/${cleanCmd}`);
+      // 2. Fetch schema from dedicated inquiry endpoint
+      const res = await fetch(`${appConfig.routes.api.inquiry}/${cleanCmd}`);
       const json = await res.json();
 
       if (json.success && json.data) {
-        const rawModel = json.data;
-        const title = rawModel.title || cleanCmd;
-
-        // Map form fields to selection filter criteria
-        const selectionFields: SelectionField[] = (rawModel.fields || []).map(
-          (field: { name: string; label: string; type: string; options?: string[] }) => {
-            const isSelect = field.type === "select" || Boolean(field.options?.length);
-            const isDate = field.type === "date";
-            const isNum = field.type === "number";
-
-            const operand: SelectionOperand = isDate ? "RG" : isSelect ? "EQ" : "LK";
-
-            return {
-              id: field.name,
-              label: field.label || field.name,
-              type: isSelect ? "select" : isDate ? "date" : isNum ? "number" : "text",
-              operand,
-              value: "",
-              options: field.options?.map((opt) => ({ label: opt, value: opt })),
-            };
-          },
-        );
-
-        // Map columns (or fallback to fields)
-        const columns: EnquiryColumn[] =
-          rawModel.columns ||
-          (rawModel.fields || []).map((f: { name: string; label: string }) => ({
-            id: f.name.toLowerCase().replace(/[^a-zA-Z0-9]/g, "_"),
-            label: f.label || f.name,
-          }));
-
-        // Load realistic database rows from STATIC_TABLE_DATA if available
-        const modelTable = STATIC_TABLE_DATA[cleanCmd];
-        const sampleData = (modelTable?.enquiryRows || []).map((row, idx) => ({
-          id: String(row.id || idx),
-          ...row,
-        })) as EnquiryRow[];
-
-        setSchema({
-          code: cleanCmd,
-          title,
-          description: rawModel.title,
-          selectionFields,
-          columns,
-          sampleData,
-        });
+        setSchema(json.data);
       } else {
         setError(json.error || `Failed to fetch enquiry schema for ${cleanCmd}`);
       }

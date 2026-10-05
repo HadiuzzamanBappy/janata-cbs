@@ -297,11 +297,11 @@ suite("Phase 1: CBS Command Grammar Parser", () => {
     );
   });
 
-  test("parses ENQ enquiry queries correctly", () => {
-    const cmd = parseCbsCommand("ENQ USER.LIST");
+  test("parses INQ inquiry queries correctly", () => {
+    const cmd = parseCbsCommand("INQ USER.LIST");
     return (
       cmd.isValid &&
-      cmd.type === "ENQUIRY" &&
+      cmd.type === "INQUIRY" &&
       cmd.application === "USER.LIST" &&
       cmd.screenMode === "VIEW"
     );

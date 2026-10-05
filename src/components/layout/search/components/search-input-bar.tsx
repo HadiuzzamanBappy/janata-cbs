@@ -28,7 +28,7 @@ export function SearchInputBar({
       <CommandInput
         placeholder={
           userHasCommandLine
-            ? "Type command (e.g. ACCOUNT I F3, ENQ USER.LIST) or search..."
+            ? "Type command (e.g. ACCOUNT I F3, INQ S GET.EMP.INFO) or search..."
             : "Search navigation menus & screens..."
         }
         value={searchQuery}

@@ -3,6 +3,7 @@
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
 import { logger } from "@/lib/logger";
+import { EnquirySkeleton } from "./enquiries";
 import { FormSkeleton } from "./forms/components/form-skeleton";
 import { resolveScreen } from "./registry";
 import type { ScreenLoaderProps } from "./types";
@@ -52,6 +53,7 @@ class ScreenErrorBoundary extends React.Component<
 
 /**
  * Universal Screen Loader mounting the resolved screen within Suspense & ErrorBoundary.
+ * Provides individual loading skeletons for Enquiry vs Form screens.
  */
 export function ScreenLoader({
   command,
@@ -61,13 +63,22 @@ export function ScreenLoader({
 }: ScreenLoaderProps) {
   const ScreenComponent = React.useMemo(() => resolveScreen(command), [command]);
 
+  const FallbackSkeleton = React.useMemo(() => {
+    const cleanCmd = (command || "").split(",")[0].trim().toUpperCase();
+    const isEnquiry =
+      cleanCmd.startsWith("INQ ") ||
+      cleanCmd.startsWith("INQUIRY");
+
+    return isEnquiry ? <EnquirySkeleton /> : <FormSkeleton rowCount={4} />;
+  }, [command]);
+
   return (
     <div
       data-render-mode={mode}
       className={`w-full h-full min-h-0 flex flex-col flex-1 ${className}`}
     >
       <ScreenErrorBoundary command={command}>
-        <React.Suspense fallback={<FormSkeleton rowCount={4} />}>
+        <React.Suspense fallback={FallbackSkeleton}>
           <ScreenComponent command={command} tabId={tabId} />
         </React.Suspense>
       </ScreenErrorBoundary>

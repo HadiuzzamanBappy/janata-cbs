@@ -1,8 +1,18 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { ChevronDown, FilePlus, Lock, X } from "lucide-react";
 import * as React from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUserRights } from "@/hooks";
+import { cn } from "@/lib/utils";
 import { ActionButtons } from "./actions/action-buttons";
 import { ActionMoreMenu, type MoreActionItem } from "./actions/action-more-menu";
 
@@ -57,6 +67,7 @@ export function FormHeader({
   availableItems = [],
   className = "",
 }: FormHeaderProps) {
+  const rights = useUserRights();
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [searchResults, setSearchResults] = React.useState<
@@ -88,19 +99,17 @@ export function FormHeader({
     ];
   }, [availableItems, commandCode]);
 
-  // 1. User inputs any ID, then presses search button / submits search (or clicks chevron down)
   const handlePerformSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const query = inputVal.trim().toLowerCase();
 
-    // If query is present, filter matching entries. If empty, show all available items.
     const matches = query
       ? demoItems.filter(
-        (item) =>
-          item.id.toLowerCase().includes(query) ||
-          item.label?.toLowerCase().includes(query) ||
-          item.details?.toLowerCase().includes(query),
-      )
+          (item) =>
+            item.id.toLowerCase().includes(query) ||
+            item.label?.toLowerCase().includes(query) ||
+            item.details?.toLowerCase().includes(query),
+        )
       : demoItems;
 
     setSearchResults(matches);
@@ -112,21 +121,17 @@ export function FormHeader({
     }
   };
 
-  // 2. User selects a record from the matching results:
-  // ONLY stages the selected ID into the input field without immediate execution.
   const handleSelectRecord = (id: string) => {
     setInputVal(id);
     if (onRecordIdChange) onRecordIdChange(id);
     setIsDropdownOpen(false);
   };
 
-  // 3. User types manually:
   const handleInputChange = (val: string) => {
     setInputVal(val);
     if (onRecordIdChange) onRecordIdChange(val);
   };
 
-  // When dropdown is triggered: display matched items if user queried, or all items if field is empty
   const matchingItemsToDisplay = hasSearched
     ? searchResults
     : inputVal.trim()
@@ -135,29 +140,12 @@ export function FormHeader({
 
   return (
     <TooltipProvider delay={150}>
-      <div
-        className={`sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border/60 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0 ${className}`}
+      <header
+        className={`sticky top-0 z-20 bg-muted/40 border-b border-border/80 select-none ${className}`}
       >
-        {/* Left Title & Command Code Block (Mirrors Enquiry Header Layout) */}
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <FileText className="size-3.5" />
-          </div>
-          <div className="flex flex-col justify-center min-w-0">
-            <h2 className="text-xs sm:text-sm font-bold tracking-tight text-foreground whitespace-nowrap leading-tight">
-              {title}
-            </h2>
-            {commandCode && (
-              <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider leading-none mt-0.5">
-                {commandCode}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Right Section: All Actions + More Actions presented together on the right */}
-        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-          {/* Action Buttons Toolbar (Switches between State 1: IDLE and State 2: ACTIVE) */}
+        {/* ROW 1: Minimalist Temenos Action Toolbar */}
+        <div className="flex items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
+          {/* Action Icons Toolbar (Edit, View, Perform, Commit, Reverse, etc.) */}
           <ActionButtons
             mode={mode}
             searchVal={inputVal}
@@ -183,14 +171,137 @@ export function FormHeader({
             onReset={onReset}
           />
 
-          <div className="h-4 w-px bg-border/60 mx-0.5" />
+          <span className="h-4 w-px bg-border/60 mx-1" />
 
           {/* More Actions Dropdown & Dedicated CTA */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <ActionMoreMenu moreActions={moreActions} submitting={submitting} onSubmit={onSubmit} />
           </div>
         </div>
-      </div>
+
+        {/* ROW 2: Temenos Record Header: Label + Record ID Field + Add Button */}
+        <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
+          <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
+            {title || "Basic Details"}
+          </span>
+
+          {/* Record Key Box / Input */}
+          {mode === "IDLE" ? (
+            <div className="flex items-center gap-1">
+              <form onSubmit={handlePerformSearch} className="relative flex items-center">
+                <Input
+                  type="text"
+                  placeholder="Record ID..."
+                  value={inputVal}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  className={cn(
+                    "h-7 w-32 sm:w-40 text-xs font-mono bg-background border-border/80 focus-visible:bg-background",
+                    inputVal ? "pr-12" : "pr-6"
+                  )}
+                />
+
+                {/* Clear Input Button (visible when input has text) */}
+                {inputVal && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleInputChange("");
+                    }}
+                    className="absolute right-5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer"
+                    aria-label="Clear input"
+                  >
+                    <X className="size-3" />
+                  </button>
+                )}
+
+                {/* Search / Dropdown Trigger (styled like Temenos circular blue pill) */}
+                <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                  <DropdownMenuTrigger
+                    render={
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePerformSearch();
+                        }}
+                        className="size-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-transform active:scale-95 cursor-pointer ml-1 shadow-2xs"
+                        aria-label="Matching Records"
+                      >
+                        <ChevronDown className="size-3 stroke-[2.5]" />
+                      </button>
+                    }
+                  />
+                  <DropdownMenuContent
+                    side="bottom"
+                    align="start"
+                    sideOffset={4}
+                    className="w-48 max-h-56 overflow-auto text-xs p-1 shadow-lg border border-border/80"
+                  >
+                    <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground border-b border-border/40 mb-1">
+                      Matching IDs ({matchingItemsToDisplay.length})
+                    </div>
+                    {matchingItemsToDisplay.length === 0 ? (
+                      <div className="p-2 text-muted-foreground font-mono text-center text-xs">
+                        {hasSearched ? "No matching records" : "Type to filter"}
+                      </div>
+                    ) : (
+                      matchingItemsToDisplay.map((item) => (
+                        <DropdownMenuItem
+                          key={item.id}
+                          onClick={() => handleSelectRecord(item.id)}
+                          className="font-mono text-xs font-semibold py-1.5 px-2 cursor-pointer hover:bg-muted/80 rounded"
+                        >
+                          {item.id}
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </form>
+
+              {/* Add / Create New Record (Document with Plus icon matching Temenos) */}
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={() => onCreateNew?.()}
+                      disabled={!onCreateNew || submitting || !rights.canInput}
+                      className="size-7 rounded bg-background hover:bg-muted/60 text-foreground border-border/80 shadow-2xs shrink-0 group"
+                    >
+                      <FilePlus className="size-3.5 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform" />
+                    </Button>
+                  }
+                />
+                <TooltipContent className="text-xs">
+                  {!rights.canInput ? "Requires Input ('I') permission" : "Create New Record (+)"}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          ) : (
+            /* Active Mode (CREATE / EDIT / VIEW): Locked Record ID Badge */
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
+                <Lock className="size-3 text-muted-foreground" />
+                {inputVal.trim() || (mode === "CREATE" ? "NEW" : (commandCode ? `[${commandCode}]` : "---"))}
+              </span>
+              <span className="text-[9px] font-mono px-1 py-0 rounded bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
+                {mode}
+              </span>
+            </div>
+          )}
+
+          {commandCode && (
+            <span className="text-[10px] font-mono text-muted-foreground uppercase ml-auto">
+              {commandCode}
+            </span>
+          )}
+        </div>
+      </header>
     </TooltipProvider>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ChevronDown } from "lucide-react";
+import { CheckCircle2, ChevronDown, LifeBuoy } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,10 +44,10 @@ export function ActionMoreMenu({
             <Button
               variant="outline"
               size="sm"
-              className="h-8 px-2.5 text-xs gap-2 min-w-[180px] max-w-[220px] justify-between border-border bg-background hover:bg-muted/50 text-foreground shadow-xs shrink-0"
+              className="h-7 px-2 text-xs gap-1.5 min-w-[150px] max-w-[190px] justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0 rounded"
             >
               <span className="truncate">
-                {selectedAction ? selectedAction.label : "More Actions..."}
+                {selectedAction ? selectedAction.label : "More Actions ..."}
               </span>
               <ChevronDown className="size-3 text-muted-foreground shrink-0" />
             </Button>
@@ -101,10 +101,8 @@ export function ActionMoreMenu({
                   ? !rights.hasRight(selectedAction.requiredRight)
                   : false)
               }
-              variant={selectedAction ? "default" : "outline"}
-              className={`size-8 shrink-0 transition-colors ${
-                selectedAction ? "shadow-xs" : "text-muted-foreground opacity-50 cursor-not-allowed"
-              }`}
+              variant="default"
+              className="size-7 rounded shrink-0 shadow-xs disabled:opacity-40"
             >
               <CheckCircle2 className="size-3.5" />
             </Button>
@@ -115,6 +113,24 @@ export function ActionMoreMenu({
             ? `Execute: ${selectedAction.label}`
             : "Select an action from More Actions to enable"}
         </TooltipContent>
+      </Tooltip>
+
+      {/* Temenos Support / Help LifeBuoy Icon Button */}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              className="size-7 rounded shrink-0 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+              aria-label="Online Help"
+            >
+              <LifeBuoy className="size-4" />
+            </Button>
+          }
+        />
+        <TooltipContent className="text-xs">Online Documentation &amp; Help</TooltipContent>
       </Tooltip>
     </>
   );

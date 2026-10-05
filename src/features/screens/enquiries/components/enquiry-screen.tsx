@@ -166,9 +166,13 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
     [tabId, updateTabState, currentTab?.enquiryState],
   );
 
-  // Initialize or restore criteria when schema finishes loading
+  // Track whether initial criteria have been initialized once for this schema
+  const isInitializedRef = React.useRef(false);
+
+  // Initialize or restore criteria only once when schema finishes loading
   React.useEffect(() => {
-    if (!schema) return;
+    if (!schema || isInitializedRef.current) return;
+    isInitializedRef.current = true;
 
     // Use persisted criteria if available (tab store or URL params), else load schema defaults
     const hasPersisted = Object.keys(initialCriteria).length > 0;
@@ -184,7 +188,7 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
 
     setCurrentCriteriaState(initial);
 
-    // If step was persisted as RESULTS, execute filter on sample data right away
+    // If step was persisted as RESULTS, execute initial query or use sampleData
     if (initialStep === "RESULTS") {
       let result = [...(schema.sampleData || [])];
       for (const [key, filter] of Object.entries(initial)) {
@@ -198,8 +202,6 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
         });
       }
       setFilteredRows(result);
-    } else {
-      setFilteredRows(schema.sampleData || []);
     }
 
     setStepState(initialStep);

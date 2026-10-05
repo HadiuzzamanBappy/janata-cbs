@@ -168,8 +168,8 @@ export function EnquiryTable({
                     </TableHead>
                   ))}
 
-                  {/* Dedicated Actions Column Header (View & Edit) on the Right */}
-                  <TableHead className="w-16 px-2 py-2 text-center text-xs font-semibold text-muted-foreground">
+                  {/* Dedicated Actions Column Header (View & Edit) pinned on the Right */}
+                  <TableHead className="w-16 px-2 py-2 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/90 backdrop-blur-xs border-l border-border/30 z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)]">
                     <span>Actions</span>
                   </TableHead>
                 </TableRow>
@@ -216,8 +216,8 @@ export function EnquiryTable({
                         );
                       })}
 
-                      {/* Action Column with View and Edit CTA Buttons on the Right */}
-                      <TableCell className="w-16 px-2 py-1.5 text-center">
+                      {/* Action Column with View and Edit CTA Buttons pinned on the Right */}
+                      <TableCell className="w-16 px-2 py-1.5 text-center sticky right-0 bg-card/95 backdrop-blur-xs border-l border-border/30 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)]">
                         <div className="flex items-center justify-center gap-1">
                           <Tooltip>
                             <TooltipTrigger
@@ -232,7 +232,7 @@ export function EnquiryTable({
                               }
                             />
                             <TooltipContent className="text-xs">
-                              View Record #{recordKey}
+                              View
                             </TooltipContent>
                           </Tooltip>
 
@@ -249,7 +249,7 @@ export function EnquiryTable({
                               }
                             />
                             <TooltipContent className="text-xs">
-                              Edit Record #{recordKey}
+                              Edit
                             </TooltipContent>
                           </Tooltip>
                         </div>

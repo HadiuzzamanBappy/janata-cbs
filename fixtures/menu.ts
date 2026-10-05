@@ -204,18 +204,6 @@ export const STATIC_MENU: GrpcResponse = {
                                     {
                                       struct_value: {
                                         fields: {
-                                          id: { string_value: "n_1786862443210_2" },
-                                          menuId: { number_value: 17 },
-                                          label: { string_value: "Today Txn Report" },
-                                          command: { string_value: "INQ S GET.TO.TXN" },
-                                          isVisible: { bool_value: true },
-                                          children: { list_value: { values: [] } },
-                                        },
-                                      },
-                                    },
-                                    {
-                                      struct_value: {
-                                        fields: {
                                           id: { string_value: "n_1786862453089_3" },
                                           menuId: { number_value: 19 },
                                           label: { string_value: "Today Txn Entry" },
@@ -243,3 +231,4 @@ export const STATIC_MENU: GrpcResponse = {
     },
   },
 };
+

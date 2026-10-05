@@ -211,18 +211,32 @@ export function EnquiryScreen({ command, tabId, className = "" }: EnquiryScreenP
     if (!schema) return;
 
     try {
-      // 1. Production API Flow: Call BFF proxy with INQ request
+      // Build queryString array from criteria matching standard CBS wire format
+      const queryString = Object.entries(criteria)
+        .filter(([_, filter]) => Boolean(filter.value && filter.value.trim()))
+        .map(([fieldId, filter]) => {
+          const fieldDef = schema.selectionFields.find((f) => f.id === fieldId);
+          return {
+            selectFieldName: fieldId,
+            selectFieldType: fieldDef?.type || "text",
+            selectFieldOperator: filter.operand,
+            selectFieldValue: filter.value.trim(),
+          };
+        });
+
+      // 1. Call BFF proxy with INQ request matching the CBS specification
       const res = await fetch(appConfig.routes.api.proxy, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestType: "INQ",
-          controlName: schema.code,
+          controlName: schema.controllerName || schema.code,
           recordFunction: "S",
+          recordId: "",
           data: {
-            criteria,
-            page: currentPage,
-            limit: pageSize,
+            queryString,
+            curPage: currentPage,
+            perPage: pageSize || 1000,
           },
         }),
       });

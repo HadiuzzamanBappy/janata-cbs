@@ -1,6 +1,7 @@
 import {
   type EnquiryColumn,
   type EnquiryCommand,
+  type EnquiryRow,
   type EnquirySchema,
   enquirySchemaSchema,
   type RawEnquiryWire,
@@ -235,3 +236,50 @@ export function parseEnquiry(
     };
   }
 }
+
+/**
+ * Parses raw CBS Inquiry dataset wire response (e.g. data.fields.records.list_value.values)
+ * into typed flat EnquiryRow[] records.
+ */
+export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
+  if (!rawPayload || typeof rawPayload !== "object") return [];
+
+  const root = rawPayload as Record<string, unknown>;
+  const data = (root.data || root) as Record<string, unknown>;
+  const fields = (data.fields || data) as Record<string, unknown>;
+
+  // Check if records list is present under data.fields.records
+  const recordsField = fields.records || root.records;
+  if (!recordsField) {
+    // If payload is already an array of rows
+    if (Array.isArray(rawPayload)) {
+      return rawPayload.map((item, idx) => {
+        const row = typeof item === "object" && item !== null ? item : {};
+        return {
+          id: String((row as Record<string, unknown>).id ?? (row as Record<string, unknown>).recordId ?? idx),
+          ...(row as Record<string, unknown>),
+        };
+      });
+    }
+    return [];
+  }
+
+  const items = unwrapList(recordsField);
+
+  return items.map((item, idx) => {
+    const flatRecord = unwrapStruct(item);
+    const id = String(
+      flatRecord.id ||
+      flatRecord.recordId ||
+      flatRecord.txnReference ||
+      flatRecord.accountNumber ||
+      idx
+    );
+
+    return {
+      id,
+      ...flatRecord,
+    };
+  });
+}
+

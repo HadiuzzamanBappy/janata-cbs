@@ -1,4 +1,7 @@
+"use client";
+
 import { ChangePassword } from "@/features/settings/components/security-tab";
+import ReportStudio from "@/features/reportstudio";
 import { EnquiryScreen } from "./enquiries";
 import { FormScreen } from "./forms";
 import type { ScreenComponent } from "./types";
@@ -8,6 +11,11 @@ import type { ScreenComponent } from "./types";
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
   "USER.CHANGE.PASS": ChangePassword,
+  "SC.REPORT.DESIGN": () => (
+    <div className="w-full h-full overflow-hidden">
+      <ReportStudio />
+    </div>
+  )
 };
 
 /**

@@ -83,7 +83,7 @@ export function ActionButtons({
                 size="icon-sm"
                 onClick={() => onAmend?.()}
                 disabled={!onAmend || submitting || !searchVal.trim() || !rights.canAmend}
-                className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+                className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
               >
                 <Pencil className="size-3" />
               </Button>
@@ -110,7 +110,7 @@ export function ActionButtons({
                 disabled={
                   !onView || submitting || !searchVal.trim() || (!rights.canSee && !rights.canRead)
                 }
-                className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+                className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
               >
                 <Search className="size-3" />
               </Button>
@@ -135,7 +135,7 @@ export function ActionButtons({
                 size="icon-sm"
                 onClick={() => onPerformAction?.()}
                 disabled={!onPerformAction || submitting || !searchVal.trim()}
-                className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+                className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
               >
                 <Wrench className="size-3" />
               </Button>
@@ -174,7 +174,7 @@ export function ActionButtons({
                 (mode === "CREATE" && !rights.canInput) ||
                 (mode === "EDIT" && !rights.canAmend)
               }
-              className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <Check className="size-3 stroke-[2.5]" />
             </Button>
@@ -207,7 +207,7 @@ export function ActionButtons({
                 (mode === "CREATE" && !rights.canInput) ||
                 (mode === "EDIT" && !rights.canAmend)
               }
-              className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40 font-bold"
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40 font-bold"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
                 ?✓
@@ -235,7 +235,7 @@ export function ActionButtons({
                 submitting ||
                 !rights.canHold
               }
-              className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <Pause className="size-3 fill-current" />
             </Button>
@@ -265,7 +265,7 @@ export function ActionButtons({
                 submitting ||
                 !rights.canDelete
               }
-              className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <X className="size-3 stroke-[2.5]" />
             </Button>
@@ -297,7 +297,7 @@ export function ActionButtons({
                 submitting ||
                 !rights.canAuthorise
               }
-              className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
                 ✓✓
@@ -331,7 +331,7 @@ export function ActionButtons({
                 submitting ||
                 (!rights.canAuthorise && !rights.canReverse)
               }
-              className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <span className="text-[10px] font-mono leading-none tracking-tighter select-none font-bold">
                 ✕✓
@@ -360,7 +360,7 @@ export function ActionButtons({
               size="icon-sm"
               onClick={() => onProcessAction?.()}
               disabled={!onProcessAction || submitting}
-              className="size-7 rounded shadow-xs shrink-0"
+              className="h-7 w-9 rounded shadow-xs shrink-0"
             >
               <Play className="size-3 fill-current" />
             </Button>
@@ -379,7 +379,7 @@ export function ActionButtons({
               size="icon-sm"
               onClick={() => onReturnToSearch?.()}
               disabled={!onReturnToSearch || submitting}
-              className="size-7 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <ArrowUp className="size-3 stroke-[2.5]" />
             </Button>

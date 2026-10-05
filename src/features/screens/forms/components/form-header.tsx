@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, FilePlus, Lock, X } from "lucide-react";
+import { ChevronDown, Lock, Plus, X } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -188,92 +188,92 @@ export function FormHeader({
           {/* Record Key Box / Input */}
           {mode === "IDLE" ? (
             <div className="flex items-center gap-1">
-              <form onSubmit={handlePerformSearch} className="relative flex items-center">
-                <Input
-                  type="text"
-                  placeholder="Record ID..."
-                  value={inputVal}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  className={cn(
-                    "h-7 w-32 sm:w-40 text-xs font-mono bg-background border-border/80 focus-visible:bg-background",
-                    inputVal ? "pr-12" : "pr-6"
-                  )}
-                />
-
-                {/* Clear Input Button (visible when input has text) */}
-                {inputVal && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleInputChange("");
-                    }}
-                    className="absolute right-5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer"
-                    aria-label="Clear input"
-                  >
-                    <X className="size-3" />
-                  </button>
-                )}
-
-                {/* Search / Dropdown Trigger (styled like Temenos circular blue pill) */}
-                <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                  <DropdownMenuTrigger
-                    render={
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handlePerformSearch();
-                        }}
-                        className="size-5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center justify-center transition-transform active:scale-95 cursor-pointer ml-1 shadow-2xs"
-                        aria-label="Matching Records"
-                      >
-                        <ChevronDown className="size-3 stroke-[2.5]" />
-                      </button>
-                    }
-                  />
-                  <DropdownMenuContent
-                    side="bottom"
-                    align="start"
-                    sideOffset={4}
-                    className="w-48 max-h-56 overflow-auto text-xs p-1 shadow-lg border border-border/80"
-                  >
-                    <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground border-b border-border/40 mb-1">
-                      Matching IDs ({matchingItemsToDisplay.length})
-                    </div>
-                    {matchingItemsToDisplay.length === 0 ? (
-                      <div className="p-2 text-muted-foreground font-mono text-center text-xs">
-                        {hasSearched ? "No matching records" : "Type to filter"}
-                      </div>
-                    ) : (
-                      matchingItemsToDisplay.map((item) => (
-                        <DropdownMenuItem
-                          key={item.id}
-                          onClick={() => handleSelectRecord(item.id)}
-                          className="font-mono text-xs font-semibold py-1.5 px-2 cursor-pointer hover:bg-muted/80 rounded"
-                        >
-                          {item.id}
-                        </DropdownMenuItem>
-                      ))
+              <div className="relative flex items-center">
+                <form onSubmit={handlePerformSearch} className="relative flex items-center">
+                  <Input
+                    type="text"
+                    placeholder="Record ID..."
+                    value={inputVal}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    className={cn(
+                      "h-7 w-36 sm:w-48 text-xs font-mono rounded bg-background border-border/80 focus-visible:bg-background",
+                      inputVal ? "pr-12" : "pr-6"
                     )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </form>
+                  />
 
-              {/* Add / Create New Record (Document with Plus icon matching Temenos) */}
+                  {/* Clear Input Button (visible when input has text) */}
+                  {inputVal && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleInputChange("");
+                      }}
+                      className="absolute right-5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
+                      aria-label="Clear input"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
+
+                  {/* Dropdown Menu attached cleanly to the Chevron button */}
+                  <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                    <DropdownMenuTrigger
+                      render={
+                        <button
+                          type="button"
+                          className="absolute right-1 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
+                          aria-label="Toggle matching records"
+                        >
+                          <ChevronDown className="size-3" />
+                        </button>
+                      }
+                    />
+
+                    <DropdownMenuContent
+                      side="bottom"
+                      align="end"
+                      sideOffset={8}
+                      alignOffset={-4}
+                      className="w-48 max-h-56 overflow-auto text-xs p-1 shadow-lg border border-border/80"
+                    >
+                      <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground border-b border-border/40 mb-1">
+                        Matching IDs ({matchingItemsToDisplay.length})
+                      </div>
+                      {matchingItemsToDisplay.length === 0 ? (
+                        <div className="p-2 text-muted-foreground font-mono text-center text-xs">
+                          {hasSearched ? "No matching records" : "Type to filter"}
+                        </div>
+                      ) : (
+                        matchingItemsToDisplay.map((item) => (
+                          <DropdownMenuItem
+                            key={item.id}
+                            onClick={() => handleSelectRecord(item.id)}
+                            className="font-mono text-xs font-semibold py-1.5 px-2 cursor-pointer hover:bg-muted/80 rounded"
+                          >
+                            {item.id}
+                          </DropdownMenuItem>
+                        ))
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </form>
+              </div>
+
+              {/* Add / Create New Record (+) button matching row 1 button styling */}
               <Tooltip>
                 <TooltipTrigger
                   render={
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="default"
                       size="icon-sm"
                       onClick={() => onCreateNew?.()}
                       disabled={!onCreateNew || submitting || !rights.canInput}
-                      className="size-7 rounded bg-background hover:bg-muted/60 text-foreground border-border/80 shadow-2xs shrink-0 group"
+                      className="size-7 rounded shadow-xs shrink-0"
                     >
-                      <FilePlus className="size-3.5 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform" />
+                      <Plus className="size-3.5 stroke-[2.5]" />
                     </Button>
                   }
                 />

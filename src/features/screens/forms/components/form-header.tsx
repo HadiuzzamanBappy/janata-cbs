@@ -197,7 +197,7 @@ export function FormHeader({
                     onChange={(e) => handleInputChange(e.target.value)}
                     className={cn(
                       "h-7 w-36 sm:w-48 text-xs font-mono rounded bg-background border-border/80 focus-visible:bg-background",
-                      inputVal ? "pr-12" : "pr-6"
+                      inputVal ? "pr-12" : "pr-6",
                     )}
                   />
 
@@ -287,7 +287,8 @@ export function FormHeader({
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
                 <Lock className="size-3 text-muted-foreground" />
-                {inputVal.trim() || (mode === "CREATE" ? "NEW" : (commandCode ? `[${commandCode}]` : "---"))}
+                {inputVal.trim() ||
+                  (mode === "CREATE" ? "NEW" : commandCode ? `[${commandCode}]` : "---")}
               </span>
               <span className="text-[9px] font-mono px-1 py-0 rounded bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
                 {mode}

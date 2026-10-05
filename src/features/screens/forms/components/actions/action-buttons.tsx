@@ -1,16 +1,7 @@
 "use client";
 
-import {
-  ArrowUp,
-  Check,
-  Pause,
-  Pencil,
-  Play,
-  Search,
-  Wrench,
-  X,
-} from "lucide-react";
-import * as React from "react";
+import { ArrowUp, Check, Pause, Pencil, Play, Search, Wrench, X } from "lucide-react";
+import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserRights } from "@/hooks";
@@ -229,12 +220,7 @@ export function ActionButtons({
               variant="default"
               size="icon-sm"
               onClick={() => onHold?.()}
-              disabled={
-                mode === "VIEW" ||
-                !onHold ||
-                submitting ||
-                !rights.canHold
-              }
+              disabled={mode === "VIEW" || !onHold || submitting || !rights.canHold}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <Pause className="size-3 fill-current" />
@@ -259,12 +245,7 @@ export function ActionButtons({
               variant="destructive"
               size="icon-sm"
               onClick={() => onDelete?.()}
-              disabled={
-                mode !== "EDIT" ||
-                !onDelete ||
-                submitting ||
-                !rights.canDelete
-              }
+              disabled={mode !== "EDIT" || !onDelete || submitting || !rights.canDelete}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <X className="size-3 stroke-[2.5]" />
@@ -292,10 +273,7 @@ export function ActionButtons({
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
               disabled={
-                mode !== "EDIT" ||
-                !onAuthorizeReverse ||
-                submitting ||
-                !rights.canAuthorise
+                mode !== "EDIT" || !onAuthorizeReverse || submitting || !rights.canAuthorise
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >

@@ -3,8 +3,8 @@
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
 import { logger } from "@/lib/logger";
-import { EnquirySkeleton } from "./enquiries";
 import { FormSkeleton } from "./forms/components/form-skeleton";
+import { InquirySkeleton } from "./inquiries";
 import { resolveScreen } from "./registry";
 import type { ScreenLoaderProps } from "./types";
 
@@ -65,11 +65,9 @@ export function ScreenLoader({
 
   const FallbackSkeleton = React.useMemo(() => {
     const cleanCmd = (command || "").split(",")[0].trim().toUpperCase();
-    const isEnquiry =
-      cleanCmd.startsWith("INQ ") ||
-      cleanCmd.startsWith("INQUIRY");
+    const isEnquiry = cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY");
 
-    return isEnquiry ? <EnquirySkeleton /> : <FormSkeleton rowCount={4} />;
+    return isEnquiry ? <InquirySkeleton /> : <FormSkeleton rowCount={4} />;
   }, [command]);
 
   return (

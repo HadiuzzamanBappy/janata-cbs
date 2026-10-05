@@ -1,9 +1,16 @@
 "use client";
 
 import { ChangePassword } from "@/features/settings/components/security-tab";
-import ReportStudio from "@/features/reportstudio";
-import { EnquiryScreen } from "./enquiries";
+import { CobRegistryScreen } from "@/features/system/cob-registry";
+import { EnquiryDesignerScreen } from "@/features/system/inquiry-designer";
+import { MenuCatalogScreen } from "@/features/system/menu-catalog";
+import { MenuDesignerScreen } from "@/features/system/menu-designer";
+import { ModelConfigScreen } from "@/features/system/model-config";
+import ReportStudio from "@/features/system/report-studio";
+import { UserGroupScreen } from "@/features/system/user-group";
+import { UserPassResetScreen } from "@/features/system/user-pass-reset";
 import { FormScreen } from "./forms";
+import { InquiryScreen } from "./inquiries";
 import type { ScreenComponent } from "./types";
 
 /**
@@ -15,7 +22,26 @@ const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
     <div className="w-full h-full overflow-hidden">
       <ReportStudio />
     </div>
-  )
+  ),
+  // System Configuration Screens
+  "SC.MENU": MenuCatalogScreen,
+  MENU: MenuCatalogScreen,
+  "SC.MENU.DESIGN": MenuDesignerScreen,
+  "MENU.DESIGN": MenuDesignerScreen,
+  MD: MenuDesignerScreen,
+  "SC.USER.GROUP": UserGroupScreen,
+  "USER.GROUP": UserGroupScreen,
+  "SC.MODEL.CONFIG": ModelConfigScreen,
+  "MODEL.CONFIG": ModelConfigScreen,
+  "SC.COB.REGISTRY": CobRegistryScreen,
+  "COB.REGISTRY": CobRegistryScreen,
+  COB: CobRegistryScreen,
+  "SC.USER.PASS.RESET": UserPassResetScreen,
+  "USER.PASS.RESET": UserPassResetScreen,
+  "PASS.RESET": UserPassResetScreen,
+  "SC.INQUIRY": EnquiryDesignerScreen,
+  "INQUIRY.DESIGN": EnquiryDesignerScreen,
+  "ENQUIRY.DESIGN": EnquiryDesignerScreen,
 };
 
 /**
@@ -34,12 +60,9 @@ export function resolveScreen(command: string): ScreenComponent {
   }
 
   // 2. Check if command is an Inquiry screen
-  if (
-    cleanCmd.startsWith("INQ ") ||
-    cleanCmd.startsWith("INQUIRY")
-  ) {
-    return function EnquiryWrapper(props: { command: string; tabId?: string }) {
-      return <EnquiryScreen command={props.command || cleanCmd} tabId={props.tabId} />;
+  if (cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY")) {
+    return function InquiryWrapper(props: { command: string; tabId?: string }) {
+      return <InquiryScreen command={props.command || cleanCmd} tabId={props.tabId} />;
     };
   }
 

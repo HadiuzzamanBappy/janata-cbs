@@ -7,5 +7,7 @@
 export * from "./auth-parser";
 export * from "./branch-parser";
 export * from "./control-parser";
+export * from "./inquiry-parser";
 export * from "./menu-parser";
 export * from "./model-parser";
+

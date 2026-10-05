@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { SelectionField, SelectionOperand } from "../types";
+import type { SelectionField, SelectionOperand } from "@/lib/schemas";
 
 export interface EnquiryFiltersProps {
   fields: SelectionField[];

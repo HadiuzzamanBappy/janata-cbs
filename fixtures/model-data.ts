@@ -3,7 +3,11 @@ import type { GrpcResponse } from "@/lib/grpc/generated/service";
 /**
  * STATIC_TABLE_DATA
  * Real CBS database row fixtures formatted exactly as gRPC backend response envelopes.
- * When real database/gRPC is connected, the wire payload structure is 100% identical.
+ * Kept exclusively for models present in fixtures/models.ts:
+ * 1. ACCOUNT
+ * 2. CUSTOMER
+ * 3. FUNDS.TRANSFER
+ * 4. USER.LIST
  */
 export const STATIC_TABLE_DATA: Record<
   string,
@@ -211,60 +215,7 @@ export const STATIC_TABLE_DATA: Record<
     ],
   },
 
-  // 4. USER.MGT Records
-  "USER.MGT": {
-    records: {
-      "EMP1001": {
-        "USER.ID": "EMP1001",
-        "FULL.NAME": "Farhan Ahmed",
-        "ROLE": "BRANCH_MAKER",
-        "BRANCH": "JB1001",
-        "STATUS": "ACTIVE",
-      },
-      "EMP1002": {
-        "USER.ID": "EMP1002",
-        "FULL.NAME": "Nusrat Jahan",
-        "ROLE": "BRANCH_CHECKER",
-        "BRANCH": "JB1001",
-        "STATUS": "ACTIVE",
-      },
-      "EMP9001": {
-        "USER.ID": "EMP9001",
-        "FULL.NAME": "System Administrator",
-        "ROLE": "ADMIN",
-        "BRANCH": "JB9999",
-        "STATUS": "ACTIVE",
-      },
-    },
-    enquiryRows: [
-      {
-        id: "USR001",
-        fullName: "Farhan Ahmed",
-        userRole: "BRANCH_MAKER",
-        branchCode: "JB1001",
-        accessibility: "RIDASH",
-        status: "ACTIVE",
-      },
-      {
-        id: "USR002",
-        fullName: "Nusrat Jahan",
-        userRole: "BRANCH_CHECKER",
-        branchCode: "JB1001",
-        accessibility: "RS",
-        status: "ACTIVE",
-      },
-      {
-        id: "ADMIN01",
-        fullName: "System Administrator",
-        userRole: "ADMIN",
-        branchCode: "JB9999",
-        accessibility: "RIDASH",
-        status: "ACTIVE",
-      },
-    ],
-  },
-
-  // 5. USER.LIST (Enquiry Model)
+  // 4. USER.LIST (Enquiry Model)
   "USER.LIST": {
     records: {},
     enquiryRows: [
@@ -298,34 +249,6 @@ export const STATIC_TABLE_DATA: Record<
         userRole: "AUDITOR",
         branchCode: "JB9999",
         accessibility: "S",
-        status: "ACTIVE",
-      },
-    ],
-  },
-
-  // 6. GET.EMP.INFO (Enquiry Model)
-  "GET.EMP.INFO": {
-    records: {},
-    enquiryRows: [
-      {
-        id: "EMP1001",
-        empName: "Farhan Ahmed",
-        designation: "Senior Officer",
-        branchCode: "JB1001",
-        status: "ACTIVE",
-      },
-      {
-        id: "EMP1002",
-        empName: "Nusrat Jahan",
-        designation: "Principal Officer",
-        branchCode: "JB1001",
-        status: "ACTIVE",
-      },
-      {
-        id: "EMP9001",
-        empName: "System Administrator",
-        designation: "Head of IT",
-        branchCode: "JB9999",
         status: "ACTIVE",
       },
     ],

@@ -25,8 +25,8 @@ export function useCommandGuide({
     if (
       potentialApp.startsWith("SETTINGS:") ||
       potentialApp.startsWith("ACTION:") ||
-      potentialApp === "ENQ" ||
-      potentialApp === "INQ"
+      potentialApp === "INQ" ||
+      potentialApp === "INQUIRY"
     ) {
       return null;
     }

@@ -25,10 +25,8 @@ export function resolveScreen(command: string): ScreenComponent {
     return BESPOKE_SCREENS[cleanCmd];
   }
 
-  // 2. Check if command is a Temenos Enquiry screen
+  // 2. Check if command is an Inquiry screen
   if (
-    cleanCmd.startsWith("ENQ ") ||
-    cleanCmd.startsWith("ENQUIRY") ||
     cleanCmd.startsWith("INQ ") ||
     cleanCmd.startsWith("INQUIRY")
   ) {

@@ -1,8 +1,8 @@
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_CONTROL_RESPONSE contains all 88 core banking command controls (.response/control.json)
- * with auditData stripped for clean, lightweight fixture loading.
+ * STATIC_CONTROL_RESPONSE contains core banking command controls (.response/control.json)
+ * with bespoke system commands removed (handled by custom feature screens).
  * Pure data constant only — no parsers or business logic.
  */
 export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
@@ -231,21 +231,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
               "struct_value": {
                 "fields": {
                   "recordId": {
-                    "string_value": "CPASS"
-                  },
-                  "description": {
-                    "string_value": "Change Password"
-                  },
-                  "controlName": {
-                    "string_value": "SC.CHANGE.PASS"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
                     "string_value": "CURRENCY"
                   },
                   "description": {
@@ -456,21 +441,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
               "struct_value": {
                 "fields": {
                   "recordId": {
-                    "string_value": "FB"
-                  },
-                  "description": {
-                    "string_value": "Form Builder"
-                  },
-                  "controlName": {
-                    "string_value": "SC.FORM.BUILDER"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
                     "string_value": "FD"
                   },
                   "description": {
@@ -621,81 +591,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
               "struct_value": {
                 "fields": {
                   "recordId": {
-                    "string_value": "MB"
-                  },
-                  "description": {
-                    "string_value": "Model Builder"
-                  },
-                  "controlName": {
-                    "string_value": "SC.MODEL.BUILDER"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "MC"
-                  },
-                  "description": {
-                    "string_value": "Model Config"
-                  },
-                  "controlName": {
-                    "string_value": "SC.MODEL.CONFIG"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "MC2"
-                  },
-                  "description": {
-                    "string_value": "Model Config"
-                  },
-                  "controlName": {
-                    "string_value": "SC.MODELCONFIG"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "MD"
-                  },
-                  "description": {
-                    "string_value": "Menu Designer"
-                  },
-                  "controlName": {
-                    "string_value": "SC.MENU.DESIGN"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "MENU"
-                  },
-                  "description": {
-                    "string_value": "Menu Designer"
-                  },
-                  "controlName": {
-                    "string_value": "MENU"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
                     "string_value": "MENU.MAIN"
                   },
                   "description": {
@@ -726,21 +621,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
               "struct_value": {
                 "fields": {
                   "recordId": {
-                    "string_value": "MODEL.CONFIG"
-                  },
-                  "description": {
-                    "string_value": "All Control"
-                  },
-                  "controlName": {
-                    "string_value": "SC.MODEL.CONFIG"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
                     "string_value": "NEWLAYOUT"
                   },
                   "description": {
@@ -756,21 +636,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
               "struct_value": {
                 "fields": {
                   "recordId": {
-                    "string_value": "PASS.RESET"
-                  },
-                  "description": {
-                    "string_value": "User password reset"
-                  },
-                  "controlName": {
-                    "string_value": "SC.USER.PASS.RESET"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
                     "string_value": "POST.OFFICE"
                   },
                   "description": {
@@ -778,21 +643,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
                   },
                   "controlName": {
                     "string_value": "POST.OFFICE"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "RD"
-                  },
-                  "description": {
-                    "string_value": "Report Desgin"
-                  },
-                  "controlName": {
-                    "string_value": "SC.REPORT.DESIGN"
                   }
                 }
               }
@@ -861,21 +711,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
               "struct_value": {
                 "fields": {
                   "recordId": {
-                    "string_value": "RPT"
-                  },
-                  "description": {
-                    "string_value": "Report Designer"
-                  },
-                  "controlName": {
-                    "string_value": "SC.RPT"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
                     "string_value": "RPTRENDER"
                   },
                   "description": {
@@ -883,51 +718,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
                   },
                   "controlName": {
                     "string_value": "RPTRENDER"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "SB"
-                  },
-                  "description": {
-                    "string_value": "Screen Builder"
-                  },
-                  "controlName": {
-                    "string_value": "SC.SCREEN.BUILDER"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "SC.FORM"
-                  },
-                  "description": {
-                    "string_value": "Form Designeer"
-                  },
-                  "controlName": {
-                    "string_value": "SC.FORM"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "SC.FRM"
-                  },
-                  "description": {
-                    "string_value": "Form Designeer"
-                  },
-                  "controlName": {
-                    "string_value": "SC.FRM"
                   }
                 }
               }
@@ -1003,36 +793,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
                   },
                   "controlName": {
                     "string_value": "SERVICE.MASTER"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "SHA01"
-                  },
-                  "description": {
-                    "string_value": "Table for test sha01"
-                  },
-                  "controlName": {
-                    "string_value": "SHA01"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "SHA03"
-                  },
-                  "description": {
-                    "string_value": "Test table"
-                  },
-                  "controlName": {
-                    "string_value": "SHA03"
                   }
                 }
               }
@@ -1131,21 +891,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
               "struct_value": {
                 "fields": {
                   "recordId": {
-                    "string_value": "TEMP"
-                  },
-                  "description": {
-                    "string_value": "Temp"
-                  },
-                  "controlName": {
-                    "string_value": "TEMP"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
                     "string_value": "TEMPLATE"
                   },
                   "description": {
@@ -1153,51 +898,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
                   },
                   "controlName": {
                     "string_value": "TEMPLATE"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "TEST"
-                  },
-                  "description": {
-                    "string_value": "TEST"
-                  },
-                  "controlName": {
-                    "string_value": "RPTRENDER"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "TEST1"
-                  },
-                  "description": {
-                    "string_value": "TEST"
-                  },
-                  "controlName": {
-                    "string_value": "TEST123"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "TEST123"
-                  },
-                  "description": {
-                    "string_value": "TEST"
-                  },
-                  "controlName": {
-                    "string_value": "TEST123"
                   }
                 }
               }
@@ -1258,21 +958,6 @@ export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
                   },
                   "controlName": {
                     "string_value": "USER"
-                  }
-                }
-              }
-            },
-            {
-              "struct_value": {
-                "fields": {
-                  "recordId": {
-                    "string_value": "USER.GROUP"
-                  },
-                  "description": {
-                    "string_value": "User Group"
-                  },
-                  "controlName": {
-                    "string_value": "SC.USER.GROUP"
                   }
                 }
               }

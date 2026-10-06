@@ -56,15 +56,10 @@ export function ActionButtons({
 }: ActionButtonsProps) {
   const rights = useUserRights();
 
-  // ==========================================
   // STATE 1: IDLE STATE TOOLBAR
-  // [Edit/Pencil] [View/Search] [Perform Action/Wrench]
-  // Note: Record ID input and Add (+) button are in Row 2 matching Temenos UI
-  // ==========================================
   if (mode === "IDLE") {
     return (
       <div className="flex items-center gap-1 shrink-0">
-        {/* Edit Record - Pencil icon like Temenos */}
         <Tooltip>
           <TooltipTrigger
             render={
@@ -89,7 +84,6 @@ export function ActionButtons({
           </TooltipContent>
         </Tooltip>
 
-        {/* View / Enquire - Magnifying Glass Search icon like Temenos */}
         <Tooltip>
           <TooltipTrigger
             render={
@@ -116,7 +110,6 @@ export function ActionButtons({
           </TooltipContent>
         </Tooltip>
 
-        {/* Perform Action on pointed record item */}
         <Tooltip>
           <TooltipTrigger
             render={
@@ -142,11 +135,7 @@ export function ActionButtons({
     );
   }
 
-  // ==========================================
   // STATE 2: ACTIVE FORM STATE TOOLBAR (CREATE / EDIT / VIEW)
-  // [✓ Save] [?✓ Validate] [❚❚ Hold] [✕ Reverse] [✓✓ AuthReverse] [▶ Process] [⬆ Return]
-  // Note: Record ID is displayed in Row 2 matching Temenos UI
-  // ==========================================
   return (
     <div className="flex items-center gap-1 shrink-0">
       {/* 1. Commit / Save Record (✓) */}
@@ -211,7 +200,7 @@ export function ActionButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* 3. Hold Draft (❚❚ / Pause) */}
+      {/* 3. Hold Draft (❚❚) */}
       <Tooltip>
         <TooltipTrigger
           render={
@@ -263,7 +252,7 @@ export function ActionButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* 5. Authorize Record (✓✓ / CheckCheck) */}
+      {/* 5. Authorize Record (✓✓) */}
       <Tooltip>
         <TooltipTrigger
           render={
@@ -328,7 +317,7 @@ export function ActionButtons({
         </TooltipContent>
       </Tooltip>
 
-      {/* 7. Verify / Process Action (▶ / Play) */}
+      {/* 7. Verify / Process Action (▶) */}
       <Tooltip>
         <TooltipTrigger
           render={
@@ -347,7 +336,7 @@ export function ActionButtons({
         <TooltipContent className="text-xs">Process / Verify (▶)</TooltipContent>
       </Tooltip>
 
-      {/* 8. Reset / Return to App Screen (⬆ / ArrowUp) */}
+      {/* 8. Reset / Return to App Screen (⬆) */}
       <Tooltip>
         <TooltipTrigger
           render={

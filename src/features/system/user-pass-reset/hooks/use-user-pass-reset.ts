@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { cbs } from "@/lib/cbs-client";
 import type { UserPassResetRecord, UserPassResetScreenMode } from "../types";
 import { userPassResetRecordSchema } from "../types";
 
@@ -110,18 +110,9 @@ export function useUserPassReset(initialId?: string) {
       }
 
       try {
-        const res = await fetch(appConfig.routes.api.proxy, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            servicePath: "default",
-            requestType: "GET",
-            controlName: "USER.PASS.RESET",
-            recordFunction: "S",
-            recordId: cleanId,
-          }),
+        const json = await cbs.send<UserPassResetRecord>(cbs.userSecurity.getUserProfile(cleanId), {
+          silent: true,
         });
-        const json = await res.json();
         if (json.status === "SUCCESS" && json.data) {
           setFormData(json.data);
           setMode(targetMode);
@@ -197,25 +188,17 @@ export function useUserPassReset(initialId?: string) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "PUT",
-          controlName: "USER.PASS.RESET",
-          recordFunction: "I",
-          recordId: formData.recordId,
-          data: validation.data,
-        }),
-      });
-      const json = await res.json();
-      if (json.status === "SUCCESS" || res.ok) {
-        toast.add({
-          title: "User Profile Updated",
-          description: `Committed security credentials for #${formData.recordId}`,
-          type: "success",
-        });
+      const json = await cbs.send(
+        cbs.userSecurity.saveUserProfile(
+          formData.recordId,
+          validation.data as Record<string, unknown>,
+        ),
+        {
+          successTitle: "User Profile Updated",
+          successMessage: `Committed security credentials for #${formData.recordId}`,
+        },
+      );
+      if (json.status === "SUCCESS") {
         setUsersPool((prev) => {
           const item = {
             id: validation.data.recordId,
@@ -228,12 +211,8 @@ export function useUserPassReset(initialId?: string) {
         });
         setMode("EDIT");
       }
-    } catch (err) {
-      toast.add({
-        title: "Update Failed",
-        description: err instanceof Error ? err.message : "Error saving user",
-        type: "destructive",
-      });
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }
@@ -244,23 +223,15 @@ export function useUserPassReset(initialId?: string) {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "AUT",
-          controlName: "USER.PASS.RESET",
-          recordFunction: "A",
-          recordId,
-        }),
+      const json = await cbs.send(cbs.userSecurity.authorizeUserProfile(recordId), {
+        successTitle: "Security Update Authorized",
+        successMessage: `Authorized password reset for user #${recordId}`,
       });
-      toast.add({
-        title: "Security Update Authorized",
-        description: `Authorized password reset for user #${recordId}`,
-        type: "success",
-      });
-      setMode("VIEW");
+      if (json.status === "SUCCESS") {
+        setMode("VIEW");
+      }
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }

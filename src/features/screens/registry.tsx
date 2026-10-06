@@ -2,7 +2,7 @@
 
 import { ChangePassword } from "@/features/settings/components/security-tab";
 import { CobRegistryScreen } from "@/features/system/cob-registry";
-import { EnquiryDesignerScreen } from "@/features/system/inquiry-designer";
+import { InquiryDesignerScreen } from "@/features/system/inquiry-designer";
 import { MenuCatalogScreen } from "@/features/system/menu-catalog";
 import { MenuDesignerScreen } from "@/features/system/menu-designer";
 import { ModelConfigScreen } from "@/features/system/model-config";
@@ -39,9 +39,8 @@ const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
   "SC.USER.PASS.RESET": UserPassResetScreen,
   "USER.PASS.RESET": UserPassResetScreen,
   "PASS.RESET": UserPassResetScreen,
-  "SC.INQUIRY": EnquiryDesignerScreen,
-  "INQUIRY.DESIGN": EnquiryDesignerScreen,
-  "ENQUIRY.DESIGN": EnquiryDesignerScreen,
+  "SC.INQUIRY": InquiryDesignerScreen,
+  "INQUIRY.DESIGN": InquiryDesignerScreen,
 };
 
 /**

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { cbs } from "@/lib/cbs-client";
 import type { CobRegistryRecord, CobScreenMode, CobStageRegistry } from "../types";
 import { cobRegistryRecordSchema } from "../types";
 
@@ -116,18 +116,9 @@ export function useCobRegistry(initialId?: string) {
       }
 
       try {
-        const res = await fetch(appConfig.routes.api.proxy, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            servicePath: "default",
-            requestType: "GET",
-            controlName: "COB.REGISTRY",
-            recordFunction: "S",
-            recordId: cleanId,
-          }),
+        const json = await cbs.send<CobRegistryRecord>(cbs.cob.getPipeline(cleanId), {
+          silent: true,
         });
-        const json = await res.json();
         if (json.status === "SUCCESS" && json.data) {
           setFormData(json.data);
           setMode(targetMode);
@@ -172,25 +163,14 @@ export function useCobRegistry(initialId?: string) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "PUT",
-          controlName: "COB.REGISTRY",
-          recordFunction: "I",
-          recordId: formData.recordId,
-          data: validation.data,
-        }),
-      });
-      const json = await res.json();
-      if (json.status === "SUCCESS" || res.ok) {
-        toast.add({
-          title: "COB Pipeline Saved",
-          description: `Saved batch configuration #${formData.recordId}`,
-          type: "success",
-        });
+      const json = await cbs.send(
+        cbs.cob.savePipeline(formData.recordId, validation.data as Record<string, unknown>),
+        {
+          successTitle: "COB Pipeline Saved",
+          successMessage: `Saved batch configuration #${formData.recordId}`,
+        },
+      );
+      if (json.status === "SUCCESS") {
         setConfigsPool((prev) => {
           const item = {
             id: validation.data.recordId,
@@ -203,12 +183,8 @@ export function useCobRegistry(initialId?: string) {
         });
         setMode("EDIT");
       }
-    } catch (err) {
-      toast.add({
-        title: "Save Failed",
-        description: err instanceof Error ? err.message : "Error saving pipeline",
-        type: "destructive",
-      });
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }
@@ -219,23 +195,15 @@ export function useCobRegistry(initialId?: string) {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "AUT",
-          controlName: "COB.REGISTRY",
-          recordFunction: "A",
-          recordId,
-        }),
+      const json = await cbs.send(cbs.cob.authorizePipeline(recordId), {
+        successTitle: "COB Pipeline Authorized",
+        successMessage: `Authorized live COB batch sequence #${recordId}`,
       });
-      toast.add({
-        title: "COB Pipeline Authorized",
-        description: `Authorized live COB batch sequence #${recordId}`,
-        type: "success",
-      });
-      setMode("VIEW");
+      if (json.status === "SUCCESS") {
+        setMode("VIEW");
+      }
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }

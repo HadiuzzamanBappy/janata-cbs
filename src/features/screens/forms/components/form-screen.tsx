@@ -5,7 +5,10 @@ import * as React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { CbsAuditFooter } from "@/features/screens/shared/cbs-audit-footer";
+import { CbsFormHeader } from "@/features/screens/shared/cbs-form-header";
+import { CbsIdleState } from "@/features/screens/shared/cbs-idle-state";
+import { cbs } from "@/lib/cbs-client";
 import { useFormPersistence } from "../hooks/use-form-persistence";
 import { useFormSchema } from "../hooks/use-form-schema";
 import { useFormState } from "../hooks/use-form-state";
@@ -18,8 +21,6 @@ import {
 } from "../utils/record-finder";
 import { normalizeRecordData } from "../utils/record-normalizer";
 import { FormGrid } from "./form-grid";
-import { FormHeader } from "./form-header";
-import { FormIdleState } from "./form-idle-state";
 import { FormSkeleton } from "./form-skeleton";
 
 const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
@@ -100,18 +101,11 @@ export function FormScreen({
 
       // Live backend query via proxy
       try {
-        const res = await fetch(appConfig.routes.api.proxy, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            requestType: "INQ",
-            controlName: schema.code,
-            recordFunction: "S",
-            recordId: cleanId,
-          }),
-        });
+        const json = await cbs.send<Record<string, unknown>>(
+          cbs.inquiry.fetchSingleRecord(schema.code, cleanId),
+          { silent: true },
+        );
 
-        const json = await res.json();
         if (json.status === "SUCCESS" && json.data) {
           const normalized = normalizeRecordData(json.data, schema);
           setValues(normalized);
@@ -194,50 +188,16 @@ export function FormScreen({
 
     setSubmitting(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requestType: "PUT",
-          controlName: schema.code,
-          recordFunction: "I",
-          recordId: "",
-          data: values,
-        }),
+      const json = await cbs.send(cbs.form.commitRecord(schema.code, values), {
+        successTitle: "Transaction Saved",
+        successMessage: `Record saved successfully for ${schema.title}`,
       });
 
-      if (res.status === 401) {
-        toast.add({
-          title: "Session Expired",
-          description:
-            "Your session has expired. Please re-login on the main dashboard tab and submit again.",
-          type: "error",
-        });
-        return;
-      }
-
-      const json = await res.json();
-      if (res.ok && json.status === "SUCCESS") {
-        toast.add({
-          title: "Transaction Saved",
-          description: json.message || `Record saved successfully for ${schema.title}`,
-          type: "success",
-        });
+      if (json.status === "SUCCESS") {
         if (onSuccess) onSuccess(json);
-      } else {
-        toast.add({
-          title: "Transaction Failed",
-          description: json.message || "Failed to execute transaction",
-          type: "error",
-        });
       }
-    } catch (err: unknown) {
-      const errorObj = err as { message?: string };
-      toast.add({
-        title: "Network Error",
-        description: errorObj?.message || "Communication failed",
-        type: "error",
-      });
+    } catch {
+      // Toast notification is managed by cbs.send
     } finally {
       setSubmitting(false);
     }
@@ -269,7 +229,7 @@ export function FormScreen({
 
   return (
     <div className="flex flex-col h-full w-full">
-      <FormHeader
+      <CbsFormHeader
         title={schema.title}
         commandCode={displayCommandCode}
         mode={screenMode}
@@ -407,7 +367,7 @@ export function FormScreen({
       {/* Screen Body */}
       <div className="flex-1 overflow-auto p-3">
         {screenMode === "IDLE" ? (
-          <FormIdleState title={schema.title} code={schema.code} />
+          <CbsIdleState title={schema.title} code={schema.code} />
         ) : (
           <FormGrid
             schema={schema}
@@ -419,6 +379,21 @@ export function FormScreen({
           />
         )}
       </div>
+
+      {/* CBS Audit Footer */}
+      {screenMode !== "IDLE" && (
+        <CbsAuditFooter
+          audit={{
+            recordStatus: (values?.RECORD_STATUS as string) || (values?.status as string) || "LIVE",
+            currNo: (values?.CURR_NO as number | string) || "1",
+            inputter: (values?.INPUTTER as string) || "CBS.OFFICER",
+            dateTime:
+              (values?.DATE_TIME as string) ||
+              new Date().toISOString().replace("T", " ").substring(0, 19),
+            authoriser: (values?.AUTHORISER as string) || "CBS.AUTH",
+          }}
+        />
+      )}
     </div>
   );
 }

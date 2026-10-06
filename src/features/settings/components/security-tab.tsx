@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cbs } from "@/lib/cbs-client";
 import { appConfig } from "@/lib/config";
 import { changePasswordSchema, changeUsernameSchema } from "../schemas";
 
@@ -36,7 +37,7 @@ export function ChangePassword({ command: _command }: { command?: string }) {
           setOldUserName(data.user.userId || "");
         }
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const handleChangeUsername = async (e: React.FormEvent) => {
@@ -58,25 +59,16 @@ export function ChangePassword({ command: _command }: { command?: string }) {
 
     setUnameLoading(true);
     try {
-      // Sending request to backend
-      const response = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "CUN", // Assuming CUN for Change User Name
-          controlName: "?",
-          data: {
-            oldUserName,
-            newUserName,
-            password: confirmPassword,
-          },
+      const res = await cbs.send(
+        cbs.userSecurity.changeSignOnName({
+          oldUserName,
+          newUserName,
+          password: confirmPassword,
         }),
-      });
+        { silent: true },
+      );
 
-      const res = await response.json();
-
-      if (response.ok && res.statusCode === 200) {
+      if (res.status === "SUCCESS") {
         setUnameSuccess("Sign-on name successfully changed!");
         setConfirmPassword("");
         setOldUserName(newUserName);
@@ -113,23 +105,15 @@ export function ChangePassword({ command: _command }: { command?: string }) {
     setPassLoading(true);
 
     try {
-      const response = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "CPW",
-          controlName: "?",
-          data: {
-            currPass: oldPass, // Map back to what backend expects if necessary
-            newPass,
-          },
+      const res = await cbs.send(
+        cbs.userSecurity.changePassword({
+          currPass: oldPass,
+          newPass,
         }),
-      });
+        { silent: true },
+      );
 
-      const res = await response.json();
-
-      if (response.ok && res.statusCode === 200) {
+      if (res.status === "SUCCESS") {
         setPassSuccess("Password successfully changed!");
         setOldPass("");
         setNewPass("");
@@ -166,7 +150,9 @@ export function ChangePassword({ command: _command }: { command?: string }) {
 
         <form onSubmit={handleChangeUsername} className="space-y-2.5 max-w-sm">
           <div className="space-y-1">
-            <Label className="text-[11px] font-medium text-muted-foreground">Old Sign-on Name</Label>
+            <Label className="text-[11px] font-medium text-muted-foreground">
+              Old Sign-on Name
+            </Label>
             <Input value={oldUserName} disabled className="bg-muted/40 h-8 text-xs font-mono" />
           </div>
 

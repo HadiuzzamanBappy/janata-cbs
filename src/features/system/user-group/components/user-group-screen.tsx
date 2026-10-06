@@ -1,12 +1,12 @@
 "use client";
 
-import { CheckSquare, Layers, ListChecks, Search, ShieldCheck, Square } from "lucide-react";
+import { CheckSquare, ListChecks, Search, ShieldCheck, Square } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormHeader } from "@/features/screens/forms/components/form-header";
+import { CbsFormHeader, CbsIdleState } from "@/features/screens/shared";
 import type { ScreenProps } from "@/features/screens/types";
 import { useUserGroup } from "../hooks/use-user-group";
 
@@ -80,7 +80,7 @@ export function UserGroupScreen({ command }: ScreenProps) {
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans">
       {/* 1. CBS FORM HEADER */}
-      <FormHeader
+      <CbsFormHeader
         title="User Group & Menu Permissions"
         commandCode="USER.GROUP"
         recordId={recordId}
@@ -108,21 +108,13 @@ export function UserGroupScreen({ command }: ScreenProps) {
       {/* 2. BODY: IDLE vs PERMISSION MATRIX */}
       <div className="flex-1 overflow-hidden p-3 flex flex-col">
         {mode === "IDLE" ? (
-          /* EXACT FORM IDLE STATE */
-          <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
-            <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <Layers className="size-6" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">
-              User Group & Menu Permissions (USER.GROUP)
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
-              Configure Role-Based Access Control and authorize which menus each user group can
-              access. Select an existing group or press <strong>+</strong> to define a new role
-              profile.
-            </p>
-
-            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md">
+          <div className="h-full flex flex-col items-center justify-center">
+            <CbsIdleState
+              title="User Group & Menu Permissions"
+              code="USER.GROUP"
+              customMessage="Configure Role-Based Access Control and authorize which menus each user group can access. Select an existing group or press + to define a new role profile."
+            />
+            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md -mt-8 mb-4">
               {availableGroups.map((g) => (
                 <button
                   key={g.id}

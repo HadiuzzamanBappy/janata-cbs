@@ -1,12 +1,12 @@
 "use client";
 
-import { Activity, Layers, PlayCircle, Plus, Trash2 } from "lucide-react";
+import { Activity, PlayCircle, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormHeader } from "@/features/screens/forms/components/form-header";
+import { CbsFormHeader, CbsIdleState } from "@/features/screens/shared";
 import type { ScreenProps } from "@/features/screens/types";
 import { useCobRegistry } from "../hooks/use-cob-registry";
 
@@ -51,7 +51,7 @@ export function CobRegistryScreen({ command }: ScreenProps) {
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans">
       {/* 1. CBS FORM HEADER */}
-      <FormHeader
+      <CbsFormHeader
         title="COB Service Registry & Batch Pipeline"
         commandCode="COB.REGISTRY"
         recordId={recordId}
@@ -79,20 +79,13 @@ export function CobRegistryScreen({ command }: ScreenProps) {
       {/* 2. BODY: IDLE vs COB BATCH PIPELINE EDITOR */}
       <div className="flex-1 overflow-hidden p-3 flex flex-col">
         {mode === "IDLE" ? (
-          /* EXACT FORM IDLE STATE */
-          <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
-            <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <Layers className="size-6" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Close of Business Registry (COB.REGISTRY)
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
-              Configure Close of Business (COB / EOD) batch stages, background job sequences,
-              accounting balance cutoffs, and regulatory reporting pipelines.
-            </p>
-
-            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md">
+          <div className="h-full flex flex-col items-center justify-center">
+            <CbsIdleState
+              title="Close of Business Registry"
+              code="COB.REGISTRY"
+              customMessage="Configure Close of Business (COB / EOD) batch stages, background job sequences, accounting balance cutoffs, and regulatory reporting pipelines."
+            />
+            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md -mt-8 mb-4">
               {availablePipelines.map((p) => (
                 <button
                   key={p.id}

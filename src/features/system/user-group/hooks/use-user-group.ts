@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { cbs } from "@/lib/cbs-client";
 import type { MenuRef, Role, UserGroupRecord, UserGroupScreenMode } from "../types";
 import { userGroupRecordSchema } from "../types";
 
@@ -88,27 +88,24 @@ export function useUserGroup(initialId?: string) {
   // 1. Fetch available menus (from MENU table)
   const fetchMenus = React.useCallback(async () => {
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "GRL",
-          controlName: "MENU",
-          recordFunction: "L",
-        }),
-      });
-      const json = await res.json();
+      interface MenuListItem {
+        recordId?: string;
+        id?: string;
+        label?: string;
+        command?: string;
+      }
+      const json = await cbs.send<{ records?: MenuListItem[] } | MenuListItem[]>(
+        cbs.menu.getCatalogList(),
+        { silent: true },
+      );
       if (json.status === "SUCCESS" && json.data) {
         const records = Array.isArray(json.data) ? json.data : json.data.records || [];
         setMenus(
-          records.map(
-            (r: { recordId?: string; id?: string; label?: string; command?: string }) => ({
-              menuId: String(r.recordId || r.id || ""),
-              label: r.label || "Action",
-              command: r.command || "",
-            }),
-          ),
+          records.map((r) => ({
+            menuId: String(r.recordId || r.id || ""),
+            label: r.label || "Action",
+            command: r.command || "",
+          })),
         );
       }
     } catch {
@@ -139,18 +136,9 @@ export function useUserGroup(initialId?: string) {
       }
 
       try {
-        const res = await fetch(appConfig.routes.api.proxy, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            servicePath: "default",
-            requestType: "GET",
-            controlName: "USER.GROUP",
-            recordFunction: "S",
-            recordId: cleanId,
-          }),
+        const json = await cbs.send<UserGroupRecord>(cbs.userGroup.getGroup(cleanId), {
+          silent: true,
         });
-        const json = await res.json();
         if (json.status === "SUCCESS" && json.data) {
           setFormData(json.data);
           setMode(targetMode);
@@ -190,25 +178,14 @@ export function useUserGroup(initialId?: string) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "PUT",
-          controlName: "USER.GROUP",
-          recordFunction: "I",
-          recordId: formData.recordId,
-          data: validation.data,
-        }),
-      });
-      const json = await res.json();
-      if (json.status === "SUCCESS" || res.ok) {
-        toast.add({
-          title: "Group Saved",
-          description: `Committed group #${formData.recordId} to USER.GROUP`,
-          type: "success",
-        });
+      const json = await cbs.send(
+        cbs.userGroup.saveGroup(formData.recordId, validation.data as Record<string, unknown>),
+        {
+          successTitle: "Group Saved",
+          successMessage: `Committed group #${formData.recordId} to USER.GROUP`,
+        },
+      );
+      if (json.status === "SUCCESS") {
         setGroupsPool((prev) => {
           const item = {
             id: validation.data.recordId,
@@ -221,12 +198,8 @@ export function useUserGroup(initialId?: string) {
         });
         setMode("EDIT");
       }
-    } catch (err) {
-      toast.add({
-        title: "Save Failed",
-        description: err instanceof Error ? err.message : "Error saving group",
-        type: "destructive",
-      });
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }
@@ -237,23 +210,15 @@ export function useUserGroup(initialId?: string) {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "AUT",
-          controlName: "USER.GROUP",
-          recordFunction: "A",
-          recordId,
-        }),
+      const json = await cbs.send(cbs.userGroup.authorizeGroup(recordId), {
+        successTitle: "Group Authorized",
+        successMessage: `Authorized user group #${recordId}`,
       });
-      toast.add({
-        title: "Group Authorized",
-        description: `Authorized user group #${recordId}`,
-        type: "success",
-      });
-      setMode("VIEW");
+      if (json.status === "SUCCESS") {
+        setMode("VIEW");
+      }
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { cbs } from "@/lib/cbs-client";
 import type { EnquiryRow, SelectionOperand } from "@/lib/schemas";
 import { useInquirySchema } from "../hooks/use-inquiry-schema";
 import { useInquiryState } from "../hooks/use-inquiry-state";
@@ -20,8 +20,6 @@ export interface InquiryScreenProps {
   tabId?: string;
   className?: string;
 }
-
-export type EnquiryScreenProps = InquiryScreenProps;
 
 export function InquiryScreen({ command, tabId, className = "" }: InquiryScreenProps) {
   const { schema, loading, error, refetch } = useInquirySchema(command);
@@ -58,23 +56,15 @@ export function InquiryScreen({ command, tabId, className = "" }: InquiryScreenP
           };
         });
 
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requestType: "INQ",
-          controlName: schema.controllerName || schema.code,
-          recordFunction: "S",
-          recordId: "",
-          data: {
-            queryString,
-            curPage: currentPage,
-            perPage: pageSize || 1000,
-          },
+      const json = await cbs.send<EnquiryRow[]>(
+        cbs.inquiry.executeQuery(schema.controllerName || schema.code, {
+          queryString,
+          curPage: currentPage,
+          perPage: pageSize || 1000,
         }),
-      });
+        { silent: true },
+      );
 
-      const json = await res.json();
       const dataset =
         json.status === "SUCCESS" && Array.isArray(json.data) && json.data.length > 0
           ? (json.data as EnquiryRow[])
@@ -264,5 +254,3 @@ export function InquiryScreen({ command, tabId, className = "" }: InquiryScreenP
     </div>
   );
 }
-
-export const EnquiryScreen = InquiryScreen;

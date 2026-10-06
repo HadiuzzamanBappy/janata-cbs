@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Layers, Plus, Trash2 } from "lucide-react";
+import { Database, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormHeader } from "@/features/screens/forms/components/form-header";
+import { CbsFormHeader, CbsIdleState } from "@/features/screens/shared";
 import type { ScreenProps } from "@/features/screens/types";
 import { useModelConfig } from "../hooks/use-model-config";
 import type { PropertyType } from "../types";
@@ -70,7 +70,7 @@ export function ModelConfigScreen({ command }: ScreenProps) {
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans">
       {/* 1. CBS FORM HEADER */}
-      <FormHeader
+      <CbsFormHeader
         title="Data Model & Schema Config"
         commandCode="MODEL.CONFIG"
         recordId={recordId}
@@ -98,21 +98,13 @@ export function ModelConfigScreen({ command }: ScreenProps) {
       {/* 2. BODY: IDLE vs SCHEMA FIELD EDITOR */}
       <div className="flex-1 overflow-hidden p-3 flex flex-col">
         {mode === "IDLE" ? (
-          /* EXACT FORM IDLE STATE */
-          <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
-            <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <Layers className="size-6" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Data Dictionary & Schema Designer (MODEL.CONFIG)
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
-              Configure Core Banking data dictionary tables, field data types, multi-value
-              structures, and validation constraints. Select an existing table or press{" "}
-              <strong>+</strong> to start.
-            </p>
-
-            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md">
+          <div className="h-full flex flex-col items-center justify-center">
+            <CbsIdleState
+              title="Data Dictionary & Schema Designer"
+              code="MODEL.CONFIG"
+              customMessage="Configure Core Banking data dictionary tables, field data types, multi-value structures, and validation constraints. Select an existing table or press + to start."
+            />
+            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md -mt-8 mb-4">
               {availableModels.map((m) => (
                 <button
                   key={m.id}

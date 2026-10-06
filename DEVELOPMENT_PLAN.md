@@ -2,114 +2,112 @@
 
 ## 1. Executive Summary & Vision
 
-This plan defines a clean, scalable, and modular architecture for **FinX-UI** (Core Banking System Client).
-The goal is to eliminate structural confusion for new and existing developers by establishing a clear distinction between:
-1. **Universal CBS Runtime Engines** (interpreters that dynamically render forms and inquiry grids from backend JSON schemas).
-2. **Bespoke Administrative Screens** (specialized interactive canvases like Visual Menu Designer, Report Studio, COB Batch Pipeline, and User Permission Matrix).
-3. **Shared CBS Primitives** (reusable visual building blocks such as Form Headers, IDLE State Cards, and Audit Footers).
-4. **App-Level Utilities & Modals** (Authentication, User Preferences, System Settings, Documentation).
+This document records the implemented modular, clean architecture for **FinX-UI** (Core Banking System Client).
+It establishes a strict separation of concerns:
+1. **Universal CBS Runtime Engines** (`src/features/screens/`): Interpreters dynamically rendering forms and inquiry grids from backend JSON schemas.
+2. **Bespoke Administrative Screens** (`src/features/system/`): Interactive visual canvases (Visual Menu Designer, Report Studio, COB Batch Pipeline, RBAC User Security).
+3. **Shared CBS Primitives** (`src/features/screens/shared/`): Unified Temenos T24 UI components (`<CbsFormHeader />`, `<CbsIdleState />`, `<CbsAuditFooter />`, action toolbars).
+4. **Central CBS Micro-Client Gateway** (`src/lib/cbs-client/`): Single source of truth for all CBS backend wire request types, control tables, payload builders, and network transport.
+5. **App Utilities & Modals** (`src/features/auth/`, `src/features/settings/`, `src/features/docs/`): Decoupled application shell features.
 
 ---
 
-## 2. Architecture Comparison: Current vs. Target
-
-### Current Pain Points
-- **Unclear Folder Naming**: `features/screens/` houses both dynamic engines (`forms/`, `inquiries/`) and screen resolution logic (`registry.tsx`, `loader.tsx`), while custom administrative screens live separately under `features/system/`.
-- **Component Leaks**: `FormHeader` is inside `features/screens/forms/components/`, causing bespoke system screens to import internal pieces from the forms engine.
-- **Duplicated IDLE State Cards**: Screens hand-craft copies of the dashed border card, `Layers` emblem, and helper text instead of consuming a single unified primitive.
-
-### Target Clean Architecture (`src/features/`)
+## 2. Implemented Clean Architecture (`src/`)
 
 ```
-src/features/
-│
-├── cbs-engine/                     # 1. CORE RUNTIME CBS ENGINES (Dynamic Interpreters)
-│   ├── forms/                      #    Dynamic Form Engine (JSON Schema -> Field Grid)
-│   │   ├── components/             #    form-grid, field-factory, actions/
-│   │   ├── hooks/                  #    use-form-state, use-form-schema, use-form-persistence
-│   │   └── utils/                  #    record-finder, record-normalizer
-│   │
-│   ├── inquiries/                  #    Dynamic Inquiry Grid Engine (JSON Schema -> Table & Filter Bar)
-│   │   ├── components/             #    inquiry-table, inquiry-filters, inquiry-drill-down
-│   │   ├── hooks/                  #    use-inquiry-schema, use-inquiry-state
-│   │   └── utils/                  #    filter-dataset, export-helpers, resolve-form-command
-│   │
-│   ├── resolver/                   #    Command Resolution & Screen Loader
-│   │   ├── registry.ts             #    Bespoke screen map + fallback resolution
+src/
+├── features/
+│   ├── screens/                    # 1. CORE RUNTIME CBS ENGINES & DISPATCHER
+│   │   ├── forms/                  #    Dynamic Form Engine (JSON Schema -> Field Grid)
+│   │   │   ├── components/         #    form-grid, field-factory, actions/
+│   │   │   ├── hooks/              #    use-form-state, use-form-schema, use-form-persistence
+│   │   │   └── utils/              #    record-finder, record-normalizer
+│   │   │
+│   │   ├── inquiries/              #    Dynamic Inquiry Grid Engine (JSON Schema -> Table & Filter Bar)
+│   │   │   ├── components/         #    inquiry-table, inquiry-filters, inquiry-drill-down
+│   │   │   ├── hooks/              #    use-inquiry-schema, use-inquiry-state
+│   │   │   └── utils/              #    filter-dataset, export-helpers, resolve-form-command
+│   │   │
+│   │   ├── shared/                 #    COMMON CBS UI PRIMITIVES (Universal across Engines & System screens)
+│   │   │   ├── cbs-form-header.tsx #    Standard Temenos T24 Action Toolbar & Quick Record Lookup
+│   │   │   ├── cbs-idle-state.tsx  #    Standard Dashed Container + Layer Emblem + Instructions
+│   │   │   ├── cbs-audit-footer.tsx#    Record status, CurrNo, Inputter, Authorizer ledger display
+│   │   │   ├── action-buttons.tsx  #    Standardized action button row
+│   │   │   └── action-more-menu.tsx#    Drop-down action triggers
+│   │   │
+│   │   ├── registry.tsx            #    Bespoke screen map + fallback resolution
 │   │   ├── launcher.ts             #    Tab spawning & window management
 │   │   ├── loader.tsx              #    ScreenErrorBoundary & Suspense fallbacks
 │   │   └── types.ts                #    ScreenComponent, ScreenProps, ScreenLoaderProps
 │   │
-│   └── shared/                     #    COMMON CBS UI PRIMITIVES (Used across Engines & System screens)
-│       ├── cbs-form-header/        #    Official Temenos T24 Action Toolbar & Quick Record Lookup
-│       ├── cbs-idle-state/         #    Standard Dashed Container + Layer Emblem + Instructions
-│       └── cbs-audit-footer/       #    Record status, CurrNo, Inputter, Authorizer display
+│   ├── system/                     # 2. BESPOKE ADMINISTRATIVE SCREENS (High-interaction UIs)
+│   │   ├── menu-catalog/           #    SC.MENU: Action navigation items registry
+│   │   ├── menu-designer/          #    SC.MENU.DESIGN: Hierarchical tree canvas & editor
+│   │   ├── user-group/             #    SC.USER.GROUP: RBAC user security & permission matrix
+│   │   ├── model-config/           #    SC.MODEL.CONFIG: Schema data dictionary & field attributes
+│   │   ├── cob-registry/           #    SC.COB.REGISTRY: Close of Business 5-stage batch pipeline
+│   │   ├── user-pass-reset/        #    SC.USER.PASS.RESET: Staff password & account unlock
+│   │   ├── inquiry-designer/       #    SC.INQUIRY.DESIGN: Search criteria & display column builder
+│   │   └── report-studio/          #    SC.REPORT.DESIGN: Drag-and-drop report layout designer
+│   │
+│   ├── auth/                       # 3. NON-CBS APP UTILITIES & MODALS
+│   ├── settings/                   #    Global theme, appearance, font sizing, security tabs
+│   └── docs/                       #    Embedded interactive documentation & command guide
 │
-├── system/                         # 2. BESPOKE ADMINISTRATIVE SCREENS (High-interaction UIs)
-│   ├── menu-catalog/               #    SC.MENU: Action navigation items registry
-│   ├── menu-designer/              #    SC.MENU.DESIGN: Hierarchical tree canvas & editor
-│   ├── user-group/                 #    SC.USER.GROUP: RBAC user security & permission matrix
-│   ├── model-config/               #    SC.MODEL.CONFIG: Schema data dictionary & field attributes
-│   ├── cob-registry/               #    SC.COB.REGISTRY: Close of Business 5-stage batch pipeline
-│   ├── user-pass-reset/            #    SC.USER.PASS.RESET: Staff password & account unlock
-│   ├── inquiry-designer/           #    SC.INQUIRY: Search criteria & display column builder
-│   └── report-studio/              #    SC.REPORT.DESIGN: Drag-and-drop report layout designer
-│
-└── app/                            # 3. NON-CBS APP UTILITIES & MODALS
-    ├── auth/                       #    Login dialogs, biometric verification, session recovery
-    ├── settings/                   #    Global theme, appearance, font sizing, security tabs
-    └── docs/                       #    Embedded interactive documentation & command guide
+└── lib/
+    └── cbs-client/                 # 4. CENTRAL CBS PAYLOAD GATEWAY & TRANSPORT MICRO-CLIENT
+        ├── contracts/              #    Wire request types, record functions, control tables, envelope schemas
+        ├── payloads/               #    Centralized domain payload builders (menu, userGroup, inquiry, cob, etc.)
+        ├── transport/              #    Proxy client with error normalization & toast alerts
+        └── index.ts                #    Unified typed `cbs` gateway facade
 ```
 
 ---
 
-## 3. Step-by-Step Implementation Roadmap
+## 3. Implementation Status & Completed Roadmap
 
-### Phase 1: Establish Shared CBS UI Primitives (`cbs-engine/shared/` or `screens/shared/`)
-- [ ] **Extract `<CbsFormHeader />`**:
-  - Move `FormHeader`, `ActionButtons`, and `ActionMoreMenu` from `forms/components/` into `shared/cbs-form-header/`.
-  - Export clean TypeScript props (`CbsFormHeaderProps`, `MoreActionItem`).
-- [ ] **Extract `<CbsIdleState />`**:
-  - Promote `FormIdleState` into `shared/cbs-idle-state/` for universal consumption across all system screens.
-- [ ] **Extract `<CbsAuditFooter />`**:
-  - Reusable footer showing `REC.STATUS`, `CURR.NO`, `INPUTTER`, `DATE.TIME`, `AUTHORISER`.
+### Phase 1: Central CBS Micro-Client Gateway (`src/lib/cbs-client/`) — [COMPLETED]
+- [x] **Contracts**: Defined enums for `RequestType` (`RECORD_LIST`, `RECORD_GET`, `RECORD_PUT`, `RECORD_AUTH`, etc.), `RecordFunction` (`S`, `I`, `A`, `D`, `H`, etc.), and `ControlTable`.
+- [x] **Envelope Validation**: Zod schema and TypeScript typings for request payloads and server responses.
+- [x] **Domain Payload Builders**: Centralized builders for `menu`, `userGroup`, `userSecurity`, `cob`, `modelConfig`, `inquiry`, and `form`.
+- [x] **100% Migration**: Replaced every raw `/api/proxy` call across all custom hooks and screens with `cbs.send(...)`.
 
-### Phase 2: Consolidate Runtime Engines (`cbs-engine/`)
-- [ ] Group `forms/`, `inquiries/`, and `resolver/` under a clear engine namespace:
-  - `forms/`: Schema-driven GMC form generator.
-  - `inquiries/`: Schema-driven data table and selection filter generator.
-  - `resolver/`: Universal `resolveScreen(command)` mapper and `ScreenLoader`.
-- [ ] Standardize public exports in `cbs-engine/index.ts` so imports stay clean (`@/features/cbs-engine`).
+### Phase 2: Shared CBS UI Primitives (`src/features/screens/shared/`) — [COMPLETED]
+- [x] **`<CbsFormHeader />`**: Temenos T24 two-row toolbar with record navigator, search, and action integration.
+- [x] **`<CbsIdleState />`**: Reusable dashed IDLE container with `Layers` emblem, keyboard instructions, and new record triggers.
+- [x] **`<CbsAuditFooter />`**: Real-time ledger audit bar (`REC.STATUS`, `CURR.NO`, `INPUTTER`, `DATE.TIME`, `AUTHORISER`).
+- [x] **Bespoke Screens Standardized**: Refactored `menu-catalog`, `menu-designer`, `user-group`, `user-pass-reset`, `cob-registry`, `model-config`, `inquiry-designer`, and `form-screen` to use `<CbsFormHeader />` and `<CbsIdleState />`.
+- [x] **Zero Legacy Support**: Removed legacy `EnquiryScreen` aliases and deprecated command routes.
 
-### Phase 3: Standardize Bespoke System Screens (`src/features/system/`)
-- [ ] Update each system screen to import `<CbsFormHeader />` and `<CbsIdleState />` from the shared layer:
-  1. `menu-catalog/`
-  2. `menu-designer/`
-  3. `user-group/`
-  4. `model-config/`
-  5. `cob-registry/`
-  6. `user-pass-reset/`
-  7. `inquiry-designer/`
-- [ ] Ensure every screen satisfies:
-  - 200–300 lines limit per file.
-  - Strict App Router conventions.
-  - Full TypeScript types (`tsc --noEmit` = 0 errors).
-  - Biome style guide compliance (`pnpm biome check` = 0 errors).
+### Phase 3: Screen Runtime Engine Architecture & Public APIs — [COMPLETED]
+- [x] Retained `src/features/screens/` as the runtime engine container with sub-engines:
+  - `forms/`: JSON Schema-driven GMC form generator.
+  - `inquiries/`: JSON Schema-driven inquiry data table and selection filter generator.
+  - `shared/`: Shared CBS UI primitives.
+  - `registry.tsx`, `loader.tsx`, `launcher.ts`: Dynamic command dispatcher and tab lifecycle.
+- [x] Exported clean, conflict-free public APIs via `src/features/screens/index.ts`.
+- [x] Added `<CbsAuditFooter />` integration to active records.
 
-### Phase 4: App Modals & Core Organization (`src/features/app/`)
-- [ ] Keep `auth/`, `settings/`, and `docs/` clean and decoupled from CBS core banking business logic.
-- [ ] Ensure non-screen UI modals invoke via workbench store or action commands without circular imports.
+### Phase 4: Non-CBS App Modules & Long-term Maintenance — [COMPLETED]
+- [x] `auth/`, `settings/`, and `docs/` are decoupled from CBS wire payloads.
+- [x] Full TypeScript compilation (`pnpm tsc --noEmit` = 0 errors).
+- [x] Biome formatting and style compliance verified.
 
 ---
 
 ## 4. Developer Mental Model & Rules of Engagement
 
-1. **Rule 1: Is it dynamic or bespoke?**
-   - If it renders based on a JSON schema (`/api/forms/{name}` or `/api/inquiries/{name}`), it belongs to **`cbs-engine`**.
-   - If it has custom drag-and-drop, graph canvas, or custom business workflows, it belongs to **`system`**.
+1. **Rule 1: Backend Payloads Live in `cbs-client`**
+   - **NEVER** write inline payload objects with raw strings like `"RECORD.LIST"` or `"USER.GROUP"` inside components or hooks.
+   - Always call domain helpers on `cbs`: `cbs.userGroup.list()`, `cbs.menu.save(...)`, etc.
+   - If a backend field or payload structure changes, edit **one** file under `src/lib/cbs-client/payloads/`.
 
-2. **Rule 2: Don't repeat CBS UI layout code.**
-   - Never write custom dashed borders or action button toolbars. Always import `<CbsFormHeader />` and `<CbsIdleState />`.
+2. **Rule 2: Is it dynamic or bespoke?**
+   - If it renders dynamically based on a backend JSON schema (`/api/forms/{name}` or `/api/inquiries/{name}`), it belongs to **`src/features/screens/`** (`forms/` or `inquiries/`).
+   - If it has custom drag-and-drop, tree canvas, or bespoke administrative workflows, it belongs to **`src/features/system/`**.
 
-3. **Rule 3: Keep screens under 300 lines.**
-   - Split complex screens into `types.ts`, `hooks/use-*.ts`, and focused micro-components.
+3. **Rule 3: Don't repeat CBS UI layout code.**
+   - Never write custom dashed borders or action button toolbars. Always import `<CbsFormHeader />`, `<CbsIdleState />`, and `<CbsAuditFooter />` from `@/features/screens/shared`.
+
+4. **Rule 4: Keep screen files under 300 lines.**
+   - Split complex canvases into `types.ts`, `hooks/use-*.ts`, and focused micro-components.

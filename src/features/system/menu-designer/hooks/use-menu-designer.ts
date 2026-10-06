@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { cbs } from "@/lib/cbs-client";
 import type { MenuCatalogItem, MenuConfigurationRecord, MenuNode, MenuScreenMode } from "../types";
 import { menuConfigurationRecordSchema } from "../types";
 import { useTreeOperations } from "./use-tree-operations";
@@ -101,17 +101,10 @@ export function useMenuDesigner(initialId?: string) {
   const fetchCatalogItems = React.useCallback(async () => {
     setCatalogLoading(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "GRL",
-          controlName: "MENU",
-          recordFunction: "L",
-        }),
-      });
-      const json = await res.json();
+      const json = await cbs.send<MenuCatalogItem[] | { records: MenuCatalogItem[] }>(
+        cbs.menu.getCatalogList(),
+        { silent: true },
+      );
       if (json.status === "SUCCESS" && json.data) {
         const records = Array.isArray(json.data) ? json.data : json.data.records || [];
         setCatalogItems(
@@ -201,21 +194,19 @@ export function useMenuDesigner(initialId?: string) {
   // 2. Fetch list of available tree records (MENU.TREE)
   const fetchAvailableTrees = React.useCallback(async () => {
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "GRL",
-          controlName: "MENU.TREE",
-          recordFunction: "L",
-        }),
-      });
-      const json = await res.json();
+      interface TreeListItem {
+        recordId?: string;
+        id?: string;
+        treeDescription?: string;
+      }
+      const json = await cbs.send<{ records?: TreeListItem[] } | TreeListItem[]>(
+        cbs.menu.getTreeList(),
+        { silent: true },
+      );
       if (json.status === "SUCCESS" && json.data) {
         const list = Array.isArray(json.data) ? json.data : json.data.records || [];
         setAvailableTrees(
-          list.map((t: { recordId?: string; id?: string; treeDescription?: string }) => ({
+          list.map((t) => ({
             id: String(t.recordId || t.id || ""),
             label: t.treeDescription || `Menu Tree ${t.recordId || t.id}`,
             details: `Tree Config: ${t.recordId || t.id}`,
@@ -257,20 +248,11 @@ export function useMenuDesigner(initialId?: string) {
       setRecordId(cleanId);
 
       try {
-        const res = await fetch(appConfig.routes.api.proxy, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            servicePath: "default",
-            requestType: "GET",
-            controlName: "MENU.TREE",
-            recordFunction: "S",
-            recordId: cleanId,
-          }),
+        const json = await cbs.send<MenuConfigurationRecord>(cbs.menu.getMenuTree(cleanId), {
+          silent: true,
         });
-        const json = await res.json();
         if (json.status === "SUCCESS" && json.data) {
-          const rec = json.data as MenuConfigurationRecord;
+          const rec = json.data;
           setDescription(rec.treeDescription || "");
           setIsActive(rec.isActive ?? true);
           setNodes(rec.menuTree || []);
@@ -343,34 +325,16 @@ export function useMenuDesigner(initialId?: string) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "PUT",
-          controlName: "MENU.TREE",
-          recordFunction: "I",
-          recordId: payload.recordId,
-          data: parsed.data,
-        }),
+      const json = await cbs.send(cbs.menu.saveMenuTree(payload.recordId, parsed.data.menuTree), {
+        successTitle: "Navigation Tree Committed",
+        successMessage: `Saved hierarchy ${payload.recordId} to MENU.TREE`,
       });
-      const json = await res.json();
-      if (json.status === "SUCCESS" || res.ok) {
-        toast.add({
-          title: "Navigation Tree Committed",
-          description: `Saved hierarchy ${payload.recordId} to MENU.TREE`,
-          type: "success",
-        });
+      if (json.status === "SUCCESS") {
         setMode("EDIT");
         fetchAvailableTrees();
       }
-    } catch (err) {
-      toast.add({
-        title: "Save Failed",
-        description: err instanceof Error ? err.message : "Error saving navigation tree",
-        type: "destructive",
-      });
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }
@@ -381,23 +345,15 @@ export function useMenuDesigner(initialId?: string) {
     if (!recordId.trim()) return;
     setSubmitting(true);
     try {
-      await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "AUT",
-          controlName: "MENU.TREE",
-          recordFunction: "A",
-          recordId: recordId.trim().toUpperCase(),
-        }),
+      const json = await cbs.send(cbs.menu.authorizeMenuTree(recordId.trim().toUpperCase()), {
+        successTitle: "Navigation Tree Authorized",
+        successMessage: `Authorized live menu tree #${recordId}`,
       });
-      toast.add({
-        title: "Navigation Tree Authorized",
-        description: `Authorized live menu tree #${recordId}`,
-        type: "success",
-      });
-      setMode("VIEW");
+      if (json.status === "SUCCESS") {
+        setMode("VIEW");
+      }
+    } catch {
+      // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }

@@ -37,7 +37,6 @@ export function ActionMoreMenu({
 
   return (
     <>
-      {/* More Actions Dropdown Selector - Bordered Field */}
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
@@ -80,7 +79,6 @@ export function ActionMoreMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Distinct Submit Action Checkmark Button */}
       <Tooltip>
         <TooltipTrigger
           render={

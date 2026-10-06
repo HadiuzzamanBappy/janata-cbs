@@ -1,11 +1,11 @@
 "use client";
 
-import { Layers, Terminal } from "lucide-react";
+import { Terminal } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormHeader } from "@/features/screens/forms/components/form-header";
+import { CbsFormHeader, CbsIdleState } from "@/features/screens/shared";
 import type { ScreenProps } from "@/features/screens/types";
 import { useMenuCatalog } from "../hooks/use-menu-catalog";
 
@@ -47,7 +47,7 @@ export function MenuCatalogScreen({ command }: ScreenProps) {
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans">
       {/* 1. EXACT CBS FORM HEADER STRIP */}
-      <FormHeader
+      <CbsFormHeader
         title="Menu Item Catalog"
         commandCode="MENU"
         recordId={recordId}
@@ -75,19 +75,9 @@ export function MenuCatalogScreen({ command }: ScreenProps) {
       {/* 2. MAIN SCREEN BODY (Exact Form IDLE vs Input Fields) */}
       <div className="flex-1 overflow-auto p-3">
         {mode === "IDLE" ? (
-          /* EXACT FORM IDLE STATE UI */
-          <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
-            <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <Layers className="size-6" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">Menu Item Catalog (MENU)</h3>
-            <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
-              Select an action from the top toolbar to begin. Use <strong>+</strong> to register a
-              new action, or enter / search a <strong>Record ID</strong> to view or edit existing
-              entries.
-            </p>
-
-            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md">
+          <div className="h-full flex flex-col items-center justify-center">
+            <CbsIdleState title="Menu Item Catalog" code="MENU" />
+            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md -mt-8 mb-4">
               {availableItems.slice(0, 5).map((item) => (
                 <button
                   key={item.id}

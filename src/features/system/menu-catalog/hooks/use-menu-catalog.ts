@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { cbs } from "@/lib/cbs-client";
 import type { CatalogScreenMode, MenuCatalogItem } from "../types";
 import { menuCatalogItemSchema } from "../types";
 
@@ -25,17 +25,10 @@ export function useMenuCatalog(initialId?: string) {
   // 1. Fetch available items from MENU table
   const fetchItems = React.useCallback(async () => {
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "GRL",
-          controlName: "MENU",
-          recordFunction: "L",
-        }),
-      });
-      const json = await res.json();
+      const json = await cbs.send<MenuCatalogItem[] | { records: MenuCatalogItem[] }>(
+        cbs.menu.getCatalogList(),
+        { silent: true },
+      );
       if (json.status === "SUCCESS" && json.data) {
         const records = Array.isArray(json.data) ? json.data : json.data.records || [];
         setItemsPool(records);
@@ -136,18 +129,9 @@ export function useMenuCatalog(initialId?: string) {
       }
 
       try {
-        const res = await fetch(appConfig.routes.api.proxy, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            servicePath: "default",
-            requestType: "GET",
-            controlName: "MENU",
-            recordFunction: "S",
-            recordId: cleanId,
-          }),
+        const json = await cbs.send<MenuCatalogItem>(cbs.menu.getMenuItem(cleanId), {
+          silent: true,
         });
-        const json = await res.json();
         if (json.status === "SUCCESS" && json.data) {
           setFormData(json.data);
           setMode(targetMode);
@@ -187,26 +171,15 @@ export function useMenuCatalog(initialId?: string) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "PUT",
-          controlName: "MENU",
-          recordFunction: "I",
-          recordId: formData.recordId,
-          data: validation.data,
-        }),
-      });
+      const json = await cbs.send(
+        cbs.menu.saveMenuItem(formData.recordId, validation.data as Record<string, unknown>),
+        {
+          successTitle: "Menu Item Committed",
+          successMessage: `Saved #${formData.recordId} to MENU table`,
+        },
+      );
 
-      const json = await res.json();
-      if (json.status === "SUCCESS" || res.ok) {
-        toast.add({
-          title: "Menu Item Committed",
-          description: `Saved #${formData.recordId} to MENU table`,
-          type: "success",
-        });
+      if (json.status === "SUCCESS") {
         setItemsPool((prev) => {
           const exists = prev.some((p) => p.recordId === formData.recordId);
           return exists
@@ -215,12 +188,8 @@ export function useMenuCatalog(initialId?: string) {
         });
         setMode("EDIT");
       }
-    } catch (err) {
-      toast.add({
-        title: "Save Failed",
-        description: err instanceof Error ? err.message : "Error saving",
-        type: "destructive",
-      });
+    } catch {
+      // Handled by cbs.send
     } finally {
       setSubmitting(false);
     }
@@ -231,23 +200,15 @@ export function useMenuCatalog(initialId?: string) {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "AUT",
-          controlName: "MENU",
-          recordFunction: "A",
-          recordId,
-        }),
+      const json = await cbs.send(cbs.menu.authorizeMenuItem(recordId), {
+        successTitle: "Record Authorized",
+        successMessage: `Authorized menu action #${recordId}`,
       });
-      toast.add({
-        title: "Record Authorized",
-        description: `Authorized menu action #${recordId}`,
-        type: "success",
-      });
-      setMode("VIEW");
+      if (json.status === "SUCCESS") {
+        setMode("VIEW");
+      }
+    } catch {
+      // Handled by cbs.send
     } finally {
       setSubmitting(false);
     }

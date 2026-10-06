@@ -13,12 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserRights } from "@/hooks";
 import { cn } from "@/lib/utils";
-import { ActionButtons } from "./actions/action-buttons";
-import { ActionMoreMenu, type MoreActionItem } from "./actions/action-more-menu";
+import { ActionButtons } from "./action-buttons";
+import { ActionMoreMenu, type MoreActionItem } from "./action-more-menu";
 
 export type { MoreActionItem };
 
-export interface FormHeaderProps {
+export interface CbsFormHeaderProps {
   title: string;
   commandCode?: string;
   recordId?: string;
@@ -43,7 +43,7 @@ export interface FormHeaderProps {
   className?: string;
 }
 
-export function FormHeader({
+export function CbsFormHeader({
   title,
   commandCode,
   recordId = "",
@@ -66,7 +66,7 @@ export function FormHeader({
   moreActions = [],
   availableItems = [],
   className = "",
-}: FormHeaderProps) {
+}: CbsFormHeaderProps) {
   const rights = useUserRights();
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -115,16 +115,21 @@ export function FormHeader({
     setSearchResults(matches);
     setHasSearched(true);
     setIsDropdownOpen(true);
-
-    if (onRecordSearch && query) {
-      onRecordSearch(query);
-    }
   };
 
   const handleSelectRecord = (id: string) => {
     setInputVal(id);
-    if (onRecordIdChange) onRecordIdChange(id);
     setIsDropdownOpen(false);
+    if (onRecordIdChange) onRecordIdChange(id);
+    if (onRecordSearch) onRecordSearch(id);
+  };
+
+  const handleClearRecord = () => {
+    setInputVal("");
+    setSearchResults([]);
+    setHasSearched(false);
+    if (onRecordIdChange) onRecordIdChange("");
+    if (onReset) onReset();
   };
 
   const handleInputChange = (val: string) => {
@@ -208,7 +213,7 @@ export function FormHeader({
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        handleInputChange("");
+                        handleClearRecord();
                       }}
                       className="absolute right-5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
                       aria-label="Clear input"

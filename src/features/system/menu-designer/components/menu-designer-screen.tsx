@@ -1,10 +1,10 @@
 "use client";
 
-import { GitFork, Layers } from "lucide-react";
+import { GitFork } from "lucide-react";
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormHeader } from "@/features/screens/forms/components/form-header";
+import { CbsFormHeader, CbsIdleState } from "@/features/screens/shared";
 import type { ScreenProps } from "@/features/screens/types";
 import { useMenuDesigner } from "../hooks/use-menu-designer";
 import { MenuCatalogSidebar } from "./menu-catalog-sidebar";
@@ -44,7 +44,7 @@ export function MenuDesignerScreen({ command }: ScreenProps) {
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans">
       {/* 1. CBS FORM HEADER */}
-      <FormHeader
+      <CbsFormHeader
         title="Menu Designer"
         commandCode="MENU.TREE"
         recordId={recordId}
@@ -72,21 +72,9 @@ export function MenuDesignerScreen({ command }: ScreenProps) {
       {/* 2. MAIN BODY (Exact Form IDLE vs Active Tree Canvas) */}
       <div className="flex-1 overflow-hidden p-3 flex flex-col">
         {mode === "IDLE" ? (
-          /* EXACT FORM IDLE STATE UI */
-          <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
-            <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <Layers className="size-6" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Navigation Hierarchy Designer (MENU.TREE)
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
-              Select an action from the top toolbar to begin. Use <strong>+</strong> to design a new
-              tree, or enter / search a <strong>Record ID</strong> to view or edit navigation
-              hierarchies.
-            </p>
-
-            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md">
+          <div className="h-full flex flex-col items-center justify-center">
+            <CbsIdleState title="Navigation Hierarchy Designer" code="MENU.TREE" />
+            <div className="flex items-center gap-1.5 flex-wrap justify-center max-w-md -mt-8 mb-4">
               {availableTrees.slice(0, 5).map((tree) => (
                 <button
                   key={tree.id}

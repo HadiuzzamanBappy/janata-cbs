@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
+import { cbs } from "@/lib/cbs-client";
 import type {
   EnquiryColumnDef,
   EnquiryConfigRecord,
@@ -191,7 +191,7 @@ const DEMO_ENQUIRIES: {
   },
 ];
 
-export function useEnquiryDesigner(initialId?: string) {
+export function useInquiryDesigner(initialId?: string) {
   const [recordId, setRecordId] = React.useState<string>(initialId || "");
   const [mode, setMode] = React.useState<EnquiryScreenMode>(initialId ? "EDIT" : "IDLE");
   const [formData, setFormData] = React.useState<EnquiryConfigRecord>(INITIAL_ENQUIRY);
@@ -221,18 +221,9 @@ export function useEnquiryDesigner(initialId?: string) {
       }
 
       try {
-        const res = await fetch(appConfig.routes.api.proxy, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            servicePath: "default",
-            requestType: "GET",
-            controlName: "INQUIRY",
-            recordFunction: "S",
-            recordId: cleanId,
-          }),
+        const json = await cbs.send<EnquiryConfigRecord>(cbs.inquiry.getInquiryConfig(cleanId), {
+          silent: true,
         });
-        const json = await res.json();
         if (json.status === "SUCCESS" && json.data) {
           setFormData(json.data);
           setMode(targetMode);
@@ -276,25 +267,17 @@ export function useEnquiryDesigner(initialId?: string) {
 
     setSubmitting(true);
     try {
-      const res = await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "PUT",
-          controlName: "INQUIRY",
-          recordFunction: "I",
-          recordId: formData.recordId,
-          data: validation.data,
-        }),
-      });
-      const json = await res.json();
-      if (json.status === "SUCCESS" || res.ok) {
-        toast.add({
-          title: "Enquiry Saved",
-          description: `Saved enquiry configuration #${formData.recordId}`,
-          type: "success",
-        });
+      const json = await cbs.send(
+        cbs.inquiry.saveInquiryConfig(
+          formData.recordId,
+          validation.data as Record<string, unknown>,
+        ),
+        {
+          successTitle: "Enquiry Saved",
+          successMessage: `Saved enquiry configuration #${formData.recordId}`,
+        },
+      );
+      if (json.status === "SUCCESS") {
         setEnquiriesPool((prev) => {
           const item = {
             id: validation.data.recordId,
@@ -307,12 +290,8 @@ export function useEnquiryDesigner(initialId?: string) {
         });
         setMode("EDIT");
       }
-    } catch (err) {
-      toast.add({
-        title: "Save Failed",
-        description: err instanceof Error ? err.message : "Error saving enquiry",
-        type: "destructive",
-      });
+    } catch {
+      // Handled by cbs.send
     } finally {
       setSubmitting(false);
     }
@@ -323,23 +302,15 @@ export function useEnquiryDesigner(initialId?: string) {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      await fetch(appConfig.routes.api.proxy, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          servicePath: "default",
-          requestType: "AUT",
-          controlName: "INQUIRY",
-          recordFunction: "A",
-          recordId,
-        }),
+      const json = await cbs.send(cbs.inquiry.authorizeInquiryConfig(recordId), {
+        successTitle: "Enquiry Authorized",
+        successMessage: `Authorized live enquiry #${recordId}`,
       });
-      toast.add({
-        title: "Enquiry Authorized",
-        description: `Authorized live enquiry #${recordId}`,
-        type: "success",
-      });
-      setMode("VIEW");
+      if (json.status === "SUCCESS") {
+        setMode("VIEW");
+      }
+    } catch {
+      // Handled by cbs.send
     } finally {
       setSubmitting(false);
     }

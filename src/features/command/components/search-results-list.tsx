@@ -1,9 +1,5 @@
-import {
-  CommandEmpty,
-  CommandGroup,
-  CommandList,
-} from "@/components/ui/command";
-import type { SystemCommandItem } from "@/lib/core";
+import { CommandEmpty, CommandGroup, CommandList } from "@/components/ui/command";
+import type { SystemCommandItem } from "@/lib/schemas";
 import { CommandItemRow } from "./command-item-row";
 
 interface SearchResultsListProps {
@@ -11,10 +7,7 @@ interface SearchResultsListProps {
   onSelectCommand: (cmd: SystemCommandItem) => void;
 }
 
-export function SearchResultsList({
-  categories,
-  onSelectCommand,
-}: SearchResultsListProps) {
+export function SearchResultsList({ categories, onSelectCommand }: SearchResultsListProps) {
   return (
     <CommandList className="max-h-72">
       <CommandEmpty className="py-6 text-xs text-muted-foreground">
@@ -24,12 +17,7 @@ export function SearchResultsList({
       {categories.map(([category, items]) => (
         <CommandGroup key={category} heading={category}>
           {items.map((cmd) => (
-            <CommandItemRow
-              key={cmd.id}
-              cmd={cmd}
-              category={category}
-              onSelect={onSelectCommand}
-            />
+            <CommandItemRow key={cmd.id} cmd={cmd} category={category} onSelect={onSelectCommand} />
           ))}
         </CommandGroup>
       ))}

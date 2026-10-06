@@ -4,7 +4,7 @@ import { Download, Home } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ThemeToggle } from "@/components/layout/sidebar/theme-toggle";
+import { ThemeToggle } from "@/components/layout/sidebar";
 import {
   Breadcrumb,
   BreadcrumbItem,

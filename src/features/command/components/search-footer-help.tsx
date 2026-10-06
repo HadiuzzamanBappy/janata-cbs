@@ -8,16 +8,12 @@ export function SearchFooterHelp() {
           <span>Navigate</span>
         </span>
         <span className="flex items-center gap-1">
-          <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">
-            ↵
-          </kbd>
+          <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">↵</kbd>
           <span>Select</span>
         </span>
       </div>
       <span className="flex items-center gap-1">
-        <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">
-          ESC
-        </kbd>
+        <kbd className="px-1.5 py-0.5 bg-background border rounded font-mono text-[10px]">ESC</kbd>
         <span>Close</span>
       </span>
     </div>

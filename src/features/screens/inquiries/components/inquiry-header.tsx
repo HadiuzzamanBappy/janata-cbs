@@ -58,7 +58,7 @@ export function InquiryHeader({
   return (
     <TooltipProvider delay={150}>
       <header className="sticky top-0 z-20 bg-muted/40 border-b border-border/80 select-none">
-        {/* ROW 1: Minimalist Temenos Action Toolbar */}
+        {/* ROW 1: Minimalist CBS Action Toolbar */}
         <div className="flex items-center gap-1 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
           {/* 1. Refresh Enquiry Data */}
           <Tooltip>
@@ -151,7 +151,7 @@ export function InquiryHeader({
           </DropdownMenu>
         </div>
 
-        {/* ROW 2: Ultra-compact Temenos Record Title */}
+        {/* ROW 2: Ultra-compact CBS Record Title */}
         <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
             {title || "Enquiry Screen"}

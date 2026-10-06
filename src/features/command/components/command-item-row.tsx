@@ -28,9 +28,7 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
         : undefined;
 
   const canonicalTag = cmd.controlName || cmd.command;
-  const searchValue = [cmd.title, aliasTag, canonicalTag, cmd.command]
-    .filter(Boolean)
-    .join(" ");
+  const searchValue = [cmd.title, aliasTag, canonicalTag, cmd.command].filter(Boolean).join(" ");
 
   return (
     <CommandItem
@@ -48,10 +46,7 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
         </span>
       </div>
 
-      <div
-        data-slot="command-shortcut"
-        className="ml-auto flex items-center gap-1.5 shrink-0 pl-2"
-      >
+      <div data-slot="command-shortcut" className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
         {aliasTag ? (
           <>
             <span className="font-mono text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">

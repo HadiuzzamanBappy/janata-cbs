@@ -1,12 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { extractMenuCommands, getAllRegisteredCommands } from "@/lib/cbs-command";
 import { appConfig } from "@/lib/config";
-import {
-  extractMenuCommands,
-  getAllRegisteredCommands,
-  type SystemCommandItem,
-} from "@/lib/core";
+import type { SystemCommandItem } from "@/lib/schemas";
 
 interface UseSearchCommandsOptions {
   open: boolean;

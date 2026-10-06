@@ -423,5 +423,114 @@ export const STATIC_MODELS: Record<string, GrpcResponse> = {
         },
       },
     },
-  }
+  },
+
+  "USER.MGT": {
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+    data: {
+      fields: {
+        record: {
+          struct_value: {
+            fields: {
+              TABLENAME: { string_value: "USER.MGT" },
+              DESCRIPTION: { string_value: "User Management" },
+              IDDEF: {
+                struct_value: {
+                  fields: {
+                    IDPREFIX: { string_value: "USR" },
+                  },
+                },
+              },
+              PROPERTIES: {
+                list_value: {
+                  values: [
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "USER.ID" },
+                          LABEL: { string_value: "User ID" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 20 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "FULL.NAME" },
+                          LABEL: { string_value: "Full Name" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 60 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "USER.ROLE" },
+                          LABEL: { string_value: "User Role" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 20 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "BRANCH.CODE" },
+                          LABEL: { string_value: "Branch Code" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 6 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "EMAIL" },
+                          LABEL: { string_value: "Email Address" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 50 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "PHONE" },
+                          LABEL: { string_value: "Mobile Phone" },
+                          TYPE: { string_value: "VARCHAR" },
+                          LENGTH: { number_value: 20 },
+                        },
+                      },
+                    },
+                    {
+                      struct_value: {
+                        fields: {
+                          NAME: { string_value: "STATUS" },
+                          LABEL: { string_value: "Status" },
+                          TYPE: { string_value: "VARCHAR" },
+                          REQUIRED: { bool_value: true },
+                          LENGTH: { number_value: 10 },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 };

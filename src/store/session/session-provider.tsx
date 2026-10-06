@@ -4,6 +4,12 @@ import { createContext, type ReactNode, useContext, useRef } from "react";
 import { useStore } from "zustand";
 import { createSessionStore, type SessionState, type SessionStore } from "./session-store";
 
+let activeSessionStore: SessionStore | null = null;
+
+export function getActiveSessionStore(): SessionStore | null {
+  return activeSessionStore;
+}
+
 export const SessionStoreContext = createContext<SessionStore | null>(null);
 
 export interface SessionStoreProviderProps {
@@ -14,6 +20,7 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
   const storeRef = useRef<SessionStore>(undefined!);
   if (!storeRef.current) {
     storeRef.current = createSessionStore();
+    activeSessionStore = storeRef.current;
   }
 
   return (

@@ -19,7 +19,7 @@ export interface CbsAuditFooterProps {
 }
 
 /**
- * Standard Temenos T24 Audit Footer displaying record ledger state:
+ * Standard CBS Audit Footer displaying record ledger state:
  * - REC.STATUS, CURR.NO, INPUTTER, DATE.TIME, AUTHORISER, CO.CODE
  */
 export function CbsAuditFooter({ audit, className }: CbsAuditFooterProps) {

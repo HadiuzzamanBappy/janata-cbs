@@ -29,7 +29,7 @@ export function FormSkeleton(_props?: FormSkeletonProps) {
           <Skeleton className="h-7 w-20 rounded" />
         </div>
 
-        {/* ROW 2: Temenos Record Header: Label + Record ID Box + Add (+) Button */}
+        {/* ROW 2: CBS Record Header: Label + Record ID Box + Add (+) Button */}
         <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           {/* Title label placeholder */}
           <Skeleton className="h-4 w-28 rounded" />

@@ -47,7 +47,7 @@ export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): Pars
     userRole = [fields.userRole.trim()];
   }
 
-  // Extract Temenos RIDASH function rights
+  // Extract CBS RIDASH function rights
   const functionRights = accessibility
     ? accessibility.split("").filter(Boolean)
     : ["R", "I", "D", "A", "S", "H"];

@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/config";
 import { dispatch, type Envelope } from "@/lib/grpc/dispatch";
 import { getSession } from "@/lib/redis";
-import { STATIC_INQUIRY_DATA, STATIC_TABLE_DATA } from "@fixtures";
+import { STATIC_INQUIRIES, STATIC_INQUIRY_DATA, STATIC_TABLE_DATA } from "@fixtures";
 import { parseInquiryRecords } from "@/lib/parsers";
 
 export const runtime = "nodejs";
@@ -71,10 +71,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // 1. INQ request handling (Inquiry datasets)
     if (body.requestType === "INQ") {
       if (appConfig.modelSource === "static") {
-        const rawInquiry =
+        // Dynamic Resolution:
+        // 1. Check direct match by controlName or recordId in STATIC_INQUIRY_DATA
+        let rawInquiry =
           STATIC_INQUIRY_DATA[cleanModel] ||
-          STATIC_INQUIRY_DATA[cleanRecordId] ||
-          (cleanModel === "TODAY.TXN.ENTRY" ? STATIC_INQUIRY_DATA["GET.TODAY.ENTRY"] : null);
+          STATIC_INQUIRY_DATA[cleanRecordId];
+
+        // 2. If not found directly, inspect STATIC_INQUIRIES schemas dynamically to find which inquiry matches this controllerName
+        if (!rawInquiry && cleanModel) {
+          for (const [inqKey, inqSpec] of Object.entries(STATIC_INQUIRIES)) {
+            const fields = inqSpec.data?.fields as Record<string, unknown> | undefined;
+            const inqInfo = fields?.INQInfo as { struct_value?: { fields?: Record<string, { string_value?: string }> } } | undefined;
+            const controller = inqInfo?.struct_value?.fields?.controllerName?.string_value?.trim().toUpperCase();
+
+            if (controller === cleanModel && STATIC_INQUIRY_DATA[inqKey]) {
+              rawInquiry = STATIC_INQUIRY_DATA[inqKey];
+              break;
+            }
+          }
+        }
 
         if (rawInquiry) {
           const records = parseInquiryRecords(rawInquiry);
@@ -86,10 +101,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             timestamp: new Date().toISOString(),
           });
         }
+
+        // If no inquiry dataset fixture exists for this enquiry, return empty dataset
+        return NextResponse.json({
+          status: "SUCCESS",
+          statusCode: 200,
+          message: "No inquiry records found in fixture",
+          data: [],
+          timestamp: new Date().toISOString(),
+        });
       }
     }
 
-    // 2. Standard Model Table handling
+    // 2. Standard Model Table handling (for Forms and non-INQ requests only)
     const modelTable = STATIC_TABLE_DATA[cleanModel];
 
     if (appConfig.modelSource === "static" && modelTable) {

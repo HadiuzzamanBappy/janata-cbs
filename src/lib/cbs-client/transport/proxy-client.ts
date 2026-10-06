@@ -1,6 +1,7 @@
 import { toast } from "@/components/ui/toast";
 import { appConfig } from "@/lib/config";
-import type { CbsApiResponse, CbsWirePayload } from "../contracts/envelope-schema";
+import type { ApiResponse } from "@/types";
+import type { CbsWirePayload } from "../types/wire";
 
 export interface SendCbsOptions {
   /** If true, silences default toast notifications */
@@ -10,6 +11,8 @@ export interface SendCbsOptions {
   successMessage?: string;
   /** Toast error override */
   errorMessage?: string;
+  /** Optional AbortSignal to cancel in-flight requests (e.g. on unmount or keystroke) */
+  signal?: AbortSignal;
 }
 
 /**
@@ -19,11 +22,12 @@ export interface SendCbsOptions {
 export async function sendCbsRequest<T = unknown>(
   payload: CbsWirePayload,
   options?: SendCbsOptions,
-): Promise<CbsApiResponse<T>> {
+): Promise<ApiResponse<T>> {
   try {
     const res = await fetch(appConfig.routes.api.proxy, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: options?.signal,
       body: JSON.stringify({
         servicePath: payload.servicePath || "default",
         requestType: payload.requestType,
@@ -44,7 +48,7 @@ export async function sendCbsRequest<T = unknown>(
       throw new Error("UNAUTHORIZED");
     }
 
-    const json = (await res.json()) as CbsApiResponse<T>;
+    const json = (await res.json()) as ApiResponse<T>;
 
     if (res.ok && json.status === "SUCCESS") {
       if (options?.successMessage && !options.silent) {
@@ -52,6 +56,14 @@ export async function sendCbsRequest<T = unknown>(
           title: options.successTitle || "Success",
           description: options.successMessage,
           type: "success",
+        });
+      }
+    } else if (json.status === "RECORD_NOT_FOUND") {
+      if (!options?.silent) {
+        toast.add({
+          title: "Record Not Found",
+          description: json.message || `Record #${payload.recordId || ""} not found.`,
+          type: "warning",
         });
       }
     } else if (!options?.silent) {
@@ -67,6 +79,11 @@ export async function sendCbsRequest<T = unknown>(
 
     return json;
   } catch (err: unknown) {
+    // If request was intentionally aborted, don't trigger error toasts
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw err;
+    }
+
     if (err instanceof Error && err.message === "UNAUTHORIZED") {
       throw err;
     }
@@ -83,7 +100,3 @@ export async function sendCbsRequest<T = unknown>(
     throw err;
   }
 }
-
-export const cbsClient = {
-  send: sendCbsRequest,
-};

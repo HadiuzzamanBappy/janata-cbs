@@ -2,19 +2,23 @@
  * Universal API Transport Contracts for CBS Core Banking
  */
 
-export interface APIResponse<T = unknown> {
-  status: string;
-  statusCode: number;
+export type ApiStatus = "SUCCESS" | "FAIL" | "ERROR" | "RECORD_NOT_FOUND";
+
+export interface ApiResponse<T = unknown> {
+  status: ApiStatus | (string & {});
+  statusCode?: number;
   idempotencyKey?: string;
-  message: string;
+  message?: string;
   errors?: string[];
   timestamp?: string;
   data?: T;
 }
 
-export type ApiResponse<T = unknown> = APIResponse<T>;
-
-export interface Envelope {
+/**
+ * Full Server Envelope sent across gRPC to backend CBS.
+ * Enriched by the Next.js proxy route with session credentials.
+ */
+export interface GrpcEnvelope {
   servicePath: string;
   requestType: string;
   controlName?: string;
@@ -26,5 +30,3 @@ export interface Envelope {
   clientId: string;
   data: Record<string, unknown>;
 }
-
-export type CbsEnvelope = Envelope;

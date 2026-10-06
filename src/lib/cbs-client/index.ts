@@ -1,6 +1,6 @@
-export * from "./contracts";
 export * from "./payloads";
 export * from "./transport/proxy-client";
+export * from "./types";
 
 import { cobPayloads } from "./payloads/cob-payloads";
 import { formPayloads } from "./payloads/form-payloads";

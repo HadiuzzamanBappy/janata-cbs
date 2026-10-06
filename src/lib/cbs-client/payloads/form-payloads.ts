@@ -1,6 +1,6 @@
-import type { CbsWirePayload } from "../contracts/envelope-schema";
-import { CbsRecordFunction } from "../contracts/record-functions";
-import { CbsRequestType } from "../contracts/request-types";
+import { CbsRecordFunction } from "@/types";
+import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types";
+import { CbsRequestType } from "../types/request-types";
 
 /**
  * Domain payload builders for Generic Form Engine Records
@@ -10,13 +10,13 @@ export const formPayloads = {
   fetchRecord: (
     controlName: string,
     recordId: string,
-    servicePath = "default",
+    servicePath = DEFAULT_SERVICE_PATH,
   ): CbsWirePayload => ({
-    servicePath,
+    servicePath: servicePath.trim() || DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_GET,
-    controlName,
+    controlName: controlName.trim().toUpperCase(),
     recordFunction: CbsRecordFunction.SEE,
-    recordId,
+    recordId: recordId.trim(),
   }),
 
   /** Commit / Save form record */
@@ -29,11 +29,11 @@ export const formPayloads = {
       servicePath?: string;
     },
   ): CbsWirePayload => ({
-    servicePath: options?.servicePath || "default",
+    servicePath: options?.servicePath?.trim() || DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
-    controlName,
+    controlName: controlName.trim().toUpperCase(),
     recordFunction: options?.recordFunction || CbsRecordFunction.INPUT,
-    recordId: options?.recordId || "",
+    recordId: options?.recordId ? options.recordId.trim() : "",
     data,
   }),
 
@@ -41,25 +41,25 @@ export const formPayloads = {
   authorizeRecord: (
     controlName: string,
     recordId: string,
-    servicePath = "default",
+    servicePath = DEFAULT_SERVICE_PATH,
   ): CbsWirePayload => ({
-    servicePath,
+    servicePath: servicePath.trim() || DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_AUTH,
-    controlName,
+    controlName: controlName.trim().toUpperCase(),
     recordFunction: CbsRecordFunction.AUTHORIZE,
-    recordId,
+    recordId: recordId.trim(),
   }),
 
   /** Delete / Reverse form record */
   deleteRecord: (
     controlName: string,
     recordId: string,
-    servicePath = "default",
+    servicePath = DEFAULT_SERVICE_PATH,
   ): CbsWirePayload => ({
-    servicePath,
+    servicePath: servicePath.trim() || DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
-    controlName,
+    controlName: controlName.trim().toUpperCase(),
     recordFunction: CbsRecordFunction.DELETE,
-    recordId,
+    recordId: recordId.trim(),
   }),
 };

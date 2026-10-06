@@ -1,6 +1,7 @@
-import type { CbsWirePayload } from "../contracts/envelope-schema";
-import { CbsRecordFunction } from "../contracts/record-functions";
-import { CbsRequestType } from "../contracts/request-types";
+import { CbsRecordFunction } from "@/types";
+import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types";
+import { CbsControlTable } from "../types/control-tables";
+import { CbsRequestType } from "../types/request-types";
 
 export interface InquiryCriteriaParam {
   selectFieldName: string;
@@ -25,9 +26,9 @@ export const inquiryPayloads = {
   executeQuery: (controlName: string, options: InquiryExecuteOptions = {}): CbsWirePayload => {
     const { queryString = [], curPage = 1, perPage = 1000 } = options;
     return {
-      servicePath: "default",
+      servicePath: DEFAULT_SERVICE_PATH,
       requestType: CbsRequestType.INQUIRY_EXEC,
-      controlName,
+      controlName: controlName.trim().toUpperCase(),
       recordFunction: CbsRecordFunction.SEE,
       recordId: "",
       data: {
@@ -42,33 +43,33 @@ export const inquiryPayloads = {
    * Fetch a single record via INQ request
    */
   fetchSingleRecord: (controlName: string, recordId: string): CbsWirePayload => ({
-    servicePath: "default",
+    servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.INQUIRY_EXEC,
-    controlName,
+    controlName: controlName.trim().toUpperCase(),
     recordFunction: CbsRecordFunction.SEE,
-    recordId,
+    recordId: recordId.trim(),
   }),
 
   /**
-   * Fetch inquiry metadata definition (INQUIRY / ENQUIRY designer)
+   * Fetch inquiry metadata definition (INQUIRY designer)
    */
   getInquiryConfig: (inquiryId: string): CbsWirePayload => ({
-    servicePath: "default",
+    servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_GET,
-    controlName: "INQUIRY",
+    controlName: CbsControlTable.INQUIRY,
     recordFunction: CbsRecordFunction.SEE,
-    recordId: inquiryId,
+    recordId: inquiryId.trim().toUpperCase(),
   }),
 
   /**
    * Save inquiry metadata definition
    */
   saveInquiryConfig: (inquiryId: string, data: Record<string, unknown>): CbsWirePayload => ({
-    servicePath: "default",
+    servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
-    controlName: "INQUIRY",
+    controlName: CbsControlTable.INQUIRY,
     recordFunction: CbsRecordFunction.INPUT,
-    recordId: inquiryId,
+    recordId: inquiryId.trim().toUpperCase(),
     data,
   }),
 
@@ -76,10 +77,21 @@ export const inquiryPayloads = {
    * Authorize inquiry definition
    */
   authorizeInquiryConfig: (inquiryId: string): CbsWirePayload => ({
-    servicePath: "default",
+    servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_AUTH,
-    controlName: "INQUIRY",
+    controlName: CbsControlTable.INQUIRY,
     recordFunction: CbsRecordFunction.AUTHORIZE,
-    recordId: inquiryId,
+    recordId: inquiryId.trim().toUpperCase(),
+  }),
+
+  /**
+   * Delete inquiry definition
+   */
+  deleteInquiryConfig: (inquiryId: string): CbsWirePayload => ({
+    servicePath: DEFAULT_SERVICE_PATH,
+    requestType: CbsRequestType.RECORD_PUT,
+    controlName: CbsControlTable.INQUIRY,
+    recordFunction: CbsRecordFunction.DELETE,
+    recordId: inquiryId.trim().toUpperCase(),
   }),
 };

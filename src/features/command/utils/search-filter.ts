@@ -13,8 +13,8 @@ export function filterVisibleCommands(
   return commands.filter((c) => {
     const titleMatch = c.title.toLowerCase().includes(q);
     const cmdMatch = c.command.toLowerCase().includes(q);
-    const recordIdMatch = Boolean(c.recordId && c.recordId.toLowerCase().includes(q));
-    const controlNameMatch = Boolean(c.controlName && c.controlName.toLowerCase().includes(q));
+    const recordIdMatch = Boolean(c.recordId?.toLowerCase().includes(q));
+    const controlNameMatch = Boolean(c.controlName?.toLowerCase().includes(q));
     const aliasMatch = Boolean(c.aliases?.some((a) => a.toLowerCase().includes(q)));
     return titleMatch || cmdMatch || recordIdMatch || controlNameMatch || aliasMatch;
   });

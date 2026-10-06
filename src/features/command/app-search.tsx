@@ -3,16 +3,14 @@
 import * as React from "react";
 import { CommandDialog } from "@/components/ui/command";
 import { useUserRights } from "@/hooks";
-import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
+import { useSessionStore } from "@/store";
 import { CommandGuidance, SearchFooterHelp, SearchInputBar, SearchResultsList } from "./components";
 import { useCommandExecutor, useCommandGuide, useSearchCommands } from "./hooks";
-import { filterVisibleCommands, groupCommandsByCategory } from "./search-filter";
+import { filterVisibleCommands, groupCommandsByCategory } from "./utils/search-filter";
 import type { GlobalSearchProps, RidashOption } from "./types";
 
-export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchProps) {
-  const { user, logout } = useSessionStore();
-  const { addTab } = useWorkbenchStore();
-  const { confirm } = useAlertStore();
+export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
+  const { user } = useSessionStore();
   const rights = useUserRights();
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -31,12 +29,6 @@ export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchP
 
   // Hook 2: CBS Command Grammar Execution
   const { handleSelectCommand, handleExecuteRawInput } = useCommandExecutor({
-    user,
-    allCommands,
-    addTab,
-    openSettingsTab,
-    logout,
-    confirm,
     onClose: () => onOpenChange(false),
   });
 

@@ -10,22 +10,28 @@ It is designed with **zero legacy bridges**, strictly following authentic CBS te
 
 ```
 src/lib/cbs-command/
-├── contracts/               # Pure TypeScript data contracts
-│   ├── command.ts           # ParsedCommand, ScreenMode, FunctionRightCode ('R','I','D','A','S','H')
-│   ├── execution.ts         # Tab/popup routing targets, step overrides, form pre-seeds
-│   └── validation.ts        # Permission check results and security clearance details
-├── engine/                  # Core grammar parsing & security validation
-│   ├── grammar.ts           # Deterministic formula parser for CBS expressions
-│   └── validator.ts         # Enforces command-line privileges and user function rights
-├── registry/                # Single source of truth for command catalog & screens
-│   ├── alias.ts             # Master canonical screen lookup table
-│   └── catalog.ts           # Catalog of system canvas screens and navigation commands
-├── executor/                # Execution & dispatch engine
-│   ├── terminal.ts          # Orchestrates Parse -> Validate -> Target Tab/Popup Dispatch
-│   ├── action.ts            # Handles quick system actions (THEME, LOGOUT) & settings tabs
-│   └── popup.ts             # Multi-monitor popout window manager
-├── index.ts                 # Unified public facade (`cbsCommand`)
-└── README.md                # Gateway documentation
+├── types/                  # Pure TypeScript data contracts
+│   ├── command.ts          # ParsedCommand AST, ScreenMode, RIDASH function codes
+│   ├── execution.ts        # Execution options, targets, and callbacks
+│   └── validation.ts       # RBAC validation result & user security profile
+├── engine/                 # Core grammar parsing & security validation
+│   ├── grammar.ts          # Pure formula parser for CBS expressions
+│   └── validator.ts        # Pre-execution RBAC security guard
+├── registry/               # Single source of truth for command catalog & screens
+│   ├── alias.ts            # Canonical screen lookup table
+│   └── catalog.ts          # Catalog of system canvas screens and navigation commands
+├── executor/               # Execution & dispatch engine
+│   ├── terminal.ts         # Orchestrates Parse -> Validate -> Target Tab Dispatch
+│   ├── action.ts           # Handles quick system actions (THEME, LOGOUT) & settings tabs
+│   └── popup.ts            # Multi-monitor popout window manager
+├── index.ts                # Unified public facade (`cbsCommand`)
+└── README.md               # Gateway documentation
+```
+
+### Verification Suite
+Run the automated gateway verification suite at any time:
+```bash
+pnpm verify:gateway
 ```
 
 ---

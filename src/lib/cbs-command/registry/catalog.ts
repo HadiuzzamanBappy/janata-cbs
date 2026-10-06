@@ -2,7 +2,7 @@
  * Master Static Command Definitions for Navigation, System Administration, and Quick Actions
  */
 
-import type { SystemCommandItem } from "@/lib/schemas";
+import type { MenuItem, SystemCommandItem } from "@/lib/schemas";
 
 export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   // 1. Security & Authentication
@@ -192,8 +192,6 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
 export function getAllRegisteredCommands(): SystemCommandItem[] {
   return MASTER_COMMAND_DEFINITIONS;
 }
-
-import type { MenuItem } from "@/lib/schemas";
 
 /**
  * Traverses menu hierarchy and extracts screen execution commands.

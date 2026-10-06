@@ -3,8 +3,8 @@
  */
 
 import { appConfig } from "@/lib/config";
-import type { ParsedCommand } from "../contracts/command";
-import type { ExecutionOptions } from "../contracts/execution";
+import type { ParsedCommand } from "../types/command";
+import type { ExecutionOptions } from "../types/execution";
 
 export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: ExecutionOptions): void {
   if (typeof window === "undefined") return;
@@ -15,7 +15,8 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
   const recordId = options?.searchRecordId || parsed.recordId;
 
   params.set("title", title);
-  params.set("component", "DYNAMIC_FORM");
+  const component = parsed.type === "INQUIRY" ? "INQUIRY_SCREEN" : "DYNAMIC_FORM";
+  params.set("component", component);
   if (mode) params.set("mode", mode);
   if (recordId) params.set("recordId", recordId);
   if (parsed.authLevel !== undefined) params.set("authLevel", String(parsed.authLevel));

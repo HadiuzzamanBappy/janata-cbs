@@ -18,7 +18,7 @@ export function useSearchCommands({ open, userHasCommandLine }: UseSearchCommand
       return;
     }
 
-    const fetches: Promise<any>[] = [
+    const fetches: Promise<{ success: boolean; data?: unknown }>[] = [
       fetch(appConfig.routes.api.menu)
         .then((res) => res.json())
         .catch(() => ({ success: false })),

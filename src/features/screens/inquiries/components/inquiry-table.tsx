@@ -28,8 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cbsCommand } from "@/lib/cbs-command";
 import type { EnquiryColumn, EnquiryRow } from "@/lib/schemas";
-import { useWorkbenchStore } from "@/store";
 
 export interface InquiryTableProps {
   columns: EnquiryColumn[];
@@ -58,7 +58,6 @@ export function InquiryTable({
   const [sortAsc, setSortAsc] = React.useState(true);
   const [internalPage, setInternalPage] = React.useState(1);
   const [internalPageSize, setInternalPageSize] = React.useState(10);
-  const { addTab } = useWorkbenchStore();
 
   const page = controlledPage ?? internalPage;
   const setPage = onPageChange ?? setInternalPage;
@@ -105,12 +104,9 @@ export function InquiryTable({
   ) => {
     if (!recordId) return;
     const cmd = targetCommand || "ACCOUNT";
-    addTab({
-      screenId: `${cmd} ${mode === "EDIT" ? "A" : "S"} ${recordId}`,
+    const functionCode = mode === "EDIT" ? "A" : "S";
+    cbsCommand.execute(`${cmd} ${functionCode} ${recordId}`, {
       title: `${cmd} #${recordId}`,
-      componentName: "DYNAMIC_FORM",
-      screenMode: mode,
-      searchRecordId: recordId,
       formData: (row as Record<string, unknown>) || {},
     });
   };

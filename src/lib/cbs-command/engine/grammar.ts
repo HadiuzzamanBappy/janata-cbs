@@ -14,13 +14,17 @@
  * 8. System Action:             ACTION:LOGOUT          -> Type: ACTION, Action: logout
  */
 
+import { resolveCommandAlias } from "../registry/alias";
 import {
   CBS_FUNCTION_METADATA,
+  CBS_SETTINGS_TABS,
+  CBS_SYSTEM_ACTIONS,
+  type CbsSettingsTabId,
+  type CbsSystemActionId,
   type FunctionRightCode,
   type ParsedCommand,
   VALID_FUNCTION_CODES_SET,
-} from "../contracts/command";
-import { resolveCommandAlias } from "../registry/alias";
+} from "../types/command";
 
 /**
  * Parses raw terminal command string into a strongly typed ParsedCommand contract.
@@ -44,7 +48,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   const upperTrimmed = trimmed.toUpperCase();
 
   // 1. Settings Command: SETTINGS:<TAB>, SETTING><TAB>, or direct alias PROFILE/SECURITY/THEME
-  const settingsTab =
+  const rawTab =
     upperTrimmed === "PROFILE" || upperTrimmed === "SECURITY"
       ? upperTrimmed.toLowerCase()
       : upperTrimmed === "THEME"
@@ -53,6 +57,10 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
             .match(/^(?:settings:|setting>)(.+)$/i)?.[1]
             ?.trim()
             .toLowerCase();
+
+  const settingsTab = CBS_SETTINGS_TABS.includes(rawTab as CbsSettingsTabId)
+    ? (rawTab as CbsSettingsTabId)
+    : undefined;
 
   if (settingsTab) {
     return {
@@ -68,7 +76,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   }
 
   // 2. Action Command: ACTION:<ACT> or direct alias DARK/LOGOUT/EXIT
-  const actionId =
+  const rawAction =
     upperTrimmed === "DARK"
       ? "toggle_theme"
       : upperTrimmed === "LOGOUT" || upperTrimmed === "EXIT"
@@ -77,6 +85,10 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
             .match(/^action:(.+)$/i)?.[1]
             ?.trim()
             .toLowerCase();
+
+  const actionId = CBS_SYSTEM_ACTIONS.includes(rawAction as CbsSystemActionId)
+    ? (rawAction as CbsSystemActionId)
+    : undefined;
 
   if (actionId) {
     return {
@@ -242,11 +254,11 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // Case 4: <APP> <FUNCTION> <RECORD_ID> (e.g. "USER I 1001" or "USER S 1001")
+  // Case 4: <APP> <FUNCTION> <RECORD_ID...> (e.g. "USER I 1001", "ACCOUNT S 1000001;2")
   const funcToken = remainingTokens[0].toUpperCase();
   if (VALID_FUNCTION_CODES_SET.has(funcToken)) {
     const fnCode = funcToken as FunctionRightCode;
-    const recordId = remainingTokens[1];
+    const recordId = remainingTokens.slice(1).join(" ");
     return {
       raw: trimmed,
       type: "FORM",

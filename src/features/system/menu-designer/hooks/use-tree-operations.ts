@@ -1,9 +1,15 @@
 "use client";
 
 import * as React from "react";
-import type { MenuCatalogItem, MenuNode } from "../types";
+import type {
+  MenuCatalogActionItem,
+  MenuTreeNode,
+} from "@/lib/schemas/menu-designer-schema";
 
-export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<MenuNode[]>>) {
+export function useTreeOperations(
+  nodes: MenuTreeNode[],
+  setNodes: (updater: (prev: MenuTreeNode[]) => MenuTreeNode[]) => void,
+) {
   const [collapsedNodeIds, setCollapsedNodeIds] = React.useState<Set<string>>(new Set());
 
   const toggleCollapse = React.useCallback((nodeId: string) => {
@@ -16,12 +22,13 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
   }, []);
 
   const addCatalogItem = React.useCallback(
-    (item: MenuCatalogItem, parentId: string | null = null) => {
-      const newNode: MenuNode = {
+    (item: MenuCatalogActionItem, parentId: string | null = null) => {
+      const numericMenuId = parseInt(item.id, 10) || 0;
+      const newNode: MenuTreeNode = {
         id: `node_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-        menuId: item.id,
+        menuId: numericMenuId,
         label: item.label,
-        command: item.command,
+        command: item.command || "",
         isVisible: true,
         orderIndex: 0,
         children: [],
@@ -32,12 +39,15 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
           return [...prevNodes, { ...newNode, orderIndex: prevNodes.length + 1 }];
         }
 
-        function insertIntoParent(list: MenuNode[]): MenuNode[] {
+        function insertIntoParent(list: MenuTreeNode[]): MenuTreeNode[] {
           return list.map((node) => {
             if (node.id === parentId) {
               return {
                 ...node,
-                children: [...node.children, { ...newNode, orderIndex: node.children.length + 1 }],
+                children: [
+                  ...node.children,
+                  { ...newNode, orderIndex: node.children.length + 1 },
+                ],
               };
             }
             if (node.children.length > 0) {
@@ -55,7 +65,7 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
 
   const addCustomGroup = React.useCallback(
     (label: string = "New Group", parentId: string | null = null) => {
-      const newNode: MenuNode = {
+      const newNode: MenuTreeNode = {
         id: `node_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         menuId: 0,
         label,
@@ -70,12 +80,15 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
           return [...prevNodes, { ...newNode, orderIndex: prevNodes.length + 1 }];
         }
 
-        function insertIntoParent(list: MenuNode[]): MenuNode[] {
+        function insertIntoParent(list: MenuTreeNode[]): MenuTreeNode[] {
           return list.map((node) => {
             if (node.id === parentId) {
               return {
                 ...node,
-                children: [...node.children, { ...newNode, orderIndex: node.children.length + 1 }],
+                children: [
+                  ...node.children,
+                  { ...newNode, orderIndex: node.children.length + 1 },
+                ],
               };
             }
             if (node.children.length > 0) {
@@ -92,9 +105,9 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
   );
 
   const updateNode = React.useCallback(
-    (nodeId: string, patch: Partial<MenuNode>) => {
+    (nodeId: string, patch: Partial<MenuTreeNode>) => {
       setNodes((prevNodes) => {
-        function patchRecursive(list: MenuNode[]): MenuNode[] {
+        function patchRecursive(list: MenuTreeNode[]): MenuTreeNode[] {
           return list.map((node) => {
             if (node.id === nodeId) {
               return { ...node, ...patch };
@@ -114,7 +127,7 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
   const deleteNode = React.useCallback(
     (nodeId: string) => {
       setNodes((prevNodes) => {
-        function removeRecursive(list: MenuNode[]): MenuNode[] {
+        function removeRecursive(list: MenuTreeNode[]): MenuTreeNode[] {
           return list
             .filter((node) => node.id !== nodeId)
             .map((node) => ({
@@ -131,7 +144,7 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
   const moveNodeOrder = React.useCallback(
     (nodeId: string, direction: -1 | 1) => {
       setNodes((prevNodes) => {
-        function reorder(list: MenuNode[]): MenuNode[] {
+        function reorder(list: MenuTreeNode[]): MenuTreeNode[] {
           const index = list.findIndex((n) => n.id === nodeId);
           if (index !== -1) {
             const targetIndex = index + direction;
@@ -158,9 +171,9 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
   const moveNodeParent = React.useCallback(
     (draggedId: string, targetParentId: string | null) => {
       setNodes((prevNodes) => {
-        let draggedNode: MenuNode | null = null;
+        let draggedNode: MenuTreeNode | null = null;
 
-        function extract(list: MenuNode[]): MenuNode[] {
+        function extract(list: MenuTreeNode[]): MenuTreeNode[] {
           return list
             .filter((node) => {
               if (node.id === draggedId) {
@@ -177,13 +190,13 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
 
         const remaining = extract(prevNodes);
         if (!draggedNode) return prevNodes;
-        const nodeToMove: MenuNode = draggedNode;
+        const nodeToMove: MenuTreeNode = draggedNode;
 
         if (!targetParentId) {
           return [...remaining, { ...nodeToMove, orderIndex: remaining.length + 1 }];
         }
 
-        function insert(list: MenuNode[]): MenuNode[] {
+        function insert(list: MenuTreeNode[]): MenuTreeNode[] {
           return list.map((node) => {
             if (node.id === targetParentId) {
               return {
@@ -208,6 +221,7 @@ export function useTreeOperations(setNodes: React.Dispatch<React.SetStateAction<
   );
 
   return {
+    nodes,
     collapsedNodeIds,
     toggleCollapse,
     addCatalogItem,

@@ -1,7 +1,7 @@
 "use client";
 
 import { SysMenuCatalog } from "@/features/system/menu-catalog";
-import { MenuDesignerScreen } from "@/features/system/menu-designer";
+import { SysMenuDesigner } from "@/features/system/menu-designer";
 import { SysModelConfig } from "@/features/system/model-config";
 import ReportStudio from "@/features/system/report-studio";
 import { UserGroupScreen } from "@/features/system/user-group";
@@ -17,7 +17,8 @@ import type { ScreenComponent } from "./types";
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
   "MENU": SysMenuCatalog,
-  "MENU.DESIGN": MenuDesignerScreen,
+  "MENU.DESIGN": SysMenuDesigner,
+  "MENU.TREE": SysMenuDesigner,
   "USER.GROUP": UserGroupScreen,
   "MODEL.CONFIG": SysModelConfig,
   "REPORT.DESIGN": () => (

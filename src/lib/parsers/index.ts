@@ -10,5 +10,6 @@ export * from "./control-parser";
 export * from "./inquiry-parser";
 export * from "./menu-parser";
 export * from "./menu-catalog-parser";
+export * from "./menu-designer-parser";
 export * from "./form-parser";
 export * from "./model-config-parser";

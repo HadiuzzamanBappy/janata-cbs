@@ -1,15 +1,87 @@
 "use client";
 
+import { useDraggable } from "@dnd-kit/core";
 import { Plus, Search, Terminal } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { MenuCatalogItem } from "../types";
+import type { MenuCatalogActionItem } from "@/lib/schemas/menu-designer-schema";
+import { cn } from "@/lib/utils";
+
+interface DraggableCatalogCardProps {
+  item: MenuCatalogActionItem;
+  disabled?: boolean;
+  onAddItem: (item: MenuCatalogActionItem) => void;
+}
+
+function DraggableCatalogCard({ item, disabled, onAddItem }: DraggableCatalogCardProps) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `catalog-${item.id}`,
+    data: { item },
+    disabled,
+  });
+
+  return (
+    <li
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      draggable={!disabled}
+      onDragStart={(e) => {
+        // Native fallback drag transfer
+        e.dataTransfer.setData("application/json", JSON.stringify(item));
+        e.dataTransfer.effectAllowed = "copy";
+      }}
+      className={cn(
+        "group p-2 rounded-md border border-border/70 bg-card hover:border-primary/50 hover:bg-accent/40 transition-all flex items-start justify-between gap-2 select-none",
+        !disabled ? "cursor-grab active:cursor-grabbing" : "opacity-60 cursor-not-allowed",
+        isDragging && "opacity-40 border-primary ring-1 ring-primary",
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-medium text-foreground truncate">
+            {item.label}
+          </span>
+          {item.menuType && (
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5 font-mono text-muted-foreground border-border/60">
+              {item.menuType}
+            </Badge>
+          )}
+        </div>
+        {item.command && (
+          <div className="flex items-center gap-1 mt-0.5">
+            <Terminal className="size-2.5 text-muted-foreground" />
+            <span className="text-[10px] font-mono text-muted-foreground truncate">
+              {item.command}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        disabled={disabled}
+        onClick={(e) => {
+          e.stopPropagation();
+          onAddItem(item);
+        }}
+        title="Add to Canvas Root"
+        className="opacity-0 group-hover:opacity-100 focus:opacity-100 h-6 w-6 rounded hover:bg-primary/10 hover:text-primary text-muted-foreground transition-all shrink-0 disabled:opacity-0"
+      >
+        <Plus className="size-3.5" />
+      </Button>
+    </li>
+  );
+}
 
 interface MenuCatalogSidebarProps {
-  items: MenuCatalogItem[];
+  items: MenuCatalogActionItem[];
   loading?: boolean;
-  onAddItem: (item: MenuCatalogItem) => void;
+  onAddItem: (item: MenuCatalogActionItem) => void;
   disabled?: boolean;
 }
 
@@ -27,14 +99,14 @@ export function MenuCatalogSidebar({
     return items.filter(
       (item) =>
         item.label.toLowerCase().includes(q) ||
-        item.command.toLowerCase().includes(q) ||
+        (item.command && item.command.toLowerCase().includes(q)) ||
         item.id.toLowerCase().includes(q),
     );
   }, [items, search]);
 
   return (
     <aside className="w-72 border-r border-border bg-card/40 flex flex-col h-full shrink-0 select-none">
-      <div className="p-3 border-b border-border/80 space-y-2">
+      <div className="p-2.5 border-b border-border/80 space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
             Action Catalog (MENU)
@@ -66,41 +138,12 @@ export function MenuCatalogSidebar({
         ) : (
           <ul className="space-y-1.5 list-none p-0 m-0">
             {filteredItems.map((item) => (
-              <li
+              <DraggableCatalogCard
                 key={item.id}
-                draggable={!disabled}
-                onDragStart={(e) => {
-                  e.dataTransfer.setData("application/json", JSON.stringify(item));
-                  e.dataTransfer.effectAllowed = "copy";
-                }}
-                className="group p-2 rounded-md border border-border/60 bg-background/80 hover:bg-accent/60 hover:border-border transition-all flex items-start justify-between gap-2 cursor-grab active:cursor-grabbing"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-foreground truncate">
-                      {item.label}
-                    </span>
-                  </div>
-                  {item.command && (
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <Terminal className="size-2.5 text-muted-foreground" />
-                      <span className="text-[10px] font-mono text-muted-foreground truncate">
-                        {item.command}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onAddItem(item)}
-                  title="Add to Tree Root"
-                  className="opacity-0 group-hover:opacity-100 focus:opacity-100 size-6 rounded hover:bg-primary/10 hover:text-primary flex items-center justify-center text-muted-foreground transition-all shrink-0 disabled:opacity-0"
-                >
-                  <Plus className="size-3.5" />
-                </button>
-              </li>
+                item={item}
+                disabled={disabled}
+                onAddItem={onAddItem}
+              />
             ))}
           </ul>
         )}

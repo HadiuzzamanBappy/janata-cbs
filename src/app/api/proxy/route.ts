@@ -54,7 +54,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const cleanModel = (body.controlName || "").trim().toUpperCase();
+    const rawControl = (body.controlName || "").trim().toUpperCase();
+    const cleanModel = rawControl === "MENU.TREE" ? "MENU_TREE" : rawControl;
     const cleanRecordId = (body.recordId || "").trim().toUpperCase();
 
     // =========================================================================

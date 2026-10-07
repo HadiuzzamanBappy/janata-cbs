@@ -413,7 +413,7 @@ export const STATIC_FORM_DATA: Record<
   },
 
   // 6. MENU_TREE Records (TABLE: MENU_TREE / MENU.TREE)
-  MENU_TREE: {
+  MENU_DESIGN: {
     records: {
       MAIN_MENU: {
         recordId: "MAIN_MENU",
@@ -524,7 +524,173 @@ export const STATIC_FORM_DATA: Record<
       },
     ],
   },
+
+  // 6. USER_GROUP Records (SYS_USER_GROUP)
+  USER_GROUP: {
+    records: {
+      "TELLER.GRP": {
+        recordId: "TELLER.GRP",
+        groupLabel: "Branch Frontline Tellers",
+        menuIds: ["1", "2", "4", "5", "6"],
+        roleIds: ["1", "3"],
+        isActive: true,
+        auditData: {
+          recStatus: "LIVE",
+          recCurrNumber: 2,
+          recInputter: "SYSADMIN",
+          recInputTime: "2026-03-01 09:15:00",
+          recAuthorizer: "SUPV01",
+          recAuthTime: "2026-03-01 09:20:00",
+          recBranchCode: "JB1001",
+        },
+      },
+      "SUPERVISOR.GRP": {
+        recordId: "SUPERVISOR.GRP",
+        groupLabel: "Branch Authorizers & Supervisors",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7"],
+        roleIds: ["2", "4"],
+        isActive: true,
+        auditData: {
+          recStatus: "LIVE",
+          recCurrNumber: 3,
+          recInputter: "SYSADMIN",
+          recInputTime: "2026-03-01 09:30:00",
+          recAuthorizer: "MGR01",
+          recAuthTime: "2026-03-01 09:35:00",
+          recBranchCode: "JB1001",
+        },
+      },
+      "ADMIN.GRP": {
+        recordId: "ADMIN.GRP",
+        groupLabel: "System & Core Administrators",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        roleIds: ["1", "2", "6"],
+        isActive: true,
+        auditData: {
+          recStatus: "LIVE",
+          recCurrNumber: 6,
+          recInputter: "SECADMIN",
+          recInputTime: "2026-01-15 08:00:00",
+          recAuthorizer: "CHIEF_SEC",
+          recAuthTime: "2026-01-15 08:10:00",
+          recBranchCode: "JB9999",
+        },
+      },
+    },
+    enquiryRows: [
+      {
+        recordId: "TELLER.GRP",
+        groupLabel: "Branch Frontline Tellers",
+        menuIds: ["1", "2", "4", "5", "6"],
+        roleIds: ["1", "3"],
+        isActive: true,
+      },
+      {
+        recordId: "SUPERVISOR.GRP",
+        groupLabel: "Branch Authorizers & Supervisors",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7"],
+        roleIds: ["2", "4"],
+        isActive: true,
+      },
+      {
+        recordId: "ADMIN.GRP",
+        groupLabel: "System & Core Administrators",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        roleIds: ["1", "2", "6"],
+        isActive: true,
+      },
+    ],
+  },
+
+  // 7. USER.GROUP Alias (TABLE: USER.GROUP / USER_GROUP)
+  "USER.GROUP": {
+    records: {
+      "TELLER.GRP": {
+        recordId: "TELLER.GRP",
+        groupLabel: "Branch Frontline Tellers",
+        menuIds: ["1", "2", "4", "5", "6"],
+        roleIds: ["1", "3"],
+        isActive: true,
+        auditData: {
+          recStatus: "LIVE",
+          recCurrNumber: 2,
+          recInputter: "SYSADMIN",
+          recInputTime: "2026-03-01 09:15:00",
+          recAuthorizer: "SUPV01",
+          recAuthTime: "2026-03-01 09:20:00",
+          recBranchCode: "JB1001",
+        },
+      },
+      "SUPERVISOR.GRP": {
+        recordId: "SUPERVISOR.GRP",
+        groupLabel: "Branch Authorizers & Supervisors",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7"],
+        roleIds: ["2", "4"],
+        isActive: true,
+        auditData: {
+          recStatus: "LIVE",
+          recCurrNumber: 3,
+          recInputter: "SYSADMIN",
+          recInputTime: "2026-03-01 09:30:00",
+          recAuthorizer: "MGR01",
+          recAuthTime: "2026-03-01 09:35:00",
+          recBranchCode: "JB1001",
+        },
+      },
+      "ADMIN.GRP": {
+        recordId: "ADMIN.GRP",
+        groupLabel: "System & Core Administrators",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        roleIds: ["1", "2", "6"],
+        isActive: true,
+        auditData: {
+          recStatus: "LIVE",
+          recCurrNumber: 6,
+          recInputter: "SECADMIN",
+          recInputTime: "2026-01-15 08:00:00",
+          recAuthorizer: "CHIEF_SEC",
+          recAuthTime: "2026-01-15 08:10:00",
+          recBranchCode: "JB9999",
+        },
+      },
+    },
+    enquiryRows: [
+      {
+        recordId: "TELLER.GRP",
+        groupLabel: "Branch Frontline Tellers",
+        menuIds: ["1", "2", "4", "5", "6"],
+        roleIds: ["1", "3"],
+        isActive: true,
+      },
+      {
+        recordId: "SUPERVISOR.GRP",
+        groupLabel: "Branch Authorizers & Supervisors",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7"],
+        roleIds: ["2", "4"],
+        isActive: true,
+      },
+      {
+        recordId: "ADMIN.GRP",
+        groupLabel: "System & Core Administrators",
+        menuIds: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+        roleIds: ["1", "2", "6"],
+        isActive: true,
+      },
+    ],
+  },
 };
+
+/**
+ * Standard CBS Security Roles catalog
+ */
+export const STATIC_ROLES = [
+  { roleId: "1", roleCode: "MAKER", roleDesc: "Initiate & capture transactions" },
+  { roleId: "2", roleCode: "CHECKER", roleDesc: "Authorize & verify transactions" },
+  { roleId: "3", roleCode: "TELLER", roleDesc: "Branch cash counter operator" },
+  { roleId: "4", roleCode: "SUPERVISOR", roleDesc: "Branch operations supervisor" },
+  { roleId: "5", roleCode: "AUDITOR", roleDesc: "Read-only compliance & audit" },
+  { roleId: "6", roleCode: "SYSADMIN", roleDesc: "Full administrative access" },
+];
 
 /**
  * Helper to build a standard wire GrpcResponse for a database select

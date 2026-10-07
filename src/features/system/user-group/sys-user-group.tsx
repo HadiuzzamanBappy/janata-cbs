@@ -7,7 +7,7 @@ import {
   FileText,
   History,
   Layers,
-  Network,
+  ShieldCheck,
 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -23,13 +23,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CbsAuditFooter, CbsFormHeader, CbsIdleState } from "@/features/screens/shared";
 import type { ScreenProps } from "@/features/screens/types";
-import { DesignerAuditTab } from "./components/designer-audit-tab";
-import { DesignerCanvasTab } from "./components/designer-canvas-tab";
-import { DesignerGeneralTab } from "./components/designer-general-tab";
-import { DesignerJsonTab } from "./components/designer-json-tab";
-import { useMenuDesigner } from "./hooks/use-menu-designer";
+import { UserGroupAuditTab } from "./components/user-group-audit-tab";
+import { UserGroupGeneralTab } from "./components/user-group-general-tab";
+import { UserGroupJsonTab } from "./components/user-group-json-tab";
+import { UserGroupMatrixTab } from "./components/user-group-matrix-tab";
+import { useUserGroup } from "./hooks/use-user-group";
 
-export function SysMenuDesigner({ command, tabId }: ScreenProps) {
+export function SysUserGroup({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
     const parts = (command || "").trim().split(/\s+/);
     return parts.length > 1 ? parts[1] : undefined;
@@ -43,39 +43,41 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
     setFormData,
     loading,
     submitting,
-    catalogItems,
-    catalogLoading,
-    availableTrees,
-    treeOps,
-    fetchTreeRecord,
+    menus,
+    roles,
+    groupsPool,
+    validationErrors,
+    fetchRecord,
     handleCreateNew,
     handleValidate,
     handleSubmit,
     handleAuthorize,
-    validationErrors,
+    toggleMenu,
+    setMenusBulk,
+    toggleRole,
     resetToIdle,
-  } = useMenuDesigner(initialId, tabId);
+  } = useUserGroup(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<string>("general");
   const isReadOnly = mode === "VIEW";
 
-  // Reset tab selection to 'canvas' whenever switching to a different record or when creating a new record
+  // Reset tab selection to 'matrix' whenever switching to a different record or when creating a new record
   React.useEffect(() => {
     setActiveTab("general");
   }, [formData.recordId, mode]);
 
   const availableItems = React.useMemo(
     () =>
-      availableTrees.map((item) => ({
-        id: item.id,
-        label: item.label,
-        details: item.details,
+      groupsPool.map((g) => ({
+        id: g.id,
+        label: g.label,
+        details: g.details,
       })),
-    [availableTrees],
+    [groupsPool],
   );
 
   const generalErrorCount = validationErrors.filter((e) => e.tab === "general").length;
-  const canvasErrorCount = validationErrors.filter((e) => e.tab === "canvas").length;
+  const matrixErrorCount = validationErrors.filter((e) => e.tab === "matrix").length;
 
   const auditFooterData = React.useMemo(() => {
     if (!formData.auditData) return undefined;
@@ -93,25 +95,25 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
     <div className="flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans">
       {/* 1. CBS BASE FORM HEADER */}
       <CbsFormHeader
-        title="Navigation Tree Designer"
-        commandCode="MENU.TREE"
+        title="User Group & Menu Permissions"
+        commandCode="USER.GROUP"
         recordId={recordId}
         onRecordIdChange={(newId) => setRecordId(newId.toUpperCase())}
-        onRecordSearch={(searchedId) => fetchTreeRecord(searchedId, "EDIT")}
+        onRecordSearch={(searchedId) => fetchRecord(searchedId, "EDIT")}
         onCreateNew={handleCreateNew}
         onReturnToSearch={resetToIdle}
-        onReset={mode !== "IDLE" ? () => fetchTreeRecord(recordId || "MAIN_MENU") : undefined}
+        onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "TELLER.GRP") : undefined}
         onValidate={mode !== "IDLE" && !isReadOnly ? handleValidate : undefined}
         onSubmit={mode !== "IDLE" && !isReadOnly ? handleSubmit : undefined}
         onAuthorizeReverse={mode !== "IDLE" ? handleAuthorize : undefined}
-        onView={() => recordId && fetchTreeRecord(recordId, "VIEW")}
-        onAmend={() => recordId && fetchTreeRecord(recordId, "EDIT")}
+        onView={() => recordId && fetchRecord(recordId, "VIEW")}
+        onAmend={() => recordId && fetchRecord(recordId, "EDIT")}
         mode={mode}
         submitting={submitting || loading}
         availableItems={availableItems}
         moreActions={[
           {
-            label: "Toggle Tree Active Status",
+            label: "Toggle Group Active Status",
             onClick: () => setFormData((p) => ({ ...p, isActive: !p.isActive })),
             requiredRight: "A",
           },
@@ -123,9 +125,9 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
         {mode === "IDLE" ? (
           <div className="h-full flex flex-col items-center justify-center">
             <CbsIdleState
-              title="Navigation Tree Designer"
-              code="MENU.TREE"
-              customMessage="Configure Core Banking navigation menus (MENU.TREE / SYS_MENU_TREE), hierarchical group folders, and action mappings. Enter a Tree ID in the header or click + to start."
+              title="User Group & Menu Permissions"
+              code="USER.GROUP"
+              customMessage="Configure Role-Based Access Control and authorize which menus each user group can access. Enter a Group ID in the header or click + to start."
             />
           </div>
         ) : (
@@ -152,14 +154,14 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
                   </TabsTrigger>
 
                   <TabsTrigger
-                    value="canvas"
+                    value="matrix"
                     className="h-6 px-2.5 text-xs rounded gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs font-medium"
                   >
-                    <Network className="size-3 text-primary" />
-                    <span>Hierarchy Canvas</span>
-                    {canvasErrorCount > 0 && (
+                    <ShieldCheck className="size-3 text-emerald-500" />
+                    <span>Permissions Matrix</span>
+                    {matrixErrorCount > 0 && (
                       <Badge variant="destructive" className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-full">
-                        {canvasErrorCount}
+                        {matrixErrorCount}
                       </Badge>
                     )}
                   </TabsTrigger>
@@ -168,7 +170,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
                     value="audit"
                     className="h-6 px-2.5 text-xs rounded gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs font-medium"
                   >
-                    <History className="size-3 text-emerald-500" />
+                    <History className="size-3 text-primary" />
                     <span>Audit Trail</span>
                   </TabsTrigger>
 
@@ -257,14 +259,14 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
 
                   <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
                     <Layers className="size-3" />
-                    <span>SYS_MENU_TREE</span>
+                    <span>SYS_USER_GROUP</span>
                   </div>
                 </div>
               </div>
 
               {/* TAB CONTENTS */}
               <TabsContent value="general" className="flex-1 overflow-hidden min-h-0 m-0">
-                <DesignerGeneralTab
+                <UserGroupGeneralTab
                   formData={formData}
                   setFormData={setFormData}
                   isReadOnly={isReadOnly}
@@ -272,29 +274,25 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
                 />
               </TabsContent>
 
-              <TabsContent value="canvas" className="flex-1 overflow-hidden min-h-0 m-0">
-                <DesignerCanvasTab
-                  nodes={formData.menuTree}
-                  catalogItems={catalogItems}
-                  catalogLoading={catalogLoading}
-                  collapsedNodeIds={treeOps.collapsedNodeIds}
-                  onToggleCollapse={treeOps.toggleCollapse}
-                  onUpdateNode={treeOps.updateNode}
-                  onDeleteNode={treeOps.deleteNode}
-                  onMoveOrder={treeOps.moveNodeOrder}
-                  onMoveParent={treeOps.moveNodeParent}
-                  onAddSubgroup={(parentId) => treeOps.addCustomGroup("New Group", parentId)}
-                  onDropCatalogItem={treeOps.addCatalogItem}
+              <TabsContent value="matrix" className="flex-1 overflow-hidden min-h-0 m-0">
+                <UserGroupMatrixTab
+                  menus={menus}
+                  roles={roles}
+                  selectedMenuIds={formData.menuIds}
+                  selectedRoleIds={formData.roleIds}
+                  onToggleMenu={toggleMenu}
+                  onSetMenusBulk={setMenusBulk}
+                  onToggleRole={toggleRole}
                   isReadOnly={isReadOnly}
                 />
               </TabsContent>
 
               <TabsContent value="audit" className="flex-1 overflow-hidden min-h-0 m-0">
-                <DesignerAuditTab formData={formData} />
+                <UserGroupAuditTab formData={formData} />
               </TabsContent>
 
               <TabsContent value="json" className="flex-1 flex flex-col overflow-hidden min-h-0 m-0">
-                <DesignerJsonTab formData={formData} />
+                <UserGroupJsonTab formData={formData} />
               </TabsContent>
             </Tabs>
           </div>

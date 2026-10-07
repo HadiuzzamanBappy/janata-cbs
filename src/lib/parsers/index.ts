@@ -13,3 +13,4 @@ export * from "./menu-catalog-parser";
 export * from "./menu-designer-parser";
 export * from "./form-parser";
 export * from "./model-config-parser";
+export * from "./user-group-parser";

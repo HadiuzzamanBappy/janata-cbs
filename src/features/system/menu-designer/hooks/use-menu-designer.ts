@@ -22,74 +22,6 @@ import {
 } from "./use-menu-designer-persistence";
 import { useTreeOperations } from "./use-tree-operations";
 
-// High-fidelity fallback navigation tree
-const DEMO_TREE_DEFAULT: MenuTreeNode[] = [
-  {
-    id: "grp_retail",
-    menuId: 0,
-    label: "Retail Banking Operations",
-    command: "",
-    isVisible: true,
-    orderIndex: 1,
-    children: [
-      {
-        id: "leaf_acc_open",
-        menuId: 1,
-        label: "Open Customer Account",
-        command: "ACCOUNT I",
-        isVisible: true,
-        orderIndex: 1,
-        children: [],
-      },
-      {
-        id: "leaf_acc_inq",
-        menuId: 2,
-        label: "Account Overview & Balances",
-        command: "ACCOUNT S",
-        isVisible: true,
-        orderIndex: 2,
-        children: [],
-      },
-      {
-        id: "leaf_cust_onboard",
-        menuId: 3,
-        label: "Customer Master Onboarding",
-        command: "CUSTOMER I",
-        isVisible: true,
-        orderIndex: 3,
-        children: [],
-      },
-    ],
-  },
-  {
-    id: "grp_payments",
-    menuId: 0,
-    label: "Transfers & Clearing",
-    command: "",
-    isVisible: true,
-    orderIndex: 2,
-    children: [
-      {
-        id: "leaf_ft_new",
-        menuId: 4,
-        label: "Funds Transfer Initiation",
-        command: "FUNDS.TRANSFER I",
-        isVisible: true,
-        orderIndex: 1,
-        children: [],
-      },
-      {
-        id: "leaf_ft_inq",
-        menuId: 5,
-        label: "Realtime Ledger Inquiry",
-        command: "INQ ACCT.BAL",
-        isVisible: true,
-        orderIndex: 2,
-        children: [],
-      },
-    ],
-  },
-];
 
 export function useMenuDesigner(initialId?: string, tabId?: string) {
   const {
@@ -224,27 +156,22 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
             return;
           }
         }
-        // Fallback demo tree
+        // Clean draft initialization when record is not in backend
         setFormData({
           recordId: cleanId,
-          treeDescription: `Navigation Hierarchy: ${cleanId}`,
+          treeDescription: "",
           isActive: true,
-          menuTree: DEMO_TREE_DEFAULT,
+          menuTree: [],
         });
-        setMode(targetMode);
-        toast.add({
-          title: "Demo Tree Initialized",
-          description: `Loaded demo tree for #${cleanId}`,
-          type: "info",
-        });
+        setMode("CREATE");
       } catch {
         setFormData({
           recordId: cleanId,
-          treeDescription: `Navigation Hierarchy: ${cleanId}`,
+          treeDescription: "",
           isActive: true,
-          menuTree: DEMO_TREE_DEFAULT,
+          menuTree: [],
         });
-        setMode(targetMode);
+        setMode("CREATE");
       } finally {
         setLoading(false);
       }
@@ -258,7 +185,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     setRecordId(nextId);
     setFormData({
       recordId: nextId,
-      treeDescription: "New Enterprise Navigation Tree",
+      treeDescription: "",
       isActive: true,
       menuTree: [],
     });

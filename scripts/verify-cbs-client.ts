@@ -172,22 +172,6 @@ assert(
     (changeSignOn.data as Record<string, unknown>)?.newUserName === "senior_teller1",
 );
 
-// 6. COB Payloads
-const cobGet = cbs.cob.getPipeline("DAILY_EOD");
-assert(
-  "COB: Get Pipeline (GET, SEE)",
-  cobGet.requestType === CbsRequestType.RECORD_GET &&
-    cobGet.controlName === CbsControlTable.COB_REGISTRY &&
-    cobGet.recordId === "DAILY_EOD",
-);
-
-const cobSave = cbs.cob.savePipeline("DAILY_EOD", { stage: "POST_CLOSE" });
-assert(
-  "COB: Save Pipeline (PUT, INPUT)",
-  cobSave.requestType === CbsRequestType.RECORD_PUT &&
-    cobSave.controlName === CbsControlTable.COB_REGISTRY &&
-    cobSave.recordFunction === CbsRecordFunction.INPUT,
-);
 
 // 7. Model Config Payloads
 const modelGet = cbs.modelConfig.getModelConfig("ACCOUNT.MODEL");

@@ -105,23 +105,25 @@ export function CbsFormHeader({
 
     const matches = query
       ? demoItems.filter(
-          (item) =>
-            item.id.toLowerCase().includes(query) ||
-            item.label?.toLowerCase().includes(query) ||
-            item.details?.toLowerCase().includes(query),
-        )
+        (item) =>
+          item.id.toLowerCase().includes(query) ||
+          item.label?.toLowerCase().includes(query) ||
+          item.details?.toLowerCase().includes(query),
+      )
       : demoItems;
 
     setSearchResults(matches);
     setHasSearched(true);
     setIsDropdownOpen(true);
+    if (query && onRecordSearch) {
+      onRecordSearch(query.toUpperCase());
+    }
   };
 
   const handleSelectRecord = (id: string) => {
     setInputVal(id);
     setIsDropdownOpen(false);
     if (onRecordIdChange) onRecordIdChange(id);
-    if (onRecordSearch) onRecordSearch(id);
   };
 
   const handleClearRecord = () => {
@@ -241,9 +243,9 @@ export function CbsFormHeader({
                       align="end"
                       sideOffset={8}
                       alignOffset={-4}
-                      className="w-48 max-h-56 overflow-auto text-xs p-1 shadow-lg border border-border/80"
+                      className="w-48 max-h-56 overflow-auto text-xs p-1 rounded shadow-lg border border-border/80 bg-popover"
                     >
-                      <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground border-b border-border/40 mb-1">
+                      <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 mb-1">
                         Matching IDs ({matchingItemsToDisplay.length})
                       </div>
                       {matchingItemsToDisplay.length === 0 ? (
@@ -255,7 +257,7 @@ export function CbsFormHeader({
                           <DropdownMenuItem
                             key={item.id}
                             onClick={() => handleSelectRecord(item.id)}
-                            className="font-mono text-xs font-semibold py-1.5 px-2 cursor-pointer hover:bg-muted/80 rounded"
+                            className="font-mono text-xs font-semibold py-1 px-2 cursor-pointer hover:bg-muted/80 rounded"
                           >
                             {item.id}
                           </DropdownMenuItem>

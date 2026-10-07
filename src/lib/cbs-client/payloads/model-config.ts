@@ -16,6 +16,15 @@ export const modelConfigPayloads = {
     recordId: modelId.trim().toUpperCase(),
   }),
 
+  /** Fetch catalog list of available models */
+  listModelConfigs: (): CbsWirePayload => ({
+    servicePath: DEFAULT_SERVICE_PATH,
+    requestType: CbsRequestType.RECORD_GET,
+    controlName: CbsControlTable.MODEL_CONFIG,
+    recordFunction: CbsRecordFunction.SEE,
+    recordId: "LIST",
+  }),
+
   /** Save or update a model schema definition */
   saveModelConfig: (modelId: string, data: Record<string, unknown>): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,

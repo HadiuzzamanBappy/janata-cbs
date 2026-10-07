@@ -1,14 +1,10 @@
 "use client";
 
-import { ChangePassword } from "@/features/settings/components/security-tab";
-import { CobRegistryScreen } from "@/features/system/cob-registry";
-import { InquiryDesignerScreen } from "@/features/system/inquiry-designer";
 import { MenuCatalogScreen } from "@/features/system/menu-catalog";
 import { MenuDesignerScreen } from "@/features/system/menu-designer";
-import { ModelConfigScreen } from "@/features/system/model-config";
+import { SysModelConfig } from "@/features/system/model-config";
 import ReportStudio from "@/features/system/report-studio";
 import { UserGroupScreen } from "@/features/system/user-group";
-import { UserPassResetScreen } from "@/features/system/user-pass-reset";
 import { getCanonicalScreenKey } from "@/lib/cbs-command";
 import { FormScreen } from "./forms";
 import { InquiryScreen } from "./inquiries";
@@ -17,23 +13,18 @@ import type { ScreenComponent } from "./types";
 /**
  * Dedicated registry for custom/bespoke React screen components.
  * Only canonical command keys are registered here; shorthand aliases
- * (e.g. MD, COB, PWD) are automatically resolved via `getCanonicalScreenKey`.
+ * (e.g. MD, PWD) are automatically resolved via `getCanonicalScreenKey`.
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
-  "USER.CHANGE.PASS": ChangePassword,
-  "SC.REPORT.DESIGN": () => (
+  "MENU": MenuCatalogScreen,
+  "MENU.DESIGN": MenuDesignerScreen,
+  "USER.GROUP": UserGroupScreen,
+  "MODEL.CONFIG": SysModelConfig,
+  "REPORT.DESIGN": () => (
     <div className="w-full h-full overflow-hidden">
       <ReportStudio />
     </div>
   ),
-  // System Configuration Screens (Canonical Keys Only)
-  "SC.MENU": MenuCatalogScreen,
-  "SC.MENU.DESIGN": MenuDesignerScreen,
-  "SC.USER.GROUP": UserGroupScreen,
-  "SC.MODEL.CONFIG": ModelConfigScreen,
-  "SC.COB.REGISTRY": CobRegistryScreen,
-  "SC.USER.PASS.RESET": UserPassResetScreen,
-  "SC.INQUIRY": InquiryDesignerScreen,
 };
 
 /**

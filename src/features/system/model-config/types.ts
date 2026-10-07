@@ -54,15 +54,35 @@ export type ModelPropertyOutput = {
 export type ModelProperty = ModelPropertyOutput;
 
 /**
- * Model Configuration Record Schema (stored in MODEL.CONFIG or SC.MODEL.CONFIG)
+ * Model Configuration Record Schema (stored in MODEL.CONFIG or SC_MODEL_DEFINITION)
+ * Mirrors real Core Banking table dictionary metadata.
  */
 export const modelConfigRecordSchema = z.object({
   recordId: z.string().min(1, "Model Table ID is required"),
-  description: z.string().min(1, "Description is required"),
   tableName: z.string().default(""),
-  category: z.string().default("APPLICATION"),
+  description: z.string().min(1, "Description is required"),
+  prefix: z.string().default(""),
+  category: z.string().default(""),
+  servicePath: z.string().default(""),
+  userDefineId: z.boolean().default(false),
+  predefineId: z.boolean().default(false),
+  access: z.string().default(""),
+  searchable: z.boolean().default(false),
+  readOnly: z.boolean().default(false),
+  authorize: z.boolean().default(false),
+  associates: z.array(z.string()).default([]),
+  devBy: z.string().default(""),
+  devDate: z.string().default(""),
+  idDef: z
+    .object({
+      idPrefix: z.string().default(""),
+      idPattern: z.string().default(""),
+      sequenceLength: z.union([z.number(), z.string()]).optional(),
+      sequenceReset: z.boolean().default(false),
+    })
+    .default({ idPrefix: "", idPattern: "", sequenceReset: false }),
   properties: z.array(modelPropertySchema).default([]),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean().default(false),
   auditData: z
     .object({
       recStatus: z.string().optional(),

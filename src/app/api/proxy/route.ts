@@ -2,6 +2,7 @@ import {
   STATIC_FORM_DATA,
   STATIC_INQUIRIES,
   STATIC_INQUIRY_DATA,
+  STATIC_MODEL_CONFIGS,
 } from "@fixtures";
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/config";
@@ -101,7 +102,37 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         });
       }
 
-      // B. Form & Model Record Requests
+      // B. Model Config / Data Dictionary Table Requests (MODEL.CONFIG / SC_MODEL_DEFINITION)
+      if (cleanModel === "MODEL.CONFIG") {
+        const targetId = (body.recordId || "").trim().toUpperCase();
+        if (!targetId || targetId === "LIST" || targetId === "ALL") {
+          const list = Object.values(STATIC_MODEL_CONFIGS).map((record) => ({
+            id: record.recordId,
+            label: `${record.description} (${record.tableName})`,
+            details: `${record.properties.length} columns defined • ${record.category}`,
+            record,
+          }));
+          return NextResponse.json({
+            status: "SUCCESS",
+            statusCode: 200,
+            message: "Model config catalog loaded from fixture",
+            data: list,
+            timestamp: new Date().toISOString(),
+          });
+        }
+
+        if (STATIC_MODEL_CONFIGS[targetId]) {
+          return NextResponse.json({
+            status: "SUCCESS",
+            statusCode: 200,
+            message: `Model config for #${targetId} loaded from fixture`,
+            data: STATIC_MODEL_CONFIGS[targetId],
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+
+      // C. Form Record Requests
       const modelTable = STATIC_FORM_DATA[cleanModel];
       if (modelTable) {
         if (body.recordId && modelTable.records?.[body.recordId.trim()]) {

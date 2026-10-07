@@ -1,6 +1,6 @@
 "use client";
 
-import { MenuCatalogScreen } from "@/features/system/menu-catalog";
+import { SysMenuCatalog } from "@/features/system/menu-catalog";
 import { MenuDesignerScreen } from "@/features/system/menu-designer";
 import { SysModelConfig } from "@/features/system/model-config";
 import ReportStudio from "@/features/system/report-studio";
@@ -16,7 +16,7 @@ import type { ScreenComponent } from "./types";
  * (e.g. MD, PWD) are automatically resolved via `getCanonicalScreenKey`.
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
-  "MENU": MenuCatalogScreen,
+  "MENU": SysMenuCatalog,
   "MENU.DESIGN": MenuDesignerScreen,
   "USER.GROUP": UserGroupScreen,
   "MODEL.CONFIG": SysModelConfig,

@@ -132,19 +132,37 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
       }
 
-      // C. Form Record Requests
+      // C. Form Record & Control Table Requests
       const modelTable = STATIC_FORM_DATA[cleanModel];
       if (modelTable) {
-        if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
+        // C1. RECORD_LIST or empty recordId -> Return full list of records
+        if (body.requestType === "RECORD_LIST" || (!body.recordId && !cleanRecordId)) {
+          const list = modelTable.enquiryRows && modelTable.enquiryRows.length > 0
+            ? modelTable.enquiryRows
+            : Object.values(modelTable.records || {});
+
           return NextResponse.json({
             status: "SUCCESS",
             statusCode: 200,
-            message: "Record loaded from offline fixture",
-            data: modelTable.records[body.recordId.trim()],
+            message: `${cleanModel} catalog list loaded from fixture`,
+            data: list,
             timestamp: new Date().toISOString(),
           });
         }
 
+        // C2. RECORD_GET -> Return specific record
+        const requestedId = (body.recordId || cleanRecordId || "").trim();
+        if (requestedId && modelTable.records?.[requestedId]) {
+          return NextResponse.json({
+            status: "SUCCESS",
+            statusCode: 200,
+            message: "Record loaded from offline fixture",
+            data: modelTable.records[requestedId],
+            timestamp: new Date().toISOString(),
+          });
+        }
+
+        // C3. Fallback to enquiryRows if no specific record found
         if (modelTable.enquiryRows && modelTable.enquiryRows.length > 0) {
           return NextResponse.json({
             status: "SUCCESS",
@@ -199,44 +217,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
         return NextResponse.json(response, { status: 200 });
       }
-    } catch {
-      // Backend not running / gRPC offline: fall through to fixture fallback below
-    }
 
-    // Graceful Fallback for gRPC mode if backend server is unreachable
-    const modelTable = STATIC_FORM_DATA[cleanModel];
-    if (modelTable) {
-      if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
-        return NextResponse.json({
-          status: "SUCCESS",
-          statusCode: 200,
-          message: "Record loaded from offline fixture",
-          data: modelTable.records[body.recordId.trim()],
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      if (modelTable.enquiryRows && modelTable.enquiryRows.length > 0) {
-        return NextResponse.json({
-          status: "SUCCESS",
-          statusCode: 200,
-          message: "Enquiry data loaded from offline fixture",
-          data: modelTable.enquiryRows,
-          timestamp: new Date().toISOString(),
-        });
-      }
-    }
-
-    return NextResponse.json(
-      {
+      return NextResponse.json(response || {
         status: "RECORD_NOT_FOUND",
-        statusCode: 200,
-        message: `Record #${body.recordId || ""} not found.`,
+        statusCode: 404,
+        message: `Record #${body.recordId || ""} not found on CBS host.`,
         data: null,
         timestamp: new Date().toISOString(),
-      },
-      { status: 200 },
-    );
+      }, { status: 200 });
+    } catch (dispatchErr: unknown) {
+      const errMsg = dispatchErr instanceof Error ? dispatchErr.message : "CBS Host communication failed";
+      return NextResponse.json(
+        {
+          status: "ERROR",
+          statusCode: 502,
+          message: errMsg,
+          data: null,
+          timestamp: new Date().toISOString(),
+        },
+        { status: 200 },
+      );
+    }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal Proxy Dispatch Error";
     return NextResponse.json(

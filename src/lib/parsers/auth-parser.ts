@@ -39,12 +39,23 @@ export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): Pars
   const initLogin = extractBooleanField(fields, "initLogin", false);
   const userStatus = extractNumberField(fields, "userStatus", 1);
 
-  // Extract roles (only if present on CBS wire response)
+  // Extract roles (supports protobuf string_value, list_value, plain strings, or arrays)
   let userRole: string[] = [];
-  if (Array.isArray(fields.userRole)) {
-    userRole = fields.userRole.map(String).filter(Boolean);
-  } else if (typeof fields.userRole === "string" && fields.userRole.trim()) {
-    userRole = [fields.userRole.trim()];
+  const rawRole = fields.userRole;
+  if (Array.isArray(rawRole)) {
+    userRole = rawRole.map(String).filter(Boolean);
+  } else if (typeof rawRole === "string" && rawRole.trim() && rawRole !== "NULL_VALUE") {
+    userRole = [rawRole.trim()];
+  } else if (typeof rawRole === "object" && rawRole !== null) {
+    if ("string_value" in rawRole && typeof (rawRole as { string_value: string }).string_value === "string") {
+      const sv = (rawRole as { string_value: string }).string_value.trim();
+      if (sv && sv !== "NULL_VALUE") userRole = [sv];
+    } else if ("list_value" in rawRole) {
+      const list = (rawRole as { list_value?: { values?: Array<{ string_value?: string }> } }).list_value?.values;
+      if (Array.isArray(list)) {
+        userRole = list.map((v) => v.string_value || "").filter(Boolean);
+      }
+    }
   }
 
   // Extract CBS RIDASH function rights

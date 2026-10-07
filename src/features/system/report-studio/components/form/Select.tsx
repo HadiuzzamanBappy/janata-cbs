@@ -21,9 +21,9 @@ export function Select({
     <select
       style={{ ...inputStyle, cursor: "pointer" }}
       value={value ?? ""}
-      onChange={e => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
     >
-      {options.map(o => {
+      {options.map((o) => {
         const v = (o as any).v ?? o;
         const l = (o as any).l ?? o;
         return (

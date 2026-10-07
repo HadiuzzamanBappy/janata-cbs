@@ -1,15 +1,12 @@
-import { useRef, useState, type CSSProperties } from "react";
 import { GripVertical } from "lucide-react";
+import { type CSSProperties, useRef, useState } from "react";
+import { COLUMN_DATA_KEY_MAP, PREVIEW_DATA_ROWS } from "../../constants/preview-data";
+import { resolveCompData } from "../../data/resolveCompData";
 import type { AppState } from "../../types/app-state";
 import type { BodyComponent } from "../../types/body";
 import type { Column } from "../../types/table";
 import { deepClone } from "../../utils/deepClone";
 import { formatColNumber, formatCurrency } from "../../utils/number-format";
-import {
-  COLUMN_DATA_KEY_MAP,
-  PREVIEW_DATA_ROWS,
-} from "../../constants/preview-data";
-import { resolveCompData } from "../../data/resolveCompData";
 
 /**
  * Canvas-side preview of a TABLE component.
@@ -62,7 +59,7 @@ export function TablePreviewCanvas({
     comp,
     reportState.centralData,
     reportState.componentDataSources,
-    PREVIEW_DATA_ROWS as any[]
+    PREVIEW_DATA_ROWS as any[],
   );
   const toPx = (v: number) => Math.round(v * scale);
 
@@ -73,13 +70,10 @@ export function TablePreviewCanvas({
 
   const headerRowPx = Math.round(8 * scale + cellPadV + bw);
   const dataRowPx = Math.round(7.5 * scale + cellPadV + bw);
-  const aggRowPx = columns.some((c) => c.aggregate)
-    ? Math.round(7 * scale + cellPadV + bw)
-    : 0;
+  const aggRowPx = columns.some((c) => c.aggregate) ? Math.round(7 * scale + cellPadV + bw) : 0;
 
   const previewRows: any[] = (() => {
-    if (!availableHeightPx || availableHeightPx <= 0)
-      return allRows.slice(0, 5);
+    if (!availableHeightPx || availableHeightPx <= 0) return allRows.slice(0, 5);
     const usable = availableHeightPx - headerRowPx - aggRowPx - bw;
     if (usable <= 0) return [];
     const maxRows = Math.max(0, Math.floor(usable / dataRowPx));
@@ -102,8 +96,7 @@ export function TablePreviewCanvas({
     const k = col.dataKey || COLUMN_DATA_KEY_MAP[col.header];
     if (!k) return "—";
     const v = (row as any)[k];
-    if (col.format === "currency" && typeof v === "number")
-      return formatCurrency(v);
+    if (col.format === "currency" && typeof v === "number") return formatCurrency(v);
     return v ?? "-";
   };
 
@@ -121,8 +114,8 @@ export function TablePreviewCanvas({
             style.color = c.usePreset.includes("high")
               ? "#15803d"
               : c.usePreset.includes("low")
-              ? "#b91c1c"
-              : "#1d4ed8";
+                ? "#b91c1c"
+                : "#1d4ed8";
           }
           if (c.bold) style.fontWeight = "700";
           if (c.italic) style.fontStyle = "italic";
@@ -136,8 +129,7 @@ export function TablePreviewCanvas({
     return null;
   };
 
-  const totalColumnWidth =
-    columns.reduce((acc, col) => acc + col.width, 0) || 1;
+  const totalColumnWidth = columns.reduce((acc, col) => acc + col.width, 0) || 1;
 
   const drop = (tid: string) => {
     if (!colDragId || colDragId === tid) return;
@@ -159,10 +151,7 @@ export function TablePreviewCanvas({
     setResizingColId(col._id);
     const onMove = (me: MouseEvent) => {
       const dx = (me.clientX - resizeStartX.current) / scale;
-      const newW = Math.max(
-        0.5,
-        Math.round((resizeStartW.current + dx) * 10) / 10
-      );
+      const newW = Math.max(0.5, Math.round((resizeStartW.current + dx) * 10) / 10);
       const cols = deepClone(columns);
       const idx = cols.findIndex((c: Column) => c._id === col._id);
       if (idx >= 0) {
@@ -214,10 +203,7 @@ export function TablePreviewCanvas({
       >
         <colgroup>
           {columns.map((c) => (
-            <col
-              key={c._id}
-              style={{ width: `${(c.width / totalColumnWidth) * 100}%` }}
-            />
+            <col key={c._id} style={{ width: `${(c.width / totalColumnWidth) * 100}%` }} />
           ))}
         </colgroup>
         <thead>
@@ -246,13 +232,11 @@ export function TablePreviewCanvas({
                 style={{
                   position: "relative",
                   background:
-                    col._id === selColId
-                      ? "#1d4ed8"
-                      : tableStyle.headerColor || "#1e40af",
+                    col._id === selColId ? "#1d4ed8" : tableStyle.headerColor || "#1e40af",
                   color: "#fff",
                   textAlign: (colAlignMap[col.align] || "left") as any,
                   padding: `${toPx(tableStyle.cellPadding?.top || 4)}px ${toPx(
-                    tableStyle.cellPadding?.right || 6
+                    tableStyle.cellPadding?.right || 6,
                   )}px`,
                   fontWeight: 700,
                   fontSize: toPx(8),
@@ -260,9 +244,7 @@ export function TablePreviewCanvas({
                   userSelect: "none",
                   borderRight:
                     ci < columns.length - 1
-                      ? `${
-                          tableStyle.borderWidth || 0.5
-                        }px solid rgba(255,255,255,.25)`
+                      ? `${tableStyle.borderWidth || 0.5}px solid rgba(255,255,255,.25)`
                       : undefined,
                   outline: col._id === colOverId ? "2px solid #93c5fd" : "none",
                   outlineOffset: -1,
@@ -300,8 +282,7 @@ export function TablePreviewCanvas({
                     }}
                     onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
                     onMouseLeave={(e) =>
-                      (e.currentTarget.style.opacity =
-                        resizingColId === col._id ? "1" : "0.3")
+                      (e.currentTarget.style.opacity = resizingColId === col._id ? "1" : "0.3")
                     }
                   >
                     <div
@@ -323,8 +304,7 @@ export function TablePreviewCanvas({
             <tr
               key={ri}
               style={{
-                background:
-                  ri % 2 === 1 ? oddRowBackground || "#f8fafc" : "#fff",
+                background: ri % 2 === 1 ? oddRowBackground || "#f8fafc" : "#fff",
               }}
             >
               {columns.map((col, ci) => {
@@ -335,7 +315,7 @@ export function TablePreviewCanvas({
                     style={{
                       textAlign: (colAlignMap[col.align] || "left") as any,
                       padding: `${toPx(
-                        tableStyle.cellPadding?.top || 4
+                        tableStyle.cellPadding?.top || 4,
                       )}px ${toPx(tableStyle.cellPadding?.right || 6)}px`,
                       fontSize: toPx(7.5),
                       color: "#374151",
@@ -347,8 +327,7 @@ export function TablePreviewCanvas({
                           }`
                         : "none",
                       borderRight:
-                        !tableStyle.horizontalBorderOnly &&
-                        ci < columns.length - 1
+                        !tableStyle.horizontalBorderOnly && ci < columns.length - 1
                           ? `${tableStyle.borderWidth || 0.5}px solid ${
                               tableStyle.borderColor || "#e2e8f0"
                             }`
@@ -369,12 +348,7 @@ export function TablePreviewCanvas({
             <tr style={{ background: "#f0f9ff" }}>
               {columns.map((col) => {
                 if (!col.aggregate) {
-                  return (
-                    <td
-                      key={col._id}
-                      style={{ borderTop: "1px solid #bae6fd" }}
-                    />
-                  );
+                  return <td key={col._id} style={{ borderTop: "1px solid #bae6fd" }} />;
                 }
                 const k = col.dataKey || COLUMN_DATA_KEY_MAP[col.header];
                 const vals = previewRows
@@ -382,20 +356,17 @@ export function TablePreviewCanvas({
                   .filter((v) => typeof v === "number");
                 const fn = col.aggregate.function;
                 let agg = "";
-                const isNumFmt =
-                  col.format === "currency" || col.format === "number";
+                const isNumFmt = col.format === "currency" || col.format === "number";
                 if (fn === "sum") {
                   const s = vals.reduce((a, b) => a + b, 0);
                   agg = isNumFmt ? formatColNumber(s, col) : String(s);
                 } else if (fn === "avg") {
-                  const a = vals.length
-                    ? vals.reduce((a, b) => a + b, 0) / vals.length
-                    : 0;
+                  const a = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
                   agg = isNumFmt
                     ? formatColNumber(a, col)
                     : col.decimals !== undefined
-                    ? a.toFixed(col.decimals)
-                    : a.toFixed(1);
+                      ? a.toFixed(col.decimals)
+                      : a.toFixed(1);
                 } else if (fn === "count") {
                   agg = String(vals.length);
                 } else if (fn === "min" && vals.length) {
@@ -411,7 +382,7 @@ export function TablePreviewCanvas({
                     style={{
                       textAlign: (colAlignMap[col.align] || "left") as any,
                       padding: `${toPx(
-                        tableStyle.cellPadding?.top || 4
+                        tableStyle.cellPadding?.top || 4,
                       )}px ${toPx(tableStyle.cellPadding?.right || 6)}px`,
                       fontSize: toPx(7),
                       color: col.aggregate.color || "#dc2626",

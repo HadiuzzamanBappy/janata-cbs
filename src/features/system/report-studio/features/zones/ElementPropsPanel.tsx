@@ -21,22 +21,22 @@ import {
   Unlock,
   Upload,
 } from "lucide-react";
-import type { ZoneElement } from "../../types/zone";
-import { T } from "../../theme/tokens";
-import { inputStyle } from "../../theme/inputStyle";
-import { PALETTE } from "../../constants/preview-data";
-import { PropSection } from "../../components/layout/PropSection";
-import { PropRow } from "../../components/layout/PropRow";
-import { PropGrid2 } from "../../components/layout/PropGrid2";
-import { PropCell } from "../../components/layout/PropCell";
-import { Input } from "../../components/form/Input";
-import { Select } from "../../components/form/Select";
-import { ColorInput } from "../../components/form/ColorInput";
+import { Toggle } from "../../components/common/Toggle";
 import { AlignInput } from "../../components/form/AlignInput";
-import { SpacingInput } from "../../components/form/SpacingInput";
+import { ColorInput } from "../../components/form/ColorInput";
+import { Input } from "../../components/form/Input";
 import { RadiusInput } from "../../components/form/RadiusInput";
 import { RotationStrip } from "../../components/form/RotationStrip";
-import { Toggle } from "../../components/common/Toggle";
+import { Select } from "../../components/form/Select";
+import { SpacingInput } from "../../components/form/SpacingInput";
+import { PropCell } from "../../components/layout/PropCell";
+import { PropGrid2 } from "../../components/layout/PropGrid2";
+import { PropRow } from "../../components/layout/PropRow";
+import { PropSection } from "../../components/layout/PropSection";
+import { PALETTE } from "../../constants/preview-data";
+import { inputStyle } from "../../theme/inputStyle";
+import { T } from "../../theme/tokens";
+import type { ZoneElement } from "../../types/zone";
 
 /**
  * Properties panel for a single zone element (TEXT / LOGO / SEPARATOR /
@@ -64,10 +64,7 @@ export function ElementPropsPanel({
   onDelete: () => void;
   onDuplicate: () => void;
   onZOrder: (dir: "up" | "down") => void;
-  onSnapAlign?: (
-    h: "left" | "center" | "right",
-    v?: "top" | "middle" | "bottom"
-  ) => void;
+  onSnapAlign?: (h: "left" | "center" | "right", v?: "top" | "middle" | "bottom") => void;
 }) {
   const cfg = el.config;
   const updateElementConfig = (k: string, v: any) =>
@@ -115,9 +112,7 @@ export function ElementPropsPanel({
             {PaletteIcon && <PaletteIcon size={14} strokeWidth={2.5} />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>
-              {el.type}
-            </div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: T.text }}>{el.type}</div>
             <div
               style={{
                 fontSize: 8.5,
@@ -174,21 +169,9 @@ export function ElementPropsPanel({
                   justifyContent: "center",
                   padding: 0,
                   transition: "all .12s",
-                  background: b.active
-                    ? "#fef3c7"
-                    : b.title === "Delete"
-                    ? "#fee2e2"
-                    : T.bg,
-                  borderColor: b.active
-                    ? "#fcd34d"
-                    : b.title === "Delete"
-                    ? "#fca5a5"
-                    : T.border,
-                  color: b.active
-                    ? "#d97706"
-                    : b.title === "Delete"
-                    ? "#dc2626"
-                    : T.muted,
+                  background: b.active ? "#fef3c7" : b.title === "Delete" ? "#fee2e2" : T.bg,
+                  borderColor: b.active ? "#fcd34d" : b.title === "Delete" ? "#fca5a5" : T.border,
+                  color: b.active ? "#d97706" : b.title === "Delete" ? "#dc2626" : T.muted,
                 }}
               >
                 {b.active ? b.offIcon : b.icon}
@@ -280,9 +263,7 @@ export function ElementPropsPanel({
               <Blend size={9} />
               Opacity
             </span>
-            <span
-              style={{ fontWeight: 700, color: ac, fontFamily: "monospace" }}
-            >
+            <span style={{ fontWeight: 700, color: ac, fontFamily: "monospace" }}>
               {Math.round((el.opacity ?? 1) * 100)}%
             </span>
           </div>
@@ -338,15 +319,9 @@ export function ElementPropsPanel({
       )}
 
       {(el.type === "TEXT" || el.type === "DATE_TIME") && (
-        <PropSection
-          label="Content"
-          color="#2563eb"
-          icon={<TextCursor size={9} />}
-        >
+        <PropSection label="Content" color="#2563eb" icon={<TextCursor size={9} />}>
           <div style={{ marginBottom: 7 }}>
-            <div style={{ fontSize: 9, color: T.label, marginBottom: 3 }}>
-              Text
-            </div>
+            <div style={{ fontSize: 9, color: T.label, marginBottom: 3 }}>Text</div>
             <textarea
               style={{
                 ...inputStyle,
@@ -376,9 +351,7 @@ export function ElementPropsPanel({
             }}
           >
             <div>
-              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>
-                Font
-              </div>
+              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>Font</div>
               <Select
                 value={cfg.font}
                 onChange={(v) => updateElementConfig("font", v)}
@@ -386,9 +359,7 @@ export function ElementPropsPanel({
               />
             </div>
             <div>
-              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>
-                Size
-              </div>
+              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>Size</div>
               <Input
                 type="number"
                 value={cfg.fontSize}
@@ -458,11 +429,7 @@ export function ElementPropsPanel({
       )}
 
       {el.type === "PAGE_NUMBER" && (
-        <PropSection
-          label="Page Number"
-          color="#7c3aed"
-          icon={<FileDigit size={9} />}
-        >
+        <PropSection label="Page Number" color="#7c3aed" icon={<FileDigit size={9} />}>
           <div
             style={{
               display: "grid",
@@ -472,9 +439,7 @@ export function ElementPropsPanel({
             }}
           >
             <div>
-              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>
-                Font
-              </div>
+              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>Font</div>
               <Select
                 value={cfg.font}
                 onChange={(v) => updateElementConfig("font", v)}
@@ -482,9 +447,7 @@ export function ElementPropsPanel({
               />
             </div>
             <div>
-              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>
-                Size
-              </div>
+              <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>Size</div>
               <Input
                 type="number"
                 value={cfg.fontSize}
@@ -550,11 +513,7 @@ export function ElementPropsPanel({
                     return;
                   }
                   if (file.size > 1024 * 1024) {
-                    alert(
-                      `File is ${(file.size / 1024).toFixed(
-                        0
-                      )} KB — maximum allowed is 1 MB.`
-                    );
+                    alert(`File is ${(file.size / 1024).toFixed(0)} KB — maximum allowed is 1 MB.`);
                     return;
                   }
                   const reader = new FileReader();
@@ -582,10 +541,7 @@ export function ElementPropsPanel({
                   color: "#166534",
                 }}
               >
-                <span>
-                  ✓ Embedded base64 image ({Math.round(cfg.path.length / 1024)}{" "}
-                  KB)
-                </span>
+                <span>✓ Embedded base64 image ({Math.round(cfg.path.length / 1024)} KB)</span>
                 <button
                   onClick={() => updateElementConfig("path", "")}
                   style={{
@@ -671,9 +627,7 @@ export function ElementPropsPanel({
             <PropCell
               label="Width %"
               value={cfg.widthPct ?? 100}
-              onChange={(v) =>
-                updateElementConfig("widthPct", Math.min(100, Math.max(1, +v)))
-              }
+              onChange={(v) => updateElementConfig("widthPct", Math.min(100, Math.max(1, +v)))}
               min={1}
               max={100}
             />
@@ -707,11 +661,7 @@ export function ElementPropsPanel({
         el.type === "DATE_TIME" ||
         el.type === "SEPARATOR" ||
         el.type === "PAGE_NUMBER") && (
-        <PropSection
-          label="Free Position"
-          color="#0891b2"
-          icon={<Move size={9} />}
-        >
+        <PropSection label="Free Position" color="#0891b2" icon={<Move size={9} />}>
           <Toggle
             label="Enable Free Position"
             icon={<Move size={10} />}
@@ -832,9 +782,7 @@ export function ElementPropsPanel({
                 </div>
               )}
 
-              {(el.type === "TEXT" ||
-                el.type === "DATE_TIME" ||
-                el.type === "PAGE_NUMBER") && (
+              {(el.type === "TEXT" || el.type === "DATE_TIME" || el.type === "PAGE_NUMBER") && (
                 <div style={{ marginTop: 8 }}>
                   <RotationStrip
                     value={cfg.rotation ?? 0}
@@ -848,13 +796,10 @@ export function ElementPropsPanel({
         </PropSection>
       )}
 
-      {(el.type === "TEXT" ||
-        el.type === "DATE_TIME" ||
-        el.type === "PAGE_NUMBER") &&
+      {(el.type === "TEXT" || el.type === "DATE_TIME" || el.type === "PAGE_NUMBER") &&
         (() => {
           const box = cfg.box || {};
-          const upBox = (k: string, v: any) =>
-            updateElementConfig("box", { ...box, [k]: v });
+          const upBox = (k: string, v: any) => updateElementConfig("box", { ...box, [k]: v });
           return (
             <PropSection
               label="Box & Border"
@@ -884,11 +829,7 @@ export function ElementPropsPanel({
                       min={0.5}
                     />
                     <div>
-                      <div
-                        style={{ fontSize: 9, color: T.label, marginBottom: 2 }}
-                      >
-                        Style
-                      </div>
+                      <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>Style</div>
                       <Select
                         value={box.borderStyle || "solid"}
                         onChange={(v) => upBox("borderStyle", v)}
@@ -897,12 +838,7 @@ export function ElementPropsPanel({
                     </div>
                   </PropGrid2>
                   {(() => {
-                    const sides: string[] = box.borderSides ?? [
-                      "top",
-                      "right",
-                      "bottom",
-                      "left",
-                    ];
+                    const sides: string[] = box.borderSides ?? ["top", "right", "bottom", "left"];
                     const toggle = (side: string) => {
                       const next = sides.includes(side)
                         ? sides.filter((s) => s !== side)
@@ -912,9 +848,7 @@ export function ElementPropsPanel({
                     const all4 = sides.length === 4;
                     const none = sides.length === 0;
                     const pBx = (s: string) =>
-                      sides.includes(s)
-                        ? `2px solid #0891b2`
-                        : `1px dashed #cbd5e1`;
+                      sides.includes(s) ? `2px solid #0891b2` : `1px dashed #cbd5e1`;
                     return (
                       <div style={{ marginBottom: 8 }}>
                         <div
@@ -948,12 +882,7 @@ export function ElementPropsPanel({
                           <div style={{ display: "flex", gap: 3 }}>
                             <button
                               onClick={() =>
-                                upBox("borderSides", [
-                                  "top",
-                                  "right",
-                                  "bottom",
-                                  "left",
-                                ])
+                                upBox("borderSides", ["top", "right", "bottom", "left"])
                               }
                               style={{
                                 fontSize: 8,
@@ -961,9 +890,7 @@ export function ElementPropsPanel({
                                 borderRadius: 3,
                                 cursor: "pointer",
                                 fontWeight: 600,
-                                border: `1px solid ${
-                                  all4 ? "#0891b2" : T.border
-                                }`,
+                                border: `1px solid ${all4 ? "#0891b2" : T.border}`,
                                 background: all4 ? "#ecfeff" : T.bg2,
                                 color: all4 ? "#0e7490" : T.muted,
                               }}
@@ -978,9 +905,7 @@ export function ElementPropsPanel({
                                 borderRadius: 3,
                                 cursor: "pointer",
                                 fontWeight: 600,
-                                border: `1px solid ${
-                                  none ? "#dc2626" : T.border
-                                }`,
+                                border: `1px solid ${none ? "#dc2626" : T.border}`,
                                 background: none ? "#fee2e2" : T.bg2,
                                 color: none ? "#dc2626" : T.muted,
                               }}
@@ -1077,16 +1002,10 @@ export function ElementPropsPanel({
                                   fontSize: 7.5,
                                   fontWeight: 700,
                                   border: `1px solid ${
-                                    sides.includes(b.side)
-                                      ? "#0891b2"
-                                      : T.border
+                                    sides.includes(b.side) ? "#0891b2" : T.border
                                   }`,
-                                  background: sides.includes(b.side)
-                                    ? "#0891b2"
-                                    : T.bg2,
-                                  color: sides.includes(b.side)
-                                    ? "#fff"
-                                    : T.muted,
+                                  background: sides.includes(b.side) ? "#0891b2" : T.bg2,
+                                  color: sides.includes(b.side) ? "#fff" : T.muted,
                                 }}
                               >
                                 {b.lbl}
@@ -1099,10 +1018,8 @@ export function ElementPropsPanel({
                             fontSize: 8,
                             color: sides.length > 0 ? "#0e7490" : T.muted,
                             textAlign: "center",
-                            background:
-                              sides.length > 0 ? "#ecfeff" : "transparent",
-                            border:
-                              sides.length > 0 ? "1px solid #a5f3fc" : "none",
+                            background: sides.length > 0 ? "#ecfeff" : "transparent",
+                            border: sides.length > 0 ? "1px solid #a5f3fc" : "none",
                             borderRadius: 4,
                             padding: sides.length > 0 ? "2px 0" : "0",
                           }}
@@ -1110,10 +1027,8 @@ export function ElementPropsPanel({
                           {sides.length === 0
                             ? "No borders"
                             : sides.length === 4
-                            ? "All borders"
-                            : sides
-                                .map((s) => s[0].toUpperCase() + s.slice(1))
-                                .join(" + ")}
+                              ? "All borders"
+                              : sides.map((s) => s[0].toUpperCase() + s.slice(1)).join(" + ")}
                         </div>
                       </div>
                     );
@@ -1169,9 +1084,7 @@ export function ElementPropsPanel({
                   />
                   <SpacingInput
                     label="Box Padding"
-                    value={
-                      box.padding || { top: 4, bottom: 4, left: 6, right: 6 }
-                    }
+                    value={box.padding || { top: 4, bottom: 4, left: 6, right: 6 }}
                     onChange={(v) => upBox("padding", v)}
                   />
                   <PropGrid2>
@@ -1183,11 +1096,7 @@ export function ElementPropsPanel({
                       step={1}
                     />
                     <div>
-                      <div
-                        style={{ fontSize: 9, color: T.label, marginBottom: 2 }}
-                      >
-                        V-Align
-                      </div>
+                      <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>V-Align</div>
                       <Select
                         value={box.verticalAlign || "top"}
                         onChange={(v) => upBox("verticalAlign", v)}
@@ -1201,12 +1110,7 @@ export function ElementPropsPanel({
           );
         })()}
 
-      <PropSection
-        label="Spacing"
-        color="#64748b"
-        icon={<Frame size={9} />}
-        defaultOpen={false}
-      >
+      <PropSection label="Spacing" color="#64748b" icon={<Frame size={9} />} defaultOpen={false}>
         <SpacingInput
           label="Margin"
           value={cfg.margin}

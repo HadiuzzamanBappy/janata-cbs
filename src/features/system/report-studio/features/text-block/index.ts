@@ -1,11 +1,11 @@
-export { TextBlockRichEditor } from "./TextBlockRichEditor";
 export { QuillTableStylePanel } from "./QuillTableStylePanel";
 export {
+  applyStyleToTable,
+  buildTableHtml,
   DEFAULT_TABLE_STYLE,
   makeCellStyle,
-  buildTableHtml,
-  readTableStyle,
   previewStyleOnTable,
-  applyStyleToTable,
+  readTableStyle,
   TSW_PRESETS,
 } from "./quillTableStyle";
+export { TextBlockRichEditor } from "./TextBlockRichEditor";

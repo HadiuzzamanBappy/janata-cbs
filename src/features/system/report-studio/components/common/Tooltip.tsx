@@ -14,13 +14,7 @@
 
 import { cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
 
-export function Tooltip({
-  text,
-  children,
-}: {
-  text: string;
-  children: ReactNode;
-}): ReactElement {
+export function Tooltip({ text, children }: { text: string; children: ReactNode }): ReactElement {
   if (isValidElement(children)) {
     const existing = (children.props as any)?.title;
     return cloneElement(children, {

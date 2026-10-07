@@ -13,8 +13,8 @@ import { PAGE_SIZE_MM } from "../constants/pages";
  * whichever raw unit a section uses.
  */
 
-export const PT_TO_MM = 25.4 / 72;          // ≈ 0.352778
-export const MM_TO_PT = 72 / 25.4;          // ≈ 2.834645
+export const PT_TO_MM = 25.4 / 72; // ≈ 0.352778
+export const MM_TO_PT = 72 / 25.4; // ≈ 2.834645
 
 /**
  * Convert mm to pt, rounding to 2 decimal places to keep generated JSON tidy.

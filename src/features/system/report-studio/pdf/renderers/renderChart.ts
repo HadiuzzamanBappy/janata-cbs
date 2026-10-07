@@ -56,9 +56,7 @@ export function renderChart(
   // Measure the chart's ACTUAL rendered size on the canvas preview so the PDF
   // matches exactly what the user sees, regardless of flex math / comp.width /
   // flexBasis / zoom level.
-  const wrapper = document.querySelector(
-    `[data-comp-id="${comp._id}"]`,
-  ) as HTMLElement | null;
+  const wrapper = document.querySelector(`[data-comp-id="${comp._id}"]`) as HTMLElement | null;
   const canvas = wrapper?.querySelector("canvas") as HTMLCanvasElement | null;
 
   // Default sizes (fallback if wrapper/canvas not in DOM) — stored in pt, convert to mm

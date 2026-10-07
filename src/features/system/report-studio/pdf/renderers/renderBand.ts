@@ -11,15 +11,15 @@
  */
 
 import {
+  drawHLine,
+  drawRotatedImage,
+  fillRect,
+  fillRoundedRect,
+  fmtDate,
   hexRgb,
   ptMm,
   sanitizeForPdf,
-  fillRect,
-  fillRoundedRect,
-  drawHLine,
-  drawRotatedImage,
   setFont,
-  fmtDate,
 } from "@/features/system/report-studio/pdf/helpers";
 import type { ZonePageVisibility } from "@/features/system/report-studio/types/zone";
 
@@ -36,11 +36,7 @@ const thMm = (fsPt: number): number => ptMm(fsPt) * LH;
 /**
  * Return true if the zone should be rendered on the given page.
  */
-export function shouldRenderZone(
-  zone: any,
-  pageNum: number,
-  totalPages: number
-): boolean {
+export function shouldRenderZone(zone: any, pageNum: number, totalPages: number): boolean {
   const vis: ZonePageVisibility | undefined = zone?.pageVisibility;
   if (!vis || vis.showOn === "all") return true;
   switch (vis.showOn) {
@@ -79,7 +75,7 @@ function drawFlexmoveElement(
   fx: number,
   fy: number,
   pageNum: number,
-  totalPages: number
+  totalPages: number,
 ): void {
   const cfg = el.config || {};
   const box = cfg.box || {};
@@ -142,9 +138,7 @@ function drawFlexmoveElement(
   doc.internal.write("q");
   // CSS CW rotation in PDF Y-up: [c, -s, s, c, cx_pt, cy_pt]
   doc.internal.write(
-    `${f4(cosTheta)} ${f4(-sinTheta)} ${f4(sinTheta)} ${f4(cosTheta)} ${f4(
-      cx_pt
-    )} ${f4(cy_pt)} cm`
+    `${f4(cosTheta)} ${f4(-sinTheta)} ${f4(sinTheta)} ${f4(cosTheta)} ${f4(cx_pt)} ${f4(cy_pt)} cm`,
   );
 
   // ── Box border (drawn in local coordinates) ──
@@ -165,29 +159,24 @@ function drawFlexmoveElement(
     const dashCmd = styleMap[box.borderStyle || "solid"] ?? "";
     if (dashCmd) doc.internal.write(dashCmd);
 
-    const sides: string[] = box.borderSides ?? [
-      "top",
-      "right",
-      "bottom",
-      "left",
-    ];
+    const sides: string[] = box.borderSides ?? ["top", "right", "bottom", "left"];
 
     // Parse border radius (stored in pt -> convert to PDF pts = same unit in local frame)
     const bxRaw = box.radius;
     const bxR =
       bxRaw && typeof bxRaw === "object"
         ? {
-          tl: (bxRaw.topLeft || 0) * PT,
-          tr: (bxRaw.topRight || 0) * PT,
-          br: (bxRaw.bottomRight || 0) * PT,
-          bl: (bxRaw.bottomLeft || 0) * PT,
-        }
+            tl: (bxRaw.topLeft || 0) * PT,
+            tr: (bxRaw.topRight || 0) * PT,
+            br: (bxRaw.bottomRight || 0) * PT,
+            bl: (bxRaw.bottomLeft || 0) * PT,
+          }
         : {
-          tl: (bxRaw || 0) * PT,
-          tr: (bxRaw || 0) * PT,
-          br: (bxRaw || 0) * PT,
-          bl: (bxRaw || 0) * PT,
-        };
+            tl: (bxRaw || 0) * PT,
+            tr: (bxRaw || 0) * PT,
+            br: (bxRaw || 0) * PT,
+            bl: (bxRaw || 0) * PT,
+          };
     const hasRadius = bxR.tl > 0 || bxR.tr > 0 || bxR.br > 0 || bxR.bl > 0;
 
     // Clamp radii so two adjacent corners never exceed the side length
@@ -214,8 +203,8 @@ function drawFlexmoveElement(
       if (tr > 0)
         doc.internal.write(
           `${f4(bx + bw2 - tr + tr * k)} ${f4(by + bh)} ${f4(bx + bw2)} ${f4(
-            by + bh - tr + tr * k
-          )} ${f4(bx + bw2)} ${f4(by + bh - tr)} c`
+            by + bh - tr + tr * k,
+          )} ${f4(bx + bw2)} ${f4(by + bh - tr)} c`,
         );
       else doc.internal.write(`${f4(bx + bw2)} ${f4(by + bh)} l`);
       doc.internal.write(`${f4(bx + bw2)} ${f4(by + br)} l`);
@@ -223,8 +212,8 @@ function drawFlexmoveElement(
       if (br > 0)
         doc.internal.write(
           `${f4(bx + bw2)} ${f4(by + br - br * k)} ${f4(
-            bx + bw2 - br + br * k
-          )} ${f4(by)} ${f4(bx + bw2 - br)} ${f4(by)} c`
+            bx + bw2 - br + br * k,
+          )} ${f4(by)} ${f4(bx + bw2 - br)} ${f4(by)} c`,
         );
       else doc.internal.write(`${f4(bx + bw2)} ${f4(by)} l`);
       doc.internal.write(`${f4(bx + bl)} ${f4(by)} l`);
@@ -232,8 +221,8 @@ function drawFlexmoveElement(
       if (bl > 0)
         doc.internal.write(
           `${f4(bx + bl - bl * k)} ${f4(by)} ${f4(bx)} ${f4(
-            by + bl - bl * k
-          )} ${f4(bx)} ${f4(by + bl)} c`
+            by + bl - bl * k,
+          )} ${f4(bx)} ${f4(by + bl)} c`,
         );
       else doc.internal.write(`${f4(bx)} ${f4(by)} l`);
       doc.internal.write(`${f4(bx)} ${f4(by + bh - tl)} l`);
@@ -241,36 +230,26 @@ function drawFlexmoveElement(
       if (tl > 0)
         doc.internal.write(
           `${f4(bx)} ${f4(by + bh - tl + tl * k)} ${f4(bx + tl - tl * k)} ${f4(
-            by + bh
-          )} ${f4(bx + tl)} ${f4(by + bh)} c`
+            by + bh,
+          )} ${f4(bx + tl)} ${f4(by + bh)} c`,
         );
       else doc.internal.write(`${f4(bx)} ${f4(by + bh)} l`);
       doc.internal.write(`h S`);
     } else if (sides.length === 4) {
-      doc.internal.write(
-        `${f4(lx)} ${f4(ly)} ${f4(boxW_pt)} ${f4(boxH_pt)} re S`
-      );
+      doc.internal.write(`${f4(lx)} ${f4(ly)} ${f4(boxW_pt)} ${f4(boxH_pt)} re S`);
     } else {
       // Individual sides in local Y-up coords
       if (sides.includes("top"))
         doc.internal.write(
-          `${f4(lx)} ${f4(ly + boxH_pt)} m ${f4(lx + boxW_pt)} ${f4(
-            ly + boxH_pt
-          )} l S`
+          `${f4(lx)} ${f4(ly + boxH_pt)} m ${f4(lx + boxW_pt)} ${f4(ly + boxH_pt)} l S`,
         );
       if (sides.includes("bottom"))
-        doc.internal.write(
-          `${f4(lx)} ${f4(ly)} m ${f4(lx + boxW_pt)} ${f4(ly)} l S`
-        );
+        doc.internal.write(`${f4(lx)} ${f4(ly)} m ${f4(lx + boxW_pt)} ${f4(ly)} l S`);
       if (sides.includes("left"))
-        doc.internal.write(
-          `${f4(lx)} ${f4(ly)} m ${f4(lx)} ${f4(ly + boxH_pt)} l S`
-        );
+        doc.internal.write(`${f4(lx)} ${f4(ly)} m ${f4(lx)} ${f4(ly + boxH_pt)} l S`);
       if (sides.includes("right"))
         doc.internal.write(
-          `${f4(lx + boxW_pt)} ${f4(ly)} m ${f4(lx + boxW_pt)} ${f4(
-            ly + boxH_pt
-          )} l S`
+          `${f4(lx + boxW_pt)} ${f4(ly)} m ${f4(lx + boxW_pt)} ${f4(ly + boxH_pt)} l S`,
         );
     }
     if (dashCmd) doc.internal.write(`[] 0 d`);
@@ -347,7 +326,7 @@ export function renderZone(
   zy: number,
   zw: number,
   pageNum: number,
-  totalPages: number
+  totalPages: number,
 ): number {
   const padT = ptMm(zone.padding?.top ?? 5);
   const padB = ptMm(zone.padding?.bottom ?? 5);
@@ -393,10 +372,7 @@ export function renderZone(
     } else if (!el.config?.flexmove) {
       // Sequential flow element — stacks height
       const cfg = el.config || {};
-      flowH +=
-        ptMm(cfg.margin?.top ?? 0) +
-        elRenderedH(el) +
-        ptMm(cfg.margin?.bottom ?? 0);
+      flowH += ptMm(cfg.margin?.top ?? 0) + elRenderedH(el) + ptMm(cfg.margin?.bottom ?? 0);
     }
   }
 
@@ -405,13 +381,8 @@ export function renderZone(
     for (const row of zone.rows) {
       const mg = row.margin || { top: 0, bottom: 0 };
       const pad2 = row.padding || { top: 0, bottom: 0 };
-      const rowEls = (zone.elements || []).filter(
-        (e: any) => e.rowId === row._id && !e.hidden
-      );
-      const contentH = rowEls.reduce(
-        (m: number, el: any) => Math.max(m, elRenderedH(el)),
-        0
-      );
+      const rowEls = (zone.elements || []).filter((e: any) => e.rowId === row._id && !e.hidden);
+      const contentH = rowEls.reduce((m: number, el: any) => Math.max(m, elRenderedH(el)), 0);
       const autoH = contentH + ptMm(pad2.top ?? 0) + ptMm(pad2.bottom ?? 0);
       const rowH = autoH > 0 ? autoH : ptMm(row.height ?? 0);
       rowsH += ptMm(mg.top ?? 0) + rowH + ptMm(mg.bottom ?? 0);
@@ -422,9 +393,7 @@ export function renderZone(
   // LOGO is absolute so it only wins if it's taller than everything else.
   const calcH = Math.max(flowH + rowsH, logoLb);
 
-  const zoneH = hasZoneRows
-    ? calcH
-    : Math.max(calcH, ptMm(zone.minHeight ?? zone.height ?? 0));
+  const zoneH = hasZoneRows ? calcH : Math.max(calcH, ptMm(zone.minHeight ?? zone.height ?? 0));
 
   // Draw zone background with per-corner radius (stored in pt -> convert to mm)
   const zr = zone.radius || {
@@ -443,7 +412,7 @@ export function renderZone(
     ptMm(zr.topLeft ?? 0),
     ptMm(zr.topRight ?? 0),
     ptMm(zr.bottomRight ?? 0),
-    ptMm(zr.bottomLeft ?? 0)
+    ptMm(zr.bottomLeft ?? 0),
   );
 
   let curY = zy + padT;
@@ -452,10 +421,7 @@ export function renderZone(
     const mg = row.margin || { top: 0, bottom: 0, left: 0, right: 0 };
     const pad2 = row.padding || { top: 0, bottom: 0, left: 0, right: 0 };
     const allColEls = rowCols.flatMap((col: any) => col.elements || []);
-    const contentH = allColEls.reduce(
-      (m: number, el: any) => Math.max(m, elRenderedH(el)),
-      0
-    );
+    const contentH = allColEls.reduce((m: number, el: any) => Math.max(m, elRenderedH(el)), 0);
     const autoH = contentH + ptMm(pad2.top ?? 0) + ptMm(pad2.bottom ?? 0);
     const rowH = autoH > 0 ? autoH : ptMm(row.height ?? 0);
     const rY = curY + ptMm(mg.top ?? 0);
@@ -491,16 +457,7 @@ export function renderZone(
                 fmt = dm[1].toUpperCase();
                 if (fmt === "JPG") fmt = "JPEG";
               }
-              drawRotatedImage(
-                doc,
-                cfg.path,
-                fmt,
-                colX,
-                ly,
-                lw,
-                lh,
-                cfg.rotation ?? 0
-              );
+              drawRotatedImage(doc, cfg.path, fmt, colX, ly, lw, lh, cfg.rotation ?? 0);
             } catch (_) {
               doc.setDrawColor(180, 180, 180);
               doc.rect(colX, ly, lw, lh, "S");
@@ -526,21 +483,11 @@ export function renderZone(
               : aln === "CENTER"
                 ? colX + (colW - sepW) / 2
                 : colX;
-          drawHLine(
-            doc,
-            sx,
-            midY,
-            sepW,
-            cfg.height ?? 0,
-            cfg.color,
-            el.opacity ?? 1
-          );
+          drawHLine(doc, sx, midY, sepW, cfg.height ?? 0, cfg.color, el.opacity ?? 1);
         } else {
           const fsPt = cfg.fontSize ?? 0;
           doc.setFontSize(fsPt);
-          doc.setTextColor(
-            ...hexRgb(cfg.fontColor || zone.fontColor || "#333333")
-          );
+          doc.setTextColor(...hexRgb(cfg.fontColor || zone.fontColor || "#333333"));
           setFont(doc, cfg.font || "HELVETICA", !!cfg.bold, !!cfg.italic);
           const txt =
             el.type === "TEXT"
@@ -613,16 +560,7 @@ export function renderZone(
                   if (fmt === "JPG") fmt = "JPEG";
                 }
               }
-              drawRotatedImage(
-                doc,
-                path,
-                fmt,
-                lx,
-                ly,
-                lw,
-                lh,
-                cfg.rotation ?? 0
-              );
+              drawRotatedImage(doc, path, fmt, lx, ly, lw, lh, cfg.rotation ?? 0);
             } catch (_) {
               doc.setDrawColor(180, 180, 180);
               doc.rect(lx, ly, lw, lh, "S");
@@ -664,23 +602,13 @@ export function renderZone(
         curY += mt;
         if (el.type === "SEPARATOR") {
           const sh = ptMm(cfg.height ?? 0);
-          drawHLine(
-            doc,
-            ex,
-            curY + sh / 2,
-            ew2,
-            cfg.height ?? 0,
-            cfg.color,
-            el.opacity ?? 1
-          );
+          drawHLine(doc, ex, curY + sh / 2, ew2, cfg.height ?? 0, cfg.color, el.opacity ?? 1);
           curY += sh + mb;
         } else {
           const fsPt = cfg.fontSize ?? 0;
           const aln = (cfg.align || "LEFT").toLowerCase();
           doc.setFontSize(fsPt);
-          doc.setTextColor(
-            ...hexRgb(cfg.fontColor || zone.fontColor || "#333333")
-          );
+          doc.setTextColor(...hexRgb(cfg.fontColor || zone.fontColor || "#333333"));
           setFont(doc, cfg.font || "HELVETICA", !!cfg.bold, !!cfg.italic);
           const txt =
             el.type === "TEXT"
@@ -752,16 +680,7 @@ export function renderZone(
                   if (fmt === "JPG") fmt = "JPEG";
                 }
               }
-              drawRotatedImage(
-                doc,
-                path,
-                fmt,
-                lx,
-                ly,
-                lw,
-                lh,
-                cfg.rotation ?? 0
-              );
+              drawRotatedImage(doc, path, fmt, lx, ly, lw, lh, cfg.rotation ?? 0);
             } catch (_) {
               doc.setDrawColor(180, 180, 180);
               doc.rect(lx, ly, lw, lh, "S");
@@ -805,23 +724,13 @@ export function renderZone(
         curY += mt;
         if (el.type === "SEPARATOR") {
           const sh = ptMm(cfg.height ?? 0);
-          drawHLine(
-            doc,
-            ex,
-            curY + sh / 2,
-            ew,
-            cfg.height ?? 0,
-            cfg.color,
-            el.opacity ?? 1
-          );
+          drawHLine(doc, ex, curY + sh / 2, ew, cfg.height ?? 0, cfg.color, el.opacity ?? 1);
           curY += sh + mb;
         } else {
           const fsPt = cfg.fontSize ?? 0;
           const aln = (cfg.align || "LEFT").toLowerCase();
           doc.setFontSize(fsPt);
-          doc.setTextColor(
-            ...hexRgb(cfg.fontColor || zone.fontColor || "#333333")
-          );
+          doc.setTextColor(...hexRgb(cfg.fontColor || zone.fontColor || "#333333"));
           setFont(doc, cfg.font || "HELVETICA", !!cfg.bold, !!cfg.italic);
           const txt =
             el.type === "TEXT"

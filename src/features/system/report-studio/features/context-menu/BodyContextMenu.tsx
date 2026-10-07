@@ -1,10 +1,10 @@
 import { Copy, Eye, EyeOff, Lock, Trash2, Unlock, Upload } from "lucide-react";
-import type { BodyCtxMenu } from "../../types/app-state";
 import {
   ContextMenuDivider,
   ContextMenuItem,
   ContextMenuShell,
 } from "../../components/common/ContextMenu";
+import type { BodyCtxMenu } from "../../types/app-state";
 
 /**
  * Right-click menu for body components on the canvas.
@@ -38,11 +38,21 @@ export function BodyContextMenu({
     <ContextMenuShell x={menu.x} y={menu.y} onClose={onClose} minWidth={170}>
       {menu.compType === "IMAGE" && onUploadImage && (
         <>
-          <ContextMenuItem icon={<Upload size={12} />} label="Upload image..." onClick={onUploadImage} onClose={onClose} />
+          <ContextMenuItem
+            icon={<Upload size={12} />}
+            label="Upload image..."
+            onClick={onUploadImage}
+            onClose={onClose}
+          />
           <ContextMenuDivider />
         </>
       )}
-      <ContextMenuItem icon={<Copy size={12} />} label="Duplicate" onClick={onDuplicate} onClose={onClose} />
+      <ContextMenuItem
+        icon={<Copy size={12} />}
+        label="Duplicate"
+        onClick={onDuplicate}
+        onClose={onClose}
+      />
       <ContextMenuItem
         icon={isHidden ? <Eye size={12} /> : <EyeOff size={12} />}
         label={isHidden ? "Show" : "Hide"}
@@ -56,7 +66,14 @@ export function BodyContextMenu({
         onClose={onClose}
       />
       <ContextMenuDivider />
-      <ContextMenuItem icon={<Trash2 size={12} />} label="Delete" onClick={onDelete} onClose={onClose} danger shortcut="Del" />
+      <ContextMenuItem
+        icon={<Trash2 size={12} />}
+        label="Delete"
+        onClick={onDelete}
+        onClose={onClose}
+        danger
+        shortcut="Del"
+      />
     </ContextMenuShell>
   );
 }

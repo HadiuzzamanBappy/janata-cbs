@@ -1,21 +1,22 @@
-import React, { useState, useRef, useEffect } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { deltaToParas } from "@/features/system/report-studio/data/deltaToParas";
 import {
-  Plus,
   Minus,
+  Plus,
+  RefreshCw,
   Settings2,
   Trash2,
-  RefreshCw,
 } from "@/features/system/report-studio/theme/icons";
 import type { BodyComponent } from "../../types/body";
 import type { ReportVariable } from "../../types/text-block";
-import { deltaToParas } from "@/features/system/report-studio/data/deltaToParas";
-import {
-  DEFAULT_TABLE_STYLE,
-  buildTableHtml,
-  readTableStyle,
-  makeCellStyle,
-} from "./quillTableStyle";
 import { QuillTableStylePanel } from "./QuillTableStylePanel";
+import {
+  buildTableHtml,
+  DEFAULT_TABLE_STYLE,
+  makeCellStyle,
+  readTableStyle,
+} from "./quillTableStyle";
 
 function TextBlockRichEditor({
   comp,
@@ -67,10 +68,7 @@ function TextBlockRichEditor({
       menuRef.current?.remove();
       menuRef.current = null;
       // Close picker if click is outside the table button area
-      if (
-        tableBtnRef.current &&
-        !tableBtnRef.current.contains(e.target as Node)
-      ) {
+      if (tableBtnRef.current && !tableBtnRef.current.contains(e.target as Node)) {
         setShowPicker(false);
       }
     };
@@ -175,7 +173,7 @@ function TextBlockRichEditor({
         if (table) {
           try {
             tableStyle = JSON.parse(table.getAttribute("data-ts") || "null");
-          } catch (_) { }
+          } catch (_) {}
         }
         return { rows, html: node.innerHTML, tableStyle };
       }
@@ -193,9 +191,7 @@ function TextBlockRichEditor({
     const range = q.getSelection(true);
     const index = range ? range.index : q.getLength();
     const html = buildTableHtml(rows, cols);
-    const rowsData: string[][] = Array.from({ length: rows }, () =>
-      Array(cols).fill(""),
-    );
+    const rowsData: string[][] = Array.from({ length: rows }, () => Array(cols).fill(""));
     q.insertEmbed(index, "table-embed", { rows: rowsData, html }, "user");
     q.insertText(index + 1, "\n", "user");
     q.setSelection(index + 2, 0);
@@ -242,27 +238,19 @@ function TextBlockRichEditor({
 
     // Convert "rgb(r, g, b)" or "rgba(...)" to "#rrggbb"
     const toHex = (color: string): string => {
-      if (!color || color === "transparent" || color === "rgba(0, 0, 0, 0)")
-        return "";
+      if (!color || color === "transparent" || color === "rgba(0, 0, 0, 0)") return "";
       if (color.startsWith("#")) return color;
       const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
       if (!m) return "";
       return (
-        "#" +
-        [m[1], m[2], m[3]]
-          .map((n) => parseInt(n).toString(16).padStart(2, "0"))
-          .join("")
+        "#" + [m[1], m[2], m[3]].map((n) => parseInt(n).toString(16).padStart(2, "0")).join("")
       );
     };
 
     // Read inline style first, fall back to computed
     const get = (el: HTMLElement | null, prop: string): string => {
       if (!el) return "";
-      return (
-        el.style.getPropertyValue(prop) ||
-        getComputedStyle(el).getPropertyValue(prop) ||
-        ""
-      );
+      return el.style.getPropertyValue(prop) || getComputedStyle(el).getPropertyValue(prop) || "";
     };
 
     const trs = Array.from(table.querySelectorAll("tr"));
@@ -273,14 +261,10 @@ function TextBlockRichEditor({
     // Border: read from inline style attribute directly (most reliable)
     const borderInline = hdrTd?.style.border || hdrTd?.style.borderTop || "";
     const bp = borderInline.trim().split(/\s+/);
-    const borderWidth = bp[0]
-      ? String(parseFloat(bp[0]))
-      : DEFAULT_TABLE_STYLE.borderWidth;
+    const borderWidth = bp[0] ? String(parseFloat(bp[0])) : DEFAULT_TABLE_STYLE.borderWidth;
     const borderStyle = bp[1] || DEFAULT_TABLE_STYLE.borderStyle;
     const borderColor =
-      toHex(bp[2] || "") ||
-      toHex(get(hdrTd, "border-color")) ||
-      DEFAULT_TABLE_STYLE.borderColor;
+      toHex(bp[2] || "") || toHex(get(hdrTd, "border-color")) || DEFAULT_TABLE_STYLE.borderColor;
 
     // Alt row: check if rows 1 and 2 have different backgrounds
     const bg1 = toHex(get(bdy1, "background-color"));
@@ -291,20 +275,15 @@ function TextBlockRichEditor({
       borderColor,
       borderWidth,
       borderStyle,
-      headerBg:
-        toHex(get(hdrTd, "background-color")) || DEFAULT_TABLE_STYLE.headerBg,
-      headerColor:
-        toHex(get(hdrTd, "color")) || DEFAULT_TABLE_STYLE.headerColor,
+      headerBg: toHex(get(hdrTd, "background-color")) || DEFAULT_TABLE_STYLE.headerBg,
+      headerColor: toHex(get(hdrTd, "color")) || DEFAULT_TABLE_STYLE.headerColor,
       headerBold: parseInt(get(hdrTd, "font-weight") || "400") >= 700,
-      cellBg:
-        toHex(get(bdy1, "background-color")) || DEFAULT_TABLE_STYLE.cellBg,
+      cellBg: toHex(get(bdy1, "background-color")) || DEFAULT_TABLE_STYLE.cellBg,
       cellColor: toHex(get(bdy1, "color")) || DEFAULT_TABLE_STYLE.cellColor,
       altRowBg,
       cellPadding: get(hdrTd, "padding") || DEFAULT_TABLE_STYLE.cellPadding,
       fontSize: String(
-        parseFloat(
-          get(hdrTd, "font-size") || DEFAULT_TABLE_STYLE.fontSize + "px",
-        ) || 12,
+        parseFloat(get(hdrTd, "font-size") || DEFAULT_TABLE_STYLE.fontSize + "px") || 12,
       ),
       tableDsRef: DEFAULT_TABLE_STYLE.tableDsRef,
     };
@@ -314,14 +293,8 @@ function TextBlockRichEditor({
       menuH = 340;
     const vw = window.innerWidth,
       vh = window.innerHeight;
-    const x =
-      cellRect.right + menuW > vw
-        ? Math.max(8, cellRect.left - menuW)
-        : cellRect.right;
-    const y =
-      cellRect.bottom + menuH > vh
-        ? Math.max(8, cellRect.top - menuH)
-        : cellRect.bottom;
+    const x = cellRect.right + menuW > vw ? Math.max(8, cellRect.left - menuW) : cellRect.right;
+    const y = cellRect.bottom + menuH > vh ? Math.max(8, cellRect.top - menuH) : cellRect.bottom;
 
     setTableMenu({
       x,
@@ -352,8 +325,7 @@ function TextBlockRichEditor({
 
   // Mount Quill
   useEffect(() => {
-    if (!ready || !mountRef.current || !toolbarRef.current || quillRef.current)
-      return;
+    if (!ready || !mountRef.current || !toolbarRef.current || quillRef.current) return;
     const Q = (window as any).Quill;
 
     const q = new Q(mountRef.current, {
@@ -365,13 +337,10 @@ function TextBlockRichEditor({
     });
 
     // Right-click inside table cells
-    (mountRef.current as HTMLElement).addEventListener(
-      "contextmenu",
-      (e: any) => {
-        const td = (e.target as HTMLElement).closest("td");
-        if (td) showTableMenu(e, td as HTMLElement);
-      },
-    );
+    (mountRef.current as HTMLElement).addEventListener("contextmenu", (e: any) => {
+      const td = (e.target as HTMLElement).closest("td");
+      if (td) showTableMenu(e, td as HTMLElement);
+    });
 
     // Load saved content
     if (comp.quillDelta?.ops) {
@@ -428,12 +397,7 @@ function TextBlockRichEditor({
       length: 0,
     };
     const token = `{{${varName}}}`;
-    q.insertText(
-      range.index,
-      token,
-      { background: "#fef3c7", color: "#92400e" },
-      "user",
-    );
+    q.insertText(range.index, token, { background: "#fef3c7", color: "#92400e" }, "user");
     q.setSelection(range.index + token.length, 0);
   };
 
@@ -467,15 +431,11 @@ function TextBlockRichEditor({
             (() => {
               let rows: any[] = [];
               if (comp.repeatDataSourceRef.startsWith("comp:"))
-                rows =
-                  componentDataSources?.[comp.repeatDataSourceRef.slice(5)] ||
-                  [];
+                rows = componentDataSources?.[comp.repeatDataSourceRef.slice(5)] || [];
               else if (comp.repeatDataSourceRef.startsWith("central:"))
                 rows = centralData?.[comp.repeatDataSourceRef.slice(8)] || [];
               return rows.length > 0 ? (
-                <span style={{ fontWeight: 400, color: "#7c3aed" }}>
-                  ({rows.length} rows)
-                </span>
+                <span style={{ fontWeight: 400, color: "#7c3aed" }}>({rows.length} rows)</span>
               ) : null;
             })()}
         </div>
@@ -672,9 +632,7 @@ function TextBlockRichEditor({
                     min={1}
                     max={20}
                     value={pickerRows}
-                    onChange={(e) =>
-                      setPickerRows(Math.max(1, Math.min(20, +e.target.value)))
-                    }
+                    onChange={(e) => setPickerRows(Math.max(1, Math.min(20, +e.target.value)))}
                     style={{
                       width: "100%",
                       padding: "4px 8px",
@@ -703,9 +661,7 @@ function TextBlockRichEditor({
                     min={1}
                     max={10}
                     value={pickerCols}
-                    onChange={(e) =>
-                      setPickerCols(Math.max(1, Math.min(10, +e.target.value)))
-                    }
+                    onChange={(e) => setPickerCols(Math.max(1, Math.min(10, +e.target.value)))}
                     style={{
                       width: "100%",
                       padding: "4px 8px",
@@ -737,9 +693,7 @@ function TextBlockRichEditor({
                   {Array.from({ length: 8 * 8 }).map((_, i) => {
                     const r = Math.floor(i / 8) + 1;
                     const c = (i % 8) + 1;
-                    const lit =
-                      r <= (hoverRows || pickerRows) &&
-                      c <= (hoverCols || pickerCols);
+                    const lit = r <= (hoverRows || pickerRows) && c <= (hoverCols || pickerCols);
                     return (
                       <div
                         key={i}
@@ -808,10 +762,7 @@ function TextBlockRichEditor({
         </span>
       </div>
 
-      <div
-        ref={mountRef}
-        style={{ display: ready ? "block" : "none", width: "100%" }}
-      />
+      <div ref={mountRef} style={{ display: ready ? "block" : "none", width: "100%" }} />
 
       {/* Table context menu — rendered as React portal matching app design */}
       {/* Table context menu */}
@@ -837,9 +788,7 @@ function TextBlockRichEditor({
           overflow: "hidden",
         };
 
-        const div = (
-          <div style={{ height: 1, background: "#f1f5f9", margin: "3px 0" }} />
-        );
+        const div = <div style={{ height: 1, background: "#f1f5f9", margin: "3px 0" }} />;
 
         const Item = ({
           icon,
@@ -875,11 +824,7 @@ function TextBlockRichEditor({
                 cursor: "pointer",
                 userSelect: "none",
                 color: danger ? "#dc2626" : "#1e293b",
-                background: hov
-                  ? danger
-                    ? "#fef2f2"
-                    : "#f8fafc"
-                  : "transparent",
+                background: hov ? (danger ? "#fef2f2" : "#f8fafc") : "transparent",
               }}
             >
               <span
@@ -909,8 +854,7 @@ function TextBlockRichEditor({
           const s = readTableStyle(table);
           const newRow = document.createElement("tr");
           newRow.style.display = "table-row";
-          for (let i = 0; i < row.cells.length; i++)
-            newRow.appendChild(newCell(false, s));
+          for (let i = 0; i < row.cells.length; i++) newRow.appendChild(newCell(false, s));
           tbody.insertBefore(newRow, before ? row : row.nextSibling);
         };
 
@@ -923,10 +867,7 @@ function TextBlockRichEditor({
           const s = readTableStyle(table);
           Array.from(tbody.rows).forEach((tr, ri) => {
             const cell = newCell(ri === 0, s);
-            tr.insertBefore(
-              cell,
-              before ? tr.cells[ci] : tr.cells[ci + 1] || null,
-            );
+            tr.insertBefore(cell, before ? tr.cells[ci] : tr.cells[ci + 1] || null);
           });
         };
 
@@ -940,27 +881,19 @@ function TextBlockRichEditor({
           // Find which table index this wrap corresponds to
           const q = quillRef.current;
           const allWraps = q
-            ? (Array.from(
-              q.root.querySelectorAll(".ql-table-wrap"),
-            ) as HTMLElement[])
+            ? (Array.from(q.root.querySelectorAll(".ql-table-wrap")) as HTMLElement[])
             : [];
           const tableIdx = allWraps.indexOf(wrap);
 
           // Use the style captured at right-click time — always in sync with live table
           const savedStyle = tableMenu.currentStyle;
           return (
-            <div
-              ref={tableMenuRef}
-              style={menuStyle}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
+            <div ref={tableMenuRef} style={menuStyle} onMouseDown={(e) => e.stopPropagation()}>
               <QuillTableStylePanel
                 key={`style-${tableIdx}-${tableMenu.openedAt}`}
                 table={table}
                 onClose={() => setTableMenu(null)}
-                onBack={() =>
-                  setTableMenu((m) => (m ? { ...m, view: "actions" } : null))
-                }
+                onBack={() => setTableMenu((m) => (m ? { ...m, view: "actions" } : null))}
                 savedStyle={savedStyle}
                 onSave={(s) => {
                   const c = compRef.current;
@@ -1002,22 +935,13 @@ function TextBlockRichEditor({
             >
               Rows
             </div>
-            <Item
-              icon={<Plus size={12} />}
-              label="Insert row above"
-              onClick={() => addRow(true)}
-            />
+            <Item icon={<Plus size={12} />} label="Insert row above" onClick={() => addRow(true)} />
             <Item
               icon={<Plus size={12} />}
               label="Insert row below"
               onClick={() => addRow(false)}
             />
-            <Item
-              icon={<Minus size={12} />}
-              label="Delete row"
-              onClick={delRow}
-              danger
-            />
+            <Item icon={<Minus size={12} />} label="Delete row" onClick={delRow} danger />
 
             {div}
 
@@ -1044,12 +968,7 @@ function TextBlockRichEditor({
               label="Insert column right"
               onClick={() => addCol(false)}
             />
-            <Item
-              icon={<Minus size={12} />}
-              label="Delete column"
-              onClick={delCol}
-              danger
-            />
+            <Item icon={<Minus size={12} />} label="Delete column" onClick={delCol} danger />
 
             {div}
 
@@ -1059,9 +978,7 @@ function TextBlockRichEditor({
               label="Table style…"
               keepOpen
               onClick={() =>
-                setTableMenu((m) =>
-                  m ? { ...m, view: "style", openedAt: Date.now() } : null,
-                )
+                setTableMenu((m) => (m ? { ...m, view: "style", openedAt: Date.now() } : null))
               }
             />
 

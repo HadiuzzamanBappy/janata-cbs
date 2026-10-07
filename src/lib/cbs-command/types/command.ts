@@ -23,6 +23,7 @@ export type ScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
 // ============================================================================
 
 import { CBS_FUNCTION_CODES, type FunctionRightCode } from "@/types";
+
 export { CBS_FUNCTION_CODES, type FunctionRightCode };
 
 export interface FunctionMetadata {

@@ -17,7 +17,7 @@ export const BODY_COMP_META: Record<
   { label: string; color: string; Icon: any; shortLabel: string }
 > = {
   TABLE: { label: "Data Table", shortLabel: "TBL", color: "#d97706", Icon: Table2 },
-  CHART: { label: "Chart",      shortLabel: "CHT", color: "#2563eb", Icon: BarChart2 },
-  IMAGE: { label: "Image",      shortLabel: "IMG", color: "#059669", Icon: FileImage },
+  CHART: { label: "Chart", shortLabel: "CHT", color: "#2563eb", Icon: BarChart2 },
+  IMAGE: { label: "Image", shortLabel: "IMG", color: "#059669", Icon: FileImage },
   TEXT_BLOCK: { label: "Text Block", shortLabel: "TXT", color: "#7c3aed", Icon: Pilcrow },
 };

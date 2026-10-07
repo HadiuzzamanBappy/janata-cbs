@@ -38,7 +38,7 @@ export function Tabs<V extends string>({
         border: `1px solid ${T.border}`,
       }}
     >
-      {tabs.map(t => {
+      {tabs.map((t) => {
         const isActive = active === t.value;
         const ac = t.color || color;
         return (

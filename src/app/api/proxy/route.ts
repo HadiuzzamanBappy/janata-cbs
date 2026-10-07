@@ -49,33 +49,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const servicePath = body.servicePath || "default";
-
-    const envelope: GrpcEnvelope = {
-      servicePath,
-      requestType: body.requestType,
-      controlName: body.controlName ?? "",
-      branchCode: currUser.branchCode,
-      recordFunction: body.recordFunction || "S",
-      recordId: body.recordId || "",
-      authLevel: body.authLevel ?? 1,
-      userId,
-      clientId: appConfig.grpc.clientId,
-      data: body.data ?? {},
-    };
-
-    // If modelSource is static, return offline fixtures immediately without waiting for gRPC timeout
     const cleanModel = (body.controlName || "").trim().toUpperCase();
     const cleanRecordId = (body.recordId || "").trim().toUpperCase();
 
-    // 1. INQ request handling (Inquiry datasets)
-    if (body.requestType === "INQ") {
-      if (appConfig.modelSource === "static") {
-        // Dynamic Resolution:
-        // 1. Check direct match by controlName or recordId in STATIC_INQUIRY_DATA
+    // =========================================================================
+    // 1. STATIC MODE: Return fixtures immediately (DO NOT TOUCH gRPC AT ALL)
+    // =========================================================================
+    if (appConfig.modelSource === "static") {
+      // A. Inquiry Requests (INQ)
+      if (body.requestType === "INQ") {
         let rawInquiry = STATIC_INQUIRY_DATA[cleanModel] || STATIC_INQUIRY_DATA[cleanRecordId];
 
-        // 2. If not found directly, inspect STATIC_INQUIRIES schemas dynamically to find which inquiry matches this controllerName
         if (!rawInquiry && cleanModel) {
           for (const [inqKey, inqSpec] of Object.entries(STATIC_INQUIRIES)) {
             const fields = inqSpec.data?.fields as Record<string, unknown> | undefined;
@@ -104,7 +88,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           });
         }
 
-        // If no inquiry dataset fixture exists for this enquiry, return empty dataset
         return NextResponse.json({
           status: "SUCCESS",
           statusCode: 200,
@@ -113,32 +96,58 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           timestamp: new Date().toISOString(),
         });
       }
-    }
 
-    // 2. Standard Model Table handling (for Forms and non-INQ requests only)
-    const modelTable = STATIC_TABLE_DATA[cleanModel];
+      // B. Form & Model Record Requests
+      const modelTable = STATIC_TABLE_DATA[cleanModel];
+      if (modelTable) {
+        if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
+          return NextResponse.json({
+            status: "SUCCESS",
+            statusCode: 200,
+            message: "Record loaded from offline fixture",
+            data: modelTable.records[body.recordId.trim()],
+            timestamp: new Date().toISOString(),
+          });
+        }
 
-    if (appConfig.modelSource === "static" && modelTable) {
-      if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
-        return NextResponse.json({
-          status: "SUCCESS",
-          statusCode: 200,
-          message: "Record loaded from offline fixture",
-          data: modelTable.records[body.recordId.trim()],
-          timestamp: new Date().toISOString(),
-        });
+        if (modelTable.enquiryRows && modelTable.enquiryRows.length > 0) {
+          return NextResponse.json({
+            status: "SUCCESS",
+            statusCode: 200,
+            message: "Enquiry data loaded from offline fixture",
+            data: modelTable.enquiryRows,
+            timestamp: new Date().toISOString(),
+          });
+        }
       }
 
-      if (modelTable.enquiryRows && modelTable.enquiryRows.length > 0) {
-        return NextResponse.json({
-          status: "SUCCESS",
-          statusCode: 200,
-          message: "Enquiry data loaded from offline fixture",
-          data: modelTable.enquiryRows,
-          timestamp: new Date().toISOString(),
-        });
-      }
+      // If static fixture does not contain this specific record, return immediately without touching gRPC
+      return NextResponse.json({
+        status: "RECORD_NOT_FOUND",
+        statusCode: 200,
+        message: `Record #${body.recordId || ""} not found in offline fixture.`,
+        data: null,
+        timestamp: new Date().toISOString(),
+      });
     }
+
+    // =========================================================================
+    // 2. gRPC MODE: Dispatch to Core CBS Host (with graceful offline fallback)
+    // =========================================================================
+    const servicePath = body.servicePath || "default";
+
+    const envelope: GrpcEnvelope = {
+      servicePath,
+      requestType: body.requestType,
+      controlName: body.controlName ?? "",
+      branchCode: currUser.branchCode,
+      recordFunction: body.recordFunction || "S",
+      recordId: body.recordId || "",
+      authLevel: body.authLevel ?? 1,
+      userId,
+      clientId: appConfig.grpc.clientId,
+      data: body.data ?? {},
+    };
 
     try {
       const response = await dispatch(envelope, token);
@@ -155,12 +164,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
         return NextResponse.json(response, { status: 200 });
       }
-      // If dispatch failed or returned an error, attempt fixture fallback below
     } catch {
-      // Backend not running / gRPC offline
+      // Backend not running / gRPC offline: fall through to fixture fallback below
     }
 
-    // Graceful Fallback: Check local STATIC_TABLE_DATA fixture
+    // Graceful Fallback for gRPC mode if backend server is unreachable
+    const modelTable = STATIC_TABLE_DATA[cleanModel];
     if (modelTable) {
       if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
         return NextResponse.json({

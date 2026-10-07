@@ -1,5 +1,5 @@
-import type { ZoneRow } from "../../types/zone";
 import type { ReportTemplate } from "../../constants/preview-data";
+import type { ZoneRow } from "../../types/zone";
 
 /**
  * SVG thumbnail of a zone (header or footer) used by `TemplateModal`'s
@@ -44,7 +44,7 @@ export function ZoneSvgPreview({
         style={{ display: "block", width: "100%" }}
       >
         <rect width={width} height={svgH} fill={zone.background || "#ffffff"} />
-        {rows.map(row => {
+        {rows.map((row) => {
           const rowHeight = (row.height || 40) * scale;
           const columnWidth = width / row.cols;
           const rowElements = (zone.elements || []).filter((el: any) => el.rowId === row._id);
@@ -139,7 +139,7 @@ export function ZoneSvgPreview({
 
   // Flow layout (no rows).
   let flowY = PAD_T;
-  const flowEls = (zone.elements || []).filter(e => e.type !== "LOGO");
+  const flowEls = (zone.elements || []).filter((e) => e.type !== "LOGO");
   const flowPositions: { el: any; y: number; h: number }[] = [];
   for (const el of flowEls) {
     const cfg = el.config || {};
@@ -164,7 +164,7 @@ export function ZoneSvgPreview({
     >
       <rect width={width} height={svgH} fill={zone.background || "#ffffff"} />
       {(zone.elements || [])
-        .filter(e => e.type === "LOGO")
+        .filter((e) => e.type === "LOGO")
         .map((el, i) => {
           const cfg = (el as any).config || {};
           const lx = PAD_L + (cfg.x ?? 8) * scale;
@@ -173,7 +173,16 @@ export function ZoneSvgPreview({
           const lh = (cfg.height ?? 45) * scale;
           return (
             <g key={i}>
-              <rect x={lx} y={ly} width={lw} height={lh} rx="2" fill={accent + "22"} stroke={accent + "55"} strokeWidth="0.5" />
+              <rect
+                x={lx}
+                y={ly}
+                width={lw}
+                height={lh}
+                rx="2"
+                fill={accent + "22"}
+                stroke={accent + "55"}
+                strokeWidth="0.5"
+              />
               <text
                 x={lx + lw / 2}
                 y={ly + lh / 2 + 2.5}

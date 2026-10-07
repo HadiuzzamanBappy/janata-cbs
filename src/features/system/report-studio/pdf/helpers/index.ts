@@ -11,12 +11,12 @@
  *   JSPDF_FONTS       ← @constants/fonts
  */
 
-import { hexRgb, hexAlpha } from "@/features/system/report-studio/utils/color";
-import { ptMm } from "@/features/system/report-studio/utils/units";
-import { sanitizeForPdf } from "@/features/system/report-studio/utils/string";
 import { JSPDF_FONTS } from "@/features/system/report-studio/constants/fonts";
+import { hexAlpha, hexRgb } from "@/features/system/report-studio/utils/color";
+import { sanitizeForPdf } from "@/features/system/report-studio/utils/string";
+import { ptMm } from "@/features/system/report-studio/utils/units";
 
-export { hexRgb, hexAlpha, ptMm, sanitizeForPdf, JSPDF_FONTS };
+export { hexAlpha, hexRgb, JSPDF_FONTS, ptMm, sanitizeForPdf };
 
 // ─── Local rounding helper ────────────────────────────────────────────────────
 
@@ -48,9 +48,7 @@ export function fmtVal(v: any, col: any): string {
         "৳" +
         r.toLocaleString(
           "en-IN",
-          d != null
-            ? { minimumFractionDigits: d, maximumFractionDigits: d }
-            : {},
+          d != null ? { minimumFractionDigits: d, maximumFractionDigits: d } : {},
         )
       );
     if (d != null)
@@ -80,7 +78,7 @@ export function evalCond(cond: string, val: any): boolean {
     if (cond.startsWith(">")) return v > parseFloat(cond.slice(1));
     if (cond.startsWith("<")) return v < parseFloat(cond.slice(1));
     if (cond.startsWith("=")) return v === parseFloat(cond.slice(1));
-  } catch (_) { }
+  } catch (_) {}
   return false;
 }
 
@@ -106,35 +104,16 @@ export function fmtDate(fmt: string): string {
 // ─── jsPDF font helper ────────────────────────────────────────────────────────
 
 /** Set the active jsPDF font to the correct name+style combination. */
-export function setFont(
-  doc: any,
-  font: string,
-  bold: boolean,
-  italic: boolean,
-): void {
+export function setFont(doc: any, font: string, bold: boolean, italic: boolean): void {
   const name = JSPDF_FONTS[font as keyof typeof JSPDF_FONTS] || "helvetica";
-  const style =
-    bold && italic
-      ? "bolditalic"
-      : bold
-        ? "bold"
-        : italic
-          ? "italic"
-          : "normal";
+  const style = bold && italic ? "bolditalic" : bold ? "bold" : italic ? "italic" : "normal";
   doc.setFont(name, style);
 }
 
 // ─── Drawing helpers ──────────────────────────────────────────────────────────
 
 /** Draw a filled rectangle with the given hex colour. No-op for transparent. */
-export function fillRect(
-  doc: any,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  hex: string,
-): void {
+export function fillRect(doc: any, x: number, y: number, w: number, h: number, hex: string): void {
   if (!hex || hex === "transparent") return;
   doc.setFillColor(...hexRgb(hex));
   doc.rect(x, y, w, h, "F");
@@ -176,23 +155,14 @@ export function fillRoundedRect(
   // Draw path clockwise starting from top-left arc end
   doc.moveTo(x + tl, y);
   doc.lineTo(x + w - tr, y);
-  if (tr > 0)
-    doc.curveTo(x + w - tr + tr * k, y, x + w, y + tr - tr * k, x + w, y + tr);
+  if (tr > 0) doc.curveTo(x + w - tr + tr * k, y, x + w, y + tr - tr * k, x + w, y + tr);
   else doc.lineTo(x + w, y);
   doc.lineTo(x + w, y + h - br);
   if (br > 0)
-    doc.curveTo(
-      x + w,
-      y + h - br + br * k,
-      x + w - br + br * k,
-      y + h,
-      x + w - br,
-      y + h,
-    );
+    doc.curveTo(x + w, y + h - br + br * k, x + w - br + br * k, y + h, x + w - br, y + h);
   else doc.lineTo(x + w, y + h);
   doc.lineTo(x + bl, y + h);
-  if (bl > 0)
-    doc.curveTo(x + bl - bl * k, y + h, x, y + h - bl + bl * k, x, y + h - bl);
+  if (bl > 0) doc.curveTo(x + bl - bl * k, y + h, x, y + h - bl + bl * k, x, y + h - bl);
   else doc.lineTo(x, y + h);
   doc.lineTo(x, y + tl);
   if (tl > 0) doc.curveTo(x, y + tl - tl * k, x + tl - tl * k, y, x + tl, y);
@@ -269,9 +239,7 @@ export function drawRotatedImage(
   try {
     doc.addImage(path, fmt, OFFPAGE, OFFPAGE, 0.01, 0.01);
     // The last registered image index
-    const images =
-      doc.internal.collections?.image ??
-      (doc as any).__private__?.collections?.image;
+    const images = doc.internal.collections?.image ?? (doc as any).__private__?.collections?.image;
     void images; // referenced for side-effect only
     // Simpler: parse the index from the last q...Do block we just wrote
     // jsPDF appends to the page stream — find the last /Ixx reference
@@ -309,9 +277,7 @@ export function drawRotatedImage(
   const f = cy_pt + ((sinT * w_pt) / 2 - (cosT * h_pt) / 2);
 
   doc.internal.write("q");
-  doc.internal.write(
-    `${f4(a)} ${f4(b)} ${f4(cc)} ${f4(d)} ${f4(e)} ${f4(f)} cm`,
-  );
+  doc.internal.write(`${f4(a)} ${f4(b)} ${f4(cc)} ${f4(d)} ${f4(e)} ${f4(f)} cm`);
   doc.internal.write(`/I${imgIndex} Do`);
   doc.internal.write("Q");
 }

@@ -6,13 +6,14 @@
  */
 
 import {
+  fillRect,
   hexRgb,
-  sanitizeForPdf,
   ptMm,
+  sanitizeForPdf,
+  setFont,
 } from "@/features/system/report-studio/pdf/helpers";
-import { setFont, fillRect } from "@/features/system/report-studio/pdf/helpers";
 
-export { setFont, fillRect };
+export { fillRect, setFont };
 
 /**
  * Line-height multiplier — matches Quill .ql-editor { line-height: 1.6 }
@@ -80,26 +81,14 @@ export function renderRunsLine(
     doc.setTextColor(...hexRgb(color));
     if (vs?.background && vs.background !== "transparent") {
       const cw = doc.getStringUnitWidth(sanitized) * fsPt * ptMm(1);
-      fillRect(
-        doc,
-        curX,
-        curY - ptMm(fsPt) * 0.1,
-        cw,
-        ptMm(fsPt) * 1.2,
-        vs.background,
-      );
+      fillRect(doc, curX, curY - ptMm(fsPt) * 0.1, cw, ptMm(fsPt) * 1.2, vs.background);
     }
     doc.text(sanitized, curX, curY, { baseline: "top" });
     if (vs?.underline ?? underline) {
       const uw = doc.getStringUnitWidth(sanitized) * fsPt * ptMm(1);
       doc.setDrawColor(...hexRgb(color));
       doc.setLineWidth(Math.max(0.2, ptMm(fsPt) * 0.07));
-      doc.line(
-        curX,
-        curY + ptMm(fsPt) * 0.92,
-        curX + uw,
-        curY + ptMm(fsPt) * 0.92,
-      );
+      doc.line(curX, curY + ptMm(fsPt) * 0.92, curX + uw, curY + ptMm(fsPt) * 0.92);
     }
     curX += doc.getStringUnitWidth(sanitized) * fsPt * ptMm(1);
   }
@@ -144,8 +133,7 @@ export function renderJustifiedLine(
   } else {
     // Measure each word width
     const wordWidths = words.map(
-      (w: string) =>
-        doc.getStringUnitWidth(sanitizeForPdf(w)) * paraFsPt * ptMm(1),
+      (w: string) => doc.getStringUnitWidth(sanitizeForPdf(w)) * paraFsPt * ptMm(1),
     );
     const totalWordW = wordWidths.reduce((a: number, b: number) => a + b, 0);
     const gap = Math.max(0, (innerW - totalWordW) / (words.length - 1));

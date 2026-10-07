@@ -1,22 +1,22 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import type { AppState } from "../types/app-state";
-import type { BodyComponent, BodyRow, BodyCompType } from "../types/body";
-import type { Column } from "../types/table";
-import {
-  X,
-  LayoutGrid,
-  Lock,
-  Unlock,
-  GripHorizontal,
-  Plus,
-} from "@/features/system/report-studio/theme/icons";
+import React, { useRef, useState } from "react";
 import { BODY_COMP_META } from "@/features/system/report-studio/features/body/meta";
-import { TablePreviewCanvas } from "@/features/system/report-studio/features/table/TablePreviewCanvas";
 import { ChartPreview } from "@/features/system/report-studio/features/chart/ChartPreview";
 import { ImagePreview } from "@/features/system/report-studio/features/image/ImagePreview";
+import { TablePreviewCanvas } from "@/features/system/report-studio/features/table/TablePreviewCanvas";
 import { TextBlockRichEditor } from "@/features/system/report-studio/features/text-block/TextBlockRichEditor";
+import {
+  GripHorizontal,
+  LayoutGrid,
+  Lock,
+  Plus,
+  Unlock,
+  X,
+} from "@/features/system/report-studio/theme/icons";
+import type { AppState } from "../types/app-state";
+import type { BodyComponent, BodyCompType, BodyRow } from "../types/body";
+import type { Column } from "../types/table";
 import { CanvasAddRowStrip } from "./CanvasAddRowStrip";
 import type { BodyCtxMenu } from "./types";
 
@@ -70,10 +70,7 @@ export function BodyCanvas({
   const getTableAvailableHeight = (comp: BodyComponent): number | undefined => {
     if (comp.height) {
       const pad = comp.padding || { top: 0, bottom: 0, left: 0, right: 0 };
-      return Math.max(
-        0,
-        toPx(comp.height) - toPx((pad.top || 0) + (pad.bottom || 0)),
-      );
+      return Math.max(0, toPx(comp.height) - toPx((pad.top || 0) + (pad.bottom || 0)));
     }
     const row = allRows.find((r) => r._id === comp.rowId);
     if (row?.height) {
@@ -82,8 +79,8 @@ export function BodyCanvas({
       return Math.max(
         0,
         toPx(row.height) -
-        toPx((rpad.top || 0) + (rpad.bottom || 0)) -
-        toPx((cpad.top || 0) + (cpad.bottom || 0)),
+          toPx((rpad.top || 0) + (rpad.bottom || 0)) -
+          toPx((cpad.top || 0) + (cpad.bottom || 0)),
       );
     }
     return undefined; // no height constraint → show all rows
@@ -94,19 +91,10 @@ export function BodyCanvas({
     rowId: string;
     slot: number;
   } | null>(null);
-  const COMP_TYPES_CANVAS: BodyCompType[] = [
-    "TABLE",
-    "CHART",
-    "IMAGE",
-    "TEXT_BLOCK",
-  ];
+  const COMP_TYPES_CANVAS: BodyCompType[] = ["TABLE", "CHART", "IMAGE", "TEXT_BLOCK"];
 
   /* ── Resize handles: N/S=height, E/W=width, corners=both ── */
-  const onHandleMouseDown = (
-    e: React.MouseEvent,
-    comp: BodyComponent,
-    dir: string,
-  ) => {
+  const onHandleMouseDown = (e: React.MouseEvent, comp: BodyComponent, dir: string) => {
     e.stopPropagation();
     e.preventDefault();
     const startCX = e.clientX,
@@ -196,8 +184,7 @@ export function BodyCanvas({
           const newH = Math.max(10, Math.round(startH - dy));
           if (isImage) next.imageHeight = newH;
           else next.height = newH;
-          if (latest.freePosition)
-            next.freeY = Math.max(0, Math.round(startFY + dy));
+          if (latest.freePosition) next.freeY = Math.max(0, Math.round(startFY + dy));
         }
       }
 
@@ -233,8 +220,7 @@ export function BodyCanvas({
     };
     const onMove = (me: MouseEvent) => {
       if (!freeDragRef.current) return;
-      const { id, startClientX, startClientY, startFX, startFY } =
-        freeDragRef.current;
+      const { id, startClientX, startClientY, startFX, startFY } = freeDragRef.current;
       const latest = allCompsRef.current.find((c) => c._id === id);
       if (!latest) return;
       let newFX = Math.max(0, startFX + toMm(me.clientX - startClientX));
@@ -278,23 +264,15 @@ export function BodyCanvas({
   };
 
   /* ── Slot divider drag: adjusts adjacent slot flexBasis ── */
-  const onSlotDividerMouseDown = (
-    e: React.MouseEvent,
-    row: BodyRow,
-    leftSlot: number,
-  ) => {
+  const onSlotDividerMouseDown = (e: React.MouseEvent, row: BodyRow, leftSlot: number) => {
     e.stopPropagation();
     e.preventDefault();
-    const rowEl = (e.currentTarget as HTMLElement).closest(
-      "[data-row-id]",
-    ) as HTMLElement | null;
+    const rowEl = (e.currentTarget as HTMLElement).closest("[data-row-id]") as HTMLElement | null;
     if (!rowEl) return;
     const startCX = e.clientX;
     const rowW = rowEl.getBoundingClientRect().width;
     // Snapshot current flexBasis for all slots in this row
-    const snapComps = allCompsRef.current.filter(
-      (c) => c.rowId === row._id && !c.freePosition,
-    );
+    const snapComps = allCompsRef.current.filter((c) => c.rowId === row._id && !c.freePosition);
     const totalSlots = row.cols;
     // Build equal basis array if not set
     const getB = (slot: number) => {
@@ -309,14 +287,10 @@ export function BodyCanvas({
       const newLeft = Math.max(5, Math.min(combined - 5, startLeft + dxPct));
       const newRight = combined - newLeft;
       const latestLeft = allCompsRef.current.find(
-        (c) =>
-          c.rowId === row._id && c.slotIndex === leftSlot && !c.freePosition,
+        (c) => c.rowId === row._id && c.slotIndex === leftSlot && !c.freePosition,
       );
       const latestRight = allCompsRef.current.find(
-        (c) =>
-          c.rowId === row._id &&
-          c.slotIndex === leftSlot + 1 &&
-          !c.freePosition,
+        (c) => c.rowId === row._id && c.slotIndex === leftSlot + 1 && !c.freePosition,
       );
       if (latestLeft)
         onUpdateComp({
@@ -388,29 +362,29 @@ export function BodyCanvas({
     );
     const wrapStyle: React.CSSProperties = isAbsolute
       ? {
-        position: "absolute",
-        left: toPx(comp.freeX || 0),
-        top: toPx(comp.freeY || 0),
-        width: freeWidthPx,
-        zIndex: comp.imageRotation ? 2 : 1,
-      }
+          position: "absolute",
+          left: toPx(comp.freeX || 0),
+          top: toPx(comp.freeY || 0),
+          width: freeWidthPx,
+          zIndex: comp.imageRotation ? 2 : 1,
+        }
       : {
-        position: "relative",
-        // If explicit width set, use it; otherwise flex
-        width: comp.width ? toPx(comp.width) : undefined,
-        flex: !comp.width
-          ? comp.flexBasis
-            ? `0 0 calc(${comp.flexBasis}% - ${toPx(mg.left) + toPx(mg.right)}px)`
-            : opts.inRow
-              ? "1 1 0"
-              : undefined
-          : undefined,
-        marginTop: toPx(mg.top),
-        marginBottom: toPx(mg.bottom),
-        marginLeft: toPx(mg.left),
-        marginRight: toPx(mg.right),
-        minWidth: 0,
-      };
+          position: "relative",
+          // If explicit width set, use it; otherwise flex
+          width: comp.width ? toPx(comp.width) : undefined,
+          flex: !comp.width
+            ? comp.flexBasis
+              ? `0 0 calc(${comp.flexBasis}% - ${toPx(mg.left) + toPx(mg.right)}px)`
+              : opts.inRow
+                ? "1 1 0"
+                : undefined
+            : undefined,
+          marginTop: toPx(mg.top),
+          marginBottom: toPx(mg.bottom),
+          marginLeft: toPx(mg.left),
+          marginRight: toPx(mg.right),
+          minWidth: 0,
+        };
 
     return (
       <div
@@ -517,8 +491,7 @@ export function BodyCanvas({
               height: H,
               overflow: "hidden",
               boxSizing: "border-box",
-              minHeight:
-                comp.type === "TEXT_BLOCK" ? undefined : (H ?? toPx(20)),
+              minHeight: comp.type === "TEXT_BLOCK" ? undefined : (H ?? toPx(20)),
             }}
           >
             {comp.type === "TABLE" && (
@@ -529,9 +502,7 @@ export function BodyCanvas({
                 selColId={selColId}
                 onSelCol={onSelCol}
                 availableHeightPx={getTableAvailableHeight(comp)}
-                onReorderCols={(cols) =>
-                  onUpdateComp({ ...comp, tableColumns: cols })
-                }
+                onReorderCols={(cols) => onUpdateComp({ ...comp, tableColumns: cols })}
               />
             )}
             {comp.type === "CHART" && (
@@ -539,18 +510,13 @@ export function BodyCanvas({
                 comp={comp}
                 scale={scale}
                 selected={false}
-                onClick={() => { }}
+                onClick={() => {}}
                 componentDataSources={reportState.componentDataSources}
                 centralData={reportState.centralData}
               />
             )}
             {comp.type === "IMAGE" && (
-              <ImagePreview
-                comp={comp}
-                scale={scale}
-                selected={false}
-                onClick={() => { }}
-              />
+              <ImagePreview comp={comp} scale={scale} selected={false} onClick={() => {}} />
             )}
             {comp.type === "TEXT_BLOCK" && (
               <TextBlockRichEditor
@@ -624,11 +590,7 @@ export function BodyCanvas({
           fontSize: 10,
         }}
       >
-        <LayoutGrid
-          size={22}
-          color="#cbd5e1"
-          style={{ display: "block", margin: "0 auto 8px" }}
-        />
+        <LayoutGrid size={22} color="#cbd5e1" style={{ display: "block", margin: "0 auto 8px" }} />
         Body is empty — create rows in the Body tab
       </div>
     );
@@ -711,10 +673,7 @@ export function BodyCanvas({
               >
                 {Array.from({ length: row.cols }).map((_, slot) => {
                   const comp = allComps.find(
-                    (c) =>
-                      c.rowId === row._id &&
-                      c.slotIndex === slot &&
-                      !c.freePosition,
+                    (c) => c.rowId === row._id && c.slotIndex === slot && !c.freePosition,
                   );
                   const isLastSlot = slot === row.cols - 1;
                   return (
@@ -742,8 +701,7 @@ export function BodyCanvas({
                               borderRadius: 4,
                               border: `1.5px dashed ${canvasAddTarget?.rowId === row._id && canvasAddTarget?.slot === slot ? "#059669" : "#cbd5e1"}`,
                               background:
-                                canvasAddTarget?.rowId === row._id &&
-                                  canvasAddTarget?.slot === slot
+                                canvasAddTarget?.rowId === row._id && canvasAddTarget?.slot === slot
                                   ? "#ecfdf5"
                                   : "#f8fafc",
                               display: "flex",
@@ -762,7 +720,7 @@ export function BodyCanvas({
                                 borderRadius: "50%",
                                 background:
                                   canvasAddTarget?.rowId === row._id &&
-                                    canvasAddTarget?.slot === slot
+                                  canvasAddTarget?.slot === slot
                                     ? "#059669"
                                     : "#cbd5e1",
                                 display: "flex",
@@ -771,18 +729,14 @@ export function BodyCanvas({
                                 transition: "background .15s",
                               }}
                             >
-                              <Plus
-                                size={toPx(8)}
-                                color="#fff"
-                                strokeWidth={3}
-                              />
+                              <Plus size={toPx(8)} color="#fff" strokeWidth={3} />
                             </div>
                             <span
                               style={{
                                 fontSize: toPx(7),
                                 color:
                                   canvasAddTarget?.rowId === row._id &&
-                                    canvasAddTarget?.slot === slot
+                                  canvasAddTarget?.slot === slot
                                     ? "#059669"
                                     : "#cbd5e1",
                                 fontWeight: 600,
@@ -796,9 +750,7 @@ export function BodyCanvas({
                       {/* Slot divider handle — between columns, only when row is selected */}
                       {!isLastSlot && isRowSel && !row.locked && (
                         <div
-                          onMouseDown={(e) =>
-                            onSlotDividerMouseDown(e, row, slot)
-                          }
+                          onMouseDown={(e) => onSlotDividerMouseDown(e, row, slot)}
                           onClick={(e) => e.stopPropagation()}
                           style={{
                             position: "relative",
@@ -938,9 +890,7 @@ export function BodyCanvas({
                     >
                       Add Component
                     </div>
-                    <div
-                      style={{ fontSize: 9, color: "#64748b", marginTop: 1 }}
-                    >
+                    <div style={{ fontSize: 9, color: "#64748b", marginTop: 1 }}>
                       Slot {slotNum + 1} of selected row
                     </div>
                   </div>
@@ -973,11 +923,7 @@ export function BodyCanvas({
                       <button
                         key={type}
                         onClick={() => {
-                          onAddComp(
-                            type,
-                            canvasAddTarget.rowId,
-                            canvasAddTarget.slot,
-                          );
+                          onAddComp(type, canvasAddTarget.rowId, canvasAddTarget.slot);
                           setCanvasAddTarget(null);
                         }}
                         style={{

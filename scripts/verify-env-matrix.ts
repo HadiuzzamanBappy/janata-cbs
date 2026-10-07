@@ -12,6 +12,10 @@ import {
   STATIC_MODELS,
   STATIC_USER_RESPONSES,
 } from "../fixtures";
+import {
+  parseCbsCommand,
+  validateSecurityPermissions as validateCommandForUser,
+} from "../src/lib/cbs-command";
 import { envSchema } from "../src/lib/config/env";
 import {
   parseAuthWirePayload,
@@ -20,7 +24,6 @@ import {
   parseGMC,
   parseMNU,
 } from "../src/lib/parsers";
-import { parseCbsCommand, validateSecurityPermissions as validateCommandForUser } from "../src/lib/cbs-command";
 import type { CurrentUser } from "../src/lib/schemas";
 
 // ============================================================================

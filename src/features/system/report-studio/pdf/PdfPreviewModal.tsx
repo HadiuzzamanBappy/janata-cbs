@@ -15,26 +15,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  FileImage,
-  RefreshCw,
-  FileJson,
-} from "@/features/system/report-studio/theme/icons";
-import type { AppState } from "../types/app-state";
-import { ptMm } from "@/features/system/report-studio/pdf/helpers";
-import { fillRect } from "@/features/system/report-studio/pdf/helpers";
-import { renderTable } from "@/features/system/report-studio/pdf/renderers/renderTable";
-import { renderTextBlock } from "@/features/system/report-studio/pdf/renderers/renderTextBlock";
-import { renderChart } from "@/features/system/report-studio/pdf/renderers/renderChart";
+  COLUMN_DATA_KEY_MAP,
+  PREVIEW_DATA_ROWS,
+} from "@/features/system/report-studio/constants/preview-data";
+import { deltaToParas } from "@/features/system/report-studio/data/deltaToParas";
+import { resolveCompData } from "@/features/system/report-studio/data/resolveCompData";
+import { fillRect, ptMm } from "@/features/system/report-studio/pdf/helpers";
 import {
   renderZone,
   shouldRenderZone,
 } from "@/features/system/report-studio/pdf/renderers/renderBand";
-import { resolveCompData } from "@/features/system/report-studio/data/resolveCompData";
-import { deltaToParas } from "@/features/system/report-studio/data/deltaToParas";
-import {
-  PREVIEW_DATA_ROWS,
-  COLUMN_DATA_KEY_MAP,
-} from "@/features/system/report-studio/constants/preview-data";
+import { renderChart } from "@/features/system/report-studio/pdf/renderers/renderChart";
+import { renderTable } from "@/features/system/report-studio/pdf/renderers/renderTable";
+import { renderTextBlock } from "@/features/system/report-studio/pdf/renderers/renderTextBlock";
+import { FileImage, FileJson, RefreshCw } from "@/features/system/report-studio/theme/icons";
+import type { AppState } from "../types/app-state";
 
 export { COLUMN_DATA_KEY_MAP };
 
@@ -52,9 +47,7 @@ export function PdfPreviewModal({
   reportState: AppState;
   onClose: () => void;
 }) {
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const jsPDFRef = useRef<any>(null);
@@ -78,24 +71,13 @@ export function PdfPreviewModal({
     });
 
     const headerH = renderZone(doc, page.header, mgL, -9999, contentW, 1, 1);
-    const footerActualH = renderZone(
-      doc,
-      page.footer,
-      mgL,
-      -9999,
-      contentW,
-      1,
-      1
-    );
+    const footerActualH = renderZone(doc, page.footer, mgL, -9999, contentW, 1, 1);
 
     const bodyTopForPage = (pg: number, total: number) =>
       mgT + (shouldRenderZone(page.header, pg, total) ? headerH : 0);
     const footerYForPage = (pg: number, total: number) =>
-      pgH -
-      mgB -
-      (shouldRenderZone(page.footer, pg, total) ? footerActualH : 0);
-    const bodyBottomForPage = (pg: number, total: number) =>
-      footerYForPage(pg, total) - 2;
+      pgH - mgB - (shouldRenderZone(page.footer, pg, total) ? footerActualH : 0);
+    const bodyBottomForPage = (pg: number, total: number) => footerYForPage(pg, total) - 2;
 
     const LARGE = 9999;
     const bodyTop = bodyTopForPage(1, LARGE);
@@ -144,26 +126,18 @@ export function PdfPreviewModal({
       }
 
       if (row.background)
-        fillRect(
-          doc,
-          mgL + rml,
-          curY,
-          contentW - rml - rmr,
-          rowHeightMm ?? 30,
-          row.background
-        );
+        fillRect(doc, mgL + rml, curY, contentW - rml - rmr, rowHeightMm ?? 30, row.background);
 
       const slotComps = Array.from({ length: row.cols }, (_, s) =>
         bodyComponents.find(
-          (c: any) =>
-            c.rowId === row._id && c.slotIndex === s && !c.freePosition
-        )
+          (c: any) => c.rowId === row._id && c.slotIndex === s && !c.freePosition,
+        ),
       );
       const totalFlex = row.cols;
       const gapTotal = (row.cols - 1) * rowGap;
       const flexW = (rowW - gapTotal) / totalFlex;
       const colWidths = slotComps.map((c: any) =>
-        c?.flexBasis != null ? (rowW * c.flexBasis) / 100 : flexW
+        c?.flexBasis != null ? (rowW * c.flexBasis) / 100 : flexW,
       );
 
       let slotX = rowX,
@@ -181,13 +155,9 @@ export function PdfPreviewModal({
             let repeatRows: Record<string, any>[] = [];
             if (comp.repeatDataSourceRef.startsWith("comp:")) {
               repeatRows =
-                reportState.componentDataSources?.[
-                comp.repeatDataSourceRef.slice(5)
-                ] || [];
+                reportState.componentDataSources?.[comp.repeatDataSourceRef.slice(5)] || [];
             } else if (comp.repeatDataSourceRef.startsWith("central:")) {
-              repeatRows =
-                reportState.centralData?.[comp.repeatDataSourceRef.slice(8)] ||
-                [];
+              repeatRows = reportState.centralData?.[comp.repeatDataSourceRef.slice(8)] || [];
             }
 
             const repeatGap = ptMm(comp.repeatGap ?? 4);
@@ -224,7 +194,7 @@ export function PdfPreviewModal({
                 reportState,
                 deltaToParas,
                 dataRow,
-                pageCtx
+                pageCtx,
               );
               repY = endY + pB2 + mB2;
             }
@@ -234,7 +204,7 @@ export function PdfPreviewModal({
               comp,
               reportState.centralData,
               reportState.componentDataSources,
-              PREVIEW_DATA_ROWS as any[]
+              PREVIEW_DATA_ROWS as any[],
             );
             const endY = renderComp(doc, comp, cData, slotX, curY, sw, pageCtx);
             if (endY > maxY) maxY = endY;
@@ -245,9 +215,7 @@ export function PdfPreviewModal({
       curY = maxY + rpb + rmb;
     }
 
-    for (const comp of bodyComponents.filter(
-      (c: any) => c.freePosition && !c.hidden
-    )) {
+    for (const comp of bodyComponents.filter((c: any) => c.freePosition && !c.hidden)) {
       const fx = ptMm(comp.freeX ?? 0);
       const fy = ptMm(comp.freeY ?? 0);
       const fw = comp.freeWidth != null ? ptMm(comp.freeWidth) : contentW;
@@ -258,11 +226,11 @@ export function PdfPreviewModal({
           comp,
           reportState.centralData,
           reportState.componentDataSources,
-          PREVIEW_DATA_ROWS as any[]
+          PREVIEW_DATA_ROWS as any[],
         ),
         mgL + fx,
         pageBodyTop[1] + fy,
-        fw
+        fw,
       );
     }
 
@@ -289,7 +257,7 @@ export function PdfPreviewModal({
     pageCtx?: {
       ensureSpace: (curY: number, needed: number) => number;
       bodyBottom: number;
-    }
+    },
   ): number {
     if (comp.hidden) return y;
     const mT = ptMm(comp.margin?.top ?? 0),
@@ -307,21 +275,10 @@ export function PdfPreviewModal({
     const iy = oy + pT;
     const iw = ow - pL - pR;
 
-    if (comp.type === "TABLE")
-      return renderTable(doc, comp, data, ix, iy, iw, pageCtx) + pB + mB;
+    if (comp.type === "TABLE") return renderTable(doc, comp, data, ix, iy, iw, pageCtx) + pB + mB;
     if (comp.type === "TEXT_BLOCK")
       return (
-        renderTextBlock(
-          doc,
-          comp,
-          ix,
-          iy,
-          iw,
-          reportState,
-          deltaToParas,
-          undefined,
-          pageCtx
-        ) +
+        renderTextBlock(doc, comp, ix, iy, iw, reportState, deltaToParas, undefined, pageCtx) +
         pB +
         mB
       );
@@ -379,7 +336,7 @@ export function PdfPreviewModal({
         PAGE_SIZES,
         reportState.page.size || "A4",
         reportState.page.orientation || "portrait",
-        pageCtx
+        pageCtx,
       );
     }
     return y;
@@ -396,11 +353,10 @@ export function PdfPreviewModal({
           return;
         }
 
-        const src =
-          "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-        const existingTag = Array.from(
-          document.getElementsByTagName("script")
-        ).find((s) => s.src === src);
+        const src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        const existingTag = Array.from(document.getElementsByTagName("script")).find(
+          (s) => s.src === src,
+        );
 
         if (existingTag) {
           const start = Date.now();
@@ -425,9 +381,7 @@ export function PdfPreviewModal({
           const cls = (window as any).jspdf?.jsPDF || (window as any).jsPDF;
           cls
             ? resolve(cls)
-            : reject(
-              new Error("jsPDF loaded but jsPDF class not found on window")
-            );
+            : reject(new Error("jsPDF loaded but jsPDF class not found on window"));
         };
         s.onerror = () => reject(new Error("Failed to load jsPDF from CDN"));
         document.head.appendChild(s);
@@ -459,10 +413,7 @@ export function PdfPreviewModal({
 
   const handleDownload = async () => {
     try {
-      const jsPDFClass =
-        jsPDFRef.current ||
-        (window as any).jspdf?.jsPDF ||
-        (window as any).jsPDF;
+      const jsPDFClass = jsPDFRef.current || (window as any).jspdf?.jsPDF || (window as any).jsPDF;
       if (!jsPDFClass) throw new Error("jsPDF not loaded yet");
       const doc = await buildPdf(jsPDFClass);
       doc.save("report.pdf");
@@ -512,9 +463,7 @@ export function PdfPreviewModal({
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <FileImage size={16} color="#7c3aed" />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>
-                PDF Preview
-              </div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b" }}>PDF Preview</div>
               <div style={{ fontSize: 9, color: "#94a3b8" }}>
                 {reportState.page.size} · {reportState.page.orientation}
               </div>
@@ -529,10 +478,7 @@ export function PdfPreviewModal({
                   color: "#7c3aed",
                 }}
               >
-                <RefreshCw
-                  size={12}
-                  style={{ animation: "spin 1s linear infinite" }}
-                />
+                <RefreshCw size={12} style={{ animation: "spin 1s linear infinite" }} />
                 Generating…
               </div>
             )}
@@ -644,9 +590,7 @@ export function PdfPreviewModal({
                 color="#7c3aed"
                 style={{ animation: "spin 1s linear infinite" }}
               />
-              <div style={{ fontSize: 12, color: "#64748b" }}>
-                Building PDF with jsPDF…
-              </div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>Building PDF with jsPDF…</div>
             </div>
           )}
           {status === "ready" && pdfUrl && (
@@ -688,8 +632,7 @@ export function PdfPreviewModal({
                       width: 72,
                       height: 72,
                       margin: "0 auto 16px",
-                      background:
-                        "linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%)",
+                      background: "linear-gradient(135deg,#f5f3ff 0%,#ede9fe 100%)",
                       border: "1px solid #ddd6fe",
                       borderRadius: 14,
                       display: "flex",
@@ -717,8 +660,8 @@ export function PdfPreviewModal({
                       lineHeight: 1.5,
                     }}
                   >
-                    Your browser is not allowing the inline PDF view here. The
-                    PDF is ready — open it in a new tab or download it instead.
+                    Your browser is not allowing the inline PDF view here. The PDF is ready — open
+                    it in a new tab or download it instead.
                   </div>
                   <div
                     style={{
@@ -764,12 +707,8 @@ export function PdfPreviewModal({
                         alignItems: "center",
                         gap: 7,
                       }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.background = "#f8fafc")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "#fff")
-                      }
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
                     >
                       <FileJson size={14} />
                       Download

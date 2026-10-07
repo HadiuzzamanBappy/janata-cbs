@@ -7,4 +7,3 @@ export * from "./control-service";
 export * from "./inquiry-service";
 export * from "./menu-service";
 export * from "./model-service";
-

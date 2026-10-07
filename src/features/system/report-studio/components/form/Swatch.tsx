@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { isValidHex } from "../../utils/color";
 import { ColorPickerPopup } from "./ColorPickerPopup";
 
@@ -31,7 +31,7 @@ export function Swatch({
   const openPicker = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!triggerRef.current) {
-      setOpen(o => !o);
+      setOpen((o) => !o);
       return;
     }
     const r = triggerRef.current.getBoundingClientRect();
@@ -53,7 +53,7 @@ export function Swatch({
       boxShadow: "0 8px 32px rgba(0,0,0,.28)",
       borderRadius: 10,
     });
-    setOpen(o => !o);
+    setOpen((o) => !o);
   };
 
   useEffect(() => {
@@ -102,10 +102,7 @@ export function Swatch({
       />
       {open && (
         <div ref={popupRef} style={popupStyle}>
-          <ColorPickerPopup
-            hex={safeVal || "#ffffff"}
-            onChange={v => onChange(v)}
-          />
+          <ColorPickerPopup hex={safeVal || "#ffffff"} onChange={(v) => onChange(v)} />
         </div>
       )}
     </div>

@@ -1,25 +1,17 @@
-import { useState, useRef, useCallback } from "react";
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Hash,
-  Palette,
-  RefreshCw,
-  Table2,
-} from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Hash, Palette, RefreshCw, Table2 } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Toggle } from "../../components/common/Toggle";
+import { ColorInput } from "../../components/form/ColorInput";
+import { RadiusInput } from "../../components/form/RadiusInput";
+import { SpacingInput } from "../../components/form/SpacingInput";
+import { PropCell } from "../../components/layout/PropCell";
+import { PropGrid2 } from "../../components/layout/PropGrid2";
+import { PropSection } from "../../components/layout/PropSection";
+import { inputStyle } from "../../theme/inputStyle";
+import { T } from "../../theme/tokens";
 import type { BodyComponent } from "../../types/body";
 import type { ReportVariable } from "../../types/text-block";
-import { T } from "../../theme/tokens";
-import { inputStyle } from "../../theme/inputStyle";
 import { generateId } from "../../utils/id";
-import { PropSection } from "../../components/layout/PropSection";
-import { PropGrid2 } from "../../components/layout/PropGrid2";
-import { PropCell } from "../../components/layout/PropCell";
-import { ColorInput } from "../../components/form/ColorInput";
-import { SpacingInput } from "../../components/form/SpacingInput";
-import { RadiusInput } from "../../components/form/RadiusInput";
-import { Toggle } from "../../components/common/Toggle";
 import { BodyCompHeader } from "../body/BodyCompHeader";
 import { BodyLayoutSection } from "../body/BodyLayoutSection";
 import { BODY_COMP_META } from "../body/meta";
@@ -116,8 +108,7 @@ export function TextBlockPropsPanel({
     });
   }
 
-  const getRows = (ref: string) =>
-    dsCatalog.find((d) => d.ref === ref)?.rows ?? [];
+  const getRows = (ref: string) => dsCatalog.find((d) => d.ref === ref)?.rows ?? [];
   const getFirstRow = (ref: string) => getRows(ref)[0] ?? null;
   const getCols = (ref: string) => {
     const row = getFirstRow(ref);
@@ -131,9 +122,7 @@ export function TextBlockPropsPanel({
       const current = allVarsRef.current;
       const idx = current.findIndex((v) => v.name === name);
       if (idx >= 0) {
-        onUpdateReportVariables(
-          current.map((v, i) => (i === idx ? { ...v, ...patch } : v))
-        );
+        onUpdateReportVariables(current.map((v, i) => (i === idx ? { ...v, ...patch } : v)));
       } else {
         onUpdateReportVariables([
           ...current,
@@ -148,22 +137,20 @@ export function TextBlockPropsPanel({
         ]);
       }
     },
-    [onUpdateReportVariables]
+    [onUpdateReportVariables],
   );
 
   const deleteVar = useCallback(
     (name: string) => {
-      onUpdateReportVariables?.(
-        allVarsRef.current.filter((v) => v.name !== name)
-      );
+      onUpdateReportVariables?.(allVarsRef.current.filter((v) => v.name !== name));
     },
-    [onUpdateReportVariables]
+    [onUpdateReportVariables],
   );
 
   const [activeToken, setActiveToken] = useState<string | null>(null);
   const resolvedActive = usedTokenNames.includes(activeToken ?? "")
     ? activeToken
-    : usedTokenNames[0] ?? null;
+    : (usedTokenNames[0] ?? null);
   const activeIdx = usedTokenNames.indexOf(resolvedActive ?? "");
 
   const activeEntry = allVars.find((v) => v.name === resolvedActive);
@@ -173,11 +160,7 @@ export function TextBlockPropsPanel({
   const activeCols = getCols(activeDsRef);
   const activeRow = getFirstRow(activeDsRef);
   const activeIsMapped = !!(activeDsRef && activeColKey);
-  const activeColMissing = !!(
-    activeColKey &&
-    activeRow &&
-    !(activeColKey in activeRow)
-  );
+  const activeColMissing = !!(activeColKey && activeRow && !(activeColKey in activeRow));
   const activePreview =
     activeRow && activeColKey && !activeColMissing
       ? String(activeRow[activeColKey] ?? "")
@@ -220,8 +203,7 @@ export function TextBlockPropsPanel({
     const current = allVarsRef.current;
     const next = [...current];
     usedTokenNames.forEach((name) => {
-      const matchCol =
-        cols.find((c) => c.toLowerCase() === name.toLowerCase()) ?? "";
+      const matchCol = cols.find((c) => c.toLowerCase() === name.toLowerCase()) ?? "";
       if (!matchCol) return;
       const idx2 = next.findIndex((v) => v.name === name);
       if (idx2 >= 0) {
@@ -241,9 +223,8 @@ export function TextBlockPropsPanel({
 
   const autoMapCount = (ref: string) => {
     const cols = getCols(ref);
-    return usedTokenNames.filter((n) =>
-      cols.some((c) => c.toLowerCase() === n.toLowerCase())
-    ).length;
+    return usedTokenNames.filter((n) => cols.some((c) => c.toLowerCase() === n.toLowerCase()))
+      .length;
   };
 
   return (
@@ -397,9 +378,7 @@ export function TextBlockPropsPanel({
                   {mappedCount} of {usedTokenNames.length} mapped
                 </span>
                 {mappedCount === usedTokenNames.length && (
-                  <span
-                    style={{ fontSize: 8, color: "#16a34a", fontWeight: 700 }}
-                  >
+                  <span style={{ fontSize: 8, color: "#16a34a", fontWeight: 700 }}>
                     ✓ all mapped
                   </span>
                 )}
@@ -418,14 +397,9 @@ export function TextBlockPropsPanel({
                     borderRadius: 3,
                     transition: "width .3s",
                     width: `${
-                      usedTokenNames.length > 0
-                        ? (mappedCount / usedTokenNames.length) * 100
-                        : 0
+                      usedTokenNames.length > 0 ? (mappedCount / usedTokenNames.length) * 100 : 0
                     }%`,
-                    background:
-                      mappedCount === usedTokenNames.length
-                        ? "#16a34a"
-                        : "#f59e0b",
+                    background: mappedCount === usedTokenNames.length ? "#16a34a" : "#f59e0b",
                   }}
                 />
               </div>
@@ -452,9 +426,7 @@ export function TextBlockPropsPanel({
                 >
                   Quick actions
                 </div>
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 5 }}
-                >
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                   {dsCatalog.map((d) => {
                     const matchable = autoMapCount(d.ref);
                     return (
@@ -475,12 +447,8 @@ export function TextBlockPropsPanel({
                             whiteSpace: "nowrap",
                             padding: "2px 6px",
                             borderRadius: 4,
-                            background: d.ref.startsWith("comp:")
-                              ? "#dbeafe"
-                              : "#ede9fe",
-                            color: d.ref.startsWith("comp:")
-                              ? "#1d4ed8"
-                              : "#6d28d9",
+                            background: d.ref.startsWith("comp:") ? "#dbeafe" : "#ede9fe",
+                            color: d.ref.startsWith("comp:") ? "#1d4ed8" : "#6d28d9",
                           }}
                         >
                           {d.label}
@@ -545,9 +513,7 @@ export function TextBlockPropsPanel({
                 <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                   <button
                     disabled={activeIdx <= 0}
-                    onClick={() =>
-                      setActiveToken(usedTokenNames[activeIdx - 1])
-                    }
+                    onClick={() => setActiveToken(usedTokenNames[activeIdx - 1])}
                     style={{
                       background: "none",
                       border: `1px solid ${T.border}`,
@@ -581,26 +547,20 @@ export function TextBlockPropsPanel({
                       const mapped = !!(ve?.dataSourceRef && ve?.columnKey);
                       return (
                         <option key={name} value={name}>
-                          {mapped ? "✓" : "○"} {`{{${name}}}`} ({i + 1}/
-                          {usedTokenNames.length})
+                          {mapped ? "✓" : "○"} {`{{${name}}}`} ({i + 1}/{usedTokenNames.length})
                         </option>
                       );
                     })}
                   </select>
                   <button
                     disabled={activeIdx >= usedTokenNames.length - 1}
-                    onClick={() =>
-                      setActiveToken(usedTokenNames[activeIdx + 1])
-                    }
+                    onClick={() => setActiveToken(usedTokenNames[activeIdx + 1])}
                     style={{
                       background: "none",
                       border: `1px solid ${T.border}`,
                       borderRadius: 4,
                       padding: "2px 5px",
-                      cursor:
-                        activeIdx < usedTokenNames.length - 1
-                          ? "pointer"
-                          : "default",
+                      cursor: activeIdx < usedTokenNames.length - 1 ? "pointer" : "default",
                       opacity: activeIdx < usedTokenNames.length - 1 ? 1 : 0.3,
                       display: "flex",
                       alignItems: "center",
@@ -619,21 +579,17 @@ export function TextBlockPropsPanel({
                         activeIsMapped && !activeColMissing
                           ? "#dcfce7"
                           : activeColMissing
-                          ? "#fef2f2"
-                          : "#fef9c3",
+                            ? "#fef2f2"
+                            : "#fef9c3",
                       color:
                         activeIsMapped && !activeColMissing
                           ? "#16a34a"
                           : activeColMissing
-                          ? "#dc2626"
-                          : "#a16207",
+                            ? "#dc2626"
+                            : "#a16207",
                     }}
                   >
-                    {activeIsMapped && !activeColMissing
-                      ? "✓"
-                      : activeColMissing
-                      ? "⚠"
-                      : "○"}
+                    {activeIsMapped && !activeColMissing ? "✓" : activeColMissing ? "⚠" : "○"}
                   </span>
                 </div>
               </div>
@@ -793,56 +749,50 @@ export function TextBlockPropsPanel({
                         flexWrap: "wrap",
                       }}
                     >
-                      {(["bold", "italic", "underline"] as const).map(
-                        (prop) => {
-                          const labels: Record<string, string> = {
-                            bold: "B",
-                            italic: "I",
-                            underline: "U",
-                          };
-                          const styles: Record<string, React.CSSProperties> = {
-                            bold: { fontWeight: 800 },
-                            italic: { fontStyle: "italic" },
-                            underline: { textDecoration: "underline" },
-                          };
-                          const active = !!activeEntry?.style?.[prop];
-                          return (
-                            <button
-                              key={prop}
-                              onClick={() =>
-                                upsertVar(resolvedActive, {
-                                  style: {
-                                    ...(activeEntry?.style || {}),
-                                    [prop]: !active,
-                                  },
-                                })
-                              }
-                              style={{
-                                width: 26,
-                                height: 26,
-                                borderRadius: 5,
-                                cursor: "pointer",
-                                fontSize: 11,
-                                border: `1px solid ${
-                                  active ? "#7c3aed" : T.border
-                                }`,
-                                background: active ? "#ede9fe" : "#fff",
-                                color: active ? "#6d28d9" : T.muted,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                ...styles[prop],
-                              }}
-                            >
-                              {labels[prop]}
-                            </button>
-                          );
-                        }
-                      )}
+                      {(["bold", "italic", "underline"] as const).map((prop) => {
+                        const labels: Record<string, string> = {
+                          bold: "B",
+                          italic: "I",
+                          underline: "U",
+                        };
+                        const styles: Record<string, React.CSSProperties> = {
+                          bold: { fontWeight: 800 },
+                          italic: { fontStyle: "italic" },
+                          underline: { textDecoration: "underline" },
+                        };
+                        const active = !!activeEntry?.style?.[prop];
+                        return (
+                          <button
+                            key={prop}
+                            onClick={() =>
+                              upsertVar(resolvedActive, {
+                                style: {
+                                  ...(activeEntry?.style || {}),
+                                  [prop]: !active,
+                                },
+                              })
+                            }
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 5,
+                              cursor: "pointer",
+                              fontSize: 11,
+                              border: `1px solid ${active ? "#7c3aed" : T.border}`,
+                              background: active ? "#ede9fe" : "#fff",
+                              color: active ? "#6d28d9" : T.muted,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              ...styles[prop],
+                            }}
+                          >
+                            {labels[prop]}
+                          </button>
+                        );
+                      })}
 
-                      <div
-                        style={{ width: 1, height: 20, background: T.border }}
-                      />
+                      <div style={{ width: 1, height: 20, background: T.border }} />
 
                       {/* Font size override */}
                       <div
@@ -852,9 +802,7 @@ export function TextBlockPropsPanel({
                           gap: 3,
                         }}
                       >
-                        <span style={{ fontSize: 8, color: T.muted }}>
-                          Size
-                        </span>
+                        <span style={{ fontSize: 8, color: T.muted }}>Size</span>
                         <input
                           type="number"
                           min={6}
@@ -862,10 +810,7 @@ export function TextBlockPropsPanel({
                           value={activeEntry?.style?.fontSize ?? ""}
                           placeholder="auto"
                           onChange={(e) => {
-                            const val =
-                              e.target.value === ""
-                                ? undefined
-                                : Number(e.target.value);
+                            const val = e.target.value === "" ? undefined : Number(e.target.value);
                             upsertVar(resolvedActive, {
                               style: {
                                 ...(activeEntry?.style || {}),
@@ -885,9 +830,7 @@ export function TextBlockPropsPanel({
                         />
                       </div>
 
-                      <div
-                        style={{ width: 1, height: 20, background: T.border }}
-                      />
+                      <div style={{ width: 1, height: 20, background: T.border }} />
 
                       {/* Text color */}
                       <label
@@ -899,9 +842,7 @@ export function TextBlockPropsPanel({
                           cursor: "pointer",
                         }}
                       >
-                        <span style={{ fontSize: 8, color: T.muted }}>
-                          Color
-                        </span>
+                        <span style={{ fontSize: 8, color: T.muted }}>Color</span>
                         <div
                           style={{
                             position: "relative",
@@ -915,8 +856,7 @@ export function TextBlockPropsPanel({
                               height: 24,
                               borderRadius: 5,
                               border: `2px solid ${T.border}`,
-                              background:
-                                activeEntry?.style?.color || "#374151",
+                              background: activeEntry?.style?.color || "#374151",
                             }}
                           />
                           <input
@@ -954,9 +894,7 @@ export function TextBlockPropsPanel({
                           cursor: "pointer",
                         }}
                       >
-                        <span style={{ fontSize: 8, color: T.muted }}>
-                          Highlight
-                        </span>
+                        <span style={{ fontSize: 8, color: T.muted }}>Highlight</span>
                         <div
                           style={{
                             position: "relative",
@@ -970,8 +908,7 @@ export function TextBlockPropsPanel({
                               height: 24,
                               borderRadius: 5,
                               border: `2px solid ${T.border}`,
-                              background:
-                                activeEntry?.style?.background || "transparent",
+                              background: activeEntry?.style?.background || "transparent",
                               backgroundImage: activeEntry?.style?.background
                                 ? "none"
                                 : "repeating-linear-gradient(45deg,#e2e8f0 0,#e2e8f0 2px,transparent 0,transparent 6px)",
@@ -1002,32 +939,27 @@ export function TextBlockPropsPanel({
                         </div>
                       </label>
 
-                      {activeEntry?.style &&
-                        Object.keys(activeEntry.style).length > 0 && (
-                          <button
-                            onClick={() =>
-                              upsertVar(resolvedActive, { style: {} })
-                            }
-                            style={{
-                              fontSize: 8,
-                              padding: "2px 6px",
-                              background: "none",
-                              border: `1px solid ${T.border}`,
-                              borderRadius: 4,
-                              cursor: "pointer",
-                              color: T.muted,
-                            }}
-                          >
-                            Reset
-                          </button>
-                        )}
+                      {activeEntry?.style && Object.keys(activeEntry.style).length > 0 && (
+                        <button
+                          onClick={() => upsertVar(resolvedActive, { style: {} })}
+                          style={{
+                            fontSize: 8,
+                            padding: "2px 6px",
+                            background: "none",
+                            border: `1px solid ${T.border}`,
+                            borderRadius: 4,
+                            cursor: "pointer",
+                            color: T.muted,
+                          }}
+                        >
+                          Reset
+                        </button>
+                      )}
                     </div>
 
                     {/* Live style preview */}
                     {activeEntry?.style &&
-                      Object.keys(activeEntry.style).some(
-                        (k) => (activeEntry.style as any)[k]
-                      ) && (
+                      Object.keys(activeEntry.style).some((k) => (activeEntry.style as any)[k]) && (
                         <div
                           style={{
                             marginTop: 6,
@@ -1041,27 +973,16 @@ export function TextBlockPropsPanel({
                           Preview:{" "}
                           <span
                             style={{
-                              fontWeight: activeEntry.style.bold
-                                ? 700
-                                : undefined,
-                              fontStyle: activeEntry.style.italic
-                                ? "italic"
-                                : undefined,
-                              textDecoration: activeEntry.style.underline
-                                ? "underline"
-                                : undefined,
+                              fontWeight: activeEntry.style.bold ? 700 : undefined,
+                              fontStyle: activeEntry.style.italic ? "italic" : undefined,
+                              textDecoration: activeEntry.style.underline ? "underline" : undefined,
                               color: activeEntry.style.color || undefined,
                               fontSize: activeEntry.style.fontSize
                                 ? `${activeEntry.style.fontSize * 0.8}px`
                                 : undefined,
-                              background:
-                                activeEntry.style.background || undefined,
-                              padding: activeEntry.style.background
-                                ? "0 3px"
-                                : undefined,
-                              borderRadius: activeEntry.style.background
-                                ? "2px"
-                                : undefined,
+                              background: activeEntry.style.background || undefined,
+                              padding: activeEntry.style.background ? "0 3px" : undefined,
+                              borderRadius: activeEntry.style.background ? "2px" : undefined,
                             }}
                           >
                             {activePreview || `{{${resolvedActive}}}`}
@@ -1090,9 +1011,7 @@ export function TextBlockPropsPanel({
                         style={{ fontFamily: "monospace", color: "#92400e" }}
                       >{`{{${resolvedActive}}}`}</code>
                       <span style={{ color: T.muted }}>→</span>
-                      <strong style={{ fontFamily: "monospace" }}>
-                        {activePreview}
-                      </strong>
+                      <strong style={{ fontFamily: "monospace" }}>{activePreview}</strong>
                     </div>
                   )}
                   {!activeIsMapped && !activePreview && (
@@ -1120,11 +1039,8 @@ export function TextBlockPropsPanel({
                         padding: "5px 9px",
                       }}
                     >
-                      ⚠ Column{" "}
-                      <code style={{ fontFamily: "monospace" }}>
-                        {activeColKey}
-                      </code>{" "}
-                      not found in datasource
+                      ⚠ Column <code style={{ fontFamily: "monospace" }}>{activeColKey}</code> not
+                      found in datasource
                     </div>
                   )}
 
@@ -1193,8 +1109,7 @@ export function TextBlockPropsPanel({
 
       {/* ── Table Data Binding ── */}
       {(() => {
-        const tableOps: { idx: number; numCols: number; headers: string[] }[] =
-          [];
+        const tableOps: { idx: number; numCols: number; headers: string[] }[] = [];
         if (comp.quillDelta?.ops) {
           let tIdx = 0;
           (comp.quillDelta.ops as any[]).forEach((op: any) => {
@@ -1225,9 +1140,7 @@ export function TextBlockPropsPanel({
                 arrayField: "",
                 colMap: [],
               };
-              const colMapArr: string[] = Array.isArray(binding.colMap)
-                ? binding.colMap
-                : [];
+              const colMapArr: string[] = Array.isArray(binding.colMap) ? binding.colMap : [];
 
               const updateBinding = (patch: any) => {
                 up("tableBindings", {
@@ -1240,20 +1153,15 @@ export function TextBlockPropsPanel({
               const firstParentRow = parentRows[0] ?? null;
               const arrayFields = firstParentRow
                 ? Object.entries(firstParentRow)
-                    .filter(
-                      ([, v]) => Array.isArray(v) && (v as any[]).length > 0
-                    )
+                    .filter(([, v]) => Array.isArray(v) && (v as any[]).length > 0)
                     .map(([k, v]) => ({ key: k, rows: v as any[] }))
                 : [];
               const childRows: any[] =
                 binding.arrayField && firstParentRow
                   ? (firstParentRow[binding.arrayField] as any[]) || []
                   : [];
-              const childCols =
-                childRows.length > 0 ? Object.keys(childRows[0]) : [];
-              const colMappedCount = colMapArr.filter(
-                (f) => f && f !== ""
-              ).length;
+              const childCols = childRows.length > 0 ? Object.keys(childRows[0]) : [];
+              const colMappedCount = colMapArr.filter((f) => f && f !== "").length;
 
               return (
                 <div key={idx}>
@@ -1298,9 +1206,7 @@ export function TextBlockPropsPanel({
                       min={7}
                       max={36}
                       step={1}
-                      value={
-                        binding.style?.fontSize ?? DEFAULT_TABLE_STYLE.fontSize
-                      }
+                      value={binding.style?.fontSize ?? DEFAULT_TABLE_STYLE.fontSize}
                       onChange={(e) => {
                         const val = e.target.value;
                         updateBinding({
@@ -1388,26 +1294,17 @@ export function TextBlockPropsPanel({
                           style={sel}
                           onChange={(e) => {
                             const af = e.target.value;
-                            const childR =
-                              (firstParentRow?.[af] as any[]) || [];
-                            const childC =
-                              childR.length > 0 ? Object.keys(childR[0]) : [];
-                            const autoMap: string[] = Array.from(
-                              { length: numCols },
-                              (_, ci) => {
-                                const header = headers[ci] || "";
-                                const byName = childC.find(
-                                  (c) =>
-                                    c
-                                      .toLowerCase()
-                                      .replace(/[^a-z0-9]/g, "") ===
-                                    header
-                                      .toLowerCase()
-                                      .replace(/[^a-z0-9]/g, "")
-                                );
-                                return byName || childC[ci] || "";
-                              }
-                            );
+                            const childR = (firstParentRow?.[af] as any[]) || [];
+                            const childC = childR.length > 0 ? Object.keys(childR[0]) : [];
+                            const autoMap: string[] = Array.from({ length: numCols }, (_, ci) => {
+                              const header = headers[ci] || "";
+                              const byName = childC.find(
+                                (c) =>
+                                  c.toLowerCase().replace(/[^a-z0-9]/g, "") ===
+                                  header.toLowerCase().replace(/[^a-z0-9]/g, ""),
+                              );
+                              return byName || childC[ci] || "";
+                            });
                             updateBinding({ arrayField: af, colMap: autoMap });
                           }}
                         >
@@ -1441,234 +1338,218 @@ export function TextBlockPropsPanel({
                           }}
                         >
                           ✓ {childRows.length} items ·{" "}
-                          {childCols
-                            .map((c) => `${binding.arrayField}.${c}`)
-                            .join(", ")}
+                          {childCols.map((c) => `${binding.arrayField}.${c}`).join(", ")}
                         </div>
                       )}
                     </div>
                   )}
 
-                  {binding.dsRef &&
-                    binding.arrayField &&
-                    childCols.length > 0 &&
-                    numCols > 0 && (
-                      <div>
+                  {binding.dsRef && binding.arrayField && childCols.length > 0 && numCols > 0 && (
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: 5,
+                        }}
+                      >
                         <div
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            marginBottom: 5,
+                            fontSize: 9,
+                            color: T.label,
+                            fontWeight: 600,
+                          }}
+                        >
+                          3. Column mapping
+                        </div>
+                        <span
+                          style={{
+                            fontSize: 8,
+                            borderRadius: 8,
+                            padding: "1px 6px",
+                            fontWeight: 700,
+                            background: colMappedCount === numCols ? "#dcfce7" : "#fef9c3",
+                            color: colMappedCount === numCols ? "#16a34a" : "#a16207",
+                          }}
+                        >
+                          {colMappedCount}/{numCols} mapped
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          background: T.bg2,
+                          border: `1px solid ${T.border}`,
+                          borderRadius: 6,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "1fr 12px 1fr",
+                            gap: 4,
+                            padding: "4px 8px",
+                            borderBottom: `1px solid ${T.border}`,
+                            background: "#f1f5f9",
                           }}
                         >
                           <div
-                            style={{
-                              fontSize: 9,
-                              color: T.label,
-                              fontWeight: 600,
-                            }}
-                          >
-                            3. Column mapping
-                          </div>
-                          <span
                             style={{
                               fontSize: 8,
-                              borderRadius: 8,
-                              padding: "1px 6px",
                               fontWeight: 700,
-                              background:
-                                colMappedCount === numCols
-                                  ? "#dcfce7"
-                                  : "#fef9c3",
-                              color:
-                                colMappedCount === numCols
-                                  ? "#16a34a"
-                                  : "#a16207",
+                              color: T.muted,
                             }}
                           >
-                            {colMappedCount}/{numCols} mapped
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            background: T.bg2,
-                            border: `1px solid ${T.border}`,
-                            borderRadius: 6,
-                            overflow: "hidden",
-                          }}
-                        >
+                            Table column
+                          </div>
+                          <div />
                           <div
+                            style={{
+                              fontSize: 8,
+                              fontWeight: 700,
+                              color: T.muted,
+                            }}
+                          >
+                            {binding.arrayField}.field
+                          </div>
+                        </div>
+                        {Array.from({ length: numCols }, (_, ci) => (
+                          <div
+                            key={ci}
                             style={{
                               display: "grid",
                               gridTemplateColumns: "1fr 12px 1fr",
                               gap: 4,
                               padding: "4px 8px",
                               borderBottom: `1px solid ${T.border}`,
-                              background: "#f1f5f9",
+                              alignItems: "center",
                             }}
                           >
                             <div
                               style={{
-                                fontSize: 8,
-                                fontWeight: 700,
-                                color: T.muted,
+                                fontSize: 9,
+                                color: T.text,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              Table column
-                            </div>
-                            <div />
-                            <div
-                              style={{
-                                fontSize: 8,
-                                fontWeight: 700,
-                                color: T.muted,
-                              }}
-                            >
-                              {binding.arrayField}.field
-                            </div>
-                          </div>
-                          {Array.from({ length: numCols }, (_, ci) => (
-                            <div
-                              key={ci}
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "1fr 12px 1fr",
-                                gap: 4,
-                                padding: "4px 8px",
-                                borderBottom: `1px solid ${T.border}`,
-                                alignItems: "center",
-                              }}
-                            >
-                              <div
+                              <span
                                 style={{
-                                  fontSize: 9,
-                                  color: T.text,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
+                                  fontSize: 8,
+                                  color: T.muted,
+                                  marginRight: 4,
                                 }}
                               >
-                                <span
+                                #{ci + 1}
+                              </span>
+                              <span style={{ fontFamily: "monospace" }}>
+                                {headers[ci] || <em style={{ color: T.muted }}>empty</em>}
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 9,
+                                color: T.muted,
+                                textAlign: "center",
+                              }}
+                            >
+                              →
+                            </div>
+                            <select
+                              value={colMapArr[ci] || ""}
+                              style={{
+                                ...sel,
+                                fontSize: 9,
+                                padding: "2px 4px",
+                                fontFamily: "monospace",
+                              }}
+                              onChange={(e) => {
+                                const next = [...colMapArr];
+                                while (next.length <= ci) next.push("");
+                                next[ci] = e.target.value;
+                                updateBinding({ colMap: next });
+                              }}
+                            >
+                              <option value="">— skip —</option>
+                              {childCols.map((c) => (
+                                <option key={c} value={c}>
+                                  {binding.arrayField}.{c}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                      {childRows.length > 0 && colMappedCount > 0 && (
+                        <div
+                          style={{
+                            marginTop: 5,
+                            background: "#f0fdf4",
+                            border: "1px solid #bbf7d0",
+                            borderRadius: 5,
+                            padding: "5px 8px",
+                            fontSize: 8.5,
+                            color: "#166534",
+                          }}
+                        >
+                          <div style={{ fontWeight: 700, marginBottom: 3 }}>
+                            Preview (row 1 of {childRows.length}):
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 2,
+                            }}
+                          >
+                            {Array.from({ length: numCols }, (_, ci) => {
+                              const field = colMapArr[ci];
+                              if (!field) return null;
+                              const val = childRows[0][field];
+                              return (
+                                <div
+                                  key={ci}
                                   style={{
-                                    fontSize: 8,
-                                    color: T.muted,
-                                    marginRight: 4,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 6,
                                   }}
                                 >
-                                  #{ci + 1}
-                                </span>
-                                <span style={{ fontFamily: "monospace" }}>
-                                  {headers[ci] || (
-                                    <em style={{ color: T.muted }}>empty</em>
-                                  )}
-                                </span>
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 9,
-                                  color: T.muted,
-                                  textAlign: "center",
-                                }}
-                              >
-                                →
-                              </div>
-                              <select
-                                value={colMapArr[ci] || ""}
-                                style={{
-                                  ...sel,
-                                  fontSize: 9,
-                                  padding: "2px 4px",
-                                  fontFamily: "monospace",
-                                }}
-                                onChange={(e) => {
-                                  const next = [...colMapArr];
-                                  while (next.length <= ci) next.push("");
-                                  next[ci] = e.target.value;
-                                  updateBinding({ colMap: next });
-                                }}
-                              >
-                                <option value="">— skip —</option>
-                                {childCols.map((c) => (
-                                  <option key={c} value={c}>
-                                    {binding.arrayField}.{c}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          ))}
-                        </div>
-                        {childRows.length > 0 && colMappedCount > 0 && (
+                                  <code
+                                    style={{
+                                      fontSize: 8.5,
+                                      color: "#64748b",
+                                      minWidth: 120,
+                                    }}
+                                  >
+                                    {binding.arrayField}.{field}
+                                  </code>
+                                  <span style={{ color: "#94a3b8" }}>→</span>
+                                  <strong style={{ fontFamily: "monospace" }}>
+                                    {val !== undefined && val !== null ? String(val) : "—"}
+                                  </strong>
+                                </div>
+                              );
+                            })}
+                          </div>
                           <div
                             style={{
                               marginTop: 5,
-                              background: "#f0fdf4",
-                              border: "1px solid #bbf7d0",
-                              borderRadius: 5,
-                              padding: "5px 8px",
-                              fontSize: 8.5,
-                              color: "#166534",
+                              fontSize: 8,
+                              color: "#94a3b8",
+                              borderTop: "1px solid #bbf7d0",
+                              paddingTop: 4,
                             }}
                           >
-                            <div style={{ fontWeight: 700, marginBottom: 3 }}>
-                              Preview (row 1 of {childRows.length}):
-                            </div>
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 2,
-                              }}
-                            >
-                              {Array.from({ length: numCols }, (_, ci) => {
-                                const field = colMapArr[ci];
-                                if (!field) return null;
-                                const val = childRows[0][field];
-                                return (
-                                  <div
-                                    key={ci}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 6,
-                                    }}
-                                  >
-                                    <code
-                                      style={{
-                                        fontSize: 8.5,
-                                        color: "#64748b",
-                                        minWidth: 120,
-                                      }}
-                                    >
-                                      {binding.arrayField}.{field}
-                                    </code>
-                                    <span style={{ color: "#94a3b8" }}>→</span>
-                                    <strong style={{ fontFamily: "monospace" }}>
-                                      {val !== undefined && val !== null
-                                        ? String(val)
-                                        : "—"}
-                                    </strong>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <div
-                              style={{
-                                marginTop: 5,
-                                fontSize: 8,
-                                color: "#94a3b8",
-                                borderTop: "1px solid #bbf7d0",
-                                paddingTop: 4,
-                              }}
-                            >
-                              Will render {childRows.length} data row
-                              {childRows.length > 1 ? "s" : ""} below the header
-                              in PDF
-                            </div>
+                            Will render {childRows.length} data row
+                            {childRows.length > 1 ? "s" : ""} below the header in PDF
                           </div>
-                        )}
-                      </div>
-                    )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1677,12 +1558,7 @@ export function TextBlockPropsPanel({
       })()}
 
       {/* ── Repeat ── */}
-      <PropSection
-        label="Repeat"
-        color="#7c3aed"
-        icon={<RefreshCw size={9} />}
-        defaultOpen={false}
-      >
+      <PropSection label="Repeat" color="#7c3aed" icon={<RefreshCw size={9} />} defaultOpen={false}>
         <div style={{ marginBottom: 7 }}>
           <div
             style={{
@@ -1747,9 +1623,7 @@ export function TextBlockPropsPanel({
                     >
                       {label}
                     </div>
-                    <div style={{ fontSize: 8, color: T.muted, marginTop: 1 }}>
-                      {desc}
-                    </div>
+                    <div style={{ fontSize: 8, color: T.muted, marginTop: 1 }}>{desc}</div>
                   </div>
                 </label>
               );
@@ -1769,18 +1643,14 @@ export function TextBlockPropsPanel({
                 }}
               >
                 Datasource{" "}
-                <span style={{ fontWeight: 400, color: T.muted }}>
-                  — one copy per row
-                </span>
+                <span style={{ fontWeight: 400, color: T.muted }}>— one copy per row</span>
               </div>
               {dsCatalog.length > 0 ? (
                 <select
                   value={comp.repeatDataSourceRef ?? ""}
                   style={{
                     ...sel,
-                    borderColor: !comp.repeatDataSourceRef
-                      ? "#fca5a5"
-                      : T.border,
+                    borderColor: !comp.repeatDataSourceRef ? "#fca5a5" : T.border,
                   }}
                   onChange={(e) => up("repeatDataSourceRef", e.target.value)}
                 >
@@ -1792,9 +1662,7 @@ export function TextBlockPropsPanel({
                   ))}
                 </select>
               ) : (
-                <div
-                  style={{ fontSize: 9, color: T.muted, fontStyle: "italic" }}
-                >
+                <div style={{ fontSize: 9, color: T.muted, fontStyle: "italic" }}>
                   No datasources — add one in the Datasets section above
                 </div>
               )}
@@ -1815,8 +1683,7 @@ export function TextBlockPropsPanel({
                     marginBottom: 3,
                   }}
                 >
-                  Gap between copies{" "}
-                  <span style={{ fontWeight: 400, color: T.muted }}>(pt)</span>
+                  Gap between copies <span style={{ fontWeight: 400, color: T.muted }}>(pt)</span>
                 </div>
                 <input
                   type="number"
@@ -1847,14 +1714,8 @@ export function TextBlockPropsPanel({
                     }}
                   >
                     <Check size={9} color="#16a34a" />
-                    Will render{" "}
-                    <strong style={{ margin: "0 2px" }}>
-                      {rows.length}
-                    </strong>{" "}
-                    copies
-                    {comp.repeatMode === "new-page"
-                      ? `, one per page`
-                      : `, stacked inline`}
+                    Will render <strong style={{ margin: "0 2px" }}>{rows.length}</strong> copies
+                    {comp.repeatMode === "new-page" ? `, one per page` : `, stacked inline`}
                   </div>
                 ) : (
                   <div

@@ -20,11 +20,7 @@ export function isValidHex(s: string): boolean {
 export function hexRgb(hex: string): [number, number, number] {
   const h = (hex || "#000000").replace("#", "");
   if (h.length < 6) return [0, 0, 0];
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
 /**
@@ -53,12 +49,7 @@ export function toHex(color: string): string {
   if (color.startsWith("#")) return color;
   const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (!m) return "";
-  return (
-    "#" +
-    [m[1], m[2], m[3]]
-      .map(n => parseInt(n).toString(16).padStart(2, "0"))
-      .join("")
-  );
+  return "#" + [m[1], m[2], m[3]].map((n) => parseInt(n).toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -81,11 +72,7 @@ export function hexToHsv(hex: string): [number, number, number] {
     else h = (r - g) / d + 4;
     h *= 60;
   }
-  return [
-    Math.round(h),
-    max ? Math.round((d / max) * 100) : 0,
-    Math.round(max * 100),
-  ];
+  return [Math.round(h), max ? Math.round((d / max) * 100) : 0, Math.round(max * 100)];
 }
 
 /** `[h, s, v]` → `#rrggbb`. Inverse of `hexToHsv`. */
@@ -96,6 +83,9 @@ export function hsvToHex(h: number, s: number, v: number): string {
     const k = (n + h / 60) % 6;
     return v - v * s * Math.max(0, Math.min(k, 4 - k, 1));
   };
-  const toH = (n: number) => Math.round(n * 255).toString(16).padStart(2, "0");
+  const toH = (n: number) =>
+    Math.round(n * 255)
+      .toString(16)
+      .padStart(2, "0");
   return `#${toH(f(5))}${toH(f(3))}${toH(f(1))}`;
 }

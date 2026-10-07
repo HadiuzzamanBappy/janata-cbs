@@ -1,7 +1,7 @@
-import { useRef, useState, type CSSProperties } from "react";
 import { Check, Plus, X } from "lucide-react";
-import type { Column } from "../../types/table";
+import { type CSSProperties, useRef, useState } from "react";
 import { T } from "../../theme/tokens";
+import type { Column } from "../../types/table";
 
 /**
  * Two-mode editor for a TABLE's `tableDataRows`:
@@ -39,7 +39,7 @@ export function DataRowsEditor({
 
   const keys: string[] =
     columns.length > 0
-      ? columns.map(c => c.dataKey || c.header)
+      ? columns.map((c) => c.dataKey || c.header)
       : rows.length > 0
         ? Object.keys(rows[0])
         : [];
@@ -51,7 +51,9 @@ export function DataRowsEditor({
 
   const addRow = () => {
     const blank: Record<string, any> = {};
-    keys.forEach(k => { blank[k] = ""; });
+    keys.forEach((k) => {
+      blank[k] = "";
+    });
     onChange([...rows, blank]);
   };
 
@@ -71,17 +73,24 @@ export function DataRowsEditor({
   };
 
   const monoTA: CSSProperties = {
-    width: "100%", fontFamily: "'Fira Code','Courier New',monospace",
-    fontSize: 10, border: `1px solid ${T.border}`, borderRadius: 6,
-    padding: "8px 10px", resize: "vertical",
-    outline: "none", boxSizing: "border-box",
-    background: T.bg2, color: T.text, lineHeight: 1.5,
+    width: "100%",
+    fontFamily: "'Fira Code','Courier New',monospace",
+    fontSize: 10,
+    border: `1px solid ${T.border}`,
+    borderRadius: 6,
+    padding: "8px 10px",
+    resize: "vertical",
+    outline: "none",
+    boxSizing: "border-box",
+    background: T.bg2,
+    color: T.text,
+    lineHeight: 1.5,
   };
 
   return (
     <div>
       <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
-        {(["grid", "json"] as const).map(m => (
+        {(["grid", "json"] as const).map((m) => (
           <button
             key={m}
             onClick={() => {
@@ -89,8 +98,12 @@ export function DataRowsEditor({
               setMode(m);
             }}
             style={{
-              flex: 1, padding: "4px 0", borderRadius: 5,
-              cursor: "pointer", fontSize: 9.5, fontWeight: 700,
+              flex: 1,
+              padding: "4px 0",
+              borderRadius: 5,
+              cursor: "pointer",
+              fontSize: 9.5,
+              fontWeight: 700,
               border: `1.5px solid ${mode === m ? "#059669" : T.border}`,
               background: mode === m ? "rgba(5, 150, 105, 0.15)" : T.bg,
               color: mode === m ? "#10b981" : T.muted,
@@ -110,21 +123,36 @@ export function DataRowsEditor({
           )}
           {(keys.length > 0 || rows.length > 0) && (
             <div style={{ overflowX: "auto", marginBottom: 6 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 9.5, tableLayout: "fixed" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontSize: 9.5,
+                  tableLayout: "fixed",
+                }}
+              >
                 <colgroup>
-                  {keys.map(k => <col key={k} style={{ minWidth: 60 }} />)}
+                  {keys.map((k) => (
+                    <col key={k} style={{ minWidth: 60 }} />
+                  ))}
                   <col style={{ width: 22 }} />
                 </colgroup>
                 <thead>
                   <tr>
-                    {keys.map(k => (
+                    {keys.map((k) => (
                       <th
                         key={k}
                         style={{
-                          background: T.bg2, border: `1px solid ${T.border}`,
-                          padding: "3px 5px", textAlign: "left",
-                          fontSize: 8.5, fontWeight: 700, color: T.text,
-                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          background: T.bg2,
+                          border: `1px solid ${T.border}`,
+                          padding: "3px 5px",
+                          textAlign: "left",
+                          fontSize: 8.5,
+                          fontWeight: 700,
+                          color: T.text,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {k}
@@ -136,29 +164,39 @@ export function DataRowsEditor({
                 <tbody>
                   {rows.map((row, ri) => (
                     <tr key={ri}>
-                      {keys.map(k => (
+                      {keys.map((k) => (
                         <td key={k} style={{ border: `1px solid ${T.border}`, padding: 0 }}>
                           <input
                             value={row[k] ?? ""}
-                            onChange={e => updateCell(ri, k, e.target.value)}
+                            onChange={(e) => updateCell(ri, k, e.target.value)}
                             style={{
-                              width: "100%", border: "none", outline: "none",
+                              width: "100%",
+                              border: "none",
+                              outline: "none",
                               padding: "3px 5px",
-                              fontSize: 9.5, fontFamily: "inherit",
-                              background: "transparent", color: T.text,
+                              fontSize: 9.5,
+                              fontFamily: "inherit",
+                              background: "transparent",
+                              color: T.text,
                               boxSizing: "border-box",
                             }}
                           />
                         </td>
                       ))}
-                      <td style={{ border: `1px solid ${T.border}`, textAlign: "center", padding: 0 }}>
+                      <td
+                        style={{ border: `1px solid ${T.border}`, textAlign: "center", padding: 0 }}
+                      >
                         <button
                           onClick={() => deleteRow(ri)}
                           style={{
-                            background: "none", border: "none",
-                            cursor: "pointer", padding: "2px 4px",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: "2px 4px",
                             color: "#ef4444",
-                            display: "flex", alignItems: "center", justifyContent: "center",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
                           <X size={10} />
@@ -173,11 +211,19 @@ export function DataRowsEditor({
           <button
             onClick={addRow}
             style={{
-              width: "100%", padding: "5px 0",
-              borderRadius: 6, border: "1.5px dashed #059669",
-              background: "#f0fdf4", color: "#059669",
-              cursor: "pointer", fontSize: 9.5, fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+              width: "100%",
+              padding: "5px 0",
+              borderRadius: 6,
+              border: "1.5px dashed #059669",
+              background: "#f0fdf4",
+              color: "#059669",
+              cursor: "pointer",
+              fontSize: 9.5,
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
             }}
           >
             <Plus size={11} /> Add Row
@@ -189,17 +235,25 @@ export function DataRowsEditor({
         <div>
           <textarea
             value={jsonText}
-            onChange={e => { setJsonText(e.target.value); setJsonError(null); }}
+            onChange={(e) => {
+              setJsonText(e.target.value);
+              setJsonError(null);
+            }}
             rows={10}
             style={monoTA}
-            placeholder={'[\n  { "name": "Alice", "salary": 5000 },\n  { "name": "Bob",   "salary": 6500 }\n]'}
+            placeholder={
+              '[\n  { "name": "Alice", "salary": 5000 },\n  { "name": "Bob",   "salary": 6500 }\n]'
+            }
           />
           {jsonError && (
             <div
               style={{
-                fontSize: 9, color: "#ef4444",
-                marginTop: 3, padding: "3px 6px",
-                background: "#fef2f2", borderRadius: 4,
+                fontSize: 9,
+                color: "#ef4444",
+                marginTop: 3,
+                padding: "3px 6px",
+                background: "#fef2f2",
+                borderRadius: 4,
                 border: "1px solid #fecaca",
               }}
             >
@@ -209,11 +263,20 @@ export function DataRowsEditor({
           <button
             onClick={applyJson}
             style={{
-              marginTop: 6, width: "100%", padding: "5px 0",
+              marginTop: 6,
+              width: "100%",
+              padding: "5px 0",
               borderRadius: 6,
-              background: "#059669", color: "#fff", border: "none",
-              cursor: "pointer", fontSize: 9.5, fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+              background: "#059669",
+              color: "#fff",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 9.5,
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
             }}
           >
             <Check size={11} /> Apply JSON

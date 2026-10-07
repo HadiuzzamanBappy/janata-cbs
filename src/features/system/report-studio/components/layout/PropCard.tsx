@@ -7,13 +7,7 @@ import { T } from "../../theme/tokens";
  * cluster). The default `bg="#f8fafc"` matches `T.bg2`; pass another colour
  * for an accent-tinted card.
  */
-export function PropCard({
-  children,
-  bg = "#f8fafc",
-}: {
-  children: ReactNode;
-  bg?: string;
-}) {
+export function PropCard({ children, bg = "#f8fafc" }: { children: ReactNode; bg?: string }) {
   return (
     <div
       style={{

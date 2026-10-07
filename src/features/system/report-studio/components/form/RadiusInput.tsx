@@ -1,6 +1,6 @@
-import { useState, type CSSProperties } from "react";
-import type { Radius } from "../../types/primitives";
+import { type CSSProperties, useState } from "react";
 import { T } from "../../theme/tokens";
+import type { Radius } from "../../types/primitives";
 
 /**
  * Per-corner radius widget. Renders four inputs absolutely positioned at the
@@ -33,7 +33,7 @@ export function RadiusInput({
         value={r[k] ?? 0}
         onFocus={() => setFocused(k)}
         onBlur={() => setFocused(null)}
-        onChange={e => onChange({ ...r, [k]: +e.target.value })}
+        onChange={(e) => onChange({ ...r, [k]: +e.target.value })}
         title={k.replace(/([A-Z])/g, " $1").trim()}
         style={{
           width: 32,
@@ -60,13 +60,30 @@ export function RadiusInput({
     <div style={{ marginBottom: 10 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
         <div style={{ width: 3, height: 10, borderRadius: 2, background: ac, flexShrink: 0 }} />
-        <span style={{ fontSize: 9, fontWeight: 600, color: ac, textTransform: "uppercase", letterSpacing: "0.07em" }}>
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 600,
+            color: ac,
+            textTransform: "uppercase",
+            letterSpacing: "0.07em",
+          }}
+        >
           Corner Radius
         </span>
         <span style={{ fontSize: 8, color: T.muted }}>px</span>
         <div style={{ flex: 1, height: 1, background: ac + "18", marginLeft: 4 }} />
       </div>
-      <div style={{ position: "relative", width: "100%", height: 86, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: 86,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <div
           style={{
             width: 96,

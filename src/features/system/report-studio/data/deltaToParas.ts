@@ -1,8 +1,8 @@
+import { ALIGN_MAP } from "../constants/alignment";
+import { QUILL_FONT_MAP, QUILL_SIZE_MAP } from "../constants/quill";
 import type { Align, Font } from "../types/primitives";
 import type { Paragraph, ParagraphRun } from "../types/text-block";
 import { uid } from "../utils/id";
-import { QUILL_FONT_MAP, QUILL_SIZE_MAP } from "../constants/quill";
-import { ALIGN_MAP } from "../constants/alignment";
 
 /**
  * Convert a Quill Delta (`{ ops: [...] }`) into the `Paragraph[]` model the
@@ -85,7 +85,7 @@ export function deltaToParas(delta: any): Paragraph[] {
       const tableData = Array.from(tableRowMap.values());
       result.push({
         _id: uid(),
-        text: tableData.map(r => r.join(" | ")).join("\n"),
+        text: tableData.map((r) => r.join(" | ")).join("\n"),
         font: "HELVETICA",
         bold: false,
         italic: false,
@@ -107,26 +107,29 @@ export function deltaToParas(delta: any): Paragraph[] {
       if (cellAttr) {
         inTable = true;
         const rowId = cellAttr.row || "r0";
-        const cellText = line.runs.map(r => r.text).join("").trim();
+        const cellText = line.runs
+          .map((r) => r.text)
+          .join("")
+          .trim();
         if (!tableRowMap.has(rowId)) tableRowMap.set(rowId, []);
         tableRowMap.get(rowId)!.push(cellText);
       } else {
         flushTableGroup();
 
         // Build per-run inline style objects from every Quill op in this line
-        const inlineRuns: ParagraphRun[] = line.runs.map(r => buildRun(r.text, r.attrs));
+        const inlineRuns: ParagraphRun[] = line.runs.map((r) => buildRun(r.text, r.attrs));
 
         // Paragraph-level attrs come from the FIRST run that has each property
         // (backwards-compat for renderers that don't inspect inlineRuns).
-        const text = inlineRuns.map(r => r.text).join("");
+        const text = inlineRuns.map((r) => r.text).join("");
         const ba = line.blockAttrs;
 
         // fontSize: first run with an explicit size wins; fall back to default
-        const firstSized = inlineRuns.find(r => r.fontSize != null);
+        const firstSized = inlineRuns.find((r) => r.fontSize != null);
         const fontSize = firstSized?.fontSize ?? QUILL_SIZE_MAP.normal;
 
         // font: first run with an explicit font wins
-        const firstFonted = inlineRuns.find(r => r.font != null);
+        const firstFonted = inlineRuns.find((r) => r.font != null);
         const font: Font = firstFonted?.font ?? "HELVETICA";
 
         // Bold / italic / underline / color from first run (legacy compat)
@@ -177,14 +180,12 @@ export function deltaToParas(delta: any): Paragraph[] {
           val?.rows && Array.isArray(val.rows)
             ? val.rows
             : (() => {
-                const html: string =
-                  typeof val === "string" ? val : val?.html || "";
+                const html: string = typeof val === "string" ? val : val?.html || "";
                 if (!html) return [];
                 const rowMatches = html.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || [];
-                return rowMatches.map(rowHtml => {
-                  const cellMatches =
-                    rowHtml.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [];
-                  return cellMatches.map(cell =>
+                return rowMatches.map((rowHtml) => {
+                  const cellMatches = rowHtml.match(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi) || [];
+                  return cellMatches.map((cell) =>
                     cell
                       .replace(/<[^>]+>/g, "")
                       .replace(/&nbsp;/g, " ")
@@ -197,7 +198,7 @@ export function deltaToParas(delta: any): Paragraph[] {
         if (tableData.length > 0) {
           result.push({
             _id: uid(),
-            text: tableData.map(r => r.join(" | ")).join("\n"),
+            text: tableData.map((r) => r.join(" | ")).join("\n"),
             font: "HELVETICA",
             bold: false,
             italic: false,
@@ -216,7 +217,9 @@ export function deltaToParas(delta: any): Paragraph[] {
         const tokenVal = op.insert["variable-token"] || op.insert.image;
         if (tokenVal) {
           lines[lines.length - 1].runs.push({
-            text: String(tokenVal), attrs: op.attributes || {} });
+            text: String(tokenVal),
+            attrs: op.attributes || {},
+          });
         }
       }
     }
@@ -225,5 +228,5 @@ export function deltaToParas(delta: any): Paragraph[] {
   // Flush any remaining text lines
   flushLines();
 
-  return result.filter(p => p.isTable || (p.text || "").trim().length > 0 || result.length === 1);
+  return result.filter((p) => p.isTable || (p.text || "").trim().length > 0 || result.length === 1);
 }

@@ -1,4 +1,3 @@
-import { useRef, useState } from "react";
 import {
   Copy,
   Eye,
@@ -11,10 +10,11 @@ import {
   Trash2,
   Unlock,
 } from "lucide-react";
-import type { ZoneElement } from "../../types/zone";
-import { deepClone } from "../../utils/deepClone";
+import { useRef, useState } from "react";
 import { PALETTE } from "../../constants/preview-data";
 import { T } from "../../theme/tokens";
+import type { ZoneElement } from "../../types/zone";
+import { deepClone } from "../../utils/deepClone";
 
 /**
  * Left-rail element list for a header/footer zone. Supports:
@@ -76,7 +76,7 @@ export function ElementListPanel({
     if (draggedEl) draggedEl.style.opacity = "0.35";
 
     const clearIndicators = () => {
-      itemEls.forEach(el => {
+      itemEls.forEach((el) => {
         el.style.borderTopColor = "";
         el.style.borderTopWidth = "";
         el.style.borderBottomColor = "";
@@ -127,17 +127,40 @@ export function ElementListPanel({
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-        <div style={{ fontSize: 9, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 8,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 9,
+            color: "#94a3b8",
+            textTransform: "uppercase",
+            letterSpacing: "0.07em",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
           <Layers size={10} />
           Elements
         </div>
         <button
-          onClick={() => setIsPickerOpen(p => !p)}
+          onClick={() => setIsPickerOpen((p) => !p)}
           style={{
-            background: color, color: "#fff", border: "none",
-            padding: "3px 10px", borderRadius: 5, cursor: "pointer",
-            fontSize: 10, fontWeight: 700,
+            background: color,
+            color: "#fff",
+            border: "none",
+            padding: "3px 10px",
+            borderRadius: 5,
+            cursor: "pointer",
+            fontSize: 10,
+            fontWeight: 700,
           }}
         >
           <Plus size={11} style={{ marginRight: 3 }} />
@@ -145,12 +168,28 @@ export function ElementListPanel({
         </button>
       </div>
       {isPickerOpen && (
-        <div style={{ background: T.bg2, border: `1px solid ${color}33`, borderRadius: 8, padding: "8px", marginBottom: 8 }}>
-          <div style={{ fontSize: 9, color: "#94a3b8", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        <div
+          style={{
+            background: T.bg2,
+            border: `1px solid ${color}33`,
+            borderRadius: 8,
+            padding: "8px",
+            marginBottom: 8,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9,
+              color: "#94a3b8",
+              marginBottom: 6,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+            }}
+          >
             Choose type
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {PALETTE.filter(p => p.zone).map(p => {
+            {PALETTE.filter((p) => p.zone).map((p) => {
               const Icon = (p as any).Icon as any;
               return (
                 <button
@@ -160,11 +199,17 @@ export function ElementListPanel({
                     setIsPickerOpen(false);
                   }}
                   style={{
-                    background: p.color + "15", border: `1px solid ${p.color}44`,
-                    color: p.color, padding: "4px 8px",
-                    borderRadius: 5, cursor: "pointer",
-                    fontSize: 9.5, fontWeight: 700,
-                    display: "flex", alignItems: "center", gap: 4,
+                    background: p.color + "15",
+                    border: `1px solid ${p.color}44`,
+                    color: p.color,
+                    padding: "4px 8px",
+                    borderRadius: 5,
+                    cursor: "pointer",
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
                   }}
                 >
                   {Icon && <Icon size={12} strokeWidth={2.5} />}
@@ -179,10 +224,17 @@ export function ElementListPanel({
                   setIsPickerOpen(false);
                 }}
                 style={{
-                  background: "#f0fdf4", border: "1px solid #86efac", color: "#16a34a",
-                  padding: "4px 8px", borderRadius: 5, cursor: "pointer",
-                  fontSize: 9.5, fontWeight: 700,
-                  display: "flex", alignItems: "center", gap: 4,
+                  background: "#f0fdf4",
+                  border: "1px solid #86efac",
+                  color: "#16a34a",
+                  padding: "4px 8px",
+                  borderRadius: 5,
+                  cursor: "pointer",
+                  fontSize: 9.5,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
                 <LayoutGrid size={12} strokeWidth={2.5} />
@@ -195,10 +247,16 @@ export function ElementListPanel({
       {elements.length === 0 && !isPickerOpen && (
         <div
           style={{
-            border: "1px dashed #e2e8f0", borderRadius: 8,
-            padding: 14, textAlign: "center",
-            color: "#cbd5e1", fontSize: 11,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            border: "1px dashed #e2e8f0",
+            borderRadius: 8,
+            padding: 14,
+            textAlign: "center",
+            color: "#cbd5e1",
+            fontSize: 11,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
           }}
         >
           <Layers size={13} style={{ color: "#d1d5db" }} />
@@ -207,7 +265,7 @@ export function ElementListPanel({
       )}
       <div ref={listRef}>
         {elements.map((el, idx) => {
-          const paletteEntry = PALETTE.find(p => p.type === el.type) as any;
+          const paletteEntry = PALETTE.find((p) => p.type === el.type) as any;
           const PaletteIcon = paletteEntry?.Icon;
           const isItemSelected = selId === el._id;
           const isHidden = !!el.hidden;
@@ -224,14 +282,22 @@ export function ElementListPanel({
               data-item-idx={idx}
               onClick={() => onSel(el._id)}
               style={{
-                display: "flex", alignItems: "center", gap: 7,
-                padding: "6px 8px", marginBottom: 1,
-                borderRadius: 6, cursor: "default",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                padding: "6px 8px",
+                marginBottom: 1,
+                borderRadius: 6,
+                cursor: "default",
                 background: isItemSelected ? color + "18" : T.bg2,
-                borderTopWidth: "1px", borderBottomWidth: "1px",
-                borderLeftWidth: "1px", borderRightWidth: "1px",
-                borderTopStyle: "solid", borderBottomStyle: "solid",
-                borderLeftStyle: "solid", borderRightStyle: "solid",
+                borderTopWidth: "1px",
+                borderBottomWidth: "1px",
+                borderLeftWidth: "1px",
+                borderRightWidth: "1px",
+                borderTopStyle: "solid",
+                borderBottomStyle: "solid",
+                borderLeftStyle: "solid",
+                borderRightStyle: "solid",
                 borderTopColor: isItemSelected ? color + "66" : T.border,
                 borderBottomColor: isItemSelected ? color + "66" : T.border,
                 borderLeftColor: isItemSelected ? color + "66" : T.border,
@@ -239,23 +305,31 @@ export function ElementListPanel({
               }}
             >
               <div
-                onMouseDown={e => onGripMouseDown(e, idx)}
+                onMouseDown={(e) => onGripMouseDown(e, idx)}
                 style={{
-                  color: "#cbd5e1", cursor: "grab",
+                  color: "#cbd5e1",
+                  cursor: "grab",
                   flexShrink: 0,
-                  display: "flex", alignItems: "center",
-                  padding: "0 2px", userSelect: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 2px",
+                  userSelect: "none",
                 }}
               >
                 <GripVertical size={14} />
               </div>
               <div
                 style={{
-                  width: 18, height: 18, borderRadius: 4,
+                  width: 18,
+                  height: 18,
+                  borderRadius: 4,
                   background: (paletteEntry?.color || "#000") + "18",
                   border: `1px solid ${paletteEntry?.color || "#000"}44`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: paletteEntry?.color, flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: paletteEntry?.color,
+                  flexShrink: 0,
                 }}
               >
                 {PaletteIcon && <PaletteIcon size={11} strokeWidth={2.5} />}
@@ -273,74 +347,149 @@ export function ElementListPanel({
                 >
                   {label}
                 </div>
-                <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 1, display: "flex", gap: 4, alignItems: "center" }}>
+                <div
+                  style={{
+                    fontSize: 9,
+                    color: "#94a3b8",
+                    marginTop: 1,
+                    display: "flex",
+                    gap: 4,
+                    alignItems: "center",
+                  }}
+                >
                   <span>{el.type}</span>
-                  {isHidden && <span style={{ background: "#fef3c7", color: "#92400e", fontSize: 8, padding: "0 4px", borderRadius: 3, fontWeight: 700 }}>HIDDEN</span>}
-                  {isLocked && <span style={{ background: "#fef3c7", color: "#92400e", fontSize: 8, padding: "0 4px", borderRadius: 3, fontWeight: 700 }}>LOCKED</span>}
+                  {isHidden && (
+                    <span
+                      style={{
+                        background: "#fef3c7",
+                        color: "#92400e",
+                        fontSize: 8,
+                        padding: "0 4px",
+                        borderRadius: 3,
+                        fontWeight: 700,
+                      }}
+                    >
+                      HIDDEN
+                    </span>
+                  )}
+                  {isLocked && (
+                    <span
+                      style={{
+                        background: "#fef3c7",
+                        color: "#92400e",
+                        fontSize: 8,
+                        padding: "0 4px",
+                        borderRadius: 3,
+                        fontWeight: 700,
+                      }}
+                    >
+                      LOCKED
+                    </span>
+                  )}
                 </div>
               </div>
               <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
                 <button
                   title={isHidden ? "Show" : "Hide"}
-                  onClick={e => { e.stopPropagation(); onToggleHidden(el._id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleHidden(el._id);
+                  }}
                   style={{
                     background: isHidden ? "#fef3c7" : "none",
                     border: "none",
                     color: isHidden ? "#d97706" : "#cbd5e1",
-                    cursor: "pointer", width: 20, height: 20,
+                    cursor: "pointer",
+                    width: 20,
+                    height: 20,
                     borderRadius: 3,
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     padding: 0,
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.color = isHidden ? "#92400e" : "#94a3b8")}
-                  onMouseLeave={e => (e.currentTarget.style.color = isHidden ? "#d97706" : "#cbd5e1")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = isHidden ? "#92400e" : "#94a3b8")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = isHidden ? "#d97706" : "#cbd5e1")
+                  }
                 >
                   {isHidden ? <EyeOff size={11} /> : <Eye size={11} />}
                 </button>
                 <button
                   title={isLocked ? "Unlock" : "Lock"}
-                  onClick={e => { e.stopPropagation(); onToggleLocked(el._id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleLocked(el._id);
+                  }}
                   style={{
                     background: isLocked ? "#fef3c7" : "none",
                     border: "none",
                     color: isLocked ? "#d97706" : "#cbd5e1",
-                    cursor: "pointer", width: 20, height: 20,
+                    cursor: "pointer",
+                    width: 20,
+                    height: 20,
                     borderRadius: 3,
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     padding: 0,
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.color = isLocked ? "#92400e" : "#94a3b8")}
-                  onMouseLeave={e => (e.currentTarget.style.color = isLocked ? "#d97706" : "#cbd5e1")}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = isLocked ? "#92400e" : "#94a3b8")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = isLocked ? "#d97706" : "#cbd5e1")
+                  }
                 >
                   {isLocked ? <Lock size={11} /> : <Unlock size={11} />}
                 </button>
                 <button
                   title="Duplicate"
-                  onClick={e => { e.stopPropagation(); onDuplicate(el._id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate(el._id);
+                  }}
                   style={{
-                    background: "none", border: "none", color: "#cbd5e1",
-                    cursor: "pointer", width: 20, height: 20,
+                    background: "none",
+                    border: "none",
+                    color: "#cbd5e1",
+                    cursor: "pointer",
+                    width: 20,
+                    height: 20,
                     borderRadius: 3,
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     padding: 0,
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.color = "#059669")}
-                  onMouseLeave={e => (e.currentTarget.style.color = "#cbd5e1")}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#059669")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#cbd5e1")}
                 >
                   <Copy size={11} />
                 </button>
                 <button
                   title="Delete"
-                  onClick={e => { e.stopPropagation(); onDelete(el._id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(el._id);
+                  }}
                   style={{
-                    background: "none", border: "none", color: "#fca5a5",
-                    cursor: "pointer", width: 20, height: 20,
+                    background: "none",
+                    border: "none",
+                    color: "#fca5a5",
+                    cursor: "pointer",
+                    width: 20,
+                    height: 20,
                     borderRadius: 3,
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     padding: 0,
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.color = "#dc2626")}
-                  onMouseLeave={e => (e.currentTarget.style.color = "#fca5a5")}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#fca5a5")}
                 >
                   <Trash2 size={11} />
                 </button>

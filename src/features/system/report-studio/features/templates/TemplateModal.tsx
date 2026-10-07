@@ -1,7 +1,7 @@
 import { Check, LayoutTemplate } from "lucide-react";
 import { REPORT_TEMPLATES, type ReportTemplate } from "../../constants/preview-data";
-import { ZoneSvgPreview } from "./ZoneSvgPreview";
 import { T } from "../../theme/tokens";
+import { ZoneSvgPreview } from "./ZoneSvgPreview";
 
 /**
  * Template-picker modal. One card per template; each card renders the
@@ -43,7 +43,7 @@ export function TemplateModal({
           overflow: "hidden",
           boxShadow: "0 24px 64px rgba(0,0,0,.35)",
         }}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <style>{`
           .tpl-card {
@@ -81,7 +81,16 @@ export function TemplateModal({
           }}
         >
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: T.text, display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                color: T.text,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
               <LayoutTemplate size={16} color="#7c3aed" />
               Report Templates
             </div>
@@ -119,16 +128,16 @@ export function TemplateModal({
             gap: 16,
           }}
         >
-          {REPORT_TEMPLATES.map(t => (
+          {REPORT_TEMPLATES.map((t) => (
             <div
               key={t.id}
               className="tpl-card"
               style={{ ["--accent" as any]: t.accent }}
-              onMouseEnter={e => {
+              onMouseEnter={(e) => {
                 (e.currentTarget as HTMLDivElement).style.borderColor = t.accent;
                 (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 28px ${t.accent}30`;
               }}
-              onMouseLeave={e => {
+              onMouseLeave={(e) => {
                 (e.currentTarget as HTMLDivElement).style.borderColor = T.border;
                 (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 4px rgba(0,0,0,.06)";
               }}
@@ -151,12 +160,38 @@ export function TemplateModal({
               >
                 <div style={{ position: "relative", flexShrink: 0 }}>
                   <ZoneSvgPreview zone={t.header} accent={t.accent} />
-                  <div className="tpl-overlay" style={{ position: "absolute", inset: 0, background: t.accent + "0c", pointerEvents: "none" }} />
+                  <div
+                    className="tpl-overlay"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background: t.accent + "0c",
+                      pointerEvents: "none",
+                    }}
+                  />
                 </div>
                 {/* Mock Paper Sheet Body Preview */}
-                <div style={{ background: "#ffffff", padding: "10px 12px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div
+                  style={{
+                    background: "#ffffff",
+                    padding: "10px 12px",
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                  }}
+                >
                   {[70, 55, 85, 45].map((w, i) => (
-                    <div key={i} style={{ height: 3, background: "#e2e8f0", borderRadius: 2, marginBottom: 4, width: `${w}%` }} />
+                    <div
+                      key={i}
+                      style={{
+                        height: 3,
+                        background: "#e2e8f0",
+                        borderRadius: 2,
+                        marginBottom: 4,
+                        width: `${w}%`,
+                      }}
+                    />
                   ))}
                 </div>
                 <div style={{ flexShrink: 0 }}>
@@ -181,8 +216,26 @@ export function TemplateModal({
                 }}
               >
                 <div>
-                  <div style={{ fontSize: 11.5, fontWeight: 700, color: T.text, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
-                    <div style={{ width: 9, height: 9, borderRadius: 2, background: t.accent, flexShrink: 0 }} />
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      color: T.text,
+                      marginBottom: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 9,
+                        height: 9,
+                        borderRadius: 2,
+                        background: t.accent,
+                        flexShrink: 0,
+                      }}
+                    />
                     {t.name}
                   </div>
                   <div
@@ -199,7 +252,14 @@ export function TemplateModal({
                     {t.description}
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 18 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    minHeight: 18,
+                  }}
+                >
                   <div className="tpl-apply" style={{ background: t.accent }}>
                     <Check size={10} />
                     Apply Template
@@ -210,9 +270,17 @@ export function TemplateModal({
           ))}
         </div>
 
-        <div style={{ padding: "10px 22px", borderTop: `1px solid ${T.border}`, background: T.bg2, flexShrink: 0 }}>
+        <div
+          style={{
+            padding: "10px 22px",
+            borderTop: `1px solid ${T.border}`,
+            background: T.bg2,
+            flexShrink: 0,
+          }}
+        >
           <div style={{ fontSize: 9, color: T.muted }}>
-            💡 Templates only replace the header &amp; footer. All body rows and components remain untouched.
+            💡 Templates only replace the header &amp; footer. All body rows and components remain
+            untouched.
           </div>
         </div>
       </div>

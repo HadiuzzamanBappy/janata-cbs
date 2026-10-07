@@ -75,7 +75,7 @@ export function ImagePreview({
               top: 0,
               left: 0,
             }}
-            onError={e => {
+            onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = "none";
             }}
           />

@@ -57,7 +57,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <span className="text-[10px] text-primary-foreground/70 uppercase tracking-wider">
                   Active Business Date
                 </span>
-                <span className="text-lg font-bold text-primary-foreground mt-0.5">{currentDate}</span>
+                <span className="text-lg font-bold text-primary-foreground mt-0.5">
+                  {currentDate}
+                </span>
               </div>
             </div>
           </div>

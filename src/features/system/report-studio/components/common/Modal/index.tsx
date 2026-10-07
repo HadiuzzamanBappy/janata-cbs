@@ -14,11 +14,11 @@
  * body content; they just stop redrawing the chrome.
  */
 
-import { useEffect, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { type ReactNode, useEffect } from "react";
 import { T } from "../../../theme/tokens";
 
-export { Modal, ModalHeader, ModalBody, ModalFooter };
+export { Modal, ModalBody, ModalFooter, ModalHeader };
 
 function Modal({
   open,
@@ -60,7 +60,7 @@ function Modal({
       }}
     >
       <div
-        onMouseDown={e => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
         style={{
           width,
           maxWidth: "92vw",
@@ -103,9 +103,7 @@ function ModalHeader({
         flexShrink: 0,
       }}
     >
-      <div style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>
-        {title}
-      </div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: T.text, flex: 1 }}>{title}</div>
       {right}
       {onClose && (
         <button
@@ -127,13 +125,7 @@ function ModalHeader({
   );
 }
 
-function ModalBody({
-  children,
-  padded = true,
-}: {
-  children: ReactNode;
-  padded?: boolean;
-}) {
+function ModalBody({ children, padded = true }: { children: ReactNode; padded?: boolean }) {
   return (
     <div
       style={{

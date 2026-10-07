@@ -48,9 +48,7 @@ export function DataSourceLink({
         </div>
         <select
           value={linked || ""}
-          onChange={(e) =>
-            onUpdate({ ...comp, dataSourceKey: e.target.value || undefined })
-          }
+          onChange={(e) => onUpdate({ ...comp, dataSourceKey: e.target.value || undefined })}
           style={{
             width: "100%",
             boxSizing: "border-box",
@@ -118,9 +116,7 @@ export function DataSourceLink({
         {onUpdateCentralData ? (
           <CentralDataEditor centralData={cd} onChange={onUpdateCentralData} />
         ) : (
-          <div style={{ fontSize: 10, color: "#94a3b8" }}>
-            Editor unavailable in this context.
-          </div>
+          <div style={{ fontSize: 10, color: "#94a3b8" }}>Editor unavailable in this context.</div>
         )}
       </div>
     </div>

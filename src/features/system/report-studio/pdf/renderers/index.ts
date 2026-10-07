@@ -1,7 +1,8 @@
 /**
  * Barrel re-export for all PDF renderer modules.
  */
-export { renderChart, type PageCtx as ChartPageCtx } from "./renderChart";
-export { renderTable, type PageCtx as TablePageCtx } from "./renderTable";
-export { renderTextBlock, type PageCtx as TextBlockPageCtx } from "./renderTextBlock";
+
 export { renderZone, shouldRenderZone } from "./renderBand";
+export { type PageCtx as ChartPageCtx, renderChart } from "./renderChart";
+export { type PageCtx as TablePageCtx, renderTable } from "./renderTable";
+export { type PageCtx as TextBlockPageCtx, renderTextBlock } from "./renderTextBlock";

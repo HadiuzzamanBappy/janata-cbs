@@ -5,17 +5,15 @@
  * explicit parameters so this module is pure (no React, no global state).
  */
 
+import { COLUMN_DATA_KEY_MAP } from "@/features/system/report-studio/constants/preview-data";
 import {
+  evalCond,
+  fmtVal,
   hexRgb,
   ptMm,
   sanitizeForPdf,
-} from "@/features/system/report-studio/pdf/helpers";
-import {
   setFont,
-  fmtVal,
-  evalCond,
 } from "@/features/system/report-studio/pdf/helpers";
-import { COLUMN_DATA_KEY_MAP } from "@/features/system/report-studio/constants/preview-data";
 
 /**
  * Page-break context passed by the body renderer.
@@ -49,11 +47,7 @@ export function renderTable(
   const cols = comp.tableColumns || [];
   if (cols.length === 0) return y;
   const data =
-    rows && rows.length > 0
-      ? rows
-      : Array.isArray(comp.tableDataRows)
-        ? comp.tableDataRows
-        : [];
+    rows && rows.length > 0 ? rows : Array.isArray(comp.tableDataRows) ? comp.tableDataRows : [];
   const ts = comp.tableStyle || {
     borderWidth: 0.5,
     borderColor: "#e2e8f0",
@@ -75,11 +69,8 @@ export function renderTable(
   const [br, bg_, bb] = hexRgb(ts.borderColor || "#e2e8f0");
   const borderW = ts.borderWidth ?? 0.5;
 
-  const totalWeight =
-    cols.reduce((s: number, c: any) => s + (c.width || 1), 0) || 1;
-  const colW: number[] = cols.map(
-    (c: any) => (w * (c.width || 1)) / totalWeight,
-  );
+  const totalWeight = cols.reduce((s: number, c: any) => s + (c.width || 1), 0) || 1;
+  const colW: number[] = cols.map((c: any) => (w * (c.width || 1)) / totalWeight);
 
   const resolveKey = (col: any): string =>
     col.dataKey || COLUMN_DATA_KEY_MAP[col.header] || col.header;
@@ -87,7 +78,7 @@ export function renderTable(
   const extractNumber = (raw: any): number => {
     if (raw == null || raw === "") return NaN;
     if (typeof raw === "number") return raw;
-    const cleaned = String(raw).replace(/[^0-9.\-]/g, "");
+    const cleaned = String(raw).replace(/[^0-9.-]/g, "");
     if (cleaned === "" || cleaned === "-" || cleaned === ".") return NaN;
     const n = parseFloat(cleaned);
     return isNaN(n) ? NaN : n;
@@ -116,11 +107,7 @@ export function renderTable(
     return m;
   };
 
-  const computeAgg = (
-    fn: string,
-    dataRows: any[],
-    dataKey: string,
-  ): number | null => {
+  const computeAgg = (fn: string, dataRows: any[], dataKey: string): number | null => {
     const vals = dataRows
       .map((r: any) => extractNumber(r[dataKey]))
       .filter((v: number) => !isNaN(v));
@@ -134,11 +121,7 @@ export function renderTable(
     return null;
   };
 
-  const buildAggRow = (
-    dataRows: any[],
-    label: string,
-    filter: (col: any) => boolean,
-  ) => {
+  const buildAggRow = (dataRows: any[], label: string, filter: (col: any) => boolean) => {
     const values = cols.map((col: any, ci: number) => {
       let text = "";
       let fg = hexRgb("#1e40af");
@@ -162,12 +145,8 @@ export function renderTable(
     return values;
   };
 
-  const hasPageWise = cols.some(
-    (c: any) => c.aggregate?.function && c.aggregate?.pageWise,
-  );
-  const hasGrandTotal = cols.some(
-    (c: any) => c.aggregate?.function && c.aggregate?.showTotal,
-  );
+  const hasPageWise = cols.some((c: any) => c.aggregate?.function && c.aggregate?.pageWise);
+  const hasGrandTotal = cols.some((c: any) => c.aggregate?.function && c.aggregate?.showTotal);
 
   const TABLE_LH = 1.15;
   const computeRowHeight = (
@@ -200,8 +179,7 @@ export function renderTable(
     align: string[],
     preComputed?: { rowH: number; wrapped: string[][]; lineH: number },
   ): number => {
-    const { rowH, wrapped, lineH } =
-      preComputed || computeRowHeight(values, fontSize);
+    const { rowH, wrapped, lineH } = preComputed || computeRowHeight(values, fontSize);
 
     let cellX = x;
     for (let i = 0; i < values.length; i++) {
@@ -272,11 +250,7 @@ export function renderTable(
   const drawPageSubtotal = (currentPageRows: any[]): number => {
     if (!hasPageWise || currentPageRows.length === 0) return 0;
     const aligns = cols.map((c: any) => c.align || "LEFT");
-    const aggValues = buildAggRow(
-      currentPageRows,
-      "Subtotal",
-      (col) => !!col.aggregate?.pageWise,
-    );
+    const aggValues = buildAggRow(currentPageRows, "Subtotal", (col) => !!col.aggregate?.pageWise);
     const dims = computeRowHeight(aggValues, 7.5);
     return drawRow(curY, aggValues, 7.5, aligns, dims);
   };
@@ -291,9 +265,8 @@ export function renderTable(
       const key = resolveKey(col);
       const raw = row[key] ?? row[col.header] ?? "";
       const disp = fmtVal(raw, col);
-      let bg: [number, number, number] | undefined =
-        ri % 2 === 1 ? oddBg : undefined;
-      let fg: [number, number, number] | undefined = undefined;
+      let bg: [number, number, number] | undefined = ri % 2 === 1 ? oddBg : undefined;
+      let fg: [number, number, number] | undefined;
       let bold = false,
         italic = false;
       for (const cond of col.conditions || []) {
@@ -314,13 +287,9 @@ export function renderTable(
       const subtotalH =
         hasPageWise && pageRows.length > 0
           ? computeRowHeight(
-            buildAggRow(
-              pageRows,
-              "Subtotal",
-              (col) => !!col.aggregate?.pageWise,
-            ),
-            7.5,
-          ).rowH
+              buildAggRow(pageRows, "Subtotal", (col) => !!col.aggregate?.pageWise),
+              7.5,
+            ).rowH
           : 0;
       if (curY + subtotalH + dims.rowH > pageCtx.bodyBottom) {
         if (subtotalH > 0) {
@@ -341,11 +310,7 @@ export function renderTable(
 
   if (hasPageWise && pageRows.length > 0 && pageRows.length < data.length) {
     const aligns = cols.map((c: any) => c.align || "LEFT");
-    const aggValues = buildAggRow(
-      pageRows,
-      "Subtotal",
-      (col) => !!col.aggregate?.pageWise,
-    );
+    const aggValues = buildAggRow(pageRows, "Subtotal", (col) => !!col.aggregate?.pageWise);
     const dims = computeRowHeight(aggValues, 7.5);
     if (pageCtx) {
       const newY = pageCtx.ensureSpace(curY, dims.rowH);
@@ -359,11 +324,7 @@ export function renderTable(
 
   if (hasGrandTotal) {
     const aligns = cols.map((c: any) => c.align || "LEFT");
-    const aggValues = buildAggRow(
-      data,
-      "Total",
-      (col) => !!col.aggregate?.showTotal,
-    );
+    const aggValues = buildAggRow(data, "Total", (col) => !!col.aggregate?.showTotal);
     const dims = computeRowHeight(aggValues, 7.5);
     if (pageCtx) {
       const newY = pageCtx.ensureSpace(curY, dims.rowH);

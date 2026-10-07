@@ -7,14 +7,9 @@
  * in `features/context-menu/` (Phase 3) and compose these shells.
  */
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  type ReactNode,
-} from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef } from "react";
 
-export { ContextMenuShell, ContextMenuItem, ContextMenuDivider };
+export { ContextMenuDivider, ContextMenuItem, ContextMenuShell };
 
 /**
  * Fixed-position card that clamps inside the viewport.
@@ -68,7 +63,7 @@ function ContextMenuShell({
   return (
     <div
       ref={menuRef}
-      onMouseDown={e => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
       style={{
         position: "fixed",
         left: 0,
@@ -108,7 +103,7 @@ function ContextMenuItem({
 }) {
   return (
     <div
-      onMouseDown={e => {
+      onMouseDown={(e) => {
         e.stopPropagation();
         onClick();
         onClose?.();
@@ -124,17 +119,15 @@ function ContextMenuItem({
         borderRadius: 4,
         justifyContent: shortcut ? "space-between" : "flex-start",
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = danger ? "#fee2e2" : "#f1f5f9")}
-      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+      onMouseEnter={(e) => (e.currentTarget.style.background = danger ? "#fee2e2" : "#f1f5f9")}
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
     >
       <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {icon}
         {label}
       </span>
       {shortcut && (
-        <span style={{ fontSize: 9, color: "#94a3b8", fontFamily: "monospace" }}>
-          {shortcut}
-        </span>
+        <span style={{ fontSize: 9, color: "#94a3b8", fontFamily: "monospace" }}>{shortcut}</span>
       )}
     </div>
   );

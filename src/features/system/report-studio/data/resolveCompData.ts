@@ -13,28 +13,17 @@
  * `pdf/renderers/renderTable` and the canvas table preview.
  */
 export function resolveCompData(
-  comp:
-    | { _id?: string; dataSourceKey?: string; tableDataRows?: any[] }
-    | null
-    | undefined,
+  comp: { _id?: string; dataSourceKey?: string; tableDataRows?: any[] } | null | undefined,
   centralData: Record<string, any[]> | undefined,
   componentDataSources: Record<string, any[]> | undefined,
   fallbackRows: any[],
 ): any[] {
   // 1. component-specific data
-  if (
-    comp?._id &&
-    componentDataSources &&
-    Array.isArray(componentDataSources[comp._id])
-  ) {
+  if (comp?._id && componentDataSources && Array.isArray(componentDataSources[comp._id])) {
     return componentDataSources[comp._id];
   }
   // 2. named central data
-  if (
-    comp?.dataSourceKey &&
-    centralData &&
-    Array.isArray(centralData[comp.dataSourceKey])
-  ) {
+  if (comp?.dataSourceKey && centralData && Array.isArray(centralData[comp.dataSourceKey])) {
     return centralData[comp.dataSourceKey];
   }
   // 3. legacy embedded

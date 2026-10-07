@@ -18,13 +18,13 @@
 export function sanitizeForPdf(s: string): string {
   if (!s) return s;
   return s
-    .replace(/৳/g, "Tk ")  // Bangladeshi taka
-    .replace(/₹/g, "Rs ")  // Indian rupee
-    .replace(/—/g, "-")    // em dash
-    .replace(/–/g, "-")    // en dash
-    .replace(/'/g, "'")    // smart single quotes
+    .replace(/৳/g, "Tk ") // Bangladeshi taka
+    .replace(/₹/g, "Rs ") // Indian rupee
+    .replace(/—/g, "-") // em dash
+    .replace(/–/g, "-") // en dash
+    .replace(/'/g, "'") // smart single quotes
     .replace(/'/g, "'")
-    .replace(/"/g, '"')    // smart double quotes
+    .replace(/"/g, '"') // smart double quotes
     .replace(/"/g, '"')
     .replace(/…/g, "..."); // ellipsis
 }
@@ -43,9 +43,9 @@ export function sanitizeForPdf(s: string): string {
 export function headerToDataKey(header: string): string {
   return header
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")  // strip non-alphanumerics (besides spaces)
+    .replace(/[^a-z0-9\s]/g, "") // strip non-alphanumerics (besides spaces)
     .trim()
-    .replace(/\s+/g, "-")          // spaces → hyphens
-    .replace(/-+/g, "-")           // collapse multiple hyphens
-    .replace(/^-+|-+$/g, "");      // trim leading/trailing hyphens
+    .replace(/\s+/g, "-") // spaces → hyphens
+    .replace(/-+/g, "-") // collapse multiple hyphens
+    .replace(/^-+|-+$/g, ""); // trim leading/trailing hyphens
 }

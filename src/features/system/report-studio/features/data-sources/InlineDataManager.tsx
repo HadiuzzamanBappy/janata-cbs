@@ -1,7 +1,7 @@
-import { useState, type ChangeEvent } from "react";
 import { ChevronDown, ChevronUp, Database, Plus, Upload } from "lucide-react";
-import { T } from "../../theme/tokens";
+import { type ChangeEvent, useState } from "react";
 import { inputStyle } from "../../theme/inputStyle";
+import { T } from "../../theme/tokens";
 import { csvToRows } from "../../utils/csv";
 
 /**
@@ -102,7 +102,7 @@ export function InlineDataManager({
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = (ev) => {
       const text = ev.target?.result as string;
       if (file.name.endsWith(".csv")) {
         setMode("csv");
@@ -125,28 +125,50 @@ export function InlineDataManager({
 
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 6,
+        }}
+      >
         <button
-          onClick={() => setOpen(o => !o)}
+          onClick={() => setOpen((o) => !o)}
           style={{
-            display: "flex", alignItems: "center", gap: 5,
-            background: "none", border: "none", cursor: "pointer", padding: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
           }}
         >
           <Database size={10} color="#2563eb" />
           <span style={{ fontSize: 9, fontWeight: 700, color: "#2563eb" }}>
             Datasets {totalCount > 0 ? `(${totalCount})` : ""}
           </span>
-          {open ? <ChevronUp size={10} color="#64748b" /> : <ChevronDown size={10} color="#64748b" />}
+          {open ? (
+            <ChevronUp size={10} color="#64748b" />
+          ) : (
+            <ChevronDown size={10} color="#64748b" />
+          )}
         </button>
         <button
           onClick={startNew}
           style={{
-            display: "flex", alignItems: "center", gap: 3,
-            fontSize: 8.5, padding: "2px 8px",
-            background: "#eff6ff", border: "1px solid #bfdbfe",
-            borderRadius: 5, cursor: "pointer",
-            color: "#2563eb", fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 3,
+            fontSize: 8.5,
+            padding: "2px 8px",
+            background: "#eff6ff",
+            border: "1px solid #bfdbfe",
+            borderRadius: 5,
+            cursor: "pointer",
+            color: "#2563eb",
+            fontWeight: 700,
           }}
         >
           <Plus size={9} />
@@ -156,32 +178,81 @@ export function InlineDataManager({
 
       {open && allDs.length > 0 && editingDs === null && (
         <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 6 }}>
-          {allDs.map(d => {
+          {allDs.map((d) => {
             const cols = d.rows.length > 0 ? Object.keys(d.rows[0]) : [];
             return (
-              <div key={d.key} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "6px 9px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: cols.length > 0 ? 4 : 0 }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: "#1e293b", fontFamily: "monospace", flex: 1 }}>
+              <div
+                key={d.key}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 6,
+                  padding: "6px 9px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    marginBottom: cols.length > 0 ? 4 : 0,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: "#1e293b",
+                      fontFamily: "monospace",
+                      flex: 1,
+                    }}
+                  >
                     {d.label}
                   </span>
                   <span style={{ fontSize: 8, color: "#64748b" }}>{d.rows.length} rows</span>
                   <button
                     onClick={() => startEdit(d.key, d.rows)}
-                    style={{ fontSize: 8, padding: "1px 6px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 4, cursor: "pointer", color: "#475569" }}
+                    style={{
+                      fontSize: 8,
+                      padding: "1px 6px",
+                      background: "#fff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      color: "#475569",
+                    }}
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => deleteDs(d.key)}
-                    style={{ fontSize: 8, padding: "1px 6px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 4, cursor: "pointer", color: "#dc2626" }}
+                    style={{
+                      fontSize: 8,
+                      padding: "1px 6px",
+                      background: "#fef2f2",
+                      border: "1px solid #fecaca",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      color: "#dc2626",
+                    }}
                   >
                     ×
                   </button>
                 </div>
                 {cols.length > 0 && (
                   <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-                    {cols.map(c => (
-                      <span key={c} style={{ fontSize: 7.5, fontFamily: "monospace", background: "#dbeafe", color: "#1d4ed8", borderRadius: 3, padding: "1px 5px" }}>
+                    {cols.map((c) => (
+                      <span
+                        key={c}
+                        style={{
+                          fontSize: 7.5,
+                          fontFamily: "monospace",
+                          background: "#dbeafe",
+                          color: "#1d4ed8",
+                          borderRadius: 3,
+                          padding: "1px 5px",
+                        }}
+                      >
                         {c}
                       </span>
                     ))}
@@ -194,19 +265,37 @@ export function InlineDataManager({
       )}
 
       {open && allDs.length === 0 && editingDs === null && (
-        <div style={{ fontSize: 9, color: "#94a3b8", textAlign: "center", padding: "6px 0", fontStyle: "italic" }}>
+        <div
+          style={{
+            fontSize: 9,
+            color: "#94a3b8",
+            textAlign: "center",
+            padding: "6px 0",
+            fontStyle: "italic",
+          }}
+        >
           No datasets yet — click <strong>New dataset</strong> to add one
         </div>
       )}
 
       {editingDs !== null && (
-        <div style={{ background: "#fff", border: "1px solid #bfdbfe", borderRadius: 7, padding: "10px 10px", marginBottom: 4 }}>
+        <div
+          style={{
+            background: "#fff",
+            border: "1px solid #bfdbfe",
+            borderRadius: 7,
+            padding: "10px 10px",
+            marginBottom: 4,
+          }}
+        >
           {editingDs !== "comp" && (
             <div style={{ marginBottom: 7 }}>
-              <div style={{ fontSize: 9, color: T.label, fontWeight: 600, marginBottom: 3 }}>Dataset name</div>
+              <div style={{ fontSize: 9, color: T.label, fontWeight: 600, marginBottom: 3 }}>
+                Dataset name
+              </div>
               <input
                 value={draftName}
-                onChange={e => setDraftName(e.target.value.replace(/\s+/g, "_"))}
+                onChange={(e) => setDraftName(e.target.value.replace(/\s+/g, "_"))}
                 style={{ ...inputStyle, fontFamily: "monospace", fontWeight: 700 }}
                 placeholder="my_dataset"
               />
@@ -214,13 +303,20 @@ export function InlineDataManager({
           )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 6 }}>
-            {(["json", "csv"] as const).map(m => (
+            {(["json", "csv"] as const).map((m) => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setParseErr(null); }}
+                onClick={() => {
+                  setMode(m);
+                  setParseErr(null);
+                }}
                 style={{
-                  fontSize: 9, padding: "2px 9px", borderRadius: 4,
-                  cursor: "pointer", fontWeight: 700, textTransform: "uppercase",
+                  fontSize: 9,
+                  padding: "2px 9px",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
                   background: mode === m ? "#2563eb" : "#f1f5f9",
                   color: mode === m ? "#fff" : "#64748b",
                   border: `1px solid ${mode === m ? "#2563eb" : "#e2e8f0"}`,
@@ -231,25 +327,49 @@ export function InlineDataManager({
             ))}
             <label
               style={{
-                marginLeft: "auto", display: "flex", alignItems: "center", gap: 3,
-                fontSize: 8.5, color: "#2563eb", cursor: "pointer",
-                border: "1px solid #bfdbfe", borderRadius: 4, padding: "2px 7px", background: "#eff6ff",
+                marginLeft: "auto",
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+                fontSize: 8.5,
+                color: "#2563eb",
+                cursor: "pointer",
+                border: "1px solid #bfdbfe",
+                borderRadius: 4,
+                padding: "2px 7px",
+                background: "#eff6ff",
               }}
             >
-              <Upload size={9} />Upload
-              <input type="file" accept=".json,.csv,.txt" onChange={handleFileUpload} style={{ display: "none" }} />
+              <Upload size={9} />
+              Upload
+              <input
+                type="file"
+                accept=".json,.csv,.txt"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+              />
             </label>
           </div>
 
           <textarea
             value={draftText}
-            onChange={e => { setDraftText(e.target.value); setParseErr(null); }}
+            onChange={(e) => {
+              setDraftText(e.target.value);
+              setParseErr(null);
+            }}
             style={{
-              width: "100%", boxSizing: "border-box", minHeight: 140,
-              fontFamily: "monospace", fontSize: 9,
+              width: "100%",
+              boxSizing: "border-box",
+              minHeight: 140,
+              fontFamily: "monospace",
+              fontSize: 9,
               border: `1px solid ${parseErr ? "#fca5a5" : "#cbd5e1"}`,
-              borderRadius: 5, padding: 7, resize: "vertical",
-              background: "#0f172a", color: "#e2e8f0", lineHeight: 1.5,
+              borderRadius: 5,
+              padding: 7,
+              resize: "vertical",
+              background: "#0f172a",
+              color: "#e2e8f0",
+              lineHeight: 1.5,
             }}
             placeholder={
               mode === "csv"
@@ -268,19 +388,32 @@ export function InlineDataManager({
             <button
               onClick={save}
               style={{
-                flex: 1, background: "#2563eb", border: "none", color: "#fff",
-                padding: "6px 0", borderRadius: 5, cursor: "pointer",
-                fontSize: 10, fontWeight: 700,
+                flex: 1,
+                background: "#2563eb",
+                border: "none",
+                color: "#fff",
+                padding: "6px 0",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontSize: 10,
+                fontWeight: 700,
               }}
             >
               Save
             </button>
             <button
-              onClick={() => { setEditingDs(null); setParseErr(null); }}
+              onClick={() => {
+                setEditingDs(null);
+                setParseErr(null);
+              }}
               style={{
-                background: "#f1f5f9", border: "1px solid #e2e8f0",
-                color: "#64748b", padding: "6px 12px", borderRadius: 5,
-                cursor: "pointer", fontSize: 10,
+                background: "#f1f5f9",
+                border: "1px solid #e2e8f0",
+                color: "#64748b",
+                padding: "6px 12px",
+                borderRadius: 5,
+                cursor: "pointer",
+                fontSize: 10,
               }}
             >
               Cancel

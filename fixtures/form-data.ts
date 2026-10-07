@@ -1,15 +1,15 @@
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_TABLE_DATA
- * Real CBS database row fixtures formatted exactly as gRPC backend response envelopes.
- * Kept exclusively for models present in fixtures/models.ts:
+ * STATIC_FORM_DATA
+ * Real CBS form database row fixtures mirroring .response/form-data.json.
+ * Kept exclusively for form screens present in fixtures/forms.ts:
  * 1. ACCOUNT
  * 2. CUSTOMER
  * 3. FUNDS.TRANSFER
  * 4. USER.LIST
  */
-export const STATIC_TABLE_DATA: Record<
+export const STATIC_FORM_DATA: Record<
   string,
   {
     // Form records keyed by recordId (e.g. "AC1001", "CU2001", "FT9001")

@@ -14,7 +14,7 @@ export interface CbsIdleStateProps {
  */
 export function CbsIdleState({ title, code, customMessage }: CbsIdleStateProps) {
   return (
-    <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10 select-none animate-in fade-in-50">
+    <div className="w-full h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10 select-none animate-in fade-in-50">
       <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
         <Layers className="size-6" />
       </div>

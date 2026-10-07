@@ -1,4 +1,4 @@
-import { STATIC_TABLE_DATA } from "@fixtures";
+import { STATIC_FORM_DATA } from "@fixtures";
 import type { FormSchema } from "@/lib/schemas";
 
 /**
@@ -11,11 +11,11 @@ export function findRecordInFixtures(
 ): Record<string, unknown> | undefined {
   if (!cleanId) return undefined;
 
-  const modelTable = STATIC_TABLE_DATA[cleanModel.toUpperCase()];
+  const modelTable = STATIC_FORM_DATA[cleanModel.toUpperCase()];
   let found = modelTable?.records?.[cleanId];
 
   if (!found) {
-    for (const tbl of Object.values(STATIC_TABLE_DATA)) {
+    for (const tbl of Object.values(STATIC_FORM_DATA)) {
       if (tbl.records?.[cleanId]) {
         found = tbl.records[cleanId];
         break;
@@ -48,7 +48,7 @@ export function getAvailableFixtureRecords(modelCode?: string): Array<{
   details: string;
 }> {
   if (!modelCode) return [];
-  const modelTable = STATIC_TABLE_DATA[modelCode.toUpperCase()];
+  const modelTable = STATIC_FORM_DATA[modelCode.toUpperCase()];
   if (!modelTable?.records) return [];
 
   return Object.keys(modelTable.records).map((recId) => {

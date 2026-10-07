@@ -1,11 +1,11 @@
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_MODELS mirrors the GMC backend wire responses (.response/model.json).
- * Formatted exactly as GrpcResponse with Protobuf struct payload.
+ * STATIC_FORMS mirrors the GMC backend wire responses (.response/form.json).
+ * Formatted exactly as GrpcResponse with Protobuf struct payload for Form UI rendering.
  * 100% pure wire data without custom classes or legacy baggage.
  */
-export const STATIC_MODELS: Record<string, GrpcResponse> = {
+export const STATIC_FORMS: Record<string, GrpcResponse> = {
   ACCOUNT: {
     errors: [],
     status: "SUCCESS",

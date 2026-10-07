@@ -9,7 +9,7 @@ import {
   STATIC_BRANCH_RESPONSE,
   STATIC_COMMANDS,
   STATIC_MENU,
-  STATIC_MODELS,
+  STATIC_FORMS,
   STATIC_USER_RESPONSES,
 } from "../fixtures";
 import {
@@ -111,12 +111,12 @@ suite("2. Wire Payload Domain Parsers", () => {
   });
 
   test("parseGMC parses form model schema (idPrefix='AC')", () => {
-    const formAccount = parseGMC(STATIC_MODELS.ACCOUNT.data, "ACCOUNT");
+    const formAccount = parseGMC(STATIC_FORMS.ACCOUNT.data, "ACCOUNT");
     return formAccount.success && formAccount.data.idPrefix === "AC";
   });
 
   test("parseGMC parses enquiry model schema (columns for USER.LIST)", () => {
-    const enq = parseGMC(STATIC_MODELS["USER.LIST"].data, "USER.LIST");
+    const enq = parseGMC(STATIC_FORMS["USER.LIST"].data, "USER.LIST");
     return enq.success && Array.isArray(enq.data.columns) && enq.data.columns.length > 0;
   });
 });

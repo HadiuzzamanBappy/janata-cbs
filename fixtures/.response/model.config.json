@@ -1,0 +1,255 @@
+{
+  "_DEVBY": "System",
+  "_DEVDATE": "2025-09-04",
+  "DESCRIPTION": "Menu Tree",
+  "PREFIX": "SC",
+  "TABLENAME": "MENU_TREE",
+  "USERDEFINEID": true,
+  "ACCESS": "G",
+  "READONLY": false,
+  "SEARCHABLE": false,
+  "ASSOCIATES": [
+    "HIS",
+    "DEL",
+    "UNA"
+  ],
+  "AUTHORIZE": false,
+  "SERVICEPATH": "default",
+  "IDDEF": {
+    "IDPREFIX": "",
+    "SEQUENCELENGTH": "",
+    "SEQUENCERESET": false,
+    "IDPATTERN": ""
+  },
+  "PROPERTIES": [
+    {
+      "NAME": "treeDescription",
+      "LABEL": "Description",
+      "TYPE": "Text",
+      "LENGTH": 300.0,
+      "STRUCTURE": "S",
+      "REQUIRED": true,
+      "DISABLED": false,
+      "WIDTH": 300.0,
+      "POSITION": "",
+      "PARAMETER": {
+        "type": "",
+        "data": [],
+        "modelName": "",
+        "displayField": "",
+        "condition": "",
+        "reference": ""
+      },
+      "ENRICHTEXT": "",
+      "VALUE": "",
+      "ISOPEN": false,
+      "ISLOADING": false,
+      "PROP": [],
+      "DATASOURCE": [],
+      "SN": "1"
+    },
+    {
+      "NAME": "isActive",
+      "LABEL": "Is Active",
+      "TYPE": "Boolean",
+      "LENGTH": "50",
+      "STRUCTURE": "S",
+      "REQUIRED": false,
+      "DISABLED": false,
+      "WIDTH": 50.0,
+      "POSITION": "",
+      "PARAMETER": {
+        "type": "",
+        "data": [],
+        "modelName": "",
+        "displayField": "",
+        "condition": "",
+        "reference": ""
+      },
+      "ENRICHTEXT": "",
+      "VALUE": false,
+      "ISOPEN": false,
+      "ISLOADING": false,
+      "PROP": [],
+      "DATASOURCE": [],
+      "SN": "2"
+    },
+    {
+      "NAME": "menuTree",
+      "LABEL": "Menu Tree",
+      "TYPE": "Array",
+      "LENGTH": "50",
+      "STRUCTURE": "S",
+      "REQUIRED": true,
+      "DISABLED": false,
+      "WIDTH": 50.0,
+      "POSITION": "",
+      "PARAMETER": {
+        "type": "",
+        "data": [],
+        "modelName": "",
+        "displayField": "",
+        "condition": "",
+        "reference": ""
+      },
+      "ENRICHTEXT": "",
+      "VALUE": "",
+      "ISOPEN": false,
+      "ISLOADING": false,
+      "PROP": [],
+      "DATASOURCE": [],
+      "SN": "3"
+    }
+  ],
+  "PREDIFINEID": false,
+  "auditData": {
+    "recStatus": "AU",
+    "recCurrNumber": 5,
+    "recInputter": "SYSUSER",
+    "recInputTime": "2026-08-12 10:36:40",
+    "recAuthorizer": "SYSUSER",
+    "recAuthTime": "2026-08-12 10:36:51",
+    "recBranchCode": "JB9999"
+  }
+}
+
+
+
+
+
+{
+  "_DEVBY": "System",
+  "_DEVDATE": "2025-09-04",
+  "DESCRIPTION": "Menu List",
+  "PREFIX": "SC",
+  "TABLENAME": "MENU",
+  "USERDEFINEID": false,
+  "ACCESS": "G",
+  "READONLY": false,
+  "SEARCHABLE": true,
+  "ASSOCIATES": [
+    "HIS"
+  ],
+  "AUTHORIZE": false,
+  "SERVICEPATH": "default",
+  "IDDEF": {
+    "IDPREFIX": "",
+    "SEQUENCELENGTH": "",
+    "SEQUENCERESET": false,
+    "IDPATTERN": "IS"
+  },
+  "PROPERTIES": [
+    {
+      "NAME": "label",
+      "LABEL": "Menu Label",
+      "TYPE": "Text",
+      "LENGTH": "250",
+      "STRUCTURE": "S",
+      "REQUIRED": true,
+      "DISABLED": false,
+      "WIDTH": 150.0,
+      "POSITION": "",
+      "PARAMETER": "",
+      "ENRICHTEXT": "",
+      "VALUE": "",
+      "ISOPEN": false,
+      "ISLOADING": false,
+      "PROP": [],
+      "DATASOURCE": [],
+      "SN": "1"
+    },
+    {
+      "NAME": "command",
+      "LABEL": "Command",
+      "TYPE": "Text",
+      "LENGTH": "250",
+      "STRUCTURE": "S",
+      "REQUIRED": false,
+      "DISABLED": false,
+      "WIDTH": 150.0,
+      "POSITION": "",
+      "PARAMETER": "",
+      "ENRICHTEXT": "",
+      "VALUE": "",
+      "ISOPEN": false,
+      "ISLOADING": false,
+      "PROP": [],
+      "DATASOURCE": [],
+      "SN": "2"
+    },
+    {
+      "NAME": "menuType",
+      "LABEL": "Menu Type",
+      "TYPE": "Dropdown",
+      "LENGTH": "50",
+      "STRUCTURE": "S",
+      "REQUIRED": false,
+      "DISABLED": false,
+      "WIDTH": 120.0,
+      "POSITION": "",
+      "PARAMETER": {
+        "type": "O",
+        "data": [
+          {
+            "itemCode": "1",
+            "itemLabel": "Parent"
+          },
+          {
+            "itemCode": "2",
+            "itemLabel": "Inquiry"
+          },
+          {
+            "itemCode": "3",
+            "itemLabel": "Form"
+          },
+          {
+            "itemCode": "4",
+            "itemLabel": "Report"
+          },
+          {
+            "itemCode": "5",
+            "itemLabel": "Setting"
+          }
+        ]
+      },
+      "ENRICHTEXT": "",
+      "VALUE": "",
+      "ISOPEN": false,
+      "ISLOADING": false,
+      "PROP": [],
+      "DATASOURCE": [],
+      "SN": "3"
+    }
+  ],
+  "PREDIFINEID": false,
+  "VIEWDEF": [
+    {
+      "VIEWNAME": "",
+      "DESCRIPTION": "",
+      "FIELDS": [
+        {
+          "TABLENAME": "",
+          "FIELDNAME": ""
+        }
+      ]
+    }
+  ],
+  "auditFields": {
+    "recStatus": "AU",
+    "recCurrNumber": 2.0,
+    "recInputter": "ADMIN02",
+    "recInputTime": "2026-03-11 06:45:21",
+    "recAuthorizer": "ADMIN02",
+    "recAuthTime": "2026-03-11 06:45:49",
+    "recBranchCode": "JB9999"
+  },
+  "auditData": {
+    "recStatus": "AU",
+    "recCurrNumber": 7,
+    "recInputter": "SYSUSER",
+    "recInputTime": "2026-08-16 11:40:38",
+    "recAuthorizer": "SYSUSER",
+    "recAuthTime": "2026-08-16 11:40:44",
+    "recBranchCode": "JB9999"
+  }
+}

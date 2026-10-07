@@ -87,4 +87,3 @@ export const formSchemaSchema = z.object({
 });
 
 export type FormSchema = z.infer<typeof formSchemaSchema>;
-export type ModelSchema = FormSchema;

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/redis";
-import { getModelData } from "@/lib/services";
+import { getFormData } from "@/lib/services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +26,7 @@ export async function GET(
       );
     }
 
-    const schema = await getModelData(cmd, session.token);
+    const schema = await getFormData(cmd, session.token);
 
     if (!schema) {
       return NextResponse.json(

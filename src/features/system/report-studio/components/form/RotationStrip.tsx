@@ -19,7 +19,15 @@ export function RotationStrip({
 }) {
   return (
     <div style={{ marginBottom: 8 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: T.label, marginBottom: 3 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 9,
+          color: T.label,
+          marginBottom: 3,
+        }}
+      >
         <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <RotateCw size={9} />
           Rotation
@@ -32,11 +40,11 @@ export function RotationStrip({
         max={180}
         step={1}
         value={value}
-        onChange={e => onChange(+e.target.value)}
+        onChange={(e) => onChange(+e.target.value)}
         style={{ width: "100%", accentColor: "#7c3aed", height: 4, marginBottom: 4 }}
       />
       <div style={{ display: "flex", gap: 3 }}>
-        {presets.map(deg => (
+        {presets.map((deg) => (
           <button
             key={deg}
             onClick={() => onChange(deg)}

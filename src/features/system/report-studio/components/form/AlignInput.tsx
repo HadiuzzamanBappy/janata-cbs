@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { AlignCenter, AlignJustify, AlignLeft, AlignRight } from "lucide-react";
+import type { ReactNode } from "react";
 import { T } from "../../theme/tokens";
 
 /**
@@ -46,7 +46,7 @@ export function AlignInput({
           border: `1px solid ${T.border}`,
         }}
       >
-        {options.map(opt => (
+        {options.map((opt) => (
           <button
             key={opt}
             title={labels[opt] || opt}

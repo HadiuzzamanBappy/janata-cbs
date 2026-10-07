@@ -38,8 +38,7 @@ export function Button({
   style?: CSSProperties;
   type?: "button" | "submit" | "reset";
 }) {
-  const pad =
-    size === "sm" ? "3px 8px" : size === "lg" ? "8px 14px" : "5px 11px";
+  const pad = size === "sm" ? "3px 8px" : size === "lg" ? "8px 14px" : "5px 11px";
   const fs = size === "sm" ? 9.5 : size === "lg" ? 12 : 10.5;
 
   const baseStyles: CSSProperties = {
@@ -62,9 +61,9 @@ export function Button({
     variant === "primary"
       ? {
           primary: { background: color, color: "#fff" },
-          ghost:   {},
+          ghost: {},
           outline: {},
-          danger:  {},
+          danger: {},
         }
       : variant === "ghost"
         ? {

@@ -56,7 +56,9 @@ export const STATIC_MENU: GrpcResponse = {
                                                       id: { string_value: "n_1787137168951_1" },
                                                       menuId: { number_value: 29 },
                                                       label: { string_value: "User Request" },
-                                                      command: { string_value: "INQ S GET.EMP.INFO" },
+                                                      command: {
+                                                        string_value: "INQ S GET.EMP.INFO",
+                                                      },
                                                       isVisible: { bool_value: true },
                                                       children: { list_value: { values: [] } },
                                                     },
@@ -85,7 +87,9 @@ export const STATIC_MENU: GrpcResponse = {
                                                         string_value:
                                                           "Unauthrized User Request List",
                                                       },
-                                                      command: { string_value: "INQ S GET.USER.MGT" },
+                                                      command: {
+                                                        string_value: "INQ S GET.USER.MGT",
+                                                      },
                                                       isVisible: { bool_value: true },
                                                       children: { list_value: { values: [] } },
                                                     },
@@ -231,4 +235,3 @@ export const STATIC_MENU: GrpcResponse = {
     },
   },
 };
-

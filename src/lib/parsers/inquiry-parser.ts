@@ -256,7 +256,9 @@ export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
       return rawPayload.map((item, idx) => {
         const row = typeof item === "object" && item !== null ? item : {};
         return {
-          id: String((row as Record<string, unknown>).id ?? (row as Record<string, unknown>).recordId ?? idx),
+          id: String(
+            (row as Record<string, unknown>).id ?? (row as Record<string, unknown>).recordId ?? idx,
+          ),
           ...(row as Record<string, unknown>),
         };
       });
@@ -270,10 +272,10 @@ export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
     const flatRecord = unwrapStruct(item);
     const id = String(
       flatRecord.id ||
-      flatRecord.recordId ||
-      flatRecord.txnReference ||
-      flatRecord.accountNumber ||
-      idx
+        flatRecord.recordId ||
+        flatRecord.txnReference ||
+        flatRecord.accountNumber ||
+        idx,
     );
 
     return {
@@ -282,4 +284,3 @@ export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
     };
   });
 }
-

@@ -31,7 +31,7 @@ export function resolveVariables(
 
   return text.replace(re, (match, n1, n2) => {
     const varName = n1 || n2;
-    const v = variables.find(rv => rv.name === varName);
+    const v = variables.find((rv) => rv.name === varName);
     if (!v) return match;
 
     let row: Record<string, any> | null | undefined = compFirstRow;
@@ -43,9 +43,7 @@ export function resolveVariables(
           null;
       } else if (v.dataSourceRef.startsWith("central:")) {
         row =
-          rowOverrideMap?.[v.dataSourceRef] ??
-          centralData?.[v.dataSourceRef.slice(8)]?.[0] ??
-          null;
+          rowOverrideMap?.[v.dataSourceRef] ?? centralData?.[v.dataSourceRef.slice(8)]?.[0] ?? null;
       }
     }
 

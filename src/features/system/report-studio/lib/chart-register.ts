@@ -4,16 +4,16 @@ import {
   BarElement,
   CategoryScale,
   Chart as ChartJS,
+  Legend as ChartLegend,
+  Title as ChartTitle,
+  Tooltip as ChartTooltip,
   DoughnutController,
   Filler,
-  Legend as ChartLegend,
   LinearScale,
   LineController,
   LineElement,
   PieController,
   PointElement,
-  Title as ChartTitle,
-  Tooltip as ChartTooltip,
 } from "chart.js";
 
 /**

@@ -14,8 +14,8 @@
  * 8. System Action:             ACTION:LOGOUT          -> Type: ACTION, Action: logout
  */
 
-import { resolveCommandAlias } from "../registry/alias";
 import type { FunctionRightCode } from "@/types";
+import { resolveCommandAlias } from "../registry/alias";
 import {
   CBS_FUNCTION_METADATA,
   CBS_SETTINGS_TABS,

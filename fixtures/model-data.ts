@@ -21,37 +21,37 @@ export const STATIC_TABLE_DATA: Record<
   // 1. ACCOUNT Records
   ACCOUNT: {
     records: {
-      "AC1001": {
+      AC1001: {
         "CUSTOMER.ID": "CU2001",
-        "CATEGORY": "1001",
-        "PRODUCT": "SAVINGS",
-        "CURRENCY": "BDT",
+        CATEGORY: "1001",
+        PRODUCT: "SAVINGS",
+        CURRENCY: "BDT",
         "ACCOUNT.OFFICER": "OFF101",
-        "BRANCH": "JB1001",
+        BRANCH: "JB1001",
         "OPENING.DATE": "2024-01-15",
         "ACCOUNT.TITLE": "Mohammad Rahman Savings Account",
         "MAILING.ADDRESS": "House 12, Road 5, Dhanmondi, Dhaka",
         "RECORD.STATUS": "LIVE",
       },
-      "AC1002": {
+      AC1002: {
         "CUSTOMER.ID": "CU2002",
-        "CATEGORY": "1002",
-        "PRODUCT": "CURRENT",
-        "CURRENCY": "BDT",
+        CATEGORY: "1002",
+        PRODUCT: "CURRENT",
+        CURRENCY: "BDT",
         "ACCOUNT.OFFICER": "OFF102",
-        "BRANCH": "JB1001",
+        BRANCH: "JB1001",
         "OPENING.DATE": "2024-02-20",
         "ACCOUNT.TITLE": "Fatima Begum Current Account",
         "MAILING.ADDRESS": "Plot 45, Gulshan Avenue, Dhaka",
         "RECORD.STATUS": "LIVE",
       },
-      "AC1003": {
+      AC1003: {
         "CUSTOMER.ID": "CU2003",
-        "CATEGORY": "1001",
-        "PRODUCT": "SAVINGS",
-        "CURRENCY": "USD",
+        CATEGORY: "1001",
+        PRODUCT: "SAVINGS",
+        CURRENCY: "USD",
         "ACCOUNT.OFFICER": "OFF101",
-        "BRANCH": "JB9999",
+        BRANCH: "JB9999",
         "OPENING.DATE": "2024-03-10",
         "ACCOUNT.TITLE": "Shahidul Islam Foreign Currency A/C",
         "MAILING.ADDRESS": "House 8, Sector 3, Uttara, Dhaka",
@@ -92,43 +92,43 @@ export const STATIC_TABLE_DATA: Record<
   // 2. CUSTOMER Records
   CUSTOMER: {
     records: {
-      "CU2001": {
+      CU2001: {
         "CUSTOMER.ID": "CU2001",
         "NAME.1": "Mohammad Rahman",
         "SHORT.NAME": "M. Rahman",
-        "SECTOR": "INDIVIDUAL",
-        "NATIONALITY": "BD",
-        "RESIDENCE": "BD",
-        "BRANCH": "JB1001",
+        SECTOR: "INDIVIDUAL",
+        NATIONALITY: "BD",
+        RESIDENCE: "BD",
+        BRANCH: "JB1001",
         "CONTACT.NUMBER": "+8801711000111",
         "DATE.OF.BIRTH": "1988-06-15",
-        "OCCUPATION": "Salaried Professional",
+        OCCUPATION: "Salaried Professional",
         "RECORD.STATUS": "LIVE",
       },
-      "CU2002": {
+      CU2002: {
         "CUSTOMER.ID": "CU2002",
         "NAME.1": "Fatima Begum",
         "SHORT.NAME": "F. Begum",
-        "SECTOR": "BUSINESS",
-        "NATIONALITY": "BD",
-        "RESIDENCE": "BD",
-        "BRANCH": "JB1001",
+        SECTOR: "BUSINESS",
+        NATIONALITY: "BD",
+        RESIDENCE: "BD",
+        BRANCH: "JB1001",
         "CONTACT.NUMBER": "+8801819222333",
         "DATE.OF.BIRTH": "1992-11-20",
-        "OCCUPATION": "Entrepreneur",
+        OCCUPATION: "Entrepreneur",
         "RECORD.STATUS": "LIVE",
       },
-      "CU2003": {
+      CU2003: {
         "CUSTOMER.ID": "CU2003",
         "NAME.1": "Shahidul Islam",
         "SHORT.NAME": "S. Islam",
-        "SECTOR": "NRB",
-        "NATIONALITY": "BD",
-        "RESIDENCE": "AE",
-        "BRANCH": "JB9999",
+        SECTOR: "NRB",
+        NATIONALITY: "BD",
+        RESIDENCE: "AE",
+        BRANCH: "JB9999",
         "CONTACT.NUMBER": "+8801911444555",
         "DATE.OF.BIRTH": "1980-04-05",
-        "OCCUPATION": "IT Consultant",
+        OCCUPATION: "IT Consultant",
         "RECORD.STATUS": "LIVE",
       },
     },
@@ -166,26 +166,26 @@ export const STATIC_TABLE_DATA: Record<
   // 3. FUNDS.TRANSFER Records
   "FUNDS.TRANSFER": {
     records: {
-      "FT9001": {
+      FT9001: {
         "TXN.CODE": "FT01",
         "DEBIT.ACCOUNT": "AC1001",
         "DEBIT.CURRENCY": "BDT",
         "CREDIT.ACCOUNT": "AC1002",
         "CREDIT.CURRENCY": "BDT",
-        "AMOUNT": 50000,
+        AMOUNT: 50000,
         "VALUE.DATE": "2026-10-01",
         "TXN.DATE": "2026-10-01",
         "DEBIT.BRANCH": "JB1001",
         "CREDIT.BRANCH": "JB1001",
         "RECORD.STATUS": "LIVE",
       },
-      "FT9002": {
+      FT9002: {
         "TXN.CODE": "FT01",
         "DEBIT.ACCOUNT": "AC1002",
         "DEBIT.CURRENCY": "BDT",
         "CREDIT.ACCOUNT": "AC1003",
         "CREDIT.CURRENCY": "BDT",
-        "AMOUNT": 125000,
+        AMOUNT: 125000,
         "VALUE.DATE": "2026-10-02",
         "TXN.DATE": "2026-10-02",
         "DEBIT.BRANCH": "JB1001",
@@ -258,9 +258,7 @@ export const STATIC_TABLE_DATA: Record<
 /**
  * Helper to build a standard wire GrpcResponse for a database select
  */
-export function buildMockDatabaseResponse(
-  recordData: Record<string, unknown>,
-): GrpcResponse {
+export function buildMockDatabaseResponse(recordData: Record<string, unknown>): GrpcResponse {
   // Convert JS object to Protobuf Struct fields
   const fields: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(recordData)) {

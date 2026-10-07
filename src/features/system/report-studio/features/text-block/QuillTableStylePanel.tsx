@@ -1,22 +1,17 @@
-import React, { useState, useRef, useEffect } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, X } from "@/features/system/report-studio/theme/icons";
 import { T } from "@/features/system/report-studio/theme/tokens";
 import {
-  DEFAULT_TABLE_STYLE,
-  TSW_PRESETS,
-  previewStyleOnTable,
   applyStyleToTable,
+  DEFAULT_TABLE_STYLE,
+  previewStyleOnTable,
+  TSW_PRESETS,
 } from "./quillTableStyle";
 
 // ── Small helper components (used only within this file) ─────────────────────
 
-function TSRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function TSRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div
       style={{
@@ -28,11 +23,7 @@ function TSRow({
       }}
     >
       <span style={{ flex: 1, fontSize: 11, color: T.text }}>{label}</span>
-      <div
-        style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
-      >
-        {children}
-      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>{children}</div>
     </div>
   );
 }
@@ -54,13 +45,7 @@ function TSLbl({ children }: { children: React.ReactNode }) {
   );
 }
 
-function TSToggle({
-  v,
-  onChange,
-}: {
-  v: boolean;
-  onChange: (b: boolean) => void;
-}) {
+function TSToggle({ v, onChange }: { v: boolean; onChange: (b: boolean) => void }) {
   return (
     <div
       onMouseDown={(e) => {
@@ -129,13 +114,7 @@ function TSNum({
   );
 }
 
-function TSSwatch({
-  v,
-  onChange,
-}: {
-  v: string;
-  onChange: (c: string) => void;
-}) {
+function TSSwatch({ v, onChange }: { v: string; onChange: (c: string) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ top: 0, left: 0 });
@@ -149,13 +128,8 @@ function TSSwatch({
         ph = 230;
       setPos({
         left:
-          r.left - pw - 8 < 0
-            ? Math.min(r.right + 6, window.innerWidth - pw - 8)
-            : r.left - pw - 8,
-        top:
-          r.top + ph > window.innerHeight
-            ? Math.max(8, window.innerHeight - ph - 8)
-            : r.top,
+          r.left - pw - 8 < 0 ? Math.min(r.right + 6, window.innerWidth - pw - 8) : r.left - pw - 8,
+        top: r.top + ph > window.innerHeight ? Math.max(8, window.innerHeight - ph - 8) : r.top,
       });
     }
     setOpen((o) => !o);
@@ -274,8 +248,7 @@ function TSSwatch({
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               onChange={(e) => {
-                if (/^#[0-9a-fA-F]{6}$/.test(e.target.value))
-                  onChange(e.target.value);
+                if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) onChange(e.target.value);
               }}
               style={{
                 flex: 1,
@@ -368,11 +341,7 @@ export const QuillTableStylePanel = ({
         >
           <ChevronLeft size={13} />
         </div>
-        <span
-          style={{ flex: 1, fontSize: 11, fontWeight: 600, color: T.text }}
-        >
-          Table Style
-        </span>
+        <span style={{ flex: 1, fontSize: 11, fontWeight: 600, color: T.text }}>Table Style</span>
         <div
           onMouseDown={(e) => {
             e.stopPropagation();
@@ -394,17 +363,10 @@ export const QuillTableStylePanel = ({
       <div style={{ flex: 1, overflowY: "auto" }}>
         <TSLbl>Border</TSLbl>
         <TSRow label="Color">
-          <TSSwatch
-            v={ls.borderColor}
-            onChange={(v) => upd({ borderColor: v })}
-          />
+          <TSSwatch v={ls.borderColor} onChange={(v) => upd({ borderColor: v })} />
         </TSRow>
         <TSRow label="Width (px)">
-          <TSNum
-            v={ls.borderWidth}
-            onChange={(v) => upd({ borderWidth: v })}
-            max={8}
-          />
+          <TSNum v={ls.borderWidth} onChange={(v) => upd({ borderWidth: v })} max={8} />
         </TSRow>
 
         <div style={{ height: 1, background: "#f1f5f9", margin: "4px 0" }} />
@@ -413,16 +375,10 @@ export const QuillTableStylePanel = ({
           <TSSwatch v={ls.headerBg} onChange={(v) => upd({ headerBg: v })} />
         </TSRow>
         <TSRow label="Text color">
-          <TSSwatch
-            v={ls.headerColor}
-            onChange={(v) => upd({ headerColor: v })}
-          />
+          <TSSwatch v={ls.headerColor} onChange={(v) => upd({ headerColor: v })} />
         </TSRow>
         <TSRow label="Bold">
-          <TSToggle
-            v={ls.headerBold}
-            onChange={(v) => upd({ headerBold: v })}
-          />
+          <TSToggle v={ls.headerBold} onChange={(v) => upd({ headerBold: v })} />
         </TSRow>
 
         <div style={{ height: 1, background: "#f1f5f9", margin: "4px 0" }} />
@@ -434,21 +390,11 @@ export const QuillTableStylePanel = ({
           <TSSwatch v={ls.cellColor} onChange={(v) => upd({ cellColor: v })} />
         </TSRow>
         <TSRow label="Alternating row">
-          <TSToggle
-            v={!!ls.altRowBg}
-            onChange={(on) => upd({ altRowBg: on ? "#f8fafc" : "" })}
-          />
-          {ls.altRowBg ? (
-            <TSSwatch v={ls.altRowBg} onChange={(v) => upd({ altRowBg: v })} />
-          ) : null}
+          <TSToggle v={!!ls.altRowBg} onChange={(on) => upd({ altRowBg: on ? "#f8fafc" : "" })} />
+          {ls.altRowBg ? <TSSwatch v={ls.altRowBg} onChange={(v) => upd({ altRowBg: v })} /> : null}
         </TSRow>
         <TSRow label="Font size (px)">
-          <TSNum
-            v={ls.fontSize}
-            onChange={(v) => upd({ fontSize: v })}
-            min={7}
-            max={24}
-          />
+          <TSNum v={ls.fontSize} onChange={(v) => upd({ fontSize: v })} min={7} max={24} />
         </TSRow>
       </div>
 

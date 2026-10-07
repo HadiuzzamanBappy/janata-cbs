@@ -1,8 +1,8 @@
-import { useRef } from "react";
 import { Columns3, GripVertical, Plus } from "lucide-react";
+import { useRef } from "react";
+import { T } from "../../theme/tokens";
 import type { Column } from "../../types/table";
 import { deepClone } from "../../utils/deepClone";
-import { T } from "../../theme/tokens";
 
 /**
  * Left-rail column list for a TABLE component. Mouse-drag reorder via grip
@@ -47,7 +47,7 @@ export function ColumnListPanel({
     if (draggedEl) draggedEl.style.opacity = "0.35";
 
     const clearIndicators = () =>
-      itemEls.forEach(el => {
+      itemEls.forEach((el) => {
         el.style.borderTopColor = "";
         el.style.borderTopWidth = "";
         el.style.borderBottomColor = "";
@@ -95,17 +95,40 @@ export function ColumnListPanel({
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-        <div style={{ fontSize: 9, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.07em", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 8,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 9,
+            color: "#94a3b8",
+            textTransform: "uppercase",
+            letterSpacing: "0.07em",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
           <Columns3 size={10} />
           Columns
         </div>
         <button
           onClick={onAdd}
           style={{
-            background: "#2563eb", color: "#fff", border: "none",
-            padding: "3px 10px", borderRadius: 5, cursor: "pointer",
-            fontSize: 10, fontWeight: 700,
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            padding: "3px 10px",
+            borderRadius: 5,
+            cursor: "pointer",
+            fontSize: 10,
+            fontWeight: 700,
           }}
         >
           <Plus size={11} style={{ marginRight: 3 }} />
@@ -113,7 +136,16 @@ export function ColumnListPanel({
         </button>
       </div>
       {columns.length === 0 && (
-        <div style={{ border: "1px dashed #e2e8f0", borderRadius: 8, padding: "14px 10px", textAlign: "center", color: "#cbd5e1", fontSize: 11 }}>
+        <div
+          style={{
+            border: "1px dashed #e2e8f0",
+            borderRadius: 8,
+            padding: "14px 10px",
+            textAlign: "center",
+            color: "#cbd5e1",
+            fontSize: 11,
+          }}
+        >
           No columns yet
         </div>
       )}
@@ -126,14 +158,22 @@ export function ColumnListPanel({
               data-col-idx={idx}
               onClick={() => onSel(col._id)}
               style={{
-                display: "flex", alignItems: "center", gap: 7,
-                padding: "6px 8px", marginBottom: 1,
-                borderRadius: 6, cursor: "default",
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                padding: "6px 8px",
+                marginBottom: 1,
+                borderRadius: 6,
+                cursor: "default",
                 background: isItemSelected ? "#2563eb18" : T.bg2,
-                borderTopWidth: "1px", borderBottomWidth: "1px",
-                borderLeftWidth: "1px", borderRightWidth: "1px",
-                borderTopStyle: "solid", borderBottomStyle: "solid",
-                borderLeftStyle: "solid", borderRightStyle: "solid",
+                borderTopWidth: "1px",
+                borderBottomWidth: "1px",
+                borderLeftWidth: "1px",
+                borderRightWidth: "1px",
+                borderTopStyle: "solid",
+                borderBottomStyle: "solid",
+                borderLeftStyle: "solid",
+                borderRightStyle: "solid",
                 borderTopColor: isItemSelected ? "#2563eb66" : T.border,
                 borderBottomColor: isItemSelected ? "#2563eb66" : T.border,
                 borderLeftColor: isItemSelected ? "#2563eb66" : T.border,
@@ -141,11 +181,15 @@ export function ColumnListPanel({
               }}
             >
               <div
-                onMouseDown={e => onGripMouseDown(e, idx)}
+                onMouseDown={(e) => onGripMouseDown(e, idx)}
                 style={{
-                  color: "#cbd5e1", cursor: "grab",
-                  flexShrink: 0, display: "flex", alignItems: "center",
-                  padding: "0 2px", userSelect: "none",
+                  color: "#cbd5e1",
+                  cursor: "grab",
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "0 2px",
+                  userSelect: "none",
                 }}
               >
                 <GripVertical size={14} />
@@ -156,27 +200,41 @@ export function ColumnListPanel({
                     fontSize: 10.5,
                     fontWeight: isItemSelected ? 700 : 500,
                     color: isItemSelected ? "#2563eb" : T.text,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {col.header}
                 </div>
-                <div style={{ fontSize: 9, color: "#94a3b8", display: "flex", gap: 4, marginTop: 1 }}>
+                <div
+                  style={{ fontSize: 9, color: "#94a3b8", display: "flex", gap: 4, marginTop: 1 }}
+                >
                   <span>{col.align[0]}</span>
                   <span>w{col.width}</span>
                   {col.format && <span style={{ color: "#d97706" }}>{col.format}</span>}
-                  {col.aggregate && <span style={{ color: "#dc2626" }}>{col.aggregate.function}</span>}
+                  {col.aggregate && (
+                    <span style={{ color: "#dc2626" }}>{col.aggregate.function}</span>
+                  )}
                 </div>
               </div>
               <button
-                onClick={e => { e.stopPropagation(); onDelete(col._id); }}
-                style={{
-                  background: "none", border: "none", color: "#fca5a5",
-                  cursor: "pointer", fontSize: 13, lineHeight: 1,
-                  flexShrink: 0, padding: "0 2px",
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(col._id);
                 }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#dc2626")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#fca5a5")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#fca5a5",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  lineHeight: 1,
+                  flexShrink: 0,
+                  padding: "0 2px",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#fca5a5")}
               >
                 ✕
               </button>

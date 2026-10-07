@@ -1,19 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import type { ZoneElement, ZoneRow } from "../types/zone";
-import type { Align, Font } from "../types/primitives";
-import { deepClone } from "@/features/system/report-studio/utils/deepClone";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { TEXT_ALIGN_MAP } from "@/features/system/report-studio/constants/alignment";
 import { FONT_FAMILY_MAP as _FM } from "@/features/system/report-studio/constants/fonts";
 import { PALETTE } from "@/features/system/report-studio/constants/preview-data";
-import {
-  X,
-  LayoutGrid,
-  RotateCw,
-  Move,
-  Layers,
-} from "@/features/system/report-studio/theme/icons";
+import { Layers, LayoutGrid, Move, RotateCw, X } from "@/features/system/report-studio/theme/icons";
+import { deepClone } from "@/features/system/report-studio/utils/deepClone";
+import type { Align, Font } from "../types/primitives";
+import type { ZoneElement, ZoneRow } from "../types/zone";
 import type { BandCanvasProps } from "./types";
 
 // Re-export for consumers
@@ -54,9 +49,7 @@ export function BandCanvas({
   const [dragSortId, setDragSortId] = useState<string | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
   const [activeLogoDragId, setActiveLogoDragId] = useState<string | null>(null);
-  const [activeResizeDragId, setActiveResizeDragId] = useState<string | null>(
-    null,
-  );
+  const [activeResizeDragId, setActiveResizeDragId] = useState<string | null>(null);
   const [activeFlexDragId, setActiveFlexDragId] = useState<string | null>(null);
 
   const bandContainerRef = useRef<HTMLDivElement>(null);
@@ -166,9 +159,7 @@ export function BandCanvas({
   // Sort by zIndex so user-controlled z-order is respected within each layer
   const sortByZ = (arr: ZoneElement[]) =>
     [...arr].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0));
-  const flowElements = sortByZ(
-    allElements.filter((e) => e.type !== "LOGO" && !e.config?.flexmove),
-  );
+  const flowElements = sortByZ(allElements.filter((e) => e.type !== "LOGO" && !e.config?.flexmove));
   const flexmoveElements = sortByZ(
     allElements.filter((e) => e.type !== "LOGO" && !!e.config?.flexmove),
   );
@@ -194,9 +185,7 @@ export function BandCanvas({
           : `${brd(data.margin?.top || 0)} ${brd(data.margin?.right || 0)} ${brd(data.margin?.bottom || 0)} ${brd(data.margin?.left || 0)}`,
         minHeight: hasRows
           ? 0
-          : toPx(
-            data.minHeight || (zone === "footer" ? data.height || 28 : 20),
-          ),
+          : toPx(data.minHeight || (zone === "footer" ? data.height || 28 : 20)),
         position: "relative",
         cursor: "default",
         outline: isZoneSel ? "2px dashed #93c5fd" : "none",
@@ -243,52 +232,44 @@ export function BandCanvas({
           const bxW = `${boxCfg.borderWidth ?? 1}px`;
           const bxS = boxCfg.borderStyle || "solid";
           const bxC = boxCfg.borderColor || "#2563eb";
-          const bxSides: string[] = boxCfg.borderSides ?? [
-            "top",
-            "right",
-            "bottom",
-            "left",
-          ];
+          const bxSides: string[] = boxCfg.borderSides ?? ["top", "right", "bottom", "left"];
           const bxHas = (s: string) => bxSides.includes(s);
           const boxStyle: React.CSSProperties = boxCfg.enabled
             ? {
-              borderTopWidth: bxHas("top") ? bxW : "0",
-              borderRightWidth: bxHas("right") ? bxW : "0",
-              borderBottomWidth: bxHas("bottom") ? bxW : "0",
-              borderLeftWidth: bxHas("left") ? bxW : "0",
-              borderTopStyle: bxHas("top") ? (bxS as any) : "none",
-              borderRightStyle: bxHas("right") ? (bxS as any) : "none",
-              borderBottomStyle: bxHas("bottom") ? (bxS as any) : "none",
-              borderLeftStyle: bxHas("left") ? (bxS as any) : "none",
-              borderTopColor: bxC,
-              borderRightColor: bxC,
-              borderBottomColor: bxC,
-              borderLeftColor: bxC,
-              borderRadius: (() => {
-                const r = boxCfg.radius;
-                if (!r || typeof r === "number") return r ?? 0;
-                return `${r.topLeft || 0}px ${r.topRight || 0}px ${r.bottomRight || 0}px ${r.bottomLeft || 0}px`;
-              })(),
-              opacity: boxCfg.opacity ?? 1,
-              paddingTop: toPx(boxCfg.padding?.top ?? 4),
-              paddingRight: toPx(boxCfg.padding?.right ?? 6),
-              paddingBottom: toPx(boxCfg.padding?.bottom ?? 4),
-              paddingLeft: toPx(boxCfg.padding?.left ?? 6),
-              display: "inline-block",
-              width: "100%",
-              boxSizing: "border-box" as const,
-            }
+                borderTopWidth: bxHas("top") ? bxW : "0",
+                borderRightWidth: bxHas("right") ? bxW : "0",
+                borderBottomWidth: bxHas("bottom") ? bxW : "0",
+                borderLeftWidth: bxHas("left") ? bxW : "0",
+                borderTopStyle: bxHas("top") ? (bxS as any) : "none",
+                borderRightStyle: bxHas("right") ? (bxS as any) : "none",
+                borderBottomStyle: bxHas("bottom") ? (bxS as any) : "none",
+                borderLeftStyle: bxHas("left") ? (bxS as any) : "none",
+                borderTopColor: bxC,
+                borderRightColor: bxC,
+                borderBottomColor: bxC,
+                borderLeftColor: bxC,
+                borderRadius: (() => {
+                  const r = boxCfg.radius;
+                  if (!r || typeof r === "number") return r ?? 0;
+                  return `${r.topLeft || 0}px ${r.topRight || 0}px ${r.bottomRight || 0}px ${r.bottomLeft || 0}px`;
+                })(),
+                opacity: boxCfg.opacity ?? 1,
+                paddingTop: toPx(boxCfg.padding?.top ?? 4),
+                paddingRight: toPx(boxCfg.padding?.right ?? 6),
+                paddingBottom: toPx(boxCfg.padding?.bottom ?? 4),
+                paddingLeft: toPx(boxCfg.padding?.left ?? 6),
+                display: "inline-block",
+                width: "100%",
+                boxSizing: "border-box" as const,
+              }
             : {};
           if (el.type === "TEXT" || el.type === "DATE_TIME") {
             const txt =
-              el.type === "DATE_TIME"
-                ? (cfg.text || "") + "2026-01-15 09:30"
-                : cfg.text || "";
+              el.type === "DATE_TIME" ? (cfg.text || "") + "2026-01-15 09:30" : cfg.text || "";
             const inner = (
               <div
                 style={{
-                  textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] ||
-                    "left") as any,
+                  textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] || "left") as any,
                   fontFamily: FONT_MAP[cfg.font as Font] || "Arial",
                   fontSize: toPx(cfg.fontSize || 12) * 0.76,
                   color: cfg.fontColor || "#333",
@@ -316,8 +297,7 @@ export function BandCanvas({
             const inner = (
               <div
                 style={{
-                  textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] ||
-                    "center") as any,
+                  textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] || "center") as any,
                   fontFamily: FONT_MAP[cfg.font as Font] || "Arial",
                   fontSize: toPx(cfg.fontSize || 9) * 0.76,
                   color: cfg.fontColor || "#666",
@@ -422,12 +402,8 @@ export function BandCanvas({
                 if (!fid || fid === el._id) return;
                 // work on a clone of ALL elements; only reorder within flow elements
                 const arr = deepClone(allElements);
-                const fromIdx = arr.findIndex(
-                  (x: ZoneElement) => x._id === fid,
-                );
-                const toIdx = arr.findIndex(
-                  (x: ZoneElement) => x._id === el._id,
-                );
+                const fromIdx = arr.findIndex((x: ZoneElement) => x._id === fid);
+                const toIdx = arr.findIndex((x: ZoneElement) => x._id === el._id);
                 if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return;
                 const [moved] = arr.splice(fromIdx, 1);
                 arr.splice(fromIdx < toIdx ? toIdx : toIdx, 0, moved);
@@ -459,15 +435,9 @@ export function BandCanvas({
               style={{
                 position: "relative",
                 cursor: el.locked ? "not-allowed" : "grab",
-                opacity: isDragging
-                  ? 0.2
-                  : el.hidden
-                    ? 0.25
-                    : (el.opacity ?? 1),
+                opacity: isDragging ? 0.2 : el.hidden ? 0.25 : (el.opacity ?? 1),
                 zIndex: isItemSelected ? 100 : (el.zIndex ?? 0),
-                borderTop: isOver
-                  ? "2px solid #2563eb"
-                  : "2px solid transparent",
+                borderTop: isOver ? "2px solid #2563eb" : "2px solid transparent",
                 outline: isItemSelected
                   ? "2px solid #2563eb"
                   : (multiSelIds || []).includes(el._id)
@@ -483,8 +453,7 @@ export function BandCanvas({
               }}
               onMouseLeave={(e) => {
                 if (!isItemSelected && !(multiSelIds || []).includes(el._id))
-                  (e.currentTarget as HTMLDivElement).style.outline =
-                    "1px solid transparent";
+                  (e.currentTarget as HTMLDivElement).style.outline = "1px solid transparent";
               }}
             >
               {body}
@@ -556,9 +525,7 @@ export function BandCanvas({
                         display: "flex",
                         flexDirection: "row",
                         width: "100%",
-                        outline: isSelRow
-                          ? `2px solid ${accentColor}`
-                          : `1px dashed #e2e8f0`,
+                        outline: isSelRow ? `2px solid ${accentColor}` : `1px dashed #e2e8f0`,
                         outlineOffset: isSelRow ? -1 : 1,
                         background: row.background || "transparent",
                         boxSizing: "border-box" as const,
@@ -609,9 +576,7 @@ export function BandCanvas({
                             style={{
                               flex: 1,
                               minWidth: 0,
-                              borderRight: !isLastCol
-                                ? `1px dashed ${accentColor}44`
-                                : "none",
+                              borderRight: !isLastCol ? `1px dashed ${accentColor}44` : "none",
                               paddingTop: toPx(row.padding?.top || 0),
                               paddingBottom: toPx(row.padding?.bottom || 0),
                               paddingLeft: toPx(row.padding?.left || 0),
@@ -626,9 +591,7 @@ export function BandCanvas({
                             {colEls.map((el) => {
                               const cfg = el.config || {};
                               const isSel = selId === el._id;
-                              const pe = PALETTE.find(
-                                (p) => p.type === el.type,
-                              );
+                              const pe = PALETTE.find((p) => p.type === el.type);
                               let content: React.ReactNode = null;
                               if (el.type === "LOGO") {
                                 const lw = toPx(cfg.width || 40);
@@ -652,28 +615,19 @@ export function BandCanvas({
                                     LOGO
                                   </div>
                                 );
-                              } else if (
-                                el.type === "TEXT" ||
-                                el.type === "DATE_TIME"
-                              ) {
+                              } else if (el.type === "TEXT" || el.type === "DATE_TIME") {
                                 const txt =
-                                  el.type === "DATE_TIME"
-                                    ? "2026-01-15"
-                                    : cfg.text || "Text";
+                                  el.type === "DATE_TIME" ? "2026-01-15" : cfg.text || "Text";
                                 content = (
                                   <div
                                     style={{
-                                      textAlign: (TEXT_ALIGN_MAP[
-                                        cfg.align as Align
-                                      ] || "left") as any,
-                                      fontFamily:
-                                        FONT_MAP[cfg.font as Font] || "Arial",
+                                      textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] ||
+                                        "left") as any,
+                                      fontFamily: FONT_MAP[cfg.font as Font] || "Arial",
                                       fontSize: toPx(cfg.fontSize || 10) * 0.76,
                                       color: cfg.fontColor || "#333",
                                       fontWeight: cfg.bold ? "bold" : "normal",
-                                      fontStyle: cfg.italic
-                                        ? "italic"
-                                        : "normal",
+                                      fontStyle: cfg.italic ? "italic" : "normal",
                                     }}
                                   >
                                     {txt}
@@ -683,9 +637,8 @@ export function BandCanvas({
                                 content = (
                                   <div
                                     style={{
-                                      textAlign: (TEXT_ALIGN_MAP[
-                                        cfg.align as Align
-                                      ] || "right") as any,
+                                      textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] ||
+                                        "right") as any,
                                       fontSize: toPx(cfg.fontSize || 9) * 0.76,
                                       color: cfg.fontColor || "#666",
                                     }}
@@ -711,9 +664,7 @@ export function BandCanvas({
                                     onSelEl(el._id);
                                   }}
                                   style={{
-                                    outline: isSel
-                                      ? `2px solid ${accentColor}`
-                                      : "none",
+                                    outline: isSel ? `2px solid ${accentColor}` : "none",
                                     outlineOffset: 1,
                                     borderRadius: 2,
                                     cursor: "pointer",
@@ -766,27 +717,25 @@ export function BandCanvas({
           );
         })()}
 
-      {flowElements.length === 0 &&
-        logoElements.length === 0 &&
-        flexmoveElements.length === 0 && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: `${toPx(8)}px`,
-              color: "rgba(0,0,0,.18)",
-              fontSize: toPx(8),
-              pointerEvents: "none",
-              userSelect: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 5,
-            }}
-          >
-            <Layers size={toPx(6)} style={{ opacity: 0.4 }} />
-            Elements appear here
-          </div>
-        )}
+      {flowElements.length === 0 && logoElements.length === 0 && flexmoveElements.length === 0 && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: `${toPx(8)}px`,
+            color: "rgba(0,0,0,.18)",
+            fontSize: toPx(8),
+            pointerEvents: "none",
+            userSelect: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 5,
+          }}
+        >
+          <Layers size={toPx(6)} style={{ opacity: 0.4 }} />
+          Elements appear here
+        </div>
+      )}
 
       {/* ── LOGO elements — absolutely positioned, free 2D drag ── */}
       {logoElements.map((el) => {
@@ -841,16 +790,8 @@ export function BandCanvas({
               height: logoH,
               transform: `rotate(${rotDeg}deg)`,
               transformOrigin: "center center",
-              cursor: el.locked
-                ? "not-allowed"
-                : isLogoDragging
-                  ? "grabbing"
-                  : "grab",
-              zIndex: isSelected
-                ? 200
-                : rotDeg !== 0
-                  ? 100
-                  : 10 + (el.zIndex ?? 0),
+              cursor: el.locked ? "not-allowed" : isLogoDragging ? "grabbing" : "grab",
+              zIndex: isSelected ? 200 : rotDeg !== 0 ? 100 : 10 + (el.zIndex ?? 0),
               userSelect: "none",
               opacity: el.hidden ? 0.2 : (el.opacity ?? 1),
               outline: isSelected
@@ -906,24 +847,22 @@ export function BandCanvas({
             {(() => {
               const p = (cfg.path || "").trim();
               const hasDataUrl = p.startsWith("data:image/");
-              const hasHttpUrl =
-                p.startsWith("http://") || p.startsWith("https://");
+              const hasHttpUrl = p.startsWith("http://") || p.startsWith("https://");
               // Only treat "filename.ext" as an image if it's clearly a real path
               // (contains a slash) — otherwise defaults like "logo.png" would 404.
-              const hasFilePath =
-                /[/\\]/.test(p) && /\.(png|jpe?g|gif|webp|svg)$/i.test(p);
+              const hasFilePath = /[/\\]/.test(p) && /\.(png|jpe?g|gif|webp|svg)$/i.test(p);
               const hasImage = hasDataUrl || hasHttpUrl || hasFilePath;
               const bgStyles: React.CSSProperties = hasImage
                 ? {
-                  backgroundImage: `url(${JSON.stringify(p)})`,
-                  backgroundSize: "contain",
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "center center",
-                  backgroundColor: "#fff",
-                }
+                    backgroundImage: `url(${JSON.stringify(p)})`,
+                    backgroundSize: "contain",
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "center center",
+                    backgroundColor: "#fff",
+                  }
                 : {
-                  background: "linear-gradient(135deg,#2563eb,#059669)",
-                };
+                    background: "linear-gradient(135deg,#2563eb,#059669)",
+                  };
               return (
                 <div
                   style={{
@@ -1072,29 +1011,19 @@ export function BandCanvas({
                     e.preventDefault();
                     if (!bandContainerRef.current) return;
                     // use zone ref to get centre of logo in screen coords
-                    const bandRect =
-                      bandContainerRef.current.getBoundingClientRect();
+                    const bandRect = bandContainerRef.current.getBoundingClientRect();
                     const padL = toPx(data.padding?.left || 0),
                       padT = toPx(data.padding?.top || 0);
-                    const logoCenterX =
-                      bandRect.left + padL + logoX + logoW / 2;
+                    const logoCenterX = bandRect.left + padL + logoX + logoW / 2;
                     const logoCenterY = bandRect.top + padT + logoY + logoH / 2;
                     const startAngle =
-                      (Math.atan2(
-                        e.clientY - logoCenterY,
-                        e.clientX - logoCenterX,
-                      ) *
-                        180) /
+                      (Math.atan2(e.clientY - logoCenterY, e.clientX - logoCenterX) * 180) /
                       Math.PI;
                     const startRotDeg = cfg.rotation || 0;
 
                     const onMove = (me: MouseEvent) => {
                       const angle =
-                        (Math.atan2(
-                          me.clientY - logoCenterY,
-                          me.clientX - logoCenterX,
-                        ) *
-                          180) /
+                        (Math.atan2(me.clientY - logoCenterY, me.clientX - logoCenterX) * 180) /
                         Math.PI;
                       let deg = Math.round(startRotDeg + (angle - startAngle));
                       if (deg > 180) deg -= 360;
@@ -1132,52 +1061,44 @@ export function BandCanvas({
         const fmBxW = `${fmBoxCfg.borderWidth ?? 1}px`;
         const fmBxS = fmBoxCfg.borderStyle || "solid";
         const fmBxC = fmBoxCfg.borderColor || "#2563eb";
-        const fmBxSides: string[] = fmBoxCfg.borderSides ?? [
-          "top",
-          "right",
-          "bottom",
-          "left",
-        ];
+        const fmBxSides: string[] = fmBoxCfg.borderSides ?? ["top", "right", "bottom", "left"];
         const fmBxHas = (s: string) => fmBxSides.includes(s);
         const fmBoxStyle: React.CSSProperties = fmBoxCfg.enabled
           ? {
-            borderTopWidth: fmBxHas("top") ? fmBxW : "0",
-            borderRightWidth: fmBxHas("right") ? fmBxW : "0",
-            borderBottomWidth: fmBxHas("bottom") ? fmBxW : "0",
-            borderLeftWidth: fmBxHas("left") ? fmBxW : "0",
-            borderTopStyle: fmBxHas("top") ? (fmBxS as any) : "none",
-            borderRightStyle: fmBxHas("right") ? (fmBxS as any) : "none",
-            borderBottomStyle: fmBxHas("bottom") ? (fmBxS as any) : "none",
-            borderLeftStyle: fmBxHas("left") ? (fmBxS as any) : "none",
-            borderTopColor: fmBxC,
-            borderRightColor: fmBxC,
-            borderBottomColor: fmBxC,
-            borderLeftColor: fmBxC,
-            borderRadius: (() => {
-              const r = fmBoxCfg.radius;
-              if (!r || typeof r === "number") return r ?? 0;
-              return `${r.topLeft || 0}px ${r.topRight || 0}px ${r.bottomRight || 0}px ${r.bottomLeft || 0}px`;
-            })(),
-            opacity: fmBoxCfg.opacity ?? 1,
-            paddingTop: toPx(fmBoxCfg.padding?.top ?? 4),
-            paddingRight: toPx(fmBoxCfg.padding?.right ?? 6),
-            paddingBottom: toPx(fmBoxCfg.padding?.bottom ?? 4),
-            paddingLeft: toPx(fmBoxCfg.padding?.left ?? 6),
-            display: "inline-block",
-            boxSizing: "border-box" as const,
-          }
+              borderTopWidth: fmBxHas("top") ? fmBxW : "0",
+              borderRightWidth: fmBxHas("right") ? fmBxW : "0",
+              borderBottomWidth: fmBxHas("bottom") ? fmBxW : "0",
+              borderLeftWidth: fmBxHas("left") ? fmBxW : "0",
+              borderTopStyle: fmBxHas("top") ? (fmBxS as any) : "none",
+              borderRightStyle: fmBxHas("right") ? (fmBxS as any) : "none",
+              borderBottomStyle: fmBxHas("bottom") ? (fmBxS as any) : "none",
+              borderLeftStyle: fmBxHas("left") ? (fmBxS as any) : "none",
+              borderTopColor: fmBxC,
+              borderRightColor: fmBxC,
+              borderBottomColor: fmBxC,
+              borderLeftColor: fmBxC,
+              borderRadius: (() => {
+                const r = fmBoxCfg.radius;
+                if (!r || typeof r === "number") return r ?? 0;
+                return `${r.topLeft || 0}px ${r.topRight || 0}px ${r.bottomRight || 0}px ${r.bottomLeft || 0}px`;
+              })(),
+              opacity: fmBoxCfg.opacity ?? 1,
+              paddingTop: toPx(fmBoxCfg.padding?.top ?? 4),
+              paddingRight: toPx(fmBoxCfg.padding?.right ?? 6),
+              paddingBottom: toPx(fmBoxCfg.padding?.bottom ?? 4),
+              paddingLeft: toPx(fmBoxCfg.padding?.left ?? 6),
+              display: "inline-block",
+              boxSizing: "border-box" as const,
+            }
           : {};
         if (el.type === "TEXT" || el.type === "DATE_TIME") {
           const txt =
-            el.type === "DATE_TIME"
-              ? (cfg.text || "") + "2026-01-15 09:30"
-              : cfg.text || "";
+            el.type === "DATE_TIME" ? (cfg.text || "") + "2026-01-15 09:30" : cfg.text || "";
           const elW = cfg.width ? toPx(cfg.width) : undefined;
           const inner = (
             <div
               style={{
-                textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] ||
-                  "left") as any,
+                textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] || "left") as any,
                 fontFamily: FONT_MAP[cfg.font as Font] || "Arial",
                 fontSize: toPx(cfg.fontSize || 12) * 0.76,
                 color: cfg.fontColor || "#333",
@@ -1196,11 +1117,7 @@ export function BandCanvas({
             const boxH = fmBoxCfg.height ? toPx(fmBoxCfg.height) : undefined;
             const vAlign = fmBoxCfg.verticalAlign || "top";
             const flexAlign =
-              vAlign === "bottom"
-                ? "flex-end"
-                : vAlign === "middle"
-                  ? "center"
-                  : "flex-start";
+              vAlign === "bottom" ? "flex-end" : vAlign === "middle" ? "center" : "flex-start";
             body = (
               <div
                 style={{
@@ -1209,12 +1126,12 @@ export function BandCanvas({
                   boxSizing: "border-box",
                   ...(boxH
                     ? {
-                      height: boxH,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "stretch",
-                      justifyContent: flexAlign,
-                    }
+                        height: boxH,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "stretch",
+                        justifyContent: flexAlign,
+                      }
                     : {}),
                 }}
               >
@@ -1228,8 +1145,7 @@ export function BandCanvas({
           const inner = (
             <div
               style={{
-                textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] ||
-                  "center") as any,
+                textAlign: (TEXT_ALIGN_MAP[cfg.align as Align] || "center") as any,
                 fontFamily: FONT_MAP[cfg.font as Font] || "Arial",
                 fontSize: toPx(cfg.fontSize || 9) * 0.76,
                 color: cfg.fontColor || "#666",
@@ -1242,23 +1158,19 @@ export function BandCanvas({
             const boxH = fmBoxCfg.height ? toPx(fmBoxCfg.height) : undefined;
             const vAlign = fmBoxCfg.verticalAlign || "top";
             const flexAlign =
-              vAlign === "bottom"
-                ? "flex-end"
-                : vAlign === "middle"
-                  ? "center"
-                  : "flex-start";
+              vAlign === "bottom" ? "flex-end" : vAlign === "middle" ? "center" : "flex-start";
             body = (
               <div
                 style={{
                   ...fmBoxStyle,
                   ...(boxH
                     ? {
-                      height: boxH,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "stretch",
-                      justifyContent: flexAlign,
-                    }
+                        height: boxH,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "stretch",
+                        justifyContent: flexAlign,
+                      }
                     : {}),
                 }}
               >
@@ -1295,11 +1207,7 @@ export function BandCanvas({
 
         const fmAlign = cfg.align || "LEFT";
         const fmJustify =
-          fmAlign === "RIGHT"
-            ? "flex-end"
-            : fmAlign === "CENTER"
-              ? "center"
-              : "flex-start";
+          fmAlign === "RIGHT" ? "flex-end" : fmAlign === "CENTER" ? "center" : "flex-start";
 
         return (
           <div
@@ -1320,20 +1228,10 @@ export function BandCanvas({
                 : el.type === "SEPARATOR"
                   ? toPx(80)
                   : undefined,
-              transform: cfg.rotation
-                ? `rotate(${cfg.rotation}deg)`
-                : undefined,
+              transform: cfg.rotation ? `rotate(${cfg.rotation}deg)` : undefined,
               transformOrigin: "center center",
-              cursor: el.locked
-                ? "not-allowed"
-                : isFlexDragging
-                  ? "grabbing"
-                  : "grab",
-              zIndex: isSelected
-                ? 150
-                : cfg.rotation
-                  ? 90
-                  : 12 + (el.zIndex ?? 0),
+              cursor: el.locked ? "not-allowed" : isFlexDragging ? "grabbing" : "grab",
+              zIndex: isSelected ? 150 : cfg.rotation ? 90 : 12 + (el.zIndex ?? 0),
               userSelect: "none",
               opacity: el.hidden ? 0.2 : (el.opacity ?? 1),
               outline: isSelected
@@ -1438,9 +1336,7 @@ export function BandCanvas({
             {/* Resize handles — left & right for SEPARATOR, right-only for TEXT/DATE_TIME */}
             {isSelected &&
               !el.locked &&
-              (el.type === "SEPARATOR" ||
-                el.type === "TEXT" ||
-                el.type === "DATE_TIME") && (
+              (el.type === "SEPARATOR" || el.type === "TEXT" || el.type === "DATE_TIME") && (
                 <>
                   {(el.type === "SEPARATOR"
                     ? (["left", "right"] as const)
@@ -1462,8 +1358,7 @@ export function BandCanvas({
                           const rotRad = ((cfg.rotation || 0) * Math.PI) / 180;
                           const dx = rawDx * Math.cos(rotRad);
                           const newEl = deepClone(elSnap);
-                          const raw =
-                            side === "right" ? startW + dx : startW - dx;
+                          const raw = side === "right" ? startW + dx : startW - dx;
                           newEl.config.width = Math.max(10, Math.round(raw));
                           if (side === "left") {
                             const dw = startW - newEl.config.width;
@@ -1526,9 +1421,7 @@ export function BandCanvas({
             >
               {cfg.x || 0},{cfg.y || 0}mm
               {isSelected &&
-                (el.type === "SEPARATOR" ||
-                  el.type === "TEXT" ||
-                  el.type === "DATE_TIME")
+              (el.type === "SEPARATOR" || el.type === "TEXT" || el.type === "DATE_TIME")
                 ? ` · w${cfg.width || 80}mm`
                 : ""}
               {cfg.rotation && cfg.rotation !== 0 ? ` · ${cfg.rotation}°` : ""}
@@ -1536,9 +1429,7 @@ export function BandCanvas({
             </div>
             {/* rotate handle — for TEXT/DATE_TIME/PAGE_NUMBER when flexmove */}
             {isSelected &&
-              (el.type === "TEXT" ||
-                el.type === "DATE_TIME" ||
-                el.type === "PAGE_NUMBER") && (
+              (el.type === "TEXT" || el.type === "DATE_TIME" || el.type === "PAGE_NUMBER") && (
                 <div
                   title="Drag to rotate"
                   style={{
@@ -1562,29 +1453,22 @@ export function BandCanvas({
                     e.stopPropagation();
                     e.preventDefault();
                     if (!bandContainerRef.current) return;
-                    const bandRect =
-                      bandContainerRef.current.getBoundingClientRect();
-                    const domEl = e.currentTarget.closest(
-                      "[data-fmid]",
-                    ) as HTMLElement | null;
+                    const bandRect = bandContainerRef.current.getBoundingClientRect();
+                    const domEl = e.currentTarget.closest("[data-fmid]") as HTMLElement | null;
                     const elRect = domEl
                       ? domEl.getBoundingClientRect()
                       : {
-                        left: bandRect.left + fmX,
-                        top: bandRect.top + fmY,
-                        width: 0,
-                        height: 0,
-                      };
+                          left: bandRect.left + fmX,
+                          top: bandRect.top + fmY,
+                          width: 0,
+                          height: 0,
+                        };
                     const cx = elRect.left + elRect.width / 2;
                     const cy = elRect.top + elRect.height / 2;
-                    const startAngle =
-                      (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) /
-                      Math.PI;
+                    const startAngle = (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI;
                     const startRot = cfg.rotation ?? 0;
                     const onMove = (me: MouseEvent) => {
-                      const angle =
-                        (Math.atan2(me.clientY - cy, me.clientX - cx) * 180) /
-                        Math.PI;
+                      const angle = (Math.atan2(me.clientY - cy, me.clientX - cx) * 180) / Math.PI;
                       let deg = Math.round(startRot + (angle - startAngle));
                       if (deg > 180) deg -= 360;
                       if (deg < -180) deg += 360;
@@ -1593,9 +1477,7 @@ export function BandCanvas({
                       onUpdateElSilent(newEl);
                     };
                     const onUp = () => {
-                      const finalEl = data.elements.find(
-                        (e2) => e2._id === el._id,
-                      );
+                      const finalEl = data.elements.find((e2) => e2._id === el._id);
                       if (finalEl) onCommitElDrag(deepClone(finalEl));
                       window.removeEventListener("mousemove", onMove);
                       window.removeEventListener("mouseup", onUp);

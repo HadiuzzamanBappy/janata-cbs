@@ -11,4 +11,4 @@
  *  - It is also safe to call on objects that include base64 `data:` strings
  *    (logos, images) because those are plain string fields.
  */
-export const deepClone = <T,>(o: T): T => JSON.parse(JSON.stringify(o));
+export const deepClone = <T>(o: T): T => JSON.parse(JSON.stringify(o));

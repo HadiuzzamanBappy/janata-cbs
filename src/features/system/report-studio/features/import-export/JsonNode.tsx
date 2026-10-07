@@ -1,4 +1,4 @@
-import { Fragment, useState, type ReactNode } from "react";
+import { Fragment, type ReactNode, useState } from "react";
 
 /**
  * Collapsible JSON tree node used by the export modal's tree view.
@@ -50,18 +50,11 @@ export function JsonNode({
   };
 
   const primitiveNode = (val: any) => {
-    if (val === null)
-      return (
-        <span style={{ color: "#94a3b8", fontStyle: "italic" }}>null</span>
-      );
+    if (val === null) return <span style={{ color: "#94a3b8", fontStyle: "italic" }}>null</span>;
     if (typeof val === "boolean")
-      return (
-        <span style={{ color: "#d97706", fontWeight: 600 }}>{String(val)}</span>
-      );
-    if (typeof val === "number")
-      return <span style={{ color: "#0891b2" }}>{hl(String(val))}</span>;
-    if (typeof val === "string")
-      return <span style={{ color: "#059669" }}>{hl(val)}</span>;
+      return <span style={{ color: "#d97706", fontWeight: 600 }}>{String(val)}</span>;
+    if (typeof val === "number") return <span style={{ color: "#0891b2" }}>{hl(String(val))}</span>;
+    if (typeof val === "string") return <span style={{ color: "#059669" }}>{hl(val)}</span>;
     return <span>{String(val)}</span>;
   };
 

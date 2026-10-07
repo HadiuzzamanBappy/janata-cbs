@@ -66,9 +66,7 @@ export function rowForVariable(
   }
   if (v.dataSourceRef.startsWith("central:")) {
     return (
-      rowOverrideMap?.[v.dataSourceRef] ??
-      centralData?.[v.dataSourceRef.slice(8)]?.[0] ??
-      null
+      rowOverrideMap?.[v.dataSourceRef] ?? centralData?.[v.dataSourceRef.slice(8)]?.[0] ?? null
     );
   }
   return compFirstRow ?? null;

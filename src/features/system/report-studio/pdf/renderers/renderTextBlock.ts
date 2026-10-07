@@ -8,15 +8,15 @@
  *   - Page-break support via pageCtx
  */
 
+import { resolveVariablesToRuns } from "@/features/system/report-studio/data/resolveVariablesToRuns";
 import {
+  fillRect,
   hexRgb,
   ptMm,
   sanitizeForPdf,
-  fillRect,
+  setFont,
 } from "@/features/system/report-studio/pdf/helpers";
-import { setFont } from "@/features/system/report-studio/pdf/helpers";
 import { LH } from "@/features/system/report-studio/pdf/text/textEngine";
-import { resolveVariablesToRuns } from "@/features/system/report-studio/data/resolveVariablesToRuns";
 import type { AppState } from "@/features/system/report-studio/types/app-state";
 import type {
   ParagraphRun,
@@ -120,36 +120,28 @@ export function renderTextBlock(
       };
       try {
         if (binding?.style) ts = { ...ts, ...binding.style };
-        else if ((p as any).tableStyle)
-          ts = { ...ts, ...(p as any).tableStyle };
-      } catch (_) { }
+        else if ((p as any).tableStyle) ts = { ...ts, ...(p as any).tableStyle };
+      } catch (_) {}
 
       // Build final tableData using index-based colMap with name-match fallback
       let tableData: string[][] = staticTableData;
       if (binding?.dsRef && binding?.arrayField) {
         let parentRows: any[] = [];
         if (binding.dsRef.startsWith("comp:")) {
-          parentRows =
-            reportState.componentDataSources?.[binding.dsRef.slice(5)] || [];
+          parentRows = reportState.componentDataSources?.[binding.dsRef.slice(5)] || [];
         } else if (binding.dsRef.startsWith("central:")) {
           parentRows = reportState.centralData?.[binding.dsRef.slice(8)] || [];
         }
         // In repeat mode, rowOverride IS the current parent row -- use it directly
         const firstParentRow =
-          rowOverride !== undefined && rowOverride !== null
-            ? rowOverride
-            : (parentRows[0] ?? null);
-        const childRows: any[] = Array.isArray(
-          firstParentRow?.[binding.arrayField],
-        )
+          rowOverride !== undefined && rowOverride !== null ? rowOverride : (parentRows[0] ?? null);
+        const childRows: any[] = Array.isArray(firstParentRow?.[binding.arrayField])
           ? firstParentRow[binding.arrayField]
           : [];
 
         if (childRows.length > 0) {
           const headerRow = staticTableData[0] || [];
-          const colMapArr: string[] = Array.isArray(binding.colMap)
-            ? binding.colMap
-            : [];
+          const colMapArr: string[] = Array.isArray(binding.colMap) ? binding.colMap : [];
           const childCols = Object.keys(childRows[0]);
           const numCols = headerRow.length;
 
@@ -159,9 +151,7 @@ export function renderTextBlock(
           // 3. Fall back to positional match
           const resolveField = (ci: number): string => {
             if (colMapArr[ci]) return colMapArr[ci];
-            const header = (headerRow[ci] || "")
-              .toLowerCase()
-              .replace(/[^a-z0-9]/g, "");
+            const header = (headerRow[ci] || "").toLowerCase().replace(/[^a-z0-9]/g, "");
             const byName = childCols.find(
               (c) => c.toLowerCase().replace(/[^a-z0-9]/g, "") === header,
             );
@@ -211,10 +201,7 @@ export function renderTextBlock(
           )
             .map((r) => r.text)
             .join("");
-          const lns = doc.splitTextToSize(
-            sanitizeForPdf(raw) || " ",
-            colW - cellPH * 2,
-          );
+          const lns = doc.splitTextToSize(sanitizeForPdf(raw) || " ", colW - cellPH * 2);
           const cellH = lns.length * ptMm(fsPt) * 1.35 + cellPV * 2;
           if (cellH > rowH) rowH = cellH;
         }
@@ -246,10 +233,7 @@ export function renderTextBlock(
           setFont(doc, "HELVETICA", rowBold, false);
           doc.setFontSize(fsPt);
           doc.setTextColor(...hexRgb(rowFg || "#374151"));
-          const wrapped = doc.splitTextToSize(
-            sanitizeForPdf(raw) || " ",
-            colW - cellPH * 2,
-          );
+          const wrapped = doc.splitTextToSize(sanitizeForPdf(raw) || " ", colW - cellPH * 2);
           let ty = curY + cellPV;
           for (const ln of wrapped) {
             doc.text(ln, cx + cellPH, ty, { baseline: "top" });
@@ -340,10 +324,7 @@ export function renderTextBlock(
     // Use bold font for splitTextToSize if paragraph is bold (more accurate wrap)
     setFont(doc, paraFont, paraBold, paraItal);
     doc.setFontSize(paraFsPt);
-    const lines: string[] = doc.splitTextToSize(
-      sanitizeForPdf(fullText),
-      innerW,
-    );
+    const lines: string[] = doc.splitTextToSize(sanitizeForPdf(fullText), innerW);
 
     // For each line, render using runs with x-cursor
     let runIdx = 0;
@@ -354,8 +335,7 @@ export function renderTextBlock(
       const isLastLine = lineIdx === lines.length - 1;
 
       // For justify: manual word-space distribution clamped within innerW
-      const isJustify =
-        (aln === "justify" || aln === "justified") && !isLastLine;
+      const isJustify = (aln === "justify" || aln === "justified") && !isLastLine;
 
       if (isJustify) {
         setFont(doc, paraFont, paraBold, paraItal);
@@ -370,8 +350,7 @@ export function renderTextBlock(
         } else {
           // Measure each word width
           const wordWidths = words.map(
-            (w) =>
-              doc.getStringUnitWidth(sanitizeForPdf(w)) * paraFsPt * PT_TO_MM,
+            (w) => doc.getStringUnitWidth(sanitizeForPdf(w)) * paraFsPt * PT_TO_MM,
           );
           const totalWordW = wordWidths.reduce((a, b) => a + b, 0);
           const gap = Math.max(0, (innerW - totalWordW) / (words.length - 1));
@@ -385,10 +364,7 @@ export function renderTextBlock(
         // Advance run pointers past this line
         let lineCharsLeft = line.length;
         while (lineCharsLeft > 0 && runIdx < runs.length) {
-          const take = Math.min(
-            lineCharsLeft,
-            runs[runIdx].text.length - runOffset,
-          );
+          const take = Math.min(lineCharsLeft, runs[runIdx].text.length - runOffset);
           runOffset += take;
           lineCharsLeft -= take;
           if (runOffset >= runs[runIdx].text.length) {
@@ -429,26 +405,14 @@ export function renderTextBlock(
             doc.setTextColor(...hexRgb(color));
             if (vs?.background && vs.background !== "transparent") {
               const cw = doc.getStringUnitWidth(sanitized) * fsPt * PT_TO_MM;
-              fillRect(
-                doc,
-                curX,
-                curY - ptMm(fsPt) * 0.1,
-                cw,
-                ptMm(fsPt) * 1.2,
-                vs.background,
-              );
+              fillRect(doc, curX, curY - ptMm(fsPt) * 0.1, cw, ptMm(fsPt) * 1.2, vs.background);
             }
             doc.text(sanitized, curX, curY, { baseline: "top" });
             if (vs?.underline ?? p.underline) {
               const uw = doc.getStringUnitWidth(sanitized) * fsPt * PT_TO_MM;
               doc.setDrawColor(...hexRgb(color));
               doc.setLineWidth(Math.max(0.2, ptMm(fsPt) * 0.07));
-              doc.line(
-                curX,
-                curY + ptMm(fsPt) * 0.92,
-                curX + uw,
-                curY + ptMm(fsPt) * 0.92,
-              );
+              doc.line(curX, curY + ptMm(fsPt) * 0.92, curX + uw, curY + ptMm(fsPt) * 0.92);
             }
             curX += doc.getStringUnitWidth(sanitized) * fsPt * PT_TO_MM;
           }

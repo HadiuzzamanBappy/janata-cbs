@@ -6,8 +6,8 @@ import { useUserRights } from "@/hooks";
 import { useSessionStore } from "@/store";
 import { CommandGuidance, SearchFooterHelp, SearchInputBar, SearchResultsList } from "./components";
 import { useCommandExecutor, useCommandGuide, useSearchCommands } from "./hooks";
-import { filterVisibleCommands, groupCommandsByCategory } from "./utils/search-filter";
 import type { GlobalSearchProps, RidashOption } from "./types";
+import { filterVisibleCommands, groupCommandsByCategory } from "./utils/search-filter";
 
 export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
   const { user } = useSessionStore();

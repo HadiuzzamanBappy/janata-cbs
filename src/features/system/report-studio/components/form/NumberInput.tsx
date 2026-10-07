@@ -32,7 +32,7 @@ export function NumberInput({
       max={max}
       step={step}
       placeholder={placeholder}
-      onChange={e => {
+      onChange={(e) => {
         const n = +e.target.value;
         // Leave NaN out — feature panels treat undefined as "unset"
         if (Number.isFinite(n)) onChange(n);

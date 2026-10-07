@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
-import type { BodyComponent } from "../../types/body";
 import { PREVIEW_DATA_ROWS } from "../../constants/preview-data";
 import { resolveCompData } from "../../data/resolveCompData";
-import { mockValuesForSeries } from "../../utils/rand";
 import { ChartJS } from "../../lib/chart-register";
+import type { BodyComponent } from "../../types/body";
+import { mockValuesForSeries } from "../../utils/rand";
 
 /**
  * Canvas-side preview of a CHART body component.
@@ -51,7 +51,7 @@ export function ChartPreview({
 
   const mockValsBySeries = series.map((s, i) => {
     const actualVals = actualData.map((row: any) => Number(row[s.dataKey]) || 0);
-    return actualVals.some(v => v > 0)
+    return actualVals.some((v) => v > 0)
       ? actualVals
       : mockValuesForSeries(`${s.dataKey || s.label || "series"}-${i}`, categories.length);
   });
@@ -61,16 +61,30 @@ export function ChartPreview({
       ? (() => {
           const firstSeriesKey = series[0]?.dataKey || "value";
           const actualPieVals = actualData.map((row: any) => Number(row[firstSeriesKey]) || 0);
-          return actualPieVals.some(v => v > 0) ? actualPieVals : mockValsBySeries[0] || [42, 78, 35, 91, 55, 68];
+          return actualPieVals.some((v) => v > 0)
+            ? actualPieVals
+            : mockValsBySeries[0] || [42, 78, 35, 91, 55, 68];
         })()
       : mockValsBySeries[0] || [42, 78, 35, 91, 55, 68];
 
   // Palette for pie/donut slice colours — series colours first, then a
   // built-in fallback so each slice always gets a distinct fill.
   const PIE_PALETTE = [
-    "#2563eb", "#059669", "#dc2626", "#d97706", "#7c3aed",
-    "#0891b2", "#db2777", "#65a30d", "#ea580c", "#4f46e5",
-    "#0f766e", "#b45309", "#9333ea", "#0284c7", "#be123c",
+    "#2563eb",
+    "#059669",
+    "#dc2626",
+    "#d97706",
+    "#7c3aed",
+    "#0891b2",
+    "#db2777",
+    "#65a30d",
+    "#ea580c",
+    "#4f46e5",
+    "#0f766e",
+    "#b45309",
+    "#9333ea",
+    "#0284c7",
+    "#be123c",
   ];
   const sliceColors = (n: number) =>
     Array.from({ length: n }, (_, i) => series[i]?.color || PIE_PALETTE[i % PIE_PALETTE.length]);
@@ -109,7 +123,7 @@ export function ChartPreview({
             label: _s.label,
             data: seriesData,
             backgroundColor: palette,
-            hoverBackgroundColor: palette.map(c => c + "cc"),
+            hoverBackgroundColor: palette.map((c) => c + "cc"),
             borderColor: "#fff",
             borderWidth: 2,
             hoverOffset: 4,

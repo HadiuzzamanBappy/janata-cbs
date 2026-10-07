@@ -1,10 +1,10 @@
 import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Lock, Trash2, Unlock, Upload } from "lucide-react";
-import type { CtxMenu } from "../../types/app-state";
 import {
   ContextMenuDivider,
   ContextMenuItem,
   ContextMenuShell,
 } from "../../components/common/ContextMenu";
+import type { CtxMenu } from "../../types/app-state";
 
 /**
  * Right-click menu for elements inside header / footer zones.
@@ -41,11 +41,21 @@ export function ZoneContextMenu({
     <ContextMenuShell x={menu.x} y={menu.y} onClose={onClose} minWidth={160}>
       {menu.elType === "LOGO" && onUploadLogo && (
         <>
-          <ContextMenuItem icon={<Upload size={12} />} label="Upload image…" onClick={onUploadLogo} onClose={onClose} />
+          <ContextMenuItem
+            icon={<Upload size={12} />}
+            label="Upload image…"
+            onClick={onUploadLogo}
+            onClose={onClose}
+          />
           <ContextMenuDivider />
         </>
       )}
-      <ContextMenuItem icon={<Copy size={12} />} label="Duplicate" onClick={onDuplicate} onClose={onClose} />
+      <ContextMenuItem
+        icon={<Copy size={12} />}
+        label="Duplicate"
+        onClick={onDuplicate}
+        onClose={onClose}
+      />
       <ContextMenuItem
         icon={isHidden ? <Eye size={12} /> : <EyeOff size={12} />}
         label={isHidden ? "Show" : "Hide"}
@@ -59,10 +69,26 @@ export function ZoneContextMenu({
         onClose={onClose}
       />
       <ContextMenuDivider />
-      <ContextMenuItem icon={<ArrowUp size={12} />} label="Bring Forward" onClick={() => onZOrder("up")} onClose={onClose} />
-      <ContextMenuItem icon={<ArrowDown size={12} />} label="Send Back" onClick={() => onZOrder("down")} onClose={onClose} />
+      <ContextMenuItem
+        icon={<ArrowUp size={12} />}
+        label="Bring Forward"
+        onClick={() => onZOrder("up")}
+        onClose={onClose}
+      />
+      <ContextMenuItem
+        icon={<ArrowDown size={12} />}
+        label="Send Back"
+        onClick={() => onZOrder("down")}
+        onClose={onClose}
+      />
       <ContextMenuDivider />
-      <ContextMenuItem icon={<Trash2 size={12} />} label="Delete" onClick={onDelete} onClose={onClose} danger />
+      <ContextMenuItem
+        icon={<Trash2 size={12} />}
+        label="Delete"
+        onClick={onDelete}
+        onClose={onClose}
+        danger
+      />
     </ContextMenuShell>
   );
 }

@@ -1,6 +1,6 @@
+import type { ChartSeries, ChartTitleAlign, ChartType } from "./chart";
 import type { Radius, Spacing } from "./primitives";
 import type { Column, TableStyle } from "./table";
-import type { ChartSeries, ChartType, ChartTitleAlign } from "./chart";
 import type { Paragraph, QuillDelta } from "./text-block";
 
 /**

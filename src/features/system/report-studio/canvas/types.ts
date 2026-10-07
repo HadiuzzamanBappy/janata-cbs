@@ -1,5 +1,5 @@
-import type { Zone, ZoneElement } from "../types/zone";
 import type { BodyCompType } from "../types/body";
+import type { Zone, ZoneElement } from "../types/zone";
 
 /**
  * Context-menu payload for header/footer zone element interactions.

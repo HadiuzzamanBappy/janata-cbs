@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { T } from "../../theme/tokens";
 import { isValidHex } from "../../utils/color";
 import { ColorPickerPopup } from "./ColorPickerPopup";
@@ -33,7 +33,7 @@ export function ColorInput({
 
   const openPicker = () => {
     if (!triggerRef.current) {
-      setOpen(o => !o);
+      setOpen((o) => !o);
       return;
     }
     const r = triggerRef.current.getBoundingClientRect();
@@ -63,7 +63,7 @@ export function ColorInput({
       boxShadow: "0 8px 32px rgba(0,0,0,.28)",
       borderRadius: 10,
     });
-    setOpen(o => !o);
+    setOpen((o) => !o);
   };
 
   useEffect(() => {
@@ -94,9 +94,7 @@ export function ColorInput({
       }}
     >
       {label && (
-        <span style={{ fontSize: 9.5, color: T.label, minWidth: 80, flexShrink: 0 }}>
-          {label}
-        </span>
+        <span style={{ fontSize: 9.5, color: T.label, minWidth: 80, flexShrink: 0 }}>{label}</span>
       )}
       <div
         ref={triggerRef}

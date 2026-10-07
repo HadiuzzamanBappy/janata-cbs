@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { T } from "../../theme/tokens";
 
 /**
@@ -35,7 +35,7 @@ export function PropSection({
   const open = isOpen !== undefined ? isOpen : internalOpen;
   const handleToggle = () => {
     if (onToggle) onToggle();
-    else setInternalOpen(o => !o);
+    else setInternalOpen((o) => !o);
   };
 
   return (
@@ -68,7 +68,10 @@ export function PropSection({
         </span>
         {onAdd && (
           <button
-            onClick={e => { e.stopPropagation(); onAdd(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdd();
+            }}
             style={{
               background: color + "18",
               border: `1px solid ${color}44`,

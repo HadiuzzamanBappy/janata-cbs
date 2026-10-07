@@ -1,4 +1,4 @@
-import type { ReportVariable, VarStyle, VariableRun } from "../types/text-block";
+import type { ReportVariable, VariableRun, VarStyle } from "../types/text-block";
 import { TOKEN_REGEX } from "./tokens";
 
 /**
@@ -38,7 +38,7 @@ export function resolveVariablesToRuns(
     if (before) runs.push({ text: before });
 
     const varName = m[1] || m[2];
-    const v = variables.find(rv => rv.name === varName);
+    const v = variables.find((rv) => rv.name === varName);
     if (!v) {
       runs.push({ text: m[0] });
       last = m.index + m[0].length;
@@ -53,9 +53,7 @@ export function resolveVariablesToRuns(
         null;
     } else if (v.dataSourceRef?.startsWith("central:")) {
       row =
-        rowOverrideMap?.[v.dataSourceRef] ??
-        centralData?.[v.dataSourceRef.slice(8)]?.[0] ??
-        null;
+        rowOverrideMap?.[v.dataSourceRef] ?? centralData?.[v.dataSourceRef.slice(8)]?.[0] ?? null;
     }
 
     const value =

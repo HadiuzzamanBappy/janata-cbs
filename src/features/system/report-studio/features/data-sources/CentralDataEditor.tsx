@@ -92,15 +92,21 @@ export function CentralDataEditor({
           No data sources defined yet.
         </div>
       )}
-      {keys.map(key => {
+      {keys.map((key) => {
         const arr = cd[key];
         const isEditing = editingKey === key;
         const isRenaming = renamingKey === key;
         return (
-          <div key={key} style={{ border: "1px solid #e2e8f0", borderRadius: 6, background: "#fff" }}>
+          <div
+            key={key}
+            style={{ border: "1px solid #e2e8f0", borderRadius: 6, background: "#fff" }}
+          >
             <div
               style={{
-                display: "flex", alignItems: "center", padding: "6px 8px", gap: 6,
+                display: "flex",
+                alignItems: "center",
+                padding: "6px 8px",
+                gap: 6,
                 background: isEditing ? "#eff6ff" : "transparent",
                 borderBottom: isEditing ? "1px solid #bfdbfe" : "none",
               }}
@@ -108,9 +114,9 @@ export function CentralDataEditor({
               <input
                 value={isRenaming ? renameDraft : key}
                 onFocus={() => startRename(key)}
-                onChange={e => setRenameDraft(e.target.value)}
+                onChange={(e) => setRenameDraft(e.target.value)}
                 onBlur={() => commitRename(key)}
-                onKeyDown={e => {
+                onKeyDown={(e) => {
                   if (e.key === "Enter") e.currentTarget.blur();
                   else if (e.key === "Escape") {
                     setRenamingKey(null);
@@ -118,10 +124,15 @@ export function CentralDataEditor({
                   }
                 }}
                 style={{
-                  flex: 1, fontSize: 10, fontWeight: 700,
-                  fontFamily: "monospace", color: "#1e40af",
-                  border: "none", background: "transparent",
-                  outline: "none", padding: 0,
+                  flex: 1,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  fontFamily: "monospace",
+                  color: "#1e40af",
+                  border: "none",
+                  background: "transparent",
+                  outline: "none",
+                  padding: 0,
                 }}
               />
               <span style={{ fontSize: 9, color: "#64748b" }}>
@@ -133,8 +144,11 @@ export function CentralDataEditor({
                   background: isEditing ? "#dbeafe" : "#f1f5f9",
                   border: "1px solid " + (isEditing ? "#93c5fd" : "#e2e8f0"),
                   color: "#475569",
-                  padding: "2px 6px", borderRadius: 4,
-                  cursor: "pointer", fontSize: 9, fontWeight: 600,
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontSize: 9,
+                  fontWeight: 600,
                 }}
               >
                 {isEditing ? "Close" : "Edit"}
@@ -142,10 +156,14 @@ export function CentralDataEditor({
               <button
                 onClick={() => remove(key)}
                 style={{
-                  background: "#fef2f2", border: "1px solid #fecaca",
-                  color: "#dc2626", padding: "2px 6px",
-                  borderRadius: 4, cursor: "pointer",
-                  fontSize: 9, fontWeight: 600,
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  color: "#dc2626",
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontSize: 9,
+                  fontWeight: 600,
                 }}
               >
                 ×
@@ -155,18 +173,31 @@ export function CentralDataEditor({
               <div style={{ padding: 6 }}>
                 <textarea
                   value={editText}
-                  onChange={e => setEditText(e.target.value)}
+                  onChange={(e) => setEditText(e.target.value)}
                   style={{
-                    width: "100%", boxSizing: "border-box",
+                    width: "100%",
+                    boxSizing: "border-box",
                     minHeight: 140,
-                    fontFamily: "monospace", fontSize: 9.5,
-                    border: "1px solid #cbd5e1", borderRadius: 4,
-                    padding: 6, resize: "vertical",
-                    background: "#0f172a", color: "#e2e8f0", lineHeight: 1.4,
+                    fontFamily: "monospace",
+                    fontSize: 9.5,
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 4,
+                    padding: 6,
+                    resize: "vertical",
+                    background: "#0f172a",
+                    color: "#e2e8f0",
+                    lineHeight: 1.4,
                   }}
                 />
                 {parseErr && (
-                  <div style={{ fontSize: 9, color: "#dc2626", padding: "4px 0", fontFamily: "monospace" }}>
+                  <div
+                    style={{
+                      fontSize: 9,
+                      color: "#dc2626",
+                      padding: "4px 0",
+                      fontFamily: "monospace",
+                    }}
+                  >
                     ⚠ {parseErr}
                   </div>
                 )}
@@ -174,9 +205,15 @@ export function CentralDataEditor({
                   <button
                     onClick={saveEdit}
                     style={{
-                      flex: 1, background: "#2563eb", border: "none", color: "#fff",
-                      padding: "5px 0", borderRadius: 4, cursor: "pointer",
-                      fontSize: 10, fontWeight: 700,
+                      flex: 1,
+                      background: "#2563eb",
+                      border: "none",
+                      color: "#fff",
+                      padding: "5px 0",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      fontSize: 10,
+                      fontWeight: 700,
                     }}
                   >
                     Save
@@ -184,10 +221,14 @@ export function CentralDataEditor({
                   <button
                     onClick={cancelEdit}
                     style={{
-                      background: "#f1f5f9", border: "1px solid #e2e8f0",
-                      color: "#475569", padding: "5px 12px",
-                      borderRadius: 4, cursor: "pointer",
-                      fontSize: 10, fontWeight: 600,
+                      background: "#f1f5f9",
+                      border: "1px solid #e2e8f0",
+                      color: "#475569",
+                      padding: "5px 12px",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      fontSize: 10,
+                      fontWeight: 600,
                     }}
                   >
                     Cancel
@@ -201,9 +242,14 @@ export function CentralDataEditor({
       <button
         onClick={addNew}
         style={{
-          background: "#f0fdf4", border: "1px dashed #86efac",
-          color: "#059669", padding: "6px 0", borderRadius: 6,
-          cursor: "pointer", fontSize: 10, fontWeight: 700,
+          background: "#f0fdf4",
+          border: "1px dashed #86efac",
+          color: "#059669",
+          padding: "6px 0",
+          borderRadius: 6,
+          cursor: "pointer",
+          fontSize: 10,
+          fontWeight: 700,
         }}
       >
         + Add data source

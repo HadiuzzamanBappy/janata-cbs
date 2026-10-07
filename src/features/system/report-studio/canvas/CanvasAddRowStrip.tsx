@@ -30,11 +30,7 @@ export function CanvasAddRowStrip({
           }}
         >
           <Plus size={toPx(9)} color="#059669" strokeWidth={2.5} />
-          <span
-            style={{ fontSize: toPx(8), color: "#059669", fontWeight: 700 }}
-          >
-            Add Row
-          </span>
+          <span style={{ fontSize: toPx(8), color: "#059669", fontWeight: 700 }}>Add Row</span>
         </div>
       ) : (
         <div

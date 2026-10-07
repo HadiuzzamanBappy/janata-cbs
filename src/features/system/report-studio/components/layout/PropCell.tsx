@@ -1,5 +1,5 @@
-import { T } from "../../theme/tokens";
 import { inputStyle } from "../../theme/inputStyle";
+import { T } from "../../theme/tokens";
 
 /**
  * Labelled numeric input cell sized to fit inside a `PropGrid2` slot.
@@ -42,7 +42,7 @@ export function PropCell({
         min={min}
         max={max}
         step={step}
-        onChange={e => onChange(+e.target.value)}
+        onChange={(e) => onChange(+e.target.value)}
       />
     </div>
   );

@@ -172,7 +172,7 @@ export function ColorPickerPopup({
         />
         <input
           value={textVal}
-          onChange={e => {
+          onChange={(e) => {
             setTextVal(e.target.value);
             if (isValidHex(e.target.value)) {
               const nh = hexToHsv(e.target.value);

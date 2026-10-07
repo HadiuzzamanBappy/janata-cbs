@@ -1,5 +1,5 @@
-import { THEMES, type Theme } from "../../theme/themes";
 import { PropTitle } from "../../components/layout/PropTitle";
+import { THEMES, type Theme } from "../../theme/themes";
 import { T } from "../../theme/tokens";
 
 /**
@@ -14,7 +14,7 @@ export function ThemesPicker({ onApply }: { onApply: (t: Theme) => void }) {
     <div style={{ marginTop: 8 }}>
       <PropTitle label="Preset Themes" color="#7c3aed" />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 5 }}>
-        {THEMES.map(t => (
+        {THEMES.map((t) => (
           <button
             key={t.name}
             onClick={() => onApply(t)}

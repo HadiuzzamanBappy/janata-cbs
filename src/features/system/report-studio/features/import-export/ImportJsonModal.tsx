@@ -1,12 +1,9 @@
-import { useRef, useState } from "react";
 import { Check, Database, FileJson } from "lucide-react";
-import type { AppState } from "@/features/system/report-studio/types/app-state";
-import type {
-  BodyComponent,
-  BodyRow,
-} from "@/features/system/report-studio/types/body";
-import { deepClone } from "@/features/system/report-studio/utils/deepClone";
+import { useRef, useState } from "react";
 import { INITIAL_STATE } from "@/features/system/report-studio/initial-state";
+import type { AppState } from "@/features/system/report-studio/types/app-state";
+import type { BodyComponent, BodyRow } from "@/features/system/report-studio/types/body";
+import { deepClone } from "@/features/system/report-studio/utils/deepClone";
 
 /**
  * Import-JSON modal. Accepts two file shapes (preserved verbatim from the
@@ -52,8 +49,7 @@ export function ImportJsonModal({
   const tryParse = (raw: string) => {
     try {
       const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object")
-        throw new Error("Not a valid JSON object");
+      if (!parsed || typeof parsed !== "object") throw new Error("Not a valid JSON object");
 
       if (parsed._meta?.type === "design") {
         const src = parsed._design ?? parsed;
@@ -61,10 +57,8 @@ export function ImportJsonModal({
         if (!pg) throw new Error("Missing 'page' in design data");
         if (!pg.header) throw new Error("Missing 'page.header' in design data");
         if (!pg.footer) throw new Error("Missing 'page.footer' in design data");
-        if (!Array.isArray(src.bodyRows))
-          throw new Error("Missing 'bodyRows' array");
-        if (!Array.isArray(src.bodyComponents))
-          throw new Error("Missing 'bodyComponents' array");
+        if (!Array.isArray(src.bodyRows)) throw new Error("Missing 'bodyRows' array");
+        if (!Array.isArray(src.bodyComponents)) throw new Error("Missing 'bodyComponents' array");
         if (!Array.isArray(pg.header.elements))
           throw new Error("Header 'elements' must be an array");
         if (!Array.isArray(pg.footer.elements))
@@ -75,17 +69,12 @@ export function ImportJsonModal({
           (c: any) => c.rowId && !rowIds.has(c.rowId),
         );
         if (orphans.length > 0) {
-          throw new Error(
-            `${orphans.length} body component(s) reference missing row IDs`,
-          );
+          throw new Error(`${orphans.length} body component(s) reference missing row IDs`);
         }
 
         const base = deepClone(INITIAL_STATE);
 
-        const restoreLogoPaths = (
-          designElements: any[],
-          mainElements: any[],
-        ) => {
+        const restoreLogoPaths = (designElements: any[], mainElements: any[]) => {
           designElements.forEach((el, i) => {
             if (
               el.type === "LOGO" &&
@@ -103,11 +92,7 @@ export function ImportJsonModal({
           restoreLogoPaths(pg.footer.elements, parsed.page.footer.elements);
 
         const restoreImagePaths = (designComp: any, pageComp: any) => {
-          if (
-            designComp.type === "IMAGE" &&
-            pageComp?.type === "image" &&
-            pageComp.path
-          ) {
+          if (designComp.type === "IMAGE" && pageComp?.type === "image" && pageComp.path) {
             designComp.imagePath = pageComp.path;
           }
         };
@@ -119,8 +104,7 @@ export function ImportJsonModal({
                 if (!pageComp) return;
                 const designComp = (src.bodyComponents as any[]).find(
                   (c: any) =>
-                    c.rowId === src.bodyRows[pageBody.indexOf(row)]?._id &&
-                    c.slotIndex === slotIdx,
+                    c.rowId === src.bodyRows[pageBody.indexOf(row)]?._id && c.slotIndex === slotIdx,
                 );
                 if (designComp) restoreImagePaths(designComp, pageComp);
               });
@@ -129,9 +113,7 @@ export function ImportJsonModal({
         }
         if (parsed.page?.freeComponents && src.bodyComponents) {
           (parsed.page.freeComponents as any[]).forEach((pageComp: any) => {
-            const designComp = (src.bodyComponents as any[]).find(
-              (c: any) => c.freePosition,
-            );
+            const designComp = (src.bodyComponents as any[]).find((c: any) => c.freePosition);
             if (designComp) restoreImagePaths(designComp, pageComp);
           });
         }
@@ -189,8 +171,7 @@ export function ImportJsonModal({
       }
 
       // Legacy / iText shape
-      if (!parsed.page)
-        throw new Error("Not a valid Report Studio file — missing 'page'");
+      if (!parsed.page) throw new Error("Not a valid Report Studio file — missing 'page'");
       const base = deepClone(INITIAL_STATE);
       const merged: AppState = {
         ...base,
@@ -278,8 +259,7 @@ export function ImportJsonModal({
               Import JSON
             </div>
             <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>
-              Drop or paste a <strong>Design Save File</strong> to fully restore
-              your design
+              Drop or paste a <strong>Design Save File</strong> to fully restore your design
             </div>
           </div>
           <button
@@ -389,36 +369,16 @@ export function ImportJsonModal({
                 }}
               >
                 {[
-                  [
-                    "Page",
-                    `${preview.pageSize ?? "?"} · ${preview.orientation ?? "?"}`,
-                  ],
-                  [
-                    "Saved",
-                    preview.savedAt
-                      ? new Date(preview.savedAt).toLocaleString()
-                      : "—",
-                  ],
+                  ["Page", `${preview.pageSize ?? "?"} · ${preview.orientation ?? "?"}`],
+                  ["Saved", preview.savedAt ? new Date(preview.savedAt).toLocaleString() : "—"],
                   ["Body rows", `${preview.bodyRows ?? "?"} row(s)`],
-                  [
-                    "Components",
-                    `${preview.bodyComponents ?? "?"} component(s)`,
-                  ],
-                  [
-                    "Header items",
-                    `${preview.headerElements ?? "?"} element(s)`,
-                  ],
-                  [
-                    "Footer items",
-                    `${preview.footerElements ?? "?"} element(s)`,
-                  ],
+                  ["Components", `${preview.bodyComponents ?? "?"} component(s)`],
+                  ["Header items", `${preview.headerElements ?? "?"} element(s)`],
+                  ["Footer items", `${preview.footerElements ?? "?"} element(s)`],
                   ["Version", `v${preview.version ?? "1.0"}`],
                   ["Generator", preview.generator ?? "Report Studio"],
                 ].map(([k, v]) => (
-                  <div
-                    key={k}
-                    style={{ display: "flex", gap: 5, alignItems: "baseline" }}
-                  >
+                  <div key={k} style={{ display: "flex", gap: 5, alignItems: "baseline" }}>
                     <span
                       style={{
                         color: "#6b7280",
@@ -429,9 +389,7 @@ export function ImportJsonModal({
                     >
                       {k}:
                     </span>
-                    <span style={{ fontWeight: 600, color: "#111827" }}>
-                      {v}
-                    </span>
+                    <span style={{ fontWeight: 600, color: "#111827" }}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -446,8 +404,7 @@ export function ImportJsonModal({
                 }}
               >
                 <Check size={10} />
-                All elements, body rows, components, header &amp; footer will be
-                fully restored
+                All elements, body rows, components, header &amp; footer will be fully restored
               </div>
             </div>
           )}
@@ -555,11 +512,7 @@ export function ImportJsonModal({
             onClick={() => tryParse(text)}
             disabled={!text.trim()}
             style={{
-              background: text.trim()
-                ? isDesign
-                  ? "#059669"
-                  : "#2563eb"
-                : "#cbd5e1",
+              background: text.trim() ? (isDesign ? "#059669" : "#2563eb") : "#cbd5e1",
               color: "#fff",
               border: "none",
               padding: "7px 22px",

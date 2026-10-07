@@ -62,7 +62,16 @@ export function ComponentDataEditor({
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {rows.length > 0 && (
-        <div style={{ padding: "6px 8px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4, fontSize: 9, color: "#166534" }}>
+        <div
+          style={{
+            padding: "6px 8px",
+            background: "#f0fdf4",
+            border: "1px solid #bbf7d0",
+            borderRadius: 4,
+            fontSize: 9,
+            color: "#166534",
+          }}
+        >
           ✓ {rows.length} row{rows.length === 1 ? "" : "s"}
           {sampleKeys.length > 0 && (
             <div style={{ marginTop: 3, fontFamily: "monospace", color: "#15803d" }}>
@@ -74,17 +83,24 @@ export function ComponentDataEditor({
       )}
       <textarea
         value={editText}
-        onChange={e => handleChange(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         style={{
-          width: "100%", boxSizing: "border-box",
+          width: "100%",
+          boxSizing: "border-box",
           minHeight: 180,
-          fontFamily: "monospace", fontSize: 9.5,
-          border: "1px solid #cbd5e1", borderRadius: 4,
-          padding: 6, resize: "vertical",
-          background: "#0f172a", color: "#e2e8f0",
+          fontFamily: "monospace",
+          fontSize: 9.5,
+          border: "1px solid #cbd5e1",
+          borderRadius: 4,
+          padding: 6,
+          resize: "vertical",
+          background: "#0f172a",
+          color: "#e2e8f0",
           lineHeight: 1.4,
         }}
-        placeholder={'[\n  {"field1": "value1", "field2": 100},\n  {"field1": "value2", "field2": 200}\n]'}
+        placeholder={
+          '[\n  {"field1": "value1", "field2": 100},\n  {"field1": "value2", "field2": 200}\n]'
+        }
       />
       {parseErr && (
         <div style={{ fontSize: 9, color: "#dc2626", fontFamily: "monospace" }}>⚠ {parseErr}</div>
@@ -96,10 +112,13 @@ export function ComponentDataEditor({
           style={{
             flex: 1,
             background: isDirty ? "#2563eb" : "#cbd5e1",
-            border: "none", color: "#fff",
-            padding: "6px 0", borderRadius: 4,
+            border: "none",
+            color: "#fff",
+            padding: "6px 0",
+            borderRadius: 4,
             cursor: isDirty ? "pointer" : "not-allowed",
-            fontSize: 10, fontWeight: 700,
+            fontSize: 10,
+            fontWeight: 700,
           }}
         >
           Save
@@ -108,10 +127,14 @@ export function ComponentDataEditor({
           onClick={reset}
           disabled={!isDirty}
           style={{
-            background: "#f1f5f9", border: "1px solid #e2e8f0",
-            color: "#475569", padding: "6px 12px", borderRadius: 4,
+            background: "#f1f5f9",
+            border: "1px solid #e2e8f0",
+            color: "#475569",
+            padding: "6px 12px",
+            borderRadius: 4,
             cursor: isDirty ? "pointer" : "not-allowed",
-            fontSize: 10, fontWeight: 600,
+            fontSize: 10,
+            fontWeight: 600,
           }}
         >
           Reset

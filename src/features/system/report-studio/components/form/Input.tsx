@@ -33,9 +33,7 @@ export function Input({
       min={min}
       max={max}
       placeholder={placeholder}
-      onChange={e =>
-        onChange(type === "number" ? +e.target.value : e.target.value)
-      }
+      onChange={(e) => onChange(type === "number" ? +e.target.value : e.target.value)}
     />
   );
 }

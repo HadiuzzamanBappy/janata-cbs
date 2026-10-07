@@ -11,10 +11,7 @@
  * conditional-formatting path which sometimes wants the raw value for
  * predicate evaluation even after the column applies a format.
  */
-export function applyRounding(
-  v: number,
-  rule?: "none" | "floor" | "ceil" | "round",
-): number {
+export function applyRounding(v: number, rule?: "none" | "floor" | "ceil" | "round"): number {
   if (!rule || rule === "none") return v;
   if (rule === "floor") return Math.floor(v);
   if (rule === "ceil") return Math.ceil(v);

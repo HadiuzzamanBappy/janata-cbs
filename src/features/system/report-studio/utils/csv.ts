@@ -16,11 +16,9 @@ export function csvToRows(csv: string): Record<string, any>[] {
   if (lines.length < 2) {
     throw new Error("CSV needs at least a header row and one data row");
   }
-  const headers = lines[0]
-    .split(",")
-    .map(h => h.trim().replace(/^"|"$/g, ""));
-  return lines.slice(1).map(line => {
-    const vals = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+  return lines.slice(1).map((line) => {
+    const vals = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
     const obj: Record<string, any> = {};
     headers.forEach((h, i) => {
       const raw = vals[i];

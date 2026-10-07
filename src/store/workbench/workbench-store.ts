@@ -158,10 +158,11 @@ export const createWorkbenchStore = () => {
       {
         name: appConfig.storageKeys.workbenchTabs,
         storage: createJSONStorage(() => sessionStorage),
-        partialize: (state) => ({
-          tabs: state.tabs,
-          activeTabId: state.activeTabId,
-        }) as WorkbenchState,
+        partialize: (state) =>
+          ({
+            tabs: state.tabs,
+            activeTabId: state.activeTabId,
+          }) as WorkbenchState,
       },
     ),
   );

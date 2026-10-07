@@ -16,7 +16,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const session = await getSession();
     if (!session) {
       return NextResponse.json(
-        { message: "Session expired. Please sign in again." },
+        { success: false, message: "Session expired. Please sign in again." },
         { status: 401 },
       );
     }
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const { oldPassword, newPassword } = (await req.json()) as ChangePasswordBody;
     if (!oldPassword || !newPassword) {
       return NextResponse.json(
-        { message: "Old password and new password are required." },
+        { success: false, message: "Old password and new password are required." },
         { status: 400 },
       );
     }

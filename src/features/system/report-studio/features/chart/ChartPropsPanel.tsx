@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   AlignCenter,
   AlignLeft,
@@ -17,14 +16,15 @@ import {
   Type,
   X,
 } from "lucide-react";
-import type { BodyComponent } from "../../types/body";
-import { T } from "../../theme/tokens";
-import { inputStyle } from "../../theme/inputStyle";
-import { PropSection } from "../../components/layout/PropSection";
-import { PropRow } from "../../components/layout/PropRow";
-import { Input } from "../../components/form/Input";
-import { ColorInput } from "../../components/form/ColorInput";
+import { useState } from "react";
 import { Toggle } from "../../components/common/Toggle";
+import { ColorInput } from "../../components/form/ColorInput";
+import { Input } from "../../components/form/Input";
+import { PropRow } from "../../components/layout/PropRow";
+import { PropSection } from "../../components/layout/PropSection";
+import { inputStyle } from "../../theme/inputStyle";
+import { T } from "../../theme/tokens";
+import type { BodyComponent } from "../../types/body";
 import { BodyCompHeader } from "../body/BodyCompHeader";
 import { BodyLayoutSection } from "../body/BodyLayoutSection";
 import { BODY_COMP_META } from "../body/meta";
@@ -95,7 +95,7 @@ export function ChartPropsPanel({
         ];
         onUpdateComponentDataSources({ ...componentDataSources, [comp._id]: sampleData });
       } else {
-        const updatedData = currentData.map(row => ({
+        const updatedData = currentData.map((row) => ({
           ...row,
           [newDataKey]: Math.floor(Math.random() * 40000) + 30000,
         }));
@@ -108,12 +108,15 @@ export function ChartPropsPanel({
 
   const delSeries = (i: number) => {
     const deletedSeries = series[i];
-    up("chartSeries", series.filter((_, j) => j !== i));
+    up(
+      "chartSeries",
+      series.filter((_, j) => j !== i),
+    );
 
     if (onUpdateComponentDataSources && componentDataSources && deletedSeries) {
       const currentData = componentDataSources[comp._id] || [];
       if (currentData.length > 0) {
-        const updatedData = currentData.map(row => {
+        const updatedData = currentData.map((row) => {
           const { [deletedSeries.dataKey]: _removed, ...rest } = row;
           return rest;
         });
@@ -135,7 +138,9 @@ export function ChartPropsPanel({
     if (onUpdateComponentDataSources && componentDataSources) {
       const currentData = componentDataSources[comp._id] || [];
       if (currentData.length > i) {
-        const updatedData = currentData.map((row, idx) => (idx === i ? { ...row, category: v } : row));
+        const updatedData = currentData.map((row, idx) =>
+          idx === i ? { ...row, category: v } : row,
+        );
         onUpdateComponentDataSources({ ...componentDataSources, [comp._id]: updatedData });
       }
     }
@@ -147,7 +152,7 @@ export function ChartPropsPanel({
     if (onUpdateComponentDataSources && componentDataSources) {
       const currentData = componentDataSources[comp._id] || [];
       const newRow: any = { category: newCategory };
-      series.forEach(s => {
+      series.forEach((s) => {
         newRow[s.dataKey] = Math.floor(Math.random() * 40000) + 30000;
       });
       onUpdateComponentDataSources({
@@ -158,7 +163,10 @@ export function ChartPropsPanel({
   };
   const delCategory = (i: number) => {
     if (categories.length <= 1) return;
-    up("chartCategories", categories.filter((_, j) => j !== i));
+    up(
+      "chartCategories",
+      categories.filter((_, j) => j !== i),
+    );
     if (onUpdateComponentDataSources && componentDataSources) {
       const currentData = componentDataSources[comp._id] || [];
       if (currentData.length > i) {
@@ -176,9 +184,9 @@ export function ChartPropsPanel({
     const currentData = componentDataSources[comp._id] || [];
     if (currentData.length === 0) return;
 
-    const randomizedData = currentData.map(row => {
+    const randomizedData = currentData.map((row) => {
       const newRow: any = { ...row };
-      series.forEach(s => {
+      series.forEach((s) => {
         newRow[s.dataKey] = Math.floor(Math.random() * 40000) + 30000;
       });
       return newRow;
@@ -189,32 +197,51 @@ export function ChartPropsPanel({
 
   return (
     <div style={{ fontSize: 11 }}>
-      <BodyCompHeader comp={comp} onUpdate={onUpdate} onDelete={onDelete} onDuplicate={onDuplicate} color={m.color} Icon={m.Icon} />
+      <BodyCompHeader
+        comp={comp}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+        onDuplicate={onDuplicate}
+        color={m.color}
+        Icon={m.Icon}
+      />
 
       <div
         style={{
-          display: "flex", gap: 3, marginBottom: 10,
-          background: T.bg2, padding: 3,
-          borderRadius: 6, border: `1px solid ${T.border}`,
+          display: "flex",
+          gap: 3,
+          marginBottom: 10,
+          background: T.bg2,
+          padding: 3,
+          borderRadius: 6,
+          border: `1px solid ${T.border}`,
         }}
       >
         {(
           [
             { id: "layout", label: "Layout", icon: <LayoutGrid size={10} />, color: "#0891b2" },
-            { id: "config", label: "Config", icon: <Settings2 size={10} />,  color: m.color   },
-            { id: "data",   label: "Data",   icon: <Database size={10} />,   color: "#2563eb" },
+            { id: "config", label: "Config", icon: <Settings2 size={10} />, color: m.color },
+            { id: "data", label: "Data", icon: <Database size={10} />, color: "#2563eb" },
           ] as const
-        ).map(tab => (
+        ).map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as ChartTab)}
             style={{
-              flex: 1, padding: "6px 8px",
-              fontSize: 9, fontWeight: 700,
+              flex: 1,
+              padding: "6px 8px",
+              fontSize: 9,
+              fontWeight: 700,
               color: activeTab === tab.id ? "#fff" : T.muted,
               background: activeTab === tab.id ? tab.color : "transparent",
-              border: "none", borderRadius: 4, cursor: "pointer", transition: "all 0.15s",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+              border: "none",
+              borderRadius: 4,
+              cursor: "pointer",
+              transition: "all 0.15s",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
             }}
           >
             {tab.icon}
@@ -228,9 +255,13 @@ export function ChartPropsPanel({
           <div style={{ marginBottom: 10 }}>
             <div
               style={{
-                fontSize: 9, color: T.label, marginBottom: 6,
-                display: "flex", alignItems: "center",
-                justifyContent: "space-between", fontWeight: 700,
+                fontSize: 9,
+                color: T.label,
+                marginBottom: 6,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                fontWeight: 700,
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -240,16 +271,21 @@ export function ChartPropsPanel({
               <button
                 onClick={randomizeData}
                 style={{
-                  background: "#7c3aed", color: "#fff",
-                  border: "none", padding: "4px 8px",
+                  background: "#7c3aed",
+                  color: "#fff",
+                  border: "none",
+                  padding: "4px 8px",
                   borderRadius: 4,
-                  fontSize: 8, fontWeight: 700,
+                  fontSize: 8,
+                  fontWeight: 700,
                   cursor: "pointer",
-                  display: "flex", alignItems: "center", gap: 3,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 3,
                   transition: "all 0.15s",
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#6d28d9")}
-                onMouseLeave={e => (e.currentTarget.style.background = "#7c3aed")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#6d28d9")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#7c3aed")}
                 title="Randomize all data values"
               >
                 <RefreshCw size={9} />
@@ -259,23 +295,47 @@ export function ChartPropsPanel({
             <ComponentDataEditor
               compId={comp._id}
               data={componentDataSources?.[comp._id]}
-              onChange={rows => {
+              onChange={(rows) => {
                 if (!onUpdateComponentDataSources) return;
                 onUpdateComponentDataSources({ ...(componentDataSources || {}), [comp._id]: rows });
               }}
             />
           </div>
 
-          <div style={{ fontSize: 9, color: "#94a3b8", textAlign: "center", margin: "12px 0 10px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          <div
+            style={{
+              fontSize: 9,
+              color: "#94a3b8",
+              textAlign: "center",
+              margin: "12px 0 10px",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
             — or bind to central data —
           </div>
 
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 9, color: T.label, marginBottom: 6, display: "flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+            <div
+              style={{
+                fontSize: 9,
+                color: T.label,
+                marginBottom: 6,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontWeight: 700,
+              }}
+            >
               <Database size={9} />
               CENTRAL DATA SOURCE
             </div>
-            <DataSourceLink comp={comp} onUpdate={onUpdate} centralData={centralData} onUpdateCentralData={onUpdateCentralData} />
+            <DataSourceLink
+              comp={comp}
+              onUpdate={onUpdate}
+              centralData={centralData}
+              onUpdateCentralData={onUpdateCentralData}
+            />
           </div>
         </>
       )}
@@ -283,29 +343,46 @@ export function ChartPropsPanel({
       {activeTab === "config" && (
         <>
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 9, color: T.label, marginBottom: 6, display: "flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+            <div
+              style={{
+                fontSize: 9,
+                color: T.label,
+                marginBottom: 6,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontWeight: 700,
+              }}
+            >
               <BarChart2 size={9} />
               CHART TYPE
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5, marginBottom: 6 }}>
+            <div
+              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 5, marginBottom: 6 }}
+            >
               {(
                 [
-                  { v: "bar",   l: "Bar",   Ic: BarChart2  },
-                  { v: "line",  l: "Line",  Ic: TrendingUp },
-                  { v: "pie",   l: "Pie",   Ic: PieChart   },
-                  { v: "donut", l: "Donut", Ic: PieChart   },
+                  { v: "bar", l: "Bar", Ic: BarChart2 },
+                  { v: "line", l: "Line", Ic: TrendingUp },
+                  { v: "pie", l: "Pie", Ic: PieChart },
+                  { v: "donut", l: "Donut", Ic: PieChart },
                 ] as const
               ).map(({ v, l, Ic }) => (
                 <button
                   key={v}
                   onClick={() => up("chartType", v)}
                   style={{
-                    display: "flex", alignItems: "center", gap: 5,
-                    padding: "6px 8px", borderRadius: 5, cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    padding: "6px 8px",
+                    borderRadius: 5,
+                    cursor: "pointer",
                     border: `1px solid ${comp.chartType === v ? m.color : T.border}`,
                     background: comp.chartType === v ? m.color + "14" : T.bg2,
                     color: comp.chartType === v ? m.color : T.label,
-                    fontWeight: 600, fontSize: 9,
+                    fontWeight: 600,
+                    fontSize: 9,
                   }}
                 >
                   <Ic size={11} />
@@ -313,29 +390,62 @@ export function ChartPropsPanel({
                 </button>
               ))}
             </div>
-            <ColorInput label="Background" value={comp.chartBg || "#ffffff"} onChange={v => up("chartBg", v)} />
+            <ColorInput
+              label="Background"
+              value={comp.chartBg || "#ffffff"}
+              onChange={(v) => up("chartBg", v)}
+            />
           </div>
 
           <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 10, marginBottom: 10 }}>
-            <div style={{ fontSize: 9, color: T.label, marginBottom: 6, display: "flex", alignItems: "center", gap: 4, fontWeight: 700 }}>
+            <div
+              style={{
+                fontSize: 9,
+                color: T.label,
+                marginBottom: 6,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontWeight: 700,
+              }}
+            >
               <Type size={9} />
               CHART TITLE
             </div>
             <div style={{ marginBottom: 7 }}>
-              <Input value={comp.chartTitle || ""} onChange={v => up("chartTitle", v)} placeholder="Type a title…" />
+              <Input
+                value={comp.chartTitle || ""}
+                onChange={(v) => up("chartTitle", v)}
+                placeholder="Type a title…"
+              />
             </div>
 
             <div style={{ display: "flex", gap: 4, marginBottom: 7, alignItems: "center" }}>
-              <div style={{ display: "flex", gap: 2, background: T.bg2, padding: 2, borderRadius: 5, border: `1px solid ${T.border}` }}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 2,
+                  background: T.bg2,
+                  padding: 2,
+                  borderRadius: 5,
+                  border: `1px solid ${T.border}`,
+                }}
+              >
                 <button
                   onClick={() => up("chartTitleBold", !(comp.chartTitleBold ?? true))}
                   title="Bold"
                   style={{
-                    width: 22, height: 20, padding: 0,
+                    width: 22,
+                    height: 20,
+                    padding: 0,
                     background: (comp.chartTitleBold ?? true) ? "#0ea5e9" : "transparent",
                     color: (comp.chartTitleBold ?? true) ? "#fff" : T.label,
-                    border: "none", borderRadius: 3, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "none",
+                    borderRadius: 3,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   <Bold size={11} />
@@ -344,19 +454,34 @@ export function ChartPropsPanel({
                   onClick={() => up("chartTitleItalic", !(comp.chartTitleItalic ?? false))}
                   title="Italic"
                   style={{
-                    width: 22, height: 20, padding: 0,
+                    width: 22,
+                    height: 20,
+                    padding: 0,
                     background: (comp.chartTitleItalic ?? false) ? "#0ea5e9" : "transparent",
                     color: (comp.chartTitleItalic ?? false) ? "#fff" : T.label,
-                    border: "none", borderRadius: 3, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "none",
+                    borderRadius: 3,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   <Italic size={11} />
                 </button>
               </div>
 
-              <div style={{ display: "flex", gap: 2, background: T.bg2, padding: 2, borderRadius: 5, border: `1px solid ${T.border}` }}>
-                {(["left", "center", "right"] as const).map(a => {
+              <div
+                style={{
+                  display: "flex",
+                  gap: 2,
+                  background: T.bg2,
+                  padding: 2,
+                  borderRadius: 5,
+                  border: `1px solid ${T.border}`,
+                }}
+              >
+                {(["left", "center", "right"] as const).map((a) => {
                   const active = (comp.chartTitleAlign ?? "center") === a;
                   const Ic = a === "left" ? AlignLeft : a === "center" ? AlignCenter : AlignRight;
                   return (
@@ -365,11 +490,17 @@ export function ChartPropsPanel({
                       onClick={() => up("chartTitleAlign", a)}
                       title={`Align ${a}`}
                       style={{
-                        width: 22, height: 20, padding: 0,
+                        width: 22,
+                        height: 20,
+                        padding: 0,
                         background: active ? "#0ea5e9" : "transparent",
                         color: active ? "#fff" : T.label,
-                        border: "none", borderRadius: 3, cursor: "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center",
+                        border: "none",
+                        borderRadius: 3,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
                       <Ic size={11} />
@@ -385,48 +516,111 @@ export function ChartPropsPanel({
                   min={6}
                   max={48}
                   value={comp.chartTitleFontSize ?? 12}
-                  onChange={e => up("chartTitleFontSize", Math.max(6, Math.min(48, parseInt(e.target.value) || 12)))}
+                  onChange={(e) =>
+                    up(
+                      "chartTitleFontSize",
+                      Math.max(6, Math.min(48, parseInt(e.target.value) || 12)),
+                    )
+                  }
                   style={{
-                    width: 40, height: 22, padding: "0 4px",
-                    fontSize: 10, textAlign: "center" as const,
-                    background: T.bg2, border: `1px solid ${T.border}`,
-                    borderRadius: 4, color: T.text, outline: "none",
+                    width: 40,
+                    height: 22,
+                    padding: "0 4px",
+                    fontSize: 10,
+                    textAlign: "center" as const,
+                    background: T.bg2,
+                    border: `1px solid ${T.border}`,
+                    borderRadius: 4,
+                    color: T.text,
+                    outline: "none",
                   }}
                 />
               </div>
             </div>
 
-            <ColorInput label="Color" value={comp.chartTitleColor ?? "#1e293b"} onChange={v => up("chartTitleColor", v)} />
+            <ColorInput
+              label="Color"
+              value={comp.chartTitleColor ?? "#1e293b"}
+              onChange={(v) => up("chartTitleColor", v)}
+            />
           </div>
 
-          <PropSection label="Options" color="#64748b" icon={<Settings2 size={9} />} defaultOpen={false}>
-            <Toggle label="Show Legend" value={!!comp.chartShowLegend} onChange={v => up("chartShowLegend", v)} />
+          <PropSection
+            label="Options"
+            color="#64748b"
+            icon={<Settings2 size={9} />}
+            defaultOpen={false}
+          >
+            <Toggle
+              label="Show Legend"
+              value={!!comp.chartShowLegend}
+              onChange={(v) => up("chartShowLegend", v)}
+            />
             {(comp.chartType === "bar" || comp.chartType === "line" || !comp.chartType) && (
               <>
-                <Toggle label="Show Grid" value={!!comp.chartShowGrid} onChange={v => up("chartShowGrid", v)} />
-                <Toggle label="Show Scale" value={!!comp.chartShowScale} onChange={v => up("chartShowScale", v)} />
+                <Toggle
+                  label="Show Grid"
+                  value={!!comp.chartShowGrid}
+                  onChange={(v) => up("chartShowGrid", v)}
+                />
+                <Toggle
+                  label="Show Scale"
+                  value={!!comp.chartShowScale}
+                  onChange={(v) => up("chartShowScale", v)}
+                />
               </>
             )}
-            <Toggle label="Show Values" value={!!comp.chartShowValues} onChange={v => up("chartShowValues", v)} />
+            <Toggle
+              label="Show Values"
+              value={!!comp.chartShowValues}
+              onChange={(v) => up("chartShowValues", v)}
+            />
             <PropRow label="Label Key">
-              <Input value={comp.chartLabelKey || "label"} onChange={v => up("chartLabelKey", v)} placeholder="label" />
+              <Input
+                value={comp.chartLabelKey || "label"}
+                onChange={(v) => up("chartLabelKey", v)}
+                placeholder="label"
+              />
             </PropRow>
           </PropSection>
 
-          <PropSection label="Categories" color="#d97706" icon={<List size={9} />} onAdd={addCategory} addLabel="Category" defaultOpen={false}>
+          <PropSection
+            label="Categories"
+            color="#d97706"
+            icon={<List size={9} />}
+            onAdd={addCategory}
+            addLabel="Category"
+            defaultOpen={false}
+          >
             <div style={{ fontSize: 9, color: T.muted, marginBottom: 6, lineHeight: 1.4 }}>
               X-axis labels for bar / line charts (slice labels for pie / donut).
             </div>
             {categories.map((cat, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
-                <span style={{ fontSize: 9, color: T.muted, minWidth: 14, textAlign: "right" }}>{i + 1}.</span>
+              <div
+                key={i}
+                style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}
+              >
+                <span style={{ fontSize: 9, color: T.muted, minWidth: 14, textAlign: "right" }}>
+                  {i + 1}.
+                </span>
                 <div style={{ flex: 1 }}>
-                  <Input value={cat} onChange={v => updateCategory(i, v)} placeholder={`Category ${i + 1}`} />
+                  <Input
+                    value={cat}
+                    onChange={(v) => updateCategory(i, v)}
+                    placeholder={`Category ${i + 1}`}
+                  />
                 </div>
                 {categories.length > 1 && (
                   <button
                     onClick={() => delCategory(i)}
-                    style={{ background: "none", border: "none", color: "#dc2626", cursor: "pointer", display: "flex", padding: 2 }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#dc2626",
+                      cursor: "pointer",
+                      display: "flex",
+                      padding: 2,
+                    }}
                     title="Remove category"
                   >
                     <X size={10} />
@@ -455,7 +649,8 @@ export function ChartPropsPanel({
                   style={{
                     background: isOpen ? T.bg2 : "#fff",
                     border: `1px solid ${isOpen ? s.color + "55" : T.border}`,
-                    borderRadius: 6, marginBottom: 4,
+                    borderRadius: 6,
+                    marginBottom: 4,
                     overflow: "hidden",
                     transition: "background .15s,border-color .15s",
                   }}
@@ -463,34 +658,55 @@ export function ChartPropsPanel({
                   <div
                     onClick={() => setExpandedSeries(isOpen ? null : i)}
                     style={{
-                      display: "flex", alignItems: "center", gap: 7,
-                      padding: "6px 8px", cursor: "pointer", userSelect: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 7,
+                      padding: "6px 8px",
+                      cursor: "pointer",
+                      userSelect: "none",
                     }}
-                    onMouseEnter={e => { if (!isOpen) e.currentTarget.style.background = "#f8fafc"; }}
-                    onMouseLeave={e => { if (!isOpen) e.currentTarget.style.background = ""; }}
+                    onMouseEnter={(e) => {
+                      if (!isOpen) e.currentTarget.style.background = "#f8fafc";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isOpen) e.currentTarget.style.background = "";
+                    }}
                   >
                     <div
                       style={{
-                        width: 12, height: 12, borderRadius: 3,
-                        background: s.color, flexShrink: 0,
+                        width: 12,
+                        height: 12,
+                        borderRadius: 3,
+                        background: s.color,
+                        flexShrink: 0,
                         boxShadow: "inset 0 0 0 1px rgba(0,0,0,.08)",
                       }}
                     />
                     <span
                       style={{
-                        fontSize: 10.5, fontWeight: 600, color: T.text,
-                        flex: 1, whiteSpace: "nowrap",
-                        overflow: "hidden", textOverflow: "ellipsis",
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        color: T.text,
+                        flex: 1,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                       }}
                     >
                       {s.label || `Series ${i + 1}`}
                     </span>
                     <span
                       style={{
-                        fontSize: 8, fontFamily: "monospace", color: T.muted,
-                        background: "#f1f5f9", borderRadius: 3, padding: "1px 5px",
-                        maxWidth: 70, whiteSpace: "nowrap",
-                        overflow: "hidden", textOverflow: "ellipsis",
+                        fontSize: 8,
+                        fontFamily: "monospace",
+                        color: T.muted,
+                        background: "#f1f5f9",
+                        borderRadius: 3,
+                        padding: "1px 5px",
+                        maxWidth: 70,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
                       }}
                     >
                       {s.dataKey}
@@ -506,19 +722,24 @@ export function ChartPropsPanel({
                     />
                     {series.length > 1 && (
                       <button
-                        onClick={e => {
+                        onClick={(e) => {
                           e.stopPropagation();
                           delSeries(i);
                           if (isOpen) setExpandedSeries(null);
                         }}
                         title="Delete series"
                         style={{
-                          background: "none", border: "none", color: "#dc2626",
-                          cursor: "pointer", display: "flex", padding: 2,
-                          borderRadius: 3, flexShrink: 0,
+                          background: "none",
+                          border: "none",
+                          color: "#dc2626",
+                          cursor: "pointer",
+                          display: "flex",
+                          padding: 2,
+                          borderRadius: 3,
+                          flexShrink: 0,
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "#fee2e2")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#fee2e2")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                       >
                         <X size={11} />
                       </button>
@@ -529,18 +750,26 @@ export function ChartPropsPanel({
                     <div style={{ padding: "4px 8px 8px", borderTop: `1px solid ${T.border}` }}>
                       <div style={{ marginBottom: 6, marginTop: 4 }}>
                         <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>Label</div>
-                        <Input value={s.label} onChange={v => updateSeries(i, "label", v)} placeholder="Series name" />
+                        <Input
+                          value={s.label}
+                          onChange={(v) => updateSeries(i, "label", v)}
+                          placeholder="Series name"
+                        />
                       </div>
                       <div style={{ marginBottom: 6 }}>
                         <div style={{ fontSize: 9, color: T.label, marginBottom: 2 }}>Data Key</div>
                         <input
                           value={s.dataKey}
-                          onChange={e => updateSeries(i, "dataKey", e.target.value)}
+                          onChange={(e) => updateSeries(i, "dataKey", e.target.value)}
                           style={{ ...inputStyle, fontFamily: "monospace" }}
                           placeholder="column_key"
                         />
                       </div>
-                      <ColorInput label="Color" value={s.color} onChange={v => updateSeries(i, "color", v)} />
+                      <ColorInput
+                        label="Color"
+                        value={s.color}
+                        onChange={(v) => updateSeries(i, "color", v)}
+                      />
                     </div>
                   )}
                 </div>

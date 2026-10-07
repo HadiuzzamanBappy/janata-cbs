@@ -3,9 +3,9 @@ import { randomUUID } from "node:crypto";
 import { appConfig } from "@/lib/config";
 import { getServiceUrl } from "@/lib/config/service-endpoints";
 import { type GrpcRequest, grpcProcess, type ProcessKind } from "@/lib/grpc/client";
-import type { APIResponse, Envelope } from "@/types";
+import type { ApiResponse, GrpcEnvelope } from "@/types";
 
-export type { Envelope };
+export type { GrpcEnvelope };
 
 const FINANCIAL_REQUEST_TYPES = new Set(
   appConfig.grpc.financialTransactionTypes.map((s) => s.trim().toUpperCase()),
@@ -15,7 +15,7 @@ function classify(requestType: string): ProcessKind {
   return FINANCIAL_REQUEST_TYPES.has(requestType.toUpperCase()) ? "financial" : "nonfinancial";
 }
 
-export async function dispatch(envelope: Envelope, token: string): Promise<APIResponse> {
+export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<ApiResponse> {
   try {
     const isDefault = envelope.servicePath === "default" || !envelope.servicePath;
     const targetServiceKey = isDefault ? "default" : envelope.servicePath.split("/")[0];
@@ -40,10 +40,10 @@ export async function dispatch(envelope: Envelope, token: string): Promise<APIRe
       controlNameArray.includes("USER") && envelope.requestType === "AUT"
         ? "UAU"
         : controlNameArray.includes("FUNDS.TRANSFER") &&
-          ["PUT", "AUT", "REV"].includes(envelope.requestType)
+            ["PUT", "AUT", "REV"].includes(envelope.requestType)
           ? "AFT"
           : controlNameArray.includes("CASH.TRANSFER") &&
-            ["PUT", "AUT", "REV"].includes(envelope.requestType)
+              ["PUT", "AUT", "REV"].includes(envelope.requestType)
             ? "ACT"
             : envelope.requestType;
 

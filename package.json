@@ -15,6 +15,7 @@
     "proto-gen": "tsx scripts/proto-gen.ts",
     "verify:matrix": "tsx scripts/verify-env-matrix.ts",
     "verify:gateway": "tsx scripts/verify-cbs-gateway.ts",
+    "verify:client": "tsx scripts/verify-cbs-client.ts",
     "cache:clear": "tsx scripts/clear-cache.ts",
     "cache:inspect": "tsx scripts/inspect-cache.ts"
   },

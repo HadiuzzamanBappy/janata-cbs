@@ -22,13 +22,8 @@ export type ScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
 // Chapter 2: Authentic CBS RIDASH Function Rights
 // ============================================================================
 
-/**
- * Canonical Core Banking RIDASH Function Right Codes.
- * Single runtime and type-level source of truth.
- */
-export const CBS_FUNCTION_CODES = ["R", "I", "D", "A", "S", "H"] as const;
-
-export type FunctionRightCode = (typeof CBS_FUNCTION_CODES)[number];
+import { CBS_FUNCTION_CODES, type FunctionRightCode } from "@/types";
+export { CBS_FUNCTION_CODES, type FunctionRightCode };
 
 export interface FunctionMetadata {
   code: FunctionRightCode;

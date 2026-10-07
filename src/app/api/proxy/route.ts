@@ -1,9 +1,9 @@
+import { STATIC_INQUIRIES, STATIC_INQUIRY_DATA, STATIC_TABLE_DATA } from "@fixtures";
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/config";
-import { dispatch, type Envelope } from "@/lib/grpc/dispatch";
-import { getSession } from "@/lib/redis";
-import { STATIC_INQUIRIES, STATIC_INQUIRY_DATA, STATIC_TABLE_DATA } from "@fixtures";
+import { dispatch, type GrpcEnvelope } from "@/lib/grpc/dispatch";
 import { parseInquiryRecords } from "@/lib/parsers";
+import { getSession } from "@/lib/redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const servicePath = body.servicePath || "default";
 
-    const envelope: Envelope = {
+    const envelope: GrpcEnvelope = {
       servicePath,
       requestType: body.requestType,
       controlName: body.controlName ?? "",
@@ -73,16 +73,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       if (appConfig.modelSource === "static") {
         // Dynamic Resolution:
         // 1. Check direct match by controlName or recordId in STATIC_INQUIRY_DATA
-        let rawInquiry =
-          STATIC_INQUIRY_DATA[cleanModel] ||
-          STATIC_INQUIRY_DATA[cleanRecordId];
+        let rawInquiry = STATIC_INQUIRY_DATA[cleanModel] || STATIC_INQUIRY_DATA[cleanRecordId];
 
         // 2. If not found directly, inspect STATIC_INQUIRIES schemas dynamically to find which inquiry matches this controllerName
         if (!rawInquiry && cleanModel) {
           for (const [inqKey, inqSpec] of Object.entries(STATIC_INQUIRIES)) {
             const fields = inqSpec.data?.fields as Record<string, unknown> | undefined;
-            const inqInfo = fields?.INQInfo as { struct_value?: { fields?: Record<string, { string_value?: string }> } } | undefined;
-            const controller = inqInfo?.struct_value?.fields?.controllerName?.string_value?.trim().toUpperCase();
+            const inqInfo = fields?.INQInfo as
+              | { struct_value?: { fields?: Record<string, { string_value?: string }> } }
+              | undefined;
+            const controller = inqInfo?.struct_value?.fields?.controllerName?.string_value
+              ?.trim()
+              .toUpperCase();
 
             if (controller === cleanModel && STATIC_INQUIRY_DATA[inqKey]) {
               rawInquiry = STATIC_INQUIRY_DATA[inqKey];
@@ -143,10 +145,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       if (response && response.status === "SUCCESS") {
         if (body.requestType === "INQ" && response.data) {
           const parsedRows = parseInquiryRecords(response);
-          return NextResponse.json({
-            ...response,
-            data: parsedRows,
-          }, { status: 200 });
+          return NextResponse.json(
+            {
+              ...response,
+              data: parsedRows,
+            },
+            { status: 200 },
+          );
         }
         return NextResponse.json(response, { status: 200 });
       }

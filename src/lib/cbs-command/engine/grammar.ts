@@ -15,13 +15,13 @@
  */
 
 import { resolveCommandAlias } from "../registry/alias";
+import type { FunctionRightCode } from "@/types";
 import {
   CBS_FUNCTION_METADATA,
   CBS_SETTINGS_TABS,
   CBS_SYSTEM_ACTIONS,
   type CbsSettingsTabId,
   type CbsSystemActionId,
-  type FunctionRightCode,
   type ParsedCommand,
   VALID_FUNCTION_CODES_SET,
 } from "../types/command";

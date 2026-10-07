@@ -1,4 +1,4 @@
-import type { ModelConfigRecord } from "../types";
+import type { ModelConfigRecord } from "@/lib/schemas/model-config-schema";
 
 export type MetaFieldGroup = "IDENTITY" | "ID_RULES" | "FLAGS";
 
@@ -32,7 +32,7 @@ export const META_FIELD_GROUPS: Array<{
   },
   {
     id: "ID_RULES",
-    title: "Record ID Generation & Pattern Rules (IDDEF)",
+    title: "Record ID Generation & Pattern Rules",
   },
   {
     id: "FLAGS",

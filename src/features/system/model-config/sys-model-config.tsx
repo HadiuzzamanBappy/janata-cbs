@@ -1,17 +1,35 @@
 "use client";
 
-import { Database, FileText, Layers, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  Database,
+  FileCode,
+  FileText,
+  Layers,
+  ShieldCheck,
+} from "lucide-react";
 import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CbsAuditFooter, CbsFormHeader, CbsIdleState } from "@/features/screens/shared";
 import type { ScreenProps } from "@/features/screens/types";
 import { McAuditTab } from "./components/mc-audit-tab";
 import { McGeneralTab } from "./components/mc-general-tab";
-import { McOptionsDialog } from "./components/mc-options-dialog";
-import { McPropertyTable } from "./components/mc-property-table";
+import { McJsonTab } from "./components/mc-json-tab";
+import { McPropertiesTab } from "./components/mc-properties-tab";
 import { useModelConfig } from "./hooks/use-model-config";
 
-export function SysModelConfig({ command }: ScreenProps) {
+export function SysModelConfig({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
     const parts = (command || "").trim().split(/\s+/);
     return parts.length > 1 ? parts[1] : undefined;
@@ -21,7 +39,6 @@ export function SysModelConfig({ command }: ScreenProps) {
     recordId,
     setRecordId,
     mode,
-    setMode,
     formData,
     setFormData,
     modelsPool,
@@ -29,21 +46,25 @@ export function SysModelConfig({ command }: ScreenProps) {
     submitting,
     fetchRecord,
     handleCreateNew,
+    handleValidate,
     handleSubmit,
     handleAuthorize,
+    validationErrors,
     addField,
     updateField,
     removeField,
+    isFieldCommitted,
     resetToIdle,
-  } = useModelConfig(initialId);
+  } = useModelConfig(initialId, tabId);
 
   const isReadOnly = mode === "VIEW";
   const [activeTab, setActiveTab] = React.useState<string>("general");
-  const [editingOptionsForSN, setEditingOptionsForSN] = React.useState<string | null>(null);
+  const [selectedPropertySN, setSelectedPropertySN] = React.useState<string | null>(null);
 
   // Reset tab selection to 'General' whenever switching to a different record or when creating a new record
   React.useEffect(() => {
     setActiveTab("general");
+    setSelectedPropertySN(null);
   }, [formData.recordId, mode]);
 
   const availableModels = React.useMemo(
@@ -80,10 +101,11 @@ export function SysModelConfig({ command }: ScreenProps) {
         onCreateNew={handleCreateNew}
         onReturnToSearch={resetToIdle}
         onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "MENU_TREE") : undefined}
+        onValidate={mode !== "IDLE" && !isReadOnly ? handleValidate : undefined}
         onSubmit={mode !== "IDLE" && !isReadOnly ? handleSubmit : undefined}
         onAuthorizeReverse={mode !== "IDLE" ? handleAuthorize : undefined}
         onView={() => recordId && fetchRecord(recordId, "VIEW")}
-        onAmend={() => recordId && setMode("EDIT")}
+        onAmend={() => recordId && fetchRecord(recordId, "EDIT")}
         mode={mode}
         submitting={submitting || loading}
         availableItems={availableModels}
@@ -141,11 +163,107 @@ export function SysModelConfig({ command }: ScreenProps) {
                     <ShieldCheck className="size-3 text-emerald-500" />
                     <span>Audit Data</span>
                   </TabsTrigger>
+                  <TabsTrigger
+                    value="json"
+                    className="h-6 px-2.5 text-xs rounded gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs font-medium"
+                  >
+                    <FileCode className="size-3 text-amber-500" />
+                    <span>JSON Output</span>
+                  </TabsTrigger>
                 </TabsList>
 
-                <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5 pr-1">
-                  <Layers className="size-3" />
-                  <span>SYS_MODEL_DEFINITION</span>
+                <div className="flex items-center gap-2 pr-1">
+                  {/* Validation Alerts Dropdown (Standard CBS Error Inspector) */}
+                  {validationErrors.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="h-6 px-2 text-[11px] gap-1 rounded font-semibold animate-pulse shadow-xs cursor-pointer"
+                          >
+                            <AlertTriangle className="size-3 shrink-0" />
+                            <span>{validationErrors.length} Issue{validationErrors.length > 1 ? "s" : ""}</span>
+                            <ChevronDown className="size-3 opacity-75 shrink-0" />
+                          </Button>
+                        }
+                      />
+                      <DropdownMenuContent
+                        align="end"
+                        className="w-84 rounded-md p-1 shadow-lg bg-popover border border-destructive/30"
+                      >
+                        <DropdownMenuLabel className="text-xs font-semibold px-2 py-1.5 flex items-center justify-between text-destructive bg-destructive/5 rounded-t">
+                          <div className="flex items-center gap-1.5">
+                            <AlertTriangle className="size-3.5 text-destructive" />
+                            <span>Validation Checklist</span>
+                            <Badge variant="destructive" className="text-[10px] h-4 px-1 rounded font-mono ml-0.5">
+                              {validationErrors.length}
+                            </Badge>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              const first = validationErrors[0];
+                              if (first) {
+                                setActiveTab(first.tab);
+                                if (first.sn) setSelectedPropertySN(first.sn);
+                              }
+                            }}
+                            className="h-5 px-1.5 text-[10px] font-semibold rounded shadow-none cursor-pointer"
+                          >
+                            Fix First →
+                          </Button>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator className="my-1" />
+                        <div className="max-h-64 overflow-y-auto divide-y divide-border/40">
+                          {validationErrors.map((err) => (
+                            <DropdownMenuItem
+                              key={err.id}
+                              onClick={() => {
+                                setActiveTab(err.tab);
+                                if (err.sn) {
+                                  setSelectedPropertySN(err.sn);
+                                }
+                              }}
+                              className="px-2 py-1.5 text-xs cursor-pointer flex flex-col items-start gap-0.5 rounded hover:bg-destructive/10"
+                            >
+                              <div className="flex items-center gap-1.5 w-full">
+                                <Badge
+                                  variant="outline"
+                                  className="text-[9px] font-mono h-4 px-1 rounded uppercase tracking-wider text-muted-foreground border-border/80"
+                                >
+                                  {err.tab}
+                                </Badge>
+                                {err.sn && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[9px] font-mono h-4 px-1 rounded text-primary border-primary/30"
+                                  >
+                                    #{err.sn}
+                                  </Badge>
+                                )}
+                                <span className="font-semibold text-foreground text-[11px] truncate flex-1">
+                                  {err.fieldKey}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-destructive leading-tight">
+                                {err.message}
+                              </span>
+                            </DropdownMenuItem>
+                          ))}
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
+                  <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
+                    <Layers className="size-3" />
+                    <span>SYS_MODEL_DEFINITION</span>
+                  </div>
                 </div>
               </div>
 
@@ -155,24 +273,33 @@ export function SysModelConfig({ command }: ScreenProps) {
                   formData={formData}
                   setFormData={setFormData}
                   isReadOnly={isReadOnly}
+                  validationErrors={validationErrors}
                 />
               </TabsContent>
 
               {/* Tab 2: Fields & Properties */}
               <TabsContent value="fields" className="flex-1 flex flex-col overflow-hidden min-h-0 m-0">
-                <McPropertyTable
+                <McPropertiesTab
                   properties={formData.properties}
                   isReadOnly={isReadOnly}
+                  isFieldCommitted={isFieldCommitted}
+                  selectedSN={selectedPropertySN}
+                  onSelectSN={setSelectedPropertySN}
+                  validationErrors={validationErrors}
                   onAddField={addField}
                   onUpdateField={updateField}
                   onRemoveField={removeField}
-                  onOpenOptions={(sn: string) => setEditingOptionsForSN(sn)}
                 />
               </TabsContent>
 
               {/* Tab 3: Audit Sign-off History */}
               <TabsContent value="audit" className="flex-1 overflow-hidden min-h-0 m-0">
                 <McAuditTab formData={formData} />
+              </TabsContent>
+
+              {/* Tab 4: JSON Wire Output Preview */}
+              <TabsContent value="json" className="flex-1 flex flex-col overflow-hidden min-h-0 m-0">
+                <McJsonTab formData={formData} />
               </TabsContent>
             </Tabs>
           </div>
@@ -182,19 +309,6 @@ export function SysModelConfig({ command }: ScreenProps) {
       {/* 3. CBS BASE AUDIT FOOTER */}
       {mode !== "IDLE" && auditFooterData && (
         <CbsAuditFooter audit={auditFooterData} />
-      )}
-
-      {/* 4. INLINE OPTIONS EDITOR MODAL */}
-      {editingOptionsForSN && (
-        <McOptionsDialog
-          property={formData.properties.find((p) => p.sn === editingOptionsForSN)}
-          isReadOnly={isReadOnly}
-          onSave={(newOptions) => {
-            updateField(editingOptionsForSN, { options: newOptions });
-            setEditingOptionsForSN(null);
-          }}
-          onClose={() => setEditingOptionsForSN(null)}
-        />
       )}
     </div>
   );

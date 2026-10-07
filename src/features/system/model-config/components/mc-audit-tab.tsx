@@ -7,7 +7,7 @@ import {
   getAuditFieldValue,
   type AuditFieldDef,
 } from "../config/audit-fields";
-import type { ModelConfigRecord } from "../types";
+import type { ModelConfigRecord } from "@/lib/schemas/model-config-schema";
 
 interface McAuditTabProps {
   formData: ModelConfigRecord;
@@ -36,8 +36,8 @@ export function McAuditTab({ formData }: McAuditTabProps) {
   const audit = formData.auditData;
 
   return (
-    <div className="h-full overflow-y-auto p-2">
-      <div className="max-w-3xl space-y-2">
+    <div className="h-full overflow-y-auto p-3">
+      <div className="max-w-3xl space-y-3">
         {AUDIT_SECTIONS.map((section) => {
           const fields = AUDIT_FIELD_REGISTRY.filter((f) => f.section === section.id);
 
@@ -46,9 +46,9 @@ export function McAuditTab({ formData }: McAuditTabProps) {
             return (
               <div
                 key={section.id}
-                className="rounded border border-border/80 bg-card/60 p-2.5 shadow-2xs"
+                className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
               >
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 mb-2 border-b border-border/60 flex items-center justify-between">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Code2 className="size-3.5 text-primary" />
                     <span>{section.title}</span>
@@ -60,21 +60,28 @@ export function McAuditTab({ formData }: McAuditTabProps) {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="space-y-1.5 text-xs">
                   {fields.map((field) => {
                     const val = getAuditFieldValue(formData, field.path);
                     return (
                       <div
                         key={field.path}
-                        className="flex items-center justify-between p-2 rounded border border-border/50 bg-background/50"
+                        className="flex items-center justify-between py-1.5 px-2.5 rounded border border-border/50 bg-background/40 hover:bg-background/70 transition-colors"
                       >
-                        <span className="text-muted-foreground flex items-center gap-1.5">
+                        <div className="flex items-center gap-2 min-w-0">
                           {renderFieldIcon(field.icon)}
-                          {field.label} ({field.wireName})
-                        </span>
-                        <span className="font-mono font-semibold text-foreground">
+                          <span className="font-medium text-foreground text-xs whitespace-nowrap">
+                            {field.label}
+                          </span>
+                          {field.wireName && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted/70 text-muted-foreground border border-border/50">
+                              {field.wireName}
+                            </span>
+                          )}
+                        </div>
+                        <div className="font-mono text-xs font-semibold text-foreground shrink-0 pl-3">
                           {val ? String(val) : "—"}
-                        </span>
+                        </div>
                       </div>
                     );
                   })}
@@ -88,9 +95,9 @@ export function McAuditTab({ formData }: McAuditTabProps) {
             return (
               <div
                 key={section.id}
-                className="rounded border border-border/80 bg-card/60 p-2.5 shadow-2xs"
+                className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
               >
-                <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-border/60">
+                <div className="flex items-center justify-between pb-1.5 border-b border-border/60">
                   <div className="flex items-center gap-1.5">
                     <Shield className="size-3.5 text-primary" />
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
@@ -98,7 +105,7 @@ export function McAuditTab({ formData }: McAuditTabProps) {
                     </span>
                   </div>
                   <span
-                    className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
                       audit?.recStatus === "AU" || audit?.recStatus === "LIVE"
                         ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                         : audit?.recStatus === "HLD"
@@ -110,26 +117,33 @@ export function McAuditTab({ formData }: McAuditTabProps) {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="space-y-1.5 text-xs">
                   {fields.map((field) => {
                     const val = getAuditFieldValue(formData, field.path);
                     const isRevision = field.wireName === "recCurrNumber";
                     return (
                       <div
                         key={field.path}
-                        className="flex items-center justify-between p-2 rounded border border-border/50 bg-background/50"
+                        className="flex items-center justify-between py-1.5 px-2.5 rounded border border-border/50 bg-background/40 hover:bg-background/70 transition-colors"
                       >
-                        <span className="text-muted-foreground flex items-center gap-1.5">
+                        <div className="flex items-center gap-2 min-w-0">
                           {renderFieldIcon(field.icon)}
-                          {field.label} ({field.wireName})
-                        </span>
-                        <span
-                          className={`font-mono font-semibold ${
-                            isRevision ? "text-primary" : "text-foreground"
+                          <span className="font-medium text-foreground text-xs whitespace-nowrap">
+                            {field.label}
+                          </span>
+                          {field.wireName && (
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted/70 text-muted-foreground border border-border/50">
+                              {field.wireName}
+                            </span>
+                          )}
+                        </div>
+                        <div
+                          className={`font-mono text-xs font-semibold shrink-0 pl-3 ${
+                            isRevision && val ? "text-primary" : "text-foreground"
                           }`}
                         >
-                          {isRevision ? `#${val ?? 1}` : val ? String(val) : "—"}
-                        </span>
+                          {isRevision ? (val ? `#${val}` : "—") : val ? String(val) : "—"}
+                        </div>
                       </div>
                     );
                   })}
@@ -143,55 +157,71 @@ export function McAuditTab({ formData }: McAuditTabProps) {
             return (
               <div
                 key={section.id}
-                className="rounded border border-border/80 bg-card/60 p-2.5 shadow-2xs"
+                className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
               >
-                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 mb-2 border-b border-border/60">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
                   {section.title}
                 </div>
 
-                <div className="space-y-1.5 text-xs">
+                <div className="space-y-2 text-xs">
                   {fields.map((field) => {
                     const isAuthorizer = field.wireName === "recAuthorizer";
                     const userVal = isAuthorizer
-                      ? audit?.recAuthorizer || "SYSUSER"
-                      : audit?.recInputter || "SYSUSER";
+                      ? audit?.recAuthorizer || ""
+                      : audit?.recInputter || "";
                     const timeVal = isAuthorizer ? audit?.recAuthTime : audit?.recInputTime;
 
                     return (
                       <div
                         key={field.path}
-                        className="p-2 rounded border border-border/60 bg-background/60 flex flex-col sm:flex-row sm:items-center justify-between gap-1"
+                        className="py-2 px-2.5 rounded border border-border/50 bg-background/40 flex items-center justify-between gap-3"
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
                           <div
-                            className={`size-5 rounded flex items-center justify-center shrink-0 ${
+                            className={`size-6 rounded flex items-center justify-center shrink-0 ${
                               isAuthorizer
                                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                 : "bg-primary/10 text-primary"
                             }`}
                           >
                             {isAuthorizer ? (
-                              <ShieldCheck className="size-3" />
+                              <ShieldCheck className="size-3.5" />
                             ) : (
-                              <User className="size-3" />
+                              <User className="size-3.5" />
                             )}
                           </div>
-                          <div>
-                            <div className="font-medium text-foreground">
-                              {field.label} ({field.wireName})
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-medium text-foreground text-xs whitespace-nowrap">
+                                {field.label}
+                              </span>
+                              {field.wireName && (
+                                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted/70 text-muted-foreground border border-border/50">
+                                  {field.wireName}
+                                </span>
+                              )}
                             </div>
                             {field.description && (
-                              <div className="text-[10px] text-muted-foreground font-mono">
+                              <div className="text-[10px] text-muted-foreground truncate">
                                 {field.description}
                               </div>
                             )}
                           </div>
                         </div>
-                        <div className="sm:text-right font-mono">
-                          <div className="font-semibold text-foreground">{userVal}</div>
-                          <div className="text-[10px] text-muted-foreground flex items-center gap-1 sm:justify-end">
+
+                        <div className="text-right font-mono shrink-0 pl-2">
+                          <div
+                            className={
+                              userVal
+                                ? "font-semibold text-foreground text-xs"
+                                : "text-muted-foreground text-xs"
+                            }
+                          >
+                            {userVal || "—"}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground flex items-center gap-1 justify-end">
                             <Calendar className="size-2.5" />
-                            {timeVal || "—"}
+                            <span>{timeVal || "—"}</span>
                           </div>
                         </div>
                       </div>

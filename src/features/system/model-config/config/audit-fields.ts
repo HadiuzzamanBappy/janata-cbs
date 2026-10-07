@@ -1,4 +1,4 @@
-import type { ModelConfigRecord } from "../types";
+import type { ModelConfigRecord } from "@/lib/schemas/model-config-schema";
 
 export interface AuditFieldDef {
   path: string;
@@ -18,7 +18,7 @@ export const AUDIT_SECTIONS: Array<{
   {
     id: "DEVELOPMENT",
     title: "Development & Schema Metadata",
-    wireTag: "_DEVBY / _DEVDATE",
+    wireTag: "devBy / devDate",
   },
   {
     id: "LEDGER",
@@ -32,14 +32,14 @@ export const AUDIT_SECTIONS: Array<{
 
 /**
  * Declarative registry of all Audit & Ledger fields.
- * Any new audit metadata (e.g. DEPT.CODE, AUDIT.DATE, CO.CODE) can be declared here in 1 line.
+ * Any new audit metadata (e.g. deptCode, auditDate, coCode) can be declared here in 1 line.
  */
 export const AUDIT_FIELD_REGISTRY: AuditFieldDef[] = [
   // --- Section 1: DEVELOPMENT ---
   {
     path: "devBy",
     label: "Developed By",
-    wireName: "_DEVBY",
+    wireName: "devBy",
     type: "text",
     icon: "user",
     section: "DEVELOPMENT",
@@ -47,7 +47,7 @@ export const AUDIT_FIELD_REGISTRY: AuditFieldDef[] = [
   {
     path: "devDate",
     label: "Development Date",
-    wireName: "_DEVDATE",
+    wireName: "devDate",
     type: "date",
     icon: "calendar",
     section: "DEVELOPMENT",
@@ -81,7 +81,7 @@ export const AUDIT_FIELD_REGISTRY: AuditFieldDef[] = [
   {
     path: "tableName",
     label: "Table Identifier",
-    wireName: "TABLENAME",
+    wireName: "tableName",
     type: "text",
     icon: "alert",
     section: "LEDGER",

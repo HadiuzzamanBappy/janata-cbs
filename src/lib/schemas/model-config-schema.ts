@@ -1,58 +1,62 @@
 import { z } from "zod";
 
 /* -------------------------------------------------------------------------- */
-/* Raw Wire Schemas for SYS_MODEL_DEFINITION / MODEL.CONFIG                    */
+/* Canonical Domain Schemas & Contracts for Model Config Designer             */
 /* -------------------------------------------------------------------------- */
 
-export const rawModelPropertySchema = z.object({
-  NAME: z.string().optional(),
-  LABEL: z.string().optional(),
-  TYPE: z.string().optional(),
-  LENGTH: z.union([z.number(), z.string()]).optional(),
-  STRUCTURE: z.enum(["S", "M"]).default("S"),
-  REQUIRED: z.union([z.boolean(), z.string()]).optional(),
-  DISABLED: z.union([z.boolean(), z.string()]).optional(),
-  WIDTH: z.union([z.number(), z.string()]).optional(),
-  POSITION: z.string().optional(),
-  PARAMETER: z.any().optional(),
-  ENRICHTEXT: z.string().optional(),
-  VALUE: z.any().optional(),
-  ISOPEN: z.boolean().optional(),
-  ISLOADING: z.boolean().optional(),
-  PROP: z.array(z.any()).optional(),
-  DATASOURCE: z.array(z.string()).optional(),
-  SN: z.union([z.number(), z.string()]).optional(),
+export const propertyTypeSchema = z.enum(["Text", "Number", "Date", "Boolean"]);
+export type PropertyType = z.infer<typeof propertyTypeSchema>;
+export const PROPERTY_TYPES = propertyTypeSchema.options;
+
+export const modelPropertySchema = z.object({
+  sn: z.string(),
+  name: z.string().min(1, "Field name is required"),
+  label: z.string().min(1, "Field label is required"),
+  type: propertyTypeSchema.default("Text"),
+  structure: z.enum(["S", "M"]).default("S"), // S = Single value, M = Multi-value
+  length: z.number().default(50),
+  required: z.boolean().default(false),
+  disabled: z.boolean().default(false),
+  status: z.enum(["ACTIVE", "ARCHIVED"]).default("ACTIVE"),
+  mask: z.string().optional(),
+  pattern: z.string().optional(),
+  defaultValue: z.any().optional(),
+  fixedValue: z.string().optional(),
+  enrichText: z.string().optional(),
 });
 
-export type RawModelProperty = z.infer<typeof rawModelPropertySchema>;
+export type ModelProperty = z.infer<typeof modelPropertySchema>;
 
-export const rawModelConfigSchema = z.object({
-  _DEVBY: z.string().optional(),
-  _DEVDATE: z.string().optional(),
-  DESCRIPTION: z.string().optional(),
-  PREFIX: z.string().optional(),
-  TABLENAME: z.string(),
-  USERDEFINEID: z.boolean().optional(),
-  ACCESS: z.string().optional(),
-  READONLY: z.boolean().optional(),
-  SEARCHABLE: z.boolean().optional(),
-  ASSOCIATES: z.array(z.string()).optional(),
-  AUTHORIZE: z.boolean().optional(),
-  SERVICEPATH: z.string().optional(),
-  IDDEF: z
+export const modelConfigRecordSchema = z.object({
+  recordId: z.string().min(1, "Model Table ID is required"),
+  tableName: z.string().default(""),
+  description: z.string().min(1, "Description is required"),
+  prefix: z.string().default(""),
+  category: z.string().default(""),
+  servicePath: z.string().default(""),
+  userDefineId: z.boolean().default(false),
+  predefineId: z.boolean().default(false),
+  access: z.string().default(""),
+  searchable: z.boolean().default(false),
+  readOnly: z.boolean().default(false),
+  authorize: z.boolean().default(false),
+  associates: z.array(z.string()).default([]),
+  devBy: z.string().default(""),
+  devDate: z.string().default(""),
+  idDef: z
     .object({
-      IDPREFIX: z.string().optional(),
-      SEQUENCELENGTH: z.union([z.number(), z.string()]).optional(),
-      SEQUENCERESET: z.boolean().optional(),
-      IDPATTERN: z.string().optional(),
+      idPrefix: z.string().default(""),
+      idPattern: z.string().default(""),
+      sequenceLength: z.union([z.number(), z.string()]).optional(),
+      sequenceReset: z.boolean().default(false),
     })
-    .optional(),
-  PROPERTIES: z.array(rawModelPropertySchema).optional(),
-  PREDIFINEID: z.boolean().optional(),
+    .default({ idPrefix: "", idPattern: "", sequenceReset: false }),
+  properties: z.array(modelPropertySchema).default([]),
+  isActive: z.boolean().default(false),
   auditData: z
     .object({
       recStatus: z.string().optional(),
-      recCurrNumber: z.union([z.number(), z.string()]).optional(),
+      recCurrNumber: z.number().optional(),
       recInputter: z.string().optional(),
       recInputTime: z.string().optional(),
       recAuthorizer: z.string().optional(),
@@ -62,4 +66,14 @@ export const rawModelConfigSchema = z.object({
     .optional(),
 });
 
-export type RawModelConfig = z.infer<typeof rawModelConfigSchema>;
+export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
+
+export interface ValidationErrorItem {
+  id: string;
+  tab: "general" | "fields" | "audit";
+  sn?: string;
+  fieldKey: string;
+  message: string;
+}
+
+export type ModelConfigScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";

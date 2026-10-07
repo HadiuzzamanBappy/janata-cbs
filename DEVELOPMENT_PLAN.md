@@ -6,7 +6,7 @@ This document records the implemented modular, clean architecture for **FinX-UI*
 It establishes a strict separation of concerns:
 1. **Universal CBS Runtime Engines** (`src/features/screens/`): Interpreters dynamically rendering forms and inquiry grids from backend JSON schemas.
 2. **Bespoke Administrative Screens** (`src/features/system/`): Interactive visual canvases (Visual Menu Designer, Report Studio, COB Batch Pipeline, RBAC User Security).
-3. **Shared CBS Primitives** (`src/features/screens/shared/`): Unified Temenos T24 UI components (`<CbsFormHeader />`, `<CbsIdleState />`, `<CbsAuditFooter />`, action toolbars).
+3. **Shared CBS Primitives** (`src/features/screens/shared/`): Unified CBS UI components (`<CbsFormHeader />`, `<CbsIdleState />`, `<CbsAuditFooter />`, action toolbars).
 4. **Central CBS Micro-Client Gateway** (`src/lib/cbs-client/`): Single source of truth for all CBS backend wire request types, control tables, payload builders, and network transport.
 5. **App Utilities & Modals** (`src/features/auth/`, `src/features/settings/`, `src/features/docs/`): Decoupled application shell features.
 
@@ -29,14 +29,13 @@ src/
 │   │   │   └── utils/              #    filter-dataset, export-helpers, resolve-form-command
 │   │   │
 │   │   ├── shared/                 #    COMMON CBS UI PRIMITIVES (Universal across Engines & System screens)
-│   │   │   ├── cbs-form-header.tsx #    Standard Temenos T24 Action Toolbar & Quick Record Lookup
+│   │   │   ├── cbs-form-header.tsx #    Standard CBS Action Toolbar & Quick Record Lookup
 │   │   │   ├── cbs-idle-state.tsx  #    Standard Dashed Container + Layer Emblem + Instructions
 │   │   │   ├── cbs-audit-footer.tsx#    Record status, CurrNo, Inputter, Authorizer ledger display
 │   │   │   ├── action-buttons.tsx  #    Standardized action button row
 │   │   │   └── action-more-menu.tsx#    Drop-down action triggers
 │   │   │
 │   │   ├── registry.tsx            #    Bespoke screen map + fallback resolution
-│   │   ├── launcher.ts             #    Tab spawning & window management
 │   │   ├── loader.tsx              #    ScreenErrorBoundary & Suspense fallbacks
 │   │   └── types.ts                #    ScreenComponent, ScreenProps, ScreenLoaderProps
 │   │
@@ -50,16 +49,30 @@ src/
 │   │   ├── inquiry-designer/       #    SC.INQUIRY.DESIGN: Search criteria & display column builder
 │   │   └── report-studio/          #    SC.REPORT.DESIGN: Drag-and-drop report layout designer
 │   │
-│   ├── auth/                       # 3. NON-CBS APP UTILITIES & MODALS
+│   ├── command/                    # 3. GLOBAL COMMAND PALETTE & SEARCH FEATURE
+│   │   ├── components/             #    CommandGuidance, SearchInputBar, SearchResultsList
+│   │   ├── hooks/                  #    useSearchCommands, useCommandExecutor, useCommandGuide
+│   │   ├── app-search.tsx          #    Modal dialog entry point (<AppSearch />)
+│   │   └── search-filter.ts        #    Visible command fuzzy matching & category grouping
+│   │
+│   ├── auth/                       # 4. NON-CBS APP UTILITIES & MODALS
 │   ├── settings/                   #    Global theme, appearance, font sizing, security tabs
 │   └── docs/                       #    Embedded interactive documentation & command guide
 │
 └── lib/
-    └── cbs-client/                 # 4. CENTRAL CBS PAYLOAD GATEWAY & TRANSPORT MICRO-CLIENT
-        ├── contracts/              #    Wire request types, record functions, control tables, envelope schemas
-        ├── payloads/               #    Centralized domain payload builders (menu, userGroup, inquiry, cob, etc.)
-        ├── transport/              #    Proxy client with error normalization & toast alerts
-        └── index.ts                #    Unified typed `cbs` gateway facade
+    ├── cbs-client/                 # 4. CENTRAL CBS DATA GATEWAY (Wire contracts & API builders)
+    │   ├── contracts/              #    Wire request types, record functions, control tables
+    │   ├── payloads/               #    Domain payload builders (menu, userGroup, inquiry, cob)
+    │   ├── transport/              #    Network proxy client with error alerts
+    │   └── index.ts                #    Unified typed `cbs` gateway facade
+    │
+    └── cbs-command/                # 5. CENTRAL CBS COMMAND GATEWAY (Terminal execution & grammar)
+        ├── contracts/              #    Command types, validation types, execution options
+        ├── parser/                 #    CBS grammar parser (Comma Versions, authLevel 0)
+        ├── validator/              #    Security guard & RIDASH function permissions
+        ├── registry/               #    Canonical command catalog & master alias map
+        ├── executor/               #    Terminal executor, tab & popup dispatchers
+        └── index.ts                #    Unified typed `cbsCommand` gateway facade
 ```
 
 ---
@@ -73,7 +86,7 @@ src/
 - [x] **100% Migration**: Replaced every raw `/api/proxy` call across all custom hooks and screens with `cbs.send(...)`.
 
 ### Phase 2: Shared CBS UI Primitives (`src/features/screens/shared/`) — [COMPLETED]
-- [x] **`<CbsFormHeader />`**: Temenos T24 two-row toolbar with record navigator, search, and action integration.
+- [x] **`<CbsFormHeader />`**: Standard CBS two-row toolbar with record navigator, search, and action integration.
 - [x] **`<CbsIdleState />`**: Reusable dashed IDLE container with `Layers` emblem, keyboard instructions, and new record triggers.
 - [x] **`<CbsAuditFooter />`**: Real-time ledger audit bar (`REC.STATUS`, `CURR.NO`, `INPUTTER`, `DATE.TIME`, `AUTHORISER`).
 - [x] **Bespoke Screens Standardized**: Refactored `menu-catalog`, `menu-designer`, `user-group`, `user-pass-reset`, `cob-registry`, `model-config`, `inquiry-designer`, and `form-screen` to use `<CbsFormHeader />` and `<CbsIdleState />`.

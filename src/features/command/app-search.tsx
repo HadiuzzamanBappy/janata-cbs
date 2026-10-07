@@ -4,20 +4,10 @@ import * as React from "react";
 import { CommandDialog } from "@/components/ui/command";
 import { useUserRights } from "@/hooks";
 import { useAlertStore, useSessionStore, useWorkbenchStore } from "@/store";
-
-import type { GlobalSearchProps, RidashOption } from "./search/types";
-import { filterVisibleCommands, groupCommandsByCategory } from "./search/search-filter";
-import {
-  useCommandExecutor,
-  useCommandGuide,
-  useSearchCommands,
-} from "./search/hooks";
-import {
-  CommandGuidance,
-  SearchFooterHelp,
-  SearchInputBar,
-  SearchResultsList,
-} from "./search/components";
+import { CommandGuidance, SearchFooterHelp, SearchInputBar, SearchResultsList } from "./components";
+import { useCommandExecutor, useCommandGuide, useSearchCommands } from "./hooks";
+import { filterVisibleCommands, groupCommandsByCategory } from "./search-filter";
+import type { GlobalSearchProps, RidashOption } from "./types";
 
 export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchProps) {
   const { user, logout } = useSessionStore();
@@ -103,10 +93,7 @@ export function AppSearch({ open, onOpenChange, openSettingsTab }: GlobalSearchP
         />
       )}
 
-      <SearchResultsList
-        categories={categories}
-        onSelectCommand={handleSelectCommand}
-      />
+      <SearchResultsList categories={categories} onSelectCommand={handleSelectCommand} />
 
       <SearchFooterHelp />
     </CommandDialog>

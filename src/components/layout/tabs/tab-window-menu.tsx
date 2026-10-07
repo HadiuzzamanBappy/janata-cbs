@@ -68,8 +68,7 @@ function TabWindowMenuItem({
     if (hasUserInput) {
       confirm({
         title: `Close "${tab.title}"?`,
-        message:
-          "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
+        message: "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
         variant: "destructive",
         confirmText: "Discard & Close",
         onConfirm: () => removeTab(tab.id),
@@ -117,9 +116,7 @@ function TabWindowMenuItem({
                 variant={isActive ? "default" : "secondary"}
                 className={cn(
                   "h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center border-transparent shrink-0",
-                  isActive
-                    ? "bg-primary/20 text-primary font-bold"
-                    : "opacity-70",
+                  isActive ? "bg-primary/20 text-primary font-bold" : "opacity-70",
                 )}
               >
                 {originalIndex + 1}
@@ -141,7 +138,9 @@ function TabWindowMenuItem({
                     }}
                     className={cn(
                       "size-5 rounded items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer",
-                      isItemMenuOpen ? "flex text-foreground bg-muted/80" : "hidden group-hover:flex",
+                      isItemMenuOpen
+                        ? "flex text-foreground bg-muted/80"
+                        : "hidden group-hover:flex",
                     )}
                     title={`Options for ${tab.title}`}
                   />

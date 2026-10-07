@@ -25,11 +25,11 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store";
-import type { SettingsTabId } from "../types";
-import { AppearanceTab } from "./appearance-tab";
-import { DeactivateTab } from "./deactivate-tab";
-import { ProfileTab } from "./profile-tab";
-import { ChangePassword as SecurityTab } from "./security-tab";
+import { AppearanceTab } from "./components/appearance-tab";
+import { DeactivateTab } from "./components/deactivate-tab";
+import { ProfileTab } from "./components/profile-tab";
+import { ChangePassword as SecurityTab } from "./components/security-tab";
+import type { SettingsTabId } from "./types";
 
 const data: { nav: Array<{ name: string; icon: React.ReactNode; id: SettingsTabId }> } = {
   nav: [
@@ -56,19 +56,19 @@ const data: { nav: Array<{ name: string; icon: React.ReactNode; id: SettingsTabI
   ],
 };
 
-interface SettingsDialogProps {
+interface AppSettingsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   activeTab?: SettingsTabId | string;
   onTabChange?: (tab: SettingsTabId) => void;
 }
 
-export function SettingsDialog({
+export function AppSettings({
   open,
   onOpenChange,
   activeTab: controlledTab,
   onTabChange,
-}: SettingsDialogProps) {
+}: AppSettingsProps) {
   const [internalTab, setInternalTab] = React.useState<SettingsTabId>("profile");
 
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;
@@ -163,5 +163,3 @@ export function SettingsDialog({
     </Dialog>
   );
 }
-
-export const AppSettings = SettingsDialog;

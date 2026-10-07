@@ -160,7 +160,9 @@ export function BranchSwitcher({
                 </Button>
               </div>
             ) : filteredBranches.length === 0 ? (
-              <div className="py-2 text-center text-[11px] text-muted-foreground">No branches found</div>
+              <div className="py-2 text-center text-[11px] text-muted-foreground">
+                No branches found
+              </div>
             ) : (
               filteredBranches.map((b) => (
                 <DropdownMenuItem

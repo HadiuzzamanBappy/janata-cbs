@@ -29,13 +29,15 @@ export function ProfileTab() {
               <User className="size-4" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm font-semibold tracking-tight truncate">
-                {user.fullName}
-              </h2>
+              <h2 className="text-sm font-semibold tracking-tight truncate">{user.fullName}</h2>
               <div className="flex items-center text-[11px] text-muted-foreground gap-1.5">
                 <span className="font-mono text-foreground font-medium">{user.userId}</span>
                 <span>&bull;</span>
-                <span className={user.userStatus === 1 ? "text-emerald-500 font-medium" : "text-muted-foreground"}>
+                <span
+                  className={
+                    user.userStatus === 1 ? "text-emerald-500 font-medium" : "text-muted-foreground"
+                  }
+                >
                   {user.userStatus === 1 ? "Active" : "Inactive"}
                 </span>
               </div>
@@ -89,7 +91,9 @@ export function ProfileTab() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
             <div className="flex flex-col gap-0.5 p-2 rounded-md bg-muted/20 border border-border/40">
               <span className="text-muted-foreground text-[10px]">Accessibility</span>
-              <span className="font-mono font-medium text-foreground text-xs">{user.accessibility}</span>
+              <span className="font-mono font-medium text-foreground text-xs">
+                {user.accessibility}
+              </span>
             </div>
 
             <div className="flex flex-col gap-0.5 p-2 rounded-md bg-muted/20 border border-border/40">

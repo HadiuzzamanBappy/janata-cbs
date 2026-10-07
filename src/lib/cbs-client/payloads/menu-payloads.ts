@@ -12,7 +12,7 @@ export const menuPayloads = {
     servicePath: "default",
     requestType: CbsRequestType.RECORD_LIST,
     controlName: CbsControlTable.MENU,
-    recordFunction: CbsRecordFunction.LIST,
+    recordFunction: CbsRecordFunction.SEE,
     recordId: "",
   }),
 
@@ -49,7 +49,7 @@ export const menuPayloads = {
     servicePath: "default",
     requestType: CbsRequestType.RECORD_LIST,
     controlName: CbsControlTable.MENU_TREE,
-    recordFunction: CbsRecordFunction.LIST,
+    recordFunction: CbsRecordFunction.SEE,
     recordId: "",
   }),
 

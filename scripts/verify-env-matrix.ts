@@ -20,7 +20,7 @@ import {
   parseGMC,
   parseMNU,
 } from "../src/lib/parsers";
-import { parseCbsCommand, validateCommandForUser } from "../src/lib/core";
+import { parseCbsCommand, validateSecurityPermissions as validateCommandForUser } from "../src/lib/cbs-command";
 import type { CurrentUser } from "../src/lib/schemas";
 
 // ============================================================================

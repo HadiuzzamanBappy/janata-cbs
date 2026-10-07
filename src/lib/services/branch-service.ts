@@ -2,7 +2,7 @@ import "server-only";
 
 import { STATIC_BRANCH_RESPONSE } from "@fixtures";
 import { appConfig } from "@/lib/config";
-import { getServiceUrl } from "@/lib/core/service-endpoints";
+import { getServiceUrl } from "@/lib/config/service-endpoints";
 import { grpcProcess } from "@/lib/grpc";
 import { parseBranchesWirePayload } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";

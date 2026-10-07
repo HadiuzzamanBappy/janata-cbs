@@ -2,7 +2,7 @@
 
 import { Copy, ExternalLink, X, XCircle, XSquare } from "lucide-react";
 import type * as React from "react";
-import { launchScreen } from "@/features/screens";
+import { cbsCommand } from "@/lib/cbs-command";
 import type { WorkbenchTab } from "@/store";
 import { useAlertStore, useWorkbenchStore } from "@/store";
 
@@ -21,7 +21,7 @@ export function TabMenuItems({
   SeparatorComponent,
   ShortcutComponent,
 }: TabMenuActionProps) {
-  const { removeTab, addTab, duplicateTab, closeOthers, closeToRight, tabs } = useWorkbenchStore();
+  const { removeTab, duplicateTab, closeOthers, closeToRight, tabs } = useWorkbenchStore();
   const { confirm } = useAlertStore();
 
   const isLastTab = tabs.length <= 1;
@@ -95,20 +95,18 @@ export function TabMenuItems({
   };
 
   const handlePopOut = () => {
-    launchScreen({
-      id: tab.screenId ?? tab.id,
+    cbsCommand.execute(tab.screenId ?? tab.id, {
       title: tab.title,
-      componentName: tab.componentName,
       target: "popup",
       screenMode: tab.screenMode,
       searchRecordId: tab.searchRecordId,
-      // Enquiry state: pass step, criteria, pagination so popup restores exactly
       step: tab.enquiryState?.step,
-      criteria: tab.enquiryState?.criteria as Record<string, { value: string; operand: string }> | undefined,
+      criteria: tab.enquiryState?.criteria as
+        | Record<string, { value: string; operand: string }>
+        | undefined,
       currentPage: tab.enquiryState?.currentPage,
       pageSize: tab.enquiryState?.pageSize,
       formData: tab.formData,
-      addTab,
     });
     removeTab(tab.id);
   };

@@ -9,7 +9,7 @@ export interface CbsIdleStateProps {
 }
 
 /**
- * Standard Temenos T24 CBS IDLE state card.
+ * Standard CBS IDLE state card.
  * Displays dashed boundary, subtle primary layer emblem, and operational directions.
  */
 export function CbsIdleState({ title, code, customMessage }: CbsIdleStateProps) {

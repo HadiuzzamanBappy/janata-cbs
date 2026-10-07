@@ -5,7 +5,7 @@ import { appConfig } from "@/lib/config";
  */
 
 /**
- * Parses Temenos / CBS YYYYMMDD string (e.g. "20260929") into standard formatted date (e.g. "29 Sep 2026").
+ * Parses CBS YYYYMMDD string (e.g. "20260929") into standard formatted date (e.g. "29 Sep 2026").
  */
 export function formatValueDate(valueDateStr: string | null | undefined): string {
   if (valueDateStr?.length !== 8) return valueDateStr || "";

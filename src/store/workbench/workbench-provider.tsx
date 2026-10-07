@@ -4,6 +4,12 @@ import { createContext, type ReactNode, useContext, useRef } from "react";
 import { useStore } from "zustand";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
+let activeWorkbenchStore: WorkbenchStore | null = null;
+
+export function getActiveWorkbenchStore(): WorkbenchStore | null {
+  return activeWorkbenchStore;
+}
+
 export const WorkbenchStoreContext = createContext<WorkbenchStore | null>(null);
 
 export interface WorkbenchStoreProviderProps {
@@ -14,6 +20,7 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
   const storeRef = useRef<WorkbenchStore>(undefined!);
   if (!storeRef.current) {
     storeRef.current = createWorkbenchStore();
+    activeWorkbenchStore = storeRef.current;
   }
 
   return (

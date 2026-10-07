@@ -9,12 +9,15 @@ import { ModelConfigScreen } from "@/features/system/model-config";
 import ReportStudio from "@/features/system/report-studio";
 import { UserGroupScreen } from "@/features/system/user-group";
 import { UserPassResetScreen } from "@/features/system/user-pass-reset";
+import { getCanonicalScreenKey } from "@/lib/cbs-command";
 import { FormScreen } from "./forms";
 import { InquiryScreen } from "./inquiries";
 import type { ScreenComponent } from "./types";
 
 /**
  * Dedicated registry for custom/bespoke React screen components.
+ * Only canonical command keys are registered here; shorthand aliases
+ * (e.g. MD, COB, PWD) are automatically resolved via `getCanonicalScreenKey`.
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
   "USER.CHANGE.PASS": ChangePassword,
@@ -23,39 +26,30 @@ const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
       <ReportStudio />
     </div>
   ),
-  // System Configuration Screens
+  // System Configuration Screens (Canonical Keys Only)
   "SC.MENU": MenuCatalogScreen,
-  MENU: MenuCatalogScreen,
   "SC.MENU.DESIGN": MenuDesignerScreen,
-  "MENU.DESIGN": MenuDesignerScreen,
-  MD: MenuDesignerScreen,
   "SC.USER.GROUP": UserGroupScreen,
-  "USER.GROUP": UserGroupScreen,
   "SC.MODEL.CONFIG": ModelConfigScreen,
-  "MODEL.CONFIG": ModelConfigScreen,
   "SC.COB.REGISTRY": CobRegistryScreen,
-  "COB.REGISTRY": CobRegistryScreen,
-  COB: CobRegistryScreen,
   "SC.USER.PASS.RESET": UserPassResetScreen,
-  "USER.PASS.RESET": UserPassResetScreen,
-  "PASS.RESET": UserPassResetScreen,
   "SC.INQUIRY": InquiryDesignerScreen,
-  "INQUIRY.DESIGN": InquiryDesignerScreen,
 };
 
 /**
  * Universal Screen Resolver.
- * 1. Checks statically registered custom component.
- * 2. If command starts with ENQ or ENQUIRY, resolves to EnquiryScreen.
+ * 1. Checks canonical key via CBS Command Gateway alias map.
+ * 2. If command starts with INQ or INQUIRY, resolves to InquiryScreen.
  * 3. Fallbacks to schema-driven FormScreen engine.
  */
 export function resolveScreen(command: string): ScreenComponent {
   const decodedCmd = decodeURIComponent(command || "");
   const cleanCmd = decodedCmd.split(",")[0].trim().toUpperCase();
 
-  // 1. Check statically registered custom component
-  if (BESPOKE_SCREENS[cleanCmd]) {
-    return BESPOKE_SCREENS[cleanCmd];
+  // 1. Check canonical screen key via gateway
+  const canonicalKey = getCanonicalScreenKey(cleanCmd) || cleanCmd;
+  if (BESPOKE_SCREENS[canonicalKey]) {
+    return BESPOKE_SCREENS[canonicalKey];
   }
 
   // 2. Check if command is an Inquiry screen

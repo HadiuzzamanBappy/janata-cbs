@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/components/layout/sidebar/theme-toggle";
+import { ThemeToggle } from "@/components/layout/sidebar";
 import { appConfig } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +36,9 @@ export function AppearanceTab() {
       <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border/50 shadow-xs">
         <div>
           <h4 className="font-medium text-xs text-foreground">Theme Mode</h4>
-          <p className="text-[11px] text-muted-foreground">Switch between light, dark, or system preference</p>
+          <p className="text-[11px] text-muted-foreground">
+            Switch between light, dark, or system preference
+          </p>
         </div>
         <ThemeToggle variant="group" />
       </div>

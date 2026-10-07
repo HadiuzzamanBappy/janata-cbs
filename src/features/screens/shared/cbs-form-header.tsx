@@ -148,7 +148,7 @@ export function CbsFormHeader({
       <header
         className={`sticky top-0 z-20 bg-muted/40 border-b border-border/80 select-none ${className}`}
       >
-        {/* ROW 1: Minimalist Temenos Action Toolbar */}
+        {/* ROW 1: Minimalist CBS Action Toolbar */}
         <div className="flex items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
           {/* Action Icons Toolbar (Edit, View, Perform, Commit, Reverse, etc.) */}
           <ActionButtons
@@ -184,7 +184,7 @@ export function CbsFormHeader({
           </div>
         </div>
 
-        {/* ROW 2: Temenos Record Header: Label + Record ID Field + Add Button */}
+        {/* ROW 2: CBS Record Header: Label + Record ID Field + Add Button */}
         <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
             {title || "Basic Details"}

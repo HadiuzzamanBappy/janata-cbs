@@ -1,25 +1,16 @@
 "use client";
 
 import type { z } from "zod";
+import { mapZodIssuesToTabs } from "@/lib/cbs-screen";
 import type { MenuDesignerValidationError } from "@/lib/schemas/menu-designer-schema";
 
 export function mapMenuDesignerZodIssues(
   issues: z.ZodIssue[],
 ): MenuDesignerValidationError[] {
-  return issues.map((issue) => {
-    const fieldKey = issue.path.join(".") || "form";
-    const pathHead = issue.path[0];
-
-    let tab: MenuDesignerValidationError["tab"] = "general";
-    if (pathHead === "menuTree") {
-      tab = "canvas";
-    }
-
-    return {
-      id: `${fieldKey}-${issue.code}-${Math.random().toString(36).substring(2, 6)}`,
-      fieldKey,
-      message: issue.message,
-      tab,
-    };
+  return mapZodIssuesToTabs<"general" | "canvas" | "audit">(issues, (path) => {
+    const head = path[0];
+    if (head === "menuTree") return "canvas";
+    if (head === "auditData") return "audit";
+    return "general";
   });
 }

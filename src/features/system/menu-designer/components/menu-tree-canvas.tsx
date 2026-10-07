@@ -147,9 +147,18 @@ export function MenuTreeCanvas({
             onMoveOrder={onMoveOrder}
             isReadOnly={isReadOnly}
           />
-          {!isCollapsed && node.children && node.children.length > 0 && (
+          {!isCollapsed && node.children && (
             <div className="space-y-1">
-              {renderRecursive(node.children, level + 1)}
+              {node.children.length > 0 && renderRecursive(node.children, level + 1)}
+              {!isReadOnly && (node.menuId === 0 || !node.command) && (
+                <div style={{ marginLeft: `${Math.min((level + 1) * 22, 176)}px` }} className="pt-0.5">
+                  <TreeDropZone
+                    parentId={node.id}
+                    label={`Drop action inside "${node.label}"`}
+                    isReadOnly={isReadOnly}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

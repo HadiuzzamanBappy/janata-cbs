@@ -5,10 +5,8 @@ import * as React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import { CbsAuditFooter } from "@/features/screens/shared/cbs-audit-footer";
-import { CbsFormHeader } from "@/features/screens/shared/cbs-form-header";
-import { CbsIdleState } from "@/features/screens/shared/cbs-idle-state";
 import { cbs } from "@/lib/cbs-client";
+import { CbsScreenScaffold } from "@/lib/cbs-screen";
 import { useFormPersistence } from "../hooks/use-form-persistence";
 import { useFormSchema } from "../hooks/use-form-schema";
 import { useFormState } from "../hooks/use-form-state";
@@ -228,172 +226,164 @@ export function FormScreen({
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
-      <CbsFormHeader
-        title={schema.title}
-        commandCode={displayCommandCode}
-        mode={screenMode}
-        recordId={searchRecordId}
-        onRecordIdChange={setSearchRecordId}
-        onRecordSearch={(query) => {
+    <CbsScreenScaffold
+      variant="form"
+      title={schema.title}
+      commandCode={displayCommandCode}
+      mode={screenMode}
+      recordId={searchRecordId}
+      onRecordIdChange={setSearchRecordId}
+      onRecordSearch={(query) => {
+        toast.add({
+          title: "Searching Records",
+          description: `Filtering records matching "${query}"`,
+          type: "info",
+        });
+      }}
+      onCreateNew={() => {
+        resetForm(initialValues);
+        setScreenMode("CREATE");
+        toast.add({
+          title: "New Record Entry",
+          description: searchRecordId.trim()
+            ? `Creating new entry with ID #${searchRecordId.trim()} for ${schema.title}`
+            : `Ready to input new transaction for ${schema.title}`,
+          type: "info",
+        });
+      }}
+      onAmend={() => {
+        const id = searchRecordId.trim();
+        if (!id) {
           toast.add({
-            title: "Searching Records",
-            description: `Filtering records matching "${query}"`,
-            type: "info",
+            title: "Input Required",
+            description: "Please enter or select a Record ID to edit.",
+            type: "warning",
           });
-        }}
-        onCreateNew={() => {
-          resetForm(initialValues);
-          setScreenMode("CREATE");
+          return;
+        }
+        loadRecordData(id, "EDIT");
+      }}
+      onView={() => {
+        const id = searchRecordId.trim();
+        if (!id) {
           toast.add({
-            title: "New Record Entry",
-            description: searchRecordId.trim()
-              ? `Creating new entry with ID #${searchRecordId.trim()} for ${schema.title}`
-              : `Ready to input new transaction for ${schema.title}`,
-            type: "info",
+            title: "Input Required",
+            description: "Please enter or select a Record ID to view.",
+            type: "warning",
           });
-        }}
-        onAmend={() => {
-          const id = searchRecordId.trim();
-          if (!id) {
-            toast.add({
-              title: "Input Required",
-              description: "Please enter or select a Record ID to edit.",
-              type: "warning",
-            });
-            return;
-          }
-          loadRecordData(id, "EDIT");
-        }}
-        onView={() => {
-          const id = searchRecordId.trim();
-          if (!id) {
-            toast.add({
-              title: "Input Required",
-              description: "Please enter or select a Record ID to view.",
-              type: "warning",
-            });
-            return;
-          }
-          loadRecordData(id, "VIEW");
-        }}
-        onPerformAction={() => {
-          const id = searchRecordId.trim();
-          if (!id) {
-            toast.add({
-              title: "Input Required",
-              description: "Please enter or select a Record ID to perform action.",
-              type: "warning",
-            });
-            return;
-          }
-          loadRecordData(id, "EDIT");
-        }}
-        onHold={
-          screenMode !== "IDLE"
-            ? () => {
-                toast.add({
-                  title: "Transaction Held",
-                  description: `Record draft for ${schema.title} placed on Hold (HLD status).`,
-                  type: "info",
-                });
-              }
-            : undefined
+          return;
         }
-        onDelete={
-          screenMode !== "IDLE"
-            ? () => {
-                toast.add({
-                  title: "Record Reversal Queued",
-                  description: `Transaction marked for reversal/deletion in ${schema.title}.`,
-                  type: "warning",
-                });
-              }
-            : undefined
-        }
-        onAuthorizeReverse={
-          screenMode !== "IDLE"
-            ? () => {
-                toast.add({
-                  title: "Authorize Reversal",
-                  description: `Authorizing transaction reversal for record #${searchRecordId || "CURRENT"}.`,
-                  type: "warning",
-                });
-              }
-            : undefined
-        }
-        onProcessAction={
-          screenMode !== "IDLE"
-            ? () => {
-                toast.add({
-                  title: "Process / Verify Record",
-                  description: `Executing verification & end-of-stage process for ${schema.title}.`,
-                  type: "success",
-                });
-              }
-            : undefined
-        }
-        onReturnToSearch={() => {
-          if (onReturn) {
-            onReturn();
-            return;
-          }
-          resetForm(initialValues);
-          setScreenMode("IDLE");
+        loadRecordData(id, "VIEW");
+      }}
+      onPerformAction={() => {
+        const id = searchRecordId.trim();
+        if (!id) {
           toast.add({
-            title: "Returned to Search",
-            description: "Returned to initial dashboard / lookup state.",
-            type: "info",
+            title: "Input Required",
+            description: "Please enter or select a Record ID to perform action.",
+            type: "warning",
           });
-        }}
-        onReset={screenMode !== "IDLE" ? () => resetForm(initialValues) : undefined}
-        onSubmit={screenMode !== "IDLE" ? handleSubmit : undefined}
-        onValidate={
-          screenMode !== "IDLE"
-            ? () => {
-                toast.add({
-                  title: "Validation Check Passed",
-                  description: `Onsite & DB rules validated for ${schema.title}`,
-                  type: "success",
-                });
-              }
-            : undefined
+          return;
         }
-        submitting={submitting}
-        availableItems={getAvailableFixtureRecords(schema.code)}
-        moreActions={getDefaultMoreActions(schema.code)}
-      />
-
-      {/* Screen Body */}
-      <div className="flex-1 overflow-auto p-3">
-        {screenMode === "IDLE" ? (
-          <CbsIdleState title={schema.title} code={schema.code} />
-        ) : (
-          <FormGrid
-            schema={schema}
-            values={values}
-            onChange={handleFieldChange}
-            errors={errors}
-            disabled={submitting}
-            mode={screenMode}
-          />
-        )}
-      </div>
-
-      {/* CBS Audit Footer */}
-      {screenMode !== "IDLE" && (
-        <CbsAuditFooter
-          audit={{
-            recordStatus: (values?.RECORD_STATUS as string) || (values?.status as string) || "LIVE",
-            currNo: (values?.CURR_NO as number | string) || "1",
-            inputter: (values?.INPUTTER as string) || "CBS.OFFICER",
-            dateTime:
-              (values?.DATE_TIME as string) ||
-              new Date().toISOString().replace("T", " ").substring(0, 19),
-            authoriser: (values?.AUTHORISER as string) || "CBS.AUTH",
-          }}
+        loadRecordData(id, "EDIT");
+      }}
+      onHold={
+        screenMode !== "IDLE"
+          ? () => {
+              toast.add({
+                title: "Transaction Held",
+                description: `Record draft for ${schema.title} placed on Hold (HLD status).`,
+                type: "info",
+              });
+            }
+          : undefined
+      }
+      onDelete={
+        screenMode !== "IDLE"
+          ? () => {
+              toast.add({
+                title: "Record Reversal Queued",
+                description: `Transaction marked for reversal/deletion in ${schema.title}.`,
+                type: "warning",
+              });
+            }
+          : undefined
+      }
+      onAuthorizeReverse={
+        screenMode !== "IDLE"
+          ? () => {
+              toast.add({
+                title: "Authorize Reversal",
+                description: `Authorizing transaction reversal for record #${searchRecordId || "CURRENT"}.`,
+                type: "warning",
+              });
+            }
+          : undefined
+      }
+      onProcessAction={
+        screenMode !== "IDLE"
+          ? () => {
+              toast.add({
+                title: "Process / Verify Record",
+                description: `Executing verification & end-of-stage process for ${schema.title}.`,
+                type: "success",
+              });
+            }
+          : undefined
+      }
+      onReturnToSearch={() => {
+        if (onReturn) {
+          onReturn();
+          return;
+        }
+        resetForm(initialValues);
+        setScreenMode("IDLE");
+        toast.add({
+          title: "Returned to Search",
+          description: "Returned to initial dashboard / lookup state.",
+          type: "info",
+        });
+      }}
+      onReset={screenMode !== "IDLE" ? () => resetForm(initialValues) : undefined}
+      onSubmit={screenMode !== "IDLE" ? handleSubmit : undefined}
+      onValidate={
+        screenMode !== "IDLE"
+          ? () => {
+              toast.add({
+                title: "Validation Check Passed",
+                description: `Onsite & DB rules validated for ${schema.title}`,
+                type: "success",
+              });
+            }
+          : undefined
+      }
+      submitting={submitting}
+      availableItems={getAvailableFixtureRecords(schema.code)}
+      moreActions={getDefaultMoreActions(schema.code)}
+      auditData={
+        screenMode !== "IDLE"
+          ? {
+              recordStatus: (values?.RECORD_STATUS as string) || (values?.status as string) || "LIVE",
+              currNo: (values?.CURR_NO as number | string) || "1",
+              inputter: (values?.INPUTTER as string) || "CBS.OFFICER",
+              dateTime:
+                (values?.DATE_TIME as string) ||
+                new Date().toISOString().replace("T", " ").substring(0, 19),
+              authoriser: (values?.AUTHORISER as string) || "CBS.AUTH",
+            }
+          : undefined
+      }
+    >
+      <div className="flex-1 overflow-auto p-2">
+        <FormGrid
+          schema={schema}
+          values={values}
+          onChange={handleFieldChange}
+          errors={errors}
+          disabled={submitting}
+          mode={screenMode}
         />
-      )}
-    </div>
+      </div>
+    </CbsScreenScaffold>
   );
 }

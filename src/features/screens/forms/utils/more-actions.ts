@@ -1,5 +1,5 @@
 import { toast } from "@/components/ui/toast";
-import type { MoreActionItem } from "@/features/screens/shared/cbs-form-header";
+import type { MoreActionItem } from "@/lib/cbs-screen";
 
 /**
  * Default preset action menu items for CBS screens (Live files, unauth, history, inquiries).

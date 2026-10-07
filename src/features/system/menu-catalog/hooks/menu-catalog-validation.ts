@@ -1,20 +1,15 @@
+import type { z } from "zod";
+import { mapZodIssuesToTabs } from "@/lib/cbs-screen";
 import type {
   MenuCatalogRecord,
   MenuValidationErrorItem,
 } from "@/lib/schemas/menu-catalog-schema";
 
 export function mapMenuZodIssues(
-  issues: import("zod").ZodIssue[],
+  issues: z.ZodIssue[],
 ): MenuValidationErrorItem[] {
-  return issues.map((issue, idx) => {
-    const fieldKey = String(issue.path[issue.path.length - 1] || "unknown");
-    const tab: "general" | "audit" = issue.path[0] === "auditData" ? "audit" : "general";
-    return {
-      id: `${tab}-${fieldKey}-${idx}`,
-      tab,
-      fieldKey,
-      message: issue.message,
-    };
+  return mapZodIssuesToTabs<"general" | "audit">(issues, (path) => {
+    return path[0] === "auditData" ? "audit" : "general";
   });
 }
 

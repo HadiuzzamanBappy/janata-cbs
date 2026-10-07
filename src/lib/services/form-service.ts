@@ -1,5 +1,5 @@
 import "server-only";
-import { STATIC_MODELS } from "@fixtures";
+import { STATIC_FORMS } from "@fixtures";
 import { appConfig } from "@/lib/config";
 import { getServiceUrl } from "@/lib/config/service-endpoints";
 import { grpcProcess } from "@/lib/grpc";
@@ -16,7 +16,7 @@ async function fetchModelWirePayload(command: string, tokenParam?: string): Prom
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
   if (appConfig.modelSource === "static") {
-    return STATIC_MODELS[cleanCmd]?.data ?? null;
+    return STATIC_FORMS[cleanCmd]?.data ?? null;
   }
 
   const session = await getSession();
@@ -58,7 +58,7 @@ async function fetchModelWirePayload(command: string, tokenParam?: string): Prom
   return res.data;
 }
 
-export async function getModelData(command: string, token?: string): Promise<FormSchema | null> {
+export async function getFormData(command: string, token?: string): Promise<FormSchema | null> {
   const cleanCommand = command.toUpperCase();
   const cacheKey = `spec:${cleanCommand}`;
   return getOrSet(

@@ -1,4 +1,8 @@
-import { STATIC_INQUIRIES, STATIC_INQUIRY_DATA, STATIC_TABLE_DATA } from "@fixtures";
+import {
+  STATIC_FORM_DATA,
+  STATIC_INQUIRIES,
+  STATIC_INQUIRY_DATA,
+} from "@fixtures";
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/config";
 import { dispatch, type GrpcEnvelope } from "@/lib/grpc/dispatch";
@@ -98,7 +102,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
 
       // B. Form & Model Record Requests
-      const modelTable = STATIC_TABLE_DATA[cleanModel];
+      const modelTable = STATIC_FORM_DATA[cleanModel];
       if (modelTable) {
         if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
           return NextResponse.json({
@@ -169,7 +173,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Graceful Fallback for gRPC mode if backend server is unreachable
-    const modelTable = STATIC_TABLE_DATA[cleanModel];
+    const modelTable = STATIC_FORM_DATA[cleanModel];
     if (modelTable) {
       if (body.recordId && modelTable.records?.[body.recordId.trim()]) {
         return NextResponse.json({

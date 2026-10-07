@@ -21,7 +21,7 @@ export function useFormSchema(command: string) {
 
     try {
       const cleanCmd = command.split(",")[0].trim().toUpperCase();
-      const res = await fetch(`${appConfig.routes.api.model}/${cleanCmd}`);
+      const res = await fetch(`${appConfig.routes.api.form}/${cleanCmd}`);
       const json = await res.json();
 
       if (json.success && json.data) {

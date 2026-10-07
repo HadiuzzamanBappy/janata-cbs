@@ -77,7 +77,7 @@ export const appConfig = {
       session: "/api/session",
       proxy: "/api/proxy",
       cache: "/api/cache",
-      model: "/api/model",
+      form: "/api/form",
       inquiry: "/api/inquiry",
       menu: "/api/menu",
       controls: "/api/controls",

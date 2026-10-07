@@ -8,13 +8,13 @@
  * - Master alias mapping
  */
 
-import type { ParsedCommand } from "./contracts/command";
-import type { ExecutionOptions } from "./contracts/execution";
 import { parseCbsCommand } from "./engine/grammar";
 import { validateSecurityPermissions } from "./engine/validator";
 import { executeCbsCommand } from "./executor/terminal";
 import { getCanonicalScreenKey, resolveCommandAlias } from "./registry/alias";
 import { MASTER_COMMAND_DEFINITIONS } from "./registry/catalog";
+import type { ParsedCommand } from "./types/command";
+import type { ExecutionOptions } from "./types/execution";
 
 export const cbsCommand = {
   /**
@@ -54,10 +54,6 @@ export const cbsCommand = {
 
 export default cbsCommand;
 
-// Re-export contracts
-export * from "./contracts/command";
-export * from "./contracts/execution";
-export * from "./contracts/validation";
 // Re-export core functions
 export { parseCbsCommand } from "./engine/grammar";
 export { validateSecurityPermissions } from "./engine/validator";
@@ -67,3 +63,7 @@ export {
   getAllRegisteredCommands,
   MASTER_COMMAND_DEFINITIONS,
 } from "./registry/catalog";
+// Re-export contracts
+export * from "./types/command";
+export * from "./types/execution";
+export * from "./types/validation";

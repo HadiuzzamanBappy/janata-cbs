@@ -2,7 +2,7 @@
  * Dispatch & Execution Option Contracts for CBS Command Gateway
  */
 
-import type { ScreenMode } from "./command";
+import type { ParsedCommand, ScreenMode } from "./command";
 
 export type LaunchTarget = "workspace" | "popup";
 
@@ -26,4 +26,8 @@ export interface ExecutionOptions {
   step?: "SELECTION" | "RESULTS";
   /** If true, silences non-critical error toasts */
   silent?: boolean;
+  /** Optional headless callback for error reporting (useful in headless/testing environments) */
+  onError?: (error: string) => void;
+  /** Optional callback upon successful dispatch */
+  onSuccess?: (command: ParsedCommand) => void;
 }

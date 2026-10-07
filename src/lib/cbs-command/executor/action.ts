@@ -3,7 +3,7 @@
  */
 
 import { getActiveSessionStore } from "@/store";
-import type { ParsedCommand } from "../contracts/command";
+import type { ParsedCommand } from "../types/command";
 
 export function dispatchSystemAction(parsed: ParsedCommand): boolean {
   // 1. Settings Dialog

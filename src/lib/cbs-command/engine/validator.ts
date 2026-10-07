@@ -2,8 +2,8 @@
  * Pre-Execution RBAC Security & Syntax Validator
  */
 
-import { CBS_FUNCTION_METADATA, type ParsedCommand } from "../contracts/command";
-import type { CommandValidationResult, UserSecurityProfile } from "../contracts/validation";
+import { CBS_FUNCTION_METADATA, type ParsedCommand } from "../types/command";
+import type { CommandValidationResult, UserSecurityProfile } from "../types/validation";
 
 /**
  * Validates whether the active user has permissions to execute the command.

@@ -5,10 +5,10 @@
 
 import { toast } from "@/components/ui/toast";
 import { getActiveSessionStore, getActiveWorkbenchStore } from "@/store";
-import type { ParsedCommand } from "../contracts/command";
-import type { ExecutionOptions } from "../contracts/execution";
 import { parseCbsCommand } from "../engine/grammar";
 import { validateSecurityPermissions } from "../engine/validator";
+import type { ParsedCommand } from "../types/command";
+import type { ExecutionOptions } from "../types/execution";
 import { dispatchSystemAction } from "./action";
 import { spawnDetachedPopupWindow } from "./popup";
 
@@ -21,10 +21,12 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
 
   // 1. Syntax Validation
   if (!parsed.isValid) {
+    const errorMsg = parsed.error || `Command "${rawInput}" does not follow CBS syntax rules.`;
+    options?.onError?.(errorMsg);
     if (!options?.silent) {
       toast.add({
         title: "Invalid Command",
-        description: parsed.error || `Command "${rawInput}" does not follow CBS syntax rules.`,
+        description: errorMsg,
         type: "error",
       });
     }
@@ -37,10 +39,12 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
   const security = validateSecurityPermissions(parsed, currentUser);
 
   if (!security.allowed) {
+    const errorMsg = security.reason || "You do not have permissions to execute this command.";
+    options?.onError?.(errorMsg);
     if (!options?.silent) {
       toast.add({
         title: "Access Denied",
-        description: security.reason || "You do not have permissions to execute this command.",
+        description: errorMsg,
         type: "error",
       });
     }
@@ -85,21 +89,8 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
           : undefined,
       formData: options?.formData,
     });
-  } else if (typeof window !== "undefined") {
-    const screenId = parsed.type === "INQUIRY" ? `INQ ${parsed.application}` : parsed.application;
-    // Fallback event in case store is hydrating
-    window.dispatchEvent(
-      new CustomEvent("cbs:open-tab", {
-        detail: {
-          command: screenId,
-          title: screenTitle,
-          screenMode: targetMode,
-          searchRecordId: targetRecordId,
-          formData: options?.formData,
-        },
-      }),
-    );
   }
 
+  options?.onSuccess?.(parsed);
   return parsed;
 }

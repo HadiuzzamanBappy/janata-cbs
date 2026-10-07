@@ -129,7 +129,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // 4. Check for Shorthand Application Aliases (e.g. MD -> SC.MENU.DESIGN, COB -> SC.COB.REGISTRY)
+  // 4. Check for Shorthand Application Aliases (e.g. MD -> MENU.DESIGN, MC -> MODEL.CONFIG)
   const canonicalAlias = resolveCommandAlias(trimmed);
   if (canonicalAlias !== upperTrimmed && !canonicalAlias.includes(" ")) {
     return {

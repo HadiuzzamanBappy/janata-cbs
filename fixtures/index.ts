@@ -5,4 +5,5 @@ export * from "./inquiry-data";
 export * from "./menu";
 export * from "./form-data";
 export * from "./forms";
+export * from "./model-configs";
 export * from "./users";

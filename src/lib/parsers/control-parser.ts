@@ -2,8 +2,8 @@ import { extractStringField, getItemFields, unwrapRecordsPayload } from "@/lib/g
 import type { SystemCommandItem } from "@/lib/schemas";
 
 /**
- * Universal parser to map raw CBS Protobuf control response to SystemCommandItem records.
- * Executed identically for both live gRPC and static mock modes.
+ * Universal parser to map raw CBS Protobuf control response to lean SystemCommandItem records.
+ * Single source of truth: canonical control command + shorthand alias if recordId differs.
  */
 export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
   const rawList = unwrapRecordsPayload(data);
@@ -15,33 +15,14 @@ export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
     const controlName = extractStringField(fields, "controlName") || recordId;
     const desc = extractStringField(fields, "description") || controlName;
 
-    // Primary entry for the canonical controlName
     if (controlName) {
+      const aliases = recordId && recordId !== controlName ? [recordId] : [];
       result.push({
         id: controlName,
         title: desc,
         category: "System Controls & Commands",
-        description: desc,
         command: controlName,
-        controlName,
-        recordId: recordId || controlName,
-        allowedRoles: ["*"],
-        actionType: "SCREEN",
-      });
-    }
-
-    // Secondary alias entry if recordId differs (e.g., AE -> ACCOUNT.ENTRY, CMD -> SC.CONTROL.LIST)
-    if (recordId && recordId !== controlName) {
-      result.push({
-        id: recordId,
-        title: `${desc} [${recordId}]`,
-        category: "System Controls & Commands",
-        description: `Alias for ${controlName}`,
-        command: recordId,
-        componentName: controlName, // Routes to canonical target
-        controlName,
-        recordId,
-        allowedRoles: ["*"],
+        aliases,
         actionType: "SCREEN",
       });
     }

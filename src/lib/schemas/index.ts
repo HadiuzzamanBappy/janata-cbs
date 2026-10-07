@@ -8,3 +8,4 @@ export * from "./control-schema";
 export * from "./inquiry-schema";
 export * from "./menu-schema";
 export * from "./form-schema";
+export * from "./model-config-schema";

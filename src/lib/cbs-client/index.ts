@@ -2,13 +2,12 @@ export * from "./payloads";
 export * from "./transport/proxy-client";
 export * from "./types";
 
-import { cobPayloads } from "./payloads/cob-payloads";
-import { formPayloads } from "./payloads/form-payloads";
-import { inquiryPayloads } from "./payloads/inquiry-payloads";
-import { menuPayloads } from "./payloads/menu-payloads";
-import { modelConfigPayloads } from "./payloads/model-config-payloads";
-import { userGroupPayloads } from "./payloads/user-group-payloads";
-import { userSecurityPayloads } from "./payloads/user-security-payloads";
+import { formPayloads } from "./payloads/form";
+import { inquiryPayloads } from "./payloads/inquiry";
+import { menuPayloads } from "./payloads/menu";
+import { modelConfigPayloads } from "./payloads/model-config";
+import { userGroupPayloads } from "./payloads/user-group";
+import { userSecurityPayloads } from "./payloads/user-security";
 import { sendCbsRequest } from "./transport/proxy-client";
 
 /**
@@ -20,7 +19,6 @@ export const cbs = {
   menu: menuPayloads,
   userGroup: userGroupPayloads,
   userSecurity: userSecurityPayloads,
-  cob: cobPayloads,
   modelConfig: modelConfigPayloads,
   inquiry: inquiryPayloads,
   form: formPayloads,

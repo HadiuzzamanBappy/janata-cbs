@@ -31,12 +31,10 @@ export function useCommandGuide({
       return null;
     }
 
-    // Check if the typed token matches a known control/command
+    // Check if the typed token matches a known control/command or alias
     const matched = allCommands.find(
       (c) =>
         c.command.toUpperCase() === potentialApp ||
-        (c.recordId && c.recordId.toUpperCase() === potentialApp) ||
-        (c.controlName && c.controlName.toUpperCase() === potentialApp) ||
         c.aliases?.some((a) => a.toUpperCase() === potentialApp),
     );
 

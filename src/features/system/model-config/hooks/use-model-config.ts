@@ -21,255 +21,64 @@ const INITIAL_MODEL: ModelConfigRecord = {
   recordId: "",
   description: "",
   tableName: "",
-  category: "APPLICATION",
+  prefix: "",
+  category: "",
+  servicePath: "",
+  userDefineId: false,
+  predefineId: false,
+  access: "",
+  searchable: false,
+  readOnly: false,
+  authorize: false,
+  associates: [],
+  devBy: "",
+  devDate: "",
+  idDef: {
+    idPrefix: "",
+    idPattern: "",
+    sequenceReset: false,
+  },
   properties: [],
-  isActive: true,
+  isActive: false,
 };
 
-// Demo schemas for Core Banking tables
-const DEMO_MODELS: { id: string; label: string; details: string; record: ModelConfigRecord }[] = [
-  {
-    id: "CUSTOMER",
-    label: "Customer Master Model",
-    details: "Core CIF master definition",
-    record: {
-      recordId: "CUSTOMER",
-      description: "Customer Master Data Model",
-      tableName: "FBNK_CUSTOMER",
-      category: "MASTER",
-      isActive: true,
-      properties: [
-        {
-          sn: "1",
-          name: "MNEMONIC",
-          label: "Short Mnemonic",
-          type: "Text",
-          structure: "S",
-          length: 15,
-          required: true,
-          disabled: false,
-          width: 160,
-          options: [],
-          children: [],
-        },
-        {
-          sn: "2",
-          name: "SHORT_NAME",
-          label: "Customer Short Name",
-          type: "Text",
-          structure: "S",
-          length: 35,
-          required: true,
-          disabled: false,
-          width: 220,
-          options: [],
-          children: [],
-        },
-        {
-          sn: "3",
-          name: "SECTOR",
-          label: "Sector Code",
-          type: "Dropdown",
-          structure: "S",
-          length: 10,
-          required: true,
-          disabled: false,
-          width: 180,
-          options: ["1000 - Retail Individual", "2000 - Corporate", "3000 - Financial Institution"],
-          children: [],
-        },
-        {
-          sn: "4",
-          name: "NATIONALITY",
-          label: "Nationality",
-          type: "Dropdown",
-          structure: "S",
-          length: 5,
-          required: true,
-          disabled: false,
-          width: 150,
-          options: ["US", "GB", "SG", "MY", "BD"],
-          children: [],
-        },
-        {
-          sn: "5",
-          name: "CONTACT_NUMBERS",
-          label: "Contact Numbers",
-          type: "Text",
-          structure: "M",
-          length: 20,
-          required: false,
-          disabled: false,
-          width: 200,
-          options: [],
-          children: [],
-        },
-      ],
-    },
-  },
-  {
-    id: "ACCOUNT",
-    label: "Account Master Model",
-    details: "Savings, Current & Ledger accounts",
-    record: {
-      recordId: "ACCOUNT",
-      description: "Customer Accounts & Balances",
-      tableName: "FBNK_ACCOUNT",
-      category: "FINANCIAL",
-      isActive: true,
-      properties: [
-        {
-          sn: "1",
-          name: "CUSTOMER_ID",
-          label: "Customer CIF",
-          type: "Text",
-          structure: "S",
-          length: 15,
-          required: true,
-          disabled: false,
-          width: 160,
-          options: [],
-          children: [],
-        },
-        {
-          sn: "2",
-          name: "CATEGORY",
-          label: "Product Category",
-          type: "Dropdown",
-          structure: "S",
-          length: 6,
-          required: true,
-          disabled: false,
-          width: 200,
-          options: ["1001 - Savings Account", "1002 - Checking Account", "6001 - Fixed Deposit"],
-          children: [],
-        },
-        {
-          sn: "3",
-          name: "CURRENCY",
-          label: "Account Currency",
-          type: "Dropdown",
-          structure: "S",
-          length: 3,
-          required: true,
-          disabled: false,
-          width: 120,
-          options: ["USD", "EUR", "GBP", "JPY", "SGD"],
-          children: [],
-        },
-        {
-          sn: "4",
-          name: "WORKING_BALANCE",
-          label: "Working Ledger Balance",
-          type: "Number",
-          structure: "S",
-          length: 18,
-          required: false,
-          disabled: true,
-          width: 180,
-          options: [],
-          children: [],
-        },
-      ],
-    },
-  },
-  {
-    id: "FUNDS.TRANSFER",
-    label: "Funds Transfer Model",
-    details: "Payment instructions & settlement",
-    record: {
-      recordId: "FUNDS.TRANSFER",
-      description: "Payment Order & Clearing Engine",
-      tableName: "FBNK_FUNDS_TRANSFER",
-      category: "TRANSACTION",
-      isActive: true,
-      properties: [
-        {
-          sn: "1",
-          name: "TRANSACTION_TYPE",
-          label: "Payment Type",
-          type: "Dropdown",
-          structure: "S",
-          length: 4,
-          required: true,
-          disabled: false,
-          width: 180,
-          options: ["AC - Intrabank Book Transfer", "OT - Interbank RTGS/SWIFT"],
-          children: [],
-        },
-        {
-          sn: "2",
-          name: "DEBIT_ACCT_NO",
-          label: "Debit Account",
-          type: "Text",
-          structure: "S",
-          length: 16,
-          required: true,
-          disabled: false,
-          width: 180,
-          options: [],
-          children: [],
-        },
-        {
-          sn: "3",
-          name: "CREDIT_ACCT_NO",
-          label: "Credit Account",
-          type: "Text",
-          structure: "S",
-          length: 16,
-          required: true,
-          disabled: false,
-          width: 180,
-          options: [],
-          children: [],
-        },
-        {
-          sn: "4",
-          name: "AMOUNT",
-          label: "Transfer Amount",
-          type: "Number",
-          structure: "S",
-          length: 18,
-          required: true,
-          disabled: false,
-          width: 180,
-          options: [],
-          children: [],
-        },
-      ],
-    },
-  },
-];
+export interface ModelCatalogItem {
+  id: string;
+  label: string;
+  details: string;
+  record?: ModelConfigRecord;
+}
 
 export function useModelConfig(initialId?: string) {
   const [recordId, setRecordId] = React.useState<string>(initialId || "");
   const [mode, setMode] = React.useState<ModelConfigScreenMode>(initialId ? "EDIT" : "IDLE");
   const [formData, setFormData] = React.useState<ModelConfigRecord>(INITIAL_MODEL);
-  const [modelsPool, setModelsPool] = React.useState(DEMO_MODELS);
+  const [modelsPool, setModelsPool] = React.useState<ModelCatalogItem[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
-  // 1. Fetch specific model record by ID
+  // 1. Catalog can be refreshed on demand when triggered
+  const refreshCatalog = React.useCallback(async () => {
+    try {
+      const res = await cbs.send<ModelCatalogItem[]>(cbs.modelConfig.listModelConfigs(), {
+        silent: true,
+      });
+      if (res.status === "SUCCESS" && Array.isArray(res.data)) {
+        setModelsPool(res.data);
+      }
+    } catch {
+      // Graceful fallback for catalog listing
+    }
+  }, []);
+
+
+  // 2. Fetch specific model record by ID via API
   const fetchRecord = React.useCallback(
     async (targetId: string, targetMode: ModelConfigScreenMode = "EDIT") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
       setRecordId(cleanId);
-
-      // Check locally first
-      const found = modelsPool.find((m) => m.id.toUpperCase() === cleanId);
-      if (found) {
-        setFormData(found.record);
-        setMode(targetMode);
-        setLoading(false);
-        toast.add({
-          title: "Model Loaded",
-          description: `Loaded data dictionary for #${cleanId}`,
-          type: "success",
-        });
-        return;
-      }
 
       try {
         const json = await cbs.send<ModelConfigRecord>(cbs.modelConfig.getModelConfig(cleanId), {
@@ -278,18 +87,29 @@ export function useModelConfig(initialId?: string) {
         if (json.status === "SUCCESS" && json.data) {
           setFormData(json.data);
           setMode(targetMode);
+          toast.add({
+            title: "Model Loaded",
+            description: `Loaded data dictionary for #${cleanId}`,
+            type: "success",
+          });
         } else {
           setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: `${cleanId} Model` });
           setMode("CREATE");
         }
-      } catch {
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Failed to load model from API";
+        toast.add({
+          title: "Model Fetch Failed",
+          description: msg,
+          type: "error",
+        });
         setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: `${cleanId} Model` });
         setMode("CREATE");
       } finally {
         setLoading(false);
       }
     },
-    [modelsPool],
+    [],
   );
 
   // 2. Create fresh model
@@ -299,7 +119,7 @@ export function useModelConfig(initialId?: string) {
     setFormData({
       ...INITIAL_MODEL,
       recordId: nextId,
-      description: "Custom Data Model",
+      description: "",
       properties: [],
     });
     setMode("CREATE");
@@ -421,6 +241,10 @@ export function useModelConfig(initialId?: string) {
   }, []);
 
   React.useEffect(() => {
+    refreshCatalog();
+  }, [refreshCatalog]);
+
+  React.useEffect(() => {
     if (initialId) {
       fetchRecord(initialId);
     }
@@ -434,6 +258,7 @@ export function useModelConfig(initialId?: string) {
     formData,
     setFormData,
     modelsPool,
+    refreshCatalog,
     loading,
     submitting,
     fetchRecord,

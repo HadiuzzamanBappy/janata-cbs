@@ -101,7 +101,7 @@ export function BranchSwitcher({
               variant="outline"
               size="sm"
               className={cn(
-                "h-7 px-2 border-border/80 hover:bg-accent min-w-0 flex items-center justify-between w-full text-xs font-normal",
+                "h-7 px-2 border-border/80 hover:bg-accent min-w-0 flex items-center justify-between w-full text-xs font-normal rounded",
                 triggerClassName,
               )}
             />
@@ -123,12 +123,12 @@ export function BranchSwitcher({
           </div>
           <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-40" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align={align} className="w-64 p-1">
+        <DropdownMenuContent align={align} className="w-64 p-1 rounded border border-border/80 shadow-md">
           {/* Minimal Search Input */}
           <div className="p-1">
             <Input
               placeholder="Search branch..."
-              className="h-7 text-xs bg-muted/40 border-border/60"
+              className="h-7 text-xs bg-muted/40 rounded border-border/80"
               value={branchSearch}
               onChange={(e) => setBranchSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
@@ -168,7 +168,7 @@ export function BranchSwitcher({
                 <DropdownMenuItem
                   key={b.code}
                   onSelect={() => handleBranchSwitch(b.code, b.name)}
-                  className="flex items-center justify-between py-1.5 px-2 cursor-pointer focus:bg-accent text-xs gap-1.5 rounded-sm"
+                  className="flex items-center justify-between py-1.5 px-2 cursor-pointer focus:bg-accent text-xs gap-1.5 rounded"
                 >
                   <div className="flex items-center gap-1.5 min-w-0 truncate">
                     <span className="font-mono text-[9px] text-muted-foreground bg-muted px-1 py-0.2 rounded shrink-0">

@@ -18,7 +18,7 @@ export function SidebarHeaderNav({ onOpenSearch }: SidebarHeaderNavProps) {
         <Image
           src={logo}
           alt="Janata Bank PLC"
-          className="size-6.5 rounded-md object-contain shrink-0"
+          className="size-6.5 rounded object-contain shrink-0"
         />
         <div className="flex flex-col min-w-0">
           <span className="font-semibold text-xs leading-tight truncate text-foreground">
@@ -37,12 +37,12 @@ export function SidebarHeaderNav({ onOpenSearch }: SidebarHeaderNavProps) {
           variant="ghost"
           size="icon-xs"
           onClick={onOpenSearch}
-          className="size-7 text-muted-foreground hover:text-foreground"
+          className="size-7 text-muted-foreground hover:text-foreground rounded"
           title="Search / Run (⌘K / Ctrl+K)"
         >
           <Search className="size-3.5" />
         </Button>
-        <SidebarTrigger className="size-7 text-muted-foreground hover:text-foreground" />
+        <SidebarTrigger className="size-7 text-muted-foreground hover:text-foreground rounded" />
       </div>
 
       {/* Collapsed icon mode top item: Logo by default, switches to Toggle button on hover */}
@@ -50,9 +50,9 @@ export function SidebarHeaderNav({ onOpenSearch }: SidebarHeaderNavProps) {
         <Image
           src={logo}
           alt="Janata Bank PLC"
-          className="size-6 rounded-md object-contain transition-opacity duration-150 group-hover/iconheader:opacity-0"
+          className="size-6 rounded object-contain transition-opacity duration-150 group-hover/iconheader:opacity-0"
         />
-        <SidebarTrigger className="size-7 absolute inset-0 m-auto opacity-0 group-hover/iconheader:opacity-100 transition-opacity duration-150 text-foreground hover:bg-accent" />
+        <SidebarTrigger className="size-7 absolute inset-0 m-auto opacity-0 group-hover/iconheader:opacity-100 transition-opacity duration-150 text-foreground hover:bg-accent rounded" />
       </div>
     </SidebarHeader>
   );

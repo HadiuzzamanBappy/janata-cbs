@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { ScreenLoader } from "@/features/screens";
+import { ScreenLoader } from "@/features/workbench";
 import { cn } from "@/lib/utils";
 import { useWorkbenchStore } from "@/store";
 

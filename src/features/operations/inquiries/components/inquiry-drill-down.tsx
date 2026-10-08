@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "@/components/ui/toast";
-import { FormScreen } from "@/features/screens/forms";
+import { OpsForm as FormScreen } from "@/features/operations/forms";
 
 export interface DrillRecord {
   formCommand: string;

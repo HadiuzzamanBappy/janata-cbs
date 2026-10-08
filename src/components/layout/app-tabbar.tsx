@@ -123,7 +123,7 @@ export function AppTabBar() {
                     onConfirm: () => closeAllTabs(),
                   })
                 }
-                className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 rounded"
                 aria-label="Close all open tabs"
               />
             }

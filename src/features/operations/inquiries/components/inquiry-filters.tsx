@@ -108,47 +108,52 @@ export function InquiryFilters({
   };
 
   return (
-    <div className="flex-1 overflow-auto p-3 flex flex-col items-center justify-start">
-      <div className="w-full max-w-xl bg-card border border-border/60 rounded-xl shadow-xs overflow-hidden mt-1">
-        <div className="bg-muted/30 px-3.5 py-2 border-b border-border/60 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Filter className="size-3.5 text-primary" />
-            <h3 className="text-xs font-bold text-foreground">Enquiry Selection Criteria</h3>
+    <div className="h-full overflow-y-auto pr-1 flex flex-col items-center">
+      <div className="w-full max-w-3xl space-y-3">
+        {/* 1:1 System Screen Card Container */}
+        <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
+          {/* Card Header: 1:1 with Model Config & User Group */}
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Filter className="size-3 text-primary" />
+              <span>Selection Criteria &bull; Search Filters</span>
+            </div>
+            <span className="text-[10px] font-mono text-muted-foreground">
+              {fields.length} Field(s)
+            </span>
           </div>
-          <span className="text-[11px] font-mono text-muted-foreground">
-            {fields.length} Selection Filter(s)
-          </span>
-        </div>
 
-        <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3">
-          <div className="flex flex-col divide-y divide-border/30">
+          <form onSubmit={handleSubmit} className="space-y-2 text-xs">
             {fields.map((field) => {
               const current = criteria[field.id] || { value: "", operand: field.operand };
 
               return (
-                <div key={field.id} className="grid grid-cols-12 items-center gap-2 py-2 text-xs">
+                <div key={field.id} className="flex items-center gap-2">
+                  {/* Left Label (w-32) + ID */}
                   <label
                     htmlFor={`enq-field-${field.id}`}
-                    className="col-span-4 font-medium text-foreground flex items-center justify-between pr-2 shrink-0"
+                    className="w-36 shrink-0 text-xs font-medium text-muted-foreground flex items-center justify-between pr-1 select-none"
                   >
                     <span className="truncate">{field.label}</span>
-                    <span className="text-[10px] font-mono text-muted-foreground/70 hidden sm:inline">
+                    <span className="text-[9px] font-mono text-muted-foreground/60 hidden sm:inline">
                       {field.id}
                     </span>
                   </label>
 
-                  <div className="col-span-8 flex items-center gap-1.5">
-                    {/* Operand Selector */}
+                  <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+
+                  <div className="flex-1 flex items-center gap-1.5 min-w-0">
+                    {/* Operand Selector: Compact h-7 */}
                     <Select
                       value={current.operand}
                       onValueChange={(val: string | null) =>
                         handleOperandChange(field.id, (val ?? "EQ") as SelectionOperand)
                       }
                     >
-                      <SelectTrigger className="h-8 w-20 text-xs font-mono px-2 shrink-0 bg-muted/40">
+                      <SelectTrigger className="h-7 w-20 text-xs font-mono px-2 shrink-0 bg-background border-border/80 rounded">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="text-xs font-mono min-w-[100px]">
+                      <SelectContent className="text-xs font-mono min-w-[90px]">
                         <SelectItem value="EQ">EQ (=)</SelectItem>
                         <SelectItem value="LK">LK (Like)</SelectItem>
                         <SelectItem value="NE">NE (!=)</SelectItem>
@@ -158,7 +163,7 @@ export function InquiryFilters({
                       </SelectContent>
                     </Select>
 
-                    {/* Value Input */}
+                    {/* Value Input: Compact h-7 */}
                     {field.type === "select" && field.options ? (
                       <Select
                         value={current.value}
@@ -168,7 +173,7 @@ export function InquiryFilters({
                       >
                         <SelectTrigger
                           id={`enq-field-${field.id}`}
-                          className="h-8 text-xs font-mono bg-muted/20 w-full"
+                          className="h-7 text-xs font-mono bg-background border-border/80 rounded flex-1"
                         >
                           <SelectValue placeholder="Select..." />
                         </SelectTrigger>
@@ -184,34 +189,35 @@ export function InquiryFilters({
                       <Input
                         id={`enq-field-${field.id}`}
                         type={field.type === "number" ? "number" : "text"}
-                        placeholder={`Enter ${field.label}...`}
+                        placeholder={`e.g. ${field.label}...`}
                         value={current.value}
                         onChange={(e) => handleValueChange(field.id, e.target.value)}
-                        className="h-8 text-xs font-mono bg-muted/20 focus-visible:bg-background w-full"
+                        className="h-7 text-xs font-mono bg-background border-border/80 rounded flex-1"
                       />
                     )}
                   </div>
                 </div>
               );
             })}
-          </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/40">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleClear}
-              className="h-8 text-xs px-3.5"
-            >
-              Clear
-            </Button>
-            <Button type="submit" size="sm" className="h-8 text-xs px-5 font-semibold gap-1.5">
-              <Search className="size-3.5" />
-              <span>Find / Execute</span>
-            </Button>
-          </div>
-        </form>
+            {/* Action Bar */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleClear}
+                className="h-7 text-xs px-2.5 rounded"
+              >
+                Clear
+              </Button>
+              <Button type="submit" size="sm" className="h-7 text-xs px-3 font-semibold gap-1.5 rounded">
+                <Search className="size-3" />
+                <span>Find / Execute</span>
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

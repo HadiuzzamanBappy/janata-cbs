@@ -73,6 +73,7 @@ export const formFieldSchema = z.object({
   width: fieldWidthSchema.default("md"),
   required: z.boolean().default(false),
   readOnly: z.boolean().default(false),
+  placeholder: z.string().optional(),
   options: z.array(z.string()).optional(),
 });
 

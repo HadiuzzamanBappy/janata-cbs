@@ -86,7 +86,7 @@ function TabWindowMenuItem({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       className={cn(
-        "transition-all duration-150 rounded-sm mb-0.5 relative",
+        "transition-all duration-150 rounded mb-0.5 relative",
         isDraggingThis && "opacity-40 scale-[0.98]",
         isDragOverThis && !isDraggingThis && "bg-primary/10 ring-1 ring-primary/50",
       )}
@@ -97,8 +97,8 @@ function TabWindowMenuItem({
             <div
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "relative flex items-center justify-between py-2 px-2 cursor-pointer rounded-sm text-xs gap-2 group transition-colors select-none",
-                "hover:bg-accent hover:text-accent-foreground",
+                "relative flex items-center justify-between py-1.5 px-2 cursor-pointer rounded text-xs gap-2 group transition-colors select-none",
+                "hover:bg-accent/70 hover:text-accent-foreground",
                 isActive
                   ? "bg-accent/80 text-accent-foreground font-semibold pl-2.5 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-primary before:rounded-full"
                   : "text-foreground/90",
@@ -109,24 +109,24 @@ function TabWindowMenuItem({
           {/* Left Side: Grip + Tab Number + Title */}
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             {!isSearching && (
-              <GripVertical className="size-3.5 text-muted-foreground/40 group-hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0" />
+              <GripVertical className="size-3 text-muted-foreground/40 group-hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0" />
             )}
             <span className="truncate flex items-center gap-1.5 min-w-0">
               <Badge
                 variant={isActive ? "default" : "secondary"}
                 className={cn(
-                  "h-4 min-w-[16px] px-1 rounded-sm text-[10px] font-mono flex items-center justify-center border-transparent shrink-0",
+                  "h-4 min-w-[16px] px-1 rounded-xs text-[10px] font-mono flex items-center justify-center border-transparent shrink-0",
                   isActive ? "bg-primary/20 text-primary font-bold" : "opacity-70",
                 )}
               >
                 {originalIndex + 1}
               </Badge>
-              <span className="truncate">{tab.title}</span>
+              <span className="truncate font-normal">{tab.title}</span>
             </span>
           </div>
 
           {/* Right Side: Options Dots Button + Close Button */}
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-0.5 shrink-0">
             {/* Options Dots (...) Button */}
             <DropdownMenu open={isItemMenuOpen} onOpenChange={setIsItemMenuOpen}>
               <DropdownMenuTrigger
@@ -146,9 +146,9 @@ function TabWindowMenuItem({
                   />
                 }
               >
-                <MoreHorizontal className="size-3.5" />
+                <MoreHorizontal className="size-3" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={4} className="w-52 text-xs">
+              <DropdownMenuContent align="end" sideOffset={4} className="w-52 text-xs rounded border border-border/80">
                 <TabMenuItems
                   tab={tab}
                   ItemComponent={DropdownMenuItem}
@@ -172,7 +172,7 @@ function TabWindowMenuItem({
         </ContextMenuTrigger>
 
         {/* Right-click Context Menu */}
-        <ContextMenuContent className="w-52 text-xs">
+        <ContextMenuContent className="w-52 text-xs rounded border border-border/80">
           <TabMenuItems
             tab={tab}
             ItemComponent={ContextMenuItem}
@@ -205,7 +205,7 @@ export function TabWindowMenu() {
           <Button
             variant="outline"
             size="xs"
-            className="h-7 gap-1.5 px-2 text-xs font-mono font-medium bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 shadow-2xs"
+            className="h-7 gap-1.5 px-2 text-xs font-mono font-medium bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 rounded shadow-2xs"
           />
         }
       >
@@ -213,7 +213,7 @@ export function TabWindowMenu() {
         <span>{tabs.length}</span>
         <ChevronDown className="size-3 text-muted-foreground ml-0.5 shrink-0 opacity-70" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72 sm:w-80 p-0 overflow-hidden">
+      <DropdownMenuContent align="end" className="w-72 sm:w-80 p-0 overflow-hidden rounded border border-border/80 shadow-md">
         {/* Header: Search Open Tabs */}
         {tabs.length > 3 && (
           <div className="p-2 border-b border-border/60 bg-muted/30 relative">
@@ -222,21 +222,21 @@ export function TabWindowMenu() {
               value={tabSearch}
               onChange={(e) => setTabSearch(e.target.value)}
               placeholder="Search opened windows..."
-              className="pl-8 h-8 text-xs bg-background border-border/70 focus-visible:ring-1"
+              className="pl-8 h-7 text-xs bg-background rounded border-border/80 focus-visible:ring-1"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             />
           </div>
         )}
 
-        <div className="px-3 py-1.5 text-[10px] font-mono text-muted-foreground border-b border-border/40 uppercase tracking-wider bg-muted/20 flex items-center justify-between">
+        <div className="px-2.5 py-1.5 text-[10px] font-mono text-muted-foreground border-b border-border/60 uppercase tracking-wider bg-muted/30 flex items-center justify-between select-none">
           <span>Opened Windows ({tabs.length})</span>
           {!isSearching && tabs.length > 1 && (
-            <span className="text-[9px] text-muted-foreground/70 normal-case">Drag to reorder</span>
+            <span className="text-[9px] text-muted-foreground/70 normal-case font-mono">Drag to reorder</span>
           )}
         </div>
 
-        <DropdownMenuGroup className="max-h-64 overflow-y-auto p-1">
+        <DropdownMenuGroup className="max-h-64 overflow-y-auto p-1 divide-y-0">
           {filteredTabs.length > 0 ? (
             filteredTabs.map((tab) => {
               const originalIndex = tabs.findIndex((t) => t.id === tab.id);

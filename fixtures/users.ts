@@ -26,7 +26,7 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
           string_value: "RIDASH",
         },
         userRole: {
-          null_value: "NULL_VALUE",
+          string_value: "USER",
         },
         commandLine: {
           bool_value: true,
@@ -74,7 +74,7 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
           string_value: "RIDASH",
         },
         userRole: {
-          null_value: "NULL_VALUE",
+          string_value: "ADMIN",
         },
         commandLine: {
           bool_value: true,
@@ -102,7 +102,7 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
     },
   },
 
-  // Staff / First-time user (Signon: ST028459, User ID: ST0284590)
+  // Staff / Standard user (Signon: ST028459, User ID: ST0284590)
   ST028459: {
     status: "SUCCESS",
     statusCode: 200,
@@ -122,7 +122,7 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
           string_value: "RS",
         },
         userRole: {
-          null_value: "NULL_VALUE",
+          string_value: "USER",
         },
         commandLine: {
           bool_value: false,

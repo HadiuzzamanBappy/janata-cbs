@@ -3,44 +3,19 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import type { ModelConfigRecord, ModelConfigScreenMode, ModelProperty } from "../types";
-import { modelConfigRecordSchema } from "../types";
-
-export function renumberProperties(props: ModelProperty[], parentSN = ""): ModelProperty[] {
-  return props.map((p, i) => {
-    const sn = parentSN ? `${parentSN}_${i + 1}` : String(i + 1);
-    return {
-      ...p,
-      sn,
-      children: p.children && p.children.length > 0 ? renumberProperties(p.children, sn) : [],
-    };
-  });
-}
-
-const INITIAL_MODEL: ModelConfigRecord = {
-  recordId: "",
-  description: "",
-  tableName: "",
-  prefix: "",
-  category: "",
-  servicePath: "",
-  userDefineId: false,
-  predefineId: false,
-  access: "",
-  searchable: false,
-  readOnly: false,
-  authorize: false,
-  associates: [],
-  devBy: "",
-  devDate: "",
-  idDef: {
-    idPrefix: "",
-    idPattern: "",
-    sequenceReset: false,
-  },
-  properties: [],
-  isActive: false,
-};
+import { serializeModelToWireJson } from "@/lib/parsers";
+import {
+  type ModelConfigRecord,
+  type ModelConfigScreenMode,
+  type ModelProperty,
+  modelConfigRecordSchema,
+  type ValidationErrorItem,
+} from "@/lib/schemas/model-config-schema";
+import { mapZodIssuesToValidationErrors } from "./model-config-validation";
+import {
+  INITIAL_MODEL,
+  useModelConfigPersistence,
+} from "./use-model-config-persistence";
 
 export interface ModelCatalogItem {
   id: string;
@@ -49,15 +24,29 @@ export interface ModelCatalogItem {
   record?: ModelConfigRecord;
 }
 
-export function useModelConfig(initialId?: string) {
-  const [recordId, setRecordId] = React.useState<string>(initialId || "");
-  const [mode, setMode] = React.useState<ModelConfigScreenMode>(initialId ? "EDIT" : "IDLE");
-  const [formData, setFormData] = React.useState<ModelConfigRecord>(INITIAL_MODEL);
+export function useModelConfig(initialId?: string, tabId?: string) {
+  const {
+    recordId,
+    setRecordId,
+    mode,
+    setMode,
+    formData,
+    setFormData,
+    resolvedInitialId,
+    resolvedInitialMode,
+  } = useModelConfigPersistence(initialId, tabId);
+
   const [modelsPool, setModelsPool] = React.useState<ModelCatalogItem[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const [validationErrors, setValidationErrors] = React.useState<ValidationErrorItem[]>([]);
+  const [committedSnSet, setCommittedSnSet] = React.useState<Set<string>>(new Set());
 
-  // 1. Catalog can be refreshed on demand when triggered
+  const markAsCommitted = React.useCallback((props: ModelProperty[]) => {
+    setCommittedSnSet(new Set(props.map((p) => p.sn)));
+  }, []);
+
+  // 1. Fetch catalog
   const refreshCatalog = React.useCallback(async () => {
     try {
       const res = await cbs.send<ModelCatalogItem[]>(cbs.modelConfig.listModelConfigs(), {
@@ -67,12 +56,11 @@ export function useModelConfig(initialId?: string) {
         setModelsPool(res.data);
       }
     } catch {
-      // Graceful fallback for catalog listing
+      // Graceful fallback
     }
   }, []);
 
-
-  // 2. Fetch specific model record by ID via API
+  // 2. Fetch specific record
   const fetchRecord = React.useCallback(
     async (targetId: string, targetMode: ModelConfigScreenMode = "EDIT") => {
       if (!targetId.trim()) return;
@@ -86,6 +74,7 @@ export function useModelConfig(initialId?: string) {
         });
         if (json.status === "SUCCESS" && json.data) {
           setFormData(json.data);
+          markAsCommitted(json.data.properties || []);
           setMode(targetMode);
           toast.add({
             title: "Model Loaded",
@@ -94,6 +83,7 @@ export function useModelConfig(initialId?: string) {
           });
         } else {
           setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: `${cleanId} Model` });
+          setCommittedSnSet(new Set());
           setMode("CREATE");
         }
       } catch (err: unknown) {
@@ -104,18 +94,20 @@ export function useModelConfig(initialId?: string) {
           type: "error",
         });
         setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: `${cleanId} Model` });
+        setCommittedSnSet(new Set());
         setMode("CREATE");
       } finally {
         setLoading(false);
       }
     },
-    [],
+    [markAsCommitted, setFormData, setMode, setRecordId],
   );
 
-  // 2. Create fresh model
+  // 3. Create fresh record
   const handleCreateNew = React.useCallback(() => {
     const nextId = `APP.CUSTOM.${Date.now().toString().slice(-4)}`;
     setRecordId(nextId);
+    setCommittedSnSet(new Set());
     setFormData({
       ...INITIAL_MODEL,
       recordId: nextId,
@@ -123,26 +115,52 @@ export function useModelConfig(initialId?: string) {
       properties: [],
     });
     setMode("CREATE");
-  }, []);
+  }, [setFormData, setMode, setRecordId]);
 
-  // 3. Save model record (PUT to MODEL.CONFIG)
+  // 4. Validate
+  const handleValidate = React.useCallback((): boolean => {
+    const validation = modelConfigRecordSchema.safeParse(formData);
+    if (!validation.success) {
+      const errors = mapZodIssuesToValidationErrors(validation.error.issues, formData.properties);
+      setValidationErrors(errors);
+      toast.add({
+        title: "Validation Issues Found",
+        description: `${errors.length} issue${errors.length > 1 ? "s" : ""} require your attention.`,
+        type: "warning",
+      });
+      return false;
+    }
+    setValidationErrors([]);
+    toast.add({
+      title: "Validation Successful",
+      description: "All dictionary constraints and required fields verified (✓).",
+      type: "success",
+    });
+    return true;
+  }, [formData]);
+
+  // 5. Submit
   const handleSubmit = React.useCallback(async () => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
+      const errors = mapZodIssuesToValidationErrors(validation.error.issues, formData.properties);
+      setValidationErrors(errors);
       toast.add({
-        title: "Validation Error",
-        description: validation.error.issues[0]?.message || "Invalid model definition",
+        title: "Validation Issues Found",
+        description: `${errors.length} issue${errors.length > 1 ? "s" : ""} require your attention before saving.`,
         type: "warning",
       });
       return;
     }
 
+    setValidationErrors([]);
     setSubmitting(true);
     try {
+      const wireData = serializeModelToWireJson(validation.data);
       const json = await cbs.send(
         cbs.modelConfig.saveModelConfig(
           formData.recordId,
-          validation.data as Record<string, unknown>,
+          wireData as unknown as Record<string, unknown>,
         ),
         {
           successTitle: "Model Saved",
@@ -150,6 +168,7 @@ export function useModelConfig(initialId?: string) {
         },
       );
       if (json.status === "SUCCESS") {
+        markAsCommitted(validation.data.properties || []);
         setModelsPool((prev) => {
           const item = {
             id: validation.data.recordId,
@@ -167,9 +186,9 @@ export function useModelConfig(initialId?: string) {
     } finally {
       setSubmitting(false);
     }
-  }, [formData]);
+  }, [formData, markAsCommitted, setMode]);
 
-  // 4. Authorize model record
+  // 6. Authorize
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;
     setSubmitting(true);
@@ -186,69 +205,94 @@ export function useModelConfig(initialId?: string) {
     } finally {
       setSubmitting(false);
     }
-  }, [recordId]);
+  }, [recordId, setMode]);
 
-  // Field manipulation helpers
-  const addField = React.useCallback(() => {
+  // 7. Property mutations
+  const addField = React.useCallback((): string => {
+    let createdSn = "";
     setFormData((prev) => {
+      const maxSn = prev.properties.reduce((max, p) => {
+        const num = Number.parseInt(p.sn, 10);
+        return !Number.isNaN(num) && num > max ? num : max;
+      }, 0);
+      const nextSn = String(maxSn + 1);
+      createdSn = nextSn;
       const newField: ModelProperty = {
-        sn: "",
-        name: `FIELD_${prev.properties.length + 1}`,
-        label: `Field ${prev.properties.length + 1}`,
+        sn: nextSn,
+        name: "",
+        label: "",
         type: "Text",
         structure: "S",
         length: 50,
         required: false,
         disabled: false,
-        width: 180,
-        options: [],
-        children: [],
+        status: "ACTIVE",
       };
       return {
         ...prev,
-        properties: renumberProperties([...prev.properties, newField]),
+        properties: [...prev.properties, newField],
       };
     });
-  }, []);
+    return createdSn;
+  }, [setFormData]);
 
-  const updateField = React.useCallback((sn: string, patch: Partial<ModelProperty>) => {
-    setFormData((prev) => {
-      const updateRecursive = (list: ModelProperty[]): ModelProperty[] =>
-        list.map((item) => {
-          if (item.sn === sn) return { ...item, ...patch };
-          if (item.children.length > 0)
-            return { ...item, children: updateRecursive(item.children) };
-          return item;
-        });
-      return { ...prev, properties: updateRecursive(prev.properties) };
-    });
-  }, []);
+  const updateField = React.useCallback(
+    (sn: string, patch: Partial<ModelProperty>) => {
+      setFormData((prev) => ({
+        ...prev,
+        properties: prev.properties.map((p) => (p.sn === sn ? { ...p, ...patch } : p)),
+      }));
+    },
+    [setFormData],
+  );
 
-  const removeField = React.useCallback((sn: string) => {
-    setFormData((prev) => {
-      const removeRecursive = (list: ModelProperty[]): ModelProperty[] =>
-        list
-          .filter((item) => item.sn !== sn)
-          .map((item) => ({ ...item, children: removeRecursive(item.children) }));
-      return { ...prev, properties: renumberProperties(removeRecursive(prev.properties)) };
-    });
-  }, []);
+  const isFieldCommitted = React.useCallback(
+    (sn: string) => committedSnSet.has(sn),
+    [committedSnSet],
+  );
+
+  const deprecateOrRemoveField = React.useCallback(
+    (sn: string, forceHardDelete = false) => {
+      setFormData((prev) => {
+        const isCommitted = committedSnSet.has(sn);
+        if (!isCommitted || forceHardDelete) {
+          return {
+            ...prev,
+            properties: prev.properties.filter((p) => p.sn !== sn),
+          };
+        }
+        return {
+          ...prev,
+          properties: prev.properties.map((p) =>
+            p.sn === sn
+              ? {
+                  ...p,
+                  status: p.status === "ARCHIVED" ? "ACTIVE" : "ARCHIVED",
+                  disabled: p.status !== "ARCHIVED",
+                }
+              : p,
+          ),
+        };
+      });
+    },
+    [committedSnSet, setFormData],
+  );
 
   const resetToIdle = React.useCallback(() => {
     setMode("IDLE");
     setRecordId("");
     setFormData(INITIAL_MODEL);
-  }, []);
+  }, [setFormData, setMode, setRecordId]);
 
   React.useEffect(() => {
     refreshCatalog();
   }, [refreshCatalog]);
 
   React.useEffect(() => {
-    if (initialId) {
-      fetchRecord(initialId);
+    if (resolvedInitialId) {
+      fetchRecord(resolvedInitialId, resolvedInitialMode);
     }
-  }, [fetchRecord, initialId]);
+  }, [fetchRecord, resolvedInitialId, resolvedInitialMode]);
 
   return {
     recordId,
@@ -263,11 +307,16 @@ export function useModelConfig(initialId?: string) {
     submitting,
     fetchRecord,
     handleCreateNew,
+    handleValidate,
     handleSubmit,
     handleAuthorize,
+    validationErrors,
+    clearValidationErrors: () => setValidationErrors([]),
     addField,
     updateField,
-    removeField,
+    removeField: deprecateOrRemoveField,
+    deprecateOrRemoveField,
+    isFieldCommitted,
     resetToIdle,
   };
 }

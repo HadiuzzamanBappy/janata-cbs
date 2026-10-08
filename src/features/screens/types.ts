@@ -1,12 +1,8 @@
-import type * as React from "react";
+import type { CbsScreenComponent, CbsScreenProps } from "@/lib/cbs-screen";
 
 export type ScreenMode = "panel" | "window";
 
-export interface ScreenProps {
-  command: string;
-  tabId?: string;
-  className?: string;
-}
+export type ScreenProps = CbsScreenProps;
 
 export interface ScreenLoaderProps {
   command: string;
@@ -15,7 +11,7 @@ export interface ScreenLoaderProps {
   className?: string;
 }
 
-export type ScreenComponent = React.ComponentType<ScreenProps>;
+export type ScreenComponent = CbsScreenComponent;
 
 export interface RegisteredScreenItem {
   command: string;

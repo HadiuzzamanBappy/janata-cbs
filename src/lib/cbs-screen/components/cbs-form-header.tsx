@@ -13,8 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserRights } from "@/hooks";
 import { cn } from "@/lib/utils";
+import type { CbsScreenValidationError } from "../types";
 import { ActionButtons } from "./action-buttons";
 import { ActionMoreMenu, type MoreActionItem } from "./action-more-menu";
+import { CbsValidationChecklist } from "./cbs-validation-checklist";
 
 export type { MoreActionItem };
 
@@ -40,6 +42,8 @@ export interface CbsFormHeaderProps {
   submitting?: boolean;
   moreActions?: MoreActionItem[];
   availableItems?: Array<{ id: string; label?: string; details?: string }>;
+  validationErrors?: CbsScreenValidationError[];
+  onSelectValidationTab?: (tab: string) => void;
   className?: string;
 }
 
@@ -65,6 +69,8 @@ export function CbsFormHeader({
   submitting = false,
   moreActions = [],
   availableItems = [],
+  validationErrors = [],
+  onSelectValidationTab,
   className = "",
 }: CbsFormHeaderProps) {
   const rights = useUserRights();
@@ -184,6 +190,17 @@ export function CbsFormHeader({
           <div className="flex items-center gap-1">
             <ActionMoreMenu moreActions={moreActions} submitting={submitting} onSubmit={onSubmit} />
           </div>
+
+          {/* Validation Checklist Indicator & Drawer (Visible in non-idle modes when issues exist) */}
+          {validationErrors.length > 0 && (
+            <>
+              <span className="h-4 w-px bg-border/60 mx-1" />
+              <CbsValidationChecklist
+                errors={validationErrors}
+                onSelectTab={(tab) => onSelectValidationTab?.(tab)}
+              />
+            </>
+          )}
         </div>
 
         {/* ROW 2: CBS Record Header: Label + Record ID Field + Add Button */}

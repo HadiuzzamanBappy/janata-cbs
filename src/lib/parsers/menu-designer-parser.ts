@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { unwrapRecordsPayload } from "@/lib/grpc/struct";
+import { unwrapRecordsPayload } from "./protobuf-decoder";
 import {
   type MenuTreeRecord,
   menuTreeRecordSchema,

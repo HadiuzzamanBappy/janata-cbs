@@ -1,4 +1,4 @@
-import { extractBooleanField, extractNumberField, extractStringField } from "@/lib/grpc/struct";
+import { decodeProtobufValue } from "./protobuf-decoder";
 import type { CurrentUser } from "@/lib/redis";
 
 export interface ParsedUserAuthResult {
@@ -16,47 +16,33 @@ export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): Pars
     throw new Error("Invalid authentication payload received from CBS");
   }
 
-  const raw = data as Record<string, unknown>;
-  const fields = (
-    typeof raw === "object" && raw !== null && "fields" in raw
-      ? (raw as { fields: Record<string, unknown> }).fields
-      : raw
-  ) as Record<string, unknown>;
+  const fields = decodeProtobufValue<Record<string, unknown>>(data);
 
-  const userId = extractStringField(fields, "userId").trim();
-  const token = extractStringField(fields, "token").trim();
+  const userId = String(fields.userId || "").trim();
+  const token = String(fields.token || "").trim();
 
   if (!token || !userId) {
     throw new Error("Login response missing required authentication token or userId");
   }
 
-  const fullName = extractStringField(fields, "fullName") || fallbackUsername;
-  const branchCode = extractStringField(fields, "branchCode") || "JB9999";
-  const branchName = extractStringField(fields, "branchName") || "Central Office";
-  const txnDate = extractStringField(fields, "txnDate") || new Date().toISOString().split("T")[0];
-  const accessibility = extractStringField(fields, "accessibility") || "FULL";
-  const commandLine = extractBooleanField(fields, "commandLine", false);
-  const initLogin = extractBooleanField(fields, "initLogin", false);
-  const userStatus = extractNumberField(fields, "userStatus", 1);
+  const fullName = String(fields.fullName || fallbackUsername);
+  const branchCode = String(fields.branchCode || "JB9999");
+  const branchName = String(fields.branchName || "Central Office");
+  const txnDate = String(fields.txnDate || new Date().toISOString().split("T")[0]);
+  const accessibility = String(fields.accessibility || "FULL");
+  const commandLine = Boolean(fields.commandLine);
+  const initLogin = Boolean(fields.initLogin);
+  const userStatus = typeof fields.userStatus === "number" ? fields.userStatus : 1;
 
-  // Extract roles (supports protobuf string_value, list_value, plain strings, or arrays)
+  // Extract roles
   let userRole: string[] = [];
   const rawRole = fields.userRole;
   if (Array.isArray(rawRole)) {
-    userRole = rawRole.map(String).filter(Boolean);
+    userRole = rawRole.map(String).filter((r) => r && r !== "NULL_VALUE");
   } else if (typeof rawRole === "string" && rawRole.trim() && rawRole !== "NULL_VALUE") {
     userRole = [rawRole.trim()];
-  } else if (typeof rawRole === "object" && rawRole !== null) {
-    if ("string_value" in rawRole && typeof (rawRole as { string_value: string }).string_value === "string") {
-      const sv = (rawRole as { string_value: string }).string_value.trim();
-      if (sv && sv !== "NULL_VALUE") userRole = [sv];
-    } else if ("list_value" in rawRole) {
-      const list = (rawRole as { list_value?: { values?: Array<{ string_value?: string }> } }).list_value?.values;
-      if (Array.isArray(list)) {
-        userRole = list.map((v) => v.string_value || "").filter(Boolean);
-      }
-    }
   }
+
 
   // Extract CBS RIDASH function rights
   const functionRights = accessibility

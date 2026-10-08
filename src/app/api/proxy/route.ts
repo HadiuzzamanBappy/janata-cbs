@@ -7,7 +7,7 @@ import {
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/config";
 import { dispatch, type GrpcEnvelope } from "@/lib/grpc/dispatch";
-import { parseInquiryRecords } from "@/lib/parsers";
+import { decodeProtobufValue, parseInquiryRecords } from "@/lib/parsers";
 import { getSession } from "@/lib/redis";
 
 export const runtime = "nodejs";
@@ -219,7 +219,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             { status: 200 },
           );
         }
-        return NextResponse.json(response, { status: 200 });
+        // Normalize dynamic Protobuf struct values into clean plain JS objects
+        const cleanData = response.data ? decodeProtobufValue(response.data) : response.data;
+        return NextResponse.json(
+          {
+            ...response,
+            data: cleanData,
+          },
+          { status: 200 },
+        );
       }
 
       return NextResponse.json(response || {

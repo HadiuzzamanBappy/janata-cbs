@@ -26,7 +26,7 @@ interface McPropertyListProps {
   isReadOnly: boolean;
   isFieldCommitted?: (sn: string) => boolean;
   validationErrors?: ValidationErrorItem[];
-  onAddField: () => string | void;
+  onAddField: () => string;
   onDeleteField?: (sn: string, forceHardDelete?: boolean) => void;
 }
 

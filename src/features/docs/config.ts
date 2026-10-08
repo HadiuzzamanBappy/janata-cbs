@@ -7,44 +7,11 @@ import {
   FolderKanban,
   HelpCircle,
   Network,
-  RefreshCw,
   Shield,
 } from "lucide-react";
 import type { NavGroup } from "./types";
 
 export const DEV_NAV_GROUPS: NavGroup[] = [
-  {
-    id: "00-refractor",
-    title: "00. Refactoring Progress",
-    icon: RefreshCw,
-    items: [
-      {
-        label: "Master Refactoring Audit Plan",
-        href: "/devs/00-refractor/refractor",
-        keywords: ["refractor", "plan", "inventory", "syscomp", "migration", "audit"],
-      },
-      {
-        label: "Refactoring Progress Checklist",
-        href: "/devs/00-refractor/refractor-checklist",
-        keywords: ["checklist", "progress", "refactor", "status", "domains"],
-      },
-      {
-        label: "Legacy Src Component Checklist",
-        href: "/devs/00-refractor/legacy-src-checklist",
-        keywords: ["legacy", "syscomp", "src", "checklist", "migration"],
-      },
-      {
-        label: "Future Architecture Upgrades",
-        href: "/devs/00-refractor/future-architecture-upgrades",
-        keywords: ["future", "upgrades", "roadmap", "debt", "enhancements"],
-      },
-      {
-        label: "AI Agent Development Guide",
-        href: "/devs/00-refractor/agent-development-guide",
-        keywords: ["agent", "ai", "guide", "antigravity", "skills", "rules"],
-      },
-    ],
-  },
   {
     id: "01-architecture",
     title: "01. Architecture & Governance",

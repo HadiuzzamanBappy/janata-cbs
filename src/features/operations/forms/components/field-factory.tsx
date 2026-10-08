@@ -176,6 +176,7 @@ export function FieldFactory({
             value={(value as string | number) ?? ""}
             onChange={handleNumberChange}
             placeholder={placeholderText}
+            title={error || undefined}
             className={cn(
               "h-7 rounded text-xs bg-background border-border/80 font-mono",
               error && "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
@@ -192,6 +193,7 @@ export function FieldFactory({
             value={(value as string | number) ?? ""}
             onChange={handleTextChange}
             placeholder={placeholderText}
+            title={error || undefined}
             className={cn(
               "h-7 rounded text-xs bg-background border-border/80",
               error && "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
@@ -202,13 +204,6 @@ export function FieldFactory({
           />
         )}
       </div>
-
-      {/* Indented validation error bullet below input, 1:1 with system screens */}
-      {error && (
-        <p className="pl-35 text-[11px] text-destructive font-medium leading-tight">
-          • {error}
-        </p>
-      )}
     </div>
   );
 }

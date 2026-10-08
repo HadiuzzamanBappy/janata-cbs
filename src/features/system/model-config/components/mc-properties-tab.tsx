@@ -13,7 +13,7 @@ interface McPropertiesTabProps {
   selectedSN?: string | null;
   onSelectSN?: (sn: string) => void;
   validationErrors?: ValidationErrorItem[];
-  onAddField: () => string | void;
+  onAddField: () => string;
   onUpdateField: (sn: string, patch: Partial<ModelProperty>) => void;
   onRemoveField: (sn: string, forceHardDelete?: boolean) => void;
 }
@@ -58,7 +58,7 @@ export function McPropertiesTab({
   }, [properties, selectedSN]);
 
   return (
-    <div className="flex-1 rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0">
+    <div className="h-full w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0">
       {/* 1. Left Panel: Master Field Navigator */}
       <McPropertyList
         properties={properties}

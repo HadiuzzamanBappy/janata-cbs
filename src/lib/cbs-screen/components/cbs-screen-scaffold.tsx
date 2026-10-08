@@ -146,7 +146,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
                 <TabsContent
                   key={tab.id}
                   value={tab.id}
-                  className="flex-1 overflow-hidden min-h-0 m-0"
+                  className="flex-1 h-full flex flex-col overflow-hidden min-h-0 m-0"
                 >
                   {tab.content}
                 </TabsContent>

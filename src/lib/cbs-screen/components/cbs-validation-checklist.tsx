@@ -32,9 +32,9 @@ export function CbsValidationChecklist<TTab extends string = string>({
             type="button"
             variant="destructive"
             size="sm"
-            className="h-6 px-2 text-[11px] gap-1 rounded font-semibold animate-pulse shadow-xs cursor-pointer"
+            className="h-7 px-2.5 text-xs gap-1.5 rounded font-semibold animate-pulse shadow-xs cursor-pointer shrink-0"
           >
-            <AlertTriangle className="size-3 shrink-0" />
+            <AlertTriangle className="size-3.5 shrink-0" />
             <span>
               {errors.length} Issue{errors.length > 1 ? "s" : ""}
             </span>
@@ -61,7 +61,12 @@ export function CbsValidationChecklist<TTab extends string = string>({
             onClick={() => {
               const first = errors[0];
               if (first) {
-                onSelectTab(first.tab);
+                if (first.tab) onSelectTab?.(first.tab);
+                const el = document.getElementById(first.fieldKey) || document.querySelector(`[name="${first.fieldKey}"]`);
+                if (el) {
+                  el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  (el as HTMLElement).focus?.();
+                }
               }
             }}
             className="h-5 px-1.5 text-[10px] font-semibold rounded shadow-none cursor-pointer"
@@ -74,7 +79,14 @@ export function CbsValidationChecklist<TTab extends string = string>({
           {errors.map((err) => (
             <DropdownMenuItem
               key={err.id}
-              onClick={() => onSelectTab(err.tab)}
+              onClick={() => {
+                if (err.tab) onSelectTab?.(err.tab);
+                const el = document.getElementById(err.fieldKey) || document.querySelector(`[name="${err.fieldKey}"]`);
+                if (el) {
+                  el.scrollIntoView({ behavior: "smooth", block: "center" });
+                  (el as HTMLElement).focus?.();
+                }
+              }}
               className="px-2 py-1.5 text-xs cursor-pointer flex flex-col items-start gap-0.5 rounded hover:bg-destructive/10"
             >
               <div className="flex items-center gap-1.5 w-full">

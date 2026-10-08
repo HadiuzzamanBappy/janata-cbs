@@ -19,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { CbsScreenValidationError } from "../types";
+import { CbsValidationChecklist } from "./cbs-validation-checklist";
 
 export interface InquiryHeaderProps {
   title: string;
@@ -35,6 +37,8 @@ export interface InquiryHeaderProps {
   onExportCSV?: () => void;
   onExportHTML?: () => void;
   onExportXML?: () => void;
+  validationErrors?: CbsScreenValidationError[];
+  onSelectValidationTab?: (tab: string) => void;
 }
 
 export type CbsInquiryHeaderProps = InquiryHeaderProps;
@@ -55,6 +59,8 @@ export function CbsInquiryHeader({
   onExportCSV,
   onExportHTML,
   onExportXML,
+  validationErrors = [],
+  onSelectValidationTab,
 }: InquiryHeaderProps) {
   return (
     <TooltipProvider delay={150}>
@@ -150,6 +156,17 @@ export function CbsInquiryHeader({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Validation Checklist Indicator & Drawer (Visible when issues exist) */}
+          {validationErrors.length > 0 && (
+            <>
+              <span className="h-4 w-px bg-border/60 mx-1" />
+              <CbsValidationChecklist
+                errors={validationErrors}
+                onSelectTab={(tab) => onSelectValidationTab?.(tab)}
+              />
+            </>
+          )}
         </div>
 
         {/* ROW 2: Ultra-compact CBS Record Title */}

@@ -115,7 +115,6 @@ export function InquiryTable({
     if (onViewRecord) {
       onViewRecord(recordId, row);
     } else {
-      // Default fallback: open record in form tab
       handleDrilldown("ACCOUNT", recordId, "VIEW", row);
     }
   };
@@ -130,24 +129,24 @@ export function InquiryTable({
 
   return (
     <TooltipProvider delay={150}>
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-3">
-        {/* Table Container */}
-        <div className="flex-1 overflow-auto border border-border/60 rounded-lg bg-card shadow-xs">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden pr-1 gap-0.5">
+        {/* Table Container: rounded, border-border/80, bg-card/60, shadow-2xs matching system layout */}
+        <div className="flex-1 overflow-auto rounded border border-border/80 bg-card/60 shadow-2xs">
           {rows.length === 0 ? (
-            <div className="h-full min-h-[240px] flex flex-col items-center justify-center p-8 text-center bg-muted/10">
+            <div className="h-full min-h-[200px] flex flex-col items-center justify-center p-6 text-center bg-muted/10">
               <p className="text-xs text-muted-foreground font-mono">No matching records found.</p>
-              <p className="text-[11px] text-muted-foreground mt-1">
+              <p className="text-[11px] text-muted-foreground/80 mt-1">
                 Adjust your selection criteria and click <strong>Find / Execute (▶)</strong>.
               </p>
             </div>
           ) : (
             <Table>
-              <TableHeader className="bg-muted/40 sticky top-0 z-10 shadow-xs">
-                <TableRow className="hover:bg-transparent">
+              <TableHeader className="bg-muted/50 sticky top-0 z-10 border-b border-border/70">
+                <TableRow className="hover:bg-transparent border-b border-border/60">
                   {columns.map((col) => (
                     <TableHead
                       key={col.id}
-                      className={`text-xs font-semibold text-foreground py-2.5 px-3 h-9 ${
+                      className={`text-xs font-semibold text-foreground/90 py-1.5 px-2.5 h-7.5 ${
                         col.align === "right"
                           ? "text-right"
                           : col.align === "center"
@@ -159,17 +158,17 @@ export function InquiryTable({
                       <button
                         type="button"
                         onClick={() => handleSort(col.id)}
-                        className="inline-flex items-center gap-1 hover:text-primary transition"
+                        className="inline-flex items-center gap-1 hover:text-primary transition font-medium select-none cursor-pointer"
                       >
                         <span>{col.label}</span>
-                        <ArrowUpDown className="size-3 text-muted-foreground" />
+                        <ArrowUpDown className="size-3 text-muted-foreground/70" />
                       </button>
                     </TableHead>
                   ))}
 
-                  {/* Dedicated Actions Column Header (View & Edit) pinned on the Right */}
-                  <TableHead className="w-16 px-2 py-2 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/90 backdrop-blur-xs border-l border-border/30 z-20 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)]">
-                    <span>Actions</span>
+                  {/* Actions Column Header pinned on the Right */}
+                  <TableHead className="w-14 px-2 py-1 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20">
+                    <span>Act</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -177,11 +176,14 @@ export function InquiryTable({
               <TableBody>
                 {paginatedRows.map((row, index) => {
                   const recordKey = String(row.id || row.accountNo || index);
+                  const isStriped = index % 2 === 1;
 
                   return (
                     <TableRow
                       key={row.id || index}
-                      className="hover:bg-muted/30 transition-colors border-b border-border/40 font-mono text-xs"
+                      className={`hover:bg-primary/10 transition-colors border-b border-border/30 font-mono text-xs ${
+                        isStriped ? "bg-muted/40" : "bg-transparent"
+                      }`}
                     >
                       {columns.map((col) => {
                         const val = row[col.id];
@@ -190,7 +192,7 @@ export function InquiryTable({
                         return (
                           <TableCell
                             key={col.id}
-                            className={`py-2 px-3 text-xs ${col.isMono ? "font-mono" : ""} ${
+                            className={`py-1.5 px-2.5 text-xs ${col.isMono ? "font-mono" : ""} ${
                               col.align === "right"
                                 ? "text-right"
                                 : col.align === "center"
@@ -205,7 +207,7 @@ export function InquiryTable({
                                     ? "default"
                                     : "secondary"
                                 }
-                                className="text-[10px] font-mono px-1.5 py-0"
+                                className="text-[10px] font-mono px-1 py-0 h-4.5 rounded uppercase tracking-wider"
                               >
                                 {displayVal}
                               </Badge>
@@ -216,18 +218,22 @@ export function InquiryTable({
                         );
                       })}
 
-                      {/* Action Column with View and Edit CTA Buttons pinned on the Right */}
-                      <TableCell className="w-16 px-2 py-1.5 text-center sticky right-0 bg-card/95 backdrop-blur-xs border-l border-border/30 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)]">
-                        <div className="flex items-center justify-center gap-1">
+                      {/* Action Column pinned right with matching striped background */}
+                      <TableCell
+                        className={`w-14 px-1.5 py-1 text-center sticky right-0 backdrop-blur-xs border-l border-border/30 ${
+                          isStriped ? "bg-muted/95" : "bg-card/95"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center gap-0.5">
                           <Tooltip>
                             <TooltipTrigger
                               render={
                                 <button
                                   type="button"
                                   onClick={() => handleView(recordKey, row)}
-                                  className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                  className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                                 >
-                                  <Eye className="size-3.5" />
+                                  <Eye className="size-3" />
                                 </button>
                               }
                             />
@@ -240,9 +246,9 @@ export function InquiryTable({
                                 <button
                                   type="button"
                                   onClick={() => handleEdit(recordKey, row)}
-                                  className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                  className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                                 >
-                                  <Edit3 className="size-3.5" />
+                                  <Edit3 className="size-3" />
                                 </button>
                               }
                             />
@@ -258,24 +264,18 @@ export function InquiryTable({
           )}
         </div>
 
-        {/* ALWAYS VISIBLE Pagination & Status Controls (Text & CTAs only, no card container) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-1 pt-2 text-xs shrink-0 select-none">
-          {/* Left: Record Range Display & Rows Dropdown */}
+        {/* Compact Footer: Record Counts + Page Selector */}
+        <div className="shrink-0 flex items-center justify-between pt-0.5 pb-0 px-0.5 text-xs select-none">
+          {/* Left: Record Range Summary */}
           <div className="flex items-center gap-3">
-            <span className="font-mono text-muted-foreground text-xs">
-              {rows.length > 0 ? (
-                <>
-                  Showing <strong className="text-foreground">{startIndex + 1}</strong> -{" "}
-                  <strong className="text-foreground">{endIndex}</strong> of{" "}
-                  <strong className="text-foreground">{rows.length}</strong> records
-                </>
-              ) : (
-                "0 records"
-              )}
+            <span className="font-mono text-muted-foreground text-[11px]">
+              Showing <strong className="text-foreground">{sortedRows.length > 0 ? startIndex + 1 : 0}</strong> -{" "}
+              <strong className="text-foreground">{endIndex}</strong> of{" "}
+              <strong className="text-foreground">{sortedRows.length}</strong> records
             </span>
 
-            {/* Page Size Selector - Same height and button size as navigation buttons */}
-            <div className="flex items-center gap-1.5 pl-3 border-l border-border/60">
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-1.5 pl-2.5 border-l border-border/60">
               <span className="text-muted-foreground text-[11px]">Rows:</span>
               <Select
                 value={String(pageSize)}
@@ -288,22 +288,30 @@ export function InquiryTable({
               >
                 <SelectTrigger
                   size="sm"
-                  className="h-7 w-auto min-w-[50px] text-xs font-mono px-2 py-0 gap-1.5 bg-background hover:bg-muted text-foreground border-border rounded-lg shadow-none [&_svg]:size-3.5 [&_svg]:text-muted-foreground"
+                  className="h-6 w-auto min-w-[46px] text-xs font-mono px-1.5 py-0 gap-1 bg-background text-foreground border-border/80 rounded shadow-none [&_svg]:size-3 [&_svg]:text-muted-foreground"
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="text-xs font-mono min-w-[70px]">
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
+                <SelectContent className="rounded min-w-[56px]">
+                  <SelectItem value="10" className="text-xs rounded font-mono">
+                    10
+                  </SelectItem>
+                  <SelectItem value="25" className="text-xs rounded font-mono">
+                    25
+                  </SelectItem>
+                  <SelectItem value="50" className="text-xs rounded font-mono">
+                    50
+                  </SelectItem>
+                  <SelectItem value="100" className="text-xs rounded font-mono">
+                    100
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Right: Pagination Navigation Controls */}
-          <div className="flex items-center gap-1.5">
+          {/* Right: Compact Pagination Navigation Controls */}
+          <div className="flex items-center gap-1">
             <span className="font-mono text-muted-foreground mr-1 text-[11px]">
               Page {page} of {totalPages}
             </span>
@@ -314,9 +322,9 @@ export function InquiryTable({
               size="icon-xs"
               onClick={() => setPage(1)}
               disabled={page <= 1}
-              className="size-7"
+              className="size-6 rounded"
             >
-              <ChevronsLeft className="size-3.5" />
+              <ChevronsLeft className="size-3" />
             </Button>
             <Button
               type="button"
@@ -324,9 +332,9 @@ export function InquiryTable({
               size="icon-xs"
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page <= 1}
-              className="size-7"
+              className="size-6 rounded"
             >
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft className="size-3" />
             </Button>
             <Button
               type="button"
@@ -334,9 +342,9 @@ export function InquiryTable({
               size="icon-xs"
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page >= totalPages}
-              className="size-7"
+              className="size-6 rounded"
             >
-              <ChevronRight className="size-3.5" />
+              <ChevronRight className="size-3" />
             </Button>
             <Button
               type="button"
@@ -344,9 +352,9 @@ export function InquiryTable({
               size="icon-xs"
               onClick={() => setPage(totalPages)}
               disabled={page >= totalPages}
-              className="size-7"
+              className="size-6 rounded"
             >
-              <ChevronsRight className="size-3.5" />
+              <ChevronsRight className="size-3" />
             </Button>
           </div>
         </div>

@@ -6,8 +6,7 @@ import { SysModelConfig } from "@/features/system/model-config";
 import ReportStudio from "@/features/system/report-studio";
 import { UserGroupScreen } from "@/features/system/user-group";
 import { getCanonicalScreenKey } from "@/lib/cbs-command";
-import { FormScreen } from "./forms";
-import { InquiryScreen } from "./inquiries";
+import { FormScreen, InquiryScreen } from "@/features/operations";
 import type { ScreenComponent } from "./types";
 
 /**

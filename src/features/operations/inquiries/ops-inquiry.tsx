@@ -4,16 +4,16 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import type { EnquiryRow, SelectionOperand } from "@/lib/schemas";
-import { useInquirySchema } from "../hooks/use-inquiry-schema";
-import { useInquiryState } from "../hooks/use-inquiry-state";
-import { exportToCSV, exportToHTML, exportToXML } from "../utils/export-helpers";
-import { filterDatasetByCriteria } from "../utils/filter-dataset";
-import { resolveDrillDownFormCommand } from "../utils/resolve-form-command";
-import { type DrillRecord, InquiryDrillDown } from "./inquiry-drill-down";
-import { InquiryFilters } from "./inquiry-filters";
-import { InquiryHeader } from "./inquiry-header";
-import { InquirySkeleton } from "./inquiry-skeleton";
-import { InquiryTable } from "./inquiry-table";
+import { useInquirySchema } from "./hooks/use-inquiry-schema";
+import { useInquiryState } from "./hooks/use-inquiry-state";
+import { exportToCSV, exportToHTML, exportToXML } from "./utils/export-helpers";
+import { filterDatasetByCriteria } from "./utils/filter-dataset";
+import { resolveDrillDownFormCommand } from "./utils/resolve-form-command";
+import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";
+import { InquiryFilters } from "./components/inquiry-filters";
+import { CbsInquiryHeader as InquiryHeader } from "@/lib/cbs-screen";
+import { InquirySkeleton } from "./components/inquiry-skeleton";
+import { InquiryTable } from "./components/inquiry-table";
 
 export interface InquiryScreenProps {
   command: string;
@@ -21,7 +21,7 @@ export interface InquiryScreenProps {
   className?: string;
 }
 
-export function InquiryScreen({ command, tabId, className = "" }: InquiryScreenProps) {
+export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProps) {
   const { schema, loading, error, refetch } = useInquirySchema(command);
   const [drillRecord, setDrillRecord] = React.useState<DrillRecord | null>(null);
 
@@ -229,7 +229,7 @@ export function InquiryScreen({ command, tabId, className = "" }: InquiryScreenP
         />
       )}
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-2">
         {step === "SELECTION" ? (
           <InquiryFilters
             fields={schema.selectionFields}
@@ -254,3 +254,5 @@ export function InquiryScreen({ command, tabId, className = "" }: InquiryScreenP
     </div>
   );
 }
+
+export const InquiryScreen = OpsInquiry;

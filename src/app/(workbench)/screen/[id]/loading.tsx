@@ -1,5 +1,5 @@
-import { FormSkeleton as ScreenSkeleton } from "@/features/screens";
+import { FormSkeleton } from "@/features/operations";
 
 export default function ScreenLoadingState() {
-  return <ScreenSkeleton />;
+  return <FormSkeleton />;
 }

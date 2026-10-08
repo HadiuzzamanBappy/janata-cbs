@@ -95,7 +95,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
                     variant="ghost"
                     size="icon-xs"
                     onClick={() => setSearchOpen(true)}
-                    className="size-7 text-muted-foreground hover:text-foreground hover:bg-accent"
+                    className="size-7 text-muted-foreground hover:text-foreground hover:bg-accent rounded"
                   >
                     <Search className="size-3.5" />
                   </Button>

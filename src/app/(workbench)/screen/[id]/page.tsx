@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ScreenLoader } from "@/features/screens";
+import { ScreenLoader } from "@/features/workbench";
 import { AlertStoreProvider, SessionStoreProvider, WorkbenchStoreProvider } from "@/store";
 
 export default function StandaloneScreenPage() {

@@ -82,7 +82,7 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
           <Button
             variant="outline"
             size="icon-sm"
-            className="size-7 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0"
+            className="size-7 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 rounded"
           />
         }
       >
@@ -92,10 +92,10 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
         {!mounted && <Sun className="size-3.5 opacity-50" />}
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+      <DropdownMenuContent align="end" className="rounded border border-border/80">
+        <DropdownMenuItem onClick={() => setTheme("light")} className="text-xs rounded">Light</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")} className="text-xs rounded">Dark</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")} className="text-xs rounded">System</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

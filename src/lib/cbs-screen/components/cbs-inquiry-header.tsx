@@ -37,9 +37,10 @@ export interface InquiryHeaderProps {
   onExportXML?: () => void;
 }
 
+export type CbsInquiryHeaderProps = InquiryHeaderProps;
 export type EnquiryHeaderProps = InquiryHeaderProps;
 
-export function InquiryHeader({
+export function CbsInquiryHeader({
   title,
   commandCode,
   step: _step,

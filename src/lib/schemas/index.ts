@@ -10,3 +10,4 @@ export * from "./menu-schema";
 export * from "./form-schema";
 export * from "./model-config-schema";
 export * from "./menu-catalog-schema";
+export * from "./menu-designer-schema";

@@ -411,6 +411,119 @@ export const STATIC_FORM_DATA: Record<
       },
     ],
   },
+
+  // 6. MENU_TREE Records (TABLE: MENU_TREE / MENU.TREE)
+  MENU_TREE: {
+    records: {
+      MAIN_MENU: {
+        recordId: "MAIN_MENU",
+        treeDescription: "Core Enterprise Main Navigation",
+        isActive: true,
+        menuTree: [
+          {
+            id: "grp_retail",
+            menuId: 0,
+            label: "Retail Banking Operations",
+            command: "",
+            isVisible: true,
+            orderIndex: 1,
+            children: [
+              {
+                id: "leaf_acc_open",
+                menuId: 1,
+                label: "Open Customer Account",
+                command: "ACCOUNT I",
+                isVisible: true,
+                orderIndex: 1,
+                children: [],
+              },
+              {
+                id: "leaf_acc_inq",
+                menuId: 2,
+                label: "Account Overview & Balances",
+                command: "ACCOUNT S",
+                isVisible: true,
+                orderIndex: 2,
+                children: [],
+              },
+              {
+                id: "leaf_cust_onboard",
+                menuId: 3,
+                label: "Customer Master Onboarding",
+                command: "CUSTOMER I",
+                isVisible: true,
+                orderIndex: 3,
+                children: [],
+              },
+            ],
+          },
+          {
+            id: "grp_payments",
+            menuId: 0,
+            label: "Transfers & Clearing",
+            command: "",
+            isVisible: true,
+            orderIndex: 2,
+            children: [
+              {
+                id: "leaf_ft_new",
+                menuId: 4,
+                label: "Funds Transfer Initiation",
+                command: "FUNDS.TRANSFER I",
+                isVisible: true,
+                orderIndex: 1,
+                children: [],
+              },
+              {
+                id: "leaf_acct_bal",
+                menuId: 5,
+                label: "Balance & Ledger Inquiry",
+                command: "INQ ACCT.BAL",
+                isVisible: true,
+                orderIndex: 2,
+                children: [],
+              },
+            ],
+          },
+          {
+            id: "grp_sys",
+            menuId: 0,
+            label: "System Administration",
+            command: "",
+            isVisible: true,
+            orderIndex: 3,
+            children: [
+              {
+                id: "leaf_model_cfg",
+                menuId: 6,
+                label: "Model Configuration",
+                command: "MODEL.CONFIG",
+                isVisible: true,
+                orderIndex: 1,
+                children: [],
+              },
+            ],
+          },
+        ],
+        auditData: {
+          recStatus: "LIVE",
+          recCurrNumber: 5,
+          recInputter: "SYSADMIN",
+          recInputTime: "2026-02-10 10:00:00",
+          recAuthorizer: "SUPV01",
+          recAuthTime: "2026-02-10 10:05:00",
+          recBranchCode: "JB9999",
+        },
+      },
+    },
+    enquiryRows: [
+      {
+        recordId: "MAIN_MENU",
+        treeDescription: "Core Enterprise Main Navigation",
+        isActive: true,
+      },
+    ],
+  },
 };
 
 /**

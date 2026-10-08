@@ -55,7 +55,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const rawControl = (body.controlName || "").trim().toUpperCase();
-    const cleanModel = rawControl === "MENU.TREE" ? "MENU_TREE" : rawControl;
+    const cleanModel =
+      rawControl === "MENU.TREE" || rawControl === "MENU_TREE" || rawControl === "MENU.DESIGN" || rawControl === "MENU_DESIGN"
+        ? (STATIC_FORM_DATA["MENU_DESIGN"] ? "MENU_DESIGN" : "MENU_TREE")
+        : rawControl === "USER.GROUP" || rawControl === "USER_GROUP"
+          ? (STATIC_FORM_DATA["USER.GROUP"] ? "USER.GROUP" : "USER_GROUP")
+          : rawControl;
     const cleanRecordId = (body.recordId || "").trim().toUpperCase();
 
     // =========================================================================
@@ -153,23 +158,21 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         // C2. RECORD_GET -> Return specific record
         const requestedId = (body.recordId || cleanRecordId || "").trim();
-        if (requestedId && modelTable.records?.[requestedId]) {
-          return NextResponse.json({
-            status: "SUCCESS",
-            statusCode: 200,
-            message: "Record loaded from offline fixture",
-            data: modelTable.records[requestedId],
-            timestamp: new Date().toISOString(),
-          });
-        }
+        if (requestedId) {
+          if (modelTable.records?.[requestedId]) {
+            return NextResponse.json({
+              status: "SUCCESS",
+              statusCode: 200,
+              message: "Record loaded from offline fixture",
+              data: modelTable.records[requestedId],
+              timestamp: new Date().toISOString(),
+            });
+          }
 
-        // C3. Fallback to enquiryRows if no specific record found
-        if (modelTable.enquiryRows && modelTable.enquiryRows.length > 0) {
           return NextResponse.json({
-            status: "SUCCESS",
-            statusCode: 200,
-            message: "Enquiry data loaded from offline fixture",
-            data: modelTable.enquiryRows,
+            status: "RECORD_NOT_FOUND",
+            statusCode: 404,
+            message: `Record #${requestedId} not found in ${cleanModel} fixture`,
             timestamp: new Date().toISOString(),
           });
         }

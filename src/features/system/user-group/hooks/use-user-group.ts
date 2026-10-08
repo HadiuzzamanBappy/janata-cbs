@@ -3,31 +3,26 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import type { MenuRef, Role, UserGroupRecord, UserGroupScreenMode } from "../types";
-import { userGroupRecordSchema } from "../types";
+import {
+  parseUserGroupList,
+  parseUserGroupRecord,
+  serializeUserGroupToWireJson,
+} from "@/lib/parsers";
+import {
+  type MenuRef,
+  type Role,
+  type UserGroupValidationError,
+  type UserGroupScreenMode,
+  userGroupRecordSchema,
+} from "@/lib/schemas/user-group-schema";
+import { mapUserGroupZodIssues } from "./user-group-validation";
+import {
+  INITIAL_USER_GROUP,
+  useUserGroupPersistence,
+} from "./use-user-group-persistence";
 
-const INITIAL_GROUP: UserGroupRecord = {
-  recordId: "",
-  groupLabel: "",
-  menuIds: [],
-  roleIds: [],
-  isActive: true,
-};
-
-// Demo fallback catalogs
-const DEMO_MENUS: MenuRef[] = [
-  { menuId: "1", label: "Open Customer Account", command: "ACCOUNT I" },
-  { menuId: "2", label: "Account Overview & Balances", command: "ACCOUNT S" },
-  { menuId: "3", label: "Customer Master Onboarding", command: "CUSTOMER I" },
-  { menuId: "4", label: "Funds Transfer Initiation", command: "FUNDS.TRANSFER I" },
-  { menuId: "5", label: "Realtime Ledger Inquiry", command: "INQ ACCT.BAL" },
-  { menuId: "6", label: "Teller Cash Deposit", command: "TELLER.TXN,CASH.DEP I" },
-  { menuId: "7", label: "Fixed Term Deposit Contract", command: "LD.LOANS.AND.DEPOSITS I" },
-  { menuId: "8", label: "Loan Contract Initiation", command: "AA.ARRANGEMENT.ACTIVITY I" },
-  { menuId: "9", label: "Close of Business Monitor", command: "COB.MONITOR S" },
-];
-
-const DEMO_ROLES: Role[] = [
+// Core banking role catalog
+const DEFAULT_ROLES: Role[] = [
   { roleId: "1", roleCode: "MAKER", roleDesc: "Initiate & capture transactions" },
   { roleId: "2", roleCode: "CHECKER", roleDesc: "Authorize & verify transactions" },
   { roleId: "3", roleCode: "TELLER", roleDesc: "Branch cash counter operator" },
@@ -36,84 +31,100 @@ const DEMO_ROLES: Role[] = [
   { roleId: "6", roleCode: "SYSADMIN", roleDesc: "Full administrative access" },
 ];
 
-const DEMO_GROUPS: { id: string; label: string; details: string; record: UserGroupRecord }[] = [
-  {
-    id: "TELLER.GRP",
-    label: "Branch Frontline Tellers",
-    details: "Cashier, Transfers, Inquiries",
-    record: {
-      recordId: "TELLER.GRP",
-      groupLabel: "Branch Frontline Tellers",
-      menuIds: ["1", "2", "4", "5", "6"],
-      roleIds: ["1", "3"],
-      isActive: true,
-    },
-  },
-  {
-    id: "SUPERVISOR.GRP",
-    label: "Branch Authorizers & Supervisors",
-    details: "Verification, Authorization, Overrides",
-    record: {
-      recordId: "SUPERVISOR.GRP",
-      groupLabel: "Branch Authorizers & Supervisors",
-      menuIds: ["1", "2", "3", "4", "5", "6", "7"],
-      roleIds: ["2", "4"],
-      isActive: true,
-    },
-  },
-  {
-    id: "ADMIN.GRP",
-    label: "System & Core Administrators",
-    details: "All system tables & batch monitoring",
-    record: {
-      recordId: "ADMIN.GRP",
-      groupLabel: "System & Core Administrators",
-      menuIds: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
-      roleIds: ["1", "2", "6"],
-      isActive: true,
-    },
-  },
-];
+export function useUserGroup(initialId?: string, tabId?: string) {
+  const {
+    recordId,
+    setRecordId,
+    mode,
+    setMode,
+    formData,
+    setFormData,
+    resolvedInitialId,
+    resolvedInitialMode,
+  } = useUserGroupPersistence(initialId, tabId);
 
-export function useUserGroup(initialId?: string) {
-  const [recordId, setRecordId] = React.useState<string>(initialId || "");
-  const [mode, setMode] = React.useState<UserGroupScreenMode>(initialId ? "EDIT" : "IDLE");
-  const [formData, setFormData] = React.useState<UserGroupRecord>(INITIAL_GROUP);
-  const [menus, setMenus] = React.useState<MenuRef[]>(DEMO_MENUS);
-  const [roles] = React.useState<Role[]>(DEMO_ROLES);
-  const [groupsPool, setGroupsPool] = React.useState(DEMO_GROUPS);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const [menus, setMenus] = React.useState<MenuRef[]>([]);
+  const [roles] = React.useState<Role[]>(DEFAULT_ROLES);
+  const [groupsPool, setGroupsPool] = React.useState<
+    { id: string; label: string; details: string }[]
+  >([]);
+  const [validationErrors, setValidationErrors] = React.useState<UserGroupValidationError[]>([]);
 
-  // 1. Fetch available menus (from MENU table)
+  // 1. Fetch available menus from MENU table
   const fetchMenus = React.useCallback(async () => {
     try {
-      interface MenuListItem {
-        recordId?: string;
-        id?: string;
-        label?: string;
-        command?: string;
-      }
-      const json = await cbs.send<{ records?: MenuListItem[] } | MenuListItem[]>(
-        cbs.menu.getCatalogList(),
-        { silent: true },
-      );
+      const json = await cbs.send<unknown>(cbs.menu.getCatalogList(), { silent: true });
       if (json.status === "SUCCESS" && json.data) {
-        const records = Array.isArray(json.data) ? json.data : json.data.records || [];
-        setMenus(
-          records.map((r) => ({
-            menuId: String(r.recordId || r.id || ""),
-            label: r.label || "Action",
-            command: r.command || "",
-          })),
-        );
+        const rawList = Array.isArray(json.data)
+          ? json.data
+          : (json.data as { records?: unknown[] }).records || [];
+        const mapped: MenuRef[] = (rawList as Record<string, unknown>[]).map((r) => ({
+          menuId: String(r.recordId || r.id || ""),
+          label: String(r.label || "Action"),
+          command: String(r.command || ""),
+          menuType: r.menuType ? String(r.menuType) : undefined,
+        }));
+        if (mapped.length > 0) {
+          setMenus(mapped);
+          return;
+        }
       }
+      // Demo fallback menus
+      setMenus([
+        { menuId: "1", label: "Open Customer Account", command: "ACCOUNT I" },
+        { menuId: "2", label: "Account Overview & Balances", command: "ACCOUNT S" },
+        { menuId: "3", label: "Customer Master Onboarding", command: "CUSTOMER I" },
+        { menuId: "4", label: "Funds Transfer Initiation", command: "FUNDS.TRANSFER I" },
+        { menuId: "5", label: "Realtime Ledger Inquiry", command: "INQ ACCT.BAL" },
+        { menuId: "6", label: "Model Configuration", command: "MODEL.CONFIG" },
+      ]);
     } catch {
-      // keep DEMO_MENUS fallback
+      setMenus([
+        { menuId: "1", label: "Open Customer Account", command: "ACCOUNT I" },
+        { menuId: "2", label: "Account Overview & Balances", command: "ACCOUNT S" },
+        { menuId: "3", label: "Customer Master Onboarding", command: "CUSTOMER I" },
+        { menuId: "4", label: "Funds Transfer Initiation", command: "FUNDS.TRANSFER I" },
+        { menuId: "5", label: "Realtime Ledger Inquiry", command: "INQ ACCT.BAL" },
+      ]);
     }
   }, []);
 
-  // 2. Fetch specific group record by ID
+  // 2. Fetch available groups pool from USER.GROUP table
+  const fetchGroups = React.useCallback(async () => {
+    try {
+      const json = await cbs.send<unknown>(
+        cbs.userGroup.getGroup(""), // Empty ID returns record list
+        { silent: true },
+      );
+      if (json.status === "SUCCESS" && json.data) {
+        const parsed = parseUserGroupList(json.data);
+        if (parsed.success && parsed.data.length > 0) {
+          setGroupsPool(
+            parsed.data.map((g) => ({
+              id: g.recordId,
+              label: g.groupLabel,
+              details: `${g.menuIds.length} menus • ${g.roleIds.length} roles`,
+            })),
+          );
+          return;
+        }
+      }
+      setGroupsPool([
+        { id: "TELLER.GRP", label: "Branch Frontline Tellers", details: "5 menus • 2 roles" },
+        { id: "SUPERVISOR.GRP", label: "Branch Authorizers & Supervisors", details: "7 menus • 2 roles" },
+        { id: "ADMIN.GRP", label: "System & Core Administrators", details: "9 menus • 3 roles" },
+      ]);
+    } catch {
+      setGroupsPool([
+        { id: "TELLER.GRP", label: "Branch Frontline Tellers", details: "5 menus • 2 roles" },
+        { id: "SUPERVISOR.GRP", label: "Branch Authorizers & Supervisors", details: "7 menus • 2 roles" },
+      ]);
+    }
+  }, []);
+
+  // 3. Fetch specific group record by ID
   const fetchRecord = React.useCallback(
     async (targetId: string, targetMode: UserGroupScreenMode = "EDIT") => {
       if (!targetId.trim()) return;
@@ -121,98 +132,122 @@ export function useUserGroup(initialId?: string) {
       const cleanId = targetId.trim().toUpperCase();
       setRecordId(cleanId);
 
-      // Look up locally first
-      const found = groupsPool.find((g) => g.id.toUpperCase() === cleanId);
-      if (found) {
-        setFormData(found.record);
-        setMode(targetMode);
-        setLoading(false);
-        toast.add({
-          title: "Group Loaded",
-          description: `Loaded permissions for ${cleanId}`,
-          type: "success",
-        });
-        return;
-      }
-
       try {
-        const json = await cbs.send<UserGroupRecord>(cbs.userGroup.getGroup(cleanId), {
+        const json = await cbs.send<unknown>(cbs.userGroup.getGroup(cleanId), {
           silent: true,
         });
         if (json.status === "SUCCESS" && json.data) {
-          setFormData(json.data);
-          setMode(targetMode);
-        } else {
-          setFormData({ ...INITIAL_GROUP, recordId: cleanId });
-          setMode("CREATE");
+          const parsed = parseUserGroupRecord(json.data);
+          if (parsed.success) {
+            setFormData(parsed.data);
+            setMode(targetMode);
+            toast.add({
+              title: "User Group Loaded",
+              description: `Loaded security profile #${cleanId}`,
+              type: "success",
+            });
+            return;
+          }
         }
+        // Fallback for new draft or uncommitted ID
+        setFormData({
+          ...INITIAL_USER_GROUP,
+          recordId: cleanId,
+        });
+        setMode("CREATE");
       } catch {
-        setFormData({ ...INITIAL_GROUP, recordId: cleanId });
+        setFormData({
+          ...INITIAL_USER_GROUP,
+          recordId: cleanId,
+        });
         setMode("CREATE");
       } finally {
         setLoading(false);
       }
     },
-    [groupsPool],
+    [setFormData, setMode, setRecordId],
   );
 
-  // 3. Create fresh group
+  // 4. Create new user group
   const handleCreateNew = React.useCallback(() => {
     const nextId = `GRP.${Date.now().toString().slice(-4)}`;
     setRecordId(nextId);
-    setFormData({ ...INITIAL_GROUP, recordId: nextId, groupLabel: "New Access Group" });
+    setFormData({
+      ...INITIAL_USER_GROUP,
+      recordId: nextId,
+    });
     setMode("CREATE");
-  }, []);
+  }, [setFormData, setMode, setRecordId]);
 
-  // 4. Save group record (PUT to USER.GROUP)
+  // 5. Validate user group
+  const handleValidate = React.useCallback((): boolean => {
+    const validation = userGroupRecordSchema.safeParse(formData);
+    if (!validation.success) {
+      const errs = mapUserGroupZodIssues(validation.error.issues);
+      setValidationErrors(errs);
+      toast.add({
+        title: "Validation Issues",
+        description: `${errs.length} issue${errs.length > 1 ? "s" : ""} need attention.`,
+        type: "warning",
+      });
+      return false;
+    }
+    setValidationErrors([]);
+    toast.add({
+      title: "Validation Passed",
+      description: "User group configuration and label are valid.",
+      type: "success",
+    });
+    return true;
+  }, [formData]);
+
+  // 6. Submit user group (PUT to USER.GROUP)
   const handleSubmit = React.useCallback(async () => {
     const validation = userGroupRecordSchema.safeParse(formData);
     if (!validation.success) {
+      const errs = mapUserGroupZodIssues(validation.error.issues);
+      setValidationErrors(errs);
       toast.add({
-        title: "Validation Error",
-        description: validation.error.issues[0]?.message || "Invalid group definition",
+        title: "Validation Issues Found",
+        description: `${errs.length} issue${errs.length > 1 ? "s" : ""} require attention before saving.`,
         type: "warning",
       });
       return;
     }
 
+    setValidationErrors([]);
     setSubmitting(true);
     try {
+      const wireData = serializeUserGroupToWireJson(validation.data);
       const json = await cbs.send(
-        cbs.userGroup.saveGroup(formData.recordId, validation.data as Record<string, unknown>),
+        cbs.userGroup.saveGroup(
+          validation.data.recordId,
+          wireData as Record<string, unknown>,
+        ),
         {
-          successTitle: "Group Saved",
-          successMessage: `Committed group #${formData.recordId} to USER.GROUP`,
+          successTitle: "User Group Committed",
+          successMessage: `Saved security group #${validation.data.recordId}`,
         },
       );
       if (json.status === "SUCCESS") {
-        setGroupsPool((prev) => {
-          const item = {
-            id: validation.data.recordId,
-            label: validation.data.groupLabel,
-            details: `${validation.data.menuIds.length} menus, ${validation.data.roleIds.length} roles`,
-            record: validation.data,
-          };
-          const exists = prev.some((p) => p.id === item.id);
-          return exists ? prev.map((p) => (p.id === item.id ? item : p)) : [...prev, item];
-        });
         setMode("EDIT");
+        fetchGroups();
       }
     } catch {
       // Toast error handled by cbs.send
     } finally {
       setSubmitting(false);
     }
-  }, [formData]);
+  }, [formData, setMode, fetchGroups]);
 
-  // 5. Authorize group record
+  // 7. Authorize user group (AUT to USER.GROUP)
   const handleAuthorize = React.useCallback(async () => {
-    if (!recordId) return;
+    if (!recordId.trim()) return;
     setSubmitting(true);
     try {
-      const json = await cbs.send(cbs.userGroup.authorizeGroup(recordId), {
-        successTitle: "Group Authorized",
-        successMessage: `Authorized user group #${recordId}`,
+      const json = await cbs.send(cbs.userGroup.authorizeGroup(recordId.trim().toUpperCase()), {
+        successTitle: "User Group Authorized",
+        successMessage: `Authorized security profile #${recordId}`,
       });
       if (json.status === "SUCCESS") {
         setMode("VIEW");
@@ -222,52 +257,66 @@ export function useUserGroup(initialId?: string) {
     } finally {
       setSubmitting(false);
     }
-  }, [recordId]);
+  }, [recordId, setMode]);
 
-  // Checklist helper toggles
-  const toggleMenu = React.useCallback((menuId: string) => {
-    setFormData((prev) => {
-      const has = prev.menuIds.includes(menuId);
-      return {
-        ...prev,
-        menuIds: has ? prev.menuIds.filter((id) => id !== menuId) : [...prev.menuIds, menuId],
-      };
-    });
-  }, []);
+  // Matrix manipulation helpers
+  const toggleMenu = React.useCallback(
+    (menuId: string) => {
+      setFormData((prev) => {
+        const exists = prev.menuIds.includes(menuId);
+        return {
+          ...prev,
+          menuIds: exists ? prev.menuIds.filter((id) => id !== menuId) : [...prev.menuIds, menuId],
+        };
+      });
+    },
+    [setFormData],
+  );
 
-  const setMenusBulk = React.useCallback((ids: string[], checked: boolean) => {
-    setFormData((prev) => {
-      const set = new Set(prev.menuIds);
-      for (const id of ids) {
-        if (checked) set.add(id);
-        else set.delete(id);
-      }
-      return { ...prev, menuIds: [...set] };
-    });
-  }, []);
+  const setMenusBulk = React.useCallback(
+    (targetMenuIds: string[], select: boolean) => {
+      setFormData((prev) => {
+        if (select) {
+          const union = new Set([...prev.menuIds, ...targetMenuIds]);
+          return { ...prev, menuIds: Array.from(union) };
+        }
+        const removeSet = new Set(targetMenuIds);
+        return { ...prev, menuIds: prev.menuIds.filter((id) => !removeSet.has(id)) };
+      });
+    },
+    [setFormData],
+  );
 
-  const toggleRole = React.useCallback((roleId: string) => {
-    setFormData((prev) => {
-      const has = prev.roleIds.includes(roleId);
-      return {
-        ...prev,
-        roleIds: has ? prev.roleIds.filter((id) => id !== roleId) : [...prev.roleIds, roleId],
-      };
-    });
-  }, []);
+  const toggleRole = React.useCallback(
+    (roleId: string) => {
+      setFormData((prev) => {
+        const exists = prev.roleIds.includes(roleId);
+        return {
+          ...prev,
+          roleIds: exists ? prev.roleIds.filter((id) => id !== roleId) : [...prev.roleIds, roleId],
+        };
+      });
+    },
+    [setFormData],
+  );
 
   const resetToIdle = React.useCallback(() => {
     setMode("IDLE");
     setRecordId("");
-    setFormData(INITIAL_GROUP);
-  }, []);
+    setFormData(INITIAL_USER_GROUP);
+    setValidationErrors([]);
+  }, [setFormData, setMode, setRecordId]);
 
   React.useEffect(() => {
     fetchMenus();
-    if (initialId) {
-      fetchRecord(initialId);
+    fetchGroups();
+  }, [fetchMenus, fetchGroups]);
+
+  React.useEffect(() => {
+    if (resolvedInitialId) {
+      fetchRecord(resolvedInitialId, resolvedInitialMode);
     }
-  }, [fetchMenus, fetchRecord, initialId]);
+  }, [fetchRecord, resolvedInitialId, resolvedInitialMode]);
 
   return {
     recordId,
@@ -276,13 +325,15 @@ export function useUserGroup(initialId?: string) {
     setMode,
     formData,
     setFormData,
+    loading,
+    submitting,
     menus,
     roles,
     groupsPool,
-    loading,
-    submitting,
+    validationErrors,
     fetchRecord,
     handleCreateNew,
+    handleValidate,
     handleSubmit,
     handleAuthorize,
     toggleMenu,

@@ -51,109 +51,9 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
           return;
         }
       }
-      // High quality demo fallback records matching MODEL.CONFIG MENU properties
-      setItemsPool([
-        {
-          recordId: "1",
-          label: "Open Customer Account",
-          command: "ACCOUNT I",
-          menuType: "SCREEN",
-          description: "Customer savings and current account opening",
-          isActive: true,
-        },
-        {
-          recordId: "2",
-          label: "Account Overview",
-          command: "ACCOUNT S",
-          menuType: "SCREEN",
-          description: "Account summary and ledger inquiry",
-          isActive: true,
-        },
-        {
-          recordId: "3",
-          label: "Customer Onboarding",
-          command: "CUSTOMER I",
-          menuType: "SCREEN",
-          description: "New individual & corporate customer master record",
-          isActive: true,
-        },
-        {
-          recordId: "4",
-          label: "Funds Transfer",
-          command: "FUNDS.TRANSFER I",
-          menuType: "SCREEN",
-          description: "Interbank & intrabank clearing transfers",
-          isActive: true,
-        },
-        {
-          recordId: "5",
-          label: "Balance Inquiry",
-          command: "INQ ACCT.BAL",
-          menuType: "INQUIRY",
-          description: "Realtime core ledger balance inquiry",
-          isActive: true,
-        },
-        {
-          recordId: "6",
-          label: "Model Configuration",
-          command: "MODEL.CONFIG",
-          menuType: "SCREEN",
-          description: "CBS Data Dictionary and Schema Designer",
-          isActive: true,
-        },
-      ]);
+      setItemsPool([]);
     } catch {
-      // Demo fallback records
-      setItemsPool([
-        {
-          recordId: "1",
-          label: "Open Customer Account",
-          command: "ACCOUNT I",
-          menuType: "SCREEN",
-          description: "Customer account opening",
-          isActive: true,
-        },
-        {
-          recordId: "2",
-          label: "Account Overview",
-          command: "ACCOUNT S",
-          menuType: "SCREEN",
-          description: "Account inquiry overview",
-          isActive: true,
-        },
-        {
-          recordId: "3",
-          label: "Customer Onboarding",
-          command: "CUSTOMER I",
-          menuType: "SCREEN",
-          description: "New customer master record",
-          isActive: true,
-        },
-        {
-          recordId: "4",
-          label: "Funds Transfer",
-          command: "FUNDS.TRANSFER I",
-          menuType: "SCREEN",
-          description: "Interbank & intrabank transfers",
-          isActive: true,
-        },
-        {
-          recordId: "5",
-          label: "Balance Inquiry",
-          command: "INQ ACCT.BAL",
-          menuType: "INQUIRY",
-          description: "Realtime ledger balances",
-          isActive: true,
-        },
-        {
-          recordId: "6",
-          label: "Model Configuration",
-          command: "MODEL.CONFIG",
-          menuType: "SCREEN",
-          description: "CBS Data Dictionary and Schema Designer",
-          isActive: true,
-        },
-      ]);
+      setItemsPool([]);
     }
   }, []);
 
@@ -182,29 +82,17 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
             return;
           }
         }
-        // Check local items pool
-        const local = itemsPool.find((item) => item.recordId.toUpperCase() === cleanId);
-        if (local) {
-          setFormData(local);
-          setMode(targetMode);
-        } else {
-          setFormData({ ...INITIAL_MENU_ITEM, recordId: cleanId });
-          setMode("CREATE");
-        }
+        // Initialize clean empty draft when record does not exist
+        setFormData({ ...INITIAL_MENU_ITEM, recordId: cleanId });
+        setMode("CREATE");
       } catch {
-        const local = itemsPool.find((item) => item.recordId.toUpperCase() === cleanId);
-        if (local) {
-          setFormData(local);
-          setMode(targetMode);
-        } else {
-          setFormData({ ...INITIAL_MENU_ITEM, recordId: cleanId });
-          setMode("CREATE");
-        }
+        setFormData({ ...INITIAL_MENU_ITEM, recordId: cleanId });
+        setMode("CREATE");
       } finally {
         setLoading(false);
       }
     },
-    [itemsPool, setFormData, setMode, setRecordId],
+    [setFormData, setMode, setRecordId],
   );
 
   // 3. Create new record

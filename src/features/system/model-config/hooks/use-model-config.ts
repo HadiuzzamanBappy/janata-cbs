@@ -82,7 +82,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
             type: "success",
           });
         } else {
-          setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: `${cleanId} Model` });
+          setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: "" });
           setCommittedSnSet(new Set());
           setMode("CREATE");
         }
@@ -93,7 +93,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           description: msg,
           type: "error",
         });
-        setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: `${cleanId} Model` });
+        setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: "" });
         setCommittedSnSet(new Set());
         setMode("CREATE");
       } finally {

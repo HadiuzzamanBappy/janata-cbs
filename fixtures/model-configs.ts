@@ -6,7 +6,7 @@ import { parseModelConfig } from "@/lib/parsers";
  * Formatted directly as built by the UI designer (1:1 storage format).
  */
 export const RAW_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
-  MENU_TREE: {
+  MENU_DESIGN: {
     recordId: "MENU_TREE",
     tableName: "MENU_TREE",
     description: "Menu Tree",

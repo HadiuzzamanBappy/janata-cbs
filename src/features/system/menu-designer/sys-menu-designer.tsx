@@ -56,12 +56,12 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
     resetToIdle,
   } = useMenuDesigner(initialId, tabId);
 
-  const [activeTab, setActiveTab] = React.useState<string>("canvas");
+  const [activeTab, setActiveTab] = React.useState<string>("general");
   const isReadOnly = mode === "VIEW";
 
   // Reset tab selection to 'canvas' whenever switching to a different record or when creating a new record
   React.useEffect(() => {
-    setActiveTab("canvas");
+    setActiveTab("general");
   }, [formData.recordId, mode]);
 
   const availableItems = React.useMemo(

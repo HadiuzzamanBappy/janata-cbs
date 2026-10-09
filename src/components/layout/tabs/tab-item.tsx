@@ -89,6 +89,15 @@ export function TabItem({
       <ContextMenuTrigger
         render={
           <div
+            role="tab"
+            aria-selected={isActive}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setActiveTab(tab.id);
+              }
+            }}
             data-tab-id={tab.id}
             draggable
             onDragStart={(e) => {

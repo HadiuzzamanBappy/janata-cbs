@@ -228,12 +228,14 @@ export function McInspectorIdentitySection({
           <span className="text-muted-foreground/60 font-mono text-xs">:</span>
           <div className="flex items-center gap-6 max-w-md flex-1">
             <label
+              htmlFor={`prop-required-${property.sn}`}
               className={cn(
                 "flex items-center gap-1.5 select-none",
                 isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
               )}
             >
               <Checkbox
+                id={`prop-required-${property.sn}`}
                 checked={property.required}
                 disabled={isReadOnly}
                 onCheckedChange={(val) => onUpdate(property.sn, { required: !!val })}
@@ -246,12 +248,14 @@ export function McInspectorIdentitySection({
             </label>
 
             <label
+              htmlFor={`prop-disabled-${property.sn}`}
               className={cn(
                 "flex items-center gap-1.5 select-none",
                 isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
               )}
             >
               <Checkbox
+                id={`prop-disabled-${property.sn}`}
                 checked={property.disabled}
                 disabled={isReadOnly}
                 onCheckedChange={(val) => onUpdate(property.sn, { disabled: !!val })}

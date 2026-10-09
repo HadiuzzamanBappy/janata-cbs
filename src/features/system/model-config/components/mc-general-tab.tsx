@@ -79,15 +79,18 @@ export function McGeneralTab({
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 max-w-lg flex-1">
                       {groupFields.map((field) => {
                         const isChecked = Boolean(getFieldValue(formData, field.path));
+                        const fieldId = `mc-flag-${field.path}`;
                         return (
                           <label
                             key={field.path}
+                            htmlFor={fieldId}
                             className={cn(
                               "flex items-center gap-1.5 select-none",
                               isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
                             )}
                           >
                             <Checkbox
+                              id={fieldId}
                               checked={isChecked}
                               disabled={isReadOnly}
                               onCheckedChange={(val) => handleBooleanChange(field, !!val)}
@@ -120,12 +123,14 @@ export function McGeneralTab({
                     <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                     <div className="flex items-center gap-3 max-w-lg flex-1">
                       <label
+                        htmlFor="mc-is-active"
                         className={cn(
                           "flex items-center gap-2 select-none",
                           isReadOnly ? "cursor-default" : "cursor-pointer",
                         )}
                       >
                         <Checkbox
+                          id="mc-is-active"
                           checked={formData.isActive}
                           disabled={isReadOnly}
                           onCheckedChange={(val) => setFormData((p) => ({ ...p, isActive: !!val }))}
@@ -160,6 +165,7 @@ export function McGeneralTab({
                         : "";
 
                     if (field.type === "boolean") {
+                      const boolFieldId = `mc-bool-${field.path}`;
                       return (
                         <div key={field.path} className="flex items-center gap-2">
                           <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
@@ -168,12 +174,14 @@ export function McGeneralTab({
                           <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                           <div className="flex items-center gap-2 max-w-md flex-1">
                             <label
+                              htmlFor={boolFieldId}
                               className={cn(
                                 "flex items-center gap-1.5 select-none",
                                 isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
                               )}
                             >
                               <Checkbox
+                                id={boolFieldId}
                                 checked={Boolean(rawVal)}
                                 disabled={isReadOnly}
                                 onCheckedChange={(val) => handleBooleanChange(field, !!val)}
@@ -204,15 +212,18 @@ export function McGeneralTab({
                           <div className="flex items-center gap-4 max-w-md flex-1">
                             {field.options?.map((opt) => {
                               const isChecked = selectedValues.includes(opt.value);
+                              const optId = `mc-opt-${field.path}-${opt.value}`;
                               return (
                                 <label
                                   key={opt.value}
+                                  htmlFor={optId}
                                   className={cn(
                                     "flex items-center gap-1.5 select-none",
                                     isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
                                   )}
                                 >
                                   <Checkbox
+                                    id={optId}
                                     checked={isChecked}
                                     disabled={isReadOnly}
                                     onCheckedChange={(checked) => {

@@ -79,14 +79,14 @@ function TabWindowMenuItem({
   };
 
   return (
-    <div
+    <li
       draggable={!isSearching}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       className={cn(
-        "transition-all duration-150 rounded mb-0.5 relative",
+        "list-none transition-all duration-150 rounded mb-0.5 relative",
         isDraggingThis && "opacity-40 scale-[0.98]",
         isDragOverThis && !isDraggingThis && "bg-primary/10 ring-1 ring-primary/50",
       )}
@@ -94,10 +94,11 @@ function TabWindowMenuItem({
       <ContextMenu>
         <ContextMenuTrigger
           render={
-            <div
+            <button
+              type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "relative flex items-center justify-between py-1.5 px-2 cursor-pointer rounded text-xs gap-2 group transition-colors select-none",
+                "w-full text-left relative flex items-center justify-between py-1.5 px-2 cursor-pointer rounded text-xs gap-2 group transition-colors select-none",
                 "hover:bg-accent/70 hover:text-accent-foreground",
                 isActive
                   ? "bg-accent/80 text-accent-foreground font-semibold pl-2.5 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-primary before:rounded-full"
@@ -186,7 +187,7 @@ function TabWindowMenuItem({
           />
         </ContextMenuContent>
       </ContextMenu>
-    </div>
+    </li>
   );
 }
 

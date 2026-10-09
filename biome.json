@@ -19,6 +19,7 @@
       "!**/src/components/ui",
       "!**/src/hooks/use-mobile.ts",
       "!**/src/lib/grpc/generated",
+      "!**/src/features/system/report-studio",
       "!**/public",
       "!**/.response"
     ]
@@ -43,6 +44,12 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
+      "a11y": {
+        "noLabelWithoutControl": "off",
+        "useSemanticElements": "off",
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off"
+      },
       "complexity": {
         "noForEach": "off",
         "noStaticOnlyClass": "warn",

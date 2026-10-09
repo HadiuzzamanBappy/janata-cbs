@@ -121,15 +121,7 @@ export function OpsForm({
         setValue(idField.name, cleanId);
       }
     }
-  }, [
-    schema,
-    searchRecordId,
-    currentTab?.formData,
-    screenMode,
-    setValues,
-    setValue,
-    setScreenMode,
-  ]);
+  }, [schema, searchRecordId, currentTab?.formData, screenMode, setValues, setValue]);
 
   const handleFieldChange = (name: string, val: unknown) => {
     setValue(name, val);

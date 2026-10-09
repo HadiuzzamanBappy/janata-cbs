@@ -6,3 +6,5 @@ export * from "./cbs-inquiry-header";
 export * from "./cbs-idle-state";
 export * from "./cbs-screen-scaffold";
 export * from "./cbs-validation-checklist";
+export * from "./cbs-audit-tab";
+export * from "./cbs-json-viewer-tab";

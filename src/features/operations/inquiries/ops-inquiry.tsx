@@ -6,7 +6,7 @@ import { cbs } from "@/lib/cbs-client";
 import type { EnquiryRow, SelectionOperand } from "@/lib/schemas";
 import { useInquirySchema } from "./hooks/use-inquiry-schema";
 import { useInquiryState } from "./hooks/use-inquiry-state";
-import { exportToCSV, exportToHTML, exportToXML } from "./utils/export-helpers";
+import { exportToCSV, exportToHTML, exportToXML } from "@/lib/utils/export";
 import { filterDatasetByCriteria } from "./utils/filter-dataset";
 import { resolveDrillDownFormCommand } from "./utils/resolve-form-command";
 import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";

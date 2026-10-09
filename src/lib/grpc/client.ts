@@ -15,15 +15,17 @@ import {
   type LoginRequest,
 } from "@/lib/grpc/generated/service";
 
-export type { GrpcRequest, GrpcResponse, LoginRequest };
-
-/* ---------- Singleton gRPC Client ---------- */
+/**
+ * Global singleton reference to preserve the gRPC client channel across
+ * Next.js hot module reloads in production.
+ */
 declare global {
-  // eslint-disable-next-line no-var
   var __grpcClient: GrpcServiceClient | undefined;
 }
 
-// TODO: [Step 8 - Production Tuning] Implement multi-channel gRPC connection pooling for high-concurrency peak load.
+/**
+ * Constructs a configured gRPC client channel with TLS security and keepalive options.
+ */
 function buildClient(address: string): GrpcServiceClient {
   const creds: ChannelCredentials = appConfig.grpc.useTls
     ? credentials.createSsl()
@@ -34,6 +36,10 @@ function buildClient(address: string): GrpcServiceClient {
   });
 }
 
+/**
+ * Retrieves the gRPC client channel. In production, reuses a singleton connection;
+ * in development, builds a fresh client per call to prevent socket leaks during HMR.
+ */
 function getClient(address: string): GrpcServiceClient {
   if (appConfig.nodeEnv === "production") {
     if (!globalThis.__grpcClient) {
@@ -41,18 +47,21 @@ function getClient(address: string): GrpcServiceClient {
     }
     return globalThis.__grpcClient;
   }
-  // Development mode: build fresh client per call to prevent hot-reload socket leakage
   return buildClient(address);
 }
 
-/* ---------- Call Options ---------- */
-export interface CallOpts {
+/**
+ * RPC execution options including authentication token, deadline timeout, and custom headers.
+ */
+interface CallOpts {
   token?: string;
   deadlineMs?: number;
   metadata?: Record<string, string>;
 }
 
-/* ---------- Unauthenticated RPC: Login ---------- */
+/**
+ * Unauthenticated RPC: Authenticates user credentials with the CBS host.
+ */
 export function loginProcess(req: LoginRequest, _opts: CallOpts = {}): Promise<GrpcResponse> {
   const address = appConfig.grpc.host;
 

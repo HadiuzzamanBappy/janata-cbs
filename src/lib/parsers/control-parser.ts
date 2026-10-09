@@ -1,4 +1,4 @@
-import { extractStringField, getItemFields, unwrapRecordsPayload } from "@/lib/grpc/struct";
+import { unwrapRecordsPayload } from "./protobuf-decoder";
 import type { SystemCommandItem } from "@/lib/schemas";
 
 /**
@@ -6,14 +6,13 @@ import type { SystemCommandItem } from "@/lib/schemas";
  * Single source of truth: canonical control command + shorthand alias if recordId differs.
  */
 export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
-  const rawList = unwrapRecordsPayload(data);
+  const rawList = unwrapRecordsPayload<Record<string, unknown>>(data);
   const result: SystemCommandItem[] = [];
 
-  for (const item of rawList) {
-    const fields = getItemFields(item);
-    const recordId = extractStringField(fields, "recordId");
-    const controlName = extractStringField(fields, "controlName") || recordId;
-    const desc = extractStringField(fields, "description") || controlName;
+  for (const fields of rawList) {
+    const recordId = String(fields.recordId || "");
+    const controlName = String(fields.controlName || recordId);
+    const desc = String(fields.description || controlName);
 
     if (controlName) {
       const aliases = recordId && recordId !== controlName ? [recordId] : [];
@@ -30,3 +29,4 @@ export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
 
   return result;
 }
+

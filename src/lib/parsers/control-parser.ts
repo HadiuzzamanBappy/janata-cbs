@@ -1,12 +1,12 @@
+import type { RawControlRecord, SystemCommandItem } from "@/lib/schemas";
 import { unwrapRecordsPayload } from "./protobuf-decoder";
-import type { SystemCommandItem } from "@/lib/schemas";
 
 /**
  * Universal parser to map raw CBS Protobuf control response to lean SystemCommandItem records.
  * Single source of truth: canonical control command + shorthand alias if recordId differs.
  */
 export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
-  const rawList = unwrapRecordsPayload<Record<string, unknown>>(data);
+  const rawList = unwrapRecordsPayload<RawControlRecord>(data);
   const result: SystemCommandItem[] = [];
 
   for (const fields of rawList) {
@@ -29,4 +29,3 @@ export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
 
   return result;
 }
-

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for Menu Catalog (TABLE: MENU)         */
@@ -23,17 +24,7 @@ export const menuCatalogRecordSchema = z.object({
   menuType: menuTypeSchema.default("SCREEN"),
   description: z.string().optional(),
   isActive: z.boolean().optional(),
-  auditData: z
-    .object({
-      recStatus: z.string().optional(),
-      recCurrNumber: z.number().optional(),
-      recInputter: z.string().optional(),
-      recInputTime: z.string().optional(),
-      recAuthorizer: z.string().optional(),
-      recAuthTime: z.string().optional(),
-      recBranchCode: z.string().optional(),
-    })
-    .optional(),
+  auditData: auditDataSchema.optional(),
 });
 
 export type MenuCatalogRecord = z.infer<typeof menuCatalogRecordSchema>;

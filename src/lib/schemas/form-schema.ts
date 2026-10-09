@@ -1,58 +1,85 @@
 import { z } from "zod";
+import { type RawEnquiryColumn, rawEnquiryColumnSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Raw gRPC Payload Schemas (Boundary Validation for GMC)                     */
 /* -------------------------------------------------------------------------- */
 
 export const rawPropertyRecordSchema = z.object({
-  NAME: z.string().optional(),
-  LABEL: z.string().optional(),
-  TYPE: z.string().optional(),
-  REQUIRED: z.union([z.boolean(), z.string()]).optional(),
-  DISABLED: z.union([z.boolean(), z.string()]).optional(),
-  LENGTH: z.union([z.number(), z.string()]).optional(),
-  DATASOURCE: z.array(z.string()).optional(),
+  name: z.string().optional(),
+  label: z.string().optional(),
+  type: z.string().optional(),
+  required: z.union([z.boolean(), z.string()]).optional(),
+  disabled: z.union([z.boolean(), z.string()]).optional(),
+  length: z.union([z.number(), z.string()]).optional(),
+  structure: z.string().optional(),
+  width: z.union([z.number(), z.string()]).optional(),
+  position: z.string().optional(),
+  parameter: z.string().optional(),
+  enrichText: z.string().optional(),
+  value: z.any().optional(),
+  isOpen: z.boolean().optional(),
+  isLoading: z.boolean().optional(),
+  prop: z.array(z.any()).optional(),
+  datasource: z.array(z.string()).optional(),
+  sn: z.union([z.string(), z.number()]).optional(),
 });
 
 export type RawPropertyRecord = z.infer<typeof rawPropertyRecordSchema>;
-
-export type RawEnquiryColumn = {
-  id: string;
-  label: string;
-  align?: "left" | "center" | "right";
-  width?: string;
-  isMono?: boolean;
-  isDrilldown?: boolean;
-  drilldownTargetCommand?: string;
-};
-
-export const rawEnquiryColumnSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  align: z.enum(["left", "center", "right"]).optional(),
-  width: z.string().optional(),
-  isMono: z.boolean().optional(),
-  isDrilldown: z.boolean().optional(),
-  drilldownTargetCommand: z.string().optional(),
-});
+export type { RawEnquiryColumn };
+export { rawEnquiryColumnSchema };
 
 export type RawPropertyConfigRecord = {
   record?: RawPropertyConfigRecord;
-  DESCRIPTION?: string;
-  TABLENAME?: string;
-  IDDEF?: { IDPREFIX?: string };
-  PROPERTIES?: RawPropertyRecord[];
-  COLUMNS?: RawEnquiryColumn[];
+  devBy?: string;
+  devDate?: string;
+  description?: string;
+  prefix?: string;
+  tableName?: string;
+  userDefineId?: boolean;
+  access?: string;
+  readOnly?: boolean;
+  searchable?: boolean;
+  associates?: string[];
+  authorize?: boolean;
+  servicePath?: string;
+  idDef?: {
+    idPrefix?: string;
+    sequenceLength?: string | number;
+    sequenceReset?: boolean;
+    idPattern?: string;
+  };
+  properties?: RawPropertyRecord[];
+  columns?: RawEnquiryColumn[];
+  auditData?: Record<string, unknown>;
 };
 
 export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.lazy(() =>
   z.object({
     record: rawPropertyConfigSchema.optional(),
-    DESCRIPTION: z.string().optional(),
-    TABLENAME: z.string().optional(),
-    IDDEF: z.object({ IDPREFIX: z.string().optional() }).optional(),
-    PROPERTIES: z.array(rawPropertyRecordSchema).optional(),
-    COLUMNS: z.array(rawEnquiryColumnSchema).optional(),
+    devBy: z.string().optional(),
+    devDate: z.string().optional(),
+    description: z.string().optional(),
+    prefix: z.string().optional(),
+    tableName: z.string().optional(),
+    userDefineId: z.boolean().optional(),
+    access: z.string().optional(),
+    readOnly: z.boolean().optional(),
+    searchable: z.boolean().optional(),
+    associates: z.array(z.string()).optional(),
+    authorize: z.boolean().optional(),
+    servicePath: z.string().optional(),
+    idDef: z
+      .object({
+        idPrefix: z.string().optional(),
+        sequenceLength: z.union([z.string(), z.number()]).optional(),
+        sequenceReset: z.boolean().optional(),
+        idPattern: z.string().optional(),
+      })
+      .optional(),
+    properties: z.array(rawPropertyRecordSchema).optional(),
+    columns: z.array(rawEnquiryColumnSchema).optional(),
+    auditData: z.record(z.string(), z.unknown()).optional(),
   }),
 );
 

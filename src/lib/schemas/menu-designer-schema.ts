@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for Menu Tree Designer                */
@@ -8,7 +9,17 @@ import { z } from "zod";
 /*   3. menuTree (SN: 3, Type: Text, Length: 50, Structure: M, Required: true)*/
 /* -------------------------------------------------------------------------- */
 
-export const menuTreeNodeSchema: z.ZodType<MenuTreeNodeOutput> = z.lazy(() =>
+export type MenuTreeNode = {
+  id: string;
+  menuId: number | string;
+  label: string;
+  command?: string;
+  isVisible: boolean;
+  orderIndex: number;
+  children: MenuTreeNode[];
+};
+
+export const menuTreeNodeSchema: z.ZodType<MenuTreeNode> = z.lazy(() =>
   z.object({
     id: z.string().min(1, "Node ID is required"),
     menuId: z.union([z.number(), z.string()]),
@@ -20,34 +31,12 @@ export const menuTreeNodeSchema: z.ZodType<MenuTreeNodeOutput> = z.lazy(() =>
   }),
 );
 
-export type MenuTreeNodeOutput = {
-  id: string;
-  menuId: number | string;
-  label: string;
-  command?: string;
-  isVisible: boolean;
-  orderIndex: number;
-  children: MenuTreeNodeOutput[];
-};
-
-export type MenuTreeNode = MenuTreeNodeOutput;
-
 export const menuTreeRecordSchema = z.object({
   recordId: z.string().min(1, "Tree ID is required"),
   treeDescription: z.string().min(1, "Tree Description is required"),
   isActive: z.boolean().optional(),
   menuTree: z.array(menuTreeNodeSchema).default([]),
-  auditData: z
-    .object({
-      recStatus: z.string().optional(),
-      recCurrNumber: z.number().optional(),
-      recInputter: z.string().optional(),
-      recInputTime: z.string().optional(),
-      recAuthorizer: z.string().optional(),
-      recAuthTime: z.string().optional(),
-      recBranchCode: z.string().optional(),
-    })
-    .optional(),
+  auditData: auditDataSchema.optional(),
 });
 
 export type MenuTreeRecord = z.infer<typeof menuTreeRecordSchema>;

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { auditDataSchema, type EnquiryColumn, enquiryColumnSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Raw gRPC Payload Schemas for Enquiry                                       */
@@ -55,6 +56,7 @@ export type RawInqCmd = z.infer<typeof rawInqCmdSchema>;
 
 export const rawEnquiryWireSchema = z.object({
   recordId: z.string(),
+  auditData: auditDataSchema.optional(),
   INQInfo: rawInqInfoSchema.optional(),
   INQSelectField: z.array(rawInqSelectFieldSchema).optional(),
   INQDef: z.array(rawInqDefSchema).optional(),
@@ -82,17 +84,8 @@ export const selectionFieldSchema = z.object({
 
 export type SelectionField = z.infer<typeof selectionFieldSchema>;
 
-export const enquiryColumnSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  align: z.enum(["left", "center", "right"]).optional(),
-  width: z.string().optional(),
-  isMono: z.boolean().optional(),
-  isDrilldown: z.boolean().optional(),
-  drilldownTargetCommand: z.string().optional(),
-});
-
-export type EnquiryColumn = z.infer<typeof enquiryColumnSchema>;
+export type { EnquiryColumn };
+export { enquiryColumnSchema };
 
 export const enquiryCommandSchema = z.object({
   cmdButton: z.string(),

@@ -3,7 +3,7 @@
 import { ArrowUp, Check, Pause, Pencil, Play, Search, Wrench, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUserRights } from "@/hooks";
+import { useCbsAccess } from "@/lib/cbs-access";
 import type { CbsScreenMode } from "../types";
 
 export interface IdleActionsProps {
@@ -24,7 +24,7 @@ export function IdleActions({
   onView,
   onPerformAction,
 }: IdleActionsProps) {
-  const rights = useUserRights();
+  const access = useCbsAccess({ mode: "IDLE" });
 
   return (
     <div className="flex items-center gap-1 shrink-0">
@@ -36,7 +36,7 @@ export function IdleActions({
               variant="default"
               size="icon-sm"
               onClick={() => onAmend?.()}
-              disabled={!onAmend || submitting || !searchVal.trim() || !rights.canAmend}
+              disabled={!onAmend || submitting || !searchVal.trim() || !access.canAmend}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <Pencil className="size-3" />
@@ -46,7 +46,7 @@ export function IdleActions({
         <TooltipContent className="text-xs">
           {!searchVal.trim()
             ? "Enter or select a Record ID to edit"
-            : !rights.canAmend
+            : !access.canAmend
               ? "Requires Input/Amend ('I') permission"
               : "Edit Record"}
         </TooltipContent>
@@ -61,7 +61,7 @@ export function IdleActions({
               size="icon-sm"
               onClick={() => onView?.()}
               disabled={
-                !onView || submitting || !searchVal.trim() || (!rights.canSee && !rights.canRead)
+                !onView || submitting || !searchVal.trim() || !access.canSee
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
@@ -72,7 +72,7 @@ export function IdleActions({
         <TooltipContent className="text-xs">
           {!searchVal.trim()
             ? "Enter or select a Record ID to view"
-            : !rights.canSee && !rights.canRead
+            : !access.canSee
               ? "Requires View permission"
               : "View Details"}
         </TooltipContent>
@@ -129,7 +129,7 @@ export function ActiveActions({
   onProcessAction,
   onReturnToSearch,
 }: ActiveActionsProps) {
-  const rights = useUserRights();
+  const access = useCbsAccess({ mode });
 
   return (
     <div className="flex items-center gap-1 shrink-0">
@@ -147,7 +147,7 @@ export function ActiveActions({
                 mode === "A" ||
                 !onSubmit ||
                 submitting ||
-                (mode === "I" && !rights.canInput && !rights.canAmend)
+                (mode === "I" && !access.canInput && !access.canAmend)
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
@@ -158,7 +158,7 @@ export function ActiveActions({
         <TooltipContent className="text-xs">
           {mode === "S" || mode === "A"
             ? "Disabled in View/Auth mode (Read-Only)"
-            : mode === "I" && !rights.canInput && !rights.canAmend
+            : mode === "I" && !access.canInput && !access.canAmend
               ? "Requires Input/Amend ('I'/'A') permission"
               : "Save / Commit Record (✓)"}
         </TooltipContent>
@@ -178,7 +178,7 @@ export function ActiveActions({
                 mode === "A" ||
                 !onValidate ||
                 submitting ||
-                (mode === "I" && !rights.canInput && !rights.canAmend)
+                (mode === "I" && !access.canInput && !access.canAmend)
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40 font-bold"
             >
@@ -204,7 +204,7 @@ export function ActiveActions({
               variant="default"
               size="icon-sm"
               onClick={() => onHold?.()}
-              disabled={mode === "S" || mode === "A" || !onHold || submitting || !rights.canHold}
+              disabled={mode === "S" || mode === "A" || !onHold || submitting || !access.canHold}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <Pause className="size-3 fill-current" />
@@ -214,7 +214,7 @@ export function ActiveActions({
         <TooltipContent className="text-xs">
           {mode === "S" || mode === "A"
             ? "Disabled in View/Auth mode"
-            : !rights.canHold
+            : !access.canHold
               ? "Requires Hold ('H') permission"
               : "Hold Draft (❚❚)"}
         </TooltipContent>
@@ -229,7 +229,7 @@ export function ActiveActions({
               variant="destructive"
               size="icon-sm"
               onClick={() => onDelete?.()}
-              disabled={mode !== "I" || !onDelete || submitting || !rights.canDelete}
+              disabled={mode !== "I" || !onDelete || submitting || !access.canDelete}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <X className="size-3 stroke-[2.5]" />
@@ -239,7 +239,7 @@ export function ActiveActions({
         <TooltipContent className="text-xs">
           {mode === "S" || mode === "A"
             ? "Disabled in View/Auth mode"
-            : !rights.canDelete
+            : !access.canDelete
               ? "Requires Delete ('D') permission"
               : "Delete / Reverse Record (✕)"}
         </TooltipContent>
@@ -254,7 +254,7 @@ export function ActiveActions({
               variant="default"
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
-              disabled={mode !== "A" || !onAuthorizeReverse || submitting || !rights.canAuthorise}
+              disabled={mode !== "A" || !onAuthorizeReverse || submitting || !access.canAuthorize}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -266,7 +266,7 @@ export function ActiveActions({
         <TooltipContent className="text-xs">
           {mode !== "A"
             ? "Requires Auth mode"
-            : !rights.canAuthorise
+            : !access.canAuthorize
               ? "Requires Authorise ('A') permission"
               : "Authorize Record (✓✓)"}
         </TooltipContent>
@@ -285,7 +285,7 @@ export function ActiveActions({
                 mode !== "A" ||
                 !onAuthorizeReverse ||
                 submitting ||
-                (!rights.canAuthorise && !rights.canReverse)
+                (!access.canAuthorize && !access.canReverse)
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
@@ -298,7 +298,7 @@ export function ActiveActions({
         <TooltipContent className="text-xs">
           {mode !== "A"
             ? "Requires Auth mode"
-            : !rights.canAuthorise && !rights.canReverse
+            : !access.canAuthorize && !access.canReverse
               ? "Requires Authorise/Reverse ('A'/'R') permission"
               : "Authorize Reversal (✕✓)"}
         </TooltipContent>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { CommandDialog } from "@/components/ui/command";
-import { useUserRights } from "@/hooks";
+import { useCbsAccess } from "@/lib/cbs-access";
 import { useSessionStore } from "@/store";
 import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS } from "@/types";
 import { CommandGuidance, SearchFooterHelp, SearchInputBar, SearchResultsList } from "./components";
@@ -12,7 +12,7 @@ import { filterVisibleCommands, groupCommandsByCategory } from "./utils/search-f
 
 export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
   const { user } = useSessionStore();
-  const rights = useUserRights();
+  const access = useCbsAccess();
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const userHasCommandLine = user?.commandLine !== false;
@@ -55,10 +55,10 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
         return {
           code,
           label: `${def.label} (${def.description})`,
-          right: rights.hasRight(code),
+          right: access.hasFunctionRight(code),
         };
       }).filter((opt) => opt.right),
-    [rights],
+    [access],
   );
 
   return (
@@ -78,8 +78,8 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
         <CommandGuidance
           guideInfo={commandGuideInfo}
           options={RIDASH_OPTIONS}
-          permittedRights={rights.functionRights}
-          hasRight={rights.hasRight}
+          permittedRights={access.grantedRights}
+          hasRight={access.hasFunctionRight}
           onSelectOption={(code) => {
             setSearchQuery(`${commandGuideInfo.appName} ${code} `);
           }}

@@ -3,7 +3,7 @@
 import { Lock } from "lucide-react";
 import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useUserRights } from "@/hooks";
+import { useCbsAccess } from "@/lib/cbs-access";
 import type { CbsScreenMode, CbsScreenValidationError } from "../types";
 import { ActionButtons } from "./action-buttons";
 import { ActionMoreMenu, type MoreActionItem } from "./action-more-menu";
@@ -69,7 +69,7 @@ export function CbsFormHeader({
   onSelectValidationTab,
   className = "",
 }: CbsFormHeaderProps) {
-  const rights = useUserRights();
+  const access = useCbsAccess({ mode });
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [searchResults, setSearchResults] = React.useState<
@@ -207,7 +207,7 @@ export function CbsFormHeader({
               onDropdownOpenChange={setIsDropdownOpen}
               hasSearched={hasSearched}
               submitting={submitting}
-              canCreate={rights.canInput}
+              canCreate={access.canInput}
             />
           ) : (
             <div className="flex items-center gap-1.5">

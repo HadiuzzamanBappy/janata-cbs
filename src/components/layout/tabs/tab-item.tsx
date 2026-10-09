@@ -180,7 +180,11 @@ export function TabItem({
           >
             <MoreHorizontal className="size-3.5" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" sideOffset={6} className="w-52 text-xs rounded border border-border/80">
+          <DropdownMenuContent
+            align="start"
+            sideOffset={6}
+            className="w-52 text-xs rounded border border-border/80"
+          >
             <TabMenuItems
               tab={tab}
               ItemComponent={DropdownMenuItem}

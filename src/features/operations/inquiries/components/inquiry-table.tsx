@@ -269,8 +269,11 @@ export function InquiryTable({
           {/* Left: Record Range Summary */}
           <div className="flex items-center gap-3">
             <span className="font-mono text-muted-foreground text-[11px]">
-              Showing <strong className="text-foreground">{sortedRows.length > 0 ? startIndex + 1 : 0}</strong> -{" "}
-              <strong className="text-foreground">{endIndex}</strong> of{" "}
+              Showing{" "}
+              <strong className="text-foreground">
+                {sortedRows.length > 0 ? startIndex + 1 : 0}
+              </strong>{" "}
+              - <strong className="text-foreground">{endIndex}</strong> of{" "}
               <strong className="text-foreground">{sortedRows.length}</strong> records
             </span>
 

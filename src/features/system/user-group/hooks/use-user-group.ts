@@ -11,12 +11,12 @@ import {
 import {
   type MenuRef,
   type Role,
-  type UserGroupValidationError,
   type UserGroupScreenMode,
+  type UserGroupValidationError,
   userGroupRecordSchema,
 } from "@/lib/schemas/user-group-schema";
-import { mapUserGroupZodIssues } from "./user-group-validation";
 import { INITIAL_USER_GROUP, useUserGroupPersistence } from "./use-user-group-persistence";
+import { mapUserGroupZodIssues } from "./user-group-validation";
 
 // Core banking role catalog
 const DEFAULT_ROLES: Role[] = [

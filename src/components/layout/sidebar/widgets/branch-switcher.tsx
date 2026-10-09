@@ -123,7 +123,10 @@ export function BranchSwitcher({
           </div>
           <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-40" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align={align} className="w-64 p-1 rounded border border-border/80 shadow-md">
+        <DropdownMenuContent
+          align={align}
+          className="w-64 p-1 rounded border border-border/80 shadow-md"
+        >
           {/* Minimal Search Input */}
           <div className="p-1">
             <Input

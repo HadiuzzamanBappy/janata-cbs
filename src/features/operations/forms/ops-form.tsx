@@ -5,7 +5,10 @@ import * as React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
+import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { CbsScreenScaffold } from "@/lib/cbs-screen";
+import { FormGrid } from "./components/form-grid";
+import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
 import { useFormPersistence } from "./hooks/use-form-persistence";
 import { useFormSchema } from "./hooks/use-form-schema";
@@ -18,10 +21,6 @@ import {
   getAvailableFixtureRecords,
 } from "./utils/record-finder";
 import { normalizeRecordData } from "./utils/record-normalizer";
-import { FormGrid } from "./components/form-grid";
-import { FormSkeleton } from "./components/form-skeleton";
-
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 
 const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
 
@@ -204,7 +203,8 @@ export function OpsForm({
       auditData={
         screenMode !== "IDLE"
           ? {
-              recordStatus: (values?.RECORD_STATUS as string) || (values?.status as string) || "LIVE",
+              recordStatus:
+                (values?.RECORD_STATUS as string) || (values?.status as string) || "LIVE",
               currNo: (values?.CURR_NO as number | string) || "1",
               inputter: (values?.INPUTTER as string) || "CBS.OFFICER",
               dateTime:

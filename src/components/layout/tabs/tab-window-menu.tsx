@@ -148,7 +148,11 @@ function TabWindowMenuItem({
               >
                 <MoreHorizontal className="size-3" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={4} className="w-52 text-xs rounded border border-border/80">
+              <DropdownMenuContent
+                align="end"
+                sideOffset={4}
+                className="w-52 text-xs rounded border border-border/80"
+              >
                 <TabMenuItems
                   tab={tab}
                   ItemComponent={DropdownMenuItem}
@@ -213,7 +217,10 @@ export function TabWindowMenu() {
         <span>{tabs.length}</span>
         <ChevronDown className="size-3 text-muted-foreground ml-0.5 shrink-0 opacity-70" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-72 sm:w-80 p-0 overflow-hidden rounded border border-border/80 shadow-md">
+      <DropdownMenuContent
+        align="end"
+        className="w-72 sm:w-80 p-0 overflow-hidden rounded border border-border/80 shadow-md"
+      >
         {/* Header: Search Open Tabs */}
         {tabs.length > 3 && (
           <div className="p-2 border-b border-border/60 bg-muted/30 relative">
@@ -232,7 +239,9 @@ export function TabWindowMenu() {
         <div className="px-2.5 py-1.5 text-[10px] font-mono text-muted-foreground border-b border-border/60 uppercase tracking-wider bg-muted/30 flex items-center justify-between select-none">
           <span>Opened Windows ({tabs.length})</span>
           {!isSearching && tabs.length > 1 && (
-            <span className="text-[9px] text-muted-foreground/70 normal-case font-mono">Drag to reorder</span>
+            <span className="text-[9px] text-muted-foreground/70 normal-case font-mono">
+              Drag to reorder
+            </span>
           )}
         </div>
 

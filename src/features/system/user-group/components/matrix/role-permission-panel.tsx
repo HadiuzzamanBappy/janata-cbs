@@ -44,7 +44,10 @@ export function RolePermissionPanel({
           <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
             Security Roles
           </span>
-          <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 text-emerald-500 border-emerald-500/30">
+          <Badge
+            variant="outline"
+            className="text-[10px] font-mono px-1.5 py-0 text-emerald-500 border-emerald-500/30"
+          >
             {selectedRoleIds.length} assigned
           </Badge>
         </div>
@@ -93,9 +96,7 @@ export function RolePermissionPanel({
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-foreground truncate">
-                          {r.roleCode}
-                        </span>
+                        <span className="font-semibold text-foreground truncate">{r.roleCode}</span>
                         <Badge
                           variant="outline"
                           className="text-[9px] font-mono px-1 py-0 h-3.5 text-muted-foreground border-border/60"

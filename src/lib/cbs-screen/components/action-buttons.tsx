@@ -189,7 +189,9 @@ export function ActiveActions({
           }
         />
         <TooltipContent className="text-xs">
-          {mode === "S" || mode === "A" ? "Disabled in View/Auth mode" : "Validate Rules & Integrity (?✓)"}
+          {mode === "S" || mode === "A"
+            ? "Disabled in View/Auth mode"
+            : "Validate Rules & Integrity (?✓)"}
         </TooltipContent>
       </Tooltip>
 
@@ -238,8 +240,8 @@ export function ActiveActions({
           {mode === "S" || mode === "A"
             ? "Disabled in View/Auth mode"
             : !rights.canDelete
-                ? "Requires Delete ('D') permission"
-                : "Delete / Reverse Record (✕)"}
+              ? "Requires Delete ('D') permission"
+              : "Delete / Reverse Record (✕)"}
         </TooltipContent>
       </Tooltip>
 
@@ -252,9 +254,7 @@ export function ActiveActions({
               variant="default"
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
-              disabled={
-                mode !== "A" || !onAuthorizeReverse || submitting || !rights.canAuthorise
-              }
+              disabled={mode !== "A" || !onAuthorizeReverse || submitting || !rights.canAuthorise}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">

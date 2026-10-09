@@ -10,4 +10,3 @@ interface UserGroupAuditTabProps {
 export function UserGroupAuditTab({ formData }: UserGroupAuditTabProps) {
   return <CbsAuditTab formData={formData} />;
 }
-

@@ -2,8 +2,8 @@
 
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
-import { logger } from "@/lib/logger";
 import { FormSkeleton, InquirySkeleton } from "@/features/operations";
+import { logger } from "@/lib/logger";
 import { resolveScreen } from "./registry";
 import type { ScreenLoaderProps } from "./types";
 

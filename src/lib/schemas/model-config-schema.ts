@@ -68,4 +68,5 @@ export interface ValidationErrorItem {
 }
 
 import type { CbsScreenMode as ModelConfigScreenMode } from "../cbs-screen/types";
+
 export type { ModelConfigScreenMode };

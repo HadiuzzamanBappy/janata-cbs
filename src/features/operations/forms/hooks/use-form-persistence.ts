@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useWorkbenchStore } from "@/store";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
+import { useWorkbenchStore } from "@/store";
 
 export interface UseFormPersistenceOptions {
   tabId?: string;

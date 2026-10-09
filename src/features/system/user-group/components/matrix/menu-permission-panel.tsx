@@ -58,7 +58,12 @@ export function MenuPermissionPanel({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => onSetMenusBulk(filteredMenus.map((m) => m.menuId), true)}
+              onClick={() =>
+                onSetMenusBulk(
+                  filteredMenus.map((m) => m.menuId),
+                  true,
+                )
+              }
               className="h-6 text-[10px] px-2 gap-1 text-primary hover:text-primary"
             >
               <CheckSquare className="size-3" /> Select All
@@ -67,7 +72,12 @@ export function MenuPermissionPanel({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => onSetMenusBulk(filteredMenus.map((m) => m.menuId), false)}
+              onClick={() =>
+                onSetMenusBulk(
+                  filteredMenus.map((m) => m.menuId),
+                  false,
+                )
+              }
               className="h-6 text-[10px] px-2 gap-1 text-muted-foreground"
             >
               <Square className="size-3" /> Clear
@@ -120,9 +130,7 @@ export function MenuPermissionPanel({
                     <span className="font-mono font-bold text-primary w-8 shrink-0">
                       #{m.menuId}
                     </span>
-                    <span className="font-medium text-foreground truncate flex-1">
-                      {m.label}
-                    </span>
+                    <span className="font-medium text-foreground truncate flex-1">{m.label}</span>
                     {m.command && (
                       <span className="font-mono text-[10px] text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded truncate shrink-0">
                         {m.command}

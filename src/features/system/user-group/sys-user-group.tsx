@@ -44,8 +44,6 @@ export function SysUserGroup({ command, tabId }: ScreenProps) {
   const [activeTab, setActiveTab] = React.useState<UserGroupTabKey>("general");
   const isReadOnly = mode !== "I";
 
-
-
   const availableItems = React.useMemo(
     () =>
       groupsPool.map((g) => ({

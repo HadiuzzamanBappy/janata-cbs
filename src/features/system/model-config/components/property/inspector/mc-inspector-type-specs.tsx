@@ -67,11 +67,7 @@ export function McInspectorTypeSpecs({
             ) : (
               <Input
                 type={
-                  property.type === "Number"
-                    ? "number"
-                    : property.type === "Date"
-                      ? "date"
-                      : "text"
+                  property.type === "Number" ? "number" : property.type === "Date" ? "date" : "text"
                 }
                 value={
                   property.defaultValue !== undefined && property.defaultValue !== null
@@ -82,9 +78,7 @@ export function McInspectorTypeSpecs({
                 onChange={(e) =>
                   onUpdate(property.sn, {
                     defaultValue:
-                      property.type === "Number"
-                        ? Number(e.target.value) || 0
-                        : e.target.value,
+                      property.type === "Number" ? Number(e.target.value) || 0 : e.target.value,
                   })
                 }
                 placeholder={
@@ -110,20 +104,10 @@ export function McInspectorTypeSpecs({
             <Input
               type="number"
               value={
-                property.type === "Boolean"
-                  ? 1
-                  : property.type === "Date"
-                    ? 10
-                    : property.length
+                property.type === "Boolean" ? 1 : property.type === "Date" ? 10 : property.length
               }
-              disabled={
-                isReadOnly ||
-                property.type === "Boolean" ||
-                property.type === "Date"
-              }
-              onChange={(e) =>
-                onUpdate(property.sn, { length: Number(e.target.value) || 0 })
-              }
+              disabled={isReadOnly || property.type === "Boolean" || property.type === "Date"}
+              onChange={(e) => onUpdate(property.sn, { length: Number(e.target.value) || 0 })}
               className="h-7 rounded text-xs font-mono w-28 bg-background border-border/80 disabled:opacity-75 disabled:bg-muted/40"
             />
             {property.type === "Boolean" ? (
@@ -183,9 +167,7 @@ export function McInspectorTypeSpecs({
               disabled={isReadOnly}
               onChange={(e) => onUpdate(property.sn, { pattern: e.target.value })}
               placeholder={
-                property.type === "Number"
-                  ? "e.g. ^\\d+(\\.\\d{1,2})?$"
-                  : "e.g. ^[A-Z0-9_.]+$"
+                property.type === "Number" ? "e.g. ^\\d+(\\.\\d{1,2})?$" : "e.g. ^[A-Z0-9_.]+$"
               }
               className="h-7 rounded text-xs font-mono bg-background border-border/80 max-w-md flex-1"
             />

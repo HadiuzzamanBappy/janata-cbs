@@ -44,8 +44,6 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
   const [selectedPropertySN, setSelectedPropertySN] = React.useState<string | null>(null);
   const isReadOnly = mode !== "I";
 
-
-
   const availableModels = React.useMemo(
     () =>
       modelsPool.map((m) => ({

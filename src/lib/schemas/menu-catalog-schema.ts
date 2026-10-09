@@ -37,4 +37,5 @@ export interface MenuValidationErrorItem {
 }
 
 import type { CbsScreenMode as MenuCatalogScreenMode } from "../cbs-screen/types";
+
 export type { MenuCatalogScreenMode };

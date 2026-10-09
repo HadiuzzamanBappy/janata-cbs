@@ -145,23 +145,25 @@ export function useCbsActionBar({
   const authorizeEnabled = Boolean(
     isAuth && onAuthorizeReverse && !submitting && rights.canAuthorise,
   );
-  const authorizeReason = isView && !isAuth
-    ? "Disabled in View mode"
-    : isCreate
-      ? "Cannot authorize an uncommitted record"
-      : !rights.canAuthorise
-        ? "Requires Authorize ('A') permission"
-        : undefined;
+  const authorizeReason =
+    isView && !isAuth
+      ? "Disabled in View mode"
+      : isCreate
+        ? "Cannot authorize an uncommitted record"
+        : !rights.canAuthorise
+          ? "Requires Authorize ('A') permission"
+          : undefined;
 
   // 9. Reverse (✕✓)
   const reverseEnabled = Boolean(isAuth && onAuthorizeReverse && !submitting && rights.canReverse);
-  const reverseReason = isView && !isAuth
-    ? "Disabled in View mode"
-    : isCreate
-      ? "Cannot reverse an uncommitted record"
-      : !rights.canReverse
-        ? "Requires Reverse ('R') permission"
-        : undefined;
+  const reverseReason =
+    isView && !isAuth
+      ? "Disabled in View mode"
+      : isCreate
+        ? "Cannot reverse an uncommitted record"
+        : !rights.canReverse
+          ? "Requires Reverse ('R') permission"
+          : undefined;
 
   // 10. Process (▶)
   const processEnabled = Boolean(!submitting && onProcessAction);

@@ -50,11 +50,7 @@ export function McPropertyInspector({
           onUpdate={onUpdate}
         />
 
-        <McInspectorTypeSpecs
-          property={property}
-          isReadOnly={isReadOnly}
-          onUpdate={onUpdate}
-        />
+        <McInspectorTypeSpecs property={property} isReadOnly={isReadOnly} onUpdate={onUpdate} />
       </div>
     </div>
   );

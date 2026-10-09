@@ -4,15 +4,15 @@ import * as React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { ModelConfigRecord, ValidationErrorItem } from "@/lib/schemas/model-config-schema";
 import { cn } from "@/lib/utils";
 import {
   getFieldValue,
   META_FIELD_GROUPS,
+  type MetaFieldDef,
   MODEL_META_FIELDS,
   setFieldValue,
-  type MetaFieldDef,
 } from "../config/meta-fields";
-import type { ModelConfigRecord, ValidationErrorItem } from "@/lib/schemas/model-config-schema";
 
 interface McGeneralTabProps {
   formData: ModelConfigRecord;

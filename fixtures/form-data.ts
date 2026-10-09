@@ -22,40 +22,43 @@ export const STATIC_FORM_DATA: Record<
   ACCOUNT: {
     records: {
       AC1001: {
-        "CUSTOMER.ID": "CU2001",
-        CATEGORY: "1001",
-        PRODUCT: "SAVINGS",
-        CURRENCY: "BDT",
-        "ACCOUNT.OFFICER": "OFF101",
-        BRANCH: "JB1001",
-        "OPENING.DATE": "2024-01-15",
-        "ACCOUNT.TITLE": "Mohammad Rahman Savings Account",
-        "MAILING.ADDRESS": "House 12, Road 5, Dhanmondi, Dhaka",
-        "RECORD.STATUS": "LIVE",
+        recordId: "AC1001",
+        customer: "CU2001",
+        category: "1001",
+        accountTitle1: "Mohammad Rahman Savings Account",
+        accountTitle2: "Personal Savings",
+        shortTitle: "M. Rahman",
+        mnemonic: "MRAHMAN",
+        currency: "BDT",
+        accountOfficer: "OFF101",
+        openingDate: "2024-01-15",
+        branchCode: "JB1001",
       },
       AC1002: {
-        "CUSTOMER.ID": "CU2002",
-        CATEGORY: "1002",
-        PRODUCT: "CURRENT",
-        CURRENCY: "BDT",
-        "ACCOUNT.OFFICER": "OFF102",
-        BRANCH: "JB1001",
-        "OPENING.DATE": "2024-02-20",
-        "ACCOUNT.TITLE": "Fatima Begum Current Account",
-        "MAILING.ADDRESS": "Plot 45, Gulshan Avenue, Dhaka",
-        "RECORD.STATUS": "LIVE",
+        recordId: "AC1002",
+        customer: "CU2002",
+        category: "1002",
+        accountTitle1: "Fatima Begum Current Account",
+        accountTitle2: "Trade Account",
+        shortTitle: "F. Begum",
+        mnemonic: "FBEGUM",
+        currency: "BDT",
+        accountOfficer: "OFF102",
+        openingDate: "2024-02-20",
+        branchCode: "JB1001",
       },
       AC1003: {
-        "CUSTOMER.ID": "CU2003",
-        CATEGORY: "1001",
-        PRODUCT: "SAVINGS",
-        CURRENCY: "USD",
-        "ACCOUNT.OFFICER": "OFF101",
-        BRANCH: "JB9999",
-        "OPENING.DATE": "2024-03-10",
-        "ACCOUNT.TITLE": "Shahidul Islam Foreign Currency A/C",
-        "MAILING.ADDRESS": "House 8, Sector 3, Uttara, Dhaka",
-        "RECORD.STATUS": "LIVE",
+        recordId: "AC1003",
+        customer: "CU2003",
+        category: "1001",
+        accountTitle1: "Shahidul Islam Foreign Currency A/C",
+        accountTitle2: "Expatriate Savings",
+        shortTitle: "S. Islam",
+        mnemonic: "SISLAM",
+        currency: "USD",
+        accountOfficer: "OFF101",
+        openingDate: "2024-03-10",
+        branchCode: "JB9999",
       },
     },
     enquiryRows: [
@@ -96,40 +99,19 @@ export const STATIC_FORM_DATA: Record<
         "CUSTOMER.ID": "CU2001",
         "NAME.1": "Mohammad Rahman",
         "SHORT.NAME": "M. Rahman",
-        SECTOR: "INDIVIDUAL",
-        NATIONALITY: "BD",
-        RESIDENCE: "BD",
-        BRANCH: "JB1001",
-        "CONTACT.NUMBER": "+8801711000111",
         "DATE.OF.BIRTH": "1988-06-15",
-        OCCUPATION: "Salaried Professional",
-        "RECORD.STATUS": "LIVE",
       },
       CU2002: {
         "CUSTOMER.ID": "CU2002",
         "NAME.1": "Fatima Begum",
         "SHORT.NAME": "F. Begum",
-        SECTOR: "BUSINESS",
-        NATIONALITY: "BD",
-        RESIDENCE: "BD",
-        BRANCH: "JB1001",
-        "CONTACT.NUMBER": "+8801819222333",
         "DATE.OF.BIRTH": "1992-11-20",
-        OCCUPATION: "Entrepreneur",
-        "RECORD.STATUS": "LIVE",
       },
       CU2003: {
         "CUSTOMER.ID": "CU2003",
         "NAME.1": "Shahidul Islam",
         "SHORT.NAME": "S. Islam",
-        SECTOR: "NRB",
-        NATIONALITY: "BD",
-        RESIDENCE: "AE",
-        BRANCH: "JB9999",
-        "CONTACT.NUMBER": "+8801911444555",
         "DATE.OF.BIRTH": "1980-04-05",
-        OCCUPATION: "IT Consultant",
-        "RECORD.STATUS": "LIVE",
       },
     },
     enquiryRows: [
@@ -163,98 +145,7 @@ export const STATIC_FORM_DATA: Record<
     ],
   },
 
-  // 3. FUNDS.TRANSFER Records
-  "FUNDS.TRANSFER": {
-    records: {
-      FT9001: {
-        "TXN.CODE": "FT01",
-        "DEBIT.ACCOUNT": "AC1001",
-        "DEBIT.CURRENCY": "BDT",
-        "CREDIT.ACCOUNT": "AC1002",
-        "CREDIT.CURRENCY": "BDT",
-        AMOUNT: 50000,
-        "VALUE.DATE": "2026-10-01",
-        "TXN.DATE": "2026-10-01",
-        "DEBIT.BRANCH": "JB1001",
-        "CREDIT.BRANCH": "JB1001",
-        "RECORD.STATUS": "LIVE",
-      },
-      FT9002: {
-        "TXN.CODE": "FT01",
-        "DEBIT.ACCOUNT": "AC1002",
-        "DEBIT.CURRENCY": "BDT",
-        "CREDIT.ACCOUNT": "AC1003",
-        "CREDIT.CURRENCY": "BDT",
-        AMOUNT: 125000,
-        "VALUE.DATE": "2026-10-02",
-        "TXN.DATE": "2026-10-02",
-        "DEBIT.BRANCH": "JB1001",
-        "CREDIT.BRANCH": "JB9999",
-        "RECORD.STATUS": "LIVE",
-      },
-    },
-    enquiryRows: [
-      {
-        id: "FT9001",
-        txnCode: "FT01",
-        debitAccount: "AC1001",
-        creditAccount: "AC1002",
-        amount: "50,000.00 BDT",
-        date: "2026-10-01",
-        status: "AUTHORIZED",
-      },
-      {
-        id: "FT9002",
-        txnCode: "FT01",
-        debitAccount: "AC1002",
-        creditAccount: "AC1003",
-        amount: "125,000.00 BDT",
-        date: "2026-10-02",
-        status: "PENDING_AUTH",
-      },
-    ],
-  },
-
-  // 4. USER.LIST (Enquiry Model)
-  "USER.LIST": {
-    records: {},
-    enquiryRows: [
-      {
-        id: "USR001",
-        fullName: "Farhan Ahmed",
-        userRole: "BRANCH_MAKER",
-        branchCode: "JB1001",
-        accessibility: "RIDASH",
-        status: "ACTIVE",
-      },
-      {
-        id: "USR002",
-        fullName: "Nusrat Jahan",
-        userRole: "BRANCH_CHECKER",
-        branchCode: "JB1001",
-        accessibility: "RS",
-        status: "ACTIVE",
-      },
-      {
-        id: "ADMIN01",
-        fullName: "System Administrator",
-        userRole: "ADMIN",
-        branchCode: "JB9999",
-        accessibility: "RIDASH",
-        status: "ACTIVE",
-      },
-      {
-        id: "AUDIT01",
-        fullName: "Tariqul Alam",
-        userRole: "AUDITOR",
-        branchCode: "JB9999",
-        accessibility: "S",
-        status: "ACTIVE",
-      },
-    ],
-  },
-
-  // 5. MENU Records (TABLE: MENU)
+  // 3. MENU Records (TABLE: MENU)
   MENU: {
     records: {
       "1": {
@@ -412,7 +303,7 @@ export const STATIC_FORM_DATA: Record<
     ],
   },
 
-  // 6. MENU_TREE Records (TABLE: MENU_TREE / MENU.TREE)
+  // 4. MENU_TREE Records (TABLE: MENU_TREE / MENU.TREE)
   MENU_DESIGN: {
     records: {
       MAIN_MENU: {
@@ -525,85 +416,8 @@ export const STATIC_FORM_DATA: Record<
     ],
   },
 
-  // 6. USER_GROUP Records (SYS_USER_GROUP)
+  // 5. USER_GROUP Records (SYS_USER_GROUP)
   USER_GROUP: {
-    records: {
-      "TELLER.GRP": {
-        recordId: "TELLER.GRP",
-        groupLabel: "Branch Frontline Tellers",
-        menuIds: ["1", "2", "4", "5", "6"],
-        roleIds: ["1", "3"],
-        isActive: true,
-        auditData: {
-          recStatus: "LIVE",
-          recCurrNumber: 2,
-          recInputter: "SYSADMIN",
-          recInputTime: "2026-03-01 09:15:00",
-          recAuthorizer: "SUPV01",
-          recAuthTime: "2026-03-01 09:20:00",
-          recBranchCode: "JB1001",
-        },
-      },
-      "SUPERVISOR.GRP": {
-        recordId: "SUPERVISOR.GRP",
-        groupLabel: "Branch Authorizers & Supervisors",
-        menuIds: ["1", "2", "3", "4", "5", "6", "7"],
-        roleIds: ["2", "4"],
-        isActive: true,
-        auditData: {
-          recStatus: "LIVE",
-          recCurrNumber: 3,
-          recInputter: "SYSADMIN",
-          recInputTime: "2026-03-01 09:30:00",
-          recAuthorizer: "MGR01",
-          recAuthTime: "2026-03-01 09:35:00",
-          recBranchCode: "JB1001",
-        },
-      },
-      "ADMIN.GRP": {
-        recordId: "ADMIN.GRP",
-        groupLabel: "System & Core Administrators",
-        menuIds: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
-        roleIds: ["1", "2", "6"],
-        isActive: true,
-        auditData: {
-          recStatus: "LIVE",
-          recCurrNumber: 6,
-          recInputter: "SECADMIN",
-          recInputTime: "2026-01-15 08:00:00",
-          recAuthorizer: "CHIEF_SEC",
-          recAuthTime: "2026-01-15 08:10:00",
-          recBranchCode: "JB9999",
-        },
-      },
-    },
-    enquiryRows: [
-      {
-        recordId: "TELLER.GRP",
-        groupLabel: "Branch Frontline Tellers",
-        menuIds: ["1", "2", "4", "5", "6"],
-        roleIds: ["1", "3"],
-        isActive: true,
-      },
-      {
-        recordId: "SUPERVISOR.GRP",
-        groupLabel: "Branch Authorizers & Supervisors",
-        menuIds: ["1", "2", "3", "4", "5", "6", "7"],
-        roleIds: ["2", "4"],
-        isActive: true,
-      },
-      {
-        recordId: "ADMIN.GRP",
-        groupLabel: "System & Core Administrators",
-        menuIds: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
-        roleIds: ["1", "2", "6"],
-        isActive: true,
-      },
-    ],
-  },
-
-  // 7. USER.GROUP Alias (TABLE: USER.GROUP / USER_GROUP)
-  "USER.GROUP": {
     records: {
       "TELLER.GRP": {
         recordId: "TELLER.GRP",

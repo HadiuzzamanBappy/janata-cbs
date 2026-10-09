@@ -1,684 +1,1570 @@
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_INQUIRY_DATA mirrors the CBS Enquiry/Inquiry dataset wire responses (.response/inquiry-data.json).
- * Formatted exactly as GrpcResponse with Protobuf struct payload.
+ * STATIC_INQUIRY_DATA mirrors the CBS Enquiry/Inquiry dataset wire responses (.response/inquiry-data.normalized.json).
+ * Normalized clean structure preserving 50 representative inquiry data rows with full auditData and eventActions.
  * Keyed by inquiry recordId / controllerName (e.g. "GET.TODAY.ENTRY" / "TODAY.TXN.ENTRY").
  */
 export const STATIC_INQUIRY_DATA: Record<string, GrpcResponse> = {
   "GET.TODAY.ENTRY": {
-    errors: [],
     status: "SUCCESS",
     statusCode: 200,
     idempotencyKey: "",
     message: "record successfully processed!",
+    errors: [],
     data: {
-      fields: {
-        records: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    recordId: {
-                      string_value:
-                        "2026-01-03*100*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007QE",
-                    },
-                    auditData: {
-                      struct_value: {
-                        fields: {
-                          recStatus: {
-                            string_value: "",
-                          },
-                          recCurrNumber: {
-                            number_value: 0,
-                          },
-                          recInputter: {
-                            string_value: "",
-                          },
-                          recInputTime: {
-                            string_value: "",
-                          },
-                          recAuthorizer: {
-                            string_value: "",
-                          },
-                          recAuthTime: {
-                            string_value: "",
-                          },
-                          recBranchCode: {
-                            string_value: "",
-                          },
-                        },
-                      },
-                    },
-                    txnReference: {
-                      string_value: "FT26003007QE",
-                    },
-                    txnCode: {
-                      string_value: "100",
-                    },
-                    valueDate: {
-                      string_value: "2026-01-03",
-                    },
-                    accountNumber: {
-                      string_value: "0100038443695",
-                    },
-                    accountTitle: {
-                      string_value: "A Lotif Talukder",
-                    },
-                    currency: {
-                      string_value: "BDT",
-                    },
-                    txnAmount: {
-                      number_value: 10,
-                    },
-                    inputter: {
-                      string_value: "SYSUSER",
-                    },
-                    authorizer: {
-                      string_value: "SYSUSER",
-                    },
-                    eventAction: {
-                      list_value: {
-                        values: [
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH I recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "EDIT",
-                                },
-                              },
-                            },
-                          },
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH A recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "AUTH",
-                                },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    recordId: {
-                      string_value:
-                        "2026-01-03*100*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007QD",
-                    },
-                    auditData: {
-                      struct_value: {
-                        fields: {
-                          recStatus: {
-                            string_value: "",
-                          },
-                          recCurrNumber: {
-                            number_value: 0,
-                          },
-                          recInputter: {
-                            string_value: "",
-                          },
-                          recInputTime: {
-                            string_value: "",
-                          },
-                          recAuthorizer: {
-                            string_value: "",
-                          },
-                          recAuthTime: {
-                            string_value: "",
-                          },
-                          recBranchCode: {
-                            string_value: "",
-                          },
-                        },
-                      },
-                    },
-                    txnReference: {
-                      string_value: "FT26003007QE",
-                    },
-                    txnCode: {
-                      string_value: "100",
-                    },
-                    valueDate: {
-                      string_value: "2026-01-03",
-                    },
-                    accountNumber: {
-                      string_value: "0100001420806",
-                    },
-                    accountTitle: {
-                      string_value: "MD IMRAN HASAN",
-                    },
-                    currency: {
-                      string_value: "BDT",
-                    },
-                    txnAmount: {
-                      number_value: 10,
-                    },
-                    inputter: {
-                      string_value: "SYSUSER",
-                    },
-                    authorizer: {
-                      string_value: "SYSUSER",
-                    },
-                    eventAction: {
-                      list_value: {
-                        values: [
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH I recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "EDIT",
-                                },
-                              },
-                            },
-                          },
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH A recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "AUTH",
-                                },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    recordId: {
-                      string_value:
-                        "2026-01-03*120*CR*JB9999*JB0102*BDT*6004*0100001420806.26003.007QG",
-                    },
-                    auditData: {
-                      struct_value: {
-                        fields: {
-                          recStatus: {
-                            string_value: "",
-                          },
-                          recCurrNumber: {
-                            number_value: 0,
-                          },
-                          recInputter: {
-                            string_value: "",
-                          },
-                          recInputTime: {
-                            string_value: "",
-                          },
-                          recAuthorizer: {
-                            string_value: "",
-                          },
-                          recAuthTime: {
-                            string_value: "",
-                          },
-                          recBranchCode: {
-                            string_value: "",
-                          },
-                        },
-                      },
-                    },
-                    txnReference: {
-                      string_value: "FT26003007QG",
-                    },
-                    txnCode: {
-                      string_value: "120",
-                    },
-                    valueDate: {
-                      string_value: "2026-01-03",
-                    },
-                    accountNumber: {
-                      string_value: "0100001420806",
-                    },
-                    accountTitle: {
-                      string_value: "MD IMRAN HASAN",
-                    },
-                    currency: {
-                      string_value: "BDT",
-                    },
-                    txnAmount: {
-                      number_value: 20,
-                    },
-                    inputter: {
-                      string_value: "SYSUSER",
-                    },
-                    authorizer: {
-                      string_value: "SYSUSER",
-                    },
-                    eventAction: {
-                      list_value: {
-                        values: [
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH I recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "EDIT",
-                                },
-                              },
-                            },
-                          },
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH A recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "AUTH",
-                                },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    recordId: {
-                      string_value:
-                        "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WG",
-                    },
-                    auditData: {
-                      struct_value: {
-                        fields: {
-                          recStatus: {
-                            string_value: "",
-                          },
-                          recCurrNumber: {
-                            number_value: 0,
-                          },
-                          recInputter: {
-                            string_value: "",
-                          },
-                          recInputTime: {
-                            string_value: "",
-                          },
-                          recAuthorizer: {
-                            string_value: "",
-                          },
-                          recAuthTime: {
-                            string_value: "",
-                          },
-                          recBranchCode: {
-                            string_value: "",
-                          },
-                        },
-                      },
-                    },
-                    txnReference: {
-                      string_value: "FT26003003VH",
-                    },
-                    txnCode: {
-                      string_value: "120",
-                    },
-                    valueDate: {
-                      string_value: "2026-01-03",
-                    },
-                    accountNumber: {
-                      string_value: "0100038443695",
-                    },
-                    accountTitle: {
-                      string_value: "A Lotif Talukder",
-                    },
-                    currency: {
-                      string_value: "BDT",
-                    },
-                    txnAmount: {
-                      number_value: 20,
-                    },
-                    inputter: {
-                      string_value: "SYSUSER",
-                    },
-                    authorizer: {
-                      string_value: "SYSUSER",
-                    },
-                    eventAction: {
-                      list_value: {
-                        values: [
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH I recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "EDIT",
-                                },
-                              },
-                            },
-                          },
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH A recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "AUTH",
-                                },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    recordId: {
-                      string_value:
-                        "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WI",
-                    },
-                    auditData: {
-                      struct_value: {
-                        fields: {
-                          recStatus: {
-                            string_value: "",
-                          },
-                          recCurrNumber: {
-                            number_value: 0,
-                          },
-                          recInputter: {
-                            string_value: "",
-                          },
-                          recInputTime: {
-                            string_value: "",
-                          },
-                          recAuthorizer: {
-                            string_value: "",
-                          },
-                          recAuthTime: {
-                            string_value: "",
-                          },
-                          recBranchCode: {
-                            string_value: "",
-                          },
-                        },
-                      },
-                    },
-                    txnReference: {
-                      string_value: "FT26003003VQ",
-                    },
-                    txnCode: {
-                      string_value: "120",
-                    },
-                    valueDate: {
-                      string_value: "2026-01-03",
-                    },
-                    accountNumber: {
-                      string_value: "0100038443695",
-                    },
-                    accountTitle: {
-                      string_value: "A Lotif Talukder",
-                    },
-                    currency: {
-                      string_value: "BDT",
-                    },
-                    txnAmount: {
-                      number_value: 50,
-                    },
-                    inputter: {
-                      string_value: "SYSUSER",
-                    },
-                    authorizer: {
-                      string_value: "SYSUSER",
-                    },
-                    eventAction: {
-                      list_value: {
-                        values: [
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH I recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "EDIT",
-                                },
-                              },
-                            },
-                          },
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH A recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "AUTH",
-                                },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    recordId: {
-                      string_value:
-                        "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WK",
-                    },
-                    auditData: {
-                      struct_value: {
-                        fields: {
-                          recStatus: {
-                            string_value: "",
-                          },
-                          recCurrNumber: {
-                            number_value: 0,
-                          },
-                          recInputter: {
-                            string_value: "",
-                          },
-                          recInputTime: {
-                            string_value: "",
-                          },
-                          recAuthorizer: {
-                            string_value: "",
-                          },
-                          recAuthTime: {
-                            string_value: "",
-                          },
-                          recBranchCode: {
-                            string_value: "",
-                          },
-                        },
-                      },
-                    },
-                    txnReference: {
-                      string_value: "FT26003003VP",
-                    },
-                    txnCode: {
-                      string_value: "120",
-                    },
-                    valueDate: {
-                      string_value: "2026-01-03",
-                    },
-                    accountNumber: {
-                      string_value: "0100038443695",
-                    },
-                    accountTitle: {
-                      string_value: "A Lotif Talukder",
-                    },
-                    currency: {
-                      string_value: "BDT",
-                    },
-                    txnAmount: {
-                      number_value: 50,
-                    },
-                    inputter: {
-                      string_value: "SYSUSER",
-                    },
-                    authorizer: {
-                      string_value: "SYSUSER",
-                    },
-                    eventAction: {
-                      list_value: {
-                        values: [
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH I recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "EDIT",
-                                },
-                              },
-                            },
-                          },
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH A recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "AUTH",
-                                },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    recordId: {
-                      string_value:
-                        "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WM",
-                    },
-                    auditData: {
-                      struct_value: {
-                        fields: {
-                          recStatus: {
-                            string_value: "",
-                          },
-                          recCurrNumber: {
-                            number_value: 0,
-                          },
-                          recInputter: {
-                            string_value: "",
-                          },
-                          recInputTime: {
-                            string_value: "",
-                          },
-                          recAuthorizer: {
-                            string_value: "",
-                          },
-                          recAuthTime: {
-                            string_value: "",
-                          },
-                          recBranchCode: {
-                            string_value: "",
-                          },
-                        },
-                      },
-                    },
-                    txnReference: {
-                      string_value: "FT26003003VO",
-                    },
-                    txnCode: {
-                      string_value: "120",
-                    },
-                    valueDate: {
-                      string_value: "2026-01-03",
-                    },
-                    accountNumber: {
-                      string_value: "0100038443695",
-                    },
-                    accountTitle: {
-                      string_value: "A Lotif Talukder",
-                    },
-                    currency: {
-                      string_value: "BDT",
-                    },
-                    txnAmount: {
-                      number_value: 50,
-                    },
-                    inputter: {
-                      string_value: "SYSUSER",
-                    },
-                    authorizer: {
-                      string_value: "SYSUSER",
-                    },
-                    eventAction: {
-                      list_value: {
-                        values: [
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH I recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "EDIT",
-                                },
-                              },
-                            },
-                          },
-                          {
-                            struct_value: {
-                              fields: {
-                                cmdFor: {
-                                  string_value: "BRANCH A recordId",
-                                },
-                                cmdButton: {
-                                  string_value: "AUTH",
-                                },
-                              },
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            ],
+      records: [
+        {
+          recordId: "2026-01-03*100*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007QE",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
           },
+          txnReference: "FT26003007QE",
+          txnCode: "100",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
         },
-      },
+        {
+          recordId: "2026-01-03*100*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007QD",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007QE",
+          txnCode: "100",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0102*BDT*6004*0100001420806.26003.007QG",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007QG",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 20,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WG",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VH",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 20,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WI",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VQ",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WK",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VP",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WM",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VO",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WO",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VN",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WQ",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VM",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WS",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VL",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WU",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VK",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WW",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VI",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003WY",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VJ",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 500000000,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.003X1",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VR",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007PU",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PT",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007PW",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PU",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007PY",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PV",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007Q0",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PW",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007Q2",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PX",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007Q4",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PY",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007Q6",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PZ",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007Q8",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007Q0",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007QA",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007Q3",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.007QC",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007Q4",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WF",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VH",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 20,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WH",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VQ",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WJ",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VP",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WL",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VO",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WN",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VN",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WP",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VM",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WR",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VL",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WT",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VK",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WV",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VI",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WX",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VJ",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 500000000,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.003WZ",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003003VR",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007PT",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PT",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007PV",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PU",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 50,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007PX",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PV",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007PZ",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PW",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007Q1",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PX",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007Q3",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PY",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007Q5",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007PZ",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007Q7",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007Q0",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007Q9",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007Q3",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.007QB",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007Q4",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "2026-01-03*120*DR*JB9999*JB0423*BDT*6004*0100005611436.26003.007QF",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT26003007QG",
+          txnCode: "120",
+          valueDate: "2026-01-03",
+          accountNumber: "0100005611436",
+          accountTitle: "MOHAMMAD SOHRAB HOSSAIN",
+          currency: "BDT",
+          txnAmount: 20,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "20260103*10*CR*JB9999*JB0102*BDT*6004*0100001529832.26003.00N5G",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT2600300N5G",
+          txnCode: "10",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001529832",
+          accountTitle: "MIR ZAHIDULISLAM",
+          currency: "BDT",
+          txnAmount: 1000,
+          inputter: "ZAHID01",
+          authorizer: "SYSADMIN",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "20260103*10*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.00N5F",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT2600300N5G",
+          txnCode: "10",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 1000,
+          inputter: "ZAHID01",
+          authorizer: "SYSADMIN",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "20260103*100*CR*JB9999*JB0886*BDT*6001*0100038443695.26003.00JAM",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT2600300JBA",
+          txnCode: "100",
+          valueDate: "2026-01-03",
+          accountNumber: "0100038443695",
+          accountTitle: "A Lotif Talukder",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+        {
+          recordId: "20260103*100*DR*JB9999*JB0102*BDT*6004*0100001420806.26003.00JAL",
+          auditData: {
+            recStatus: "",
+            recCurrNumber: 0,
+            recInputter: "",
+            recInputTime: "",
+            recAuthorizer: "",
+            recAuthTime: "",
+            recBranchCode: "",
+          },
+          txnReference: "FT2600300JBA",
+          txnCode: "100",
+          valueDate: "2026-01-03",
+          accountNumber: "0100001420806",
+          accountTitle: "MD IMRAN HASAN",
+          currency: "BDT",
+          txnAmount: 10,
+          inputter: "SYSUSER",
+          authorizer: "SYSUSER",
+          eventAction: [
+            {
+              cmdFor: "BRANCH I recordId",
+              cmdButton: "EDIT",
+            },
+            {
+              cmdFor: "BRANCH A recordId",
+              cmdButton: "AUTH",
+            },
+          ],
+        },
+      ],
     },
     timestamp: "2026-10-05T10:37:34.053263987Z",
   },

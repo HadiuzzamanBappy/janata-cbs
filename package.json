@@ -16,9 +16,9 @@
     "verify:matrix": "tsx scripts/verify-env-matrix.ts",
     "verify:gateway": "tsx scripts/verify-cbs-gateway.ts",
     "verify:client": "tsx scripts/verify-cbs-client.ts",
-    "cache:clear": "tsx scripts/clear-cache.ts",
-    "cache:inspect": "tsx scripts/inspect-cache.ts",
-    "fixture:clean": "tsx scripts/normalize-fixture.ts"
+    "cache:clear": "tsx scripts/cache-clear.ts",
+    "cache:inspect": "tsx scripts/cache-inspect.ts",
+    "fixture:clean": "tsx scripts/fixture-normalize.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

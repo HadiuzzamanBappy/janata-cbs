@@ -1,265 +1,329 @@
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_BRANCH_RESPONSE contains 4 representative branches from CBS wire format (.response/branch.json)
- * with auditData stripped for clean, lightweight fixture loading.
+ * STATIC_BRANCH_RESPONSE contains the first 10 representative branches with auditData preserved
+ * from CBS normalized wire format (.response/branch.normalized.json).
  * Pure data constant only — no parsers or business logic.
  */
 export const STATIC_BRANCH_RESPONSE: GrpcResponse = {
-  errors: [],
   status: "SUCCESS",
   statusCode: 200,
   idempotencyKey: "",
   message: "record successfully processed!",
+  errors: [],
   timestamp: "2026-10-01T09:07:15.421489436Z",
   data: {
-    fields: {
-      records: {
-        list_value: {
-          values: [
-            {
-              struct_value: {
-                fields: {
-                  recordId: {
-                    string_value: "JB0001",
-                  },
-                  branchTitle: {
-                    string_value: "IMAMGONJ CORPORATE  ",
-                  },
-                  branchType: {
-                    string_value: "BR",
-                  },
-                  branchContact: {
-                    list_value: {
-                      values: [
-                        {
-                          struct_value: {
-                            fields: {
-                              addressLine: { null_value: "NULL_VALUE" },
-                              email: { null_value: "NULL_VALUE" },
-                              phone: { null_value: "NULL_VALUE" },
-                            },
-                          },
-                        },
-                      ],
-                    },
-                  },
-                  openDate: {
-                    string_value: "20250101",
-                  },
-                  isActive: {
-                    bool_value: true,
-                  },
-                  bbCode: {
-                    string_value: "0373",
-                  },
-                  divCode: {
-                    string_value: "7001",
-                  },
-                  areaCode: {
-                    string_value: "5035",
-                  },
-                  gradeCode: {
-                    string_value: "01",
-                  },
-                  countryCode: {
-                    string_value: "BD",
-                  },
-                  routingNumber: {
-                    string_value: "135272837",
-                  },
-                  swiftCode: {
-                    string_value: "JANBBDDHIMA ",
-                  },
-                  parentBranch: {
-                    string_value: "",
-                  },
-                },
-              },
-            },
-            {
-              struct_value: {
-                fields: {
-                  recordId: {
-                    string_value: "JB0002",
-                  },
-                  branchTitle: {
-                    string_value: "LALDIGHI EAST CORP. ",
-                  },
-                  branchType: {
-                    string_value: "BR",
-                  },
-                  branchContact: {
-                    list_value: {
-                      values: [
-                        {
-                          struct_value: {
-                            fields: {
-                              addressLine: { null_value: "NULL_VALUE" },
-                              email: { null_value: "NULL_VALUE" },
-                              phone: { null_value: "NULL_VALUE" },
-                            },
-                          },
-                        },
-                      ],
-                    },
-                  },
-                  openDate: {
-                    string_value: "20250101",
-                  },
-                  isActive: {
-                    bool_value: true,
-                  },
-                  bbCode: {
-                    string_value: "0083",
-                  },
-                  divCode: {
-                    string_value: "7003",
-                  },
-                  areaCode: {
-                    string_value: "5020",
-                  },
-                  gradeCode: {
-                    string_value: "01",
-                  },
-                  countryCode: {
-                    string_value: "BD",
-                  },
-                  routingNumber: {
-                    string_value: "135154542",
-                  },
-                  swiftCode: {
-                    string_value: "JANBBDDHLDE ",
-                  },
-                  parentBranch: {
-                    string_value: "",
-                  },
-                },
-              },
-            },
-            {
-              struct_value: {
-                fields: {
-                  recordId: {
-                    string_value: "JB0003",
-                  },
-                  branchTitle: {
-                    string_value: "NETAIGONJ CORP.  ",
-                  },
-                  branchType: {
-                    string_value: "BR",
-                  },
-                  branchContact: {
-                    list_value: {
-                      values: [
-                        {
-                          struct_value: {
-                            fields: {
-                              addressLine: { null_value: "NULL_VALUE" },
-                              email: { null_value: "NULL_VALUE" },
-                              phone: { null_value: "NULL_VALUE" },
-                            },
-                          },
-                        },
-                      ],
-                    },
-                  },
-                  openDate: {
-                    string_value: "20250101",
-                  },
-                  isActive: {
-                    bool_value: true,
-                  },
-                  bbCode: {
-                    string_value: "0570",
-                  },
-                  divCode: {
-                    string_value: "7001",
-                  },
-                  areaCode: {
-                    string_value: "5025",
-                  },
-                  gradeCode: {
-                    string_value: "02",
-                  },
-                  countryCode: {
-                    string_value: "BD",
-                  },
-                  routingNumber: {
-                    string_value: "135671270",
-                  },
-                  swiftCode: {
-                    string_value: "JANBBDDHNGN ",
-                  },
-                  parentBranch: {
-                    string_value: "",
-                  },
-                },
-              },
-            },
-            {
-              struct_value: {
-                fields: {
-                  recordId: {
-                    string_value: "JB0004",
-                  },
-                  branchTitle: {
-                    string_value: "KHULNA CORP. ",
-                  },
-                  branchType: {
-                    string_value: "BR",
-                  },
-                  branchContact: {
-                    list_value: {
-                      values: [
-                        {
-                          struct_value: {
-                            fields: {
-                              addressLine: { null_value: "NULL_VALUE" },
-                              email: { null_value: "NULL_VALUE" },
-                              phone: { null_value: "NULL_VALUE" },
-                            },
-                          },
-                        },
-                      ],
-                    },
-                  },
-                  openDate: {
-                    string_value: "20250101",
-                  },
-                  isActive: {
-                    bool_value: true,
-                  },
-                  bbCode: {
-                    string_value: "0794",
-                  },
-                  divCode: {
-                    string_value: "7004",
-                  },
-                  areaCode: {
-                    string_value: "5073",
-                  },
-                  gradeCode: {
-                    string_value: "01",
-                  },
-                  countryCode: {
-                    string_value: "BD",
-                  },
-                  routingNumber: {
-                    string_value: "135471759",
-                  },
-                  swiftCode: {
-                    string_value: "JANBBDDHKDA ",
-                  },
-                  parentBranch: {
-                    string_value: "",
-                  },
-                },
-              },
-            },
-          ],
+    records: [
+      {
+        recordId: "JB0001",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
         },
+        branchTitle: "IMAMGONJ CORPORATE  ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0373",
+        divCode: "7001",
+        areaCode: "5035",
+        gradeCode: "01",
+        countryCode: "BD",
+        routingNumber: "135272837",
+        swiftCode: "JANBBDDHIMA ",
+        parentBranch: "",
       },
-    },
+      {
+        recordId: "JB0002",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "LALDIGHI EAST CORP. ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0083",
+        divCode: "7003",
+        areaCode: "5020",
+        gradeCode: "01",
+        countryCode: "BD",
+        routingNumber: "135154542",
+        swiftCode: "JANBBDDHLDE ",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0003",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "NETAIGONJ CORP.  ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0570",
+        divCode: "7001",
+        areaCode: "5025",
+        gradeCode: "02",
+        countryCode: "BD",
+        routingNumber: "135671270",
+        swiftCode: "JANBBDDHNGN ",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0004",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "KHULNA CORP. ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0794",
+        divCode: "7004",
+        areaCode: "5073",
+        gradeCode: "01",
+        countryCode: "BD",
+        routingNumber: "135471759",
+        swiftCode: "JANBBDDHKDA ",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0005",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "RAMNA CORP.  ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0407",
+        divCode: "7002",
+        areaCode: "5057",
+        gradeCode: "01",
+        countryCode: "BD",
+        routingNumber: "135275713",
+        swiftCode: "JANBBDDHJRD ",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0006",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "MANIKGONJ CORPORATE ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0518",
+        divCode: "7002",
+        areaCode: "5102",
+        gradeCode: "02",
+        countryCode: "BD",
+        routingNumber: "135560615",
+        swiftCode: "",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0007",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "BAGERHAT CORP.   ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0690",
+        divCode: "7004",
+        areaCode: "5140",
+        gradeCode: "02",
+        countryCode: "BD",
+        routingNumber: "135010107",
+        swiftCode: "",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0008",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "RANGPUR CORP.",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "1149",
+        divCode: "7008",
+        areaCode: "5032",
+        gradeCode: "02",
+        countryCode: "BD",
+        routingNumber: "135851511",
+        swiftCode: "JANBBDDHRNP ",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0009",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "KHATUNGONJ CORP. ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0079",
+        divCode: "7003",
+        areaCode: "5005",
+        gradeCode: "02",
+        countryCode: "BD",
+        routingNumber: "135154300",
+        swiftCode: "",
+        parentBranch: "",
+      },
+      {
+        recordId: "JB0010",
+        auditData: {
+          recStatus: "",
+          recCurrNumber: 0,
+          recInputter: "",
+          recInputTime: "",
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "",
+        },
+        branchTitle: "MUNSHIGONJ   ",
+        branchType: "BR",
+        branchContact: [
+          {
+            addressLine: null,
+            email: null,
+            phone: null,
+          },
+        ],
+        openDate: "20250101",
+        isActive: true,
+        bbCode: "0529",
+        divCode: "7001",
+        areaCode: "5109",
+        gradeCode: "03",
+        countryCode: "BD",
+        routingNumber: "135591039",
+        swiftCode: "",
+        parentBranch: "",
+      },
+    ],
   },
 };

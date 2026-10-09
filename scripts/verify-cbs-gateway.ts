@@ -39,7 +39,7 @@ assert(
   "Comma Auto-Auth (USER,)",
   comma.isCommaVersion === true &&
     comma.authLevel === 0 &&
-    comma.screenMode === "CREATE" &&
+    comma.screenMode === "I" &&
     comma.functionCode === "I",
 );
 
@@ -54,21 +54,21 @@ assert(
 const lookup = cbsCommand.parse("USER 1001");
 assert(
   "Record Lookup (USER 1001)",
-  lookup.application === "USER" && lookup.recordId === "1001" && lookup.screenMode === "EDIT",
+  lookup.application === "USER" && lookup.recordId === "1001" && lookup.screenMode === "I",
 );
 
 // 5. Explicit Function Code (RIDASH Input)
 const fnInput = cbsCommand.parse("USER I 1001");
 assert(
   "Explicit Function Input (USER I 1001)",
-  fnInput.functionCode === "I" && fnInput.screenMode === "CREATE" && fnInput.recordId === "1001",
+  fnInput.functionCode === "I" && fnInput.screenMode === "I" && fnInput.recordId === "1001",
 );
 
 // 6. Explicit Function Code (RIDASH See)
 const fnSee = cbsCommand.parse("USER S 1001");
 assert(
   "Explicit Function See (USER S 1001)",
-  fnSee.functionCode === "S" && fnSee.screenMode === "VIEW" && fnSee.recordId === "1001",
+  fnSee.functionCode === "S" && fnSee.screenMode === "S" && fnSee.recordId === "1001",
 );
 
 // 7. Composite Record ID (Accounting history stamp)
@@ -82,7 +82,7 @@ assert(
 const inq = cbsCommand.parse("INQ GET.EMP.INFO");
 assert(
   "Inquiry (INQ GET.EMP.INFO)",
-  inq.type === "INQUIRY" && inq.application === "GET.EMP.INFO" && inq.screenMode === "VIEW",
+  inq.type === "INQUIRY" && inq.application === "GET.EMP.INFO" && inq.screenMode === "S",
 );
 
 // 9. Inquiry with Explicit Function Code

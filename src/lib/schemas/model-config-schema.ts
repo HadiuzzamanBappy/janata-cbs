@@ -67,4 +67,5 @@ export interface ValidationErrorItem {
   message: string;
 }
 
-export type ModelConfigScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
+import type { CbsScreenMode as ModelConfigScreenMode } from "../cbs-screen/types";
+export type { ModelConfigScreenMode };

@@ -237,33 +237,33 @@ suite("Phase 1: CBS Command Grammar Parser", () => {
     );
   });
 
-  test("parses comma-separated application and recordId into EDIT mode", () => {
+  test("parses comma-separated application and recordId into IDLE mode with version", () => {
     const cmd = parseCbsCommand("ACCOUNT,1001");
     return (
       cmd.isValid &&
       cmd.application === "ACCOUNT" &&
-      cmd.recordId === "1001" &&
-      cmd.screenMode === "EDIT"
+      cmd.version === "1001" &&
+      cmd.screenMode === "IDLE"
     );
   });
 
-  test("parses space-separated application and recordId into EDIT mode", () => {
+  test("parses space-separated application and recordId into Input (I) mode", () => {
     const cmd = parseCbsCommand("CUSTOMER 2002");
     return (
       cmd.isValid &&
       cmd.application === "CUSTOMER" &&
       cmd.recordId === "2002" &&
-      cmd.screenMode === "EDIT"
+      cmd.screenMode === "I"
     );
   });
 
-  test("parses application with function code (I) into CREATE mode", () => {
+  test("parses application with function code (I) into Input (I) mode", () => {
     const cmd = parseCbsCommand("ACCOUNT I");
     return (
       cmd.isValid &&
       cmd.application === "ACCOUNT" &&
       cmd.functionCode === "I" &&
-      cmd.screenMode === "CREATE"
+      cmd.screenMode === "I"
     );
   });
 
@@ -274,39 +274,39 @@ suite("Phase 1: CBS Command Grammar Parser", () => {
       cmd.application === "ACCOUNT" &&
       cmd.functionCode === "I" &&
       cmd.recordId === "F3" &&
-      cmd.screenMode === "CREATE"
+      cmd.screenMode === "I"
     );
   });
 
-  test("parses application with See function (S) into VIEW mode", () => {
+  test("parses application with See function (S) into See (S) mode", () => {
     const cmd = parseCbsCommand("ACCOUNT S 1001");
     return (
       cmd.isValid &&
       cmd.application === "ACCOUNT" &&
       cmd.functionCode === "S" &&
       cmd.recordId === "1001" &&
-      cmd.screenMode === "VIEW"
+      cmd.screenMode === "S"
     );
   });
 
-  test("parses application with Authorise function (A) into EDIT mode", () => {
+  test("parses application with Authorise function (A) into Authorize (A) mode", () => {
     const cmd = parseCbsCommand("ACCOUNT A 1001");
     return (
       cmd.isValid &&
       cmd.application === "ACCOUNT" &&
       cmd.functionCode === "A" &&
       cmd.recordId === "1001" &&
-      cmd.screenMode === "EDIT"
+      cmd.screenMode === "A"
     );
   });
 
-  test("parses INQ inquiry queries correctly", () => {
+  test("parses INQ inquiry queries correctly into See (S) mode", () => {
     const cmd = parseCbsCommand("INQ USER.LIST");
     return (
       cmd.isValid &&
       cmd.type === "INQUIRY" &&
       cmd.application === "USER.LIST" &&
-      cmd.screenMode === "VIEW"
+      cmd.screenMode === "S"
     );
   });
 

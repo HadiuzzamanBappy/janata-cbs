@@ -124,7 +124,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       title: `Inquiry: ${query}`,
       authLevel: 1,
       functionCode: fnCode,
-      screenMode: fnCode ? CBS_FUNCTION_METADATA[fnCode].mode : "VIEW",
+      screenMode: fnCode ? CBS_FUNCTION_METADATA[fnCode].mode : "S",
       isValid: true,
     };
   }
@@ -203,7 +203,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       authLevel: 0,
       functionCode,
       recordId: recordId || undefined,
-      screenMode: "CREATE",
+      screenMode: "I",
       isValid: true,
     };
   }
@@ -252,7 +252,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       version,
       authLevel,
       recordId: token,
-      screenMode: "EDIT",
+      screenMode: "I",
       isValid: true,
     };
   }

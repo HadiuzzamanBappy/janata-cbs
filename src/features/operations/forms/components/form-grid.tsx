@@ -1,4 +1,5 @@
 import type { FormSchema } from "@/lib/schemas";
+import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { FieldFactory } from "./field-factory";
 
 export interface FormGridProps {
@@ -7,7 +8,7 @@ export interface FormGridProps {
   onChange: (name: string, value: unknown) => void;
   errors?: Record<string, string>;
   disabled?: boolean;
-  mode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+  mode?: CbsScreenMode;
 }
 
 export function FormGrid({
@@ -16,7 +17,7 @@ export function FormGrid({
   onChange,
   errors = {},
   disabled = false,
-  mode = "EDIT",
+  mode = "I",
 }: FormGridProps) {
   if (!schema.fields || schema.fields.length === 0) {
     return (

@@ -21,11 +21,13 @@ import { normalizeRecordData } from "./utils/record-normalizer";
 import { FormGrid } from "./components/form-grid";
 import { FormSkeleton } from "./components/form-skeleton";
 
+import type { CbsScreenMode } from "@/lib/cbs-screen";
+
 const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
 
 export type FormScreenProps = DynamicFormProps & {
   initialValues?: Record<string, unknown>;
-  initialScreenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+  initialScreenMode?: CbsScreenMode;
   initialRecordId?: string;
   onReturn?: () => void;
 };
@@ -107,11 +109,10 @@ export function OpsForm({
 
       setValues(normalized);
 
-      if (screenMode === "CREATE" && found) {
-        setScreenMode("EDIT");
+      if (screenMode === "I" && found) {
         toast.add({
           title: "Existing Record Found",
-          description: `Record #${cleanId} already exists. Loaded in Edit mode.`,
+          description: `Record #${cleanId} already exists. Loaded in Edit/Input mode.`,
           type: "info",
         });
       }

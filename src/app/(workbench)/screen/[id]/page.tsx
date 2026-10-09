@@ -10,6 +10,8 @@ import {
   WorkbenchStoreProvider,
 } from "@/store";
 
+import type { CbsScreenMode } from "@/lib/cbs-screen";
+
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const searchParams = useSearchParams();
   const { tabs, addTab } = useWorkbenchStore();
@@ -28,7 +30,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
 
     const existingTab = tabs.find((t) => t.id === tabId);
     if (!existingTab) {
-      const mode = (searchParams.get("mode") as "IDLE" | "CREATE" | "EDIT" | "VIEW") || "IDLE";
+      const mode = (searchParams.get("mode") as CbsScreenMode) || "IDLE";
       const recordId = searchParams.get("recordId") || "";
       const title = searchParams.get("title") || screenId;
       const component = searchParams.get("component") || "DYNAMIC_FORM";

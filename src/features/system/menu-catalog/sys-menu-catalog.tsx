@@ -36,7 +36,7 @@ export function SysMenuCatalog({ command, tabId }: ScreenProps) {
   } = useMenuCatalog(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<MenuCatalogTabKey>("general");
-  const isReadOnly = mode === "VIEW";
+  const isReadOnly = mode !== "I";
 
   React.useEffect(() => {
     setActiveTab("general");
@@ -97,8 +97,8 @@ export function SysMenuCatalog({ command, tabId }: ScreenProps) {
       onValidate={handleValidate}
       onSubmit={handleSubmit}
       onAuthorizeReverse={handleAuthorize}
-      onView={() => recordId && fetchRecord(recordId, "VIEW")}
-      onAmend={() => recordId && fetchRecord(recordId, "EDIT")}
+      onView={() => recordId && fetchRecord(recordId, "S")}
+      onAmend={() => recordId && fetchRecord(recordId, "I")}
       submitting={submitting || loading}
       availableItems={availableItems}
       variant="admin-tabs"

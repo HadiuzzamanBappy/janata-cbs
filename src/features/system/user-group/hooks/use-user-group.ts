@@ -131,7 +131,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
 
   // 3. Fetch specific group record by ID
   const fetchRecord = React.useCallback(
-    async (targetId: string, targetMode: UserGroupScreenMode = "EDIT") => {
+    async (targetId: string, targetMode: UserGroupScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
@@ -159,13 +159,13 @@ export function useUserGroup(initialId?: string, tabId?: string) {
           ...INITIAL_USER_GROUP,
           recordId: cleanId,
         });
-        setMode("CREATE");
+        setMode("I");
       } catch {
         setFormData({
           ...INITIAL_USER_GROUP,
           recordId: cleanId,
         });
-        setMode("CREATE");
+        setMode("I");
       } finally {
         setLoading(false);
       }
@@ -181,7 +181,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
       ...INITIAL_USER_GROUP,
       recordId: nextId,
     });
-    setMode("CREATE");
+    setMode("I");
   }, [setFormData, setMode, setRecordId]);
 
   // 5. Validate user group
@@ -232,7 +232,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
         },
       );
       if (json.status === "SUCCESS") {
-        setMode("EDIT");
+        setMode("I");
         fetchGroups();
       }
     } catch {
@@ -252,7 +252,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
         successMessage: `Authorized security profile #${recordId}`,
       });
       if (json.status === "SUCCESS") {
-        setMode("VIEW");
+        setMode("S");
       }
     } catch {
       // Toast error handled by cbs.send

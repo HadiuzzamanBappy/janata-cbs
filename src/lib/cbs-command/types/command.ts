@@ -12,11 +12,13 @@
 // Chapter 1: Core Command Modes & Categories
 // ============================================================================
 
+import type { CbsScreenMode } from "@/lib/cbs-screen/types";
+
 /** High-level routing classification for any executed command */
 export type CommandType = "FORM" | "INQUIRY" | "SETTINGS" | "ACTION";
 
-/** Resulting UI screen display mode */
-export type ScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
+/** Resulting UI screen display mode (Canonical CBS RIDASH codes: "IDLE" | "S" | "I" | "D" | "A" | "R" | "H") */
+export type ScreenMode = CbsScreenMode;
 
 // ============================================================================
 // Chapter 2: Authentic CBS RIDASH Function Rights
@@ -39,37 +41,37 @@ export const CBS_FUNCTION_METADATA: Record<FunctionRightCode, FunctionMetadata> 
     code: "S",
     label: CBS_FUNCTION_DEFINITIONS.S.label,
     description: CBS_FUNCTION_DEFINITIONS.S.description,
-    mode: "VIEW",
+    mode: "S",
   },
   I: {
     code: "I",
     label: CBS_FUNCTION_DEFINITIONS.I.label,
     description: CBS_FUNCTION_DEFINITIONS.I.description,
-    mode: "CREATE",
+    mode: "I",
   },
   D: {
     code: "D",
     label: CBS_FUNCTION_DEFINITIONS.D.label,
     description: CBS_FUNCTION_DEFINITIONS.D.description,
-    mode: "EDIT",
+    mode: "D",
   },
   A: {
     code: "A",
     label: CBS_FUNCTION_DEFINITIONS.A.label,
     description: CBS_FUNCTION_DEFINITIONS.A.description,
-    mode: "EDIT",
+    mode: "A",
   },
   R: {
     code: "R",
     label: CBS_FUNCTION_DEFINITIONS.R.label,
     description: CBS_FUNCTION_DEFINITIONS.R.description,
-    mode: "EDIT",
+    mode: "R",
   },
   H: {
     code: "H",
     label: CBS_FUNCTION_DEFINITIONS.H.label,
     description: CBS_FUNCTION_DEFINITIONS.H.description,
-    mode: "VIEW",
+    mode: "H",
   },
 };
 

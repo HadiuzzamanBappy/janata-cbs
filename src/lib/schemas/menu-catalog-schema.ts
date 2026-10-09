@@ -36,4 +36,5 @@ export interface MenuValidationErrorItem {
   message: string;
 }
 
-export type MenuCatalogScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
+import type { CbsScreenMode as MenuCatalogScreenMode } from "../cbs-screen/types";
+export type { MenuCatalogScreenMode };

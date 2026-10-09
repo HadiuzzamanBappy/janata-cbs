@@ -136,6 +136,15 @@ export function OpsForm({
     persistFieldChange(name, val);
   };
 
+  const validationErrors = React.useMemo(() => {
+    return Object.entries(errors).map(([fieldName, msg]) => ({
+      id: fieldName,
+      tab: schema?.code || "GENERAL",
+      fieldKey: fieldName,
+      message: msg,
+    }));
+  }, [errors, schema?.code]);
+
   if (loading) return <FormSkeleton />;
 
   if (error || !schema) {
@@ -188,6 +197,7 @@ export function OpsForm({
       onSubmit={actions.onSubmit}
       onValidate={actions.onValidate}
       submitting={actions.submitting}
+      validationErrors={validationErrors}
       availableItems={getAvailableFixtureRecords(schema.code)}
       moreActions={getDefaultMoreActions(schema.code)}
       auditData={

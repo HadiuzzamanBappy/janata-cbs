@@ -233,13 +233,22 @@ export function useFormActions({
   const handleValidate = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema) return undefined;
     return () => {
+      const isValid = validate();
+      if (!isValid) {
+        toast.add({
+          title: "Validation Issues",
+          description: `Required fields require attention before saving.`,
+          type: "warning",
+        });
+        return;
+      }
       toast.add({
         title: "Validation Check Passed",
         description: `Onsite & DB rules validated for ${schema.title}`,
         type: "success",
       });
     };
-  }, [screenMode, schema]);
+  }, [screenMode, schema, validate]);
 
   return {
     submitting,

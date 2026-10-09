@@ -1,6 +1,6 @@
 import "server-only";
 import { STATIC_USER_RESPONSES } from "@fixtures";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/config/server";
 import { grpcStatusToHttp, loginProcess } from "@/lib/grpc";
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 import { parseAuthWirePayload } from "@/lib/parsers";

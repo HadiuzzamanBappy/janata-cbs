@@ -1,5 +1,5 @@
 import "server-only";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/config/server";
 import { getRedisClient } from "./client";
 
 export interface RateLimitResult {

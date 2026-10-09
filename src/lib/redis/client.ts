@@ -1,6 +1,6 @@
 import "server-only";
 import Redis from "ioredis";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/config/server";
 import { logger } from "@/lib/logger";
 
 const redisLogger = logger.withContext("REDIS");

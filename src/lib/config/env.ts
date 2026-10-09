@@ -1,5 +1,10 @@
+import "server-only";
 import { z } from "zod";
 
+/**
+ * Zod schema validating server environment variables and runtime secrets.
+ * Enforced on server initialization. Guarantees fail-fast configuration validation.
+ */
 export const envSchema = z
   .object({
     // 1. Application & Runtime Mode
@@ -68,7 +73,13 @@ export const envSchema = z
     }
   });
 
-export const env = envSchema.parse({
+export type Env = z.infer<typeof envSchema>;
+
+/**
+ * Validated runtime server environment configuration.
+ * Protected by `import "server-only"`.
+ */
+export const env: Env = envSchema.parse({
   NODE_ENV: process.env.NODE_ENV,
   LOG_LEVEL: process.env.LOG_LEVEL,
   MODEL_SOURCE: process.env.MODEL_SOURCE,

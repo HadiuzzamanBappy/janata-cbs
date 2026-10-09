@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/config/server";
 import { logger } from "@/lib/logger";
 import type { CurrentUser } from "@/lib/schemas";
 import { getRedisClient } from "./client";

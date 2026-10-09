@@ -3,25 +3,41 @@ import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types";
 import { CbsControlTable } from "../types/control-tables";
 import { CbsRequestType } from "../types/request-types";
 
+/**
+ * Filter criteria parameter for dynamic inquiry grid searches.
+ */
 export interface InquiryCriteriaParam {
+  /** Field name / column ID to filter against */
   selectFieldName: string;
+  /** Field datatype (e.g. 'text', 'date', 'number') */
   selectFieldType?: string;
+  /** Operator code (e.g. 'EQ', 'LK', 'GT', 'LT', 'BETWEEN') */
   selectFieldOperator: string;
+  /** Comparison value */
   selectFieldValue: string;
 }
 
+/**
+ * Options for executing an inquiry search query.
+ */
 export interface InquiryExecuteOptions {
+  /** Array of criteria filters applied to the query */
   queryString?: InquiryCriteriaParam[];
+  /** 1-based page index */
   curPage?: number;
+  /** Page size limit */
   perPage?: number;
 }
 
 /**
- * Domain payload builders for Inquiry Runtime Engine (INQ)
+ * Domain payload builders for Inquiry Runtime Engine (INQ).
  */
 export const inquiryPayloads = {
   /**
-   * Execute an inquiry search query with criteria and pagination
+   * Execute an inquiry search query with criteria and pagination.
+   *
+   * @param controlName - Inquiry controller or enquiry code (e.g. "%ACCOUNT")
+   * @param options - Pagination and filter criteria
    */
   executeQuery: (controlName: string, options: InquiryExecuteOptions = {}): CbsWirePayload => {
     const { queryString = [], curPage = 1, perPage = 1000 } = options;
@@ -40,7 +56,10 @@ export const inquiryPayloads = {
   },
 
   /**
-   * Fetch a single record via INQ request
+   * Fetch a single record via INQ request.
+   *
+   * @param controlName - Inquiry controller or enquiry code
+   * @param recordId - Record ID to inspect
    */
   fetchSingleRecord: (controlName: string, recordId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
@@ -51,7 +70,9 @@ export const inquiryPayloads = {
   }),
 
   /**
-   * Fetch inquiry metadata definition (INQUIRY designer)
+   * Fetch inquiry metadata definition (INQUIRY designer).
+   *
+   * @param inquiryId - Primary enquiry ID
    */
   getInquiryConfig: (inquiryId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
@@ -62,7 +83,10 @@ export const inquiryPayloads = {
   }),
 
   /**
-   * Save inquiry metadata definition
+   * Save inquiry metadata definition.
+   *
+   * @param inquiryId - Primary enquiry ID
+   * @param data - Full enquiry metadata configuration
    */
   saveInquiryConfig: (inquiryId: string, data: Record<string, unknown>): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
@@ -74,7 +98,9 @@ export const inquiryPayloads = {
   }),
 
   /**
-   * Authorize inquiry definition
+   * Authorize inquiry definition (Maker-Checker approval step).
+   *
+   * @param inquiryId - Primary enquiry ID to authorize
    */
   authorizeInquiryConfig: (inquiryId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
@@ -85,7 +111,9 @@ export const inquiryPayloads = {
   }),
 
   /**
-   * Delete inquiry definition
+   * Delete inquiry definition.
+   *
+   * @param inquiryId - Primary enquiry ID to decommission
    */
   deleteInquiryConfig: (inquiryId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,

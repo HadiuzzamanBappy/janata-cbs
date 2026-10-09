@@ -4,10 +4,14 @@ import { CbsControlTable } from "../types/control-tables";
 import { CbsRequestType } from "../types/request-types";
 
 /**
- * Domain payload builders for Schema / Data Dictionary Designer (MODEL.CONFIG)
+ * Domain payload builders for Schema / Data Dictionary Designer (MODEL.CONFIG).
  */
 export const modelConfigPayloads = {
-  /** Fetch a model / schema definition by ID */
+  /**
+   * Fetch a model / schema definition by ID.
+   *
+   * @param modelId - Target model identifier (e.g. "ACCOUNT")
+   */
   getModelConfig: (modelId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_GET,
@@ -16,7 +20,9 @@ export const modelConfigPayloads = {
     recordId: modelId.trim().toUpperCase(),
   }),
 
-  /** Fetch catalog list of available models */
+  /**
+   * Fetch catalog list of available models.
+   */
   listModelConfigs: (): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_GET,
@@ -25,7 +31,12 @@ export const modelConfigPayloads = {
     recordId: "LIST",
   }),
 
-  /** Save or update a model schema definition */
+  /**
+   * Save or update a model schema definition.
+   *
+   * @param modelId - Target model identifier
+   * @param data - Full model metadata and property list
+   */
   saveModelConfig: (modelId: string, data: Record<string, unknown>): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
@@ -35,7 +46,11 @@ export const modelConfigPayloads = {
     data,
   }),
 
-  /** Authorize a model schema definition */
+  /**
+   * Authorize a model schema definition (Maker-Checker approval step).
+   *
+   * @param modelId - Target model identifier to authorize
+   */
   authorizeModelConfig: (modelId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_AUTH,
@@ -44,7 +59,11 @@ export const modelConfigPayloads = {
     recordId: modelId.trim().toUpperCase(),
   }),
 
-  /** Delete / Decommission a model schema definition */
+  /**
+   * Delete / Decommission a model schema definition.
+   *
+   * @param modelId - Target model identifier to delete
+   */
   deleteModelConfig: (modelId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,

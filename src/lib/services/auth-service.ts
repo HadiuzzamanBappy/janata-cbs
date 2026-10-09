@@ -1,11 +1,11 @@
 import "server-only";
-import { STATIC_USER_RESPONSES } from "@fixtures";
 import { appConfig } from "@/lib/config/server";
 import { grpcStatusToHttp, loginProcess } from "@/lib/grpc";
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 import { parseAuthWirePayload } from "@/lib/parsers";
 import { type CurrentUser, createSession, destroySession } from "@/lib/redis";
 import type { LoginInput } from "@/lib/schemas";
+import { getStaticUserResponse } from "./static-provider";
 
 export interface LoginResult {
   success: boolean;
@@ -26,12 +26,7 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
   let res: GrpcResponse;
 
   if (appConfig.auth.userSource === "static") {
-    const normalizedInput = username.trim().toLowerCase();
-    const matchedKey = Object.keys(STATIC_USER_RESPONSES).find(
-      (k) => k.toLowerCase() === normalizedInput,
-    );
-    const mockResponse = matchedKey ? STATIC_USER_RESPONSES[matchedKey] : undefined;
-
+    const mockResponse = getStaticUserResponse(username);
     if (!mockResponse) {
       return {
         success: false,

@@ -3,10 +3,16 @@ import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types";
 import { CbsRequestType } from "../types/request-types";
 
 /**
- * Domain payload builders for Generic Form Engine Records
+ * Domain payload builders for Generic Form Engine Records.
  */
 export const formPayloads = {
-  /** Fetch a specific record by ID for a generic form */
+  /**
+   * Fetch a specific record by ID for a generic form screen.
+   *
+   * @param controlName - Target table/screen name (e.g. "ACCOUNT")
+   * @param recordId - Primary record key
+   * @param servicePath - gRPC routing target (defaults to DEFAULT_SERVICE_PATH)
+   */
   fetchRecord: (
     controlName: string,
     recordId: string,
@@ -19,7 +25,13 @@ export const formPayloads = {
     recordId: recordId.trim(),
   }),
 
-  /** Commit / Save form record */
+  /**
+   * Commit / Save form record (Input or Amend).
+   *
+   * @param controlName - Target table/screen name (e.g. "ACCOUNT")
+   * @param data - Form key-value dictionary to commit
+   * @param options - Additional options including recordId, recordFunction ('I'/'A'), and servicePath
+   */
   commitRecord: (
     controlName: string,
     data: Record<string, unknown>,
@@ -37,7 +49,13 @@ export const formPayloads = {
     data,
   }),
 
-  /** Authorize form record */
+  /**
+   * Authorize form record (Maker-Checker approval step).
+   *
+   * @param controlName - Target table/screen name (e.g. "ACCOUNT")
+   * @param recordId - Primary record key to authorize
+   * @param servicePath - gRPC routing target (defaults to DEFAULT_SERVICE_PATH)
+   */
   authorizeRecord: (
     controlName: string,
     recordId: string,
@@ -50,7 +68,13 @@ export const formPayloads = {
     recordId: recordId.trim(),
   }),
 
-  /** Delete / Reverse form record */
+  /**
+   * Delete / Reverse form record.
+   *
+   * @param controlName - Target table/screen name (e.g. "ACCOUNT")
+   * @param recordId - Primary record key to delete or reverse
+   * @param servicePath - gRPC routing target (defaults to DEFAULT_SERVICE_PATH)
+   */
   deleteRecord: (
     controlName: string,
     recordId: string,

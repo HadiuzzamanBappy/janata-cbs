@@ -3,11 +3,11 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { CbsAuditFooterData, CbsScreenScaffoldProps } from "../types";
+import { formatAuditFooterData } from "../utils/audit-adapter";
 import { CbsAuditFooter } from "./cbs-audit-footer";
 import { CbsFormHeader } from "./cbs-form-header";
 import { CbsIdleState } from "./cbs-idle-state";
-import type { CbsAuditFooterData, CbsScreenScaffoldProps } from "../types";
-import { formatAuditFooterData } from "../utils/audit-adapter";
 
 export function CbsScreenScaffold<TTab extends string = string>({
   title,
@@ -52,7 +52,9 @@ export function CbsScreenScaffold<TTab extends string = string>({
   }, [auditData]);
 
   return (
-    <div className={`flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans ${className}`}>
+    <div
+      className={`flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans ${className}`}
+    >
       {/* 1. CBS FORM HEADER */}
       <CbsFormHeader
         title={title}
@@ -155,16 +157,12 @@ export function CbsScreenScaffold<TTab extends string = string>({
           </div>
         ) : (
           /* Form / Inquiry / Custom Body */
-          <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-            {children}
-          </div>
+          <div className="flex-1 flex flex-col overflow-hidden min-h-0">{children}</div>
         )}
       </div>
 
       {/* 3. AUDIT FOOTER */}
-      {mode !== "IDLE" && resolvedAuditFooter && (
-        <CbsAuditFooter audit={resolvedAuditFooter} />
-      )}
+      {mode !== "IDLE" && resolvedAuditFooter && <CbsAuditFooter audit={resolvedAuditFooter} />}
     </div>
   );
 }

@@ -93,13 +93,11 @@ assert(
 );
 
 // 10. Shorthand 1:1 Aliases
-assert("Alias MD -> SC.MENU.DESIGN", cbsCommand.resolveAlias("MD") === "SC.MENU.DESIGN");
-assert("Alias UG -> SC.USER.GROUP", cbsCommand.resolveAlias("UG") === "SC.USER.GROUP");
-assert("Alias COB -> SC.COB.REGISTRY", cbsCommand.resolveAlias("COB") === "SC.COB.REGISTRY");
-assert("Alias PR -> SC.USER.PASS.RESET", cbsCommand.resolveAlias("PR") === "SC.USER.PASS.RESET");
-assert("Alias ID -> SC.INQUIRY", cbsCommand.resolveAlias("ID") === "SC.INQUIRY");
-assert("Alias RS -> SC.REPORT.DESIGN", cbsCommand.resolveAlias("RS") === "SC.REPORT.DESIGN");
-assert("Alias PWD -> USER.CHANGE.PASS", cbsCommand.resolveAlias("PWD") === "USER.CHANGE.PASS");
+assert("Alias MD -> MENU.DESIGN", cbsCommand.resolveAlias("MD") === "MENU.DESIGN");
+assert("Alias UG -> USER.GROUP", cbsCommand.resolveAlias("UG") === "USER.GROUP");
+assert("Alias MC -> MODEL.CONFIG", cbsCommand.resolveAlias("MC") === "MODEL.CONFIG");
+assert("Alias RS -> REPORT.DESIGN", cbsCommand.resolveAlias("RS") === "REPORT.DESIGN");
+assert("Alias MNU -> MENU", cbsCommand.resolveAlias("MNU") === "MENU");
 
 // 11. Settings Dialog
 const settings = cbsCommand.parse("SETTINGS:PROFILE");

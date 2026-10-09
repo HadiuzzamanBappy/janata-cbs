@@ -62,7 +62,9 @@ export function CbsValidationChecklist<TTab extends string = string>({
               const first = errors[0];
               if (first) {
                 if (first.tab) onSelectTab?.(first.tab);
-                const el = document.getElementById(first.fieldKey) || document.querySelector(`[name="${first.fieldKey}"]`);
+                const el =
+                  document.getElementById(first.fieldKey) ||
+                  document.querySelector(`[name="${first.fieldKey}"]`);
                 if (el) {
                   el.scrollIntoView({ behavior: "smooth", block: "center" });
                   (el as HTMLElement).focus?.();
@@ -81,7 +83,9 @@ export function CbsValidationChecklist<TTab extends string = string>({
               key={err.id}
               onClick={() => {
                 if (err.tab) onSelectTab?.(err.tab);
-                const el = document.getElementById(err.fieldKey) || document.querySelector(`[name="${err.fieldKey}"]`);
+                const el =
+                  document.getElementById(err.fieldKey) ||
+                  document.querySelector(`[name="${err.fieldKey}"]`);
                 if (el) {
                   el.scrollIntoView({ behavior: "smooth", block: "center" });
                   (el as HTMLElement).focus?.();
@@ -100,9 +104,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
                   {err.fieldKey}
                 </span>
               </div>
-              <span className="text-[11px] text-destructive leading-tight">
-                {err.message}
-              </span>
+              <span className="text-[11px] text-destructive leading-tight">{err.message}</span>
             </DropdownMenuItem>
           ))}
         </div>

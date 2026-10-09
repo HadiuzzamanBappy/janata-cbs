@@ -38,7 +38,8 @@ export function CbsAuditTab({
   className = "",
 }: CbsAuditTabProps) {
   const audit = (formData as { auditData?: Record<string, unknown> })?.auditData;
-  const statusStr = audit?.recStatus !== undefined && audit?.recStatus !== null ? String(audit.recStatus) : "";
+  const statusStr =
+    audit?.recStatus !== undefined && audit?.recStatus !== null ? String(audit.recStatus) : "";
 
   return (
     <div className={`h-full overflow-y-auto p-3 ${className}`}>
@@ -128,7 +129,9 @@ export function CbsAuditTab({
                     const userVal = isAuthorizer
                       ? String(audit?.recAuthorizer || "")
                       : String(audit?.recInputter || "");
-                    const timeVal = String((isAuthorizer ? audit?.recAuthTime : audit?.recInputTime) || "");
+                    const timeVal = String(
+                      (isAuthorizer ? audit?.recAuthTime : audit?.recInputTime) || "",
+                    );
 
                     return (
                       <div
@@ -197,4 +200,3 @@ export function CbsAuditTab({
     </div>
   );
 }
-

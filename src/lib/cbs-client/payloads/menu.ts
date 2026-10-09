@@ -4,10 +4,12 @@ import { CbsControlTable } from "../types/control-tables";
 import { CbsRequestType } from "../types/request-types";
 
 /**
- * Domain payload builders for Menu Catalog and Visual Menu Designer
+ * Domain payload builders for Menu Catalog and Visual Menu Designer.
  */
 export const menuPayloads = {
-  /** Fetch all flat menu items list */
+  /**
+   * Fetch all flat menu items list from MENU table.
+   */
   getCatalogList: (): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_LIST,
@@ -16,7 +18,11 @@ export const menuPayloads = {
     recordId: "",
   }),
 
-  /** Fetch individual menu catalog record */
+  /**
+   * Fetch an individual menu catalog record.
+   *
+   * @param menuId - Menu catalog record ID
+   */
   getMenuItem: (menuId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_GET,
@@ -25,7 +31,12 @@ export const menuPayloads = {
     recordId: menuId.trim().toUpperCase(),
   }),
 
-  /** Save flat menu catalog record */
+  /**
+   * Save a flat menu catalog record.
+   *
+   * @param menuId - Menu catalog record ID
+   * @param data - Menu item fields (command, label, category, etc.)
+   */
   saveMenuItem: (menuId: string, data: Record<string, unknown>): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
@@ -35,7 +46,11 @@ export const menuPayloads = {
     data,
   }),
 
-  /** Authorize flat menu catalog record */
+  /**
+   * Authorize a flat menu catalog record (Maker-Checker approval step).
+   *
+   * @param menuId - Menu catalog record ID to authorize
+   */
   authorizeMenuItem: (menuId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_AUTH,
@@ -44,7 +59,11 @@ export const menuPayloads = {
     recordId: menuId.trim().toUpperCase(),
   }),
 
-  /** Delete flat menu catalog record */
+  /**
+   * Delete a flat menu catalog record.
+   *
+   * @param menuId - Menu catalog record ID to delete
+   */
   deleteMenuItem: (menuId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
@@ -53,7 +72,9 @@ export const menuPayloads = {
     recordId: menuId.trim().toUpperCase(),
   }),
 
-  /** Fetch list of all menu tree configs */
+  /**
+   * Fetch list of all menu tree configs from MENU.TREE table.
+   */
   getTreeList: (): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_LIST,
@@ -62,7 +83,11 @@ export const menuPayloads = {
     recordId: "",
   }),
 
-  /** Fetch full hierarchical menu tree */
+  /**
+   * Fetch full hierarchical menu tree.
+   *
+   * @param treeId - Tree identifier (defaults to "MAIN_MENU")
+   */
   getMenuTree: (treeId = "MAIN_MENU"): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_GET,
@@ -71,7 +96,12 @@ export const menuPayloads = {
     recordId: treeId.trim().toUpperCase(),
   }),
 
-  /** Save hierarchical menu tree */
+  /**
+   * Save hierarchical menu tree.
+   *
+   * @param treeId - Tree identifier
+   * @param treeNodes - Hierarchical node structure
+   */
   saveMenuTree: (treeId: string, treeNodes: unknown): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
@@ -81,7 +111,11 @@ export const menuPayloads = {
     data: { tree: treeNodes },
   }),
 
-  /** Authorize hierarchical menu tree */
+  /**
+   * Authorize hierarchical menu tree (Maker-Checker approval step).
+   *
+   * @param treeId - Tree identifier to authorize
+   */
   authorizeMenuTree: (treeId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_AUTH,
@@ -90,7 +124,11 @@ export const menuPayloads = {
     recordId: treeId.trim().toUpperCase(),
   }),
 
-  /** Delete hierarchical menu tree */
+  /**
+   * Delete hierarchical menu tree.
+   *
+   * @param treeId - Tree identifier to delete
+   */
   deleteMenuTree: (treeId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,

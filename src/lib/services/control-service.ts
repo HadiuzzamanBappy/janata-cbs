@@ -1,10 +1,10 @@
 import "server-only";
-import { STATIC_CONTROL_RESPONSE } from "@fixtures";
 import { appConfig, getServiceUrl } from "@/lib/config/server";
 import { grpcProcess } from "@/lib/grpc";
 import { parseControlsWirePayload } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";
 import type { SystemCommandItem } from "@/lib/schemas";
+import { getStaticControlsPayload } from "./static-provider";
 
 const CONTROLS_TTL_SECONDS = appConfig.redis.menuTtlSeconds;
 const CONTROL_REQUEST_TYPE = "GRL";
@@ -13,7 +13,7 @@ const CONTROL_RECORD_FUNCTION = "L";
 
 async function fetchControlWirePayload(tokenParam?: string): Promise<unknown> {
   if (appConfig.modelSource === "static") {
-    return STATIC_CONTROL_RESPONSE.data;
+    return getStaticControlsPayload();
   }
 
   const session = await getSession();

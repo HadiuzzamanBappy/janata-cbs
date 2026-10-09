@@ -1,9 +1,6 @@
 import { z } from "zod";
+import { type MenuCatalogRecord, menuCatalogRecordSchema } from "@/lib/schemas/menu-catalog-schema";
 import { unwrapRecordsPayload } from "./protobuf-decoder";
-import {
-  type MenuCatalogRecord,
-  menuCatalogRecordSchema,
-} from "@/lib/schemas/menu-catalog-schema";
 
 /**
  * Parses inbound JSON payload into a strictly validated MenuCatalogRecord.
@@ -74,9 +71,7 @@ export function parseMenuCatalogList(
  * Direct 1:1 canonical format. Safely handles in-progress draft records by falling back
  * gracefully instead of throwing runtime exceptions during live typing.
  */
-export function serializeMenuCatalogToWireJson(
-  record: MenuCatalogRecord,
-): MenuCatalogRecord {
+export function serializeMenuCatalogToWireJson(record: MenuCatalogRecord): MenuCatalogRecord {
   const result = menuCatalogRecordSchema.safeParse(record);
   if (result.success) {
     return result.data;

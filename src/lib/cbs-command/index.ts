@@ -37,7 +37,7 @@ export const cbsCommand = {
   validate: validateSecurityPermissions,
 
   /**
-   * Resolve shorthand aliases (e.g. "MD" -> "SC.MENU.DESIGN").
+   * Resolve shorthand aliases (e.g. "MD" -> "MENU.DESIGN", "MNU" -> "MENU").
    */
   resolveAlias: resolveCommandAlias,
 

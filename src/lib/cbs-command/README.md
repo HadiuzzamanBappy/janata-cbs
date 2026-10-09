@@ -75,17 +75,13 @@ Inquiries require an explicit `INQ` or `INQUIRY` prefix:
 - **`<APP> <FUNCTION> <RECORD_ID>`** (e.g. `ACCOUNT I 1000001`, `ACCOUNT S 1000001`)  
   Opens the record directly with the requested function mode.
 
-### 6. Shorthand Screen Aliases (1 Alias Per Bespoke Canvas)
-Every bespoke administrative canvas has exactly one clean shorthand alias:
-- **`MD`** → `SC.MENU.DESIGN` (Menu Hierarchy Designer)
-- **`MENU`** → `SC.MENU` (Menu Item Catalog)
-- **`UG`** → `SC.USER.GROUP` (User Group & Permissions)
-- **`MC`** → `SC.MODEL.CONFIG` (Data Model Config)
-- **`COB`** → `SC.COB.REGISTRY` (COB Service Pipeline)
-- **`PR`** → `SC.USER.PASS.RESET` (Password Reset & Unlock)
-- **`ID`** → `SC.INQUIRY` (Inquiry & Grid Designer)
-- **`RS`** → `SC.REPORT.DESIGN` (Report Studio)
-- **`PWD`** → `USER.CHANGE.PASS` (Change Password)
+### 6. Shorthand Screen Aliases
+Every bespoke administrative canvas has clean shorthand aliases:
+- **`MD`** → `MENU.DESIGN` (Menu Hierarchy Designer)
+- **`MNU`** → `MENU` (Menu Item Catalog)
+- **`UG`** → `USER.GROUP` (User Group & Permissions)
+- **`MC`** → `MODEL.CONFIG` (Data Model Config)
+- **`RS`** → `REPORT.DESIGN` (Report Studio)
 
 ### 7. Settings Modals & System Actions
 - `PROFILE`, `SETTINGS:PROFILE` → Opens User Profile Settings modal.
@@ -148,17 +144,18 @@ if (!security.allowed) {
 ### Resolving Aliases & Screen Keys
 ```typescript
 cbsCommand.resolveAlias("MD"); 
-// -> "SC.MENU.DESIGN"
+// -> "MENU.DESIGN"
 
-cbsCommand.getScreenKey("COB"); 
-// -> "SC.COB.REGISTRY"
+cbsCommand.getScreenKey("UG"); 
+// -> "USER.GROUP"
 ```
 
 ---
 
-## Testing & Compilation
+## Verification
 Verify types and grammar integrity:
 ```bash
-npx tsc --noEmit
+pnpm verify:gateway
+pnpm tsc --noEmit
 pnpm biome check src/lib/cbs-command
 ```

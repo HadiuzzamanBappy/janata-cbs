@@ -1,8 +1,8 @@
 # CBS Micro-Client Gateway (`@/lib/cbs-client`)
 
-The **CBS Micro-Client Gateway** is the single, centralized communication layer connecting UI components and screens with the downstream Core Banking Solution (CBS) backend and gRPC microservices.
+The **CBS Micro-Client Gateway** is the single, centralized isomorphic communication layer connecting client-side components and hooks with the Next.js proxy route (`/api/proxy`) and downstream Core Banking Solution (CBS) backend.
 
-It replaces ad-hoc `fetch()` calls and bespoke wire envelopes with a **strictly typed, zero-boilerplate fluent API**, standardizing request formatting, serialization, response decoding, and user notifications.
+It provides a **strictly typed, zero-boilerplate API**, standardizing request formatting, wire envelope serialization, session expiration interception, and user notifications.
 
 ---
 
@@ -10,37 +10,35 @@ It replaces ad-hoc `fetch()` calls and bespoke wire envelopes with a **strictly 
 
 ```
 src/lib/cbs-client/
-├── contracts/               # Core Banking wire contracts & control tables
-│   ├── request-types.ts     # CBS request types (GMC, GET, POST, PUT, DELETE, MNU, etc.)
-│   ├── record-functions.ts  # Standard CBS functions ('I', 'S', 'A', 'D', 'R', 'H', 'L')
-│   ├── control-tables.ts    # Control table names (MENU.TREE, USER.GROUP, INQUIRY, etc.)
-│   ├── envelope-schema.ts   # CbsWirePayload and CbsApiResponse<T> schemas
-│   └── index.ts             # Contracts barrel export
-├── payloads/                # Domain-specific typed payload factories
-│   ├── form-payloads.ts     # commitRecord, fetchRecord, searchRecords
-│   ├── inquiry-payloads.ts  # executeQuery, fetchSchema
-│   ├── menu-payloads.ts     # saveMenuHierarchy, saveMenuItem, deleteMenuItem
-│   ├── user-group-payloads.ts # saveGroupPermissions, fetchGroups
-│   ├── user-security-payloads.ts # resetPassword, unlockUserAccount
-│   ├── cob-payloads.ts      # saveCobPipeline, triggerCobBatch
-│   ├── model-config-payloads.ts # saveModelSchema, fetchModelSpec
+├── payloads/                # Domain-specific typed payload builders
+│   ├── form.ts              # formPayloads (commitRecord, fetchRecord, authorizeRecord, deleteRecord)
+│   ├── inquiry.ts           # inquiryPayloads (executeQuery, fetchSingleRecord, getInquiryConfig, ...)
+│   ├── menu.ts              # menuPayloads (getCatalogList, getMenuItem, getMenuTree, saveMenuTree, ...)
+│   ├── model-config.ts      # modelConfigPayloads (getModelConfig, listModelConfigs, saveModelConfig, ...)
+│   ├── user-group.ts        # userGroupPayloads (getGroup, saveGroup, authorizeGroup, deleteGroup)
+│   ├── user-security.ts     # userSecurityPayloads (getUserProfile, changeSignOnName, changePassword, ...)
 │   └── index.ts             # Payloads barrel export
 ├── transport/               # HTTP wire transport & error management
-│   └── proxy-client.ts      # sendCbsRequest with 401 interceptor & toast feedback
-├── index.ts                 # Unified public facade (`cbs`)
-└── README.md                # Documentation
+│   └── proxy-client.ts      # sendCbsRequest with 401 interception & toast notifications
+├── types/                   # Canonical CBS wire contracts & control tables
+│   ├── control-tables.ts    # CbsControlTable constants & type
+│   ├── request-types.ts     # CbsRequestType verbs ('GET', 'PUT', 'INQ', 'AUT', etc.)
+│   ├── wire.ts              # CbsWirePayload and DEFAULT_SERVICE_PATH
+│   └── index.ts             # Types barrel export
+├── index.ts                 # Unified public facade (`cbs` and default export)
+└── README.md                # Gateway documentation
 ```
 
 ---
 
-## Core Concept & Syntax
+## Core Usage & Syntax
 
-All frontend requests dispatch via `cbs.send(...)` combined with a typed payload factory:
+All client operations dispatch via `cbs.send(...)` combined with a domain payload builder:
 
 ```typescript
 import { cbs } from "@/lib/cbs-client";
 
-// Format: cbs.send(payloadFactory(...), options?)
+// Format: cbs.send(payloadBuilder(...), options?)
 const response = await cbs.send(
   cbs.form.commitRecord("ACCOUNT", formData),
   {
@@ -51,16 +49,16 @@ const response = await cbs.send(
 ```
 
 ### Standard Wire Envelope Structure
-Every request produced by `cbs` adheres to the canonical CBS wire format:
-```json
+Every request produced by `cbs` conforms to the canonical wire contract:
+```typescript
 {
-  "servicePath": "default",
-  "requestType": "GMC",
-  "controlName": "ACCOUNT",
-  "recordFunction": "I",
-  "recordId": "1000001",
-  "authLevel": 1,
-  "data": { ... }
+  servicePath: "default",
+  requestType: "PUT",
+  controlName: "ACCOUNT",
+  recordFunction: "I",
+  recordId: "1000001",
+  authLevel: 1,
+  data: { ... }
 }
 ```
 
@@ -69,52 +67,57 @@ Every request produced by `cbs` adheres to the canonical CBS wire format:
 ## Domain Payload Subsystems
 
 ### 1. Dynamic Forms (`cbs.form`)
-- **`cbs.form.commitRecord(modelCode, data)`**  
-  Commits a record creation (`recordFunction: "I"`).
-- **`cbs.form.fetchRecord(modelCode, recordId)`**  
-  Retrieves a record for viewing or editing (`recordFunction: "S"`).
-- **`cbs.form.searchRecords(modelCode, filter)`**  
-  Searches records matching criteria.
+- **`cbs.form.fetchRecord(controlName, recordId, servicePath?)`** — Fetches record data (`recordFunction: 'S'`).
+- **`cbs.form.commitRecord(controlName, data, options?)`** — Creates or updates a record (`recordFunction: 'I'`).
+- **`cbs.form.authorizeRecord(controlName, recordId, servicePath?)`** — Authorizes a pending record (`recordFunction: 'A'`).
+- **`cbs.form.deleteRecord(controlName, recordId, servicePath?)`** — Deletes or reverses a record (`recordFunction: 'D'`).
 
 ### 2. Inquiries (`cbs.inquiry`)
-- **`cbs.inquiry.executeQuery(controllerName, criteria, pagination?)`**  
-  Executes an inquiry query against the downstream service path (`requestType: "GET"`).
-- **`cbs.inquiry.fetchSchema(inquiryCode)`**  
-  Fetches inquiry grid layout and filter column definitions.
+- **`cbs.inquiry.executeQuery(controlName, options?)`** — Executes a dynamic grid search query (`requestType: 'INQ'`).
+- **`cbs.inquiry.fetchSingleRecord(controlName, recordId)`** — Fetches a single enquiry record.
+- **`cbs.inquiry.getInquiryConfig(inquiryId)`** — Retrieves metadata definition for an enquiry.
+- **`cbs.inquiry.saveInquiryConfig(inquiryId, data)`** — Saves enquiry configuration.
+- **`cbs.inquiry.authorizeInquiryConfig(inquiryId)`** — Authorizes an enquiry definition.
+- **`cbs.inquiry.deleteInquiryConfig(inquiryId)`** — Decommissions an enquiry.
 
 ### 3. Menu & Navigation (`cbs.menu`)
-- **`cbs.menu.saveMenuHierarchy(tree)`**  
-  Saves the tree structure to control table `MENU.TREE`.
-- **`cbs.menu.saveMenuItem(menuItem)`**  
-  Creates or updates a single menu action item.
-- **`cbs.menu.deleteMenuItem(itemId)`**  
-  Deletes an item from the menu catalog.
+- **`cbs.menu.getCatalogList()`** — Fetches all flat menu items (`controlName: 'MENU'`).
+- **`cbs.menu.getMenuItem(menuId)`** — Fetches an individual menu record.
+- **`cbs.menu.saveMenuItem(menuId, data)`** — Commits a menu record.
+- **`cbs.menu.authorizeMenuItem(menuId)`** — Authorizes a menu record.
+- **`cbs.menu.deleteMenuItem(menuId)`** — Deletes a menu record.
+- **`cbs.menu.getTreeList()`** — Fetches list of all menu tree configs (`controlName: 'MENU.TREE'`).
+- **`cbs.menu.getMenuTree(treeId?)`** — Fetches full hierarchical menu tree.
+- **`cbs.menu.saveMenuTree(treeId, treeNodes)`** — Saves hierarchical menu tree.
+- **`cbs.menu.authorizeMenuTree(treeId)`** — Authorizes a menu tree.
+- **`cbs.menu.deleteMenuTree(treeId)`** — Deletes a menu tree.
 
 ### 4. User Groups & Permissions (`cbs.userGroup`)
-- **`cbs.userGroup.saveGroupPermissions(groupId, permissions)`**  
-  Updates the RBAC menu authorization matrix.
+- **`cbs.userGroup.getGroup(groupId)`** — Fetches a group record or list (`controlName: 'USER.GROUP'`).
+- **`cbs.userGroup.saveGroup(groupId, data)`** — Commits user group permission matrix.
+- **`cbs.userGroup.authorizeGroup(groupId)`** — Authorizes a user group.
+- **`cbs.userGroup.deleteGroup(groupId)`** — Decommissions a user group.
 
 ### 5. Staff Security & Credentials (`cbs.userSecurity`)
-- **`cbs.userSecurity.resetPassword(userId, newPassword)`**  
-  Resets staff credentials.
-- **`cbs.userSecurity.unlockUserAccount(userId)`**  
-  Clears lockout counters and unlocks user login.
+- **`cbs.userSecurity.getUserProfile(userId)`** — Fetches security profile (`controlName: 'USER.PASS.RESET'`).
+- **`cbs.userSecurity.saveUserProfile(userId, data)`** — Commits reset or unlock profile.
+- **`cbs.userSecurity.authorizeUserProfile(userId)`** — Authorizes credential reset.
+- **`cbs.userSecurity.deleteUserProfile(userId)`** — Cancels credential reset request.
+- **`cbs.userSecurity.changeSignOnName(params)`** — Dispatches sign-on name update (`requestType: 'CUN'`).
+- **`cbs.userSecurity.changePassword(params)`** — Dispatches password update (`requestType: 'CPW'`).
 
-### 6. Close of Business / COB (`cbs.cob`)
-- **`cbs.cob.saveCobPipeline(stages)`**  
-  Updates End-of-Day batch processing pipeline configuration.
-- **`cbs.cob.triggerCobBatch()`**  
-  Triggers immediate COB execution.
-
-### 7. Data Dictionary & Model Config (`cbs.modelConfig`)
-- **`cbs.modelConfig.saveModelSchema(modelName, schemaDef)`**  
-  Saves data dictionary model fields and property constraints.
+### 6. Data Dictionary & Model Config (`cbs.modelConfig`)
+- **`cbs.modelConfig.getModelConfig(modelId)`** — Fetches schema definition (`controlName: 'MODEL.CONFIG'`).
+- **`cbs.modelConfig.listModelConfigs()`** — Fetches catalog of all configured models.
+- **`cbs.modelConfig.saveModelConfig(modelId, data)`** — Commits model definition.
+- **`cbs.modelConfig.authorizeModelConfig(modelId)`** — Authorizes live schema definition.
+- **`cbs.modelConfig.deleteModelConfig(modelId)`** — Decommissions schema definition.
 
 ---
 
 ## Transport Options & Notifications
 
-`cbs.send` accepts optional UI behavior options:
+`cbs.send` accepts `SendCbsOptions`:
 
 ```typescript
 export interface SendCbsOptions {
@@ -126,6 +129,8 @@ export interface SendCbsOptions {
   successMessage?: string;
   /** Error alert override message */
   errorMessage?: string;
+  /** Optional AbortSignal to cancel in-flight requests */
+  signal?: AbortSignal;
 }
 ```
 
@@ -134,39 +139,41 @@ export interface SendCbsOptions {
 #### Silent Data Fetching
 ```typescript
 const { data } = await cbs.send(
-  cbs.inquiry.executeQuery("GET.EMP.INFO", { branch: "JB9999" }),
+  cbs.inquiry.executeQuery("%ACCOUNT", { perPage: 25 }),
   { silent: true }
 );
 ```
 
-#### Action with Confirmation Toast
+#### Action with Notification
 ```typescript
 await cbs.send(
-  cbs.userSecurity.unlockUserAccount("EMP0492"),
+  cbs.userSecurity.changePassword({ currPass, newPass }),
   {
-    successTitle: "Account Unlocked",
-    successMessage: "User EMP0492 can now sign in.",
+    successTitle: "Password Changed",
+    successMessage: "Your password has been updated successfully.",
   }
 );
 ```
 
 #### Automatic Session Interception
-If the server responds with HTTP `401 Unauthorized`:
-- Automatically triggers a `"Session Expired"` toast notification.
-- Rejects the promise with an `"UNAUTHORIZED"` error to initiate re-authentication.
+When the server responds with HTTP `401 Unauthorized`:
+- Renders an automatic `"Session Expired"` toast notification.
+- Rejects with an `"UNAUTHORIZED"` error to prompt re-authentication.
 
 ---
 
-## Type Safety & Contracts
+## Direct Barrel Exports
 
-All contracts and enum definitions can be imported directly:
+In addition to `cbs`, all types and builders can be imported directly:
 
 ```typescript
 import {
+  cbs,
+  sendCbsRequest,
+  CbsControlTable,
+  CbsRequestType,
+  DEFAULT_SERVICE_PATH,
   type CbsWirePayload,
-  type CbsApiResponse,
-  type RecordFunction,
-  type CbsRequestType,
-  CONTROL_TABLES,
+  type SendCbsOptions,
 } from "@/lib/cbs-client";
 ```

@@ -1,26 +1,111 @@
 "use client";
 
 import { ArrowUp, Check, Pause, Pencil, Play, Search, Wrench, X } from "lucide-react";
-import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserRights } from "@/hooks";
+import type { CbsScreenMode } from "../types";
 
-export interface ActionButtonsProps {
-  mode: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+export interface IdleActionsProps {
   searchVal: string;
-  onSearchChange?: (val: string) => void;
-  onSearchSubmit?: (e?: React.FormEvent) => void;
-  onSelectRecord?: (id: string) => void;
-  matchingItems?: Array<{ id: string; label?: string }>;
-  isDropdownOpen?: boolean;
-  onDropdownOpenChange?: (open: boolean) => void;
-  hasSearched?: boolean;
   submitting?: boolean;
-  onCreateNew?: () => void;
   onAmend?: () => void;
   onView?: () => void;
   onPerformAction?: () => void;
+}
+
+/**
+ * Idle state action buttons: Edit, View, and Perform Action on existing records.
+ */
+export function IdleActions({
+  searchVal,
+  submitting = false,
+  onAmend,
+  onView,
+  onPerformAction,
+}: IdleActionsProps) {
+  const rights = useUserRights();
+
+  return (
+    <div className="flex items-center gap-1 shrink-0">
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="default"
+              size="icon-sm"
+              onClick={() => onAmend?.()}
+              disabled={!onAmend || submitting || !searchVal.trim() || !rights.canAmend}
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+            >
+              <Pencil className="size-3" />
+            </Button>
+          }
+        />
+        <TooltipContent className="text-xs">
+          {!searchVal.trim()
+            ? "Enter or select a Record ID to edit"
+            : !rights.canAmend
+              ? "Requires Amend ('A') permission"
+              : "Edit Record"}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="default"
+              size="icon-sm"
+              onClick={() => onView?.()}
+              disabled={
+                !onView || submitting || !searchVal.trim() || (!rights.canSee && !rights.canRead)
+              }
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+            >
+              <Search className="size-3" />
+            </Button>
+          }
+        />
+        <TooltipContent className="text-xs">
+          {!searchVal.trim()
+            ? "Enter or select a Record ID to view"
+            : !rights.canSee && !rights.canRead
+              ? "Requires View permission"
+              : "View Details"}
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              type="button"
+              variant="default"
+              size="icon-sm"
+              onClick={() => onPerformAction?.()}
+              disabled={!onPerformAction || submitting || !searchVal.trim()}
+              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+            >
+              <Wrench className="size-3" />
+            </Button>
+          }
+        />
+        <TooltipContent className="text-xs">
+          {!searchVal.trim()
+            ? "Enter or select a Record ID to perform action"
+            : "Perform Action on Record"}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+export interface ActiveActionsProps {
+  mode: Exclude<CbsScreenMode, "IDLE">;
+  submitting?: boolean;
   onSubmit?: () => void;
   onValidate?: () => void;
   onHold?: () => void;
@@ -28,24 +113,14 @@ export interface ActionButtonsProps {
   onAuthorizeReverse?: () => void;
   onProcessAction?: () => void;
   onReturnToSearch?: () => void;
-  onReset?: () => void;
 }
 
-export function ActionButtons({
+/**
+ * Active form state action buttons: Commit (✓), Validate (?✓), Hold (❚❚), Delete (✕), Authorize (✓✓), Reverse (✕✓), Verify (▶), Return (⬆).
+ */
+export function ActiveActions({
   mode,
-  searchVal,
-  onSearchChange: _onSearchChange,
-  onSearchSubmit: _onSearchSubmit,
-  onSelectRecord: _onSelectRecord,
-  matchingItems: _matchingItems = [],
-  isDropdownOpen: _isDropdownOpen = false,
-  onDropdownOpenChange: _onDropdownOpenChange,
-  hasSearched: _hasSearched = false,
   submitting = false,
-  onCreateNew: _onCreateNew,
-  onAmend,
-  onView,
-  onPerformAction,
   onSubmit,
   onValidate,
   onHold,
@@ -53,89 +128,9 @@ export function ActionButtons({
   onAuthorizeReverse,
   onProcessAction,
   onReturnToSearch,
-}: ActionButtonsProps) {
+}: ActiveActionsProps) {
   const rights = useUserRights();
 
-  // STATE 1: IDLE STATE TOOLBAR
-  if (mode === "IDLE") {
-    return (
-      <div className="flex items-center gap-1 shrink-0">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                type="button"
-                variant="default"
-                size="icon-sm"
-                onClick={() => onAmend?.()}
-                disabled={!onAmend || submitting || !searchVal.trim() || !rights.canAmend}
-                className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
-              >
-                <Pencil className="size-3" />
-              </Button>
-            }
-          />
-          <TooltipContent className="text-xs">
-            {!searchVal.trim()
-              ? "Enter or select a Record ID to edit"
-              : !rights.canAmend
-                ? "Requires Amend ('A') permission"
-                : "Edit Record"}
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                type="button"
-                variant="default"
-                size="icon-sm"
-                onClick={() => onView?.()}
-                disabled={
-                  !onView || submitting || !searchVal.trim() || (!rights.canSee && !rights.canRead)
-                }
-                className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
-              >
-                <Search className="size-3" />
-              </Button>
-            }
-          />
-          <TooltipContent className="text-xs">
-            {!searchVal.trim()
-              ? "Enter or select a Record ID to view"
-              : !rights.canSee && !rights.canRead
-                ? "Requires View permission"
-                : "View Details"}
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                type="button"
-                variant="default"
-                size="icon-sm"
-                onClick={() => onPerformAction?.()}
-                disabled={!onPerformAction || submitting || !searchVal.trim()}
-                className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
-              >
-                <Wrench className="size-3" />
-              </Button>
-            }
-          />
-          <TooltipContent className="text-xs">
-            {!searchVal.trim()
-              ? "Enter or select a Record ID to perform action"
-              : "Perform Action on Record"}
-          </TooltipContent>
-        </Tooltip>
-      </div>
-    );
-  }
-
-  // STATE 2: ACTIVE FORM STATE TOOLBAR (CREATE / EDIT / VIEW)
   return (
     <div className="flex items-center gap-1 shrink-0">
       {/* 1. Commit / Save Record (✓) */}
@@ -355,5 +350,66 @@ export function ActionButtons({
         <TooltipContent className="text-xs">Return to App Screen (⬆)</TooltipContent>
       </Tooltip>
     </div>
+  );
+}
+
+export interface ActionButtonsProps {
+  mode: CbsScreenMode;
+  searchVal: string;
+  submitting?: boolean;
+  onAmend?: () => void;
+  onView?: () => void;
+  onPerformAction?: () => void;
+  onSubmit?: () => void;
+  onValidate?: () => void;
+  onHold?: () => void;
+  onDelete?: () => void;
+  onAuthorizeReverse?: () => void;
+  onProcessAction?: () => void;
+  onReturnToSearch?: () => void;
+}
+
+/**
+ * Universal ActionButtons toolbar: renders IdleActions or ActiveActions based on screen mode.
+ */
+export function ActionButtons({
+  mode,
+  searchVal,
+  submitting = false,
+  onAmend,
+  onView,
+  onPerformAction,
+  onSubmit,
+  onValidate,
+  onHold,
+  onDelete,
+  onAuthorizeReverse,
+  onProcessAction,
+  onReturnToSearch,
+}: ActionButtonsProps) {
+  if (mode === "IDLE") {
+    return (
+      <IdleActions
+        searchVal={searchVal}
+        submitting={submitting}
+        onAmend={onAmend}
+        onView={onView}
+        onPerformAction={onPerformAction}
+      />
+    );
+  }
+
+  return (
+    <ActiveActions
+      mode={mode}
+      submitting={submitting}
+      onSubmit={onSubmit}
+      onValidate={onValidate}
+      onHold={onHold}
+      onDelete={onDelete}
+      onAuthorizeReverse={onAuthorizeReverse}
+      onProcessAction={onProcessAction}
+      onReturnToSearch={onReturnToSearch}
+    />
   );
 }

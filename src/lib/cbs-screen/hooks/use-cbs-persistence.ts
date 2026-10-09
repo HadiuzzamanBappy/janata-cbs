@@ -38,12 +38,7 @@ export function useCbsPersistence<TRecord>({
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       const urlMode = p.get("mode") as CbsScreenMode | null;
-      if (
-        urlMode === "CREATE" ||
-        urlMode === "EDIT" ||
-        urlMode === "VIEW" ||
-        urlMode === "IDLE"
-      ) {
+      if (urlMode === "CREATE" || urlMode === "EDIT" || urlMode === "VIEW" || urlMode === "IDLE") {
         return urlMode;
       }
     }
@@ -89,12 +84,9 @@ export function useCbsPersistence<TRecord>({
     [tabId, updateTabState],
   );
 
-  const setFormData = React.useCallback<React.Dispatch<React.SetStateAction<TRecord>>>(
-    (action) => {
-      setFormDataState(action);
-    },
-    [],
-  );
+  const setFormData = React.useCallback<React.Dispatch<React.SetStateAction<TRecord>>>((action) => {
+    setFormDataState(action);
+  }, []);
 
   // Decoupled sync to workbench tab store
   const isFirstRender = React.useRef(true);

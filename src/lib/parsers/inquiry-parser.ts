@@ -5,48 +5,11 @@ import {
   type EnquirySchema,
   enquirySchemaSchema,
   type RawEnquiryWire,
-  type RawInqCmd,
-  type RawInqDef,
-  type RawInqInfo,
-  type RawInqSelectField,
   rawEnquiryWireSchema,
   type SelectionField,
   type SelectionOperand,
 } from "@/lib/schemas";
-
-function getScalar(fieldVal: unknown): unknown {
-  if (typeof fieldVal === "object" && fieldVal !== null) {
-    const v = fieldVal as Record<string, unknown>;
-    if ("string_value" in v) return v.string_value;
-    if ("number_value" in v) return v.number_value;
-    if ("bool_value" in v) return v.bool_value;
-    if ("null_value" in v) return null;
-  }
-  return fieldVal;
-}
-
-function unwrapStruct(structObj: unknown): Record<string, unknown> {
-  if (!structObj || typeof structObj !== "object") return {};
-  const s = structObj as Record<string, unknown>;
-  const fields = (s.struct_value as { fields?: Record<string, unknown> })?.fields || s.fields || s;
-  const result: Record<string, unknown> = {};
-  for (const [key, val] of Object.entries(fields)) {
-    result[key] = getScalar(val);
-  }
-  return result;
-}
-
-function unwrapList(listObj: unknown): unknown[] {
-  if (!listObj || typeof listObj !== "object") return [];
-  const l = listObj as Record<string, unknown>;
-  if ("list_value" in l && typeof l.list_value === "object" && l.list_value !== null) {
-    const inner = l.list_value as { values?: unknown[] };
-    return Array.isArray(inner.values) ? inner.values : [];
-  }
-  if (Array.isArray(l.values)) return l.values;
-  if (Array.isArray(listObj)) return listObj;
-  return [];
-}
+import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /**
  * Extracts raw enquiry wire fields from Protobuf struct response envelope.
@@ -54,51 +17,21 @@ function unwrapList(listObj: unknown): unknown[] {
 export function extractRawEnquiry(rawPayload: unknown): RawEnquiryWire | null {
   if (!rawPayload || typeof rawPayload !== "object") return null;
 
-  const root = rawPayload as Record<string, unknown>;
-  const topFields = (root.fields || root) as Record<string, unknown>;
+  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
+  const root = (decoded.record || decoded) as Record<string, unknown>;
 
-  const recordId = String(getScalar(topFields.recordId) ?? "");
+  const recordId = String(root.recordId || "");
   if (!recordId) return null;
-
-  // Extract INQInfo
-  let inqInfo: RawInqInfo | undefined;
-  if (topFields.INQInfo) {
-    inqInfo = unwrapStruct(topFields.INQInfo) as RawInqInfo;
-  }
-
-  // Extract INQSelectField
-  let selectFields: RawInqSelectField[] | undefined;
-  if (topFields.INQSelectField) {
-    const items = unwrapList(topFields.INQSelectField);
-    selectFields = items.map((item) => unwrapStruct(item) as RawInqSelectField);
-  }
-
-  // Extract INQDef (Columns definition)
-  let inqDefs: RawInqDef[] | undefined;
-  if (topFields.INQDef) {
-    const items = unwrapList(topFields.INQDef);
-    inqDefs = items.map((item) => unwrapStruct(item) as RawInqDef);
-  }
-
-  // Extract INQCmds
-  let inqCmds: RawInqCmd[] | undefined;
-  if (topFields.INQCmds) {
-    const items = unwrapList(topFields.INQCmds);
-    inqCmds = items.map((item) => unwrapStruct(item) as RawInqCmd);
-  }
-
-  // Extract auditData
-  const auditData = topFields.auditData
-    ? (unwrapStruct(topFields.auditData) as RawEnquiryWire["auditData"])
-    : undefined;
 
   return {
     recordId,
-    auditData,
-    INQInfo: inqInfo,
-    INQSelectField: selectFields,
-    INQDef: inqDefs,
-    INQCmds: inqCmds,
+    auditData: root.auditData as RawEnquiryWire["auditData"],
+    INQInfo: root.INQInfo as RawEnquiryWire["INQInfo"],
+    INQSelectField: Array.isArray(root.INQSelectField)
+      ? (root.INQSelectField as RawEnquiryWire["INQSelectField"])
+      : undefined,
+    INQDef: Array.isArray(root.INQDef) ? (root.INQDef as RawEnquiryWire["INQDef"]) : undefined,
+    INQCmds: Array.isArray(root.INQCmds) ? (root.INQCmds as RawEnquiryWire["INQCmds"]) : undefined,
   };
 }
 
@@ -107,7 +40,7 @@ export function extractRawEnquiry(rawPayload: unknown): RawEnquiryWire | null {
  */
 export function parseEnquiry(
   rawPayload: unknown,
-  commandFallback: string = "ENQUIRY",
+  commandFallback = "ENQUIRY",
 ): { success: true; data: EnquirySchema } | { success: false; error: string } {
   try {
     const raw = extractRawEnquiry(rawPayload);
@@ -244,49 +177,24 @@ export function parseEnquiry(
 }
 
 /**
- * Parses raw CBS Inquiry dataset wire response (e.g. data.fields.records.list_value.values)
- * into typed flat EnquiryRow[] records.
+ * Parses raw CBS Inquiry dataset wire response into typed flat EnquiryRow[] records.
  */
 export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
-  if (!rawPayload || typeof rawPayload !== "object") return [];
+  if (!rawPayload) return [];
 
-  const root = rawPayload as Record<string, unknown>;
-  const data = (root.data || root) as Record<string, unknown>;
-  const fields = (data.fields || data) as Record<string, unknown>;
-
-  // Check if records list is present under data.fields.records
-  const recordsField = fields.records || root.records;
-  if (!recordsField) {
-    // If payload is already an array of rows
-    if (Array.isArray(rawPayload)) {
-      return rawPayload.map((item, idx) => {
-        const row = typeof item === "object" && item !== null ? item : {};
-        return {
-          id: String(
-            (row as Record<string, unknown>).id ?? (row as Record<string, unknown>).recordId ?? idx,
-          ),
-          ...(row as Record<string, unknown>),
-        };
-      });
-    }
-    return [];
+  // If already an array of raw items, decode them directly
+  if (Array.isArray(rawPayload)) {
+    return rawPayload.map((item, idx) => {
+      const row = decodeProtobufValue<Record<string, unknown>>(item) || {};
+      const id = String(row.id || row.recordId || row.txnReference || row.accountNumber || idx);
+      return { id, ...row };
+    });
   }
 
-  const items = unwrapList(recordsField);
-
-  return items.map((item, idx) => {
-    const flatRecord = unwrapStruct(item);
-    const id = String(
-      flatRecord.id ||
-        flatRecord.recordId ||
-        flatRecord.txnReference ||
-        flatRecord.accountNumber ||
-        idx,
-    );
-
-    return {
-      id,
-      ...flatRecord,
-    };
+  // Use unwrapRecordsPayload to pull data.records or data.fields.records
+  const records = unwrapRecordsPayload<Record<string, unknown>>(rawPayload);
+  return records.map((item, idx) => {
+    const id = String(item.id || item.recordId || item.txnReference || item.accountNumber || idx);
+    return { id, ...item };
   });
 }

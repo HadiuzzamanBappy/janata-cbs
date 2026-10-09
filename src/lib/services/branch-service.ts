@@ -1,11 +1,11 @@
 import "server-only";
 
-import { STATIC_BRANCH_RESPONSE } from "@fixtures";
 import { appConfig, getServiceUrl } from "@/lib/config/server";
 import { grpcProcess } from "@/lib/grpc";
 import { parseBranchesWirePayload } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";
 import type { BranchRecord } from "@/lib/schemas";
+import { getStaticBranchesPayload } from "./static-provider";
 
 const BRANCH_TTL_SECONDS = appConfig.redis.specTtlSeconds;
 const BRANCH_REQUEST_TYPE = "GRL";
@@ -14,7 +14,7 @@ const BRANCH_RECORD_FUNCTION = "L";
 
 async function fetchBranchWirePayload(tokenParam?: string): Promise<unknown> {
   if (appConfig.modelSource === "static") {
-    return STATIC_BRANCH_RESPONSE.data;
+    return getStaticBranchesPayload();
   }
 
   const session = await getSession();

@@ -47,4 +47,3 @@ export const currentUserSchema = z.object({
 });
 
 export type CurrentUser = z.infer<typeof currentUserSchema>;
-export type UserDetails = CurrentUser;

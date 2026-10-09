@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for User Group & Permissions          */
@@ -39,17 +40,7 @@ export const userGroupRecordSchema = z.object({
   menuIds: z.array(z.string()).default([]),
   roleIds: z.array(z.string()).default([]),
   isActive: z.boolean().optional(),
-  auditData: z
-    .object({
-      recStatus: z.string().optional(),
-      recCurrNumber: z.number().optional(),
-      recInputter: z.string().optional(),
-      recInputTime: z.string().optional(),
-      recAuthorizer: z.string().optional(),
-      recAuthTime: z.string().optional(),
-      recBranchCode: z.string().optional(),
-    })
-    .optional(),
+  auditData: auditDataSchema.optional(),
 });
 
 export type UserGroupRecord = z.infer<typeof userGroupRecordSchema>;

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for Model Config Designer             */
@@ -53,17 +54,7 @@ export const modelConfigRecordSchema = z.object({
     .default({ idPrefix: "", idPattern: "", sequenceReset: false }),
   properties: z.array(modelPropertySchema).default([]),
   isActive: z.boolean().default(false),
-  auditData: z
-    .object({
-      recStatus: z.string().optional(),
-      recCurrNumber: z.number().optional(),
-      recInputter: z.string().optional(),
-      recInputTime: z.string().optional(),
-      recAuthorizer: z.string().optional(),
-      recAuthTime: z.string().optional(),
-      recBranchCode: z.string().optional(),
-    })
-    .optional(),
+  auditData: auditDataSchema.optional(),
 });
 
 export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;

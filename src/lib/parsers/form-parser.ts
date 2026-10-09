@@ -38,13 +38,14 @@ function truthy(val: unknown): boolean {
 }
 
 export function toField(record: RawPropertyRecord): FormField {
-  const name = record.NAME ?? "";
+  const name = record.name ?? "";
+  const label = record.label ?? name;
   const options =
-    Array.isArray(record.DATASOURCE) && record.DATASOURCE.length > 0
-      ? record.DATASOURCE
+    Array.isArray(record.datasource) && record.datasource.length > 0
+      ? record.datasource
       : undefined;
 
-  const rawType = (record.TYPE ?? "").toLowerCase();
+  const rawType = (record.type ?? "").toLowerCase();
 
   let fieldType: FieldType = "text";
   if (options?.length) {
@@ -54,16 +55,16 @@ export function toField(record: RawPropertyRecord): FormField {
   } else if (rawType.includes("number") || rawType.includes("numeric") || rawType.includes("int")) {
     fieldType = "number";
   } else {
-    fieldType = typeForColumn(record.TYPE);
+    fieldType = typeForColumn(record.type);
   }
 
   return {
     name,
-    label: record.LABEL ?? name,
+    label,
     type: fieldType,
-    width: widthForLength(record.LENGTH),
-    required: truthy(record.REQUIRED),
-    readOnly: truthy(record.DISABLED),
+    width: widthForLength(record.length),
+    required: truthy(record.required),
+    readOnly: truthy(record.disabled),
     options,
   };
 }
@@ -127,60 +128,67 @@ export function parseGMC(
     return fieldVal;
   };
 
-  const tableName = String(getScalar(recordFields.TABLENAME) ?? commandFallback);
-  const description = String(getScalar(recordFields.DESCRIPTION) ?? tableName);
+  const tableName = String(
+    getScalar(recordFields.tableName ?? recordFields.TABLENAME) ?? commandFallback,
+  );
+  const description = String(
+    getScalar(recordFields.description ?? recordFields.DESCRIPTION) ?? tableName,
+  );
 
   let propertiesRaw: unknown[] = [];
-  const propsField = recordFields.PROPERTIES as Record<string, unknown> | undefined;
+  const propsField = (recordFields.properties ?? recordFields.PROPERTIES) as
+    | Record<string, unknown>
+    | undefined;
   if (propsField && typeof propsField === "object" && "list_value" in propsField) {
     const listVal = propsField.list_value as Record<string, unknown>;
     if (Array.isArray(listVal.values)) {
       propertiesRaw = listVal.values;
     }
+  } else if (Array.isArray(recordFields.properties)) {
+    propertiesRaw = recordFields.properties;
   } else if (Array.isArray(recordFields.PROPERTIES)) {
     propertiesRaw = recordFields.PROPERTIES;
   }
 
   const rawProperties = propertiesRaw.map(extractRawField);
 
-  // Extract IDDEF if present
+  // Extract idDef if present
   let idDefRaw: { IDPREFIX?: string } | undefined;
-  if (recordFields.IDDEF && typeof recordFields.IDDEF === "object") {
-    const idDefObj = recordFields.IDDEF as Record<string, unknown>;
+  const idDefObj = (recordFields.idDef ?? recordFields.IDDEF) as
+    | Record<string, unknown>
+    | undefined;
+  if (idDefObj && typeof idDefObj === "object") {
     const idDefFields =
       (idDefObj.struct_value as { fields?: Record<string, unknown> })?.fields || idDefObj;
-    const prefix = getScalar((idDefFields as Record<string, unknown>).IDPREFIX);
+    const prefix = getScalar(
+      (idDefFields as Record<string, unknown>).idPrefix ??
+        (idDefFields as Record<string, unknown>).IDPREFIX,
+    );
     if (prefix) {
       idDefRaw = { IDPREFIX: String(prefix) };
     }
   }
 
-  // Extract COLUMNS if present (for enquiry screens)
-  let columnsRaw: RawPropertyConfigRecord["COLUMNS"];
-  if (Array.isArray(recordFields.COLUMNS)) {
-    columnsRaw = recordFields.COLUMNS as RawPropertyConfigRecord["COLUMNS"];
-  } else if (
-    recordFields.COLUMNS &&
-    typeof recordFields.COLUMNS === "object" &&
-    "list_value" in recordFields.COLUMNS
-  ) {
-    const listVal = (recordFields.COLUMNS as Record<string, unknown>).list_value as Record<
-      string,
-      unknown
-    >;
+  // Extract columns if present (for enquiry screens)
+  let columnsRaw: RawPropertyConfigRecord["columns"];
+  const columnsField = recordFields.columns ?? recordFields.COLUMNS;
+  if (Array.isArray(columnsField)) {
+    columnsRaw = columnsField as RawPropertyConfigRecord["columns"];
+  } else if (columnsField && typeof columnsField === "object" && "list_value" in columnsField) {
+    const listVal = (columnsField as Record<string, unknown>).list_value as Record<string, unknown>;
     if (Array.isArray(listVal?.values)) {
       columnsRaw = listVal.values.map(
         extractRawField,
-      ) as unknown as RawPropertyConfigRecord["COLUMNS"];
+      ) as unknown as RawPropertyConfigRecord["columns"];
     }
   }
 
   const rawConfig: RawPropertyConfigRecord = {
-    TABLENAME: tableName,
-    DESCRIPTION: description,
-    IDDEF: idDefRaw,
-    PROPERTIES: rawProperties,
-    COLUMNS: columnsRaw,
+    tableName,
+    description,
+    idDef: idDefRaw ? { idPrefix: idDefRaw.IDPREFIX } : undefined,
+    properties: rawProperties,
+    columns: columnsRaw,
   };
 
   const parseResult = rawPropertyConfigSchema.safeParse(rawConfig);
@@ -192,25 +200,25 @@ export function parseGMC(
   }
 
   const record = parseResult.data;
-  const code = (record.TABLENAME ?? commandFallback).toUpperCase();
-  const properties = record.PROPERTIES ?? [];
+  const code = (record.tableName ?? commandFallback).toUpperCase();
+  const properties = record.properties ?? [];
 
   const idPrefix =
-    record.IDDEF?.IDPREFIX ??
+    record.idDef?.idPrefix ??
     code
       .split(".")
-      .map((part) => part[0])
+      .map((part: string) => part[0])
       .join("")
       .slice(0, 2);
 
-  const fields = properties.map(toField).filter((f) => Boolean(f.name));
+  const fields = properties.map(toField).filter((f: FormField) => Boolean(f.name));
 
   const candidateForm: FormSchema = {
     code,
-    title: record.DESCRIPTION ?? code,
+    title: record.description ?? code,
     idPrefix,
     fields,
-    columns: record.COLUMNS,
+    columns: record.columns,
   };
 
   const finalCheck = formSchemaSchema.safeParse(candidateForm);

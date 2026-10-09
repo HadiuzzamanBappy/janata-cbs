@@ -1,8 +1,23 @@
 import { z } from "zod";
+import { auditDataSchema } from "./common-schema";
 
-/**
- * Universal Command / Control Action Types
- */
+/* -------------------------------------------------------------------------- */
+/* Raw gRPC Payload Schemas (Boundary Validation for Controls)                */
+/* -------------------------------------------------------------------------- */
+
+export const rawControlRecordSchema = z.object({
+  recordId: z.string(),
+  controlName: z.string().optional(),
+  description: z.string().optional(),
+  auditData: auditDataSchema.optional(),
+});
+
+export type RawControlRecord = z.infer<typeof rawControlRecordSchema>;
+
+/* -------------------------------------------------------------------------- */
+/* Canonical Domain Command / Control Action Types                            */
+/* -------------------------------------------------------------------------- */
+
 export const commandActionTypeSchema = z.enum(["SCREEN", "SETTINGS", "THEME", "LOGOUT"]);
 export type CommandActionType = z.infer<typeof commandActionTypeSchema>;
 
@@ -28,4 +43,3 @@ export const systemCommandItemSchema = z.object({
 });
 
 export type SystemCommandItem = z.infer<typeof systemCommandItemSchema>;
-export type ControlRecord = SystemCommandItem;

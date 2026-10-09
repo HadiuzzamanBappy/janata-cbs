@@ -87,8 +87,14 @@ export function extractRawEnquiry(rawPayload: unknown): RawEnquiryWire | null {
     inqCmds = items.map((item) => unwrapStruct(item) as RawInqCmd);
   }
 
+  // Extract auditData
+  const auditData = topFields.auditData
+    ? (unwrapStruct(topFields.auditData) as RawEnquiryWire["auditData"])
+    : undefined;
+
   return {
     recordId,
+    auditData,
     INQInfo: inqInfo,
     INQSelectField: selectFields,
     INQDef: inqDefs,

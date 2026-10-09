@@ -8,7 +8,6 @@ import { CbsFormHeader } from "./cbs-form-header";
 import { CbsIdleState } from "./cbs-idle-state";
 import type { CbsAuditFooterData, CbsScreenScaffoldProps } from "../types";
 import { formatAuditFooterData } from "../utils/audit-adapter";
-import { CbsValidationChecklist } from "./cbs-validation-checklist";
 
 export function CbsScreenScaffold<TTab extends string = string>({
   title,
@@ -82,6 +81,8 @@ export function CbsScreenScaffold<TTab extends string = string>({
         submitting={submitting}
         availableItems={availableItems}
         moreActions={moreActions}
+        validationErrors={validationErrors}
+        onSelectValidationTab={(tab) => onActiveTabChange?.(tab as TTab)}
       />
 
       {/* 2. MAIN BODY CANVAS */}
@@ -134,14 +135,10 @@ export function CbsScreenScaffold<TTab extends string = string>({
                   })}
                 </TabsList>
 
-                {/* Right toolbar item: Validation checklist & domain items */}
-                <div className="flex items-center gap-2 pr-1">
-                  <CbsValidationChecklist
-                    errors={validationErrors}
-                    onSelectTab={(tab) => onActiveTabChange?.(tab)}
-                  />
-                  {rightTabContent}
-                </div>
+                {/* Right toolbar item: domain items (e.g. status tags) */}
+                {rightTabContent && (
+                  <div className="flex items-center gap-2 pr-1">{rightTabContent}</div>
+                )}
               </div>
 
               {/* TAB CONTENTS */}

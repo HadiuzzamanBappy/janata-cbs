@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { computeDelta } from "@/lib/cbs-record";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import type { FormSchema } from "@/lib/schemas";
 import { findRecordInFixtures } from "../utils/record-finder";
@@ -169,7 +170,15 @@ export function useFormActions({
 
       setSubmitting(true);
       try {
-        const json = await cbs.send(cbs.form.commitRecord(schema.code, values), {
+        // Compute delta if updating an existing record, otherwise send full payload
+        const payload =
+          screenMode === "I" && Object.keys(initialValues).length > 0
+            ? computeDelta(initialValues, values).modifiedFields
+            : values;
+
+        const commitData = Object.keys(payload).length > 0 ? payload : values;
+
+        const json = await cbs.send(cbs.form.commitRecord(schema.code, commitData), {
           successTitle: "Transaction Saved",
           successMessage: `Record saved successfully for ${schema.title}`,
         });
@@ -183,7 +192,7 @@ export function useFormActions({
         setSubmitting(false);
       }
     },
-    [validate, schema, values, onSuccess],
+    [validate, schema, values, screenMode, initialValues, onSuccess],
   );
 
   const handleHold = React.useMemo(() => {

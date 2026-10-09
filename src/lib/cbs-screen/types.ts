@@ -55,9 +55,9 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   // 1. Header Props
   title: string;
   commandCode: string;
-  recordId: string;
-  mode: CbsScreenMode;
-  onRecordIdChange: (id: string) => void;
+  recordId?: string;
+  mode?: CbsScreenMode;
+  onRecordIdChange?: (id: string) => void;
   onRecordSearch?: (id: string) => void;
   onCreateNew?: () => void;
   onReturnToSearch?: () => void;
@@ -74,6 +74,16 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   submitting?: boolean;
   availableItems?: Array<{ id: string; label?: string; details?: string }>;
   moreActions?: MoreActionItem[];
+
+  // 1.1 Inquiry Variant Header Props
+  inquiryStep?: "SELECTION" | "RESULTS";
+  onInquiryBackToSelection?: () => void;
+  onInquiryRefresh?: () => void;
+  onInquiryPrintLocal?: () => void;
+  onInquiryPrintServer?: () => void;
+  onInquiryExportCSV?: () => void;
+  onInquiryExportHTML?: () => void;
+  onInquiryExportXML?: () => void;
 
   // 2. Idle State Configuration
   idleMessage?: string;

@@ -3,18 +3,19 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCbsHotkeys } from "../hooks/use-cbs-hotkeys";
+import { useCbsHotkeys } from "@/lib/cbs-hotkeys";
 import type { CbsAuditFooterData, CbsScreenScaffoldProps } from "../types";
 import { formatAuditFooterData } from "../utils/audit-adapter";
 import { CbsAuditFooter } from "./cbs-audit-footer";
 import { CbsFormHeader } from "./cbs-form-header";
 import { CbsIdleState } from "./cbs-idle-state";
+import { CbsInquiryHeader } from "./cbs-inquiry-header";
 
 export function CbsScreenScaffold<TTab extends string = string>({
   title,
   commandCode,
-  recordId,
-  mode,
+  recordId = "",
+  mode = "IDLE",
   onRecordIdChange,
   onRecordSearch,
   onCreateNew,
@@ -31,6 +32,14 @@ export function CbsScreenScaffold<TTab extends string = string>({
   submitting = false,
   availableItems = [],
   moreActions = [],
+  inquiryStep,
+  onInquiryBackToSelection,
+  onInquiryRefresh,
+  onInquiryPrintLocal,
+  onInquiryPrintServer,
+  onInquiryExportCSV,
+  onInquiryExportHTML,
+  onInquiryExportXML,
   idleMessage,
   variant = "admin-tabs",
   tabs = [],
@@ -44,13 +53,17 @@ export function CbsScreenScaffold<TTab extends string = string>({
 }: CbsScreenScaffoldProps<TTab>) {
   const isReadOnly = mode === "S" || mode === "A" || mode === "D" || mode === "H" || mode === "R";
 
-  // Universal terminal hotkeys: F5/Ctrl+S (Submit), F7 (Validate), F8 (Auth), Esc (Return)
+  // Universal terminal hotkeys: F2 (New), F3/Esc (Return), F5/Ctrl+S (Commit), F6 (Hold), F7 (Validate), F8 (Auth), F9 (Process), F10 (Delete)
   useCbsHotkeys({
     enabled: true,
     handlers: {
+      onCreateNew,
       onCommit: !isReadOnly ? onSubmit : undefined,
+      onHold: !isReadOnly ? onHold : undefined,
       onValidate: !isReadOnly ? onValidate : undefined,
       onAuthorize: onAuthorizeReverse,
+      onProcessAction,
+      onDelete: !isReadOnly ? onDelete : undefined,
       onReturn: onReturnToSearch,
     },
   });
@@ -67,41 +80,59 @@ export function CbsScreenScaffold<TTab extends string = string>({
     <div
       className={`flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans ${className}`}
     >
-      {/* 1. CBS FORM HEADER */}
-      <CbsFormHeader
-        title={title}
-        commandCode={commandCode}
-        recordId={recordId}
-        onRecordIdChange={(newId) => onRecordIdChange(newId.toUpperCase())}
-        onRecordSearch={(searchedId) => {
-          if (onRecordSearch) {
-            onRecordSearch(searchedId.toUpperCase());
-          } else {
-            onRecordIdChange(searchedId.toUpperCase());
-          }
-        }}
-        onCreateNew={onCreateNew}
-        onReturnToSearch={onReturnToSearch}
-        onReset={onReset}
-        onValidate={!isReadOnly ? onValidate : undefined}
-        onSubmit={!isReadOnly ? onSubmit : undefined}
-        onHold={!isReadOnly ? onHold : undefined}
-        onDelete={!isReadOnly ? onDelete : undefined}
-        onView={onView}
-        onAmend={onAmend}
-        onAuthorizeReverse={onAuthorizeReverse}
-        onProcessAction={onProcessAction}
-        mode={mode}
-        submitting={submitting}
-        availableItems={availableItems}
-        moreActions={moreActions}
-        validationErrors={validationErrors}
-        onSelectValidationTab={(tab) => onActiveTabChange?.(tab as TTab)}
-      />
+      {/* 1. CBS HEADER: Inquiry Header for Inquiry screens, Form Header for others */}
+      {variant === "inquiry" ? (
+        inquiryStep === "RESULTS" ? (
+          <CbsInquiryHeader
+            title={title}
+            commandCode={commandCode}
+            step={inquiryStep}
+            onBackToSelection={onInquiryBackToSelection}
+            onRefresh={onInquiryRefresh}
+            onPrintLocal={onInquiryPrintLocal}
+            onPrintServer={onInquiryPrintServer}
+            onExportCSV={onInquiryExportCSV}
+            onExportHTML={onInquiryExportHTML}
+            onExportXML={onInquiryExportXML}
+            validationErrors={validationErrors}
+          />
+        ) : null
+      ) : (
+        <CbsFormHeader
+          title={title}
+          commandCode={commandCode}
+          recordId={recordId}
+          onRecordIdChange={(newId) => onRecordIdChange?.(newId.toUpperCase())}
+          onRecordSearch={(searchedId) => {
+            if (onRecordSearch) {
+              onRecordSearch(searchedId.toUpperCase());
+            } else {
+              onRecordIdChange?.(searchedId.toUpperCase());
+            }
+          }}
+          onCreateNew={onCreateNew}
+          onReturnToSearch={onReturnToSearch}
+          onReset={onReset}
+          onValidate={!isReadOnly ? onValidate : undefined}
+          onSubmit={!isReadOnly ? onSubmit : undefined}
+          onHold={!isReadOnly ? onHold : undefined}
+          onDelete={!isReadOnly ? onDelete : undefined}
+          onView={onView}
+          onAmend={onAmend}
+          onAuthorizeReverse={onAuthorizeReverse}
+          onProcessAction={onProcessAction}
+          mode={mode}
+          submitting={submitting}
+          availableItems={availableItems}
+          moreActions={moreActions}
+          validationErrors={validationErrors}
+          onSelectValidationTab={(tab) => onActiveTabChange?.(tab as TTab)}
+        />
+      )}
 
       {/* 2. MAIN BODY CANVAS */}
       <div className="flex-1 overflow-hidden p-2 flex flex-col min-h-0">
-        {mode === "IDLE" ? (
+        {mode === "IDLE" && variant !== "inquiry" ? (
           <div className="h-full flex flex-col items-center justify-center">
             <CbsIdleState
               title={title}

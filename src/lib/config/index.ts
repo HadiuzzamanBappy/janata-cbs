@@ -1,7 +1,9 @@
 /**
  * Core Banking Configuration
- * Strictly runtime environment variables and application constants.
+ *
+ * Provides isomorphic client-safe configuration for UI components by default,
+ * while isolating server secrets behind explicit server modules.
  */
 
-export * from "./constants";
-export * from "./env";
+export * from "./client";
+export { clientConfig as appConfig } from "./client";

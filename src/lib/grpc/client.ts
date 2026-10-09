@@ -7,7 +7,7 @@ import {
   Metadata,
   type ServiceError,
 } from "@grpc/grpc-js";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/config/server";
 import {
   type GrpcRequest,
   type GrpcResponse,
@@ -16,20 +16,30 @@ import {
 } from "@/lib/grpc/generated/service";
 
 /**
- * Global singleton reference to preserve the gRPC client channel across
- * Next.js hot module reloads in production.
+ * Global registry cache for gRPC client channels by target host address.
+ * Preserves active connection pools across Next.js dev server HMR cycles
+ * and prevents socket descriptor exhaustion.
  */
 declare global {
-  var __grpcClient: GrpcServiceClient | undefined;
+  var __grpcClientPool: Map<string, GrpcServiceClient> | undefined;
 }
+
+if (!globalThis.__grpcClientPool) {
+  globalThis.__grpcClientPool = new Map<string, GrpcServiceClient>();
+}
+const clientPool: Map<string, GrpcServiceClient> = globalThis.__grpcClientPool;
 
 /**
  * Constructs a configured gRPC client channel with TLS security and keepalive options.
+ *
+ * @param address - Host and port target (e.g. "localhost:9090").
+ * @returns Configured GrpcServiceClient instance.
  */
 function buildClient(address: string): GrpcServiceClient {
   const creds: ChannelCredentials = appConfig.grpc.useTls
     ? credentials.createSsl()
     : credentials.createInsecure();
+
   return new GrpcServiceClient(address, creds, {
     "grpc.keepalive_time_ms": appConfig.grpc.keepaliveTimeMs,
     "grpc.keepalive_timeout_ms": appConfig.grpc.keepaliveTimeoutMs,
@@ -37,35 +47,44 @@ function buildClient(address: string): GrpcServiceClient {
 }
 
 /**
- * Retrieves the gRPC client channel. In production, reuses a singleton connection;
- * in development, builds a fresh client per call to prevent socket leaks during HMR.
+ * Retrieves or lazily instantiates a pooled gRPC client channel for a target address.
+ * Reuses existing channels across both development and production to eliminate socket leaks.
+ *
+ * @param address - Host and port target.
+ * @returns Cached or newly initialized GrpcServiceClient.
  */
-function getClient(address: string): GrpcServiceClient {
-  if (appConfig.nodeEnv === "production") {
-    if (!globalThis.__grpcClient) {
-      globalThis.__grpcClient = buildClient(address);
-    }
-    return globalThis.__grpcClient;
+export function getClient(address: string): GrpcServiceClient {
+  let client = clientPool.get(address);
+  if (!client) {
+    client = buildClient(address);
+    clientPool.set(address, client);
   }
-  return buildClient(address);
+  return client;
 }
 
 /**
  * RPC execution options including authentication token, deadline timeout, and custom headers.
  */
-interface CallOpts {
+export interface CallOpts {
+  /** Optional JWT or bearer session token */
   token?: string;
+  /** Explicit deadline in milliseconds */
   deadlineMs?: number;
+  /** Additional custom metadata key-value headers */
   metadata?: Record<string, string>;
 }
 
 /**
- * Unauthenticated RPC: Authenticates user credentials with the CBS host.
+ * Unauthenticated RPC: Authenticates user credentials with the backend CBS host.
+ *
+ * @param req - Login request containing user credentials and client ID.
+ * @param _opts - Optional call parameters.
+ * @returns Promise resolving to the GrpcResponse envelope from CBS.
  */
 export function loginProcess(req: LoginRequest, _opts: CallOpts = {}): Promise<GrpcResponse> {
   const address = appConfig.grpc.host;
-
   const client = getClient(address);
+
   return new Promise<GrpcResponse>((resolve, reject) => {
     client.loginProcess(req, (err, res) => {
       if (err) reject(err);
@@ -74,9 +93,22 @@ export function loginProcess(req: LoginRequest, _opts: CallOpts = {}): Promise<G
   });
 }
 
-/* ---------- Authenticated RPC: Financial & Non-Financial ---------- */
+/**
+ * Core banking process classification:
+ * - 'financial': executes with state-altering ledger mechanics and idempotency keys.
+ * - 'nonfinancial': executes read/inquiry operations without idempotency overhead.
+ */
 export type ProcessKind = "financial" | "nonfinancial";
 
+/**
+ * Executes an authenticated unary gRPC transaction against the target service address.
+ *
+ * @param address - Target host address.
+ * @param kind - 'financial' or 'nonfinancial' process classification.
+ * @param req - Fully populated GrpcRequest envelope.
+ * @param opts - Invocation options (bearer token, deadline, headers).
+ * @returns Promise resolving to the backend GrpcResponse.
+ */
 export function grpcProcess(
   address: string,
   kind: ProcessKind,
@@ -112,7 +144,12 @@ export function grpcProcess(
   });
 }
 
-/* ---------- gRPC status code to HTTP status conversion ---------- */
+/**
+ * Maps a gRPC status code and service error to standard HTTP status codes and human-readable error messages.
+ *
+ * @param err - Unknown error caught from gRPC invocation.
+ * @returns HTTP status number and sanitized error message string.
+ */
 export function grpcStatusToHttp(err: unknown): {
   status: number;
   message: string;

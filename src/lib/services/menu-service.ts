@@ -1,7 +1,6 @@
 import "server-only";
 import { STATIC_MENU } from "@fixtures";
-import { appConfig } from "@/lib/config";
-import { getServiceUrl } from "@/lib/config/service-endpoints";
+import { appConfig, getServiceUrl } from "@/lib/config/server";
 import { grpcProcess } from "@/lib/grpc";
 import { parseMNU } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";

@@ -1,7 +1,6 @@
 import "server-only";
 import { STATIC_FORMS } from "@fixtures";
-import { appConfig } from "@/lib/config";
-import { getServiceUrl } from "@/lib/config/service-endpoints";
+import { appConfig, getServiceUrl } from "@/lib/config/server";
 import { grpcProcess } from "@/lib/grpc";
 import { parseGMC } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";

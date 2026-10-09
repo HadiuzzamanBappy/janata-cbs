@@ -1,5 +1,5 @@
 import "server-only";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/config/server";
 import { cacheDelete, cacheGet, cacheKey, cacheSet, circuitOpen, singleFlight } from "./client";
 
 const DEFAULT_TTL_SECONDS = appConfig.redis.defaultTtlSeconds;

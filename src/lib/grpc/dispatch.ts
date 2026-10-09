@@ -1,23 +1,30 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { appConfig } from "@/lib/config";
-import { getService, REQUEST_TYPE_OVERLAYS } from "@/lib/config/service-endpoints";
+import { appConfig, getService, REQUEST_TYPE_OVERLAYS } from "@/lib/config/server";
 import { grpcProcess, grpcStatusToHttp, type ProcessKind } from "@/lib/grpc/client";
 import type { GrpcRequest } from "@/lib/grpc/generated/service";
 import type { ApiResponse, GrpcEnvelope } from "@/types";
-
-export type { GrpcEnvelope };
 
 const FINANCIAL_REQUEST_TYPES = new Set(
   appConfig.grpc.financialTransactionTypes.map((s) => s.trim().toUpperCase()),
 );
 
+/**
+ * Classifies an incoming transaction into financial or nonfinancial category.
+ *
+ * @param requestType - CBS transaction request type code (e.g. 'AFT', 'ACT', 'GRL').
+ * @returns 'financial' if requiring idempotency and ledger mutation semantics, else 'nonfinancial'.
+ */
 function classify(requestType: string): ProcessKind {
   return FINANCIAL_REQUEST_TYPES.has(requestType.toUpperCase()) ? "financial" : "nonfinancial";
 }
 
 /**
- * Resolves any specialized domain override for a given control and requestType.
+ * Resolves specialized domain command overlays based on control keyword tokens.
+ *
+ * @param controlName - Control tag identifier (e.g. "USER,LIST", "FUNDS.TRANSFER").
+ * @param originalType - Default request type code.
+ * @returns Overlaid request type code if matched, otherwise the original code.
  */
 function resolveRequestType(controlName: string | undefined, originalType: string): string {
   if (!controlName) return originalType;
@@ -33,7 +40,13 @@ function resolveRequestType(controlName: string | undefined, originalType: strin
 }
 
 /**
- * Dispatches an envelope via gRPC transport.
+ * Dispatches an envelope via binary gRPC transport channel.
+ *
+ * @param address - Backend gRPC host address.
+ * @param kind - 'financial' or 'nonfinancial' process classification.
+ * @param envelope - Session-enriched gRPC envelope.
+ * @param token - Authenticated user bearer token.
+ * @returns Standardized ApiResponse.
  */
 async function executeGrpcTransport(
   address: string,
@@ -67,7 +80,13 @@ async function executeGrpcTransport(
 }
 
 /**
- * Dispatches an envelope via downstream HTTP REST transport.
+ * Dispatches an envelope via downstream HTTP REST microservice.
+ * Safely guards against non-JSON reverse proxy error pages (e.g., 502/504 Bad Gateway).
+ *
+ * @param baseUrl - Base URL for the downstream REST service.
+ * @param envelope - Session-enriched envelope.
+ * @param token - Authenticated user bearer token.
+ * @returns Standardized ApiResponse.
  */
 async function executeRestTransport(
   baseUrl: string,
@@ -85,7 +104,18 @@ async function executeRestTransport(
     cache: "no-store",
   });
 
-  const res = await response.json();
+  let res: Partial<ApiResponse> = {};
+  try {
+    res = (await response.json()) as Partial<ApiResponse>;
+  } catch {
+    res = {
+      status: response.ok ? "SUCCESS" : "FAIL",
+      statusCode: response.status,
+      message: `Downstream service returned non-JSON response (${response.statusText || response.status})`,
+      errors: [response.statusText || `HTTP_${response.status}`],
+    };
+  }
+
   return {
     status: res.status || "SUCCESS",
     statusCode: res.statusCode || response.status,
@@ -99,7 +129,12 @@ async function executeRestTransport(
 
 /**
  * Universal CBS Request Dispatcher.
- * Dynamically routes to gRPC or REST microservices based on protocol metadata in the Service Registry.
+ * Dynamically routes requests across either binary gRPC or HTTP REST microservices
+ * based on registry protocol metadata and transaction overrides.
+ *
+ * @param envelope - Enriched transaction payload with officer session details.
+ * @param token - Authenticated session bearer token.
+ * @returns Standardized ApiResponse contract.
  */
 export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<ApiResponse> {
   try {
@@ -140,5 +175,3 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
     };
   }
 }
-
-

@@ -73,7 +73,10 @@ export function CbsJsonViewerTab({
           </div>
 
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="font-mono text-[10px] h-5 rounded px-1.5 text-muted-foreground">
+            <Badge
+              variant="outline"
+              className="font-mono text-[10px] h-5 rounded px-1.5 text-muted-foreground"
+            >
               {linesCount} lines • {(sizeBytes / 1024).toFixed(1)} KB
             </Badge>
 
@@ -118,4 +121,3 @@ export function CbsJsonViewerTab({
     </div>
   );
 }
-

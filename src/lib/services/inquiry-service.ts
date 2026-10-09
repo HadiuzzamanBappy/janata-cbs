@@ -1,10 +1,10 @@
 import "server-only";
-import { STATIC_INQUIRIES } from "@fixtures";
 import { appConfig, getServiceUrl } from "@/lib/config/server";
 import { grpcProcess } from "@/lib/grpc";
 import { parseEnquiry } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";
 import type { EnquirySchema } from "@/lib/schemas";
+import { getStaticInquiryPayload } from "./static-provider";
 
 const SPEC_TTL_SECONDS = appConfig.redis.specTtlSeconds;
 const ENQUIRY_REQUEST_TYPE = "GET";
@@ -21,7 +21,7 @@ async function fetchEnquiryWirePayload(command: string, tokenParam?: string): Pr
     .trim();
 
   if (appConfig.modelSource === "static") {
-    return STATIC_INQUIRIES[cleanCmd]?.data ?? null;
+    return getStaticInquiryPayload(cleanCmd);
   }
 
   const session = await getSession();

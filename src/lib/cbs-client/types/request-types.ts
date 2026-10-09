@@ -1,27 +1,42 @@
 /**
- * Canonical CBS Wire Request Types (Verbs)
+ * Canonical CBS Wire Request Types (Verbs).
+ *
  * Matches T24 CBS wire specification & FinX gRPC dispatch table.
  */
 export const CbsRequestType = {
   // Standard CRUD & Lifecycle Operations
-  RECORD_LIST: "GRL", // Get Record List
-  RECORD_GET: "GET", // Single Record Fetch
-  RECORD_PUT: "PUT", // Create / Update Record
-  RECORD_AUTH: "AUT", // Authorize (Maker-Checker)
-  RECORD_DEL: "DEL", // Delete / Reverse
-  RECORD_HOLD: "HLD", // Place Record on Hold
-  RECORD_REVERSE: "REV", // Reversal Request
+  /** Get Record List ('GRL') */
+  RECORD_LIST: "GRL",
+  /** Single Record Fetch ('GET') */
+  RECORD_GET: "GET",
+  /** Create / Update Record ('PUT') */
+  RECORD_PUT: "PUT",
+  /** Authorize (Maker-Checker approval) ('AUT') */
+  RECORD_AUTH: "AUT",
+  /** Delete / Reverse ('DEL') */
+  RECORD_DEL: "DEL",
+  /** Place Record on Hold ('HLD') */
+  RECORD_HOLD: "HLD",
+  /** Reversal Request ('REV') */
+  RECORD_REVERSE: "REV",
 
   // Specialized CBS Query & Engine Verbs
-  INQUIRY_EXEC: "INQ", // Grid Inquiry Execution
-  MENU_TREE: "GUM", // Hierarchical Navigation Tree Fetch
-  USER_AUTH: "UAU", // User Security Authorization
-  ACCOUNT_FUNDS_TRANSFER: "AFT", // Funds Transfer Transaction
-  ACCOUNT_CASH_TRANSFER: "ACT", // Cash Transfer Transaction
+  /** Grid Inquiry Execution ('INQ') */
+  INQUIRY_EXEC: "INQ",
+  /** Hierarchical Navigation Tree Fetch ('GUM') */
+  MENU_TREE: "GUM",
+  /** User Security Authorization ('UAU') */
+  USER_AUTH: "UAU",
+  /** Funds Transfer Transaction ('AFT') */
+  ACCOUNT_FUNDS_TRANSFER: "AFT",
+  /** Cash Transfer Transaction ('ACT') */
+  ACCOUNT_CASH_TRANSFER: "ACT",
 
   // Staff Account & Security Self-Service Verbs
-  CHANGE_USER_NAME: "CUN", // Change Sign-On / User Name
-  CHANGE_PASSWORD: "CPW", // Change User Password
+  /** Change Sign-On / User Name ('CUN') */
+  CHANGE_USER_NAME: "CUN",
+  /** Change User Password ('CPW') */
+  CHANGE_PASSWORD: "CPW",
 } as const;
 
 export type CbsRequestType = (typeof CbsRequestType)[keyof typeof CbsRequestType];

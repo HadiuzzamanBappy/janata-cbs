@@ -8,7 +8,11 @@ import {
   type RawPropertyRecord,
   rawPropertyConfigSchema,
 } from "@/lib/schemas";
+import { decodeProtobufValue } from "./protobuf-decoder";
 
+/**
+ * Maps field length to standard UI width classes.
+ */
 export function widthForLength(length?: number | string): FieldWidth {
   const num = typeof length === "string" ? Number.parseInt(length, 10) : length;
   if (!num || Number.isNaN(num)) return "md";
@@ -18,6 +22,9 @@ export function widthForLength(length?: number | string): FieldWidth {
   return "lg";
 }
 
+/**
+ * Maps SQL / CBS column types to canonical UI field input types.
+ */
 export function typeForColumn(sqlType?: string): FieldType {
   const t = (sqlType ?? "").toUpperCase();
   if (t.includes("DATE") || t.includes("TIME")) return "date";
@@ -37,6 +44,9 @@ function truthy(val: unknown): boolean {
   return val === true || val === "Y" || val === "YES" || val === "1" || val === 1;
 }
 
+/**
+ * Maps a raw property record to a canonical UI FormField descriptor.
+ */
 export function toField(record: RawPropertyRecord): FormField {
   const name = record.name ?? "";
   const label = record.label ?? name;
@@ -69,134 +79,38 @@ export function toField(record: RawPropertyRecord): FormField {
   };
 }
 
-function extractRawField(fieldNode: unknown): RawPropertyRecord {
-  if (!fieldNode || typeof fieldNode !== "object") return {};
-  const obj = fieldNode as Record<string, unknown>;
-
-  const structVal = (obj.struct_value || obj) as Record<string, unknown>;
-  const fields = (structVal.fields || structVal) as Record<string, unknown>;
-
-  const getValue = (val: unknown): unknown => {
-    if (typeof val === "object" && val !== null) {
-      const v = val as Record<string, unknown>;
-      if ("string_value" in v) return v.string_value;
-      if ("number_value" in v) return v.number_value;
-      if ("bool_value" in v) return v.bool_value;
-      if ("list_value" in v && typeof v.list_value === "object" && v.list_value !== null) {
-        const lv = v.list_value as Record<string, unknown>;
-        if (Array.isArray(lv.values)) {
-          return lv.values.map(getValue);
-        }
-      }
-      if ("struct_value" in v) return extractRawField(v);
-    }
-    return val;
-  };
-
-  const result: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(fields)) {
-    result[k] = getValue(v);
-  }
-
-  return result as RawPropertyRecord;
-}
-
+/**
+ * Parses raw GMC (Generic Model Controller) payload into a validated FormSchema.
+ */
 export function parseGMC(
   rawPayload: unknown,
-  commandFallback: string = "FORM",
+  commandFallback = "FORM",
 ): { success: true; data: FormSchema } | { success: false; error: string } {
   if (!rawPayload || typeof rawPayload !== "object") {
-    return {
-      success: false,
-      error: "GMC payload is null, undefined, or invalid object",
-    };
+    return { success: false, error: "GMC payload is null, undefined, or invalid object" };
   }
 
-  const obj = rawPayload as Record<string, unknown>;
-  const topFields = (obj.fields || obj) as Record<string, unknown>;
-  const recordWrapper = (topFields.record || topFields) as Record<string, unknown>;
-  const recordStruct = (recordWrapper.struct_value || recordWrapper) as Record<string, unknown>;
-  const recordFields = (recordStruct.fields || recordStruct) as Record<string, unknown>;
+  // Use universal protobuf decoder to recursively unwrap all struct_values and fields
+  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
+  const recordWrapper = (decoded.record || decoded) as Record<string, unknown>;
+  const recordFields = (recordWrapper.record || recordWrapper) as Record<string, unknown>;
 
-  const getScalar = (fieldVal: unknown): unknown => {
-    if (typeof fieldVal === "object" && fieldVal !== null) {
-      const v = fieldVal as Record<string, unknown>;
-      if ("string_value" in v) return v.string_value;
-      if ("number_value" in v) return v.number_value;
-      if ("bool_value" in v) return v.bool_value;
-    }
-    return fieldVal;
-  };
-
-  const tableName = String(
-    getScalar(recordFields.tableName ?? recordFields.TABLENAME) ?? commandFallback,
-  );
-  const description = String(
-    getScalar(recordFields.description ?? recordFields.DESCRIPTION) ?? tableName,
-  );
-
-  let propertiesRaw: unknown[] = [];
-  const propsField = (recordFields.properties ?? recordFields.PROPERTIES) as
-    | Record<string, unknown>
-    | undefined;
-  if (propsField && typeof propsField === "object" && "list_value" in propsField) {
-    const listVal = propsField.list_value as Record<string, unknown>;
-    if (Array.isArray(listVal.values)) {
-      propertiesRaw = listVal.values;
-    }
-  } else if (Array.isArray(recordFields.properties)) {
-    propertiesRaw = recordFields.properties;
-  } else if (Array.isArray(recordFields.PROPERTIES)) {
-    propertiesRaw = recordFields.PROPERTIES;
-  }
-
-  const rawProperties = propertiesRaw.map(extractRawField);
-
-  // Extract idDef if present
-  let idDefRaw: { IDPREFIX?: string } | undefined;
-  const idDefObj = (recordFields.idDef ?? recordFields.IDDEF) as
-    | Record<string, unknown>
-    | undefined;
-  if (idDefObj && typeof idDefObj === "object") {
-    const idDefFields =
-      (idDefObj.struct_value as { fields?: Record<string, unknown> })?.fields || idDefObj;
-    const prefix = getScalar(
-      (idDefFields as Record<string, unknown>).idPrefix ??
-        (idDefFields as Record<string, unknown>).IDPREFIX,
-    );
-    if (prefix) {
-      idDefRaw = { IDPREFIX: String(prefix) };
-    }
-  }
-
-  // Extract columns if present (for enquiry screens)
-  let columnsRaw: RawPropertyConfigRecord["columns"];
-  const columnsField = recordFields.columns ?? recordFields.COLUMNS;
-  if (Array.isArray(columnsField)) {
-    columnsRaw = columnsField as RawPropertyConfigRecord["columns"];
-  } else if (columnsField && typeof columnsField === "object" && "list_value" in columnsField) {
-    const listVal = (columnsField as Record<string, unknown>).list_value as Record<string, unknown>;
-    if (Array.isArray(listVal?.values)) {
-      columnsRaw = listVal.values.map(
-        extractRawField,
-      ) as unknown as RawPropertyConfigRecord["columns"];
-    }
-  }
+  const tableName = String(recordFields.tableName ?? commandFallback);
+  const description = String(recordFields.description ?? tableName);
+  const propertiesRaw = Array.isArray(recordFields.properties) ? recordFields.properties : [];
+  const rawProperties = propertiesRaw.map((p) => p as RawPropertyRecord);
 
   const rawConfig: RawPropertyConfigRecord = {
     tableName,
     description,
-    idDef: idDefRaw ? { idPrefix: idDefRaw.IDPREFIX } : undefined,
+    idDef: recordFields.idDef as RawPropertyConfigRecord["idDef"],
     properties: rawProperties,
-    columns: columnsRaw,
+    columns: recordFields.columns as RawPropertyConfigRecord["columns"],
   };
 
   const parseResult = rawPropertyConfigSchema.safeParse(rawConfig);
   if (!parseResult.success) {
-    return {
-      success: false,
-      error: `Zod validation error: ${parseResult.error.message}`,
-    };
+    return { success: false, error: `Zod validation error: ${parseResult.error.message}` };
   }
 
   const record = parseResult.data;
@@ -223,14 +137,8 @@ export function parseGMC(
 
   const finalCheck = formSchemaSchema.safeParse(candidateForm);
   if (!finalCheck.success) {
-    return {
-      success: false,
-      error: `FormSchema validation failed: ${finalCheck.error.message}`,
-    };
+    return { success: false, error: `FormSchema validation failed: ${finalCheck.error.message}` };
   }
 
-  return {
-    success: true,
-    data: finalCheck.data,
-  };
+  return { success: true, data: finalCheck.data };
 }

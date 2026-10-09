@@ -1,7 +1,4 @@
-import {
-  type ModelConfigRecord,
-  modelConfigRecordSchema,
-} from "@/lib/schemas/model-config-schema";
+import { type ModelConfigRecord, modelConfigRecordSchema } from "@/lib/schemas/model-config-schema";
 
 /**
  * Parses inbound JSON payload into a strictly validated ModelConfigRecord.

@@ -1,49 +1,11 @@
 import { z } from "zod";
-import { unwrapRecordsPayload } from "./protobuf-decoder";
 import {
   type MenuItem,
   menuItemSchema,
   type RawMenuRecord,
   rawMenuRecordSchema,
 } from "@/lib/schemas";
-
-function extractRawNode(node: unknown): RawMenuRecord {
-  if (!node || typeof node !== "object") return {};
-  const obj = node as Record<string, unknown>;
-
-  // Check if wrapped in Protobuf struct_value / fields
-  const structVal = (obj.struct_value || obj) as Record<string, unknown>;
-  const fields = (structVal.fields || structVal) as Record<string, unknown>;
-
-  const getValue = (val: unknown): unknown => {
-    if (typeof val === "object" && val !== null) {
-      const v = val as Record<string, unknown>;
-      if ("string_value" in v) return v.string_value;
-      if ("number_value" in v) return v.number_value;
-      if ("bool_value" in v) return v.bool_value;
-      if ("list_value" in v && typeof v.list_value === "object" && v.list_value !== null) {
-        const lv = v.list_value as Record<string, unknown>;
-        if (Array.isArray(lv.values)) {
-          return lv.values.map(extractRawNode);
-        }
-      }
-      if ("struct_value" in v) return extractRawNode(v);
-    }
-    return val;
-  };
-
-  const result: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(fields)) {
-    result[k] = getValue(v);
-  }
-
-  // Handle direct children if already array
-  if (Array.isArray(obj.children)) {
-    result.children = obj.children.map(extractRawNode);
-  }
-
-  return result as RawMenuRecord;
-}
+import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 function toMenuItemNode(record: RawMenuRecord, index: number, parentId = "m"): MenuItem {
   const id = String(record.id ?? record.menuId ?? record.code ?? `${parentId}-${index}`);
@@ -64,6 +26,9 @@ function toMenuItemNode(record: RawMenuRecord, index: number, parentId = "m"): M
   };
 }
 
+/**
+ * Standard parser to transform raw CBS menu payload into a validated MenuItem hierarchy.
+ */
 export function parseMNU(
   rawPayload: unknown,
 ): { success: true; data: MenuItem[] } | { success: false; error: string } {
@@ -72,7 +37,6 @@ export function parseMNU(
   }
 
   const rawList = unwrapRecordsPayload(rawPayload);
-
   if (!Array.isArray(rawList)) {
     return {
       success: false,
@@ -80,7 +44,8 @@ export function parseMNU(
     };
   }
 
-  const rawRecords = rawList.map(extractRawNode);
+  // Normalize protobuf recursive structs using the universal decoder
+  const rawRecords = rawList.map((item) => decodeProtobufValue<RawMenuRecord>(item));
 
   const arrayResult = z.array(rawMenuRecordSchema).safeParse(rawRecords);
   if (!arrayResult.success) {

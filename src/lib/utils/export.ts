@@ -63,10 +63,7 @@ export function exportToHtmlReport<T extends Record<string, unknown>>(
   const subtitle = options?.subtitle ? ` (${options.subtitle})` : "";
   const tableHeaders = columns.map((c) => `<th>${c.header}</th>`).join("");
   const tableBody = rows
-    .map(
-      (r) =>
-        `<tr>${columns.map((c) => `<td>${r[c.key as keyof T] ?? ""}</td>`).join("")}</tr>`,
-    )
+    .map((r) => `<tr>${columns.map((c) => `<td>${r[c.key as keyof T] ?? ""}</td>`).join("")}</tr>`)
     .join("");
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font-family:sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#f4f4f4}</style></head><body><h2>${title}${subtitle}</h2><table><thead><tr>${tableHeaders}</tr></thead><tbody>${tableBody}</tbody></table></body></html>`;

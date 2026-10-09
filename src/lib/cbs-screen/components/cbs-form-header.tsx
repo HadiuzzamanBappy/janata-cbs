@@ -1,22 +1,14 @@
 "use client";
 
-import { ChevronDown, Lock, Plus, X } from "lucide-react";
+import { Lock } from "lucide-react";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useUserRights } from "@/hooks";
-import { cn } from "@/lib/utils";
-import type { CbsScreenValidationError } from "../types";
+import type { CbsScreenMode, CbsScreenValidationError } from "../types";
 import { ActionButtons } from "./action-buttons";
 import { ActionMoreMenu, type MoreActionItem } from "./action-more-menu";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
+import { RecordLookupBar } from "./record-lookup-bar";
 
 export type { MoreActionItem };
 
@@ -38,7 +30,7 @@ export interface CbsFormHeaderProps {
   onProcessAction?: () => void;
   onReturnToSearch?: () => void;
   onCreateNew?: () => void;
-  mode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+  mode?: CbsScreenMode;
   submitting?: boolean;
   moreActions?: MoreActionItem[];
   availableItems?: Array<{ id: string; label?: string; details?: string }>;
@@ -47,6 +39,10 @@ export interface CbsFormHeaderProps {
   className?: string;
 }
 
+/**
+ * Standard header toolbar for Core Banking forms.
+ * Manages action triggers, record search bar, and validation drawer.
+ */
 export function CbsFormHeader({
   title,
   commandCode,
@@ -85,7 +81,6 @@ export function CbsFormHeader({
     setInputVal(recordId);
   }, [recordId]);
 
-  // Demo fallback items if availableItems isn't provided by parent
   const demoItems = React.useMemo(() => {
     if (availableItems.length > 0) return availableItems;
     const prefix = commandCode || "REC";
@@ -111,11 +106,11 @@ export function CbsFormHeader({
 
     const matches = query
       ? demoItems.filter(
-        (item) =>
-          item.id.toLowerCase().includes(query) ||
-          item.label?.toLowerCase().includes(query) ||
-          item.details?.toLowerCase().includes(query),
-      )
+          (item) =>
+            item.id.toLowerCase().includes(query) ||
+            item.label?.toLowerCase().includes(query) ||
+            item.details?.toLowerCase().includes(query),
+        )
       : demoItems;
 
     setSearchResults(matches);
@@ -158,19 +153,10 @@ export function CbsFormHeader({
       >
         {/* ROW 1: Minimalist CBS Action Toolbar */}
         <div className="flex items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
-          {/* Action Icons Toolbar (Edit, View, Perform, Commit, Reverse, etc.) */}
           <ActionButtons
             mode={mode}
             searchVal={inputVal}
-            onSearchChange={handleInputChange}
-            onSearchSubmit={handlePerformSearch}
-            onSelectRecord={handleSelectRecord}
-            matchingItems={matchingItemsToDisplay}
-            isDropdownOpen={isDropdownOpen}
-            onDropdownOpenChange={setIsDropdownOpen}
-            hasSearched={hasSearched}
             submitting={submitting}
-            onCreateNew={onCreateNew}
             onAmend={onAmend}
             onView={onView}
             onPerformAction={onPerformAction}
@@ -181,7 +167,6 @@ export function CbsFormHeader({
             onAuthorizeReverse={onAuthorizeReverse}
             onProcessAction={onProcessAction}
             onReturnToSearch={onReturnToSearch}
-            onReset={onReset}
           />
 
           <span className="h-4 w-px bg-border/60 mx-1" />
@@ -191,7 +176,7 @@ export function CbsFormHeader({
             <ActionMoreMenu moreActions={moreActions} submitting={submitting} onSubmit={onSubmit} />
           </div>
 
-          {/* Validation Checklist Indicator & Drawer (Visible in non-idle modes when issues exist) */}
+          {/* Validation Checklist Indicator & Drawer */}
           {validationErrors.length > 0 && (
             <>
               <span className="h-4 w-px bg-border/60 mx-1" />
@@ -209,105 +194,22 @@ export function CbsFormHeader({
             {title || "Basic Details"}
           </span>
 
-          {/* Record Key Box / Input */}
           {mode === "IDLE" ? (
-            <div className="flex items-center gap-1">
-              <div className="relative flex items-center">
-                <form onSubmit={handlePerformSearch} className="relative flex items-center">
-                  <Input
-                    type="text"
-                    placeholder="Record ID..."
-                    value={inputVal}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    className={cn(
-                      "h-7 w-36 sm:w-48 text-xs font-mono rounded bg-background border-border/80 focus-visible:bg-background",
-                      inputVal ? "pr-12" : "pr-6",
-                    )}
-                  />
-
-                  {/* Clear Input Button (visible when input has text) */}
-                  {inputVal && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleClearRecord();
-                      }}
-                      className="absolute right-5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
-                      aria-label="Clear input"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  )}
-
-                  {/* Dropdown Menu attached cleanly to the Chevron button */}
-                  <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
-                    <DropdownMenuTrigger
-                      render={
-                        <button
-                          type="button"
-                          className="absolute right-1 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
-                          aria-label="Toggle matching records"
-                        >
-                          <ChevronDown className="size-3" />
-                        </button>
-                      }
-                    />
-
-                    <DropdownMenuContent
-                      side="bottom"
-                      align="end"
-                      sideOffset={8}
-                      alignOffset={-4}
-                      className="w-48 max-h-56 overflow-auto text-xs p-1 rounded shadow-lg border border-border/80 bg-popover"
-                    >
-                      <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 mb-1">
-                        Matching IDs ({matchingItemsToDisplay.length})
-                      </div>
-                      {matchingItemsToDisplay.length === 0 ? (
-                        <div className="p-2 text-muted-foreground font-mono text-center text-xs">
-                          {hasSearched ? "No matching records" : "Type to filter"}
-                        </div>
-                      ) : (
-                        matchingItemsToDisplay.map((item) => (
-                          <DropdownMenuItem
-                            key={item.id}
-                            onClick={() => handleSelectRecord(item.id)}
-                            className="font-mono text-xs font-semibold py-1 px-2 cursor-pointer hover:bg-muted/80 rounded"
-                          >
-                            {item.id}
-                          </DropdownMenuItem>
-                        ))
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </form>
-              </div>
-
-              {/* Add / Create New Record (+) button matching row 1 button styling */}
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="icon-sm"
-                      onClick={() => onCreateNew?.()}
-                      disabled={!onCreateNew || submitting || !rights.canInput}
-                      className="size-7 rounded shadow-xs shrink-0"
-                    >
-                      <Plus className="size-3.5 stroke-[2.5]" />
-                    </Button>
-                  }
-                />
-                <TooltipContent className="text-xs">
-                  {!rights.canInput ? "Requires Input ('I') permission" : "Create New Record (+)"}
-                </TooltipContent>
-              </Tooltip>
-            </div>
+            <RecordLookupBar
+              inputVal={inputVal}
+              onInputChange={handleInputChange}
+              onClear={handleClearRecord}
+              onSubmit={handlePerformSearch}
+              onSelectRecord={handleSelectRecord}
+              onCreateNew={onCreateNew}
+              matchingItems={matchingItemsToDisplay}
+              isDropdownOpen={isDropdownOpen}
+              onDropdownOpenChange={setIsDropdownOpen}
+              hasSearched={hasSearched}
+              submitting={submitting}
+              canCreate={rights.canInput}
+            />
           ) : (
-            /* Active Mode (CREATE / EDIT / VIEW): Locked Record ID Badge */
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
                 <Lock className="size-3 text-muted-foreground" />

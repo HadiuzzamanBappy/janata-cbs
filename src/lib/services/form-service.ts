@@ -1,10 +1,10 @@
 import "server-only";
-import { STATIC_FORMS } from "@fixtures";
 import { appConfig, getServiceUrl } from "@/lib/config/server";
 import { grpcProcess } from "@/lib/grpc";
 import { parseGMC } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";
 import type { FormSchema } from "@/lib/schemas";
+import { getStaticFormPayload } from "./static-provider";
 
 const SPEC_TTL_SECONDS = appConfig.redis.specTtlSeconds;
 const MODEL_REQUEST_TYPE = "GMC";
@@ -15,7 +15,7 @@ async function fetchModelWirePayload(command: string, tokenParam?: string): Prom
   const cleanCmd = command.split(",")[0].trim().toUpperCase();
 
   if (appConfig.modelSource === "static") {
-    return STATIC_FORMS[cleanCmd]?.data ?? null;
+    return getStaticFormPayload(cleanCmd);
   }
 
   const session = await getSession();

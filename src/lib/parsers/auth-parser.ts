@@ -1,5 +1,5 @@
+import type { CurrentUser } from "@/lib/schemas/auth-schema";
 import { decodeProtobufValue } from "./protobuf-decoder";
-import type { CurrentUser } from "@/lib/redis";
 
 export interface ParsedUserAuthResult {
   currUser: CurrentUser;
@@ -7,62 +7,35 @@ export interface ParsedUserAuthResult {
 }
 
 /**
- * Universal parser to extract and normalize a CBS authentication response payload
- * into a typed CurrentUser domain session and authorization token.
+ * Standard parser to map CBS authentication response payload into a CurrentUser domain session.
  * Executed identically for both live gRPC and static mock modes.
  */
 export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): ParsedUserAuthResult {
-  if (!data || typeof data !== "object") {
-    throw new Error("Invalid authentication payload received from CBS");
-  }
+  const f = decodeProtobufValue<Record<string, unknown>>(data);
 
-  const fields = decodeProtobufValue<Record<string, unknown>>(data);
-
-  const userId = String(fields.userId || "").trim();
-  const token = String(fields.token || "").trim();
-
-  if (!token || !userId) {
-    throw new Error("Login response missing required authentication token or userId");
-  }
-
-  const fullName = String(fields.fullName || fallbackUsername);
-  const branchCode = String(fields.branchCode || "JB9999");
-  const branchName = String(fields.branchName || "Central Office");
-  const txnDate = String(fields.txnDate || new Date().toISOString().split("T")[0]);
-  const accessibility = String(fields.accessibility || "FULL");
-  const commandLine = Boolean(fields.commandLine);
-  const initLogin = Boolean(fields.initLogin);
-  const userStatus = typeof fields.userStatus === "number" ? fields.userStatus : 1;
-
-  // Extract roles
-  let userRole: string[] = [];
-  const rawRole = fields.userRole;
-  if (Array.isArray(rawRole)) {
-    userRole = rawRole.map(String).filter((r) => r && r !== "NULL_VALUE");
-  } else if (typeof rawRole === "string" && rawRole.trim() && rawRole !== "NULL_VALUE") {
-    userRole = [rawRole.trim()];
-  }
-
-
-  // Extract CBS RIDASH function rights
-  const functionRights = accessibility
-    ? accessibility.split("").filter(Boolean)
-    : ["R", "I", "D", "A", "S", "H"];
+  const accessibility = String(f.accessibility || "FULL");
 
   const currUser: CurrentUser = {
-    userId,
-    fullName: fullName.trim(),
-    branchCode: branchCode.trim(),
-    branchName: branchName.trim(),
-    txnDate: txnDate.trim(),
-    userRole,
+    userId: String(f.userId || ""),
+    fullName: String(f.fullName || fallbackUsername),
+    branchCode: String(f.branchCode || "JB9999"),
+    branchName: String(f.branchName || "Central Office"),
+    txnDate: String(f.txnDate || "2026-01-07"),
+    lastTxnDate: f.lastTxnDate ? String(f.lastTxnDate) : undefined,
+    nextDate: f.nextDate ? String(f.nextDate) : undefined,
+    userRole: Array.isArray(f.userRole) ? f.userRole.map(String) : [String(f.userRole || "USER")],
     accessibility,
-    functionRights,
-    commandLine,
-    initLogin,
+    functionRights: accessibility
+      ? accessibility.split("").filter(Boolean)
+      : ["R", "I", "D", "A", "S", "H"],
+    commandLine: Boolean(f.commandLine),
+    initLogin: Boolean(f.initLogin),
     isLoggedIn: true,
-    userStatus,
+    userStatus: typeof f.userStatus === "number" ? f.userStatus : 1,
   };
 
-  return { currUser, token };
+  return {
+    currUser,
+    token: String(f.token || ""),
+  };
 }

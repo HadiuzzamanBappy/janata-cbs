@@ -1,10 +1,10 @@
 import "server-only";
-import { STATIC_MENU } from "@fixtures";
 import { appConfig, getServiceUrl } from "@/lib/config/server";
 import { grpcProcess } from "@/lib/grpc";
 import { parseMNU } from "@/lib/parsers";
 import { getOrSet, getSession } from "@/lib/redis";
 import type { MenuItem } from "@/lib/schemas";
+import { getStaticMenuPayload } from "./static-provider";
 
 const MENU_TTL_SECONDS = appConfig.redis.menuTtlSeconds;
 const DEFAULT_MENU_CONTROL = "MAIN_MENU";
@@ -13,7 +13,7 @@ const MENU_RECORD_FUNCTION = "L";
 
 async function fetchMenuWirePayload(controlName: string, tokenParam?: string): Promise<unknown> {
   if (appConfig.modelSource === "static") {
-    return STATIC_MENU.data;
+    return getStaticMenuPayload();
   }
 
   const session = await getSession();

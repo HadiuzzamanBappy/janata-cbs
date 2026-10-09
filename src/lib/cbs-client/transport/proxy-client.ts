@@ -1,23 +1,33 @@
 import { toast } from "@/components/ui/toast";
 import { appConfig } from "@/lib/config";
 import type { ApiResponse } from "@/types";
-import type { CbsWirePayload } from "../types/wire";
+import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types/wire";
 
+/**
+ * Configuration options for dispatching a CBS request.
+ */
 export interface SendCbsOptions {
-  /** If true, silences default toast notifications */
+  /** If true, suppresses automatic toast notifications */
   silent?: boolean;
-  /** Toast success title / description */
+  /** Toast title to display upon SUCCESS response */
   successTitle?: string;
+  /** Toast description to display upon SUCCESS response */
   successMessage?: string;
-  /** Toast error override */
+  /** Toast description override to display upon error */
   errorMessage?: string;
-  /** Optional AbortSignal to cancel in-flight requests (e.g. on unmount or keystroke) */
+  /** Optional AbortSignal to cancel in-flight requests (e.g., on unmount or keystroke) */
   signal?: AbortSignal;
 }
 
 /**
  * Universal type-safe fetch client for CBS backend communication.
- * Automatically handles serialization, 401 unauthenticated states, and toast notifications.
+ *
+ * Automatically routes through `/api/proxy`, handles session expiration (401),
+ * formats wire parameters, and renders UI toast alerts when not silenced.
+ *
+ * @param payload - Standard wire payload describing the target operation.
+ * @param options - Toast behavior and abort signal options.
+ * @returns Resolves with the standard ApiResponse envelope from the proxy.
  */
 export async function sendCbsRequest<T = unknown>(
   payload: CbsWirePayload,
@@ -29,7 +39,7 @@ export async function sendCbsRequest<T = unknown>(
       headers: { "Content-Type": "application/json" },
       signal: options?.signal,
       body: JSON.stringify({
-        servicePath: payload.servicePath || "default",
+        servicePath: payload.servicePath || DEFAULT_SERVICE_PATH,
         requestType: payload.requestType,
         controlName: payload.controlName ?? "",
         recordFunction: payload.recordFunction || "S",

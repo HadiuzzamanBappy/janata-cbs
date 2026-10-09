@@ -4,10 +4,14 @@ import { CbsControlTable } from "../types/control-tables";
 import { CbsRequestType } from "../types/request-types";
 
 /**
- * Domain payload builders for Staff Password Reset and Account Security
+ * Domain payload builders for Staff Password Reset and Account Security.
  */
 export const userSecurityPayloads = {
-  /** Fetch user security profile */
+  /**
+   * Fetch staff security profile by user ID.
+   *
+   * @param userId - Staff user ID
+   */
   getUserProfile: (userId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_GET,
@@ -16,7 +20,12 @@ export const userSecurityPayloads = {
     recordId: userId.trim().toUpperCase(),
   }),
 
-  /** Commit reset / unlock update */
+  /**
+   * Commit credential reset or unlock update.
+   *
+   * @param userId - Staff user ID
+   * @param data - Updated profile or reset payload
+   */
   saveUserProfile: (userId: string, data: Record<string, unknown>): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
@@ -26,7 +35,11 @@ export const userSecurityPayloads = {
     data,
   }),
 
-  /** Authorize credential reset */
+  /**
+   * Authorize credential reset (Maker-Checker approval step).
+   *
+   * @param userId - Staff user ID to authorize
+   */
   authorizeUserProfile: (userId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_AUTH,
@@ -35,7 +48,11 @@ export const userSecurityPayloads = {
     recordId: userId.trim().toUpperCase(),
   }),
 
-  /** Delete / Cancel credential reset request */
+  /**
+   * Delete or cancel a credential reset request.
+   *
+   * @param userId - Staff user ID
+   */
   deleteUserProfile: (userId: string): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
@@ -44,7 +61,11 @@ export const userSecurityPayloads = {
     recordId: userId.trim().toUpperCase(),
   }),
 
-  /** Change sign-on name (CUN) */
+  /**
+   * Change sign-on / username (CUN verb).
+   *
+   * @param params - Current credentials and target username
+   */
   changeSignOnName: (params: {
     oldUserName: string;
     newUserName: string;
@@ -56,7 +77,11 @@ export const userSecurityPayloads = {
     data: params,
   }),
 
-  /** Change user password (CPW) */
+  /**
+   * Change staff user password (CPW verb).
+   *
+   * @param params - Current password and new password
+   */
   changePassword: (params: { currPass: string; newPass: string }): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.CHANGE_PASSWORD,

@@ -1,9 +1,6 @@
 import { z } from "zod";
+import { type MenuTreeRecord, menuTreeRecordSchema } from "@/lib/schemas/menu-designer-schema";
 import { unwrapRecordsPayload } from "./protobuf-decoder";
-import {
-  type MenuTreeRecord,
-  menuTreeRecordSchema,
-} from "@/lib/schemas/menu-designer-schema";
 
 /**
  * Parses inbound JSON payload into a strictly validated MenuTreeRecord.

@@ -1,7 +1,7 @@
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_USER_RESPONSES mirrors the exact CBS authentication wire responses (matching .response/user.json 1:1).
+ * STATIC_USER_RESPONSES mirrors the normalized CBS authentication responses (matching .response/user.normalized.json).
  * Number sequence remains identical (028459 -> 0284590).
  * Prefix letters vary by role/department (ZZ = Teller/Lead, AD = Administrator, ST = Staff).
  */
@@ -15,42 +15,18 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
     errors: [],
     timestamp: "2026-10-01T09:07:15.421489436Z",
     data: {
-      fields: {
-        userId: {
-          string_value: "ZZ0284590",
-        },
-        fullName: {
-          string_value: "MD. HADIUZZAMAN BAPPY",
-        },
-        accessibility: {
-          string_value: "RIDASH",
-        },
-        userRole: {
-          string_value: "USER",
-        },
-        commandLine: {
-          bool_value: true,
-        },
-        branchName: {
-          string_value: "CENTRAL OFFICE, HO, DHAKA   ",
-        },
-        branchCode: {
-          string_value: "JB9999",
-        },
-        txnDate: {
-          string_value: "2026-01-07",
-        },
-        userStatus: {
-          number_value: 1,
-        },
-        authenticated: {
-          bool_value: true,
-        },
-        token: {
-          string_value:
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJaWjAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.54uGYTHHZYvUSJ1h4wW6Z7qHYv08RAsntswJ8Pk7GD0",
-        },
-      },
+      userId: "ZZ0284590",
+      fullName: "MD. HADIUZZAMAN BAPPY",
+      accessibility: "RIDASH",
+      userRole: ["USER"],
+      commandLine: true,
+      branchName: "CENTRAL OFFICE, HO, DHAKA   ",
+      branchCode: "JB9999",
+      txnDate: "2026-01-07",
+      userStatus: 1,
+      authenticated: true,
+      token:
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJaWjAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.54uGYTHHZYvUSJ1h4wW6Z7qHYv08RAsntswJ8Pk7GD0",
     },
   },
 
@@ -63,42 +39,18 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
     errors: [],
     timestamp: "2026-10-01T09:07:15.421489436Z",
     data: {
-      fields: {
-        userId: {
-          string_value: "AD0284590",
-        },
-        fullName: {
-          string_value: "System Administrator",
-        },
-        accessibility: {
-          string_value: "RIDASH",
-        },
-        userRole: {
-          string_value: "ADMIN",
-        },
-        commandLine: {
-          bool_value: true,
-        },
-        branchName: {
-          string_value: "CENTRAL OFFICE, HO, DHAKA   ",
-        },
-        branchCode: {
-          string_value: "JB9999",
-        },
-        txnDate: {
-          string_value: "2026-01-07",
-        },
-        userStatus: {
-          number_value: 1,
-        },
-        authenticated: {
-          bool_value: true,
-        },
-        token: {
-          string_value:
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBRDAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.admin_signature_token_cbs",
-        },
-      },
+      userId: "AD0284590",
+      fullName: "System Administrator",
+      accessibility: "RIDASH",
+      userRole: ["ADMIN"],
+      commandLine: true,
+      branchName: "CENTRAL OFFICE, HO, DHAKA   ",
+      branchCode: "JB9999",
+      txnDate: "2026-01-07",
+      userStatus: 1,
+      authenticated: true,
+      token:
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBRDAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.admin_signature_token_cbs",
     },
   },
 
@@ -111,42 +63,18 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
     errors: [],
     timestamp: "2026-10-01T09:07:15.421489436Z",
     data: {
-      fields: {
-        userId: {
-          string_value: "ST0284590",
-        },
-        fullName: {
-          string_value: "New Staff Member",
-        },
-        accessibility: {
-          string_value: "RS",
-        },
-        userRole: {
-          string_value: "USER",
-        },
-        commandLine: {
-          bool_value: false,
-        },
-        branchName: {
-          string_value: "Gulshan Branch",
-        },
-        branchCode: {
-          string_value: "JB1002",
-        },
-        txnDate: {
-          string_value: "2026-01-07",
-        },
-        userStatus: {
-          number_value: 1,
-        },
-        authenticated: {
-          bool_value: true,
-        },
-        token: {
-          string_value:
-            "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTVDAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.new_user_signature_token_cbs",
-        },
-      },
+      userId: "ST0284590",
+      fullName: "New Staff Member",
+      accessibility: "RS",
+      userRole: ["USER"],
+      commandLine: false,
+      branchName: "Gulshan Branch",
+      branchCode: "JB1002",
+      txnDate: "2026-01-07",
+      userStatus: 1,
+      authenticated: true,
+      token:
+        "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJTVDAyODQ1OTAiLCJpYXQiOjE3OTA4NDU2MzUsImV4cCI6MTc5MDkzMjAzNX0.new_user_signature_token_cbs",
     },
   },
 };

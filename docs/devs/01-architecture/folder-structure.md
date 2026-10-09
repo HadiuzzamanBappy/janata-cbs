@@ -25,7 +25,7 @@ finxui-ref/
 │   └── service.proto                      # gRPC CBS backend interface definitions
 ├── public/                                # Static client assets
 ├── scripts/                               # CLI & maintenance scripts
-│   ├── clear-cache.ts                     # Redis cache clearing tool
+│   ├── cache-clear.ts                     # Redis cache clearing tool
 │   └── proto-gen.ts                       # ts-proto code generation script
 ├── src/
 │   ├── app/                               # Next.js App Router (Thin routing & API gateways)

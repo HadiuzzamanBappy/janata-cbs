@@ -1,9 +1,9 @@
 import type { GrpcResponse } from "@/lib/grpc/generated/service";
 
 /**
- * STATIC_ENQUIRIES mirrors the CBS Enquiry/Inquiry wire responses (.response/inquiry.json).
- * Formatted exactly as GrpcResponse with Protobuf struct payload.
- * 100% pure wire data without custom classes or legacy baggage.
+ * STATIC_INQUIRIES mirrors the normalized CBS Enquiry/Inquiry responses (.response/inquiry.normalized.json).
+ * Clean normalized structure preserving full auditData, INQInfo, INQSelectField, INQDef, and INQCmds.
+ * Pure data constant only — no parsers or business logic.
  */
 export const STATIC_INQUIRIES: Record<string, GrpcResponse> = {
   "GET.EMP.INFO": {
@@ -12,359 +12,125 @@ export const STATIC_INQUIRIES: Record<string, GrpcResponse> = {
     statusCode: 200,
     idempotencyKey: "",
     message: "record successfully processed!",
-    timestamp: "2026-10-05T05:08:50.861033019Z",
     data: {
-      fields: {
-        recordId: {
-          string_value: "GET.EMP.INFO",
-        },
-        auditData: {
-          struct_value: {
-            fields: {
-              recStatus: {
-                string_value: "",
-              },
-              recCurrNumber: {
-                number_value: 18,
-              },
-              recInputter: {
-                string_value: "IA0245820",
-              },
-              recInputTime: {
-                string_value: "2026-10-01 05:07:05",
-              },
-              recAuthorizer: {
-                string_value: "",
-              },
-              recAuthTime: {
-                string_value: "",
-              },
-              recBranchCode: {
-                string_value: "JB9999",
-              },
-            },
-          },
-        },
-        INQInfo: {
-          struct_value: {
-            fields: {
-              description: {
-                string_value: "Get User Request List",
-              },
-              pageOrientation: {
-                string_value: "",
-              },
-              perpageItem: {
-                string_value: "30",
-              },
-              showSerial: {
-                bool_value: true,
-              },
-              showPagination: {
-                bool_value: true,
-              },
-              showBranchWise: {
-                bool_value: false,
-              },
-              inqType: {
-                string_value: "DFR",
-              },
-              controllerName: {
-                string_value: "BANKID",
-              },
-              rptControllerName: {
-                string_value: "",
-              },
-              fixedSelection: {
-                string_value: "",
-              },
-              inqServicePath: {
-                string_value: "finxurm",
-              },
-              cmdFromInternal: {
-                bool_value: true,
-              },
-              cmdFieldName: {
-                string_value: "actions",
-              },
-            },
-          },
-        },
-        INQSelectField: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    selectFieldName: {
-                      string_value: "bankId",
-                    },
-                    selectFieldType: {
-                      string_value: "text",
-                    },
-                    selectFieldOperator: {
-                      string_value: "EQ",
-                    },
-                    selectFieldOperatorFixed: {
-                      string_value: "EQ",
-                    },
-                    selectFieldDisplay: {
-                      string_value: "Bank Id",
-                    },
-                    selectFieldValue: {
-                      string_value: "",
-                    },
-                    selectFieldRequired: {
-                      bool_value: false,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
-        INQDef: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "recordId",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,1",
-                    },
-                    fieldLength: {
-                      string_value: "20,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Record Id",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "employeeName",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,2",
-                    },
-                    fieldLength: {
-                      string_value: "150,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Emp Name",
-                    },
-                    dataPassable: {
-                      bool_value: true,
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "empBankId",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,3",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Bank Id",
-                    },
-                    dataPassable: {
-                      bool_value: true,
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "userDesignation",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,4",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "User Designation",
-                    },
-                    dataPassable: {
-                      bool_value: true,
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "placeOfPosting",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,5",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Place of Posting",
-                    },
-                    dataPassable: {
-                      bool_value: true,
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "mobileNo",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,6",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Mobile",
-                    },
-                    dataPassable: {
-                      bool_value: true,
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "email",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,7",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Email",
-                    },
-                    dataPassable: {
-                      bool_value: true,
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "processStage",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,8",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Process Stage",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
-        INQCmds: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    cmdFor: {
-                      string_value: "",
-                    },
-                    cmdButton: {
-                      string_value: "Edit",
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
+      recordId: "GET.EMP.INFO",
+      auditData: {
+        recStatus: "",
+        recCurrNumber: 18,
+        recInputter: "IA0245820",
+        recInputTime: "2026-10-01 05:07:05",
+        recAuthorizer: "",
+        recAuthTime: "",
+        recBranchCode: "JB9999",
       },
+      INQInfo: {
+        description: "Get User Request List",
+        pageOrientation: "",
+        perpageItem: "30",
+        showSerial: true,
+        showPagination: true,
+        showBranchWise: false,
+        inqType: "DFR",
+        controllerName: "BANKID",
+        rptControllerName: "",
+        fixedSelection: "",
+        inqServicePath: "finxurm",
+        cmdFromInternal: true,
+        cmdFieldName: "actions",
+      },
+      INQSelectField: [
+        {
+          selectFieldName: "bankId",
+          selectFieldType: "text",
+          selectFieldOperator: "EQ",
+          selectFieldOperatorFixed: "EQ",
+          selectFieldDisplay: "Bank Id",
+          selectFieldValue: "",
+          selectFieldRequired: false,
+        },
+      ],
+      INQDef: [
+        {
+          fieldName: "recordId",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,1",
+          fieldLength: "20,L",
+          fieldDisplay: "Record Id",
+          dataPassable: null,
+        },
+        {
+          fieldName: "employeeName",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,2",
+          fieldLength: "150,L",
+          fieldDisplay: "Emp Name",
+          dataPassable: true,
+        },
+        {
+          fieldName: "empBankId",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,3",
+          fieldLength: "100,L",
+          fieldDisplay: "Bank Id",
+          dataPassable: true,
+        },
+        {
+          fieldName: "userDesignation",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,4",
+          fieldLength: "100,L",
+          fieldDisplay: "User Designation",
+          dataPassable: true,
+        },
+        {
+          fieldName: "placeOfPosting",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,5",
+          fieldLength: "100,L",
+          fieldDisplay: "Place of Posting",
+          dataPassable: true,
+        },
+        {
+          fieldName: "mobileNo",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,6",
+          fieldLength: "100,L",
+          fieldDisplay: "Mobile",
+          dataPassable: true,
+        },
+        {
+          fieldName: "email",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,7",
+          fieldLength: "100,L",
+          fieldDisplay: "Email",
+          dataPassable: true,
+        },
+        {
+          fieldName: "processStage",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,8",
+          fieldLength: "100,L",
+          fieldDisplay: "Process Stage",
+          dataPassable: null,
+        },
+      ],
+      INQCmds: [
+        {
+          cmdFor: "",
+          cmdButton: "Edit",
+        },
+      ],
     },
+    timestamp: "2026-10-05T05:08:50.861033019Z",
   },
   "GET.USER.MGT": {
     errors: [],
@@ -372,251 +138,197 @@ export const STATIC_INQUIRIES: Record<string, GrpcResponse> = {
     statusCode: 200,
     idempotencyKey: "",
     message: "record successfully processed!",
-    timestamp: "2026-10-05T08:37:04.051995819Z",
     data: {
-      fields: {
-        recordId: {
-          string_value: "GET.USER.MGT",
-        },
-        auditData: {
-          struct_value: {
-            fields: {
-              recStatus: {
-                string_value: "",
-              },
-              recCurrNumber: {
-                number_value: 8,
-              },
-              recInputter: {
-                string_value: "ADMIN02",
-              },
-              recInputTime: {
-                string_value: "2026-09-06 09:57:49",
-              },
-              recAuthorizer: {
-                string_value: "",
-              },
-              recAuthTime: {
-                string_value: "",
-              },
-              recBranchCode: {
-                string_value: "JB9999",
-              },
-            },
-          },
-        },
-        INQInfo: {
-          struct_value: {
-            fields: {
-              description: {
-                string_value: "Get User Request List",
-              },
-              pageOrientation: {
-                string_value: "",
-              },
-              perpageItem: {
-                string_value: "30",
-              },
-              showSerial: {
-                bool_value: true,
-              },
-              showPagination: {
-                bool_value: true,
-              },
-              showBranchWise: {
-                bool_value: false,
-              },
-              inqType: {
-                string_value: "DFT",
-              },
-              controllerName: {
-                string_value: "USER.MGT$NAU",
-              },
-              rptControllerName: {
-                string_value: "",
-              },
-              fixedSelection: {
-                string_value: "",
-              },
-              inqServicePath: {
-                string_value: "finxurm",
-              },
-              cmdFromInternal: {
-                null_value: "NULL_VALUE",
-              },
-              cmdFieldName: {
-                null_value: "NULL_VALUE",
-              },
-            },
-          },
-        },
-        INQSelectField: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    selectFieldName: {
-                      string_value: "recordId",
-                    },
-                    selectFieldType: {
-                      string_value: "text",
-                    },
-                    selectFieldOperator: {
-                      string_value: "",
-                    },
-                    selectFieldOperatorFixed: {
-                      string_value: "",
-                    },
-                    selectFieldDisplay: {
-                      string_value: "Record Id",
-                    },
-                    selectFieldValue: {
-                      string_value: "",
-                    },
-                    selectFieldRequired: {
-                      bool_value: false,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
-        INQDef: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "recordId",
-                    },
-                    fieldType: {
-                      string_value: "CH",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,1",
-                    },
-                    fieldLength: {
-                      string_value: "20,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Record Id",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "employeeName",
-                    },
-                    fieldType: {
-                      string_value: "CH",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,2",
-                    },
-                    fieldLength: {
-                      string_value: "150,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Emp Name",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "empBankId",
-                    },
-                    fieldType: {
-                      string_value: "CH",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,3",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Bank Id",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "empRole",
-                    },
-                    fieldType: {
-                      string_value: "CH",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,4",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "User Role",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
-        INQCmds: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    cmdFor: {
-                      string_value: "USER.MGT,NEW1 A recordId",
-                    },
-                    cmdButton: {
-                      string_value: "Auth",
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
+      recordId: "GET.USER.MGT",
+      auditData: {
+        recStatus: "",
+        recCurrNumber: 8,
+        recInputter: "ADMIN02",
+        recInputTime: "2026-09-06 09:57:49",
+        recAuthorizer: "",
+        recAuthTime: "",
+        recBranchCode: "JB9999",
       },
+      INQInfo: {
+        description: "Get User Request List",
+        pageOrientation: "",
+        perpageItem: "30",
+        showSerial: true,
+        showPagination: true,
+        showBranchWise: false,
+        inqType: "DFT",
+        controllerName: "USER.MGT$NAU",
+        rptControllerName: "",
+        fixedSelection: "",
+        inqServicePath: "finxurm",
+        cmdFromInternal: null,
+        cmdFieldName: null,
+      },
+      INQSelectField: [
+        {
+          selectFieldName: "recordId",
+          selectFieldType: "text",
+          selectFieldOperator: "",
+          selectFieldOperatorFixed: "",
+          selectFieldDisplay: "Record Id",
+          selectFieldValue: "",
+          selectFieldRequired: false,
+        },
+      ],
+      INQDef: [
+        {
+          fieldName: "recordId",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,1",
+          fieldLength: "20,L",
+          fieldDisplay: "Record Id",
+          dataPassable: null,
+        },
+        {
+          fieldName: "employeeName",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,2",
+          fieldLength: "150,L",
+          fieldDisplay: "Emp Name",
+          dataPassable: null,
+        },
+        {
+          fieldName: "empBankId",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,3",
+          fieldLength: "100,L",
+          fieldDisplay: "Bank Id",
+          dataPassable: null,
+        },
+        {
+          fieldName: "empRole",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,4",
+          fieldLength: "100,L",
+          fieldDisplay: "User Role",
+          dataPassable: null,
+        },
+      ],
+      INQCmds: [
+        {
+          cmdFor: "USER.MGT,NEW1 A recordId",
+          cmdButton: "Auth",
+        },
+      ],
     },
+    timestamp: "2026-10-05T08:37:04.051995819Z",
+  },
+  "GET.TO.TXN": {
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    data: {
+      recordId: "GET.TO.TXN",
+      auditData: {
+        recStatus: "",
+        recCurrNumber: 2,
+        recInputter: "SYSUSER",
+        recInputTime: "2026-08-30 02:20:57",
+        recAuthorizer: "",
+        recAuthTime: "",
+        recBranchCode: "JB9999",
+      },
+      INQInfo: {
+        description: "Get Today Transaction Report",
+        pageOrientation: "",
+        perpageItem: "30",
+        showSerial: true,
+        showPagination: true,
+        showBranchWise: false,
+        inqType: "DFT",
+        controllerName: "FUNDS.TRANSFER",
+        rptControllerName: "RPT.GET.TD.TXN",
+        fixedSelection: "",
+        inqServicePath: "default",
+        cmdFromInternal: null,
+        cmdFieldName: null,
+      },
+      INQSelectField: [
+        {
+          selectFieldName: "",
+          selectFieldType: "",
+          selectFieldOperator: "",
+          selectFieldOperatorFixed: "",
+          selectFieldDisplay: "",
+          selectFieldValue: "",
+          selectFieldRequired: false,
+        },
+      ],
+      INQDef: [
+        {
+          fieldName: "recordId",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,1",
+          fieldLength: "100,L",
+          fieldDisplay: "Reference",
+          dataPassable: null,
+        },
+        {
+          fieldName: "debitAccount",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,2",
+          fieldLength: "120,L",
+          fieldDisplay: "Debit Account",
+          dataPassable: null,
+        },
+        {
+          fieldName: "creditAccount",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,3",
+          fieldLength: "120,L",
+          fieldDisplay: "Credit Account",
+          dataPassable: null,
+        },
+        {
+          fieldName: "txnAmount",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,4",
+          fieldLength: "100,R",
+          fieldDisplay: "Amount",
+          dataPassable: null,
+        },
+        {
+          fieldName: "drBranchCode",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,5",
+          fieldLength: "80,L",
+          fieldDisplay: "Dr Branch",
+          dataPassable: null,
+        },
+        {
+          fieldName: "crBranchCode",
+          fieldType: "CH",
+          fieldFunc: "",
+          fieldRowCol: "1,6",
+          fieldLength: "80,L",
+          fieldDisplay: "Cr Branch",
+          dataPassable: null,
+        },
+      ],
+      INQCmds: [
+        {
+          cmdFor: "",
+          cmdButton: "",
+        },
+      ],
+    },
+    timestamp: "2026-10-05T10:01:16.172540283Z",
   },
   "GET.TODAY.ENTRY": {
     errors: [],
@@ -625,316 +337,108 @@ export const STATIC_INQUIRIES: Record<string, GrpcResponse> = {
     idempotencyKey: "",
     message: "record successfully processed!",
     data: {
-      fields: {
-        recordId: {
-          string_value: "GET.TODAY.ENTRY",
-        },
-        auditData: {
-          struct_value: {
-            fields: {
-              recStatus: {
-                string_value: "",
-              },
-              recCurrNumber: {
-                number_value: 6,
-              },
-              recInputter: {
-                string_value: "SYSUSER",
-              },
-              recInputTime: {
-                string_value: "2026-10-05 02:40:10",
-              },
-              recAuthorizer: {
-                string_value: "",
-              },
-              recAuthTime: {
-                string_value: "",
-              },
-              recBranchCode: {
-                string_value: "JB9999",
-              },
-            },
-          },
-        },
-        INQInfo: {
-          struct_value: {
-            fields: {
-              description: {
-                string_value: "Get Today Entry",
-              },
-              pageOrientation: {
-                string_value: "",
-              },
-              perpageItem: {
-                string_value: "30",
-              },
-              showSerial: {
-                bool_value: true,
-              },
-              showPagination: {
-                bool_value: true,
-              },
-              showBranchWise: {
-                bool_value: false,
-              },
-              inqType: {
-                string_value: "DFT",
-              },
-              controllerName: {
-                string_value: "TODAY.TXN.ENTRY",
-              },
-              rptControllerName: {
-                string_value: "RPT.TODAY.ENTRY",
-              },
-              fixedSelection: {
-                string_value: "",
-              },
-              inqServicePath: {
-                string_value: "default",
-              },
-              cmdFromInternal: {
-                null_value: "NULL_VALUE",
-              },
-              cmdFieldName: {
-                null_value: "NULL_VALUE",
-              },
-            },
-          },
-        },
-        INQSelectField: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    selectFieldName: {
-                      string_value: "recordId",
-                    },
-                    selectFieldType: {
-                      string_value: "text",
-                    },
-                    selectFieldOperator: {
-                      string_value: "",
-                    },
-                    selectFieldOperatorFixed: {
-                      string_value: "",
-                    },
-                    selectFieldDisplay: {
-                      string_value: "RecordId",
-                    },
-                    selectFieldValue: {
-                      string_value: "",
-                    },
-                    selectFieldRequired: {
-                      bool_value: false,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
-        INQDef: {
-          list_value: {
-            values: [
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "recordId",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,1",
-                    },
-                    fieldLength: {
-                      string_value: "450,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "RecordId",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "txnReference",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,1",
-                    },
-                    fieldLength: {
-                      string_value: "100,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Txn Reference",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "accountNumber",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,2",
-                    },
-                    fieldLength: {
-                      string_value: "120,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Acct Number",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "accountTitle",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,3",
-                    },
-                    fieldLength: {
-                      string_value: "150,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Acct Title",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "txnAmount",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,4",
-                    },
-                    fieldLength: {
-                      string_value: "80,R",
-                    },
-                    fieldDisplay: {
-                      string_value: "Amount",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "inputter",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,5",
-                    },
-                    fieldLength: {
-                      string_value: "120,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Inputter",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-              {
-                struct_value: {
-                  fields: {
-                    fieldName: {
-                      string_value: "authorizer",
-                    },
-                    fieldType: {
-                      string_value: "DC",
-                    },
-                    fieldFunc: {
-                      string_value: "",
-                    },
-                    fieldRowCol: {
-                      string_value: "1,6",
-                    },
-                    fieldLength: {
-                      string_value: "120,L",
-                    },
-                    fieldDisplay: {
-                      string_value: "Authorizer",
-                    },
-                    dataPassable: {
-                      null_value: "NULL_VALUE",
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        },
-        INQCmds: {
-          list_value: {
-            values: [],
-          },
-        },
+      recordId: "GET.TODAY.ENTRY",
+      auditData: {
+        recStatus: "",
+        recCurrNumber: 6,
+        recInputter: "SYSUSER",
+        recInputTime: "2026-10-05 02:40:10",
+        recAuthorizer: "",
+        recAuthTime: "",
+        recBranchCode: "JB9999",
       },
+      INQInfo: {
+        description: "Get Today Entry",
+        pageOrientation: "",
+        perpageItem: "30",
+        showSerial: true,
+        showPagination: true,
+        showBranchWise: false,
+        inqType: "DFT",
+        controllerName: "TODAY.TXN.ENTRY",
+        rptControllerName: "RPT.TODAY.ENTRY",
+        fixedSelection: "",
+        inqServicePath: "default",
+        cmdFromInternal: null,
+        cmdFieldName: null,
+      },
+      INQSelectField: [
+        {
+          selectFieldName: "recordId",
+          selectFieldType: "text",
+          selectFieldOperator: "",
+          selectFieldOperatorFixed: "",
+          selectFieldDisplay: "RecordId",
+          selectFieldValue: "",
+          selectFieldRequired: false,
+        },
+      ],
+      INQDef: [
+        {
+          fieldName: "recordId",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,1",
+          fieldLength: "450,L",
+          fieldDisplay: "RecordId",
+          dataPassable: null,
+        },
+        {
+          fieldName: "txnReference",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,1",
+          fieldLength: "100,L",
+          fieldDisplay: "Txn Reference",
+          dataPassable: null,
+        },
+        {
+          fieldName: "accountNumber",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,2",
+          fieldLength: "120,L",
+          fieldDisplay: "Acct Number",
+          dataPassable: null,
+        },
+        {
+          fieldName: "accountTitle",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,3",
+          fieldLength: "150,L",
+          fieldDisplay: "Acct Title",
+          dataPassable: null,
+        },
+        {
+          fieldName: "txnAmount",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,4",
+          fieldLength: "80,R",
+          fieldDisplay: "Amount",
+          dataPassable: null,
+        },
+        {
+          fieldName: "inputter",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,5",
+          fieldLength: "120,L",
+          fieldDisplay: "Inputter",
+          dataPassable: null,
+        },
+        {
+          fieldName: "authorizer",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,6",
+          fieldLength: "120,L",
+          fieldDisplay: "Authorizer",
+          dataPassable: null,
+        },
+      ],
+      INQCmds: [],
     },
     timestamp: "2026-10-05T10:05:23.033987485Z",
   },

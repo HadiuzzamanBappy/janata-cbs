@@ -16,10 +16,7 @@ import {
   userGroupRecordSchema,
 } from "@/lib/schemas/user-group-schema";
 import { mapUserGroupZodIssues } from "./user-group-validation";
-import {
-  INITIAL_USER_GROUP,
-  useUserGroupPersistence,
-} from "./use-user-group-persistence";
+import { INITIAL_USER_GROUP, useUserGroupPersistence } from "./use-user-group-persistence";
 
 // Core banking role catalog
 const DEFAULT_ROLES: Role[] = [
@@ -113,13 +110,21 @@ export function useUserGroup(initialId?: string, tabId?: string) {
       }
       setGroupsPool([
         { id: "TELLER.GRP", label: "Branch Frontline Tellers", details: "5 menus • 2 roles" },
-        { id: "SUPERVISOR.GRP", label: "Branch Authorizers & Supervisors", details: "7 menus • 2 roles" },
+        {
+          id: "SUPERVISOR.GRP",
+          label: "Branch Authorizers & Supervisors",
+          details: "7 menus • 2 roles",
+        },
         { id: "ADMIN.GRP", label: "System & Core Administrators", details: "9 menus • 3 roles" },
       ]);
     } catch {
       setGroupsPool([
         { id: "TELLER.GRP", label: "Branch Frontline Tellers", details: "5 menus • 2 roles" },
-        { id: "SUPERVISOR.GRP", label: "Branch Authorizers & Supervisors", details: "7 menus • 2 roles" },
+        {
+          id: "SUPERVISOR.GRP",
+          label: "Branch Authorizers & Supervisors",
+          details: "7 menus • 2 roles",
+        },
       ]);
     }
   }, []);
@@ -220,10 +225,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
     try {
       const wireData = serializeUserGroupToWireJson(validation.data);
       const json = await cbs.send(
-        cbs.userGroup.saveGroup(
-          validation.data.recordId,
-          wireData as Record<string, unknown>,
-        ),
+        cbs.userGroup.saveGroup(validation.data.recordId, wireData as Record<string, unknown>),
         {
           successTitle: "User Group Committed",
           successMessage: `Saved security group #${validation.data.recordId}`,
@@ -312,8 +314,10 @@ export function useUserGroup(initialId?: string, tabId?: string) {
     fetchGroups();
   }, [fetchMenus, fetchGroups]);
 
+  const hasLoadedInitialRef = React.useRef(false);
   React.useEffect(() => {
-    if (resolvedInitialId) {
+    if (!hasLoadedInitialRef.current && resolvedInitialId) {
+      hasLoadedInitialRef.current = true;
       fetchRecord(resolvedInitialId, resolvedInitialMode);
     }
   }, [fetchRecord, resolvedInitialId, resolvedInitialMode]);

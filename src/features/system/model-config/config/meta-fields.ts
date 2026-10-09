@@ -111,6 +111,22 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
       { value: "UNA", label: "UNA" },
     ],
   },
+  {
+    path: "devBy",
+    label: "Developed By",
+    group: "IDENTITY",
+    type: "text",
+    placeholder: "e.g. SYSTEM / DEV_OPERATOR",
+    width: "half",
+  },
+  {
+    path: "devDate",
+    label: "Development Date",
+    group: "IDENTITY",
+    type: "text",
+    placeholder: "YYYY-MM-DD",
+    width: "compact",
+  },
 
   // --- Group 2: ID_RULES ---
   {

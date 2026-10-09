@@ -4,6 +4,7 @@ import * as React from "react";
 import { CommandDialog } from "@/components/ui/command";
 import { useUserRights } from "@/hooks";
 import { useSessionStore } from "@/store";
+import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS } from "@/types";
 import { CommandGuidance, SearchFooterHelp, SearchInputBar, SearchResultsList } from "./components";
 import { useCommandExecutor, useCommandGuide, useSearchCommands } from "./hooks";
 import type { GlobalSearchProps, RidashOption } from "./types";
@@ -49,14 +50,14 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const RIDASH_OPTIONS: RidashOption[] = React.useMemo(
     () =>
-      [
-        { code: "I", label: "Input / Create", right: rights.canInput },
-        { code: "S", label: "See / View", right: rights.canSee || rights.canRead },
-        { code: "A", label: "Amend / Edit", right: rights.canAmend || rights.canAuthorise },
-        { code: "D", label: "Delete", right: rights.canDelete },
-        { code: "R", label: "Read / Reverse", right: rights.canRead || rights.canReverse },
-        { code: "H", label: "Hold Draft", right: rights.canHold },
-      ].filter((opt) => opt.right),
+      CBS_FUNCTION_CODES.map((code) => {
+        const def = CBS_FUNCTION_DEFINITIONS[code];
+        return {
+          code,
+          label: `${def.label} (${def.description})`,
+          right: rights.hasRight(code),
+        };
+      }).filter((opt) => opt.right),
     [rights],
   );
 

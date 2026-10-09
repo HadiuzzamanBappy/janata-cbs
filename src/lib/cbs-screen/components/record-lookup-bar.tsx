@@ -80,10 +80,10 @@ export function RecordLookupBar({
               render={
                 <button
                   type="button"
-                  className="absolute right-1 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
+                  className="absolute right-0 inset-y-0 flex items-center justify-center h-full px-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors rounded-r rounded-l-none border-l border-transparent hover:border-border/50 cursor-pointer z-10"
                   aria-label="Toggle matching records"
                 >
-                  <ChevronDown className="size-3" />
+                  <ChevronDown className="size-3.5" />
                 </button>
               }
             />

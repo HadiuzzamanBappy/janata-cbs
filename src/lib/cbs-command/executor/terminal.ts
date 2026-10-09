@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/toast";
 import { getActiveSessionStore, getActiveWorkbenchStore } from "@/store";
 import { parseCbsCommand } from "../engine/grammar";
 import { validateSecurityPermissions } from "../engine/validator";
+import { resolveCommandTitle } from "../registry/alias";
 import type { ParsedCommand } from "../types/command";
 import type { ExecutionOptions } from "../types/execution";
 import { dispatchSystemAction } from "./action";
@@ -65,7 +66,9 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
 
   // 5. Workspace Tab Target (Always opens duplicate tab as requested)
   const workbenchStore = getActiveWorkbenchStore();
-  const screenTitle = options?.title || parsed.title;
+  const catalogTitle =
+    resolveCommandTitle(parsed.application) || resolveCommandTitle(rawInput.trim().split(/\s+/)[0]);
+  const screenTitle = options?.title || catalogTitle || parsed.title;
   const targetMode = options?.screenMode || parsed.screenMode;
   const targetRecordId = options?.searchRecordId || parsed.recordId;
 

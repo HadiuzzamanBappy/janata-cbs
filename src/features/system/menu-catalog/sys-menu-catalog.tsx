@@ -3,7 +3,7 @@
 import { FileCode, FileText, History, Layers } from "lucide-react";
 import * as React from "react";
 import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab } from "@/lib/cbs-screen";
+import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
 import { MenuAuditTab } from "./components/menu-audit-tab";
 import { MenuGeneralTab } from "./components/menu-general-tab";
 import { MenuJsonTab } from "./components/menu-json-tab";
@@ -119,6 +119,7 @@ export function SysMenuCatalog({ command, tabId }: ScreenProps) {
           onClick: () => setFormData((p) => ({ ...p, isActive: !p.isActive })),
           requiredRight: "A",
         },
+        ...getDefaultMoreActions("MENU"),
       ]}
     />
   );

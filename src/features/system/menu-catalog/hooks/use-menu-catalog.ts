@@ -15,10 +15,7 @@ import {
   type MenuValidationErrorItem,
 } from "@/lib/schemas/menu-catalog-schema";
 import { mapMenuZodIssues } from "./menu-catalog-validation";
-import {
-  INITIAL_MENU_ITEM,
-  useMenuCatalogPersistence,
-} from "./use-menu-catalog-persistence";
+import { INITIAL_MENU_ITEM, useMenuCatalogPersistence } from "./use-menu-catalog-persistence";
 
 export function useMenuCatalog(initialId?: string, tabId?: string) {
   const {
@@ -40,10 +37,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
   // 1. Fetch available items from MENU table
   const fetchItems = React.useCallback(async () => {
     try {
-      const json = await cbs.send<unknown>(
-        cbs.menu.getCatalogList(),
-        { silent: true },
-      );
+      const json = await cbs.send<unknown>(cbs.menu.getCatalogList(), { silent: true });
       if (json.status === "SUCCESS" && json.data) {
         const parsed = parseMenuCatalogList(json.data);
         if (parsed.success && parsed.data.length > 0) {
@@ -147,10 +141,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
     try {
       const wireData = serializeMenuCatalogToWireJson(validation.data);
       const json = await cbs.send(
-        cbs.menu.saveMenuItem(
-          formData.recordId,
-          wireData as unknown as Record<string, unknown>,
-        ),
+        cbs.menu.saveMenuItem(formData.recordId, wireData as unknown as Record<string, unknown>),
         {
           successTitle: "Menu Item Saved",
           successMessage: `Saved menu action #${formData.recordId}`,
@@ -202,8 +193,10 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
     fetchItems();
   }, [fetchItems]);
 
+  const hasLoadedInitialRef = React.useRef(false);
   React.useEffect(() => {
-    if (resolvedInitialId) {
+    if (!hasLoadedInitialRef.current && resolvedInitialId) {
+      hasLoadedInitialRef.current = true;
       fetchRecord(resolvedInitialId, resolvedInitialMode);
     }
   }, [fetchRecord, resolvedInitialId, resolvedInitialMode]);

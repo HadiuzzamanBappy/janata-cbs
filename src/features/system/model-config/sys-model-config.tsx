@@ -3,7 +3,7 @@
 import { Database, FileCode, FileText, Layers, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab } from "@/lib/cbs-screen";
+import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
 import { McAuditTab } from "./components/mc-audit-tab";
 import { McGeneralTab } from "./components/mc-general-tab";
 import { McJsonTab } from "./components/mc-json-tab";
@@ -154,6 +154,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
           onClick: () => setFormData((p) => ({ ...p, isActive: !p.isActive })),
           requiredRight: "A",
         },
+        ...getDefaultMoreActions("MODEL.CONFIG"),
       ]}
     />
   );

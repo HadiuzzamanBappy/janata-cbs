@@ -52,7 +52,7 @@ export function CbsJsonViewerTab({
   const sizeBytes = new Blob([jsonString]).size;
 
   return (
-    <div className={`flex-1 flex flex-col min-h-0 bg-background overflow-hidden p-2 ${className}`}>
+    <div className={`flex-1 flex flex-col min-h-0 bg-background overflow-hidden p-0 ${className}`}>
       <div className="flex-1 rounded border border-border/80 bg-card flex flex-col overflow-hidden shadow-2xs min-h-0">
         {/* Toolbar Header */}
         <div className="p-2 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">

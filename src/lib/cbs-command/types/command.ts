@@ -22,24 +22,55 @@ export type ScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
 // Chapter 2: Authentic CBS RIDASH Function Rights
 // ============================================================================
 
-import { CBS_FUNCTION_CODES, type FunctionRightCode } from "@/types";
+import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS, type FunctionRightCode } from "@/types";
 
-export { CBS_FUNCTION_CODES, type FunctionRightCode };
+export { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS, type FunctionRightCode };
 
 export interface FunctionMetadata {
   code: FunctionRightCode;
   label: string;
   mode: ScreenMode;
+  description: string;
 }
 
-/** Human-readable labels and UI screen modes for each RIDASH function right */
+/** Human-readable labels and UI screen modes for each CBS function right */
 export const CBS_FUNCTION_METADATA: Record<FunctionRightCode, FunctionMetadata> = {
-  R: { code: "R", label: "Read / Reverse ('R')", mode: "VIEW" },
-  I: { code: "I", label: "Input / Create ('I')", mode: "CREATE" },
-  D: { code: "D", label: "Delete ('D')", mode: "EDIT" },
-  A: { code: "A", label: "Authorise / Amend ('A')", mode: "EDIT" },
-  S: { code: "S", label: "See / View ('S')", mode: "VIEW" },
-  H: { code: "H", label: "History ('H')", mode: "EDIT" },
+  S: {
+    code: "S",
+    label: CBS_FUNCTION_DEFINITIONS.S.label,
+    description: CBS_FUNCTION_DEFINITIONS.S.description,
+    mode: "VIEW",
+  },
+  I: {
+    code: "I",
+    label: CBS_FUNCTION_DEFINITIONS.I.label,
+    description: CBS_FUNCTION_DEFINITIONS.I.description,
+    mode: "CREATE",
+  },
+  D: {
+    code: "D",
+    label: CBS_FUNCTION_DEFINITIONS.D.label,
+    description: CBS_FUNCTION_DEFINITIONS.D.description,
+    mode: "EDIT",
+  },
+  A: {
+    code: "A",
+    label: CBS_FUNCTION_DEFINITIONS.A.label,
+    description: CBS_FUNCTION_DEFINITIONS.A.description,
+    mode: "EDIT",
+  },
+  R: {
+    code: "R",
+    label: CBS_FUNCTION_DEFINITIONS.R.label,
+    description: CBS_FUNCTION_DEFINITIONS.R.description,
+    mode: "EDIT",
+  },
+  H: {
+    code: "H",
+    label: CBS_FUNCTION_DEFINITIONS.H.label,
+    description: CBS_FUNCTION_DEFINITIONS.H.description,
+    mode: "VIEW",
+  },
 };
 
 /** Pre-computed Set for high-performance O(1) syntax validation */

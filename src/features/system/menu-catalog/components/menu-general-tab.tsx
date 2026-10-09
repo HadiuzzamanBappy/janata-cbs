@@ -20,10 +20,7 @@ import {
   setMenuFieldValue,
   type MenuFieldDef,
 } from "../config/menu-fields";
-import type {
-  MenuCatalogRecord,
-  MenuValidationErrorItem,
-} from "@/lib/schemas/menu-catalog-schema";
+import type { MenuCatalogRecord, MenuValidationErrorItem } from "@/lib/schemas/menu-catalog-schema";
 
 interface MenuGeneralTabProps {
   formData: MenuCatalogRecord;
@@ -50,7 +47,7 @@ export function MenuGeneralTab({
   );
 
   return (
-    <div className="h-full overflow-y-auto p-3">
+    <div className="h-full overflow-y-auto">
       <div className="max-w-3xl space-y-3">
         {MENU_FIELD_GROUPS.map((group) => {
           const groupFields = MENU_META_FIELDS.filter((f) => f.group === group.id);
@@ -83,9 +80,7 @@ export function MenuGeneralTab({
                         <Checkbox
                           checked={Boolean(formData.isActive)}
                           disabled={isReadOnly}
-                          onCheckedChange={(val) =>
-                            setFormData((p) => ({ ...p, isActive: !!val }))
-                          }
+                          onCheckedChange={(val) => setFormData((p) => ({ ...p, isActive: !!val }))}
                           className={cn(
                             "rounded",
                             isReadOnly && "disabled:opacity-90 disabled:cursor-default",
@@ -201,7 +196,9 @@ export function MenuGeneralTab({
                                 <span className="text-destructive font-bold ml-1">*</span>
                               )}
                             </Label>
-                            <span className="text-muted-foreground/60 font-mono text-xs pt-1">:</span>
+                            <span className="text-muted-foreground/60 font-mono text-xs pt-1">
+                              :
+                            </span>
                             <Textarea
                               value={displayVal}
                               disabled={isReadOnly}

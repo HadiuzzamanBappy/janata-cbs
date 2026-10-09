@@ -1,6 +1,7 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { appConfig } from "@/lib/config";
+import type { CbsScreenMode } from "@/lib/cbs-screen/types";
 
 export interface WorkbenchTab {
   id: string; // Unique instance ID for every tab opened
@@ -12,7 +13,7 @@ export interface WorkbenchTab {
   props?: Record<string, unknown>;
   formData?: Record<string, unknown>; // Draft form input values typed by user
   isDirty?: boolean; // True only when the user has actually edited/typed changes
-  screenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+  screenMode?: CbsScreenMode;
   searchRecordId?: string;
   enquiryState?: {
     step?: "SELECTION" | "RESULTS";

@@ -6,7 +6,7 @@ import type { ModelConfigRecord } from "@/lib/schemas/model-config-schema";
  * Formatted directly as built by the UI designer (1:1 storage format).
  */
 export const RAW_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
-  MENU_DESIGN: {
+  MENU_TREE: {
     recordId: "MENU_TREE",
     tableName: "MENU_TREE",
     description: "Menu Tree",

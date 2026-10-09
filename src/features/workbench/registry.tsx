@@ -15,7 +15,7 @@ import type { ScreenComponent } from "./types";
  * (e.g. MD, PWD) are automatically resolved via `getCanonicalScreenKey`.
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
-  "MENU": SysMenuCatalog,
+  MENU: SysMenuCatalog,
   "MENU.DESIGN": SysMenuDesigner,
   "MENU.TREE": SysMenuDesigner,
   "USER.GROUP": UserGroupScreen,
@@ -43,10 +43,15 @@ export function resolveScreen(command: string): ScreenComponent {
     return BESPOKE_SCREENS[canonicalKey];
   }
 
-  // 2. Check if command is an Inquiry screen
-  if (cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY")) {
+  // 2. Check if command is an Inquiry screen (by command prefix or URL query parameter)
+  const isEnquiryComponent =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("component") === "INQUIRY_SCREEN";
+
+  if (cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY") || isEnquiryComponent) {
+    const inqCommand = cleanCmd.startsWith("INQ ") ? cleanCmd : `INQ ${cleanCmd}`;
     return function InquiryWrapper(props: { command: string; tabId?: string }) {
-      return <InquiryScreen command={props.command || cleanCmd} tabId={props.tabId} />;
+      return <InquiryScreen command={props.command || inqCommand} tabId={props.tabId} />;
     };
   }
 

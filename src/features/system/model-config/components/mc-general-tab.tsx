@@ -53,7 +53,7 @@ export function McGeneralTab({
   );
 
   return (
-    <div className="h-full overflow-y-auto p-3">
+    <div className="h-full overflow-y-auto">
       <div className="max-w-3xl space-y-3">
         {META_FIELD_GROUPS.map((group) => {
           const groupFields = MODEL_META_FIELDS.filter((f) => f.group === group.id);
@@ -84,7 +84,7 @@ export function McGeneralTab({
                             key={field.path}
                             className={cn(
                               "flex items-center gap-1.5 select-none",
-                              isReadOnly ? "cursor-default opacity-85" : "cursor-pointer"
+                              isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
                             )}
                           >
                             <Checkbox
@@ -93,13 +93,15 @@ export function McGeneralTab({
                               onCheckedChange={(val) => handleBooleanChange(field, !!val)}
                               className={cn(
                                 "rounded",
-                                isReadOnly && "disabled:opacity-90 disabled:cursor-default"
+                                isReadOnly && "disabled:opacity-90 disabled:cursor-default",
                               )}
                             />
                             <span
                               className={cn(
                                 "text-xs font-medium",
-                                isReadOnly && isChecked ? "text-foreground" : "text-muted-foreground"
+                                isReadOnly && isChecked
+                                  ? "text-foreground"
+                                  : "text-muted-foreground",
                               )}
                             >
                               {field.label}
@@ -120,16 +122,17 @@ export function McGeneralTab({
                       <label
                         className={cn(
                           "flex items-center gap-2 select-none",
-                          isReadOnly ? "cursor-default" : "cursor-pointer"
+                          isReadOnly ? "cursor-default" : "cursor-pointer",
                         )}
                       >
                         <Checkbox
                           checked={formData.isActive}
                           disabled={isReadOnly}
-                          onCheckedChange={(val) =>
-                            setFormData((p) => ({ ...p, isActive: !!val }))
-                          }
-                          className={cn("rounded", isReadOnly && "disabled:opacity-90 disabled:cursor-default")}
+                          onCheckedChange={(val) => setFormData((p) => ({ ...p, isActive: !!val }))}
+                          className={cn(
+                            "rounded",
+                            isReadOnly && "disabled:opacity-90 disabled:cursor-default",
+                          )}
                         />
                         <span
                           className={cn(
@@ -167,14 +170,17 @@ export function McGeneralTab({
                             <label
                               className={cn(
                                 "flex items-center gap-1.5 select-none",
-                                isReadOnly ? "cursor-default opacity-85" : "cursor-pointer"
+                                isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
                               )}
                             >
                               <Checkbox
                                 checked={Boolean(rawVal)}
                                 disabled={isReadOnly}
                                 onCheckedChange={(val) => handleBooleanChange(field, !!val)}
-                                className={cn("rounded", isReadOnly && "disabled:opacity-90 disabled:cursor-default")}
+                                className={cn(
+                                  "rounded",
+                                  isReadOnly && "disabled:opacity-90 disabled:cursor-default",
+                                )}
                               />
                               {field.helperText && (
                                 <span className="text-xs text-muted-foreground">
@@ -203,7 +209,7 @@ export function McGeneralTab({
                                   key={opt.value}
                                   className={cn(
                                     "flex items-center gap-1.5 select-none",
-                                    isReadOnly ? "cursor-default opacity-85" : "cursor-pointer"
+                                    isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
                                   )}
                                 >
                                   <Checkbox
@@ -217,7 +223,7 @@ export function McGeneralTab({
                                     }}
                                     className={cn(
                                       "rounded",
-                                      isReadOnly && "disabled:opacity-90 disabled:cursor-default"
+                                      isReadOnly && "disabled:opacity-90 disabled:cursor-default",
                                     )}
                                   />
                                   <span className="text-xs font-mono font-medium text-foreground">

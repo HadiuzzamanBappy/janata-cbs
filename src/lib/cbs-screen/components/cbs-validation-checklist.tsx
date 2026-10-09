@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { CbsScreenValidationError } from "../types";
+import { focusFormField } from "../utils/focus-field";
 
 export interface CbsValidationChecklistProps<TTab extends string = string> {
   errors: CbsScreenValidationError<TTab>[];
@@ -62,13 +63,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
               const first = errors[0];
               if (first) {
                 if (first.tab) onSelectTab?.(first.tab);
-                const el =
-                  document.getElementById(first.fieldKey) ||
-                  document.querySelector(`[name="${first.fieldKey}"]`);
-                if (el) {
-                  el.scrollIntoView({ behavior: "smooth", block: "center" });
-                  (el as HTMLElement).focus?.();
-                }
+                focusFormField(first.fieldKey, first.nodeId);
               }
             }}
             className="h-5 px-1.5 text-[10px] font-semibold rounded shadow-none cursor-pointer"
@@ -83,13 +78,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
               key={err.id}
               onClick={() => {
                 if (err.tab) onSelectTab?.(err.tab);
-                const el =
-                  document.getElementById(err.fieldKey) ||
-                  document.querySelector(`[name="${err.fieldKey}"]`);
-                if (el) {
-                  el.scrollIntoView({ behavior: "smooth", block: "center" });
-                  (el as HTMLElement).focus?.();
-                }
+                focusFormField(err.fieldKey, err.nodeId);
               }}
               className="px-2 py-1.5 text-xs cursor-pointer flex flex-col items-start gap-0.5 rounded hover:bg-destructive/10"
             >

@@ -21,30 +21,54 @@ export function useCbsPersistence<TRecord>({
   const { tabs, updateFormData, updateTabState } = useWorkbenchStore();
   const currentTab = tabs.find((t) => t.id === tabId);
 
-  // 1. Resolve initial record ID
-  const resolvedInitialId = React.useMemo(() => {
-    if (initialId?.trim()) return initialId.trim().toUpperCase();
-    if (currentTab?.searchRecordId) return currentTab.searchRecordId.toUpperCase();
-    if (typeof window !== "undefined") {
+  // 1. Resolve initial record ID once on mount / explicit initialId prop change
+  const initialIdRef = React.useRef<string | null>(null);
+  if (initialIdRef.current === null) {
+    if (initialId?.trim()) {
+      initialIdRef.current = initialId.trim().toUpperCase();
+    } else if (currentTab?.searchRecordId) {
+      initialIdRef.current = currentTab.searchRecordId.toUpperCase();
+    } else if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       const urlId = p.get("recordId") || p.get("id");
-      if (urlId?.trim()) return urlId.trim().toUpperCase();
+      initialIdRef.current = urlId?.trim() ? urlId.trim().toUpperCase() : "";
+    } else {
+      initialIdRef.current = "";
     }
-    return "";
-  }, [initialId, currentTab?.searchRecordId]);
+  }
 
-  // 2. Resolve initial screen mode
-  const resolvedInitialMode = React.useMemo((): CbsScreenMode => {
+  const resolvedInitialId = initialId?.trim()
+    ? initialId.trim().toUpperCase()
+    : initialIdRef.current;
+
+  // 2. Resolve initial screen mode once on mount
+  const initialModeRef = React.useRef<CbsScreenMode | null>(null);
+  if (initialModeRef.current === null) {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       const urlMode = p.get("mode") as CbsScreenMode | null;
-      if (urlMode === "CREATE" || urlMode === "EDIT" || urlMode === "VIEW" || urlMode === "IDLE") {
-        return urlMode;
+      if (
+        urlMode === "IDLE" ||
+        urlMode === "S" ||
+        urlMode === "I" ||
+        urlMode === "D" ||
+        urlMode === "A" ||
+        urlMode === "R" ||
+        urlMode === "H"
+      ) {
+        initialModeRef.current = urlMode;
       }
     }
-    if (currentTab?.screenMode) return currentTab.screenMode as CbsScreenMode;
-    return resolvedInitialId ? "EDIT" : fallbackMode;
-  }, [currentTab?.screenMode, fallbackMode, resolvedInitialId]);
+    if (!initialModeRef.current) {
+      if (currentTab?.screenMode) {
+        initialModeRef.current = currentTab.screenMode as CbsScreenMode;
+      } else {
+        initialModeRef.current = resolvedInitialId ? "I" : fallbackMode;
+      }
+    }
+  }
+
+  const resolvedInitialMode = initialModeRef.current || fallbackMode;
 
   const [recordId, setRecordIdState] = React.useState<string>(resolvedInitialId);
   const [mode, setModeState] = React.useState<CbsScreenMode>(resolvedInitialMode);

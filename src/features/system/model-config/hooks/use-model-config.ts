@@ -12,10 +12,7 @@ import {
   type ValidationErrorItem,
 } from "@/lib/schemas/model-config-schema";
 import { mapZodIssuesToValidationErrors } from "./model-config-validation";
-import {
-  INITIAL_MODEL,
-  useModelConfigPersistence,
-} from "./use-model-config-persistence";
+import { INITIAL_MODEL, useModelConfigPersistence } from "./use-model-config-persistence";
 
 export interface ModelCatalogItem {
   id: string;
@@ -288,8 +285,10 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     refreshCatalog();
   }, [refreshCatalog]);
 
+  const hasLoadedInitialRef = React.useRef(false);
   React.useEffect(() => {
-    if (resolvedInitialId) {
+    if (!hasLoadedInitialRef.current && resolvedInitialId) {
+      hasLoadedInitialRef.current = true;
       fetchRecord(resolvedInitialId, resolvedInitialMode);
     }
   }, [fetchRecord, resolvedInitialId, resolvedInitialMode]);

@@ -3,25 +3,17 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import {
-  parseMenuTreeList,
-  parseMenuTreeRecord,
-  serializeMenuTreeToWireJson,
-} from "@/lib/parsers";
+import { parseMenuTreeList, parseMenuTreeRecord, serializeMenuTreeToWireJson } from "@/lib/parsers";
 import {
   type MenuCatalogActionItem,
-  type MenuDesignerValidationError,
   type MenuDesignerScreenMode,
+  type MenuDesignerValidationError,
   type MenuTreeNode,
   menuTreeRecordSchema,
 } from "@/lib/schemas/menu-designer-schema";
 import { mapMenuDesignerZodIssues } from "./menu-designer-validation";
-import {
-  INITIAL_MENU_TREE,
-  useMenuDesignerPersistence,
-} from "./use-menu-designer-persistence";
+import { INITIAL_MENU_TREE, useMenuDesignerPersistence } from "./use-menu-designer-persistence";
 import { useTreeOperations } from "./use-tree-operations";
-
 
 export function useMenuDesigner(initialId?: string, tabId?: string) {
   const {
@@ -80,12 +72,42 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
       }
       // Demo fallback catalog
       setCatalogItems([
-        { id: "1", label: "Open Customer Account", command: "ACCOUNT I", description: "Customer account opening" },
-        { id: "2", label: "Account Overview & Balances", command: "ACCOUNT S", description: "Inquiry overview" },
-        { id: "3", label: "Customer Master Onboarding", command: "CUSTOMER I", description: "New customer master record" },
-        { id: "4", label: "Funds Transfer Initiation", command: "FUNDS.TRANSFER I", description: "Interbank & intrabank transfers" },
-        { id: "5", label: "Realtime Ledger Inquiry", command: "INQ ACCT.BAL", description: "Realtime balance inquiry" },
-        { id: "6", label: "Model Configuration", command: "MODEL.CONFIG", description: "CBS Schema and Model Designer" },
+        {
+          id: "1",
+          label: "Open Customer Account",
+          command: "ACCOUNT I",
+          description: "Customer account opening",
+        },
+        {
+          id: "2",
+          label: "Account Overview & Balances",
+          command: "ACCOUNT S",
+          description: "Inquiry overview",
+        },
+        {
+          id: "3",
+          label: "Customer Master Onboarding",
+          command: "CUSTOMER I",
+          description: "New customer master record",
+        },
+        {
+          id: "4",
+          label: "Funds Transfer Initiation",
+          command: "FUNDS.TRANSFER I",
+          description: "Interbank & intrabank transfers",
+        },
+        {
+          id: "5",
+          label: "Realtime Ledger Inquiry",
+          command: "INQ ACCT.BAL",
+          description: "Realtime balance inquiry",
+        },
+        {
+          id: "6",
+          label: "Model Configuration",
+          command: "MODEL.CONFIG",
+          description: "CBS Schema and Model Designer",
+        },
       ]);
     } catch {
       setCatalogItems([
@@ -118,22 +140,29 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
         }
       }
       setAvailableTrees([
-        { id: "MAIN_MENU", label: "Core Enterprise Main Navigation", details: "Active Core Navigation" },
-        { id: "MAIN.NAV", label: "Core Enterprise Main Navigation", details: "Active Core Navigation" },
-        { id: "TELLER.MENU", label: "Branch Frontline Teller Menu", details: "Cashier Operations" },
+        {
+          id: "MAIN.MENU",
+          label: "Core Enterprise Main Navigation",
+          details: "Active Core Navigation",
+        },
         { id: "ADMIN.NAV", label: "System Administration & Ops", details: "Superuser Tree" },
+        { id: "TELLER.MENU", label: "Branch Frontline Teller Menu", details: "Cashier Operations" },
       ]);
     } catch {
       setAvailableTrees([
-        { id: "MAIN_MENU", label: "Core Enterprise Main Navigation", details: "Active Core Navigation" },
-        { id: "TELLER.MENU", label: "Branch Frontline Teller Menu", details: "Cashier Operations" },
+        {
+          id: "MAIN.MENU",
+          label: "Core Enterprise Main Navigation",
+          details: "Active Core Navigation",
+        },
+        { id: "ADMIN.NAV", label: "System Administration & Ops", details: "Superuser Tree" },
       ]);
     }
   }, []);
 
   // 3. Fetch specific tree record by ID
   const fetchTreeRecord = React.useCallback(
-    async (targetId: string, targetMode: MenuDesignerScreenMode = "EDIT") => {
+    async (targetId: string, targetMode: MenuDesignerScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
@@ -163,7 +192,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
           isActive: true,
           menuTree: [],
         });
-        setMode("CREATE");
+        setMode("I");
       } catch {
         setFormData({
           recordId: cleanId,
@@ -171,7 +200,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
           isActive: true,
           menuTree: [],
         });
-        setMode("CREATE");
+        setMode("I");
       } finally {
         setLoading(false);
       }
@@ -189,7 +218,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
       isActive: true,
       menuTree: [],
     });
-    setMode("CREATE");
+    setMode("I");
   }, [setFormData, setMode, setRecordId]);
 
   // 5. Validate tree
@@ -233,17 +262,14 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     try {
       const wireData = serializeMenuTreeToWireJson(validation.data);
       const json = await cbs.send(
-        cbs.menu.saveMenuTree(
-          validation.data.recordId,
-          wireData as unknown as unknown[],
-        ),
+        cbs.menu.saveMenuTree(validation.data.recordId, wireData as unknown as unknown[]),
         {
           successTitle: "Navigation Tree Committed",
           successMessage: `Saved hierarchy ${validation.data.recordId} to MENU.TREE`,
         },
       );
       if (json.status === "SUCCESS") {
-        setMode("EDIT");
+        setMode("I");
         fetchAvailableTrees();
       }
     } catch {
@@ -263,7 +289,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
         successMessage: `Authorized live menu tree #${recordId}`,
       });
       if (json.status === "SUCCESS") {
-        setMode("VIEW");
+        setMode("S");
       }
     } catch {
       // Toast error handled by cbs.send
@@ -284,8 +310,10 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     fetchAvailableTrees();
   }, [fetchCatalogItems, fetchAvailableTrees]);
 
+  const hasLoadedInitialRef = React.useRef(false);
   React.useEffect(() => {
-    if (resolvedInitialId) {
+    if (!hasLoadedInitialRef.current && resolvedInitialId) {
+      hasLoadedInitialRef.current = true;
       fetchTreeRecord(resolvedInitialId, resolvedInitialMode);
     }
   }, [fetchTreeRecord, resolvedInitialId, resolvedInitialMode]);

@@ -42,7 +42,7 @@ export function CbsAuditTab({
     audit?.recStatus !== undefined && audit?.recStatus !== null ? String(audit.recStatus) : "";
 
   return (
-    <div className={`h-full overflow-y-auto p-3 ${className}`}>
+    <div className={`h-full overflow-y-auto ${className}`}>
       <div className="max-w-3xl space-y-3">
         {sections.map((section) => {
           const sectionFields = fields.filter((f) => f.section === section.id);

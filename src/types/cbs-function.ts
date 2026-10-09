@@ -1,9 +1,16 @@
 /**
- * Canonical Core Banking RIDASH Function Right Codes & Enums
+ * Canonical Core Banking RIDASH Function Right Codes & Semantics
  * Single source of truth across Command Gateway, Wire Client, and UI screens.
+ *
+ * S: See       - Read a single record without locking
+ * I: Insert    - Lock, then update or insert; archives to history (Maker)
+ * D: Delete    - Lock, archive to deletion table, delete from unauthorized table only
+ * A: Authorize - Approve a pending record under maker-checker (Checker)
+ * R: Reverse   - Delete and make history from live table
+ * H: History   - Inspect historical revisions ($HIS)
  */
 
-export const CBS_FUNCTION_CODES = ["R", "I", "D", "A", "S", "H"] as const;
+export const CBS_FUNCTION_CODES = ["S", "I", "D", "A", "R", "H"] as const;
 
 export type FunctionRightCode = (typeof CBS_FUNCTION_CODES)[number];
 export type CbsRecordFunction = FunctionRightCode;
@@ -11,8 +18,61 @@ export type CbsRecordFunction = FunctionRightCode;
 export const CbsRecordFunction = {
   SEE: "S",
   INPUT: "I",
-  AUTHORIZE: "A",
   DELETE: "D",
+  AUTHORIZE: "A",
   REVERSE: "R",
   HISTORY: "H",
 } as const;
+
+export interface CbsFunctionDefinition {
+  code: FunctionRightCode;
+  name: string;
+  label: string;
+  description: string;
+  realWorldEffect: string;
+}
+
+export const CBS_FUNCTION_DEFINITIONS: Record<FunctionRightCode, CbsFunctionDefinition> = {
+  S: {
+    code: "S",
+    name: "SEE",
+    label: "See / View",
+    description: "Read a single record",
+    realWorldEffect: "Inspects live or unauthorized record without row lock",
+  },
+  I: {
+    code: "I",
+    name: "INPUT",
+    label: "Insert / Update",
+    description: "Lock, then update or insert; archives to history",
+    realWorldEffect: "Maker captures draft, validates onsite rules, commits to $NAU",
+  },
+  D: {
+    code: "D",
+    name: "DELETE",
+    label: "Delete",
+    description: "Delete from unauthorized table only",
+    realWorldEffect: "Archives to deletion table and purges unapproved draft from $NAU",
+  },
+  A: {
+    code: "A",
+    name: "AUTHORIZE",
+    label: "Authorize",
+    description: "Approve a pending record under maker-checker",
+    realWorldEffect: "Checker approves pending draft, promoting from $NAU into live ledger",
+  },
+  R: {
+    code: "R",
+    name: "REVERSE",
+    label: "Reverse",
+    description: "Delete and make history from live table",
+    realWorldEffect: "Reverses live transaction with offsetting accounting entries",
+  },
+  H: {
+    code: "H",
+    name: "HISTORY",
+    label: "History",
+    description: "Inspect historical revisions ($HIS)",
+    realWorldEffect: "Audits prior version snapshots and historical deltas",
+  },
+};

@@ -47,7 +47,7 @@ export function IdleActions({
           {!searchVal.trim()
             ? "Enter or select a Record ID to edit"
             : !rights.canAmend
-              ? "Requires Amend ('A') permission"
+              ? "Requires Input/Amend ('I') permission"
               : "Edit Record"}
         </TooltipContent>
       </Tooltip>
@@ -143,11 +143,11 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onSubmit?.()}
               disabled={
-                mode === "VIEW" ||
+                mode === "S" ||
+                mode === "A" ||
                 !onSubmit ||
                 submitting ||
-                (mode === "CREATE" && !rights.canInput) ||
-                (mode === "EDIT" && !rights.canAmend)
+                (mode === "I" && !rights.canInput && !rights.canAmend)
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
@@ -156,13 +156,11 @@ export function ActiveActions({
           }
         />
         <TooltipContent className="text-xs">
-          {mode === "VIEW"
-            ? "Disabled in View mode (Read-Only)"
-            : mode === "CREATE" && !rights.canInput
-              ? "Requires Input ('I') permission"
-              : mode === "EDIT" && !rights.canAmend
-                ? "Requires Amend ('A') permission"
-                : "Save / Commit Record (✓)"}
+          {mode === "S" || mode === "A"
+            ? "Disabled in View/Auth mode (Read-Only)"
+            : mode === "I" && !rights.canInput && !rights.canAmend
+              ? "Requires Input/Amend ('I'/'A') permission"
+              : "Save / Commit Record (✓)"}
         </TooltipContent>
       </Tooltip>
 
@@ -176,11 +174,11 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onValidate?.()}
               disabled={
-                mode === "VIEW" ||
+                mode === "S" ||
+                mode === "A" ||
                 !onValidate ||
                 submitting ||
-                (mode === "CREATE" && !rights.canInput) ||
-                (mode === "EDIT" && !rights.canAmend)
+                (mode === "I" && !rights.canInput && !rights.canAmend)
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40 font-bold"
             >
@@ -191,7 +189,7 @@ export function ActiveActions({
           }
         />
         <TooltipContent className="text-xs">
-          {mode === "VIEW" ? "Disabled in View mode" : "Validate Rules & Integrity (?✓)"}
+          {mode === "S" || mode === "A" ? "Disabled in View/Auth mode" : "Validate Rules & Integrity (?✓)"}
         </TooltipContent>
       </Tooltip>
 
@@ -204,7 +202,7 @@ export function ActiveActions({
               variant="default"
               size="icon-sm"
               onClick={() => onHold?.()}
-              disabled={mode === "VIEW" || !onHold || submitting || !rights.canHold}
+              disabled={mode === "S" || mode === "A" || !onHold || submitting || !rights.canHold}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <Pause className="size-3 fill-current" />
@@ -212,8 +210,8 @@ export function ActiveActions({
           }
         />
         <TooltipContent className="text-xs">
-          {mode === "VIEW"
-            ? "Disabled in View mode"
+          {mode === "S" || mode === "A"
+            ? "Disabled in View/Auth mode"
             : !rights.canHold
               ? "Requires Hold ('H') permission"
               : "Hold Draft (❚❚)"}
@@ -229,7 +227,7 @@ export function ActiveActions({
               variant="destructive"
               size="icon-sm"
               onClick={() => onDelete?.()}
-              disabled={mode !== "EDIT" || !onDelete || submitting || !rights.canDelete}
+              disabled={mode !== "I" || !onDelete || submitting || !rights.canDelete}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <X className="size-3 stroke-[2.5]" />
@@ -237,11 +235,9 @@ export function ActiveActions({
           }
         />
         <TooltipContent className="text-xs">
-          {mode === "VIEW"
-            ? "Disabled in View mode"
-            : mode === "CREATE"
-              ? "Cannot delete an unsaved new record"
-              : !rights.canDelete
+          {mode === "S" || mode === "A"
+            ? "Disabled in View/Auth mode"
+            : !rights.canDelete
                 ? "Requires Delete ('D') permission"
                 : "Delete / Reverse Record (✕)"}
         </TooltipContent>
@@ -257,7 +253,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
               disabled={
-                mode !== "EDIT" || !onAuthorizeReverse || submitting || !rights.canAuthorise
+                mode !== "A" || !onAuthorizeReverse || submitting || !rights.canAuthorise
               }
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
@@ -268,13 +264,11 @@ export function ActiveActions({
           }
         />
         <TooltipContent className="text-xs">
-          {mode === "VIEW"
-            ? "Disabled in View mode"
-            : mode === "CREATE"
-              ? "Cannot authorize an uncommitted record"
-              : !rights.canAuthorise
-                ? "Requires Authorise ('A') permission"
-                : "Authorize Record (✓✓)"}
+          {mode !== "A"
+            ? "Requires Auth mode"
+            : !rights.canAuthorise
+              ? "Requires Authorise ('A') permission"
+              : "Authorize Record (✓✓)"}
         </TooltipContent>
       </Tooltip>
 
@@ -288,7 +282,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
               disabled={
-                mode !== "EDIT" ||
+                mode !== "A" ||
                 !onAuthorizeReverse ||
                 submitting ||
                 (!rights.canAuthorise && !rights.canReverse)
@@ -302,13 +296,11 @@ export function ActiveActions({
           }
         />
         <TooltipContent className="text-xs">
-          {mode === "VIEW"
-            ? "Disabled in View mode"
-            : mode === "CREATE"
-              ? "Cannot reverse an uncommitted record"
-              : !rights.canAuthorise && !rights.canReverse
-                ? "Requires Authorise/Reverse ('A'/'R') permission"
-                : "Authorize Reversal (✕✓)"}
+          {mode !== "A"
+            ? "Requires Auth mode"
+            : !rights.canAuthorise && !rights.canReverse
+              ? "Requires Authorise/Reverse ('A'/'R') permission"
+              : "Authorize Reversal (✕✓)"}
         </TooltipContent>
       </Tooltip>
 

@@ -38,9 +38,7 @@ export function SysMenuCatalog({ command, tabId }: ScreenProps) {
   const [activeTab, setActiveTab] = React.useState<MenuCatalogTabKey>("general");
   const isReadOnly = mode !== "I";
 
-  React.useEffect(() => {
-    setActiveTab("general");
-  }, [formData.recordId, mode]);
+
 
   const availableItems = React.useMemo(
     () =>

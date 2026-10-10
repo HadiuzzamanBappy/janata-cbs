@@ -1,8 +1,8 @@
 "use client";
 
 import { useCbsPersistence } from "@/lib/cbs-screen";
-import type { UserGroupRecord } from "@/lib/schemas/user-group-schema";
-import { userGroupRecordSchema } from "@/lib/schemas/user-group-schema";
+import type { UserGroupRecord } from "@/lib/data-schemas/user-group-schema";
+import { userGroupRecordSchema } from "@/lib/data-schemas/user-group-schema";
 
 export const INITIAL_USER_GROUP: UserGroupRecord = {
   recordId: "",

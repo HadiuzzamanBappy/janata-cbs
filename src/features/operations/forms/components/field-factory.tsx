@@ -12,8 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
-import type { FormField } from "@/lib/schemas";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type { FormField } from "@/lib/data-schemas";
 
 export interface FieldFactoryProps {
   field: FormField;

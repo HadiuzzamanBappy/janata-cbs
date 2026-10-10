@@ -3,7 +3,7 @@
  * Lean MVP: clean canonical command names without legacy prefixes + 1 short alias.
  */
 
-import type { MenuItem, SystemCommandItem } from "@/lib/schemas";
+import type { MenuItem, SystemCommandItem } from "@/lib/data-schemas";
 
 export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   // 1. System Administrative Canvases

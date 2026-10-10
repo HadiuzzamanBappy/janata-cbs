@@ -1,4 +1,4 @@
-import type { UserGroupRecord } from "@/lib/schemas/user-group-schema";
+import type { UserGroupRecord } from "@/lib/data-schemas/user-group-schema";
 
 export interface AuditFieldDef {
   path: string;

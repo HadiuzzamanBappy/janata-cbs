@@ -2,7 +2,7 @@
 
 import type { z } from "zod";
 import { mapZodIssuesToTabs } from "@/lib/cbs-screen";
-import type { UserGroupValidationError } from "@/lib/schemas/user-group-schema";
+import type { UserGroupValidationError } from "@/lib/data-schemas/user-group-schema";
 
 export function mapUserGroupZodIssues(issues: z.ZodIssue[]): UserGroupValidationError[] {
   return mapZodIssuesToTabs<"general" | "matrix" | "audit">(issues, (path) => {

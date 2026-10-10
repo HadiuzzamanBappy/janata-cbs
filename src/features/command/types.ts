@@ -1,4 +1,4 @@
-import type { SystemCommandItem } from "@/lib/schemas";
+import type { SystemCommandItem } from "@/lib/data-schemas";
 
 export interface GlobalSearchProps {
   open: boolean;

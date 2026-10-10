@@ -1,4 +1,4 @@
-import type { FormSchema } from "@/lib/schemas";
+import type { FormSchema } from "@/lib/data-schemas";
 
 export interface DynamicFormProps {
   command: string;

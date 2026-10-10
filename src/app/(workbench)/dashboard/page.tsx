@@ -2,7 +2,7 @@
 
 import { Sparkles } from "lucide-react";
 import { ScreenLoader } from "@/features/workbench";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
 import { useWorkbenchStore } from "@/store";
 
 export default function DashboardPage() {

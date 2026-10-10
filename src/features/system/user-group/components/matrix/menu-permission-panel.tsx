@@ -5,8 +5,8 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { MenuRef } from "@/lib/schemas/user-group-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type { MenuRef } from "@/lib/data-schemas/user-group-schema";
 
 interface MenuPermissionPanelProps {
   menus: MenuRef[];

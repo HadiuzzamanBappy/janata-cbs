@@ -5,8 +5,8 @@ import { Pin, Plus, Search, Terminal } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { MenuCatalogActionItem } from "@/lib/schemas/menu-designer-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-schema";
 
 interface DraggableCatalogCardProps {
   item: MenuCatalogActionItem;

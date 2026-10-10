@@ -13,7 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 import { DEV_NAV_GROUPS } from "../config";
 import type { NavGroup } from "../types";
 import { DocPdfModal } from "./pdf/doc-pdf-modal";

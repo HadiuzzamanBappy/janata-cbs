@@ -3,8 +3,8 @@
 import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/layout/sidebar";
-import { appConfig } from "@/lib/config";
-import { cn } from "@/lib/utils";
+import { appConfig } from "@/lib/core-config";
+import { cn } from "@/lib/core-utils";
 
 const THEME_PRESETS = [
   { id: "color", name: "Janata Brand (Cyan)", color: "bg-[#00adee]" },

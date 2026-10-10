@@ -4,8 +4,8 @@ import { Search, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import type { Role } from "@/lib/schemas/user-group-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type { Role } from "@/lib/data-schemas/user-group-schema";
 
 interface RolePermissionPanelProps {
   roles: Role[];

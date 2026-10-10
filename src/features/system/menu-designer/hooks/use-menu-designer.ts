@@ -3,14 +3,18 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { parseMenuTreeList, parseMenuTreeRecord, serializeMenuTreeToWireJson } from "@/lib/parsers";
+import {
+  parseMenuTreeList,
+  parseMenuTreeRecord,
+  serializeMenuTreeToWireJson,
+} from "@/lib/data-parsers";
 import {
   type MenuCatalogActionItem,
   type MenuDesignerScreenMode,
   type MenuDesignerValidationError,
   type MenuTreeNode,
   menuTreeRecordSchema,
-} from "@/lib/schemas/menu-designer-schema";
+} from "@/lib/data-schemas/menu-designer-schema";
 import { mapMenuDesignerZodIssues } from "./menu-designer-validation";
 import { INITIAL_MENU_TREE, useMenuDesignerPersistence } from "./use-menu-designer-persistence";
 import { useTreeOperations } from "./use-tree-operations";

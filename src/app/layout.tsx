@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 import { ThemeProvider } from "@/store";
 
 const inter = Inter({
@@ -29,18 +29,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var saved = localStorage.getItem('${appConfig.storageKeys.themeAccent}') || 'color';
-                  document.documentElement.setAttribute('data-theme', saved);
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
+        <script>
+          {`try{var s=localStorage.getItem('${appConfig.storageKeys.themeAccent}')||'color';document.documentElement.setAttribute('data-theme',s)}catch(e){}`}
+        </script>
       </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider

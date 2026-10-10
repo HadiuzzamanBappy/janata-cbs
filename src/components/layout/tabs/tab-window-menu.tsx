@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
 import type { WorkbenchTab } from "@/store";
 import { useAlertStore, useWorkbenchStore } from "@/store";
 import { TabMenuItems } from "./tab-menu-items";

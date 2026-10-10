@@ -1,5 +1,5 @@
 import type { CbsScreenMode } from "@/lib/cbs-screen";
-import type { FormSchema } from "@/lib/schemas";
+import type { FormSchema } from "@/lib/data-schemas";
 import { FieldFactory } from "./field-factory";
 
 export interface FormGridProps {

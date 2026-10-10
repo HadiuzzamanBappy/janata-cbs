@@ -1,7 +1,7 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import type { CbsScreenMode } from "@/lib/cbs-screen/types";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 
 export interface WorkbenchTab {
   id: string; // Unique instance ID for every tab opened

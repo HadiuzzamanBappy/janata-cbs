@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cbs } from "@/lib/cbs-client";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 import { changePasswordSchema, changeUsernameSchema } from "../schemas";
 
 export function ChangePassword({ command: _command }: { command?: string }) {

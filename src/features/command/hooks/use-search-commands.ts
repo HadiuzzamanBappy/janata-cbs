@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { extractMenuCommands, getAllRegisteredCommands } from "@/lib/cbs-command";
-import { appConfig } from "@/lib/config";
-import type { SystemCommandItem } from "@/lib/schemas";
+import { appConfig } from "@/lib/core-config";
+import type { SystemCommandItem } from "@/lib/data-schemas";
 
 interface UseSearchCommandsOptions {
   open: boolean;

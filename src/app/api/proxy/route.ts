@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { appConfig } from "@/lib/config/server";
-import { dispatch } from "@/lib/grpc/dispatch";
-import { decodeProtobufValue, parseInquiryRecords } from "@/lib/parsers";
-import { getSession } from "@/lib/redis";
-import { getStaticProxyResponse } from "@/lib/services/static-provider";
+import { appConfig } from "@/lib/core-config/server";
+import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
+import { dispatch } from "@/lib/infra-grpc/dispatch";
+import { getSession } from "@/lib/infra-redis";
+import { getStaticProxyResponse } from "@/lib/infra-services/static-provider";
 import type { GrpcEnvelope } from "@/types";
 
 export const runtime = "nodejs";

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { CommandInput } from "@/components/ui/command";
-import type { SystemCommandItem } from "@/lib/schemas";
+import type { SystemCommandItem } from "@/lib/data-schemas";
 
 interface SearchInputBarProps {
   userHasCommandLine: boolean;

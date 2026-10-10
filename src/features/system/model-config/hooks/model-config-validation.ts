@@ -1,4 +1,4 @@
-import type { ModelProperty, ValidationErrorItem } from "@/lib/schemas/model-config-schema";
+import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
 
 /**
  * Transforms raw Zod validation issues into user-navigable ValidationErrorItems

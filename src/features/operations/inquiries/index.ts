@@ -1,6 +1,6 @@
 // Operations Inquiry Engine Public Barrel
 
-export * from "@/lib/utils/export";
+export * from "@/lib/core-utils/export";
 export * from "./components/inquiry-drill-down";
 export * from "./components/inquiry-filters";
 export * from "./components/inquiry-skeleton";

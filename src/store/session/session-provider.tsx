@@ -17,7 +17,7 @@ export interface SessionStoreProviderProps {
 }
 
 export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) => {
-  const storeRef = useRef<SessionStore>(undefined!);
+  const storeRef = useRef<SessionStore | null>(null);
   if (!storeRef.current) {
     storeRef.current = createSessionStore();
     activeSessionStore = storeRef.current;

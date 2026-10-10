@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ModelProperty, ValidationErrorItem } from "@/lib/schemas/model-config-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
 import { PROPERTY_TYPES } from "./mc-property-inspector";
 
 interface McPropertyListProps {

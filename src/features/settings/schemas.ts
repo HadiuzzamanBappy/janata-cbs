@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 
 export const changeUsernameSchema = z.object({
   oldUserName: z.string().min(1, "Old user name is required"),

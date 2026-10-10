@@ -1,7 +1,7 @@
 "use client";
 
 import { ShieldCheck, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
 
 export interface CbsAuditRecord {
   recordStatus?: string;

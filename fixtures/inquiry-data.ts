@@ -1,4 +1,4 @@
-import type { GrpcResponse } from "@/lib/grpc/generated/service";
+import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
  * STATIC_INQUIRY_DATA mirrors the CBS Enquiry/Inquiry dataset wire responses (.response/inquiry-data.normalized.json).

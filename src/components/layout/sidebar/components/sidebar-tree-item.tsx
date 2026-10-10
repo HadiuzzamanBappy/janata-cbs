@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { cbsCommand } from "@/lib/cbs-command";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
 import { useWorkbenchStore } from "@/store";
 import { hasActiveChild, type TreeNode } from "../types";
 

@@ -1,8 +1,8 @@
 "use client";
 
 import { CbsJsonViewerTab } from "@/lib/cbs-screen";
-import { serializeModelToWireJson } from "@/lib/parsers";
-import type { ModelConfigRecord } from "@/lib/schemas/model-config-schema";
+import { serializeModelToWireJson } from "@/lib/data-parsers";
+import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 interface McJsonTabProps {
   formData: ModelConfigRecord;

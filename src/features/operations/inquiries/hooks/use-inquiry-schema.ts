@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { appConfig } from "@/lib/config";
-import type { EnquirySchema } from "@/lib/schemas";
+import { appConfig } from "@/lib/core-config";
+import type { EnquirySchema } from "@/lib/data-schemas";
 
 export function useInquirySchema(command: string) {
   const [schema, setSchema] = useState<EnquirySchema | null>(null);

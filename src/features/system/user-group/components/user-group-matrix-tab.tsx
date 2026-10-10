@@ -1,6 +1,6 @@
 "use client";
 
-import type { MenuRef, Role } from "@/lib/schemas/user-group-schema";
+import type { MenuRef, Role } from "@/lib/data-schemas/user-group-schema";
 import { MenuPermissionPanel } from "./matrix/menu-permission-panel";
 import { RolePermissionPanel } from "./matrix/role-permission-panel";
 

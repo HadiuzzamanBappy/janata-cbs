@@ -11,7 +11,7 @@ export interface AlertStoreProviderProps {
 }
 
 export const AlertStoreProvider = ({ children }: AlertStoreProviderProps) => {
-  const storeRef = useRef<AlertStore>(undefined!);
+  const storeRef = useRef<AlertStore | null>(null);
   if (!storeRef.current) {
     storeRef.current = createAlertStore();
   }

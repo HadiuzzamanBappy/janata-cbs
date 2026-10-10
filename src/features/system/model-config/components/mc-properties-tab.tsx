@@ -2,7 +2,7 @@
 
 import { Layers } from "lucide-react";
 import * as React from "react";
-import type { ModelProperty, ValidationErrorItem } from "@/lib/schemas/model-config-schema";
+import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
 import { McPropertyInspector } from "./property/mc-property-inspector";
 import { McPropertyList } from "./property/mc-property-list";
 

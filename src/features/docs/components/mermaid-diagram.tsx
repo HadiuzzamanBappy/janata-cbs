@@ -4,7 +4,7 @@
 import mermaid from "mermaid";
 import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/core-logger";
 
 export function MermaidDiagram({ chart }: { chart: string }) {
   const containerRef = useRef<HTMLDivElement>(null);

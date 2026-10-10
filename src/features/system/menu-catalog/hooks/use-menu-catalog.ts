@@ -7,13 +7,13 @@ import {
   parseMenuCatalogList,
   parseMenuCatalogRecord,
   serializeMenuCatalogToWireJson,
-} from "@/lib/parsers";
+} from "@/lib/data-parsers";
 import {
   type MenuCatalogRecord,
   type MenuCatalogScreenMode,
   type MenuValidationErrorItem,
   menuCatalogRecordSchema,
-} from "@/lib/schemas/menu-catalog-schema";
+} from "@/lib/data-schemas/menu-catalog-schema";
 import { mapMenuZodIssues } from "./menu-catalog-validation";
 import { INITIAL_MENU_ITEM, useMenuCatalogPersistence } from "./use-menu-catalog-persistence";
 

@@ -17,7 +17,7 @@ import {
 import { FolderPlus, Network, Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
 import { TreeDropZone } from "./tree/tree-drop-zone";
 import { TreeNodeItem } from "./tree/tree-node-item";
 

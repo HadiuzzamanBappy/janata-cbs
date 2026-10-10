@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
-import { appConfig } from "@/lib/config";
-import { getSession, updateSession } from "@/lib/redis";
+import { appConfig } from "@/lib/core-config";
+import { getSession, updateSession } from "@/lib/infra-redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

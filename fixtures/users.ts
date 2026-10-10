@@ -1,4 +1,4 @@
-import type { GrpcResponse } from "@/lib/grpc/generated/service";
+import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
  * STATIC_USER_RESPONSES mirrors the normalized CBS authentication responses (matching .response/user.normalized.json).

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 
 export function proxy(request: NextRequest) {
   const publicPaths: string[] = [appConfig.routes.login, appConfig.routes.api.login];

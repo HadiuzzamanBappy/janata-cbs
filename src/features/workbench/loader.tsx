@@ -3,7 +3,7 @@
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
 import { FormSkeleton, InquirySkeleton } from "@/features/operations";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/core-logger";
 import { resolveScreen } from "./registry";
 import type { ScreenLoaderProps } from "./types";
 

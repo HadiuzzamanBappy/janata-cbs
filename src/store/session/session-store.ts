@@ -1,7 +1,7 @@
 import { createStore } from "zustand/vanilla";
-import { appConfig } from "@/lib/config";
-import { logger } from "@/lib/logger";
-import type { CurrentUser } from "@/lib/schemas";
+import { appConfig } from "@/lib/core-config";
+import { logger } from "@/lib/core-logger";
+import type { CurrentUser } from "@/lib/data-schemas";
 
 export interface SessionState {
   user: CurrentUser | null;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { FormSchema } from "@/lib/schemas";
+import type { FormSchema } from "@/lib/data-schemas";
 
 export function useFormState(schema: FormSchema | null, initialData: Record<string, unknown> = {}) {
   const [values, setValues] = useState<Record<string, unknown>>(initialData);

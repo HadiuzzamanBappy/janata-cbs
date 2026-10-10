@@ -1,4 +1,4 @@
-import type { GrpcResponse } from "@/lib/grpc/generated/service";
+import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
  * Canonical CBS Menu Hierarchy Fixture.

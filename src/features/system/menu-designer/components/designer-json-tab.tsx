@@ -1,8 +1,8 @@
 "use client";
 
 import { CbsJsonViewerTab } from "@/lib/cbs-screen";
-import { serializeMenuTreeToWireJson } from "@/lib/parsers";
-import type { MenuTreeRecord } from "@/lib/schemas/menu-designer-schema";
+import { serializeMenuTreeToWireJson } from "@/lib/data-parsers";
+import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
 interface DesignerJsonTabProps {
   formData: MenuTreeRecord;

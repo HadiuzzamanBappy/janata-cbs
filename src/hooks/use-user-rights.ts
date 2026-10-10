@@ -1,7 +1,7 @@
 "use client";
 
 import { useSessionStore } from "@/store";
-import { type FunctionRightCode, CBS_FUNCTION_CODES } from "@/types";
+import { CBS_FUNCTION_CODES, type FunctionRightCode } from "@/types";
 
 export interface UserRights {
   canSee: boolean;

@@ -214,7 +214,11 @@ export function CbsFormHeader({
               <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
                 <Lock className="size-3 text-muted-foreground" />
                 {inputVal.trim() ||
-                  (mode === "I" && !inputVal.trim() ? "NEW" : commandCode ? `[${commandCode}]` : "---")}
+                  (mode === "I" && !inputVal.trim()
+                    ? "NEW"
+                    : commandCode
+                      ? `[${commandCode}]`
+                      : "---")}
               </span>
               <span className="text-[9px] font-mono px-1 py-0 rounded bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
                 {mode}

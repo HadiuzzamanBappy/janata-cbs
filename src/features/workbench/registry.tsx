@@ -1,12 +1,12 @@
 "use client";
 
+import { FormScreen, InquiryScreen } from "@/features/operations";
 import { SysMenuCatalog } from "@/features/system/menu-catalog";
 import { SysMenuDesigner } from "@/features/system/menu-designer";
 import { SysModelConfig } from "@/features/system/model-config";
 import ReportStudio from "@/features/system/report-studio";
 import { UserGroupScreen } from "@/features/system/user-group";
 import { getCanonicalScreenKey } from "@/lib/cbs-command";
-import { FormScreen, InquiryScreen } from "@/features/operations";
 import type { ScreenComponent } from "./types";
 
 /**

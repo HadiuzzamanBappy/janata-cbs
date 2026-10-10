@@ -93,9 +93,15 @@ export function ThemeToggle({ variant = "dropdown" }: ThemeToggleProps) {
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="rounded border border-border/80">
-        <DropdownMenuItem onClick={() => setTheme("light")} className="text-xs rounded">Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")} className="text-xs rounded">Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")} className="text-xs rounded">System</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("light")} className="text-xs rounded">
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")} className="text-xs rounded">
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")} className="text-xs rounded">
+          System
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

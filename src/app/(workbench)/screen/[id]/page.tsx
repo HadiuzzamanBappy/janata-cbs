@@ -3,14 +3,13 @@
 import { useParams, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { ScreenLoader } from "@/features/workbench";
+import type { CbsScreenMode } from "@/lib/cbs-screen";
 import {
   AlertStoreProvider,
   SessionStoreProvider,
   useWorkbenchStore,
   WorkbenchStoreProvider,
 } from "@/store";
-
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const searchParams = useSearchParams();

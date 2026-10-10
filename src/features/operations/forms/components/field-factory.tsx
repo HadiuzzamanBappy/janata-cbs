@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { FormField } from "@/lib/schemas";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
+import type { FormField } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
 export interface FieldFactoryProps {

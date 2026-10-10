@@ -1,5 +1,5 @@
-import type { FormSchema } from "@/lib/schemas";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
+import type { FormSchema } from "@/lib/schemas";
 import { FieldFactory } from "./field-factory";
 
 export interface FormGridProps {
@@ -35,27 +35,27 @@ export function FormGrid({
       <div className="max-w-3xl space-y-3">
         {/* 1:1 System Screen Card Container */}
         <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
-        {/* Card Header: 1:1 with Model Config & User Group */}
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
-          {title} &bull; General Attributes
-        </div>
+          {/* Card Header: 1:1 with Model Config & User Group */}
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
+            {title} &bull; General Attributes
+          </div>
 
-        {/* Form Fields: Stacked vertically with compact 8px gap */}
-        <div className="space-y-2 text-xs">
-          {schema.fields.map((field) => (
-            <FieldFactory
-              key={field.name}
-              field={field}
-              value={values[field.name]}
-              onChange={onChange}
-              error={errors[field.name]}
-              disabled={disabled}
-              mode={mode}
-            />
-          ))}
+          {/* Form Fields: Stacked vertically with compact 8px gap */}
+          <div className="space-y-2 text-xs">
+            {schema.fields.map((field) => (
+              <FieldFactory
+                key={field.name}
+                field={field}
+                value={values[field.name]}
+                onChange={onChange}
+                error={errors[field.name]}
+                disabled={disabled}
+                mode={mode}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

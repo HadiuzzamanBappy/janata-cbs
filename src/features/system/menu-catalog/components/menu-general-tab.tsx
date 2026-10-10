@@ -12,15 +12,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import type { MenuCatalogRecord, MenuValidationErrorItem } from "@/lib/schemas/menu-catalog-schema";
 import { cn } from "@/lib/utils";
 import {
   getMenuFieldValue,
   MENU_FIELD_GROUPS,
   MENU_META_FIELDS,
-  setMenuFieldValue,
   type MenuFieldDef,
+  setMenuFieldValue,
 } from "../config/menu-fields";
-import type { MenuCatalogRecord, MenuValidationErrorItem } from "@/lib/schemas/menu-catalog-schema";
 
 interface MenuGeneralTabProps {
   formData: MenuCatalogRecord;

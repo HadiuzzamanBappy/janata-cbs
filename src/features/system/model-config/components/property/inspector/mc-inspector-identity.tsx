@@ -12,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import {
   type ModelProperty,
   PROPERTY_TYPES,
   type PropertyType,
   type ValidationErrorItem,
 } from "@/lib/schemas/model-config-schema";
+import { cn } from "@/lib/utils";
 
 interface McInspectorIdentitySectionProps {
   property: ModelProperty;
@@ -172,12 +172,11 @@ export function McInspectorIdentitySection({
           </Label>
           <span className="text-muted-foreground/60 font-mono text-xs">:</span>
           <div className="max-w-md flex-1">
-            <Select
-              value={property.type}
-              disabled={isReadOnly}
-              onValueChange={handleTypeChange}
-            >
-              <SelectTrigger size="sm" className="h-7 text-xs rounded bg-background border-border/80 w-full">
+            <Select value={property.type} disabled={isReadOnly} onValueChange={handleTypeChange}>
+              <SelectTrigger
+                size="sm"
+                className="h-7 text-xs rounded bg-background border-border/80 w-full"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded">
@@ -238,11 +237,12 @@ export function McInspectorIdentitySection({
                 checked={property.required}
                 disabled={isReadOnly}
                 onCheckedChange={(val) => onUpdate(property.sn, { required: !!val })}
-                className={cn("rounded", isReadOnly && "disabled:opacity-90 disabled:cursor-default")}
+                className={cn(
+                  "rounded",
+                  isReadOnly && "disabled:opacity-90 disabled:cursor-default",
+                )}
               />
-              <span className="text-xs text-foreground font-medium">
-                Required
-              </span>
+              <span className="text-xs text-foreground font-medium">Required</span>
             </label>
 
             <label
@@ -255,11 +255,12 @@ export function McInspectorIdentitySection({
                 checked={property.disabled}
                 disabled={isReadOnly}
                 onCheckedChange={(val) => onUpdate(property.sn, { disabled: !!val })}
-                className={cn("rounded", isReadOnly && "disabled:opacity-90 disabled:cursor-default")}
+                className={cn(
+                  "rounded",
+                  isReadOnly && "disabled:opacity-90 disabled:cursor-default",
+                )}
               />
-              <span className="text-xs text-foreground font-medium">
-                Read Only
-              </span>
+              <span className="text-xs text-foreground font-medium">Read Only</span>
             </label>
           </div>
         </div>

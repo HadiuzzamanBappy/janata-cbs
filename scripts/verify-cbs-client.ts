@@ -172,7 +172,6 @@ assert(
     (changeSignOn.data as Record<string, unknown>)?.newUserName === "senior_teller1",
 );
 
-
 // 7. Model Config Payloads
 const modelGet = cbs.modelConfig.getModelConfig("ACCOUNT.MODEL");
 assert(

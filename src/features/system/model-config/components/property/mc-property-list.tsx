@@ -1,9 +1,4 @@
-import {
-  Database,
-  Plus,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Database, Plus, Search, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import type { ModelProperty, ValidationErrorItem } from "@/lib/schemas/model-config-schema";
+import { cn } from "@/lib/utils";
 import { PROPERTY_TYPES } from "./mc-property-inspector";
 
 interface McPropertyListProps {
@@ -103,7 +98,10 @@ export function McPropertyList({
             />
           </div>
           <Select value={typeFilter} onValueChange={(val) => val && setTypeFilter(val)}>
-            <SelectTrigger size="sm" className="h-7 text-xs w-24 rounded border-border/80 bg-background shrink-0">
+            <SelectTrigger
+              size="sm"
+              className="h-7 text-xs w-24 rounded border-border/80 bg-background shrink-0"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="rounded">

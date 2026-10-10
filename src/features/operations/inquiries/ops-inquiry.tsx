@@ -3,17 +3,17 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { CbsInquiryHeader as InquiryHeader } from "@/lib/cbs-screen";
 import type { EnquiryRow, SelectionOperand } from "@/lib/schemas";
-import { useInquirySchema } from "./hooks/use-inquiry-schema";
-import { useInquiryState } from "./hooks/use-inquiry-state";
 import { exportToCSV, exportToHTML, exportToXML } from "@/lib/utils/export";
-import { filterDatasetByCriteria } from "./utils/filter-dataset";
-import { resolveDrillDownFormCommand } from "./utils/resolve-form-command";
 import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";
 import { InquiryFilters } from "./components/inquiry-filters";
-import { CbsInquiryHeader as InquiryHeader } from "@/lib/cbs-screen";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
 import { InquiryTable } from "./components/inquiry-table";
+import { useInquirySchema } from "./hooks/use-inquiry-schema";
+import { useInquiryState } from "./hooks/use-inquiry-state";
+import { filterDatasetByCriteria } from "./utils/filter-dataset";
+import { resolveDrillDownFormCommand } from "./utils/resolve-form-command";
 
 export interface InquiryScreenProps {
   command: string;

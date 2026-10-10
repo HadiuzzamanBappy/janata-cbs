@@ -4,13 +4,13 @@ import * as React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { UserGroupRecord, UserGroupValidationError } from "@/lib/schemas/user-group-schema";
 import { cn } from "@/lib/utils";
 import {
   USER_GROUP_FIELD_GROUPS,
   USER_GROUP_META_FIELDS,
   type UserGroupMetaFieldDef,
 } from "../config/meta-fields";
-import type { UserGroupRecord, UserGroupValidationError } from "@/lib/schemas/user-group-schema";
 
 interface UserGroupGeneralTabProps {
   formData: UserGroupRecord;

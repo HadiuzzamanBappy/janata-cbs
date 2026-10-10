@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
 import { Archive, ArchiveRestore, Trash2 } from "lucide-react";
+import * as React from "react";
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { ModelProperty } from "@/lib/schemas/model-config-schema";
+import { cn } from "@/lib/utils";
 
 interface McInspectorHeaderProps {
   property: ModelProperty;
@@ -38,9 +38,7 @@ export function McInspectorHeader({
             {property.name || "<UNNAMED_FIELD>"}
           </span>
           {property.label && (
-            <span className="text-xs text-muted-foreground truncate">
-              — {property.label}
-            </span>
+            <span className="text-xs text-muted-foreground truncate">— {property.label}</span>
           )}
         </div>
 
@@ -68,7 +66,10 @@ export function McInspectorHeader({
             </Badge>
           )}
 
-          <Badge variant="outline" className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-muted-foreground">
+          <Badge
+            variant="outline"
+            className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-muted-foreground"
+          >
             {property.type} • {property.structure === "M" ? "Multi" : "Single"}
           </Badge>
 
@@ -112,11 +113,7 @@ export function McInspectorHeader({
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
         title={
-          !isCommitted
-            ? "Delete Draft Field?"
-            : isArchived
-              ? "Restore Field?"
-              : "Archive Field?"
+          !isCommitted ? "Delete Draft Field?" : isArchived ? "Restore Field?" : "Archive Field?"
         }
         description={
           <span className="text-xs text-muted-foreground leading-relaxed block space-y-1">
@@ -129,13 +126,7 @@ export function McInspectorHeader({
             </span>
           </span>
         }
-        confirmText={
-          !isCommitted
-            ? "Delete"
-            : isArchived
-              ? "Restore"
-              : "Archive"
-        }
+        confirmText={!isCommitted ? "Delete" : isArchived ? "Restore" : "Archive"}
         cancelText="Cancel"
         variant={!isCommitted || !isArchived ? "destructive" : "default"}
         onConfirm={() => onDelete(property.sn)}

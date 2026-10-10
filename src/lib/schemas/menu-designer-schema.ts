@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { auditDataSchema } from "./common-schema";
 import type { CbsScreenMode as MenuDesignerScreenMode } from "../cbs-screen/types";
+import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for Menu Tree Designer                */

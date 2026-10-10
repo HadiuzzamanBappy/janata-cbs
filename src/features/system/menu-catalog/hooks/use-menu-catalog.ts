@@ -11,8 +11,8 @@ import {
 import {
   type MenuCatalogRecord,
   type MenuCatalogScreenMode,
-  menuCatalogRecordSchema,
   type MenuValidationErrorItem,
+  menuCatalogRecordSchema,
 } from "@/lib/schemas/menu-catalog-schema";
 import { mapMenuZodIssues } from "./menu-catalog-validation";
 import { INITIAL_MENU_ITEM, useMenuCatalogPersistence } from "./use-menu-catalog-persistence";

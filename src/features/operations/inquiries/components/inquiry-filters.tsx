@@ -211,7 +211,11 @@ export function InquiryFilters({
               >
                 Clear
               </Button>
-              <Button type="submit" size="sm" className="h-7 text-xs px-3 font-semibold gap-1.5 rounded">
+              <Button
+                type="submit"
+                size="sm"
+                className="h-7 text-xs px-3 font-semibold gap-1.5 rounded"
+              >
                 <Search className="size-3" />
                 <span>Find / Execute</span>
               </Button>

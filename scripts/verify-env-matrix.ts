@@ -8,8 +8,8 @@
 import {
   STATIC_BRANCH_RESPONSE,
   STATIC_COMMANDS,
-  STATIC_MENU,
   STATIC_FORMS,
+  STATIC_MENU,
   STATIC_USER_RESPONSES,
 } from "../fixtures";
 import {

@@ -104,12 +104,12 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     setDrillRecord({
       formCommand: targetCmd,
       recordId,
-      screenMode: "VIEW",
+      screenMode: "S",
       formData: row as Record<string, unknown>,
     });
     toast.add({
       title: "Viewing Record",
-      description: `Opened record #${recordId} in ${targetCmd} (View mode)`,
+      description: `Opened record #${recordId} in ${targetCmd} (See mode)`,
       type: "info",
     });
   };
@@ -120,12 +120,12 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     setDrillRecord({
       formCommand: targetCmd,
       recordId,
-      screenMode: "EDIT",
+      screenMode: "I",
       formData: row as Record<string, unknown>,
     });
     toast.add({
       title: "Editing Record",
-      description: `Opened record #${recordId} in ${targetCmd} (Edit mode)`,
+      description: `Opened record #${recordId} in ${targetCmd} (Input mode)`,
       type: "info",
     });
   };

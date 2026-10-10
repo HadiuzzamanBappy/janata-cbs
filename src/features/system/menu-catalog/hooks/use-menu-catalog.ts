@@ -53,7 +53,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
 
   // 2. Fetch specific record by ID
   const fetchRecord = React.useCallback(
-    async (targetId: string, targetMode: MenuCatalogScreenMode = "EDIT") => {
+    async (targetId: string, targetMode: MenuCatalogScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
@@ -78,10 +78,10 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
         }
         // Initialize clean empty draft when record does not exist
         setFormData({ ...INITIAL_MENU_ITEM, recordId: cleanId });
-        setMode("CREATE");
+        setMode("I");
       } catch {
         setFormData({ ...INITIAL_MENU_ITEM, recordId: cleanId });
-        setMode("CREATE");
+        setMode("I");
       } finally {
         setLoading(false);
       }
@@ -97,7 +97,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
       ...INITIAL_MENU_ITEM,
       recordId: nextId,
     });
-    setMode("CREATE");
+    setMode("I");
   }, [setFormData, setMode, setRecordId]);
 
   // 4. Validate
@@ -154,7 +154,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
             ? prev.map((p) => (p.recordId === validation.data.recordId ? validation.data : p))
             : [...prev, validation.data];
         });
-        setMode("EDIT");
+        setMode("I");
       }
     } catch {
       // Toast handled by cbs.send
@@ -173,7 +173,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
         successMessage: `Authorized menu action #${recordId}`,
       });
       if (json.status === "SUCCESS") {
-        setMode("VIEW");
+        setMode("S");
       }
     } catch {
       // Toast handled by cbs.send

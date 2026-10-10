@@ -28,16 +28,15 @@ export function TabMenuItems({
   const isRightmost = tabs[tabs.length - 1]?.id === tab.id;
 
   const hasDirtyData = (t: WorkbenchTab) => {
-    // VIEW mode and IDLE mode tabs never require a confirmation dialog
-    if (t.screenMode === "VIEW" || t.screenMode === "IDLE") {
+    // Non-input modes never require a confirmation dialog
+    if (t.screenMode !== "I") {
       return false;
     }
 
-    // In EDIT or CREATE mode, only require confirm if user modified/typed changes
+    // In Input (I) mode, only require confirm if user modified/typed changes
     return (
       t.isDirty === true ||
-      (t.screenMode === "CREATE" &&
-        t.formData &&
+      (t.formData &&
         Object.values(t.formData).some((v) => v !== undefined && v !== null && v !== ""))
     );
   };

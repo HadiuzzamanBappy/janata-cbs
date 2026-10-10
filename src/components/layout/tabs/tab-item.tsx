@@ -59,17 +59,16 @@ export function TabItem({
   const handleCloseTab = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
 
-    // VIEW mode tabs or IDLE mode tabs NEVER show a confirmation dialog
-    if (tab.screenMode === "VIEW" || tab.screenMode === "IDLE") {
+    // Non-input modes (See, Authorize, Reverse, Delete, History, Idle) NEVER show a confirmation dialog
+    if (tab.screenMode !== "I") {
       removeTab(tab.id);
       return;
     }
 
-    // In EDIT or CREATE mode, only confirm if the user has actually modified/typed changes
+    // In Input (I) mode, only confirm if the user has actually modified/typed changes
     const isDirty =
       tab.isDirty === true ||
-      (tab.screenMode === "CREATE" &&
-        tab.formData &&
+      (tab.formData &&
         Object.values(tab.formData).some((v) => v !== undefined && v !== null && v !== ""));
 
     if (isDirty) {

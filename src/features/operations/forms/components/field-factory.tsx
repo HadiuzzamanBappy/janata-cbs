@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { FormField } from "@/lib/schemas";
+import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/utils";
 
 export interface FieldFactoryProps {
@@ -20,7 +21,7 @@ export interface FieldFactoryProps {
   onChange: (name: string, value: unknown) => void;
   error?: string;
   disabled?: boolean;
-  mode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+  mode?: CbsScreenMode;
 }
 
 export function FieldFactory({
@@ -29,10 +30,12 @@ export function FieldFactory({
   onChange,
   error,
   disabled = false,
-  mode = "EDIT",
+  mode = "I",
 }: FieldFactoryProps) {
-  const isViewMode = mode === "VIEW";
-  const isReadOnly = disabled || field.readOnly || isViewMode;
+  // Only input state ("I") allows editing; otherwise disabled/read-only
+  const isInputMode = mode === "I";
+  const isViewMode = !isInputMode;
+  const isReadOnly = disabled || field.readOnly || !isInputMode;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(field.name, e.target.value);

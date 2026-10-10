@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { useWorkbenchStore } from "@/store";
+import type { CbsScreenMode } from "@/lib/cbs-screen";
 
 export interface UseFormPersistenceOptions {
   tabId?: string;
-  initialScreenMode?: "IDLE" | "CREATE" | "EDIT" | "VIEW";
+  initialScreenMode?: CbsScreenMode;
   initialRecordId?: string;
   initialValues?: Record<string, unknown>;
 }
@@ -20,18 +21,13 @@ export function useFormPersistence({
   const currentTab = tabs.find((t) => t.id === tabId);
 
   // 1. Initial screen mode
-  const initialMode = React.useMemo(() => {
+  const initialMode = React.useMemo<CbsScreenMode>(() => {
     if (initialScreenMode) return initialScreenMode;
     if (currentTab?.screenMode) return currentTab.screenMode;
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
-      const modeParam = p.get("mode");
-      if (
-        modeParam === "CREATE" ||
-        modeParam === "EDIT" ||
-        modeParam === "VIEW" ||
-        modeParam === "IDLE"
-      ) {
+      const modeParam = p.get("mode") as CbsScreenMode | null;
+      if (modeParam) {
         return modeParam;
       }
     }
@@ -49,13 +45,11 @@ export function useFormPersistence({
     return "";
   }, [initialRecordIdProp, currentTab]);
 
-  const [screenMode, setScreenModeState] = React.useState<"IDLE" | "CREATE" | "EDIT" | "VIEW">(
-    initialMode,
-  );
+  const [screenMode, setScreenModeState] = React.useState<CbsScreenMode>(initialMode);
   const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialRecordId);
 
   const setScreenMode = React.useCallback(
-    (mode: "IDLE" | "CREATE" | "EDIT" | "VIEW") => {
+    (mode: CbsScreenMode) => {
       setScreenModeState(mode);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, { screenMode: mode });

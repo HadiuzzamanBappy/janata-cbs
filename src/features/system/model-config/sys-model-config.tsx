@@ -42,7 +42,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
 
   const [activeTab, setActiveTab] = React.useState<ModelConfigTabKey>("general");
   const [selectedPropertySN, setSelectedPropertySN] = React.useState<string | null>(null);
-  const isReadOnly = mode === "VIEW";
+  const isReadOnly = mode !== "I";
 
   React.useEffect(() => {
     setActiveTab("general");
@@ -132,8 +132,8 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       onValidate={handleValidate}
       onSubmit={handleSubmit}
       onAuthorizeReverse={handleAuthorize}
-      onView={() => recordId && fetchRecord(recordId, "VIEW")}
-      onAmend={() => recordId && fetchRecord(recordId, "EDIT")}
+      onView={() => recordId && fetchRecord(recordId, "S")}
+      onAmend={() => recordId && fetchRecord(recordId, "I")}
       submitting={submitting || loading}
       availableItems={availableModels}
       variant="admin-tabs"

@@ -2,11 +2,12 @@
 
 import { toast } from "@/components/ui/toast";
 import { OpsForm as FormScreen } from "@/features/operations/forms";
+import type { CbsScreenMode } from "@/lib/cbs-screen";
 
 export interface DrillRecord {
   formCommand: string;
   recordId: string;
-  screenMode: "VIEW" | "EDIT";
+  screenMode: CbsScreenMode;
   formData: Record<string, unknown>;
 }
 
@@ -24,7 +25,7 @@ export function InquiryDrillDown({
   className = "",
 }: InquiryDrillDownProps) {
   const modeBadgeColor =
-    drillRecord.screenMode === "VIEW"
+    drillRecord.screenMode === "S"
       ? "bg-sky-500/15 text-sky-400 border-sky-500/30"
       : "bg-amber-500/15 text-amber-400 border-amber-500/30";
 

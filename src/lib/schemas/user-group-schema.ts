@@ -45,7 +45,8 @@ export const userGroupRecordSchema = z.object({
 
 export type UserGroupRecord = z.infer<typeof userGroupRecordSchema>;
 
-export type UserGroupScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
+import type { CbsScreenMode as UserGroupScreenMode } from "../cbs-screen/types";
+export type { UserGroupScreenMode };
 
 export interface UserGroupValidationError {
   id: string;

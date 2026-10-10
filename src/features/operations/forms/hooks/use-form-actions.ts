@@ -43,7 +43,7 @@ export function useFormActions({
 
   // Load record from fixture database or CBS proxy
   const loadRecordData = React.useCallback(
-    async (recordIdToLoad: string, modeToSet: "EDIT" | "VIEW") => {
+    async (recordIdToLoad: string, modeToSet: CbsScreenMode) => {
       if (!schema || !recordIdToLoad.trim()) return;
 
       const cleanModel = schema.code.toUpperCase();
@@ -55,7 +55,7 @@ export function useFormActions({
         setValues(normalized);
         setScreenMode(modeToSet);
         toast.add({
-          title: modeToSet === "VIEW" ? "Viewing Record" : "Editing Record",
+          title: modeToSet === "S" ? "Viewing Record" : "Editing Record",
           description: `Loaded record #${cleanId} for ${schema.title}`,
           type: "success",
         });
@@ -90,7 +90,7 @@ export function useFormActions({
   const handleCreateNew = React.useCallback(() => {
     if (!schema) return;
     resetForm(initialValues);
-    setScreenMode("CREATE");
+    setScreenMode("I");
     toast.add({
       title: "New Record Entry",
       description: searchRecordId.trim()
@@ -110,7 +110,7 @@ export function useFormActions({
       });
       return;
     }
-    loadRecordData(id, "EDIT");
+    loadRecordData(id, "I");
   }, [searchRecordId, loadRecordData]);
 
   const handleView = React.useCallback(() => {
@@ -123,7 +123,7 @@ export function useFormActions({
       });
       return;
     }
-    loadRecordData(id, "VIEW");
+    loadRecordData(id, "S");
   }, [searchRecordId, loadRecordData]);
 
   const handlePerformAction = React.useCallback(() => {
@@ -136,7 +136,7 @@ export function useFormActions({
       });
       return;
     }
-    loadRecordData(id, "EDIT");
+    loadRecordData(id, "I");
   }, [searchRecordId, loadRecordData]);
 
   const handleReturnToSearch = React.useCallback(() => {

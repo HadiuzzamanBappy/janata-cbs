@@ -59,7 +59,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
   // 2. Fetch specific record
   const fetchRecord = React.useCallback(
-    async (targetId: string, targetMode: ModelConfigScreenMode = "EDIT") => {
+    async (targetId: string, targetMode: ModelConfigScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
@@ -81,7 +81,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         } else {
           setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: "" });
           setCommittedSnSet(new Set());
-          setMode("CREATE");
+          setMode("I");
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Failed to load model from API";
@@ -92,7 +92,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         });
         setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: "" });
         setCommittedSnSet(new Set());
-        setMode("CREATE");
+        setMode("I");
       } finally {
         setLoading(false);
       }
@@ -111,7 +111,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       description: "",
       properties: [],
     });
-    setMode("CREATE");
+    setMode("I");
   }, [setFormData, setMode, setRecordId]);
 
   // 4. Validate
@@ -176,7 +176,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           const exists = prev.some((p) => p.id === item.id);
           return exists ? prev.map((p) => (p.id === item.id ? item : p)) : [...prev, item];
         });
-        setMode("EDIT");
+        setMode("I");
       }
     } catch {
       // Toast error handled by cbs.send
@@ -195,7 +195,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         successMessage: `Authorized live model #${recordId}`,
       });
       if (json.status === "SUCCESS") {
-        setMode("VIEW");
+        setMode("S");
       }
     } catch {
       // Toast error handled by cbs.send

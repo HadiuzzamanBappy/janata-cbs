@@ -4,18 +4,18 @@ import * as React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type {
+  MenuDesignerValidationError,
+  MenuTreeRecord,
+} from "@/lib/schemas/menu-designer-schema";
 import { cn } from "@/lib/utils";
 import {
   getMenuDesignerFieldValue,
   MENU_DESIGNER_FIELD_GROUPS,
   MENU_DESIGNER_META_FIELDS,
-  setMenuDesignerFieldValue,
   type MenuDesignerFieldDef,
+  setMenuDesignerFieldValue,
 } from "../config/meta-fields";
-import type {
-  MenuDesignerValidationError,
-  MenuTreeRecord,
-} from "@/lib/schemas/menu-designer-schema";
 
 interface DesignerGeneralTabProps {
   formData: MenuTreeRecord;
@@ -42,7 +42,7 @@ export function DesignerGeneralTab({
   );
 
   return (
-    <div className="h-full overflow-y-auto p-3">
+    <div className="h-full overflow-y-auto">
       <div className="max-w-3xl space-y-3">
         {MENU_DESIGNER_FIELD_GROUPS.map((group) => {
           const groupFields = MENU_DESIGNER_META_FIELDS.filter((f) => f.group === group.id);
@@ -75,9 +75,7 @@ export function DesignerGeneralTab({
                         <Checkbox
                           checked={Boolean(formData.isActive)}
                           disabled={isReadOnly}
-                          onCheckedChange={(val) =>
-                            setFormData((p) => ({ ...p, isActive: !!val }))
-                          }
+                          onCheckedChange={(val) => setFormData((p) => ({ ...p, isActive: !!val }))}
                           className={cn(
                             "rounded",
                             isReadOnly && "disabled:opacity-90 disabled:cursor-default",
@@ -105,10 +103,7 @@ export function DesignerGeneralTab({
                     const displayVal =
                       rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
 
-                    const inputWidth =
-                      field.width === "compact"
-                        ? "w-32"
-                        : "max-w-md flex-1";
+                    const inputWidth = field.width === "compact" ? "w-32" : "max-w-md flex-1";
 
                     const fieldError = validationErrors.find(
                       (e) => e.tab === "general" && e.fieldKey === field.path,

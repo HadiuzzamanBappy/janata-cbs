@@ -10,13 +10,24 @@ import { MASTER_COMMAND_DEFINITIONS } from "./catalog";
  */
 const CANONICAL_SCREEN_MAP = new Map<string, string>();
 
+/**
+ * Maps any alias (e.g. "MD", "MNU", "UG", "MC") or command to its catalog title ("Menu Hierarchy Designer")
+ */
+const CANONICAL_TITLE_MAP = new Map<string, string>();
+
 for (const cmd of MASTER_COMMAND_DEFINITIONS) {
   if (cmd.actionType === "SCREEN") {
     CANONICAL_SCREEN_MAP.set(cmd.command.toUpperCase(), cmd.command);
+    if (cmd.title) {
+      CANONICAL_TITLE_MAP.set(cmd.command.toUpperCase(), cmd.title);
+    }
 
     if (cmd.aliases) {
       for (const alias of cmd.aliases) {
         CANONICAL_SCREEN_MAP.set(alias.toUpperCase(), cmd.command);
+        if (cmd.title) {
+          CANONICAL_TITLE_MAP.set(alias.toUpperCase(), cmd.title);
+        }
       }
     }
   }
@@ -49,4 +60,18 @@ export function resolveCommandAlias(raw: string): string {
   if (!raw) return "";
   const clean = raw.trim().toUpperCase();
   return CANONICAL_SCREEN_MAP.get(clean) || clean;
+}
+
+/**
+ * Resolves a raw command or alias into its registered catalog title.
+ * If not in catalog, returns undefined.
+ *
+ * @example
+ * resolveCommandTitle("MD") -> "Menu Hierarchy Designer"
+ * resolveCommandTitle("MC") -> "Data Model & Schema Config"
+ */
+export function resolveCommandTitle(raw: string): string | undefined {
+  if (!raw) return undefined;
+  const clean = raw.trim().toUpperCase();
+  return CANONICAL_TITLE_MAP.get(clean);
 }

@@ -3,13 +3,16 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
   ChevronDown,
   ChevronRight,
   Folder,
+  FolderMinus,
   FolderPlus,
   GripVertical,
-  Minus,
-  Plus,
   Terminal,
   Trash2,
 } from "lucide-react";
@@ -17,16 +20,21 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import type { MenuTreeNode } from "@/lib/schemas/menu-designer-schema";
+import { cn } from "@/lib/utils";
 
 interface TreeNodeItemProps {
   node: MenuTreeNode;
   level: number;
   isCollapsed: boolean;
+  canIndent?: boolean;
+  canOutdent?: boolean;
   onToggleCollapse: (id: string) => void;
   onUpdate: (id: string, patch: Partial<MenuTreeNode>) => void;
   onDelete: (id: string) => void;
+  onUngroup?: (id: string) => void;
+  onIndent?: (id: string) => void;
+  onOutdent?: (id: string) => void;
   onAddSubgroup: (parentId: string) => void;
   onMoveOrder: (id: string, direction: -1 | 1) => void;
   isReadOnly?: boolean;
@@ -36,21 +44,21 @@ export function TreeNodeItem({
   node,
   level,
   isCollapsed,
+  canIndent = false,
+  canOutdent = false,
   onToggleCollapse,
   onUpdate,
   onDelete,
+  onUngroup,
+  onIndent,
+  onOutdent,
   onAddSubgroup,
   onMoveOrder,
   isReadOnly,
 }: TreeNodeItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: node.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: node.id,
+  });
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
@@ -90,7 +98,7 @@ export function TreeNodeItem({
             {...attributes}
             {...listeners}
             className="cursor-grab active:cursor-grabbing p-1 -ml-1 text-muted-foreground/60 hover:text-foreground touch-none"
-            title="Drag to reorder"
+            title="Drag to reorder or drop onto group"
           >
             <GripVertical className="size-3.5" />
           </button>
@@ -162,23 +170,66 @@ export function TreeNodeItem({
         )}
       </div>
 
-      {/* Right: Actions */}
-      <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+      {/* Right: Functional Hierarchy Actions */}
+      <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
         {!isReadOnly && isCustomGroup && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => onAddSubgroup(node.id)}
-            className="h-6 w-6 text-muted-foreground hover:text-primary"
-            title="Add Subgroup"
-          >
-            <FolderPlus className="size-3" />
-          </Button>
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => onAddSubgroup(node.id)}
+              className="h-6 w-6 text-muted-foreground hover:text-primary"
+              title="Add nested subgroup inside this folder"
+            >
+              <FolderPlus className="size-3.5" />
+            </Button>
+            {isFolder && onUngroup && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onUngroup(node.id)}
+                className="h-6 w-6 text-muted-foreground hover:text-amber-500"
+                title="Ungroup folder (promote all children up)"
+              >
+                <FolderMinus className="size-3.5" />
+              </Button>
+            )}
+          </>
         )}
 
         {!isReadOnly && (
           <>
+            {/* Outdent (Shift Left) */}
+            {canOutdent && onOutdent && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onOutdent(node.id)}
+                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                title="Outdent (Move out of current group)"
+              >
+                <ArrowLeft className="size-3.5" />
+              </Button>
+            )}
+
+            {/* Indent (Shift Right) */}
+            {canIndent && onIndent && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onIndent(node.id)}
+                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                title="Indent (Nest into previous sibling group)"
+              >
+                <ArrowRight className="size-3.5" />
+              </Button>
+            )}
+
+            {/* Move Up */}
             <Button
               type="button"
               variant="ghost"
@@ -187,8 +238,10 @@ export function TreeNodeItem({
               className="h-6 w-6 text-muted-foreground hover:text-foreground"
               title="Move Up"
             >
-              <Minus className="size-3 rotate-90" />
+              <ArrowUp className="size-3.5" />
             </Button>
+
+            {/* Move Down */}
             <Button
               type="button"
               variant="ghost"
@@ -197,17 +250,19 @@ export function TreeNodeItem({
               className="h-6 w-6 text-muted-foreground hover:text-foreground"
               title="Move Down"
             >
-              <Plus className="size-3" />
+              <ArrowDown className="size-3.5" />
             </Button>
+
+            {/* Delete Node */}
             <Button
               type="button"
               variant="ghost"
               size="icon-xs"
               onClick={() => onDelete(node.id)}
               className="h-6 w-6 text-muted-foreground hover:text-destructive"
-              title="Delete node"
+              title="Delete node from tree"
             >
-              <Trash2 className="size-3" />
+              <Trash2 className="size-3.5" />
             </Button>
           </>
         )}

@@ -10,10 +10,7 @@ import {
   USER_GROUP_META_FIELDS,
   type UserGroupMetaFieldDef,
 } from "../config/meta-fields";
-import type {
-  UserGroupRecord,
-  UserGroupValidationError,
-} from "@/lib/schemas/user-group-schema";
+import type { UserGroupRecord, UserGroupValidationError } from "@/lib/schemas/user-group-schema";
 
 interface UserGroupGeneralTabProps {
   formData: UserGroupRecord;
@@ -43,7 +40,7 @@ export function UserGroupGeneralTab({
   );
 
   return (
-    <div className="h-full overflow-y-auto p-3">
+    <div className="h-full overflow-y-auto">
       <div className="max-w-3xl space-y-3">
         {USER_GROUP_FIELD_GROUPS.map((group) => {
           const groupFields = USER_GROUP_META_FIELDS.filter((f) => f.group === group.id);
@@ -76,9 +73,7 @@ export function UserGroupGeneralTab({
                         <Checkbox
                           checked={Boolean(formData.isActive)}
                           disabled={isReadOnly}
-                          onCheckedChange={(val) =>
-                            setFormData((p) => ({ ...p, isActive: !!val }))
-                          }
+                          onCheckedChange={(val) => setFormData((p) => ({ ...p, isActive: !!val }))}
                           className={cn(
                             "rounded",
                             isReadOnly && "disabled:opacity-90 disabled:cursor-default",
@@ -105,10 +100,7 @@ export function UserGroupGeneralTab({
                     const raw = formData[field.path];
                     const displayVal = typeof raw === "string" ? raw : "";
 
-                    const inputWidth =
-                      field.width === "compact"
-                        ? "w-32"
-                        : "max-w-md flex-1";
+                    const inputWidth = field.width === "compact" ? "w-32" : "max-w-md flex-1";
 
                     const fieldError = validationErrors.find(
                       (e) => e.tab === "general" && e.fieldKey === field.path,

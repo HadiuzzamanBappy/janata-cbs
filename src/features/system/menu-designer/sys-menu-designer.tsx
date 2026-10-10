@@ -3,7 +3,7 @@
 import { FileCode, FileText, History, Layers, Network } from "lucide-react";
 import * as React from "react";
 import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab } from "@/lib/cbs-screen";
+import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
 import { DesignerAuditTab } from "./components/designer-audit-tab";
 import { DesignerCanvasTab } from "./components/designer-canvas-tab";
 import { DesignerGeneralTab } from "./components/designer-general-tab";
@@ -40,10 +40,12 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
   } = useMenuDesigner(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<MenuDesignerTabKey>("general");
-  const isReadOnly = mode === "VIEW";
+  const isReadOnly = mode !== "I";
 
   React.useEffect(() => {
-    setActiveTab("general");
+    if (formData.recordId || mode) {
+      setActiveTab("general");
+    }
   }, [formData.recordId, mode]);
 
   const availableItems = React.useMemo(
@@ -82,10 +84,16 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
             catalogLoading={catalogLoading}
             collapsedNodeIds={treeOps.collapsedNodeIds}
             onToggleCollapse={treeOps.toggleCollapse}
+            onExpandAll={treeOps.expandAll}
+            onCollapseAll={treeOps.collapseAll}
             onUpdateNode={treeOps.updateNode}
             onDeleteNode={treeOps.deleteNode}
+            onUngroupNode={treeOps.ungroupNode}
+            onIndentNode={treeOps.indentNode}
+            onOutdentNode={treeOps.outdentNode}
             onMoveOrder={treeOps.moveNodeOrder}
             onMoveParent={treeOps.moveNodeParent}
+            onMoveNode={treeOps.moveNode}
             onAddSubgroup={(parentId) => treeOps.addCustomGroup("New Group", parentId)}
             onDropCatalogItem={treeOps.addCatalogItem}
             isReadOnly={isReadOnly}
@@ -105,15 +113,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
         content: <DesignerJsonTab formData={formData} />,
       },
     ],
-    [
-      catalogItems,
-      catalogLoading,
-      formData,
-      isReadOnly,
-      setFormData,
-      treeOps,
-      validationErrors,
-    ],
+    [catalogItems, catalogLoading, formData, isReadOnly, setFormData, treeOps, validationErrors],
   );
 
   return (
@@ -126,12 +126,12 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       onRecordSearch={(searchedId) => setRecordId(searchedId.toUpperCase())}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" ? () => fetchTreeRecord(recordId || "MAIN_MENU") : undefined}
+      onReset={mode !== "IDLE" ? () => fetchTreeRecord(recordId || "MAIN.MENU") : undefined}
       onValidate={handleValidate}
       onSubmit={handleSubmit}
       onAuthorizeReverse={handleAuthorize}
-      onView={() => recordId && fetchTreeRecord(recordId, "VIEW")}
-      onAmend={() => recordId && fetchTreeRecord(recordId, "EDIT")}
+      onView={() => recordId && fetchTreeRecord(recordId, "S")}
+      onAmend={() => recordId && fetchTreeRecord(recordId, "I")}
       submitting={submitting || loading}
       availableItems={availableItems}
       variant="admin-tabs"
@@ -152,6 +152,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
           onClick: () => setFormData((p) => ({ ...p, isActive: !p.isActive })),
           requiredRight: "A",
         },
+        ...getDefaultMoreActions("MENU_TREE"),
       ]}
     />
   );

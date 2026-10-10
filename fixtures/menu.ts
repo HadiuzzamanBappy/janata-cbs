@@ -98,37 +98,12 @@ export const STATIC_MENU: GrpcResponse = {
             ],
           },
           {
-            id: "n_1786858648899_4",
-            menuId: 5,
-            label: "Funds Manage",
-            command: "",
-            isVisible: true,
-            children: [
-              {
-                id: "n_1786859124995_10",
-                menuId: 8,
-                label: "Funds Transfer",
-                command: "FUNDS.TRANSFER",
-                isVisible: true,
-                children: [],
-              },
-            ],
-          },
-          {
             id: "n_1786862427083_1",
             menuId: 10,
             label: "Daily Inquiry",
             command: "",
             isVisible: true,
             children: [
-              {
-                id: "n_1786862443210_2",
-                menuId: 17,
-                label: "Today Txn Report",
-                command: "INQ S GET.TO.TXN",
-                isVisible: true,
-                children: [],
-              },
               {
                 id: "n_1786862453089_3",
                 menuId: 19,

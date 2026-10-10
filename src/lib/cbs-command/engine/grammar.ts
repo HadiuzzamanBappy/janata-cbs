@@ -15,7 +15,7 @@
  */
 
 import type { FunctionRightCode } from "@/types";
-import { resolveCommandAlias } from "../registry/alias";
+import { resolveCommandAlias, resolveCommandTitle } from "../registry/alias";
 import {
   CBS_FUNCTION_METADATA,
   CBS_SETTINGS_TABS,
@@ -132,11 +132,12 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   // 4. Check for Shorthand Application Aliases (e.g. MD -> MENU.DESIGN, MC -> MODEL.CONFIG)
   const canonicalAlias = resolveCommandAlias(trimmed);
   if (canonicalAlias !== upperTrimmed && !canonicalAlias.includes(" ")) {
+    const catalogTitle = resolveCommandTitle(canonicalAlias) || resolveCommandTitle(trimmed);
     return {
       raw: trimmed,
       type: "FORM",
       application: canonicalAlias,
-      title: canonicalAlias,
+      title: catalogTitle || canonicalAlias,
       authLevel: 1,
       screenMode: "IDLE",
       isValid: true,
@@ -180,7 +181,9 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  const appTitle = version ? `${app},${version}` : app;
+  const catalogAppTitle = resolveCommandTitle(app);
+  const baseAppTitle = catalogAppTitle || app;
+  const appTitle = version ? `${baseAppTitle},${version}` : baseAppTitle;
 
   // Case 1: Trailing Comma "APP," -> Direct Input / Auto-Auth mode
   if (isCommaVersion) {

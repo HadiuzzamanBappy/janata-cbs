@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
+import type { CbsScreenMode as MenuDesignerScreenMode } from "../cbs-screen/types";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for Menu Tree Designer                */
@@ -58,4 +59,4 @@ export interface MenuDesignerValidationError {
   message: string;
 }
 
-export type MenuDesignerScreenMode = "IDLE" | "CREATE" | "EDIT" | "VIEW";
+export type { MenuDesignerScreenMode };

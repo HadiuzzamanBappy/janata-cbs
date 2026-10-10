@@ -41,8 +41,12 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
       // Safe fallback
     }
   }
+  const screenAppKey =
+    parsed.type === "INQUIRY" && !parsed.application.startsWith("INQ ")
+      ? `INQ ${parsed.application}`
+      : parsed.application;
 
-  const screenUrl = `${appConfig.routes.screen}/${encodeURIComponent(parsed.application)}?${params.toString()}`;
+  const screenUrl = `${appConfig.routes.screen}/${encodeURIComponent(screenAppKey)}?${params.toString()}`;
   const popupFeatures = [
     "popup=yes",
     "width=1160",

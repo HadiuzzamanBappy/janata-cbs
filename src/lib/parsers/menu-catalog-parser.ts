@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { type MenuCatalogRecord, menuCatalogRecordSchema } from "@/lib/schemas/menu-catalog-schema";
-import { unwrapRecordsPayload } from "./protobuf-decoder";
+import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /**
  * Parses inbound JSON payload into a strictly validated MenuCatalogRecord.
@@ -13,9 +13,12 @@ export function parseMenuCatalogRecord(
     return { success: false, error: "Menu catalog record payload is invalid" };
   }
 
-  // Handle possible wrapped gRPC/response payload
-  const unwrapped = unwrapRecordsPayload(rawPayload);
-  const target = Array.isArray(unwrapped) ? unwrapped[0] : unwrapped;
+  // Normalize Protobuf / struct values with decodeProtobufValue
+  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
+
+  // If wrapped in an array or a { records: [...] } envelope, pick the first item
+  const list = unwrapRecordsPayload(decoded);
+  const target = list.length > 0 ? list[0] : Array.isArray(decoded) ? decoded[0] : decoded;
 
   const parseResult = menuCatalogRecordSchema.safeParse(target);
   if (!parseResult.success) {

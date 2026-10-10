@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCbsHotkeys } from "../hooks/use-cbs-hotkeys";
 import type { CbsAuditFooterData, CbsScreenScaffoldProps } from "../types";
 import { formatAuditFooterData } from "../utils/audit-adapter";
 import { CbsAuditFooter } from "./cbs-audit-footer";
@@ -41,7 +42,18 @@ export function CbsScreenScaffold<TTab extends string = string>({
   children,
   className = "",
 }: CbsScreenScaffoldProps<TTab>) {
-  const isReadOnly = mode === "VIEW";
+  const isReadOnly = mode === "S" || mode === "A" || mode === "D" || mode === "H" || mode === "R";
+
+  // Universal terminal hotkeys: F5/Ctrl+S (Submit), F7 (Validate), F8 (Auth), Esc (Return)
+  useCbsHotkeys({
+    enabled: true,
+    handlers: {
+      onCommit: !isReadOnly ? onSubmit : undefined,
+      onValidate: !isReadOnly ? onValidate : undefined,
+      onAuthorize: onAuthorizeReverse,
+      onReturn: onReturnToSearch,
+    },
+  });
 
   const resolvedAuditFooter = React.useMemo((): CbsAuditFooterData | undefined => {
     if (!auditData) return undefined;

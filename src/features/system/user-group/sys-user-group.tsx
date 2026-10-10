@@ -3,7 +3,7 @@
 import { FileCode, FileText, History, Layers, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab } from "@/lib/cbs-screen";
+import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
 import { UserGroupAuditTab } from "./components/user-group-audit-tab";
 import { UserGroupGeneralTab } from "./components/user-group-general-tab";
 import { UserGroupJsonTab } from "./components/user-group-json-tab";
@@ -152,6 +152,7 @@ export function SysUserGroup({ command, tabId }: ScreenProps) {
           onClick: () => setFormData((p) => ({ ...p, isActive: !p.isActive })),
           requiredRight: "A",
         },
+        ...getDefaultMoreActions("USER_GROUP"),
       ]}
     />
   );

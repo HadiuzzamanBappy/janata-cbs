@@ -26,7 +26,7 @@ export function UserGroupMatrixTab({
   isReadOnly,
 }: UserGroupMatrixTabProps) {
   return (
-    <div className="flex flex-col lg:flex-row h-full w-full gap-3 overflow-hidden p-1">
+    <div className="flex flex-col lg:flex-row h-full w-full gap-3 overflow-hidden p-0">
       {/* 60% Left Panel: Authorized Menus Checklist */}
       <MenuPermissionPanel
         menus={menus}

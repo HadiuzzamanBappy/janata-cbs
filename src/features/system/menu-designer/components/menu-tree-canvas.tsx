@@ -17,10 +17,7 @@ import {
 import { FolderPlus, Network, Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import type {
-  MenuCatalogActionItem,
-  MenuTreeNode,
-} from "@/lib/schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/schemas/menu-designer-schema";
 import { TreeDropZone } from "./tree/tree-drop-zone";
 import { TreeNodeItem } from "./tree/tree-node-item";
 
@@ -28,10 +25,16 @@ interface MenuTreeCanvasProps {
   nodes: MenuTreeNode[];
   collapsedNodeIds: Set<string>;
   onToggleCollapse: (id: string) => void;
+  onExpandAll?: () => void;
+  onCollapseAll?: () => void;
   onUpdateNode: (id: string, patch: Partial<MenuTreeNode>) => void;
   onDeleteNode: (id: string) => void;
+  onUngroupNode?: (id: string) => void;
+  onIndentNode?: (id: string) => void;
+  onOutdentNode?: (id: string) => void;
   onMoveOrder: (id: string, direction: -1 | 1) => void;
   onMoveParent: (draggedId: string, targetParentId: string | null) => void;
+  onMoveNode?: (activeId: string, overId: string) => void;
   onAddSubgroup: (parentId: string | null) => void;
   onDropCatalogItem: (item: MenuCatalogActionItem, parentId?: string | null) => void;
   isReadOnly?: boolean;
@@ -41,10 +44,16 @@ export function MenuTreeCanvas({
   nodes,
   collapsedNodeIds,
   onToggleCollapse,
+  onExpandAll,
+  onCollapseAll,
   onUpdateNode,
   onDeleteNode,
+  onUngroupNode,
+  onIndentNode,
+  onOutdentNode,
   onMoveOrder,
   onMoveParent,
+  onMoveNode,
   onAddSubgroup,
   onDropCatalogItem,
   isReadOnly,
@@ -103,6 +112,9 @@ export function MenuTreeCanvas({
     if (overId.startsWith("dropzone-")) {
       const rawParent = over.data.current?.parentId as string | null | undefined;
       onMoveParent(activeId, rawParent || null);
+    } else if (onMoveNode) {
+      // Dropped onto another node
+      onMoveNode(activeId, overId);
     }
   };
 
@@ -132,17 +144,27 @@ export function MenuTreeCanvas({
   };
 
   const renderRecursive = (items: MenuTreeNode[], level = 0): React.ReactNode => {
-    return items.map((node) => {
+    return items.map((node, index) => {
       const isCollapsed = collapsedNodeIds.has(node.id);
+      // Can indent if there is a previous sibling in the same array
+      const canIndent = index > 0;
+      // Can outdent if we are nested deeper than root level
+      const canOutdent = level > 0;
+
       return (
         <div key={node.id} className="space-y-1">
           <TreeNodeItem
             node={node}
             level={level}
             isCollapsed={isCollapsed}
+            canIndent={canIndent}
+            canOutdent={canOutdent}
             onToggleCollapse={onToggleCollapse}
             onUpdate={onUpdateNode}
             onDelete={onDeleteNode}
+            onUngroup={onUngroupNode}
+            onIndent={onIndentNode}
+            onOutdent={onOutdentNode}
             onAddSubgroup={(parentId) => onAddSubgroup(parentId)}
             onMoveOrder={onMoveOrder}
             isReadOnly={isReadOnly}
@@ -151,7 +173,10 @@ export function MenuTreeCanvas({
             <div className="space-y-1">
               {node.children.length > 0 && renderRecursive(node.children, level + 1)}
               {!isReadOnly && (node.menuId === 0 || !node.command) && (
-                <div style={{ marginLeft: `${Math.min((level + 1) * 22, 176)}px` }} className="pt-0.5">
+                <div
+                  style={{ marginLeft: `${Math.min((level + 1) * 22, 176)}px` }}
+                  className="pt-0.5"
+                >
                   <TreeDropZone
                     parentId={node.id}
                     label={`Drop action inside "${node.label}"`}
@@ -167,11 +192,7 @@ export function MenuTreeCanvas({
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <section
         aria-label="Menu Tree Canvas"
         onDragOver={handleNativeDragOver}
@@ -182,29 +203,53 @@ export function MenuTreeCanvas({
         }`}
       >
         {/* Canvas Top Bar */}
-        <div className="p-2.5 border-b border-border/80 flex items-center justify-between bg-card/60">
+        <div className="p-2 border-b border-border/80 flex items-center justify-between bg-card/60 gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <Network className="size-4 text-primary" />
             <span className="text-xs font-semibold text-foreground">Hierarchy Canvas</span>
-            <span className="text-xs text-muted-foreground font-mono">
+            <span className="text-[11px] text-muted-foreground font-mono">
               ({nodes.length} root branches)
             </span>
           </div>
 
-          {!isReadOnly && (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {onExpandAll && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onExpandAll}
+                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                title="Expand all groups"
+              >
+                Expand All
+              </Button>
+            )}
+            {onCollapseAll && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onCollapseAll}
+                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                title="Collapse all groups"
+              >
+                Collapse All
+              </Button>
+            )}
+            {!isReadOnly && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => onAddSubgroup(null)}
-                className="h-7 text-xs gap-1.5"
+                className="h-6 text-xs gap-1.5 px-2.5"
               >
                 <FolderPlus className="size-3.5" />
                 Add Root Group
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Canvas Content */}
@@ -214,7 +259,8 @@ export function MenuTreeCanvas({
               <Network className="size-8 mb-2 opacity-50" />
               <p className="text-xs font-medium text-foreground">Tree is currently empty</p>
               <p className="text-[11px] max-w-xs mt-1">
-                Drag actions from the left catalog, or click below to create your first root group folder.
+                Drag actions from the left catalog, or click below to create your first root group
+                folder.
               </p>
               {!isReadOnly && (
                 <Button
@@ -234,7 +280,10 @@ export function MenuTreeCanvas({
                 {renderRecursive(nodes)}
                 {!isReadOnly && (
                   <div className="pt-2">
-                    <TreeDropZone parentId={null} label="Drop catalog action here to append to root" />
+                    <TreeDropZone
+                      parentId={null}
+                      label="Drop catalog action here to append to root"
+                    />
                   </div>
                 )}
               </div>

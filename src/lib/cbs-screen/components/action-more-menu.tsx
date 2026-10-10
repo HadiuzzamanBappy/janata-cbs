@@ -13,12 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserRights } from "@/hooks";
+import type { FunctionRightCode } from "@/types";
 
 export interface MoreActionItem {
   label: string;
   command?: string;
   onClick: () => void;
-  requiredRight?: "R" | "I" | "D" | "A" | "S" | "H";
+  requiredRight?: FunctionRightCode;
 }
 
 export interface ActionMoreMenuProps {

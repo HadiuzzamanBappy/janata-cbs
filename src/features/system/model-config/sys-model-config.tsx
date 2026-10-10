@@ -110,7 +110,6 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       removeField,
       selectedPropertySN,
       setFormData,
-      setSelectedPropertySN,
       updateField,
       validationErrors,
     ],

@@ -15,8 +15,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AppSearch } from "@/features/command";
 import { AppSettings } from "@/features/settings";
 import { useHotkeys } from "@/lib/cbs-hotkeys";
-import { appConfig } from "@/lib/config";
-import { logger } from "@/lib/logger";
+import { appConfig } from "@/lib/core-config";
+import { logger } from "@/lib/core-logger";
 import { useSessionStore } from "@/store";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}

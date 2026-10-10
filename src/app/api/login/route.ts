@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { logger } from "@/lib/logger";
-import { rateLimit } from "@/lib/redis";
-import { loginUser } from "@/lib/services";
+import { logger } from "@/lib/core-logger";
+import { rateLimit } from "@/lib/infra-redis";
+import { loginUser } from "@/lib/infra-services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

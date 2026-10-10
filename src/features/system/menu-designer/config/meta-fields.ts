@@ -1,4 +1,4 @@
-import type { MenuTreeRecord } from "@/lib/schemas/menu-designer-schema";
+import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
 export type MenuDesignerFieldGroup = "IDENTITY" | "STATUS";
 

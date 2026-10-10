@@ -1,7 +1,7 @@
 "use client";
 
 import { cbsCommand } from "@/lib/cbs-command";
-import type { SystemCommandItem } from "@/lib/schemas";
+import type { SystemCommandItem } from "@/lib/data-schemas";
 
 interface UseCommandExecutorOptions {
   onClose: () => void;

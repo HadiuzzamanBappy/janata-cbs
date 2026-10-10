@@ -1,5 +1,5 @@
 import { STATIC_FORM_DATA } from "@fixtures";
-import type { FormSchema } from "@/lib/schemas";
+import type { FormSchema } from "@/lib/data-schemas";
 
 /**
  * Searches static CBS fixtures for a record by ID.

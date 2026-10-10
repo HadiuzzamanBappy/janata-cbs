@@ -1,7 +1,7 @@
 "use client";
 
 import { CbsAuditTab } from "@/lib/cbs-screen";
-import type { UserGroupRecord } from "@/lib/schemas/user-group-schema";
+import type { UserGroupRecord } from "@/lib/data-schemas/user-group-schema";
 
 interface UserGroupAuditTabProps {
   formData: UserGroupRecord;

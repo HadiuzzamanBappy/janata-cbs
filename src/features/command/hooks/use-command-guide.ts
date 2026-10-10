@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { SystemCommandItem } from "@/lib/schemas";
+import type { SystemCommandItem } from "@/lib/data-schemas";
 import type { CommandGuideInfo } from "../types";
 
 interface UseCommandGuideOptions {

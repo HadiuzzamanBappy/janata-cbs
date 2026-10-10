@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cbsCommand } from "@/lib/cbs-command";
-import type { EnquiryColumn, EnquiryRow } from "@/lib/schemas";
+import type { EnquiryColumn, EnquiryRow } from "@/lib/data-schemas";
 
 export interface InquiryTableProps {
   columns: EnquiryColumn[];

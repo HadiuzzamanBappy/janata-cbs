@@ -1,4 +1,4 @@
-import type { GrpcResponse } from "@/lib/grpc/generated/service";
+import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
  * STATIC_FORMS mirrors the normalized GMC backend wire responses (.response/form.normalized.json).

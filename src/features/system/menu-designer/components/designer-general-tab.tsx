@@ -4,11 +4,11 @@ import * as React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/core-utils";
 import type {
   MenuDesignerValidationError,
   MenuTreeRecord,
-} from "@/lib/schemas/menu-designer-schema";
-import { cn } from "@/lib/utils";
+} from "@/lib/data-schemas/menu-designer-schema";
 import {
   getMenuDesignerFieldValue,
   MENU_DESIGNER_FIELD_GROUPS,

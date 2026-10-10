@@ -1,5 +1,5 @@
-import { parseModelConfig } from "@/lib/parsers";
-import type { ModelConfigRecord } from "@/lib/schemas/model-config-schema";
+import { parseModelConfig } from "@/lib/data-parsers";
+import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 /**
  * Clean, modern canonical camelCase JSON definitions for Model Configuration.

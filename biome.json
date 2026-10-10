@@ -15,10 +15,11 @@
       "!**/coverage",
       "!**/dist",
       "!**/node_modules",
+      "!**/*.css",
       "!**/next-env.d.ts",
       "!**/src/components/ui",
       "!**/src/hooks/use-mobile.ts",
-      "!**/src/lib/grpc/generated",
+      "!**/src/lib/infra-grpc/generated",
       "!**/src/features/system/report-studio",
       "!**/public",
       "!**/.response"
@@ -45,7 +46,6 @@
     "rules": {
       "preset": "recommended",
       "complexity": {
-        "noForEach": "off",
         "noStaticOnlyClass": "warn",
         "useLiteralKeys": "error"
       },
@@ -54,23 +54,21 @@
         "noUnusedImports": "error",
         "useExhaustiveDependencies": "warn"
       },
-      "security": {
-        "noDangerouslySetInnerHtml": "off"
-      },
       "style": {
-        "noNonNullAssertion": "off",
+        "noNonNullAssertion": "warn",
         "useConst": "error",
         "useImportType": "error",
-        "useNodejsImportProtocol": "off",
         "noRestrictedImports": {
           "level": "error",
           "options": {
             "paths": {
               "@/features/auth/components": "Deep feature imports are forbidden. Import from '@/features/auth' public barrel instead.",
+              "@/features/command/components": "Deep feature imports are forbidden. Import from '@/features/command' public barrel instead.",
               "@/features/docs/components": "Deep feature imports are forbidden. Import from '@/features/docs' public barrel instead.",
-              "@/features/screens/forms/components": "Deep feature imports are forbidden. Import from '@/features/screens' public barrel instead.",
-              "@/features/screens/enquiries/components": "Deep feature imports are forbidden. Import from '@/features/screens' public barrel instead.",
-              "@/features/settings/components": "Deep feature imports are forbidden. Import from '@/features/settings' public barrel instead."
+              "@/features/operations/components": "Deep feature imports are forbidden. Import from '@/features/operations' public barrel instead.",
+              "@/features/settings/components": "Deep feature imports are forbidden. Import from '@/features/settings' public barrel instead.",
+              "@/features/system/components": "Deep feature imports are forbidden. Import from '@/features/system' public barrel instead.",
+              "@/features/workbench/components": "Deep feature imports are forbidden. Import from '@/features/workbench' public barrel instead."
             }
           }
         }
@@ -93,6 +91,7 @@
   },
   "css": {
     "parser": {
+      "cssModules": true,
       "tailwindDirectives": true
     }
   }

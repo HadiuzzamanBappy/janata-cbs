@@ -1,4 +1,4 @@
-import type { SystemCommandItem } from "@/lib/schemas";
+import type { SystemCommandItem } from "@/lib/data-schemas";
 
 /**
  * Filter commands strictly on visible UI fields:

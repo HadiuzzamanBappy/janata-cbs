@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { destroySession, getFromSession, getSession, updateBranchCodeAndName } from "@/lib/redis";
+import {
+  destroySession,
+  getFromSession,
+  getSession,
+  updateBranchCodeAndName,
+} from "@/lib/infra-redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

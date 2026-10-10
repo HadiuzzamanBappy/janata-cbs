@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
 
 export function useTreeOperations(
   nodes: MenuTreeNode[],

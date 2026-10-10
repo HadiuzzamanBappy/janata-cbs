@@ -1,4 +1,4 @@
-import type { FormSchema } from "@/lib/schemas";
+import type { FormSchema } from "@/lib/data-schemas";
 
 // Helper to strip non-alphanumeric chars for fuzzy matching
 const simplify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");

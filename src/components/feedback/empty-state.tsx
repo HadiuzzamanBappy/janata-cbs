@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type * as React from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
 
 interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   icon: LucideIcon;

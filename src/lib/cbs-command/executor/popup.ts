@@ -2,7 +2,7 @@
  * Detached Popup Window Dispatcher with Query State Preservation
  */
 
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 import type { ParsedCommand } from "../types/command";
 import type { ExecutionOptions } from "../types/execution";
 

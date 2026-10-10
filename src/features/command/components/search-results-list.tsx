@@ -1,5 +1,5 @@
 import { CommandEmpty, CommandGroup, CommandList } from "@/components/ui/command";
-import type { SystemCommandItem } from "@/lib/schemas";
+import type { SystemCommandItem } from "@/lib/data-schemas";
 import { CommandItemRow } from "./command-item-row";
 
 interface SearchResultsListProps {

@@ -1,4 +1,4 @@
-import type { EnquirySchema } from "@/lib/schemas";
+import type { EnquirySchema } from "@/lib/data-schemas";
 
 /**
  * Resolves the target GMC/CBS form application command from the inquiry schema code

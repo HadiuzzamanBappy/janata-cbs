@@ -5,7 +5,7 @@ import {
   PROPERTY_TYPES,
   type PropertyType,
   type ValidationErrorItem,
-} from "@/lib/schemas/model-config-schema";
+} from "@/lib/data-schemas/model-config-schema";
 import { McInspectorHeader } from "./inspector/mc-inspector-header";
 import { McInspectorIdentitySection } from "./inspector/mc-inspector-identity";
 import { McInspectorTypeSpecs } from "./inspector/mc-inspector-type-specs";

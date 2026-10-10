@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Textured Background Grid Pattern */}
 
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:32px_32px] opacity-30 pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[32px_32px] opacity-30 pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary)_0,transparent_100%)] opacity-10 pointer-events-none" />
 
       {/* Background Decorative Mesh Shapes */}
@@ -23,11 +23,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <div className="absolute bottom-1/4 -right-20 size-80 rounded-full bg-primary/25 blur-3xl pointer-events-none" />
 
       {/* Floating Modern Split Card Container */}
-      <div className="relative z-10 w-full max-w-4xl bg-card rounded-2xl border border-border/80 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[580px]">
+      <div className="relative z-10 w-full max-w-4xl bg-card rounded-2xl border border-border/80 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-145">
         {/* Left Side: Modern Minimalist Brand Column (5 Cols - Hidden on Mobile) */}
-        <section className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground p-8 flex-col justify-between relative overflow-hidden">
+        <section className="hidden lg:flex lg:col-span-5 bg-linear-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground p-8 flex-col justify-between relative overflow-hidden">
           {/* Subtle Grid Accent Pattern */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-[size:16px_16px] opacity-40 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.12)_1px,transparent_1px)] bg-size-[16px_16px] opacity-40 pointer-events-none" />
 
           {/* Header Branding */}
           <div className="relative z-10 flex items-center gap-3">

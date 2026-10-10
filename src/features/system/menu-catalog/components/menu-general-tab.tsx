@@ -12,8 +12,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { MenuCatalogRecord, MenuValidationErrorItem } from "@/lib/schemas/menu-catalog-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type {
+  MenuCatalogRecord,
+  MenuValidationErrorItem,
+} from "@/lib/data-schemas/menu-catalog-schema";
 import {
   getMenuFieldValue,
   MENU_FIELD_GROUPS,

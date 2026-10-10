@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarFooter } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { toTitleCase } from "@/lib/utils";
+import { toTitleCase } from "@/lib/core-utils";
 import { useAlertStore, useSessionStore } from "@/store";
 import { BranchSwitcher } from "../widgets/branch-switcher";
 import { ThemeToggle } from "../widgets/theme-toggle";

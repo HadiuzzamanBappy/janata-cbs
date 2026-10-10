@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { logoutUser } from "@/lib/services";
+import { logoutUser } from "@/lib/infra-services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

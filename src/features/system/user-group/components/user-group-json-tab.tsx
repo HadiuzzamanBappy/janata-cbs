@@ -1,8 +1,8 @@
 "use client";
 
 import { CbsJsonViewerTab } from "@/lib/cbs-screen";
-import { serializeUserGroupToWireJson } from "@/lib/parsers";
-import type { UserGroupRecord } from "@/lib/schemas/user-group-schema";
+import { serializeUserGroupToWireJson } from "@/lib/data-parsers";
+import type { UserGroupRecord } from "@/lib/data-schemas/user-group-schema";
 
 interface UserGroupJsonTabProps {
   formData: UserGroupRecord;

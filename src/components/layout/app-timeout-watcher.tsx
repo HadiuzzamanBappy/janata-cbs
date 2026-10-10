@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 
 export function AppTimeoutWatcher() {
   const timeoutMinutes = appConfig.logoutTime;

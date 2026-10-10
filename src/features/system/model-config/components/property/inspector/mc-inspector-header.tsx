@@ -5,8 +5,8 @@ import * as React from "react";
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { ModelProperty } from "@/lib/schemas/model-config-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 interface McInspectorHeaderProps {
   property: ModelProperty;

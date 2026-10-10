@@ -112,7 +112,7 @@ function renderMarkdownPdfBlocks(content: string, itemKeyPrefix: string = "doc")
   let inCodeBlock = false;
 
   for (let i = 0; i < lines.length; i++) {
-    const rawLine = lines[i]!;
+    const rawLine = lines[i] ?? "";
     const line = rawLine.trim();
     const lineSlug = line.slice(0, 16).replace(/[^\w-]/g, "_");
     const lineKey = `block-${itemKeyPrefix}-L${i}-${lineSlug}`;

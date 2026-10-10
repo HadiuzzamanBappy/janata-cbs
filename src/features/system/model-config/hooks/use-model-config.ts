@@ -3,14 +3,14 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { serializeModelToWireJson } from "@/lib/parsers";
+import { serializeModelToWireJson } from "@/lib/data-parsers";
 import {
   type ModelConfigRecord,
   type ModelConfigScreenMode,
   type ModelProperty,
   modelConfigRecordSchema,
   type ValidationErrorItem,
-} from "@/lib/schemas/model-config-schema";
+} from "@/lib/data-schemas/model-config-schema";
 import { mapZodIssuesToValidationErrors } from "./model-config-validation";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-model-config-persistence";
 

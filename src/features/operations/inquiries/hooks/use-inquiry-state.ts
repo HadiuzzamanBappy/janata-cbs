@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { EnquiryRow, EnquirySchema, SelectionOperand } from "@/lib/schemas";
+import type { EnquiryRow, EnquirySchema, SelectionOperand } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
 import { filterDatasetByCriteria } from "../utils/filter-dataset";
 

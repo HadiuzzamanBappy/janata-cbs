@@ -23,7 +23,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
 import { useSessionStore } from "@/store";
 import { AppearanceTab } from "./components/appearance-tab";
 import { DeactivateTab } from "./components/deactivate-tab";

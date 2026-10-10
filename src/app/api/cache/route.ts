@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { appConfig } from "@/lib/config/server";
-import { invalidateCache } from "@/lib/redis";
+import { appConfig } from "@/lib/core-config/server";
+import { invalidateCache } from "@/lib/infra-redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

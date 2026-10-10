@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Download, FileText, Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/core-logger";
 import { fetchAllPortalDocsAction } from "../../actions";
 import type { NavGroup, PdfGenerationResult } from "../../types";
 import { compilePortalPdf } from "../../utils/pdf-compiler";

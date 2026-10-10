@@ -1,4 +1,4 @@
-import type { EnquiryRow, SelectionOperand } from "@/lib/schemas";
+import type { EnquiryRow, SelectionOperand } from "@/lib/data-schemas";
 
 /**
  * Pure function to filter an inquiry dataset using selection criteria.

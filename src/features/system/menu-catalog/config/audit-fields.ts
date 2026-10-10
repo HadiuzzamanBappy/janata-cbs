@@ -1,4 +1,4 @@
-import type { MenuCatalogRecord } from "@/lib/schemas/menu-catalog-schema";
+import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-catalog-schema";
 
 export interface AuditFieldDef {
   path: string;

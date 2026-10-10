@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { appConfig } from "@/lib/config";
-import type { FormSchema } from "@/lib/schemas";
+import { appConfig } from "@/lib/core-config";
+import type { FormSchema } from "@/lib/data-schemas";
 
 export function useFormSchema(command: string) {
   const [schema, setSchema] = useState<FormSchema | null>(null);

@@ -2,7 +2,7 @@
 
 import type { z } from "zod";
 import { mapZodIssuesToTabs } from "@/lib/cbs-screen";
-import type { MenuDesignerValidationError } from "@/lib/schemas/menu-designer-schema";
+import type { MenuDesignerValidationError } from "@/lib/data-schemas/menu-designer-schema";
 
 export function mapMenuDesignerZodIssues(issues: z.ZodIssue[]): MenuDesignerValidationError[] {
   return mapZodIssuesToTabs<"general" | "canvas" | "audit">(issues, (path) => {

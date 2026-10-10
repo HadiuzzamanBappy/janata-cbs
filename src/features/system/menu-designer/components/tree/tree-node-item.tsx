@@ -20,8 +20,8 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { MenuTreeNode } from "@/lib/schemas/menu-designer-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type { MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
 
 interface TreeNodeItemProps {
   node: MenuTreeNode;

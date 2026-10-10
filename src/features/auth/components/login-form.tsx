@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 
 export function LoginForm() {
   const router = useRouter();

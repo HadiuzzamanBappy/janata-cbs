@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/redis";
-import { getEnquiryData } from "@/lib/services";
+import { getSession } from "@/lib/infra-redis";
+import { getEnquiryData } from "@/lib/infra-services";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

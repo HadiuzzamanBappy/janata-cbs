@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { computeDelta } from "@/lib/cbs-record";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
-import type { FormSchema } from "@/lib/schemas";
+import type { FormSchema } from "@/lib/data-schemas";
 import { findRecordInFixtures } from "../utils/record-finder";
 import { normalizeRecordData } from "../utils/record-normalizer";
 

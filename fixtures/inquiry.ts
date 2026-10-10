@@ -1,4 +1,4 @@
-import type { GrpcResponse } from "@/lib/grpc/generated/service";
+import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
  * STATIC_INQUIRIES mirrors the normalized CBS Enquiry/Inquiry responses (.response/inquiry.normalized.json).

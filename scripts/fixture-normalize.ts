@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { decodeProtobufValue } from "../src/lib/parsers/protobuf-decoder";
+import { decodeProtobufValue } from "../src/lib/data-parsers/protobuf-decoder";
 
 const fileArg = process.argv[2] || "branch";
 const fileName = fileArg.endsWith(".json") ? fileArg : `${fileArg}.json`;

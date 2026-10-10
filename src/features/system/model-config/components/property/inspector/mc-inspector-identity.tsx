@@ -12,13 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/core-utils";
 import {
   type ModelProperty,
   PROPERTY_TYPES,
   type PropertyType,
   type ValidationErrorItem,
-} from "@/lib/schemas/model-config-schema";
-import { cn } from "@/lib/utils";
+} from "@/lib/data-schemas/model-config-schema";
 
 interface McInspectorIdentitySectionProps {
   property: ModelProperty;

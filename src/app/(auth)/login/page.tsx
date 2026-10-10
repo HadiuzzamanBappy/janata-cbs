@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth";
-import { appConfig } from "@/lib/config";
-import { getSession } from "@/lib/redis";
+import { appConfig } from "@/lib/core-config";
+import { getSession } from "@/lib/infra-redis";
 
 export const metadata: Metadata = {
   title: "Sign on — Janata Bank PLC.",

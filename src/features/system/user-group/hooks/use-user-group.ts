@@ -7,14 +7,14 @@ import {
   parseUserGroupList,
   parseUserGroupRecord,
   serializeUserGroupToWireJson,
-} from "@/lib/parsers";
+} from "@/lib/data-parsers";
 import {
   type MenuRef,
   type Role,
   type UserGroupScreenMode,
   type UserGroupValidationError,
   userGroupRecordSchema,
-} from "@/lib/schemas/user-group-schema";
+} from "@/lib/data-schemas/user-group-schema";
 import { INITIAL_USER_GROUP, useUserGroupPersistence } from "./use-user-group-persistence";
 import { mapUserGroupZodIssues } from "./user-group-validation";
 

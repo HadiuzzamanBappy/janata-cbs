@@ -1,4 +1,4 @@
-import type { ModelConfigRecord } from "@/lib/schemas/model-config-schema";
+import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 export interface AuditFieldDef {
   path: string;

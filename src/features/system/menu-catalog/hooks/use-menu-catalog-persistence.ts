@@ -1,8 +1,8 @@
 "use client";
 
 import { useCbsPersistence } from "@/lib/cbs-screen";
-import type { MenuCatalogRecord } from "@/lib/schemas/menu-catalog-schema";
-import { menuCatalogRecordSchema } from "@/lib/schemas/menu-catalog-schema";
+import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-catalog-schema";
+import { menuCatalogRecordSchema } from "@/lib/data-schemas/menu-catalog-schema";
 
 export const INITIAL_MENU_ITEM: MenuCatalogRecord = {
   recordId: "",

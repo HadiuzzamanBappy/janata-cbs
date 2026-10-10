@@ -16,15 +16,15 @@ import {
   parseCbsCommand,
   validateSecurityPermissions as validateCommandForUser,
 } from "../src/lib/cbs-command";
-import { envSchema } from "../src/lib/config/env";
+import { envSchema } from "../src/lib/core-config/env";
 import {
   parseAuthWirePayload,
   parseBranchesWirePayload,
   parseControlsWirePayload,
   parseGMC,
   parseMNU,
-} from "../src/lib/parsers";
-import type { CurrentUser } from "../src/lib/schemas";
+} from "../src/lib/data-parsers";
+import type { CurrentUser } from "../src/lib/data-schemas";
 
 // ============================================================================
 // Minimalist Test Runner Pattern

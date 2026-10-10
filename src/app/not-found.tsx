@@ -2,7 +2,7 @@ import { FileQuestion } from "lucide-react";
 import Link from "next/link";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { buttonVariants } from "@/components/ui/button";
-import { appConfig } from "@/lib/config";
+import { appConfig } from "@/lib/core-config";
 
 export default function GlobalNotFound() {
   return (

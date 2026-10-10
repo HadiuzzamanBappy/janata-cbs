@@ -14,8 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/config";
-import { cn, toTitleCase } from "@/lib/utils";
+import { appConfig } from "@/lib/core-config";
+import { cn, toTitleCase } from "@/lib/core-utils";
 import { useSessionStore } from "@/store";
 
 interface BranchSwitcherProps {

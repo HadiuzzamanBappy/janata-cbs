@@ -1,4 +1,4 @@
-import type { MenuItem } from "@/lib/schemas";
+import type { MenuItem } from "@/lib/data-schemas";
 
 export interface TreeNode {
   id: string;

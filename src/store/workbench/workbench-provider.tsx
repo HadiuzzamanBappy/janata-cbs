@@ -17,7 +17,7 @@ export interface WorkbenchStoreProviderProps {
 }
 
 export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps) => {
-  const storeRef = useRef<WorkbenchStore>(undefined!);
+  const storeRef = useRef<WorkbenchStore | null>(null);
   if (!storeRef.current) {
     storeRef.current = createWorkbenchStore();
     activeWorkbenchStore = storeRef.current;

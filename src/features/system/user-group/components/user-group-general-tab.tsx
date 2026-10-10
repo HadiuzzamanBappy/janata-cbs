@@ -4,8 +4,11 @@ import * as React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { UserGroupRecord, UserGroupValidationError } from "@/lib/schemas/user-group-schema";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/core-utils";
+import type {
+  UserGroupRecord,
+  UserGroupValidationError,
+} from "@/lib/data-schemas/user-group-schema";
 import {
   USER_GROUP_FIELD_GROUPS,
   USER_GROUP_META_FIELDS,

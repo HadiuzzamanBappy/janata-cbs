@@ -1,6 +1,6 @@
 /**
- * Canonical Core Banking RIDASH Function Right Codes & Semantics
- * Single source of truth across Command Gateway, Wire Client, and UI screens.
+ * Canonical Core Banking Domain Types
+ * Single source of truth across UI, Command Gateway, State Stores, and Screen Modules.
  *
  * S: See       - Read a single record without locking
  * I: Insert    - Lock, then update or insert; archives to history (Maker)
@@ -76,3 +76,20 @@ export const CBS_FUNCTION_DEFINITIONS: Record<FunctionRightCode, CbsFunctionDefi
     realWorldEffect: "Audits prior version snapshots and historical deltas",
   },
 };
+
+/**
+ * Resulting UI screen display mode
+ * "IDLE" or standard RIDASH code ("S" | "I" | "D" | "A" | "R" | "H")
+ */
+export type CbsScreenMode = "IDLE" | CbsRecordFunction;
+
+/**
+ * Standard record lifecycle statuses in Core Banking:
+ *  - NEW: Uncommitted newly created draft
+ *  - INA: Input Not Authorized (pending Maker-Checker approval in $NAU)
+ *  - AU:  Authorized / Live ledger record
+ *  - HLD: Held / Parked draft
+ *  - REV: Reversed / Cancelled
+ *  - DEL: Deleted draft
+ */
+export type CbsRecordLifecycleStatus = "NEW" | "INA" | "AU" | "HLD" | "REV" | "DEL";

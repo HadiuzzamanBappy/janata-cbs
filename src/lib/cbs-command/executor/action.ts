@@ -2,8 +2,8 @@
  * Non-Screen Actions Dispatcher (Settings dialog, Theme toggle, Logout dialog)
  */
 
-import { getActiveSessionStore } from "@/store";
 import type { ParsedCommand } from "../types/command";
+import { getCommandAdapter } from "./adapter";
 
 export function dispatchSystemAction(parsed: ParsedCommand): boolean {
   // 1. Settings Dialog
@@ -28,16 +28,19 @@ export function dispatchSystemAction(parsed: ParsedCommand): boolean {
 
   // 3. Action: Logout Session
   if (parsed.type === "ACTION" && parsed.actionId === "logout") {
-    const sessionStore = getActiveSessionStore();
-    const logout = sessionStore?.getState().logout;
-    if (logout) {
+    const adapter = getCommandAdapter();
+    if (adapter.logout) {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("cbs:confirm-logout"));
       } else {
-        logout();
+        adapter.logout();
       }
+      return true;
     }
-    return true;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("cbs:confirm-logout"));
+      return true;
+    }
   }
 
   return false;

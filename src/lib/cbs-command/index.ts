@@ -57,6 +57,7 @@ export default cbsCommand;
 // Re-export core functions
 export { parseCbsCommand } from "./engine/grammar";
 export { validateSecurityPermissions } from "./engine/validator";
+export * from "./executor/adapter";
 export { getCanonicalScreenKey, resolveCommandAlias, resolveCommandTitle } from "./registry/alias";
 export {
   extractMenuCommands,

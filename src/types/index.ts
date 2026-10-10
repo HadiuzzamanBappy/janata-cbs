@@ -4,4 +4,4 @@
  */
 
 export * from "./api";
-export * from "./cbs-function";
+export * from "./cbs";

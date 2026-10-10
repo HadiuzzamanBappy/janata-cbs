@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useRef } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
+import { registerCommandAdapter } from "@/lib/cbs-command";
 import { createSessionStore, type SessionState, type SessionStore } from "./session-store";
 
 let activeSessionStore: SessionStore | null = null;
@@ -22,6 +23,16 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
     storeRef.current = createSessionStore();
     activeSessionStore = storeRef.current;
   }
+
+  useEffect(() => {
+    const store = storeRef.current;
+    if (!store) return;
+
+    return registerCommandAdapter({
+      getCurrentUser: () => store.getState().user,
+      logout: () => store.getState().logout(),
+    });
+  }, []);
 
   return (
     <SessionStoreContext.Provider value={storeRef.current}>{children}</SessionStoreContext.Provider>

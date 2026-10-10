@@ -1,4 +1,4 @@
-import { CBS_FUNCTION_CODES } from "@/types/cbs-function";
+import { CBS_FUNCTION_CODES } from "@/types/cbs";
 import type { CbsAccessFunctionCode } from "./types";
 
 /**

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { CbsInquiryHeader as InquiryHeader } from "@/lib/cbs-screen";
+import { CbsScreenScaffold } from "@/lib/cbs-screen";
 import type { EnquiryRow, SelectionOperand } from "@/lib/schemas";
 import { exportToCSV, exportToHTML, exportToXML } from "@/lib/utils/export";
 import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";
@@ -180,10 +180,6 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     );
   }
 
-  const startRecord = filteredRows.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-  const endRecord = Math.min(startRecord + pageSize - 1, filteredRows.length);
-  const pageRangeStr = filteredRows.length > 0 ? `${startRecord} - ${endRecord}` : "0";
-
   // Drill-down presentation
   if (drillRecord) {
     return (
@@ -197,39 +193,34 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
   }
 
   return (
-    <div className={`flex flex-col h-full w-full bg-background ${className}`}>
-      {step === "RESULTS" && (
-        <InquiryHeader
-          title={schema.title}
-          commandCode={schema.code}
-          step={step}
-          rowCount={filteredRows.length}
-          totalCount={filteredRows.length}
-          pageRange={pageRangeStr}
-          onBackToSelection={() => setStep("SELECTION")}
-          onRefresh={() => {
-            setFilteredRows([...(schema.sampleData || [])]);
-            toast.add({
-              title: "Data Refreshed",
-              description: `Refreshed inquiry records for ${schema.code}`,
-              type: "info",
-            });
-          }}
-          onPrintLocal={() => window.print()}
-          onPrintServer={() =>
-            toast.add({
-              title: "Server Print Spooled",
-              description: `Report spooled for ${schema.code}`,
-              type: "info",
-            })
-          }
-          onExportCSV={handleExportCSV}
-          onExportHTML={handleExportHTML}
-          onExportXML={handleExportXML}
-        />
-      )}
-
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-2">
+    <CbsScreenScaffold
+      title={schema.title}
+      commandCode={schema.code}
+      variant="inquiry"
+      inquiryStep={step}
+      onInquiryBackToSelection={() => setStep("SELECTION")}
+      onInquiryRefresh={() => {
+        setFilteredRows([...(schema.sampleData || [])]);
+        toast.add({
+          title: "Data Refreshed",
+          description: `Refreshed inquiry records for ${schema.code}`,
+          type: "info",
+        });
+      }}
+      onInquiryPrintLocal={() => window.print()}
+      onInquiryPrintServer={() =>
+        toast.add({
+          title: "Server Print Spooled",
+          description: `Report spooled for ${schema.code}`,
+          type: "info",
+        })
+      }
+      onInquiryExportCSV={handleExportCSV}
+      onInquiryExportHTML={handleExportHTML}
+      onInquiryExportXML={handleExportXML}
+      className={className}
+    >
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === "SELECTION" ? (
           <InquiryFilters
             fields={schema.selectionFields}
@@ -251,7 +242,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
           />
         )}
       </div>
-    </div>
+    </CbsScreenScaffold>
   );
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, GripVertical, Layers, MoreHorizontal, Search, X } from "lucide-react";
+import { ChevronDown, GripVertical, Layers, Search, X } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -54,7 +50,7 @@ function TabWindowMenuItem({
 }) {
   const { setActiveTab, removeTab } = useWorkbenchStore();
   const { confirm } = useAlertStore();
-  const [isItemMenuOpen, setIsItemMenuOpen] = React.useState(false);
+  const [_isItemMenuOpen, _setIsItemMenuOpen] = React.useState(false);
 
   const isDraggingThis = draggedMenuIndex === originalIndex;
   const isDragOverThis = dragOverMenuIndex === originalIndex;
@@ -108,7 +104,7 @@ function TabWindowMenuItem({
           }
         >
           {/* Left Side: Grip + Tab Number + Title */}
-          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1 pr-6">
             {!isSearching && (
               <GripVertical className="size-3 text-muted-foreground/40 group-hover:text-muted-foreground cursor-grab active:cursor-grabbing shrink-0" />
             )}
@@ -125,55 +121,6 @@ function TabWindowMenuItem({
               <span className="truncate font-normal">{tab.title}</span>
             </span>
           </div>
-
-          {/* Right Side: Options Dots Button + Close Button */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            {/* Options Dots (...) Button */}
-            <DropdownMenu open={isItemMenuOpen} onOpenChange={setIsItemMenuOpen}>
-              <DropdownMenuTrigger
-                render={
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                    className={cn(
-                      "size-5 rounded items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer",
-                      isItemMenuOpen
-                        ? "flex text-foreground bg-muted/80"
-                        : "hidden group-hover:flex",
-                    )}
-                    title={`Options for ${tab.title}`}
-                  />
-                }
-              >
-                <MoreHorizontal className="size-3" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                sideOffset={4}
-                className="w-52 text-xs rounded border border-border/80"
-              >
-                <TabMenuItems
-                  tab={tab}
-                  ItemComponent={DropdownMenuItem}
-                  LabelComponent={DropdownMenuLabel}
-                  SeparatorComponent={DropdownMenuSeparator}
-                  ShortcutComponent={DropdownMenuShortcut}
-                />
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={handleClose}
-              className="size-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
-              title="Close Window"
-            >
-              <X className="size-3" />
-            </button>
-          </div>
         </ContextMenuTrigger>
 
         {/* Right-click Context Menu */}
@@ -187,6 +134,18 @@ function TabWindowMenuItem({
           />
         </ContextMenuContent>
       </ContextMenu>
+
+      {/* Sibling Close Button on the right side */}
+      <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 z-10 pr-1">
+        <button
+          type="button"
+          onClick={handleClose}
+          className="size-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
+          title="Close Window"
+        >
+          <X className="size-3" />
+        </button>
+      </div>
     </li>
   );
 }

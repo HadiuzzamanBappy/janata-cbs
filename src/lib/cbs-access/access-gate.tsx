@@ -16,7 +16,11 @@ export interface CbsAccessGateProps {
  * Declarative access boundary.
  * Renders children only if user's accessibility profile grants the required function code.
  */
-export function CbsAccessGate({ require: requiredCode, fallback = null, children }: CbsAccessGateProps) {
+export function CbsAccessGate({
+  require: requiredCode,
+  fallback = null,
+  children,
+}: CbsAccessGateProps) {
   const { hasFunctionRight } = useCbsAccess();
   if (!hasFunctionRight(requiredCode)) {
     return <>{fallback}</>;

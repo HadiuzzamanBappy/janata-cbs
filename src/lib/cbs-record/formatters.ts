@@ -10,7 +10,8 @@ export function formatCbsCurrency(
 ): string {
   if (amount === null || amount === undefined || amount === "") return "";
 
-  const num = typeof amount === "number" ? amount : Number.parseFloat(String(amount).replace(/,/g, ""));
+  const num =
+    typeof amount === "number" ? amount : Number.parseFloat(String(amount).replace(/,/g, ""));
   if (Number.isNaN(num)) return String(amount);
 
   const { currencyCode, decimals = 2, locale = "en-US" } = options;

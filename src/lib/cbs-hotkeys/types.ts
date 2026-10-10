@@ -44,7 +44,12 @@ export const CBS_TERMINAL_HOTKEYS: CbsHotkeyDefinition[] = [
   { key: "F4", label: "Find", action: "onSearchFocus", description: "Focus record key search" },
   { key: "F5 / Ctrl+S", label: "Commit", action: "onCommit", description: "Commit record changes" },
   { key: "F6", label: "Hold", action: "onHold", description: "Put draft on hold" },
-  { key: "F7", label: "Validate", action: "onValidate", description: "Run field & integrity checks" },
+  {
+    key: "F7",
+    label: "Validate",
+    action: "onValidate",
+    description: "Run field & integrity checks",
+  },
   { key: "F8", label: "Auth", action: "onAuthorize", description: "Authorize pending record" },
   { key: "F9", label: "Process", action: "onProcessAction", description: "Execute stage process" },
   { key: "F10", label: "Delete", action: "onDelete", description: "Delete current record" },

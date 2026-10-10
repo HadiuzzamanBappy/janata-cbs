@@ -101,6 +101,8 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
             handleClick(e);
           }
         }}
+        data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
+        data-cbs-label={node.title}
         className={cn(
           "flex items-center gap-1 px-1.5 py-1.5 rounded text-xs font-normal cursor-pointer transition-all duration-150 ease-out group w-full text-left border-0 bg-transparent relative leading-snug",
           isActive
@@ -166,7 +168,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
           {/* Subtle Vertical Connector Guide Line */}
           <div className="absolute left-0 top-0 bottom-1 w-px bg-border/40" />
 
-          {node.children!.map((child) => (
+          {node.children?.map((child) => (
             <SidebarTreeItem
               key={child.id}
               node={child}

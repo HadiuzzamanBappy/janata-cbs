@@ -133,14 +133,13 @@ export function McPropertyList({
             const hasError = propErrors.length > 0;
 
             return (
-              <div
+              <button
+                type="button"
                 key={prop.sn}
-                role="button"
-                tabIndex={0}
                 onClick={() => onSelectSN(prop.sn)}
                 onKeyDown={(e) => e.key === "Enter" && onSelectSN(prop.sn)}
                 className={cn(
-                  "relative flex items-center justify-between py-1.5 px-2.5 text-left cursor-pointer transition-colors group select-none",
+                  "relative flex items-center justify-between w-full py-1.5 px-2.5 text-left cursor-pointer transition-colors group select-none",
                   hasError && !isSelected && "bg-destructive/5 hover:bg-destructive/10",
                   isSelected
                     ? hasError
@@ -239,7 +238,7 @@ export function McPropertyList({
                     </Button>
                   )}
                 </div>
-              </div>
+              </button>
             );
           })
         )}

@@ -65,12 +65,14 @@ export function UserGroupGeneralTab({
                     <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                     <div className="flex items-center gap-3 max-w-lg flex-1">
                       <label
+                        htmlFor="user-group-is-active"
                         className={cn(
                           "flex items-center gap-2 select-none",
                           isReadOnly ? "cursor-default" : "cursor-pointer",
                         )}
                       >
                         <Checkbox
+                          id="user-group-is-active"
                           checked={Boolean(formData.isActive)}
                           disabled={isReadOnly}
                           onCheckedChange={(val) => setFormData((p) => ({ ...p, isActive: !!val }))}

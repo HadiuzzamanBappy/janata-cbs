@@ -42,11 +42,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
   const [activeTab, setActiveTab] = React.useState<MenuDesignerTabKey>("general");
   const isReadOnly = mode !== "I";
 
-  React.useEffect(() => {
-    if (formData.recordId || mode) {
-      setActiveTab("general");
-    }
-  }, [formData.recordId, mode]);
+
 
   const availableItems = React.useMemo(
     () =>

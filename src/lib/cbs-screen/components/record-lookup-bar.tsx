@@ -68,7 +68,7 @@ export function RecordLookupBar({
                 e.stopPropagation();
                 onClear();
               }}
-              className="absolute right-5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
+              className="absolute right-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors p-0.5 rounded cursor-pointer z-10"
               aria-label="Clear input"
             >
               <X className="size-3" />

@@ -60,9 +60,7 @@ export function IdleActions({
               variant="default"
               size="icon-sm"
               onClick={() => onView?.()}
-              disabled={
-                !onView || submitting || !searchVal.trim() || !access.canSee
-              }
+              disabled={!onView || submitting || !searchVal.trim() || !access.canSee}
               className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
             >
               <Search className="size-3" />

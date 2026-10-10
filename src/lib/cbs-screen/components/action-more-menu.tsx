@@ -64,7 +64,8 @@ export function ActionMoreMenu({
             </DropdownMenuItem>
           ) : (
             moreActions.map((action) => {
-              const allowed = !action.requiredRight || access.hasFunctionRight(action.requiredRight);
+              const allowed =
+                !action.requiredRight || access.hasFunctionRight(action.requiredRight);
               return (
                 <DropdownMenuItem
                   key={action.command || action.label}

@@ -23,9 +23,7 @@ export function evaluateCbsAccess({
 
   // Four-Eyes Rule: If the record has an inputter, the Maker cannot act as the Authorizer (Checker)
   const isFourEyesViolation = Boolean(
-    userId &&
-      recordInputter &&
-      userId.toUpperCase().trim() === recordInputter.toUpperCase().trim(),
+    userId && recordInputter && userId.toUpperCase().trim() === recordInputter.toUpperCase().trim(),
   );
 
   // 1. Can See: Requires 'S' in rights
@@ -40,7 +38,8 @@ export function evaluateCbsAccess({
   // 3. Can Delete:
   // - Requires 'D' in profile
   // - Can only delete pending uncommitted drafts (status INA or NEW), cannot delete live AU records
-  const canDelete = hasRight("D") && !isIdle && (cleanStatus === "INA" || cleanStatus === "NEW" || !cleanStatus);
+  const canDelete =
+    hasRight("D") && !isIdle && (cleanStatus === "INA" || cleanStatus === "NEW" || !cleanStatus);
 
   // 4. Can Hold:
   // - Requires 'I' or 'H'
@@ -64,7 +63,8 @@ export function evaluateCbsAccess({
 
   // 8. Screen Read-Only state:
   // If in View mode ("S", "H") or user lacks 'I' rights, screen is locked
-  const isReadOnly = mode === "S" || mode === "H" || mode === "A" || mode === "D" || mode === "R" || !canInput;
+  const isReadOnly =
+    mode === "S" || mode === "H" || mode === "A" || mode === "D" || mode === "R" || !canInput;
 
   const getDisableReason = (action: CbsAccessFunctionCode): string | null => {
     if (!hasRight(action)) {

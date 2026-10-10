@@ -1,6 +1,6 @@
 "use client";
 
-import { useUserRights } from "@/hooks";
+import { useCbsAccess } from "@/lib/cbs-access";
 import type { CbsScreenMode } from "../types";
 
 export interface ActionCapability {
@@ -63,7 +63,7 @@ export function useCbsActionBar({
   onProcessAction,
   onReturnToSearch,
 }: UseCbsActionBarOptions): CbsActionBarCapabilities {
-  const rights = useUserRights();
+  const access = useCbsAccess({ mode });
   const hasTargetId = Boolean(searchVal.trim());
   const isIdle = mode === "IDLE";
   const isView = mode === "S" || mode === "A";
@@ -72,18 +72,18 @@ export function useCbsActionBar({
   const isAuth = mode === "A";
 
   // 1. Idle Amend (Pencil)
-  const amendEnabled = Boolean(isIdle && onAmend && !submitting && hasTargetId && rights.canAmend);
+  const amendEnabled = Boolean(isIdle && onAmend && !submitting && hasTargetId && access.canAmend);
   const amendReason = !hasTargetId
     ? "Enter or select a Record ID to edit"
-    : !rights.canAmend
+    : !access.canAmend
       ? "Requires Input/Amend ('I') permission"
       : undefined;
 
   // 2. Idle View (Search)
-  const viewEnabled = Boolean(isIdle && onView && !submitting && hasTargetId && rights.canSee);
+  const viewEnabled = Boolean(isIdle && onView && !submitting && hasTargetId && access.canSee);
   const viewReason = !hasTargetId
     ? "Enter or select a Record ID to view"
-    : !rights.canSee
+    : !access.canSee
       ? "Requires See ('S') permission"
       : undefined;
 
@@ -100,13 +100,13 @@ export function useCbsActionBar({
     !isView &&
       onSubmit &&
       !submitting &&
-      ((isCreate && rights.canInput) || (isEdit && rights.canAmend)),
+      ((isCreate && access.canInput) || (isEdit && access.canAmend)),
   );
   const commitReason = isView
     ? "Disabled in View mode (Read-Only)"
-    : isCreate && !rights.canInput
+    : isCreate && !access.canInput
       ? "Requires Input ('I') permission"
-      : isEdit && !rights.canAmend
+      : isEdit && !access.canAmend
         ? "Requires Input/Amend ('I') permission"
         : undefined;
 
@@ -115,54 +115,54 @@ export function useCbsActionBar({
     !isView &&
       onValidate &&
       !submitting &&
-      ((isCreate && rights.canInput) || (isEdit && rights.canAmend)),
+      ((isCreate && access.canInput) || (isEdit && access.canAmend)),
   );
   const validateReason = isView
     ? "Disabled in View mode"
-    : !rights.canInput
+    : !access.canInput
       ? "Requires Input ('I') permission"
       : undefined;
 
   // 6. Hold (❚❚)
-  const holdEnabled = Boolean(!isView && onHold && !submitting && rights.canHold);
+  const holdEnabled = Boolean(!isView && onHold && !submitting && access.canHold);
   const holdReason = isView
     ? "Disabled in View mode"
-    : !rights.canHold
+    : !access.canHold
       ? "Requires Input ('I') permission to hold draft"
       : undefined;
 
   // 7. Delete (✕)
-  const deleteEnabled = Boolean(isEdit && onDelete && !submitting && rights.canDelete);
+  const deleteEnabled = Boolean(isEdit && onDelete && !submitting && access.canDelete);
   const deleteReason = isView
     ? "Disabled in View mode"
     : isCreate
       ? "Cannot delete an unsaved new record"
-      : !rights.canDelete
+      : !access.canDelete
         ? "Requires Delete ('D') permission"
         : undefined;
 
   // 8. Authorize (✓✓)
   const authorizeEnabled = Boolean(
-    isAuth && onAuthorizeReverse && !submitting && rights.canAuthorise,
+    isAuth && onAuthorizeReverse && !submitting && access.canAuthorize,
   );
   const authorizeReason =
     isView && !isAuth
       ? "Disabled in View mode"
       : isCreate
         ? "Cannot authorize an uncommitted record"
-        : !rights.canAuthorise
-          ? "Requires Authorize ('A') permission"
+        : !access.canAuthorize
+          ? access.getDisableReason("A") || "Requires Authorize ('A') permission"
           : undefined;
 
   // 9. Reverse (✕✓)
-  const reverseEnabled = Boolean(isAuth && onAuthorizeReverse && !submitting && rights.canReverse);
+  const reverseEnabled = Boolean(isAuth && onAuthorizeReverse && !submitting && access.canReverse);
   const reverseReason =
     isView && !isAuth
       ? "Disabled in View mode"
       : isCreate
         ? "Cannot reverse an uncommitted record"
-        : !rights.canReverse
-          ? "Requires Reverse ('R') permission"
+        : !access.canReverse
+          ? access.getDisableReason("R") || "Requires Reverse ('R') permission"
           : undefined;
 
   // 10. Process (▶)

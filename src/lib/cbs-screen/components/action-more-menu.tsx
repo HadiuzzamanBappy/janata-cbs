@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUserRights } from "@/hooks";
+import { useCbsAccess } from "@/lib/cbs-access";
 import type { FunctionRightCode } from "@/types";
 
 export interface MoreActionItem {
@@ -33,7 +33,7 @@ export function ActionMoreMenu({
   submitting = false,
   onSubmit,
 }: ActionMoreMenuProps) {
-  const rights = useUserRights();
+  const access = useCbsAccess();
   const [selectedAction, setSelectedAction] = React.useState<MoreActionItem | null>(null);
 
   return (
@@ -64,7 +64,7 @@ export function ActionMoreMenu({
             </DropdownMenuItem>
           ) : (
             moreActions.map((action) => {
-              const allowed = !action.requiredRight || rights.hasRight(action.requiredRight);
+              const allowed = !action.requiredRight || access.hasFunctionRight(action.requiredRight);
               return (
                 <DropdownMenuItem
                   key={action.command || action.label}
@@ -97,7 +97,7 @@ export function ActionMoreMenu({
                 submitting ||
                 !selectedAction ||
                 (selectedAction.requiredRight
-                  ? !rights.hasRight(selectedAction.requiredRight)
+                  ? !access.hasFunctionRight(selectedAction.requiredRight)
                   : false)
               }
               variant="default"

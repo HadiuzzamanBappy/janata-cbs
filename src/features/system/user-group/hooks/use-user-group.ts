@@ -11,10 +11,10 @@ import {
 import {
   type MenuRef,
   type Role,
-  type UserGroupScreenMode,
   type UserGroupValidationError,
   userGroupRecordSchema,
 } from "@/lib/data-schemas/user-group-schema";
+import type { CbsScreenMode } from "@/types";
 import { INITIAL_USER_GROUP, useUserGroupPersistence } from "./use-user-group-persistence";
 import { mapUserGroupZodIssues } from "./user-group-validation";
 
@@ -131,7 +131,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
 
   // 3. Fetch specific group record by ID
   const fetchRecord = React.useCallback(
-    async (targetId: string, targetMode: UserGroupScreenMode = "I") => {
+    async (targetId: string, targetMode: CbsScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();

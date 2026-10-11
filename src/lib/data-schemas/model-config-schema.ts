@@ -21,7 +21,7 @@ export const modelPropertySchema = z.object({
   status: z.enum(["ACTIVE", "ARCHIVED"]).default("ACTIVE"),
   mask: z.string().optional(),
   pattern: z.string().optional(),
-  defaultValue: z.any().optional(),
+  defaultValue: z.unknown().optional(),
   fixedValue: z.string().optional(),
   enrichText: z.string().optional(),
 });
@@ -59,6 +59,10 @@ export const modelConfigRecordSchema = z.object({
 
 export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
 
+/* -------------------------------------------------------------------------- */
+/* Model Config Screen Validation Errors                                      */
+/* -------------------------------------------------------------------------- */
+
 export interface ValidationErrorItem {
   id: string;
   tab: "general" | "fields" | "audit";
@@ -66,7 +70,3 @@ export interface ValidationErrorItem {
   fieldKey: string;
   message: string;
 }
-
-import type { CbsScreenMode as ModelConfigScreenMode } from "../cbs-screen/types";
-
-export type { ModelConfigScreenMode };

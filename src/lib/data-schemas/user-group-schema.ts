@@ -29,11 +29,10 @@ export const roleSchema = z.object({
 
 export type Role = z.infer<typeof roleSchema>;
 
-/**
- * User Group Record Schema (persisted in USER.GROUP control table)
- * Strict validation: recordId and groupLabel are required with min(1).
- * Free text inputs have no artificial defaults.
- */
+/* -------------------------------------------------------------------------- */
+/* User Group Record Schema (Persisted in USER.GROUP control table)           */
+/* -------------------------------------------------------------------------- */
+
 export const userGroupRecordSchema = z.object({
   recordId: z.string().min(1, "Group ID is required"),
   groupLabel: z.string().min(1, "Group Label is required"),
@@ -45,9 +44,9 @@ export const userGroupRecordSchema = z.object({
 
 export type UserGroupRecord = z.infer<typeof userGroupRecordSchema>;
 
-import type { CbsScreenMode as UserGroupScreenMode } from "../cbs-screen/types";
-
-export type { UserGroupScreenMode };
+/* -------------------------------------------------------------------------- */
+/* User Group Screen Validation Errors                                        */
+/* -------------------------------------------------------------------------- */
 
 export interface UserGroupValidationError {
   id: string;

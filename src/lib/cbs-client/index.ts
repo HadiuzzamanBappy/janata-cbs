@@ -1,6 +1,5 @@
 export * from "./payloads";
 export * from "./transport/proxy-client";
-export * from "./types";
 
 import { formPayloads } from "./payloads/form";
 import { inquiryPayloads } from "./payloads/inquiry";

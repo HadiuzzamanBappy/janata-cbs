@@ -1,7 +1,6 @@
 import { toast } from "@/components/ui/toast";
 import { appConfig } from "@/lib/core-config";
-import type { ApiResponse } from "@/types";
-import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types/wire";
+import { type ApiResponse, type CbsWirePayload, DEFAULT_SERVICE_PATH } from "@/types";
 
 /**
  * Configuration options for dispatching a CBS request.

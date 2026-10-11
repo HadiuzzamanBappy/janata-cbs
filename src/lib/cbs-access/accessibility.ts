@@ -1,5 +1,4 @@
-import { CBS_FUNCTION_CODES } from "@/types/cbs";
-import type { CbsAccessFunctionCode } from "./types";
+import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
 
 /**
  * Normalizes and extracts standard RIDASH function rights from an accessibility string or array.
@@ -7,14 +6,14 @@ import type { CbsAccessFunctionCode } from "./types";
  */
 export function parseAccessibilityRights(
   rawAccessibility?: string | string[] | null,
-): CbsAccessFunctionCode[] {
+): CbsRecordFunction[] {
   if (!rawAccessibility) {
     return [...CBS_FUNCTION_CODES];
   }
 
   if (Array.isArray(rawAccessibility)) {
     return rawAccessibility
-      .map((r) => r.toUpperCase().trim() as CbsAccessFunctionCode)
+      .map((r) => r.toUpperCase().trim() as CbsRecordFunction)
       .filter((r) => CBS_FUNCTION_CODES.includes(r));
   }
 
@@ -24,11 +23,11 @@ export function parseAccessibilityRights(
   }
 
   const validSet = new Set<string>(CBS_FUNCTION_CODES);
-  const matched: CbsAccessFunctionCode[] = [];
+  const matched: CbsRecordFunction[] = [];
 
   for (const char of str) {
-    if (validSet.has(char) && !matched.includes(char as CbsAccessFunctionCode)) {
-      matched.push(char as CbsAccessFunctionCode);
+    if (validSet.has(char) && !matched.includes(char as CbsRecordFunction)) {
+      matched.push(char as CbsRecordFunction);
     }
   }
 
@@ -39,8 +38,8 @@ export function parseAccessibilityRights(
  * Checks if user accessibility profile grants a given function code.
  */
 export function hasAccessibilityRight(
-  granted: CbsAccessFunctionCode[],
-  required: CbsAccessFunctionCode,
+  granted: CbsRecordFunction[],
+  required: CbsRecordFunction,
 ): boolean {
   return granted.includes(required);
 }

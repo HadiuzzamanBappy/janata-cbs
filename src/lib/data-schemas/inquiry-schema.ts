@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { auditDataSchema, type EnquiryColumn, enquiryColumnSchema } from "./common-schema";
+import { auditDataSchema, enquiryColumnSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Raw gRPC Payload Schemas for Enquiry                                       */
@@ -83,9 +83,6 @@ export const selectionFieldSchema = z.object({
 });
 
 export type SelectionField = z.infer<typeof selectionFieldSchema>;
-
-export type { EnquiryColumn };
-export { enquiryColumnSchema };
 
 export const enquiryCommandSchema = z.object({
   cmdButton: z.string(),

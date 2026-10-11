@@ -2,7 +2,7 @@
  * RBAC Validation & Security Contracts for CBS Command Gateway
  */
 
-import type { FunctionRightCode } from "./command";
+import type { CbsRecordFunction } from "@/types";
 
 /**
  * Result returned by the security validator before executing a command.
@@ -13,7 +13,7 @@ export interface CommandValidationResult {
   /** Human-readable explanation if access is blocked */
   reason?: string;
   /** The specific RIDASH function right the user is missing (e.g. 'D', 'A') */
-  requiredRight?: FunctionRightCode;
+  requiredRight?: CbsRecordFunction;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type RawEnquiryColumn, rawEnquiryColumnSchema } from "./common-schema";
+import { type EnquiryColumn, enquiryColumnSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Raw gRPC Payload Schemas (Boundary Validation for GMC)                     */
@@ -17,17 +17,15 @@ export const rawPropertyRecordSchema = z.object({
   position: z.string().optional(),
   parameter: z.string().optional(),
   enrichText: z.string().optional(),
-  value: z.any().optional(),
+  value: z.unknown().optional(),
   isOpen: z.boolean().optional(),
   isLoading: z.boolean().optional(),
-  prop: z.array(z.any()).optional(),
+  prop: z.array(z.unknown()).optional(),
   datasource: z.array(z.string()).optional(),
   sn: z.union([z.string(), z.number()]).optional(),
 });
 
 export type RawPropertyRecord = z.infer<typeof rawPropertyRecordSchema>;
-export type { RawEnquiryColumn };
-export { rawEnquiryColumnSchema };
 
 export type RawPropertyConfigRecord = {
   record?: RawPropertyConfigRecord;
@@ -50,7 +48,7 @@ export type RawPropertyConfigRecord = {
     idPattern?: string;
   };
   properties?: RawPropertyRecord[];
-  columns?: RawEnquiryColumn[];
+  columns?: EnquiryColumn[];
   auditData?: Record<string, unknown>;
 };
 
@@ -78,7 +76,7 @@ export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.laz
       })
       .optional(),
     properties: z.array(rawPropertyRecordSchema).optional(),
-    columns: z.array(rawEnquiryColumnSchema).optional(),
+    columns: z.array(enquiryColumnSchema).optional(),
     auditData: z.record(z.string(), z.unknown()).optional(),
   }),
 );
@@ -111,7 +109,7 @@ export const formSchemaSchema = z.object({
   title: z.string(),
   idPrefix: z.string(),
   fields: z.array(formFieldSchema),
-  columns: z.array(rawEnquiryColumnSchema).optional(),
+  columns: z.array(enquiryColumnSchema).optional(),
 });
 
 export type FormSchema = z.infer<typeof formSchemaSchema>;

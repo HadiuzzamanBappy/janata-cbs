@@ -10,10 +10,10 @@ import {
 } from "@/lib/data-parsers";
 import {
   type MenuCatalogRecord,
-  type MenuCatalogScreenMode,
   type MenuValidationErrorItem,
   menuCatalogRecordSchema,
 } from "@/lib/data-schemas/menu-catalog-schema";
+import type { CbsScreenMode } from "@/types";
 import { mapMenuZodIssues } from "./menu-catalog-validation";
 import { INITIAL_MENU_ITEM, useMenuCatalogPersistence } from "./use-menu-catalog-persistence";
 
@@ -53,7 +53,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
 
   // 2. Fetch specific record by ID
   const fetchRecord = React.useCallback(
-    async (targetId: string, targetMode: MenuCatalogScreenMode = "I") => {
+    async (targetId: string, targetMode: CbsScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();

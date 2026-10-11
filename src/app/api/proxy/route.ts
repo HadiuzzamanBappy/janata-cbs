@@ -4,20 +4,10 @@ import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { dispatch } from "@/lib/infra-grpc/dispatch";
 import { getSession } from "@/lib/infra-redis";
 import { getStaticProxyResponse } from "@/lib/infra-services/static-provider";
-import type { GrpcEnvelope } from "@/types";
+import type { CbsWirePayload, GrpcEnvelope } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-interface ProxyBody {
-  requestType?: string;
-  servicePath?: string;
-  controlName?: string;
-  recordFunction?: string;
-  recordId?: string;
-  authLevel?: number;
-  data?: Record<string, unknown>;
-}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
@@ -36,7 +26,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const { token, userId, currUser } = session;
-    const body = (await req.json()) as ProxyBody;
+    const body = (await req.json()) as CbsWirePayload;
 
     if (!body.requestType) {
       return NextResponse.json(

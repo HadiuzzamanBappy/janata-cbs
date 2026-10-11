@@ -10,11 +10,11 @@ import {
 } from "@/lib/data-parsers";
 import {
   type MenuCatalogActionItem,
-  type MenuDesignerScreenMode,
   type MenuDesignerValidationError,
   type MenuTreeNode,
   menuTreeRecordSchema,
 } from "@/lib/data-schemas/menu-designer-schema";
+import type { CbsScreenMode } from "@/types";
 import { mapMenuDesignerZodIssues } from "./menu-designer-validation";
 import { INITIAL_MENU_TREE, useMenuDesignerPersistence } from "./use-menu-designer-persistence";
 import { useTreeOperations } from "./use-tree-operations";
@@ -166,7 +166,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
 
   // 3. Fetch specific tree record by ID
   const fetchTreeRecord = React.useCallback(
-    async (targetId: string, targetMode: MenuDesignerScreenMode = "I") => {
+    async (targetId: string, targetMode: CbsScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();

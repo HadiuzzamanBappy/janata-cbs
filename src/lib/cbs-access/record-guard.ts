@@ -1,8 +1,8 @@
-import type { CbsAccessContext, CbsAccessFunctionCode, CbsAccessResult } from "./types";
+import type { CbsAccessContext, CbsAccessResult, CbsRecordFunction } from "./types";
 
 export interface EvaluateAccessParams extends CbsAccessContext {
   userId?: string;
-  grantedRights: CbsAccessFunctionCode[];
+  grantedRights: CbsRecordFunction[];
 }
 
 /**
@@ -16,7 +16,7 @@ export function evaluateCbsAccess({
   recordInputter,
   mode = "IDLE",
 }: EvaluateAccessParams): CbsAccessResult {
-  const hasRight = (code: CbsAccessFunctionCode) => grantedRights.includes(code);
+  const hasRight = (code: CbsRecordFunction) => grantedRights.includes(code);
 
   const cleanStatus = (recordStatus || "").toUpperCase().trim();
   const isIdle = mode === "IDLE";
@@ -66,7 +66,7 @@ export function evaluateCbsAccess({
   const isReadOnly =
     mode === "S" || mode === "H" || mode === "A" || mode === "D" || mode === "R" || !canInput;
 
-  const getDisableReason = (action: CbsAccessFunctionCode): string | null => {
+  const getDisableReason = (action: CbsRecordFunction): string | null => {
     if (!hasRight(action)) {
       return `Access Denied: Missing '${action}' capability in user profile.`;
     }

@@ -1,11 +1,10 @@
 import { z } from "zod";
 import { appConfig } from "@/lib/core-config";
 
-export const changeUsernameSchema = z.object({
-  oldUserName: z.string().min(1, "Old user name is required"),
-  newUserName: z.string().min(1, "New user name is required"),
-  password: z.string().min(1, "Password is required to confirm"),
-});
+export {
+  type ChangeUsernameInput,
+  changeUsernameSchema,
+} from "@/lib/data-schemas";
 
 export const changePasswordSchema = z
   .object({
@@ -27,5 +26,4 @@ export const changePasswordSchema = z
     path: ["confPass"],
   });
 
-export type ChangeUsernameInput = z.infer<typeof changeUsernameSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

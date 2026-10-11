@@ -154,14 +154,16 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
       };
     }
 
-    envelope.requestType = resolveRequestType(envelope.controlName, envelope.requestType);
-    const kind = classify(envelope.requestType);
+    const resolvedType = resolveRequestType(envelope.controlName, envelope.requestType);
+    const enrichedEnvelope: GrpcEnvelope =
+      resolvedType === envelope.requestType ? envelope : { ...envelope, requestType: resolvedType };
+    const kind = classify(enrichedEnvelope.requestType);
 
     if (service.protocol === "rest") {
-      return await executeRestTransport(service.url, envelope, token);
+      return await executeRestTransport(service.url, enrichedEnvelope, token);
     }
 
-    return await executeGrpcTransport(service.url, kind, envelope, token);
+    return await executeGrpcTransport(service.url, kind, enrichedEnvelope, token);
   } catch (error: unknown) {
     const { status, message } = grpcStatusToHttp(error);
     return {

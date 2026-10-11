@@ -33,5 +33,3 @@ export const enquiryColumnSchema = z.object({
 });
 
 export type EnquiryColumn = z.infer<typeof enquiryColumnSchema>;
-export type RawEnquiryColumn = EnquiryColumn;
-export const rawEnquiryColumnSchema = enquiryColumnSchema;

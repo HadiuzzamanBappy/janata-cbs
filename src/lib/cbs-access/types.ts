@@ -9,9 +9,7 @@ import type { CbsRecordFunction, CbsRecordLifecycleStatus } from "@/types";
  *  - S: See (single record read without lock)
  *  - H: History (inspect historical snapshots)
  */
-export type CbsAccessFunctionCode = CbsRecordFunction;
-
-export type { CbsRecordLifecycleStatus };
+export type { CbsRecordFunction, CbsRecordLifecycleStatus };
 
 export interface CbsAccessContext {
   /** Optional user override to evaluate access without reading from global store */
@@ -27,12 +25,12 @@ export interface CbsAccessContext {
   /** Inputter/Maker user ID of the current record */
   recordInputter?: string;
   /** Active screen display mode (IDLE, I, S, A, D, R, H) */
-  mode?: "IDLE" | CbsAccessFunctionCode;
+  mode?: "IDLE" | CbsRecordFunction;
 }
 
 export interface CbsAccessResult {
   /** Whether user has a specific function code right in their accessibility profile */
-  hasFunctionRight: (code: CbsAccessFunctionCode) => boolean;
+  hasFunctionRight: (code: CbsRecordFunction) => boolean;
 
   /** Dynamic capability evaluations taking record state & Four-Eyes into account */
   canSee: boolean;
@@ -51,8 +49,8 @@ export interface CbsAccessResult {
   isFourEyesViolation: boolean;
 
   /** Returns human-readable disabled explanation for tooltips */
-  getDisableReason: (action: CbsAccessFunctionCode) => string | null;
+  getDisableReason: (action: CbsRecordFunction) => string | null;
 
   /** Raw parsed function rights array (e.g. ['R', 'I', 'D', 'A', 'S', 'H']) */
-  grantedRights: CbsAccessFunctionCode[];
+  grantedRights: CbsRecordFunction[];
 }

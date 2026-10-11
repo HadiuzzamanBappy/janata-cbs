@@ -20,11 +20,6 @@ src/lib/cbs-client/
 │   └── index.ts             # Payloads barrel export
 ├── transport/               # HTTP wire transport & error management
 │   └── proxy-client.ts      # sendCbsRequest with 401 interception & toast notifications
-├── types/                   # Canonical CBS wire contracts & control tables
-│   ├── control-tables.ts    # CbsControlTable constants & type
-│   ├── request-types.ts     # CbsRequestType verbs ('GET', 'PUT', 'INQ', 'AUT', etc.)
-│   ├── wire.ts              # CbsWirePayload and DEFAULT_SERVICE_PATH
-│   └── index.ts             # Types barrel export
 ├── index.ts                 # Unified public facade (`cbs` and default export)
 └── README.md                # Gateway documentation
 ```
@@ -167,13 +162,18 @@ When the server responds with HTTP `401 Unauthorized`:
 In addition to `cbs`, all types and builders can be imported directly:
 
 ```typescript
+// Payload client and transport options from client gateway:
 import {
   cbs,
   sendCbsRequest,
+  type SendCbsOptions,
+} from "@/lib/cbs-client";
+
+// Canonical wire contracts and control tables from root types:
+import {
   CbsControlTable,
   CbsRequestType,
   DEFAULT_SERVICE_PATH,
   type CbsWirePayload,
-  type SendCbsOptions,
-} from "@/lib/cbs-client";
+} from "@/types";
 ```

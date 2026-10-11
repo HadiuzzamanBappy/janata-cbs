@@ -1,4 +1,4 @@
-import type { CbsRecordFunction } from "@/types/cbs-function";
+import type { CbsRecordFunction, CbsRecordLifecycleStatus } from "@/types";
 
 /**
  * Standard Core Banking RIDASH Function Codes:
@@ -11,18 +11,15 @@ import type { CbsRecordFunction } from "@/types/cbs-function";
  */
 export type CbsAccessFunctionCode = CbsRecordFunction;
 
-/**
- * Standard record lifecycle statuses in Core Banking:
- *  - NEW: Uncommitted newly created draft
- *  - INA: Input Not Authorized (pending Maker-Checker approval in $NAU)
- *  - AU:  Authorized / Live ledger record
- *  - HLD: Held / Parked draft
- *  - REV: Reversed / Cancelled
- *  - DEL: Deleted draft
- */
-export type CbsRecordLifecycleStatus = "NEW" | "INA" | "AU" | "HLD" | "REV" | "DEL";
+export type { CbsRecordLifecycleStatus };
 
 export interface CbsAccessContext {
+  /** Optional user override to evaluate access without reading from global store */
+  user?: {
+    userId?: string;
+    accessibility?: string | string[];
+    functionRights?: string[];
+  } | null;
   /** Screen command code (e.g. "CUSTOMER", "ACCOUNT", "MODEL.CONFIG") */
   command?: string;
   /** Active record lifecycle status (INA, AU, HLD, etc.) */

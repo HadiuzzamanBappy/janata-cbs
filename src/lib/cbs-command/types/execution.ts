@@ -3,10 +3,13 @@
  */
 
 import type { ParsedCommand, ScreenMode } from "./command";
+import type { UserSecurityProfile } from "./validation";
 
 export type LaunchTarget = "workspace" | "popup";
 
 export interface ExecutionOptions {
+  /** Optional user override for explicit permission validation */
+  user?: UserSecurityProfile | null;
   /** Target execution display: internal tab ("workspace") or external detached popup ("popup") */
   target?: LaunchTarget;
   /** Explicit title override for window or tab header */

@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useRef } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
+import { registerCommandAdapter } from "@/lib/cbs-command";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
 let activeWorkbenchStore: WorkbenchStore | null = null;
@@ -22,6 +23,17 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     storeRef.current = createWorkbenchStore();
     activeWorkbenchStore = storeRef.current;
   }
+
+  useEffect(() => {
+    const store = storeRef.current;
+    if (!store) return;
+
+    return registerCommandAdapter({
+      openTab: (tab) => {
+        store.getState().addTab(tab);
+      },
+    });
+  }, []);
 
   return (
     <WorkbenchStoreContext.Provider value={storeRef.current}>

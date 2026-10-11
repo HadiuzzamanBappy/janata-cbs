@@ -1,9 +1,9 @@
 import type * as React from "react";
 import type { z } from "zod";
-import type { CbsRecordFunction } from "@/types/cbs-function";
+import type { CbsScreenMode } from "@/types";
 import type { MoreActionItem } from "./components/action-more-menu";
 
-export type CbsScreenMode = "IDLE" | CbsRecordFunction;
+export type { CbsScreenMode };
 
 export interface CbsScreenValidationError<TTab extends string = string> {
   id: string;

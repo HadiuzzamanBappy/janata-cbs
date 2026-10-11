@@ -12,7 +12,7 @@
 // Chapter 1: Core Command Modes & Categories
 // ============================================================================
 
-import type { CbsScreenMode } from "@/lib/cbs-screen/types";
+import type { CbsScreenMode } from "@/types";
 
 /** High-level routing classification for any executed command */
 export type CommandType = "FORM" | "INQUIRY" | "SETTINGS" | "ACTION";

@@ -1,11 +1,16 @@
+import { z } from "zod";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
 } from "@/lib/data-schemas/model-config-schema";
+import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
+
+/* -------------------------------------------------------------------------- */
+/* Single Record Parser                                                       */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Parses inbound JSON payload into a strictly validated ModelConfigRecord.
- * With clean 1:1 database storage, this executes direct schema validation without manual field mapping.
  */
 export function parseModelConfig(
   rawPayload: unknown,
@@ -14,7 +19,11 @@ export function parseModelConfig(
     return { success: false, error: "Model config payload is invalid" };
   }
 
-  const parseResult = modelConfigRecordSchema.safeParse(rawPayload);
+  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
+  const list = unwrapRecordsPayload(decoded);
+  const target = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+
+  const parseResult = modelConfigRecordSchema.safeParse(target);
   if (!parseResult.success) {
     return {
       success: false,
@@ -28,17 +37,45 @@ export function parseModelConfig(
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* List Parser                                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Parses a list of model config records from CBS backend wire responses.
+ */
+export function parseModelConfigList(
+  rawPayload: unknown,
+): { success: true; data: ModelConfigRecord[] } | { success: false; error: string } {
+  if (!rawPayload) {
+    return { success: true, data: [] };
+  }
+
+  const rawList = unwrapRecordsPayload(rawPayload);
+  const parseResult = z.array(modelConfigRecordSchema).safeParse(rawList);
+
+  if (!parseResult.success) {
+    return {
+      success: false,
+      error: `Model config list validation failed: ${parseResult.error.message}`,
+    };
+  }
+
+  return {
+    success: true,
+    data: parseResult.data,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Wire Serializer                                                            */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Serializes internal ModelConfigRecord for database storage or JSON preview.
- * Direct 1:1 canonical format. Safely handles in-progress draft models by falling back
- * gracefully instead of throwing runtime exceptions during live typing.
+ * Safely handles in-progress draft models during live editing.
  */
 export function serializeModelToWireJson(record: ModelConfigRecord): ModelConfigRecord {
   const result = modelConfigRecordSchema.safeParse(record);
-  if (result.success) {
-    return result.data;
-  }
-  // During live editing (e.g. freshly added field without name/label yet),
-  // return the raw draft record sanitized for live preview
-  return record;
+  return result.success ? result.data : record;
 }

@@ -1,6 +1,6 @@
-/**
- * Non-Screen Actions Dispatcher (Settings dialog, Theme toggle, Logout dialog)
- */
+// ============================================================================
+// Non-Screen Actions Dispatcher (Settings dialog, Theme toggle, Logout dialog)
+// ============================================================================
 
 import type { ParsedCommand } from "../types/command";
 import { getCommandAdapter } from "./adapter";

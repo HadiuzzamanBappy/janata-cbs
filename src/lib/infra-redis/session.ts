@@ -1,10 +1,11 @@
 import "server-only";
+
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import type { CurrentUser } from "@/lib/data-schemas";
-import { getRedisClient } from "./client";
+import { cacheDelete, cacheGet, cacheKey, cacheSet } from "./client";
 
 const sessionLogger = logger.withContext("SESSION");
 
@@ -18,8 +19,11 @@ export interface SessionData {
   lastActiveAt: number;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Configuration & In-Memory Fallback State                                   */
+/* -------------------------------------------------------------------------- */
+
 const COOKIE_NAME = appConfig.auth.cookieName;
-const SESSION_PREFIX = appConfig.auth.sessionPrefix;
 const TTL_SECONDS = appConfig.auth.sessionMaxAgeSeconds;
 
 declare global {
@@ -30,12 +34,16 @@ if (!globalThis.__memorySessionStore) {
 }
 const memoryStore = globalThis.__memorySessionStore;
 
-const sessionKey = (id: string): string => `${SESSION_PREFIX}${id}`;
+const getSessionRedisKey = (id: string): string => cacheKey("sess", id);
 
 async function currentSessionId(): Promise<string | null> {
   const store = await cookies();
   return store.get(COOKIE_NAME)?.value ?? null;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Public Session Lifecycle API                                               */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Creates a new session in Redis and sets the HTTP-only opaque cookie.
@@ -45,32 +53,17 @@ export async function createSession(
 ): Promise<string> {
   const store = await cookies();
   const oldId = store.get(COOKIE_NAME)?.value;
-  const redis = getRedisClient();
 
   if (oldId) {
-    if (redis) {
-      try {
-        await redis.del(sessionKey(oldId));
-      } catch {
-        // Ignore Redis delete failure on cleanup
-      }
-    }
+    await cacheDelete(getSessionRedisKey(oldId));
     memoryStore.delete(oldId);
   }
 
   const id = randomUUID();
   const now = Date.now();
   const payload: SessionData = { ...data, createdAt: now, lastActiveAt: now };
-  const key = sessionKey(id);
 
-  if (redis) {
-    try {
-      await redis.set(key, JSON.stringify(payload), "EX", TTL_SECONDS);
-    } catch (error) {
-      sessionLogger.warn("Failed to persist session in Redis:", error);
-    }
-  }
-  // Store in memory cache as reliable fallback
+  await cacheSet(getSessionRedisKey(id), payload, TTL_SECONDS);
   memoryStore.set(id, payload);
 
   const isSecure = !appConfig.isDev && appConfig.useHttps;
@@ -105,28 +98,14 @@ export async function getSession(): Promise<SessionData | null> {
   const id = await currentSessionId();
   if (!id) return null;
 
-  const redis = getRedisClient();
-  let session: SessionData | null = null;
-
-  if (redis) {
-    try {
-      const raw = await redis.get(sessionKey(id));
-      if (raw) {
-        session = JSON.parse(raw) as SessionData;
-      }
-    } catch {
-      // Fall through to memoryStore on Redis error
-    }
-  }
+  let session = await cacheGet<SessionData>(getSessionRedisKey(id));
 
   // Fallback to in-memory store if Redis was offline or disabled
   if (!session) {
     session = memoryStore.get(id) ?? null;
   }
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
 
   // Server-side Inactivity Guard
   const timeoutMinutes = appConfig.logoutTime;
@@ -135,26 +114,14 @@ export async function getSession(): Promise<SessionData | null> {
 
   if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
     sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
-    if (redis) {
-      try {
-        await redis.del(sessionKey(id));
-      } catch {
-        // Ignore redis cleanup error
-      }
-    }
+    await cacheDelete(getSessionRedisKey(id));
     memoryStore.delete(id);
     return null;
   }
 
   // Refresh lastActiveAt and extend TTL
   session.lastActiveAt = now;
-  if (redis) {
-    try {
-      await redis.set(sessionKey(id), JSON.stringify(session), "EX", TTL_SECONDS);
-    } catch {
-      // Ignore Redis update error
-    }
-  }
+  await cacheSet(getSessionRedisKey(id), session, TTL_SECONDS);
   memoryStore.set(id, session);
 
   return session;
@@ -179,7 +146,6 @@ export async function updateSession(
   const id = await currentSessionId();
   if (!id) return null;
 
-  const redis = getRedisClient();
   const session = await getSession();
   if (!session) return null;
 
@@ -190,13 +156,7 @@ export async function updateSession(
     currUser: patch.currUser ? { ...session.currUser, ...patch.currUser } : session.currUser,
   };
 
-  if (redis) {
-    try {
-      await redis.set(sessionKey(id), JSON.stringify(next), "EX", TTL_SECONDS);
-    } catch {
-      // Fallback
-    }
-  }
+  await cacheSet(getSessionRedisKey(id), next, TTL_SECONDS);
   memoryStore.set(id, next);
   return next;
 }
@@ -223,18 +183,11 @@ export async function updateBranchCodeAndName(
 export async function destroySession(): Promise<void> {
   const id = await currentSessionId();
   if (id) {
-    const redis = getRedisClient();
-    if (redis) {
-      try {
-        await redis.del(sessionKey(id));
-      } catch {
-        // Ignore deletion errors during logout
-      }
-    }
+    await cacheDelete(getSessionRedisKey(id));
     memoryStore.delete(id);
   }
 
   const store = await cookies();
   store.delete(COOKIE_NAME);
-  store.delete("initLogin");
+  store.delete(appConfig.auth.initLoginCookie);
 }

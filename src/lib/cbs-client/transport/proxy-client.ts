@@ -1,22 +1,35 @@
 import { toast } from "@/components/ui/toast";
-import { appConfig } from "@/lib/core-config";
-import { type ApiResponse, type CbsWirePayload, DEFAULT_SERVICE_PATH } from "@/types";
+import { clientConfig } from "@/lib/core-config";
+import {
+  type ApiResponse,
+  CBS_RECORD_FUNCTIONS,
+  type CbsWirePayload,
+  DEFAULT_SERVICE_PATH,
+} from "@/types";
+
+/* -------------------------------------------------------------------------- */
+/* Client Request Options Contract                                            */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Configuration options for dispatching a CBS request.
  */
 export interface SendCbsOptions {
   /** If true, suppresses automatic toast notifications */
-  silent?: boolean;
+  readonly silent?: boolean;
   /** Toast title to display upon SUCCESS response */
-  successTitle?: string;
+  readonly successTitle?: string;
   /** Toast description to display upon SUCCESS response */
-  successMessage?: string;
+  readonly successMessage?: string;
   /** Toast description override to display upon error */
-  errorMessage?: string;
+  readonly errorMessage?: string;
   /** Optional AbortSignal to cancel in-flight requests (e.g., on unmount or keystroke) */
-  signal?: AbortSignal;
+  readonly signal?: AbortSignal;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Universal HTTP Proxy Dispatcher                                            */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Universal type-safe fetch client for CBS backend communication.
@@ -33,7 +46,7 @@ export async function sendCbsRequest<T = unknown>(
   options?: SendCbsOptions,
 ): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(appConfig.routes.api.proxy, {
+    const res = await fetch(clientConfig.routes.api.proxy, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: options?.signal,
@@ -41,7 +54,7 @@ export async function sendCbsRequest<T = unknown>(
         servicePath: payload.servicePath || DEFAULT_SERVICE_PATH,
         requestType: payload.requestType,
         controlName: payload.controlName ?? "",
-        recordFunction: payload.recordFunction || "S",
+        recordFunction: payload.recordFunction || CBS_RECORD_FUNCTIONS.SEE,
         recordId: payload.recordId || "",
         authLevel: payload.authLevel ?? 1,
         data: payload.data ?? {},

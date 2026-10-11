@@ -6,6 +6,10 @@ import {
   DEFAULT_SERVICE_PATH,
 } from "@/types";
 
+/* -------------------------------------------------------------------------- */
+/* Menu Catalog & Visual Tree Payload Builders                                */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Domain payload builders for Menu Catalog and Visual Menu Designer.
  */

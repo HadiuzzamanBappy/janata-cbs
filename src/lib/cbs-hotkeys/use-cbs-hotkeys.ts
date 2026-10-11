@@ -3,6 +3,10 @@
 import * as React from "react";
 import type { UseCbsHotkeysOptions } from "./types";
 
+/* -------------------------------------------------------------------------- */
+/* Universal Core Banking Hotkey Dispatcher                                   */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Universal Core Banking keyboard dispatcher.
  * Binds banking terminal function keys globally across screens:

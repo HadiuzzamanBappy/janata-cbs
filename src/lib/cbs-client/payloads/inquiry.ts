@@ -6,18 +6,22 @@ import {
   DEFAULT_SERVICE_PATH,
 } from "@/types";
 
+/* -------------------------------------------------------------------------- */
+/* Inquiry Query Options & Criteria Contracts                                 */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Filter criteria parameter for dynamic inquiry grid searches.
  */
 export interface InquiryCriteriaParam {
   /** Field name / column ID to filter against */
-  selectFieldName: string;
+  readonly selectFieldName: string;
   /** Field datatype (e.g. 'text', 'date', 'number') */
-  selectFieldType?: string;
+  readonly selectFieldType?: string;
   /** Operator code (e.g. 'EQ', 'LK', 'GT', 'LT', 'BETWEEN') */
-  selectFieldOperator: string;
+  readonly selectFieldOperator: string;
   /** Comparison value */
-  selectFieldValue: string;
+  readonly selectFieldValue: string;
 }
 
 /**
@@ -25,12 +29,16 @@ export interface InquiryCriteriaParam {
  */
 export interface InquiryExecuteOptions {
   /** Array of criteria filters applied to the query */
-  queryString?: InquiryCriteriaParam[];
+  readonly queryString?: readonly InquiryCriteriaParam[];
   /** 1-based page index */
-  curPage?: number;
+  readonly curPage?: number;
   /** Page size limit */
-  perPage?: number;
+  readonly perPage?: number;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Inquiry Runtime Engine Payload Builders                                    */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Domain payload builders for Inquiry Runtime Engine (INQ).

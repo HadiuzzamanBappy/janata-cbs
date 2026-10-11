@@ -1,20 +1,26 @@
+// ============================================================================
+// CBS Screen Audit Configuration & Data Adapter
+// ============================================================================
+
+import type { CbsAuditFooterData, CbsAuditRawData } from "./types";
+
 export interface AuditFieldDef {
-  path: string;
-  label: string;
-  wireName?: string;
-  description?: string;
-  type: "text" | "number" | "date" | "status";
-  icon: "user" | "shield" | "calendar" | "hash" | "code" | "alert";
-  section: string;
+  readonly path: string;
+  readonly label: string;
+  readonly wireName?: string;
+  readonly description?: string;
+  readonly type: "text" | "number" | "date" | "status";
+  readonly icon: "user" | "shield" | "calendar" | "hash" | "code" | "alert";
+  readonly section: string;
 }
 
 export interface AuditSectionDef {
-  id: string;
-  title: string;
-  wireTag?: string;
+  readonly id: string;
+  readonly title: string;
+  readonly wireTag?: string;
 }
 
-export const DEFAULT_AUDIT_SECTIONS: AuditSectionDef[] = [
+export const DEFAULT_AUDIT_SECTIONS: readonly AuditSectionDef[] = [
   {
     id: "LEDGER",
     title: "CBS Ledger & Audit Summary",
@@ -25,7 +31,7 @@ export const DEFAULT_AUDIT_SECTIONS: AuditSectionDef[] = [
   },
 ];
 
-export const DEFAULT_AUDIT_FIELDS: AuditFieldDef[] = [
+export const DEFAULT_AUDIT_FIELDS: readonly AuditFieldDef[] = [
   // --- Section 1: LEDGER ---
   {
     path: "auditData.recStatus",
@@ -73,6 +79,9 @@ export const DEFAULT_AUDIT_FIELDS: AuditFieldDef[] = [
   },
 ];
 
+/**
+ * Extracts nested audit value from record via dot-path notation.
+ */
 export function extractAuditValue(record: unknown, path: string): unknown {
   if (!record || typeof record !== "object") return undefined;
   const rec = record as Record<string, unknown>;
@@ -84,4 +93,21 @@ export function extractAuditValue(record: unknown, path: string): unknown {
   }
 
   return rec[path];
+}
+
+/**
+ * Normalizes raw record audit data into standard CbsAuditFooter props.
+ */
+export function formatAuditFooterData(
+  raw?: CbsAuditRawData | null,
+): CbsAuditFooterData | undefined {
+  if (!raw) return undefined;
+  return {
+    recordStatus: raw.recStatus,
+    currNo: raw.recCurrNumber,
+    inputter: raw.recInputter,
+    dateTime: raw.recAuthTime || raw.recInputTime,
+    authoriser: raw.recAuthorizer,
+    coCode: raw.recBranchCode,
+  };
 }

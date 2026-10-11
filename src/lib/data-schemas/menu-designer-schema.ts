@@ -9,6 +9,7 @@ import { auditDataSchema } from "./common-schema";
 /*   3. menuTree (SN: 3, Type: Text, Length: 50, Structure: M, Required: true)*/
 /* -------------------------------------------------------------------------- */
 
+/** Hierarchical tree node representing navigation items in the Menu Designer canvas. */
 export type MenuTreeNode = {
   id: string;
   menuId: number | string;
@@ -31,6 +32,7 @@ export const menuTreeNodeSchema: z.ZodType<MenuTreeNode> = z.lazy(() =>
   }),
 );
 
+/** Menu tree definition record persisted in the `MENU_TREE` control table. */
 export const menuTreeRecordSchema = z.object({
   recordId: z.string().min(1, "Tree ID is required"),
   treeDescription: z.string().min(1, "Tree Description is required"),
@@ -45,6 +47,7 @@ export type MenuTreeRecord = z.infer<typeof menuTreeRecordSchema>;
 /* Menu Designer Catalog Action Items & Canvas Contracts                      */
 /* -------------------------------------------------------------------------- */
 
+/** Palette item draggable from the menu catalog drawer into the designer canvas. */
 export interface MenuCatalogActionItem {
   id: string;
   code?: string;
@@ -58,6 +61,7 @@ export interface MenuCatalogActionItem {
 /* Menu Designer Screen Validation Errors                                     */
 /* -------------------------------------------------------------------------- */
 
+/** Designer screen validation error mapped to tab headers or canvas nodes. */
 export interface MenuDesignerValidationError {
   id: string;
   tab: "general" | "canvas" | "audit";

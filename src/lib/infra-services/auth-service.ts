@@ -1,11 +1,12 @@
 import "server-only";
+
 import { appConfig } from "@/lib/core-config/server";
 import { parseAuthWirePayload } from "@/lib/data-parsers";
 import type { LoginInput } from "@/lib/data-schemas";
 import { grpcStatusToHttp, loginProcess } from "@/lib/infra-grpc";
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 import { type CurrentUser, createSession, destroySession } from "@/lib/infra-redis";
-import { getStaticUserResponse } from "./static-provider";
+import { getMockUserResponse } from "./mock-service";
 
 export interface LoginResult {
   success: boolean;
@@ -17,41 +18,23 @@ export interface LoginResult {
 
 /**
  * Universal authentication service for CBS core login and session creation.
- * Handles static mock personas and live gRPC core authentication identically.
  */
-export async function loginUser(input: LoginInput): Promise<LoginResult> {
-  const { username, password } = input;
-  const clientId = appConfig.grpc.clientId;
-
+export async function loginUser({ username, password }: LoginInput): Promise<LoginResult> {
   let res: GrpcResponse;
 
   if (appConfig.auth.userSource === "static") {
-    const mockResponse = getStaticUserResponse(username);
-    if (!mockResponse) {
-      return {
-        success: false,
-        error: "Invalid credentials",
-        statusCode: 401,
-      };
-    }
-    res = mockResponse;
+    const mock = getMockUserResponse(username);
+    if (!mock) return { success: false, error: "Invalid credentials", statusCode: 401 };
+    res = mock;
   } else {
     try {
-      res = await loginProcess({ clientId, username, password });
+      res = await loginProcess({ clientId: appConfig.grpc.clientId, username, password });
     } catch (err: unknown) {
       if (err instanceof Error && err.message.includes("missing required authentication token")) {
-        return {
-          success: false,
-          error: err.message,
-          statusCode: 502,
-        };
+        return { success: false, error: err.message, statusCode: 502 };
       }
       const { status, message } = grpcStatusToHttp(err);
-      return {
-        success: false,
-        error: message,
-        statusCode: status || 500,
-      };
+      return { success: false, error: message, statusCode: status || 500 };
     }
   }
 
@@ -64,20 +47,10 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
     };
   }
 
-  // Single unified wire extraction
   const { currUser, token } = parseAuthWirePayload(res.data, username);
+  await createSession({ userId: currUser.userId, token, currUser });
 
-  await createSession({
-    userId: currUser.userId,
-    token,
-    currUser,
-  });
-
-  return {
-    success: true,
-    user: currUser,
-    statusCode: 200,
-  };
+  return { success: true, user: currUser, statusCode: 200 };
 }
 
 /**

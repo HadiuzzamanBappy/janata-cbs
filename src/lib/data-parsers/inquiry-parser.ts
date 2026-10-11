@@ -11,6 +11,10 @@ import {
 } from "@/lib/data-schemas";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
+/* -------------------------------------------------------------------------- */
+/* Raw Wire Extraction                                                        */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Extracts raw enquiry wire fields from Protobuf struct response envelope.
  */
@@ -34,6 +38,10 @@ export function extractRawEnquiry(rawPayload: unknown): RawEnquiryWire | null {
     INQCmds: Array.isArray(root.INQCmds) ? (root.INQCmds as RawEnquiryWire["INQCmds"]) : undefined,
   };
 }
+
+/* -------------------------------------------------------------------------- */
+/* Wire Parser API: Schema Specification                                      */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Parses raw CBS INQUIRY wire response and transforms into canonical EnquirySchema.
@@ -137,7 +145,7 @@ export function parseEnquiry(
     const commands: EnquiryCommand[] = (validRaw.INQCmds || [])
       .filter((cmd) => Boolean(cmd.cmdButton))
       .map((cmd) => ({
-        cmdButton: cmd.cmdButton || "Action",
+        cmdButton: cmd.cmdButton || "",
         cmdFor: cmd.cmdFor || "",
       }));
 
@@ -176,22 +184,16 @@ export function parseEnquiry(
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Wire Parser API: Row Datasets                                              */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Parses raw CBS Inquiry dataset wire response into typed flat EnquiryRow[] records.
  */
 export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
   if (!rawPayload) return [];
 
-  // If already an array of raw items, decode them directly
-  if (Array.isArray(rawPayload)) {
-    return rawPayload.map((item, idx) => {
-      const row = decodeProtobufValue<Record<string, unknown>>(item) || {};
-      const id = String(row.id || row.recordId || row.txnReference || row.accountNumber || idx);
-      return { id, ...row };
-    });
-  }
-
-  // Use unwrapRecordsPayload to pull data.records or data.fields.records
   const records = unwrapRecordsPayload<Record<string, unknown>>(rawPayload);
   return records.map((item, idx) => {
     const id = String(item.id || item.recordId || item.txnReference || item.accountNumber || idx);

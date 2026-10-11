@@ -2,9 +2,13 @@ import { z } from "zod";
 
 /* -------------------------------------------------------------------------- */
 /* Standard CBS Audit Trail Contract                                          */
-/* Shared across all maintainable records (Forms, Model Config, Menus, Groups)*/
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Standard CBS Maker-Checker Audit Trail Contract.
+ * Tracks lifecycle status ("AU" Live, "INA" Pending, "HLD" Held, "DEL" Deleted)
+ * and dual-control operator stamps across all maintainable records.
+ */
 export const auditDataSchema = z.object({
   recStatus: z.string().optional(),
   recCurrNumber: z.number().optional(),
@@ -18,10 +22,13 @@ export const auditDataSchema = z.object({
 export type AuditData = z.infer<typeof auditDataSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Standard Enquiry / Dynamic Table Column Definition                         */
-/* Shared between GMC dynamic forms sub-tables and Dynamic Inquiries          */
+/* Standard Enquiry & Dynamic Table Column Definition                         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Universal column configuration for dynamic tabular data grids in CBS.
+ * Shared across Generic Model Config (GMC) sub-tables and dynamic inquiry views.
+ */
 export const enquiryColumnSchema = z.object({
   id: z.string(),
   label: z.string(),

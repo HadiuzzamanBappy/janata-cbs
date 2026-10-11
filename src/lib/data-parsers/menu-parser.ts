@@ -7,6 +7,10 @@ import {
 } from "@/lib/data-schemas";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
+/* -------------------------------------------------------------------------- */
+/* Domain Node Transformation Helper                                          */
+/* -------------------------------------------------------------------------- */
+
 function toMenuItemNode(record: RawMenuRecord, index: number, parentId = "m"): MenuItem {
   const id = String(record.id ?? record.menuId ?? record.code ?? `${parentId}-${index}`);
   const childrenRecords = record.children ?? record.items;
@@ -26,6 +30,10 @@ function toMenuItemNode(record: RawMenuRecord, index: number, parentId = "m"): M
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* Canonical Menu Wire Payload Parser                                         */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Standard parser to transform raw CBS menu payload into a validated MenuItem hierarchy.
  */
@@ -37,14 +45,6 @@ export function parseMNU(
   }
 
   const rawList = unwrapRecordsPayload(rawPayload);
-  if (!Array.isArray(rawList)) {
-    return {
-      success: false,
-      error: "MNU payload does not contain a valid array of menu records",
-    };
-  }
-
-  // Normalize protobuf recursive structs using the universal decoder
   const rawRecords = rawList.map((item) => decodeProtobufValue<RawMenuRecord>(item));
 
   const arrayResult = z.array(rawMenuRecordSchema).safeParse(rawRecords);

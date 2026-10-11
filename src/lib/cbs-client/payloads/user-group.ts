@@ -6,6 +6,10 @@ import {
   DEFAULT_SERVICE_PATH,
 } from "@/types";
 
+/* -------------------------------------------------------------------------- */
+/* User Group & RBAC Payload Builders                                         */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Domain payload builders for User Security & RBAC Groups.
  */

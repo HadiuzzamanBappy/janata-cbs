@@ -1,7 +1,6 @@
-/**
- * Banking-Grade PII & Sensitive Data Redaction Utility
- * Detects sensitive keys, tokens, credentials, and financial account numbers.
- */
+/* -------------------------------------------------------------------------- */
+/* Sensitive Key Patterns & Detectors                                         */
+/* -------------------------------------------------------------------------- */
 
 const SENSITIVE_KEY_PATTERNS = [
   /password/i,
@@ -20,7 +19,18 @@ const SENSITIVE_KEY_PATTERNS = [
 ];
 
 /**
- * Mask account numbers keeping only the last 4 digits (e.g. "AC****1234")
+ * Checks if a key matches any known sensitive/credential patterns.
+ */
+export function isSensitiveKey(key: string): boolean {
+  return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Account Masking                                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Masks account numbers keeping only prefix and last 4 digits (e.g. "AC****1234").
  */
 export function maskAccountNumber(val: string): string {
   const digits = val.replace(/\D/g, "");
@@ -32,15 +42,12 @@ export function maskAccountNumber(val: string): string {
   return "****";
 }
 
-/**
- * Checks if a key matches any known sensitive/credential patterns
- */
-export function isSensitiveKey(key: string): boolean {
-  return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
-}
+/* -------------------------------------------------------------------------- */
+/* Recursive Data Redaction                                                   */
+/* -------------------------------------------------------------------------- */
 
 /**
- * Recursively traverses data to mask sensitive properties and financial account strings
+ * Recursively traverses data to mask sensitive properties and financial account strings.
  */
 export function redactSensitiveData(data: unknown, seen = new WeakSet()): unknown {
   if (data === null || data === undefined) {

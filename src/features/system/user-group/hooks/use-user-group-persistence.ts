@@ -1,6 +1,6 @@
 "use client";
 
-import { useCbsPersistence } from "@/lib/cbs-screen";
+import { useCbsPersistence } from "@/components/cbs-screen";
 import type { UserGroupRecord } from "@/lib/data-schemas/user-group-schema";
 import { userGroupRecordSchema } from "@/lib/data-schemas/user-group-schema";
 

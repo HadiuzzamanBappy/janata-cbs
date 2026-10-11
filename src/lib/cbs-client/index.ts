@@ -9,6 +9,10 @@ import { userGroupPayloads } from "./payloads/user-group";
 import { userSecurityPayloads } from "./payloads/user-security";
 import { sendCbsRequest } from "./transport/proxy-client";
 
+/* -------------------------------------------------------------------------- */
+/* Canonical CBS Client Facade Singleton                                      */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Universal CBS Micro-Client facade.
  * Provides unified access to payload factories and transport layer.
@@ -21,6 +25,6 @@ export const cbs = {
   modelConfig: modelConfigPayloads,
   inquiry: inquiryPayloads,
   form: formPayloads,
-};
+} as const;
 
 export default cbs;

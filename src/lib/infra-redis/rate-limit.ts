@@ -1,6 +1,7 @@
 import "server-only";
+
 import { appConfig } from "@/lib/core-config/server";
-import { getRedisClient } from "./client";
+import { cacheKey, getRedisClient } from "./client";
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -22,7 +23,7 @@ export async function rateLimit(
     return { allowed: true, remaining: limit, resetSec: windowSec };
   }
 
-  const redisKey = `rl:${key}`;
+  const redisKey = cacheKey("rl", key);
   try {
     const pipeline = redis.pipeline();
     pipeline.incr(redisKey);

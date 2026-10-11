@@ -5,6 +5,7 @@ import { auditDataSchema, enquiryColumnSchema } from "./common-schema";
 /* Raw gRPC Payload Schemas for Enquiry                                       */
 /* -------------------------------------------------------------------------- */
 
+/** Validates raw CBS enquiry header metadata (`INQInfo`) from gRPC responses. */
 export const rawInqInfoSchema = z.object({
   description: z.string().nullable().optional(),
   pageOrientation: z.string().nullable().optional(),
@@ -23,6 +24,7 @@ export const rawInqInfoSchema = z.object({
 
 export type RawInqInfo = z.infer<typeof rawInqInfoSchema>;
 
+/** Validates raw criteria selection filter fields (`INQSelectField`). */
 export const rawInqSelectFieldSchema = z.object({
   selectFieldName: z.string(),
   selectFieldType: z.string().optional(),
@@ -35,6 +37,7 @@ export const rawInqSelectFieldSchema = z.object({
 
 export type RawInqSelectField = z.infer<typeof rawInqSelectFieldSchema>;
 
+/** Validates raw column definitions (`INQDef`) returned by the inquiry engine. */
 export const rawInqDefSchema = z.object({
   fieldName: z.string(),
   fieldType: z.string().optional(),
@@ -47,6 +50,7 @@ export const rawInqDefSchema = z.object({
 
 export type RawInqDef = z.infer<typeof rawInqDefSchema>;
 
+/** Validates raw row-level drilldown command buttons (`INQCmds`). */
 export const rawInqCmdSchema = z.object({
   cmdFor: z.string().optional(),
   cmdButton: z.string().optional(),
@@ -54,6 +58,7 @@ export const rawInqCmdSchema = z.object({
 
 export type RawInqCmd = z.infer<typeof rawInqCmdSchema>;
 
+/** Complete top-level raw wire envelope for CBS Enquiry responses. */
 export const rawEnquiryWireSchema = z.object({
   recordId: z.string(),
   auditData: auditDataSchema.optional(),
@@ -69,9 +74,14 @@ export type RawEnquiryWire = z.infer<typeof rawEnquiryWireSchema>;
 /* Canonical Internal UI & Domain Schemas for Enquiry                          */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Supported comparison filter operators for inquiry criteria.
+ * (EQ: Equal, LK: Like, RG: Range, NE: Not Equal, GT: Greater, LT: Less, CT: Contains).
+ */
 export const selectionOperandSchema = z.enum(["EQ", "LK", "RG", "NE", "GT", "LT", "CT"]);
 export type SelectionOperand = z.infer<typeof selectionOperandSchema>;
 
+/** Canonical user filter field displayed in the search panel of an enquiry screen. */
 export const selectionFieldSchema = z.object({
   id: z.string().default(""),
   label: z.string().default(""),
@@ -84,6 +94,7 @@ export const selectionFieldSchema = z.object({
 
 export type SelectionField = z.infer<typeof selectionFieldSchema>;
 
+/** Action command button attached to inquiry result rows for drilldown execution. */
 export const enquiryCommandSchema = z.object({
   cmdButton: z.string(),
   cmdFor: z.string().optional(),
@@ -91,15 +102,18 @@ export const enquiryCommandSchema = z.object({
 
 export type EnquiryCommand = z.infer<typeof enquiryCommandSchema>;
 
+/** Dynamic tabular data row returned by the CBS Enquiry execution engine. */
 export const enquiryRowSchema = z
   .object({
     id: z.string(),
   })
   .passthrough();
+
 export type EnquiryRow = z.infer<typeof enquiryRowSchema> & {
   [key: string]: unknown;
 };
 
+/** Full canonical specification contract for a CBS Enquiry workspace screen. */
 export const enquirySchemaSchema = z.object({
   code: z.string(),
   title: z.string(),

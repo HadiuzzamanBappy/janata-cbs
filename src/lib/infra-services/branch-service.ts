@@ -1,67 +1,54 @@
 import "server-only";
 
-import { appConfig, getServiceUrl } from "@/lib/core-config/server";
+import { appConfig } from "@/lib/core-config/server";
 import { parseBranchesWirePayload } from "@/lib/data-parsers";
 import type { BranchRecord } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
-import { getOrSet, getSession } from "@/lib/infra-redis";
-import { getStaticBranchesPayload } from "./static-provider";
-
-const BRANCH_TTL_SECONDS = appConfig.redis.specTtlSeconds;
-const BRANCH_REQUEST_TYPE = "GRL";
-const BRANCH_CONTROL_NAME = "BRANCH";
-const BRANCH_RECORD_FUNCTION = "L";
+import { getOrSet } from "@/lib/infra-redis";
+import { CBS_RECORD_FUNCTIONS, CbsControlTable, CbsRequestType } from "@/types/cbs";
+import { getMockBranchesPayload } from "./mock-service";
+import {
+  DEFAULT_AUTH_LEVEL,
+  GRPC_SERVICE_CATEGORY,
+  resolveServiceContext,
+} from "./service-context";
 
 async function fetchBranchWirePayload(tokenParam?: string): Promise<unknown> {
-  if (appConfig.modelSource === "static") {
-    return getStaticBranchesPayload();
-  }
+  if (appConfig.modelSource === "static") return getMockBranchesPayload();
 
-  const session = await getSession();
-  const token = tokenParam || session?.token;
-  if (!token) {
-    throw new Error("UNAUTHENTICATED: No valid session token available for gRPC branch fetch");
-  }
-
-  const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-  const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
-  const address = getServiceUrl("default");
-
+  const ctx = await resolveServiceContext(tokenParam);
   const res = await grpcProcess(
-    address,
-    "nonfinancial",
+    ctx.address,
+    GRPC_SERVICE_CATEGORY,
     {
       idempotencyKey: "",
-      clientId: appConfig.grpc.clientId,
-      requestType: BRANCH_REQUEST_TYPE,
-      controlName: BRANCH_CONTROL_NAME,
-      recordFunction: BRANCH_RECORD_FUNCTION,
+      clientId: ctx.clientId,
+      requestType: CbsRequestType.GRL,
+      controlName: CbsControlTable.BRANCH,
+      recordFunction: CBS_RECORD_FUNCTIONS.LIST,
       recordId: "",
-      branchCode,
-      authLevel: 1,
-      userId,
+      branchCode: ctx.branchCode,
+      authLevel: DEFAULT_AUTH_LEVEL,
+      userId: ctx.userId,
       data: {},
     },
-    { token },
+    { token: ctx.token },
   );
 
   if (res.statusCode !== 200 || !res.data) {
-    throw new Error(
-      `gRPC branch fetch failed with status code ${res.statusCode}: ${res.message || "No data returned"}`,
-    );
+    throw new Error(`gRPC branch fetch failed (${res.statusCode}): ${res.message || "No data"}`);
   }
 
   return res.data;
 }
 
+/**
+ * Retrieves the CBS branch directory (cached in Redis).
+ */
 export async function getBranchesData(token?: string): Promise<BranchRecord[]> {
-  const cacheKey = "branches:directory";
   return getOrSet(
-    cacheKey,
-    async () => {
-      const wireData = await fetchBranchWirePayload(token);
-      return parseBranchesWirePayload(wireData);
-    },
-    BRANCH_TTL_SECONDS,
+    appConfig.redis.cacheKeys.branches,
+    async () => parseBranchesWirePayload(await fetchBranchWirePayload(token)),
+    appConfig.redis.specTtlSeconds,
   );
 }

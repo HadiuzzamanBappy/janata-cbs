@@ -10,6 +10,10 @@ import {
 } from "@/lib/data-schemas";
 import { decodeProtobufValue } from "./protobuf-decoder";
 
+/* -------------------------------------------------------------------------- */
+/* Field Mapping Utilities                                                    */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Maps field length to standard UI width classes.
  */
@@ -78,6 +82,10 @@ export function toField(record: RawPropertyRecord): FormField {
     options,
   };
 }
+
+/* -------------------------------------------------------------------------- */
+/* Wire Parser API                                                            */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Parses raw GMC (Generic Model Controller) payload into a validated FormSchema.

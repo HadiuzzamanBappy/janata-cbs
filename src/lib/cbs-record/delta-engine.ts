@@ -1,5 +1,9 @@
 import type { CbsDeltaPatch } from "./types";
 
+/* -------------------------------------------------------------------------- */
+/* Deep Equality Comparison Helper                                            */
+/* -------------------------------------------------------------------------- */
+
 function isEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a === null || a === undefined || b === null || b === undefined) return a === b;
@@ -27,6 +31,10 @@ function isEqual(a: unknown, b: unknown): boolean {
 
   return true;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Delta Computation Engine                                                   */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Computes changed delta fields between baseline record and current working draft.

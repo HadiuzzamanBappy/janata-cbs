@@ -1,43 +1,51 @@
+/* -------------------------------------------------------------------------- */
+/* Terminal Function Key Handlers & Options                                   */
+/* -------------------------------------------------------------------------- */
+
 export interface CbsHotkeysHandlers {
   /** F1: Help / Validation checklist drawer */
-  onHelp?: () => void;
+  readonly onHelp?: () => void;
   /** F2: New record / Add */
-  onCreateNew?: () => void;
+  readonly onCreateNew?: () => void;
   /** F3: Return / Exit to IDLE */
-  onReturn?: () => void;
+  readonly onReturn?: () => void;
   /** F4: Lookup / Focus search bar */
-  onSearchFocus?: () => void;
+  readonly onSearchFocus?: () => void;
   /** F5 or Ctrl+S: Commit / Save draft */
-  onCommit?: () => void;
+  readonly onCommit?: () => void;
   /** F6: Hold uncommitted record */
-  onHold?: () => void;
+  readonly onHold?: () => void;
   /** F7: Validate fields & cross-field integrity */
-  onValidate?: () => void;
+  readonly onValidate?: () => void;
   /** F8: Authorize record (checker) */
-  onAuthorize?: () => void;
+  readonly onAuthorize?: () => void;
   /** F9: Process end-of-stage action */
-  onProcessAction?: () => void;
+  readonly onProcessAction?: () => void;
   /** F10: Delete record (where applicable) */
-  onDelete?: () => void;
+  readonly onDelete?: () => void;
   /** F12: Refresh data or inquiry results */
-  onRefresh?: () => void;
+  readonly onRefresh?: () => void;
 }
 
 export interface UseCbsHotkeysOptions {
-  enabled?: boolean;
-  handlers: CbsHotkeysHandlers;
+  readonly enabled?: boolean;
+  readonly handlers: CbsHotkeysHandlers;
   /** When true, ignores keypresses inside inputs unless modifier (Ctrl/Alt) is pressed. Defaults to false for F-keys */
-  ignoreInputs?: boolean;
+  readonly ignoreInputs?: boolean;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Canonical Hotkey Definitions & Reference Registry                         */
+/* -------------------------------------------------------------------------- */
 
 export interface CbsHotkeyDefinition {
-  key: string;
-  label: string;
-  action: keyof CbsHotkeysHandlers;
-  description: string;
+  readonly key: string;
+  readonly label: string;
+  readonly action: keyof CbsHotkeysHandlers;
+  readonly description: string;
 }
 
-export const CBS_TERMINAL_HOTKEYS: CbsHotkeyDefinition[] = [
+export const CBS_TERMINAL_HOTKEYS: readonly CbsHotkeyDefinition[] = [
   { key: "F1", label: "Help", action: "onHelp", description: "Open validation & screen help" },
   { key: "F2", label: "New", action: "onCreateNew", description: "Create new record entry" },
   { key: "F3", label: "Exit", action: "onReturn", description: "Return to search or exit" },
@@ -55,4 +63,4 @@ export const CBS_TERMINAL_HOTKEYS: CbsHotkeyDefinition[] = [
   { key: "F10", label: "Delete", action: "onDelete", description: "Delete current record" },
   { key: "F12", label: "Refresh", action: "onRefresh", description: "Refresh dataset or screen" },
   { key: "Esc", label: "Back", action: "onReturn", description: "Cancel current operation / back" },
-];
+] as const;

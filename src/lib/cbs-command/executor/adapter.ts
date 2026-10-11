@@ -1,35 +1,35 @@
-/**
- * CBS Command Adapter & Event Bus
- *
- * Provides a decoupled abstraction layer so that `cbs-command` does not
- * directly depend on `@/store` or any specific state implementation.
- */
+// ============================================================================
+// CBS Command Adapter & Event Bus
+//
+// Provides a decoupled abstraction layer so that `cbs-command` does not
+// directly depend on `@/store` or any specific state implementation.
+// ============================================================================
 
 import type { ScreenMode } from "../types/command";
 import type { UserSecurityProfile } from "../types/validation";
 
 export interface CommandTabPayload {
-  screenId: string;
-  title: string;
-  componentName: string;
-  screenMode?: ScreenMode;
-  searchRecordId?: string;
-  enquiryState?: {
-    step?: "SELECTION" | "RESULTS";
-    criteria?: Record<string, { value: string; operand: string }>;
-    currentPage?: number;
-    pageSize?: number;
+  readonly screenId: string;
+  readonly title: string;
+  readonly componentName: string;
+  readonly screenMode?: ScreenMode;
+  readonly searchRecordId?: string;
+  readonly enquiryState?: {
+    readonly step?: "SELECTION" | "RESULTS";
+    readonly criteria?: Record<string, { value: string; operand: string }>;
+    readonly currentPage?: number;
+    readonly pageSize?: number;
   };
-  formData?: Record<string, unknown>;
+  readonly formData?: Record<string, unknown>;
 }
 
 export interface CommandAdapter {
   /** Get the current user profile for RBAC permission checks */
-  getCurrentUser?: () => UserSecurityProfile | null | undefined;
+  readonly getCurrentUser?: () => UserSecurityProfile | null | undefined;
   /** Spawn or open a tab inside the active workspace */
-  openTab?: (tab: CommandTabPayload) => void;
+  readonly openTab?: (tab: CommandTabPayload) => void;
   /** Execute logout */
-  logout?: () => void;
+  readonly logout?: () => void;
 }
 
 let activeAdapter: CommandAdapter = {};

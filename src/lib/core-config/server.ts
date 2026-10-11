@@ -93,6 +93,13 @@ export const serverConfig = {
     menuTtlSeconds: env.MENU_TTL_SECONDS,
     specTtlSeconds: env.SPEC_TTL_SECONDS,
     defaultTtlSeconds: 86400,
+    cacheKeys: {
+      branches: "branches:directory",
+      controls: "controls:list",
+      formSpec: (cmd: string) => `spec:${cmd}`,
+      inquirySpec: (cmd: string) => `spec:enq:${cmd}`,
+      menu: (controlName: string) => `menu:${controlName}`,
+    },
   },
 
   // 6. Server Session Invariants

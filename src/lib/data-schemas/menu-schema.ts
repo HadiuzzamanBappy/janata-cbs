@@ -4,6 +4,7 @@ import { z } from "zod";
 /* Raw gRPC Menu Schemas (Boundary Validation)                                */
 /* -------------------------------------------------------------------------- */
 
+/** Recursive raw menu node envelope unwrapped from CBS gRPC responses. */
 export type RawMenuRecord = {
   id?: string | number | null;
   menuId?: string | number | null;
@@ -38,6 +39,7 @@ export const rawMenuRecordSchema: z.ZodType<RawMenuRecord> = z.lazy(() =>
 /* Canonical Domain Menu Item Schemas                                         */
 /* -------------------------------------------------------------------------- */
 
+/** Canonical recursive menu hierarchy rendered in the active CBS shell and sidebar. */
 export interface MenuItem {
   id: string;
   menuId: number;

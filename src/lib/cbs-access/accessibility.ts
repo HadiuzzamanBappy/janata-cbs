@@ -1,23 +1,27 @@
 import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
 
+/* -------------------------------------------------------------------------- */
+/* Accessibility Profile Parser                                               */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Normalizes and extracts standard RIDASH function rights from an accessibility string or array.
- * Handles "FULL", "RIDASH", "RS", "I", etc.
+ * Strictly reflects database wire rights without artificial fallbacks.
  */
 export function parseAccessibilityRights(
-  rawAccessibility?: string | string[] | null,
+  rawAccessibility?: string | readonly string[] | null,
 ): CbsRecordFunction[] {
   if (!rawAccessibility) {
-    return [...CBS_FUNCTION_CODES];
+    return [];
   }
 
   if (Array.isArray(rawAccessibility)) {
     return rawAccessibility
-      .map((r) => r.toUpperCase().trim() as CbsRecordFunction)
+      .map((r) => String(r).toUpperCase().trim() as CbsRecordFunction)
       .filter((r) => CBS_FUNCTION_CODES.includes(r));
   }
 
-  const str = rawAccessibility.toUpperCase().trim();
+  const str = String(rawAccessibility).toUpperCase().trim();
   if (str === "FULL" || str === "ALL") {
     return [...CBS_FUNCTION_CODES];
   }
@@ -31,14 +35,18 @@ export function parseAccessibilityRights(
     }
   }
 
-  return matched.length > 0 ? matched : [...CBS_FUNCTION_CODES];
+  return matched;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Access Right Verification Helper                                           */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Checks if user accessibility profile grants a given function code.
  */
 export function hasAccessibilityRight(
-  granted: CbsRecordFunction[],
+  granted: readonly CbsRecordFunction[],
   required: CbsRecordFunction,
 ): boolean {
   return granted.includes(required);

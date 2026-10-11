@@ -1,7 +1,7 @@
-/**
- * Master Single-Source-of-Truth Alias Map for Screen Resolution.
- * Generated dynamically from MASTER_COMMAND_DEFINITIONS to guarantee absolute DRY.
- */
+// ============================================================================
+// Master Single-Source-of-Truth Alias Map for Screen Resolution
+// Generated dynamically from MASTER_COMMAND_DEFINITIONS to guarantee absolute DRY.
+// ============================================================================
 
 import { MASTER_COMMAND_DEFINITIONS } from "./catalog";
 

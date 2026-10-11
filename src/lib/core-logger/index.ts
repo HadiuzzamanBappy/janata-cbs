@@ -1,12 +1,8 @@
-/**
- * Banking-Grade Enterprise Structured Logger
- *
- * - In Development: Clean, color-coded, human-readable terminal/console output.
- * - In Production: Machine-readable, structured JSON streaming to stdout/stderr.
- * - Sensitive Data: Automatic PII & credentials redaction (passwords, tokens, account numbers).
- */
-
 import { redactSensitiveData } from "./redact";
+
+/* -------------------------------------------------------------------------- */
+/* Log Types & Priority Contracts                                             */
+/* -------------------------------------------------------------------------- */
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -24,6 +20,10 @@ export interface LogEntry {
   context?: string;
   data?: unknown;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Banking Logger Implementation                                              */
+/* -------------------------------------------------------------------------- */
 
 class BankingLogger {
   private minLevel: LogLevel =
@@ -121,6 +121,10 @@ class BankingLogger {
     };
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Exports & Singleton Instance                                               */
+/* -------------------------------------------------------------------------- */
 
 export const logger = new BankingLogger();
 export { maskAccountNumber, redactSensitiveData } from "./redact";

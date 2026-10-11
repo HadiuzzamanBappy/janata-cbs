@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { CbsScreenValidationError } from "../types";
+import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
 
 export interface InquiryHeaderProps {

@@ -1,18 +1,22 @@
 import type { RawControlRecord, SystemCommandItem } from "@/lib/data-schemas";
 import { unwrapRecordsPayload } from "./protobuf-decoder";
 
+/* -------------------------------------------------------------------------- */
+/* Wire Parser API                                                            */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Universal parser to map raw CBS Protobuf control response to lean SystemCommandItem records.
- * Single source of truth: canonical control command + shorthand alias if recordId differs.
+ * Purely extracts database wire fields without artificial mock defaults.
  */
 export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
   const rawList = unwrapRecordsPayload<RawControlRecord>(data);
   const result: SystemCommandItem[] = [];
 
   for (const fields of rawList) {
-    const recordId = String(fields.recordId || "");
-    const controlName = String(fields.controlName || recordId);
-    const desc = String(fields.description || controlName);
+    const recordId = fields.recordId ? String(fields.recordId).trim() : "";
+    const controlName = fields.controlName ? String(fields.controlName).trim() : recordId;
+    const desc = fields.description ? String(fields.description).trim() : controlName;
 
     if (controlName) {
       const aliases = recordId && recordId !== controlName ? [recordId] : [];

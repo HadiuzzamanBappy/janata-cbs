@@ -3,7 +3,7 @@ import { appConfig } from "@/lib/core-config/server";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { dispatch } from "@/lib/infra-grpc/dispatch";
 import { getSession } from "@/lib/infra-redis";
-import { getStaticProxyResponse } from "@/lib/infra-services/static-provider";
+import { getMockProxyResponse } from "@/lib/infra-services/mock-service";
 import type { CbsWirePayload, GrpcEnvelope } from "@/types";
 
 export const runtime = "nodejs";
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // 1. STATIC MODE: Return fixtures via unified static provider
     // =========================================================================
     if (appConfig.modelSource === "static") {
-      const staticRes = getStaticProxyResponse(body.requestType, body.controlName, body.recordId);
+      const staticRes = getMockProxyResponse(body.requestType, body.controlName, body.recordId);
       return NextResponse.json(staticRes, { status: staticRes.statusCode });
     }
 

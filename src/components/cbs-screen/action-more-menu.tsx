@@ -13,14 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCbsAccess } from "@/lib/cbs-access";
-import type { CbsRecordFunction } from "@/types";
-
-export interface MoreActionItem {
-  label: string;
-  command?: string;
-  onClick: () => void;
-  requiredRight?: CbsRecordFunction;
-}
+import type { MoreActionItem } from "@/lib/cbs-screen/types";
 
 export interface ActionMoreMenuProps {
   moreActions?: MoreActionItem[];

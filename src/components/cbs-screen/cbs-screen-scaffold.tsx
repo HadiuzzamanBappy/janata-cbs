@@ -4,8 +4,9 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCbsHotkeys } from "@/lib/cbs-hotkeys";
-import type { CbsAuditFooterData, CbsScreenScaffoldProps } from "../types";
-import { formatAuditFooterData } from "../utils/audit-adapter";
+import type { CbsAuditFooterData, CbsAuditRawData, CbsScreenScaffoldProps } from "@/lib/cbs-screen";
+import { formatAuditFooterData } from "@/lib/cbs-screen";
+
 import { CbsAuditFooter } from "./cbs-audit-footer";
 import { CbsFormHeader } from "./cbs-form-header";
 import { CbsIdleState } from "./cbs-idle-state";
@@ -73,7 +74,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
     if ("recordStatus" in auditData || "currNo" in auditData) {
       return auditData as CbsAuditFooterData;
     }
-    return formatAuditFooterData(auditData as import("../types").CbsAuditRawData);
+    return formatAuditFooterData(auditData as CbsAuditRawData);
   }, [auditData]);
 
   return (

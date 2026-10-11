@@ -1,8 +1,8 @@
-/**
- * Detached Popup Window Dispatcher with Query State Preservation
- */
+// ============================================================================
+// Detached Popup Window Dispatcher with Query State Preservation
+// ============================================================================
 
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import type { ParsedCommand } from "../types/command";
 import type { ExecutionOptions } from "../types/execution";
 
@@ -46,7 +46,7 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
       ? `INQ ${parsed.application}`
       : parsed.application;
 
-  const screenUrl = `${appConfig.routes.screen}/${encodeURIComponent(screenAppKey)}?${params.toString()}`;
+  const screenUrl = `${clientConfig.routes.screen}/${encodeURIComponent(screenAppKey)}?${params.toString()}`;
   const popupFeatures = [
     "popup=yes",
     "width=1160",

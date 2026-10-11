@@ -135,7 +135,7 @@ flowchart TD
 ### 🟢 Phase 2: Core Configuration, Loggers & Server Boundaries (`src/lib/core-*` & `src/lib/infra-*`)
 > **Objective**: Centralize application constants and ensure 100% server-only isolation for infrastructure.
 
-- [ ] **2.1. Central Client & Server Configuration (`src/lib/core-config/`)**:
+- [x] **2.1. Central Client & Server Configuration (`src/lib/core-config/`)**:
   - Enforce `clientConfig`:
     - `routes`: All client navigation paths (`home`, `dashboard`, `screen`, `login`, `changePassword`).
     - `routes.api`: All BFF endpoints (`login`, `logout`, `session`, `proxy`, `form`, `inquiry`, `menu`, `branches`, `controls`).
@@ -144,13 +144,13 @@ flowchart TD
   - Enforce `serverConfig`:
     - Protected with `import "server-only"`.
     - Holds Redis credentials, gRPC host/port, session secrets, and circuit breaker thresholds.
-- [ ] **2.2. Audit Server-Only Infrastructure Boundary**:
+- [x] **2.2. Audit Server-Only Infrastructure Boundary**:
   - Verify `import "server-only"` in:
     - `src/lib/infra-grpc/` (`client.ts`, `dispatch.ts`, `index.ts`).
     - `src/lib/infra-redis/` (`client.ts`, `cache.ts`, `session.ts`, `rate-limit.ts`).
     - `src/lib/infra-services/` (all domain services: `auth-service.ts`, `form-service.ts`, etc.).
   - Verify that no file in `src/app/(workbench)`, `src/components`, or `src/features` imports from `infra-*`.
-- [ ] **2.3. Universal Logger & Redaction (`src/lib/core-logger/`)**:
+- [x] **2.3. Universal Logger & Redaction (`src/lib/core-logger/`)**:
   - Ensure sensitive banking fields (passwords, PINs, card numbers, tokens) are automatically redacted in both client console and server logs.
 
 ---

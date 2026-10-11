@@ -15,12 +15,13 @@ import type { ScreenComponent } from "./types";
  * (e.g. MD, PWD) are automatically resolved via `getCanonicalScreenKey`.
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
-  MENU: SysMenuCatalog,
-  "MENU.DESIGN": SysMenuDesigner,
-  "MENU.TREE": SysMenuDesigner,
-  "USER.GROUP": UserGroupScreen,
-  "MODEL.CONFIG": SysModelConfig,
-  "REPORT.DESIGN": () => (
+  "SC.MENU": SysMenuCatalog,
+  "SC.MENU.DESIGN": SysMenuDesigner,
+  "SC.MENU.TREE": SysMenuDesigner,
+  "SC.USER.GROUP": UserGroupScreen,
+  "SC.MODEL.CONFIG": SysModelConfig,
+  "SC.FORM.BUILDER": SysModelConfig,
+  "SC.REPORT.BUILDER": () => (
     <div className="w-full h-full overflow-hidden">
       <ReportStudio />
     </div>

@@ -5,30 +5,32 @@ import { z } from "zod";
 /* -------------------------------------------------------------------------- */
 
 export type RawMenuRecord = {
-  id?: string | number;
-  menuId?: string | number;
-  code?: string;
-  label?: string;
-  description?: string;
-  menuName?: string;
-  command?: string;
-  application?: string;
-  children?: RawMenuRecord[];
-  items?: RawMenuRecord[];
+  id?: string | number | null;
+  menuId?: string | number | null;
+  code?: string | null;
+  label?: string | null;
+  description?: string | null;
+  menuName?: string | null;
+  command?: string | null;
+  application?: string | null;
+  isVisible?: boolean | null;
+  children?: RawMenuRecord[] | null;
+  items?: RawMenuRecord[] | null;
 };
 
 export const rawMenuRecordSchema: z.ZodType<RawMenuRecord> = z.lazy(() =>
   z.object({
-    id: z.union([z.string(), z.number()]).optional(),
-    menuId: z.union([z.string(), z.number()]).optional(),
-    code: z.string().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-    menuName: z.string().optional(),
-    command: z.string().optional(),
-    application: z.string().optional(),
-    children: z.array(rawMenuRecordSchema).optional(),
-    items: z.array(rawMenuRecordSchema).optional(),
+    id: z.union([z.string(), z.number()]).nullable().optional(),
+    menuId: z.union([z.string(), z.number()]).nullable().optional(),
+    code: z.string().nullable().optional(),
+    label: z.string().nullable().optional(),
+    description: z.string().nullable().optional(),
+    menuName: z.string().nullable().optional(),
+    command: z.string().nullable().optional(),
+    application: z.string().nullable().optional(),
+    isVisible: z.boolean().nullable().optional(),
+    children: z.array(rawMenuRecordSchema).nullable().optional(),
+    items: z.array(rawMenuRecordSchema).nullable().optional(),
   }),
 );
 

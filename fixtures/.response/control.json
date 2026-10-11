@@ -727,48 +727,6 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
-                                        "string_value": "CUST"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Test"
-                                    },
-                                    "controlName": {
-                                        "string_value": "CUST"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
                                         "string_value": "CUSTOMER"
                                     },
                                     "auditData": {
@@ -845,90 +803,6 @@
                                     },
                                     "controlName": {
                                         "string_value": "CUSTOMER.STATUS"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "CUSTOMER2"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Test Customer"
-                                    },
-                                    "controlName": {
-                                        "string_value": "CUSTOMER2"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "D2"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "New Layout"
-                                    },
-                                    "controlName": {
-                                        "string_value": "SC.DYNAMIC2"
                                     }
                                 }
                             }
@@ -1105,48 +979,6 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
-                                        "string_value": "DF"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 1
-                                                },
-                                                "recInputter": {
-                                                    "string_value": "SYSUSER"
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": "2026-09-10 11:29:52"
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": "JB9999"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "DF"
-                                    },
-                                    "controlName": {
-                                        "string_value": "DF"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
                                         "string_value": "DISTRICT"
                                     },
                                     "auditData": {
@@ -1265,48 +1097,6 @@
                                     },
                                     "controlName": {
                                         "string_value": "SC.FORM.BUILDER"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "FD"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 1
-                                                },
-                                                "recInputter": {
-                                                    "string_value": "SYSUSER"
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": "2026-07-21 03:53:33"
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": "JB9999"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Test"
-                                    },
-                                    "controlName": {
-                                        "string_value": "FORM.DESIGN"
                                     }
                                 }
                             }
@@ -1475,48 +1265,6 @@
                                     },
                                     "controlName": {
                                         "string_value": "GLOBAL.LIST"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "HRDP01"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Test"
-                                    },
-                                    "controlName": {
-                                        "string_value": "HRDP01"
                                     }
                                 }
                             }
@@ -1735,90 +1483,6 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
-                                        "string_value": "MC"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Model Config"
-                                    },
-                                    "controlName": {
-                                        "string_value": "SC.MODEL.CONFIG"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "MC2"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Model Config"
-                                    },
-                                    "controlName": {
-                                        "string_value": "SC.MODELCONFIG"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
                                         "string_value": "MD"
                                     },
                                     "auditData": {
@@ -1987,48 +1651,6 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
-                                        "string_value": "MODEL.CONFIG"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "All Control"
-                                    },
-                                    "controlName": {
-                                        "string_value": "SC.MODEL.CONFIG"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
                                         "string_value": "NEWLAYOUT"
                                     },
                                     "auditData": {
@@ -2147,48 +1769,6 @@
                                     },
                                     "controlName": {
                                         "string_value": "POST.OFFICE"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "RD"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Report Desgin"
-                                    },
-                                    "controlName": {
-                                        "string_value": "SC.REPORT.DESIGN"
                                     }
                                 }
                             }
@@ -2617,6 +2197,48 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
+                                        "string_value": "SC.REPORT.BUILDER"
+                                    },
+                                    "auditData": {
+                                        "struct_value": {
+                                            "fields": {
+                                                "recStatus": {
+                                                    "string_value": ""
+                                                },
+                                                "recCurrNumber": {
+                                                    "number_value": 1
+                                                },
+                                                "recInputter": {
+                                                    "string_value": "SYSUSER"
+                                                },
+                                                "recInputTime": {
+                                                    "string_value": "2026-10-11 07:35:50"
+                                                },
+                                                "recAuthorizer": {
+                                                    "string_value": ""
+                                                },
+                                                "recAuthTime": {
+                                                    "string_value": ""
+                                                },
+                                                "recBranchCode": {
+                                                    "string_value": "JB9999"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "description": {
+                                        "string_value": "Report Builder"
+                                    },
+                                    "controlName": {
+                                        "string_value": "SC.REPORT.BUILDER"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "struct_value": {
+                                "fields": {
+                                    "recordId": {
                                         "string_value": "SECTOR"
                                     },
                                     "auditData": {
@@ -2785,90 +2407,6 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
-                                        "string_value": "SHA01"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Table for test sha01"
-                                    },
-                                    "controlName": {
-                                        "string_value": "SHA01"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "SHA03"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Test table"
-                                    },
-                                    "controlName": {
-                                        "string_value": "SHA03"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
                                         "string_value": "SIM"
                                     },
                                     "auditData": {
@@ -2995,48 +2533,6 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
-                                        "string_value": "T"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 1
-                                                },
-                                                "recInputter": {
-                                                    "string_value": "SYSUSER"
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": "2026-09-28 04:19:26"
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": "JB9999"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Temp"
-                                    },
-                                    "controlName": {
-                                        "string_value": "TEMP"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
                                         "string_value": "TARGET"
                                     },
                                     "auditData": {
@@ -3121,48 +2617,6 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
-                                        "string_value": "TEMP"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 1
-                                                },
-                                                "recInputter": {
-                                                    "string_value": "SYSUSER"
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": "2026-09-27 03:57:39"
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": "JB9999"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "Temp"
-                                    },
-                                    "controlName": {
-                                        "string_value": "TEMP"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
                                         "string_value": "TEMPLATE"
                                     },
                                     "auditData": {
@@ -3197,132 +2651,6 @@
                                     },
                                     "controlName": {
                                         "string_value": "TEMPLATE"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "TEST"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 0
-                                                },
-                                                "recInputter": {
-                                                    "string_value": ""
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": ""
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "TEST"
-                                    },
-                                    "controlName": {
-                                        "string_value": "RPTRENDER"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "TEST1"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 1
-                                                },
-                                                "recInputter": {
-                                                    "string_value": "SYSUSER"
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": "2026-07-19 03:47:26"
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": "001"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "TEST"
-                                    },
-                                    "controlName": {
-                                        "string_value": "TEST123"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "struct_value": {
-                                "fields": {
-                                    "recordId": {
-                                        "string_value": "TEST123"
-                                    },
-                                    "auditData": {
-                                        "struct_value": {
-                                            "fields": {
-                                                "recStatus": {
-                                                    "string_value": ""
-                                                },
-                                                "recCurrNumber": {
-                                                    "number_value": 1
-                                                },
-                                                "recInputter": {
-                                                    "string_value": "SYSUSER"
-                                                },
-                                                "recInputTime": {
-                                                    "string_value": "2026-07-19 02:14:50"
-                                                },
-                                                "recAuthorizer": {
-                                                    "string_value": ""
-                                                },
-                                                "recAuthTime": {
-                                                    "string_value": ""
-                                                },
-                                                "recBranchCode": {
-                                                    "string_value": "001"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    "description": {
-                                        "string_value": "TEST"
-                                    },
-                                    "controlName": {
-                                        "string_value": "TEST123"
                                     }
                                 }
                             }
@@ -3583,6 +2911,48 @@
                             "struct_value": {
                                 "fields": {
                                     "recordId": {
+                                        "string_value": "USER.PASS.NEW"
+                                    },
+                                    "auditData": {
+                                        "struct_value": {
+                                            "fields": {
+                                                "recStatus": {
+                                                    "string_value": ""
+                                                },
+                                                "recCurrNumber": {
+                                                    "number_value": 1
+                                                },
+                                                "recInputter": {
+                                                    "string_value": "MT0281120"
+                                                },
+                                                "recInputTime": {
+                                                    "string_value": "2026-10-11 09:52:40"
+                                                },
+                                                "recAuthorizer": {
+                                                    "string_value": ""
+                                                },
+                                                "recAuthTime": {
+                                                    "string_value": ""
+                                                },
+                                                "recBranchCode": {
+                                                    "string_value": "JB9999"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "description": {
+                                        "string_value": "user password"
+                                    },
+                                    "controlName": {
+                                        "string_value": "USER.PASS.NEW"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "struct_value": {
+                                "fields": {
+                                    "recordId": {
                                         "string_value": "USER.ROLE"
                                     },
                                     "auditData": {
@@ -3710,5 +3080,5 @@
             }
         }
     },
-    "timestamp": "2026-10-01T09:43:59.542662115Z"
+    "timestamp": "2026-10-11T10:47:56.400551897Z"
 }

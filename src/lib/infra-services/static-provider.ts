@@ -125,7 +125,7 @@ export function getStaticProxyResponse(
   }
 
   // 2. Model Config / Data Dictionary Table Requests (MODEL.CONFIG / SC_MODEL_DEFINITION)
-  if (cleanModel === "MODEL.CONFIG") {
+  if (cleanModel === "SC.MODEL.CONFIG") {
     if (!cleanRecordId || cleanRecordId === "LIST" || cleanRecordId === "ALL") {
       const list = Object.values(STATIC_MODEL_CONFIGS).map((record) => ({
         id: record.recordId,

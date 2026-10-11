@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { appConfig } from "@/lib/core-config";
+
+/* -------------------------------------------------------------------------- */
+/* Security Configuration Constants                                           */
+/* -------------------------------------------------------------------------- */
+
+export const MIN_PASSWORD_LENGTH = 6;
+
+/* -------------------------------------------------------------------------- */
+/* User Authentication & Credential Change Schemas                            */
+/* -------------------------------------------------------------------------- */
 
 export const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -8,15 +17,20 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const changeUsernameSchema = z.object({
+  oldUserName: z.string().min(1, "Old sign-on name is required"),
+  newUserName: z.string().min(1, "New sign-on name is required"),
+  password: z.string().min(1, "Password is required to confirm"),
+});
+
+export type ChangeUsernameInput = z.infer<typeof changeUsernameSchema>;
+
 export const changePasswordSchema = z
   .object({
     oldPassword: z.string().min(1, "Current password is required"),
     newPassword: z
       .string()
-      .min(
-        appConfig.auth.minPasswordLength,
-        `New password must be at least ${appConfig.auth.minPasswordLength} characters`,
-      ),
+      .min(MIN_PASSWORD_LENGTH, `New password must be at least ${MIN_PASSWORD_LENGTH} characters`),
     confirmPassword: z.string().min(1, "Please confirm your new password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -26,9 +40,10 @@ export const changePasswordSchema = z
 
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
-/**
- * Universal authenticated CBS user profile and session contract.
- */
+/* -------------------------------------------------------------------------- */
+/* Universal Authenticated CBS User Profile & Session Contract                */
+/* -------------------------------------------------------------------------- */
+
 export const currentUserSchema = z.object({
   userId: z.string(),
   fullName: z.string(),

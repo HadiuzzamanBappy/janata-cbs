@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { CbsScreenMode as MenuDesignerScreenMode } from "../cbs-screen/types";
 import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
@@ -42,6 +41,10 @@ export const menuTreeRecordSchema = z.object({
 
 export type MenuTreeRecord = z.infer<typeof menuTreeRecordSchema>;
 
+/* -------------------------------------------------------------------------- */
+/* Menu Designer Catalog Action Items & Canvas Contracts                      */
+/* -------------------------------------------------------------------------- */
+
 export interface MenuCatalogActionItem {
   id: string;
   code?: string;
@@ -51,6 +54,10 @@ export interface MenuCatalogActionItem {
   description?: string;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Menu Designer Screen Validation Errors                                     */
+/* -------------------------------------------------------------------------- */
+
 export interface MenuDesignerValidationError {
   id: string;
   tab: "general" | "canvas" | "audit";
@@ -58,5 +65,3 @@ export interface MenuDesignerValidationError {
   fieldKey: string;
   message: string;
 }
-
-export type { MenuDesignerScreenMode };

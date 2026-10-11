@@ -29,13 +29,13 @@ export const menuCatalogRecordSchema = z.object({
 
 export type MenuCatalogRecord = z.infer<typeof menuCatalogRecordSchema>;
 
+/* -------------------------------------------------------------------------- */
+/* Menu Catalog Screen Validation Errors                                      */
+/* -------------------------------------------------------------------------- */
+
 export interface MenuValidationErrorItem {
   id: string;
   tab: "general" | "audit";
   fieldKey: string;
   message: string;
 }
-
-import type { CbsScreenMode as MenuCatalogScreenMode } from "../cbs-screen/types";
-
-export type { MenuCatalogScreenMode };

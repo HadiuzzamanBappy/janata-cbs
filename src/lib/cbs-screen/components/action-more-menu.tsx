@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCbsAccess } from "@/lib/cbs-access";
-import type { FunctionRightCode } from "@/types";
+import type { CbsRecordFunction } from "@/types";
 
 export interface MoreActionItem {
   label: string;
   command?: string;
   onClick: () => void;
-  requiredRight?: FunctionRightCode;
+  requiredRight?: CbsRecordFunction;
 }
 
 export interface ActionMoreMenuProps {
@@ -44,7 +44,7 @@ export function ActionMoreMenu({
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-2 text-xs gap-1.5 min-w-[150px] max-w-[190px] justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0 rounded"
+              className="h-7 px-2 text-xs gap-1.5 min-w-37.5 max-w-47.5 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0 rounded"
             >
               <span className="truncate">
                 {selectedAction ? selectedAction.label : "More Actions ..."}
@@ -53,7 +53,7 @@ export function ActionMoreMenu({
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-[180px] text-xs">
+        <DropdownMenuContent align="end" className="w-45 text-xs">
           <DropdownMenuLabel className="text-[11px] text-muted-foreground font-mono">
             More Actions
           </DropdownMenuLabel>

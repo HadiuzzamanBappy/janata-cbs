@@ -6,11 +6,11 @@ import { cbs } from "@/lib/cbs-client";
 import { serializeModelToWireJson } from "@/lib/data-parsers";
 import {
   type ModelConfigRecord,
-  type ModelConfigScreenMode,
   type ModelProperty,
   modelConfigRecordSchema,
   type ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
+import type { CbsScreenMode } from "@/types";
 import { mapZodIssuesToValidationErrors } from "./model-config-validation";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-model-config-persistence";
 
@@ -59,7 +59,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
   // 2. Fetch specific record
   const fetchRecord = React.useCallback(
-    async (targetId: string, targetMode: ModelConfigScreenMode = "I") => {
+    async (targetId: string, targetMode: CbsScreenMode = "I") => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();

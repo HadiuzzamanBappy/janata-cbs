@@ -24,56 +24,14 @@ export type ScreenMode = CbsScreenMode;
 // Chapter 2: Authentic CBS RIDASH Function Rights
 // ============================================================================
 
-import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS, type FunctionRightCode } from "@/types";
+import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS, type CbsRecordFunction } from "@/types";
 
-export { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS, type FunctionRightCode };
+export { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS, type CbsRecordFunction };
 
-export interface FunctionMetadata {
-  code: FunctionRightCode;
-  label: string;
-  mode: ScreenMode;
-  description: string;
-}
+export type FunctionMetadata = (typeof CBS_FUNCTION_DEFINITIONS)[CbsRecordFunction];
 
-/** Human-readable labels and UI screen modes for each CBS function right */
-export const CBS_FUNCTION_METADATA: Record<FunctionRightCode, FunctionMetadata> = {
-  S: {
-    code: "S",
-    label: CBS_FUNCTION_DEFINITIONS.S.label,
-    description: CBS_FUNCTION_DEFINITIONS.S.description,
-    mode: "S",
-  },
-  I: {
-    code: "I",
-    label: CBS_FUNCTION_DEFINITIONS.I.label,
-    description: CBS_FUNCTION_DEFINITIONS.I.description,
-    mode: "I",
-  },
-  D: {
-    code: "D",
-    label: CBS_FUNCTION_DEFINITIONS.D.label,
-    description: CBS_FUNCTION_DEFINITIONS.D.description,
-    mode: "D",
-  },
-  A: {
-    code: "A",
-    label: CBS_FUNCTION_DEFINITIONS.A.label,
-    description: CBS_FUNCTION_DEFINITIONS.A.description,
-    mode: "A",
-  },
-  R: {
-    code: "R",
-    label: CBS_FUNCTION_DEFINITIONS.R.label,
-    description: CBS_FUNCTION_DEFINITIONS.R.description,
-    mode: "R",
-  },
-  H: {
-    code: "H",
-    label: CBS_FUNCTION_DEFINITIONS.H.label,
-    description: CBS_FUNCTION_DEFINITIONS.H.description,
-    mode: "H",
-  },
-};
+/** Human-readable labels and UI screen modes for each CBS function right (canonical alias) */
+export const CBS_FUNCTION_METADATA = CBS_FUNCTION_DEFINITIONS;
 
 /** Pre-computed Set for high-performance O(1) syntax validation */
 export const VALID_FUNCTION_CODES_SET = new Set<string>(CBS_FUNCTION_CODES);
@@ -122,7 +80,7 @@ export interface ParsedCommand {
   /** Authorization level (0 for auto-auth comma versions, 1 for standard operations) */
   authLevel: number;
   /** Explicit single-letter function code (R, I, D, A, S, H) */
-  functionCode?: FunctionRightCode;
+  functionCode?: CbsRecordFunction;
   /** Database record ID if targeted (e.g. "1001" in "USER 1001") */
   recordId?: string;
   /** Resulting screen mode for rendering (IDLE, CREATE, EDIT, VIEW) */

@@ -1,13 +1,16 @@
 import type { CbsScreenComponent, CbsScreenProps } from "@/lib/cbs-screen";
 
-export type ScreenMode = "panel" | "window";
+import type { WorkspaceDisplayMode } from "@/types";
+
+export type { WorkspaceDisplayMode };
+export type ScreenMode = WorkspaceDisplayMode;
 
 export type ScreenProps = CbsScreenProps;
 
 export interface ScreenLoaderProps {
   command: string;
   tabId?: string;
-  mode?: ScreenMode;
+  mode?: WorkspaceDisplayMode;
   className?: string;
 }
 

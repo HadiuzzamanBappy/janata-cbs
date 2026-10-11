@@ -1,11 +1,11 @@
-import type { FunctionRightCode } from "@/lib/cbs-command";
+import type { CbsRecordFunction } from "@/types";
 import type { CommandGuideInfo, RidashOption } from "../types";
 
 interface CommandGuidanceProps {
   guideInfo: CommandGuideInfo;
   options: RidashOption[];
   permittedRights: string[];
-  hasRight: (code: FunctionRightCode) => boolean;
+  hasRight: (code: CbsRecordFunction) => boolean;
   onSelectOption: (optionCode: string) => void;
 }
 
@@ -56,7 +56,7 @@ export function CommandGuidance({
         </span>
       )}
 
-      {guideInfo.typedFn && !hasRight(guideInfo.typedFn as FunctionRightCode) && (
+      {guideInfo.typedFn && !hasRight(guideInfo.typedFn as CbsRecordFunction) && (
         <div className="text-[10px] text-destructive font-medium mt-0.5 flex items-center gap-1">
           <span>⚠ Access Denied:</span>
           <span>You do not have '{guideInfo.typedFn}' function permission.</span>

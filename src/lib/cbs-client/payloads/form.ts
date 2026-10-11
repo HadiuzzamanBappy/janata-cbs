@@ -1,6 +1,9 @@
-import { CbsRecordFunction } from "@/types";
-import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types";
-import { CbsRequestType } from "../types/request-types";
+import {
+  CbsRecordFunction,
+  CbsRequestType,
+  type CbsWirePayload,
+  DEFAULT_SERVICE_PATH,
+} from "@/types";
 
 /**
  * Domain payload builders for Generic Form Engine Records.

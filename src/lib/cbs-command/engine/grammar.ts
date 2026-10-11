@@ -14,10 +14,9 @@
  * 8. System Action:             ACTION:LOGOUT          -> Type: ACTION, Action: logout
  */
 
-import type { FunctionRightCode } from "@/types";
+import type { CbsRecordFunction } from "@/types";
 import { resolveCommandAlias, resolveCommandTitle } from "../registry/alias";
 import {
-  CBS_FUNCTION_METADATA,
   CBS_SETTINGS_TABS,
   CBS_SYSTEM_ACTIONS,
   type CbsSettingsTabId,
@@ -108,12 +107,12 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   if (inqMatch) {
     const rawRest = inqMatch[1].trim();
     const tokens = rawRest.split(/\s+/);
-    let fnCode: FunctionRightCode | undefined;
+    let fnCode: CbsRecordFunction | undefined;
     let query = rawRest.toUpperCase();
 
     // If first token is a valid single-letter function code (e.g. S, A, I, R, D, H)
     if (tokens.length > 1 && VALID_FUNCTION_CODES_SET.has(tokens[0].toUpperCase())) {
-      fnCode = tokens[0].toUpperCase() as FunctionRightCode;
+      fnCode = tokens[0].toUpperCase() as CbsRecordFunction;
       query = tokens.slice(1).join(" ").trim().toUpperCase();
     }
 
@@ -124,7 +123,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       title: `Inquiry: ${query}`,
       authLevel: 1,
       functionCode: fnCode,
-      screenMode: fnCode ? CBS_FUNCTION_METADATA[fnCode].mode : "S",
+      screenMode: fnCode ?? "S",
       isValid: true,
     };
   }
@@ -189,8 +188,8 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   if (isCommaVersion) {
     const firstRemaining = remainingTokens[0]?.toUpperCase();
     const isExplicitFunc = firstRemaining && VALID_FUNCTION_CODES_SET.has(firstRemaining);
-    const functionCode: FunctionRightCode = isExplicitFunc
-      ? (firstRemaining as FunctionRightCode)
+    const functionCode: CbsRecordFunction = isExplicitFunc
+      ? (firstRemaining as CbsRecordFunction)
       : "I";
     const recordId = isExplicitFunc ? remainingTokens[1] : remainingTokens[0];
 
@@ -229,7 +228,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
 
     // If token is a function code (I, S, A, D, R, H)
     if (VALID_FUNCTION_CODES_SET.has(upperToken)) {
-      const fnCode = upperToken as FunctionRightCode;
+      const fnCode = upperToken as CbsRecordFunction;
       return {
         raw: trimmed,
         type: "FORM",
@@ -238,7 +237,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
         version,
         authLevel,
         functionCode: fnCode,
-        screenMode: CBS_FUNCTION_METADATA[fnCode].mode,
+        screenMode: fnCode,
         isValid: true,
       };
     }
@@ -260,7 +259,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
   // Case 4: <APP> <FUNCTION> <RECORD_ID...> (e.g. "USER I 1001", "ACCOUNT S 1000001;2")
   const funcToken = remainingTokens[0].toUpperCase();
   if (VALID_FUNCTION_CODES_SET.has(funcToken)) {
-    const fnCode = funcToken as FunctionRightCode;
+    const fnCode = funcToken as CbsRecordFunction;
     const recordId = remainingTokens.slice(1).join(" ");
     return {
       raw: trimmed,
@@ -271,7 +270,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       authLevel,
       functionCode: fnCode,
       recordId,
-      screenMode: CBS_FUNCTION_METADATA[fnCode].mode,
+      screenMode: fnCode,
       isValid: true,
     };
   }

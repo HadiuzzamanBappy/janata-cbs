@@ -13,16 +13,11 @@ export interface CbsScreenValidationError<TTab extends string = string> {
   nodeId?: string;
 }
 
-export interface CbsAuditRawData {
-  recStatus?: string;
-  recCurrNumber?: number;
-  recInputter?: string;
-  recInputTime?: string;
-  recAuthorizer?: string;
-  recAuthTime?: string;
-  recBranchCode?: string;
+import type { AuditData } from "@/lib/data-schemas";
+
+export type CbsAuditRawData = AuditData & {
   [key: string]: unknown;
-}
+};
 
 export interface CbsAuditFooterData {
   recordStatus?: string;

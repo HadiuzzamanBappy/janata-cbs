@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
 
-/**
- * CBS Branch Contact Information Contract
- */
+/* -------------------------------------------------------------------------- */
+/* CBS Branch Contact Information Contract                                    */
+/* -------------------------------------------------------------------------- */
+
 export const branchContactSchema = z.object({
   addressLine: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
@@ -12,10 +13,11 @@ export const branchContactSchema = z.object({
 
 export type BranchContact = z.infer<typeof branchContactSchema>;
 
-/**
- * CBS Branch Record Schema & Domain Model
- * Matches exactly 1:1 with CBS wire & fixture schema (fixtures/branches.ts)
- */
+/* -------------------------------------------------------------------------- */
+/* CBS Branch Record Schema & Domain Model                                    */
+/* Matches 1:1 with CBS wire & fixture schema (fixtures/branches.ts)          */
+/* -------------------------------------------------------------------------- */
+
 export const branchRecordSchema = z.object({
   recordId: z.string(),
   branchTitle: z.string(),

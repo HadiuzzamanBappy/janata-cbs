@@ -21,17 +21,10 @@ export type RawControlRecord = z.infer<typeof rawControlRecordSchema>;
 export const commandActionTypeSchema = z.enum(["SCREEN", "SETTINGS", "THEME", "LOGOUT"]);
 export type CommandActionType = z.infer<typeof commandActionTypeSchema>;
 
-/**
- * Lean MVP CBS Command Item
- * Single source of truth:
- * - id: unique identifier
- * - title: user-facing title
- * - category: grouping header
- * - command: canonical command (e.g. "SC.MODEL.CONFIG", "ACCOUNT")
- * - aliases: max 1-2 shorthand aliases (e.g. ["MC"])
- * - actionType: "SCREEN" | "SETTINGS" | "THEME" | "LOGOUT"
- * - settingsTabId: optional tab for settings
- */
+/* -------------------------------------------------------------------------- */
+/* Lean CBS Command Item & Navigation Contract                                */
+/* -------------------------------------------------------------------------- */
+
 export const systemCommandItemSchema = z.object({
   id: z.string(),
   title: z.string(),

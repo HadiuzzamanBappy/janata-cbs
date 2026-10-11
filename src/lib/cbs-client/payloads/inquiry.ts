@@ -1,7 +1,10 @@
-import { CbsRecordFunction } from "@/types";
-import { type CbsWirePayload, DEFAULT_SERVICE_PATH } from "../types";
-import { CbsControlTable } from "../types/control-tables";
-import { CbsRequestType } from "../types/request-types";
+import {
+  CbsControlTable,
+  CbsRecordFunction,
+  CbsRequestType,
+  type CbsWirePayload,
+  DEFAULT_SERVICE_PATH,
+} from "@/types";
 
 /**
  * Filter criteria parameter for dynamic inquiry grid searches.

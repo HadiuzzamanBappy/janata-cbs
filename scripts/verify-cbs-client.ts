@@ -7,9 +7,7 @@
  */
 
 import { cbs } from "@/lib/cbs-client";
-import { CbsControlTable } from "@/lib/cbs-client/types/control-tables";
-import { CbsRequestType } from "@/lib/cbs-client/types/request-types";
-import { CbsRecordFunction } from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 
 interface TestReport {
   name: string;

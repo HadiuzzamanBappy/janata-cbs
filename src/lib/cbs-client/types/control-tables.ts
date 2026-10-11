@@ -4,11 +4,11 @@
  * Defines the active control table identifiers recognized by the CBS client.
  */
 export const CbsControlTable = {
-  MENU: "MENU",
-  MENU_TREE: "MENU.TREE",
-  USER_GROUP: "USER.GROUP",
-  USER_PASS_RESET: "USER.PASS.RESET",
-  MODEL_CONFIG: "MODEL.CONFIG",
+  MENU: "SC.MENU",
+  MENU_TREE: "SC.MENU.TREE",
+  USER_GROUP: "SC.USER.GROUP",
+  USER_PASS_RESET: "SC.USER.PASS.RESET",
+  MODEL_CONFIG: "SC.MODEL.CONFIG",
   INQUIRY: "INQUIRY",
 } as const;
 

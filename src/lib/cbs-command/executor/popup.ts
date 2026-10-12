@@ -41,10 +41,11 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
       // Safe fallback
     }
   }
+  const fullFormKey = parsed.version ? `${parsed.application},${parsed.version}` : parsed.application;
   const screenAppKey =
     parsed.type === "INQUIRY" && !parsed.application.startsWith("INQ ")
       ? `INQ ${parsed.application}`
-      : parsed.application;
+      : fullFormKey;
 
   const screenUrl = `${clientConfig.routes.screen}/${encodeURIComponent(screenAppKey)}?${params.toString()}`;
   const popupFeatures = [

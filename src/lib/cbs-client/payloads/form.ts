@@ -14,6 +14,20 @@ import {
  */
 export const formPayloads = {
   /**
+   * List records for a specific model / control (Record Lookup).
+   *
+   * @param controlName - Target table/screen name (e.g. "USER.MGT")
+   * @param servicePath - gRPC routing target (defaults to DEFAULT_SERVICE_PATH)
+   */
+  listRecords: (controlName: string, servicePath = DEFAULT_SERVICE_PATH): CbsWirePayload => ({
+    servicePath: servicePath.trim() || DEFAULT_SERVICE_PATH,
+    requestType: CbsRequestType.GRL,
+    controlName: controlName.trim().toUpperCase(),
+    recordFunction: CbsRecordFunction.LIST,
+    recordId: "",
+  }),
+
+  /**
    * Fetch a specific record by ID for a generic form screen.
    *
    * @param controlName - Target table/screen name (e.g. "ACCOUNT")

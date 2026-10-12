@@ -48,9 +48,15 @@ export function getMockMenuPayload(): unknown {
 
 /**
  * Returns mock transaction form specification payload for a command code.
+ * Checks exact version (e.g. "USER.MGT,NEW1") first, then falls back to base model ("USER.MGT").
  */
 export function getMockFormPayload(command: string): unknown {
-  return STATIC_FORMS[command.trim().toUpperCase()]?.data ?? null;
+  const clean = command.trim().toUpperCase();
+  if (STATIC_FORMS[clean]?.data) {
+    return STATIC_FORMS[clean].data;
+  }
+  const base = clean.split(",")[0].trim();
+  return STATIC_FORMS[base]?.data ?? null;
 }
 
 /**
@@ -185,11 +191,32 @@ export function getMockProxyResponse(
   // 3. Form Record & Control Table Requests
   const modelTable = STATIC_FORM_DATA[cleanModel];
   if (modelTable) {
-    if (requestType === "RECORD_LIST" || (!recordId && !cleanRecordId)) {
+    if (requestType === "GRL" || requestType === "RECORD_LIST" || (!recordId && !cleanRecordId)) {
+      const records = Object.values(modelTable.records || {});
       const data =
-        modelTable.enquiryRows && modelTable.enquiryRows.length > 0
-          ? modelTable.enquiryRows
-          : Object.values(modelTable.records || {});
+        records.length > 0
+          ? records.map((rec) => {
+              const recId = String(rec.recordId || rec.id || "");
+              const label = String(
+                rec.employeeName ||
+                  rec["ACCOUNT.TITLE"] ||
+                  rec.accountTitle1 ||
+                  rec.name ||
+                  rec.fullName ||
+                  recId,
+              );
+              const details = rec.branchCode ? `Branch: ${rec.branchCode}` : undefined;
+              return {
+                id: recId,
+                label,
+                details,
+                ...rec,
+              };
+            })
+          : modelTable.enquiryRows && modelTable.enquiryRows.length > 0
+            ? modelTable.enquiryRows
+            : [];
+
       return {
         status: "SUCCESS",
         statusCode: 200,
@@ -209,6 +236,23 @@ export function getMockProxyResponse(
         timestamp,
       };
     }
+  }
+
+  // Fallback for GRL if table has no explicit records defined: generate sample IDs with prefix
+  if (requestType === "GRL") {
+    const prefix = cleanModel.replace(/[^A-Z]/g, "").slice(0, 2) || "REC";
+    const sampleItems = [
+      { id: `${prefix}00001`, label: `${cleanModel} Record 001`, details: "Status: Live" },
+      { id: `${prefix}00002`, label: `${cleanModel} Record 002`, details: "Status: Live" },
+      { id: `${prefix}00003`, label: `${cleanModel} Record 003`, details: "Status: Pending" },
+    ];
+    return {
+      status: "SUCCESS",
+      statusCode: 200,
+      message: `${cleanModel} sample record list loaded from mock`,
+      data: sampleItems,
+      timestamp,
+    };
   }
 
   return {

@@ -2,8 +2,9 @@
 
 import { FileCode, FileText, History, Layers, ShieldCheck } from "lucide-react";
 import * as React from "react";
-import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
+import { CbsScreenScaffold } from "@/components/cbs-screen";
+import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
+import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { UserGroupAuditTab } from "./components/user-group-audit-tab";
 import { UserGroupGeneralTab } from "./components/user-group-general-tab";
 import { UserGroupJsonTab } from "./components/user-group-json-tab";
@@ -118,8 +119,8 @@ export function SysUserGroup({ command, tabId }: ScreenProps) {
       commandCode="USER.GROUP"
       recordId={recordId}
       mode={mode}
-      onRecordIdChange={(newId) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId) => setRecordId(searchedId.toUpperCase())}
+      onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => setRecordId(searchedId.toUpperCase())}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "TELLER.GRP") : undefined}

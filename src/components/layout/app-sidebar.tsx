@@ -126,7 +126,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       </Sidebar>
 
       {/* Global Search Dialog */}
-      <AppSearch open={searchOpen} onOpenChange={setSearchOpen} openSettingsTab={openSettingsTab} />
+      <AppSearch open={searchOpen} onOpenChange={setSearchOpen} />
 
       {/* Settings Dialog */}
       <AppSettings

@@ -15,7 +15,7 @@ import {
   type MetaFieldDef,
   MODEL_META_FIELDS,
   setFieldValue,
-} from "../config/meta-fields";
+} from "../fields";
 
 interface McGeneralTabProps {
   formData: ModelConfigRecord;

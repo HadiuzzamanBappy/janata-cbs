@@ -1,15 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { CommandInput } from "@/components/ui/command";
-import type { SystemCommandItem } from "@/lib/data-schemas";
 
 interface SearchInputBarProps {
   userHasCommandLine: boolean;
   searchQuery: string;
   onSearchQueryChange: (val: string) => void;
-  authorizedCommands: SystemCommandItem[];
   filteredCount: number;
   totalCount: number;
-  onSelectCommand: (cmd: SystemCommandItem) => void;
   onExecuteRawInput: (raw: string) => void;
 }
 
@@ -17,10 +14,8 @@ export function SearchInputBar({
   userHasCommandLine,
   searchQuery,
   onSearchQueryChange,
-  authorizedCommands,
   filteredCount,
   totalCount,
-  onSelectCommand,
   onExecuteRawInput,
 }: SearchInputBarProps) {
   return (
@@ -35,19 +30,8 @@ export function SearchInputBar({
         onValueChange={onSearchQueryChange}
         onKeyDown={(e) => {
           if (e.key === "Enter" && searchQuery.trim()) {
-            const queryUpper = searchQuery.trim().toUpperCase();
-            // Check if input matches primary command or any registered alias
-            const exactMatch = authorizedCommands.find(
-              (c) =>
-                c.command.toUpperCase() === queryUpper ||
-                c.aliases?.some((a) => a.toUpperCase() === queryUpper),
-            );
-            if (exactMatch) {
-              onSelectCommand(exactMatch);
-            } else if (userHasCommandLine) {
-              e.preventDefault();
-              onExecuteRawInput(searchQuery);
-            }
+            e.preventDefault();
+            onExecuteRawInput(searchQuery);
           }
         }}
       />

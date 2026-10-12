@@ -1,6 +1,6 @@
 "use client";
 
-import { CbsAuditTab } from "@/lib/cbs-screen";
+import { CbsAuditTab } from "@/components/cbs-screen";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 interface McAuditTabProps {

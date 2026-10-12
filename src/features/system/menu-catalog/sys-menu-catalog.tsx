@@ -2,8 +2,9 @@
 
 import { FileCode, FileText, History, Layers } from "lucide-react";
 import * as React from "react";
-import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
+import { CbsScreenScaffold } from "@/components/cbs-screen";
+import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
+import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { MenuAuditTab } from "./components/menu-audit-tab";
 import { MenuGeneralTab } from "./components/menu-general-tab";
 import { MenuJsonTab } from "./components/menu-json-tab";
@@ -85,8 +86,8 @@ export function SysMenuCatalog({ command, tabId }: ScreenProps) {
       commandCode="MENU"
       recordId={recordId}
       mode={mode}
-      onRecordIdChange={(newId) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId) => setRecordId(searchedId.toUpperCase())}
+      onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => setRecordId(searchedId.toUpperCase())}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "1") : undefined}

@@ -42,7 +42,7 @@ export function FormSkeleton(_props?: FormSkeletonProps) {
 
       {/* Screen Body Skeleton: IDLE State Center Canvas */}
       <div className="flex-1 overflow-auto p-3">
-        <div className="h-full min-h-[300px] flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
+        <div className="h-full min-h-75 flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
           <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
             <Layers className="size-6 animate-pulse opacity-60" />
           </div>

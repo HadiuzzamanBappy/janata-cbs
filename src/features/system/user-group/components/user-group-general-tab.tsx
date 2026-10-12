@@ -13,7 +13,7 @@ import {
   USER_GROUP_FIELD_GROUPS,
   USER_GROUP_META_FIELDS,
   type UserGroupMetaFieldDef,
-} from "../config/meta-fields";
+} from "../fields";
 
 interface UserGroupGeneralTabProps {
   formData: UserGroupRecord;

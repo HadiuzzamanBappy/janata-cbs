@@ -1,6 +1,6 @@
 "use client";
 
-import { CbsAuditTab } from "@/lib/cbs-screen";
+import { CbsAuditTab } from "@/components/cbs-screen";
 import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-catalog-schema";
 
 interface MenuAuditTabProps {

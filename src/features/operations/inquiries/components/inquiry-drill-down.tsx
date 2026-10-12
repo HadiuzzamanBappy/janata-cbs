@@ -1,8 +1,8 @@
 "use client";
 
 import { toast } from "@/components/ui/toast";
-import { OpsForm as FormScreen } from "@/features/operations/forms";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
+import { OpsForm as FormScreen } from "../../forms/ops-form";
 
 export interface DrillRecord {
   formCommand: string;

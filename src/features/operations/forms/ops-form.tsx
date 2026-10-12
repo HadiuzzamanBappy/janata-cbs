@@ -2,11 +2,12 @@
 
 import { AlertTriangle } from "lucide-react";
 import * as React from "react";
+import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
-import { CbsScreenScaffold } from "@/lib/cbs-screen";
+import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { FormGrid } from "./components/form-grid";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
@@ -14,7 +15,6 @@ import { useFormPersistence } from "./hooks/use-form-persistence";
 import { useFormSchema } from "./hooks/use-form-schema";
 import { useFormState } from "./hooks/use-form-state";
 import type { DynamicFormProps } from "./types";
-import { getDefaultMoreActions } from "./utils/more-actions";
 import {
   findPrimaryKeyField,
   findRecordInFixtures,
@@ -169,7 +169,7 @@ export function OpsForm({
       mode={screenMode}
       recordId={searchRecordId}
       onRecordIdChange={setSearchRecordId}
-      onRecordSearch={(query) => {
+      onRecordSearch={(query: string) => {
         toast.add({
           title: "Searching Records",
           description: `Filtering records matching "${query}"`,

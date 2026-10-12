@@ -29,39 +29,20 @@ import { AppearanceTab } from "./components/appearance-tab";
 import { DeactivateTab } from "./components/deactivate-tab";
 import { ProfileTab } from "./components/profile-tab";
 import { ChangePassword as SecurityTab } from "./components/security-tab";
-import type { SettingsTabId } from "./types";
+import type { AppSettingsProps, SettingsTabId } from "./types";
 
-const data: { nav: Array<{ name: string; icon: React.ReactNode; id: SettingsTabId }> } = {
-  nav: [
-    {
-      name: "User Profile",
-      icon: <UserIcon />,
-      id: "profile",
-    },
-    {
-      name: "Security & Password",
-      icon: <ShieldIcon />,
-      id: "security",
-    },
-    {
-      name: "Appearance",
-      icon: <PaintbrushIcon />,
-      id: "appearance",
-    },
-    {
-      name: "Deactivate",
-      icon: <BanIcon />,
-      id: "deactivate",
-    },
-  ],
-};
-
-interface AppSettingsProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  activeTab?: SettingsTabId | string;
-  onTabChange?: (tab: SettingsTabId) => void;
+interface SettingsNavItem {
+  name: string;
+  icon: React.ReactNode;
+  id: SettingsTabId;
 }
+
+const SETTINGS_NAV: SettingsNavItem[] = [
+  { name: "User Profile", icon: <UserIcon />, id: "profile" },
+  { name: "Security & Password", icon: <ShieldIcon />, id: "security" },
+  { name: "Appearance", icon: <PaintbrushIcon />, id: "appearance" },
+  { name: "Deactivate", icon: <BanIcon />, id: "deactivate" },
+];
 
 export function AppSettings({
   open,
@@ -76,11 +57,11 @@ export function AppSettings({
 
   const { logout } = useSessionStore();
 
-  const activeNavItem = data.nav.find((n) => n.id === activeTab) || data.nav[0];
+  const activeNavItem = SETTINGS_NAV.find((n) => n.id === activeTab) || SETTINGS_NAV[0];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden p-0 w-[92vw] sm:max-w-2xl md:max-w-3xl h-[70vh] max-h-[580px] flex rounded-xl border border-border/60 shadow-lg">
+      <DialogContent className="overflow-hidden p-0 w-[92vw] sm:max-w-2xl md:max-w-3xl h-[70vh] max-h-145 flex rounded-xl border border-border/60 shadow-lg">
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <DialogDescription className="sr-only">
           Customize your system settings and profile.
@@ -94,7 +75,7 @@ export function AppSettings({
               <SidebarGroup className="p-1">
                 <SidebarGroupContent>
                   <SidebarMenu className="gap-0.5">
-                    {data.nav.map((item) => (
+                    {SETTINGS_NAV.map((item) => (
                       <SidebarMenuItem key={item.id}>
                         <SidebarMenuButton
                           isActive={item.id === activeTab}

@@ -3,7 +3,6 @@ import type { SystemCommandItem } from "@/lib/data-schemas";
 export interface GlobalSearchProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  openSettingsTab?: (tabId: string) => void;
 }
 
 export interface CommandGuideInfo {

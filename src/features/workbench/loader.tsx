@@ -2,9 +2,11 @@
 
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
-import { FormSkeleton, InquirySkeleton } from "@/features/operations";
+import { SystemSkeleton } from "@/components/cbs-screen";
+import { FormSkeleton } from "@/features/operations/forms";
+import { InquirySkeleton } from "@/features/operations/inquiries";
 import { logger } from "@/lib/core-logger";
-import { resolveScreen } from "./registry";
+import { isSystemScreen, resolveScreen } from "./registry";
 import type { ScreenLoaderProps } from "./types";
 
 interface ErrorBoundaryState {
@@ -63,6 +65,10 @@ export function ScreenLoader({
   const ScreenComponent = React.useMemo(() => resolveScreen(command), [command]);
 
   const FallbackSkeleton = React.useMemo(() => {
+    if (isSystemScreen(command)) {
+      return <SystemSkeleton />;
+    }
+
     const cleanCmd = (command || "").split(",")[0].trim().toUpperCase();
     const isEnquiry = cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY");
 

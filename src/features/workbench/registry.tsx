@@ -1,11 +1,12 @@
 "use client";
 
-import { FormScreen, InquiryScreen } from "@/features/operations";
+import { FormScreen } from "@/features/operations/forms";
+import { InquiryScreen } from "@/features/operations/inquiries";
 import { SysMenuCatalog } from "@/features/system/menu-catalog";
 import { SysMenuDesigner } from "@/features/system/menu-designer";
 import { SysModelConfig } from "@/features/system/model-config";
 import ReportStudio from "@/features/system/report-studio";
-import { UserGroupScreen } from "@/features/system/user-group";
+import { SysUserGroup } from "@/features/system/user-group";
 import { getCanonicalScreenKey } from "@/lib/cbs-command";
 import type { ScreenComponent } from "./types";
 
@@ -18,7 +19,7 @@ const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
   "SC.MENU": SysMenuCatalog,
   "SC.MENU.DESIGN": SysMenuDesigner,
   "SC.MENU.TREE": SysMenuDesigner,
-  "SC.USER.GROUP": UserGroupScreen,
+  "SC.USER.GROUP": SysUserGroup,
   "SC.MODEL.CONFIG": SysModelConfig,
   "SC.FORM.BUILDER": SysModelConfig,
   "SC.REPORT.BUILDER": () => (
@@ -27,6 +28,15 @@ const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
     </div>
   ),
 };
+
+/**
+ * Checks if a command corresponds to a bespoke system/admin screen.
+ */
+export function isSystemScreen(command: string): boolean {
+  const cleanCmd = (command || "").split(",")[0].trim().toUpperCase();
+  const canonicalKey = getCanonicalScreenKey(cleanCmd) || cleanCmd;
+  return Boolean(BESPOKE_SCREENS[canonicalKey]);
+}
 
 /**
  * Universal Screen Resolver.

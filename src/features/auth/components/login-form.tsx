@@ -1,59 +1,32 @@
 "use client";
 
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { appConfig } from "@/lib/core-config";
+import { useLogin } from "../hooks/use-login";
+import type { LoginFormProps } from "../types";
 
-export function LoginForm() {
-  const router = useRouter();
+export function LoginForm({ onSuccess, className = "mt-8 space-y-6" }: LoginFormProps) {
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showUsername, setShowUsername] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+
+  const { login, loading, error } = useLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    try {
-      const res = await fetch(appConfig.routes.api.login, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(
-          data.error || data.message || "Login failed. Please check your credentials.",
-        );
-      }
-
-      if (data.user?.initLogin) {
-        router.push(appConfig.routes.changePassword);
-      } else {
-        router.push(appConfig.routes.dashboard);
-      }
-
-      router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
+    const user = await login({ username, password });
+    if (user && onSuccess) {
+      onSuccess(user);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+    <form onSubmit={handleSubmit} className={className}>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

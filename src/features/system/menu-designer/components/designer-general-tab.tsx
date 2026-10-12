@@ -15,7 +15,7 @@ import {
   MENU_DESIGNER_META_FIELDS,
   type MenuDesignerFieldDef,
   setMenuDesignerFieldValue,
-} from "../config/meta-fields";
+} from "../fields";
 
 interface DesignerGeneralTabProps {
   formData: MenuTreeRecord;

@@ -45,10 +45,7 @@ async function fetchMenuWirePayload(controlName: string, tokenParam?: string): P
 /**
  * Retrieves the CBS application navigation menu tree for the current user (cached in Redis).
  */
-export async function getMenuData(
-  token?: string,
-  controlName: string = "MAIN_MENU",
-): Promise<MenuItem[]> {
+export async function getMenuData(token?: string, controlName: string = ""): Promise<MenuItem[]> {
   return getOrSet(
     appConfig.redis.cacheKeys.menu(controlName),
     async () => {

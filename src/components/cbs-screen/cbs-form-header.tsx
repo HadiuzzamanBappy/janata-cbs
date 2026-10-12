@@ -9,6 +9,7 @@ import type { MoreActionItem } from "@/lib/cbs-screen/types";
 import { ActionButtons } from "./action-buttons";
 import { ActionMoreMenu } from "./action-more-menu";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
+import { useRecordLookup } from "./hooks/use-record-lookup";
 import { RecordLookupBar } from "./record-lookup-bar";
 
 export type { MoreActionItem };
@@ -73,6 +74,14 @@ export function CbsFormHeader({
   const access = useCbsAccess({ mode });
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+
+  // Dynamic GRL Record Lookup
+  const {
+    items: lookupItems,
+    loading: lookupLoading,
+    fetchRecordList,
+  } = useRecordLookup(commandCode, availableItems);
+
   const [searchResults, setSearchResults] = React.useState<
     Array<{ id: string; label?: string; details?: string }>
   >([]);
@@ -82,24 +91,22 @@ export function CbsFormHeader({
     setInputVal(recordId);
   }, [recordId]);
 
+  const handleDropdownOpenChange = React.useCallback(
+    (open: boolean) => {
+      setIsDropdownOpen(open);
+      if (open) {
+        fetchRecordList();
+      }
+    },
+    [fetchRecordList],
+  );
+
   const demoItems = React.useMemo(() => {
+    if (lookupLoading) return [];
+    if (lookupItems.length > 0) return lookupItems;
     if (availableItems.length > 0) return availableItems;
-    const prefix = commandCode || "REC";
-    return [
-      { id: `${prefix}-1001`, label: "Primary Active Record", details: "Status: Live | Auth: YES" },
-      {
-        id: `${prefix}-1002`,
-        label: "Corporate Account Holder",
-        details: "Status: Live | Auth: YES",
-      },
-      { id: `${prefix}-1003`, label: "Retail Term Deposit", details: "Status: Pending | Auth: NO" },
-      {
-        id: `${prefix}-1004`,
-        label: "Special Clearing Facility",
-        details: "Status: Closed | Auth: YES",
-      },
-    ];
-  }, [availableItems, commandCode]);
+    return [];
+  }, [lookupLoading, lookupItems, availableItems]);
 
   const handlePerformSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -205,9 +212,10 @@ export function CbsFormHeader({
               onCreateNew={onCreateNew}
               matchingItems={matchingItemsToDisplay}
               isDropdownOpen={isDropdownOpen}
-              onDropdownOpenChange={setIsDropdownOpen}
+              onDropdownOpenChange={handleDropdownOpenChange}
               hasSearched={hasSearched}
               submitting={submitting}
+              loadingItems={lookupLoading}
               canCreate={access.canInput}
             />
           ) : (

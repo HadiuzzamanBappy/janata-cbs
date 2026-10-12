@@ -72,7 +72,8 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
   const targetRecordId = options?.searchRecordId || parsed.recordId;
 
   if (adapter.openTab) {
-    const screenId = parsed.type === "INQUIRY" ? `INQ ${parsed.application}` : parsed.application;
+    const fullFormId = parsed.version ? `${parsed.application},${parsed.version}` : parsed.application;
+    const screenId = parsed.type === "INQUIRY" ? `INQ ${parsed.application}` : fullFormId;
 
     adapter.openTab({
       screenId,

@@ -40,7 +40,7 @@ export async function resolveServiceContext(tokenParam?: string): Promise<Servic
   }
 
   const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
-  const address = getServiceUrl("default");
+  const address = getServiceUrl();
   const clientId = appConfig.grpc.clientId;
 
   return {

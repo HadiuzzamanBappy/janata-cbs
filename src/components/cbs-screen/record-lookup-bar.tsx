@@ -25,6 +25,7 @@ export interface RecordLookupBarProps {
   onDropdownOpenChange: (open: boolean) => void;
   hasSearched: boolean;
   submitting?: boolean;
+  loadingItems?: boolean;
   canCreate?: boolean;
 }
 
@@ -43,6 +44,7 @@ export function RecordLookupBar({
   onDropdownOpenChange,
   hasSearched,
   submitting = false,
+  loadingItems = false,
   canCreate = true,
 }: RecordLookupBarProps) {
   return (
@@ -93,12 +95,21 @@ export function RecordLookupBar({
               align="end"
               sideOffset={8}
               alignOffset={-4}
-              className="w-48 max-h-56 overflow-auto text-xs p-1 rounded shadow-lg border border-border/80 bg-popover"
+              className="w-56 max-h-56 overflow-auto text-xs p-1 rounded shadow-lg border border-border/80 bg-popover"
             >
-              <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 mb-1">
-                Matching IDs ({matchingItems.length})
+              <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 mb-1 flex items-center justify-between">
+                <span>Matching IDs ({matchingItems.length})</span>
+                {loadingItems && (
+                  <span className="animate-pulse text-[9px] lowercase font-normal">
+                    fetching...
+                  </span>
+                )}
               </div>
-              {matchingItems.length === 0 ? (
+              {loadingItems && matchingItems.length === 0 ? (
+                <div className="p-2.5 text-muted-foreground font-mono text-center text-xs animate-pulse">
+                  Loading records...
+                </div>
+              ) : matchingItems.length === 0 ? (
                 <div className="p-2 text-muted-foreground font-mono text-center text-xs">
                   {hasSearched ? "No matching records" : "Type to filter"}
                 </div>
@@ -107,7 +118,7 @@ export function RecordLookupBar({
                   <DropdownMenuItem
                     key={item.id}
                     onClick={() => onSelectRecord(item.id)}
-                    className="font-mono text-xs font-semibold py-1 px-2 cursor-pointer hover:bg-muted/80 rounded"
+                    className="font-mono text-xs py-1.5 px-2 cursor-pointer hover:bg-muted/80 rounded flex items-center font-semibold text-foreground"
                   >
                     {item.id}
                   </DropdownMenuItem>

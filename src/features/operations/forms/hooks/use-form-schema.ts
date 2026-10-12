@@ -20,8 +20,8 @@ export function useFormSchema(command: string) {
     setError(null);
 
     try {
-      const cleanCmd = command.split(",")[0].trim().toUpperCase();
-      const res = await fetch(`${appConfig.routes.api.form}/${cleanCmd}`);
+      const cleanCmd = command.trim().toUpperCase();
+      const res = await fetch(`${appConfig.routes.api.form}/${encodeURIComponent(cleanCmd)}`);
       const json = await res.json();
 
       if (json.success && json.data) {

@@ -3,6 +3,7 @@ import "server-only";
 import {
   STATIC_BRANCH_RESPONSE,
   STATIC_CONTROL_RESPONSE,
+  STATIC_FORM_CONFIGS,
   STATIC_FORM_DATA,
   STATIC_FORMS,
   STATIC_INQUIRIES,
@@ -188,7 +189,42 @@ export function getMockProxyResponse(
     }
   }
 
-  // 3. Form Record & Control Table Requests
+  // 3. Form Config / Presentation Designer Catalog (SC.FORM.CONFIG / FORM.CONFIG)
+  if (cleanModel === "SC.FORM.CONFIG" || cleanModel === "FORM.CONFIG") {
+    if (
+      !cleanRecordId ||
+      cleanRecordId === "LIST" ||
+      cleanRecordId === "ALL" ||
+      requestType === "GRL" ||
+      requestType === "RECORD_LIST"
+    ) {
+      const data = Object.values(STATIC_FORM_CONFIGS).map((record) => ({
+        id: record.recordId,
+        label: `${record.title} (${record.targetModel})`,
+        details: `${record.presentation.sections.length} sections • ${record.presentation.archetype}`,
+        record,
+      }));
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Form config catalog loaded from fixture",
+        data,
+        timestamp,
+      };
+    }
+
+    if (STATIC_FORM_CONFIGS[cleanRecordId]) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: `Form config for #${cleanRecordId} loaded from fixture`,
+        data: STATIC_FORM_CONFIGS[cleanRecordId],
+        timestamp,
+      };
+    }
+  }
+
+  // 4. Form Record & Control Table Requests
   const modelTable = STATIC_FORM_DATA[cleanModel];
   if (modelTable) {
     if (requestType === "GRL" || requestType === "RECORD_LIST" || (!recordId && !cleanRecordId)) {

@@ -3,6 +3,8 @@
 export * from "./alert/alert-provider";
 // Alert State & Provider
 export * from "./alert/alert-store";
+// Unified Master Store Provider
+export * from "./root-provider";
 export * from "./session/session-provider";
 // Session State & Provider
 export * from "./session/session-store";

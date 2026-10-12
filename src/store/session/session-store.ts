@@ -30,8 +30,31 @@ export const createSessionStore = () => {
         logger.error("Logout failed", e, "SESSION_STORE");
       }
       set({ user: null, isAuthenticated: false });
-      window.location.href = appConfig.routes.login;
+
+      // Cross-window coordination: notify detached windows without wiping draft form data
+      if (typeof window !== "undefined") {
+        try {
+          const channel = new BroadcastChannel("cbs_workbench_bus");
+          channel.postMessage({ type: "SESSION_LOGOUT" });
+          channel.close();
+        } catch {
+          // Ignore BroadcastChannel errors in non-supporting contexts
+        }
+        window.location.href = appConfig.routes.login;
+      }
     },
-    setBranch: (branch) => set({ currentBranch: branch }),
+    setBranch: (branch) => {
+      set({ currentBranch: branch });
+      // Broadcast branch change to detached popups
+      if (typeof window !== "undefined") {
+        try {
+          const channel = new BroadcastChannel("cbs_workbench_bus");
+          channel.postMessage({ type: "BRANCH_CHANGED", branch });
+          channel.close();
+        } catch {
+          // Safe fallback
+        }
+      }
+    },
   }));
 };

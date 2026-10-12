@@ -4,7 +4,7 @@ import * as React from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toast";
 import { cbsCommand } from "@/lib/cbs-command";
-import { AlertStoreProvider, SessionStoreProvider, WorkbenchStoreProvider } from "@/store";
+import { CbsAppStoreProvider } from "@/store";
 import { AppAlert } from "./app-alert";
 import { AppSidebar } from "./app-sidebar";
 import { AppTabBar } from "./app-tabbar";
@@ -43,29 +43,25 @@ export function WorkbenchShell({
     };
   }, []);
   return (
-    <SessionStoreProvider>
-      <WorkbenchStoreProvider>
-        <AlertStoreProvider>
-          <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSidebar />
-            <SidebarInset className="flex flex-col min-w-0 h-screen overflow-hidden">
-              {/* TabBar Header Strip */}
-              <div className="shrink-0 z-20">
-                <AppTabBar />
-              </div>
+    <CbsAppStoreProvider>
+      <SidebarProvider defaultOpen={defaultOpen}>
+        <AppSidebar />
+        <SidebarInset className="flex flex-col min-w-0 h-screen overflow-hidden">
+          {/* TabBar Header Strip */}
+          <div className="shrink-0 z-20">
+            <AppTabBar />
+          </div>
 
-              {/* Main Content Area — fills remaining height, scrolls independently */}
-              <main className="flex-1 min-h-0 overflow-auto bg-muted/15">{children}</main>
-            </SidebarInset>
+          {/* Main Content Area — fills remaining height, scrolls independently */}
+          <main className="flex-1 min-h-0 overflow-auto bg-muted/15">{children}</main>
+        </SidebarInset>
 
-            {/* Global UI Overlays */}
-            <Toaster />
-            <AppAlert />
-            <AppTimeoutWatcher />
-            <AppTargetPreview />
-          </SidebarProvider>
-        </AlertStoreProvider>
-      </WorkbenchStoreProvider>
-    </SessionStoreProvider>
+        {/* Global UI Overlays */}
+        <Toaster />
+        <AppAlert />
+        <AppTimeoutWatcher />
+        <AppTargetPreview />
+      </SidebarProvider>
+    </CbsAppStoreProvider>
   );
 }

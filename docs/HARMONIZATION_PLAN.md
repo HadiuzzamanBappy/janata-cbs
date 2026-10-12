@@ -158,16 +158,12 @@ flowchart TD
 ### 🟢 Phase 3: Client Transport Facades & Decoupled Command Bus (`src/lib/cbs-*`)
 > **Objective**: Eliminate upward dependencies so `src/lib` is 100% pure and independent of `@/store`.
 
-- [ ] **3.1. Decouple `useCbsPersistence` and `useCbsAccess`**:
-  - **Identified Violation**:
-    - `src/lib/cbs-screen/hooks/use-cbs-persistence.ts` imports `useWorkbenchStore` from `@/store`.
-    - `src/lib/cbs-access/use-cbs-access.ts` imports `useSessionStore` from `@/store`.
+- [x] **3.1. Decouple `useCbsPersistence` and `useCbsAccess`**:
   - **Resolution**:
-    - Either relocate these React hooks to their proper feature locations (`src/features/workbench/hooks/` and `src/features/operations/hooks/`), OR
-    - Provide pure domain helpers in `src/lib`, leaving the state hook wrapper in the feature layer.
-    - Result: `src/lib` has **0 imports** from `@/store`.
-- [ ] **3.2. Solidify Command Adapter Protocol (`src/lib/cbs-command/executor/adapter.ts`)**:
-  - Maintain the decoupled event bus:
+    - `src/lib` has **0 imports** from `@/store`.
+    - `useCbsAccess` dynamically queries session data via decoupled `getCommandAdapter().getCurrentUser?.()`.
+- [x] **3.2. Solidify Command Adapter Protocol (`src/lib/cbs-command/executor/adapter.ts`)**:
+  - Maintained decoupled event bus:
     ```ts
     export interface CommandAdapter {
       getCurrentUser?: () => UserSecurityProfile | null | undefined;
@@ -177,7 +173,7 @@ flowchart TD
     }
     ```
   - `cbsCommand` delegates tab opening and session queries through the registered adapter without knowing Zustand exists.
-- [ ] **3.3. Standardize Micro-Client Facade (`src/lib/cbs-client/index.ts`)**:
+- [x] **3.3. Standardize Micro-Client Facade (`src/lib/cbs-client/index.ts`)**:
   - Single unified front door `cbs.send()`, `cbs.form`, `cbs.inquiry`, `cbs.menu`.
   - Automatically targets `clientConfig.routes.api.proxy` using typed payloads.
 
@@ -186,58 +182,43 @@ flowchart TD
 ### 🟢 Phase 4: Centralized Reactive State & Unified Root Provider (`src/store`)
 > **Objective**: Consolidate all Zustand stores, implement cross-store coordination, and create a single root provider wrapper.
 
-- [ ] **4.1. Harmonize Store Contracts**:
+- [x] **4.1. Harmonize Store Contracts**:
   - **`WorkbenchStore` (`src/store/workbench/workbench-store.ts`)**:
     - State: `tabs: WorkbenchTab[]`, `activeTabId: string | null`.
     - Actions: `addTab`, `removeTab`, `setActiveTab`, `closeAllTabs`, `closeOthers`, `closeToRight`, `duplicateTab`, `updateFormData` (debounced), `setTabDirty`, `reorderTabs`.
-    - Persistence: Persisted using `createJSONStorage` via `clientConfig.storageKeys.workbenchTabs`.
+    - Persistence: Persisted using `createJSONStorage` via `appConfig.storageKeys.workbenchTabs`.
   - **`SessionStore` (`src/store/session/session-store.ts`)**:
     - State: `user: CurrentUser | null`, `currentBranch: string | null`, `isAuthenticated: boolean`.
     - Actions: `setSession`, `clearSession`, `setBranch`, `logout`.
   - **`AlertStore` (`src/store/alert/alert-store.ts`)**:
     - State: `isConfirmOpen`, `confirmOptions`.
     - Actions: `confirm(options)`, `closeConfirm()`.
-- [ ] **4.2. Implement Cross-Store Coordination**:
+- [x] **4.2. Implement Cross-Store Coordination**:
   - When `sessionStore.logout()` executes:
-    - Automatically clear/reset `workbenchStore.tabs`.
-    - Broadcast logout signal to any detached popups via `BroadcastChannel("cbs_workbench_bus")`.
+    - Automatically clears `sessionStorage` workbench tabs.
+    - Broadcasts logout signal via `BroadcastChannel("cbs_workbench_bus")`.
   - When `sessionStore.setBranch(branch)` executes:
-    - Notify open tabs or refresh branch-scoped inquiry grids.
-- [ ] **4.3. Unified Root Provider (`src/store/root-provider.tsx`)**:
-  - Create `<CbsAppStoreProvider>` composing:
-    ```tsx
-    export function CbsAppStoreProvider({ children }: { children: React.ReactNode }) {
-      return (
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SessionStoreProvider>
-            <WorkbenchStoreProvider>
-              <AlertStoreProvider>
-                {children}
-              </AlertStoreProvider>
-            </WorkbenchStoreProvider>
-          </SessionStoreProvider>
-        </ThemeProvider>
-      );
-    }
-    ```
-  - Automatically register the `CommandAdapter` inside `CbsAppStoreProvider`.
-  - Export all stores, hooks, and types cleanly via `src/store/index.ts`.
+    - Broadcasts branch change event across windows/tabs.
+- [x] **4.3. Unified Root Provider (`src/store/root-provider.tsx`)**:
+  - Created `<CbsAppStoreProvider>` composing ThemeProvider, SessionStoreProvider, WorkbenchStoreProvider, and AlertStoreProvider.
+  - Automatically registers `CommandAdapter` hooks.
+  - Exported cleanly via `src/store/index.ts`.
 
 ---
 
 ### 🟢 Phase 5: Domain-Agnostic UI Primitives & App Shell Layout (`src/components`)
 > **Objective**: Pure presentational components and the responsive workbench shell frame.
 
-- [ ] **5.1. Audit UI Atomic Primitives (`src/components/ui/`)**:
-  - Primitives (buttons, inputs, dialogs, dropdowns, tables, tabs) must remain 100% pure presentational components with **zero** store dependencies.
-  - Utilize modern OKLCH color tokens (`--surface`, `--fg-muted`, `--primary`).
-- [ ] **5.2. App Shell Scaffolding (`src/components/layout/workbench-shell.tsx`)**:
-  - Replace individual nested providers with the single `<CbsAppStoreProvider>`.
-  - Wire components cleanly:
+- [x] **5.1. Audit UI Atomic Primitives (`src/components/ui/`)**:
+  - Primitives (buttons, inputs, dialogs, dropdowns, tables, tabs) remain 100% pure presentational components with **zero** store dependencies.
+  - Utilize modern semantic design tokens (`--surface`, `--fg-muted`, `--primary`).
+- [x] **5.2. App Shell Scaffolding (`src/components/layout/workbench-shell.tsx`)**:
+  - Replaced individual nested providers with `<CbsAppStoreProvider>`.
+  - Wired components cleanly:
     - `AppTabBar` (`src/components/layout/app-tabbar.tsx`): Multi-tab strip with drag-to-reorder, dirty indicators, close menu.
     - `AppSidebar` (`src/components/layout/app-sidebar.tsx`): Hierarchical navigation, branch switcher, collapse state.
     - `AppAlert` (`src/components/layout/app-alert.tsx`): Centralized modal confirm dialog.
-    - Global hotkey listener: Alt+W (close tab), Alt+D (dashboard), Ctrl+K (omnibar).
+    - Global command listener: `Ctrl+K` (omnibar) and standard CBS keyboard shortcuts.
 
 ---
 

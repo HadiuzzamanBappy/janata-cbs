@@ -39,6 +39,7 @@ export interface WorkbenchState {
   closeToRight: (id: string) => void;
   duplicateTab: (id: string) => void;
   updateFormData: (tabId: string, data: Record<string, unknown>) => void;
+  setTabDirty: (tabId: string, isDirty: boolean) => void;
   updateTabState: (tabId: string, patch: Partial<WorkbenchTab>) => void;
   reorderTabs: (sourceIndex: number, destinationIndex: number) => void;
 }
@@ -131,8 +132,14 @@ export const createWorkbenchStore = () => {
         updateFormData: (tabId, data) =>
           set((state) => ({
             tabs: state.tabs.map((tab) =>
-              tab.id === tabId ? { ...tab, formData: { ...tab.formData, ...data } } : tab,
+              tab.id === tabId
+                ? { ...tab, formData: { ...tab.formData, ...data }, isDirty: true }
+                : tab,
             ),
+          })),
+        setTabDirty: (tabId, isDirty) =>
+          set((state) => ({
+            tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, isDirty } : tab)),
           })),
         updateTabState: (tabId, patch) =>
           set((state) => ({

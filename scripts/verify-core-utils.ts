@@ -43,26 +43,41 @@ assert("formatCurrency(150000) includes 'BDT'", formattedBDT.includes("BDT"));
 assert("formatCurrency(150000) has decimal places .00", formattedBDT.includes(".00"));
 
 const formattedNegative = formatCurrency(-5000, { accountingNegative: true });
-assert("formatCurrency(-5000) accounting format (5,000.00 BDT)", formattedNegative.includes("(5,000.00 BDT)"));
+assert(
+  "formatCurrency(-5000) accounting format (5,000.00 BDT)",
+  formattedNegative.includes("(5,000.00 BDT)"),
+);
 
 const formattedZero = formatCurrency(0);
 assert("formatCurrency(0) returns '0.00 BDT'", formattedZero.includes("0.00 BDT"));
 
 // 2. Pure Number Formatting (en-IN South Asian Lakh/Crore grouping)
 const numStr = formatNumber(1234567.89, 2);
-assert("formatNumber(1234567.89) formats with South Asian / standard grouping", numStr === "12,34,567.89" || numStr === "1,234,567.89");
+assert(
+  "formatNumber(1234567.89) formats with South Asian / standard grouping",
+  numStr === "12,34,567.89" || numStr === "1,234,567.89",
+);
 
 // 3. Account Number Masking & Formatting
 const maskedAc = maskAccountNumber("0123456789012");
-assert("maskAccountNumber preserves start 4 and end 4 digits", maskedAc.startsWith("0123") && maskedAc.endsWith("9012"));
+assert(
+  "maskAccountNumber preserves start 4 and end 4 digits",
+  maskedAc.startsWith("0123") && maskedAc.endsWith("9012"),
+);
 assert("maskAccountNumber inserts mask dots", maskedAc.includes("••••"));
 
 const formattedAc = formatAccountNumber("0123456789012");
-assert("formatAccountNumber chunks account number", formattedAc === "0123-456789-012" || formattedAc.length === 15);
+assert(
+  "formatAccountNumber chunks account number",
+  formattedAc === "0123-456789-012" || formattedAc.length === 15,
+);
 
 // 4. Value Date & Transaction Timestamps
 const valueDate = formatValueDate("20261012");
-assert("formatValueDate('20261012') formats valid date", valueDate.includes("2026") && valueDate.includes("12"));
+assert(
+  "formatValueDate('20261012') formats valid date",
+  valueDate.includes("2026") && valueDate.includes("12"),
+);
 
 const dateTime = formatDateTime(new Date("2026-10-12T14:30:00Z"));
 assert("formatDateTime formats non-empty string", Boolean(dateTime && dateTime.length > 5));

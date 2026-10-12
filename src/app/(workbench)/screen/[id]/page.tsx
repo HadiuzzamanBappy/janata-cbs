@@ -4,12 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { ScreenLoader } from "@/features/workbench";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
-import {
-  AlertStoreProvider,
-  SessionStoreProvider,
-  useWorkbenchStore,
-  WorkbenchStoreProvider,
-} from "@/store";
+import { CbsAppStoreProvider, useWorkbenchStore } from "@/store";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const searchParams = useSearchParams();
@@ -91,14 +86,10 @@ export default function StandaloneScreenPage() {
   const rawId = (params?.id as string) ?? "ACCOUNT";
 
   return (
-    <SessionStoreProvider>
-      <WorkbenchStoreProvider>
-        <AlertStoreProvider>
-          <React.Suspense fallback={null}>
-            <StandaloneScreenContent rawId={rawId} />
-          </React.Suspense>
-        </AlertStoreProvider>
-      </WorkbenchStoreProvider>
-    </SessionStoreProvider>
+    <CbsAppStoreProvider>
+      <React.Suspense fallback={null}>
+        <StandaloneScreenContent rawId={rawId} />
+      </React.Suspense>
+    </CbsAppStoreProvider>
   );
 }

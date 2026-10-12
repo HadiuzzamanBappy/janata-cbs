@@ -43,7 +43,10 @@ const identicalCopy = { ...baseline };
 const deltaPristine = computeDelta(baseline, identicalCopy);
 assert("Pristine record: isDirty is false", deltaPristine.isDirty === false);
 assert("Pristine record: dirtyKeys is empty", deltaPristine.dirtyKeys.length === 0);
-assert("Pristine record: modifiedFields is empty", Object.keys(deltaPristine.modifiedFields).length === 0);
+assert(
+  "Pristine record: modifiedFields is empty",
+  Object.keys(deltaPristine.modifiedFields).length === 0,
+);
 
 // 2. Single Field Mutation
 const modifiedSingle = {
@@ -52,10 +55,19 @@ const modifiedSingle = {
 };
 const deltaSingle = computeDelta(baseline, modifiedSingle);
 assert("Single edit: isDirty is true", deltaSingle.isDirty === true);
-assert("Single edit: dirtyKeys contains 'accountTitle'", deltaSingle.dirtyKeys.includes("accountTitle"));
+assert(
+  "Single edit: dirtyKeys contains 'accountTitle'",
+  deltaSingle.dirtyKeys.includes("accountTitle"),
+);
 assert("Single edit: dirtyKeys length is 1", deltaSingle.dirtyKeys.length === 1);
-assert("Single edit: originalFields has baseline value", deltaSingle.originalFields.accountTitle === "Janata Bank General A/C");
-assert("Single edit: modifiedFields has new value", deltaSingle.modifiedFields.accountTitle === "Janata Bank Main Corporate A/C");
+assert(
+  "Single edit: originalFields has baseline value",
+  deltaSingle.originalFields.accountTitle === "Janata Bank General A/C",
+);
+assert(
+  "Single edit: modifiedFields has new value",
+  deltaSingle.modifiedFields.accountTitle === "Janata Bank Main Corporate A/C",
+);
 
 // 3. Multi-field and Nested Array Mutation
 const baselineWithArray = {

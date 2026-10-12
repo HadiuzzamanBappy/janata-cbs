@@ -77,15 +77,22 @@ suite("1. Wire Fixture Structs (Normalized Format)", () => {
   });
 
   test("STATIC_BRANCH_RESPONSE contains records list", () => {
-    return Boolean(Array.isArray(STATIC_BRANCH_RESPONSE?.data?.records) && STATIC_BRANCH_RESPONSE.data.records.length > 0);
+    return Boolean(
+      Array.isArray(STATIC_BRANCH_RESPONSE?.data?.records) &&
+        STATIC_BRANCH_RESPONSE.data.records.length > 0,
+    );
   });
 
   test("STATIC_COMMANDS contains records list", () => {
-    return Boolean(Array.isArray(STATIC_COMMANDS?.data?.records) && STATIC_COMMANDS.data.records.length > 0);
+    return Boolean(
+      Array.isArray(STATIC_COMMANDS?.data?.records) && STATIC_COMMANDS.data.records.length > 0,
+    );
   });
 
   test("STATIC_MENU contains records list", () => {
-    return Boolean(Array.isArray(STATIC_MENU?.data?.records) && STATIC_MENU.data.records.length > 0);
+    return Boolean(
+      Array.isArray(STATIC_MENU?.data?.records) && STATIC_MENU.data.records.length > 0,
+    );
   });
 });
 

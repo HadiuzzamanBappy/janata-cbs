@@ -33,7 +33,8 @@ const SUITES = [
     command: "pnpm exec tsx scripts/verify-cbs-client.ts",
   },
   {
-    title: "5. Environment Matrix, Schemas & PII Redaction (@/lib/data-schemas & @/lib/core-logger)",
+    title:
+      "5. Environment Matrix, Schemas & PII Redaction (@/lib/data-schemas & @/lib/core-logger)",
     command: "pnpm exec tsx scripts/verify-env-matrix.ts",
   },
   {
@@ -64,7 +65,12 @@ for (const suite of SUITES) {
     });
     const duration = Date.now() - start;
     console.log(`[PASS] (${duration}ms)`);
-    results.push({ title: suite.title, command: suite.command, passed: true, durationMs: duration });
+    results.push({
+      title: suite.title,
+      command: suite.command,
+      passed: true,
+      durationMs: duration,
+    });
   } catch (err: unknown) {
     const duration = Date.now() - start;
     console.log(`[FAIL] (${duration}ms)`);
@@ -72,7 +78,12 @@ for (const suite of SUITES) {
     if (execErr.stdout) console.log(String(execErr.stdout));
     if (execErr.stderr) console.error(String(execErr.stderr));
     if (!execErr.stdout && !execErr.stderr && execErr.message) console.error(execErr.message);
-    results.push({ title: suite.title, command: suite.command, passed: false, durationMs: duration });
+    results.push({
+      title: suite.title,
+      command: suite.command,
+      passed: false,
+      durationMs: duration,
+    });
   }
 }
 

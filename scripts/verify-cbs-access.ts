@@ -55,7 +55,10 @@ const pendingRecordAccess = evaluateCbsAccess({
   mode: "I",
   grantedRights: fullRights,
 });
-assert("Pending Record: canAuthorize (Passes Four-Eyes & INA status)", pendingRecordAccess.canAuthorize === true);
+assert(
+  "Pending Record: canAuthorize (Passes Four-Eyes & INA status)",
+  pendingRecordAccess.canAuthorize === true,
+);
 assert("Pending Record: canDelete", pendingRecordAccess.canDelete === true);
 assert("Pending Record: canHold", pendingRecordAccess.canHold === true);
 
@@ -67,8 +70,14 @@ const liveRecordAccess = evaluateCbsAccess({
   grantedRights: fullRights,
 });
 assert("Live Record: canReverse (AU status)", liveRecordAccess.canReverse === true);
-assert("Live Record: canDelete is false (Cannot delete live AU record)", liveRecordAccess.canDelete === false);
-assert("Live Record: canAuthorize is false (Already authorized)", liveRecordAccess.canAuthorize === false);
+assert(
+  "Live Record: canDelete is false (Cannot delete live AU record)",
+  liveRecordAccess.canDelete === false,
+);
+assert(
+  "Live Record: canAuthorize is false (Already authorized)",
+  liveRecordAccess.canAuthorize === false,
+);
 
 // 4. Legacy Profile (RIDASH without 'L')
 const legacyRights = parseAccessibilityRights("RIDASH");
@@ -92,7 +101,10 @@ const makerCheckerViolation = evaluateCbsAccess({
   recordStatus: "INA",
   grantedRights: fullRights,
 });
-assert("Four-Eyes Violation Detected (Inputter === Maker)", makerCheckerViolation.isFourEyesViolation === true);
+assert(
+  "Four-Eyes Violation Detected (Inputter === Maker)",
+  makerCheckerViolation.isFourEyesViolation === true,
+);
 assert("Four-Eyes Blocks Authorization", makerCheckerViolation.canAuthorize === false);
 assert(
   "Four-Eyes Provides Tooltip Explanation",
@@ -100,10 +112,22 @@ assert(
 );
 
 // 5. hasAccessibilityRight Predicate Helper
-assert("hasAccessibilityRight(S) in RIDASHL", hasAccessibilityRight(fullRights, CBS_RECORD_FUNCTIONS.SEE) === true);
-assert("hasAccessibilityRight(L) in RIDASHL", hasAccessibilityRight(fullRights, CBS_RECORD_FUNCTIONS.LIST) === true);
-assert("hasAccessibilityRight(L) in RIDASH is false", hasAccessibilityRight(legacyRights, CBS_RECORD_FUNCTIONS.LIST) === false);
-assert("hasAccessibilityRight(D) in lookup profile is false", hasAccessibilityRight(lookupRights, CBS_RECORD_FUNCTIONS.DELETE) === false);
+assert(
+  "hasAccessibilityRight(S) in RIDASHL",
+  hasAccessibilityRight(fullRights, CBS_RECORD_FUNCTIONS.SEE) === true,
+);
+assert(
+  "hasAccessibilityRight(L) in RIDASHL",
+  hasAccessibilityRight(fullRights, CBS_RECORD_FUNCTIONS.LIST) === true,
+);
+assert(
+  "hasAccessibilityRight(L) in RIDASH is false",
+  hasAccessibilityRight(legacyRights, CBS_RECORD_FUNCTIONS.LIST) === false,
+);
+assert(
+  "hasAccessibilityRight(D) in lookup profile is false",
+  hasAccessibilityRight(lookupRights, CBS_RECORD_FUNCTIONS.DELETE) === false,
+);
 
 console.log("\n========================================================");
 const allPassed = reports.every((r) => r.passed);

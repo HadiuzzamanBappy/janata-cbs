@@ -1,7 +1,7 @@
-/**
- * Terminal Command Executor: The Heart of the Command Gateway
- * Handles Parse -> Validate -> Target Routing -> Tab / Popup Spawning
- */
+// ============================================================================
+// Terminal Command Executor: The Heart of the Command Gateway
+// Handles Parse -> Validate -> Target Routing -> Tab / Popup Spawning
+// ============================================================================
 
 import { toast } from "@/components/ui/toast";
 import { parseCbsCommand } from "../engine/grammar";

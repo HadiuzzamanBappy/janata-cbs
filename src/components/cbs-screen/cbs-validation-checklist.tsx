@@ -11,8 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { CbsScreenValidationError } from "../types";
-import { focusFormField } from "../utils/focus-field";
+import type { CbsScreenValidationError } from "@/lib/cbs-screen";
+import { focusFormField } from "@/lib/cbs-screen";
 
 export interface CbsValidationChecklistProps<TTab extends string = string> {
   errors: CbsScreenValidationError<TTab>[];

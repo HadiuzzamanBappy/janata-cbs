@@ -5,10 +5,12 @@ import { auditDataSchema } from "./common-schema";
 /* Canonical Domain Schemas & Contracts for Model Config Designer             */
 /* -------------------------------------------------------------------------- */
 
+/** Supported primitive data types for dynamic CBS table model attributes. */
 export const propertyTypeSchema = z.enum(["Text", "Number", "Date", "Boolean"]);
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
 export const PROPERTY_TYPES = propertyTypeSchema.options;
 
+/** Column attribute descriptor defining data structure, constraints, and masks for model properties. */
 export const modelPropertySchema = z.object({
   sn: z.string(),
   name: z.string().min(1, "Field name is required"),
@@ -28,6 +30,7 @@ export const modelPropertySchema = z.object({
 
 export type ModelProperty = z.infer<typeof modelPropertySchema>;
 
+/** Metamodel table definition record stored in the `MODEL.CONFIG` control table. */
 export const modelConfigRecordSchema = z.object({
   recordId: z.string().min(1, "Model Table ID is required"),
   tableName: z.string().default(""),
@@ -63,6 +66,7 @@ export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
 /* Model Config Screen Validation Errors                                      */
 /* -------------------------------------------------------------------------- */
 
+/** Screen validation error mapped to tab headers and field serial numbers. */
 export interface ValidationErrorItem {
   id: string;
   tab: "general" | "fields" | "audit";

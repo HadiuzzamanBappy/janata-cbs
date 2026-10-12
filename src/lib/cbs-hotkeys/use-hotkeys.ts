@@ -2,17 +2,21 @@
 
 import { useEffect, useRef } from "react";
 
+/* -------------------------------------------------------------------------- */
+/* Hotkey Contract Types                                                      */
+/* -------------------------------------------------------------------------- */
+
 export type KeyCombo = string;
 
 export interface HotkeyOptions {
   /** Prevent default browser behavior (default: true) */
-  preventDefault?: boolean;
+  readonly preventDefault?: boolean;
   /** Stop event propagation (default: true) */
-  stopPropagation?: boolean;
+  readonly stopPropagation?: boolean;
   /** Enable hotkey even when focused inside an input, textarea, or contentEditable (default: false) */
-  enableOnFormTags?: boolean;
+  readonly enableOnFormTags?: boolean;
   /** Conditionally enable or disable the hotkey handler (default: true) */
-  enabled?: boolean;
+  readonly enabled?: boolean;
 }
 
 interface ParsedShortcut {
@@ -23,6 +27,10 @@ interface ParsedShortcut {
   shift: boolean;
   exactCombo: string;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Key Event Parsing & DOM Target Helpers                                     */
+/* -------------------------------------------------------------------------- */
 
 function parseShortcut(combo: string): ParsedShortcut {
   const parts = combo
@@ -64,13 +72,13 @@ function isFormElement(element: EventTarget | null): boolean {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Generic Hotkey Hook                                                        */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Modern keyboard shortcut hook supporting combos (e.g. 'ctrl+k', 'alt+shift+n', 'ctrl+w', 'escape').
  * Designed for banking/CBS hotkeys, modal triggers, and tab operations.
- *
- * @param combo The shortcut definition string (e.g. 'ctrl+k', 'alt+s', 'f2', 'escape')
- * @param handler Callback to fire when shortcut is pressed
- * @param options Behavior modifiers (form tag handling, prevent default, enable flags)
  */
 export function useHotkeys(
   combo: KeyCombo,

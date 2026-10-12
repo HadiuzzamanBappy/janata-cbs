@@ -1,12 +1,12 @@
-/**
- * CBS Command Gateway Public Facade
- *
- * Parallel to `cbs-client`, `cbsCommand` is the single front door for:
- * - Parsing CBS formulas (including Comma Versions & authLevel 0)
- * - Pre-execution RBAC security checks
- * - Executing commands across tabs, multi-monitor popups, and modal dialogs
- * - Master alias mapping
- */
+// ============================================================================
+// CBS Command Gateway Public Facade
+//
+// Parallel to `cbs-client`, `cbsCommand` is the single front door for:
+// - Parsing CBS formulas (including Comma Versions & authLevel 0)
+// - Pre-execution RBAC security checks
+// - Executing commands across tabs, multi-monitor popups, and modal dialogs
+// - Master alias mapping
+// ============================================================================
 
 import { parseCbsCommand } from "./engine/grammar";
 import { validateSecurityPermissions } from "./engine/validator";

@@ -7,12 +7,12 @@ import {
   DEFAULT_AUDIT_FIELDS,
   DEFAULT_AUDIT_SECTIONS,
   extractAuditValue,
-} from "../config/audit-schema";
+} from "@/lib/cbs-screen";
 
 export interface CbsAuditTabProps {
   formData: unknown;
-  sections?: AuditSectionDef[];
-  fields?: AuditFieldDef[];
+  sections?: readonly AuditSectionDef[];
+  fields?: readonly AuditFieldDef[];
   className?: string;
 }
 

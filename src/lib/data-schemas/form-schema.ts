@@ -5,6 +5,7 @@ import { type EnquiryColumn, enquiryColumnSchema } from "./common-schema";
 /* Raw gRPC Payload Schemas (Boundary Validation for GMC)                     */
 /* -------------------------------------------------------------------------- */
 
+/** Validates raw field property definitions emitted by the CBS GMC backend. */
 export const rawPropertyRecordSchema = z.object({
   name: z.string().optional(),
   label: z.string().optional(),
@@ -27,6 +28,10 @@ export const rawPropertyRecordSchema = z.object({
 
 export type RawPropertyRecord = z.infer<typeof rawPropertyRecordSchema>;
 
+/**
+ * Recursive raw configuration envelope for Generic Model Configuration (GMC).
+ * Holds data dictionary attributes, ID generation specs, and property lists.
+ */
 export type RawPropertyConfigRecord = {
   record?: RawPropertyConfigRecord;
   devBy?: string;
@@ -85,12 +90,15 @@ export const rawPropertyConfigSchema: z.ZodType<RawPropertyConfigRecord> = z.laz
 /* Canonical Internal UI & Domain Schemas (Form & Enquiry Specs)              */
 /* -------------------------------------------------------------------------- */
 
+/** Supported input field types for generic dynamic forms. */
 export const fieldTypeSchema = z.enum(["text", "number", "date", "select"]);
 export type FieldType = z.infer<typeof fieldTypeSchema>;
 
+/** Responsive grid column width allocation for dynamic form fields. */
 export const fieldWidthSchema = z.enum(["xs", "sm", "md", "lg"]);
 export type FieldWidth = z.infer<typeof fieldWidthSchema>;
 
+/** Canonical UI specification for a single dynamic input field. */
 export const formFieldSchema = z.object({
   name: z.string(),
   label: z.string(),
@@ -104,6 +112,7 @@ export const formFieldSchema = z.object({
 
 export type FormField = z.infer<typeof formFieldSchema>;
 
+/** Complete canonical UI form definition for CBS maintenance screens. */
 export const formSchemaSchema = z.object({
   code: z.string(),
   title: z.string(),

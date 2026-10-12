@@ -4,9 +4,10 @@ import { Lock } from "lucide-react";
 import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useCbsAccess } from "@/lib/cbs-access";
-import type { CbsScreenMode, CbsScreenValidationError } from "../types";
+import type { CbsScreenMode, CbsScreenValidationError } from "@/lib/cbs-screen";
+import type { MoreActionItem } from "@/lib/cbs-screen/types";
 import { ActionButtons } from "./action-buttons";
-import { ActionMoreMenu, type MoreActionItem } from "./action-more-menu";
+import { ActionMoreMenu } from "./action-more-menu";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
 import { RecordLookupBar } from "./record-lookup-bar";
 

@@ -1,9 +1,14 @@
 import "server-only";
+
 import { randomUUID } from "node:crypto";
 import { appConfig, getService, REQUEST_TYPE_OVERLAYS } from "@/lib/core-config/server";
 import { grpcProcess, grpcStatusToHttp, type ProcessKind } from "@/lib/infra-grpc/client";
 import type { GrpcRequest } from "@/lib/infra-grpc/generated/service";
 import type { ApiResponse, GrpcEnvelope } from "@/types";
+
+/* -------------------------------------------------------------------------- */
+/* Classification & Overlay Helpers                                           */
+/* -------------------------------------------------------------------------- */
 
 const FINANCIAL_REQUEST_TYPES = new Set(
   appConfig.grpc.financialTransactionTypes.map((s) => s.trim().toUpperCase()),
@@ -11,9 +16,6 @@ const FINANCIAL_REQUEST_TYPES = new Set(
 
 /**
  * Classifies an incoming transaction into financial or nonfinancial category.
- *
- * @param requestType - CBS transaction request type code (e.g. 'AFT', 'ACT', 'GRL').
- * @returns 'financial' if requiring idempotency and ledger mutation semantics, else 'nonfinancial'.
  */
 function classify(requestType: string): ProcessKind {
   return FINANCIAL_REQUEST_TYPES.has(requestType.toUpperCase()) ? "financial" : "nonfinancial";
@@ -21,10 +23,6 @@ function classify(requestType: string): ProcessKind {
 
 /**
  * Resolves specialized domain command overlays based on control keyword tokens.
- *
- * @param controlName - Control tag identifier (e.g. "USER,LIST", "FUNDS.TRANSFER").
- * @param originalType - Default request type code.
- * @returns Overlaid request type code if matched, otherwise the original code.
  */
 function resolveRequestType(controlName: string | undefined, originalType: string): string {
   if (!controlName) return originalType;
@@ -39,14 +37,12 @@ function resolveRequestType(controlName: string | undefined, originalType: strin
   return originalType;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Transport Executions                                                       */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Dispatches an envelope via binary gRPC transport channel.
- *
- * @param address - Backend gRPC host address.
- * @param kind - 'financial' or 'nonfinancial' process classification.
- * @param envelope - Session-enriched gRPC envelope.
- * @param token - Authenticated user bearer token.
- * @returns Standardized ApiResponse.
  */
 async function executeGrpcTransport(
   address: string,
@@ -81,12 +77,6 @@ async function executeGrpcTransport(
 
 /**
  * Dispatches an envelope via downstream HTTP REST microservice.
- * Safely guards against non-JSON reverse proxy error pages (e.g., 502/504 Bad Gateway).
- *
- * @param baseUrl - Base URL for the downstream REST service.
- * @param envelope - Session-enriched envelope.
- * @param token - Authenticated user bearer token.
- * @returns Standardized ApiResponse.
  */
 async function executeRestTransport(
   baseUrl: string,
@@ -127,14 +117,13 @@ async function executeRestTransport(
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* Public Dispatcher API                                                      */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Universal CBS Request Dispatcher.
- * Dynamically routes requests across either binary gRPC or HTTP REST microservices
- * based on registry protocol metadata and transaction overrides.
- *
- * @param envelope - Enriched transaction payload with officer session details.
- * @param token - Authenticated session bearer token.
- * @returns Standardized ApiResponse contract.
+ * Dynamically routes requests across either binary gRPC or HTTP REST microservices.
  */
 export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<ApiResponse> {
   try {

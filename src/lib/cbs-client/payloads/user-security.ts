@@ -6,6 +6,10 @@ import {
   DEFAULT_SERVICE_PATH,
 } from "@/types";
 
+/* -------------------------------------------------------------------------- */
+/* Staff Security & Credential Payload Builders                               */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Domain payload builders for Staff Password Reset and Account Security.
  */

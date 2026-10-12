@@ -1,6 +1,6 @@
-/**
- * RBAC Validation & Security Contracts for CBS Command Gateway
- */
+// ============================================================================
+// RBAC Validation & Security Contracts for CBS Command Gateway
+// ============================================================================
 
 import type { CbsRecordFunction } from "@/types";
 
@@ -9,11 +9,11 @@ import type { CbsRecordFunction } from "@/types";
  */
 export interface CommandValidationResult {
   /** True if the user has clearance to execute this command */
-  allowed: boolean;
+  readonly allowed: boolean;
   /** Human-readable explanation if access is blocked */
-  reason?: string;
+  readonly reason?: string;
   /** The specific RIDASH function right the user is missing (e.g. 'D', 'A') */
-  requiredRight?: CbsRecordFunction;
+  readonly requiredRight?: CbsRecordFunction;
 }
 
 /**
@@ -22,13 +22,13 @@ export interface CommandValidationResult {
  */
 export interface UserSecurityProfile {
   /** Unique ID of the authenticated user */
-  userId?: string;
+  readonly userId?: string;
   /** Whether the user has permission to use the terminal command line */
-  commandLine?: boolean;
+  readonly commandLine?: boolean;
   /** Raw accessibility string from CBS profile (e.g. "RIDASH" or "RS") */
-  accessibility?: string;
+  readonly accessibility?: string;
   /** Parsed array of allowed function codes (e.g. ["R", "I", "S"]) */
-  functionRights?: string[];
+  readonly functionRights?: readonly string[];
   /** Roles assigned to the user (e.g. ["TELLER", "ADMIN"]) */
-  userRole?: string[];
+  readonly userRole?: readonly string[];
 }

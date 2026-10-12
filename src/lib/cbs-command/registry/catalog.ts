@@ -1,7 +1,7 @@
-/**
- * Master Static Command Definitions
- * Lean MVP: clean canonical command names without legacy prefixes + 1 short alias.
- */
+// ============================================================================
+// Master Static Command Definitions
+// Lean MVP: clean canonical command names without legacy prefixes + 1 short alias.
+// ============================================================================
 
 import type { MenuItem, SystemCommandItem } from "@/lib/data-schemas";
 

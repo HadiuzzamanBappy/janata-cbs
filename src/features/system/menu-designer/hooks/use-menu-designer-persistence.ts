@@ -1,6 +1,6 @@
 "use client";
 
-import { useCbsPersistence } from "@/lib/cbs-screen";
+import { useCbsPersistence } from "@/components/cbs-screen";
 import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 import { menuTreeRecordSchema } from "@/lib/data-schemas/menu-designer-schema";
 

@@ -1,31 +1,43 @@
+// ============================================================================
+// Core CBS Screen Blueprint & Scaffold Contracts
+//
+// Defines layout models, tabs, audit footers, validation errors, and
+// component signatures for all CBS screens and workbenches.
+// ============================================================================
+
 import type * as React from "react";
 import type { z } from "zod";
-import type { CbsScreenMode } from "@/types";
-import type { MoreActionItem } from "./components/action-more-menu";
+import type { AuditData } from "@/lib/data-schemas";
+import type { CbsRecordFunction, CbsScreenMode } from "@/types";
 
 export type { CbsScreenMode };
 
-export interface CbsScreenValidationError<TTab extends string = string> {
-  id: string;
-  tab: TTab;
-  fieldKey: string;
-  message: string;
-  nodeId?: string;
+export interface MoreActionItem {
+  readonly label: string;
+  readonly command?: string;
+  readonly onClick: () => void;
+  readonly requiredRight?: CbsRecordFunction;
 }
 
-import type { AuditData } from "@/lib/data-schemas";
+export interface CbsScreenValidationError<TTab extends string = string> {
+  readonly id: string;
+  readonly tab: TTab;
+  readonly fieldKey: string;
+  readonly message: string;
+  readonly nodeId?: string;
+}
 
 export type CbsAuditRawData = AuditData & {
-  [key: string]: unknown;
+  readonly [key: string]: unknown;
 };
 
 export interface CbsAuditFooterData {
-  recordStatus?: string;
-  currNo?: number;
-  inputter?: string;
-  dateTime?: string;
-  authoriser?: string;
-  coCode?: string;
+  readonly recordStatus?: string;
+  readonly currNo?: number;
+  readonly inputter?: string;
+  readonly dateTime?: string;
+  readonly authoriser?: string;
+  readonly coCode?: string;
 }
 
 export interface CbsPersistenceOptions<TRecord> {

@@ -1,73 +1,64 @@
 import "server-only";
-import { appConfig, getServiceUrl } from "@/lib/core-config/server";
+
+import { appConfig } from "@/lib/core-config/server";
 import { parseGMC } from "@/lib/data-parsers";
 import type { FormSchema } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
-import { getOrSet, getSession } from "@/lib/infra-redis";
-import { getStaticFormPayload } from "./static-provider";
+import { getOrSet } from "@/lib/infra-redis";
+import { CBS_RECORD_FUNCTIONS, CbsRequestType } from "@/types/cbs";
+import { getMockFormPayload } from "./mock-service";
+import {
+  DEFAULT_AUTH_LEVEL,
+  GRPC_SERVICE_CATEGORY,
+  normalizeCommand,
+  resolveServiceContext,
+} from "./service-context";
 
-const SPEC_TTL_SECONDS = appConfig.redis.specTtlSeconds;
-const MODEL_REQUEST_TYPE = "GMC";
-const MODEL_CONTROL_NAME = "?";
-const MODEL_RECORD_FUNCTION = "S";
+async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Promise<unknown> {
+  if (appConfig.modelSource === "static") return getMockFormPayload(cleanCmd);
 
-async function fetchModelWirePayload(command: string, tokenParam?: string): Promise<unknown> {
-  const cleanCmd = command.split(",")[0].trim().toUpperCase();
-
-  if (appConfig.modelSource === "static") {
-    return getStaticFormPayload(cleanCmd);
-  }
-
-  const session = await getSession();
-  const token = tokenParam || session?.token;
-  if (!token) {
-    throw new Error(
-      `UNAUTHENTICATED: No valid session token available for gRPC schema fetch (${cleanCmd})`,
-    );
-  }
-
-  const userId = session?.userId || session?.currUser?.userId || "SYSUSER";
-  const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
-  const address = getServiceUrl("default");
-
+  const ctx = await resolveServiceContext(tokenParam);
   const res = await grpcProcess(
-    address,
-    "nonfinancial",
+    ctx.address,
+    GRPC_SERVICE_CATEGORY,
     {
       idempotencyKey: "",
-      clientId: appConfig.grpc.clientId,
-      requestType: MODEL_REQUEST_TYPE,
-      controlName: MODEL_CONTROL_NAME,
-      recordFunction: MODEL_RECORD_FUNCTION,
+      clientId: ctx.clientId,
+      requestType: CbsRequestType.GMC,
+      controlName: "?",
+      recordFunction: CBS_RECORD_FUNCTIONS.SEE,
       recordId: cleanCmd,
-      branchCode,
-      authLevel: 1,
-      userId,
+      branchCode: ctx.branchCode,
+      authLevel: DEFAULT_AUTH_LEVEL,
+      userId: ctx.userId,
       data: {},
     },
-    { token },
+    { token: ctx.token },
   );
 
   if (res.statusCode !== 200 || !res.data) {
     throw new Error(
-      `gRPC GMC fetch failed for ${cleanCmd} with status code ${res.statusCode}: ${res.message || "No data returned"}`,
+      `gRPC GMC fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`,
     );
   }
 
   return res.data;
 }
 
+/**
+ * Retrieves the screen schema specification for a dynamic CBS transaction form (cached in Redis).
+ */
 export async function getFormData(command: string, token?: string): Promise<FormSchema | null> {
-  const cleanCommand = command.toUpperCase();
-  const cacheKey = `spec:${cleanCommand}`;
+  const cleanCmd = normalizeCommand(command);
+
   return getOrSet(
-    cacheKey,
+    appConfig.redis.cacheKeys.formSpec(cleanCmd),
     async () => {
-      const wireData = await fetchModelWirePayload(cleanCommand, token);
+      const wireData = await fetchModelWirePayload(cleanCmd, token);
       if (!wireData) return null;
-      const parseResult = parseGMC(wireData, cleanCommand);
+      const parseResult = parseGMC(wireData, cleanCmd);
       return parseResult.success ? parseResult.data : null;
     },
-    SPEC_TTL_SECONDS,
+    appConfig.redis.specTtlSeconds,
   );
 }

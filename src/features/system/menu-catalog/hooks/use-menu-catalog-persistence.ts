@@ -1,6 +1,6 @@
 "use client";
 
-import { useCbsPersistence } from "@/lib/cbs-screen";
+import { useCbsPersistence } from "@/components/cbs-screen";
 import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-catalog-schema";
 import { menuCatalogRecordSchema } from "@/lib/data-schemas/menu-catalog-schema";
 

@@ -1,16 +1,15 @@
 import "server-only";
+
 import Redis from "ioredis";
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 
 const redisLogger = logger.withContext("REDIS");
 
-/**
- * Redis client with circuit breaker and fail-open guarantees.
- * Ensures that Redis outages never bring down core banking application flows.
- */
+/* -------------------------------------------------------------------------- */
+/* Circuit Breaker & Connection State                                         */
+/* -------------------------------------------------------------------------- */
 
-const URL = appConfig.redis.url;
 const PREFIX = appConfig.redis.keyPrefix;
 const ENABLED = appConfig.redis.enabled;
 const COOLDOWN_MS = appConfig.redis.cooldownMs;
@@ -31,6 +30,10 @@ declare global {
   var __redisClient: Client | null | undefined;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Redis Client Lifecycle                                                     */
+/* -------------------------------------------------------------------------- */
+
 export function getRedisClient(): Client | null {
   if (!ENABLED) return null;
 
@@ -39,7 +42,7 @@ export function getRedisClient(): Client | null {
   }
 
   try {
-    const client = new Redis(URL, {
+    const client = new Redis(appConfig.redis.url, {
       enableOfflineQueue: true,
       maxRetriesPerRequest: 1,
       connectTimeout: 1000,
@@ -51,7 +54,7 @@ export function getRedisClient(): Client | null {
     client.on("error", (error) => {
       if (!client.__warned) {
         client.__warned = true;
-        redisLogger.warn(`Redis unavailable, serving from core: ${error.message}`);
+        redisLogger.warn(`Redis unavailable, failing open: ${error.message}`);
       }
       tripCircuit();
     });
@@ -59,7 +62,7 @@ export function getRedisClient(): Client | null {
     client.on("ready", () => {
       client.__warned = false;
       openUntil = 0;
-      redisLogger.info(`Redis connected successfully at ${URL}`);
+      redisLogger.info(`Redis connected successfully at ${appConfig.redis.url}`);
     });
 
     globalThis.__redisClient = client;
@@ -71,10 +74,20 @@ export function getRedisClient(): Client | null {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Centralized Key Namespacing & Safe Operations                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Returns a fully namespaced Redis key using the canonical key prefix (`cbs:...`).
+ */
 export function cacheKey(...parts: string[]): string {
   return [PREFIX, ...parts].join(":");
 }
 
+/**
+ * Safe JSON retrieval with automatic circuit breaker gating.
+ */
 export async function cacheGet<T>(key: string): Promise<T | null> {
   if (circuitOpen()) return null;
 
@@ -90,6 +103,9 @@ export async function cacheGet<T>(key: string): Promise<T | null> {
   }
 }
 
+/**
+ * Safe JSON persistence with automatic circuit breaker gating.
+ */
 export async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promise<void> {
   if (circuitOpen()) return;
 
@@ -103,6 +119,9 @@ export async function cacheSet(key: string, value: unknown, ttlSeconds: number):
   }
 }
 
+/**
+ * Safe key deletion supporting single keys or SCAN-based pattern deletions.
+ */
 export async function cacheDelete(pattern: string): Promise<number> {
   const redis = getRedisClient();
   if (!redis) return 0;
@@ -126,16 +145,4 @@ export async function cacheDelete(pattern: string): Promise<number> {
   } catch {
     return 0;
   }
-}
-
-/** In-process single-flight request deduplication wrapper */
-const inflight = new Map<string, Promise<unknown>>();
-
-export function singleFlight<T>(key: string, run: () => Promise<T>): Promise<T> {
-  const pending = inflight.get(key) as Promise<T> | undefined;
-  if (pending) return pending;
-
-  const promise = run().finally(() => inflight.delete(key));
-  inflight.set(key, promise);
-  return promise;
 }

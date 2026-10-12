@@ -9,10 +9,12 @@ import { auditDataSchema } from "./common-schema";
 /*   3. menuType (SN: 3, Type: Text, Length: 50)                               */
 /* -------------------------------------------------------------------------- */
 
+/** Functional menu category classification for CBS application catalog entries. */
 export const menuTypeSchema = z.enum(["SCREEN", "INQUIRY", "REPORT", "SUBMENU", "EXTERNAL"]);
 export type MenuType = z.infer<typeof menuTypeSchema>;
 export const MENU_TYPES = menuTypeSchema.options;
 
+/** Menu item record contract persisted in the `SC.MENU` control table. */
 export const menuCatalogRecordSchema = z.object({
   recordId: z.string().min(1, "Menu ID is required"),
   label: z.string().min(1, "Menu Label is required").max(250, "Max 250 characters"),
@@ -33,6 +35,7 @@ export type MenuCatalogRecord = z.infer<typeof menuCatalogRecordSchema>;
 /* Menu Catalog Screen Validation Errors                                      */
 /* -------------------------------------------------------------------------- */
 
+/** Screen-level validation error item mapped to UI tab headers. */
 export interface MenuValidationErrorItem {
   id: string;
   tab: "general" | "audit";

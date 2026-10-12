@@ -1,6 +1,10 @@
 import { type UserGroupRecord, userGroupRecordSchema } from "@/lib/data-schemas/user-group-schema";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
+/* -------------------------------------------------------------------------- */
+/* String List Normalization Helper                                           */
+/* -------------------------------------------------------------------------- */
+
 function normalizeStringList(val: unknown): string[] {
   if (Array.isArray(val)) {
     return val
@@ -28,6 +32,10 @@ function normalizeStringList(val: unknown): string[] {
   return [];
 }
 
+/* -------------------------------------------------------------------------- */
+/* Single Record Parser                                                       */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Parses raw gRPC or JSON response into a validated canonical UserGroupRecord.
  */
@@ -41,7 +49,6 @@ export function parseUserGroupRecord(input: unknown): {
     groupLabel: "",
     menuIds: [],
     roleIds: [],
-    isActive: true,
   };
 
   if (!input || typeof input !== "object") {
@@ -63,7 +70,7 @@ export function parseUserGroupRecord(input: unknown): {
     groupLabel: String(dataObj.groupLabel || dataObj.label || "").trim(),
     menuIds: normalizeStringList(dataObj.menuIds),
     roleIds: normalizeStringList(dataObj.roleIds),
-    isActive: dataObj.isActive !== undefined ? Boolean(dataObj.isActive) : true,
+    isActive: dataObj.isActive !== undefined ? Boolean(dataObj.isActive) : undefined,
     auditData: (dataObj.auditData as UserGroupRecord["auditData"]) || undefined,
   };
 
@@ -82,6 +89,10 @@ export function parseUserGroupRecord(input: unknown): {
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* List Parser                                                                */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Parses a collection of UserGroupRecord items.
  */
@@ -93,17 +104,9 @@ export function parseUserGroupList(input: unknown): {
   if (!input) return { success: true, data: [] };
 
   const rawList = unwrapRecordsPayload(input);
-  const targetList =
-    rawList.length > 0
-      ? rawList
-      : Array.isArray(input)
-        ? input
-        : typeof input === "object"
-          ? Object.values(input as Record<string, unknown>)
-          : [];
-
   const parsedList: UserGroupRecord[] = [];
-  for (const item of targetList) {
+
+  for (const item of rawList) {
     const parsed = parseUserGroupRecord(item);
     if (parsed.success && parsed.data.recordId) {
       parsedList.push(parsed.data);
@@ -115,6 +118,10 @@ export function parseUserGroupList(input: unknown): {
     data: parsedList,
   };
 }
+
+/* -------------------------------------------------------------------------- */
+/* Wire Serializer                                                            */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Safe serialization of UserGroupRecord to wire format for CBS PUT operations.
@@ -128,7 +135,7 @@ export function serializeUserGroupToWireJson(record: UserGroupRecord): Record<st
     groupLabel: data.groupLabel,
     menuIds: data.menuIds || [],
     roleIds: data.roleIds || [],
-    isActive: data.isActive !== undefined ? data.isActive : true,
+    ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
     ...(data.auditData ? { auditData: data.auditData } : {}),
   };
 }

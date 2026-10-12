@@ -1,18 +1,18 @@
-/**
- * CBS Command Grammar Parser
- *
- * Implements standard Core Banking command grammar:
- * 1. Base Application:          USER                   -> Mode: IDLE, AuthLevel: 1
- * 2. Comma Version (Auto-Auth): USER,                  -> Mode: CREATE, AuthLevel: 0 (Admin Auto-Auth direct entry)
- * 3. Version of Model:          USER,1001 / USER,ADMIN -> Version: 1001, Mode: CREATE/IDLE, AuthLevel: 1
- * 4. Record Lookup:             USER 1001              -> RecordId: 1001, Mode: EDIT, AuthLevel: 1
- * 5. Explicit Function:         USER I 1001            -> Function: I, Mode: CREATE, AuthLevel: 1
- *                               USER S 1001            -> Function: S, Mode: VIEW, AuthLevel: 1
- *                               USER A 1001            -> Function: A, Mode: EDIT, AuthLevel: 1
- * 6. Inquiry:                   INQ USER.LIST          -> Type: INQUIRY, Mode: VIEW, AuthLevel: 1
- * 7. Settings Modal:            SETTINGS:PROFILE       -> Type: SETTINGS, Tab: profile
- * 8. System Action:             ACTION:LOGOUT          -> Type: ACTION, Action: logout
- */
+// ============================================================================
+// CBS Command Grammar Parser
+//
+// Implements standard Core Banking command grammar:
+// 1. Base Application:          USER                   -> Mode: IDLE, AuthLevel: 1
+// 2. Comma Version (Auto-Auth): USER,                  -> Mode: CREATE (I), AuthLevel: 0 (Admin Auto-Auth direct entry)
+// 3. Version of Model:          USER,1001 / USER,ADMIN -> Version: 1001, Mode: CREATE/IDLE, AuthLevel: 1
+// 4. Record Lookup:             USER 1001              -> RecordId: 1001, Mode: EDIT (I), AuthLevel: 1
+// 5. Explicit Function:         USER I 1001            -> Function: I, Mode: I, AuthLevel: 1
+//                               USER S 1001            -> Function: S, Mode: S, AuthLevel: 1
+//                               USER A 1001            -> Function: A, Mode: A, AuthLevel: 1
+// 6. Inquiry:                   INQ USER.LIST          -> Type: INQUIRY, Mode: S, AuthLevel: 1
+// 7. Settings Modal:            SETTINGS:PROFILE       -> Type: SETTINGS, Tab: profile
+// 8. System Action:             ACTION:LOGOUT          -> Type: ACTION, Action: logout
+// ============================================================================
 
 import type { CbsRecordFunction } from "@/types";
 import { resolveCommandAlias, resolveCommandTitle } from "../registry/alias";

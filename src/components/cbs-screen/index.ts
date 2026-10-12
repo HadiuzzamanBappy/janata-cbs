@@ -8,4 +8,5 @@ export * from "./cbs-inquiry-header";
 export * from "./cbs-json-viewer-tab";
 export * from "./cbs-screen-scaffold";
 export * from "./cbs-validation-checklist";
+export * from "./hooks/use-cbs-persistence";
 export * from "./record-lookup-bar";

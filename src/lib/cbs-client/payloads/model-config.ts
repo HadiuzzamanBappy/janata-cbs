@@ -6,6 +6,10 @@ import {
   DEFAULT_SERVICE_PATH,
 } from "@/types";
 
+/* -------------------------------------------------------------------------- */
+/* Model Config (Data Dictionary) Payload Builders                            */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Domain payload builders for Schema / Data Dictionary Designer (MODEL.CONFIG).
  */

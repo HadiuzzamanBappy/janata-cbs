@@ -10,7 +10,7 @@
  * H: History   - Inspect historical revisions ($HIS)
  */
 
-export const CBS_FUNCTION_CODES = ["S", "I", "D", "A", "R", "H"] as const;
+export const CBS_FUNCTION_CODES = ["S", "I", "D", "A", "R", "H", "L"] as const;
 
 export type CbsRecordFunction = (typeof CBS_FUNCTION_CODES)[number];
 
@@ -21,6 +21,7 @@ export const CBS_RECORD_FUNCTIONS = {
   AUTHORIZE: "A",
   REVERSE: "R",
   HISTORY: "H",
+  LIST: "L",
 } as const;
 
 export const CbsRecordFunction = CBS_RECORD_FUNCTIONS;
@@ -75,6 +76,13 @@ export const CBS_FUNCTION_DEFINITIONS = {
     label: "History",
     description: "Inspect historical revisions ($HIS)",
     realWorldEffect: "Audits prior version snapshots and historical deltas",
+  },
+  L: {
+    code: "L",
+    name: "LIST",
+    label: "List / Directory",
+    description: "Query and list multiple records",
+    realWorldEffect: "Fetches table catalog or directory rows without row locking",
   },
 } as const satisfies Record<CbsRecordFunction, CbsFunctionDefinition>;
 
@@ -163,6 +171,8 @@ export const CBS_RECORD_STATUS_DEFINITIONS: Record<
  * Defines the active control table identifiers recognized by the CBS client.
  */
 export const CbsControlTable = {
+  BRANCH: "BRANCH",
+  CONTROL: "CONTROL",
   MENU: "SC.MENU",
   MENU_TREE: "SC.MENU.TREE",
   USER_GROUP: "SC.USER.GROUP",

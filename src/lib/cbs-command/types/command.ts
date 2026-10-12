@@ -1,12 +1,12 @@
-/**
- * Core Type Definitions & Contracts for CBS Command Gateway
- *
- * Organized in 4 logical chapters:
- * 1. Command Modes & Categories
- * 2. Authentic CBS RIDASH Function Rights
- * 3. Quick System Actions & Settings Modal Tabs
- * 4. Master ParsedCommand Contract (The AST)
- */
+// ============================================================================
+// Core Type Definitions & Contracts for CBS Command Gateway
+//
+// Organized into 4 chapters:
+// 1. Command Modes & Categories
+// 2. Authentic CBS RIDASH Function Rights & Metadata
+// 3. Quick System Actions & Settings Modal Tabs
+// 4. Master ParsedCommand Contract (The AST)
+// ============================================================================
 
 // ============================================================================
 // Chapter 1: Core Command Modes & Categories
@@ -21,7 +21,7 @@ export type CommandType = "FORM" | "INQUIRY" | "SETTINGS" | "ACTION";
 export type ScreenMode = CbsScreenMode;
 
 // ============================================================================
-// Chapter 2: Authentic CBS RIDASH Function Rights
+// Chapter 2: Authentic CBS RIDASH Function Rights & Metadata
 // ============================================================================
 
 import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS, type CbsRecordFunction } from "@/types";
@@ -62,39 +62,39 @@ export type CbsSettingsTabId = (typeof CBS_SETTINGS_TABS)[number];
 export interface ParsedCommand {
   // --- Raw Input ---
   /** Original raw command string typed by the user */
-  raw: string;
+  readonly raw: string;
 
   // --- Classification & Routing ---
   /** High-level category: FORM, INQUIRY, SETTINGS, or ACTION */
-  type: CommandType;
+  readonly type: CommandType;
   /** Application or query identifier (e.g. "USER", "ACCOUNT", "USER.LIST") */
-  application: string;
+  readonly application: string;
   /** Human-readable title for tab header or popup window */
-  title: string;
+  readonly title: string;
 
   // --- CBS Formula Modifiers ---
   /** Version identifier if specified via comma syntax (e.g. "1001" in "USER,1001") */
-  version?: string;
+  readonly version?: string;
   /** True if command used trailing comma (e.g. "USER,") indicating Zero-Auth Comma Version */
-  isCommaVersion?: boolean;
+  readonly isCommaVersion?: boolean;
   /** Authorization level (0 for auto-auth comma versions, 1 for standard operations) */
-  authLevel: number;
+  readonly authLevel: number;
   /** Explicit single-letter function code (R, I, D, A, S, H) */
-  functionCode?: CbsRecordFunction;
+  readonly functionCode?: CbsRecordFunction;
   /** Database record ID if targeted (e.g. "1001" in "USER 1001") */
-  recordId?: string;
-  /** Resulting screen mode for rendering (IDLE, CREATE, EDIT, VIEW) */
-  screenMode: ScreenMode;
+  readonly recordId?: string;
+  /** Resulting screen mode for rendering (IDLE, S, I, D, A, R, H) */
+  readonly screenMode: ScreenMode;
 
   // --- Validation State ---
   /** Whether the command parsed without grammatical errors */
-  isValid: boolean;
+  readonly isValid: boolean;
   /** Error explanation if syntax is invalid */
-  error?: string;
+  readonly error?: string;
 
   // --- Modal & Action Targets ---
   /** Target tab ID if type === "SETTINGS" ("profile", "appearance", "security") */
-  settingsTabId?: CbsSettingsTabId;
+  readonly settingsTabId?: CbsSettingsTabId;
   /** Target action ID if type === "ACTION" ("toggle_theme", "logout") */
-  actionId?: CbsSystemActionId;
+  readonly actionId?: CbsSystemActionId;
 }

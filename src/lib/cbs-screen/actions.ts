@@ -1,47 +1,52 @@
+// ============================================================================
+// CBS Screen Action Bar Capability Engine & Preset Actions
+// ============================================================================
+
 "use client";
 
+import { toast } from "@/components/ui/toast";
 import { useCbsAccess } from "@/lib/cbs-access";
-import type { CbsScreenMode } from "../types";
+import type { CbsScreenMode, MoreActionItem } from "./types";
 
 export interface ActionCapability {
-  enabled: boolean;
-  reason?: string;
+  readonly enabled: boolean;
+  readonly reason?: string;
 }
 
 export interface CbsActionBarCapabilities {
   // Idle state actions
-  amend: ActionCapability;
-  view: ActionCapability;
-  performAction: ActionCapability;
+  readonly amend: ActionCapability;
+  readonly view: ActionCapability;
+  readonly performAction: ActionCapability;
 
   // Active state actions
-  commit: ActionCapability;
-  validate: ActionCapability;
-  hold: ActionCapability;
-  delete: ActionCapability;
-  authorize: ActionCapability;
-  reverse: ActionCapability;
-  process: ActionCapability;
-  returnToSearch: ActionCapability;
+  readonly commit: ActionCapability;
+  readonly validate: ActionCapability;
+  readonly hold: ActionCapability;
+  readonly delete: ActionCapability;
+  readonly authorize: ActionCapability;
+  readonly reverse: ActionCapability;
+  readonly process: ActionCapability;
+  readonly returnToSearch: ActionCapability;
 }
 
 export interface UseCbsActionBarOptions {
-  mode: CbsScreenMode;
-  searchVal?: string;
-  submitting?: boolean;
-  hasRecord?: boolean;
-  isDirty?: boolean;
+  readonly mode: CbsScreenMode;
+  readonly searchVal?: string;
+  readonly submitting?: boolean;
+  readonly hasRecord?: boolean;
+  readonly isDirty?: boolean;
   // Handlers passed from screen
-  onAmend?: () => void;
-  onView?: () => void;
-  onPerformAction?: () => void;
-  onSubmit?: () => void;
-  onValidate?: () => void;
-  onHold?: () => void;
-  onDelete?: () => void;
-  onAuthorizeReverse?: () => void;
-  onProcessAction?: () => void;
-  onReturnToSearch?: () => void;
+  readonly onAmend?: () => void;
+  readonly onView?: () => void;
+  readonly onPerformAction?: () => void;
+  readonly onSubmit?: () => void;
+  readonly onValidate?: () => void;
+  readonly onHold?: () => void;
+  readonly onDelete?: () => void;
+  readonly onAuthorizeReverse?: () => void;
+  readonly onProcessAction?: () => void;
+  readonly onReturnToSearch?: () => void;
 }
 
 /**
@@ -184,4 +189,64 @@ export function useCbsActionBar({
     process: { enabled: processEnabled },
     returnToSearch: { enabled: returnToSearchEnabled },
   };
+}
+
+/**
+ * Standard preset More Actions menu items for CBS form screens.
+ */
+export function getDefaultMoreActions(code: string): MoreActionItem[] {
+  const cleanCode = (code || "RECORD").trim().toUpperCase();
+
+  return [
+    {
+      label: "List Live File",
+      onClick: () =>
+        toast.add({
+          title: "Inquiry",
+          description: `Listing active live records for ${cleanCode}`,
+          type: "info",
+        }),
+      requiredRight: "S",
+    },
+    {
+      label: "List Unauth File",
+      onClick: () =>
+        toast.add({
+          title: "Inquiry",
+          description: `Listing unauthorized records for ${cleanCode}`,
+          type: "info",
+        }),
+      requiredRight: "S",
+    },
+    {
+      label: "List History File",
+      onClick: () =>
+        toast.add({
+          title: "Inquiry",
+          description: `Fetching history records for ${cleanCode}`,
+          type: "info",
+        }),
+      requiredRight: "R",
+    },
+    {
+      label: "Search Live File",
+      onClick: () =>
+        toast.add({
+          title: "Search",
+          description: `Opening Live File search dialog for ${cleanCode}`,
+          type: "info",
+        }),
+      requiredRight: "S",
+    },
+    {
+      label: "Search Unauth File",
+      onClick: () =>
+        toast.add({
+          title: "Search",
+          description: `Opening Unauthorized File search dialog for ${cleanCode}`,
+          type: "info",
+        }),
+      requiredRight: "S",
+    },
+  ];
 }

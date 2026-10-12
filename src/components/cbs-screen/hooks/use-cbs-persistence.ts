@@ -1,15 +1,21 @@
+// ============================================================================
+// Universal Dual-Layer Persistence Hook for CBS Screens & Workbench Tabs
+//
+// Supports:
+//  1. Props (initialId)
+//  2. URL Query parameters (detached popup / deep link)
+//  3. Direct Zustand workbench store subscription (Level 4 Component Hook)
+// ============================================================================
+
 "use client";
 
 import * as React from "react";
+import type { CbsPersistenceOptions, CbsScreenMode } from "@/lib/cbs-screen";
 import { useWorkbenchStore } from "@/store";
-import type { CbsPersistenceOptions, CbsScreenMode } from "../types";
 
 /**
  * Universal dual-layer persistence hook for all CBS screens and workbench tabs.
- * Supports:
- *  1. Props (initialId)
- *  2. URL Query parameters (detached popup / deep link)
- *  3. Zustand workbench tabs state (tab switching & dirty tracking)
+ * Directly reads and synchronizes tab draft state with the WorkbenchStore.
  */
 export function useCbsPersistence<TRecord>({
   initialId,
@@ -112,7 +118,7 @@ export function useCbsPersistence<TRecord>({
     setFormDataState(action);
   }, []);
 
-  // Decoupled sync to workbench tab store
+  // Sync to workbench tab store
   const isFirstRender = React.useRef(true);
   React.useEffect(() => {
     if (isFirstRender.current) {

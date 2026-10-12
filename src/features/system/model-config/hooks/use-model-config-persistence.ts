@@ -1,6 +1,6 @@
 "use client";
 
-import { useCbsPersistence } from "@/lib/cbs-screen";
+import { useCbsPersistence } from "@/components/cbs-screen";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import { modelConfigRecordSchema } from "@/lib/data-schemas/model-config-schema";
 

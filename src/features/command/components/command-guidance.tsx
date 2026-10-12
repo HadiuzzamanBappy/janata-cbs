@@ -4,7 +4,7 @@ import type { CommandGuideInfo, RidashOption } from "../types";
 interface CommandGuidanceProps {
   guideInfo: CommandGuideInfo;
   options: RidashOption[];
-  permittedRights: string[];
+  permittedRights: readonly CbsRecordFunction[];
   hasRight: (code: CbsRecordFunction) => boolean;
   onSelectOption: (optionCode: string) => void;
 }

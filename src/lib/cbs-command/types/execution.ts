@@ -1,6 +1,6 @@
-/**
- * Dispatch & Execution Option Contracts for CBS Command Gateway
- */
+// ============================================================================
+// Dispatch & Execution Option Contracts for CBS Command Gateway
+// ============================================================================
 
 import type { ParsedCommand, ScreenMode } from "./command";
 import type { UserSecurityProfile } from "./validation";
@@ -9,28 +9,28 @@ export type LaunchTarget = "workspace" | "popup";
 
 export interface ExecutionOptions {
   /** Optional user override for explicit permission validation */
-  user?: UserSecurityProfile | null;
+  readonly user?: UserSecurityProfile | null;
   /** Target execution display: internal tab ("workspace") or external detached popup ("popup") */
-  target?: LaunchTarget;
+  readonly target?: LaunchTarget;
   /** Explicit title override for window or tab header */
-  title?: string;
-  /** Explicit screen mode override (IDLE, CREATE, EDIT, VIEW) */
-  screenMode?: ScreenMode;
+  readonly title?: string;
+  /** Explicit screen mode override (IDLE, S, I, D, A, R, H) */
+  readonly screenMode?: ScreenMode;
   /** Explicit record ID override */
-  searchRecordId?: string;
+  readonly searchRecordId?: string;
   /** Preset criteria for inquiry grid queries */
-  criteria?: Record<string, { value: string; operand: string }>;
+  readonly criteria?: Record<string, { value: string; operand: string }>;
   /** Staged form data passed into the screen */
-  formData?: Record<string, unknown>;
+  readonly formData?: Record<string, unknown>;
   /** Page configuration */
-  currentPage?: number;
-  pageSize?: number;
+  readonly currentPage?: number;
+  readonly pageSize?: number;
   /** Selection vs Results step */
-  step?: "SELECTION" | "RESULTS";
+  readonly step?: "SELECTION" | "RESULTS";
   /** If true, silences non-critical error toasts */
-  silent?: boolean;
+  readonly silent?: boolean;
   /** Optional headless callback for error reporting (useful in headless/testing environments) */
-  onError?: (error: string) => void;
+  readonly onError?: (error: string) => void;
   /** Optional callback upon successful dispatch */
-  onSuccess?: (command: ParsedCommand) => void;
+  readonly onSuccess?: (command: ParsedCommand) => void;
 }

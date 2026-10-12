@@ -1,3 +1,7 @@
+/* -------------------------------------------------------------------------- */
+/* Universal Protobuf & Dynamic Struct Normalizer                             */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Universal CBS Protobuf & Dynamic Struct Data Normalizer.
  * Recursively decodes any Protobuf Struct / Value structure (string_value,
@@ -45,6 +49,10 @@ export function decodeProtobufValue<T = unknown>(val: unknown): T {
   }
   return result as T;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Universal Records Payload Unwrapper                                        */
+/* -------------------------------------------------------------------------- */
 
 /**
  * Strictly unwraps an array of record items from canonical response envelopes

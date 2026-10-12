@@ -6,6 +6,7 @@ export * from "./auth-schema";
 export * from "./branch-schema";
 export * from "./common-schema";
 export * from "./control-schema";
+export * from "./env-schema";
 export * from "./form-schema";
 export * from "./inquiry-schema";
 export * from "./menu-catalog-schema";

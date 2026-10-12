@@ -21,12 +21,13 @@ export interface EvaluateAccessParams extends CbsAccessContext {
  */
 export function evaluateCbsAccess({
   userId,
-  grantedRights,
+  grantedRights = [],
   recordStatus,
   recordInputter,
   mode = "IDLE",
 }: EvaluateAccessParams): CbsAccessResult {
-  const hasRight = (code: CbsRecordFunction) => grantedRights.includes(code);
+  const rights = grantedRights ?? [];
+  const hasRight = (code: CbsRecordFunction) => rights.includes(code);
 
   const cleanStatus = (recordStatus || "").toUpperCase().trim();
   const isIdle = mode === "IDLE";
@@ -80,7 +81,11 @@ export function evaluateCbsAccess({
   // - Requires 'H' in profile
   const canHistory = hasRight(CBS_RECORD_FUNCTIONS.HISTORY);
 
-  // 8. Screen Read-Only state:
+  // 8. Can List / Directory:
+  // - Requires 'L' in profile (defaults true if full access or explicitly granted)
+  const canList = hasRight(CBS_RECORD_FUNCTIONS.LIST);
+
+  // 9. Screen Read-Only state:
   // If in View mode ("S", "H") or user lacks 'I' rights, screen is locked
   const isReadOnly =
     mode === CBS_RECORD_FUNCTIONS.SEE ||
@@ -133,6 +138,7 @@ export function evaluateCbsAccess({
     canAuthorize,
     canReverse,
     canHistory,
+    canList,
     isReadOnly,
     isFourEyesViolation,
     getDisableReason,

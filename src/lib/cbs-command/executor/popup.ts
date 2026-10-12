@@ -41,7 +41,9 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
       // Safe fallback
     }
   }
-  const fullFormKey = parsed.version ? `${parsed.application},${parsed.version}` : parsed.application;
+  const fullFormKey = parsed.version
+    ? `${parsed.application},${parsed.version}`
+    : parsed.application;
   const screenAppKey =
     parsed.type === "INQUIRY" && !parsed.application.startsWith("INQ ")
       ? `INQ ${parsed.application}`

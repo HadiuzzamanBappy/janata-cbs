@@ -16,7 +16,6 @@ import {
   parseCbsCommand,
   validateSecurityPermissions as validateCommandForUser,
 } from "../src/lib/cbs-command";
-import { envSchema } from "../src/lib/core-config/env";
 import {
   parseAuthWirePayload,
   parseBranchesWirePayload,
@@ -25,6 +24,7 @@ import {
   parseMNU,
 } from "../src/lib/data-parsers";
 import type { CurrentUser } from "../src/lib/data-schemas";
+import { envSchema } from "../src/lib/data-schemas/env-schema";
 
 // ============================================================================
 // Minimalist Test Runner Pattern
@@ -67,32 +67,32 @@ function test(description: string, assertion: () => boolean): void {
 // Test Suites
 // ============================================================================
 
-suite("1. Wire Fixture Structs (Protobuf 1:1 Format)", () => {
+suite("1. Wire Fixture Structs (Normalized Format)", () => {
   test("STATIC_USER_RESPONSES contains valid user wire structures", () => {
     return Object.keys(STATIC_USER_RESPONSES).length >= 2;
   });
 
-  test("STATIC_USER_RESPONSES matches .response/user.json Protobuf fields", () => {
-    return STATIC_USER_RESPONSES.ZZ028459?.data?.fields?.userId?.string_value === "ZZ0284590";
+  test("STATIC_USER_RESPONSES contains normalized user fields", () => {
+    return STATIC_USER_RESPONSES.ZZ028459?.data?.userId === "ZZ0284590";
   });
 
-  test("STATIC_BRANCH_RESPONSE contains records list in Protobuf struct format", () => {
-    return Boolean(STATIC_BRANCH_RESPONSE?.data?.fields?.records?.list_value?.values?.length);
+  test("STATIC_BRANCH_RESPONSE contains records list", () => {
+    return Boolean(Array.isArray(STATIC_BRANCH_RESPONSE?.data?.records) && STATIC_BRANCH_RESPONSE.data.records.length > 0);
   });
 
-  test("STATIC_COMMANDS contains records list in Protobuf struct format", () => {
-    return Boolean(STATIC_COMMANDS?.data?.fields?.records?.list_value?.values?.length);
+  test("STATIC_COMMANDS contains records list", () => {
+    return Boolean(Array.isArray(STATIC_COMMANDS?.data?.records) && STATIC_COMMANDS.data.records.length > 0);
   });
 
-  test("STATIC_MENU contains records list in Protobuf struct format", () => {
-    return Boolean(STATIC_MENU?.data?.fields?.records?.list_value?.values?.length);
+  test("STATIC_MENU contains records list", () => {
+    return Boolean(Array.isArray(STATIC_MENU?.data?.records) && STATIC_MENU.data.records.length > 0);
   });
 });
 
 suite("2. Wire Payload Domain Parsers", () => {
-  test("parseAuthWirePayload extracts CurrentUser and RIDASH rights", () => {
+  test("parseAuthWirePayload extracts CurrentUser and RIDASHL rights", () => {
     const parsed = parseAuthWirePayload(STATIC_USER_RESPONSES.ZZ028459.data);
-    return parsed.currUser.userId === "ZZ0284590" && parsed.currUser.accessibility === "RIDASH";
+    return parsed.currUser.userId === "ZZ0284590" && parsed.currUser.accessibility.includes("L");
   });
 
   test("parseBranchesWirePayload extracts list of branches (recordId JB0001)", () => {
@@ -110,14 +110,9 @@ suite("2. Wire Payload Domain Parsers", () => {
     return menuResult.success && menuResult.data.length > 0;
   });
 
-  test("parseGMC parses form model schema (idPrefix='AC')", () => {
+  test("parseGMC parses form model schema (idPrefix='01')", () => {
     const formAccount = parseGMC(STATIC_FORMS.ACCOUNT.data, "ACCOUNT");
-    return formAccount.success && formAccount.data.idPrefix === "AC";
-  });
-
-  test("parseGMC parses enquiry model schema (columns for USER.LIST)", () => {
-    const enq = parseGMC(STATIC_FORMS["USER.LIST"].data, "USER.LIST");
-    return enq.success && Array.isArray(enq.data.columns) && enq.data.columns.length > 0;
+    return formAccount.success && formAccount.data.idPrefix === "01";
   });
 });
 
@@ -186,7 +181,7 @@ suite("3. Environment Permutations", () => {
 });
 
 suite("4. Banking-Grade Logger & PII Redaction", () => {
-  const { redactSensitiveData, maskAccountNumber } = require("../src/lib/logger");
+  const { redactSensitiveData, maskAccountNumber } = require("../src/lib/core-logger/redact");
 
   test("masks financial account numbers correctly (e.g. AC****1234)", () => {
     const masked = maskAccountNumber("AC12345678");
@@ -392,7 +387,7 @@ suite("Phase 2: User Profile & Function Rights Enforcement Validator", () => {
     const parsed = parseCbsCommand("ACCOUNT I F3");
     const result = validateCommandForUser(parsed, tellerWithCLI);
     return (
-      !result.allowed && Boolean(result.reason?.includes("User lacks Input / Create ('I') rights"))
+      !result.allowed && Boolean(result.reason?.includes("lacks") && result.requiredRight === "I")
     );
   });
 

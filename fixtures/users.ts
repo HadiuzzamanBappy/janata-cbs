@@ -17,7 +17,7 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
     data: {
       userId: "ZZ0284590",
       fullName: "MD. HADIUZZAMAN BAPPY",
-      accessibility: "RIDASH",
+      accessibility: "RIDASHL",
       userRole: ["USER"],
       commandLine: true,
       branchName: "CENTRAL OFFICE, HO, DHAKA   ",
@@ -41,7 +41,7 @@ export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = {
     data: {
       userId: "AD0284590",
       fullName: "System Administrator",
-      accessibility: "RIDASH",
+      accessibility: "RIDASHL",
       userRole: ["ADMIN"],
       commandLine: true,
       branchName: "CENTRAL OFFICE, HO, DHAKA   ",

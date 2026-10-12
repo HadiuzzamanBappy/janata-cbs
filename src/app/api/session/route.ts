@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { updateBranchSessionSchema } from "@/lib/data-schemas";
 import {
   destroySession,
   getFromSession,
@@ -33,9 +34,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const body = await req.json();
+    const parsed = updateBranchSessionSchema.safeParse(body);
 
-    if (body.branchCode && body.branchName) {
-      const updatedUser = await updateBranchCodeAndName(body.branchCode, body.branchName);
+    if (parsed.success) {
+      const updatedUser = await updateBranchCodeAndName(
+        parsed.data.branchCode,
+        parsed.data.branchName,
+      );
       if (!updatedUser) {
         return NextResponse.json(
           { success: false, message: "Failed to update session branch" },

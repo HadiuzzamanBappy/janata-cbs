@@ -35,16 +35,17 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
     data: {},
   };
 
-  console.log(`[FormService] >>> Outgoing gRPC Payload for "${cleanCmd}":`, JSON.stringify(payload, null, 2));
-
-  const res = await grpcProcess(
-    ctx.address,
-    GRPC_SERVICE_CATEGORY,
-    payload,
-    { token: ctx.token },
+  console.log(
+    `[FormService] >>> Outgoing gRPC Payload for "${cleanCmd}":`,
+    JSON.stringify(payload, null, 2),
   );
 
-  console.log(`[FormService] <<< Incoming gRPC Response for "${cleanCmd}":`, JSON.stringify(res, null, 2));
+  const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, { token: ctx.token });
+
+  console.log(
+    `[FormService] <<< Incoming gRPC Response for "${cleanCmd}":`,
+    JSON.stringify(res, null, 2),
+  );
 
   if (res.statusCode !== 200 || !res.data) {
     // If a specific version (e.g. "USER.MGT,NEW1") wasn't found in the database,

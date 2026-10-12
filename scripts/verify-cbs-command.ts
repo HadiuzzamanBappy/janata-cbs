@@ -93,11 +93,11 @@ assert(
 );
 
 // 10. Shorthand 1:1 Aliases
-assert("Alias MD -> MENU.DESIGN", cbsCommand.resolveAlias("MD") === "MENU.DESIGN");
-assert("Alias UG -> USER.GROUP", cbsCommand.resolveAlias("UG") === "USER.GROUP");
-assert("Alias MC -> MODEL.CONFIG", cbsCommand.resolveAlias("MC") === "MODEL.CONFIG");
-assert("Alias RS -> REPORT.DESIGN", cbsCommand.resolveAlias("RS") === "REPORT.DESIGN");
-assert("Alias MNU -> MENU", cbsCommand.resolveAlias("MNU") === "MENU");
+assert("Alias MD -> SC.MENU.DESIGN", cbsCommand.resolveAlias("MD") === "SC.MENU.DESIGN");
+assert("Alias UG -> SC.USER.GROUP", cbsCommand.resolveAlias("UG") === "SC.USER.GROUP");
+assert("Alias MC -> SC.MODEL.CONFIG", cbsCommand.resolveAlias("MC") === "SC.MODEL.CONFIG");
+assert("Alias RB -> SC.REPORT.BUILDER", cbsCommand.resolveAlias("RB") === "SC.REPORT.BUILDER");
+assert("Alias MNU -> SC.MENU", cbsCommand.resolveAlias("MNU") === "SC.MENU");
 
 // 11. Settings Dialog
 const settings = cbsCommand.parse("SETTINGS:PROFILE");

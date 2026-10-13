@@ -1,14 +1,4 @@
-import {
-  BookOpen,
-  Code,
-  Cpu,
-  DollarSign,
-  FileCheck,
-  FolderKanban,
-  HelpCircle,
-  Network,
-  Shield,
-} from "lucide-react";
+import { BookOpen, Code, Cpu, FolderKanban, HelpCircle, Network, Shield } from "lucide-react";
 import type { NavGroup } from "./types";
 
 export const DEV_NAV_GROUPS: NavGroup[] = [
@@ -90,6 +80,11 @@ export const DEV_NAV_GROUPS: NavGroup[] = [
         label: "System Configuration Tools",
         href: "/devs/03-domain-features/system-config",
         keywords: ["system", "config", "builder", "model", "admin", "menu"],
+      },
+      {
+        label: "Feature Design System",
+        href: "/devs/03-domain-features/feature-design-system",
+        keywords: ["feature", "design", "system", "checklist", "rules", "schemas", "scaffold"],
       },
     ],
   },
@@ -173,47 +168,8 @@ export const MANUAL_NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    id: "02-daily-teller-operations",
-    title: "02. Daily Teller Operations",
-    icon: DollarSign,
-    items: [
-      {
-        label: "Customer & Account Inquiries",
-        href: "/manual/02-daily-teller-operations/customer-inquiry",
-        keywords: ["customer", "inquiry", "search", "account", "balance", "profile"],
-      },
-      {
-        label: "Transaction Entry & Drafts",
-        href: "/manual/02-daily-teller-operations/transaction-entry",
-        keywords: ["deposit", "withdrawal", "transfer", "transaction", "cash", "draft"],
-      },
-      {
-        label: "Maker-Checker Authorization",
-        href: "/manual/02-daily-teller-operations/maker-checker-authorization",
-        keywords: ["maker", "checker", "override", "approval", "workflow", "4-eye"],
-      },
-    ],
-  },
-  {
-    id: "03-reports-and-end-of-day",
-    title: "03. Reports & End of Day",
-    icon: FileCheck,
-    items: [
-      {
-        label: "Generating & Printing Reports",
-        href: "/manual/03-reports-and-end-of-day/printing-daily-reports",
-        keywords: ["reports", "ledger", "balance", "audit", "daily", "print", "journal"],
-      },
-      {
-        label: "Close of Business (COB) Guide",
-        href: "/manual/03-reports-and-end-of-day/cob-process-overview",
-        keywords: ["cob", "close", "checklist", "reconcile", "cutoff", "eod", "batch"],
-      },
-    ],
-  },
-  {
     id: "04-troubleshooting",
-    title: "04. Troubleshooting & FAQs",
+    title: "02. Troubleshooting & FAQs",
     icon: HelpCircle,
     items: [
       {

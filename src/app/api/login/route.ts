@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/core-logger";
+import { loginSchema } from "@/lib/data-schemas";
 import { rateLimit } from "@/lib/infra-redis";
 import { loginUser } from "@/lib/infra-services";
 
@@ -8,25 +9,26 @@ export const dynamic = "force-dynamic";
 
 const authLogger = logger.withContext("AUTH_API");
 
-interface LoginBody {
-  username?: string;
-  password?: string;
-}
-
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const body = (await req.json()) as LoginBody;
-    const { username, password } = body;
+    const rawBody = await req.json();
+    const parsed = loginSchema.safeParse(rawBody);
 
-    // Log login attempt (passwords automatically redacted)
-    authLogger.info("Login attempt received", { username, body });
-
-    if (!username || !password) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: "Username and password are required" },
+        {
+          success: false,
+          message: parsed.error.issues[0]?.message || "Username and password are required",
+          errors: parsed.error.issues,
+        },
         { status: 400 },
       );
     }
+
+    const { username, password } = parsed.data;
+
+    // Log login attempt (passwords automatically redacted)
+    authLogger.info("Login attempt received", { username });
 
     // Rate limiting: configured attempts per minute per IP + username
     const ip =

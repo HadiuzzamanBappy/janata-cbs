@@ -1,15 +1,11 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config";
+import { changePasswordSchema } from "@/lib/data-schemas";
 import { getSession, updateSession } from "@/lib/infra-redis";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-interface ChangePasswordBody {
-  oldPassword?: string;
-  newPassword?: string;
-}
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
@@ -21,10 +17,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { oldPassword, newPassword } = (await req.json()) as ChangePasswordBody;
-    if (!oldPassword || !newPassword) {
+    const rawBody = await req.json();
+    const parsed = changePasswordSchema.safeParse(rawBody);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: "Old password and new password are required." },
+        {
+          success: false,
+          message: parsed.error.issues[0]?.message || "Invalid password data.",
+          errors: parsed.error.issues,
+        },
         { status: 400 },
       );
     }

@@ -40,3 +40,22 @@ export const enquiryColumnSchema = z.object({
 });
 
 export type EnquiryColumn = z.infer<typeof enquiryColumnSchema>;
+
+/* -------------------------------------------------------------------------- */
+/* Universal Wire Payload Validation Schema                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Zod schema validating wire payloads dispatched to `/api/proxy`.
+ */
+export const cbsWirePayloadSchema = z.object({
+  servicePath: z.string().optional(),
+  requestType: z.string().min(1, "Request type is required"),
+  controlName: z.string().optional(),
+  recordFunction: z.string().optional(),
+  recordId: z.string().optional(),
+  authLevel: z.number().int().min(0).max(9).optional(),
+  data: z.record(z.string(), z.unknown()).optional(),
+});
+
+export type CbsWirePayload = z.infer<typeof cbsWirePayloadSchema>;

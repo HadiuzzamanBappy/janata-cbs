@@ -24,10 +24,10 @@ export function useFormSchema(command: string) {
       const res = await fetch(`${appConfig.routes.api.form}/${encodeURIComponent(cleanCmd)}`);
       const json = await res.json();
 
-      if (json.success && json.data) {
+      if ((json.status === "SUCCESS" || json.success) && json.data) {
         setSchema(json.data);
       } else {
-        setError(json.error || `Failed to fetch schema for ${cleanCmd}`);
+        setError(json.message || json.error || `Failed to fetch schema for ${cleanCmd}`);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Network error fetching schema");

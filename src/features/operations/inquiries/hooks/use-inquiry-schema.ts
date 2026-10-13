@@ -33,10 +33,10 @@ export function useInquirySchema(command: string) {
       const res = await fetch(`${appConfig.routes.api.inquiry}/${cleanCmd}`);
       const json = await res.json();
 
-      if (json.success && json.data) {
+      if ((json.status === "SUCCESS" || json.success) && json.data) {
         setSchema(json.data);
       } else {
-        setError(json.error || `Failed to fetch enquiry schema for ${cleanCmd}`);
+        setError(json.message || json.error || `Failed to fetch enquiry schema for ${cleanCmd}`);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Network error fetching enquiry schema");

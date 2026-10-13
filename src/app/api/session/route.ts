@@ -6,31 +6,69 @@ import {
   getSession,
   updateBranchCodeAndName,
 } from "@/lib/infra-redis";
+import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse<ApiResponse>> {
   try {
     const currUser = await getFromSession("currUser");
 
     if (!currUser) {
-      return NextResponse.json({ success: false, message: "No active session" }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          status: "FAIL",
+          statusCode: 401,
+          message: "No active session",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 401 },
+      );
     }
 
-    return NextResponse.json({ success: true, currUser }, { status: 200 });
+    return NextResponse.json(
+      {
+        success: true,
+        status: "SUCCESS",
+        statusCode: 200,
+        data: currUser,
+        currUser,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 200 },
+    );
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Internal server error retrieving session";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        status: "ERROR",
+        statusCode: 500,
+        message,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    );
   }
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          status: "FAIL",
+          statusCode: 401,
+          message: "Unauthorized",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 401 },
+      );
     }
 
     const body = await req.json();
@@ -43,22 +81,66 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
       if (!updatedUser) {
         return NextResponse.json(
-          { success: false, message: "Failed to update session branch" },
+          {
+            success: false,
+            status: "FAIL",
+            statusCode: 500,
+            message: "Failed to update session branch",
+            timestamp: new Date().toISOString(),
+          },
           { status: 500 },
         );
       }
-      return NextResponse.json({ success: true, currUser: updatedUser }, { status: 200 });
+      return NextResponse.json(
+        {
+          success: true,
+          status: "SUCCESS",
+          statusCode: 200,
+          data: updatedUser,
+          currUser: updatedUser,
+          timestamp: new Date().toISOString(),
+        },
+        { status: 200 },
+      );
     }
 
-    return NextResponse.json({ success: true, currUser: session.currUser }, { status: 200 });
+    return NextResponse.json(
+      {
+        success: true,
+        status: "SUCCESS",
+        statusCode: 200,
+        data: session.currUser,
+        currUser: session.currUser,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 200 },
+    );
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Internal server error updating session";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        status: "ERROR",
+        statusCode: 500,
+        message,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    );
   }
 }
 
-export async function DELETE(): Promise<NextResponse> {
+export async function DELETE(): Promise<NextResponse<ApiResponse>> {
   await destroySession();
-  return NextResponse.json({ success: true, message: "Session destroyed" });
+  return NextResponse.json(
+    {
+      success: true,
+      status: "SUCCESS",
+      statusCode: 200,
+      message: "Session destroyed",
+      timestamp: new Date().toISOString(),
+    },
+    { status: 200 },
+  );
 }

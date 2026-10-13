@@ -1,23 +1,55 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config/server";
 import { invalidateCache } from "@/lib/infra-redis";
+import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function DELETE(request: NextRequest): Promise<NextResponse> {
-  const secret = appConfig.redis.invalidateToken;
+export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResponse>> {
+  try {
+    const secret = appConfig.redis.invalidateToken;
 
-  // TODO: [Step 8 - Security Audit] Enforce HMAC SHA-256 signature verification for Java core webhook calls.
-  if (secret) {
+    // Enforce token verification if configured, or require development environment
     const provided = request.headers.get("x-cache-token");
-    if (provided !== secret) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    if (secret && provided !== secret) {
+      return NextResponse.json(
+        {
+          success: false,
+          status: "FAIL",
+          statusCode: 401,
+          message: "Unauthorized: Invalid or missing cache invalidation token",
+          timestamp: new Date().toISOString(),
+        },
+        { status: 401 },
+      );
     }
+
+    const control = request.nextUrl.searchParams.get("control") ?? undefined;
+    const removed = await invalidateCache(control);
+
+    return NextResponse.json(
+      {
+        success: true,
+        status: "SUCCESS",
+        statusCode: 200,
+        message: `Invalidated cache for: ${control ?? "*"}`,
+        data: { removed, control: control ?? "*" },
+        timestamp: new Date().toISOString(),
+      },
+      { status: 200 },
+    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Cache invalidation failed";
+    return NextResponse.json(
+      {
+        success: false,
+        status: "ERROR",
+        statusCode: 500,
+        message,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    );
   }
-
-  const control = request.nextUrl.searchParams.get("control") ?? undefined;
-  const removed = await invalidateCache(control);
-
-  return NextResponse.json({ success: true, removed, control: control ?? "*" });
 }

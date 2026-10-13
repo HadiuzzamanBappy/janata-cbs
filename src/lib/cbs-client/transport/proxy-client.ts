@@ -1,11 +1,8 @@
+import type { z } from "zod";
 import { toast } from "@/components/ui/toast";
 import { clientConfig } from "@/lib/core-config";
-import {
-  type ApiResponse,
-  CBS_RECORD_FUNCTIONS,
-  type CbsWirePayload,
-  DEFAULT_SERVICE_PATH,
-} from "@/types";
+import { cbsWirePayloadSchema } from "@/lib/data-schemas";
+import type { ApiResponse, CbsWirePayload } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* Client Request Options Contract                                            */
@@ -14,7 +11,7 @@ import {
 /**
  * Configuration options for dispatching a CBS request.
  */
-export interface SendCbsOptions {
+export interface SendCbsOptions<T = unknown> {
   /** If true, suppresses automatic toast notifications */
   readonly silent?: boolean;
   /** Toast title to display upon SUCCESS response */
@@ -25,6 +22,8 @@ export interface SendCbsOptions {
   readonly errorMessage?: string;
   /** Optional AbortSignal to cancel in-flight requests (e.g., on unmount or keystroke) */
   readonly signal?: AbortSignal;
+  /** Optional runtime Zod schema to validate response data */
+  readonly responseSchema?: z.ZodType<T>;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -35,30 +34,38 @@ export interface SendCbsOptions {
  * Universal type-safe fetch client for CBS backend communication.
  *
  * Automatically routes through `/api/proxy`, handles session expiration (401),
- * formats wire parameters, and renders UI toast alerts when not silenced.
+ * validates wire parameters pre-flight, and renders UI toast alerts when not silenced.
  *
- * @param payload - Standard wire payload describing the target operation.
- * @param options - Toast behavior and abort signal options.
+ * @param rawPayload - Standard wire payload describing the target operation.
+ * @param options - Toast behavior, abort signal, and response validation options.
  * @returns Resolves with the standard ApiResponse envelope from the proxy.
  */
 export async function sendCbsRequest<T = unknown>(
-  payload: CbsWirePayload,
-  options?: SendCbsOptions,
+  rawPayload: CbsWirePayload,
+  options?: SendCbsOptions<T>,
 ): Promise<ApiResponse<T>> {
+  // 1. Client-Side Pre-Flight Validation (Fail-Fast before network call)
+  const validation = cbsWirePayloadSchema.safeParse(rawPayload);
+  if (!validation.success) {
+    const errorMsg = validation.error.issues[0]?.message || "Invalid CBS wire payload structure";
+    if (!options?.silent) {
+      toast.add({
+        title: "Payload Error",
+        description: errorMsg,
+        type: "error",
+      });
+    }
+    throw new Error(`CLIENT_VALIDATION_ERROR: ${errorMsg}`);
+  }
+
+  const payload = validation.data;
+
   try {
     const res = await fetch(clientConfig.routes.api.proxy, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       signal: options?.signal,
-      body: JSON.stringify({
-        servicePath: payload.servicePath || DEFAULT_SERVICE_PATH,
-        requestType: payload.requestType,
-        controlName: payload.controlName ?? "",
-        recordFunction: payload.recordFunction || CBS_RECORD_FUNCTIONS.SEE,
-        recordId: payload.recordId || "",
-        authLevel: payload.authLevel ?? 1,
-        data: payload.data ?? {},
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (res.status === 401) {
@@ -73,6 +80,22 @@ export async function sendCbsRequest<T = unknown>(
     const json = (await res.json()) as ApiResponse<T>;
 
     if (res.ok && json.status === "SUCCESS") {
+      if (options?.responseSchema && json.data !== undefined) {
+        const validated = options.responseSchema.safeParse(json.data);
+        if (!validated.success) {
+          const schemaErrorMsg =
+            validated.error.issues[0]?.message || "Invalid server response structure";
+          if (!options.silent) {
+            toast.add({
+              title: "Response Validation Failed",
+              description: schemaErrorMsg,
+              type: "error",
+            });
+          }
+          throw new Error(`RESPONSE_SCHEMA_ERROR: ${schemaErrorMsg}`);
+        }
+      }
+
       if (options?.successMessage && !options.silent) {
         toast.add({
           title: options.successTitle || "Success",

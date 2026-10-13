@@ -3,13 +3,14 @@ import { logger } from "@/lib/core-logger";
 import { loginSchema } from "@/lib/data-schemas";
 import { rateLimit } from "@/lib/infra-redis";
 import { loginUser } from "@/lib/infra-services";
+import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const authLogger = logger.withContext("AUTH_API");
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const rawBody = await req.json();
     const parsed = loginSchema.safeParse(rawBody);
@@ -18,8 +19,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         {
           success: false,
+          status: "FAIL",
+          statusCode: 400,
           message: parsed.error.issues[0]?.message || "Username and password are required",
-          errors: parsed.error.issues,
+          errors: parsed.error.issues.map((i) => i.message),
+          timestamp: new Date().toISOString(),
         },
         { status: 400 },
       );
@@ -40,7 +44,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     if (!allowed) {
       authLogger.warn(`Rate limit exceeded for login: ${username}`, { ip, resetSec });
       return NextResponse.json(
-        { success: false, message: `Too many login attempts. Try again in ${resetSec}s.` },
+        {
+          success: false,
+          status: "FAIL",
+          statusCode: 429,
+          message: `Too many login attempts. Try again in ${resetSec}s.`,
+          timestamp: new Date().toISOString(),
+        },
         { status: 429, headers: { "Retry-After": String(resetSec) } },
       );
     }
@@ -52,8 +62,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         {
           success: false,
+          status: "FAIL",
+          statusCode: result.statusCode || 401,
           message: result.error || "Invalid credentials",
           errors: result.errors,
+          timestamp: new Date().toISOString(),
         },
         { status: result.statusCode || 401 },
       );
@@ -65,14 +78,30 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       accessibility: result.user.accessibility,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Logged in successfully",
-      user: result.user,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Logged in successfully",
+        data: { user: result.user },
+        user: result.user,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 200 },
+    );
   } catch (err: unknown) {
     authLogger.error("Internal login server error", err);
     const message = err instanceof Error ? err.message : "Internal login server error";
-    return NextResponse.json({ success: false, message }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        status: "ERROR",
+        statusCode: 500,
+        message,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    );
   }
 }

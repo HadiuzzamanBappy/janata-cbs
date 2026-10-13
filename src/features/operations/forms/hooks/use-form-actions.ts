@@ -155,7 +155,7 @@ export function useFormActions({
   }, [onReturn, resetForm, initialValues, setScreenMode]);
 
   const handleSubmit = React.useCallback(
-    async (e?: React.FormEvent) => {
+    async (e?: React.SyntheticEvent) => {
       if (e) e.preventDefault();
       if (!validate()) {
         toast.add({

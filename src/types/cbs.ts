@@ -12,9 +12,7 @@
 
 export const CBS_FUNCTION_CODES = ["S", "I", "D", "A", "R", "H", "L"] as const;
 
-export type CbsRecordFunction = (typeof CBS_FUNCTION_CODES)[number];
-
-export const CBS_RECORD_FUNCTIONS = {
+export const CbsRecordFunction = {
   SEE: "S",
   INPUT: "I",
   DELETE: "D",
@@ -24,7 +22,12 @@ export const CBS_RECORD_FUNCTIONS = {
   LIST: "L",
 } as const;
 
-export const CbsRecordFunction = CBS_RECORD_FUNCTIONS;
+export type CbsRecordFunction = (typeof CbsRecordFunction)[keyof typeof CbsRecordFunction];
+
+/**
+ * @deprecated Use `CbsRecordFunction` directly for single source of truth.
+ */
+export const CBS_RECORD_FUNCTIONS = CbsRecordFunction;
 
 export interface CbsFunctionDefinition {
   readonly code: CbsRecordFunction;

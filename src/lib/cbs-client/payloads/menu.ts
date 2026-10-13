@@ -1,3 +1,4 @@
+import type { MenuTreeNode } from "@/lib/data-schemas";
 import {
   CbsControlTable,
   CbsRecordFunction,
@@ -109,7 +110,10 @@ export const menuPayloads = {
    * @param treeId - Tree identifier
    * @param treeNodes - Hierarchical node structure
    */
-  saveMenuTree: (treeId: string, treeNodes: unknown): CbsWirePayload => ({
+  saveMenuTree: (
+    treeId: string,
+    treeNodes: MenuTreeNode[] | readonly unknown[] | Record<string, unknown>,
+  ): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.RECORD_PUT,
     controlName: CbsControlTable.MENU_TREE,

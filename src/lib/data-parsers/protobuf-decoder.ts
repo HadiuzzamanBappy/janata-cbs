@@ -56,7 +56,7 @@ export function decodeProtobufValue<T = unknown>(val: unknown): T {
 
 /**
  * Strictly unwraps an array of record items from canonical response envelopes
- * (data.records, data.fields.records, etc.) or direct arrays.
+ * (data.records, data.fields.records, data.list, etc.) or direct arrays.
  */
 export function unwrapRecordsPayload<T = unknown>(data: unknown): T[] {
   if (!data) return [];
@@ -66,6 +66,22 @@ export function unwrapRecordsPayload<T = unknown>(data: unknown): T[] {
   if (decoded && typeof decoded === "object") {
     if (Array.isArray(decoded.records)) {
       return decoded.records as T[];
+    }
+    if (Array.isArray(decoded.list)) {
+      return decoded.list as T[];
+    }
+    if (Array.isArray(decoded.items)) {
+      return decoded.items as T[];
+    }
+    if (Array.isArray(decoded.data)) {
+      return decoded.data as T[];
+    }
+    const inner = decoded.data || decoded.record || decoded.fields;
+    if (inner && typeof inner === "object" && !Array.isArray(inner)) {
+      const innerRec = inner as Record<string, unknown>;
+      if (Array.isArray(innerRec.records)) return innerRec.records as T[];
+      if (Array.isArray(innerRec.list)) return innerRec.list as T[];
+      if (Array.isArray(innerRec.items)) return innerRec.items as T[];
     }
   }
 

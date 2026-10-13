@@ -3,7 +3,7 @@
 import { Code, Eye, FileText, Layers, Palette, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
-import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
+import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { FcAuditTab } from "./components/fc-audit-tab";
 import { FcDesignerTab } from "./components/fc-designer-tab";
@@ -14,7 +14,7 @@ import { useFormConfig } from "./hooks/use-form-config";
 
 type FormConfigTabKey = "general" | "designer" | "preview" | "audit" | "json";
 
-export function SysFormConfig({ command, tabId }: ScreenProps) {
+export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
     const parts = (command || "").trim().split(/\s+/);
     return parts.length > 1 ? parts[1] : undefined;

@@ -23,7 +23,6 @@ const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
   "SC.USER.GROUP": SysUserGroup,
   "SC.MODEL.CONFIG": SysModelConfig,
   "SC.FORM.BUILDER": SysFormConfig,
-  "SC.FORM.CONFIG": SysFormConfig,
   "SC.REPORT.BUILDER": () => (
     <div className="w-full h-full overflow-hidden">
       <ReportStudio />

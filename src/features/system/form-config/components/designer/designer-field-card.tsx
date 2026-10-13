@@ -10,21 +10,30 @@ import type { FormFieldItem } from "@/lib/data-schemas/form-config-schema";
 
 export interface DesignerFieldCardProps {
   field: FormFieldItem;
+  sectionId: string;
   isSelected: boolean;
   onSelect: () => void;
   onRemove: () => void;
+  className?: string;
   disabled?: boolean;
 }
 
 export function DesignerFieldCard({
   field,
+  sectionId,
   isSelected,
   onSelect,
   onRemove,
+  className,
   disabled,
 }: DesignerFieldCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: field.id,
+    data: {
+      type: "field",
+      sectionId,
+      field,
+    },
     disabled,
   });
 
@@ -35,13 +44,22 @@ export function DesignerFieldCard({
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Click to select field inspector
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Click to select field inspector
     <div
       ref={setNodeRef}
       style={style}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
       className={cn(
-        "rounded border px-2 py-1.5 flex items-center justify-between text-xs transition-all bg-card/80 hover:border-primary/50",
-        isSelected ? "border-primary ring-1 ring-primary/30 bg-primary/5" : "border-border/70",
-        isDragging && "shadow-md",
+        "rounded-md border px-2.5 py-1.5 flex items-center justify-between text-xs transition-all bg-card/90 hover:border-primary/50 cursor-pointer select-none",
+        isSelected
+          ? "border-primary ring-1 ring-primary/40 bg-primary/10 shadow-xs"
+          : "border-border/70",
+        isDragging && "shadow-md opacity-40",
+        className,
       )}
     >
       <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -49,6 +67,7 @@ export function DesignerFieldCard({
           type="button"
           {...attributes}
           {...listeners}
+          onClick={(e) => e.stopPropagation()}
           className="cursor-grab text-muted-foreground/50 hover:text-foreground shrink-0 p-0.5"
           aria-label="Reorder field"
         >
@@ -57,7 +76,10 @@ export function DesignerFieldCard({
 
         <button
           type="button"
-          onClick={onSelect}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect();
+          }}
           className="min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
         >
           <div className="flex items-center gap-1.5">
@@ -70,6 +92,24 @@ export function DesignerFieldCard({
             <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase">
               {field.widget}
             </Badge>
+            {field.colSpan && field.colSpan < 12 && (
+              <Badge variant="secondary" className="text-[8px] h-3.5 px-1 font-mono">
+                {field.colSpan === 6
+                  ? "50%"
+                  : field.colSpan === 4
+                    ? "33%"
+                    : field.colSpan === 8
+                      ? "66%"
+                      : field.colSpan === 3
+                        ? "25%"
+                        : `${field.colSpan}/12`}
+              </Badge>
+            )}
+            {field.colSpan && field.colSpan === 12 && (
+              <Badge variant="secondary" className="text-[8px] h-3.5 px-1 font-mono">
+                FULL
+              </Badge>
+            )}
             <Badge
               variant="outline"
               className="text-[9px] h-3.5 px-1 text-emerald-500 border-emerald-500/40 bg-emerald-500/5 font-mono"

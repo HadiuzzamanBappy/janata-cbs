@@ -9,7 +9,7 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   // 1. System Administrative Canvases
   {
     id: "SC.MENU",
-    title: "Menu Item Catalog",
+    title: "Menu Item",
     category: "System Administration",
     command: "SC.MENU",
     aliases: ["MNU"],
@@ -17,7 +17,7 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   },
   {
     id: "SC.MENU.DESIGN",
-    title: "Menu Hierarchy Designer",
+    title: "Menu Hierarchy",
     category: "System Administration",
     command: "SC.MENU.DESIGN",
     aliases: ["MD"],
@@ -25,7 +25,7 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   },
   {
     id: "SC.USER.GROUP",
-    title: "User Group & Permissions",
+    title: "User Group",
     category: "System Administration",
     command: "SC.USER.GROUP",
     aliases: ["UG"],
@@ -33,7 +33,7 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   },
   {
     id: "SC.MODEL.CONFIG",
-    title: "Data Model & Schema Config",
+    title: "Model Config",
     category: "System Administration",
     command: "SC.MODEL.CONFIG",
     aliases: ["MC", "SC.MODEL.BUILDER"],
@@ -41,10 +41,10 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   },
   {
     id: "SC.FORM.CONFIG",
-    title: "Form Design Studio",
+    title: "Form Design",
     category: "System Administration",
     command: "SC.FORM.CONFIG",
-    aliases: ["FC", "SC.FORM.BUILDER"],
+    aliases: ["FC"],
     actionType: "SCREEN",
   },
   {

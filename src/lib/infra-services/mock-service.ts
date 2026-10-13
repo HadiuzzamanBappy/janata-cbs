@@ -201,7 +201,7 @@ export function getMockProxyResponse(
       const data = Object.values(STATIC_FORM_CONFIGS).map((record) => ({
         id: record.recordId,
         label: `${record.title} (${record.targetModel})`,
-        details: `${record.presentation.sections.length} sections • ${record.presentation.archetype}`,
+        details: `${record.presentation.sections.length} sections • ${record.targetModel}`,
         record,
       }));
       return {

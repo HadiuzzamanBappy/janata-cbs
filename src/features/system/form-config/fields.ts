@@ -1,4 +1,4 @@
-export type MetaFieldGroup = "IDENTITY" | "PRESENTATION" | "FLAGS";
+export type MetaFieldGroup = "IDENTITY" | "FLAGS";
 
 export interface MetaFieldDef {
   path: string;
@@ -20,10 +20,6 @@ export const META_FIELD_GROUPS: Array<{
   {
     id: "IDENTITY",
     title: "Form Identification & Target Model",
-  },
-  {
-    id: "PRESENTATION",
-    title: "Presentation Archetype & Visual Density",
   },
   {
     id: "FLAGS",
@@ -69,33 +65,6 @@ export const FORM_META_FIELDS: MetaFieldDef[] = [
     type: "text",
     placeholder: "1.0.0",
     width: "compact",
-  },
-  {
-    path: "presentation.archetype",
-    label: "Layout Archetype",
-    group: "PRESENTATION",
-    type: "select",
-    width: "half",
-    options: [
-      { value: "grid", label: "Responsive 12-Col Grid" },
-      { value: "scanline", label: "Classic Scan-line Card (CBS Default)" },
-      { value: "wizard", label: "Multi-Step Stepper / Wizard" },
-      { value: "master-detail", label: "Master-Detail (Top Header + Bottom Tabs)" },
-      { value: "accordion", label: "Collapsible Accordion Panels" },
-      { value: "tabs", label: "Embedded Tab Sheets" },
-    ],
-  },
-  {
-    path: "presentation.density",
-    label: "Visual Density",
-    group: "PRESENTATION",
-    type: "select",
-    width: "half",
-    options: [
-      { value: "compact", label: "Compact (High-Density Teller)" },
-      { value: "normal", label: "Normal (Standard Desktop)" },
-      { value: "spacious", label: "Spacious (Touch / Wide Screen)" },
-    ],
   },
   {
     path: "isActive",

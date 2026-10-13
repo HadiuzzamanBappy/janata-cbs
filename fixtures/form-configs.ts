@@ -1,34 +1,25 @@
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 
 /**
- * Concise, clean, canonical Form Configuration (UI Presentation Model).
- * Demonstrates how ANY form can be built using all CBS container types & widgets:
+ * Clean canonical Form Configuration fixture demonstrating CBS dynamic layout:
  *
- * 1. CONTAINER TYPES:
- *    - Standard Card (type: "standard", layoutStyle: "card")
- *    - Plain Block without Card (type: "standard", layoutStyle: "plain")
- *    - Object Group (type: "object-group", bindKey: "presentAddress")
- *    - Tabbed Page (zone: "tab", tabTitle)
- *
- * 2. ALL INPUT WIDGET TYPES:
- *    - select, radio-group, text, number, date, switch, textarea
+ * 1. Plain canvas variables (type: "standard", layoutStyle: "plain")
+ * 2. Standard Card container (type: "standard", layoutStyle: "card")
+ * 3. Object Group container (type: "object-group", bindKey: "presentAddress")
+ * 4. Tab Group container with multiple interactive tabs (zone: "tab", tabGroupId: "tabgrp_remarks")
  */
 export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
-  "FC.ACCOUNT.RETAIL": {
-    recordId: "FC.ACCOUNT.RETAIL",
+  ACCOUNT: {
+    recordId: "ACCOUNT",
     title: "Retail Account Opening Form",
     targetModel: "ACCOUNT",
     version: "1.0.0",
-    description: "Compact demonstration showing all UI container blocks and field widgets",
+    description:
+      "Modular canvas demonstration with root variables, card containers, object groups, and tab groups",
     isActive: true,
     presentation: {
-      archetype: "scanline",
-      density: "compact",
       steps: [],
       sections: [
-        /* -------------------------------------------------------------------------- */
-        /* 1. PLAIN BLOCK (Without Card - Flat & Borderless)                          */
-        /* -------------------------------------------------------------------------- */
         {
           id: "sec_core_info",
           title: "Account Identification",
@@ -36,7 +27,7 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
           type: "standard",
           zone: "standard",
           layoutStyle: "plain",
-          columns: 2,
+          columns: 1,
           collapsible: false,
           isCollapsed: false,
           fields: [
@@ -45,7 +36,7 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "accountType",
               label: "Account Type",
               widget: "select",
-              colSpan: 4,
+              colSpan: 8,
               required: true,
               options: ["SAVINGS", "CURRENT", "FIXED_DEPOSIT"],
             },
@@ -54,16 +45,12 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "currency",
               label: "Currency",
               widget: "radio-group",
-              colSpan: 4,
+              colSpan: 6,
               required: true,
               options: ["BDT", "USD", "EUR"],
             },
           ],
         },
-
-        /* -------------------------------------------------------------------------- */
-        /* 2. STANDARD CARD CONTAINER (Bordered Card Box)                             */
-        /* -------------------------------------------------------------------------- */
         {
           id: "sec_card_terms",
           title: "Operating Parameters",
@@ -71,7 +58,7 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
           type: "standard",
           zone: "standard",
           layoutStyle: "card",
-          columns: 3,
+          columns: 1,
           collapsible: false,
           isCollapsed: false,
           fields: [
@@ -80,7 +67,7 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "openingDate",
               label: "Opening Date",
               widget: "date",
-              colSpan: 4,
+              colSpan: 6,
               required: true,
             },
             {
@@ -88,23 +75,19 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "interestRate",
               label: "Interest Rate (%)",
               widget: "number",
-              colSpan: 3,
-              placeholder: "6.50",
+              colSpan: 4,
+              placeholder: "7.50",
             },
             {
               id: "f_cheque_facility",
               fieldKey: "enableChequeBook",
               label: "Cheque Book",
               widget: "switch",
-              colSpan: 3,
+              colSpan: 4,
               helperText: "Enable automatic issuance",
             },
           ],
         },
-
-        /* -------------------------------------------------------------------------- */
-        /* 3. OBJECT GROUP (Nested Object Binding)                                    */
-        /* -------------------------------------------------------------------------- */
         {
           id: "sec_group_address",
           title: "Present Address",
@@ -113,7 +96,7 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
           zone: "standard",
           layoutStyle: "card",
           bindKey: "presentAddress",
-          columns: 2,
+          columns: 1,
           collapsible: true,
           isCollapsed: false,
           fields: [
@@ -131,7 +114,7 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "city",
               label: "City / District",
               widget: "text",
-              colSpan: 4,
+              colSpan: 6,
               required: true,
               placeholder: "e.g. Dhaka",
             },
@@ -140,24 +123,21 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "postalCode",
               label: "Postal Code",
               widget: "text",
-              colSpan: 3,
+              colSpan: 6,
               placeholder: "e.g. 1212",
             },
           ],
         },
-
-        /* -------------------------------------------------------------------------- */
-        /* 4. TABBED PAGE (In-Body Tab Navigation)                                    */
-        /* -------------------------------------------------------------------------- */
         {
-          id: "sec_tab_instructions",
-          title: "Special Instructions",
-          description: "Multi-line operational instructions and compliance declaration",
+          id: "sec_tab_remarks",
+          title: "Operational Remarks",
+          description: "Operational instructions and compliance declarations",
           type: "standard",
           zone: "tab",
+          tabGroupId: "tabgrp_remarks",
           tabTitle: "Operational Remarks",
           layoutStyle: "card",
-          columns: 2,
+          columns: 1,
           collapsible: false,
           isCollapsed: false,
           fields: [
@@ -175,7 +155,7 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "taxExempt",
               label: "Tax Exemption",
               widget: "switch",
-              colSpan: 4,
+              colSpan: 6,
               helperText: "TIN validated",
             },
             {
@@ -183,8 +163,41 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
               fieldKey: "specialInstructions",
               label: "Instructions",
               widget: "textarea",
-              colSpan: 12,
+              colSpan: 8,
               placeholder: "Enter signing limits, operational mandate, or branch remarks...",
+            },
+          ],
+        },
+        {
+          id: "sec_tab_compliance",
+          title: "Compliance & Branch",
+          description: "Branch mandate and initial deposit limits",
+          type: "standard",
+          zone: "tab",
+          tabGroupId: "tabgrp_remarks",
+          tabTitle: "Compliance & Branch",
+          layoutStyle: "card",
+          columns: 1,
+          collapsible: false,
+          isCollapsed: false,
+          fields: [
+            {
+              id: "f_branch_code",
+              fieldKey: "branchCode",
+              label: "Branch Code",
+              widget: "text",
+              colSpan: 8,
+              required: true,
+              placeholder: "0001",
+            },
+            {
+              id: "f_initial_deposit",
+              fieldKey: "initialDeposit",
+              label: "Initial Deposit",
+              widget: "amount",
+              currencyPrefix: "BDT",
+              colSpan: 4,
+              placeholder: "25000",
             },
           ],
         },

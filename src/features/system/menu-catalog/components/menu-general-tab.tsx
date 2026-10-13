@@ -23,7 +23,7 @@ import {
   MENU_META_FIELDS,
   type MenuFieldDef,
   setMenuFieldValue,
-} from "../config/menu-fields";
+} from "../fields";
 
 interface MenuGeneralTabProps {
   formData: MenuCatalogRecord;

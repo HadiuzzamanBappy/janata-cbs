@@ -7,38 +7,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cbs } from "@/lib/cbs-client";
-import { appConfig } from "@/lib/core-config";
-import { changePasswordSchema, changeUsernameSchema } from "../schemas";
+import { changePasswordSchema, changeUsernameSchema } from "@/lib/data-schemas";
+import { useSessionStore } from "@/store";
 
-export function ChangePassword({ command: _command }: { command?: string }) {
+export function ChangePassword() {
+  const { user } = useSessionStore();
+
   // Username State
   const [unameLoading, setUnameLoading] = React.useState(false);
   const [unameError, setUnameError] = React.useState<string | null>(null);
   const [unameSuccess, setUnameSuccess] = React.useState<string | null>(null);
 
-  const [oldUserName, setOldUserName] = React.useState("");
+  const [oldUserName, setOldUserName] = React.useState(user?.userId || "");
   const [newUserName, setNewUserName] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
+
+  // Sync if user updates
+  React.useEffect(() => {
+    if (user?.userId) {
+      setOldUserName(user.userId);
+    }
+  }, [user?.userId]);
 
   // Password State
   const [passLoading, setPassLoading] = React.useState(false);
   const [passError, setPassError] = React.useState<string | null>(null);
   const [passSuccess, setPassSuccess] = React.useState<string | null>(null);
 
-  const [oldPass, setOldPass] = React.useState("");
-  const [newPass, setNewPass] = React.useState("");
-  const [confPass, setConfPass] = React.useState("");
-
-  React.useEffect(() => {
-    fetch(appConfig.routes.api.session)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.user) {
-          setOldUserName(data.user.userId || "");
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const [oldPassword, setOldPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState("");
 
   const handleChangeUsername = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,9 +89,9 @@ export function ChangePassword({ command: _command }: { command?: string }) {
     setPassSuccess(null);
 
     const validationResult = changePasswordSchema.safeParse({
-      oldPass,
-      newPass,
-      confPass,
+      oldPassword,
+      newPassword,
+      confirmPassword: confirmNewPassword,
     });
 
     if (!validationResult.success) {
@@ -107,17 +105,17 @@ export function ChangePassword({ command: _command }: { command?: string }) {
     try {
       const res = await cbs.send(
         cbs.userSecurity.changePassword({
-          currPass: oldPass,
-          newPass,
+          currPass: oldPassword,
+          newPass: newPassword,
         }),
         { silent: true },
       );
 
       if (res.status === "SUCCESS") {
         setPassSuccess("Password successfully changed!");
-        setOldPass("");
-        setNewPass("");
-        setConfPass("");
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmNewPassword("");
       } else {
         setPassError(
           res.errors ? res.errors.join(", ") : res.message || "Failed to change password.",
@@ -150,10 +148,13 @@ export function ChangePassword({ command: _command }: { command?: string }) {
 
         <form onSubmit={handleChangeUsername} className="space-y-2.5 max-w-sm">
           <div className="space-y-1">
-            <Label className="text-[11px] font-medium text-muted-foreground">
-              Old Sign-on Name
-            </Label>
-            <Input value={oldUserName} disabled className="bg-muted/40 h-8 text-xs font-mono" />
+            <Label className="text-[11px] font-medium text-foreground">Current Sign-on Name</Label>
+            <Input
+              type="text"
+              value={oldUserName}
+              disabled
+              className="bg-muted/50 cursor-not-allowed h-8 text-xs font-mono"
+            />
           </div>
 
           <div className="space-y-1">
@@ -161,16 +162,18 @@ export function ChangePassword({ command: _command }: { command?: string }) {
               New Sign-on Name <span className="text-destructive">*</span>
             </Label>
             <Input
+              type="text"
               value={newUserName}
               onChange={(e) => setNewUserName(e.target.value)}
+              placeholder="e.g. TELLER99"
               required
-              className="h-8 text-xs font-mono"
+              className="h-8 text-xs font-mono uppercase"
             />
           </div>
 
           <div className="space-y-1">
             <Label className="text-[11px] font-medium text-foreground">
-              Password (to confirm) <span className="text-destructive">*</span>
+              Verify Current Password <span className="text-destructive">*</span>
             </Label>
             <Input
               type="password"
@@ -214,12 +217,12 @@ export function ChangePassword({ command: _command }: { command?: string }) {
         <form onSubmit={handleChangePassword} className="space-y-2.5 max-w-sm">
           <div className="space-y-1">
             <Label className="text-[11px] font-medium text-foreground">
-              Old Password <span className="text-destructive">*</span>
+              Current Password <span className="text-destructive">*</span>
             </Label>
             <Input
               type="password"
-              value={oldPass}
-              onChange={(e) => setOldPass(e.target.value)}
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
               required
               className="h-8 text-xs"
             />
@@ -231,8 +234,8 @@ export function ChangePassword({ command: _command }: { command?: string }) {
             </Label>
             <Input
               type="password"
-              value={newPass}
-              onChange={(e) => setNewPass(e.target.value)}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               required
               className="h-8 text-xs"
             />
@@ -244,8 +247,8 @@ export function ChangePassword({ command: _command }: { command?: string }) {
             </Label>
             <Input
               type="password"
-              value={confPass}
-              onChange={(e) => setConfPass(e.target.value)}
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
               required
               className="h-8 text-xs"
             />

@@ -1,6 +1,6 @@
 "use client";
 
-import { CbsJsonViewerTab } from "@/lib/cbs-screen";
+import { CbsJsonViewerTab } from "@/components/cbs-screen";
 import { serializeModelToWireJson } from "@/lib/data-parsers";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 

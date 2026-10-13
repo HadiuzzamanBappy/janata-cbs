@@ -1,6 +1,6 @@
 "use client";
 
-import { CbsJsonViewerTab } from "@/lib/cbs-screen";
+import { CbsJsonViewerTab } from "@/components/cbs-screen";
 import { serializeMenuTreeToWireJson } from "@/lib/data-parsers";
 import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 

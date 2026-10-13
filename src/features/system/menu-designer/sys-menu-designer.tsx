@@ -2,8 +2,9 @@
 
 import { FileCode, FileText, History, Layers, Network } from "lucide-react";
 import * as React from "react";
-import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
+import { CbsScreenScaffold } from "@/components/cbs-screen";
+import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
+import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { DesignerAuditTab } from "./components/designer-audit-tab";
 import { DesignerCanvasTab } from "./components/designer-canvas-tab";
 import { DesignerGeneralTab } from "./components/designer-general-tab";
@@ -116,8 +117,8 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       commandCode="MENU.TREE"
       recordId={recordId}
       mode={mode}
-      onRecordIdChange={(newId) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId) => setRecordId(searchedId.toUpperCase())}
+      onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => setRecordId(searchedId.toUpperCase())}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => fetchTreeRecord(recordId || "MAIN.MENU") : undefined}

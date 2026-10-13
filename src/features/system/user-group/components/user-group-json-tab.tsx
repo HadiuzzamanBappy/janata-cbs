@@ -1,6 +1,6 @@
 "use client";
 
-import { CbsJsonViewerTab } from "@/lib/cbs-screen";
+import { CbsJsonViewerTab } from "@/components/cbs-screen";
 import { serializeUserGroupToWireJson } from "@/lib/data-parsers";
 import type { UserGroupRecord } from "@/lib/data-schemas/user-group-schema";
 

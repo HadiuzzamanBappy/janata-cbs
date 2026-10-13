@@ -2,8 +2,9 @@
 
 import { Database, FileCode, FileText, Layers, ShieldCheck } from "lucide-react";
 import * as React from "react";
-import type { CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsScreenScaffold, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
+import { CbsScreenScaffold } from "@/components/cbs-screen";
+import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
+import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { McAuditTab } from "./components/mc-audit-tab";
 import { McGeneralTab } from "./components/mc-general-tab";
 import { McJsonTab } from "./components/mc-json-tab";
@@ -119,8 +120,8 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       commandCode="MODEL.CONFIG"
       recordId={recordId}
       mode={mode}
-      onRecordIdChange={(newId) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId) => setRecordId(searchedId.toUpperCase())}
+      onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => setRecordId(searchedId.toUpperCase())}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "MENU_TREE") : undefined}

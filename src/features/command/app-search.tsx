@@ -5,8 +5,13 @@ import { CommandDialog } from "@/components/ui/command";
 import { useCbsAccess } from "@/lib/cbs-access";
 import { useSessionStore } from "@/store";
 import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS } from "@/types";
-import { CommandGuidance, SearchFooterHelp, SearchInputBar, SearchResultsList } from "./components";
-import { useCommandExecutor, useCommandGuide, useSearchCommands } from "./hooks";
+import { CommandGuidance } from "./components/command-guidance";
+import { SearchFooterHelp } from "./components/search-footer-help";
+import { SearchInputBar } from "./components/search-input-bar";
+import { SearchResultsList } from "./components/search-results-list";
+import { useCommandExecutor } from "./hooks/use-command-executor";
+import { useCommandGuide } from "./hooks/use-command-guide";
+import { useSearchCommands } from "./hooks/use-search-commands";
 import type { GlobalSearchProps, RidashOption } from "./types";
 import { filterVisibleCommands, groupCommandsByCategory } from "./utils/search-filter";
 
@@ -28,7 +33,7 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
     userHasCommandLine,
   });
 
-  // Hook 2: CBS Command Grammar Execution
+  // Hook 2: CBS Command Gateway Execution
   const { handleSelectCommand, handleExecuteRawInput } = useCommandExecutor({
     onClose: () => onOpenChange(false),
   });
@@ -42,7 +47,7 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
     return groupCommandsByCategory(filteredCommands);
   }, [filteredCommands]);
 
-  // Hook 3: Proactive RIDASH & Space Guidance
+  // Hook 3: Proactive RIDASH & Space Guidance via Gateway Parser
   const commandGuideInfo = useCommandGuide({
     searchQuery,
     allCommands,
@@ -67,10 +72,8 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
         userHasCommandLine={userHasCommandLine}
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
-        authorizedCommands={authorizedCommands}
         filteredCount={filteredCommands.length}
         totalCount={authorizedCommands.length}
-        onSelectCommand={handleSelectCommand}
         onExecuteRawInput={handleExecuteRawInput}
       />
 

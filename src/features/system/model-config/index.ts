@@ -1,2 +1,1 @@
-export * from "./hooks/use-model-config";
-export * from "./sys-model-config";
+export { SysModelConfig } from "./sys-model-config";

@@ -225,27 +225,69 @@ flowchart TD
 ### 🟢 Phase 6: Domain Features & Dynamic Screen Subsystem (`src/features`)
 > **Goal**: High-level banking operations, dynamic screen resolution, and form/inquiry engines.
 
+#### 📐 Standard Feature Architecture Blueprint (Mandatory Template)
+Every domain feature in `src/features/<feature-name>/` must strictly comply with this modular anatomy to prevent code duplication, retain layer hygiene, and maintain 100% testability:
+
+```text
+src/features/<feature-name>/
+├── components/          # Presentational UI (no intermediate barrel; direct file imports)
+│   └── *.tsx
+├── hooks/               # Feature state machines & API mutations (direct file imports)
+│   └── use-*.ts
+├── utils/               # Pure helpers & transforms
+│   └── *.ts
+├── types.ts             # Local UI/view-model types; imports domain entities from @/types
+└── index.ts             # THE ONLY BARREL: Public API re-exporting components, hooks & types
+```
+
+##### 5 Invariant Rules for Features:
+1. **Zero Raw Fetch URLs**: All endpoint URLs must come exclusively from `clientConfig.routes` (e.g. `clientConfig.routes.api.login`).
+2. **Strict Zod Input Validation**: Form submissions must validate against canonical Zod schemas from `@/lib/data-schemas/` before sending.
+3. **Canonical Typed Responses**: Handle API payloads using the canonical `ApiResponse<T>` contract from `@/types/api.ts`.
+4. **Decoupled Store Interactions**: Features mutate or read state only via centralized Zustand stores (`useSessionStore`, `useWorkbenchStore`, `useAlertStore`).
+5. **Clean Barrel Export**: External consumers (`src/app/`, `src/features/workbench/`) must only import from `@/features/<feature-name>`, never reaching into internal component files directly.
+
+---
+
 Proceed in this strict feature order:
 
-- [ ] **6.1. `src/features/workbench` (Workspace Orchestration & Screen Loader)**:
+- [x] **6.1. `src/features/auth` (Master Template Feature)**:
+  - Establish the standard directory structure: `components/`, `hooks/`, `types.ts`, `index.ts`.
+  - Migrate `login-form.tsx` and `change-password.tsx` to use:
+    - Input schemas: `loginSchema` / `changePasswordSchema` from `@/lib/data-schemas/auth-schema.ts`.
+    - Endpoints: `clientConfig.routes.api.login` and `clientConfig.routes.api.changePassword`.
+    - Store: Synchronize authenticated user profile directly into `useSessionStore.getState().setSession(...)`.
+    - Feedback: Standard toast / alert notification.
+  - Verify zero code repetition and export cleanly via `src/features/auth/index.ts`.
+- [x] **6.2. `src/features/workbench` (Workspace Orchestration & Screen Loader)**:
   - Centralize dynamic screen component resolution in `screen-loader.tsx`.
-  - Bespoke Screen Registry (`src/features/workbench/screen-registry.tsx`):
-    - Declarative mapping of custom screens (e.g. `ACCOUNT.OPENING`, `TELLER.CASH_DEPOSIT`).
-    - Fallback cleanly to `DYNAMIC_FORM` or `INQUIRY_SCREEN` when no custom component is registered.
-- [ ] **6.2. `src/features/command` (Omnibar & Terminal)**:
+  - Bespoke Screen Registry (`src/features/workbench/registry.tsx`):
+    - Declarative mapping of custom screens (`SC.MENU`, `SC.MENU.DESIGN`, `SC.USER.GROUP`, `SC.MODEL.CONFIG`, `SC.REPORT.BUILDER`).
+    - Fallback cleanly to `InquiryScreen` or `FormScreen` when no bespoke component is registered.
+  - Suspense loading skeletons for forms vs inquiries + ErrorBoundary.
+  - Eliminated dead types and sealed public API via `src/features/workbench/index.ts`.
+- [x] **6.3. `src/features/command` (Omnibar & Terminal)**:
   - Connect command search/input to `cbsCommand.execute()`.
+  - Proactive RIDASH & Space Guidance powered by centralized `cbsCommand.parse()`.
   - Pre-execution RBAC security checks using active session profile.
-- [ ] **6.3. `src/features/operations` (Dynamic Form & Inquiry Engines)**:
-  - **Dynamic Form Engine (`forms/`)**:
-    - 12-column responsive layout based on GMC schema payloads.
-    - Declarative Field Registry (`fields/field-registry.ts`) for all data types (`ALPHA`, `AMOUNT`, `DATE`, `DROPDOWN`).
-    - Two-tier state: Local typing + debounced tab store sync.
-    - Standardized Header, Action Bar (RIDASH buttons), and Audit Footer.
-  - **Dynamic Inquiry Engine (`enquiries/`)**:
-    - Step 1: Selection criteria generator.
-    - Step 2: High-density results data table with pagination, column sorting, and CSV/PDF export.
-- [ ] **6.4. `src/features/auth` & `src/features/settings`**:
-  - Login form, password change workflow, branch selection, user preferences.
+  - Eliminated intermediate barrels and sealed public API via `src/features/command/index.ts`.
+- [x] **6.4. `src/features/operations` (Dynamic Form & Inquiry Engines)**:
+  - Domain namespace architecture aligned with `src/features/system/*` (no parent super-barrel):
+    - **Forms Engine (`src/features/operations/forms`)**:
+      - Declarative Field Registry (`FieldFactory`) supporting all core CBS data types (`text`, `number`, `date`, `select`).
+      - Two-tier state: Local typing + debounced tab store persistence sync (`useFormPersistence`).
+      - Unified with canonical `getDefaultMoreActions` from `@/lib/cbs-screen`.
+      - Sealed public contract (`@/features/operations/forms`).
+    - **Inquiries Engine (`src/features/operations/inquiries`)**:
+      - Step 1: Selection criteria generator (`InquiryFilters`).
+      - Step 2: High-density results data table with pagination, column sorting, and CSV/HTML/XML export (`InquiryTable`).
+      - Integrated inline drill-down (`InquiryDrillDown`) connecting directly into `FormScreen`.
+      - Sealed public contract (`@/features/operations/inquiries`).
+- [x] **6.5. `src/features/settings`**:
+  - Workstation configuration, branch selection, user preferences, and theme switching.
+  - Eliminated redundant `/api/session` HTTP fetch; consumes `useSessionStore` directly.
+  - Consolidated UI contracts into `src/features/settings/types.ts`.
+  - Sealed public API via `src/features/settings/index.ts`.
 
 ---
 

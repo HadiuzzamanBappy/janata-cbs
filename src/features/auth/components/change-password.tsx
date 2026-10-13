@@ -1,56 +1,33 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { appConfig } from "@/lib/core-config";
+import { useChangePassword } from "../hooks/use-change-password";
+import type { ChangePasswordProps } from "../types";
 
-export function ChangePassword() {
-  const router = useRouter();
+export function ChangePassword({ className = "mt-8 space-y-6" }: ChangePasswordProps) {
   const [oldPassword, setOldPassword] = React.useState("");
   const [newPassword, setNewPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+
+  const { changePassword, loading, error, setError } = useChangePassword();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-
     if (newPassword !== confirmPassword) {
       setError("New passwords do not match.");
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const res = await fetch(appConfig.routes.api.changePassword, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldPassword, newPassword }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to update password");
-      }
-
-      router.push(appConfig.routes.dashboard);
-      router.refresh();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
+    await changePassword({ oldPassword, newPassword, confirmPassword });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+    <form onSubmit={handleSubmit} className={className}>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

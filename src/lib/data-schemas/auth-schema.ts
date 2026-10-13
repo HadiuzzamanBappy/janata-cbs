@@ -28,17 +28,21 @@ export const changeUsernameSchema = z.object({
 
 export type ChangeUsernameInput = z.infer<typeof changeUsernameSchema>;
 
-/** Validates password rotation requests ('CPW') ensuring match and length. */
+/** Validates password rotation requests ('CPW') ensuring match, length, and complexity. */
 export const changePasswordSchema = z
   .object({
     oldPassword: z.string().min(1, "Current password is required"),
     newPassword: z
       .string()
-      .min(MIN_PASSWORD_LENGTH, `New password must be at least ${MIN_PASSWORD_LENGTH} characters`),
+      .min(MIN_PASSWORD_LENGTH, `Minimum ${MIN_PASSWORD_LENGTH} characters required!`)
+      .regex(/.*[A-Z].*/, "At least 1 uppercase character required!")
+      .regex(/.*[a-z].*/, "At least 1 lowercase character required!")
+      .regex(/.*\d.*/, "At least 1 digit required!")
+      .regex(/[!@#$%^&*(),.?":{}|<>]/, "At least 1 special character required!"),
     confirmPassword: z.string().min(1, "Please confirm your new password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "New passwords do not match",
+    message: "New password and confirm password do not match",
     path: ["confirmPassword"],
   });
 

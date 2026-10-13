@@ -2,6 +2,7 @@ export * from "./payloads";
 export * from "./transport/proxy-client";
 
 import { formPayloads } from "./payloads/form";
+import { formConfigPayloads } from "./payloads/form-config";
 import { inquiryPayloads } from "./payloads/inquiry";
 import { menuPayloads } from "./payloads/menu";
 import { modelConfigPayloads } from "./payloads/model-config";
@@ -23,6 +24,7 @@ export const cbs = {
   userGroup: userGroupPayloads,
   userSecurity: userSecurityPayloads,
   modelConfig: modelConfigPayloads,
+  formConfig: formConfigPayloads,
   inquiry: inquiryPayloads,
   form: formPayloads,
 } as const;

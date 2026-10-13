@@ -40,6 +40,14 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
     actionType: "SCREEN",
   },
   {
+    id: "SC.FORM.CONFIG",
+    title: "Form Design Studio",
+    category: "System Administration",
+    command: "SC.FORM.CONFIG",
+    aliases: ["FC", "SC.FORM.BUILDER"],
+    actionType: "SCREEN",
+  },
+  {
     id: "SC.REPORT.BUILDER",
     title: "Report Studio",
     category: "System Administration",

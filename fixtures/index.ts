@@ -1,5 +1,6 @@
 export * from "./branches";
 export * from "./controls";
+export * from "./form-configs";
 export * from "./form-data";
 export * from "./forms";
 export * from "./inquiry";

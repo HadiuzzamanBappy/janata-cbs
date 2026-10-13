@@ -103,6 +103,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
         }}
         data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
         data-cbs-label={node.title}
+        data-cbs-link-handled="true"
         className={cn(
           "flex items-center gap-1 px-1.5 py-1.5 rounded text-xs font-normal cursor-pointer transition-all duration-150 ease-out group w-full text-left border-0 bg-transparent relative leading-snug",
           isActive
@@ -142,6 +143,9 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
             onClick={handleClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={handleMouseLeave}
+            data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
+            data-cbs-label={node.title}
+            data-cbs-link-handled="true"
             className="z-5000 flex items-center gap-1 px-2 py-1.5 rounded text-xs font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100 border-0 text-left"
           >
             {hasChildren ? (

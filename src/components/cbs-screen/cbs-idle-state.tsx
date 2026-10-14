@@ -18,9 +18,7 @@ export function CbsIdleState({ title, customMessage }: CbsIdleStateProps) {
       <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
         <Layers className="size-6" />
       </div>
-      <h3 className="text-sm font-semibold text-foreground">
-        {title}
-      </h3>
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       <p className="text-xs text-muted-foreground max-w-sm mt-1">
         {customMessage || (
           <>

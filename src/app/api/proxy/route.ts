@@ -4,7 +4,7 @@ import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { cbsWirePayloadSchema } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc/dispatch";
 import { getSession } from "@/lib/infra-redis";
-import { getMockProxyResponse } from "@/lib/infra-services/mock-service";
+import { getStaticData, isStaticMode } from "@/lib/infra-services/cbs-gateway";
 import { type ApiResponse, DEFAULT_SERVICE_PATH, type GrpcEnvelope } from "@/types";
 
 export const runtime = "nodejs";
@@ -49,11 +49,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // =========================================================================
     // 1. STATIC MODE: Return fixtures via unified static provider
     // =========================================================================
-    if (appConfig.modelSource === "static") {
-      const staticRes = getMockProxyResponse(body.requestType, body.controlName, body.recordId);
+    if (isStaticMode()) {
+      const staticRes = getStaticData(
+        body.controlName ?? "",
+        body.recordId ?? "",
+        body.requestType,
+      ) as ApiResponse;
       return NextResponse.json(
         { ...staticRes, success: staticRes.status === "SUCCESS" },
-        { status: staticRes.statusCode },
+        { status: staticRes.statusCode || 200 },
       );
     }
 

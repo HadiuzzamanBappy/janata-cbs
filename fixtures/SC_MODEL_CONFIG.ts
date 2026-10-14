@@ -1,13 +1,8 @@
-import { parseModelConfig } from "@/lib/data-parsers";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
-/**
- * Clean, modern canonical camelCase JSON definitions for Model Configuration.
- * Formatted directly as built by the UI designer (1:1 storage format).
- */
-export const RAW_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
-  MENU_TREE: {
-    recordId: "MENU_TREE",
+export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
+  "MENU.TREE": {
+    recordId: "MENU.TREE",
     tableName: "MENU_TREE",
     description: "Menu Tree",
     prefix: "SC",
@@ -77,7 +72,241 @@ export const RAW_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
       recBranchCode: "JB9999",
     },
   },
-
+  CONTROL: {
+    recordId: "CONTROL",
+    tableName: "CONTROL",
+    description: "Command and Application Control Catalog",
+    prefix: "SC",
+    category: "SYSTEM",
+    servicePath: "default",
+    userDefineId: true,
+    predefineId: false,
+    access: "G",
+    readOnly: false,
+    searchable: true,
+    authorize: false,
+    associates: ["HIS", "DEL", "UNA"],
+    devBy: "System",
+    devDate: "2025-09-04",
+    idDef: {
+      idPrefix: "",
+      idPattern: "",
+      sequenceReset: false,
+    },
+    isActive: true,
+    properties: [
+      {
+        sn: "1",
+        name: "controlName",
+        label: "Control Name",
+        type: "Text",
+        length: 100,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Unique application command code or transaction keyword",
+      },
+      {
+        sn: "2",
+        name: "description",
+        label: "Description",
+        type: "Text",
+        length: 250,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Human-readable functional description of the command",
+      },
+    ],
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2025-09-04 00:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2025-09-04 00:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
+  BRANCH: {
+    recordId: "BRANCH",
+    tableName: "BRANCH",
+    description: "Core Banking Branch Master",
+    prefix: "SC",
+    category: "SYSTEM",
+    servicePath: "default",
+    userDefineId: true,
+    predefineId: false,
+    access: "G",
+    readOnly: false,
+    searchable: true,
+    authorize: true,
+    associates: ["HIS", "DEL", "UNA"],
+    devBy: "System",
+    devDate: "2025-09-04",
+    idDef: {
+      idPrefix: "JB",
+      idPattern: "",
+      sequenceReset: false,
+    },
+    isActive: true,
+    properties: [
+      {
+        sn: "1",
+        name: "branchTitle",
+        label: "Branch Title",
+        type: "Text",
+        length: 100,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Official registered branch title",
+      },
+      {
+        sn: "2",
+        name: "branchType",
+        label: "Branch Type",
+        type: "Text",
+        length: 20,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Branch classification (BR, HO, CORP, SME)",
+      },
+      {
+        sn: "3",
+        name: "routingNumber",
+        label: "Routing Number",
+        type: "Text",
+        length: 20,
+        structure: "S",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "National BEFTN clearing routing number",
+      },
+      {
+        sn: "4",
+        name: "swiftCode",
+        label: "SWIFT Code",
+        type: "Text",
+        length: 20,
+        structure: "S",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "International BIC / SWIFT code",
+      },
+    ],
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2025-09-04 00:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2025-09-04 00:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
+  USER: {
+    recordId: "USER",
+    tableName: "USER",
+    description: "System User Security & Authentication Profile",
+    prefix: "SYS",
+    category: "SYSTEM",
+    servicePath: "default",
+    userDefineId: true,
+    predefineId: false,
+    access: "G",
+    readOnly: false,
+    searchable: true,
+    authorize: true,
+    associates: ["HIS", "DEL", "UNA"],
+    devBy: "System",
+    devDate: "2025-09-04",
+    idDef: {
+      idPrefix: "ZZ",
+      idPattern: "",
+      sequenceReset: false,
+    },
+    isActive: true,
+    properties: [
+      {
+        sn: "1",
+        name: "userId",
+        label: "User ID",
+        type: "Text",
+        length: 20,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Operator identification code",
+      },
+      {
+        sn: "2",
+        name: "fullName",
+        label: "Full Name",
+        type: "Text",
+        length: 100,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Employee or operator full legal name",
+      },
+      {
+        sn: "3",
+        name: "accessibility",
+        label: "Accessibility (RIDASH)",
+        type: "Text",
+        length: 20,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Record access privileges (Read, Input, Delete, Authorize, See, History)",
+      },
+      {
+        sn: "4",
+        name: "branchCode",
+        label: "Default Branch Code",
+        type: "Text",
+        length: 10,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Home operational branch code",
+      },
+      {
+        sn: "5",
+        name: "commandLine",
+        label: "Enable Command Line",
+        type: "Boolean",
+        length: 1,
+        structure: "S",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        defaultValue: true,
+        enrichText: "Command bar and hotkey terminal capability flag",
+      },
+    ],
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2025-09-04 00:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2025-09-04 00:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
   MENU: {
     recordId: "MENU",
     tableName: "MENU",
@@ -176,7 +405,6 @@ export const RAW_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
       recBranchCode: "JB9999",
     },
   },
-
   ACCOUNT: {
     recordId: "ACCOUNT",
     tableName: "ACCOUNT",
@@ -432,7 +660,6 @@ export const RAW_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
       recBranchCode: "JB9999",
     },
   },
-
   CUSTOMER: {
     recordId: "CUSTOMER",
     tableName: "CUSTOMER",
@@ -517,18 +744,18 @@ export const RAW_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
   },
 };
 
-/**
- * STATIC_MODEL_CONFIGS: Keyed dictionary by table key matching STATIC_INQUIRY_DATA pattern.
- * Uses parseModelConfig to guarantee validation passes cleanly.
- */
-export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = Object.fromEntries(
-  Object.entries(RAW_MODEL_CONFIGS).map(([key, raw]) => {
-    const res = parseModelConfig(raw);
-    if (!res.success) {
-      throw new Error(`Failed to parse model config for ${key}: ${res.error}`);
-    }
-    return [key, res.data];
-  }),
-);
-
 export const STATIC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.values(STATIC_MODEL_CONFIGS);
+
+export function getModelConfigRecord(id: string): ModelConfigRecord | null {
+  const cleanId = id.trim().toUpperCase();
+  return STATIC_MODEL_CONFIGS[cleanId] ?? null;
+}
+
+export function listModelConfigSummaries() {
+  return STATIC_MODEL_CONFIG_LIST.map((record) => ({
+    id: record.recordId,
+    label: `${record.description} (${record.tableName})`,
+    details: `${record.properties.length} columns defined â€¢ ${record.category}`,
+    record,
+  }));
+}

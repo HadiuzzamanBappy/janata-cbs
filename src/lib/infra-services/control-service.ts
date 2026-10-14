@@ -6,7 +6,7 @@ import type { SystemCommandItem } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CBS_RECORD_FUNCTIONS, CbsControlTable, CbsRequestType } from "@/types/cbs";
-import { getMockControlsPayload } from "./mock-service";
+import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,
@@ -14,7 +14,7 @@ import {
 } from "./service-context";
 
 async function fetchControlWirePayload(tokenParam?: string): Promise<unknown> {
-  if (appConfig.modelSource === "static") return getMockControlsPayload();
+  if (isStaticMode()) return getStaticData("CONTROL");
 
   const ctx = await resolveServiceContext(tokenParam);
   const res = await grpcProcess(

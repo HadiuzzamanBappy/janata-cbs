@@ -22,7 +22,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@fixtures": ["./fixtures/index.ts"]
+      "@fixtures": ["./fixtures"],
+      "@fixtures/*": ["./fixtures/*"]
     }
   },
   "include": [

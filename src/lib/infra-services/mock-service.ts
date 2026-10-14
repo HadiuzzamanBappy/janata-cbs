@@ -1,14 +1,17 @@
 import "server-only";
 
 import {
+  AC_ACCOUNT_ENQUIRY_ROWS,
+  AC_ACCOUNT_LIVE,
+  CUST_CUSTOMER_LIVE,
+  SC_CONTROL_LIVE,
   STATIC_BRANCH_RESPONSE,
   STATIC_CONTROL_RESPONSE,
+  STATIC_FORM_CONFIG_LIST,
   STATIC_FORM_CONFIGS,
-  STATIC_FORM_DATA,
-  STATIC_FORMS,
   STATIC_INQUIRIES,
-  STATIC_INQUIRY_DATA,
   STATIC_MENU,
+  STATIC_MODEL_CONFIG_LIST,
   STATIC_MODEL_CONFIGS,
   STATIC_USER_RESPONSES,
 } from "@fixtures";
@@ -48,16 +51,23 @@ export function getMockMenuPayload(): unknown {
 }
 
 /**
- * Returns mock transaction form specification payload for a command code.
- * Checks exact version (e.g. "USER.MGT,NEW1") first, then falls back to base model ("USER.MGT").
+ * Returns mock transaction form specification payload for a command code from SC_MODEL_CONFIG.
  */
 export function getMockFormPayload(command: string): unknown {
-  const clean = command.trim().toUpperCase();
-  if (STATIC_FORMS[clean]?.data) {
-    return STATIC_FORMS[clean].data;
-  }
-  const base = clean.split(",")[0].trim();
-  return STATIC_FORMS[base]?.data ?? null;
+  const clean = command.trim().toUpperCase().split(",")[0].trim();
+  const model = STATIC_MODEL_CONFIGS[clean];
+  if (!model) return null;
+
+  return {
+    record: {
+      tableName: model.tableName,
+      description: model.description,
+      prefix: model.prefix,
+      idDef: model.idDef,
+      properties: model.properties,
+      auditData: model.auditData,
+    },
+  };
 }
 
 /**
@@ -82,88 +92,60 @@ export function getMockControlsPayload(): unknown {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Internal Mock Proxy Resolution Helpers                                     */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Normalizes legacy or aliased control table names to their fixture keys.
- */
-function resolveMockModelName(rawControl?: string): string {
-  const key = (rawControl || "").trim().toUpperCase();
-  if (
-    key === "MENU.TREE" ||
-    key === "MENU_TREE" ||
-    key === "MENU.DESIGN" ||
-    key === "MENU_DESIGN"
-  ) {
-    return STATIC_FORM_DATA.MENU_DESIGN ? "MENU_DESIGN" : "MENU_TREE";
-  }
-  if (key === "USER.GROUP" || key === "USER_GROUP") {
-    return STATIC_FORM_DATA["USER.GROUP"] ? "USER.GROUP" : "USER_GROUP";
-  }
-  return key;
-}
-
-/**
- * Finds mock inquiry records by model key, record ID, or controller name inside Protobuf specs.
- */
-function findMockInquiryRecords(cleanModel: string, cleanRecordId: string): unknown[] | null {
-  const directInquiry = STATIC_INQUIRY_DATA[cleanModel] || STATIC_INQUIRY_DATA[cleanRecordId];
-  if (directInquiry) return parseInquiryRecords(directInquiry);
-
-  if (!cleanModel) return null;
-
-  for (const [inqKey, inqSpec] of Object.entries(STATIC_INQUIRIES)) {
-    const fields = inqSpec.data?.fields as Record<string, unknown> | undefined;
-    const inqInfo = fields?.INQInfo as
-      | { struct_value?: { fields?: Record<string, { string_value?: string }> } }
-      | undefined;
-    const controller = inqInfo?.struct_value?.fields?.controllerName?.string_value
-      ?.trim()
-      .toUpperCase();
-
-    if (controller === cleanModel && STATIC_INQUIRY_DATA[inqKey]) {
-      return parseInquiryRecords(STATIC_INQUIRY_DATA[inqKey]);
-    }
-  }
-
-  return null;
-}
-
-/* -------------------------------------------------------------------------- */
 /* Mock Proxy Dispatcher                                                      */
 /* -------------------------------------------------------------------------- */
 
 /**
  * Handles offline static CRUD and inquiry responses for the `/api/proxy` endpoint.
+ * Directly reads canonical database tables without legacy dictionary wrappers.
  */
 export function getMockProxyResponse(
   requestType: string,
   controlName?: string,
   recordId?: string,
 ): MockProxyResult {
-  const cleanModel = resolveMockModelName(controlName);
+  const cleanModel = (controlName || "").trim().toUpperCase();
   const cleanRecordId = (recordId || "").trim().toUpperCase();
   const timestamp = new Date().toISOString();
 
   // 1. Inquiry Requests (INQ)
   if (requestType === "INQ") {
-    const records = findMockInquiryRecords(cleanModel, cleanRecordId);
+    // Check canonical inquiry specs
+    const inqSpec = STATIC_INQUIRIES[cleanModel] || STATIC_INQUIRIES[cleanRecordId];
+    if (inqSpec) {
+      const records = parseInquiryRecords(inqSpec);
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Inquiry data loaded from canonical table",
+        data: records,
+        timestamp,
+      };
+    }
+
+    if (cleanModel === "ACCOUNT" || cleanRecordId === "ACCOUNT") {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Account inquiry loaded",
+        data: AC_ACCOUNT_ENQUIRY_ROWS,
+        timestamp,
+      };
+    }
+
     return {
       status: "SUCCESS",
       statusCode: 200,
-      message: records
-        ? "Inquiry data loaded from offline fixture"
-        : "No inquiry records found in fixture",
-      data: records ?? [],
+      message: "No inquiry records found in fixture",
+      data: [],
       timestamp,
     };
   }
 
-  // 2. Model Config / Metamodel Catalog (SC.MODEL.CONFIG)
-  if (cleanModel === "SC.MODEL.CONFIG") {
+  // 2. Model Config Metamodel Catalog (SC.MODEL.CONFIG / MODEL.CONFIG)
+  if (cleanModel === "SC.MODEL.CONFIG" || cleanModel === "MODEL.CONFIG") {
     if (!cleanRecordId || cleanRecordId === "LIST" || cleanRecordId === "ALL") {
-      const data = Object.values(STATIC_MODEL_CONFIGS).map((record) => ({
+      const data = STATIC_MODEL_CONFIG_LIST.map((record) => ({
         id: record.recordId,
         label: `${record.description} (${record.tableName})`,
         details: `${record.properties.length} columns defined • ${record.category}`,
@@ -172,7 +154,7 @@ export function getMockProxyResponse(
       return {
         status: "SUCCESS",
         statusCode: 200,
-        message: "Model config catalog loaded from fixture",
+        message: "Model config catalog loaded from canonical table",
         data,
         timestamp,
       };
@@ -182,14 +164,14 @@ export function getMockProxyResponse(
       return {
         status: "SUCCESS",
         statusCode: 200,
-        message: `Model config for #${cleanRecordId} loaded from fixture`,
+        message: `Model config for #${cleanRecordId} loaded`,
         data: STATIC_MODEL_CONFIGS[cleanRecordId],
         timestamp,
       };
     }
   }
 
-  // 3. Form Config / Presentation Designer Catalog (SC.FORM.CONFIG / FORM.CONFIG)
+  // 3. Form Config Presentation Catalog (SC.FORM.CONFIG / FORM.CONFIG)
   if (cleanModel === "SC.FORM.CONFIG" || cleanModel === "FORM.CONFIG") {
     if (
       !cleanRecordId ||
@@ -198,7 +180,7 @@ export function getMockProxyResponse(
       requestType === "GRL" ||
       requestType === "RECORD_LIST"
     ) {
-      const data = Object.values(STATIC_FORM_CONFIGS).map((record) => ({
+      const data = STATIC_FORM_CONFIG_LIST.map((record) => ({
         id: record.recordId,
         label: `${record.title} (${record.targetModel})`,
         details: `${record.presentation.sections.length} sections • ${record.targetModel}`,
@@ -207,7 +189,7 @@ export function getMockProxyResponse(
       return {
         status: "SUCCESS",
         statusCode: 200,
-        message: "Form config catalog loaded from fixture",
+        message: "Form config catalog loaded from canonical table",
         data,
         timestamp,
       };
@@ -217,84 +199,92 @@ export function getMockProxyResponse(
       return {
         status: "SUCCESS",
         statusCode: 200,
-        message: `Form config for #${cleanRecordId} loaded from fixture`,
+        message: `Form config for #${cleanRecordId} loaded`,
         data: STATIC_FORM_CONFIGS[cleanRecordId],
         timestamp,
       };
     }
   }
 
-  // 4. Form Record & Control Table Requests
-  const modelTable = STATIC_FORM_DATA[cleanModel];
-  if (modelTable) {
+  // 4. Core Business Table Direct Reads
+  if (cleanModel === "ACCOUNT") {
     if (requestType === "GRL" || requestType === "RECORD_LIST" || (!recordId && !cleanRecordId)) {
-      const records = Object.values(modelTable.records || {});
-      const data =
-        records.length > 0
-          ? records.map((rec) => {
-              const recId = String(rec.recordId || rec.id || "");
-              const label = String(
-                rec.employeeName ||
-                  rec["ACCOUNT.TITLE"] ||
-                  rec.accountTitle1 ||
-                  rec.name ||
-                  rec.fullName ||
-                  recId,
-              );
-              const details = rec.branchCode ? `Branch: ${rec.branchCode}` : undefined;
-              return {
-                id: recId,
-                label,
-                details,
-                ...rec,
-              };
-            })
-          : modelTable.enquiryRows && modelTable.enquiryRows.length > 0
-            ? modelTable.enquiryRows
-            : [];
-
       return {
         status: "SUCCESS",
         statusCode: 200,
-        message: `${cleanModel} catalog list loaded from fixture`,
-        data,
+        message: "Account list loaded",
+        data: AC_ACCOUNT_ENQUIRY_ROWS,
         timestamp,
       };
     }
-
-    const requestedId = (recordId || cleanRecordId || "").trim();
-    if (requestedId && modelTable.records?.[requestedId]) {
+    if (cleanRecordId && AC_ACCOUNT_LIVE[cleanRecordId]) {
       return {
         status: "SUCCESS",
         statusCode: 200,
-        message: "Record loaded from offline fixture",
-        data: modelTable.records[requestedId],
+        message: "Account record loaded",
+        data: AC_ACCOUNT_LIVE[cleanRecordId],
         timestamp,
       };
     }
   }
 
-  // Fallback for GRL if table has no explicit records defined: generate sample IDs with prefix
-  if (requestType === "GRL") {
-    const prefix = cleanModel.replace(/[^A-Z]/g, "").slice(0, 2) || "REC";
-    const sampleItems = [
-      { id: `${prefix}00001`, label: `${cleanModel} Record 001`, details: "Status: Live" },
-      { id: `${prefix}00002`, label: `${cleanModel} Record 002`, details: "Status: Live" },
-      { id: `${prefix}00003`, label: `${cleanModel} Record 003`, details: "Status: Pending" },
-    ];
-    return {
-      status: "SUCCESS",
-      statusCode: 200,
-      message: `${cleanModel} sample record list loaded from mock`,
-      data: sampleItems,
-      timestamp,
-    };
+  if (cleanModel === "CUSTOMER") {
+    if (requestType === "GRL" || requestType === "RECORD_LIST" || (!recordId && !cleanRecordId)) {
+      const list = Object.values(CUST_CUSTOMER_LIVE).map((c) => ({
+        id: c.recordId,
+        label: c.fullName as string,
+        details: `DOB: ${c.dateOfBirth}`,
+        ...c,
+      }));
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Customer list loaded",
+        data: list,
+        timestamp,
+      };
+    }
+    if (cleanRecordId && CUST_CUSTOMER_LIVE[cleanRecordId]) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Customer record loaded",
+        data: CUST_CUSTOMER_LIVE[cleanRecordId],
+        timestamp,
+      };
+    }
+  }
+
+  if (cleanModel === "CONTROL") {
+    if (requestType === "GRL" || requestType === "RECORD_LIST" || (!recordId && !cleanRecordId)) {
+      const list = Object.values(SC_CONTROL_LIVE).map((ctl) => ({
+        id: ctl.recordId,
+        label: ctl.description,
+        ...ctl,
+      }));
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Control list loaded",
+        data: list,
+        timestamp,
+      };
+    }
+    if (cleanRecordId && SC_CONTROL_LIVE[cleanRecordId]) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Control record loaded",
+        data: SC_CONTROL_LIVE[cleanRecordId],
+        timestamp,
+      };
+    }
   }
 
   return {
     status: "RECORD_NOT_FOUND",
     statusCode: 404,
-    message: `Record #${recordId || cleanRecordId || ""} not found in offline fixture.`,
+    message: `Record #${recordId || cleanRecordId || ""} not found in database table ${cleanModel || "UNKNOWN"}.`,
     data: null,
     timestamp,
   };

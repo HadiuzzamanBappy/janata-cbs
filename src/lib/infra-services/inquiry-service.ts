@@ -6,7 +6,7 @@ import type { EnquirySchema } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CBS_RECORD_FUNCTIONS, CbsControlTable, CbsRequestType } from "@/types/cbs";
-import { getMockInquiryPayload } from "./mock-service";
+import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,
@@ -15,7 +15,7 @@ import {
 } from "./service-context";
 
 async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): Promise<unknown> {
-  if (appConfig.modelSource === "static") return getMockInquiryPayload(cleanCmd);
+  if (isStaticMode()) return getStaticData("INQUIRY", cleanCmd, "INQ");
 
   const ctx = await resolveServiceContext(tokenParam);
   const res = await grpcProcess(

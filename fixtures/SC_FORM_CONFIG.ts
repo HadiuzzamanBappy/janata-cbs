@@ -1,13 +1,5 @@
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 
-/**
- * Clean canonical Form Configuration fixture demonstrating CBS dynamic layout:
- *
- * 1. Plain canvas variables (type: "standard", layoutStyle: "plain")
- * 2. Standard Card container (type: "standard", layoutStyle: "card")
- * 3. Object Group container (type: "object-group", bindKey: "presentAddress")
- * 4. Tab Group container with multiple interactive tabs (zone: "tab", tabGroupId: "tabgrp_remarks")
- */
 export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
   ACCOUNT: {
     recordId: "ACCOUNT",
@@ -215,10 +207,18 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
   },
 };
 
-/**
- * Universal lookup helper for Form Configuration records.
- */
+export const STATIC_FORM_CONFIG_LIST: FormConfigRecord[] = Object.values(STATIC_FORM_CONFIGS);
+
 export function findFormConfigFixture(recordId: string): FormConfigRecord | null {
   const cleanId = recordId.trim().toUpperCase();
   return STATIC_FORM_CONFIGS[cleanId] ?? null;
+}
+
+export function listFormConfigSummaries() {
+  return STATIC_FORM_CONFIG_LIST.map((record) => ({
+    id: record.recordId,
+    label: `${record.title} (${record.targetModel})`,
+    details: `${record.presentation.sections.length} sections • ${record.targetModel}`,
+    record,
+  }));
 }

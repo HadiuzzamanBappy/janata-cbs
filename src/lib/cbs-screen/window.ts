@@ -15,4 +15,3 @@ export const CBS_SCREEN_MESSAGE = {
 export function makePopupTabId(screenId: string): string {
   return `popup-${screenId.replace(/\s+/g, "_")}`;
 }
-

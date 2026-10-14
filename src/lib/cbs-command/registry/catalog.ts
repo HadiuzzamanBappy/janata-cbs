@@ -20,7 +20,7 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
     title: "Menu Hierarchy",
     category: "System Administration",
     command: "SC.MENU.DESIGN",
-    aliases: ["MD"],
+    aliases: ["MD", "SC.MENU.TREE"],
     actionType: "SCREEN",
   },
   {
@@ -44,7 +44,7 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
     title: "Form Design",
     category: "System Administration",
     command: "SC.FORM.CONFIG",
-    aliases: ["FC"],
+    aliases: ["FC", "SC.FORM.BUILDER"],
     actionType: "SCREEN",
   },
   {

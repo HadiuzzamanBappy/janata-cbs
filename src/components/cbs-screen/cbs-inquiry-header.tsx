@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowDownToLine,
   Briefcase,
   ChevronDown,
   FileCode,
@@ -10,6 +11,7 @@ import {
   RefreshCw,
   Search,
 } from "lucide-react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -20,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
+import { CBS_SCREEN_EVENT } from "@/lib/cbs-screen";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
 
 export interface InquiryHeaderProps {
@@ -62,6 +65,11 @@ export function CbsInquiryHeader({
   validationErrors = [],
   onSelectValidationTab,
 }: InquiryHeaderProps) {
+  const [canDock, setCanDock] = React.useState(false);
+  React.useEffect(() => {
+    setCanDock(typeof window !== "undefined" && Boolean(window.opener));
+  }, []);
+
   return (
     <TooltipProvider delay={150}>
       <header className="sticky top-0 z-20 bg-muted/40 border-b border-border/80 select-none">
@@ -166,6 +174,35 @@ export function CbsInquiryHeader({
                 onSelectTab={(tab) => onSelectValidationTab?.(tab)}
               />
             </>
+          )}
+
+          {/* Right Action: Back to Tab (Dock into main window) when in popup window mode */}
+          {canDock && (
+            <div className="ml-auto flex items-center pl-2">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          window.dispatchEvent(new CustomEvent(CBS_SCREEN_EVENT.DOCK_TO_SHELL));
+                        }
+                      }}
+                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                      aria-label="Back to tab bar"
+                    >
+                      <ArrowDownToLine className="size-3.5" />
+                    </Button>
+                  }
+                />
+                <TooltipContent side="bottom" className="text-xs">
+                  Back to tab bar
+                </TooltipContent>
+              </Tooltip>
+            </div>
           )}
         </div>
 

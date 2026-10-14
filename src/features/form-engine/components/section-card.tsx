@@ -57,7 +57,6 @@ export function SectionCard({
           return "w-full sm:max-w-[50%] sm:min-w-[280px]";
         case 8:
           return "w-full sm:max-w-[66.666%] sm:min-w-[320px]";
-        case 12:
         default:
           return "w-full";
       }

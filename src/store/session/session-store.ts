@@ -1,3 +1,4 @@
+import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { appConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
@@ -17,44 +18,52 @@ export interface SessionState {
 export type SessionStore = ReturnType<typeof createSessionStore>;
 
 export const createSessionStore = () => {
-  return createStore<SessionState>()((set) => ({
-    user: null,
-    currentBranch: null,
-    isAuthenticated: false,
-    setSession: (user) => set({ user, isAuthenticated: true }),
-    clearSession: () => set({ user: null, isAuthenticated: false }),
-    logout: async () => {
-      try {
-        await fetch(appConfig.routes.api.logout, { method: "POST" });
-      } catch (e) {
-        logger.error("Logout failed", e, "SESSION_STORE");
-      }
-      set({ user: null, isAuthenticated: false });
+  return createStore<SessionState>()(
+    persist(
+      (set) => ({
+        user: null,
+        currentBranch: null,
+        isAuthenticated: false,
+        setSession: (user) => set({ user, isAuthenticated: true }),
+        clearSession: () => set({ user: null, isAuthenticated: false }),
+        logout: async () => {
+          try {
+            await fetch(appConfig.routes.api.logout, { method: "POST" });
+          } catch (e) {
+            logger.error("Logout failed", e, "SESSION_STORE");
+          }
+          set({ user: null, isAuthenticated: false });
 
-      // Cross-window coordination: notify detached windows without wiping draft form data
-      if (typeof window !== "undefined") {
-        try {
-          const channel = new BroadcastChannel("cbs_workbench_bus");
-          channel.postMessage({ type: "SESSION_LOGOUT" });
-          channel.close();
-        } catch {
-          // Ignore BroadcastChannel errors in non-supporting contexts
-        }
-        window.location.href = appConfig.routes.login;
-      }
-    },
-    setBranch: (branch) => {
-      set({ currentBranch: branch });
-      // Broadcast branch change to detached popups
-      if (typeof window !== "undefined") {
-        try {
-          const channel = new BroadcastChannel("cbs_workbench_bus");
-          channel.postMessage({ type: "BRANCH_CHANGED", branch });
-          channel.close();
-        } catch {
-          // Safe fallback
-        }
-      }
-    },
-  }));
+          // Cross-window coordination: notify detached windows without wiping draft form data
+          if (typeof window !== "undefined") {
+            try {
+              const channel = new BroadcastChannel("cbs_workbench_bus");
+              channel.postMessage({ type: "SESSION_LOGOUT" });
+              channel.close();
+            } catch {
+              // Ignore BroadcastChannel errors in non-supporting contexts
+            }
+            window.location.href = appConfig.routes.login;
+          }
+        },
+        setBranch: (branch) => {
+          set({ currentBranch: branch });
+          // Broadcast branch change to detached popups
+          if (typeof window !== "undefined") {
+            try {
+              const channel = new BroadcastChannel("cbs_workbench_bus");
+              channel.postMessage({ type: "BRANCH_CHANGED", branch });
+              channel.close();
+            } catch {
+              // Safe fallback
+            }
+          }
+        },
+      }),
+      {
+        name: appConfig.storageKeys.sessionState,
+        storage: createJSONStorage(() => sessionStorage),
+      },
+    ),
+  );
 };

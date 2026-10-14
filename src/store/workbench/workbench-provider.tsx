@@ -3,6 +3,7 @@
 import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import { registerCommandAdapter } from "@/lib/cbs-command";
+import { CBS_SCREEN_MESSAGE } from "@/lib/cbs-screen";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
 let activeWorkbenchStore: WorkbenchStore | null = null;
@@ -28,11 +29,26 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     const store = storeRef.current;
     if (!store) return;
 
-    return registerCommandAdapter({
+    const handleMessage = (e: MessageEvent) => {
+      if (typeof window !== "undefined" && e.origin !== window.location.origin) return;
+      if (e.data?.type === CBS_SCREEN_MESSAGE.DOCK_TAB && e.data?.payload) {
+        store.getState().addTab(e.data.payload);
+        window.focus();
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    const unregisterAdapter = registerCommandAdapter({
       openTab: (tab) => {
         store.getState().addTab(tab);
       },
     });
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+      unregisterAdapter?.();
+    };
   }, []);
 
   return (

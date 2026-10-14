@@ -43,9 +43,9 @@
   * How does the code decide between a purely dynamic schema form vs. a hardcoded custom override component?
   * Where is the screen registry where bespoke screens are mapped?
 * **Exact Code Targets:**
-  * The screen registry map file (`src/features/screens/registry.tsx`).
-  * The dynamic loader component (`src/features/screens/loader.tsx`).
-  * The command launcher (`src/features/screens/launcher.ts`).
+  * The screen registry map file (`src/features/workbench/registry.tsx`).
+  * The dynamic loader component (`src/features/workbench/loader.tsx`).
+  * The command launcher & executor (`src/lib/cbs-command/executor/terminal.ts`).
 
 ---
 
@@ -57,9 +57,9 @@
   * In the Zustand store, how is individual tab state (form dirty state, input values, active tab index) kept isolated so one tab doesn't bleed state into another?
   * What happens to form state when a tab is unmounted or hidden?
 * **Exact Code Targets:**
-  * The launcher function (`src/features/screens/launcher.ts`).
+  * The command launcher & popup spawner (`src/lib/cbs-command/executor/terminal.ts` & `popup.ts`).
   * The Zustand store managing tabs and panel state (`src/store/workbench/workbench-store.ts`).
-  * Tabbar and shell layout components (`src/components/layout/tabbar/*`).
+  * Tabbar and shell layout components (`src/components/layout/app-tabbar.tsx` & `src/components/layout/tabs/*`).
 
 ---
 

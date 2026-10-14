@@ -54,7 +54,7 @@ export const createWorkbenchStore = () => {
         activeTabId: null,
         addTab: (tab) =>
           set((state) => {
-            const baseId = tab.id || tab.screenId || "screen";
+            const baseId = tab.screenId || tab.id || "screen";
             const cleanTitle = tab.title.replace(/\s*\(\d+\)$/, "").replace(/\s*#\d+$/, "");
 
             const sameScreenCount = state.tabs.filter(
@@ -62,14 +62,17 @@ export const createWorkbenchStore = () => {
             ).length;
 
             const instanceNumber = sameScreenCount + 1;
-            const uniqueInstanceId = `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            const uniqueInstanceId =
+              tab.id && !state.tabs.some((t) => t.id === tab.id)
+                ? tab.id
+                : `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
             const newTab: WorkbenchTab = {
               ...tab,
               id: uniqueInstanceId,
               screenId: baseId,
               title: cleanTitle,
-              instanceNumber,
+              instanceNumber: tab.instanceNumber ?? instanceNumber,
             };
 
             return {

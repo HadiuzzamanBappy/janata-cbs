@@ -54,6 +54,7 @@ export const clientConfig = {
   // 5. Client Storage & Sync Keys
   storageKeys: {
     lastActivity: "cbs:session:last_activity",
+    sessionState: "cbs:session:state",
     workbenchTabs: "cbs:workbench:tabs",
     themeAccent: "cbs:theme:accent",
     sidebarState: "cbs:sidebar:state",

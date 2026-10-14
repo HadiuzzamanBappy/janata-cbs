@@ -181,7 +181,7 @@ export const CbsControlTable = {
   USER_GROUP: "SC.USER.GROUP",
   USER_PASS_RESET: "SC.USER.PASS.RESET",
   MODEL_CONFIG: "SC.MODEL.CONFIG",
-  FORM_CONFIG: "SC.FORM.CONFIG",
+  FORM_CONFIG: "CONFIG.FORM",
   INQUIRY: "INQUIRY",
 } as const;
 
@@ -219,6 +219,7 @@ export const CbsRequestType = {
   GCQ: "GCQ",
   /** Get generated report list ('GGL') */
   GGL: "GGL",
+  SBI: "SBI",
 
   // --- Model & Form Config Verbs ---
   /** Get model definition ('GMC') */

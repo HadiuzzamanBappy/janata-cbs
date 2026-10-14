@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { appConfig } from "@/lib/core-config/server";
 import { updateBranchSessionSchema } from "@/lib/data-schemas";
 import {
   destroySession,
@@ -91,7 +92,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           { status: 500 },
         );
       }
-      return NextResponse.json(
+
+      const res = NextResponse.json(
         {
           success: true,
           status: "SUCCESS",
@@ -102,6 +104,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         },
         { status: 200 },
       );
+
+      // Keep cookie aligned with updated branch
+      res.cookies.set(appConfig.auth.branchCookie, parsed.data.branchCode, {
+        httpOnly: false,
+        secure: !appConfig.isDev && appConfig.useHttps,
+        sameSite: "lax",
+        path: "/",
+        maxAge: appConfig.auth.sessionMaxAgeSeconds,
+      });
+
+      return res;
     }
 
     return NextResponse.json(

@@ -72,6 +72,7 @@ export function useIdleTimeout({
     }
 
     let lastRecorded = Date.now();
+    let lastHeartbeat = Date.now();
 
     // Throttled activity updater
     const handleUserActivity = () => {
@@ -82,6 +83,12 @@ export function useIdleTimeout({
         localStorage.setItem(STORAGE_KEY, String(now));
         if (isWarningOpen) {
           setIsWarningOpen(false);
+        }
+
+        // Periodic heartbeat: notify server/Redis session every 3 minutes if actively interacting
+        if (now - lastHeartbeat > 3 * 60 * 1000) {
+          lastHeartbeat = now;
+          fetch(appConfig.routes.api.session).catch(() => {});
         }
       }
     };

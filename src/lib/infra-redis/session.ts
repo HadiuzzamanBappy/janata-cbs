@@ -76,6 +76,17 @@ export async function createSession(
     maxAge: TTL_SECONDS,
   });
 
+  // Persist active branch cookie for zero-latency client/server context resilience
+  if (payload.currUser.branchCode) {
+    store.set(appConfig.auth.branchCookie, payload.currUser.branchCode, {
+      httpOnly: false, // Accessible by client and server
+      secure: isSecure,
+      sameSite: "lax",
+      path: "/",
+      maxAge: TTL_SECONDS,
+    });
+  }
+
   if (payload.currUser.initLogin) {
     store.set(appConfig.auth.initLoginCookie, "true", {
       httpOnly: true,
@@ -107,13 +118,13 @@ export async function getSession(): Promise<SessionData | null> {
 
   if (!session) return null;
 
-  // Server-side Inactivity Guard
+  // Server-side Inactivity Guard (with a 1-minute grace buffer so client warning dialog shows first)
   const timeoutMinutes = appConfig.logoutTime;
-  const maxInactiveMs = timeoutMinutes * 60 * 1000;
+  const maxInactiveMs = (timeoutMinutes + 1) * 60 * 1000;
   const now = Date.now();
 
   if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
-    sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
+    sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMinutes + 1}m)`);
     await cacheDelete(getSessionRedisKey(id));
     memoryStore.delete(id);
     return null;
@@ -190,4 +201,5 @@ export async function destroySession(): Promise<void> {
   const store = await cookies();
   store.delete(COOKIE_NAME);
   store.delete(appConfig.auth.initLoginCookie);
+  store.delete(appConfig.auth.branchCookie);
 }

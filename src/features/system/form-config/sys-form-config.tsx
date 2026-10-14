@@ -143,7 +143,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   return (
     <CbsScreenScaffold<FormConfigTabKey>
       title="Form Designer"
-      commandCode="FORM.CONFIG"
+      commandCode="CONFIG.FORM"
       recordId={recordId}
       mode={mode}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}

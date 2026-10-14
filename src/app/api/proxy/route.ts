@@ -60,11 +60,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // =========================================================================
     // 2. gRPC MODE: Dispatch to Core CBS Host (with graceful offline fallback)
     // =========================================================================
+    // Resilient Hierarchical Branch Code Resolution:
+    // 1. Explicit request override in wire payload
+    // 2. Client-synced HTTP cookie (survives Redis restarts/offline)
+    // 3. Authenticated session user branch from Redis/memory
+    // 4. Canonical central branch fallback
+    const cookieBranch = req.cookies.get(appConfig.auth.branchCookie)?.value;
+    const resolvedBranchCode =
+      parsed.data.branchCode || cookieBranch || currUser.branchCode || appConfig.centralBranch;
+
     const envelope: GrpcEnvelope = {
       servicePath: body.servicePath || DEFAULT_SERVICE_PATH,
       requestType: body.requestType,
       controlName: body.controlName ?? "",
-      branchCode: currUser.branchCode,
+      branchCode: resolvedBranchCode,
       recordFunction: body.recordFunction ?? "",
       recordId: body.recordId ?? "",
       authLevel: body.authLevel ?? 1,

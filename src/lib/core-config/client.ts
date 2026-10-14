@@ -16,6 +16,7 @@ export const clientConfig = {
     userSource: "grpc" as const,
     rateLimitWindowSec: 60,
     cookieName: "sid",
+    branchCookie: "cbs_branch",
     initLoginCookie: "initLogin",
     minPasswordLength: 6,
   },

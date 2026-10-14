@@ -32,7 +32,7 @@ export const formConfigPayloads = {
    */
   listFormConfigs: (): CbsWirePayload => ({
     servicePath: DEFAULT_SERVICE_PATH,
-    requestType: CbsRequestType.RECORD_GET,
+    requestType: CbsRequestType.SBI,
     controlName: CbsControlTable.FORM_CONFIG,
     recordFunction: CbsRecordFunction.SEE,
     recordId: "LIST",

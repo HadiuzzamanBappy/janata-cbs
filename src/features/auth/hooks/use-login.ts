@@ -55,6 +55,10 @@ export function useLogin() {
 
         const authenticatedUser = data.data?.user || data.user;
         if (authenticatedUser) {
+          // Reset client activity timestamp to current time on login
+          if (typeof window !== "undefined") {
+            localStorage.setItem(appConfig.storageKeys.lastActivity, String(Date.now()));
+          }
           // 3. Centralized Store sync
           setSession(authenticatedUser);
           logger.info(

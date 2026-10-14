@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cookies } from "next/headers";
 import { appConfig, getServiceUrl } from "@/lib/core-config/server";
 import { getSession } from "@/lib/infra-redis";
 
@@ -39,7 +40,9 @@ export async function resolveServiceContext(tokenParam?: string): Promise<Servic
     throw new Error("UNAUTHENTICATED: No authenticated user ID found in session");
   }
 
-  const branchCode = session?.currUser?.branchCode || appConfig.centralBranch;
+  const store = await cookies().catch(() => null);
+  const cookieBranch = store?.get(appConfig.auth.branchCookie)?.value;
+  const branchCode = cookieBranch || session?.currUser?.branchCode || appConfig.centralBranch;
   const address = getServiceUrl();
   const clientId = appConfig.grpc.clientId;
 

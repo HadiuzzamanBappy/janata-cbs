@@ -52,6 +52,7 @@ export const cbsWirePayloadSchema = z.object({
   servicePath: z.string().optional(),
   requestType: z.string().min(1, "Request type is required"),
   controlName: z.string().optional(),
+  branchCode: z.string().optional(),
   recordFunction: z.string().optional(),
   recordId: z.string().optional(),
   authLevel: z.number().int().min(0).max(9).optional(),

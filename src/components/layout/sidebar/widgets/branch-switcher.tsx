@@ -83,13 +83,26 @@ export function BranchSwitcher({
     );
   }, [branchSearch, branches]);
 
-  const handleBranchSwitch = (code: string, name: string) => {
+  const handleBranchSwitch = async (code: string, name: string) => {
+    // 1. Immediately update client store and cookie
     setBranch(code);
+
     toast.add({
       title: "Branch Context Switched",
       description: `Active session roaming changed to ${name} [${code}].`,
       type: "success",
     });
+
+    // 2. Synchronize to server session and Redis store
+    try {
+      await fetch(appConfig.routes.api.session, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branchCode: code, branchName: name }),
+      });
+    } catch {
+      // Graceful: client cookie and wire payload resolution still guarantee correct branch context
+    }
   };
 
   return (
@@ -170,7 +183,7 @@ export function BranchSwitcher({
               filteredBranches.map((b) => (
                 <DropdownMenuItem
                   key={b.code}
-                  onSelect={() => handleBranchSwitch(b.code, b.name)}
+                  onClick={() => handleBranchSwitch(b.code, b.name)}
                   className="flex items-center justify-between py-1.5 px-2 cursor-pointer focus:bg-accent text-xs gap-1.5 rounded"
                 >
                   <div className="flex items-center gap-1.5 min-w-0 truncate">

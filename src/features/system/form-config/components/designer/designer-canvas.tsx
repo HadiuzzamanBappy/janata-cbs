@@ -4,316 +4,614 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
+  type DragOverEvent,
+  DragOverlay,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
+  useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { ChevronDown, ChevronRight, Folder, GripVertical, Trash2 } from "lucide-react";
-import type * as React from "react";
+import { Folder } from "lucide-react";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import { DesignerFieldCard } from "./designer-field-card";
+import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { DesignerCanvasProps } from "./canvas-types";
+import { SortableSectionCard } from "./section-card";
+import { SortableTabGroupCard } from "./tab-group-card";
 
-export interface DesignerCanvasProps {
-  sections: FormSection[];
-  selectedSectionId: string | null;
-  selectedFieldId: string | null;
-  onSelectSection: (id: string) => void;
-  onSelectField: (id: string) => void;
-  onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
-  onRemoveSection: (id: string) => void;
-  onRemoveField: (fieldId: string) => void;
-  onReorderFields: (sectionId: string, activeId: string, overId: string) => void;
-  onReorderSections?: (activeId: string, overId: string) => void;
+export type { DesignerCanvasProps } from "./canvas-types";
+
+// ---------------------------------------------------------------------------
+// Cluster sections into render-blocks preserving insertion order
+// ---------------------------------------------------------------------------
+type RenderBlock =
+  | { type: "single"; section: FormSection }
+  | { type: "tab-group"; groupId: string; tabSections: FormSection[] };
+
+function buildRenderBlocks(sections: FormSection[]): RenderBlock[] {
+  const blocks: RenderBlock[] = [];
+  const seenTabGroups = new Map<string, FormSection[]>();
+
+  for (const sec of sections) {
+    if (sec.zone === "tab") {
+      const grpId = sec.tabGroupId?.trim() || "default_tab_group";
+      if (!seenTabGroups.has(grpId)) {
+        const grpList: FormSection[] = [sec];
+        seenTabGroups.set(grpId, grpList);
+        blocks.push({ type: "tab-group", groupId: grpId, tabSections: grpList });
+      } else {
+        seenTabGroups.get(grpId)?.push(sec);
+      }
+    } else {
+      blocks.push({ type: "single", section: sec });
+    }
+  }
+
+  return blocks;
+}
+
+// ---------------------------------------------------------------------------
+// BetweenBlockDropZone — shown between blocks to allow dropping anywhere
+// ---------------------------------------------------------------------------
+interface BetweenBlockDropZoneProps {
+  id: string;
+  gapIndex: number;
+  isActive: boolean;
+  onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
   disabled?: boolean;
 }
 
-interface SortableSectionCardProps {
-  section: FormSection;
-  isSecSelected: boolean;
-  selectedFieldId: string | null;
-  onSelectSection: (id: string) => void;
-  onSelectField: (id: string) => void;
-  onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
-  onRemoveSection: (id: string) => void;
-  onRemoveField: (fieldId: string) => void;
-  onReorderFields: (sectionId: string, activeId: string, overId: string) => void;
-  disabled?: boolean;
-}
-
-function SortableSectionCard({
-  section,
-  isSecSelected,
-  selectedFieldId,
-  onSelectSection,
-  onSelectField,
-  onUpdateSection,
-  onRemoveSection,
-  onRemoveField,
-  onReorderFields,
+function BetweenBlockDropZone({
+  id,
+  gapIndex,
+  isActive,
+  onDropPaletteItem,
   disabled,
-}: SortableSectionCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: section.id,
+}: BetweenBlockDropZoneProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: { type: "between-block-gap", gapId: id, gapIndex },
     disabled,
   });
 
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1,
-  };
-
-  const isGroup = section.type === "object-group";
-  const isTable = section.type === "array-table";
-  const isPlain = section.layoutStyle === "plain";
-
-  const fieldSensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  const handleFieldDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      onReorderFields(section.id, String(active.id), String(over.id));
-    }
-  };
+  const [isNativeOver, setIsNativeOver] = React.useState(false);
+  const isHighlighted = isOver || isNativeOver;
+  const showIndicator = isActive || isNativeOver;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop target container
     <div
       ref={setNodeRef}
-      style={style}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!disabled) setIsNativeOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsNativeOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsNativeOver(false);
+        if (disabled || !onDropPaletteItem) return;
+        try {
+          const dataStr = e.dataTransfer.getData("application/json");
+          if (dataStr) {
+            onDropPaletteItem(JSON.parse(dataStr), undefined, gapIndex);
+          }
+        } catch {
+          /* ignore */
+        }
+      }}
       className={cn(
-        "rounded transition-all overflow-hidden",
-        isPlain
-          ? "border border-dashed border-border/80 bg-background/50 p-1"
-          : "border border-border/80 bg-card/60",
-        isSecSelected && "border-primary/80 ring-1 ring-primary/30",
-        isDragging && "shadow-lg ring-2 ring-primary/40",
+        "transition-all rounded mx-0.5 relative flex items-center justify-center",
+        showIndicator
+          ? isHighlighted
+            ? "h-8 mb-2 bg-primary/15 border-2 border-dashed border-primary"
+            : "h-3 mb-1.5 border border-dashed border-border/50 hover:border-primary/50"
+          : "h-0 my-0 border-0 opacity-0 overflow-hidden pointer-events-none",
       )}
     >
-      {/* Section Header Strip with Drag Handle */}
-      <div
-        className={cn(
-          "px-2.5 py-1.5 flex items-center justify-between text-xs",
-          isPlain
-            ? "bg-muted/10 border-b border-dashed border-border/60"
-            : "bg-muted/20 border-b border-border/60",
-          isSecSelected && "bg-primary/5",
-        )}
-      >
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          {/* Section Drag Handle */}
-          {!disabled && (
-            <button
-              type="button"
-              {...attributes}
-              {...listeners}
-              className="cursor-grab text-muted-foreground/50 hover:text-foreground shrink-0 p-0.5"
-              aria-label="Reorder section block"
-            >
-              <GripVertical className="size-3.5 text-muted-foreground/60" />
-            </button>
-          )}
+      {isHighlighted && (
+        <span className="text-[10px] font-semibold text-primary select-none">
+          + Place item here
+        </span>
+      )}
+    </div>
+  );
+}
 
-          {section.collapsible && (
-            <button
-              type="button"
-              onClick={() => {
-                onUpdateSection(section.id, { isCollapsed: !section.isCollapsed });
-              }}
-              className="text-muted-foreground hover:text-foreground p-0.5"
-              aria-label={section.isCollapsed ? "Expand section" : "Collapse section"}
-            >
-              {section.isCollapsed ? (
-                <ChevronRight className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
-            </button>
-          )}
+// ---------------------------------------------------------------------------
+// Root canvas droppable — catches any field/variable drop on the canvas
+// ---------------------------------------------------------------------------
+function CanvasRootDropzone({
+  onDropPaletteItem,
+  disabled,
+}: {
+  onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  disabled?: boolean;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: "canvas-root-zone",
+    data: { type: "canvas-root" },
+    disabled,
+  });
 
-          <button
-            type="button"
-            onClick={() => onSelectSection(section.id)}
-            className="flex items-center gap-2 bg-transparent border-0 p-0 cursor-pointer text-left min-w-0"
-          >
-            <span className="text-xs font-semibold text-foreground uppercase tracking-wider truncate">
-              {section.title}
-            </span>
+  const [isNativeOver, setIsNativeOver] = React.useState(false);
+  const show = isOver || isNativeOver;
 
-            {isPlain ? (
-              <Badge
-                variant="outline"
-                className="text-[9px] h-4 px-1.5 font-mono uppercase border-amber-500/40 text-amber-500 bg-amber-500/10"
-              >
-                PLAIN BLOCK
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "text-[9px] h-4 px-1.5 font-mono uppercase",
-                  section.zone === "tab"
-                    ? "border-sky-500/40 text-sky-500 bg-sky-500/10"
-                    : "border-border text-muted-foreground",
-                )}
-              >
-                {section.zone === "tab" ? `TAB: ${section.tabTitle || section.title}` : "CARD"}
-              </Badge>
-            )}
+  return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Canvas root drop target
+    <div
+      ref={setNodeRef}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!disabled) setIsNativeOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsNativeOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsNativeOver(false);
+        if (disabled || !onDropPaletteItem) return;
+        try {
+          const dataStr = e.dataTransfer.getData("application/json");
+          if (dataStr) {
+            onDropPaletteItem(JSON.parse(dataStr));
+          }
+        } catch {
+          /* ignore */
+        }
+      }}
+      className={cn(
+        "min-h-12 rounded-lg border-2 border-dashed transition-all flex items-center justify-center text-xs text-muted-foreground/60 my-2",
+        show
+          ? "border-primary bg-primary/10 text-primary font-medium"
+          : "border-border/40 bg-muted/5 hover:border-border/80",
+      )}
+    >
+      <span>
+        {show
+          ? "↓ Drop directly onto root canvas"
+          : "Canvas Root (Click outside any container to select canvas)"}
+      </span>
+    </div>
+  );
+}
 
-            <Badge
-              variant="outline"
-              className={cn(
-                "text-[9px] h-4 px-1.5 font-mono uppercase",
-                isGroup && "border-purple-500/40 text-purple-400 bg-purple-500/10",
-                isTable && "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-              )}
-            >
-              {section.type}
-            </Badge>
+// ---------------------------------------------------------------------------
+// Empty-canvas splash
+// ---------------------------------------------------------------------------
+interface EmptyCanvasProps {
+  isOver: boolean;
+  onAddSection?: DesignerCanvasProps["onAddSection"];
+  onClickBackground: () => void;
+  onDragOver: React.DragEventHandler;
+  onDragLeave: React.DragEventHandler;
+  onDrop: React.DragEventHandler;
+  disabled?: boolean;
+}
 
-            {section.bindKey && (
-              <span className="text-[10px] font-mono text-muted-foreground/70">
-                &rarr; {section.bindKey}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {!disabled && (
-          <div className="flex items-center gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemoveSection(section.id);
-              }}
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer"
-            >
-              <Trash2 className="size-3" />
-            </Button>
-          </div>
-        )}
+function EmptyCanvasSplash({
+  isOver,
+  onAddSection,
+  onClickBackground,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  disabled,
+}: EmptyCanvasProps) {
+  return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Canvas background click deselects active section
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Canvas background click deselects active section
+    <div
+      className={cn(
+        "flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl m-4 transition-all cursor-pointer",
+        isOver
+          ? "border-primary bg-primary/10 text-primary scale-[1.01]"
+          : "border-border/60 bg-muted/5",
+      )}
+      onClick={onClickBackground}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      <div className="size-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+        <Folder className="size-6 text-muted-foreground/60" />
       </div>
+      <h4 className="text-sm font-semibold text-foreground">Canvas is Empty</h4>
+      <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4 leading-relaxed">
+        Drag variables or containers here, or click any variable on the left to add directly.
+      </p>
 
-      {/* Section Body (Sortable Fields) */}
-      {!section.isCollapsed && (
-        <div className="p-2">
-          {section.fields.length === 0 ? (
-            <div className="p-3 text-center border border-dashed border-border/50 rounded text-[11px] text-muted-foreground/60">
-              No fields placed yet. Select fields from the left Model Schema palette to place them
-              here.
-            </div>
-          ) : (
-            <DndContext
-              sensors={fieldSensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleFieldDragEnd}
-            >
-              <SortableContext
-                items={section.fields.map((f) => f.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="grid grid-cols-1 gap-1.5">
-                  {section.fields.map((field) => (
-                    <DesignerFieldCard
-                      key={field.id}
-                      field={field}
-                      isSelected={selectedFieldId === field.id}
-                      onSelect={() => onSelectField(field.id)}
-                      onRemove={() => onRemoveField(field.id)}
-                      disabled={disabled}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
+      {!disabled && onAddSection && (
+        // biome-ignore lint/a11y/noStaticElementInteractions: Stop propagation wrapper
+        // biome-ignore lint/a11y/useKeyWithClickEvents: Stop propagation wrapper
+        <div
+          className="flex flex-wrap items-center justify-center gap-2 max-w-md"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onAddSection("standard", "standard", [], "card", "Card Section")}
+            className="h-8 text-xs bg-background shadow-xs hover:border-emerald-500/50"
+          >
+            + Card Container
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onAddSection("object-group", "standard", [], "card", "Object Group")}
+            className="h-8 text-xs bg-background shadow-xs hover:border-purple-500/50"
+          >
+            + Object Group
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onAddSection("standard", "tab", [], "card", "Tab 1", undefined, "Tab 1")}
+            className="h-8 text-xs bg-background shadow-xs hover:border-sky-500/50"
+          >
+            + Tab Group
+          </Button>
         </div>
       )}
     </div>
   );
 }
 
+// ---------------------------------------------------------------------------
+// DesignerCanvas
+// ---------------------------------------------------------------------------
 export function DesignerCanvas({
   sections,
   selectedSectionId,
   selectedFieldId,
   onSelectSection,
   onSelectField,
+  onAddSection,
   onUpdateSection,
   onRemoveSection,
   onRemoveField,
   onReorderFields,
+  onMoveFieldAcrossSections,
   onReorderSections,
+  onConvertSectionZone,
+  onDropPaletteItem,
   disabled,
 }: DesignerCanvasProps) {
-  const sectionSensors = useSensors(
+  const [activeDragItem, setActiveDragItem] = React.useState<{
+    type: "field" | "section";
+    data: FormFieldItem | FormSection;
+  } | null>(null);
+
+  const isDragging = activeDragItem !== null;
+
+  const [isCanvasDragOver, setIsCanvasDragOver] = React.useState(false);
+
+  const dndSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const handleSectionDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id && onReorderSections) {
-      onReorderSections(String(active.id), String(over.id));
+  // ── Drag Handlers ──────────────────────────────────────────────────────────
+  const handleDragStart = (event: DragStartEvent) => {
+    const d = event.active.data.current;
+    if (d?.type === "field") {
+      setActiveDragItem({ type: "field", data: d.field as FormFieldItem });
+    } else if (d?.type === "section") {
+      setActiveDragItem({ type: "section", data: d.section as FormSection });
     }
   };
 
-  if (sections.length === 0) {
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || disabled) return;
+
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    if (activeData?.type === "field" && onMoveFieldAcrossSections) {
+      const sourceSecId = activeData.sectionId as string;
+      let targetSecId: string | undefined;
+      let targetFieldId: string | undefined;
+
+      if (overData?.type === "field") {
+        targetSecId = overData.sectionId as string;
+        targetFieldId = String(over.id);
+      } else if (overData?.type === "section-dropzone") {
+        targetSecId = overData.sectionId as string;
+      } else if (overData?.type === "section") {
+        targetSecId = String(over.id);
+      }
+
+      if (sourceSecId && targetSecId && sourceSecId !== targetSecId) {
+        onMoveFieldAcrossSections(sourceSecId, targetSecId, String(active.id), targetFieldId);
+        activeData.sectionId = targetSecId;
+      }
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragItem(null);
+    const { active, over } = event;
+    if (!over || disabled) return;
+
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    // ── Field drag ─────────────────────────────────────────────────────────
+    if (activeData?.type === "field") {
+      const sourceSecId = activeData.sectionId as string;
+      let targetSecId: string | undefined;
+      let targetFieldId: string | undefined;
+      let insertAtIndex: number | undefined;
+
+      if (overData?.type === "field") {
+        targetSecId = overData.sectionId as string;
+        targetFieldId = overId;
+      } else if (overData?.type === "section-dropzone") {
+        targetSecId = overData.sectionId as string;
+      } else if (overData?.type === "section") {
+        targetSecId = overId;
+      } else if (overData?.type === "canvas-root") {
+        targetSecId = "canvas-root";
+      } else if (overData?.type === "between-block-gap") {
+        targetSecId = "canvas-root";
+        insertAtIndex = overData.gapIndex as number;
+      }
+
+      if (sourceSecId && targetSecId) {
+        if (sourceSecId === targetSecId) {
+          if (targetFieldId && targetFieldId !== activeId) {
+            onReorderFields(sourceSecId, activeId, targetFieldId);
+          }
+        } else if (onMoveFieldAcrossSections) {
+          onMoveFieldAcrossSections(
+            sourceSecId,
+            targetSecId,
+            activeId,
+            targetFieldId,
+            insertAtIndex,
+          );
+        }
+      }
+      return;
+    }
+
+    // ── Section drag ────────────────────────────────────────────────────────
+    if (activeData?.type === "section") {
+      // Check if dropped onto a tab-group to convert zone
+      if (overData?.type === "section-dropzone" && onConvertSectionZone) {
+        const targetSec = sections.find((s) => s.id === overData.sectionId);
+        if (targetSec && targetSec.zone === "tab" && activeId !== String(targetSec.id)) {
+          // Convert the dragged section into a new tab inside that group
+          onConvertSectionZone(activeId, "tab", {
+            tabGroupId: targetSec.tabGroupId,
+            tabTitle: sections.find((s) => s.id === activeId)?.title || "New Tab",
+          });
+          return;
+        }
+      }
+
+      // Check if dropped onto a between-block-gap
+      if (overData?.type === "between-block-gap" && onReorderSections) {
+        const gapIndex = overData.gapIndex as number;
+        onReorderSections(activeId, "", gapIndex);
+        return;
+      }
+
+      if (onReorderSections && activeId !== overId) {
+        onReorderSections(activeId, overId);
+      }
+    }
+  };
+
+  // ── Native HTML5 handlers ─────────────────────────────────────────────────
+  const handleNativeCanvasDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!disabled) setIsCanvasDragOver(true);
+  };
+  const handleNativeCanvasDragLeave = () => setIsCanvasDragOver(false);
+  const handleNativeCanvasDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsCanvasDragOver(false);
+    if (disabled || !onDropPaletteItem) return;
+    try {
+      const dataStr = e.dataTransfer.getData("application/json");
+      if (dataStr) onDropPaletteItem(JSON.parse(dataStr));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // ── Empty-state ────────────────────────────────────────────────────────────
+  const totalFieldsCount = sections.reduce((acc, s) => acc + s.fields.length, 0);
+  const hasContainersOrFields =
+    sections.length > 0 &&
+    (totalFieldsCount > 0 || sections.some((s) => s.layoutStyle !== "plain" && Boolean(s.title)));
+
+  if (!hasContainersOrFields && sections.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-border/60 rounded-lg m-3 bg-muted/10">
-        <Folder className="size-8 text-muted-foreground/50 mb-2" />
-        <h4 className="text-xs font-semibold text-foreground">Canvas is Empty</h4>
-        <p className="text-[11px] text-muted-foreground max-w-xs mt-1">
-          Add a Standard Card, Plain Block, or Object Group from the left palette to start building
-          this form.
-        </p>
-      </div>
+      <EmptyCanvasSplash
+        isOver={isCanvasDragOver}
+        onAddSection={onAddSection}
+        onClickBackground={() => {
+          onSelectSection(null);
+          onSelectField(null, null);
+        }}
+        onDragOver={handleNativeCanvasDragOver}
+        onDragLeave={handleNativeCanvasDragLeave}
+        onDrop={handleNativeCanvasDrop}
+        disabled={disabled}
+      />
     );
   }
 
+  // ── Build render blocks ────────────────────────────────────────────────────
+  const blocks = buildRenderBlocks(sections);
+  // SortableContext IDs: use first section of each tab group (or the section itself)
+  const sortableCardIds = blocks.map((b) =>
+    b.type === "single" ? b.section.id : b.tabSections[0]?.id || b.groupId,
+  );
+
   return (
-    <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5 select-none">
+    // biome-ignore lint/a11y/noStaticElementInteractions: Canvas workspace click deselects
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Canvas workspace click deselects
+    <div
+      className={cn(
+        "flex-1 overflow-y-auto p-3 select-none transition-colors",
+        isCanvasDragOver && "bg-primary/5 ring-1 ring-primary/40",
+      )}
+      onDragOver={handleNativeCanvasDragOver}
+      onDragLeave={handleNativeCanvasDragLeave}
+      onDrop={handleNativeCanvasDrop}
+      onClick={() => {
+        onSelectSection(null);
+        onSelectField(null, null);
+      }}
+    >
       <DndContext
-        sensors={sectionSensors}
+        sensors={dndSensors}
         collisionDetection={closestCenter}
-        onDragEnd={handleSectionDragEnd}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
       >
-        <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2.5">
-            {sections.map((section) => (
-              <SortableSectionCard
-                key={section.id}
-                section={section}
-                isSecSelected={selectedSectionId === section.id}
-                selectedFieldId={selectedFieldId}
-                onSelectSection={onSelectSection}
-                onSelectField={onSelectField}
-                onUpdateSection={onUpdateSection}
-                onRemoveSection={onRemoveSection}
-                onRemoveField={onRemoveField}
-                onReorderFields={onReorderFields}
+        <SortableContext items={sortableCardIds} strategy={verticalListSortingStrategy}>
+          {/* Top gap */}
+          <BetweenBlockDropZone
+            id="gap-top"
+            gapIndex={0}
+            isActive={isDragging}
+            onDropPaletteItem={onDropPaletteItem}
+            disabled={disabled}
+          />
+
+          {blocks.map((block, i) => (
+            <React.Fragment key={block.type === "single" ? block.section.id : block.groupId}>
+              {block.type === "single" ? (
+                <SortableSectionCard
+                  section={block.section}
+                  isSecSelected={selectedSectionId === block.section.id}
+                  selectedFieldId={selectedFieldId}
+                  onSelectSection={onSelectSection}
+                  onSelectField={onSelectField}
+                  onUpdateSection={onUpdateSection}
+                  onRemoveSection={onRemoveSection}
+                  onRemoveField={onRemoveField}
+                  onConvertSectionZone={onConvertSectionZone}
+                  onDropPaletteItem={onDropPaletteItem}
+                  disabled={disabled}
+                />
+              ) : (
+                <SortableTabGroupCard
+                  groupId={block.groupId}
+                  tabSections={block.tabSections}
+                  selectedSectionId={selectedSectionId}
+                  selectedFieldId={selectedFieldId}
+                  onSelectSection={onSelectSection}
+                  onSelectField={onSelectField}
+                  onAddSection={onAddSection}
+                  onUpdateSection={onUpdateSection}
+                  onRemoveSection={onRemoveSection}
+                  onRemoveField={onRemoveField}
+                  onConvertSectionZone={onConvertSectionZone}
+                  onDropPaletteItem={onDropPaletteItem}
+                  disabled={disabled}
+                />
+              )}
+
+              {/* Gap between blocks — expands when dragging for visual placement indicator */}
+              <BetweenBlockDropZone
+                id={`gap-${i}`}
+                gapIndex={i + 1}
+                isActive={isDragging}
+                onDropPaletteItem={onDropPaletteItem}
                 disabled={disabled}
               />
-            ))}
-          </div>
+            </React.Fragment>
+          ))}
         </SortableContext>
+
+        {/* Root drop target at end — catches any variable/card drop */}
+        <CanvasRootDropzone onDropPaletteItem={onDropPaletteItem} disabled={disabled} />
+
+        {/* Drag Overlay Preview */}
+        <DragOverlay>
+          {activeDragItem?.type === "field" ? (
+            <div className="rounded border px-2 py-1.5 flex items-center justify-between text-xs bg-card shadow-xl ring-2 ring-primary border-primary">
+              <span className="font-semibold text-foreground truncate">
+                {(activeDragItem.data as FormFieldItem).label}
+              </span>
+              <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase ml-2">
+                {(activeDragItem.data as FormFieldItem).widget}
+              </Badge>
+            </div>
+          ) : activeDragItem?.type === "section" ? (
+            <div className="rounded border p-3 bg-card shadow-2xl ring-2 ring-primary border-primary text-xs font-semibold uppercase">
+              {(activeDragItem.data as FormSection).title || "Section"}
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
+
+      {/* Bottom add-block prompt */}
+      {!disabled && onAddSection && (
+        // biome-ignore lint/a11y/noStaticElementInteractions: Prevent propagating canvas background deselect
+        // biome-ignore lint/a11y/useKeyWithClickEvents: Prevent propagating canvas background deselect
+        <div
+          className="mt-3 pt-2 border-t border-dashed border-border/60 flex items-center justify-between text-xs text-muted-foreground px-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span className="text-[11px]">Add to canvas:</span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => onAddSection("standard", "standard", [], "card", "Card Section")}
+              className="px-2.5 py-1 rounded border border-border/80 bg-background text-[11px] hover:border-emerald-500/50 text-foreground cursor-pointer transition-colors"
+            >
+              + Card
+            </button>
+            <button
+              type="button"
+              onClick={() => onAddSection("object-group", "standard", [], "card", "Object Group")}
+              className="px-2.5 py-1 rounded border border-border/80 bg-background text-[11px] hover:border-purple-500/50 text-foreground cursor-pointer transition-colors"
+            >
+              + Group
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                onAddSection("standard", "tab", [], "card", "Tab 1", undefined, "Tab 1")
+              }
+              className="px-2.5 py-1 rounded border border-border/80 bg-background text-[11px] hover:border-sky-500/50 text-foreground cursor-pointer transition-colors"
+            >
+              + Tab Group
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

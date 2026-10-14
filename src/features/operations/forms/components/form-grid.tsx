@@ -1,6 +1,9 @@
+import { STATIC_FORM_CONFIGS } from "@fixtures";
+import * as React from "react";
+import { FormRenderer } from "@/features/form-engine";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import type { FormSchema } from "@/lib/data-schemas";
-import { FieldFactory } from "./field-factory";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
 
 export interface FormGridProps {
   schema: FormSchema;
@@ -19,43 +22,66 @@ export function FormGrid({
   disabled = false,
   mode = "I",
 }: FormGridProps) {
-  if (!schema.fields || schema.fields.length === 0) {
-    return (
-      <div className="p-4 text-xs text-muted-foreground text-center border border-dashed rounded-md">
-        No form fields defined for schema &quot;{schema.title}&quot;.
-      </div>
+  // 1. Check if a rich custom visual presentation exists in STATIC_FORM_CONFIGS or by screen code
+  const customConfig: FormConfigRecord | undefined =
+    STATIC_FORM_CONFIGS[schema.code] ||
+    STATIC_FORM_CONFIGS[`FC.${schema.code}`] ||
+    Object.values(STATIC_FORM_CONFIGS as Record<string, FormConfigRecord>).find(
+      (cfg) => cfg.targetModel === schema.code,
     );
-  }
 
-  // Group fields if they have an explicit group property or group into a primary card
-  const title = schema.title || schema.code || "Transaction Details";
+  const presentation = React.useMemo(() => {
+    if (customConfig?.presentation) {
+      return customConfig.presentation;
+    }
+
+    // 2. Default Dynamic 12-Column Layout generated from GMC schema
+    const defaultSection: FormSection = {
+      id: "sec_default",
+      title: schema.title || schema.code || "Transaction Attributes",
+      description: "Default layout",
+      type: "standard",
+      zone: "standard",
+      layoutStyle: "card",
+      columns: 2,
+      collapsible: false,
+      isCollapsed: false,
+      fields: (schema.fields || []).map((f) => ({
+        id: `f_${f.name}`,
+        fieldKey: f.name,
+        label: f.label || f.name,
+        widget:
+          f.type === "select"
+            ? "select"
+            : f.type === "date"
+              ? "date"
+              : f.type === "number"
+                ? "number"
+                : "text",
+        colSpan: f.width === "xs" ? 3 : f.width === "sm" ? 4 : f.width === "lg" ? 12 : 6,
+        required: f.required,
+        readOnly: f.readOnly,
+        options: f.options,
+        placeholder: f.placeholder,
+      })),
+    };
+
+    return {
+      archetype: "scanline" as const,
+      density: "compact" as const,
+      steps: [],
+      sections: [defaultSection],
+    };
+  }, [schema, customConfig]);
 
   return (
-    <div className="h-full overflow-y-auto pr-1">
-      <div className="max-w-3xl space-y-3">
-        {/* 1:1 System Screen Card Container */}
-        <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
-          {/* Card Header: 1:1 with Model Config & User Group */}
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
-            {title} &bull; General Attributes
-          </div>
-
-          {/* Form Fields: Stacked vertically with compact 8px gap */}
-          <div className="space-y-2 text-xs">
-            {schema.fields.map((field) => (
-              <FieldFactory
-                key={field.name}
-                field={field}
-                value={values[field.name]}
-                onChange={onChange}
-                error={errors[field.name]}
-                disabled={disabled}
-                mode={mode}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
+    <FormRenderer
+      presentation={presentation}
+      values={values}
+      onChange={onChange}
+      errors={errors}
+      disabled={disabled}
+      mode={mode}
+    />
   );
 }

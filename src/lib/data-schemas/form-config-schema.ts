@@ -80,6 +80,7 @@ export const formSectionSchema = z.object({
   description: z.string().optional(),
   type: z.enum(["standard", "object-group", "array-table"]).default("standard"),
   zone: z.enum(["header", "tab", "standard"]).optional().default("standard"),
+  tabGroupId: z.string().optional(), // Distinct identifier for multiple independent tab bars (e.g. "grp_account", "grp_operations")
   tabTitle: z.string().optional(),
   bindKey: z.string().optional(), // Nested target key in model (e.g. "presentAddress" or "nominees")
   columns: z.number().min(1).max(4).default(2),
@@ -110,9 +111,9 @@ export const formConfigRecordSchema = z.object({
   description: z.string().optional(),
   isActive: z.boolean().default(true),
   presentation: z.object({
-    archetype: formArchetypeSchema.default("grid"),
-    density: formDensitySchema.default("compact"),
-    steps: z.array(formWizardStepSchema).default([]),
+    archetype: formArchetypeSchema.optional(),
+    density: formDensitySchema.optional(),
+    steps: z.array(formWizardStepSchema).optional().default([]),
     sections: z.array(formSectionSchema).default([]),
   }),
   auditData: auditDataSchema.optional(),

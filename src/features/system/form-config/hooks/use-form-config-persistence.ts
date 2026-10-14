@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
 import { useWorkbenchStore } from "@/store";
 import type { CbsScreenMode } from "@/types";
 
@@ -11,8 +11,6 @@ export const INITIAL_FORM_CONFIG: FormConfigRecord = {
   description: "",
   isActive: true,
   presentation: {
-    archetype: "grid",
-    density: "compact",
     steps: [],
     sections: [],
   },
@@ -35,9 +33,21 @@ export function useFormConfigPersistence(initialId?: string, tabId?: string) {
 
   const [recordId, setRecordId] = React.useState<string>(resolvedInitialId);
   const [mode, setMode] = React.useState<CbsScreenMode>(resolvedInitialMode);
-  const [formData, setFormData] = React.useState<FormConfigRecord>(
-    (currentTab?.formData as unknown as FormConfigRecord) || INITIAL_FORM_CONFIG,
-  );
+  const [formData, setFormData] = React.useState<FormConfigRecord>(() => {
+    const raw = (currentTab?.formData as unknown as FormConfigRecord) || INITIAL_FORM_CONFIG;
+    if (!raw.presentation?.sections) return raw;
+    return {
+      ...raw,
+      presentation: {
+        ...raw.presentation,
+        sections: raw.presentation.sections.map((sec) => ({
+          ...sec,
+          type: (sec.type || (sec.bindKey ? "object-group" : "standard")) as FormSection["type"],
+          columns: sec.columns || 1,
+        })),
+      },
+    };
+  });
 
   const setRecordIdWithSync = React.useCallback(
     (newId: string) => {

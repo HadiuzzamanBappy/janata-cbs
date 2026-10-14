@@ -5,6 +5,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import {
   type FormArchetype,
+  type FormConfigRecord,
   type FormFieldItem,
   type FormSection,
   formConfigRecordSchema,
@@ -71,7 +72,19 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           (res.data as typeof INITIAL_FORM_CONFIG);
 
         if (res.status === "SUCCESS" && loadedRecord) {
-          setFormData(loadedRecord);
+          const sanitizedRecord: FormConfigRecord = {
+            ...loadedRecord,
+            presentation: {
+              ...loadedRecord.presentation,
+              sections: (loadedRecord.presentation?.sections ?? []).map((sec) => ({
+                ...sec,
+                type: (sec.type ||
+                  (sec.bindKey ? "object-group" : "standard")) as FormSection["type"],
+                columns: sec.columns || 1,
+              })),
+            },
+          };
+          setFormData(sanitizedRecord);
           setMode(nextMode || "I");
           toast.add({
             title: "Form Loaded",
@@ -119,38 +132,64 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     (
       type: "standard" | "object-group" | "array-table" = "standard",
       zone: "header" | "tab" | "standard" = "standard",
+      initialFields: FormFieldItem[] = [],
+      layoutStyle?: "card" | "plain",
+      customTitle?: string,
+      tabGroupId?: string,
+      tabTitle?: string,
+      insertIndex?: number,
+      columns?: number,
     ) => {
       const newId = `sec_${Date.now()}`;
       const defaultTitle =
-        zone === "header"
-          ? "Master Header Card"
-          : zone === "tab"
-            ? "New Tab Page"
-            : type === "object-group"
-              ? "New Object Group"
-              : "New Section";
+        customTitle !== undefined
+          ? customTitle
+          : layoutStyle === "plain"
+            ? ""
+            : zone === "header"
+              ? "Master Header Card"
+              : zone === "tab"
+                ? tabTitle || "Tab 1"
+                : type === "object-group"
+                  ? "New Object Group"
+                  : "Form Fields";
 
       const newSection: FormSection = {
         id: newId,
         title: defaultTitle,
         type,
         zone,
-        tabTitle: zone === "tab" ? "New Tab" : undefined,
+        tabGroupId: zone === "tab" ? tabGroupId || `tabgrp_${Date.now()}` : undefined,
+        tabTitle: zone === "tab" ? tabTitle || defaultTitle || "Tab 1" : undefined,
         bindKey: type !== "standard" ? `group_${Date.now()}` : undefined,
-        columns: 2,
+        columns: columns ?? 1,
         collapsible: type !== "standard",
         isCollapsed: false,
-        fields: [],
+        layoutStyle:
+          layoutStyle ??
+          (type === "standard" && zone === "standard" && !customTitle ? "plain" : "card"),
+        fields: initialFields,
       };
 
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          sections: [...prev.presentation.sections, newSection],
-        },
-      }));
+      setFormData((prev) => {
+        const nextSections = [...prev.presentation.sections];
+        if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= nextSections.length) {
+          nextSections.splice(insertIndex, 0, newSection);
+        } else {
+          nextSections.push(newSection);
+        }
+        return {
+          ...prev,
+          presentation: {
+            ...prev.presentation,
+            sections: nextSections,
+          },
+        };
+      });
       setSelectedSectionId(newId);
+      if (initialFields.length > 0) {
+        setSelectedFieldId(initialFields[0].id);
+      }
     },
     [setFormData],
   );
@@ -283,13 +322,147 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     [setFormData],
   );
 
+  // Move a field across sections (e.g., from root canvas into a group, or from group to root canvas)
+  const moveFieldAcrossSections = React.useCallback(
+    (
+      sourceSecId: string,
+      targetSecId: string,
+      fieldId: string,
+      targetFieldId?: string,
+      insertAtIndex?: number,
+    ) => {
+      setFormData((prev) => {
+        const sourceSec = prev.presentation.sections.find((s) => s.id === sourceSecId);
+        if (!sourceSec) return prev;
+
+        const fieldIndex = sourceSec.fields.findIndex((f) => f.id === fieldId);
+        if (fieldIndex === -1) return prev;
+
+        const fieldToMove = sourceSec.fields[fieldIndex];
+
+        // ── Case A: Moving to canvas-root or gap where target section might not exist ──
+        if (targetSecId === "canvas-root" || targetSecId.startsWith("gap-")) {
+          const newRootSec: FormSection = {
+            id: `sec_root_${Date.now()}`,
+            title: "",
+            type: "standard",
+            zone: "standard",
+            columns: 2,
+            collapsible: false,
+            isCollapsed: false,
+            layoutStyle: "plain",
+            fields: [fieldToMove],
+          };
+
+          const newSections = prev.presentation.sections
+            .map((s) =>
+              s.id === sourceSecId ? { ...s, fields: s.fields.filter((f) => f.id !== fieldId) } : s,
+            )
+            .filter((s) => !(s.layoutStyle === "plain" && !s.title && s.fields.length === 0));
+
+          if (
+            insertAtIndex !== undefined &&
+            insertAtIndex >= 0 &&
+            insertAtIndex <= newSections.length
+          ) {
+            newSections.splice(insertAtIndex, 0, newRootSec);
+          } else {
+            // Find existing plain section if any
+            const existingRoot = newSections.find(
+              (s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root",
+            );
+            if (existingRoot) {
+              existingRoot.fields.push(fieldToMove);
+              return {
+                ...prev,
+                presentation: { ...prev.presentation, sections: newSections },
+              };
+            }
+            newSections.push(newRootSec);
+          }
+
+          return {
+            ...prev,
+            presentation: {
+              ...prev.presentation,
+              sections: newSections,
+            },
+          };
+        }
+
+        const targetSec = prev.presentation.sections.find((s) => s.id === targetSecId);
+        if (!targetSec) return prev;
+
+        if (sourceSecId === targetSecId) {
+          // Same section reorder
+          if (!targetFieldId || targetFieldId === fieldId) return prev;
+          const targetIndex = targetSec.fields.findIndex((f) => f.id === targetFieldId);
+          if (targetIndex === -1) return prev;
+          const newFields = [...sourceSec.fields];
+          newFields.splice(fieldIndex, 1);
+          newFields.splice(targetIndex, 0, fieldToMove);
+          return {
+            ...prev,
+            presentation: {
+              ...prev.presentation,
+              sections: prev.presentation.sections.map((s) =>
+                s.id === sourceSecId ? { ...s, fields: newFields } : s,
+              ),
+            },
+          };
+        }
+
+        // Cross-section move
+        const newSourceFields = sourceSec.fields.filter((f) => f.id !== fieldId);
+        const newTargetFields = [...targetSec.fields];
+
+        if (targetFieldId) {
+          const targetIndex = newTargetFields.findIndex((f) => f.id === targetFieldId);
+          if (targetIndex !== -1) {
+            newTargetFields.splice(targetIndex, 0, fieldToMove);
+          } else {
+            newTargetFields.push(fieldToMove);
+          }
+        } else {
+          newTargetFields.push(fieldToMove);
+        }
+
+        const updatedSections = prev.presentation.sections
+          .map((s) => {
+            if (s.id === sourceSecId) return { ...s, fields: newSourceFields };
+            if (s.id === targetSecId) return { ...s, fields: newTargetFields };
+            return s;
+          })
+          .filter((s) => !(s.layoutStyle === "plain" && !s.title && s.fields.length === 0));
+
+        return {
+          ...prev,
+          presentation: {
+            ...prev.presentation,
+            sections: updatedSections,
+          },
+        };
+      });
+      setSelectedFieldId(fieldId);
+      if (targetSecId !== "canvas-root" && !targetSecId.startsWith("gap-")) {
+        setSelectedSectionId(targetSecId);
+      }
+    },
+    [setFormData],
+  );
+
   // Reorder sections/blocks on the canvas (for drag-and-drop)
   const reorderSections = React.useCallback(
-    (activeId: string, overId: string) => {
+    (activeId: string, overId: string, insertIndex?: number) => {
       setFormData((prev) => {
         const oldIndex = prev.presentation.sections.findIndex((s) => s.id === activeId);
-        const newIndex = prev.presentation.sections.findIndex((s) => s.id === overId);
-        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
+        if (oldIndex === -1) return prev;
+
+        let newIndex = prev.presentation.sections.findIndex((s) => s.id === overId);
+        if (insertIndex !== undefined) {
+          newIndex = insertIndex;
+        }
+        if (newIndex === -1 || oldIndex === newIndex) return prev;
 
         const newSections = [...prev.presentation.sections];
         const [moved] = newSections.splice(oldIndex, 1);
@@ -303,6 +476,50 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           },
         };
       });
+    },
+    [setFormData],
+  );
+
+  /**
+   * Convert a section's zone:
+   * - card → tab: wraps it as a new tab page (with a new tabGroupId if not specified)
+   * - tab → card: converts to a standard card section (clears tabGroupId/tabTitle)
+   */
+  const convertSectionZone = React.useCallback(
+    (
+      sectionId: string,
+      targetZone: "standard" | "tab",
+      opts?: { tabGroupId?: string; tabTitle?: string },
+    ) => {
+      setFormData((prev) => ({
+        ...prev,
+        presentation: {
+          ...prev.presentation,
+          sections: prev.presentation.sections.map((sec) => {
+            if (sec.id !== sectionId) return sec;
+            if (targetZone === "tab") {
+              const grpId = opts?.tabGroupId || `tabgrp_${Date.now()}`;
+              const title = opts?.tabTitle || sec.title || "New Tab";
+              return {
+                ...sec,
+                zone: "tab" as const,
+                tabGroupId: grpId,
+                tabTitle: title,
+                title,
+                layoutStyle: "card" as const,
+              };
+            }
+            // tab → standard card
+            return {
+              ...sec,
+              zone: "standard" as const,
+              tabGroupId: undefined,
+              tabTitle: undefined,
+              layoutStyle: "card" as const,
+            };
+          }),
+        },
+      }));
     },
     [setFormData],
   );
@@ -409,7 +626,9 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     updateField,
     removeField,
     reorderFields,
+    moveFieldAcrossSections,
     reorderSections,
+    convertSectionZone,
     handleValidate,
     handleSubmit,
     handleCreateNew,

@@ -40,7 +40,9 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     updateField,
     removeField,
     reorderFields,
+    moveFieldAcrossSections,
     reorderSections,
+    convertSectionZone,
     handleValidate,
     handleSubmit,
     handleCreateNew,
@@ -91,7 +93,9 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             onUpdateField={updateField}
             onRemoveField={removeField}
             onReorderFields={reorderFields}
+            onMoveFieldAcrossSections={moveFieldAcrossSections}
             onReorderSections={reorderSections}
+            onConvertSectionZone={convertSectionZone}
             disabled={isReadOnly}
           />
         ),
@@ -127,7 +131,9 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       updateField,
       removeField,
       reorderFields,
+      moveFieldAcrossSections,
       reorderSections,
+      convertSectionZone,
       setFormData,
       setSelectedSectionId,
       setSelectedFieldId,
@@ -136,7 +142,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
 
   return (
     <CbsScreenScaffold<FormConfigTabKey>
-      title="Dynamic Form Layout & Presentation Designer"
+      title="Form Designer"
       commandCode="FORM.CONFIG"
       recordId={recordId}
       mode={mode}
@@ -156,7 +162,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
       validationErrors={validationErrors}
-      auditData={formData.auditData}
       rightTabContent={
         <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
           <Layers className="size-3" />

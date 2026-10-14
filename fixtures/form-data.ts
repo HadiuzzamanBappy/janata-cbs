@@ -3,16 +3,16 @@ import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 /**
  * STATIC_FORM_DATA
  * Real CBS form database row fixtures mirroring .response/form-data.json.
- * Kept exclusively for form screens present in fixtures/forms.ts:
- * 1. ACCOUNT
- * 2. CUSTOMER
- * 3. FUNDS.TRANSFER
- * 4. USER.LIST
+ * Kept for screens aligned with canonical system definitions:
+ * 1. ACCOUNT (Matches canonical Form Config & UI Presentation)
+ * 2. MENU (System Command Catalog)
+ * 3. MENU_DESIGN (Navigation Tree Designer)
+ * 4. USER_GROUP (Security & Access Control)
  */
 export const STATIC_FORM_DATA: Record<
   string,
   {
-    // Form records keyed by recordId (e.g. "AC1001", "CU2001", "FT9001")
+    // Form records keyed by recordId (e.g. "AC1001", "AC1002")
     records: Record<string, Record<string, unknown>>;
     // Enquiry dataset rows
     enquiryRows?: Array<Record<string, unknown>>;
@@ -23,41 +23,56 @@ export const STATIC_FORM_DATA: Record<
     records: {
       AC1001: {
         recordId: "AC1001",
-        customer: "CU2001",
-        category: "1001",
-        accountTitle1: "Mohammad Rahman Savings Account",
-        accountTitle2: "Personal Savings",
-        shortTitle: "M. Rahman",
-        mnemonic: "MRAHMAN",
+        accountType: "SAVINGS",
         currency: "BDT",
-        accountOfficer: "OFF101",
         openingDate: "2024-01-15",
+        interestRate: 7.5,
+        enableChequeBook: true,
+        presentAddress: {
+          street: "Road 12, House 45",
+          city: "Dhaka",
+          postalCode: "1212",
+        },
+        pepStatus: "NO",
+        taxExempt: false,
+        specialInstructions:
+          "Standard retail savings account with biometric verification completed. Cheque book issued via branch mandate.",
         branchCode: "JB1001",
       },
       AC1002: {
         recordId: "AC1002",
-        customer: "CU2002",
-        category: "1002",
-        accountTitle1: "Fatima Begum Current Account",
-        accountTitle2: "Trade Account",
-        shortTitle: "F. Begum",
-        mnemonic: "FBEGUM",
+        accountType: "CURRENT",
         currency: "BDT",
-        accountOfficer: "OFF102",
         openingDate: "2024-02-20",
+        interestRate: 0.0,
+        enableChequeBook: true,
+        presentAddress: {
+          street: "Gulshan Avenue 10, Suite 4B",
+          city: "Dhaka",
+          postalCode: "1212",
+        },
+        pepStatus: "NO",
+        taxExempt: true,
+        specialInstructions:
+          "Commercial trade account with dual signatory requirement. Tax exemption certificate verified and archived.",
         branchCode: "JB1001",
       },
       AC1003: {
         recordId: "AC1003",
-        customer: "CU2003",
-        category: "1001",
-        accountTitle1: "Shahidul Islam Foreign Currency A/C",
-        accountTitle2: "Expatriate Savings",
-        shortTitle: "S. Islam",
-        mnemonic: "SISLAM",
+        accountType: "SAVINGS",
         currency: "USD",
-        accountOfficer: "OFF101",
         openingDate: "2024-03-10",
+        interestRate: 4.25,
+        enableChequeBook: false,
+        presentAddress: {
+          street: "Agrabad Commercial Area 14",
+          city: "Chittagong",
+          postalCode: "4000",
+        },
+        pepStatus: "NO",
+        taxExempt: false,
+        specialInstructions:
+          "Foreign currency remittance account. Non-resident Bangladeshi remit mandate.",
         branchCode: "JB9999",
       },
     },
@@ -65,7 +80,6 @@ export const STATIC_FORM_DATA: Record<
       {
         id: "AC1001",
         accountNumber: "AC1001",
-        customerName: "Mohammad Rahman",
         category: "SAVINGS",
         currency: "BDT",
         branch: "JB1001",
@@ -74,7 +88,6 @@ export const STATIC_FORM_DATA: Record<
       {
         id: "AC1002",
         accountNumber: "AC1002",
-        customerName: "Fatima Begum",
         category: "CURRENT",
         currency: "BDT",
         branch: "JB1001",
@@ -83,7 +96,6 @@ export const STATIC_FORM_DATA: Record<
       {
         id: "AC1003",
         accountNumber: "AC1003",
-        customerName: "Shahidul Islam",
         category: "SAVINGS",
         currency: "USD",
         branch: "JB9999",
@@ -92,60 +104,7 @@ export const STATIC_FORM_DATA: Record<
     ],
   },
 
-  // 2. CUSTOMER Records
-  CUSTOMER: {
-    records: {
-      CU2001: {
-        "CUSTOMER.ID": "CU2001",
-        "NAME.1": "Mohammad Rahman",
-        "SHORT.NAME": "M. Rahman",
-        "DATE.OF.BIRTH": "1988-06-15",
-      },
-      CU2002: {
-        "CUSTOMER.ID": "CU2002",
-        "NAME.1": "Fatima Begum",
-        "SHORT.NAME": "F. Begum",
-        "DATE.OF.BIRTH": "1992-11-20",
-      },
-      CU2003: {
-        "CUSTOMER.ID": "CU2003",
-        "NAME.1": "Shahidul Islam",
-        "SHORT.NAME": "S. Islam",
-        "DATE.OF.BIRTH": "1980-04-05",
-      },
-    },
-    enquiryRows: [
-      {
-        id: "CU2001",
-        name: "Mohammad Rahman",
-        sector: "INDIVIDUAL",
-        nationality: "BD",
-        branch: "JB1001",
-        contactNumber: "+8801711000111",
-        status: "LIVE",
-      },
-      {
-        id: "CU2002",
-        name: "Fatima Begum",
-        sector: "BUSINESS",
-        nationality: "BD",
-        branch: "JB1001",
-        contactNumber: "+8801819222333",
-        status: "LIVE",
-      },
-      {
-        id: "CU2003",
-        name: "Shahidul Islam",
-        sector: "NRB",
-        nationality: "BD",
-        branch: "JB9999",
-        contactNumber: "+8801911444555",
-        status: "LIVE",
-      },
-    ],
-  },
-
-  // 3. MENU Records (TABLE: MENU)
+  // 2. MENU Records (TABLE: MENU)
   MENU: {
     records: {
       "1": {

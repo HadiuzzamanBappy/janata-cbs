@@ -9,8 +9,7 @@ export const envSchema = z
     // 1. Application & Runtime Mode
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
-    MODEL_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
-    USER_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
+    DATA_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
 
     // 2. Security & Authentication
     LOGIN_LIMIT: z.coerce.number().default(3),
@@ -53,12 +52,12 @@ export const envSchema = z
     NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().default(10),
   })
   .superRefine((data, ctx) => {
-    if (data.MODEL_SOURCE === "grpc" || data.USER_SOURCE === "grpc") {
+    if (data.DATA_SOURCE === "grpc") {
       if (!data.GRPC_HOST || data.GRPC_HOST.trim() === "") {
         ctx.addIssue({
           code: "custom",
           path: ["GRPC_HOST"],
-          message: "GRPC_HOST must be provided when MODEL_SOURCE or USER_SOURCE is set to 'grpc'",
+          message: "GRPC_HOST must be provided when DATA_SOURCE is set to 'grpc'",
         });
       }
     }

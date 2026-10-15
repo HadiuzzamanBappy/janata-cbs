@@ -3,7 +3,9 @@ import "server-only";
 import {
   AC_ACCOUNT_ENQUIRY_ROWS,
   AC_ACCOUNT_LIVE,
+  buildMockUserAuthResponse,
   CUST_CUSTOMER_LIVE,
+  getUserRecord,
   SC_CONTROL_LIVE,
   STATIC_BRANCH_RESPONSE,
   STATIC_CONTROL_RESPONSE,
@@ -14,6 +16,7 @@ import {
   STATIC_MODEL_CONFIG_LIST,
   STATIC_MODEL_CONFIGS,
   STATIC_USER_RESPONSES,
+  SYS_USER_LIST,
 } from "@fixtures";
 import { parseInquiryRecords } from "@/lib/data-parsers";
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
@@ -36,11 +39,15 @@ export interface MockProxyResult {
 
 /**
  * Returns mock authentication response for the given username.
+ * Looks up user via SYS_USER table and generates full gRPC response payload.
  */
 export function getMockUserResponse(username: string): GrpcResponse | null {
-  const normalized = username.trim().toLowerCase();
-  const matchedKey = Object.keys(STATIC_USER_RESPONSES).find((k) => k.toLowerCase() === normalized);
-  return matchedKey ? STATIC_USER_RESPONSES[matchedKey] : null;
+  const user = getUserRecord(username);
+  if (user) {
+    return buildMockUserAuthResponse(user);
+  }
+  const clean = username.trim().toUpperCase();
+  return STATIC_USER_RESPONSES[clean] || null;
 }
 
 /**
@@ -55,7 +62,11 @@ export function getMockMenuPayload(): unknown {
  */
 export function getMockFormPayload(command: string): unknown {
   const clean = command.trim().toUpperCase().split(",")[0].trim();
-  const model = STATIC_MODEL_CONFIGS[clean];
+  const aliasMap: Record<string, string> = {
+    "USER.MGT": "USER",
+  };
+  const resolved = aliasMap[clean] || clean;
+  const model = STATIC_MODEL_CONFIGS[resolved] || STATIC_MODEL_CONFIGS[clean];
   if (!model) return null;
 
   return {
@@ -279,6 +290,57 @@ export function getMockProxyResponse(
         timestamp,
       };
     }
+  }
+
+  // 5. System User Table Direct Reads
+  if (cleanModel === "USER" || cleanModel === "SYS.USER") {
+    if (requestType === "GRL" || requestType === "RECORD_LIST" || (!recordId && !cleanRecordId)) {
+      const list = SYS_USER_LIST.map((u) => ({
+        id: u.recordId,
+        label: `${u.fullName} (${u.userId})`,
+        details: `${u.branchName} • ${u.userRole.join(", ")}`,
+        ...u,
+      }));
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "User list loaded",
+        data: list,
+        timestamp,
+      };
+    }
+    const user = getUserRecord(cleanRecordId);
+    if (user) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "User record loaded",
+        data: user,
+        timestamp,
+      };
+    }
+  }
+
+  // 6. Generic GRL Lookup Fallback (Permits mock record lookup on arbitrary control tables)
+  if (requestType === "GRL" || requestType === "RECORD_LIST") {
+    return {
+      status: "SUCCESS",
+      statusCode: 200,
+      message: `Record list loaded for ${cleanModel || "records"}`,
+      data: [
+        {
+          id: `${cleanModel}_001`,
+          label: `${cleanModel} Item 1`,
+          details: `Active mock record 001 for ${cleanModel}`,
+        },
+        {
+          id: `${cleanModel}_002`,
+          label: `${cleanModel} Item 2`,
+          details: `Active mock record 002 for ${cleanModel}`,
+        },
+      ],
+      timestamp,
+    };
   }
 
   return {

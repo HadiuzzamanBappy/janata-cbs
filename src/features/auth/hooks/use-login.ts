@@ -53,7 +53,7 @@ export function useLogin() {
           return null;
         }
 
-        const authenticatedUser = data.data?.user || data.user;
+        const authenticatedUser = data.user;
         if (authenticatedUser) {
           // Reset client activity timestamp to current time on login
           if (typeof window !== "undefined") {

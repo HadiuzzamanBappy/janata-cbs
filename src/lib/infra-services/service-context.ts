@@ -40,8 +40,13 @@ export async function resolveServiceContext(tokenParam?: string): Promise<Servic
     throw new Error("UNAUTHENTICATED: No authenticated user ID found in session");
   }
 
-  const store = await cookies().catch(() => null);
-  const cookieBranch = store?.get(appConfig.auth.branchCookie)?.value;
+  let cookieBranch: string | undefined;
+  try {
+    const store = await cookies();
+    cookieBranch = store.get(appConfig.auth.branchCookie)?.value;
+  } catch {
+    cookieBranch = undefined;
+  }
   const branchCode = cookieBranch || session?.currUser?.branchCode || appConfig.centralBranch;
   const address = getServiceUrl();
   const clientId = appConfig.grpc.clientId;
@@ -66,5 +71,6 @@ export function normalizeCommand(command: string): string {
     .toUpperCase()
     .replace(/^(?:INQ\s+|INQUIRY\s+)/i, "")
     .replace(/^(?:[SRIDAH]\s+)/i, "")
+    .replace(/(?:\s+[SRIDAH])$/i, "")
     .trim();
 }

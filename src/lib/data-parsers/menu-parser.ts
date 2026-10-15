@@ -15,7 +15,8 @@ function toMenuItemNode(record: RawMenuRecord, index: number, parentId = "m"): M
   const id = String(record.id ?? record.menuId ?? record.code ?? `${parentId}-${index}`);
   const childrenRecords = record.children ?? record.items;
   const command = record.command ?? record.application;
-  const menuId = Number(record.menuId ?? 0);
+  const parsedMenuId = Number(record.menuId ?? 0);
+  const menuId = Number.isNaN(parsedMenuId) ? 0 : parsedMenuId;
 
   const hasChildren = Array.isArray(childrenRecords) && childrenRecords.length > 0;
 

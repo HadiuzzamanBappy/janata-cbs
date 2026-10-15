@@ -37,8 +37,12 @@ const memoryStore = globalThis.__memorySessionStore;
 const getSessionRedisKey = (id: string): string => cacheKey("sess", id);
 
 async function currentSessionId(): Promise<string | null> {
-  const store = await cookies();
-  return store.get(COOKIE_NAME)?.value ?? null;
+  try {
+    const store = await cookies();
+    return store.get(COOKIE_NAME)?.value ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /* -------------------------------------------------------------------------- */

@@ -6,7 +6,7 @@ import type { LoginInput } from "@/lib/data-schemas";
 import { grpcStatusToHttp, loginProcess } from "@/lib/infra-grpc";
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 import { type CurrentUser, createSession, destroySession } from "@/lib/infra-redis";
-import { getMockUserResponse } from "./mock-service";
+import { getStaticData, isStaticMode } from "./cbs-gateway";
 
 export interface LoginResult {
   success: boolean;
@@ -16,27 +16,55 @@ export interface LoginResult {
   errors?: string[];
 }
 
+async function fetchAuthWirePayload({ username, password }: LoginInput): Promise<GrpcResponse> {
+  if (isStaticMode()) {
+    const mock = getStaticData("AUTH", username) as GrpcResponse | null;
+    if (!mock) {
+      return {
+        status: "FAILED",
+        statusCode: 401,
+        idempotencyKey: "",
+        message: "Invalid credentials",
+        errors: ["Invalid credentials"],
+        timestamp: new Date().toISOString(),
+        data: undefined,
+      };
+    }
+    return mock;
+  }
+
+  try {
+    return await loginProcess({ clientId: appConfig.grpc.clientId, username, password });
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes("missing required authentication token")) {
+      return {
+        status: "FAILED",
+        statusCode: 502,
+        idempotencyKey: "",
+        message: err.message,
+        errors: [err.message],
+        timestamp: new Date().toISOString(),
+        data: undefined,
+      };
+    }
+    const { status, message } = grpcStatusToHttp(err);
+    return {
+      status: "FAILED",
+      statusCode: status || 500,
+      idempotencyKey: "",
+      message,
+      errors: [message],
+      timestamp: new Date().toISOString(),
+      data: undefined,
+    };
+  }
+}
+
 /**
  * Universal authentication service for CBS core login and session creation.
  */
-export async function loginUser({ username, password }: LoginInput): Promise<LoginResult> {
-  let res: GrpcResponse;
-
-  if (appConfig.auth.userSource === "static") {
-    const mock = getMockUserResponse(username);
-    if (!mock) return { success: false, error: "Invalid credentials", statusCode: 401 };
-    res = mock;
-  } else {
-    try {
-      res = await loginProcess({ clientId: appConfig.grpc.clientId, username, password });
-    } catch (err: unknown) {
-      if (err instanceof Error && err.message.includes("missing required authentication token")) {
-        return { success: false, error: err.message, statusCode: 502 };
-      }
-      const { status, message } = grpcStatusToHttp(err);
-      return { success: false, error: message, statusCode: status || 500 };
-    }
-  }
+export async function loginUser(input: LoginInput): Promise<LoginResult> {
+  const res = await fetchAuthWirePayload(input);
 
   if (res.statusCode !== 200 || res.status !== "SUCCESS") {
     return {
@@ -47,7 +75,7 @@ export async function loginUser({ username, password }: LoginInput): Promise<Log
     };
   }
 
-  const { currUser, token } = parseAuthWirePayload(res.data, username);
+  const { currUser, token } = parseAuthWirePayload(res.data, input.username);
   await createSession({ userId: currUser.userId, token, currUser });
 
   return { success: true, user: currUser, statusCode: 200 };

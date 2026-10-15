@@ -11,8 +11,7 @@ export { envSchema };
 export const env: Env = envSchema.parse({
   NODE_ENV: process.env.NODE_ENV,
   LOG_LEVEL: process.env.LOG_LEVEL,
-  MODEL_SOURCE: process.env.MODEL_SOURCE,
-  USER_SOURCE: process.env.USER_SOURCE,
+  DATA_SOURCE: process.env.DATA_SOURCE,
 
   LOGIN_LIMIT: process.env.LOGIN_LIMIT,
   USE_HTTPS: process.env.USE_HTTPS,

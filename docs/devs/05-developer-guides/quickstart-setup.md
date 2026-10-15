@@ -10,7 +10,7 @@ This document provides local setup, environment configuration, dependency instal
 - **Node.js:** v18.0.0 or higher
 - **Package Manager:** `pnpm` (v8+)
 - **Redis (Optional for Dev):** Local Redis server running on `redis://127.0.0.1:6379` (Required if `CACHE_ENABLED=true`).
-- **Java Core Backend (Optional for Offline Mocks):** A running instance of Java SE Core gRPC engine or offline static mock mode (`MODEL_SOURCE=static`).
+- **Java Core Backend (Optional for Offline Mocks):** A running instance of Java SE Core gRPC engine or offline static mock mode (`DATA_SOURCE=static`).
 
 ---
 
@@ -34,7 +34,7 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 NEXT_PUBLIC_LOGOUT_TIME=10            # Session logout window in minutes
 
 # --- Data Source & Caching ---
-MODEL_SOURCE=grpc                     # Set to 'static' for offline mock development without gRPC
+DATA_SOURCE=grpc                      # Set to 'static' for offline mock development without gRPC
 CACHE_ENABLED=false                   # Set to 'false' during development for instant schema reloads
 REDIS_URL=redis://127.0.0.1:6379
 ```

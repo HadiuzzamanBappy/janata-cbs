@@ -2,6 +2,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import type { CbsScreenMode } from "@/lib/cbs-screen/types";
 import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config/client";
 
 export interface WorkbenchTab {
   id: string; // Unique instance ID for every tab opened
@@ -54,6 +55,11 @@ export const createWorkbenchStore = () => {
         activeTabId: null,
         addTab: (tab) =>
           set((state) => {
+            // Guard against memory leaks by capping maximum open tabs to 15
+            if (state.tabs.length >= clientConfig.workbench.maxOpenTabs && !tab.id) {
+              return state;
+            }
+
             const baseId = tab.screenId || tab.id || "screen";
             const cleanTitle = tab.title.replace(/\s*\(\d+\)$/, "").replace(/\s*#\d+$/, "");
 

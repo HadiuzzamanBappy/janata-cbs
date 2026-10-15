@@ -5,6 +5,8 @@ import * as React from "react";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import { FormKernelContext } from "../store/form-kernel-provider";
+import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";
 
 export interface SectionCardProps {
@@ -26,6 +28,7 @@ export function SectionCard({
   mode = "I",
   hideHeader = false,
 }: SectionCardProps) {
+  const hasKernel = Boolean(React.useContext(FormKernelContext));
   const [collapsed, setCollapsed] = React.useState<boolean>(section.isCollapsed ?? false);
 
   const isPlain = section.layoutStyle === "plain";
@@ -127,14 +130,18 @@ export function SectionCard({
 
             return (
               <div key={field.id} className={getFieldColSpanClass(numCols, field.colSpan)}>
-                <UnifiedFieldFactory
-                  field={field}
-                  value={values[field.fieldKey]}
-                  onChange={onChange}
-                  error={errors[field.fieldKey]}
-                  disabled={disabled}
-                  mode={mode}
-                />
+                {hasKernel ? (
+                  <FieldAtom field={field} disabled={disabled} mode={mode} />
+                ) : (
+                  <UnifiedFieldFactory
+                    field={field}
+                    value={values[field.fieldKey]}
+                    onChange={onChange}
+                    error={errors[field.fieldKey]}
+                    disabled={disabled}
+                    mode={mode}
+                  />
+                )}
               </div>
             );
           })}

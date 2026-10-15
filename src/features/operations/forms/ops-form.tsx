@@ -6,6 +6,7 @@ import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
+import { FormKernelProvider } from "@/features/form-engine";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { FormGrid } from "./components/form-grid";
@@ -207,14 +208,16 @@ export function OpsForm({
           : undefined
       }
     >
-      <FormGrid
-        schema={schema}
-        values={values}
-        onChange={handleFieldChange}
-        errors={errors}
-        disabled={actions.submitting}
-        mode={screenMode}
-      />
+      <FormKernelProvider initialValues={values} onFieldChange={handleFieldChange}>
+        <FormGrid
+          schema={schema}
+          values={values}
+          onChange={handleFieldChange}
+          errors={errors}
+          disabled={actions.submitting}
+          mode={screenMode}
+        />
+      </FormKernelProvider>
     </CbsScreenScaffold>
   );
 }

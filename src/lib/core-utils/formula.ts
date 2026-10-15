@@ -37,3 +37,18 @@ export function evaluateFormula(
     return undefined;
   }
 }
+
+/**
+ * Extracts referenced field/identifier tokens from a formula string.
+ * Used to construct an inverted dependency graph (DAG) for O(1) reactive recomputations.
+ *
+ * Example:
+ *   extractFormulaDependencies("principalAmount + (principalAmount * interestRate / 100)")
+ *   // => ["principalAmount", "interestRate"]
+ */
+export function extractFormulaDependencies(formula: string): string[] {
+  if (!formula || typeof formula !== "string") return [];
+  const matches = formula.match(/\b([a-zA-Z_][a-zA-Z0-9_]*)\b/g);
+  if (!matches) return [];
+  return Array.from(new Set(matches));
+}

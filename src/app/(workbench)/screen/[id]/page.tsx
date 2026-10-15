@@ -4,7 +4,13 @@ import { useParams, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { ScreenLoader } from "@/features/workbench";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
-import { CBS_SCREEN_EVENT, CBS_SCREEN_MESSAGE, makePopupTabId } from "@/lib/cbs-screen";
+import {
+  broadcastDockTab,
+  CBS_SCREEN_EVENT,
+  CBS_SCREEN_MESSAGE,
+  getWorkbenchDraft,
+  makePopupTabId,
+} from "@/lib/cbs-screen";
 import { CbsAppStoreProvider, useWorkbenchStore } from "@/store";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
@@ -12,10 +18,11 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const { tabs, addTab } = useWorkbenchStore();
   const screenId = decodeURIComponent(rawId);
 
-  // Canonical popup tab ID — consistent with any caller that references this popup
-  const tabId = React.useMemo(() => makePopupTabId(screenId), [screenId]);
+  // Read clean tabId passed from popup dispatcher or fallback to canonical ID
+  const urlTabId = searchParams.get("tabId");
+  const tabId = React.useMemo(() => urlTabId || makePopupTabId(screenId), [urlTabId, screenId]);
 
-  // Hydrate popup tab state on initial mount from query parameters
+  // Hydrate popup tab state on initial mount from shared storage (supporting 150 - 1,000 fields)
   const isHydratedRef = React.useRef(false);
   React.useEffect(() => {
     if (isHydratedRef.current) return;
@@ -31,20 +38,18 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
       const pageStr = searchParams.get("page");
       const pageSizeStr = searchParams.get("pageSize");
 
-      let criteria: Record<string, { value: string; operand: string }> | undefined;
-      try {
-        const critJson = searchParams.get("criteria");
-        if (critJson) criteria = JSON.parse(critJson);
-      } catch {
-        // Safe fallback
-      }
+      // Read large payload from session storage draft (supports 1,000 fields with zero URL overflow)
+      const storageDraft = getWorkbenchDraft(tabId);
 
-      let formData: Record<string, unknown> | undefined;
-      try {
-        const dataJson = searchParams.get("data");
-        if (dataJson) formData = JSON.parse(dataJson);
-      } catch {
-        // Safe fallback
+      let criteria: Record<string, { value: string; operand: string }> | undefined;
+      const storageCrit =
+        typeof window !== "undefined" ? sessionStorage.getItem(`cbs:criteria:${tabId}`) : null;
+      if (storageCrit) {
+        try {
+          criteria = JSON.parse(storageCrit);
+        } catch {
+          // Safe fallback
+        }
       }
 
       addTab({
@@ -54,7 +59,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
         componentName: component,
         screenMode: mode,
         searchRecordId: recordId,
-        formData,
+        formData: storageDraft || undefined,
         enquiryState: {
           step,
           criteria,
@@ -65,26 +70,38 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
     }
   }, [addTab, screenId, searchParams, tabId, tabs]);
 
-  // Listen for dock-to-shell triggers from screen action toolbar
+  // Listen for dock-to-shell triggers from screen action toolbar (using BroadcastChannel)
   React.useEffect(() => {
     const handleDock = () => {
-      if (typeof window === "undefined" || !window.opener) return;
       const currentTab = tabs.find((t) => t.id === tabId);
-      window.opener.postMessage(
-        {
-          type: CBS_SCREEN_MESSAGE.DOCK_TAB,
-          payload: {
-            screenId,
-            title: currentTab?.title || searchParams.get("title") || screenId,
-            componentName: currentTab?.componentName || "DYNAMIC_FORM",
-            screenMode: currentTab?.screenMode,
-            searchRecordId: currentTab?.searchRecordId,
-            formData: currentTab?.formData,
-            enquiryState: currentTab?.enquiryState,
-          },
-        },
-        window.location.origin,
-      );
+      const payload = {
+        screenId,
+        title: currentTab?.title || searchParams.get("title") || screenId,
+        componentName: currentTab?.componentName || "DYNAMIC_FORM",
+        screenMode: currentTab?.screenMode,
+        searchRecordId: currentTab?.searchRecordId,
+        formData: currentTab?.formData,
+        enquiryState: currentTab?.enquiryState,
+      };
+
+      // 1. Broadcast via native BroadcastChannel (immune to F5 and cross-origin null openers)
+      broadcastDockTab(tabId, payload);
+
+      // 2. Legacy postMessage fallback if window.opener is still alive
+      if (typeof window !== "undefined" && window.opener) {
+        try {
+          window.opener.postMessage(
+            {
+              type: CBS_SCREEN_MESSAGE.DOCK_TAB,
+              payload,
+            },
+            window.location.origin,
+          );
+        } catch {
+          // Handled by broadcast channel
+        }
+      }
+
       window.close();
     };
 

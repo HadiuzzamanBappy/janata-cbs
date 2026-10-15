@@ -51,7 +51,7 @@ async function executeGrpcTransport(
   token: string,
 ): Promise<ApiResponse> {
   const req: GrpcRequest = {
-    idempotencyKey: kind === "financial" ? randomUUID() : "",
+    idempotencyKey: envelope.idempotencyKey || (kind === "financial" ? randomUUID() : ""),
     clientId: envelope.clientId,
     requestType: envelope.requestType,
     controlName: envelope.controlName ?? "",

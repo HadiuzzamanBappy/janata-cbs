@@ -10,7 +10,12 @@ export const clientConfig = {
   centralBranch: process.env.NEXT_PUBLIC_CENTRAL_BRANCH ?? "JB9999",
   logoutTime: Number(process.env.NEXT_PUBLIC_LOGOUT_TIME ?? 10),
 
-  // 2. Authentication UI & Session Invariants
+  // 2. Workbench & MDI Workstation Tuning
+  workbench: {
+    maxOpenTabs: Number(process.env.NEXT_PUBLIC_MAX_OPEN_TABS ?? 15),
+  },
+
+  // 3. Authentication UI & Session Invariants
   auth: {
     loginLimit: 3,
     rateLimitWindowSec: 60,

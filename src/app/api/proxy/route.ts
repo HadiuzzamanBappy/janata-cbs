@@ -1,11 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config/server";
+import { parseAccessibilityRights } from "@/lib/cbs-access";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { cbsWirePayloadSchema } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc/dispatch";
 import { getSession } from "@/lib/infra-redis";
 import { getStaticData, isStaticMode } from "@/lib/infra-services/cbs-gateway";
-import { type ApiResponse, DEFAULT_SERVICE_PATH, type GrpcEnvelope } from "@/types";
+import { type ApiResponse, CbsRecordFunction, DEFAULT_SERVICE_PATH, type GrpcEnvelope } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,6 +48,37 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     const body = parsed.data;
 
     // =========================================================================
+    // 0. SERVER-SIDE CAPABILITY GATE (Maker-Checker & RIDASHL Verification)
+    // =========================================================================
+    if (body.recordFunction) {
+      const userGrantedRights = parseAccessibilityRights(
+        currUser.functionRights?.length ? currUser.functionRights : currUser.accessibility,
+      );
+      const funcCode = body.recordFunction.toUpperCase().trim() as CbsRecordFunction;
+
+      // Restrict mutations/approvals if user does not have the required right
+      if (
+        (funcCode === CbsRecordFunction.AUTHORIZE ||
+          funcCode === CbsRecordFunction.DELETE ||
+          funcCode === CbsRecordFunction.REVERSE ||
+          funcCode === CbsRecordFunction.INPUT) &&
+        !userGrantedRights.includes(funcCode)
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            status: "FAIL",
+            statusCode: 403,
+            message: `Access Denied: Missing '${funcCode}' capability in user profile.`,
+            errors: [`User ${currUser.userId} lacks capability '${funcCode}'`],
+            timestamp: new Date().toISOString(),
+          },
+          { status: 403 },
+        );
+      }
+    }
+
+    // =========================================================================
     // 1. STATIC MODE: Return fixtures via unified static provider
     // =========================================================================
     if (isStaticMode()) {
@@ -54,6 +86,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         body.controlName ?? "",
         body.recordId ?? "",
         body.requestType,
+        body.data,
       ) as ApiResponse;
       return NextResponse.json(
         { ...staticRes, success: staticRes.status === "SUCCESS" },
@@ -81,6 +114,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       recordFunction: body.recordFunction ?? "",
       recordId: body.recordId ?? "",
       authLevel: body.authLevel ?? 1,
+      idempotencyKey: body.idempotencyKey,
       userId,
       clientId: appConfig.grpc.clientId,
       data: body.data ?? {},

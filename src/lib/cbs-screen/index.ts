@@ -3,3 +3,4 @@ export * from "./audit";
 export * from "./types";
 export * from "./validation";
 export * from "./window";
+export * from "./workbench-bus";

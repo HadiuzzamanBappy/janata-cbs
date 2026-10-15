@@ -114,6 +114,7 @@ export function getMockProxyResponse(
   requestType: string,
   controlName?: string,
   recordId?: string,
+  data?: Record<string, unknown>,
 ): MockProxyResult {
   const cleanModel = (controlName || "").trim().toUpperCase();
   const cleanRecordId = (recordId || "").trim().toUpperCase();
@@ -339,6 +340,53 @@ export function getMockProxyResponse(
           details: `Active mock record 002 for ${cleanModel}`,
         },
       ],
+      timestamp,
+    };
+  }
+
+  // 7. Generic Mock Mutations (PUT, RECORD_PUT, AUT, RECORD_AUTH, DEL, HLD, REV)
+  const isMutation =
+    requestType === "PUT" ||
+    requestType === "RECORD_PUT" ||
+    requestType === "AUT" ||
+    requestType === "RECORD_AUTH" ||
+    requestType === "DEL" ||
+    requestType === "RECORD_DEL" ||
+    requestType === "HLD" ||
+    requestType === "RECORD_HOLD" ||
+    requestType === "REV" ||
+    requestType === "RECORD_REVERSE";
+
+  if (isMutation) {
+    const actionLabel =
+      requestType === "AUT" || requestType === "RECORD_AUTH"
+        ? "authorized"
+        : requestType === "DEL" || requestType === "RECORD_DEL"
+          ? "deleted"
+          : requestType === "HLD" || requestType === "RECORD_HOLD"
+            ? "held"
+            : requestType === "REV" || requestType === "RECORD_REVERSE"
+              ? "reversed"
+              : "saved";
+
+    return {
+      status: "SUCCESS",
+      statusCode: 200,
+      message: `Record #${cleanRecordId || (data?.id as string) || "NEW"} ${actionLabel} successfully in ${cleanModel || "CBS"}`,
+      data: {
+        recordId: cleanRecordId || (data?.id as string) || "REC-001",
+        ...(data || {}),
+        RECORD_STATUS:
+          requestType === "AUT" || requestType === "RECORD_AUTH"
+            ? "AU"
+            : requestType === "HLD" || requestType === "RECORD_HOLD"
+              ? "HLD"
+              : requestType === "DEL" || requestType === "RECORD_DEL"
+                ? "DEL"
+                : requestType === "REV" || requestType === "RECORD_REVERSE"
+                  ? "REV"
+                  : "INA",
+      },
       timestamp,
     };
   }

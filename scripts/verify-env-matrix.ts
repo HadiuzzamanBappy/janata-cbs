@@ -9,6 +9,7 @@ import {
   STATIC_BRANCH_RESPONSE,
   STATIC_CONTROL_RESPONSE,
   STATIC_MENU,
+  STATIC_MODEL_CONFIGS,
   STATIC_USER_RESPONSES,
 } from "@fixtures";
 import {
@@ -24,7 +25,6 @@ import {
 } from "../src/lib/data-parsers";
 import type { CurrentUser } from "../src/lib/data-schemas";
 import { envSchema } from "../src/lib/data-schemas/env-schema";
-import { getMockFormPayload } from "../src/lib/infra-services/mock-service";
 
 // ============================================================================
 // Minimalist Test Runner Pattern
@@ -118,18 +118,18 @@ suite("2. Wire Payload Domain Parsers", () => {
     return menuResult.success && menuResult.data.length > 0;
   });
 
-  test("parseGMC parses form model schema (idPrefix='01')", () => {
-    const accountPayload = getMockFormPayload("ACCOUNT");
-    const formAccount = parseGMC(accountPayload, "ACCOUNT");
-    return formAccount.success && formAccount.data.idPrefix === "01";
+  test("parseGMC parses form model schema (idPrefix='ZZ')", () => {
+    const model = STATIC_MODEL_CONFIGS.USER;
+    const userPayload = { ...model, data: model, dataset: [] };
+    const formUser = parseGMC(userPayload, "USER");
+    return formUser.success && formUser.data.idPrefix === "ZZ";
   });
 });
 
 suite("3. Environment Permutations", () => {
   test("Permutation 1 [Pure Offline]: static + cache disabled", () => {
     const res = envSchema.safeParse({
-      MODEL_SOURCE: "static",
-      USER_SOURCE: "static",
+      DATA_SOURCE: "static",
       CACHE_ENABLED: "false",
     });
     return res.success;
@@ -137,8 +137,7 @@ suite("3. Environment Permutations", () => {
 
   test("Permutation 2 [Cached Offline]: rejects when REDIS_URL is missing", () => {
     const res = envSchema.safeParse({
-      MODEL_SOURCE: "static",
-      USER_SOURCE: "static",
+      DATA_SOURCE: "static",
       CACHE_ENABLED: "true",
       REDIS_URL: "",
     });
@@ -147,8 +146,7 @@ suite("3. Environment Permutations", () => {
 
   test("Permutation 2 [Cached Offline]: accepts when REDIS_URL is provided", () => {
     const res = envSchema.safeParse({
-      MODEL_SOURCE: "static",
-      USER_SOURCE: "static",
+      DATA_SOURCE: "static",
       CACHE_ENABLED: "true",
       REDIS_URL: "redis://127.0.0.1:6379",
     });
@@ -157,8 +155,7 @@ suite("3. Environment Permutations", () => {
 
   test("Permutation 3 [Direct gRPC]: rejects when GRPC_HOST is missing", () => {
     const res = envSchema.safeParse({
-      MODEL_SOURCE: "grpc",
-      USER_SOURCE: "grpc",
+      DATA_SOURCE: "grpc",
       CACHE_ENABLED: "false",
       GRPC_HOST: "",
     });
@@ -167,8 +164,7 @@ suite("3. Environment Permutations", () => {
 
   test("Permutation 3 [Direct gRPC]: accepts when GRPC_HOST is provided", () => {
     const res = envSchema.safeParse({
-      MODEL_SOURCE: "grpc",
-      USER_SOURCE: "grpc",
+      DATA_SOURCE: "grpc",
       CACHE_ENABLED: "false",
       GRPC_HOST: "127.0.0.1:9090",
       CLIENT_ID: "CBS_CLIENT",
@@ -178,8 +174,7 @@ suite("3. Environment Permutations", () => {
 
   test("Permutation 4 [Full Production]: accepts valid gRPC + Redis configuration", () => {
     const res = envSchema.safeParse({
-      MODEL_SOURCE: "grpc",
-      USER_SOURCE: "grpc",
+      DATA_SOURCE: "grpc",
       CACHE_ENABLED: "true",
       GRPC_HOST: "127.0.0.1:9090",
       CLIENT_ID: "CBS_CLIENT",

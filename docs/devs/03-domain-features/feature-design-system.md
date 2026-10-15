@@ -24,10 +24,10 @@
 ---
 
 ## 2.1. Development Mode & Data Source Architecture Rules
-- [ ] **`modelSource: "static"` is a Dedicated Dev Mode (Not a Failure Fallback)**:
-  - When `appConfig.modelSource === "static"`, the application is explicitly running in offline development/mock mode.
-  - The API proxy (`/api/proxy`) must check `appConfig.modelSource === "static"` **at the top** and return directly from `fixtures/form-data.ts` (`STATIC_FORM_DATA`), `fixtures/model-configs.ts`, or `fixtures/inquiries.ts`. gRPC should never be called.
-  - In `gRPC` mode (`modelSource === "grpc"`), dispatch directly to the CBS backend. **If gRPC fails, it fails (return 502/error)**; never silently serve fake static fallback data in live backend mode.
+- [ ] **`dataSource: "static"` is a Dedicated Dev Mode (Not a Failure Fallback)**:
+  - When `appConfig.dataSource === "static"`, the application is explicitly running in offline development/mock mode.
+  - The API proxy (`/api/proxy`) must check `appConfig.dataSource === "static"` **at the top** and return directly from static fixtures. gRPC should never be called.
+  - In `gRPC` mode (`dataSource === "grpc"`), dispatch directly to the CBS backend. **If gRPC fails, it fails (return 502/error)**; never silently serve fake static fallback data in live backend mode.
 - [ ] **Mandatory Table Registration in `STATIC_FORM_DATA`**:
   - Whenever a new feature or control table is built (`MENU`, `USER.GROUP`, etc.), register its dev records in `fixtures/form-data.ts`:
     - `records`: Dictionary of records keyed by `@ID` (e.g. `"1": { ... }`) with full domain attributes and `auditData`.

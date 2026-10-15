@@ -10,15 +10,15 @@ Mock mode enables frontend developers to build UI screens, test dynamic GMC form
 ## 2. Enabling Static Mock Mode
 
 ### Step 1: Update `.env.local`
-Set `MODEL_SOURCE=static` in your local environment file:
+Set `DATA_SOURCE=static` in your local environment file:
 
 ```ini
-MODEL_SOURCE=static
+DATA_SOURCE=static
 CACHE_ENABLED=false
 ```
 
 ### Step 2: Static Fixture Directory (`fixtures/`)
-When `MODEL_SOURCE=static`, the mock model fetcher in [src/lib/schema/get-model.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/lib/schema/get-model.ts) bypasses gRPC and reads sanitized GMC schemas directly from [fixtures/](file:///d:/CBS/In_house/finx/finxui-ref/fixtures):
+When `DATA_SOURCE=static`, the mock model fetchers bypass gRPC and read sanitized GMC schemas directly from [fixtures/](file:///d:/CBS/In_house/finx/janata-cbs/fixtures):
 
 ```text
 fixtures/

@@ -13,7 +13,6 @@ export const clientConfig = {
   // 2. Authentication UI & Session Invariants
   auth: {
     loginLimit: 3,
-    userSource: "grpc" as const,
     rateLimitWindowSec: 60,
     cookieName: "sid",
     branchCookie: "cbs_branch",

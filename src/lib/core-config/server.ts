@@ -57,8 +57,7 @@ export const serverConfig = {
   nodeEnv: env.NODE_ENV,
   isDev: env.NODE_ENV === "development",
   logLevel: env.LOG_LEVEL,
-  modelSource: env.MODEL_SOURCE,
-  userSource: env.USER_SOURCE,
+  dataSource: env.DATA_SOURCE,
 
   // 2. Security & Authentication
   loginLimit: env.LOGIN_LIMIT,
@@ -71,7 +70,6 @@ export const serverConfig = {
     timeoutMs: env.GRPC_TIMEOUT_MS,
     financialTransactionTypes: env.GRPC_FINANCIAL_TRANSACTION_TYPES.split(","),
     clientId: env.CLIENT_ID,
-    modelSource: env.MODEL_SOURCE,
     keepaliveTimeMs: 60_000,
     keepaliveTimeoutMs: 20_000,
   },
@@ -106,7 +104,6 @@ export const serverConfig = {
   auth: {
     ...clientConfig.auth,
     loginLimit: env.LOGIN_LIMIT,
-    userSource: env.USER_SOURCE,
     sessionPrefix: `${env.REDIS_KEY_PREFIX}:sess:`,
     sessionMaxAgeSeconds: (env.NEXT_PUBLIC_LOGOUT_TIME + 2) * 60,
   },

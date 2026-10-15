@@ -117,7 +117,7 @@ export function TabItem({
             className={cn(
               "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-9",
               isActive
-                ? "bg-background text-foreground font-semibold rounded-t z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs overflow-hidden after:absolute after:top-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:rounded-t"
+                ? "bg-background text-foreground font-semibold rounded-t z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs overflow-hidden after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-t"
                 : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t border border-transparent",
               isDraggingThis && "opacity-40 scale-[0.98] ring-1 ring-primary/40",
               isDragOver && !isDraggingThis && "border-primary/60 bg-primary/10 shadow-inner",
@@ -153,11 +153,11 @@ export function TabItem({
           }}
           className="flex items-center gap-2 pl-3 pr-1.5 py-1 h-full text-left truncate cursor-pointer bg-transparent border-0 outline-none"
         >
-          <span className="truncate max-w-[160px] text-xs flex items-center gap-1.5">
+          <span className="truncate max-w-40 text-xs flex items-center gap-1.5">
             <Badge
               variant={isActive ? "default" : "secondary"}
               className={cn(
-                "h-4 min-w-[16px] px-1 rounded-xs text-[10px] font-mono flex items-center justify-center transition-opacity",
+                "h-4 min-w-4 px-1 rounded-xs text-[10px] font-mono flex items-center justify-center transition-opacity",
                 isActive
                   ? "bg-primary/15 text-primary border-transparent font-semibold"
                   : "opacity-70 border-transparent",
@@ -227,7 +227,7 @@ export function TabItem({
         {showSeparator && (
           <span
             aria-hidden="true"
-            className="absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-[1px] bg-border/60 pointer-events-none"
+            className="absolute right-0 top-1/2 -translate-y-1/2 h-3.5 w-px bg-border/60 pointer-events-none"
           />
         )}
       </ContextMenuTrigger>

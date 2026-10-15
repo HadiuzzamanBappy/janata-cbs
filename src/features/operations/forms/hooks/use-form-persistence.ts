@@ -21,29 +21,10 @@ export function useFormPersistence({
   const currentTab = tabs.find((t) => t.id === tabId);
 
   // 1. Initial screen mode
-  const initialMode = React.useMemo<CbsScreenMode>(() => {
-    if (initialScreenMode) return initialScreenMode;
-    if (currentTab?.screenMode) return currentTab.screenMode;
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const modeParam = p.get("mode") as CbsScreenMode | null;
-      if (modeParam) {
-        return modeParam;
-      }
-    }
-    return "IDLE";
-  }, [initialScreenMode, currentTab]);
+  const initialMode = initialScreenMode || currentTab?.screenMode || "IDLE";
 
   // 2. Initial record ID
-  const initialRecordId = React.useMemo(() => {
-    if (initialRecordIdProp) return initialRecordIdProp;
-    if (currentTab?.searchRecordId) return currentTab.searchRecordId;
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      return p.get("recordId") || "";
-    }
-    return "";
-  }, [initialRecordIdProp, currentTab]);
+  const initialRecordId = initialRecordIdProp || currentTab?.searchRecordId || "";
 
   const [screenMode, setScreenModeState] = React.useState<CbsScreenMode>(initialMode);
   const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialRecordId);
@@ -68,25 +49,10 @@ export function useFormPersistence({
     [tabId, updateTabState],
   );
 
-  // 3. Form data from URL params (e.g. for popup drilldowns)
-  const urlFormData = React.useMemo(() => {
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const raw = p.get("data");
-      if (raw) {
-        try {
-          return JSON.parse(raw) as Record<string, unknown>;
-        } catch {
-          // Safe parse fallback
-        }
-      }
-    }
-    return {};
-  }, []);
-
+  // 3. Merged Initial Values (fixture/prop defaults + saved draft values in tab)
   const mergedInitialValues = React.useMemo(() => {
-    return { ...initialValues, ...urlFormData, ...currentTab?.formData };
-  }, [initialValues, urlFormData, currentTab?.formData]);
+    return { ...initialValues, ...currentTab?.formData };
+  }, [initialValues, currentTab?.formData]);
 
   const persistFieldChange = React.useCallback(
     (name: string, val: unknown) => {

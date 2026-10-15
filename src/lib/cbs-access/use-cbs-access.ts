@@ -1,7 +1,6 @@
-"use client";
-
 import * as React from "react";
 import { getCommandAdapter } from "@/lib/cbs-command";
+import { useSessionStore } from "@/store/session/session-provider";
 import { parseAccessibilityRights } from "./accessibility";
 import { evaluateCbsAccess } from "./record-guard";
 import type { CbsAccessContext, CbsAccessResult } from "./types";
@@ -12,12 +11,13 @@ import type { CbsAccessContext, CbsAccessResult } from "./types";
 
 /**
  * Universal React hook to evaluate active user's Core Banking accessibility & capabilities.
- * Automatically resolves the active user profile via the decoupled CommandAdapter (or context override),
+ * Automatically resolves the active user profile via the reactive SessionStore (or context override),
  * parses RIDASH rights, and computes button permissions, Four-Eyes compliance, and read-only flags.
  */
 export function useCbsAccess(context: CbsAccessContext = {}): CbsAccessResult {
+  const sessionUser = useSessionStore((state) => state.user);
   const adapter = getCommandAdapter();
-  const user = context.user ?? adapter.getCurrentUser?.();
+  const user = context.user ?? sessionUser ?? adapter.getCurrentUser?.();
   const { command, recordStatus, recordInputter, mode } = context;
 
   const grantedRights = React.useMemo(() => {

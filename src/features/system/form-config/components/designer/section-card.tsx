@@ -90,7 +90,6 @@ function SectionDropBody({
           return "w-1/2 min-w-[280px]";
         case 8:
           return "w-2/3 min-w-[320px]";
-        case 12:
         default:
           return "w-full";
       }

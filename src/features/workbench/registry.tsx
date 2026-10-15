@@ -19,10 +19,9 @@ import type { ScreenComponent } from "./types";
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
   "SC.MENU": SysMenuCatalog,
   "SC.MENU.DESIGN": SysMenuDesigner,
-  "SC.MENU.TREE": SysMenuDesigner,
   "SC.USER.GROUP": SysUserGroup,
   "SC.MODEL.CONFIG": SysModelConfig,
-  "SC.FORM.BUILDER": SysFormConfig,
+  "SC.FORM.CONFIG": SysFormConfig,
   "SC.REPORT.BUILDER": () => (
     <div className="w-full h-full overflow-hidden">
       <ReportStudio />
@@ -55,12 +54,8 @@ export function resolveScreen(command: string): ScreenComponent {
     return BESPOKE_SCREENS[canonicalKey];
   }
 
-  // 2. Check if command is an Inquiry screen (by command prefix or URL query parameter)
-  const isEnquiryComponent =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("component") === "INQUIRY_SCREEN";
-
-  if (cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY") || isEnquiryComponent) {
+  // 2. Check if command is an Inquiry screen
+  if (cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY")) {
     const inqCommand = cleanCmd.startsWith("INQ ") ? cleanCmd : `INQ ${cleanCmd}`;
     return function InquiryWrapper(props: { command: string; tabId?: string }) {
       return <InquiryScreen command={props.command || inqCommand} tabId={props.tabId} />;

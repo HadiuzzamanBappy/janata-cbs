@@ -43,7 +43,7 @@ export function getRedisClient(): Client | null {
 
   try {
     const client = new Redis(appConfig.redis.url, {
-      enableOfflineQueue: true,
+      enableOfflineQueue: false,
       maxRetriesPerRequest: 1,
       connectTimeout: 1000,
       commandTimeout: 1000,

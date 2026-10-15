@@ -1,4 +1,4 @@
-import { CBS_RECORD_FUNCTIONS, type CbsRecordFunction } from "@/types";
+import { CbsRecordFunction } from "@/types";
 
 import type { CbsAccessContext, CbsAccessResult } from "./types";
 
@@ -38,19 +38,19 @@ export function evaluateCbsAccess({
   );
 
   // 1. Can See: Requires 'S' in rights
-  const canSee = hasRight(CBS_RECORD_FUNCTIONS.SEE);
+  const canSee = hasRight(CbsRecordFunction.SEE);
 
   // 2. Can Input / Amend:
   // - Requires 'I' in profile
   // - Allowed on uncommitted drafts or existing records not in final archived state
-  const canInput = hasRight(CBS_RECORD_FUNCTIONS.INPUT);
-  const canAmend = hasRight(CBS_RECORD_FUNCTIONS.INPUT);
+  const canInput = hasRight(CbsRecordFunction.INPUT);
+  const canAmend = hasRight(CbsRecordFunction.INPUT);
 
   // 3. Can Delete:
   // - Requires 'D' in profile
   // - Can only delete pending uncommitted drafts (status INA or NEW), cannot delete live AU records
   const canDelete =
-    hasRight(CBS_RECORD_FUNCTIONS.DELETE) &&
+    hasRight(CbsRecordFunction.DELETE) &&
     !isIdle &&
     (cleanStatus === "INA" || cleanStatus === "NEW" || !cleanStatus);
 
@@ -58,7 +58,7 @@ export function evaluateCbsAccess({
   // - Requires 'I' or 'H'
   // - Can only hold uncommitted or pending drafts
   const canHold =
-    (hasRight(CBS_RECORD_FUNCTIONS.HISTORY) || hasRight(CBS_RECORD_FUNCTIONS.INPUT)) &&
+    (hasRight(CbsRecordFunction.HISTORY) || hasRight(CbsRecordFunction.INPUT)) &&
     !isIdle &&
     cleanStatus !== "AU";
 
@@ -67,7 +67,7 @@ export function evaluateCbsAccess({
   // - Record must be pending approval (status INA)
   // - Must NOT violate Four-Eyes
   const canAuthorize =
-    hasRight(CBS_RECORD_FUNCTIONS.AUTHORIZE) &&
+    hasRight(CbsRecordFunction.AUTHORIZE) &&
     !isIdle &&
     cleanStatus === "INA" &&
     !isFourEyesViolation;
@@ -75,24 +75,24 @@ export function evaluateCbsAccess({
   // 6. Can Reverse:
   // - Requires 'R' in profile
   // - Record must be live authorized (status AU)
-  const canReverse = hasRight(CBS_RECORD_FUNCTIONS.REVERSE) && !isIdle && cleanStatus === "AU";
+  const canReverse = hasRight(CbsRecordFunction.REVERSE) && !isIdle && cleanStatus === "AU";
 
   // 7. Can History:
   // - Requires 'H' in profile
-  const canHistory = hasRight(CBS_RECORD_FUNCTIONS.HISTORY);
+  const canHistory = hasRight(CbsRecordFunction.HISTORY);
 
   // 8. Can List / Directory:
   // - Requires 'L' in profile (defaults true if full access or explicitly granted)
-  const canList = hasRight(CBS_RECORD_FUNCTIONS.LIST);
+  const canList = hasRight(CbsRecordFunction.LIST);
 
   // 9. Screen Read-Only state:
   // If in View mode ("S", "H") or user lacks 'I' rights, screen is locked
   const isReadOnly =
-    mode === CBS_RECORD_FUNCTIONS.SEE ||
-    mode === CBS_RECORD_FUNCTIONS.HISTORY ||
-    mode === CBS_RECORD_FUNCTIONS.AUTHORIZE ||
-    mode === CBS_RECORD_FUNCTIONS.DELETE ||
-    mode === CBS_RECORD_FUNCTIONS.REVERSE ||
+    mode === CbsRecordFunction.SEE ||
+    mode === CbsRecordFunction.HISTORY ||
+    mode === CbsRecordFunction.AUTHORIZE ||
+    mode === CbsRecordFunction.DELETE ||
+    mode === CbsRecordFunction.REVERSE ||
     !canInput;
 
   const getDisableReason = (action: CbsRecordFunction): string | null => {
@@ -100,7 +100,7 @@ export function evaluateCbsAccess({
       return `Access Denied: Missing '${action}' capability in user profile.`;
     }
 
-    if (action === CBS_RECORD_FUNCTIONS.AUTHORIZE) {
+    if (action === CbsRecordFunction.AUTHORIZE) {
       if (isFourEyesViolation) {
         return "Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction.";
       }
@@ -109,19 +109,19 @@ export function evaluateCbsAccess({
       }
     }
 
-    if (action === CBS_RECORD_FUNCTIONS.DELETE) {
+    if (action === CbsRecordFunction.DELETE) {
       if (cleanStatus === "AU") {
         return "Cannot Delete: Record is already authorized. Use Reverse ('R') instead.";
       }
     }
 
-    if (action === CBS_RECORD_FUNCTIONS.REVERSE) {
+    if (action === CbsRecordFunction.REVERSE) {
       if (cleanStatus !== "AU") {
         return `Cannot Reverse: Record status is '${cleanStatus}' (must be live 'AU').`;
       }
     }
 
-    if (action === CBS_RECORD_FUNCTIONS.INPUT && isReadOnly) {
+    if (action === CbsRecordFunction.INPUT && isReadOnly) {
       return "Screen is in Read-Only mode.";
     }
 

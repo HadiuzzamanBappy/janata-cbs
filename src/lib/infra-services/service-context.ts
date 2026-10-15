@@ -63,10 +63,11 @@ export async function resolveServiceContext(tokenParam?: string): Promise<Servic
 /**
  * Normalizes user-entered command strings (e.g., "INQ AC.LIST,1" -> "AC.LIST").
  * Strips command prefixes, function codes, and parameter suffixes.
+ * Set `preserveVersion: true` to keep comma version suffixes (e.g., "USER.MGT,NEW1").
  */
-export function normalizeCommand(command: string): string {
-  return command
-    .split(",")[0]
+export function normalizeCommand(command: string, options?: { preserveVersion?: boolean }): string {
+  const base = options?.preserveVersion ? command : command.split(",")[0];
+  return base
     .trim()
     .toUpperCase()
     .replace(/^(?:INQ\s+|INQUIRY\s+)/i, "")

@@ -1,29 +1,43 @@
-import { STATIC_FORM_DATA } from "@fixtures";
+import {
+  AC_ACCOUNT_LIVE,
+  CUST_CUSTOMER_LIVE,
+  SC_CONTROL_LIVE,
+  SC_MENU_LIVE,
+  SC_MENU_TREE_LIVE,
+} from "@fixtures";
 import type { FormSchema } from "@/lib/data-schemas";
 
 /**
- * Searches static CBS fixtures for a record by ID.
- * First checks target model table, then falls back to other tables.
+ * Direct lookup across canonical database tables by table model code and record ID.
  */
 export function findRecordInFixtures(
   cleanModel: string,
   cleanId: string,
 ): Record<string, unknown> | undefined {
   if (!cleanId) return undefined;
+  const model = cleanModel.trim().toUpperCase();
+  const id = cleanId.trim().toUpperCase();
 
-  const modelTable = STATIC_FORM_DATA[cleanModel.toUpperCase()];
-  let found = modelTable?.records?.[cleanId];
-
-  if (!found) {
-    for (const tbl of Object.values(STATIC_FORM_DATA)) {
-      if (tbl.records?.[cleanId]) {
-        found = tbl.records[cleanId];
-        break;
-      }
-    }
+  switch (model) {
+    case "ACCOUNT":
+      return AC_ACCOUNT_LIVE[id];
+    case "CUSTOMER":
+      return CUST_CUSTOMER_LIVE[id];
+    case "CONTROL":
+      return SC_CONTROL_LIVE[id] as unknown as Record<string, unknown>;
+    case "MENU":
+      return SC_MENU_LIVE[id] as unknown as Record<string, unknown>;
+    case "MENU_TREE":
+    case "MENU.TREE":
+      return SC_MENU_TREE_LIVE[id] as unknown as Record<string, unknown>;
+    default:
+      // Fallback search across core entity tables
+      return (
+        AC_ACCOUNT_LIVE[id] ||
+        CUST_CUSTOMER_LIVE[id] ||
+        (SC_CONTROL_LIVE[id] as unknown as Record<string, unknown>)
+      );
   }
-
-  return found;
 }
 
 /**
@@ -48,18 +62,28 @@ export function getAvailableFixtureRecords(modelCode?: string): Array<{
   details: string;
 }> {
   if (!modelCode) return [];
-  const modelTable = STATIC_FORM_DATA[modelCode.toUpperCase()];
-  if (!modelTable?.records) return [];
+  const model = modelCode.trim().toUpperCase();
 
-  return Object.keys(modelTable.records).map((recId) => {
-    const rec = modelTable.records[recId];
+  let table: Record<string, Record<string, unknown>> = {};
+  if (model === "ACCOUNT") table = AC_ACCOUNT_LIVE;
+  else if (model === "CUSTOMER") table = CUST_CUSTOMER_LIVE;
+  else if (model === "CONTROL")
+    table = SC_CONTROL_LIVE as unknown as Record<string, Record<string, unknown>>;
+  else if (model === "MENU")
+    table = SC_MENU_LIVE as unknown as Record<string, Record<string, unknown>>;
+  else if (model === "MENU_TREE" || model === "MENU.TREE")
+    table = SC_MENU_TREE_LIVE as unknown as Record<string, Record<string, unknown>>;
+
+  return Object.keys(table).map((recId) => {
+    const rec = table[recId];
     const label =
-      (rec["ACCOUNT.TITLE"] as string) ||
-      (rec["NAME.1"] as string) ||
-      (rec["FULL.NAME"] as string) ||
-      (rec["TXN.CODE"] as string) ||
+      (rec.label as string) ||
+      (rec.treeDescription as string) ||
+      (rec.fullName as string) ||
+      (rec.description as string) ||
+      (rec.accountType as string) ||
       `Record #${recId}`;
-    const status = (rec["RECORD.STATUS"] as string) || (rec.STATUS as string) || "LIVE";
+    const status = (rec.status as string) || "LIVE";
     return {
       id: recId,
       label,

@@ -1,11 +1,129 @@
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
- * STATIC_INQUIRIES mirrors the normalized CBS Enquiry/Inquiry responses (.response/inquiry.normalized.json).
- * Clean normalized structure preserving full auditData, INQInfo, INQSelectField, INQDef, and INQCmds.
- * Pure data constant only — no parsers or business logic.
+ * SC_INQUIRY Database Table (PREFIX: SC, TABLE: INQUIRY)
+ * Stores normalized CBS Enquiry/Inquiry specifications.
+ * Preserves full auditData, INQInfo, INQSelectField, INQDef, and INQCmds.
  */
 export const STATIC_INQUIRIES: Record<string, GrpcResponse> = {
+  ACCOUNT: {
+    errors: [],
+    status: "SUCCESS",
+    statusCode: 200,
+    idempotencyKey: "",
+    message: "record successfully processed!",
+    data: {
+      recordId: "ACCOUNT",
+      auditData: {
+        recStatus: "LIVE",
+        recCurrNumber: 1,
+        recInputter: "SYSADMIN",
+        recInputTime: "2026-10-01 00:00:00",
+        recAuthorizer: "SYSADMIN",
+        recAuthTime: "2026-10-01 00:05:00",
+        recBranchCode: "JB9999",
+      },
+      INQInfo: {
+        description: "Retail & Corporate Account Master List",
+        pageOrientation: "L",
+        perpageItem: "25",
+        showSerial: true,
+        showPagination: true,
+        showBranchWise: true,
+        inqType: "DFR",
+        controllerName: "ACCOUNT",
+        rptControllerName: "",
+        fixedSelection: "",
+        inqServicePath: "default",
+        cmdFromInternal: true,
+        cmdFieldName: "actions",
+      },
+      INQSelectField: [
+        {
+          selectFieldName: "accountNumber",
+          selectFieldType: "text",
+          selectFieldOperator: "EQ",
+          selectFieldOperatorFixed: "EQ",
+          selectFieldDisplay: "Account Number",
+          selectFieldValue: "",
+          selectFieldRequired: false,
+        },
+        {
+          selectFieldName: "branchCode",
+          selectFieldType: "text",
+          selectFieldOperator: "EQ",
+          selectFieldOperatorFixed: "EQ",
+          selectFieldDisplay: "Branch Code",
+          selectFieldValue: "",
+          selectFieldRequired: false,
+        },
+      ],
+      INQDef: [
+        {
+          fieldName: "recordId",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,1",
+          fieldLength: "20,L",
+          fieldDisplay: "Account No",
+          dataPassable: null,
+        },
+        {
+          fieldName: "accountType",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,2",
+          fieldLength: "15,L",
+          fieldDisplay: "Account Type",
+          dataPassable: null,
+        },
+        {
+          fieldName: "currency",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,3",
+          fieldLength: "5,C",
+          fieldDisplay: "CCY",
+          dataPassable: null,
+        },
+        {
+          fieldName: "openingDate",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,4",
+          fieldLength: "12,C",
+          fieldDisplay: "Opening Date",
+          dataPassable: null,
+        },
+        {
+          fieldName: "interestRate",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,5",
+          fieldLength: "10,R",
+          fieldDisplay: "Rate (%)",
+          dataPassable: null,
+        },
+        {
+          fieldName: "branchCode",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,6",
+          fieldLength: "10,L",
+          fieldDisplay: "Branch",
+          dataPassable: null,
+        },
+      ],
+      INQCmds: [
+        {
+          cmdName: "VIEW",
+          cmdLabel: "View Details",
+          cmdAction: "ACCOUNT S",
+        },
+      ],
+    },
+    timestamp: "2026-10-01T09:07:15.421489436Z",
+  },
   "GET.EMP.INFO": {
     errors: [],
     status: "SUCCESS",

@@ -6,7 +6,7 @@ import type { FormSchema } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CBS_RECORD_FUNCTIONS, CbsRequestType } from "@/types/cbs";
-import { getMockFormPayload } from "./mock-service";
+import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,
@@ -14,12 +14,7 @@ import {
 } from "./service-context";
 
 async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Promise<unknown> {
-  if (appConfig.modelSource === "static") {
-    console.log(`[FormService] Model Source: static (fixture) for command: "${cleanCmd}"`);
-    const mockData = getMockFormPayload(cleanCmd);
-    console.log(`[FormService] Mock response received:`, JSON.stringify(mockData, null, 2));
-    return mockData;
-  }
+  if (isStaticMode()) return getStaticData("FORM", cleanCmd, "GMC");
 
   const ctx = await resolveServiceContext(tokenParam);
   const payload = {

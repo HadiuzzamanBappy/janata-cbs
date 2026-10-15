@@ -6,7 +6,7 @@ import type { BranchRecord } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CBS_RECORD_FUNCTIONS, CbsControlTable, CbsRequestType } from "@/types/cbs";
-import { getMockBranchesPayload } from "./mock-service";
+import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,
@@ -14,7 +14,7 @@ import {
 } from "./service-context";
 
 async function fetchBranchWirePayload(tokenParam?: string): Promise<unknown> {
-  if (appConfig.modelSource === "static") return getMockBranchesPayload();
+  if (isStaticMode()) return getStaticData("BRANCH");
 
   const ctx = await resolveServiceContext(tokenParam);
   const res = await grpcProcess(

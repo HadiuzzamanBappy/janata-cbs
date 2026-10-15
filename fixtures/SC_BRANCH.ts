@@ -1,9 +1,9 @@
+import type { BranchRecord } from "@/lib/data-schemas/branch-schema";
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
- * STATIC_BRANCH_RESPONSE contains the first 10 representative branches with auditData preserved
- * from CBS normalized wire format (.response/branch.normalized.json).
- * Pure data constant only — no parsers or business logic.
+ * SC_BRANCH Database Table (PREFIX: SC, TABLE: BRANCH)
+ * Holds Core Banking Branch Master records.
  */
 export const STATIC_BRANCH_RESPONSE: GrpcResponse = {
   status: "SUCCESS",
@@ -327,3 +327,14 @@ export const STATIC_BRANCH_RESPONSE: GrpcResponse = {
     ],
   },
 };
+
+export const SC_BRANCH_LIST = (STATIC_BRANCH_RESPONSE.data as { records: BranchRecord[] }).records;
+
+export const SC_BRANCH_TABLE: Record<string, BranchRecord> = Object.fromEntries(
+  SC_BRANCH_LIST.map((b) => [b.recordId, b]),
+);
+
+export function getBranchRecord(branchCode: string): BranchRecord | null {
+  const clean = branchCode.trim().toUpperCase();
+  return SC_BRANCH_TABLE[clean] ?? null;
+}

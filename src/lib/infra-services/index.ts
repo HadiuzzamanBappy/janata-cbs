@@ -3,6 +3,7 @@ import "server-only";
 // Core Server Services Public API
 export * from "./auth-service";
 export * from "./branch-service";
+export * from "./cbs-gateway";
 export * from "./control-service";
 export * from "./form-service";
 export * from "./inquiry-service";

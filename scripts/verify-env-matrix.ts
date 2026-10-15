@@ -7,11 +7,10 @@
 
 import {
   STATIC_BRANCH_RESPONSE,
-  STATIC_COMMANDS,
-  STATIC_FORMS,
+  STATIC_CONTROL_RESPONSE,
   STATIC_MENU,
   STATIC_USER_RESPONSES,
-} from "../fixtures";
+} from "@fixtures";
 import {
   parseCbsCommand,
   validateSecurityPermissions as validateCommandForUser,
@@ -25,6 +24,7 @@ import {
 } from "../src/lib/data-parsers";
 import type { CurrentUser } from "../src/lib/data-schemas";
 import { envSchema } from "../src/lib/data-schemas/env-schema";
+import { getMockFormPayload } from "../src/lib/infra-services/mock-service";
 
 // ============================================================================
 // Minimalist Test Runner Pattern
@@ -83,9 +83,10 @@ suite("1. Wire Fixture Structs (Normalized Format)", () => {
     );
   });
 
-  test("STATIC_COMMANDS contains records list", () => {
+  test("STATIC_CONTROL_RESPONSE contains records list", () => {
     return Boolean(
-      Array.isArray(STATIC_COMMANDS?.data?.records) && STATIC_COMMANDS.data.records.length > 0,
+      Array.isArray(STATIC_CONTROL_RESPONSE?.data?.records) &&
+        STATIC_CONTROL_RESPONSE.data.records.length > 0,
     );
   });
 
@@ -108,7 +109,7 @@ suite("2. Wire Payload Domain Parsers", () => {
   });
 
   test("parseControlsWirePayload extracts system commands from control payload", () => {
-    const commands = parseControlsWirePayload(STATIC_COMMANDS.data);
+    const commands = parseControlsWirePayload(STATIC_CONTROL_RESPONSE.data);
     return commands.length >= 6 && commands.some((c) => c.command === "ACCOUNT");
   });
 
@@ -118,7 +119,8 @@ suite("2. Wire Payload Domain Parsers", () => {
   });
 
   test("parseGMC parses form model schema (idPrefix='01')", () => {
-    const formAccount = parseGMC(STATIC_FORMS.ACCOUNT.data, "ACCOUNT");
+    const accountPayload = getMockFormPayload("ACCOUNT");
+    const formAccount = parseGMC(accountPayload, "ACCOUNT");
     return formAccount.success && formAccount.data.idPrefix === "01";
   });
 });

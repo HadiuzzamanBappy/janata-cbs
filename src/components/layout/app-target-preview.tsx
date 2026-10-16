@@ -67,7 +67,7 @@ export function AppTargetPreview() {
     <div
       aria-live="polite"
       className={cn(
-        "fixed bottom-0 right-0 z-[9999] pointer-events-none select-none",
+        "fixed bottom-0 right-0 z-9999 pointer-events-none select-none",
         "animate-in fade-in-0 duration-75",
       )}
     >

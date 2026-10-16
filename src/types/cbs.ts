@@ -24,11 +24,6 @@ export const CbsRecordFunction = {
 
 export type CbsRecordFunction = (typeof CbsRecordFunction)[keyof typeof CbsRecordFunction];
 
-/**
- * @deprecated Use `CbsRecordFunction` directly for single source of truth.
- */
-export const CBS_RECORD_FUNCTIONS = CbsRecordFunction;
-
 export interface CbsFunctionDefinition {
   readonly code: CbsRecordFunction;
   readonly description: string;

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config/server";
+import { logger } from "@/lib/core-logger";
 import { invalidateCache } from "@/lib/infra-redis";
 import type { ApiResponse } from "@/types";
 
@@ -27,6 +28,12 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResp
 
     const control = request.nextUrl.searchParams.get("control") ?? undefined;
     const removed = await invalidateCache(control);
+
+    logger.info(
+      `[Cache] Invalidated ${removed} key(s) for pattern/control: "${control ?? "*"}"`,
+      { control: control ?? "*", removed },
+      "CACHE",
+    );
 
     return NextResponse.json(
       {

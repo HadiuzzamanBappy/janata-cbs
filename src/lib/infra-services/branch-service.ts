@@ -5,7 +5,7 @@ import { parseBranchesWirePayload } from "@/lib/data-parsers";
 import type { BranchRecord } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
-import { CBS_RECORD_FUNCTIONS, CbsControlTable, CbsRequestType } from "@/types/cbs";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types/cbs";
 import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
@@ -25,7 +25,7 @@ async function fetchBranchWirePayload(tokenParam?: string): Promise<unknown> {
       clientId: ctx.clientId,
       requestType: CbsRequestType.GRL,
       controlName: CbsControlTable.BRANCH,
-      recordFunction: CBS_RECORD_FUNCTIONS.LIST,
+      recordFunction: CbsRecordFunction.LIST,
       recordId: "",
       branchCode: ctx.branchCode,
       authLevel: DEFAULT_AUTH_LEVEL,

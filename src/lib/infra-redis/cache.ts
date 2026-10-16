@@ -61,8 +61,13 @@ export async function invalidateCache(controlName?: string): Promise<number> {
     const cleanCmd = controlName.trim().toUpperCase();
     const specKey = cacheKey(appConfig.redis.cacheKeys.formSpec(cleanCmd));
     const enqKey = cacheKey(appConfig.redis.cacheKeys.inquirySpec(cleanCmd));
-    const [specDel, enqDel] = await Promise.all([cacheDelete(specKey), cacheDelete(enqKey)]);
-    return specDel + enqDel;
+    const menuKey = cacheKey(appConfig.redis.cacheKeys.menu(cleanCmd));
+    const [specDel, enqDel, menuDel] = await Promise.all([
+      cacheDelete(specKey),
+      cacheDelete(enqKey),
+      cacheDelete(menuKey),
+    ]);
+    return specDel + enqDel + menuDel;
   }
 
   // Delete all keys matching key prefix pattern (cbs:*)

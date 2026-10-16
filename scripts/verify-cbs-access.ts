@@ -11,7 +11,7 @@ import {
   hasAccessibilityRight,
   parseAccessibilityRights,
 } from "@/lib/cbs-access";
-import { CBS_RECORD_FUNCTIONS } from "@/types/cbs";
+import { CbsRecordFunction } from "@/types/cbs";
 
 interface TestReport {
   name: string;
@@ -114,19 +114,19 @@ assert(
 // 5. hasAccessibilityRight Predicate Helper
 assert(
   "hasAccessibilityRight(S) in RIDASHL",
-  hasAccessibilityRight(fullRights, CBS_RECORD_FUNCTIONS.SEE) === true,
+  hasAccessibilityRight(fullRights, CbsRecordFunction.SEE) === true,
 );
 assert(
   "hasAccessibilityRight(L) in RIDASHL",
-  hasAccessibilityRight(fullRights, CBS_RECORD_FUNCTIONS.LIST) === true,
+  hasAccessibilityRight(fullRights, CbsRecordFunction.LIST) === true,
 );
 assert(
   "hasAccessibilityRight(L) in RIDASH is false",
-  hasAccessibilityRight(legacyRights, CBS_RECORD_FUNCTIONS.LIST) === false,
+  hasAccessibilityRight(legacyRights, CbsRecordFunction.LIST) === false,
 );
 assert(
   "hasAccessibilityRight(D) in lookup profile is false",
-  hasAccessibilityRight(lookupRights, CBS_RECORD_FUNCTIONS.DELETE) === false,
+  hasAccessibilityRight(lookupRights, CbsRecordFunction.DELETE) === false,
 );
 
 console.log("\n========================================================");

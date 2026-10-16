@@ -48,6 +48,14 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
     actionType: "SCREEN",
   },
   {
+    id: "SC.INQUIRY.CONFIG",
+    title: "Inquiry Design",
+    category: "System Administration",
+    command: "SC.INQUIRY.CONFIG",
+    aliases: ["IC", "SC.INQUIRY", "SC.INQUIRY.BUILDER"],
+    actionType: "SCREEN",
+  },
+  {
     id: "SC.REPORT.BUILDER",
     title: "Report Studio",
     category: "System Administration",

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import type { SelectionField, SelectionOperand } from "@/lib/data-schemas";
 
-export interface InquiryFiltersProps {
+export interface InquiryFilterBuilderProps {
   fields: SelectionField[];
   criteria?: Record<string, { value: string; operand: SelectionOperand }>;
   onCriteriaChange?: (
@@ -21,18 +21,15 @@ export interface InquiryFiltersProps {
   ) => void;
   onSearch: (criteria: Record<string, { value: string; operand: SelectionOperand }>) => void;
   onReset: () => void;
-  onExportCSV?: () => void;
 }
 
-export type EnquiryFiltersProps = InquiryFiltersProps;
-
-export function InquiryFilters({
+export function InquiryFilterBuilder({
   fields,
   criteria: controlledCriteria,
   onCriteriaChange,
   onSearch,
   onReset,
-}: Omit<InquiryFiltersProps, "onExportCSV">) {
+}: InquiryFilterBuilderProps) {
   const [internalCriteria, setInternalCriteria] = React.useState<
     Record<string, { value: string; operand: SelectionOperand }>
   >(() => {
@@ -129,7 +126,7 @@ export function InquiryFilters({
 
               return (
                 <div key={field.id} className="flex items-center gap-2">
-                  {/* Left Label (w-32) + ID */}
+                  {/* Left Label (w-36) + ID */}
                   <label
                     htmlFor={`enq-field-${field.id}`}
                     className="w-36 shrink-0 text-xs font-medium text-muted-foreground flex items-center justify-between pr-1 select-none"
@@ -153,7 +150,7 @@ export function InquiryFilters({
                       <SelectTrigger className="h-7 w-20 text-xs font-mono px-2 shrink-0 bg-background border-border/80 rounded">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="text-xs font-mono min-w-[90px]">
+                      <SelectContent className="text-xs font-mono min-w-22.5">
                         <SelectItem value="EQ">EQ (=)</SelectItem>
                         <SelectItem value="LK">LK (Like)</SelectItem>
                         <SelectItem value="NE">NE (!=)</SelectItem>

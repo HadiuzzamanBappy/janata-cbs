@@ -1,28 +1,14 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
 import * as React from "react";
-import { CbsScreenScaffold } from "@/components/cbs-screen";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
-import { exportToCSV, exportToHTML, exportToXML } from "@/lib/core-utils/export";
-import type { EnquiryRow, SelectionOperand } from "@/lib/data-schemas";
+import { InquiryEngineTable, InquiryFilterBuilder } from "@/features/inquiry-engine";
 import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";
-import { InquiryFilters } from "./components/inquiry-filters";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
-import { InquiryTable } from "./components/inquiry-table";
-import { useInquirySchema } from "./hooks/use-inquiry-schema";
-import { useInquiryState } from "./hooks/use-inquiry-state";
+import { useInquiryActions, useInquirySchema, useInquiryState } from "./hooks";
+import type { InquiryScreenProps } from "./types";
 import { filterDatasetByCriteria } from "./utils/filter-dataset";
-import { resolveDrillDownFormCommand } from "./utils/resolve-form-command";
-
-export interface InquiryScreenProps {
-  command: string;
-  tabId?: string;
-  className?: string;
-}
 
 export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProps) {
   const { schema, loading, error, refetch } = useInquirySchema(command);
@@ -39,155 +25,66 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     setPageSize,
     currentCriteria,
     setCurrentCriteria,
-  } = useInquiryState({ tabId, schema });
+  } = useInquiryState({ schema, tabId });
 
-  const handleFilterSearch = async (
-    criteria: Record<string, { value: string; operand: SelectionOperand }>,
-  ) => {
+  const {
+    handleViewRecord,
+    handleEditRecord,
+    handleExportCSV,
+    handleExportHTML,
+    handleExportXML,
+    handleRefresh,
+  } = useInquiryActions({
+    schema,
+    filteredRows,
+    setFilteredRows,
+    setDrillRecord,
+  });
+
+  const handleFilterSearch = (criteria: typeof currentCriteria) => {
     if (!schema) return;
+    const initialDataset = schema.sampleData || [];
+    const results = filterDatasetByCriteria(initialDataset, criteria);
 
-    try {
-      const queryString = Object.entries(criteria)
-        .filter(([_, filter]) => Boolean(filter.value?.trim()))
-        .map(([fieldId, filter]) => {
-          const fieldDef = schema.selectionFields.find((f) => f.id === fieldId);
-          return {
-            selectFieldName: fieldId,
-            selectFieldType: fieldDef?.type || "text",
-            selectFieldOperator: filter.operand,
-            selectFieldValue: filter.value.trim(),
-          };
-        });
+    setCurrentCriteria(criteria);
+    setFilteredRows(results);
+    setCurrentPage(1);
+    setStep("RESULTS");
 
-      const json = await cbs.send<EnquiryRow[]>(
-        cbs.inquiry.executeQuery(schema.controllerName || schema.code, {
-          queryString,
-          curPage: currentPage,
-          perPage: pageSize || 1000,
-        }),
-        { silent: true },
-      );
-
-      const dataset =
-        json.status === "SUCCESS" && Array.isArray(json.data) && json.data.length > 0
-          ? (json.data as EnquiryRow[])
-          : [...(schema.sampleData || [])];
-
-      const result = filterDatasetByCriteria(dataset, criteria);
-      setFilteredRows(result);
-      setCurrentPage(1);
-      setStep("RESULTS");
-      toast.add({
-        title: "Inquiry Executed",
-        description: `Found ${result.length} matching record(s) for ${schema.code}`,
-        type: "info",
-      });
-    } catch {
-      const result = filterDatasetByCriteria(schema.sampleData || [], criteria);
-      setFilteredRows(result);
-      setCurrentPage(1);
-      setStep("RESULTS");
-    }
+    toast.add({
+      title: "Query Executed",
+      description: `Matched ${results.length} records`,
+      type: "info",
+    });
   };
 
   const handleResetFilters = () => {
     if (!schema) return;
-    const cleared: Record<string, { value: string; operand: SelectionOperand }> = {};
+    const initialCriteria: typeof currentCriteria = {};
     for (const f of schema.selectionFields) {
-      cleared[f.id] = { value: "", operand: f.operand };
+      initialCriteria[f.id] = { value: "", operand: f.operand };
     }
-    setCurrentCriteria(cleared);
+    setCurrentCriteria(initialCriteria);
     setFilteredRows(schema.sampleData || []);
     setCurrentPage(1);
   };
 
-  const handleViewRecord = (recordId: string, row: EnquiryRow) => {
-    if (!schema) return;
-    const targetCmd = resolveDrillDownFormCommand(schema, recordId);
-    setDrillRecord({
-      formCommand: targetCmd,
-      recordId,
-      screenMode: "S",
-      formData: row as Record<string, unknown>,
-    });
-    toast.add({
-      title: "Viewing Record",
-      description: `Opened record #${recordId} in ${targetCmd} (See mode)`,
-      type: "info",
-    });
-  };
-
-  const handleEditRecord = (recordId: string, row: EnquiryRow) => {
-    if (!schema) return;
-    const targetCmd = resolveDrillDownFormCommand(schema, recordId);
-    setDrillRecord({
-      formCommand: targetCmd,
-      recordId,
-      screenMode: "I",
-      formData: row as Record<string, unknown>,
-    });
-    toast.add({
-      title: "Editing Record",
-      description: `Opened record #${recordId} in ${targetCmd} (Input mode)`,
-      type: "info",
-    });
-  };
-
-  const handleExportCSV = () => {
-    if (!schema || filteredRows.length === 0) return;
-    exportToCSV(filteredRows, schema.columns, schema.code);
-    toast.add({
-      title: "Export Completed",
-      description: `Exported ${filteredRows.length} rows to CSV`,
-      type: "success",
-    });
-  };
-
-  const handleExportHTML = () => {
-    if (!schema || filteredRows.length === 0) return;
-    exportToHTML(filteredRows, schema.columns, schema.code, schema.title);
-    toast.add({
-      title: "HTML Export Completed",
-      description: `Saved HTML report with ${filteredRows.length} records`,
-      type: "success",
-    });
-  };
-
-  const handleExportXML = () => {
-    if (!schema || filteredRows.length === 0) return;
-    exportToXML(filteredRows, schema.columns, schema.code, schema.title);
-    toast.add({
-      title: "XML Export Completed",
-      description: `Exported ${filteredRows.length} records to XML`,
-      type: "success",
-    });
-  };
-
-  if (loading) return <InquirySkeleton />;
+  if (loading) {
+    return <InquirySkeleton />;
+  }
 
   if (error || !schema) {
     return (
-      <div className="p-6 max-w-md mx-auto my-8">
-        <Alert variant="destructive">
-          <AlertTriangle className="size-4" />
-          <AlertTitle className="text-xs font-semibold">Failed to Load Enquiry Schema</AlertTitle>
-          <AlertDescription className="mt-1.5 flex flex-col gap-3">
-            <p className="text-xs opacity-90">{error || `No schema found for "${command}"`}</p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={refetch}
-              className="w-fit text-xs h-7 px-2.5"
-            >
-              Retry Fetching Schema
-            </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
+      <CbsErrorState
+        title="Failed to Load Command Schema"
+        message={error || `No schema found for "${command}"`}
+        command={command}
+        onRetry={refetch}
+        className={className}
+      />
     );
   }
 
-  // Drill-down presentation
   if (drillRecord) {
     return (
       <InquiryDrillDown
@@ -206,14 +103,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
       variant="inquiry"
       inquiryStep={step}
       onInquiryBackToSelection={() => setStep("SELECTION")}
-      onInquiryRefresh={() => {
-        setFilteredRows([...(schema.sampleData || [])]);
-        toast.add({
-          title: "Data Refreshed",
-          description: `Refreshed inquiry records for ${schema.code}`,
-          type: "info",
-        });
-      }}
+      onInquiryRefresh={handleRefresh}
       onInquiryPrintLocal={() => window.print()}
       onInquiryPrintServer={() =>
         toast.add({
@@ -229,7 +119,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     >
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === "SELECTION" ? (
-          <InquiryFilters
+          <InquiryFilterBuilder
             fields={schema.selectionFields}
             criteria={currentCriteria}
             onCriteriaChange={setCurrentCriteria}
@@ -237,7 +127,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
             onReset={handleResetFilters}
           />
         ) : (
-          <InquiryTable
+          <InquiryEngineTable
             columns={schema.columns}
             rows={filteredRows}
             onViewRecord={handleViewRecord}

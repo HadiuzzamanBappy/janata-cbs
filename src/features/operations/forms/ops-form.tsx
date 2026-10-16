@@ -1,10 +1,7 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
 import * as React from "react";
-import { CbsScreenScaffold } from "@/components/cbs-screen";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { FormKernelProvider } from "@/features/form-engine";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
@@ -142,23 +139,12 @@ export function OpsForm({
 
   if (error || !schema) {
     return (
-      <div className="p-6 max-w-md mx-auto my-8">
-        <Alert variant="destructive">
-          <AlertTriangle className="size-4" />
-          <AlertTitle className="text-xs font-semibold">Failed to Load Command Schema</AlertTitle>
-          <AlertDescription className="mt-1.5 flex flex-col gap-3">
-            <p className="text-xs opacity-90">{error || `No schema found for "${command}"`}</p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={refetch}
-              className="w-fit text-xs h-7 px-2.5"
-            >
-              Retry Fetching Schema
-            </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
+      <CbsErrorState
+        title="Failed to Load Command Schema"
+        message={error || `No schema found for "${command}"`}
+        command={command}
+        onRetry={refetch}
+      />
     );
   }
 

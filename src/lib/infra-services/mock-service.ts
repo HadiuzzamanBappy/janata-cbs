@@ -12,6 +12,8 @@ import {
   STATIC_FORM_CONFIG_LIST,
   STATIC_FORM_CONFIGS,
   STATIC_INQUIRIES,
+  STATIC_INQUIRY_CONFIG_LIST,
+  STATIC_INQUIRY_CONFIGS,
   STATIC_MENU,
   STATIC_MODEL_CONFIG_LIST,
   STATIC_MODEL_CONFIGS,
@@ -213,6 +215,45 @@ export function getMockProxyResponse(
         statusCode: 200,
         message: `Form config for #${cleanRecordId} loaded`,
         data: STATIC_FORM_CONFIGS[cleanRecordId],
+        timestamp,
+      };
+    }
+  }
+
+  // 3b. Inquiry Config Presentation Catalog (SC.INQUIRY.CONFIG / CONFIG.INQUIRY / INQUIRY.CONFIG)
+  if (
+    cleanModel === "SC.INQUIRY.CONFIG" ||
+    cleanModel === "CONFIG.INQUIRY" ||
+    cleanModel === "INQUIRY.CONFIG"
+  ) {
+    if (
+      !cleanRecordId ||
+      cleanRecordId === "LIST" ||
+      cleanRecordId === "ALL" ||
+      requestType === "GRL" ||
+      requestType === "RECORD_LIST"
+    ) {
+      const data = STATIC_INQUIRY_CONFIG_LIST.map((record) => ({
+        id: record.id,
+        label: `${record.title} (${record.targetModel})`,
+        details: `${record.columns.length} columns • ${record.filters.length} filters • ${record.targetModel}`,
+        record,
+      }));
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Inquiry config catalog loaded from canonical table",
+        data,
+        timestamp,
+      };
+    }
+
+    if (STATIC_INQUIRY_CONFIGS[cleanRecordId]) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: `Inquiry config for #${cleanRecordId} loaded`,
+        data: STATIC_INQUIRY_CONFIGS[cleanRecordId],
         timestamp,
       };
     }

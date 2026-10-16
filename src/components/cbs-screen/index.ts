@@ -14,6 +14,7 @@ export * from "./hooks/use-cbs-persistence";
 export * from "./hooks/use-record-lookup";
 
 // States
+export * from "./states/cbs-error-state";
 export * from "./states/cbs-idle-state";
 export * from "./states/cbs-system-skeleton";
 

@@ -19,7 +19,12 @@ export const isStaticMode = (): boolean => appConfig.dataSource === "static";
 /**
  * Single, simple function to fetch static data by controlName and requestType.
  */
-export function getStaticData(controlName: string, recordId = "", requestType = "GET"): unknown {
+export function getStaticData(
+  controlName: string,
+  recordId = "",
+  requestType = "GET",
+  data?: Record<string, unknown>,
+): unknown {
   const clean = controlName.trim().toUpperCase();
 
   // 1. Direct Domain Service Dispatches
@@ -31,5 +36,5 @@ export function getStaticData(controlName: string, recordId = "", requestType = 
   if (clean === "INQUIRY" || requestType === "INQ") return getMockInquiryPayload(recordId || clean);
 
   // 2. Dynamic Transaction & Record Proxy (GET, PUT, GRL, etc.)
-  return getMockProxyResponse(requestType, clean, recordId);
+  return getMockProxyResponse(requestType, clean, recordId, data);
 }

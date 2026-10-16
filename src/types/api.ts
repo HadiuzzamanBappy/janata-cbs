@@ -31,6 +31,7 @@ export interface GrpcEnvelope {
   readonly clientId: string;
   readonly controlName?: string;
   readonly data: Readonly<Record<string, unknown>>;
+  readonly idempotencyKey?: string;
   readonly recordFunction: string;
   readonly recordId: string;
   readonly requestType: string;

@@ -107,4 +107,45 @@ export const formPayloads = {
     recordFunction: CbsRecordFunction.DELETE,
     recordId: recordId.trim(),
   }),
+
+  /**
+   * Hold form record (HLD status).
+   *
+   * @param controlName - Target table/screen name (e.g. "ACCOUNT")
+   * @param recordId - Primary record key to hold
+   * @param data - Optional draft data to hold
+   * @param servicePath - gRPC routing target (defaults to DEFAULT_SERVICE_PATH)
+   */
+  holdRecord: (
+    controlName: string,
+    recordId: string,
+    data?: Record<string, unknown>,
+    servicePath = DEFAULT_SERVICE_PATH,
+  ): CbsWirePayload => ({
+    servicePath: servicePath.trim() || DEFAULT_SERVICE_PATH,
+    requestType: CbsRequestType.RECORD_HOLD,
+    controlName: controlName.trim().toUpperCase(),
+    recordFunction: CbsRecordFunction.HISTORY,
+    recordId: recordId.trim(),
+    data: data || {},
+  }),
+
+  /**
+   * Reverse live form record (REV status).
+   *
+   * @param controlName - Target table/screen name (e.g. "ACCOUNT")
+   * @param recordId - Primary record key to reverse
+   * @param servicePath - gRPC routing target (defaults to DEFAULT_SERVICE_PATH)
+   */
+  reverseRecord: (
+    controlName: string,
+    recordId: string,
+    servicePath = DEFAULT_SERVICE_PATH,
+  ): CbsWirePayload => ({
+    servicePath: servicePath.trim() || DEFAULT_SERVICE_PATH,
+    requestType: CbsRequestType.RECORD_REVERSE,
+    controlName: controlName.trim().toUpperCase(),
+    recordFunction: CbsRecordFunction.REVERSE,
+    recordId: recordId.trim(),
+  }),
 };

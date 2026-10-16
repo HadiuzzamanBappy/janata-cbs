@@ -56,6 +56,7 @@ export const cbsWirePayloadSchema = z.object({
   recordFunction: z.string().optional(),
   recordId: z.string().optional(),
   authLevel: z.number().int().min(0).max(9).optional(),
+  idempotencyKey: z.string().optional(),
   data: z.record(z.string(), z.unknown()).optional(),
 });
 

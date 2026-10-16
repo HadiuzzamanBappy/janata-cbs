@@ -197,36 +197,91 @@ export function useFormActions({
 
   const handleHold = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema) return undefined;
-    return () => {
-      toast.add({
-        title: "Transaction Held",
-        description: `Record draft for ${schema.title} placed on Hold (HLD status).`,
-        type: "info",
-      });
+    return async () => {
+      setSubmitting(true);
+      try {
+        const id = searchRecordId.trim() || (values.id as string) || "";
+        const json = await cbs.send(cbs.form.holdRecord(schema.code, id, values), {
+          successTitle: "Transaction Held",
+          successMessage: `Record draft for ${schema.title} placed on Hold (HLD status).`,
+        });
+        if (json.status === "SUCCESS" && onSuccess) {
+          onSuccess(json);
+        }
+      } catch {
+        // Handled by cbs.send toast
+      } finally {
+        setSubmitting(false);
+      }
     };
-  }, [screenMode, schema]);
+  }, [screenMode, schema, searchRecordId, values, onSuccess]);
 
   const handleDelete = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema) return undefined;
-    return () => {
-      toast.add({
-        title: "Record Reversal Queued",
-        description: `Transaction marked for reversal/deletion in ${schema.title}.`,
-        type: "warning",
-      });
+    return async () => {
+      const id = searchRecordId.trim() || (values.id as string) || "";
+      if (!id) {
+        toast.add({
+          title: "Record ID Required",
+          description: "Cannot delete an unreferenced draft without a Record ID.",
+          type: "warning",
+        });
+        return;
+      }
+      setSubmitting(true);
+      try {
+        const json = await cbs.send(cbs.form.deleteRecord(schema.code, id), {
+          successTitle: "Record Deleted",
+          successMessage: `Record #${id} marked for deletion in ${schema.title}.`,
+        });
+        if (json.status === "SUCCESS") {
+          resetForm(initialValues);
+          setScreenMode("IDLE");
+          if (onSuccess) onSuccess(json);
+        }
+      } catch {
+        // Handled by cbs.send toast
+      } finally {
+        setSubmitting(false);
+      }
     };
-  }, [screenMode, schema]);
+  }, [screenMode, schema, searchRecordId, values.id, resetForm, initialValues, setScreenMode, onSuccess]);
 
   const handleAuthorizeReverse = React.useMemo(() => {
-    if (screenMode === "IDLE") return undefined;
-    return () => {
-      toast.add({
-        title: "Authorize Reversal",
-        description: `Authorizing transaction reversal for record #${searchRecordId || "CURRENT"}.`,
-        type: "warning",
-      });
+    if (screenMode === "IDLE" || !schema) return undefined;
+    return async () => {
+      const id = searchRecordId.trim() || (values.id as string) || "";
+      if (!id) {
+        toast.add({
+          title: "Record ID Required",
+          description: "Cannot authorize or reverse without a Record ID.",
+          type: "warning",
+        });
+        return;
+      }
+      setSubmitting(true);
+      try {
+        const isLive = values.RECORD_STATUS === "AU" || values.status === "AU";
+        const payload = isLive
+          ? cbs.form.reverseRecord(schema.code, id)
+          : cbs.form.authorizeRecord(schema.code, id);
+
+        const actionName = isLive ? "Reversal" : "Authorization";
+        const json = await cbs.send(payload, {
+          successTitle: `${actionName} Successful`,
+          successMessage: `Transaction ${actionName.toLowerCase()} completed for record #${id}.`,
+        });
+        if (json.status === "SUCCESS") {
+          if (onSuccess) onSuccess(json);
+          loadRecordData(id, "S");
+        }
+      } catch {
+        // Handled by cbs.send toast
+      } finally {
+        setSubmitting(false);
+      }
     };
-  }, [screenMode, searchRecordId]);
+  }, [screenMode, schema, searchRecordId, values, onSuccess, loadRecordData]);
 
   const handleProcessAction = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema) return undefined;

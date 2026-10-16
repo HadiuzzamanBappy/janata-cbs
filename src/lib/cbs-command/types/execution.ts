@@ -31,6 +31,8 @@ export interface ExecutionOptions {
   readonly silent?: boolean;
   /** Optional headless callback for error reporting (useful in headless/testing environments) */
   readonly onError?: (error: string) => void;
+  /** Explicit tab ID override for window-to-shell state mapping */
+  readonly tabId?: string;
   /** Optional callback upon successful dispatch */
   readonly onSuccess?: (command: ParsedCommand) => void;
 }

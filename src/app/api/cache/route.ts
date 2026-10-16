@@ -28,10 +28,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResp
 
     const control = request.nextUrl.searchParams.get("control") ?? undefined;
     const removed = await invalidateCache(control);
+    const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "internal";
 
     logger.info(
-      `[Cache] Invalidated ${removed} key(s) for pattern/control: "${control ?? "*"}"`,
-      { control: control ?? "*", removed },
+      `[Cache] Invalidated ${removed} key(s) for pattern/control: "${control ?? "*"}" by [${clientIp}]`,
+      { control: control ?? "*", removed, clientIp },
       "CACHE",
     );
 

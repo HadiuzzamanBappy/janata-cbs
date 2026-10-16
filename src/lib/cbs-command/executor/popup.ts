@@ -27,19 +27,16 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
   if (options?.pageSize && options.pageSize !== 10) {
     params.set("pageSize", String(options.pageSize));
   }
-  if (options?.criteria && Object.keys(options.criteria).length > 0) {
-    try {
-      params.set("criteria", JSON.stringify(options.criteria));
-    } catch {
-      // Safe fallback
-    }
-  }
+  const cleanApp = parsed.application.replace(/[^a-zA-Z0-9]/g, "_");
+  const tabId = options?.tabId || `popup_${cleanApp}_${Date.now()}`;
+  params.set("tabId", tabId);
+
+  // Store large payloads (150 - 1,000 fields) safely in session storage instead of fragile URLs
   if (options?.formData && Object.keys(options.formData).length > 0) {
-    try {
-      params.set("data", JSON.stringify(options.formData));
-    } catch {
-      // Safe fallback
-    }
+    sessionStorage.setItem(`cbs:draft:${tabId}`, JSON.stringify(options.formData));
+  }
+  if (options?.criteria && Object.keys(options.criteria).length > 0) {
+    sessionStorage.setItem(`cbs:criteria:${tabId}`, JSON.stringify(options.criteria));
   }
   const fullFormKey = parsed.version
     ? `${parsed.application},${parsed.version}`

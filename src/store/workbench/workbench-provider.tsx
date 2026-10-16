@@ -39,6 +39,19 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
 
     window.addEventListener("message", handleMessage);
 
+    // Subscribe to BroadcastChannel bus for robust cross-window communication
+    let busUnsubscribe: (() => void) | undefined;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      const bus = new BroadcastChannel("cbs_workbench_bus");
+      bus.onmessage = (event) => {
+        if (event.data?.type === "CBS_DOCK_TAB" && event.data?.payload) {
+          store.getState().addTab(event.data.payload);
+          window.focus();
+        }
+      };
+      busUnsubscribe = () => bus.close();
+    }
+
     const unregisterAdapter = registerCommandAdapter({
       openTab: (tab) => {
         store.getState().addTab(tab);
@@ -47,6 +60,7 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
 
     return () => {
       window.removeEventListener("message", handleMessage);
+      busUnsubscribe?.();
       unregisterAdapter?.();
     };
   }, []);

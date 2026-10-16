@@ -55,7 +55,7 @@ export function FieldPalette({
     setLoadingModel(true);
 
     cbs
-      .send<ModelConfigRecord>(cbs.modelConfig.getModelConfig(targetModel))
+      .send<ModelConfigRecord>(cbs.modelConfig.get(targetModel))
       .then((res) => {
         if (isMounted && res.data?.properties) {
           setModelProperties(res.data.properties);

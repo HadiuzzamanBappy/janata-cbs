@@ -44,7 +44,6 @@ export function evaluateCbsAccess({
   // - Requires 'I' in profile
   // - Allowed on uncommitted drafts or existing records not in final archived state
   const canInput = hasRight(CbsRecordFunction.INPUT);
-  const canAmend = hasRight(CbsRecordFunction.INPUT);
 
   // 3. Can Delete:
   // - Requires 'D' in profile
@@ -132,7 +131,6 @@ export function evaluateCbsAccess({
     hasFunctionRight: hasRight,
     canSee,
     canInput,
-    canAmend,
     canDelete,
     canHold,
     canAuthorize,

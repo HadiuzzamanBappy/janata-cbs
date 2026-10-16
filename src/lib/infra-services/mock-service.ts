@@ -323,7 +323,7 @@ export function getMockProxyResponse(
   }
 
   // 6. Generic GRL Lookup Fallback (Permits mock record lookup on arbitrary control tables)
-  if (requestType === "GRL" || requestType === "RECORD_LIST") {
+  if (requestType === "GRL") {
     return {
       status: "SUCCESS",
       statusCode: 200,
@@ -344,28 +344,23 @@ export function getMockProxyResponse(
     };
   }
 
-  // 7. Generic Mock Mutations (PUT, RECORD_PUT, AUT, RECORD_AUTH, DEL, HLD, REV)
+  // 7. Generic Mock Mutations (PUT, AUT, DEL, HLD, REV)
   const isMutation =
     requestType === "PUT" ||
-    requestType === "RECORD_PUT" ||
     requestType === "AUT" ||
-    requestType === "RECORD_AUTH" ||
     requestType === "DEL" ||
-    requestType === "RECORD_DEL" ||
     requestType === "HLD" ||
-    requestType === "RECORD_HOLD" ||
-    requestType === "REV" ||
-    requestType === "RECORD_REVERSE";
+    requestType === "REV";
 
   if (isMutation) {
     const actionLabel =
-      requestType === "AUT" || requestType === "RECORD_AUTH"
+      requestType === "AUT"
         ? "authorized"
-        : requestType === "DEL" || requestType === "RECORD_DEL"
+        : requestType === "DEL"
           ? "deleted"
-          : requestType === "HLD" || requestType === "RECORD_HOLD"
+          : requestType === "HLD"
             ? "held"
-            : requestType === "REV" || requestType === "RECORD_REVERSE"
+            : requestType === "REV"
               ? "reversed"
               : "saved";
 
@@ -377,13 +372,13 @@ export function getMockProxyResponse(
         recordId: cleanRecordId || (data?.id as string) || "REC-001",
         ...(data || {}),
         RECORD_STATUS:
-          requestType === "AUT" || requestType === "RECORD_AUTH"
+          requestType === "AUT"
             ? "AU"
-            : requestType === "HLD" || requestType === "RECORD_HOLD"
+            : requestType === "HLD"
               ? "HLD"
-              : requestType === "DEL" || requestType === "RECORD_DEL"
+              : requestType === "DEL"
                 ? "DEL"
-                : requestType === "REV" || requestType === "RECORD_REVERSE"
+                : requestType === "REV"
                   ? "REV"
                   : "INA",
       },

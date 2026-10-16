@@ -1,186 +1,12 @@
 /**
  * Canonical Core Banking Domain Types
  * Single source of truth across UI, Command Gateway, State Stores, and Screen Modules.
- *
- * S: See       - Read a single record without locking
- * I: Insert    - Lock, then update or insert; archives to history (Maker)
- * D: Delete    - Lock, archive to deletion table, delete from unauthorized table only
- * A: Authorize - Approve a pending record under maker-checker (Checker)
- * R: Reverse   - Delete and make history from live table
- * H: History   - Inspect historical revisions ($HIS)
+ * Official specification from CORE TECHNICAL DOCUMENTATION V1.0.1.
  */
-
-export const CBS_FUNCTION_CODES = ["S", "I", "D", "A", "R", "H", "L"] as const;
-
-export const CbsRecordFunction = {
-  SEE: "S",
-  INPUT: "I",
-  DELETE: "D",
-  AUTHORIZE: "A",
-  REVERSE: "R",
-  HISTORY: "H",
-  LIST: "L",
-} as const;
-
-export type CbsRecordFunction = (typeof CbsRecordFunction)[keyof typeof CbsRecordFunction];
-
-export interface CbsFunctionDefinition {
-  readonly code: CbsRecordFunction;
-  readonly description: string;
-  readonly label: string;
-  readonly name: string;
-  readonly realWorldEffect: string;
-}
-
-export const CBS_FUNCTION_DEFINITIONS = {
-  S: {
-    code: "S",
-    name: "SEE",
-    label: "See / View",
-    description: "Read a single record",
-    realWorldEffect: "Inspects live or unauthorized record without row lock",
-  },
-  I: {
-    code: "I",
-    name: "INPUT",
-    label: "Insert / Update",
-    description: "Lock, then update or insert; archives to history",
-    realWorldEffect: "Maker captures draft, validates onsite rules, commits to $NAU",
-  },
-  D: {
-    code: "D",
-    name: "DELETE",
-    label: "Delete",
-    description: "Delete from unauthorized table only",
-    realWorldEffect: "Archives to deletion table and purges unapproved draft from $NAU",
-  },
-  A: {
-    code: "A",
-    name: "AUTHORIZE",
-    label: "Authorize",
-    description: "Approve a pending record under maker-checker",
-    realWorldEffect: "Checker approves pending draft, promoting from $NAU into live ledger",
-  },
-  R: {
-    code: "R",
-    name: "REVERSE",
-    label: "Reverse",
-    description: "Delete and make history from live table",
-    realWorldEffect: "Reverses live transaction with offsetting accounting entries",
-  },
-  H: {
-    code: "H",
-    name: "HISTORY",
-    label: "History",
-    description: "Inspect historical revisions ($HIS)",
-    realWorldEffect: "Audits prior version snapshots and historical deltas",
-  },
-  L: {
-    code: "L",
-    name: "LIST",
-    label: "List / Directory",
-    description: "Query and list multiple records",
-    realWorldEffect: "Fetches table catalog or directory rows without row locking",
-  },
-} as const satisfies Record<CbsRecordFunction, CbsFunctionDefinition>;
-
-/**
- * Resulting UI screen display mode
- * "IDLE" or standard RIDASH code ("S" | "I" | "D" | "A" | "R" | "H")
- */
-export const CBS_SCREEN_MODES = ["IDLE", ...CBS_FUNCTION_CODES] as const;
-export type CbsScreenMode = (typeof CBS_SCREEN_MODES)[number];
-
-/**
- * Workspace rendering display targets:
- *  - panel: Embedded inside workbench tabbed interface
- *  - window: Detached standalone browser popup window
- */
-export const WORKSPACE_DISPLAY_MODES = ["panel", "window"] as const;
-export type WorkspaceDisplayMode = (typeof WORKSPACE_DISPLAY_MODES)[number];
-
-/**
- * Standard record lifecycle statuses in Core Banking:
- *  - NEW: Uncommitted newly created draft
- *  - INA: Input Not Authorized (pending Maker-Checker approval in $NAU)
- *  - AU:  Authorized / Live ledger record
- *  - HLD: Held / Parked draft
- *  - REV: Reversed / Cancelled
- *  - DEL: Deleted draft
- */
-export const CBS_RECORD_STATUSES = ["NEW", "INA", "AU", "HLD", "REV", "DEL"] as const;
-export type CbsRecordLifecycleStatus = (typeof CBS_RECORD_STATUSES)[number];
-
-export interface CbsRecordStatusDefinition {
-  readonly code: CbsRecordLifecycleStatus;
-  readonly description: string;
-  readonly label: string;
-  readonly variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning";
-}
-
-export const CBS_RECORD_STATUS_DEFINITIONS: Record<
-  CbsRecordLifecycleStatus,
-  CbsRecordStatusDefinition
-> = {
-  AU: {
-    code: "AU",
-    description: "Live authorized ledger record",
-    label: "Authorized",
-    variant: "success",
-  },
-  DEL: {
-    code: "DEL",
-    description: "Deleted unauthorized draft",
-    label: "Deleted",
-    variant: "destructive",
-  },
-  HLD: {
-    code: "HLD",
-    description: "Parked / held draft pending completion",
-    label: "Held",
-    variant: "warning",
-  },
-  INA: {
-    code: "INA",
-    description: "Input Not Authorized (awaiting Checker approval in $NAU)",
-    label: "Pending Approval",
-    variant: "secondary",
-  },
-  NEW: {
-    code: "NEW",
-    description: "Newly initialized uncommitted record",
-    label: "New Draft",
-    variant: "outline",
-  },
-  REV: {
-    code: "REV",
-    description: "Reversed accounting transaction",
-    label: "Reversed",
-    variant: "destructive",
-  },
-};
 
 /* -------------------------------------------------------------------------- */
-/* Canonical Control Table Identifiers & Request Types                         */
+/* 1. Wire Protocol: Request Types & Target Control Tables                    */
 /* -------------------------------------------------------------------------- */
-
-/**
- * Canonical Application & Target Control Table Identifiers.
- * Defines the active control table identifiers recognized by the CBS client.
- */
-export const CbsControlTable = {
-  BRANCH: "BRANCH",
-  CONTROL: "CONTROL",
-  MENU: "SC.MENU",
-  MENU_TREE: "SC.MENU.TREE",
-  USER_GROUP: "SC.USER.GROUP",
-  USER_PASS_RESET: "SC.USER.PASS.RESET",
-  MODEL_CONFIG: "SC.MODEL.CONFIG",
-  FORM_CONFIG: "CONFIG.FORM",
-  INQUIRY: "INQUIRY",
-} as const;
-
-export type CbsControlTable = (typeof CbsControlTable)[keyof typeof CbsControlTable];
 
 /**
  * Canonical CBS Wire Request Types (Verbs).
@@ -214,7 +40,12 @@ export const CbsRequestType = {
   GCQ: "GCQ",
   /** Get generated report list ('GGL') */
   GGL: "GGL",
+  /** Search by recordId / wildcard ('SBI') */
   SBI: "SBI",
+  /** Get from materialize view ('GMV') */
+  GMV: "GMV",
+  /** Refresh materialize view ('RMV') */
+  RMV: "RMV",
 
   // --- Model & Form Config Verbs ---
   /** Get model definition ('GMC') */
@@ -243,6 +74,8 @@ export const CbsRequestType = {
   ATT: "ATT",
   /** Cash Transfer Transaction ('CTT') */
   CTT: "CTT",
+  /** Automated Fund Transfer ('AFT') */
+  AFT: "AFT",
 
   // --- Security & Session Verbs ---
   /** User login ('ULI') */
@@ -253,36 +86,201 @@ export const CbsRequestType = {
   UAU: "UAU",
   /** Change password ('CPW') */
   CPW: "CPW",
-
-  // --- Convenience / Semantic Aliases ---
-  /** Alias for GRL */
-  RECORD_LIST: "GRL",
-  /** Alias for GET */
-  RECORD_GET: "GET",
-  /** Alias for PUT */
-  RECORD_PUT: "PUT",
-  /** Alias for AUT */
-  RECORD_AUTH: "AUT",
-  /** Alias for DEL */
-  RECORD_DEL: "DEL",
-  /** Alias for REV */
-  RECORD_REVERSE: "REV",
-  /** Hold draft status / queue ('HLD') */
-  RECORD_HOLD: "HLD",
-  /** Inquiry execution ('INQ') */
-  INQUIRY_EXEC: "INQ",
-  /** Alias for GUM */
-  MENU_TREE: "GUM",
-  /** Alias for UAU */
-  USER_AUTH: "UAU",
-  /** Alias for ATT */
-  ACCOUNT_FUNDS_TRANSFER: "ATT",
-  /** Alias for CTT */
-  ACCOUNT_CASH_TRANSFER: "CTT",
-  /** Alias for CPW */
-  CHANGE_PASSWORD: "CPW",
+  /** Get Password reset record ('GRR') */
+  GRR: "GRR",
   /** Change Sign-On / User Name ('CUN') */
-  CHANGE_USER_NAME: "CUN",
+  CUN: "CUN",
+
+  // --- Runtime Query & Hold Verbs ---
+  /** Hold draft status / queue ('HLD') */
+  HLD: "HLD",
+  /** Inquiry execution ('INQ') */
+  INQ: "INQ",
 } as const;
 
 export type CbsRequestType = (typeof CbsRequestType)[keyof typeof CbsRequestType];
+
+/**
+ * Canonical Application & Target Control Table Identifiers.
+ * Defines the active control table identifiers recognized by the CBS client.
+ */
+export const CbsControlTable = {
+  BRANCH: "BRANCH",
+  CONTROL: "CONTROL",
+  MENU: "MENU",
+  MENU_TREE: "SC.MENU.TREE",
+  USER_GROUP: "SC.USER.GROUP",
+  USER_PASS_RESET: "SC.USER.PASS.RESET",
+  MODEL_CONFIG: "SC.MODEL.CONFIG",
+  FORM_CONFIG: "CONFIG.FORM",
+  INQUIRY: "INQUIRY",
+} as const;
+
+export type CbsControlTable = (typeof CbsControlTable)[keyof typeof CbsControlTable];
+
+/* -------------------------------------------------------------------------- */
+/* 2. Record Access Modes & Maker-Checker Functions (Section 6.5)             */
+/* -------------------------------------------------------------------------- */
+
+export const CbsRecordFunction = {
+  SEE: "S",
+  INPUT: "I",
+  DELETE: "D",
+  AUTHORIZE: "A",
+  REVERSE: "R",
+  HISTORY: "H",
+  LIST: "L",
+} as const;
+
+export type CbsRecordFunction = (typeof CbsRecordFunction)[keyof typeof CbsRecordFunction];
+export const CBS_FUNCTION_CODES = Object.values(CbsRecordFunction);
+
+export interface CbsFunctionDefinition {
+  readonly code: CbsRecordFunction;
+  readonly description: string;
+  readonly label: string;
+  readonly name: string;
+  readonly realWorldEffect: string;
+}
+
+export const CBS_FUNCTION_DEFINITIONS = {
+  [CbsRecordFunction.SEE]: {
+    code: CbsRecordFunction.SEE,
+    name: "SEE",
+    label: "See / View",
+    description: "Read a single record",
+    realWorldEffect: "Inspects live or unauthorized record without row lock",
+  },
+  [CbsRecordFunction.INPUT]: {
+    code: CbsRecordFunction.INPUT,
+    name: "INPUT",
+    label: "Insert / Update",
+    description: "Lock, then update or insert; archives to history",
+    realWorldEffect: "Maker captures draft, validates onsite rules, commits to $NAU",
+  },
+  [CbsRecordFunction.DELETE]: {
+    code: CbsRecordFunction.DELETE,
+    name: "DELETE",
+    label: "Delete",
+    description: "Delete from unauthorized table only",
+    realWorldEffect: "Archives to deletion table and purges unapproved draft from $NAU",
+  },
+  [CbsRecordFunction.AUTHORIZE]: {
+    code: CbsRecordFunction.AUTHORIZE,
+    name: "AUTHORIZE",
+    label: "Authorize",
+    description: "Approve a pending record under maker-checker",
+    realWorldEffect: "Checker approves pending draft, promoting from $NAU into live ledger",
+  },
+  [CbsRecordFunction.REVERSE]: {
+    code: CbsRecordFunction.REVERSE,
+    name: "REVERSE",
+    label: "Reverse",
+    description: "Delete and make history from live table",
+    realWorldEffect: "Reverses live transaction with offsetting accounting entries",
+  },
+  [CbsRecordFunction.HISTORY]: {
+    code: CbsRecordFunction.HISTORY,
+    name: "HISTORY",
+    label: "History",
+    description: "Inspect historical revisions ($HIS)",
+    realWorldEffect: "Audits prior version snapshots and historical deltas",
+  },
+  [CbsRecordFunction.LIST]: {
+    code: CbsRecordFunction.LIST,
+    name: "LIST",
+    label: "List / Directory",
+    description: "Query and list multiple records",
+    realWorldEffect: "Fetches table catalog or directory rows without row locking",
+  },
+} as const satisfies Record<CbsRecordFunction, CbsFunctionDefinition>;
+
+/* -------------------------------------------------------------------------- */
+/* 3. Record Lifecycle & Ledger Statuses                                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Chronological record lifecycle statuses in Core Banking:
+ *  - NEW: Uncommitted newly created draft
+ *  - INA: Input Not Authorized (pending Maker-Checker approval in $NAU)
+ *  - AU:  Authorized / Live ledger record
+ *  - HLD: Held / Parked draft
+ *  - REV: Reversed accounting transaction
+ *  - DEL: Deleted draft
+ */
+export const CbsRecordStatus = {
+  NEW: "NEW",
+  INA: "INA",
+  AU: "AU",
+  HLD: "HLD",
+  REV: "REV",
+  DEL: "DEL",
+} as const;
+
+export type CbsRecordLifecycleStatus = (typeof CbsRecordStatus)[keyof typeof CbsRecordStatus];
+export const CBS_RECORD_STATUSES = Object.values(CbsRecordStatus);
+
+export interface CbsRecordStatusDefinition {
+  readonly code: CbsRecordLifecycleStatus;
+  readonly description: string;
+  readonly label: string;
+  readonly variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning";
+}
+
+export const CBS_RECORD_STATUS_DEFINITIONS = {
+  [CbsRecordStatus.NEW]: {
+    code: CbsRecordStatus.NEW,
+    description: "Newly initialized uncommitted record",
+    label: "New Draft",
+    variant: "outline",
+  },
+  [CbsRecordStatus.INA]: {
+    code: CbsRecordStatus.INA,
+    description: "Input Not Authorized (awaiting Checker approval in $NAU)",
+    label: "Pending Approval",
+    variant: "secondary",
+  },
+  [CbsRecordStatus.AU]: {
+    code: CbsRecordStatus.AU,
+    description: "Live authorized ledger record",
+    label: "Authorized",
+    variant: "success",
+  },
+  [CbsRecordStatus.HLD]: {
+    code: CbsRecordStatus.HLD,
+    description: "Parked / held draft pending completion",
+    label: "Held",
+    variant: "warning",
+  },
+  [CbsRecordStatus.REV]: {
+    code: CbsRecordStatus.REV,
+    description: "Reversed accounting transaction",
+    label: "Reversed",
+    variant: "destructive",
+  },
+  [CbsRecordStatus.DEL]: {
+    code: CbsRecordStatus.DEL,
+    description: "Deleted unauthorized draft",
+    label: "Deleted",
+    variant: "destructive",
+  },
+} as const satisfies Record<CbsRecordLifecycleStatus, CbsRecordStatusDefinition>;
+
+/* -------------------------------------------------------------------------- */
+/* 4. UI Screen & Workspace Presentation Modes                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Resulting UI screen display mode:
+ * "IDLE" or standard RIDASHL code ("S" | "I" | "D" | "A" | "R" | "H" | "L")
+ */
+export const CBS_SCREEN_MODES = ["IDLE", ...Object.values(CbsRecordFunction)] as const;
+export type CbsScreenMode = "IDLE" | CbsRecordFunction;
+
+/**
+ * Workspace rendering display targets:
+ *  - panel: Embedded inside workbench tabbed interface
+ *  - window: Detached standalone browser popup window
+ */
+export const WORKSPACE_DISPLAY_MODES = ["panel", "window"] as const;
+export type WorkspaceDisplayMode = (typeof WORKSPACE_DISPLAY_MODES)[number];

@@ -1,8 +1,8 @@
 # CBS Micro-Client Gateway (`@/lib/cbs-client`)
 
-The **CBS Micro-Client Gateway** is the single, centralized isomorphic communication layer connecting client-side components and hooks with the Next.js proxy route (`/api/proxy`) and downstream Core Banking Solution (CBS) backend.
+The **CBS Micro-Client Gateway** is the single, centralized isomorphic communication layer for the entire application. It bridges client-side React components and hooks with the Next.js BFF proxy route (`/api/proxy`) and downstream Core Banking Solution (CBS) backend services.
 
-It provides a **strictly typed, zero-boilerplate API**, standardizing request formatting, wire envelope serialization, session expiration interception, and user notifications.
+It delivers a **strictly typed, zero-boilerplate API** designed to build, consume, and scale backend operations without manual envelope assembly.
 
 ---
 
@@ -11,169 +11,209 @@ It provides a **strictly typed, zero-boilerplate API**, standardizing request fo
 ```
 src/lib/cbs-client/
 ├── payloads/                # Domain-specific typed payload builders
-│   ├── form.ts              # formPayloads (commitRecord, fetchRecord, authorizeRecord, deleteRecord)
-│   ├── inquiry.ts           # inquiryPayloads (executeQuery, fetchSingleRecord, getInquiryConfig, ...)
-│   ├── menu.ts              # menuPayloads (getCatalogList, getMenuItem, getMenuTree, saveMenuTree, ...)
-│   ├── model-config.ts      # modelConfigPayloads (getModelConfig, listModelConfigs, saveModelConfig, ...)
-│   ├── user-group.ts        # userGroupPayloads (getGroup, saveGroup, authorizeGroup, deleteGroup)
-│   ├── user-security.ts     # userSecurityPayloads (getUserProfile, changeSignOnName, changePassword, ...)
+│   ├── base-model.ts        # Universal BaseModel factory template
+│   ├── form.ts              # Generic Form Engine dispatcher (commit, fetch, authorize, etc.)
+│   ├── inquiry.ts           # Dynamic Inquiries & Search Grids (INQ execution)
+│   ├── menu.ts              # Menu Catalog (SC.MENU) & Tree Designer (SC.MENU.TREE)
+│   ├── user-security.ts     # Staff security profile, credentials, and password reset
 │   └── index.ts             # Payloads barrel export
-├── transport/               # HTTP wire transport & error management
-│   └── proxy-client.ts      # sendCbsRequest with 401 interception & toast notifications
-├── index.ts                 # Unified public facade (`cbs` and default export)
-└── README.md                # Gateway documentation
+├── transport/               # Wire transport, validation & error management
+│   └── proxy-client.ts      # sendCbsRequest (pre-flight validation, 401 interception, toast alerts)
+├── index.ts                 # Unified public facade (`cbs` singleton and default export)
+└── README.md                # Gateway documentation & developer guide
 ```
 
 ---
 
-## Core Usage & Syntax
+## Mental Model & Core Pattern
 
-All client operations dispatch via `cbs.send(...)` combined with a domain payload builder:
+All communication flows through a unified facade:
+
+$$\text{Action} = \mathbf{cbs.send}(\text{payloadBuilder}(\dots), \text{options}?)$$
 
 ```typescript
 import { cbs } from "@/lib/cbs-client";
 
-// Format: cbs.send(payloadBuilder(...), options?)
-const response = await cbs.send(
-  cbs.form.commitRecord("ACCOUNT", formData),
+// 1. Read single record
+const res = await cbs.send(cbs.formConfig.get("ACCOUNT.V1"));
+
+// 2. Commit a mutation with automatic UI toast
+await cbs.send(
+  cbs.userGroup.save(groupData, { recordId: "TELLER_ROLE" }),
   {
-    successTitle: "Account Created",
-    successMessage: "Account record has been submitted successfully.",
+    successTitle: "Group Saved",
+    successMessage: "Teller security matrix updated successfully.",
   }
 );
 ```
 
-### Standard Wire Envelope Structure
-Every request produced by `cbs` conforms to the canonical wire contract:
-```typescript
+### The Standard Wire Envelope
+Every operation produces a strictly validated `CbsWirePayload`:
+```json
 {
-  servicePath: "default",
-  requestType: "PUT",
-  controlName: "ACCOUNT",
-  recordFunction: "I",
-  recordId: "1000001",
-  authLevel: 1,
-  data: { ... }
+  "servicePath": "default",
+  "requestType": "PUT",
+  "controlName": "SC.USER.GROUP",
+  "recordFunction": "I",
+  "recordId": "TELLER_ROLE",
+  "authLevel": 1,
+  "data": { "permissions": ["SEE", "INPUT"] }
 }
+```
+*Note: The BFF proxy layer automatically injects `token`, `userId`, `branchCode`, and `clientId` from the authenticated HTTP-only session.*
+
+---
+
+## Active Subsystems
+
+### 1. Standard Control Models (`cbs.formConfig`, `cbs.modelConfig`, `cbs.userGroup`)
+Configured tables using the universal `createModelPayloads(CbsControlTable.<NAME>)` template expose a clean, uniform CRUD & Maker-Checker contract:
+
+| Method | Request Verb | Record Function | Purpose |
+| :--- | :---: | :---: | :--- |
+| **`model.list(opts?)`** | `GRL` | `L` | Fetch directory / catalog of all records |
+| **`model.get(id, opts?)`** | `GET` | `S` | Read single record without row lock |
+| **`model.save(data, opts?)`** | `PUT` | `I` | Insert or update record (Maker draft) |
+| **`model.authorize(id, opts?)`** | `AUT` | `A` | Approve pending record (Checker live promote) |
+| **`model.delete(id, opts?)`** | `PUT` | `D` | Remove unauthorized record to delete table |
+| **`model.hold(id, data?, opts?)`** | `HLD` | `H` | Park record draft in hold status |
+| **`model.reverse(id, opts?)`** | `REV` | `R` | Reverse live accounting record with history |
+
+#### Example:
+```typescript
+// Fetching a form definition:
+const res = await cbs.send(cbs.formConfig.get("CUST.INDIVIDUAL"));
+
+// Saving a user security group:
+await cbs.send(cbs.userGroup.save(permissions, { recordId: "OFFICER" }));
+
+// Authorizing a pending model config:
+await cbs.send(cbs.modelConfig.authorize("GL.ACCOUNT"));
 ```
 
 ---
 
-## Domain Payload Subsystems
+### 2. Generic Form Engine (`cbs.form`)
+For dynamic, metadata-driven form screens where the target `controlName` is dynamic at runtime:
 
-### 1. Dynamic Forms (`cbs.form`)
-- **`cbs.form.fetchRecord(controlName, recordId, servicePath?)`** — Fetches record data (`recordFunction: 'S'`).
-- **`cbs.form.commitRecord(controlName, data, options?)`** — Creates or updates a record (`recordFunction: 'I'`).
-- **`cbs.form.authorizeRecord(controlName, recordId, servicePath?)`** — Authorizes a pending record (`recordFunction: 'A'`).
-- **`cbs.form.deleteRecord(controlName, recordId, servicePath?)`** — Deletes or reverses a record (`recordFunction: 'D'`).
+- **`cbs.form.fetchRecord(controlName, recordId, servicePath?)`** — Read record (`S`).
+- **`cbs.form.commitRecord(controlName, data, opts?)`** — Commit new or amended record (`I`).
+- **`cbs.form.authorizeRecord(controlName, recordId, servicePath?)`** — Maker-Checker authorize (`A`).
+- **`cbs.form.deleteRecord(controlName, recordId, servicePath?)`** — Delete unapproved record (`D`).
+- **`cbs.form.holdRecord(controlName, recordId, data?, servicePath?)`** — Park draft (`HLD`).
+- **`cbs.form.reverseRecord(controlName, recordId, servicePath?)`** — Reverse live record (`REV`).
+- **`cbs.form.listRecords(controlName, servicePath?)`** — Lookup directory rows (`GRL`).
 
-### 2. Inquiries (`cbs.inquiry`)
-- **`cbs.inquiry.executeQuery(controlName, options?)`** — Executes a dynamic grid search query (`requestType: 'INQ'`).
-- **`cbs.inquiry.fetchSingleRecord(controlName, recordId)`** — Fetches a single enquiry record.
-- **`cbs.inquiry.getInquiryConfig(inquiryId)`** — Retrieves metadata definition for an enquiry.
-- **`cbs.inquiry.saveInquiryConfig(inquiryId, data)`** — Saves enquiry configuration.
-- **`cbs.inquiry.authorizeInquiryConfig(inquiryId)`** — Authorizes an enquiry definition.
-- **`cbs.inquiry.deleteInquiryConfig(inquiryId)`** — Decommissions an enquiry.
+---
 
-### 3. Menu & Navigation (`cbs.menu`)
-- **`cbs.menu.getCatalogList()`** — Fetches all flat menu items (`controlName: 'MENU'`).
-- **`cbs.menu.getMenuItem(menuId)`** — Fetches an individual menu record.
-- **`cbs.menu.saveMenuItem(menuId, data)`** — Commits a menu record.
-- **`cbs.menu.authorizeMenuItem(menuId)`** — Authorizes a menu record.
-- **`cbs.menu.deleteMenuItem(menuId)`** — Deletes a menu record.
-- **`cbs.menu.getTreeList()`** — Fetches list of all menu tree configs (`controlName: 'MENU.TREE'`).
-- **`cbs.menu.getMenuTree(treeId?)`** — Fetches full hierarchical menu tree.
-- **`cbs.menu.saveMenuTree(treeId, treeNodes)`** — Saves hierarchical menu tree.
-- **`cbs.menu.authorizeMenuTree(treeId)`** — Authorizes a menu tree.
-- **`cbs.menu.deleteMenuTree(treeId)`** — Deletes a menu tree.
+### 3. Dynamic Inquiries & Search Grids (`cbs.inquiry`)
+Powers dynamic search queries and column-driven data grids:
 
-### 4. User Groups & Permissions (`cbs.userGroup`)
-- **`cbs.userGroup.getGroup(groupId)`** — Fetches a group record or list (`controlName: 'USER.GROUP'`).
-- **`cbs.userGroup.saveGroup(groupId, data)`** — Commits user group permission matrix.
-- **`cbs.userGroup.authorizeGroup(groupId)`** — Authorizes a user group.
-- **`cbs.userGroup.deleteGroup(groupId)`** — Decommissions a user group.
+- **`cbs.inquiry.executeQuery(controlName, options?)`** — Executes criteria query (`INQ`):
+  ```typescript
+  const { data } = await cbs.send(
+    cbs.inquiry.executeQuery("GET.CUSTOMER", {
+      curPage: 1,
+      perPage: 50,
+      queryString: [
+        { selectFieldName: "BRANCH", selectFieldOperator: "EQ", selectFieldValue: "1001" },
+      ],
+    }),
+    { silent: true }
+  );
+  ```
+- **`cbs.inquiry.fetchSingleRecord(controlName, recordId)`** — Fetches an enquiry item.
+- Also inherits standard base methods (`.get`, `.list`, `.save`, `.authorize`) for `CbsControlTable.INQUIRY`.
+
+---
+
+### 4. Menu & Navigation (`cbs.menu`)
+Manages flat catalog entries (`SC.MENU`) and visual hierarchical trees (`SC.MENU.TREE`):
+
+- **Flat Menu Items**:
+  - `cbs.menu.getCatalogList()` — Fetch list of menu items.
+  - `cbs.menu.getMenuItem(id)` — Read specific menu item.
+  - `cbs.menu.saveMenuItem(id, data)` — Commit menu definition.
+  - `cbs.menu.authorizeMenuItem(id)` — Authorize menu definition.
+  - `cbs.menu.deleteMenuItem(id)` — Delete menu definition.
+- **Hierarchical Menu Trees**:
+  - `cbs.menu.getTreeList()` — Fetch all menu trees.
+  - `cbs.menu.getMenuTree(treeId?)` — Read tree structure (defaults to `"MAIN_MENU"`).
+  - `cbs.menu.saveMenuTree(treeId, treeNodes)` — Save hierarchy JSON array.
+  - `cbs.menu.authorizeMenuTree(treeId)` — Authorize live menu structure.
+  - `cbs.menu.deleteMenuTree(treeId)` — Delete menu hierarchy.
+
+---
 
 ### 5. Staff Security & Credentials (`cbs.userSecurity`)
-- **`cbs.userSecurity.getUserProfile(userId)`** — Fetches security profile (`controlName: 'USER.PASS.RESET'`).
-- **`cbs.userSecurity.saveUserProfile(userId, data)`** — Commits reset or unlock profile.
-- **`cbs.userSecurity.authorizeUserProfile(userId)`** — Authorizes credential reset.
-- **`cbs.userSecurity.deleteUserProfile(userId)`** — Cancels credential reset request.
-- **`cbs.userSecurity.changeSignOnName(params)`** — Dispatches sign-on name update (`requestType: 'CUN'`).
-- **`cbs.userSecurity.changePassword(params)`** — Dispatches password update (`requestType: 'CPW'`).
+Handles staff credential lifecycle and password administration:
 
-### 6. Data Dictionary & Model Config (`cbs.modelConfig`)
-- **`cbs.modelConfig.getModelConfig(modelId)`** — Fetches schema definition (`controlName: 'MODEL.CONFIG'`).
-- **`cbs.modelConfig.listModelConfigs()`** — Fetches catalog of all configured models.
-- **`cbs.modelConfig.saveModelConfig(modelId, data)`** — Commits model definition.
-- **`cbs.modelConfig.authorizeModelConfig(modelId)`** — Authorizes live schema definition.
-- **`cbs.modelConfig.deleteModelConfig(modelId)`** — Decommissions schema definition.
+- **`cbs.userSecurity.changePassword({ currPass, newPass, servicePath? })`** — Dispatches `CPW`.
+- **`cbs.userSecurity.changeSignOnName({ oldUserName, newUserName, password, servicePath? })`** — Dispatches `CUN`.
+- Inherits standard base methods (`.get`, `.save`, `.authorize`, `.delete`) for password reset table (`SC.USER.PASS.RESET`).
 
 ---
 
-## Transport Options & Notifications
+## How to Scale: Adding a New Model
 
-`cbs.send` accepts `SendCbsOptions`:
+You **never** need to create redundant wrapper files or boilerplate methods.
+
+### Step 1: Add Table Name in `src/types/cbs.ts`
+```typescript
+export const CbsControlTable = {
+  // ...
+  LOAN_PRODUCT: "SC.LOAN.PRODUCT",
+} as const;
+```
+
+### Step 2: Register in `src/lib/cbs-client/index.ts`
+```typescript
+import { CbsControlTable } from "@/types";
+import { createModelPayloads } from "./payloads/base-model";
+
+export const cbs = {
+  // ...existing models
+  loanProduct: createModelPayloads(CbsControlTable.LOAN_PRODUCT),
+} as const;
+```
+
+### Step 3: Use Immediately in UI / Hooks
+All 7 standard methods (`list`, `get`, `save`, `authorize`, `delete`, `hold`, `reverse`) are automatically available with full TypeScript autocompletion and runtime safety:
+```typescript
+// Read
+const loan = await cbs.send(cbs.loanProduct.get("AGRI_01"));
+
+// Commit
+await cbs.send(cbs.loanProduct.save(payload, { recordId: "AGRI_01" }));
+
+// Authorize
+await cbs.send(cbs.loanProduct.authorize("AGRI_01"));
+```
+
+---
+
+## Transport Options (`SendCbsOptions`)
+
+`cbs.send` accepts an optional configuration object:
 
 ```typescript
-export interface SendCbsOptions {
-  /** If true, suppresses automatic toast alerts */
-  silent?: boolean;
+export interface SendCbsOptions<T = unknown> {
+  /** If true, suppresses automatic toast alerts (ideal for background queries) */
+  readonly silent?: boolean;
   /** Toast alert title upon SUCCESS */
-  successTitle?: string;
+  readonly successTitle?: string;
   /** Toast alert description upon SUCCESS */
-  successMessage?: string;
-  /** Error alert override message */
-  errorMessage?: string;
-  /** Optional AbortSignal to cancel in-flight requests */
-  signal?: AbortSignal;
+  readonly successMessage?: string;
+  /** Toast alert description override upon error */
+  readonly errorMessage?: string;
+  /** AbortSignal to cancel in-flight HTTP requests */
+  readonly signal?: AbortSignal;
+  /** Runtime Zod schema to validate response data */
+  readonly responseSchema?: z.ZodType<T>;
 }
 ```
 
-### Examples
-
-#### Silent Data Fetching
-```typescript
-const { data } = await cbs.send(
-  cbs.inquiry.executeQuery("%ACCOUNT", { perPage: 25 }),
-  { silent: true }
-);
-```
-
-#### Action with Notification
-```typescript
-await cbs.send(
-  cbs.userSecurity.changePassword({ currPass, newPass }),
-  {
-    successTitle: "Password Changed",
-    successMessage: "Your password has been updated successfully.",
-  }
-);
-```
-
-#### Automatic Session Interception
-When the server responds with HTTP `401 Unauthorized`:
-- Renders an automatic `"Session Expired"` toast notification.
-- Rejects with an `"UNAUTHORIZED"` error to prompt re-authentication.
-
----
-
-## Direct Barrel Exports
-
-In addition to `cbs`, all types and builders can be imported directly:
-
-```typescript
-// Payload client and transport options from client gateway:
-import {
-  cbs,
-  sendCbsRequest,
-  type SendCbsOptions,
-} from "@/lib/cbs-client";
-
-// Canonical wire contracts and control tables from root types:
-import {
-  CbsControlTable,
-  CbsRequestType,
-  DEFAULT_SERVICE_PATH,
-  type CbsWirePayload,
-} from "@/types";
-```
+### Automatic Interceptions & Error Handling
+1. **Pre-flight Validation**: Automatically validates `CbsWirePayload` before hitting the network, catching malformed payloads before making HTTP calls.
+2. **Session Interception (401)**: Intercepts expired session tokens, renders a toast alert, and throws `"UNAUTHORIZED"` to trigger safe re-authentication.
+3. **Response Validation**: When `responseSchema` is provided, ensures response data matches the expected type before resolving.

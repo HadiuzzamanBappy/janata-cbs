@@ -1,7 +1,5 @@
 import type { CbsRecordFunction, CbsRecordLifecycleStatus } from "@/types";
 
-export type { CbsRecordFunction, CbsRecordLifecycleStatus };
-
 /* -------------------------------------------------------------------------- */
 /* Access Evaluation Context & Parameter Contracts                           */
 /* -------------------------------------------------------------------------- */
@@ -36,7 +34,6 @@ export interface CbsAccessResult {
   /** Dynamic capability evaluations taking record state & Four-Eyes into account */
   readonly canSee: boolean;
   readonly canInput: boolean;
-  readonly canAmend: boolean;
   readonly canDelete: boolean;
   readonly canHold: boolean;
   readonly canAuthorize: boolean;

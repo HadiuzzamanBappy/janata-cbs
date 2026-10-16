@@ -43,7 +43,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   // Refresh available forms catalog dynamically from CBS service
   React.useEffect(() => {
     cbs
-      .send<FormCatalogItem[]>(cbs.formConfig.listFormConfigs(), { silent: true })
+      .send<FormCatalogItem[]>(cbs.formConfig.list(), { silent: true })
       .then((res) => {
         if (res.status === "SUCCESS" && Array.isArray(res.data)) {
           setAvailableForms(res.data);
@@ -65,7 +65,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       try {
         const res = await cbs.send<
           { data: typeof INITIAL_FORM_CONFIG } | typeof INITIAL_FORM_CONFIG
-        >(cbs.formConfig.getFormConfig(cleanId), { silent: true });
+        >(cbs.formConfig.get(cleanId), { silent: true });
 
         const loadedRecord =
           (res.data as { data?: typeof INITIAL_FORM_CONFIG })?.data ||

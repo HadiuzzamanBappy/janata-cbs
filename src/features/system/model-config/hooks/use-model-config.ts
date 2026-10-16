@@ -46,7 +46,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   // 1. Fetch catalog
   const refreshCatalog = React.useCallback(async () => {
     try {
-      const res = await cbs.send<ModelCatalogItem[]>(cbs.modelConfig.listModelConfigs(), {
+      const res = await cbs.send<ModelCatalogItem[]>(cbs.modelConfig.list(), {
         silent: true,
       });
       if (res.status === "SUCCESS" && Array.isArray(res.data)) {
@@ -66,7 +66,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       setRecordId(cleanId);
 
       try {
-        const json = await cbs.send<ModelConfigRecord>(cbs.modelConfig.getModelConfig(cleanId), {
+        const json = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(cleanId), {
           silent: true,
         });
         if (json.status === "SUCCESS" && json.data) {
@@ -155,10 +155,9 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     try {
       const wireData = serializeModelToWireJson(validation.data);
       const json = await cbs.send(
-        cbs.modelConfig.saveModelConfig(
-          formData.recordId,
-          wireData as unknown as Record<string, unknown>,
-        ),
+        cbs.modelConfig.save(wireData as unknown as Record<string, unknown>, {
+          recordId: formData.recordId,
+        }),
         {
           successTitle: "Model Saved",
           successMessage: `Saved schema #${formData.recordId} to MODEL.CONFIG`,
@@ -190,7 +189,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      const json = await cbs.send(cbs.modelConfig.authorizeModelConfig(recordId), {
+      const json = await cbs.send(cbs.modelConfig.authorize(recordId), {
         successTitle: "Model Authorized",
         successMessage: `Authorized live model #${recordId}`,
       });

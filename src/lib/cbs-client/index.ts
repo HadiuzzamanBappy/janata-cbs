@@ -1,12 +1,11 @@
 export * from "./payloads";
 export * from "./transport/proxy-client";
 
+import { CbsControlTable } from "@/types";
+import { createModelPayloads } from "./payloads/base-model";
 import { formPayloads } from "./payloads/form";
-import { formConfigPayloads } from "./payloads/form-config";
 import { inquiryPayloads } from "./payloads/inquiry";
 import { menuPayloads } from "./payloads/menu";
-import { modelConfigPayloads } from "./payloads/model-config";
-import { userGroupPayloads } from "./payloads/user-group";
 import { userSecurityPayloads } from "./payloads/user-security";
 import { sendCbsRequest } from "./transport/proxy-client";
 
@@ -20,11 +19,12 @@ import { sendCbsRequest } from "./transport/proxy-client";
  */
 export const cbs = {
   send: sendCbsRequest,
+  model: createModelPayloads,
+  formConfig: createModelPayloads(CbsControlTable.FORM_CONFIG),
+  modelConfig: createModelPayloads(CbsControlTable.MODEL_CONFIG),
+  userGroup: createModelPayloads(CbsControlTable.USER_GROUP),
   menu: menuPayloads,
-  userGroup: userGroupPayloads,
   userSecurity: userSecurityPayloads,
-  modelConfig: modelConfigPayloads,
-  formConfig: formConfigPayloads,
   inquiry: inquiryPayloads,
   form: formPayloads,
 } as const;

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -45,48 +45,26 @@
     "enabled": true,
     "rules": {
       "preset": "recommended",
-      "complexity": {
-        "noStaticOnlyClass": "warn",
-        "useLiteralKeys": "error"
-      },
-      "correctness": {
-        "noUnusedVariables": "error",
-        "noUnusedImports": "error",
-        "useExhaustiveDependencies": "warn"
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noConsole": "off"
       },
       "style": {
-        "noNonNullAssertion": "warn",
-        "useConst": "error",
-        "useImportType": "error",
         "noRestrictedImports": {
           "level": "error",
           "options": {
             "paths": {
-              "@/features/auth/components": "Deep feature imports are forbidden. Import from '@/features/auth' public barrel instead.",
-              "@/features/command/components": "Deep feature imports are forbidden. Import from '@/features/command' public barrel instead.",
-              "@/features/docs/components": "Deep feature imports are forbidden. Import from '@/features/docs' public barrel instead.",
-              "@/features/operations/components": "Deep feature imports are forbidden. Import from '@/features/operations' public barrel instead.",
-              "@/features/settings/components": "Deep feature imports are forbidden. Import from '@/features/settings' public barrel instead.",
-              "@/features/system/components": "Deep feature imports are forbidden. Import from '@/features/system' public barrel instead.",
-              "@/features/workbench/components": "Deep feature imports are forbidden. Import from '@/features/workbench' public barrel instead."
+              "@/features/auth/components": "Import from '@/features/auth' public barrel instead.",
+              "@/features/command/components": "Import from '@/features/command' public barrel instead.",
+              "@/features/docs/components": "Import from '@/features/docs' public barrel instead.",
+              "@/features/operations/components": "Import from '@/features/operations' public barrel instead.",
+              "@/features/settings/components": "Import from '@/features/settings' public barrel instead.",
+              "@/features/system/components": "Import from '@/features/system' public barrel instead.",
+              "@/features/workbench/components": "Import from '@/features/workbench' public barrel instead."
             }
           }
         }
-      },
-      "suspicious": {
-        "noExplicitAny": "error",
-        "noConsole": "off"
       }
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "double",
-      "jsxQuoteStyle": "double",
-      "quoteProperties": "asNeeded",
-      "trailingCommas": "all",
-      "semicolons": "always",
-      "arrowParentheses": "always"
     }
   },
   "css": {

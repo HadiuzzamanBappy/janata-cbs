@@ -245,7 +245,16 @@ export function useFormActions({
         setSubmitting(false);
       }
     };
-  }, [screenMode, schema, searchRecordId, values.id, resetForm, initialValues, setScreenMode, onSuccess]);
+  }, [
+    screenMode,
+    schema,
+    searchRecordId,
+    values.id,
+    resetForm,
+    initialValues,
+    setScreenMode,
+    onSuccess,
+  ]);
 
   const handleAuthorizeReverse = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema) return undefined;

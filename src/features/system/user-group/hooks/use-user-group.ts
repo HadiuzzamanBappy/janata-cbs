@@ -91,10 +91,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
   // 2. Fetch available groups pool from USER.GROUP table
   const fetchGroups = React.useCallback(async () => {
     try {
-      const json = await cbs.send<unknown>(
-        cbs.userGroup.getGroup(""), // Empty ID returns record list
-        { silent: true },
-      );
+      const json = await cbs.send<unknown>(cbs.userGroup.list(), { silent: true });
       if (json.status === "SUCCESS" && json.data) {
         const parsed = parseUserGroupList(json.data);
         if (parsed.success && parsed.data.length > 0) {
@@ -138,7 +135,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
       setRecordId(cleanId);
 
       try {
-        const json = await cbs.send<unknown>(cbs.userGroup.getGroup(cleanId), {
+        const json = await cbs.send<unknown>(cbs.userGroup.get(cleanId), {
           silent: true,
         });
         if (json.status === "SUCCESS" && json.data) {
@@ -225,7 +222,9 @@ export function useUserGroup(initialId?: string, tabId?: string) {
     try {
       const wireData = serializeUserGroupToWireJson(validation.data);
       const json = await cbs.send(
-        cbs.userGroup.saveGroup(validation.data.recordId, wireData as Record<string, unknown>),
+        cbs.userGroup.save(wireData as Record<string, unknown>, {
+          recordId: validation.data.recordId,
+        }),
         {
           successTitle: "User Group Committed",
           successMessage: `Saved security group #${validation.data.recordId}`,
@@ -247,7 +246,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
     if (!recordId.trim()) return;
     setSubmitting(true);
     try {
-      const json = await cbs.send(cbs.userGroup.authorizeGroup(recordId.trim().toUpperCase()), {
+      const json = await cbs.send(cbs.userGroup.authorize(recordId.trim().toUpperCase()), {
         successTitle: "User Group Authorized",
         successMessage: `Authorized security profile #${recordId}`,
       });

@@ -35,7 +35,7 @@ console.log("========================================================\n");
 const fetchForm = cbs.form.fetchRecord("ACCOUNT", "1000001");
 assert(
   "Form: Fetch Record (GET, SEE)",
-  fetchForm.requestType === CbsRequestType.RECORD_GET &&
+  fetchForm.requestType === CbsRequestType.GET &&
     fetchForm.recordFunction === CbsRecordFunction.SEE &&
     fetchForm.controlName === "ACCOUNT" &&
     fetchForm.recordId === "1000001",
@@ -44,7 +44,7 @@ assert(
 const commitForm = cbs.form.commitRecord("CUSTOMER", { name: "Rahim" }, { recordId: "9001" });
 assert(
   "Form: Commit Record (PUT, INPUT)",
-  commitForm.requestType === CbsRequestType.RECORD_PUT &&
+  commitForm.requestType === CbsRequestType.PUT &&
     commitForm.recordFunction === CbsRecordFunction.INPUT &&
     commitForm.recordId === "9001" &&
     (commitForm.data as Record<string, unknown>)?.name === "Rahim",
@@ -53,7 +53,7 @@ assert(
 const authForm = cbs.form.authorizeRecord("ACCOUNT", "1000001");
 assert(
   "Form: Authorize Record (AUT, AUTHORIZE)",
-  authForm.requestType === CbsRequestType.RECORD_AUTH &&
+  authForm.requestType === CbsRequestType.AUT &&
     authForm.recordFunction === CbsRecordFunction.AUTHORIZE &&
     authForm.recordId === "1000001",
 );
@@ -61,7 +61,7 @@ assert(
 const delForm = cbs.form.deleteRecord("ACCOUNT", "1000001");
 assert(
   "Form: Delete Record (PUT, DELETE)",
-  delForm.requestType === CbsRequestType.RECORD_PUT &&
+  delForm.requestType === CbsRequestType.PUT &&
     delForm.recordFunction === CbsRecordFunction.DELETE &&
     delForm.recordId === "1000001",
 );
@@ -74,7 +74,7 @@ const inqExec = cbs.inquiry.executeQuery("GET.CUSTOMER", {
 });
 assert(
   "Inquiry: Execute Query (INQ, SEE)",
-  inqExec.requestType === CbsRequestType.INQUIRY_EXEC &&
+  inqExec.requestType === CbsRequestType.INQ &&
     inqExec.controlName === "GET.CUSTOMER" &&
     (inqExec.data as Record<string, unknown>)?.curPage === 1 &&
     (inqExec.data as Record<string, unknown>)?.perPage === 50,
@@ -83,13 +83,13 @@ assert(
 const inqSingle = cbs.inquiry.fetchSingleRecord("ACCOUNT.STATEMENT", "REC-888");
 assert(
   "Inquiry: Single Record (INQ, SEE)",
-  inqSingle.requestType === CbsRequestType.INQUIRY_EXEC && inqSingle.recordId === "REC-888",
+  inqSingle.requestType === CbsRequestType.INQ && inqSingle.recordId === "REC-888",
 );
 
-const inqCfg = cbs.inquiry.getInquiryConfig("INQ.CUST.LIST");
+const inqCfg = cbs.inquiry.get("INQ.CUST.LIST");
 assert(
   "Inquiry: Get Config (GET, SEE, INQUIRY)",
-  inqCfg.requestType === CbsRequestType.RECORD_GET &&
+  inqCfg.requestType === CbsRequestType.GET &&
     inqCfg.controlName === "INQUIRY" &&
     inqCfg.recordId === "INQ.CUST.LIST",
 );
@@ -98,14 +98,14 @@ assert(
 const menuCatalog = cbs.menu.getCatalogList();
 assert(
   "Menu: Catalog List (GRL, SEE)",
-  menuCatalog.requestType === CbsRequestType.RECORD_LIST &&
+  menuCatalog.requestType === CbsRequestType.GRL &&
     menuCatalog.controlName === CbsControlTable.MENU,
 );
 
 const menuTree = cbs.menu.getMenuTree("MAIN_MENU");
 assert(
   "Menu: Hierarchy Tree (GET, SEE)",
-  menuTree.requestType === CbsRequestType.RECORD_GET &&
+  menuTree.requestType === CbsRequestType.GET &&
     menuTree.controlName === CbsControlTable.MENU_TREE &&
     menuTree.recordId === "MAIN_MENU",
 );
@@ -113,41 +113,41 @@ assert(
 const menuSaveTree = cbs.menu.saveMenuTree("MAIN_MENU", [{ id: "1", title: "Banking" }]);
 assert(
   "Menu: Save Tree (PUT, INPUT)",
-  menuSaveTree.requestType === CbsRequestType.RECORD_PUT &&
+  menuSaveTree.requestType === CbsRequestType.PUT &&
     menuSaveTree.controlName === CbsControlTable.MENU_TREE &&
     Array.isArray((menuSaveTree.data as Record<string, unknown>)?.tree),
 );
 
 // 4. User Group (RBAC) Payloads
-const userGroup = cbs.userGroup.getGroup("OFFICER_ROLE");
+const userGroup = cbs.userGroup.get("OFFICER_ROLE");
 assert(
   "UserGroup: Get Group (GET, SEE)",
-  userGroup.requestType === CbsRequestType.RECORD_GET &&
+  userGroup.requestType === CbsRequestType.GET &&
     userGroup.controlName === CbsControlTable.USER_GROUP &&
     userGroup.recordId === "OFFICER_ROLE",
 );
 
-const userGroupSave = cbs.userGroup.saveGroup("TELLER_ROLE", { perms: ["R", "I"] });
+const userGroupSave = cbs.userGroup.save({ perms: ["R", "I"] }, { recordId: "TELLER_ROLE" });
 assert(
   "UserGroup: Save Group (PUT, INPUT)",
-  userGroupSave.requestType === CbsRequestType.RECORD_PUT &&
+  userGroupSave.requestType === CbsRequestType.PUT &&
     userGroupSave.controlName === CbsControlTable.USER_GROUP &&
     userGroupSave.recordFunction === CbsRecordFunction.INPUT,
 );
 
-const userGroupAuth = cbs.userGroup.authorizeGroup("TELLER_ROLE");
+const userGroupAuth = cbs.userGroup.authorize("TELLER_ROLE");
 assert(
   "UserGroup: Authorize Group (AUT, AUTHORIZE)",
-  userGroupAuth.requestType === CbsRequestType.RECORD_AUTH &&
+  userGroupAuth.requestType === CbsRequestType.AUT &&
     userGroupAuth.controlName === CbsControlTable.USER_GROUP &&
     userGroupAuth.recordFunction === CbsRecordFunction.AUTHORIZE,
 );
 
 // 5. User Security Payloads
-const userProfile = cbs.userSecurity.getUserProfile("USER-101");
+const userProfile = cbs.userSecurity.get("USER-101");
 assert(
   "UserSecurity: Get Profile (GET, SEE)",
-  userProfile.requestType === CbsRequestType.RECORD_GET &&
+  userProfile.requestType === CbsRequestType.GET &&
     userProfile.controlName === CbsControlTable.USER_PASS_RESET &&
     userProfile.recordId === "USER-101",
 );
@@ -155,7 +155,7 @@ assert(
 const changePass = cbs.userSecurity.changePassword({ currPass: "old123", newPass: "new123" });
 assert(
   "UserSecurity: Change Password (CPW)",
-  changePass.requestType === CbsRequestType.CHANGE_PASSWORD &&
+  changePass.requestType === CbsRequestType.CPW &&
     (changePass.data as Record<string, unknown>)?.newPass === "new123",
 );
 
@@ -166,23 +166,23 @@ const changeSignOn = cbs.userSecurity.changeSignOnName({
 });
 assert(
   "UserSecurity: Change Sign-On (CUN)",
-  changeSignOn.requestType === CbsRequestType.CHANGE_USER_NAME &&
+  changeSignOn.requestType === CbsRequestType.CUN &&
     (changeSignOn.data as Record<string, unknown>)?.newUserName === "senior_teller1",
 );
 
 // 7. Model Config Payloads
-const modelGet = cbs.modelConfig.getModelConfig("ACCOUNT.MODEL");
+const modelGet = cbs.modelConfig.get("ACCOUNT.MODEL");
 assert(
   "ModelConfig: Get Schema (GET, SEE)",
-  modelGet.requestType === CbsRequestType.RECORD_GET &&
+  modelGet.requestType === CbsRequestType.GET &&
     modelGet.controlName === CbsControlTable.MODEL_CONFIG &&
     modelGet.recordId === "ACCOUNT.MODEL",
 );
 
-const modelSave = cbs.modelConfig.saveModelConfig("ACCOUNT.MODEL", { version: 2 });
+const modelSave = cbs.modelConfig.save({ version: 2 }, { recordId: "ACCOUNT.MODEL" });
 assert(
   "ModelConfig: Save Schema (PUT, INPUT)",
-  modelSave.requestType === CbsRequestType.RECORD_PUT &&
+  modelSave.requestType === CbsRequestType.PUT &&
     modelSave.controlName === CbsControlTable.MODEL_CONFIG &&
     modelSave.recordFunction === CbsRecordFunction.INPUT,
 );

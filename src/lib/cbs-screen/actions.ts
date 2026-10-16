@@ -77,10 +77,10 @@ export function useCbsActionBar({
   const isAuth = mode === "A";
 
   // 1. Idle Amend (Pencil)
-  const amendEnabled = Boolean(isIdle && onAmend && !submitting && hasTargetId && access.canAmend);
+  const amendEnabled = Boolean(isIdle && onAmend && !submitting && hasTargetId && access.canInput);
   const amendReason = !hasTargetId
     ? "Enter or select a Record ID to edit"
-    : !access.canAmend
+    : !access.canInput
       ? "Requires Input/Amend ('I') permission"
       : undefined;
 
@@ -101,27 +101,15 @@ export function useCbsActionBar({
       : undefined;
 
   // 4. Commit / Save (Check ✓)
-  const commitEnabled = Boolean(
-    !isView &&
-      onSubmit &&
-      !submitting &&
-      ((isCreate && access.canInput) || (isEdit && access.canAmend)),
-  );
+  const commitEnabled = Boolean(!isView && onSubmit && !submitting && access.canInput);
   const commitReason = isView
     ? "Disabled in View mode (Read-Only)"
-    : isCreate && !access.canInput
+    : !access.canInput
       ? "Requires Input ('I') permission"
-      : isEdit && !access.canAmend
-        ? "Requires Input/Amend ('I') permission"
-        : undefined;
+      : undefined;
 
   // 5. Validate (?✓)
-  const validateEnabled = Boolean(
-    !isView &&
-      onValidate &&
-      !submitting &&
-      ((isCreate && access.canInput) || (isEdit && access.canAmend)),
-  );
+  const validateEnabled = Boolean(!isView && onValidate && !submitting && access.canInput);
   const validateReason = isView
     ? "Disabled in View mode"
     : !access.canInput

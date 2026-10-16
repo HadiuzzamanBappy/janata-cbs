@@ -37,7 +37,7 @@ export function CommandGuidance({
                 key={opt.code}
                 type="button"
                 onClick={() => onSelectOption(opt.code)}
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[10px] border transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md font-mono text-[10px] border transition-colors cursor-pointer ${
                   isSelected
                     ? "bg-primary text-primary-foreground border-primary font-bold shadow-2xs"
                     : "bg-background/80 hover:bg-accent border-border/60 text-foreground"

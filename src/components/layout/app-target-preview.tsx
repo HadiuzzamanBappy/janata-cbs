@@ -71,7 +71,7 @@ export function AppTargetPreview() {
         "animate-in fade-in-0 duration-75",
       )}
     >
-      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-tl-md border-t border-l border-border/80 bg-background/95 dark:bg-zinc-950/95 backdrop-blur-xs shadow-xs text-[10px] font-mono text-muted-foreground leading-tight">
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-tl-sm border-t border-l border-border/80 bg-background/95 dark:bg-zinc-950/95 backdrop-blur-xs shadow-xs text-[10px] font-mono text-muted-foreground leading-tight">
         <Terminal className="size-2.5 text-primary shrink-0" />
         <span className="text-muted-foreground/70">cbsCommand.execute(</span>
         <span className="text-foreground font-semibold">"{command}"</span>

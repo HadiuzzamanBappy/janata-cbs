@@ -44,7 +44,7 @@ export function IdleActions({
               size="icon-sm"
               onClick={() => onAmend?.()}
               disabled={!actions.amend.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <Pencil className="size-3" />
             </Button>
@@ -62,7 +62,7 @@ export function IdleActions({
               size="icon-sm"
               onClick={() => onView?.()}
               disabled={!actions.view.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <Search className="size-3" />
             </Button>
@@ -80,7 +80,7 @@ export function IdleActions({
               size="icon-sm"
               onClick={() => onPerformAction?.()}
               disabled={!actions.performAction.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <Wrench className="size-3" />
             </Button>
@@ -144,7 +144,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onSubmit?.()}
               disabled={!actions.commit.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <Check className="size-3 stroke-[2.5]" />
             </Button>
@@ -165,7 +165,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onValidate?.()}
               disabled={!actions.validate.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40 font-bold"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40 font-bold"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
                 ?✓
@@ -188,7 +188,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onHold?.()}
               disabled={!actions.hold.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <Pause className="size-3 fill-current" />
             </Button>
@@ -209,7 +209,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onDelete?.()}
               disabled={!actions.delete.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <X className="size-3 stroke-[2.5]" />
             </Button>
@@ -230,7 +230,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
               disabled={!actions.authorize.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
                 ✓✓
@@ -253,7 +253,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onAuthorizeReverse?.()}
               disabled={!actions.reverse.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <span className="text-[10px] font-mono leading-none tracking-tighter select-none font-bold">
                 ✕✓
@@ -276,7 +276,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onProcessAction?.()}
               disabled={!actions.process.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0"
+              className="h-7 w-9 shadow-xs shrink-0"
             >
               <Play className="size-3 fill-current" />
             </Button>
@@ -295,7 +295,7 @@ export function ActiveActions({
               size="icon-sm"
               onClick={() => onReturnToSearch?.()}
               disabled={!actions.returnToSearch.enabled}
-              className="h-7 w-9 rounded shadow-xs shrink-0 disabled:opacity-40"
+              className="h-7 w-9 shadow-xs shrink-0 disabled:opacity-40"
             >
               <ArrowUp className="size-3 stroke-[2.5]" />
             </Button>

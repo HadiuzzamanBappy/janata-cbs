@@ -193,20 +193,6 @@ export function OpsForm({
       validationErrors={validationErrors}
       availableItems={getAvailableFixtureRecords(schema.code)}
       moreActions={getDefaultMoreActions(schema.code)}
-      auditData={
-        screenMode !== "IDLE"
-          ? {
-              recordStatus:
-                (values?.RECORD_STATUS as string) || (values?.status as string) || "LIVE",
-              currNo: (values?.CURR_NO as number | string) || "1",
-              inputter: (values?.INPUTTER as string) || "CBS.OFFICER",
-              dateTime:
-                (values?.DATE_TIME as string) ||
-                new Date().toISOString().replace("T", " ").substring(0, 19),
-              authoriser: (values?.AUTHORISER as string) || "CBS.AUTH",
-            }
-          : undefined
-      }
     >
       <FormKernelProvider initialValues={values} onFieldChange={handleFieldChange}>
         <FormGrid

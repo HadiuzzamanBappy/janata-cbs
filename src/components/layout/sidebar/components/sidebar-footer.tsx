@@ -54,7 +54,7 @@ export function SidebarFooterNav({ onOpenSettingsTab, userLoading }: SidebarFoot
             size="sm"
             onClick={() => onOpenSettingsTab("profile")}
             disabled={userLoading}
-            className="flex-1 h-7 px-2 justify-start gap-1.5 min-w-0 text-xs font-normal border-border/80 hover:bg-accent rounded"
+            className="flex-1 h-7 px-2 justify-start gap-1.5 min-w-0 text-xs font-normal border-border/80 hover:bg-accent"
             title={
               userLoading
                 ? "Loading user session..."
@@ -65,7 +65,7 @@ export function SidebarFooterNav({ onOpenSettingsTab, userLoading }: SidebarFoot
               <User className="size-2.5" />
             </div>
             {userLoading ? (
-              <Skeleton className="h-3.5 w-24 rounded" />
+              <Skeleton className="h-3.5 w-24" />
             ) : (
               <span className="truncate text-xs text-foreground font-medium flex-1 text-left">
                 {displayUser || displayId || "User"}
@@ -86,7 +86,7 @@ export function SidebarFooterNav({ onOpenSettingsTab, userLoading }: SidebarFoot
                     variant="outline"
                     size="icon-xs"
                     onClick={handleLogout}
-                    className="size-7 shrink-0 text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors rounded"
+                    className="size-7 shrink-0 text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors"
                   >
                     <LogOut className="size-3.5" />
                   </Button>
@@ -109,7 +109,7 @@ export function SidebarFooterNav({ onOpenSettingsTab, userLoading }: SidebarFoot
                   variant="ghost"
                   size="icon-xs"
                   onClick={() => onOpenSettingsTab("profile")}
-                  className="size-7 text-muted-foreground hover:text-foreground rounded"
+                  className="size-7 text-muted-foreground hover:text-foreground"
                 >
                   <User className="size-3.5" />
                 </Button>
@@ -132,7 +132,7 @@ export function SidebarFooterNav({ onOpenSettingsTab, userLoading }: SidebarFoot
                   variant="ghost"
                   size="icon-xs"
                   onClick={handleLogout}
-                  className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded"
+                  className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                 >
                   <LogOut className="size-3.5" />
                 </Button>

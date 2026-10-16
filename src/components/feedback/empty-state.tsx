@@ -20,13 +20,13 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex min-h-[220px] w-full flex-col items-center justify-center rounded-lg border border-dashed border-border/70 p-6 text-center animate-in fade-in-50",
+        "flex min-h-55 w-full flex-col items-center justify-center rounded-md border border-dashed border-border/70 p-6 text-center animate-in fade-in-50",
         className,
       )}
       {...props}
     >
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
-        <Icon className="h-5 w-5" />
+      <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-md border border-border/60 bg-muted/50 text-muted-foreground">
+        <Icon className="h-4.5 w-4.5" />
       </div>
       <h3 className="mt-3 text-sm font-semibold text-foreground">{title}</h3>
       {description && (

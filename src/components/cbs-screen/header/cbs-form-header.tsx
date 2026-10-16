@@ -8,10 +8,10 @@ import { useCbsAccess } from "@/lib/cbs-access";
 import type { CbsScreenMode, CbsScreenValidationError } from "@/lib/cbs-screen";
 import { CBS_SCREEN_EVENT } from "@/lib/cbs-screen";
 import type { MoreActionItem } from "@/lib/cbs-screen/types";
+import { useRecordLookup } from "../hooks/use-record-lookup";
 import { ActionButtons } from "./action-buttons";
 import { ActionMoreMenu } from "./action-more-menu";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
-import { useRecordLookup } from "./hooks/use-record-lookup";
 import { RecordLookupBar } from "./record-lookup-bar";
 
 export type { MoreActionItem };
@@ -217,7 +217,7 @@ export function CbsFormHeader({
                           window.dispatchEvent(new CustomEvent(CBS_SCREEN_EVENT.DOCK_TO_SHELL));
                         }
                       }}
-                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                       aria-label="Back to tab bar"
                     >
                       <ArrowDownToLine className="size-3.5" />
@@ -256,7 +256,7 @@ export function CbsFormHeader({
             />
           ) : (
             <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
+              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
                 <Lock className="size-3 text-muted-foreground" />
                 {inputVal.trim() ||
                   (mode === "I" && !inputVal.trim()
@@ -265,7 +265,7 @@ export function CbsFormHeader({
                       ? `[${commandCode}]`
                       : "---")}
               </span>
-              <span className="text-[9px] font-mono px-1 py-0 rounded bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
+              <span className="text-[9px] font-mono px-1 py-0 rounded-xs bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
                 {mode}
               </span>
             </div>

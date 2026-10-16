@@ -37,7 +37,7 @@ export function ActionMoreMenu({
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-2 text-xs gap-1.5 min-w-37.5 max-w-47.5 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0 rounded"
+              className="h-7 px-2 text-xs gap-1.5 min-w-37.5 max-w-47.5 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0"
             >
               <span className="truncate">
                 {selectedAction ? selectedAction.label : "More Actions ..."}
@@ -95,7 +95,7 @@ export function ActionMoreMenu({
                   : false)
               }
               variant="default"
-              className="h-7 w-9 rounded shrink-0 shadow-xs disabled:opacity-40"
+              className="h-7 w-9 shrink-0 shadow-xs disabled:opacity-40"
             >
               <CheckCircle2 className="size-3.5" />
             </Button>

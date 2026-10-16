@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
 import type { FormFieldItem } from "@/lib/data-schemas/form-config-schema";
@@ -175,7 +176,7 @@ export function UnifiedFieldFactory({
               onChange={(e) => onChange(field.fieldKey, e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-8 h-4 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-primary" />
+            <div className="w-8 h-4 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-primary-foreground after:border-border after:border after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-primary" />
           </label>
         ) : widget === "checkbox-group" ? (
           /* Multi-Select Tag Checkbox Group */
@@ -213,14 +214,14 @@ export function UnifiedFieldFactory({
         ) : widget === "textarea" ? (
           /* Textarea */
           <div className="w-full flex-1">
-            <textarea
+            <Textarea
               rows={2}
               id={field.id}
               disabled={isReadOnly}
               placeholder={field.placeholder}
               value={String(value ?? "")}
               onChange={(e) => onChange(field.fieldKey, e.target.value)}
-              className="w-full text-xs bg-background rounded border border-border/80 p-2 font-sans focus:outline-none focus:ring-1 focus:ring-ring resize-y"
+              className="w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-1 focus-visible:ring-ring min-h-14 resize-y"
             />
           </div>
         ) : widget === "amount" ? (

@@ -77,7 +77,7 @@ export function DocPdfModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-2xl space-y-6 text-card-foreground select-none relative">
+      <div className="w-full max-w-md rounded-md border bg-card p-6 shadow-2xl space-y-6 text-card-foreground select-none relative">
         {/* Close Button */}
         <button
           type="button"
@@ -89,7 +89,7 @@ export function DocPdfModal({
 
         {/* Modal Header */}
         <div className="flex items-start gap-3.5">
-          <div className="p-2.5 rounded-lg bg-primary/10 text-primary shrink-0">
+          <div className="p-2.5 rounded-md bg-primary/10 text-primary shrink-0">
             <FileText className="h-5 w-5" />
           </div>
           <div>
@@ -100,7 +100,7 @@ export function DocPdfModal({
 
         {/* Status & Progress Section */}
         {errorText ? (
-          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-3">
+          <div className="p-4 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-3">
             <p className="font-semibold text-sm">Generation Failed</p>
             <p className="leading-relaxed opacity-90">{errorText}</p>
             <button
@@ -113,8 +113,8 @@ export function DocPdfModal({
           </div>
         ) : isCompleted ? (
           <div className="py-4 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6" />
+            <div className="mx-auto size-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <CheckCircle2 className="size-6" />
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">
@@ -130,9 +130,9 @@ export function DocPdfModal({
               <button
                 type="button"
                 onClick={handleDownloadClick}
-                className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs transition cursor-pointer shadow-md active:scale-95"
+                className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs transition cursor-pointer shadow-md active:scale-95"
               >
-                <Download className="h-4 w-4" />
+                <Download className="size-4" />
                 <span>Download PDF Manual</span>
               </button>
             </div>
@@ -142,7 +142,7 @@ export function DocPdfModal({
             {/* Progress Bar Container */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs font-medium">
-                <span className="text-muted-foreground truncate max-w-[260px]">{stageText}</span>
+                <span className="text-muted-foreground truncate max-w-65">{stageText}</span>
                 <span className="text-primary font-mono font-bold">{progressPercent}%</span>
               </div>
               <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -154,7 +154,7 @@ export function DocPdfModal({
             </div>
 
             {/* Checklist */}
-            <div className="border rounded-lg p-3 bg-muted/30 space-y-2 text-xs">
+            <div className="border border-border/60 rounded-md p-3 bg-muted/30 space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">1. Fetching documentation content</span>
                 {progressPercent >= 30 ? (

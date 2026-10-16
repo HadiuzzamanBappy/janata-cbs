@@ -1,63 +1,61 @@
-// Unified Documentation Portal Catch-All Page (Powers /devs/*, /manual/*, etc.)
+// Documentation Viewer Component
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MermaidDiagram } from "@/features/docs";
 import { readDocFile } from "@/features/docs/utils/doc-file-reader";
+import { DocNotFound } from "./doc-not-found";
 
-export const dynamic = "force-dynamic";
+interface DocViewerProps {
+  portal: "devs" | "manual";
+  slug?: string[];
+}
 
-export default async function GenericDocPage({
-  params,
-}: {
-  params: Promise<{ docs: string; slug?: string[] }>;
-}) {
-  const { docs: portal, slug } = await params;
+export function DocViewer({ portal, slug }: DocViewerProps) {
   const { content: fileContent, exists } = readDocFile(slug, portal);
 
   if (!exists) {
-    notFound();
+    return <DocNotFound portal={portal} />;
   }
 
   return (
-    <article className="space-y-6">
+    <article className="space-y-4">
       {/* Rich Markdown Container */}
-      <div className="rounded-xl border bg-card p-8 md:p-10 shadow-xs leading-relaxed text-foreground">
+      <div className="rounded-md border bg-card p-6 sm:p-8 md:p-9 shadow-xs leading-relaxed text-foreground">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
             h1: ({ children }) => (
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground border-b pb-3 mb-6 mt-2">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground border-b border-border/60 pb-3 mb-5 mt-1">
                 {children}
               </h1>
             ),
             h2: ({ children }) => (
-              <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground border-b pb-2 mb-4 mt-8">
+              <h2 className="text-base sm:text-lg font-semibold tracking-tight text-foreground border-b border-border/60 pb-2 mb-3.5 mt-8">
                 {children}
               </h2>
             ),
             h3: ({ children }) => (
-              <h3 className="text-lg font-semibold tracking-tight text-foreground mb-3 mt-6">
+              <h3 className="text-sm font-semibold tracking-tight text-foreground mb-2.5 mt-5">
                 {children}
               </h3>
             ),
             p: ({ children }) => (
-              <p className="text-sm md:text-base text-muted-foreground leading-7 mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
                 {children}
               </p>
             ),
             ul: ({ children }) => (
-              <ul className="list-disc list-inside space-y-1.5 mb-4 text-sm md:text-base text-muted-foreground pl-2">
+              <ul className="list-disc list-inside space-y-2 mb-4 text-xs sm:text-sm text-muted-foreground pl-1.5">
                 {children}
               </ul>
             ),
             ol: ({ children }) => (
-              <ol className="list-decimal list-inside space-y-1.5 mb-4 text-sm md:text-base text-muted-foreground pl-2">
+              <ol className="list-decimal list-inside space-y-2 mb-4 text-xs sm:text-sm text-muted-foreground pl-1.5">
                 {children}
               </ol>
             ),
-            li: ({ children }) => <li className="leading-7">{children}</li>,
+            li: ({ children }) => <li className="leading-relaxed">{children}</li>,
             code: ({ className, children, ...props }) => {
               const match = /language-(\w+)/.exec(className || "");
               const isMermaid = match && match[1] === "mermaid";
@@ -70,7 +68,7 @@ export default async function GenericDocPage({
               if (isInline) {
                 return (
                   <code
-                    className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-primary font-medium border"
+                    className="bg-muted px-1 py-0.5 rounded-xs text-[11px] font-mono text-primary font-medium border border-border/60"
                     {...props}
                   >
                     {children}
@@ -78,32 +76,34 @@ export default async function GenericDocPage({
                 );
               }
               return (
-                <div className="my-4 overflow-x-auto rounded-lg border border-border bg-slate-100/80 dark:bg-zinc-950 p-4 text-slate-900 dark:text-zinc-50 font-mono text-xs shadow-xs">
+                <div className="my-3 overflow-x-auto rounded-md border border-border/60 bg-muted/40 p-3 text-foreground font-mono text-xs shadow-2xs">
                   <code {...props}>{children}</code>
                 </div>
               );
             },
             pre: ({ children }) => <pre className="p-0 m-0">{children}</pre>,
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-primary pl-4 py-1 italic my-4 text-muted-foreground bg-muted/30 rounded-r">
+              <blockquote className="border-l-2 border-primary pl-3 py-1 italic my-3 text-xs text-muted-foreground bg-muted/20 rounded-r-xs">
                 {children}
               </blockquote>
             ),
             table: ({ children }) => (
-              <div className="my-6 overflow-x-auto rounded-lg border">
-                <table className="w-full text-left text-xs md:text-sm">{children}</table>
+              <div className="my-4 overflow-x-auto rounded-md border border-border/60">
+                <table className="w-full text-left text-xs">{children}</table>
               </div>
             ),
             thead: ({ children }) => (
-              <thead className="bg-muted/60 text-muted-foreground font-semibold border-b">
+              <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/60">
                 {children}
               </thead>
             ),
             tr: ({ children }) => (
-              <tr className="border-b last:border-0 hover:bg-muted/20 transition">{children}</tr>
+              <tr className="border-b border-border/40 last:border-0 hover:bg-muted/20 transition">
+                {children}
+              </tr>
             ),
-            th: ({ children }) => <th className="p-3">{children}</th>,
-            td: ({ children }) => <td className="p-3 text-muted-foreground">{children}</td>,
+            th: ({ children }) => <th className="p-2.5 font-medium">{children}</th>,
+            td: ({ children }) => <td className="p-2.5 text-muted-foreground">{children}</td>,
             a: ({ href, children }) => {
               let targetHref = href || "#";
 

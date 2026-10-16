@@ -114,7 +114,7 @@ export function BranchSwitcher({
               variant="outline"
               size="sm"
               className={cn(
-                "h-7 px-2 border-border/80 hover:bg-accent min-w-0 flex items-center justify-between w-full text-xs font-normal rounded",
+                "h-7 px-2 border-border/80 hover:bg-accent min-w-0 flex items-center justify-between w-full text-xs font-normal",
                 triggerClassName,
               )}
             />
@@ -123,7 +123,7 @@ export function BranchSwitcher({
           <div className="flex items-center gap-1.5 min-w-0 flex-1">
             <Building2 className="size-3.5 shrink-0 text-muted-foreground" />
             {branchLoading ? (
-              <Skeleton className="h-3.5 w-32 rounded" />
+              <Skeleton className="h-3.5 w-32" />
             ) : (
               <span className="truncate text-xs font-medium">
                 {branchError
@@ -136,15 +136,12 @@ export function BranchSwitcher({
           </div>
           <ChevronsUpDown className="ml-1 size-3 shrink-0 opacity-40" />
         </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align={align}
-          className="w-64 p-1 rounded border border-border/80 shadow-md"
-        >
+        <DropdownMenuContent align={align} className="w-64 p-1 border border-border/80 shadow-md">
           {/* Minimal Search Input */}
           <div className="p-1">
             <Input
               placeholder="Search branch..."
-              className="h-7 text-xs bg-muted/40 rounded border-border/80"
+              className="h-7 text-xs bg-muted/40 border-border/80"
               value={branchSearch}
               onChange={(e) => setBranchSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
@@ -184,10 +181,10 @@ export function BranchSwitcher({
                 <DropdownMenuItem
                   key={b.code}
                   onClick={() => handleBranchSwitch(b.code, b.name)}
-                  className="flex items-center justify-between py-1.5 px-2 cursor-pointer focus:bg-accent text-xs gap-1.5 rounded"
+                  className="flex items-center justify-between py-1.5 px-2 cursor-pointer focus:bg-accent text-xs gap-1.5"
                 >
                   <div className="flex items-center gap-1.5 min-w-0 truncate">
-                    <span className="font-mono text-[9px] text-muted-foreground bg-muted px-1 py-0.2 rounded shrink-0">
+                    <span className="font-mono text-[9px] text-muted-foreground bg-muted px-1 py-0.2 rounded-xs shrink-0">
                       {b.code}
                     </span>
                     <span className="truncate text-xs font-normal">{toTitleCase(b.name)}</span>

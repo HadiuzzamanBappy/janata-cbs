@@ -1,173 +1,107 @@
-# CBS Micro-Client Gateway (`@/lib/cbs-client`)
+# 🌐 CBS Micro-Client (`@/lib/cbs-client`)
 
-The **CBS Micro-Client Gateway** is the single, centralized isomorphic communication layer for the entire application. It bridges client-side React components and hooks with the Next.js BFF proxy route (`/api/proxy`) and downstream Core Banking Solution (CBS) backend services.
+A universal, type-safe client gateway and wire payload factory for the **Janata Core Banking Workbench**.
 
-It delivers a **strictly typed, zero-boilerplate API** designed to build, consume, and scale backend operations without manual envelope assembly.
-
----
-
-## Architecture Overview
-
-```
-src/lib/cbs-client/
-├── payloads/                # Domain-specific typed payload builders
-│   ├── base-model.ts        # Universal BaseModel factory template
-│   ├── form.ts              # Generic Form Engine dispatcher (commit, fetch, authorize, etc.)
-│   ├── inquiry.ts           # Dynamic Inquiries & Search Grids (INQ execution)
-│   ├── menu.ts              # Menu Catalog (SC.MENU) & Tree Designer (SC.MENU.TREE)
-│   ├── user-security.ts     # Staff security profile, credentials, and password reset
-│   └── index.ts             # Payloads barrel export
-├── transport/               # Wire transport, validation & error management
-│   └── proxy-client.ts      # sendCbsRequest (pre-flight validation, 401 interception, toast alerts)
-├── index.ts                 # Unified public facade (`cbs` singleton and default export)
-└── README.md                # Gateway documentation & developer guide
-```
+It acts as the single boundary between the React presentation layer and the server-side proxy (`/api/proxy`). It provides pre-flight schema validation, automatic toast alerts, session expiration detection (401), and standardized factories for all core banking operations.
 
 ---
 
-## Mental Model & Core Pattern
+## 📦 What It Contains
 
-All communication flows through a unified facade:
+1. **`sendCbsRequest`** (`transport/proxy-client.ts`):
+   - Type-safe HTTP fetch client dispatching payloads through `/api/proxy`.
+   - Pre-flight validation against `cbsWirePayloadSchema` (fails fast on malformed requests before network calls).
+   - Automatic UI toast notifications for Success, Warning, Error, and Session Expiry (401).
+   - Supports `AbortSignal` for request cancellation and runtime Zod `responseSchema` validation.
 
-$$\text{Action} = \mathbf{cbs.send}(\text{payloadBuilder}(\dots), \text{options}?)$$
+2. **Payload Factories** (`payloads/`):
+   - **`cbs.model(controlName)`**: Universal factory providing standard banking operations (`get`, `list`, `save`, `authorize`, `delete`, `hold`, `reverse`).
+   - **`cbs.form`**: Dynamic form record actions (`fetchRecord`, `commitRecord`, `authorizeRecord`, `deleteRecord`, `holdRecord`, `reverseRecord`).
+   - **`cbs.inquiry`**: Dynamic enquiry queries (`executeQuery`, `fetchSingleRecord`) with filter criteria and pagination.
+   - **`cbs.menu`**: Flat menu items (`SC.MENU`) and hierarchical tree operations (`SC.MENU.TREE`).
+   - **`cbs.userSecurity`**: Password change (`CPW`), sign-on username change (`CUN`), and reset requests.
+
+---
+
+## 🚀 How to Use
+
+### 1. Unified Dispatch via `cbs.send`
+
+Combine a payload factory with `cbs.send()` to execute operations:
 
 ```typescript
 import { cbs } from "@/lib/cbs-client";
 
-// 1. Read single record
-const res = await cbs.send(cbs.formConfig.get("ACCOUNT.V1"));
+// Read an Account record
+const response = await cbs.send(
+  cbs.form.fetchRecord("ACCOUNT", "10000001"),
+  { successTitle: "Account Loaded" }
+);
 
-// 2. Commit a mutation with automatic UI toast
+if (response.status === "SUCCESS") {
+  console.log("Account data:", response.data);
+}
+```
+
+### 2. Authorize or Reverse Under Maker-Checker
+
+```typescript
+import { cbs } from "@/lib/cbs-client";
+
+// Authorize pending record
 await cbs.send(
-  cbs.userGroup.save(groupData, { recordId: "TELLER_ROLE" }),
-  {
-    successTitle: "Group Saved",
-    successMessage: "Teller security matrix updated successfully.",
-  }
+  cbs.form.authorizeRecord("CUSTOMER", "CUST-9901"),
+  { successMessage: "Customer record authorized successfully" }
+);
+
+// Reverse live record
+await cbs.send(
+  cbs.form.reverseRecord("CUSTOMER", "CUST-9901"),
+  { successMessage: "Transaction reversed" }
 );
 ```
 
-### The Standard Wire Envelope
-Every operation produces a strictly validated `CbsWirePayload`:
-```json
-{
-  "servicePath": "default",
-  "requestType": "PUT",
-  "controlName": "SC.USER.GROUP",
-  "recordFunction": "I",
-  "recordId": "TELLER_ROLE",
-  "authLevel": 1,
-  "data": { "permissions": ["SEE", "INPUT"] }
-}
-```
-*Note: The BFF proxy layer automatically injects `token`, `userId`, `branchCode`, and `clientId` from the authenticated HTTP-only session.*
+### 3. Dynamic Inquiries with Filter Criteria
 
----
-
-## Active Subsystems
-
-### 1. Standard Control Models (`cbs.formConfig`, `cbs.modelConfig`, `cbs.userGroup`)
-Configured tables using the universal `createModelPayloads(CbsControlTable.<NAME>)` template expose a clean, uniform CRUD & Maker-Checker contract:
-
-| Method | Request Verb | Record Function | Purpose |
-| :--- | :---: | :---: | :--- |
-| **`model.list(opts?)`** | `GRL` | `L` | Fetch directory / catalog of all records |
-| **`model.get(id, opts?)`** | `GET` | `S` | Read single record without row lock |
-| **`model.save(data, opts?)`** | `PUT` | `I` | Insert or update record (Maker draft) |
-| **`model.authorize(id, opts?)`** | `AUT` | `A` | Approve pending record (Checker live promote) |
-| **`model.delete(id, opts?)`** | `PUT` | `D` | Remove unauthorized record to delete table |
-| **`model.hold(id, data?, opts?)`** | `HLD` | `H` | Park record draft in hold status |
-| **`model.reverse(id, opts?)`** | `REV` | `R` | Reverse live accounting record with history |
-
-#### Example:
 ```typescript
-// Fetching a form definition:
-const res = await cbs.send(cbs.formConfig.get("CUST.INDIVIDUAL"));
+import { cbs } from "@/lib/cbs-client";
 
-// Saving a user security group:
-await cbs.send(cbs.userGroup.save(permissions, { recordId: "OFFICER" }));
-
-// Authorizing a pending model config:
-await cbs.send(cbs.modelConfig.authorize("GL.ACCOUNT"));
+const response = await cbs.send(
+  cbs.inquiry.executeQuery("GET.BRANCH.TXNS", {
+    curPage: 1,
+    perPage: 25,
+    queryString: [
+      {
+        selectFieldName: "BRANCH_CODE",
+        selectFieldOperator: "EQ",
+        selectFieldValue: "0101",
+      },
+    ],
+  })
+);
 ```
 
 ---
 
-### 2. Generic Form Engine (`cbs.form`)
-For dynamic, metadata-driven form screens where the target `controlName` is dynamic at runtime:
+## 🔒 Architectural State: Scalable or Sealed?
 
-- **`cbs.form.fetchRecord(controlName, recordId, servicePath?)`** — Read record (`S`).
-- **`cbs.form.commitRecord(controlName, data, opts?)`** — Commit new or amended record (`I`).
-- **`cbs.form.authorizeRecord(controlName, recordId, servicePath?)`** — Maker-Checker authorize (`A`).
-- **`cbs.form.deleteRecord(controlName, recordId, servicePath?)`** — Delete unapproved record (`D`).
-- **`cbs.form.holdRecord(controlName, recordId, data?, servicePath?)`** — Park draft (`HLD`).
-- **`cbs.form.reverseRecord(controlName, recordId, servicePath?)`** — Reverse live record (`REV`).
-- **`cbs.form.listRecords(controlName, servicePath?)`** — Lookup directory rows (`GRL`).
-
----
-
-### 3. Dynamic Inquiries & Search Grids (`cbs.inquiry`)
-Powers dynamic search queries and column-driven data grids:
-
-- **`cbs.inquiry.executeQuery(controlName, options?)`** — Executes criteria query (`INQ`):
-  ```typescript
-  const { data } = await cbs.send(
-    cbs.inquiry.executeQuery("GET.CUSTOMER", {
-      curPage: 1,
-      perPage: 50,
-      queryString: [
-        { selectFieldName: "BRANCH", selectFieldOperator: "EQ", selectFieldValue: "1001" },
-      ],
-    }),
-    { silent: true }
-  );
-  ```
-- **`cbs.inquiry.fetchSingleRecord(controlName, recordId)`** — Fetches an enquiry item.
-- Also inherits standard base methods (`.get`, `.list`, `.save`, `.authorize`) for `CbsControlTable.INQUIRY`.
+### 1. Transport Layer (`transport/proxy-client.ts`): **SEALED**
+The transport mechanics are complete and finalized:
+- Client-to-proxy wire routing (`/api/proxy`).
+- Pre-flight Zod validation.
+- Standard HTTP status code and error toast handling.
+- `AbortSignal` and session expiration handling.
+**You do not need to modify or touch this transport layer.**
 
 ---
 
-### 4. Menu & Navigation (`cbs.menu`)
-Manages flat catalog entries (`SC.MENU`) and visual hierarchical trees (`SC.MENU.TREE`):
+### 2. Payload Registration (`index.ts`): **SCALABLE**
+When your core banking system introduces a new banking table or model, you **never** write new HTTP endpoints, fetch wrappers, or custom CRUD functions. 
 
-- **Flat Menu Items**:
-  - `cbs.menu.getCatalogList()` — Fetch list of menu items.
-  - `cbs.menu.getMenuItem(id)` — Read specific menu item.
-  - `cbs.menu.saveMenuItem(id, data)` — Commit menu definition.
-  - `cbs.menu.authorizeMenuItem(id)` — Authorize menu definition.
-  - `cbs.menu.deleteMenuItem(id)` — Delete menu definition.
-- **Hierarchical Menu Trees**:
-  - `cbs.menu.getTreeList()` — Fetch all menu trees.
-  - `cbs.menu.getMenuTree(treeId?)` — Read tree structure (defaults to `"MAIN_MENU"`).
-  - `cbs.menu.saveMenuTree(treeId, treeNodes)` — Save hierarchy JSON array.
-  - `cbs.menu.authorizeMenuTree(treeId)` — Authorize live menu structure.
-  - `cbs.menu.deleteMenuTree(treeId)` — Delete menu hierarchy.
+You register it in `index.ts` with a single line:
 
----
-
-### 5. Staff Security & Credentials (`cbs.userSecurity`)
-Handles staff credential lifecycle and password administration:
-
-- **`cbs.userSecurity.changePassword({ currPass, newPass, servicePath? })`** — Dispatches `CPW`.
-- **`cbs.userSecurity.changeSignOnName({ oldUserName, newUserName, password, servicePath? })`** — Dispatches `CUN`.
-- Inherits standard base methods (`.get`, `.save`, `.authorize`, `.delete`) for password reset table (`SC.USER.PASS.RESET`).
-
----
-
-## How to Scale: Adding a New Model
-
-You **never** need to create redundant wrapper files or boilerplate methods.
-
-### Step 1: Add Table Name in `src/types/cbs.ts`
 ```typescript
-export const CbsControlTable = {
-  // ...
-  LOAN_PRODUCT: "SC.LOAN.PRODUCT",
-} as const;
-```
-
-### Step 2: Register in `src/lib/cbs-client/index.ts`
-```typescript
+// Example: Adding Loan Product table
 import { CbsControlTable } from "@/types";
 import { createModelPayloads } from "./payloads/base-model";
 
@@ -177,43 +111,18 @@ export const cbs = {
 } as const;
 ```
 
-### Step 3: Use Immediately in UI / Hooks
-All 7 standard methods (`list`, `get`, `save`, `authorize`, `delete`, `hold`, `reverse`) are automatically available with full TypeScript autocompletion and runtime safety:
+Once registered, all 7 operations (`get`, `list`, `save`, `authorize`, `delete`, `hold`, `reverse`) are immediately available with full TypeScript autocompletion:
 ```typescript
-// Read
-const loan = await cbs.send(cbs.loanProduct.get("AGRI_01"));
-
-// Commit
-await cbs.send(cbs.loanProduct.save(payload, { recordId: "AGRI_01" }));
-
-// Authorize
-await cbs.send(cbs.loanProduct.authorize("AGRI_01"));
+cbs.send(cbs.loanProduct.get("LOAN-1001"));
+cbs.send(cbs.loanProduct.authorize("LOAN-1001"));
+cbs.send(cbs.loanProduct.list());
 ```
 
 ---
 
-## Transport Options (`SendCbsOptions`)
+## 🧪 Verification
 
-`cbs.send` accepts an optional configuration object:
-
-```typescript
-export interface SendCbsOptions<T = unknown> {
-  /** If true, suppresses automatic toast alerts (ideal for background queries) */
-  readonly silent?: boolean;
-  /** Toast alert title upon SUCCESS */
-  readonly successTitle?: string;
-  /** Toast alert description upon SUCCESS */
-  readonly successMessage?: string;
-  /** Toast alert description override upon error */
-  readonly errorMessage?: string;
-  /** AbortSignal to cancel in-flight HTTP requests */
-  readonly signal?: AbortSignal;
-  /** Runtime Zod schema to validate response data */
-  readonly responseSchema?: z.ZodType<T>;
-}
+Run the dedicated test suite:
+```bash
+pnpm verify:client
 ```
-
-### Automatic Interceptions & Error Handling
-1. **Pre-flight Validation**: Automatically validates `CbsWirePayload` before hitting the network, catching malformed payloads before making HTTP calls.
-2. **Session Interception (401)**: Intercepts expired session tokens, renders a toast alert, and throws `"UNAUTHORIZED"` to trigger safe re-authentication.
-3. **Response Validation**: When `responseSchema` is provided, ensures response data matches the expected type before resolving.

@@ -117,8 +117,8 @@ export function TabItem({
             className={cn(
               "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-9",
               isActive
-                ? "bg-background text-foreground font-semibold rounded-t z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs overflow-hidden after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-t"
-                : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t border border-transparent",
+                ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs overflow-hidden after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-t-sm"
+                : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t-sm border border-transparent",
               isDraggingThis && "opacity-40 scale-[0.98] ring-1 ring-primary/40",
               isDragOver && !isDraggingThis && "border-primary/60 bg-primary/10 shadow-inner",
             )}
@@ -192,7 +192,7 @@ export function TabItem({
           <DropdownMenuContent
             align="start"
             sideOffset={6}
-            className="w-52 text-xs rounded border border-border/80"
+            className="w-52 text-xs border border-border/80"
           >
             <TabMenuItems
               tab={tab}
@@ -212,7 +212,7 @@ export function TabItem({
               handleCloseTab(e);
             }}
             className={cn(
-              "size-4 rounded flex items-center justify-center transition-colors shrink-0 cursor-pointer",
+              "size-4 rounded-xs flex items-center justify-center transition-colors shrink-0 cursor-pointer",
               isActive
                 ? "text-muted-foreground hover:text-foreground hover:bg-muted/80"
                 : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/80 group-hover:text-muted-foreground",
@@ -232,7 +232,7 @@ export function TabItem({
         )}
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="w-52 text-xs rounded border border-border/80">
+      <ContextMenuContent className="w-52 text-xs border border-border/80">
         <TabMenuItems
           tab={tab}
           ItemComponent={ContextMenuItem}

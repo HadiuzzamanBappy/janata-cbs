@@ -1,7 +1,8 @@
 /**
  * Pure client-safe, isomorphic core configuration.
  *
- * This module contains zero server secrets and zero process.env lookups.
+ * Contains zero server-only secrets. Only consumes build-time inlined
+ * `NEXT_PUBLIC_*` variables and static banking invariants.
  * Safe to import in both Client Components ('use client') and Server contexts.
  */
 

@@ -25,7 +25,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="absolute bottom-1/4 -right-20 size-80 rounded-full bg-primary/25 blur-3xl pointer-events-none" />
 
         {/* Floating Modern Split Card Container */}
-        <div className="relative z-10 w-full max-w-4xl bg-card rounded-2xl border border-border/80 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-145">
+        <div className="relative z-10 w-full max-w-4xl bg-card rounded-lg border border-border/80 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-145">
           {/* Left Side: Modern Minimalist Brand Column (5 Cols - Hidden on Mobile) */}
           <section className="hidden lg:flex lg:col-span-5 bg-linear-to-br from-primary via-primary/95 to-primary/90 text-primary-foreground p-8 flex-col justify-between relative overflow-hidden">
             {/* Subtle Grid Accent Pattern */}
@@ -33,7 +33,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
             {/* Header Branding */}
             <div className="relative z-10 flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-md shrink-0 border border-border/40">
+              <div className="size-10 rounded-md bg-white p-1.5 flex items-center justify-center shadow-md shrink-0 border border-border/40">
                 <Image src={logo} alt="Janata Bank PLC" className="size-full object-contain" />
               </div>
               <div className="flex flex-col">
@@ -55,7 +55,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
               {/* Voucher Date Badge */}
               <div className="pt-2">
-                <div className="inline-flex flex-col rounded-lg bg-primary-foreground/10 border border-primary-foreground/20 px-3.5 py-2.5 font-mono">
+                <div className="inline-flex flex-col rounded-md bg-primary-foreground/10 border border-primary-foreground/20 px-3.5 py-2.5 font-mono">
                   <span className="text-[10px] text-primary-foreground/70 uppercase tracking-wider">
                     Active Business Date
                   </span>

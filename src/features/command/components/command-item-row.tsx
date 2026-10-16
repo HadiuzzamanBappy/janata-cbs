@@ -39,11 +39,11 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
 
       <div data-slot="command-shortcut" className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
         {aliasTag && (
-          <span className="font-mono text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">
+          <span className="font-mono text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20">
             {aliasTag}
           </span>
         )}
-        <span className="font-mono text-[11px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded border border-border/40">
+        <span className="font-mono text-[11px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md border border-border/40">
           {cmd.command}
         </span>
       </div>

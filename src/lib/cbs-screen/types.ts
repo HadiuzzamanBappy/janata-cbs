@@ -31,15 +31,6 @@ export type CbsAuditRawData = AuditData & {
   readonly [key: string]: unknown;
 };
 
-export interface CbsAuditFooterData {
-  readonly recordStatus?: string;
-  readonly currNo?: number;
-  readonly inputter?: string;
-  readonly dateTime?: string;
-  readonly authoriser?: string;
-  readonly coCode?: string;
-}
-
 export interface CbsPersistenceOptions<TRecord> {
   initialId?: string;
   tabId?: string;
@@ -103,10 +94,7 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   validationErrors?: CbsScreenValidationError<TTab>[];
   rightTabContent?: React.ReactNode;
 
-  // 4. Audit Footer
-  auditData?: CbsAuditFooterData | CbsAuditRawData;
-
-  // 5. Children for "form", "inquiry" or "custom" variants
+  // 4. Children for "form", "inquiry" or "custom" variants
   children?: React.ReactNode;
   className?: string;
 }

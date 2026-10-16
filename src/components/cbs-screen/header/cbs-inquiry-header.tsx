@@ -85,7 +85,7 @@ export function CbsInquiryHeader({
                   size="icon-sm"
                   onClick={onRefresh}
                   disabled={!onRefresh}
-                  className="h-7 w-9 rounded shadow-xs shrink-0"
+                  className="h-7 w-9 shadow-xs shrink-0"
                 >
                   <RefreshCw className="size-3" />
                 </Button>
@@ -104,7 +104,7 @@ export function CbsInquiryHeader({
                   size="icon-sm"
                   onClick={onBackToSelection}
                   disabled={!onBackToSelection}
-                  className="h-7 w-9 rounded shadow-xs shrink-0"
+                  className="h-7 w-9 shadow-xs shrink-0"
                 >
                   <Search className="size-3" />
                 </Button>
@@ -123,7 +123,7 @@ export function CbsInquiryHeader({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-xs gap-1.5 border-border bg-background hover:bg-muted/50 text-foreground shrink-0 rounded"
+                  className="h-7 px-2 text-xs gap-1.5 border-border bg-background hover:bg-muted/50 text-foreground shrink-0"
                 >
                   <Briefcase className="size-3 text-red-600 dark:text-red-400 shrink-0" />
                   <span className="text-[11px] font-medium">Export / Print</span>
@@ -191,7 +191,7 @@ export function CbsInquiryHeader({
                           window.dispatchEvent(new CustomEvent(CBS_SCREEN_EVENT.DOCK_TO_SHELL));
                         }
                       }}
-                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                       aria-label="Back to tab bar"
                     >
                       <ArrowDownToLine className="size-3.5" />
@@ -212,7 +212,7 @@ export function CbsInquiryHeader({
             {title || "Enquiry Screen"}
           </span>
 
-          <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded border border-border bg-background text-foreground shrink-0 shadow-2xs">
+          <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs">
             {commandCode}
           </span>
         </div>

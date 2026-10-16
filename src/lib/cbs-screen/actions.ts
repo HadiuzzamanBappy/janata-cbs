@@ -34,8 +34,6 @@ export interface UseCbsActionBarOptions {
   readonly mode: CbsScreenMode;
   readonly searchVal?: string;
   readonly submitting?: boolean;
-  readonly hasRecord?: boolean;
-  readonly isDirty?: boolean;
   // Handlers passed from screen
   readonly onAmend?: () => void;
   readonly onView?: () => void;
@@ -72,8 +70,8 @@ export function useCbsActionBar({
   const hasTargetId = Boolean(searchVal.trim());
   const isIdle = mode === "IDLE";
   const isView = mode === "S" || mode === "A";
-  const isCreate = mode === "I";
-  const isEdit = mode === "I";
+  const isCreate = mode === "I" && !hasTargetId;
+  const isEdit = mode === "I" && hasTargetId;
   const isAuth = mode === "A";
 
   // 1. Idle Amend (Pencil)

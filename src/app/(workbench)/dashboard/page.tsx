@@ -29,7 +29,7 @@ export default function DashboardPage() {
 
   return (
     <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-16 select-none">
-      <div className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-xs">
+      <div className="size-12 rounded-md border border-border/60 bg-muted/50 text-primary flex items-center justify-center shadow-xs">
         <Sparkles className="size-6" />
       </div>
       <div className="flex flex-col gap-1 max-w-md">

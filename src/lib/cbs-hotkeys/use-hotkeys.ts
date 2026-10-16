@@ -2,95 +2,59 @@
 
 import { useEffect, useRef } from "react";
 
-/* -------------------------------------------------------------------------- */
-/* Hotkey Contract Types                                                      */
-/* -------------------------------------------------------------------------- */
-
-export type KeyCombo = string;
-
 export interface HotkeyOptions {
-  /** Prevent default browser behavior (default: true) */
   readonly preventDefault?: boolean;
-  /** Stop event propagation (default: true) */
-  readonly stopPropagation?: boolean;
-  /** Enable hotkey even when focused inside an input, textarea, or contentEditable (default: false) */
   readonly enableOnFormTags?: boolean;
-  /** Conditionally enable or disable the hotkey handler (default: true) */
   readonly enabled?: boolean;
 }
 
-interface ParsedShortcut {
-  key: string;
-  ctrl: boolean;
-  meta: boolean;
-  alt: boolean;
-  shift: boolean;
-  exactCombo: string;
+interface ParsedCombo {
+  targetKey: string;
+  wantsMod: boolean;
+  wantsShift: boolean;
+  wantsAlt: boolean;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Key Event Parsing & DOM Target Helpers                                     */
-/* -------------------------------------------------------------------------- */
-
-function parseShortcut(combo: string): ParsedShortcut {
-  const parts = combo
+/**
+ * Parses a hotkey string like "ctrl+k", "mod+k", or "escape".
+ */
+function parseCombo(combo: string): ParsedCombo {
+  const tokens = combo
     .toLowerCase()
     .split("+")
     .map((s) => s.trim());
 
-  let ctrl = false;
-  let meta = false;
-  let alt = false;
-  let shift = false;
-  let key = "";
+  const wantsMod = tokens.some((t) => ["mod", "ctrl", "control", "cmd", "meta"].includes(t));
+  const wantsShift = tokens.includes("shift");
+  const wantsAlt = tokens.includes("alt");
+  const rawKey =
+    tokens.find((t) => !["mod", "ctrl", "control", "cmd", "meta", "shift", "alt"].includes(t)) ||
+    "";
 
-  for (const part of parts) {
-    if (part === "ctrl" || part === "control") {
-      ctrl = true;
-    } else if (part === "meta" || part === "cmd" || part === "command" || part === "win") {
-      meta = true;
-    } else if (part === "alt" || part === "option") {
-      alt = true;
-    } else if (part === "shift") {
-      shift = true;
-    } else {
-      key = part;
-    }
-  }
+  const targetKey = rawKey === "esc" ? "escape" : rawKey;
 
-  return { key, ctrl, meta, alt, shift, exactCombo: combo };
+  return { targetKey, wantsMod, wantsShift, wantsAlt };
 }
-
-function isFormElement(element: EventTarget | null): boolean {
-  if (!element || !(element instanceof HTMLElement)) return false;
-  const tagName = element.tagName.toLowerCase();
-  return (
-    tagName === "input" ||
-    tagName === "textarea" ||
-    tagName === "select" ||
-    element.isContentEditable
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Generic Hotkey Hook                                                        */
-/* -------------------------------------------------------------------------- */
 
 /**
- * Modern keyboard shortcut hook supporting combos (e.g. 'ctrl+k', 'alt+shift+n', 'ctrl+w', 'escape').
- * Designed for banking/CBS hotkeys, modal triggers, and tab operations.
+ * Checks if target element is an interactive text input/form control.
+ */
+function isInputElement(target: EventTarget | null): boolean {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  const tag = target.tagName.toLowerCase();
+  return tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable;
+}
+
+/**
+ * Lean hotkey hook for global shortcuts like `ctrl+k`, `mod+k`, `escape`.
+ * Automatically maps `mod`/`ctrl` to `Cmd` on macOS and `Ctrl` on Windows/Linux.
  */
 export function useHotkeys(
-  combo: KeyCombo,
+  combo: string,
   handler: (event: KeyboardEvent) => void,
   options: HotkeyOptions = {},
 ): void {
-  const {
-    preventDefault = true,
-    stopPropagation = true,
-    enableOnFormTags = false,
-    enabled = true,
-  } = options;
+  const { preventDefault = true, enableOnFormTags = false, enabled = true } = options;
 
   const handlerRef = useRef(handler);
   useEffect(() => {
@@ -100,48 +64,33 @@ export function useHotkeys(
   useEffect(() => {
     if (!enabled) return;
 
-    const parsed = parseShortcut(combo);
+    const parsed = parseCombo(combo);
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      // Check form tags
-      if (!enableOnFormTags && isFormElement(event.target)) {
-        return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      // 1. Ignore during IME text input composition
+      if (e.isComposing) return;
+
+      // 2. Ignore if focused inside form input unless explicitly opted in
+      if (!enableOnFormTags && isInputElement(e.target)) return;
+
+      // 3. Match modifiers (on macOS Cmd is metaKey, on Windows/Linux Ctrl is ctrlKey)
+      const modActive = e.ctrlKey || e.metaKey;
+      if (parsed.wantsMod !== modActive) return;
+      if (parsed.wantsShift !== e.shiftKey) return;
+      if (parsed.wantsAlt !== e.altKey) return;
+
+      // 4. Match target key
+      const eventKey = e.key ? e.key.toLowerCase() : "";
+      if (eventKey !== parsed.targetKey) return;
+
+      // 5. Trigger action
+      if (preventDefault) {
+        e.preventDefault();
       }
-
-      // Guard: synthetic/programmatic events may have no `key` value
-      if (!event.key) return;
-      const eventKey = event.key.toLowerCase();
-
-      // Check modifier states
-      const ctrlMatches = parsed.ctrl ? event.ctrlKey : !event.ctrlKey;
-      const metaMatches = parsed.meta ? event.metaKey : !event.metaKey;
-      const altMatches = parsed.alt ? event.altKey : !event.altKey;
-      const shiftMatches = parsed.shift ? event.shiftKey : !event.shiftKey;
-
-      // Handle single special keys vs combination
-      let keyMatches = false;
-      if (parsed.key === "escape" || parsed.key === "esc") {
-        keyMatches = eventKey === "escape";
-      } else if (parsed.key === "space") {
-        keyMatches = eventKey === " " || eventKey === "spacebar";
-      } else {
-        keyMatches = eventKey === parsed.key;
-      }
-
-      if (ctrlMatches && metaMatches && altMatches && shiftMatches && keyMatches) {
-        if (preventDefault) {
-          event.preventDefault();
-        }
-        if (stopPropagation) {
-          event.stopPropagation();
-        }
-        handlerRef.current(event);
-      }
+      handlerRef.current(e);
     };
 
     window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [combo, preventDefault, stopPropagation, enableOnFormTags, enabled]);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [combo, preventDefault, enableOnFormTags, enabled]);
 }

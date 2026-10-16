@@ -1,7 +1,10 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { exportToCSV, exportToHTML, exportToXML } from "@/lib/core-utils/export";
@@ -165,17 +168,21 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
   if (error || !schema) {
     return (
       <div className="p-6 max-w-md mx-auto my-8">
-        <div className="p-4 border border-destructive/50 bg-destructive/10 rounded-lg text-sm">
-          <p className="font-semibold text-destructive mb-1">Failed to Load Enquiry Schema</p>
-          <p className="text-muted-foreground mb-3">{error || "Unknown error"}</p>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
+        <Alert variant="destructive">
+          <AlertTriangle className="size-4" />
+          <AlertTitle className="text-xs font-semibold">Failed to Load Enquiry Schema</AlertTitle>
+          <AlertDescription className="mt-1.5 flex flex-col gap-3">
+            <p className="text-xs opacity-90">{error || `No schema found for "${command}"`}</p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={refetch}
+              className="w-fit text-xs h-7 px-2.5"
+            >
+              Retry Fetching Schema
+            </Button>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }

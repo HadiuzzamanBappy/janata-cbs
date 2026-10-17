@@ -3,7 +3,7 @@ import "server-only";
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { parseGMC } from "@/lib/data-parsers";
-import type { FormSchema } from "@/lib/data-schemas";
+import type { ParsedFormData } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CbsRecordFunction, CbsRequestType } from "@/types/cbs";
@@ -58,7 +58,7 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
 /**
  * Retrieves the screen schema specification for a dynamic CBS transaction form (cached in Redis).
  */
-export async function getFormData(command: string, token?: string): Promise<FormSchema | null> {
+export async function getFormData(command: string, token?: string): Promise<ParsedFormData | null> {
   const cleanCmd = normalizeCommand(command, { preserveVersion: true });
 
   return getOrSet(

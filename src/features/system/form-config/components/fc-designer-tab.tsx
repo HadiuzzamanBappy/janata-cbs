@@ -85,6 +85,8 @@ export function FcDesignerTab({
     fieldKey?: string;
     currencyPrefix?: string;
     options?: string[];
+    modelType?: string;
+    parameter?: unknown;
   }) => {
     // 1. If user selected a specific container/section, add directly to that container!
     if (selectedSectionId) {
@@ -117,6 +119,8 @@ export function FcDesignerTab({
       hidden: false,
       options: template.options,
       currencyPrefix: template.currencyPrefix,
+      modelType: template.modelType,
+      parameter: template.parameter,
     };
     onAddSection(
       "standard",
@@ -166,6 +170,8 @@ export function FcDesignerTab({
         fieldKey?: string;
         currencyPrefix?: string;
         options?: string[];
+        modelType?: string;
+        parameter?: unknown;
       };
       containerType?: "standard" | "object-group" | "array-table";
       zone?: "header" | "tab" | "standard";
@@ -192,6 +198,8 @@ export function FcDesignerTab({
           hidden: false,
           options: data.template.options,
           currencyPrefix: data.template.currencyPrefix,
+          modelType: data.template.modelType,
+          parameter: data.template.parameter,
         };
         onAddSection(
           "standard",

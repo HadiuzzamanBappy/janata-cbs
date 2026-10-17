@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { appConfig } from "@/lib/core-config";
-import type { FormSchema } from "@/lib/data-schemas";
+import type { ParsedFormData } from "@/lib/data-schemas";
 
 export function useFormSchema(command: string) {
-  const [schema, setSchema] = useState<FormSchema | null>(null);
+  const [schema, setSchema] = useState<ParsedFormData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

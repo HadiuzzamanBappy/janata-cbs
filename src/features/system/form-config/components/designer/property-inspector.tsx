@@ -22,7 +22,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
-import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
+import {
+  getCompatibleWidgets,
+  WIDGET_LABELS,
+  type PropertyType,
+  type FormFieldItem,
+  type FormSection,
+} from "@/lib/data-schemas";
 
 export interface PropertyInspectorProps {
   selectedSection: FormSection | null;
@@ -151,7 +157,17 @@ export function PropertyInspector({
 
             {/* Widget Type Selector */}
             <div className="space-y-1">
-              <Label className="text-[11px] font-medium text-muted-foreground">Widget Type</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] font-medium text-muted-foreground">Widget Type</Label>
+                {selectedField.modelType && (
+                  <Badge
+                    variant="outline"
+                    className="text-[9px] font-mono h-3.5 px-1 uppercase text-primary border-primary/30 bg-primary/5"
+                  >
+                    {selectedField.modelType}
+                  </Badge>
+                )}
+              </div>
               <Select
                 disabled={disabled}
                 value={selectedField.widget}
@@ -161,17 +177,13 @@ export function PropertyInspector({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="text-xs">
-                  <SelectItem value="text">Single-line Text</SelectItem>
-                  <SelectItem value="amount">Amount / Currency</SelectItem>
-                  <SelectItem value="number">Numeric Input</SelectItem>
-                  <SelectItem value="date">Calendar Date Picker</SelectItem>
-                  <SelectItem value="select">Dropdown Select</SelectItem>
-                  <SelectItem value="radio">Radio List (Vertical)</SelectItem>
-                  <SelectItem value="radio-group">Segmented Buttons (Horizontal)</SelectItem>
-                  <SelectItem value="checkbox-group">Multi-Checkbox Tags</SelectItem>
-                  <SelectItem value="textarea">Multi-line Text Area</SelectItem>
-                  <SelectItem value="switch">Boolean Toggle Switch</SelectItem>
-                  <SelectItem value="account-lookup">CBS Account Lookup</SelectItem>
+                  {getCompatibleWidgets(selectedField.modelType as PropertyType | undefined).map(
+                    (w) => (
+                      <SelectItem key={w} value={w}>
+                        {WIDGET_LABELS[w]?.label || w}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </div>

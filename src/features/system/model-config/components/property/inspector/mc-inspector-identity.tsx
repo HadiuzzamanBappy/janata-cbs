@@ -46,9 +46,15 @@ export function McInspectorIdentitySection({
     const patch: Partial<ModelProperty> = { type: nextType };
     if (nextType === "Boolean") {
       patch.length = 1;
+      patch.structure = "S";
       if (typeof property.defaultValue !== "boolean") {
         patch.defaultValue = false;
       }
+    } else if (nextType === "Radio" || nextType === "Textarea") {
+      patch.structure = "S";
+      if (nextType === "Textarea") patch.length = 500;
+    } else if (nextType === "Array") {
+      patch.structure = "M";
     } else if (nextType === "Date") {
       patch.length = 10;
     } else if (nextType === "Number") {
@@ -59,15 +65,11 @@ export function McInspectorIdentitySection({
       if (property.length === 1 || property.length === 500) {
         patch.length = 50;
       }
-    } else if (nextType === "Textarea") {
-      patch.length = 500;
-    } else if (nextType === "Array") {
-      patch.structure = "M";
     } else if (nextType === "Object") {
       if (property.length < 500) {
         patch.length = 1000;
       }
-    } else if (nextType === "Dropdown" || nextType === "Checkbox" || nextType === "Radio") {
+    } else if (nextType === "Dropdown" || nextType === "Checkbox") {
       if (!property.parameter) {
         patch.parameter = {
           type: "O",
@@ -204,34 +206,58 @@ export function McInspectorIdentitySection({
         </div>
 
         {/* Structure: Single vs Multi */}
-        <div className="flex items-center gap-2">
-          <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
-            Structure
-          </Label>
-          <span className="text-muted-foreground/60 font-mono text-xs">:</span>
-          <div className="flex items-center gap-1.5 max-w-md flex-1">
-            <Button
-              type="button"
-              variant={property.structure === "S" ? "default" : "outline"}
-              size="sm"
-              disabled={isReadOnly}
-              onClick={() => onUpdate(property.sn, { structure: "S" })}
-              className="h-7 px-3 text-xs rounded flex-1"
-            >
-              Single (S)
-            </Button>
-            <Button
-              type="button"
-              variant={property.structure === "M" ? "default" : "outline"}
-              size="sm"
-              disabled={isReadOnly}
-              onClick={() => onUpdate(property.sn, { structure: "M" })}
-              className="h-7 px-3 text-xs rounded flex-1"
-            >
-              Multi-Value (M)
-            </Button>
-          </div>
-        </div>
+        {(() => {
+          const isSingleOnly =
+            property.type === "Boolean" ||
+            property.type === "Radio" ||
+            property.type === "Textarea";
+          const isMultiOnly = property.type === "Array";
+          const isSingleDisabled = isReadOnly || isMultiOnly;
+          const isMultiDisabled = isReadOnly || isSingleOnly;
+
+          return (
+            <div className="flex items-center gap-2">
+              <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
+                Structure
+              </Label>
+              <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+              <div className="flex items-center gap-1.5 max-w-md flex-1">
+                <Button
+                  type="button"
+                  variant={property.structure === "S" ? "default" : "outline"}
+                  size="sm"
+                  disabled={isSingleDisabled}
+                  onClick={() => onUpdate(property.sn, { structure: "S" })}
+                  className={cn(
+                    "h-7 px-3 text-xs rounded flex-1",
+                    isSingleDisabled &&
+                      property.structure !== "S" &&
+                      "opacity-40 cursor-not-allowed",
+                  )}
+                  title={isMultiOnly ? "Array types are always Multi-Value" : undefined}
+                >
+                  Single (S)
+                </Button>
+                <Button
+                  type="button"
+                  variant={property.structure === "M" ? "default" : "outline"}
+                  size="sm"
+                  disabled={isMultiDisabled}
+                  onClick={() => onUpdate(property.sn, { structure: "M" })}
+                  className={cn(
+                    "h-7 px-3 text-xs rounded flex-1",
+                    isMultiDisabled &&
+                      property.structure !== "M" &&
+                      "opacity-40 cursor-not-allowed",
+                  )}
+                  title={isSingleOnly ? `${property.type} cannot be Multi-Value` : undefined}
+                >
+                  Multi-Value (M)
+                </Button>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Constraints Checkboxes */}
         <div className="flex items-center gap-2 pt-1 border-t border-border/40">

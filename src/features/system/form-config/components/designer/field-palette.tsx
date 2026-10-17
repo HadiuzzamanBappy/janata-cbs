@@ -18,6 +18,8 @@ export interface FieldPaletteProps {
     fieldKey?: string;
     currencyPrefix?: string;
     options?: string[];
+    modelType?: string;
+    parameter?: unknown;
   }) => void;
   onAddSection: (
     type: "standard" | "object-group" | "array-table",
@@ -79,18 +81,55 @@ export function FieldPalette({
 
   const mapPropertyToWidget = (
     prop: ModelProperty,
-  ): { widget: FormWidgetType; currencyPrefix?: string } => {
-    if (
+  ): {
+    widget: FormWidgetType;
+    currencyPrefix?: string;
+    options?: string[];
+    modelType?: string;
+    parameter?: unknown;
+  } => {
+    const isAmount =
       prop.name.toLowerCase().includes("deposit") ||
       prop.name.toLowerCase().includes("amount") ||
-      prop.name.toLowerCase().includes("balance")
-    ) {
-      return { widget: "amount", currencyPrefix: "BDT" };
+      prop.name.toLowerCase().includes("balance");
+
+    if (isAmount) {
+      return {
+        widget: "amount",
+        currencyPrefix: "BDT",
+        modelType: prop.type,
+        parameter: prop.parameter,
+      };
     }
-    if (prop.type === "Number") return { widget: "number" };
-    if (prop.type === "Date") return { widget: "date" };
-    if (prop.type === "Boolean") return { widget: "switch" };
-    return { widget: "text" };
+
+    const staticOptions =
+      prop.parameter?.type === "O" && Array.isArray(prop.parameter.data)
+        ? prop.parameter.data.map((d) => d.itemLabel || d.itemCode)
+        : undefined;
+
+    let widget: FormWidgetType = "text";
+    if (prop.type === "Number") {
+      widget = staticOptions?.length ? "select" : "number";
+    } else if (prop.type === "Date") {
+      widget = "date";
+    } else if (prop.type === "Boolean") {
+      widget = "switch";
+    } else if (prop.type === "Dropdown") {
+      widget = "select";
+    } else if (prop.type === "Radio") {
+      widget = "radio-group";
+    } else if (prop.type === "Checkbox" || prop.type === "Array") {
+      widget = "checkbox-group";
+    } else if (prop.type === "Textarea") {
+      widget = "textarea";
+    }
+
+    return {
+      widget,
+      options: staticOptions,
+      modelType: prop.type,
+      parameter: prop.parameter,
+    };
   };
 
   const placedCount = React.useMemo(() => {
@@ -204,6 +243,9 @@ export function FieldPalette({
                             widget: mapped.widget,
                             currencyPrefix: mapped.currencyPrefix,
                             colSpan: 12,
+                            options: mapped.options,
+                            modelType: mapped.modelType,
+                            parameter: mapped.parameter,
                           },
                         };
                         e.dataTransfer.setData("application/json", JSON.stringify(payload));
@@ -228,6 +270,9 @@ export function FieldPalette({
                               widget: mapped.widget,
                               currencyPrefix: mapped.currencyPrefix,
                               colSpan: 12,
+                              options: mapped.options,
+                              modelType: mapped.modelType,
+                              parameter: mapped.parameter,
                             });
                           }
                         }}

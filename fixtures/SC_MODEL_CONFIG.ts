@@ -352,7 +352,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
         required: true,
         disabled: false,
         status: "ACTIVE",
-        pattern: "^[A-Z0-9_. ,]+$",
         enrichText: "CBS transaction command code (e.g. MODEL.CONFIG, ACCOUNT I)",
       },
       {

@@ -1,12 +1,22 @@
 "use client";
 
 import { Boxes, Database, Plus, Sliders, Trash2 } from "lucide-react";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { cbs } from "@/lib/cbs-client";
 import type {
+  ModelConfigRecord,
   ModelProperty,
   PropertyParameter,
   PropertyParameterOption,
@@ -218,7 +228,7 @@ export function McInspectorTypeSpecs({
                 onChange={(e) => onUpdate(property.sn, { defaultValue: e.target.value })}
                 placeholder="Optional multiline initial text"
                 rows={3}
-                className="rounded text-xs bg-background border-border/80 w-full resize-y min-h-[60px]"
+                className="rounded text-xs bg-background border-border/80 w-full resize-y min-h-15"
               />
             ) : (
               <Input
@@ -231,12 +241,13 @@ export function McInspectorTypeSpecs({
                     : ""
                 }
                 disabled={isReadOnly}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const val = e.target.value;
                   onUpdate(property.sn, {
                     defaultValue:
-                      property.type === "Number" ? Number(e.target.value) || 0 : e.target.value,
-                  })
-                }
+                      property.type === "Number" ? (val === "" ? undefined : Number(val)) : val,
+                  });
+                }}
                 placeholder={
                   property.type === "Date"
                     ? "YYYY-MM-DD"
@@ -380,60 +391,274 @@ export function McInspectorTypeSpecs({
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 bg-muted/20 p-2 rounded border border-border/50">
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
-                    Model Name
-                  </Label>
-                  <Input
-                    value={parameter.modelName ?? ""}
-                    disabled={isReadOnly}
-                    onChange={(e) => updateParameter({ modelName: e.target.value })}
-                    placeholder="e.g. SC_BRANCH"
-                    className="h-6 text-xs bg-background"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
-                    Display Field
-                  </Label>
-                  <Input
-                    value={parameter.displayField ?? ""}
-                    disabled={isReadOnly}
-                    onChange={(e) => updateParameter({ displayField: e.target.value })}
-                    placeholder="e.g. branchName"
-                    className="h-6 text-xs bg-background"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
-                    Condition
-                  </Label>
-                  <Input
-                    value={parameter.condition ?? ""}
-                    disabled={isReadOnly}
-                    onChange={(e) => updateParameter({ condition: e.target.value })}
-                    placeholder="e.g. STATUS = 'ACTIVE'"
-                    className="h-6 text-xs bg-background"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
-                    Reference Field
-                  </Label>
-                  <Input
-                    value={parameter.reference ?? ""}
-                    disabled={isReadOnly}
-                    onChange={(e) => updateParameter({ reference: e.target.value })}
-                    placeholder="e.g. branchCode"
-                    className="h-6 text-xs bg-background"
-                  />
-                </div>
-              </div>
+              <ModelLookupConfig
+                parameter={parameter}
+                isReadOnly={isReadOnly}
+                onUpdate={updateParameter}
+              />
             )}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+interface ModelLookupConfigProps {
+  parameter: PropertyParameter;
+  isReadOnly: boolean;
+  onUpdate: (patch: Partial<PropertyParameter>) => void;
+}
+
+function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfigProps) {
+  const [modelCatalog, setModelCatalog] = React.useState<Array<{ id: string; label: string }>>([]);
+  const [targetModelFields, setTargetModelFields] = React.useState<ModelProperty[]>([]);
+  const [loadingModels, setLoadingModels] = React.useState(false);
+  const [loadingFields, setLoadingFields] = React.useState(false);
+
+  // 1. Fetch available models for the catalog dropdown
+  React.useEffect(() => {
+    let mounted = true;
+    setLoadingModels(true);
+    cbs
+      .send<Array<{ id: string; label: string }>>(cbs.modelConfig.list(), { silent: true })
+      .then((res) => {
+        if (mounted && res.status === "SUCCESS" && Array.isArray(res.data)) {
+          setModelCatalog(res.data.map((m) => ({ id: m.id, label: m.label || m.id })));
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setLoadingModels(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 2. When modelName changes, fetch its properties to populate Reference & Display dropdowns
+  React.useEffect(() => {
+    const targetModel = parameter.modelName?.trim();
+    if (!targetModel) {
+      setTargetModelFields([]);
+      return;
+    }
+    let mounted = true;
+    setLoadingFields(true);
+    cbs
+      .send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), { silent: true })
+      .then((res) => {
+        if (mounted && res.status === "SUCCESS" && res.data?.properties) {
+          setTargetModelFields(res.data.properties);
+        }
+      })
+      .catch(() => {
+        if (mounted) setTargetModelFields([]);
+      })
+      .finally(() => {
+        if (mounted) setLoadingFields(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [parameter.modelName]);
+
+  return (
+    <div className="bg-muted/15 p-2.5 rounded border border-border/70 space-y-2 text-xs">
+      {/* 1. Target Model */}
+      <div className="flex items-center gap-2">
+        <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none flex items-center justify-between">
+          <span>Target Model</span>
+          {loadingModels && <span className="text-[9px] font-normal lowercase pr-1">...</span>}
+        </Label>
+        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+        <div className="max-w-md flex-1">
+          <Select
+            value={parameter.modelName || ""}
+            disabled={isReadOnly || loadingModels}
+            onValueChange={(val) => {
+              onUpdate({
+                modelName: val || "",
+                displayField: "",
+                reference: "",
+              });
+            }}
+          >
+            <SelectTrigger size="sm" className="h-7 text-xs bg-background w-full">
+              <SelectValue
+                placeholder={loadingModels ? "Loading models..." : "Select Model (DB)"}
+              />
+            </SelectTrigger>
+            <SelectContent className="rounded max-h-56">
+              {modelCatalog.map((m) => (
+                <SelectItem key={m.id} value={m.id} className="text-xs font-mono">
+                  {m.id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* 2. Reference Field (Saved Value) */}
+      <div className="flex items-center gap-2">
+        <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none flex items-center justify-between">
+          <span>Reference Field</span>
+          {loadingFields && <span className="text-[9px] font-normal lowercase pr-1">...</span>}
+        </Label>
+        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+        <div className="max-w-md flex-1">
+          {targetModelFields.length > 0 ? (
+            <Select
+              value={parameter.reference || ""}
+              disabled={isReadOnly || loadingFields}
+              onValueChange={(val) => onUpdate({ reference: val || "" })}
+            >
+              <SelectTrigger size="sm" className="h-7 text-xs font-mono bg-background w-full">
+                <SelectValue placeholder="Select reference key (DB column)" />
+              </SelectTrigger>
+              <SelectContent className="rounded max-h-56">
+                {targetModelFields.map((f) => (
+                  <SelectItem key={f.sn} value={f.name} className="text-xs font-mono">
+                    {f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              value={parameter.reference ?? ""}
+              disabled={isReadOnly}
+              onChange={(e) => onUpdate({ reference: e.target.value })}
+              placeholder={parameter.modelName ? "e.g. branchCode" : "Select model first"}
+              className="h-7 text-xs font-mono bg-background w-full"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* 3. Display Field (UI Label) */}
+      <div className="flex items-center gap-2">
+        <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
+          Display Field
+        </Label>
+        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+        <div className="max-w-md flex-1">
+          {targetModelFields.length > 0 ? (
+            <Select
+              value={parameter.displayField || ""}
+              disabled={isReadOnly || loadingFields}
+              onValueChange={(val) => onUpdate({ displayField: val || "" })}
+            >
+              <SelectTrigger size="sm" className="h-7 text-xs bg-background w-full">
+                <SelectValue placeholder="Select display label (UI text)" />
+              </SelectTrigger>
+              <SelectContent className="rounded max-h-56">
+                {targetModelFields.map((f) => (
+                  <SelectItem key={f.sn} value={f.name} className="text-xs font-mono">
+                    {f.label || f.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              value={parameter.displayField ?? ""}
+              disabled={isReadOnly}
+              onChange={(e) => onUpdate({ displayField: e.target.value })}
+              placeholder={parameter.modelName ? "e.g. branchName" : "Select model first"}
+              className="h-7 text-xs bg-background w-full"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* 4. Filter Condition Clause */}
+      {(() => {
+        // Parse existing condition string like "STATUS = 'ACTIVE'" or "REGION = 'DHAKA'"
+        const raw = (parameter.condition || "").trim();
+        let fieldPart = "";
+        let valPart = "";
+
+        if (raw) {
+          const match = raw.match(/^([A-Za-z0-9_]+)\s*=\s*['"]?(.*?)['"]?$/);
+          if (match) {
+            fieldPart = match[1];
+            valPart = match[2];
+          } else {
+            valPart = raw;
+          }
+        }
+
+        const handleConditionFieldChange = (newField: string | null) => {
+          if (!newField) {
+            onUpdate({ condition: "" });
+            return;
+          }
+          const nextVal = valPart || "ACTIVE";
+          onUpdate({ condition: `${newField} = '${nextVal}'` });
+        };
+
+        const handleConditionValChange = (newVal: string) => {
+          if (!newVal && !fieldPart) {
+            onUpdate({ condition: "" });
+            return;
+          }
+          const targetField = fieldPart || targetModelFields[0]?.name || "STATUS";
+          onUpdate({ condition: newVal ? `${targetField} = '${newVal}'` : "" });
+        };
+
+        return (
+          <div className="flex items-center gap-2">
+            <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
+              Condition
+            </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+            <div className="flex items-center gap-1.5 max-w-md flex-1">
+              {targetModelFields.length > 0 ? (
+                <>
+                  <Select
+                    value={fieldPart}
+                    disabled={isReadOnly}
+                    onValueChange={handleConditionFieldChange}
+                  >
+                    <SelectTrigger size="sm" className="h-7 text-xs font-mono bg-background flex-1">
+                      <SelectValue placeholder="Target field..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded max-h-56">
+                      {targetModelFields.map((f) => (
+                        <SelectItem key={f.sn} value={f.name} className="text-xs font-mono">
+                          {f.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <span className="font-mono text-xs text-muted-foreground font-bold px-0.5 select-none">
+                    =
+                  </span>
+
+                  <Input
+                    value={valPart}
+                    disabled={isReadOnly}
+                    onChange={(e) => handleConditionValChange(e.target.value)}
+                    placeholder="e.g. ACTIVE"
+                    className="h-7 text-xs font-mono bg-background flex-1"
+                  />
+                </>
+              ) : (
+                <Input
+                  value={parameter.condition ?? ""}
+                  disabled={isReadOnly}
+                  onChange={(e) => onUpdate({ condition: e.target.value })}
+                  placeholder="e.g. STATUS = 'ACTIVE'"
+                  className="h-7 text-xs font-mono bg-background w-full"
+                />
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

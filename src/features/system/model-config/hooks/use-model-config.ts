@@ -11,8 +11,8 @@ import {
   type ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
 import type { CbsScreenMode } from "@/types";
-import { mapZodIssuesToValidationErrors } from "./model-config-validation";
-import { INITIAL_MODEL, useModelConfigPersistence } from "./use-model-config-persistence";
+import { mapZodIssuesToValidationErrors } from "./mc-validation";
+import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
 
 export interface ModelCatalogItem {
   id: string;

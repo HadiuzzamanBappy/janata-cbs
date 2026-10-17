@@ -23,11 +23,11 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
 import {
-  getCompatibleWidgets,
-  WIDGET_LABELS,
-  type PropertyType,
   type FormFieldItem,
   type FormSection,
+  getCompatibleWidgets,
+  type PropertyType,
+  WIDGET_LABELS,
 } from "@/lib/data-schemas";
 
 export interface PropertyInspectorProps {

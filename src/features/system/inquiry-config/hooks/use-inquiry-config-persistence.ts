@@ -8,9 +8,9 @@ export const INITIAL_INQUIRY_CONFIG: InquiryConfigRecord = {
   title: "",
   description: "",
   targetModel: "",
-  defaultPageSize: 25,
   columns: [],
   filters: [],
+  actions: [],
 };
 
 export function useInquiryConfigPersistence(initialId?: string, tabId?: string) {

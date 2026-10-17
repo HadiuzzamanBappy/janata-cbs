@@ -1,13 +1,13 @@
 "use client";
 
-import { Code, Columns, Eye, FileText, Layers } from "lucide-react";
+import { Code, Columns, Eye, FileText, Filter, Layers } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { type CbsScreenProps, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
-import { IcColumnsTab, IcGeneralTab, IcJsonTab, IcPreviewTab } from "./components";
+import { IcGeneralTab, IcJsonTab, IcPreviewTab, IcSelectionTab, IcTableTab } from "./components";
 import { useInquiryConfig } from "./hooks";
 
-type InquiryConfigTabKey = "general" | "columns" | "preview" | "json";
+type InquiryConfigTabKey = "general" | "selection" | "table" | "preview" | "json";
 
 export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -20,13 +20,26 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     setRecordId,
     mode,
     formData,
-    updateConfig,
+    setFormData,
     loading,
     submitting,
+    availableInquiries,
+    // Columns
     addColumn,
     updateColumn,
     removeColumn,
     reorderColumns,
+    // Filters
+    addFilter,
+    updateFilter,
+    removeFilter,
+    reorderFilters,
+    // Actions
+    addAction,
+    updateAction,
+    removeAction,
+    reorderActions,
+    // Operations
     fetchRecord,
     handleValidate,
     handleSubmit,
@@ -37,6 +50,16 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
   const [activeTab, setActiveTab] = React.useState<InquiryConfigTabKey>("general");
   const isReadOnly = mode !== "I";
 
+  const availableItems = React.useMemo(
+    () =>
+      availableInquiries.map((inq) => ({
+        id: inq.id,
+        label: inq.label,
+        details: inq.details,
+      })),
+    [availableInquiries],
+  );
+
   const tabs: CbsScreenTab<InquiryConfigTabKey>[] = React.useMemo(
     () => [
       {
@@ -44,20 +67,42 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         label: "General",
         icon: <FileText className="size-3 text-muted-foreground" />,
         content: (
-          <IcGeneralTab formData={formData} updateConfig={updateConfig} disabled={isReadOnly} />
+          <IcGeneralTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
         ),
       },
       {
-        id: "columns",
-        label: "Columns Layout",
+        id: "selection",
+        label: "Selection Criteria",
+        icon: <Filter className="size-3 text-sky-500" />,
+        content: (
+          <IcSelectionTab
+            filters={formData.filters || []}
+            targetModel={formData.targetModel}
+            onAddFilter={addFilter}
+            onUpdateFilter={updateFilter}
+            onRemoveFilter={removeFilter}
+            onReorderFilters={reorderFilters}
+            disabled={isReadOnly}
+          />
+        ),
+      },
+      {
+        id: "table",
+        label: "Table Design",
         icon: <Columns className="size-3 text-primary" />,
         content: (
-          <IcColumnsTab
-            columns={formData.columns}
+          <IcTableTab
+            columns={formData.columns || []}
+            actions={formData.actions || []}
+            targetModel={formData.targetModel}
             onAddColumn={addColumn}
             onUpdateColumn={updateColumn}
             onRemoveColumn={removeColumn}
             onReorderColumns={reorderColumns}
+            onAddAction={addAction}
+            onUpdateAction={updateAction}
+            onRemoveAction={removeAction}
+            onReorderActions={reorderActions}
             disabled={isReadOnly}
           />
         ),
@@ -65,17 +110,33 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       {
         id: "preview",
         label: "Live Preview",
-        icon: <Eye className="size-3 text-muted-foreground" />,
-        content: <IcPreviewTab columns={formData.columns} />,
+        icon: <Eye className="size-3 text-emerald-500" />,
+        content: <IcPreviewTab formData={formData} />,
       },
       {
         id: "json",
-        label: "JSON",
-        icon: <Code className="size-3 text-muted-foreground" />,
+        label: "JSON Spec",
+        icon: <Code className="size-3 text-amber-500" />,
         content: <IcJsonTab formData={formData} />,
       },
     ],
-    [formData, isReadOnly, addColumn, updateColumn, removeColumn, reorderColumns, updateConfig],
+    [
+      formData,
+      isReadOnly,
+      setFormData,
+      addFilter,
+      updateFilter,
+      removeFilter,
+      reorderFilters,
+      addColumn,
+      updateColumn,
+      removeColumn,
+      reorderColumns,
+      addAction,
+      updateAction,
+      removeAction,
+      reorderActions,
+    ],
   );
 
   return (
@@ -85,15 +146,16 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       recordId={recordId || formData.id}
       mode={mode}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "INQ.ACCOUNT.LIST") : undefined}
-      onAmend={() => recordId && fetchRecord(recordId)}
-      onView={() => recordId && fetchRecord(recordId)}
+      onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "ACCOUNT", "I") : undefined}
+      onAmend={() => recordId && fetchRecord(recordId, "I")}
+      onView={() => recordId && fetchRecord(recordId, "S")}
       onValidate={handleValidate}
       onSubmit={handleSubmit}
       submitting={submitting || loading}
+      availableItems={availableItems}
       variant="admin-tabs"
       tabs={tabs}
       activeTab={activeTab}

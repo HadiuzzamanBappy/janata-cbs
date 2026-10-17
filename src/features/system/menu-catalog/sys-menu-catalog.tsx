@@ -87,7 +87,7 @@ export function SysMenuCatalog({ command, tabId }: ScreenProps) {
       recordId={recordId}
       mode={mode}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => setRecordId(searchedId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "1") : undefined}

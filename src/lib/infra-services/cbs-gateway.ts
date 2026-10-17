@@ -29,9 +29,12 @@ export function getStaticData(
 
   // 1. Direct Domain Service Dispatches
   if (clean === "AUTH") return getMockUserResponse(recordId);
-  if (clean === "MENU") return getMockMenuPayload();
-  if (clean === "BRANCH") return getMockBranchesPayload();
-  if (clean === "CONTROL") return getMockControlsPayload();
+  if ((clean === "MENU" && requestType === "GUM") || clean === "NAV_MENU")
+    return getMockMenuPayload();
+  if (clean === "BRANCH" && (requestType === "GET" || !requestType))
+    return getMockBranchesPayload();
+  if (clean === "CONTROL" && (requestType === "GET" || !requestType))
+    return getMockControlsPayload();
   if (clean === "FORM" || requestType === "GMC") return getMockFormPayload(recordId);
   if (clean === "INQUIRY" || requestType === "INQ") return getMockInquiryPayload(recordId || clean);
 

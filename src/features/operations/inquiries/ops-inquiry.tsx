@@ -41,6 +41,28 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     setDrillRecord,
   });
 
+  const mappedActions = React.useMemo(() => {
+    if (schema?.actions && schema.actions.length > 0) {
+      return schema.actions;
+    }
+    if (!schema?.commands) return undefined;
+    if (schema.commands.length === 0) return [];
+    return schema.commands.map((cmd, i) => {
+      const isEdit =
+        cmd.cmdButton?.toLowerCase().includes("edit") ||
+        cmd.cmdButton?.toLowerCase().includes("amend");
+      return {
+        id: `CMD_${i}_${cmd.cmdButton}`,
+        label: cmd.cmdButton,
+        targetCommand: cmd.cmdFor || `${schema.code},SEE`,
+        actionType: (isEdit ? "edit" : "view") as "edit" | "view",
+        icon: (isEdit ? "edit" : "eye") as "edit" | "eye",
+        openMode: "tab" as const,
+        idParamField: "recordId",
+      };
+    });
+  }, [schema?.actions, schema?.commands, schema?.code]);
+
   const handleFilterSearch = (criteria: typeof currentCriteria) => {
     if (!schema) return;
     const initialDataset = schema.sampleData || [];
@@ -130,6 +152,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
           <InquiryEngineTable
             columns={schema.columns}
             rows={filteredRows}
+            actions={mappedActions}
             onViewRecord={handleViewRecord}
             onEditRecord={handleEditRecord}
             pageSize={pageSize}

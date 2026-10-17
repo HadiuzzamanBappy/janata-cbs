@@ -31,23 +31,28 @@ export const inquiryFilterConfigSchema = z.object({
 
 export type InquiryFilterConfig = z.infer<typeof inquiryFilterConfigSchema>;
 
-export const inquiryDrillDownRuleSchema = z.object({
-  targetCommand: z.string().min(1, "Target Command is required"), // e.g. "ACCOUNT,SEE"
-  idParamField: z.string().default("id"), // e.g. "accountNo"
-  openMode: z.enum(["tab", "popup"]).default("tab"),
+export const inquiryActionConfigSchema = z.object({
+  id: z.string().min(1, "Action ID is required"),
+  label: z.string().min(1, "Action Label is required"),
+  targetCommand: z.string().optional(), // e.g. "ACCOUNT,SEE", "ACCOUNT,AMEND"
+  actionType: z.enum(["view", "edit", "command", "drilldown"]).default("view"),
+  icon: z
+    .enum(["eye", "edit", "rotate-ccw", "history", "external-link", "file-text"])
+    .default("eye"),
+  openMode: z.enum(["tab", "popup", "drilldown"]).default("tab"),
+  idParamField: z.string().default("recordId"),
 });
 
-export type InquiryDrillDownRule = z.infer<typeof inquiryDrillDownRuleSchema>;
+export type InquiryActionConfig = z.infer<typeof inquiryActionConfigSchema>;
 
 export const inquiryConfigRecordSchema = z.object({
   id: z.string().min(1, "Inquiry ID is required"), // e.g. "INQ.ACCOUNT.LIST"
   title: z.string().min(1, "Inquiry Title is required"),
   description: z.string().optional(),
   targetModel: z.string().min(1, "Target Model is required"), // e.g. "ACCOUNT"
-  defaultPageSize: z.number().default(25),
   columns: z.array(inquiryColumnConfigSchema).default([]),
   filters: z.array(inquiryFilterConfigSchema).default([]),
-  drillDown: inquiryDrillDownRuleSchema.optional(),
+  actions: z.array(inquiryActionConfigSchema).default([]),
   auditData: auditDataSchema.optional(),
 });
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { auditDataSchema, enquiryColumnSchema } from "./common-schema";
+import { inquiryActionConfigSchema } from "./inquiry-config-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Raw gRPC Payload Schemas for Enquiry                                       */
@@ -126,6 +127,7 @@ export const enquirySchemaSchema = z.object({
   showBranchWise: z.boolean().default(false),
   selectionFields: z.array(selectionFieldSchema),
   columns: z.array(enquiryColumnSchema),
+  actions: z.array(inquiryActionConfigSchema).optional(),
   commands: z.array(enquiryCommandSchema).optional(),
   sampleData: z.array(enquiryRowSchema).optional(),
 });

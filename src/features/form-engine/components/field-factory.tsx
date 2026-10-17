@@ -13,10 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cbs } from "@/lib/cbs-client";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
-import type {
-  FormFieldItem,
-  FormFieldParameter,
-} from "@/lib/data-schemas/form-config-schema";
+import type { FormFieldItem, FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
 
 export interface UnifiedFieldFactoryProps {
   field: FormFieldItem;
@@ -50,8 +47,8 @@ function useModelLookup(param: FormFieldParameter | undefined) {
         const rawProps = (res.data?.properties as Array<Record<string, unknown>>) || [];
         const opts = rawProps
           .map((p) => {
-            const codeVal = param.reference ? p[param.reference] : (p.name || p.id);
-            const labelVal = param.displayField ? p[param.displayField] : (p.label || p.name);
+            const codeVal = param.reference ? p[param.reference] : p.name || p.id;
+            const labelVal = param.displayField ? p[param.displayField] : p.label || p.name;
             return {
               code: String(codeVal ?? ""),
               label: String(labelVal ?? codeVal ?? ""),
@@ -203,7 +200,9 @@ export function UnifiedFieldFactory({
                 error && "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
               )}
             >
-              <SelectValue placeholder={modelLoading ? "Loading options..." : `Select ${field.label}`} />
+              <SelectValue
+                placeholder={modelLoading ? "Loading options..." : `Select ${field.label}`}
+              />
             </SelectTrigger>
             <SelectContent className="z-50 text-xs font-sans">
               {resolvedOptions.map((opt) => (
@@ -240,7 +239,10 @@ export function UnifiedFieldFactory({
           /* Standard Radio Buttons */
           <div className="flex items-center gap-3">
             {resolvedOptions.map((opt) => (
-              <label key={opt.code} className="inline-flex items-center gap-1.5 cursor-pointer text-xs">
+              <label
+                key={opt.code}
+                className="inline-flex items-center gap-1.5 cursor-pointer text-xs"
+              >
                 <input
                   type="radio"
                   name={field.id}

@@ -188,6 +188,20 @@ export const SC_CONTROL_LIVE: Record<string, RawControlRecord> = {
       recBranchCode: "JB9999",
     },
   },
+  "SC.INQUIRY.CONFIG": {
+    recordId: "SC.INQUIRY.CONFIG",
+    controlName: "SC.INQUIRY.CONFIG",
+    description: "Dynamic Inquiry Layout Designer",
+    auditData: {
+      recStatus: "LIVE",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2026-01-01 00:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2026-01-01 00:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
   MENU: {
     recordId: "MENU",
     controlName: "MENU",

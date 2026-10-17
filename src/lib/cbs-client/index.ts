@@ -21,6 +21,7 @@ export const cbs = {
   send: sendCbsRequest,
   model: createModelPayloads,
   formConfig: createModelPayloads(CbsControlTable.FORM_CONFIG),
+  inquiryConfig: createModelPayloads(CbsControlTable.INQUIRY_CONFIG),
   modelConfig: createModelPayloads(CbsControlTable.MODEL_CONFIG),
   userGroup: createModelPayloads(CbsControlTable.USER_GROUP),
   menu: menuPayloads,

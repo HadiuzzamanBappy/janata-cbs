@@ -31,7 +31,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cbsCommand } from "@/lib/cbs-command";
 import type { EnquiryColumn, EnquiryRow } from "@/lib/data-schemas";
 
-export interface InquiryTableProps {
+export interface InquiryEngineTableProps {
   columns: EnquiryColumn[];
   rows: EnquiryRow[];
   onViewRecord?: (recordId: string, row: EnquiryRow) => void;
@@ -42,9 +42,9 @@ export interface InquiryTableProps {
   onPageChange?: (page: number) => void;
 }
 
-export type EnquiryTableProps = InquiryTableProps;
+export type EnquiryTableProps = InquiryEngineTableProps;
 
-export function InquiryTable({
+export function InquiryEngineTable({
   columns,
   rows,
   onViewRecord,
@@ -53,7 +53,7 @@ export function InquiryTable({
   onPageSizeChange,
   currentPage: controlledPage,
   onPageChange,
-}: InquiryTableProps) {
+}: InquiryEngineTableProps) {
   const [sortCol, setSortCol] = React.useState<string | null>(null);
   const [sortAsc, setSortAsc] = React.useState(true);
   const [internalPage, setInternalPage] = React.useState(1);
@@ -133,7 +133,7 @@ export function InquiryTable({
         {/* Table Container: rounded, border-border/80, bg-card/60, shadow-2xs matching system layout */}
         <div className="flex-1 overflow-auto rounded border border-border/80 bg-card/60 shadow-2xs">
           {rows.length === 0 ? (
-            <div className="h-full min-h-[200px] flex flex-col items-center justify-center p-6 text-center bg-muted/10">
+            <div className="h-full min-h-50 flex flex-col items-center justify-center p-6 text-center bg-muted/10">
               <p className="text-xs text-muted-foreground font-mono">No matching records found.</p>
               <p className="text-[11px] text-muted-foreground/80 mt-1">
                 Adjust your selection criteria and click <strong>Find / Execute (▶)</strong>.
@@ -291,11 +291,11 @@ export function InquiryTable({
               >
                 <SelectTrigger
                   size="sm"
-                  className="h-6 w-auto min-w-[46px] text-xs font-mono px-1.5 py-0 gap-1 bg-background text-foreground border-border/80 rounded shadow-none [&_svg]:size-3 [&_svg]:text-muted-foreground"
+                  className="h-6 w-auto min-w-11.5 text-xs font-mono px-1.5 py-0 gap-1 bg-background text-foreground border-border/80 rounded shadow-none [&_svg]:size-3 [&_svg]:text-muted-foreground"
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded min-w-[56px]">
+                <SelectContent className="rounded min-w-14">
                   <SelectItem value="10" className="text-xs rounded font-mono">
                     10
                   </SelectItem>

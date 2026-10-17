@@ -1,4 +1,4 @@
-import { Database, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Database, Plus, Search, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ interface McPropertyListProps {
   isFieldCommitted?: (sn: string) => boolean;
   validationErrors?: ValidationErrorItem[];
   onAddField: () => string;
+  onAddChild?: (parentSN: string) => void;
   onDeleteField?: (sn: string, forceHardDelete?: boolean) => void;
 }
 
@@ -33,10 +34,12 @@ export function McPropertyList({
   isFieldCommitted,
   validationErrors = [],
   onAddField,
+  onAddChild,
   onDeleteField,
 }: McPropertyListProps) {
   const [searchFilter, setSearchFilter] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("ALL");
+  const [collapsedSNs, setCollapsedSNs] = React.useState<Set<string>>(new Set());
 
   const handleAddField = () => {
     const newSn = onAddField();
@@ -45,8 +48,37 @@ export function McPropertyList({
     }
   };
 
+  const toggleCollapse = (sn: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCollapsedSNs((prev) => {
+      const next = new Set(prev);
+      if (next.has(sn)) {
+        next.delete(sn);
+      } else {
+        next.add(sn);
+      }
+      return next;
+    });
+  };
+
+  const isHiddenByCollapse = React.useCallback(
+    (sn: string): boolean => {
+      if (searchFilter.trim()) return false;
+      const parts = sn.split("_");
+      if (parts.length <= 1) return false;
+      let prefix = parts[0];
+      for (let i = 1; i < parts.length; i++) {
+        if (collapsedSNs.has(prefix)) return true;
+        prefix = `${prefix}_${parts[i]}`;
+      }
+      return false;
+    },
+    [collapsedSNs, searchFilter],
+  );
+
   const filteredProperties = React.useMemo(() => {
     return properties.filter((p) => {
+      if (isHiddenByCollapse(p.sn)) return false;
       const matchSearch =
         !searchFilter.trim() ||
         p.name.toLowerCase().includes(searchFilter.trim().toLowerCase()) ||
@@ -55,7 +87,7 @@ export function McPropertyList({
       const matchType = typeFilter === "ALL" || p.type === typeFilter;
       return matchSearch && matchType;
     });
-  }, [properties, searchFilter, typeFilter]);
+  }, [properties, isHiddenByCollapse, searchFilter, typeFilter]);
 
   return (
     <div className="w-80 sm:w-96 border-r border-border/70 flex flex-col bg-muted/10 shrink-0 min-h-0">
@@ -118,8 +150,8 @@ export function McPropertyList({
         </div>
       </div>
 
-      {/* Property Items List (Clean, Flat Column Dictionary) */}
-      <div className="flex-1 overflow-y-auto min-h-0 divide-y divide-border/30">
+      {/* Property Items Tree List */}
+      <div className="flex-1 overflow-y-auto min-h-0 divide-y divide-border/20">
         {filteredProperties.length === 0 ? (
           <div className="p-6 text-center text-xs text-muted-foreground select-none">
             <p>No fields match</p>
@@ -132,113 +164,182 @@ export function McPropertyList({
             const propErrors = validationErrors.filter((e) => e.sn === prop.sn);
             const hasError = propErrors.length > 0;
 
+            const parts = prop.sn.split("_");
+            const depth = parts.length - 1;
+            const isObject = prop.type === "Object";
+            const isCollapsed = collapsedSNs.has(prop.sn);
+            const badgeLabel = isObject && prop.structure === "M" ? "Object.M" : prop.type;
+
             return (
-              <button
-                type="button"
+              <div
                 key={prop.sn}
-                onClick={() => onSelectSN(prop.sn)}
-                onKeyDown={(e) => e.key === "Enter" && onSelectSN(prop.sn)}
+                style={{ paddingLeft: `${depth * 14 + 8}px` }}
                 className={cn(
-                  "relative flex items-center justify-between w-full py-1.5 px-2.5 text-left cursor-pointer transition-colors group select-none",
+                  "relative flex items-center justify-between w-full py-1 pr-2 transition-colors group select-none",
                   hasError && !isSelected && "bg-destructive/5 hover:bg-destructive/10",
                   isSelected
                     ? hasError
-                      ? "bg-destructive/10 text-destructive border-l-3 border-l-destructive"
-                      : "bg-primary/10 text-primary border-l-3 border-l-primary"
+                      ? "bg-destructive/15 text-destructive border-l-3 border-l-destructive"
+                      : "bg-primary text-primary-foreground font-semibold"
                     : hasError
                       ? "border-l-3 border-l-destructive/80 text-foreground"
                       : "hover:bg-muted/40 text-foreground border-l-3 border-l-transparent",
                 )}
               >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <span
-                    className={cn(
-                      "font-mono text-[10px] font-bold px-1.5 py-0.2 rounded border shrink-0",
-                      hasError
-                        ? "bg-destructive/20 text-destructive border-destructive/50"
-                        : isSelected
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted text-muted-foreground border-border/70",
-                    )}
-                  >
-                    #{prop.sn}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div
-                      className={cn(
-                        "font-mono text-xs font-semibold truncate leading-tight flex items-center gap-1",
-                        isArchived && "line-through text-muted-foreground/60",
-                        hasError && "text-destructive",
-                      )}
-                    >
-                      <span>{prop.name || "<UNNAMED>"}</span>
-                      {prop.structure === "M" && (
-                        <span className="text-[9px] font-mono font-normal text-muted-foreground">
-                          [M]
-                        </span>
-                      )}
-                      {!isCommitted && (
-                        <span
-                          className="text-[9px] font-mono font-bold text-amber-500 bg-amber-500/15 border border-amber-500/30 px-1 py-0.2 rounded"
-                          title="Draft (Uncommitted)"
-                        >
-                          D
-                        </span>
-                      )}
-                      {prop.required && !isArchived && (
-                        <span className="text-destructive font-bold text-xs" title="Required Field">
-                          *
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className={cn(
-                        "text-[10px] truncate leading-tight",
-                        hasError ? "text-destructive font-medium" : "text-muted-foreground",
-                      )}
-                    >
-                      {hasError ? propErrors[0]?.message : prop.label || "No label"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0 ml-1.5">
-                  {/* Property Data Type Badge (always visible) */}
-                  <Badge
-                    variant="outline"
-                    className="font-mono text-[10px] h-4.5 px-1 rounded uppercase tracking-wider text-muted-foreground"
-                  >
-                    {prop.type}
-                  </Badge>
-
-                  {/* Status Badge: Archived */}
-                  {isArchived && (
-                    <Badge
-                      variant="destructive"
-                      className="font-mono text-[9px] h-4 px-1 rounded uppercase tracking-wider opacity-85"
-                    >
-                      Archived
-                    </Badge>
-                  )}
-
-                  {/* Quick Delete Trash Icon for uncommitted draft fields */}
-                  {!isReadOnly && !isCommitted && onDeleteField && (
+                <div className="flex items-center gap-1.5 min-w-0 flex-1 py-0.5">
+                  {isObject ? (
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      title="Delete draft field"
+                      onClick={(e) => toggleCollapse(prop.sn, e)}
+                      className={cn(
+                        "size-4.5 p-0 rounded shrink-0",
+                        isSelected
+                          ? "text-primary-foreground hover:bg-primary-foreground/20"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {isCollapsed ? (
+                        <ChevronRight className="size-3" />
+                      ) : (
+                        <ChevronDown className="size-3" />
+                      )}
+                    </Button>
+                  ) : depth > 0 ? (
+                    <span
+                      className={cn(
+                        "text-xs font-mono shrink-0 select-none px-0.5",
+                        isSelected ? "text-primary-foreground/80" : "text-muted-foreground/60",
+                      )}
+                    >
+                      ↳
+                    </span>
+                  ) : null}
+
+                  <button
+                    type="button"
+                    onClick={() => onSelectSN(prop.sn)}
+                    className="flex items-center gap-1.5 min-w-0 flex-1 text-left cursor-pointer outline-none"
+                  >
+                    <span
+                      className={cn(
+                        "font-mono text-[10px] font-bold px-1.5 py-0.2 rounded border shrink-0",
+                        hasError
+                          ? "bg-destructive/20 text-destructive border-destructive/50"
+                          : isSelected
+                            ? "bg-primary-foreground/20 text-primary-foreground border-primary-foreground/40"
+                            : "bg-muted text-muted-foreground border-border/70",
+                      )}
+                    >
+                      #{prop.sn}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className={cn(
+                          "font-mono text-xs font-semibold truncate leading-tight flex items-center gap-1",
+                          isArchived && "line-through opacity-70",
+                          hasError && !isSelected && "text-destructive",
+                        )}
+                      >
+                        <span>{prop.label || prop.name || "<UNNAMED>"}</span>
+                        {!isCommitted && (
+                          <span
+                            className={cn(
+                              "text-[9px] font-mono font-bold px-1 py-0.2 rounded border",
+                              isSelected
+                                ? "bg-amber-400 text-amber-950 border-amber-300"
+                                : "text-amber-500 bg-amber-500/15 border-amber-500/30",
+                            )}
+                            title="Draft (Uncommitted)"
+                          >
+                            D
+                          </span>
+                        )}
+                        {prop.required && !isArchived && (
+                          <span
+                            className={cn(
+                              isSelected ? "text-primary-foreground" : "text-destructive",
+                              "font-bold text-xs",
+                            )}
+                          >
+                            *
+                          </span>
+                        )}
+                      </div>
+                      {prop.name && prop.label && prop.name !== prop.label && (
+                        <div
+                          className={cn(
+                            "text-[10px] truncate leading-tight font-mono",
+                            isSelected ? "text-primary-foreground/80" : "text-muted-foreground",
+                          )}
+                        >
+                          {prop.name}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </div>
+
+                {/* Right Side Badges & Quick Action Buttons */}
+                <div className="flex items-center gap-1 shrink-0 ml-1.5">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider",
+                      isSelected
+                        ? "border-primary-foreground/40 bg-primary-foreground/15 text-primary-foreground"
+                        : "text-muted-foreground border-border/70",
+                    )}
+                  >
+                    {badgeLabel}
+                  </Badge>
+
+                  {/* Add Child button for Object items */}
+                  {isObject && !isReadOnly && onAddChild && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      title="Add child field to this object group"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDeleteField(prop.sn, true);
+                        onAddChild(prop.sn);
                       }}
-                      className="size-5 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 opacity-70 group-hover:opacity-100 transition-opacity"
+                      className={cn(
+                        "size-5 p-0 rounded transition-opacity",
+                        isSelected
+                          ? "text-primary-foreground hover:bg-primary-foreground/20"
+                          : "text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-70 group-hover:opacity-100",
+                      )}
+                    >
+                      <Plus className="size-3.5" />
+                    </Button>
+                  )}
+
+                  {/* Delete button */}
+                  {!isReadOnly && onDeleteField && (!isCommitted || isSelected) && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      title="Delete field"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteField(prop.sn, !isCommitted);
+                      }}
+                      className={cn(
+                        "size-5 p-0 rounded transition-opacity",
+                        isSelected
+                          ? "text-primary-foreground hover:bg-destructive hover:text-destructive-foreground"
+                          : "text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 opacity-70 group-hover:opacity-100",
+                      )}
                     >
                       <Trash2 className="size-3" />
                     </Button>
                   )}
                 </div>
-              </button>
+              </div>
             );
           })
         )}

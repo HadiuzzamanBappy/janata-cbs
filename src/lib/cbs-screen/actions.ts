@@ -185,54 +185,69 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
 
   return [
     {
-      label: "List Live File",
+      label: "Copy",
+      command: "COPY",
       onClick: () =>
         toast.add({
-          title: "Inquiry",
-          description: `Listing active live records for ${cleanCode}`,
+          title: "Copy",
+          description: `Copied record data for ${cleanCode}`,
+          type: "info",
+        }),
+    },
+    {
+      label: "Paste",
+      command: "PASTE",
+      onClick: () =>
+        toast.add({
+          title: "Paste",
+          description: `Pasted record data into ${cleanCode}`,
+          type: "info",
+        }),
+      requiredRight: "I",
+    },
+    {
+      label: "Search from live",
+      command: "SFL",
+      onClick: () =>
+        toast.add({
+          title: "Search from live",
+          description: `Searching live file for ${cleanCode}`,
           type: "info",
         }),
       requiredRight: "S",
     },
     {
-      label: "List Unauth File",
+      label: "Search from unauth",
+      command: "SFU",
       onClick: () =>
         toast.add({
-          title: "Inquiry",
-          description: `Listing unauthorized records for ${cleanCode}`,
+          title: "Search from unauth",
+          description: `Searching unauthorized file for ${cleanCode}`,
           type: "info",
         }),
       requiredRight: "S",
     },
     {
-      label: "List History File",
+      label: "Search from history",
+      command: "SFH",
       onClick: () =>
         toast.add({
-          title: "Inquiry",
-          description: `Fetching history records for ${cleanCode}`,
+          title: "Search from history",
+          description: `Searching history file for ${cleanCode}`,
           type: "info",
         }),
       requiredRight: "R",
     },
     {
-      label: "Search Live File",
+      label: "Show history record",
+      command: "SHR",
       onClick: () =>
         toast.add({
-          title: "Search",
-          description: `Opening Live File search dialog for ${cleanCode}`,
+          title: "Show history record",
+          description: `Displaying history record for ${cleanCode}`,
           type: "info",
         }),
-      requiredRight: "S",
-    },
-    {
-      label: "Search Unauth File",
-      onClick: () =>
-        toast.add({
-          title: "Search",
-          description: `Opening Unauthorized File search dialog for ${cleanCode}`,
-          type: "info",
-        }),
-      requiredRight: "S",
+      requiredRight: "R",
     },
   ];
 }

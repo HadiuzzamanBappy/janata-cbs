@@ -2,7 +2,7 @@
 
 A fast, decoupled command-line grammar parser, RBAC security validator, and routing gateway for the **Janata Core Banking Workbench**.
 
-It gives tellers and power operators the traditional command-line navigation speed of Core Banking systems (such as Temenos T24 / CBS terminal commands like `ACCOUNT I 1001` or `USER,`) while seamlessly routing to modern Next.js multitab views, detached popup windows, and system dialogs.
+It gives tellers and power operators the traditional command-line navigation speed of Core Banking systems while seamlessly routing to modern Next.js multitab views, detached popup windows, and system dialogs.
 
 ---
 

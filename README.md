@@ -1,4 +1,4 @@
-# 🏛️ Janata CBS Core Banking Workbench (v2)
+# 🏛️ Janata CBS Core Banking Workbench
 
 > A modern, high-density, enterprise-grade Next.js core banking workbench serving as the dynamic frontend for the Java Core Banking system.
 

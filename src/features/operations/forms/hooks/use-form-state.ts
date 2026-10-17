@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { FormSchema } from "@/lib/data-schemas";
+import type { ParsedFormData } from "@/lib/data-schemas";
 
-export function useFormState(schema: FormSchema | null, initialData: Record<string, unknown> = {}) {
+export function useFormState(schema: ParsedFormData | null, initialData: Record<string, unknown> = {}) {
   const [values, setValues] = useState<Record<string, unknown>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState<boolean>(false);
@@ -35,9 +35,9 @@ export function useFormState(schema: FormSchema | null, initialData: Record<stri
     const newErrors: Record<string, string> = {};
     for (const field of schema.fields) {
       if (field.required) {
-        const val = values[field.name];
+        const val = values[field.fieldKey];
         if (val === undefined || val === null || val === "") {
-          newErrors[field.name] = `${field.label} is required`;
+          newErrors[field.fieldKey] = `${field.label} is required`;
         }
       }
     }

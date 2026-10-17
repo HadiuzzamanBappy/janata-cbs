@@ -1,9 +1,8 @@
 import {
-  type FieldType,
-  type FieldWidth,
-  type FormField,
-  type FormSchema,
-  formSchemaSchema,
+  type FormFieldItem,
+  type FormWidgetType,
+  type ParsedFormData,
+  parsedFormDataSchema,
   type RawPropertyConfigRecord,
   type RawPropertyRecord,
   rawPropertyConfigSchema,
@@ -15,21 +14,22 @@ import { decodeProtobufValue } from "./protobuf-decoder";
 /* -------------------------------------------------------------------------- */
 
 /**
- * Maps field length to standard UI width classes.
+ * Maps field length to standard 12-column responsive grid span.
  */
-export function widthForLength(length?: number | string): FieldWidth {
+export function colSpanForLength(length?: number | string): number {
   const num = typeof length === "string" ? Number.parseInt(length, 10) : length;
-  if (!num || Number.isNaN(num)) return "md";
-  if (num <= 4) return "xs";
-  if (num <= 12) return "sm";
-  if (num <= 24) return "md";
-  return "lg";
+  if (!num || Number.isNaN(num)) return 6;
+  if (num <= 4) return 3;
+  if (num <= 12) return 4;
+  if (num <= 24) return 6;
+  return 12;
 }
 
 /**
- * Maps SQL / CBS column types to canonical UI field input types.
+ * Maps SQL / CBS column types to canonical FormWidgetType.
  */
-export function typeForColumn(sqlType?: string): FieldType {
+export function mapRawTypeToWidget(sqlType?: string, datasource?: string[]): FormWidgetType {
+  if (datasource && datasource.length > 0) return "select";
   const t = (sqlType ?? "").toUpperCase();
   if (t.includes("DATE") || t.includes("TIME")) return "date";
   if (
@@ -41,7 +41,28 @@ export function typeForColumn(sqlType?: string): FieldType {
   ) {
     return "number";
   }
+  if (t.includes("BOOL")) return "switch";
+  if (t.includes("TEXT") || t.includes("CLOB")) return "textarea";
   return "text";
+}
+
+/**
+ * Maps SQL / CBS column types to MODEL.CONFIG PropertyType string.
+ */
+export function mapRawTypeToModelType(sqlType?: string): string {
+  const t = (sqlType ?? "").toUpperCase();
+  if (t.includes("DATE") || t.includes("TIME")) return "Date";
+  if (
+    t.includes("INT") ||
+    t.includes("DEC") ||
+    t.includes("NUM") ||
+    t.includes("DOUBLE") ||
+    t.includes("FLOAT")
+  ) {
+    return "Number";
+  }
+  if (t.includes("BOOL")) return "Boolean";
+  return "Text";
 }
 
 function truthy(val: unknown): boolean {
@@ -49,37 +70,26 @@ function truthy(val: unknown): boolean {
 }
 
 /**
- * Maps a raw property record to a canonical UI FormField descriptor.
+ * Maps a raw property record to a canonical FormFieldItem descriptor.
  */
-export function toField(record: RawPropertyRecord): FormField {
-  const name = record.name ?? "";
-  const label = record.label ?? name;
+export function toField(record: RawPropertyRecord): FormFieldItem {
+  const fieldKey = record.name ?? "";
+  const label = record.label ?? fieldKey;
   const options =
     Array.isArray(record.datasource) && record.datasource.length > 0
       ? record.datasource
       : undefined;
 
-  const rawType = (record.type ?? "").toLowerCase();
-
-  let fieldType: FieldType = "text";
-  if (options?.length) {
-    fieldType = "select";
-  } else if (rawType.includes("date")) {
-    fieldType = "date";
-  } else if (rawType.includes("number") || rawType.includes("numeric") || rawType.includes("int")) {
-    fieldType = "number";
-  } else {
-    fieldType = typeForColumn(record.type);
-  }
-
   return {
-    name,
+    id: `f_${fieldKey || Date.now()}`,
+    fieldKey,
     label,
-    type: fieldType,
-    width: widthForLength(record.length),
+    widget: mapRawTypeToWidget(record.type, options),
+    colSpan: colSpanForLength(record.length),
     required: truthy(record.required),
     readOnly: truthy(record.disabled),
     options,
+    modelType: mapRawTypeToModelType(record.type),
   };
 }
 
@@ -88,12 +98,12 @@ export function toField(record: RawPropertyRecord): FormField {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Parses raw GMC (Generic Model Controller) payload into a validated FormSchema.
+ * Parses raw GMC (Generic Model Controller) payload into a validated ParsedFormData.
  */
 export function parseGMC(
   rawPayload: unknown,
   commandFallback = "FORM",
-): { success: true; data: FormSchema } | { success: false; error: string } {
+): { success: true; data: ParsedFormData } | { success: false; error: string } {
   if (!rawPayload || typeof rawPayload !== "object") {
     return { success: false, error: "GMC payload is null, undefined, or invalid object" };
   }
@@ -133,9 +143,9 @@ export function parseGMC(
       .join("")
       .slice(0, 2);
 
-  const fields = properties.map(toField).filter((f: FormField) => Boolean(f.name));
+  const fields = properties.map(toField).filter((f) => Boolean(f.fieldKey));
 
-  const candidateForm: FormSchema = {
+  const candidateForm: ParsedFormData = {
     code,
     title: record.description ?? code,
     idPrefix,
@@ -143,9 +153,12 @@ export function parseGMC(
     columns: record.columns,
   };
 
-  const finalCheck = formSchemaSchema.safeParse(candidateForm);
+  const finalCheck = parsedFormDataSchema.safeParse(candidateForm);
   if (!finalCheck.success) {
-    return { success: false, error: `FormSchema validation failed: ${finalCheck.error.message}` };
+    return {
+      success: false,
+      error: `ParsedFormData validation failed: ${finalCheck.error.message}`,
+    };
   }
 
   return { success: true, data: finalCheck.data };

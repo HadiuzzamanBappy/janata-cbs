@@ -1,4 +1,4 @@
-import type { FormSchema } from "@/lib/data-schemas";
+import type { ParsedFormData } from "@/lib/data-schemas";
 
 export interface DynamicFormProps {
   command: string;
@@ -9,7 +9,7 @@ export interface DynamicFormProps {
 }
 
 export interface FormRendererProps {
-  schema: FormSchema;
+  schema: ParsedFormData;
   values: Record<string, unknown>;
   onChange: (field: string, value: unknown) => void;
   errors?: Record<string, string>;

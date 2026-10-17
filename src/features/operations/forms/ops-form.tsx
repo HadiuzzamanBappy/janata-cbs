@@ -99,8 +99,8 @@ export function OpsForm({
       const normalized = normalizeRecordData(rawData, schema);
       if (cleanId) {
         const idField = findPrimaryKeyField(schema);
-        if (idField && !normalized[idField.name]) {
-          normalized[idField.name] = cleanId;
+        if (idField && !normalized[idField.fieldKey]) {
+          normalized[idField.fieldKey] = cleanId;
         }
       }
 
@@ -116,7 +116,7 @@ export function OpsForm({
     } else if (cleanId) {
       const idField = findPrimaryKeyField(schema);
       if (idField) {
-        setValue(idField.name, cleanId);
+        setValue(idField.fieldKey, cleanId);
       }
     }
   }, [schema, searchRecordId, currentTab?.formData, screenMode, setValues, setValue]);

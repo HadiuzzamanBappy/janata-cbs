@@ -1,5 +1,6 @@
 "use client";
 
+import { findFormConfigFixture, listFormConfigSummaries } from "@fixtures";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
@@ -33,7 +34,13 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     tabId,
   );
 
-  const [availableForms, setAvailableForms] = React.useState<FormCatalogItem[]>([]);
+  const [availableForms, setAvailableForms] = React.useState<FormCatalogItem[]>(() =>
+    listFormConfigSummaries().map((item) => ({
+      id: item.id,
+      label: item.label,
+      details: item.details,
+    })),
+  );
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const [selectedSectionId, setSelectedSectionId] = React.useState<string | null>(null);
@@ -45,7 +52,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     cbs
       .send<FormCatalogItem[]>(cbs.formConfig.list(), { silent: true })
       .then((res) => {
-        if (res.status === "SUCCESS" && Array.isArray(res.data)) {
+        if (res.status === "SUCCESS" && Array.isArray(res.data) && res.data.length > 0) {
           setAvailableForms(res.data);
         }
       })
@@ -69,7 +76,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
 
         const loadedRecord =
           (res.data as { data?: typeof INITIAL_FORM_CONFIG })?.data ||
-          (res.data as typeof INITIAL_FORM_CONFIG);
+          (res.data as typeof INITIAL_FORM_CONFIG) ||
+          findFormConfigFixture(cleanId);
 
         if (res.status === "SUCCESS" && loadedRecord) {
           const sanitizedRecord: FormConfigRecord = {
@@ -242,6 +250,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
         options: fieldTemplate?.options,
         currencyPrefix: fieldTemplate?.currencyPrefix,
         formula: fieldTemplate?.formula,
+        modelType: fieldTemplate?.modelType,
+        parameter: fieldTemplate?.parameter,
       };
 
       setFormData((prev) => ({

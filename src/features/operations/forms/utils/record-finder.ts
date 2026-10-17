@@ -5,7 +5,7 @@ import {
   SC_MENU_LIVE,
   SC_MENU_TREE_LIVE,
 } from "@fixtures";
-import type { FormSchema } from "@/lib/data-schemas";
+import type { ParsedFormData } from "@/lib/data-schemas";
 
 /**
  * Direct lookup across canonical database tables by table model code and record ID.
@@ -43,13 +43,13 @@ export function findRecordInFixtures(
 /**
  * Identifies the primary key / record ID field definition in a form schema.
  */
-export function findPrimaryKeyField(schema: FormSchema | null) {
+export function findPrimaryKeyField(schema: ParsedFormData | null) {
   if (!schema?.fields) return undefined;
   return schema.fields.find(
     (f) =>
-      f.name.toUpperCase().includes("ID") ||
-      f.name.toUpperCase().includes("CODE") ||
-      f.name.toUpperCase().includes("NUMBER"),
+      f.fieldKey.toUpperCase().includes("ID") ||
+      f.fieldKey.toUpperCase().includes("CODE") ||
+      f.fieldKey.toUpperCase().includes("NUMBER"),
   );
 }
 

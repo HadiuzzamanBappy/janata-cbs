@@ -62,11 +62,27 @@ export const formFieldItemSchema = z.object({
   required: z.boolean().optional(),
   readOnly: z.boolean().optional(),
   hidden: z.boolean().optional(),
-  options: z.array(z.string()).optional(), // Select dropdown options
+  options: z.array(z.string()).optional(), // Legacy string options (fallback)
   currencyPrefix: z.string().optional(), // For amount widgets (e.g. "BDT")
-  formula: z.string().optional(), // Derived/Calculated expression (e.g. "principal + charge")
+  formula: z.string().optional(), // Derived/Calculated expression
+  // Binding metadata from MODEL.CONFIG — set when field is placed from palette
+  modelType: z.string().optional(), // PropertyType: "Number", "Dropdown", "Date", etc.
+  parameter: z.unknown().optional(), // PropertyParameter — typed as unknown for Zod safety
 });
 export type FormFieldItem = z.infer<typeof formFieldItemSchema>;
+
+/**
+ * Convenience type alias for the parameter field at runtime.
+ * Cast `field.parameter` to this type to access itemCode/itemLabel/modelName etc.
+ */
+export type FormFieldParameter = {
+  type: "O" | "M" | "";
+  data: { id?: string; itemCode: string; itemLabel: string }[];
+  modelName: string;
+  displayField: string;
+  condition: string;
+  reference: string;
+};
 
 /**
  * Form Section Container:

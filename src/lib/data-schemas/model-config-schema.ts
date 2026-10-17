@@ -51,10 +51,7 @@ export const modelPropertySchema = z.object({
   required: z.boolean().default(false),
   disabled: z.boolean().default(false),
   status: z.enum(["ACTIVE", "ARCHIVED"]).default("ACTIVE"),
-  mask: z.string().optional(),
-  pattern: z.string().optional(),
   defaultValue: z.unknown().optional(),
-  fixedValue: z.string().optional(),
   enrichText: z.string().optional(),
   parameter: propertyParameterSchema.optional(),
 });

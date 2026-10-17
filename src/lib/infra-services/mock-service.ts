@@ -185,8 +185,13 @@ export function getMockProxyResponse(
     }
   }
 
-  // 3. Form Config Presentation Catalog (SC.FORM.CONFIG / FORM.CONFIG)
-  if (cleanModel === "SC.FORM.CONFIG" || cleanModel === "FORM.CONFIG") {
+  // 3. Form Config Presentation Catalog (CONFIG.FORM / SC.FORM.CONFIG / FORM.CONFIG / FC)
+  if (
+    cleanModel === "CONFIG.FORM" ||
+    cleanModel === "FORM.CONFIG" ||
+    cleanModel === "SC.FORM.CONFIG" ||
+    cleanModel === "FORM_CONFIG"
+  ) {
     if (
       !cleanRecordId ||
       cleanRecordId === "LIST" ||
@@ -209,12 +214,24 @@ export function getMockProxyResponse(
       };
     }
 
-    if (STATIC_FORM_CONFIGS[cleanRecordId]) {
+    const found =
+      STATIC_FORM_CONFIGS[cleanRecordId] ||
+      STATIC_FORM_CONFIGS[cleanRecordId.replace(/^(FC|SC)\./, "")] ||
+      STATIC_FORM_CONFIGS[`FC.${cleanRecordId}`] ||
+      Object.values(STATIC_FORM_CONFIGS).find(
+        (cfg) =>
+          cfg.recordId?.toUpperCase() === cleanRecordId ||
+          cfg.targetModel?.toUpperCase() === cleanRecordId ||
+          cfg.recordId?.toUpperCase() === cleanRecordId.replace(/^(FC|SC)\./, "") ||
+          cfg.targetModel?.toUpperCase() === cleanRecordId.replace(/^(FC|SC)\./, ""),
+      );
+
+    if (found) {
       return {
         status: "SUCCESS",
         statusCode: 200,
         message: `Form config for #${cleanRecordId} loaded`,
-        data: STATIC_FORM_CONFIGS[cleanRecordId],
+        data: found,
         timestamp,
       };
     }

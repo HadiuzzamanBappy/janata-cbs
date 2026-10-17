@@ -5,7 +5,7 @@
  * across dynamic 150 - 1,000 field schemas.
  */
 
-import type { FormSchema } from "@/lib/data-schemas";
+import type { FormFieldItem } from "@/lib/data-schemas";
 
 export interface FieldValidationRule {
   required?: boolean;
@@ -50,30 +50,40 @@ export function validateSingleField(rule: FieldValidationRule, value: unknown): 
 }
 
 /**
- * Validates an entire form schema dictionary against the active values.
+ * Validates a list of form fields against active values.
  * Returns an errors map: { [fieldKey]: "Error message" }
  */
-export function validateFormSchema(
-  schema: FormSchema | null,
+export function validateFormFields(
+  fields: FormFieldItem[],
   values: Record<string, unknown>,
 ): Record<string, string> {
-  if (!schema?.fields) return {};
-
   const errors: Record<string, string> = {};
 
-  for (const field of schema.fields) {
+  for (const field of fields) {
     const err = validateSingleField(
       {
         required: field.required,
-        label: field.label || field.name,
+        label: field.label,
       },
-      values[field.name],
+      values[field.fieldKey],
     );
 
     if (err) {
-      errors[field.name] = err;
+      errors[field.fieldKey] = err;
     }
   }
 
   return errors;
+}
+
+/**
+ * Validates a form container / schema against active values.
+ * Compatible with any container providing a `fields: FormFieldItem[]` array.
+ */
+export function validateFormSchema(
+  schema: { fields?: FormFieldItem[] } | null,
+  values: Record<string, unknown>,
+): Record<string, string> {
+  if (!schema?.fields) return {};
+  return validateFormFields(schema.fields, values);
 }

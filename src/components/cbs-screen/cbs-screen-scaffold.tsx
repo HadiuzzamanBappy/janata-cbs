@@ -1,16 +1,12 @@
 "use client";
 
-import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCbsHotkeys } from "@/lib/cbs-hotkeys";
-import type { CbsAuditFooterData, CbsAuditRawData, CbsScreenScaffoldProps } from "@/lib/cbs-screen";
-import { formatAuditFooterData } from "@/lib/cbs-screen";
-
-import { CbsAuditFooter } from "./cbs-audit-footer";
-import { CbsFormHeader } from "./cbs-form-header";
-import { CbsIdleState } from "./cbs-idle-state";
-import { CbsInquiryHeader } from "./cbs-inquiry-header";
+import type { CbsScreenScaffoldProps } from "@/lib/cbs-screen";
+import { CbsFormHeader } from "./header/cbs-form-header";
+import { CbsInquiryHeader } from "./header/cbs-inquiry-header";
+import { CbsIdleState } from "./states/cbs-idle-state";
 
 export function CbsScreenScaffold<TTab extends string = string>({
   title,
@@ -48,7 +44,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
   onActiveTabChange,
   validationErrors = [],
   rightTabContent,
-  auditData,
   children,
   className = "",
 }: CbsScreenScaffoldProps<TTab>) {
@@ -68,14 +63,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
       onReturn: onReturnToSearch,
     },
   });
-
-  const resolvedAuditFooter = React.useMemo((): CbsAuditFooterData | undefined => {
-    if (!auditData) return undefined;
-    if ("recordStatus" in auditData || "currNo" in auditData) {
-      return auditData as CbsAuditFooterData;
-    }
-    return formatAuditFooterData(auditData as CbsAuditRawData);
-  }, [auditData]);
 
   return (
     <div
@@ -153,7 +140,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
             >
               {/* TAB ROW STRIP */}
               <div className="border-b border-border/70 pb-1 flex items-center justify-between shrink-0">
-                <TabsList className="h-7 bg-muted/60 p-0.5 rounded">
+                <TabsList className="h-7 bg-muted/60 p-0.5 rounded-sm">
                   {tabs.map((tab) => {
                     const errorCount =
                       tab.badgeCount !== undefined
@@ -164,14 +151,14 @@ export function CbsScreenScaffold<TTab extends string = string>({
                       <TabsTrigger
                         key={tab.id}
                         value={tab.id}
-                        className="h-6 px-2.5 text-xs rounded gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs font-medium cursor-pointer"
+                        className="h-6 px-2.5 text-xs rounded-xs gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs font-medium cursor-pointer"
                       >
                         {tab.icon}
                         <span>{tab.label}</span>
                         {errorCount > 0 && (
                           <Badge
                             variant="destructive"
-                            className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-full"
+                            className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-xs"
                           >
                             {errorCount}
                           </Badge>
@@ -204,9 +191,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">{children}</div>
         )}
       </div>
-
-      {/* 3. AUDIT FOOTER */}
-      {mode !== "IDLE" && resolvedAuditFooter && <CbsAuditFooter audit={resolvedAuditFooter} />}
     </div>
   );
 }

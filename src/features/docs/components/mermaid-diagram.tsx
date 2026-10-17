@@ -74,7 +74,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   return (
     <div
       ref={containerRef}
-      className="my-6 flex justify-center overflow-x-auto rounded-xl border border-border bg-card/40 p-6 shadow-xs transition-colors [&_.edgeLabel_rect]:!fill-transparent [&_.edgeLabel_span]:!bg-transparent [&_.edgeLabel_div]:!bg-transparent"
+      className="my-6 flex justify-center overflow-x-auto rounded-md border border-border bg-card/40 p-6 shadow-xs transition-colors [&_.edgeLabel_rect]:fill-transparent! [&_.edgeLabel_span]:bg-transparent! [&_.edgeLabel_div]:bg-transparent!"
     />
   );
 }

@@ -136,7 +136,6 @@ export function SysUserGroup({ command, tabId }: ScreenProps) {
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
       validationErrors={validationErrors}
-      auditData={formData.auditData}
       rightTabContent={
         <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
           <Layers className="size-3" />

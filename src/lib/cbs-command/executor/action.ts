@@ -28,19 +28,13 @@ export function dispatchSystemAction(parsed: ParsedCommand): boolean {
 
   // 3. Action: Logout Session
   if (parsed.type === "ACTION" && parsed.actionId === "logout") {
-    const adapter = getCommandAdapter();
-    if (adapter.logout) {
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("cbs:confirm-logout"));
-      } else {
-        adapter.logout();
-      }
-      return true;
-    }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("cbs:confirm-logout"));
-      return true;
+    } else {
+      const adapter = getCommandAdapter();
+      adapter.logout?.();
     }
+    return true;
   }
 
   return false;

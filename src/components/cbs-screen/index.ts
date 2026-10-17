@@ -1,14 +1,22 @@
-export * from "./action-buttons";
-export * from "./action-more-menu";
-export * from "./cbs-audit-footer";
-export * from "./cbs-audit-tab";
-export * from "./cbs-form-header";
-export * from "./cbs-idle-state";
-export * from "./cbs-inquiry-header";
-export * from "./cbs-json-viewer-tab";
+// Root barrel export for all CBS Screen scaffolding, headers, tabs, states, and hooks
 export * from "./cbs-screen-scaffold";
-export * from "./cbs-system-skeleton";
-export * from "./cbs-validation-checklist";
+
+// Header sub-components
+export * from "./header/action-buttons";
+export * from "./header/action-more-menu";
+export * from "./header/cbs-form-header";
+export * from "./header/cbs-inquiry-header";
+export * from "./header/cbs-validation-checklist";
+export * from "./header/record-lookup-bar";
+
+// Hooks
 export * from "./hooks/use-cbs-persistence";
 export * from "./hooks/use-record-lookup";
-export * from "./record-lookup-bar";
+
+// States
+export * from "./states/cbs-idle-state";
+export * from "./states/cbs-system-skeleton";
+
+// Tabs
+export * from "./tabs/cbs-audit-tab";
+export * from "./tabs/cbs-json-viewer-tab";

@@ -13,6 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { buttonVariants } from "@/components/ui/button";
 import { appConfig } from "@/lib/core-config";
 import { DEV_NAV_GROUPS } from "../config";
 import type { NavGroup } from "../types";
@@ -45,11 +46,11 @@ export function DocHeader({
 
   return (
     <>
-      <header className="h-14 border-b bg-card/30 backdrop-blur-md px-6 flex items-center justify-between shrink-0 z-20">
-        {/* Left: Dynamic Breadcrumbs */}
-        <div className="flex items-center gap-2 min-w-0">
+      <header className="h-10 border-b border-border/60 bg-background/50 backdrop-blur-xs px-3 sm:px-4 flex items-center justify-between shrink-0 z-20">
+        {/* Left: Dynamic Breadcrumbs (Toggle & Search live cleanly on the Sidebar) */}
+        <div className="flex items-center gap-1.5 min-w-0">
           <Breadcrumb>
-            <BreadcrumbList className="text-xs">
+            <BreadcrumbList className="text-[11px]">
               <BreadcrumbItem>
                 <BreadcrumbLink
                   href={`/${portalSubFolder}`}
@@ -70,7 +71,7 @@ export function DocHeader({
                 <>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbPage className="font-semibold text-foreground truncate max-w-[280px]">
+                    <BreadcrumbPage className="font-medium text-foreground truncate max-w-60">
                       {currentItem.label}
                     </BreadcrumbPage>
                   </BreadcrumbItem>
@@ -79,7 +80,7 @@ export function DocHeader({
                 <>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
-                    <BreadcrumbPage className="font-semibold text-foreground">
+                    <BreadcrumbPage className="font-medium text-foreground">
                       README.md
                     </BreadcrumbPage>
                   </BreadcrumbItem>
@@ -89,26 +90,33 @@ export function DocHeader({
           </Breadcrumb>
         </div>
 
-        {/* Right: Download PDF, Home Button & Theme Toggle */}
-        <div className="flex items-center gap-3">
+        {/* Right: Export PDF Button + Square Dashboard Icon + Square ThemeToggle */}
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setPdfModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-semibold transition cursor-pointer shadow-xs"
+            className="flex items-center gap-1 h-7 px-2.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium transition cursor-pointer shadow-2xs"
             title="Export portal documentation as dynamic PDF"
           >
-            <Download className="h-3.5 w-3.5" />
-            <span>Download PDF</span>
+            <Download className="size-3.5" />
+            <span className="hidden sm:inline">Export PDF</span>
           </button>
 
+          {/* Dashboard Icon Button: identical square styling to ThemeToggle (size-7, border-border/80) */}
           <Link
             href={appConfig.routes.dashboard}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 text-xs font-medium transition"
+            className={buttonVariants({
+              variant: "outline",
+              size: "icon-sm",
+              className:
+                "size-7 bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0",
+            })}
             title="Return to Officer Dashboard"
+            aria-label="Return to Dashboard"
           >
-            <Home className="h-3.5 w-3.5" />
-            <span>Home</span>
+            <Home className="size-3.5" />
           </Link>
+
           <ThemeToggle />
         </div>
       </header>

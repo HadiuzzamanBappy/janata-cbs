@@ -9,11 +9,9 @@ export const metadata: Metadata = {
 export default function ChangePasswordPage() {
   return (
     <>
-      <div className="mb-8 text-center">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
-          Action Required
-        </h2>
-        <p className="mt-1 text-[13px] text-fg-muted">
+      <div className="mb-6 text-center space-y-1">
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">Action Required</h2>
+        <p className="text-xs text-muted-foreground">
           This is your initial sign-on. You must set a new password to continue.
         </p>
       </div>

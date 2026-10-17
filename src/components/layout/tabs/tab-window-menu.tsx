@@ -82,7 +82,7 @@ function TabWindowMenuItem({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       className={cn(
-        "list-none transition-all duration-150 rounded mb-0.5 relative",
+        "list-none transition-all duration-150 rounded-sm mb-0.5 relative",
         isDraggingThis && "opacity-40 scale-[0.98]",
         isDragOverThis && !isDraggingThis && "bg-primary/10 ring-1 ring-primary/50",
       )}
@@ -94,10 +94,10 @@ function TabWindowMenuItem({
               type="button"
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "w-full text-left relative flex items-center justify-between py-1.5 px-2 cursor-pointer rounded text-xs gap-2 group transition-colors select-none",
+                "w-full text-left relative flex items-center justify-between py-1.5 px-2 cursor-pointer rounded-sm text-xs gap-2 group transition-colors select-none",
                 "hover:bg-accent/70 hover:text-accent-foreground",
                 isActive
-                  ? "bg-accent/80 text-accent-foreground font-semibold pl-2.5 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-primary before:rounded-full"
+                  ? "bg-accent/80 text-accent-foreground font-semibold pl-2.5 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.75 before:bg-primary before:rounded-full"
                   : "text-foreground/90",
               )}
             />
@@ -112,7 +112,7 @@ function TabWindowMenuItem({
               <Badge
                 variant={isActive ? "default" : "secondary"}
                 className={cn(
-                  "h-4 min-w-[16px] px-1 rounded-xs text-[10px] font-mono flex items-center justify-center border-transparent shrink-0",
+                  "h-4 min-w-4 px-1 rounded-xs text-[10px] font-mono flex items-center justify-center border-transparent shrink-0",
                   isActive ? "bg-primary/20 text-primary font-bold" : "opacity-70",
                 )}
               >
@@ -124,7 +124,7 @@ function TabWindowMenuItem({
         </ContextMenuTrigger>
 
         {/* Right-click Context Menu */}
-        <ContextMenuContent className="w-52 text-xs rounded border border-border/80">
+        <ContextMenuContent className="w-52 text-xs border border-border/80">
           <TabMenuItems
             tab={tab}
             ItemComponent={ContextMenuItem}
@@ -140,7 +140,7 @@ function TabWindowMenuItem({
         <button
           type="button"
           onClick={handleClose}
-          className="size-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
+          className="size-5 rounded-xs flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-70 group-hover:opacity-100 cursor-pointer"
           title="Close Window"
         >
           <X className="size-3" />
@@ -169,7 +169,7 @@ export function TabWindowMenu() {
           <Button
             variant="outline"
             size="xs"
-            className="h-7 gap-1.5 px-2 text-xs font-mono font-medium bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 rounded shadow-2xs"
+            className="h-7 gap-1.5 px-2 text-xs font-mono font-medium bg-background border-border/80 hover:bg-accent hover:text-accent-foreground shrink-0 shadow-2xs"
           />
         }
       >
@@ -179,7 +179,7 @@ export function TabWindowMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-72 sm:w-80 p-0 overflow-hidden rounded border border-border/80 shadow-md"
+        className="w-72 sm:w-80 p-0 overflow-hidden border border-border/80 shadow-md"
       >
         {/* Header: Search Open Tabs */}
         {tabs.length > 3 && (
@@ -189,7 +189,7 @@ export function TabWindowMenu() {
               value={tabSearch}
               onChange={(e) => setTabSearch(e.target.value)}
               placeholder="Search opened windows..."
-              className="pl-8 h-7 text-xs bg-background rounded border-border/80 focus-visible:ring-1"
+              className="pl-8 h-7 text-xs bg-background border-border/80 focus-visible:ring-1"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             />

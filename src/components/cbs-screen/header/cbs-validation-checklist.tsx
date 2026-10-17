@@ -33,7 +33,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
             type="button"
             variant="destructive"
             size="sm"
-            className="h-7 px-2.5 text-xs gap-1.5 rounded font-semibold animate-pulse shadow-xs cursor-pointer shrink-0"
+            className="h-7 px-2.5 text-xs gap-1.5 font-semibold animate-pulse shadow-xs cursor-pointer shrink-0"
           >
             <AlertTriangle className="size-3.5 shrink-0" />
             <span>
@@ -45,13 +45,16 @@ export function CbsValidationChecklist<TTab extends string = string>({
       />
       <DropdownMenuContent
         align="end"
-        className="w-84 rounded-md p-1 shadow-lg bg-popover border border-destructive/30"
+        className="w-84 p-1 shadow-lg bg-popover border border-destructive/30"
       >
-        <DropdownMenuLabel className="text-xs font-semibold px-2 py-1.5 flex items-center justify-between text-destructive bg-destructive/5 rounded-t">
+        <DropdownMenuLabel className="text-xs font-semibold px-2 py-1.5 flex items-center justify-between text-destructive bg-destructive/5 rounded-t-sm">
           <div className="flex items-center gap-1.5">
             <AlertTriangle className="size-3.5 text-destructive" />
             <span>Validation Checklist</span>
-            <Badge variant="destructive" className="text-[10px] h-4 px-1 rounded font-mono ml-0.5">
+            <Badge
+              variant="destructive"
+              className="text-[10px] h-4 px-1 rounded-xs font-mono ml-0.5"
+            >
               {errors.length}
             </Badge>
           </div>
@@ -66,7 +69,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
                 focusFormField(first.fieldKey, first.nodeId);
               }
             }}
-            className="h-5 px-1.5 text-[10px] font-semibold rounded shadow-none cursor-pointer"
+            className="h-5 px-1.5 text-[10px] font-semibold shadow-none cursor-pointer"
           >
             Fix First →
           </Button>
@@ -80,12 +83,12 @@ export function CbsValidationChecklist<TTab extends string = string>({
                 if (err.tab) onSelectTab?.(err.tab);
                 focusFormField(err.fieldKey, err.nodeId);
               }}
-              className="px-2 py-1.5 text-xs cursor-pointer flex flex-col items-start gap-0.5 rounded hover:bg-destructive/10"
+              className="px-2 py-1.5 text-xs cursor-pointer flex flex-col items-start gap-0.5 rounded-sm hover:bg-destructive/10"
             >
               <div className="flex items-center gap-1.5 w-full">
                 <Badge
                   variant="outline"
-                  className="text-[9px] font-mono h-4 px-1 rounded uppercase tracking-wider text-muted-foreground border-border/80"
+                  className="text-[9px] font-mono h-4 px-1 rounded-xs uppercase tracking-wider text-muted-foreground border-border/80"
                 >
                   {err.tab}
                 </Badge>

@@ -55,7 +55,7 @@ export function CbsAuditTab({
             return (
               <div
                 key={section.id}
-                className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
+                className="rounded-md border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
               >
                 <div className="flex items-center justify-between pb-1.5 border-b border-border/60">
                   <div className="flex items-center gap-1.5">
@@ -65,7 +65,7 @@ export function CbsAuditTab({
                     </span>
                   </div>
                   <span
-                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-xs border ${
                       isLive
                         ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                         : isHold
@@ -84,7 +84,7 @@ export function CbsAuditTab({
                     return (
                       <div
                         key={field.path}
-                        className="flex items-center justify-between py-1.5 px-2.5 rounded border border-border/50 bg-background/40 hover:bg-background/70 transition-colors"
+                        className="flex items-center justify-between py-1.5 px-2.5 rounded-sm border border-border/50 bg-background/40 hover:bg-background/70 transition-colors"
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           {renderFieldIcon(field.icon)}
@@ -92,7 +92,7 @@ export function CbsAuditTab({
                             {field.label}
                           </span>
                           {field.wireName && (
-                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted/70 text-muted-foreground border border-border/50">
+                            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-muted/70 text-muted-foreground border border-border/50">
                               {field.wireName}
                             </span>
                           )}
@@ -117,7 +117,7 @@ export function CbsAuditTab({
             return (
               <div
                 key={section.id}
-                className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
+                className="rounded-md border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
               >
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
                   {section.title}
@@ -136,11 +136,11 @@ export function CbsAuditTab({
                     return (
                       <div
                         key={field.path}
-                        className="py-2 px-2.5 rounded border border-border/50 bg-background/40 flex items-center justify-between gap-3"
+                        className="py-2 px-2.5 rounded-sm border border-border/50 bg-background/40 flex items-center justify-between gap-3"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
-                            className={`size-6 rounded flex items-center justify-center shrink-0 ${
+                            className={`size-6 rounded-sm flex items-center justify-center shrink-0 ${
                               isAuthorizer
                                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                 : "bg-primary/10 text-primary"
@@ -158,7 +158,7 @@ export function CbsAuditTab({
                                 {field.label}
                               </span>
                               {field.wireName && (
-                                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-muted/70 text-muted-foreground border border-border/50">
+                                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-muted/70 text-muted-foreground border border-border/50">
                                   {field.wireName}
                                 </span>
                               )}

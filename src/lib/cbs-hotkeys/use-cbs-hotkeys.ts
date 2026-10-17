@@ -1,26 +1,35 @@
 "use client";
 
 import * as React from "react";
-import type { UseCbsHotkeysOptions } from "./types";
-
-/* -------------------------------------------------------------------------- */
-/* Universal Core Banking Hotkey Dispatcher                                   */
-/* -------------------------------------------------------------------------- */
+import type { CbsHotkeysHandlers, UseCbsHotkeysOptions } from "./types";
 
 /**
- * Universal Core Banking keyboard dispatcher.
- * Binds banking terminal function keys globally across screens:
- *  - F1: Help / Validation checklist
- *  - F2: Create New record
- *  - F3 / Esc: Return to Search / IDLE
- *  - F4: Focus Search input
- *  - F5 / Ctrl+S: Commit / Save draft
- *  - F6: Hold
- *  - F7: Validate rules
- *  - F8: Authorize
- *  - F9: Process action
- *  - F10: Delete record
- *  - F12: Refresh data
+ * Standard mapping between plain Function Keys and handler methods.
+ */
+const CBS_FKEY_ACTION_MAP: Record<string, keyof CbsHotkeysHandlers> = {
+  F1: "onHelp",
+  F2: "onCreateNew",
+  F3: "onReturn",
+  F4: "onSearchFocus",
+  F5: "onCommit",
+  F6: "onHold",
+  F7: "onValidate",
+  F8: "onAuthorize",
+  F9: "onProcessAction",
+  F10: "onDelete",
+  F12: "onRefresh",
+};
+
+/**
+ * Check if a modal dialog is currently visible on screen.
+ */
+function isModalActive(): boolean {
+  return Boolean(document.querySelector('dialog[open], [role="dialog"][data-state="open"]'));
+}
+
+/**
+ * Universal CBS screen keyboard dispatcher.
+ * Binds plain F-keys (F1–F12) and Escape to banking operations cleanly.
  */
 export function useCbsHotkeys({ enabled = true, handlers }: UseCbsHotkeysOptions): void {
   const handlersRef = React.useRef(handlers);
@@ -30,129 +39,31 @@ export function useCbsHotkeys({ enabled = true, handlers }: UseCbsHotkeysOptions
     if (!enabled) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const h = handlersRef.current;
+      // 1. Ignore during IME text input composition
+      if (e.isComposing) return;
 
-      // 1. F1: Help / Validation drawer
-      if (e.key === "F1") {
-        if (h.onHelp) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onHelp();
-        }
-        return;
-      }
+      const currentHandlers = handlersRef.current;
 
-      // 2. F2: Create New record
-      if (e.key === "F2") {
-        if (h.onCreateNew) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onCreateNew();
-        }
-        return;
-      }
-
-      // 3. F3: Return to search / IDLE
-      if (e.key === "F3") {
-        if (h.onReturn) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onReturn();
-        }
-        return;
-      }
-
-      // 4. F4: Focus Search bar
-      if (e.key === "F4") {
-        if (h.onSearchFocus) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onSearchFocus();
-        }
-        return;
-      }
-
-      // 5. F5 or Ctrl+S: Commit / Save
-      if (e.key === "F5" || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s")) {
-        if (h.onCommit) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onCommit();
-        }
-        return;
-      }
-
-      // 6. F6: Hold record
-      if (e.key === "F6") {
-        if (h.onHold) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onHold();
-        }
-        return;
-      }
-
-      // 7. F7: Validate rules
-      if (e.key === "F7") {
-        if (h.onValidate) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onValidate();
-        }
-        return;
-      }
-
-      // 8. F8: Authorize record
-      if (e.key === "F8") {
-        if (h.onAuthorize) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onAuthorize();
-        }
-        return;
-      }
-
-      // 9. F9: Process action
-      if (e.key === "F9") {
-        if (h.onProcessAction) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onProcessAction();
-        }
-        return;
-      }
-
-      // 10. F10: Delete record
-      if (e.key === "F10") {
-        if (h.onDelete) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onDelete();
-        }
-        return;
-      }
-
-      // 11. F12: Refresh data
-      if (e.key === "F12") {
-        if (h.onRefresh) {
-          e.preventDefault();
-          e.stopPropagation();
-          h.onRefresh();
-        }
-        return;
-      }
-
-      // 12. Esc: Return to search (only when no dropdown/modal is actively capturing)
+      // 2. Handle Escape (Return to search, only if no modal dialog is open)
       if (e.key === "Escape") {
-        if (h.onReturn) {
-          const hasOpenModal = Boolean(
-            document.querySelector('[role="dialog"], [data-state="open"]'),
-          );
-          if (!hasOpenModal) {
-            e.preventDefault();
-            h.onReturn();
-          }
+        if (!isModalActive() && currentHandlers.onReturn) {
+          e.preventDefault();
+          currentHandlers.onReturn();
         }
+        return;
+      }
+
+      // 3. Banking F-keys must be plain (do not intercept Alt+F4, Ctrl+F5, Shift+F10, etc.)
+      const isPlainKey = !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey;
+      if (!isPlainKey) return;
+
+      const actionName = CBS_FKEY_ACTION_MAP[e.key];
+      if (!actionName) return;
+
+      const action = currentHandlers[actionName];
+      if (action) {
+        e.preventDefault();
+        action();
       }
     };
 

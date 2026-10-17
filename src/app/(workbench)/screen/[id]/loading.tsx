@@ -17,30 +17,30 @@ export default function ScreenLoadingState() {
         {/* ROW 1: Action Icons Toolbar */}
         <div className="flex items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90">
           <div className="flex items-center gap-1 shrink-0">
-            <Skeleton className="h-7 w-9 rounded" />
-            <Skeleton className="h-7 w-9 rounded" />
-            <Skeleton className="h-7 w-9 rounded" />
+            <Skeleton className="h-7 w-9" />
+            <Skeleton className="h-7 w-9" />
+            <Skeleton className="h-7 w-9" />
           </div>
           <span className="h-4 w-px bg-border/60 mx-1" />
-          <Skeleton className="h-7 w-20 rounded" />
+          <Skeleton className="h-7 w-20" />
         </div>
 
         {/* ROW 2: CBS Screen Command & Record ID Header */}
         <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
-          <Skeleton className="h-4 w-32 rounded" />
-          <Skeleton className="h-7 w-40 sm:w-52 rounded font-mono" />
-          <Skeleton className="h-7 w-7 rounded shrink-0" />
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-7 w-40 sm:w-52 font-mono" />
+          <Skeleton className="h-7 w-7 shrink-0" />
         </div>
       </header>
 
       {/* Screen Body Canvas Skeleton */}
       <div className="flex-1 overflow-auto p-3">
-        <div className="h-full min-h-75 flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-xl p-8 text-center bg-muted/10">
-          <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3">
-            <Layers className="size-6 animate-pulse opacity-60" />
+        <div className="h-full min-h-75 flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-md p-8 text-center bg-muted/10">
+          <div className="size-11 rounded-md border border-border/60 bg-muted/50 text-primary flex items-center justify-center mb-3 shadow-2xs">
+            <Layers className="size-5.5 animate-pulse opacity-60" />
           </div>
-          <Skeleton className="h-4 w-40 rounded mb-2" />
-          <Skeleton className="h-3 w-64 rounded max-w-sm" />
+          <Skeleton className="h-4 w-40 mb-2" />
+          <Skeleton className="h-3 w-64 max-w-sm" />
         </div>
       </div>
     </div>

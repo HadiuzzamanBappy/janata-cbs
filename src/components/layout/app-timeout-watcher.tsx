@@ -26,8 +26,8 @@ export function AppTimeoutWatcher() {
       <Dialog open={isWarningOpen && !isLoggedOut} onOpenChange={(open) => !open && keepAlive()}>
         <DialogContent className="sm:max-w-md" showCloseButton={false}>
           <DialogHeader className="gap-2">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-6 w-6" />
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+              <AlertTriangle className="h-5 w-5" />
             </div>
             <DialogTitle className="text-center text-lg font-semibold">
               Inactivity Timeout Warning
@@ -62,13 +62,10 @@ export function AppTimeoutWatcher() {
           if (!open) return;
         }}
       >
-        <DialogContent
-          className="sm:max-w-md border-destructive/20 shadow-2xl"
-          showCloseButton={false}
-        >
+        <DialogContent className="sm:max-w-md border-destructive/20" showCloseButton={false}>
           <DialogHeader className="gap-2">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-              <LogOut className="h-7 w-7" />
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-destructive/10 text-destructive border border-destructive/20">
+              <LogOut className="h-5 w-5" />
             </div>
             <DialogTitle className="text-center text-xl font-bold">Session Expired</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground text-sm leading-relaxed">

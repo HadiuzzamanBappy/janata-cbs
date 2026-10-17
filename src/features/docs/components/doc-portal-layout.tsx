@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import type { NavGroup } from "../types";
 import { DocHeader } from "./doc-header";
 import { DocSearchDialog } from "./doc-search-dialog";
@@ -40,32 +41,34 @@ export function DocPortalLayout({
   }, []);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground antialiased">
-      {/* Fixed Left Sidebar */}
-      <DocSidebar
-        portalTitle={portalSidebarTitle}
-        portalHomeHref={portalHomeHref}
-        navGroups={navGroups}
-        onOpenSearch={() => setSearchOpen(true)}
-      />
-
-      {/* Main Container Right (Top Header + Scrollable Content) */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
-        {/* Fixed Top Header */}
-        <DocHeader
-          portalSubFolder={portalSubFolder}
-          portalTitle={portalHeaderTitle}
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground antialiased">
+        {/* Collapsible Left Sidebar */}
+        <DocSidebar
+          portalTitle={portalSidebarTitle}
+          portalHomeHref={portalHomeHref}
           navGroups={navGroups}
+          onOpenSearch={() => setSearchOpen(true)}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-8 lg:p-12">
-          <div className="max-w-6xl mx-auto">{children}</div>
-        </main>
-      </div>
+        {/* Main Inset Container Right (Top Header + Scrollable Content) */}
+        <SidebarInset className="flex-1 flex flex-col h-screen overflow-hidden min-w-0 bg-background">
+          {/* Fixed Top Header */}
+          <DocHeader
+            portalSubFolder={portalSubFolder}
+            portalTitle={portalHeaderTitle}
+            navGroups={navGroups}
+          />
 
-      {/* Search Command Palette Modal */}
-      <DocSearchDialog open={searchOpen} onOpenChange={setSearchOpen} navGroups={navGroups} />
-    </div>
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div className="max-w-5xl mx-auto">{children}</div>
+          </main>
+        </SidebarInset>
+
+        {/* Search Command Palette Modal */}
+        <DocSearchDialog open={searchOpen} onOpenChange={setSearchOpen} navGroups={navGroups} />
+      </div>
+    </SidebarProvider>
   );
 }

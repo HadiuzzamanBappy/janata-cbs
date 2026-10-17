@@ -171,11 +171,11 @@ export function CbsJsonViewerTab({
 
   return (
     <div className={`flex-1 flex flex-col min-h-0 bg-background overflow-hidden p-0 ${className}`}>
-      <div className="flex-1 rounded border border-border/80 bg-card flex flex-col overflow-hidden shadow-2xs min-h-0">
+      <div className="flex-1 rounded-md border border-border/80 bg-card flex flex-col overflow-hidden shadow-2xs min-h-0">
         {/* Toolbar Header */}
         <div className="p-2 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
           <div className="flex items-center gap-2">
-            <div className="size-5 rounded bg-primary/10 text-primary flex items-center justify-center">
+            <div className="size-5 rounded-sm bg-primary/10 text-primary flex items-center justify-center">
               <FileCode className="size-3" />
             </div>
             <div>
@@ -193,7 +193,7 @@ export function CbsJsonViewerTab({
           <div className="flex items-center gap-2">
             <Badge
               variant="outline"
-              className="font-mono text-[10px] h-5 rounded px-1.5 text-muted-foreground"
+              className="font-mono text-[10px] h-5 rounded-xs px-1.5 text-muted-foreground"
             >
               {linesCount} lines • {(sizeBytes / 1024).toFixed(1)} KB
             </Badge>
@@ -203,7 +203,7 @@ export function CbsJsonViewerTab({
               variant="outline"
               size="sm"
               onClick={handleCopy}
-              className="h-6.5 text-[11px] gap-1 px-2 rounded border-border/80"
+              className="h-6.5 text-[11px] gap-1 px-2 border-border/80"
             >
               {copied ? (
                 <>
@@ -223,7 +223,7 @@ export function CbsJsonViewerTab({
               variant="outline"
               size="sm"
               onClick={handleDownload}
-              className="h-6.5 text-[11px] gap-1 px-2 rounded border-border/80"
+              className="h-6.5 text-[11px] gap-1 px-2 border-border/80"
             >
               <Download className="size-3" />
               <span>Download</span>

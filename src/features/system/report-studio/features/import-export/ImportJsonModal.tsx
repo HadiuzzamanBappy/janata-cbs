@@ -9,7 +9,7 @@ import { deepClone } from "@/features/system/report-studio/utils/deepClone";
  * Import-JSON modal. Accepts two file shapes (preserved verbatim from the
  * monolith):
  *
- *   1. Design Save File (v2.0) — has `_meta.type === "design"` and a
+ *   1. Design Save File — has `_meta.type === "design"` and a
  *      `_design` block carrying raw `AppState` in original units. Restored
  *      via deep-merge against `INITIAL_STATE` so future-added fields land
  *      with safe defaults. Logo + image base64 paths are NOT duplicated
@@ -322,7 +322,7 @@ export function ImportJsonModal({
                 : "Drop a .json file here, or click to browse"}
             </div>
             <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 4 }}>
-              Accepts: Design Save File (v2.0) · Legacy report config
+              Accepts: Design Save File · Legacy report config
             </div>
             <input
               ref={fileRef}

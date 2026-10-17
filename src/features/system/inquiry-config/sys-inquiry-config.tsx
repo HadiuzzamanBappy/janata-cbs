@@ -34,7 +34,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     resetToIdle,
   } = useInquiryConfig(initialId, tabId);
 
-  const [activeTab, setActiveTab] = React.useState<InquiryConfigTabKey>("columns");
+  const [activeTab, setActiveTab] = React.useState<InquiryConfigTabKey>("general");
   const isReadOnly = mode !== "I";
 
   const tabs: CbsScreenTab<InquiryConfigTabKey>[] = React.useMemo(

@@ -36,6 +36,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
     handleSubmit,
     handleAuthorize,
     addField,
+    addChildField,
     updateField,
     removeField,
     resetToIdle,
@@ -83,6 +84,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
             onSelectSN={setSelectedPropertySN}
             validationErrors={validationErrors}
             onAddField={addField}
+            onAddChildField={addChildField}
             onUpdateField={updateField}
             onRemoveField={removeField}
           />
@@ -103,6 +105,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
     ],
     [
       addField,
+      addChildField,
       formData,
       isFieldCommitted,
       isReadOnly,
@@ -143,14 +146,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
           <span>SYS_MODEL_DEFINITION</span>
         </div>
       }
-      moreActions={[
-        {
-          label: "Toggle Active Status",
-          onClick: () => setFormData((p) => ({ ...p, isActive: !p.isActive })),
-          requiredRight: "A",
-        },
-        ...getDefaultMoreActions("MODEL.CONFIG"),
-      ]}
+      moreActions={getDefaultMoreActions("MODEL.CONFIG")}
     />
   );
 }

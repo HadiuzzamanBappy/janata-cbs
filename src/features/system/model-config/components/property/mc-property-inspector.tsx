@@ -14,20 +14,26 @@ export { PROPERTY_TYPES, type PropertyType };
 
 interface McPropertyInspectorProps {
   property?: ModelProperty;
+  allProperties?: ModelProperty[];
   isReadOnly: boolean;
   isCommitted?: boolean;
   validationErrors?: ValidationErrorItem[];
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
   onDelete: (sn: string, forceHardDelete?: boolean) => void;
+  onSelectSN?: (sn: string) => void;
+  onAddChild?: (parentSN: string) => void;
 }
 
 export function McPropertyInspector({
   property,
+  allProperties = [],
   isReadOnly,
   isCommitted = false,
   validationErrors = [],
   onUpdate,
   onDelete,
+  onSelectSN,
+  onAddChild,
 }: McPropertyInspectorProps) {
   if (!property) return null;
 
@@ -42,15 +48,24 @@ export function McPropertyInspector({
       />
 
       {/* 2. Inspector Panels */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        <McInspectorIdentitySection
-          property={property}
-          isReadOnly={isReadOnly}
-          validationErrors={validationErrors}
-          onUpdate={onUpdate}
-        />
+      <div className="flex-1 overflow-y-auto p-3">
+        <div className="max-w-3xl space-y-3">
+          <McInspectorIdentitySection
+            property={property}
+            isReadOnly={isReadOnly}
+            validationErrors={validationErrors}
+            onUpdate={onUpdate}
+          />
 
-        <McInspectorTypeSpecs property={property} isReadOnly={isReadOnly} onUpdate={onUpdate} />
+          <McInspectorTypeSpecs
+            property={property}
+            allProperties={allProperties}
+            isReadOnly={isReadOnly}
+            onUpdate={onUpdate}
+            onSelectSN={onSelectSN}
+            onAddChild={onAddChild}
+          />
+        </div>
       </div>
     </div>
   );

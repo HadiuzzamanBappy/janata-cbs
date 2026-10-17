@@ -40,7 +40,7 @@ export function ActionMoreMenu({
               className="h-7 px-2 text-xs gap-1.5 min-w-37.5 max-w-47.5 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0"
             >
               <span className="truncate">
-                {selectedAction ? selectedAction.label : "More Actions ..."}
+                {selectedAction ? selectedAction.label : "More operations"}
               </span>
               <ChevronDown className="size-3 text-muted-foreground shrink-0" />
             </Button>
@@ -48,7 +48,7 @@ export function ActionMoreMenu({
         />
         <DropdownMenuContent align="end" className="w-45 text-xs">
           <DropdownMenuLabel className="text-[11px] text-muted-foreground font-mono">
-            More Actions
+            More operations
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {moreActions.length === 0 ? (

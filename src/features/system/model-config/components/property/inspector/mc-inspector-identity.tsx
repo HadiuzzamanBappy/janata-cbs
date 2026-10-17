@@ -46,24 +46,37 @@ export function McInspectorIdentitySection({
     const patch: Partial<ModelProperty> = { type: nextType };
     if (nextType === "Boolean") {
       patch.length = 1;
-      patch.mask = undefined;
-      patch.pattern = undefined;
       if (typeof property.defaultValue !== "boolean") {
         patch.defaultValue = false;
       }
     } else if (nextType === "Date") {
       patch.length = 10;
-      patch.pattern = undefined;
-      if (!property.mask) {
-        patch.mask = "YYYY-MM-DD";
-      }
     } else if (nextType === "Number") {
       if (property.length === 1 || property.length === 10) {
         patch.length = 15;
       }
     } else if (nextType === "Text") {
-      if (property.length === 1) {
+      if (property.length === 1 || property.length === 500) {
         patch.length = 50;
+      }
+    } else if (nextType === "Textarea") {
+      patch.length = 500;
+    } else if (nextType === "Array") {
+      patch.structure = "M";
+    } else if (nextType === "Object") {
+      if (property.length < 500) {
+        patch.length = 1000;
+      }
+    } else if (nextType === "Dropdown" || nextType === "Checkbox" || nextType === "Radio") {
+      if (!property.parameter) {
+        patch.parameter = {
+          type: "O",
+          data: [{ id: crypto.randomUUID(), itemCode: "", itemLabel: "" }],
+          modelName: "",
+          displayField: "",
+          condition: "",
+          reference: "",
+        };
       }
     }
     onUpdate(property.sn, patch);

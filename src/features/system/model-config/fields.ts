@@ -2,7 +2,15 @@ import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 export type MetaFieldGroup = "IDENTITY" | "ID_RULES" | "FLAGS";
 
-export type MetaFieldType = "text" | "number" | "boolean" | "tags" | "checkbox-group";
+export type MetaFieldType =
+  | "text"
+  | "number"
+  | "boolean"
+  | "tags"
+  | "checkbox-group"
+  | "radio-group"
+  | "id-pattern-select"
+  | "date";
 
 export interface MetaFieldDef {
   /**
@@ -16,33 +24,39 @@ export interface MetaFieldDef {
   placeholder?: string;
   required?: boolean;
   uppercase?: boolean;
+  disabled?: boolean;
   width?: "full" | "half" | "compact";
-  helperText?: string;
   options?: Array<{ value: string; label: string }>;
 }
 
 export const META_FIELD_GROUPS: Array<{
   id: MetaFieldGroup;
   title: string;
-  description?: string;
 }> = [
   {
     id: "IDENTITY",
-    title: "Model Identification & Core Attributes",
+    title: "Model Identification & Attributes",
   },
   {
     id: "ID_RULES",
-    title: "Record ID Generation & Pattern Rules",
+    title: "Record ID Generation Rules",
   },
   {
     id: "FLAGS",
-    title: "Operational Flags & Constraints",
+    title: "Operational & Governance Flags",
   },
+];
+
+export const ID_PATTERN_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "PF", label: "Prefix" },
+  { value: "RN", label: "Random Number" },
+  { value: "BS", label: "Base36 Sequence" },
+  { value: "IS", label: "Integer Sequence" },
+  { value: "JD", label: "Julian Date" },
 ];
 
 /**
  * Extensible declarative registry of all metadata fields on the General tab.
- * Adding or removing a field in the future takes just 1 line of configuration here.
  */
 export const MODEL_META_FIELDS: MetaFieldDef[] = [
   // --- Group 1: IDENTITY ---
@@ -51,7 +65,8 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Table Name",
     group: "IDENTITY",
     type: "text",
-    placeholder: "e.g. MENU_TREE",
+    placeholder: "e.g. MODEL_DEFINITION",
+    required: true,
     uppercase: true,
     width: "half",
   },
@@ -69,27 +84,9 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Description",
     group: "IDENTITY",
     type: "text",
-    placeholder: "e.g. Core Banking Data Model Definition",
+    placeholder: "e.g. Model Definition",
     required: true,
     width: "full",
-  },
-  {
-    path: "category",
-    label: "Category",
-    group: "IDENTITY",
-    type: "text",
-    placeholder: "e.g. APPLICATION",
-    uppercase: true,
-    width: "half",
-  },
-  {
-    path: "access",
-    label: "Access Level",
-    group: "IDENTITY",
-    type: "text",
-    placeholder: "e.g. G",
-    uppercase: true,
-    width: "compact",
   },
   {
     path: "servicePath",
@@ -97,18 +94,29 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     group: "IDENTITY",
     type: "text",
     placeholder: "e.g. default",
-    width: "half",
+    required: true,
+    width: "full",
+  },
+  {
+    path: "access",
+    label: "Table Type",
+    group: "IDENTITY",
+    type: "radio-group",
+    required: true,
+    options: [
+      { value: "G", label: "Global" },
+      { value: "B", label: "Branch" },
+    ],
   },
   {
     path: "associates",
-    label: "Associates",
+    label: "Other Tables",
     group: "IDENTITY",
     type: "checkbox-group",
-    width: "half",
     options: [
       { value: "HIS", label: "HIS" },
-      { value: "DEL", label: "DEL" },
       { value: "UNA", label: "UNA" },
+      { value: "DEL", label: "DEL" },
     ],
   },
   {
@@ -116,26 +124,24 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Developed By",
     group: "IDENTITY",
     type: "text",
-    placeholder: "e.g. SYSTEM / DEV_OPERATOR",
+    placeholder: "e.g. Bappy",
     width: "half",
   },
   {
     path: "devDate",
-    label: "Development Date",
+    label: "Developement Date",
     group: "IDENTITY",
-    type: "text",
+    type: "date",
     placeholder: "YYYY-MM-DD",
     width: "compact",
   },
 
   // --- Group 2: ID_RULES ---
   {
-    path: "idDef.idPattern",
-    label: "ID Pattern",
+    path: "userDefineId",
+    label: "User Define Id",
     group: "ID_RULES",
-    type: "text",
-    placeholder: "e.g. IS",
-    width: "half",
+    type: "boolean",
   },
   {
     path: "idDef.idPrefix",
@@ -143,11 +149,27 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     group: "ID_RULES",
     type: "text",
     placeholder: "Optional prefix",
+    uppercase: true,
+    width: "compact",
+  },
+  {
+    path: "idDef.idPatternSelect",
+    label: "Select Id Pattern",
+    group: "ID_RULES",
+    type: "id-pattern-select",
+    options: ID_PATTERN_OPTIONS,
+  },
+  {
+    path: "idDef.idPattern",
+    label: "Id Pattern",
+    group: "ID_RULES",
+    type: "text",
+    disabled: true,
     width: "half",
   },
   {
     path: "idDef.sequenceLength",
-    label: "Seq Length",
+    label: "Id Length",
     group: "ID_RULES",
     type: "number",
     placeholder: "Auto",
@@ -155,34 +177,15 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
   },
   {
     path: "idDef.sequenceReset",
-    label: "Seq Reset",
+    label: "Reset Sequence",
     group: "ID_RULES",
     type: "boolean",
-    helperText: "Reset on new period",
   },
 
   // --- Group 3: FLAGS ---
   {
-    path: "searchable",
-    label: "Searchable",
-    group: "FLAGS",
-    type: "boolean",
-  },
-  {
     path: "authorize",
-    label: "Authorize",
-    group: "FLAGS",
-    type: "boolean",
-  },
-  {
-    path: "userDefineId",
-    label: "User Defined ID",
-    group: "FLAGS",
-    type: "boolean",
-  },
-  {
-    path: "predefineId",
-    label: "Predefined ID",
+    label: "Authorization",
     group: "FLAGS",
     type: "boolean",
   },
@@ -192,12 +195,21 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     group: "FLAGS",
     type: "boolean",
   },
+  {
+    path: "searchable",
+    label: "Searchable",
+    group: "FLAGS",
+    type: "boolean",
+  },
 ];
 
 /**
  * Utility to get value from ModelConfigRecord via dot path
  */
 export function getFieldValue(record: ModelConfigRecord, path: string): unknown {
+  if (path === "idDef.idPatternSelect") {
+    return record.idDef?.idPattern ? record.idDef.idPattern.split("#").filter(Boolean) : [];
+  }
   if (path.startsWith("idDef.")) {
     const key = path.replace("idDef.", "") as keyof typeof record.idDef;
     return record.idDef?.[key];
@@ -213,6 +225,16 @@ export function setFieldValue(
   path: string,
   value: unknown,
 ): ModelConfigRecord {
+  if (path === "idDef.idPatternSelect") {
+    const arr = Array.isArray(value) ? value : [];
+    return {
+      ...record,
+      idDef: {
+        ...record.idDef,
+        idPattern: arr.join("#"),
+      },
+    };
+  }
   if (path.startsWith("idDef.")) {
     const key = path.replace("idDef.", "");
     return {

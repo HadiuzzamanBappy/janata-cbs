@@ -1,23 +1,166 @@
 "use client";
 
-import { Sliders } from "lucide-react";
+import { Boxes, Database, Plus, Sliders, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import { Textarea } from "@/components/ui/textarea";
+import type {
+  ModelProperty,
+  PropertyParameter,
+  PropertyParameterOption,
+  PropertyType,
+} from "@/lib/data-schemas/model-config-schema";
 
 interface McInspectorTypeSpecsProps {
   property: ModelProperty;
+  allProperties?: ModelProperty[];
   isReadOnly: boolean;
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
+  onSelectSN?: (sn: string) => void;
+  onAddChild?: (parentSN: string) => void;
 }
+
+const isParameterized = (t: PropertyType): boolean =>
+  t === "Dropdown" || t === "Checkbox" || t === "Radio";
 
 export function McInspectorTypeSpecs({
   property,
+  allProperties = [],
   isReadOnly,
   onUpdate,
+  onSelectSN,
+  onAddChild,
 }: McInspectorTypeSpecsProps) {
+  // If property is an Object, render the Object Children Group Manager (Screenshot 1)
+  if (property.type === "Object") {
+    const prefix = `${property.sn}_`;
+    const directChildren = allProperties.filter((p) => {
+      if (!p.sn.startsWith(prefix)) return false;
+      const remainder = p.sn.slice(prefix.length);
+      return !remainder.includes("_");
+    });
+
+    return (
+      <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Boxes className="size-3.5 text-primary" />
+            <span>Object Children</span>
+          </div>
+          <Badge
+            variant="outline"
+            className="font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider text-primary border-primary/30"
+          >
+            {property.structure === "M" ? "Object.M (Multi-Value)" : "Object (Single)"}
+          </Badge>
+        </div>
+
+        <div className="max-w-xl space-y-2.5">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Add and arrange this object's child fields from the tree on the left (use the + on this
+            object).
+          </p>
+
+          {directChildren.length > 0 ? (
+            <div className="space-y-1.5 pt-1">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                <span>Configured Child Fields ({directChildren.length})</span>
+              </div>
+              <div className="space-y-1 rounded border border-border/60 bg-muted/20 p-1.5 max-h-56 overflow-y-auto">
+                {directChildren.map((child) => (
+                  <button
+                    type="button"
+                    key={child.sn}
+                    onClick={() => onSelectSN?.(child.sn)}
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs bg-background hover:bg-muted/60 cursor-pointer transition-colors border border-border/40 select-none text-left"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-mono text-[10px] text-muted-foreground font-semibold">
+                        #{child.sn}
+                      </span>
+                      <span className="font-medium truncate text-foreground">
+                        {child.label || child.name || "<unnamed>"}
+                      </span>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="font-mono text-[9px] h-4 px-1 rounded text-muted-foreground shrink-0"
+                    >
+                      {child.type}
+                    </Badge>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {!isReadOnly && onAddChild && (
+            <div className="pt-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onAddChild(property.sn)}
+                className="h-7 text-xs gap-1.5 px-3 rounded border-dashed"
+              >
+                <Plus className="size-3" />
+                <span>Add Child Field</span>
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+  const parameter: PropertyParameter = property.parameter ?? {
+    type: "O",
+    data: [],
+    modelName: "",
+    displayField: "",
+    condition: "",
+    reference: "",
+  };
+
+  const updateParameter = (patch: Partial<PropertyParameter>) => {
+    onUpdate(property.sn, {
+      parameter: {
+        ...parameter,
+        ...patch,
+      },
+    });
+  };
+
+  // Normalize options with stable persistent IDs (independent of array indices)
+  const options = (parameter.data ?? []).map((opt, i) => {
+    if (opt.id) return opt as PropertyParameterOption & { id: string };
+    const fallbackId = opt.itemCode
+      ? `opt-${property.sn}-${opt.itemCode}`
+      : `opt-${property.sn}-entry-${i + 1}`;
+    return { ...opt, id: fallbackId };
+  });
+
+  const handleAddOption = () => {
+    const newId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `opt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    updateParameter({
+      data: [...options, { id: newId, itemCode: "", itemLabel: "" }],
+    });
+  };
+
+  const handleUpdateOption = (targetId: string, field: "itemCode" | "itemLabel", val: string) => {
+    const nextData = options.map((opt) => (opt.id === targetId ? { ...opt, [field]: val } : opt));
+    updateParameter({ data: nextData });
+  };
+
+  const handleRemoveOption = (targetId: string) => {
+    const nextData = options.filter((opt) => opt.id !== targetId);
+    updateParameter({ data: nextData });
+  };
+
   return (
     <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
       <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
@@ -35,11 +178,11 @@ export function McInspectorTypeSpecs({
 
       <div className="space-y-2 text-xs">
         {/* Default Value */}
-        <div className="flex items-center gap-2">
-          <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
+        <div className="flex items-start gap-2">
+          <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none pt-1">
             Default Value
           </Label>
-          <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+          <span className="text-muted-foreground/60 font-mono text-xs pt-1">:</span>
           <div className="max-w-md flex-1">
             {property.type === "Boolean" ? (
               <div className="flex items-center gap-1.5">
@@ -64,6 +207,19 @@ export function McInspectorTypeSpecs({
                   False
                 </Button>
               </div>
+            ) : property.type === "Textarea" ? (
+              <Textarea
+                value={
+                  property.defaultValue !== undefined && property.defaultValue !== null
+                    ? String(property.defaultValue)
+                    : ""
+                }
+                disabled={isReadOnly}
+                onChange={(e) => onUpdate(property.sn, { defaultValue: e.target.value })}
+                placeholder="Optional multiline initial text"
+                rows={3}
+                className="rounded text-xs bg-background border-border/80 w-full resize-y min-h-[60px]"
+              />
             ) : (
               <Input
                 type={
@@ -86,7 +242,11 @@ export function McInspectorTypeSpecs({
                     ? "YYYY-MM-DD"
                     : property.type === "Number"
                       ? "0.00"
-                      : "Optional base fallback"
+                      : property.type === "Array"
+                        ? 'e.g. ["VAL1", "VAL2"] or comma-separated'
+                        : isParameterized(property.type)
+                          ? "Default item code or blank"
+                          : "Optional base fallback"
                 }
                 className="h-7 rounded text-xs bg-background border-border/80 w-full"
               />
@@ -126,51 +286,151 @@ export function McInspectorTypeSpecs({
               </Badge>
             ) : (
               <span className="text-[11px] text-muted-foreground">
-                {property.type === "Number" ? "digits precision" : "characters"}
+                {property.type === "Number"
+                  ? "digits precision"
+                  : property.type === "Textarea"
+                    ? "characters (multiline)"
+                    : property.type === "Array"
+                      ? "buffer / item limit"
+                      : isParameterized(property.type)
+                        ? "storage characters"
+                        : "characters"}
               </span>
             )}
           </div>
         </div>
 
-        {/* Format Mask */}
-        {property.type !== "Boolean" && (
-          <div className="flex items-center gap-2">
-            <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
-              Format Mask
-            </Label>
-            <span className="text-muted-foreground/60 font-mono text-xs">:</span>
-            <Input
-              value={property.mask || ""}
-              disabled={isReadOnly}
-              onChange={(e) => onUpdate(property.sn, { mask: e.target.value })}
-              placeholder={
-                property.type === "Date"
-                  ? "e.g. YYYY-MM-DD or DD/MM/YYYY"
-                  : property.type === "Number"
-                    ? "e.g. #,##0.00"
-                    : "e.g. ###-##-####"
-              }
-              className="h-7 rounded text-xs font-mono bg-background border-border/80 max-w-md flex-1"
-            />
-          </div>
-        )}
+        {/* Parameter Configuration for Dropdown, Checkbox, Radio */}
+        {isParameterized(property.type) && (
+          <div className="pt-2 border-t border-border/60 space-y-2 max-w-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Database className="size-3.5 text-primary" />
+                <span>Options & Data Source</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={parameter.type === "O" ? "default" : "outline"}
+                  disabled={isReadOnly}
+                  onClick={() => updateParameter({ type: "O" })}
+                  className="h-6 px-2 text-[11px] rounded"
+                >
+                  Options (Static)
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={parameter.type === "M" ? "default" : "outline"}
+                  disabled={isReadOnly}
+                  onClick={() => updateParameter({ type: "M" })}
+                  className="h-6 px-2 text-[11px] rounded"
+                >
+                  Model (DB)
+                </Button>
+              </div>
+            </div>
 
-        {/* Validation Regex Pattern */}
-        {(property.type === "Text" || property.type === "Number") && (
-          <div className="flex items-center gap-2">
-            <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
-              Validation Regex
-            </Label>
-            <span className="text-muted-foreground/60 font-mono text-xs">:</span>
-            <Input
-              value={property.pattern || ""}
-              disabled={isReadOnly}
-              onChange={(e) => onUpdate(property.sn, { pattern: e.target.value })}
-              placeholder={
-                property.type === "Number" ? "e.g. ^\\d+(\\.\\d{1,2})?$" : "e.g. ^[A-Z0-9_.]+$"
-              }
-              className="h-7 rounded text-xs font-mono bg-background border-border/80 max-w-md flex-1"
-            />
+            {parameter.type === "O" ? (
+              <div className="space-y-1.5 bg-muted/20 p-2 rounded border border-border/50">
+                <div className="flex items-center gap-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">
+                  <span className="w-28 shrink-0">Item Code</span>
+                  <span className="flex-1">Display Label</span>
+                  <span className="w-6 text-center shrink-0">Act</span>
+                </div>
+                {options.map((opt) => (
+                  <div key={opt.id} className="flex items-center gap-2">
+                    <Input
+                      value={opt.itemCode}
+                      disabled={isReadOnly}
+                      onChange={(e) => handleUpdateOption(opt.id, "itemCode", e.target.value)}
+                      placeholder="e.g. 01"
+                      className="h-6 text-xs font-mono w-28 shrink-0 bg-background"
+                    />
+                    <Input
+                      value={opt.itemLabel}
+                      disabled={isReadOnly}
+                      onChange={(e) => handleUpdateOption(opt.id, "itemLabel", e.target.value)}
+                      placeholder="e.g. Active"
+                      className="h-6 text-xs bg-background flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      disabled={isReadOnly}
+                      onClick={() => handleRemoveOption(opt.id)}
+                      className="size-6 text-muted-foreground hover:text-destructive rounded shrink-0"
+                      title="Remove option"
+                    >
+                      <Trash2 className="size-3" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isReadOnly}
+                  onClick={handleAddOption}
+                  className="h-6 text-[11px] gap-1 px-2 mt-1 rounded border-dashed"
+                >
+                  <Plus className="size-3" /> Add Option
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 bg-muted/20 p-2 rounded border border-border/50">
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
+                    Model Name
+                  </Label>
+                  <Input
+                    value={parameter.modelName ?? ""}
+                    disabled={isReadOnly}
+                    onChange={(e) => updateParameter({ modelName: e.target.value })}
+                    placeholder="e.g. SC_BRANCH"
+                    className="h-6 text-xs bg-background"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
+                    Display Field
+                  </Label>
+                  <Input
+                    value={parameter.displayField ?? ""}
+                    disabled={isReadOnly}
+                    onChange={(e) => updateParameter({ displayField: e.target.value })}
+                    placeholder="e.g. branchName"
+                    className="h-6 text-xs bg-background"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
+                    Condition
+                  </Label>
+                  <Input
+                    value={parameter.condition ?? ""}
+                    disabled={isReadOnly}
+                    onChange={(e) => updateParameter({ condition: e.target.value })}
+                    placeholder="e.g. STATUS = 'ACTIVE'"
+                    className="h-6 text-xs bg-background"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] uppercase font-semibold text-muted-foreground">
+                    Reference Field
+                  </Label>
+                  <Input
+                    value={parameter.reference ?? ""}
+                    disabled={isReadOnly}
+                    onChange={(e) => updateParameter({ reference: e.target.value })}
+                    placeholder="e.g. branchCode"
+                    className="h-6 text-xs bg-background"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

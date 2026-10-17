@@ -14,6 +14,7 @@ interface McPropertiesTabProps {
   onSelectSN?: (sn: string) => void;
   validationErrors?: ValidationErrorItem[];
   onAddField: () => string;
+  onAddChildField?: (parentSN: string) => string;
   onUpdateField: (sn: string, patch: Partial<ModelProperty>) => void;
   onRemoveField: (sn: string, forceHardDelete?: boolean) => void;
 }
@@ -26,6 +27,7 @@ export function McPropertiesTab({
   onSelectSN: onControlledSelectSN,
   validationErrors = [],
   onAddField,
+  onAddChildField,
   onUpdateField,
   onRemoveField,
 }: McPropertiesTabProps) {
@@ -35,6 +37,14 @@ export function McPropertiesTab({
   const handleSelectSN = (sn: string) => {
     if (onControlledSelectSN) onControlledSelectSN(sn);
     setInternalSN(sn);
+  };
+
+  const handleAddChild = (parentSN: string) => {
+    if (!onAddChildField) return;
+    const newSn = onAddChildField(parentSN);
+    if (newSn) {
+      handleSelectSN(newSn);
+    }
   };
 
   // Keep selectedSN valid
@@ -68,6 +78,7 @@ export function McPropertiesTab({
         isFieldCommitted={isFieldCommitted}
         validationErrors={validationErrors}
         onAddField={onAddField}
+        onAddChild={handleAddChild}
         onDeleteField={onRemoveField}
       />
 
@@ -76,11 +87,14 @@ export function McPropertiesTab({
         {selectedProperty ? (
           <McPropertyInspector
             property={selectedProperty}
+            allProperties={properties}
             isReadOnly={isReadOnly}
             isCommitted={isFieldCommitted(selectedProperty.sn)}
             validationErrors={validationErrors}
             onUpdate={onUpdateField}
             onDelete={onRemoveField}
+            onSelectSN={handleSelectSN}
+            onAddChild={handleAddChild}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">

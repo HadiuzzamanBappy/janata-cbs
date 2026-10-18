@@ -13,8 +13,17 @@ export const formPayloads = {
   /**
    * List records for a specific model / control (Record Lookup).
    */
-  listRecords: (controlName: string, servicePath?: string): CbsWirePayload =>
-    createModelPayloads(controlName, { servicePath }).list(),
+  listRecords: (
+    controlName: string,
+    criteria?: Record<string, unknown>,
+    servicePath?: string,
+  ): CbsWirePayload => createModelPayloads(controlName, { servicePath }).list({ criteria }),
+
+  /**
+   * Allocate new record ID / sequence ('GNI') for a specific model / control.
+   */
+  getNewRecordId: (controlName: string, servicePath?: string): CbsWirePayload =>
+    createModelPayloads(controlName, { servicePath }).getNewId(),
 
   /**
    * Fetch a specific record by ID for a generic form screen.

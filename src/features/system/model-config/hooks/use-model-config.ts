@@ -101,18 +101,21 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   );
 
   // 3. Create fresh record
-  const handleCreateNew = React.useCallback(() => {
-    const nextId = `APP.CUSTOM.${Date.now().toString().slice(-4)}`;
-    setRecordId(nextId);
-    setCommittedSnSet(new Set());
-    setFormData({
-      ...INITIAL_MODEL,
-      recordId: nextId,
-      description: "",
-      properties: [],
-    });
-    setMode("I");
-  }, [setFormData, setMode, setRecordId]);
+  const handleCreateNew = React.useCallback(
+    (allocatedId?: string) => {
+      const nextId = allocatedId || `APP.CUSTOM.${Date.now().toString().slice(-4)}`;
+      setRecordId(nextId);
+      setCommittedSnSet(new Set());
+      setFormData({
+        ...INITIAL_MODEL,
+        recordId: nextId,
+        description: "",
+        properties: [],
+      });
+      setMode("I");
+    },
+    [setFormData, setMode, setRecordId],
+  );
 
   // 4. Validate
   const handleValidate = React.useCallback((): boolean => {

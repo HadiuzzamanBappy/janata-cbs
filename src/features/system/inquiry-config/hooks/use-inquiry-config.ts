@@ -237,32 +237,28 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   );
 
   const handleValidate = React.useCallback(() => {
+    // If ID is empty, auto-generate it from controller name or auto sequence
     if (!formData.id.trim()) {
-      toast.add({
-        title: "Validation Error",
-        description: "Inquiry ID/Code is required",
-        type: "error",
-      });
-      return false;
+      const generatedId = formData.controllerName.trim()
+        ? `INQ.${formData.controllerName.trim().toUpperCase()}`
+        : `INQ.NEW_${Date.now().toString().slice(-4)}`;
+      formData.id = generatedId;
+      setRecordId(generatedId);
     }
-    if (!formData.targetModel.trim()) {
-      toast.add({
-        title: "Validation Error",
-        description: "Target Model entity is required",
-        type: "error",
-      });
-      return false;
+    // Auto-sync targetModel from controllerName if missing
+    if (!formData.targetModel.trim() && formData.controllerName.trim()) {
+      formData.targetModel = formData.controllerName.trim().toUpperCase();
     }
-    if (formData.columns.length === 0) {
+    if (!formData.controllerName.trim() && !formData.targetModel.trim()) {
       toast.add({
         title: "Validation Error",
-        description: "At least one column must be configured",
+        description: "Controller Name is required",
         type: "error",
       });
       return false;
     }
     return true;
-  }, [formData]);
+  }, [formData, setRecordId]);
 
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
@@ -295,11 +291,12 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     }
   }, [formData, handleValidate, tabId, setTabDirty]);
 
-  const handleCreateNew = React.useCallback(() => {
-    const newId = `INQ.NEW_${Date.now().toString().slice(-4)}`;
-    setFormData({
-      ...INITIAL_INQUIRY_CONFIG,
-      id: newId,
+  const handleCreateNew = React.useCallback(
+    (allocatedId?: string) => {
+      const newId = allocatedId || `INQ.NEW_${Date.now().toString().slice(-4)}`;
+      setFormData({
+        ...INITIAL_INQUIRY_CONFIG,
+        id: newId,
       title: "New Inquiry Layout",
       targetModel: "ACCOUNT",
       columns: [

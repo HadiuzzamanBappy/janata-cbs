@@ -88,31 +88,41 @@ export function useFormActions({
     [schema, setScreenMode, setValues],
   );
 
-  const handleCreateNew = React.useCallback(() => {
-    if (!schema) return;
-    resetForm(initialValues);
-    setScreenMode("I");
-    toast.add({
-      title: "New Record Entry",
-      description: searchRecordId.trim()
-        ? `Creating new entry with ID #${searchRecordId.trim()} for ${schema.title}`
-        : `Ready to input new transaction for ${schema.title}`,
-      type: "info",
-    });
-  }, [schema, resetForm, initialValues, setScreenMode, searchRecordId]);
-
-  const handleAmend = React.useCallback(() => {
-    const id = searchRecordId.trim();
-    if (!id) {
+  const handleCreateNew = React.useCallback(
+    (allocatedId?: string) => {
+      if (!schema) return;
+      const nextId = (allocatedId || searchRecordId).trim();
+      if (allocatedId && _setSearchRecordId) {
+        _setSearchRecordId(allocatedId);
+      }
+      resetForm(initialValues);
+      setScreenMode("I");
       toast.add({
-        title: "Input Required",
-        description: "Please enter or select a Record ID to edit.",
-        type: "warning",
+        title: "New Record Entry",
+        description: nextId
+          ? `Creating new entry #${nextId} for ${schema.title}`
+          : `Ready to input new transaction for ${schema.title}`,
+        type: "info",
       });
-      return;
-    }
-    loadRecordData(id, "I");
-  }, [searchRecordId, loadRecordData]);
+    },
+    [schema, resetForm, initialValues, setScreenMode, searchRecordId, _setSearchRecordId],
+  );
+
+  const handleAmend = React.useCallback(
+    (targetId?: string) => {
+      const id = (targetId || searchRecordId).trim();
+      if (!id) {
+        toast.add({
+          title: "Input Required",
+          description: "Please enter or select a Record ID to edit.",
+          type: "warning",
+        });
+        return;
+      }
+      loadRecordData(id, "I");
+    },
+    [searchRecordId, loadRecordData],
+  );
 
   const handleView = React.useCallback(() => {
     const id = searchRecordId.trim();

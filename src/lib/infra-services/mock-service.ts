@@ -487,24 +487,90 @@ export function getMockProxyResponse(
     }
   }
 
-  // 6. Generic GRL Lookup Fallback (Permits mock record lookup on arbitrary control tables)
+  // 6. Generic GNI (Get Next ID) Sequence Generation ('GNI')
+  if (requestType === "GNI") {
+    const prefixMap: Record<string, string> = {
+      ACCOUNT: "100",
+      CUSTOMER: "200",
+      TELLER: "TT",
+      FUNDS_TRANSFER: "FT",
+      "SYS.MODEL.CONFIG": "MDL.",
+      "MODEL.CONFIG": "MDL.",
+      "SC.MODEL.CONFIG": "MDL.",
+      "SYS.FORM.CONFIG": "FC.",
+      "FORM.CONFIG": "FC.",
+      "SC.FORM.CONFIG": "FC.",
+      "CONFIG.FORM": "FC.",
+      "SYS.INQUIRY.CONFIG": "INQ.",
+      "INQUIRY.CONFIG": "INQ.",
+      "SC.INQUIRY.CONFIG": "INQ.",
+      "USER.MGT": "USR.",
+      USER: "USR.",
+      USER_GROUP: "UG.",
+    };
+    const prefix = prefixMap[cleanModel] || `${cleanModel}.`;
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000).toString();
+    const generatedId = `${prefix}${randomSuffix}`;
+
+    return {
+      status: "SUCCESS",
+      statusCode: 200,
+      message: `Generated next record sequence for ${cleanModel}`,
+      data: {
+        recordId: generatedId,
+        id: generatedId,
+      },
+      timestamp,
+    };
+  }
+
+  // 7. Generic GRL Lookup Fallback (Permits mock record lookup on arbitrary control tables)
   if (requestType === "GRL") {
+    const rawItems = [
+      {
+        id: `${cleanModel}_001`,
+        label: `${cleanModel} Item 1`,
+        details: `Active mock record 001 for ${cleanModel}`,
+      },
+      {
+        id: `${cleanModel}_002`,
+        label: `${cleanModel} Item 2`,
+        details: `Active mock record 002 for ${cleanModel}`,
+      },
+      {
+        id: `${cleanModel}_003`,
+        label: `${cleanModel} Item 3`,
+        details: `Active mock record 003 for ${cleanModel}`,
+      },
+    ];
+
+    const searchQuery =
+      typeof data === "object" && data !== null
+        ? String(
+            (data as Record<string, unknown>).search ||
+              (data as Record<string, unknown>).query ||
+              "",
+          )
+            .trim()
+            .toLowerCase()
+        : "";
+
+    const filtered = searchQuery
+      ? rawItems.filter(
+          (item) =>
+            item.id.toLowerCase().includes(searchQuery) ||
+            item.label.toLowerCase().includes(searchQuery) ||
+            item.details.toLowerCase().includes(searchQuery),
+        )
+      : rawItems;
+
+    filtered.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+
     return {
       status: "SUCCESS",
       statusCode: 200,
       message: `Record list loaded for ${cleanModel || "records"}`,
-      data: [
-        {
-          id: `${cleanModel}_001`,
-          label: `${cleanModel} Item 1`,
-          details: `Active mock record 001 for ${cleanModel}`,
-        },
-        {
-          id: `${cleanModel}_002`,
-          label: `${cleanModel} Item 2`,
-          details: `Active mock record 002 for ${cleanModel}`,
-        },
-      ],
+      data: filtered,
       timestamp,
     };
   }

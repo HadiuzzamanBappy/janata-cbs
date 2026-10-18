@@ -57,7 +57,7 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   mode?: CbsScreenMode;
   onRecordIdChange?: (id: string) => void;
   onRecordSearch?: (id: string) => void;
-  onCreateNew?: () => void;
+  onCreateNew?: (newId?: string) => void;
   onReturnToSearch?: () => void;
   onReset?: () => void;
   onValidate?: () => void;

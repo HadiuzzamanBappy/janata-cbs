@@ -6,8 +6,13 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Edit,
   Edit3,
+  ExternalLink,
   Eye,
+  FileText,
+  History,
+  RotateCcw,
 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -30,12 +35,15 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { EnquiryColumn, EnquiryRow } from "@/lib/data-schemas";
+import type { InquiryActionConfig } from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface InquiryEngineTableProps {
   columns: EnquiryColumn[];
   rows: EnquiryRow[];
+  actions?: InquiryActionConfig[];
   onViewRecord?: (recordId: string, row: EnquiryRow) => void;
   onEditRecord?: (recordId: string, row: EnquiryRow) => void;
+  onExecuteAction?: (action: InquiryActionConfig, recordId: string, row: EnquiryRow) => void;
   pageSize?: number;
   onPageSizeChange?: (size: number) => void;
   currentPage?: number;
@@ -47,8 +55,10 @@ export type EnquiryTableProps = InquiryEngineTableProps;
 export function InquiryEngineTable({
   columns,
   rows,
+  actions,
   onViewRecord,
   onEditRecord,
+  onExecuteAction,
   pageSize: controlledPageSize,
   onPageSizeChange,
   currentPage: controlledPage,
@@ -63,6 +73,11 @@ export function InquiryEngineTable({
   const setPage = onPageChange ?? setInternalPage;
   const pageSize = controlledPageSize ?? internalPageSize;
   const setPageSize = onPageSizeChange ?? setInternalPageSize;
+
+  const hasConfiguredActions = actions !== undefined;
+  const showActionsColumn = hasConfiguredActions
+    ? actions.length > 0
+    : Boolean(onViewRecord || onEditRecord);
 
   const handleSort = (colId: string) => {
     if (sortCol === colId) {
@@ -127,6 +142,25 @@ export function InquiryEngineTable({
     }
   };
 
+  const renderActionIcon = (iconName?: string) => {
+    switch (iconName) {
+      case "eye":
+        return <Eye className="size-3 text-primary" />;
+      case "edit":
+        return <Edit className="size-3 text-amber-500" />;
+      case "rotate-ccw":
+        return <RotateCcw className="size-3 text-destructive" />;
+      case "history":
+        return <History className="size-3 text-purple-500" />;
+      case "file-text":
+        return <FileText className="size-3 text-emerald-500" />;
+      case "external-link":
+        return <ExternalLink className="size-3 text-sky-500" />;
+      default:
+        return <Eye className="size-3" />;
+    }
+  };
+
   return (
     <TooltipProvider delay={150}>
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden pr-1 gap-0.5">
@@ -166,21 +200,23 @@ export function InquiryEngineTable({
                     </TableHead>
                   ))}
 
-                  {/* Actions Column Header pinned on the Right */}
-                  <TableHead className="w-14 px-2 py-1 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20">
-                    <span>Act</span>
-                  </TableHead>
+                  {/* Actions Column Header pinned on the Right only if actions exist */}
+                  {showActionsColumn && (
+                    <TableHead className="w-18 px-2 py-1 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20">
+                      <span>Actions</span>
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
 
               <TableBody>
                 {paginatedRows.map((row, index) => {
-                  const recordKey = String(row.id || row.accountNo || index);
+                  const recordKey = String(row.id || row.accountNo || row.recordId || index);
                   const isStriped = index % 2 === 1;
 
                   return (
                     <TableRow
-                      key={row.id || index}
+                      key={recordKey}
                       className={`hover:bg-primary/10 transition-colors border-b border-border/30 font-mono text-xs ${
                         isStriped ? "bg-muted/40" : "bg-transparent"
                       }`}
@@ -219,43 +255,75 @@ export function InquiryEngineTable({
                       })}
 
                       {/* Action Column pinned right with matching striped background */}
-                      <TableCell
-                        className={`w-14 px-1.5 py-1 text-center sticky right-0 backdrop-blur-xs border-l border-border/30 ${
-                          isStriped ? "bg-muted/95" : "bg-card/95"
-                        }`}
-                      >
-                        <div className="flex items-center justify-center gap-0.5">
-                          <Tooltip>
-                            <TooltipTrigger
-                              render={
-                                <button
-                                  type="button"
-                                  onClick={() => handleView(recordKey, row)}
-                                  className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                >
-                                  <Eye className="size-3" />
-                                </button>
-                              }
-                            />
-                            <TooltipContent className="text-xs">View</TooltipContent>
-                          </Tooltip>
+                      {showActionsColumn && (
+                        <TableCell
+                          className={`w-18 px-1.5 py-1 text-center sticky right-0 backdrop-blur-xs border-l border-border/30 ${
+                            isStriped ? "bg-muted/95" : "bg-card/95"
+                          }`}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            {hasConfiguredActions ? (
+                              actions.map((act) => (
+                                <Tooltip key={act.id}>
+                                  <TooltipTrigger
+                                    render={
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          onExecuteAction
+                                            ? onExecuteAction(act, recordKey, row)
+                                            : handleDrilldown(
+                                                act.targetCommand,
+                                                recordKey,
+                                                act.actionType === "edit" ? "EDIT" : "VIEW",
+                                                row,
+                                              )
+                                        }
+                                        className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                      >
+                                        {renderActionIcon(act.icon)}
+                                      </button>
+                                    }
+                                  />
+                                  <TooltipContent className="text-xs">{act.label}</TooltipContent>
+                                </Tooltip>
+                              ))
+                            ) : (
+                              <>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    render={
+                                      <button
+                                        type="button"
+                                        onClick={() => handleView(recordKey, row)}
+                                        className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                      >
+                                        <Eye className="size-3" />
+                                      </button>
+                                    }
+                                  />
+                                  <TooltipContent className="text-xs">View</TooltipContent>
+                                </Tooltip>
 
-                          <Tooltip>
-                            <TooltipTrigger
-                              render={
-                                <button
-                                  type="button"
-                                  onClick={() => handleEdit(recordKey, row)}
-                                  className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                >
-                                  <Edit3 className="size-3" />
-                                </button>
-                              }
-                            />
-                            <TooltipContent className="text-xs">Edit</TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </TableCell>
+                                <Tooltip>
+                                  <TooltipTrigger
+                                    render={
+                                      <button
+                                        type="button"
+                                        onClick={() => handleEdit(recordKey, row)}
+                                        className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                      >
+                                        <Edit3 className="size-3" />
+                                      </button>
+                                    }
+                                  />
+                                  <TooltipContent className="text-xs">Edit</TooltipContent>
+                                </Tooltip>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 })}

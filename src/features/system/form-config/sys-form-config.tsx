@@ -51,7 +51,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     availableForms,
   } = useFormConfig(initialId, tabId);
 
-  const [activeTab, setActiveTab] = React.useState<FormConfigTabKey>("designer");
+  const [activeTab, setActiveTab] = React.useState<FormConfigTabKey>("general");
   const isReadOnly = mode !== "I";
 
   const availableItems = React.useMemo(

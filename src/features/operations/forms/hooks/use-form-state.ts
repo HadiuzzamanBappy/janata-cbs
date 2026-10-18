@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ParsedFormData } from "@/lib/data-schemas";
 
-export function useFormState(schema: ParsedFormData | null, initialData: Record<string, unknown> = {}) {
+export function useFormState(
+  schema: ParsedFormData | null,
+  initialData: Record<string, unknown> = {},
+) {
   const [values, setValues] = useState<Record<string, unknown>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState<boolean>(false);

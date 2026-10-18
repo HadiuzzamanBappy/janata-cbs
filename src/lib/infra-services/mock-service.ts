@@ -5,8 +5,17 @@ import {
   AC_ACCOUNT_LIVE,
   buildMockUserAuthResponse,
   CUST_CUSTOMER_LIVE,
+  getMenuCatalogRecord,
+  getMenuTreeRecord,
+  getUserGroupRecord,
   getUserRecord,
   SC_CONTROL_LIVE,
+  SC_MENU_LIST,
+  SC_MENU_LIVE,
+  SC_MENU_TREE_LIST,
+  SC_MENU_TREE_LIVE,
+  SC_USER_GROUP_LIST,
+  SC_USER_GROUP_LIVE,
   STATIC_BRANCH_RESPONSE,
   STATIC_CONTROL_RESPONSE,
   STATIC_FORM_CONFIG_LIST,
@@ -174,12 +183,16 @@ export function getMockProxyResponse(
       };
     }
 
-    if (STATIC_MODEL_CONFIGS[cleanRecordId]) {
+    const match =
+      STATIC_MODEL_CONFIGS[cleanRecordId] ||
+      STATIC_MODEL_CONFIGS[cleanRecordId.replace(/_/g, ".")] ||
+      STATIC_MODEL_CONFIGS[cleanRecordId.replace(/\./g, "_")];
+    if (match) {
       return {
         status: "SUCCESS",
         statusCode: 200,
         message: `Model config for #${cleanRecordId} loaded`,
-        data: STATIC_MODEL_CONFIGS[cleanRecordId],
+        data: match,
         timestamp,
       };
     }
@@ -271,6 +284,100 @@ export function getMockProxyResponse(
         statusCode: 200,
         message: `Inquiry config for #${cleanRecordId} loaded`,
         data: STATIC_INQUIRY_CONFIGS[cleanRecordId],
+        timestamp,
+      };
+    }
+  }
+
+  // 3c. Menu Item Catalog (MENU / SC.MENU)
+  if (cleanModel === "MENU" || cleanModel === "SC.MENU") {
+    if (
+      !cleanRecordId ||
+      cleanRecordId === "LIST" ||
+      cleanRecordId === "ALL" ||
+      requestType === "GRL" ||
+      requestType === "RECORD_LIST"
+    ) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Menu catalog loaded from canonical table",
+        data: SC_MENU_LIST,
+        timestamp,
+      };
+    }
+
+    const menuRecord = getMenuCatalogRecord(cleanRecordId) || SC_MENU_LIVE[cleanRecordId];
+    if (menuRecord) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: `Menu item #${cleanRecordId} loaded`,
+        data: menuRecord,
+        timestamp,
+      };
+    }
+  }
+
+  // 3d. Menu Tree Designer (SC.MENU.TREE / MENU_TREE / MENU.TREE)
+  if (cleanModel === "SC.MENU.TREE" || cleanModel === "MENU_TREE" || cleanModel === "MENU.TREE") {
+    if (
+      !cleanRecordId ||
+      cleanRecordId === "LIST" ||
+      cleanRecordId === "ALL" ||
+      requestType === "GRL" ||
+      requestType === "RECORD_LIST"
+    ) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "Menu tree list loaded from canonical table",
+        data: SC_MENU_TREE_LIST,
+        timestamp,
+      };
+    }
+
+    const treeRecord = getMenuTreeRecord(cleanRecordId) || SC_MENU_TREE_LIVE[cleanRecordId];
+    if (treeRecord) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: `Menu tree #${cleanRecordId} loaded`,
+        data: treeRecord,
+        timestamp,
+      };
+    }
+  }
+
+  // 3e. User Group & Permissions (SC.USER.GROUP / USER_GROUP / USER.GROUP)
+  if (
+    cleanModel === "SC.USER.GROUP" ||
+    cleanModel === "USER_GROUP" ||
+    cleanModel === "USER.GROUP"
+  ) {
+    if (
+      !cleanRecordId ||
+      cleanRecordId === "LIST" ||
+      cleanRecordId === "ALL" ||
+      requestType === "GRL" ||
+      requestType === "RECORD_LIST"
+    ) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: "User group list loaded from canonical table",
+        data: SC_USER_GROUP_LIST,
+        timestamp,
+      };
+    }
+
+    const groupRecord = getUserGroupRecord(cleanRecordId) || SC_USER_GROUP_LIVE[cleanRecordId];
+    if (groupRecord) {
+      return {
+        status: "SUCCESS",
+        statusCode: 200,
+        message: `User group #${cleanRecordId} loaded`,
+        data: groupRecord,
         timestamp,
       };
     }

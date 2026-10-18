@@ -10,4 +10,5 @@ export * from "./SC_INQUIRY_CONFIG";
 export * from "./SC_MENU";
 export * from "./SC_MENU_TREE";
 export * from "./SC_MODEL_CONFIG";
+export * from "./SC_USER_GROUP";
 export * from "./SYS_USER";

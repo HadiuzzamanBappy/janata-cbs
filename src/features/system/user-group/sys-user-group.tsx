@@ -115,12 +115,12 @@ export function SysUserGroup({ command, tabId }: ScreenProps) {
 
   return (
     <CbsScreenScaffold<UserGroupTabKey>
-      title="User Group & Menu Permissions"
+      title="User Group & Permissions"
       commandCode="USER.GROUP"
       recordId={recordId}
       mode={mode}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => setRecordId(searchedId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "TELLER.GRP") : undefined}

@@ -1,6 +1,6 @@
 "use client";
 
-import { FileCode, FileText, History, Layers, Network } from "lucide-react";
+import { Eye, FileCode, FileText, History, Layers, Network } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
@@ -9,9 +9,10 @@ import { DesignerAuditTab } from "./components/designer-audit-tab";
 import { DesignerCanvasTab } from "./components/designer-canvas-tab";
 import { DesignerGeneralTab } from "./components/designer-general-tab";
 import { DesignerJsonTab } from "./components/designer-json-tab";
+import { DesignerPreviewTab } from "./components/designer-preview-tab";
 import { useMenuDesigner } from "./hooks/use-menu-designer";
 
-type MenuDesignerTabKey = "general" | "canvas" | "audit" | "json";
+type MenuDesignerTabKey = "general" | "canvas" | "preview" | "audit" | "json";
 
 export function SysMenuDesigner({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
@@ -96,9 +97,15 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
         ),
       },
       {
+        id: "preview",
+        label: "Live Preview",
+        icon: <Eye className="size-3 text-emerald-500" />,
+        content: <DesignerPreviewTab formData={formData} />,
+      },
+      {
         id: "audit",
         label: "Audit Trail",
-        icon: <History className="size-3 text-emerald-500" />,
+        icon: <History className="size-3 text-purple-500" />,
         content: <DesignerAuditTab formData={formData} />,
       },
       {
@@ -113,12 +120,12 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
 
   return (
     <CbsScreenScaffold<MenuDesignerTabKey>
-      title="Navigation Tree Designer"
+      title="Menu Tree Designer"
       commandCode="MENU.TREE"
       recordId={recordId}
       mode={mode}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => setRecordId(searchedId.toUpperCase())}
+      onRecordSearch={(searchedId: string) => fetchTreeRecord(searchedId.toUpperCase(), "I")}
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => fetchTreeRecord(recordId || "MAIN.MENU") : undefined}

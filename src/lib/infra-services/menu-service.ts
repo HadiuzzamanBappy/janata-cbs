@@ -14,7 +14,7 @@ import {
 } from "./service-context";
 
 async function fetchMenuWirePayload(controlName: string, tokenParam?: string): Promise<unknown> {
-  if (isStaticMode()) return getStaticData("MENU");
+  if (isStaticMode()) return getStaticData("MENU", "", CbsRequestType.GUM);
 
   const ctx = await resolveServiceContext(tokenParam);
   const res = await grpcProcess(

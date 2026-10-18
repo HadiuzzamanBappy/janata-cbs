@@ -12,7 +12,6 @@ export const STATIC_INQUIRY_CONFIGS: Record<string, InquiryConfigRecord> = {
     title: "Retail & Corporate Account Master List",
     description: "Account enquiry with customer balances, status, and branch code",
     targetModel: "ACCOUNT",
-    defaultPageSize: 25,
     columns: [
       {
         id: "recordId",
@@ -110,11 +109,35 @@ export const STATIC_INQUIRY_CONFIGS: Record<string, InquiryConfigRecord> = {
         required: false,
       },
     ],
-    drillDown: {
-      targetCommand: "ACCOUNT,SEE",
-      idParamField: "recordId",
-      openMode: "tab",
-    },
+    actions: [
+      {
+        id: "VIEW",
+        label: "View Details",
+        targetCommand: "ACCOUNT,SEE",
+        actionType: "view",
+        icon: "eye",
+        openMode: "tab",
+        idParamField: "recordId",
+      },
+      {
+        id: "EDIT",
+        label: "Amend Account",
+        targetCommand: "ACCOUNT,AMEND",
+        actionType: "edit",
+        icon: "edit",
+        openMode: "tab",
+        idParamField: "recordId",
+      },
+      {
+        id: "AUDIT",
+        label: "Audit History",
+        targetCommand: "ACCOUNT,HIST",
+        actionType: "drilldown",
+        icon: "history",
+        openMode: "popup",
+        idParamField: "recordId",
+      },
+    ],
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -130,7 +153,6 @@ export const STATIC_INQUIRY_CONFIGS: Record<string, InquiryConfigRecord> = {
     title: "Employee Information Directory",
     description: "Employee HR query with designation, posting branch, and contact email",
     targetModel: "USER",
-    defaultPageSize: 30,
     columns: [
       {
         id: "recordId",
@@ -220,6 +242,26 @@ export const STATIC_INQUIRY_CONFIGS: Record<string, InquiryConfigRecord> = {
         required: false,
       },
     ],
+    actions: [
+      {
+        id: "VIEW",
+        label: "View Profile",
+        targetCommand: "USER,SEE",
+        actionType: "view",
+        icon: "eye",
+        openMode: "tab",
+        idParamField: "recordId",
+      },
+      {
+        id: "EDIT",
+        label: "Edit Employee",
+        targetCommand: "USER,AMEND",
+        actionType: "edit",
+        icon: "edit",
+        openMode: "tab",
+        idParamField: "recordId",
+      },
+    ],
     auditData: {
       recStatus: "AU",
       recCurrNumber: 18,
@@ -235,7 +277,6 @@ export const STATIC_INQUIRY_CONFIGS: Record<string, InquiryConfigRecord> = {
     title: "Today's Transaction Journal",
     description: "Daily transaction journal with amounts, accounts, and maker-checker status",
     targetModel: "TRANSACTION",
-    defaultPageSize: 30,
     columns: [
       {
         id: "recordId",
@@ -315,6 +356,7 @@ export const STATIC_INQUIRY_CONFIGS: Record<string, InquiryConfigRecord> = {
         required: false,
       },
     ],
+    actions: [],
     auditData: {
       recStatus: "AU",
       recCurrNumber: 6,

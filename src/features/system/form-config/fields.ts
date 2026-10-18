@@ -1,4 +1,4 @@
-export type MetaFieldGroup = "IDENTITY" | "FLAGS";
+export type MetaFieldGroup = "IDENTITY";
 
 export interface MetaFieldDef {
   path: string;
@@ -20,10 +20,6 @@ export const META_FIELD_GROUPS: Array<{
   {
     id: "IDENTITY",
     title: "Form Identification & Target Model",
-  },
-  {
-    id: "FLAGS",
-    title: "Status & Operational Flags",
   },
 ];
 
@@ -67,11 +63,11 @@ export const FORM_META_FIELDS: MetaFieldDef[] = [
     width: "compact",
   },
   {
-    path: "isActive",
-    label: "Form Active Status",
-    group: "FLAGS",
-    type: "boolean",
-    width: "compact",
-    helperText: "Determines if this form layout is active for operator selection",
+    path: "description",
+    label: "Description",
+    group: "IDENTITY",
+    type: "text",
+    placeholder: "e.g. Summary description of this form layout",
+    width: "half",
   },
 ];

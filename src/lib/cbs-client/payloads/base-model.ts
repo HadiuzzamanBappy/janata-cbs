@@ -20,6 +20,9 @@ export interface CbsModelPayloadFactory<TData = Record<string, unknown>> {
   /** L: List records */
   list: (options?: ModelOptions & { criteria?: Record<string, unknown> }) => CbsWirePayload;
 
+  /** N: Get New Record Id sequence ('GNI') */
+  getNewId: (options?: ModelOptions) => CbsWirePayload;
+
   /** I: Insert or Update */
   save: (
     data: TData,
@@ -76,6 +79,9 @@ export function createModelPayloads<TData = Record<string, unknown>>(
     get: (id, opts) => toPayload(CbsRequestType.GET, CbsRecordFunction.SEE, id, undefined, opts),
 
     list: (opts) => toPayload(CbsRequestType.GRL, CbsRecordFunction.LIST, "", opts?.criteria, opts),
+
+    getNewId: (opts) =>
+      toPayload(CbsRequestType.GNI, CbsRecordFunction.INPUT, "", undefined, opts),
 
     save: (data, opts) =>
       toPayload(

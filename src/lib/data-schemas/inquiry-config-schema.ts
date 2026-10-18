@@ -47,9 +47,24 @@ export type InquiryActionConfig = z.infer<typeof inquiryActionConfigSchema>;
 
 export const inquiryConfigRecordSchema = z.object({
   id: z.string().min(1, "Inquiry ID is required"), // e.g. "INQ.ACCOUNT.LIST"
-  title: z.string().min(1, "Inquiry Title is required"),
-  description: z.string().optional(),
-  targetModel: z.string().min(1, "Target Model is required"), // e.g. "ACCOUNT"
+  title: z.string().optional().default(""),
+  description: z.string().optional().default(""),
+  pageOrientation: z.enum(["Portrait", "Landscape"]).default("Portrait"),
+  recordPerPage: z.number().default(50),
+  showSerial: z.boolean().default(true),
+  showPagination: z.boolean().default(true),
+  showBranchWise: z.boolean().default(false),
+  inqServicePath: z.string().default(""),
+  inquiryType: z
+    .enum(["Data From Table", "Data From Routine", "Data From View"])
+    .or(z.string())
+    .default("Data From Table"),
+  controllerName: z.string().default(""),
+  reportControlName: z.string().default(""),
+  cmdFromInternal: z.boolean().default(false),
+  cmdFieldName: z.string().default(""),
+  fixedSelection: z.string().default(""),
+  targetModel: z.string().default(""), // e.g. "ACCOUNT"
   columns: z.array(inquiryColumnConfigSchema).default([]),
   filters: z.array(inquiryFilterConfigSchema).default([]),
   actions: z.array(inquiryActionConfigSchema).default([]),

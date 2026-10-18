@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Plus, X } from "lucide-react";
+import { ChevronDown, Loader2, Plus, X } from "lucide-react";
 import type * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,11 +26,16 @@ export interface RecordLookupBarProps {
   hasSearched: boolean;
   submitting?: boolean;
   loadingItems?: boolean;
+  generatingId?: boolean;
   canCreate?: boolean;
 }
 
 /**
  * Record ID lookup bar with inline autocomplete dropdown and create-new (+) button.
+ * Enforces CBS 3-Action Workflow:
+ * 1. Enter key -> Triggers Mode 'I' search/load.
+ * 2. Chevron down -> Requests sorted GRL list from backend.
+ * 3. '+' Button -> Requests Next Sequence ID ('GNI') and opens in Mode 'I'.
  */
 export function RecordLookupBar({
   inputVal,
@@ -45,10 +50,12 @@ export function RecordLookupBar({
   hasSearched,
   submitting = false,
   loadingItems = false,
+  generatingId = false,
   canCreate = true,
 }: RecordLookupBarProps) {
   return (
     <div className="flex items-center gap-1">
+      {/* Action 1: Text Input with Enter-to-Submit */}
       <form onSubmit={onSubmit} className="relative flex items-center">
         <Input
           type="text"
@@ -77,6 +84,7 @@ export function RecordLookupBar({
         )}
       </form>
 
+      {/* Action 2: Dropdown Trigger & Sorted Record List */}
       <DropdownMenu open={isDropdownOpen} onOpenChange={onDropdownOpenChange}>
         <DropdownMenuTrigger
           render={
@@ -127,6 +135,7 @@ export function RecordLookupBar({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Action 3: New Record (+) Button */}
       <TooltipProvider delay={150}>
         <Tooltip>
           <TooltipTrigger
@@ -136,15 +145,24 @@ export function RecordLookupBar({
                 variant="default"
                 size="icon-sm"
                 onClick={() => onCreateNew?.()}
-                disabled={!onCreateNew || submitting || !canCreate}
+                disabled={!onCreateNew || submitting || generatingId || !canCreate}
                 className="size-7 shadow-xs shrink-0"
+                aria-label="Create new record"
               >
-                <Plus className="size-3.5 stroke-[2.5]" />
+                {generatingId ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Plus className="size-3.5 stroke-[2.5]" />
+                )}
               </Button>
             }
           />
           <TooltipContent className="text-xs">
-            {!canCreate ? "Requires Input ('I') permission" : "Create New Record (+)"}
+            {generatingId
+              ? "Allocating Sequence (N)..."
+              : !canCreate
+                ? "Requires Input ('I') permission"
+                : "Create New Record (N / +)"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

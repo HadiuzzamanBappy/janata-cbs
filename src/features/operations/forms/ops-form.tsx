@@ -157,11 +157,7 @@ export function OpsForm({
       recordId={searchRecordId}
       onRecordIdChange={setSearchRecordId}
       onRecordSearch={(query: string) => {
-        toast.add({
-          title: "Searching Records",
-          description: `Filtering records matching "${query}"`,
-          type: "info",
-        });
+        actions.onAmend(query);
       }}
       onCreateNew={actions.onCreateNew}
       onAmend={actions.onAmend}

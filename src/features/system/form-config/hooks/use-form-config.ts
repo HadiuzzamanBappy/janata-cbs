@@ -578,12 +578,13 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   }, [formData.recordId, handleValidate]);
 
   // Create new draft
-  const handleCreateNew = React.useCallback(() => {
-    setFormData({
-      ...INITIAL_FORM_CONFIG,
-      recordId: `FC.NEW_${Date.now().toString().slice(-4)}`,
-      title: "New Form Layout",
-      version: "1.0.0",
+  const handleCreateNew = React.useCallback(
+    (allocatedId?: string) => {
+      setFormData({
+        ...INITIAL_FORM_CONFIG,
+        recordId: allocatedId || `FC.NEW_${Date.now().toString().slice(-4)}`,
+        title: "New Form Layout",
+        version: "1.0.0",
       presentation: {
         archetype: "grid",
         density: "compact",

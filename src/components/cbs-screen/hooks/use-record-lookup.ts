@@ -11,7 +11,7 @@ export interface RecordLookupItem {
 }
 
 /**
- * Universal hook for dynamic GRL record lookups with caching & static fallback.
+ * Universal hook for dynamic GRL record lookups and GNI sequence allocation.
  *
  * @param controlName - The target CBS model/table (e.g. "USER.MGT", "ACCOUNT")
  * @param staticItems - Optional initial or predefined static items
@@ -20,6 +20,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
   const cleanControl = (controlName || "").split(",")[0].trim().toUpperCase();
   const [items, setItems] = React.useState<RecordLookupItem[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [generatingId, setGeneratingId] = React.useState<boolean>(false);
   const [hasFetched, setHasFetched] = React.useState<boolean>(false);
   const prevControlRef = React.useRef(cleanControl);
 
@@ -30,87 +31,155 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
       setItems([]);
       setHasFetched(false);
       setLoading(false);
+      setGeneratingId(false);
     }
   }, [cleanControl]);
 
-  const fetchRecordList = React.useCallback(async () => {
-    if (!cleanControl || loading || hasFetched) return;
+  /**
+   * Action 2: Fetch sorted record list with optional prefix/search filter ('GRL').
+   */
+  const fetchRecordList = React.useCallback(
+    async (query?: string) => {
+      if (!cleanControl || loading) return;
 
-    setLoading(true);
-    try {
-      const payload = cbs.form.listRecords(cleanControl);
-      const res = await cbs.send<unknown>(payload, { silent: true });
+      const cleanQuery = (query || "").trim().toLowerCase();
+      setLoading(true);
 
-      if (res.status === "SUCCESS" && res.data) {
-        const rawRecords = unwrapRecordsPayload<Record<string, unknown>>(res.data);
+      try {
+        const payload = cbs.form.listRecords(
+          cleanControl,
+          cleanQuery ? { search: cleanQuery, query: cleanQuery } : undefined,
+        );
+        const res = await cbs.send<unknown>(payload, { silent: true });
+
         const mappedItems: RecordLookupItem[] = [];
 
-        // If unwrap returned objects
-        if (Array.isArray(rawRecords) && rawRecords.length > 0) {
-          for (const item of rawRecords) {
-            const id = String(item.id || item.recordId || item.code || item.userId || "").trim();
-            if (!id) continue;
+        if (res.status === "SUCCESS" && res.data) {
+          const rawRecords = unwrapRecordsPayload<Record<string, unknown>>(res.data);
 
-            const label = String(
-              item.label ||
-                item.description ||
-                item.employeeName ||
-                item.name ||
-                item.accountTitle1 ||
-                item["ACCOUNT.TITLE"] ||
-                id,
-            );
+          if (Array.isArray(rawRecords) && rawRecords.length > 0) {
+            for (const item of rawRecords) {
+              const id = String(item.id || item.recordId || item.code || item.userId || "").trim();
+              if (!id) continue;
 
-            const details = item.details
-              ? String(item.details)
-              : item.branchCode
-                ? `Branch: ${item.branchCode}`
-                : undefined;
-
-            mappedItems.push({ id, label, details });
-          }
-        } else if (Array.isArray(res.data)) {
-          // Direct array of items or strings
-          for (const item of res.data) {
-            if (typeof item === "string") {
-              mappedItems.push({ id: item });
-            } else if (item && typeof item === "object") {
-              const rec = item as Record<string, unknown>;
-              const id = String(rec.id || rec.recordId || rec.userId || "").trim();
-              if (id) {
-                mappedItems.push({
+              const label = String(
+                item.label ||
+                  item.description ||
+                  item.employeeName ||
+                  item.name ||
+                  item.accountTitle1 ||
+                  item["ACCOUNT.TITLE"] ||
                   id,
-                  label: String(rec.label || rec.employeeName || rec.description || id),
-                  details: rec.details ? String(rec.details) : undefined,
-                });
+              );
+
+              const details = item.details
+                ? String(item.details)
+                : item.branchCode
+                  ? `Branch: ${item.branchCode}`
+                  : undefined;
+
+              mappedItems.push({ id, label, details });
+            }
+          } else if (Array.isArray(res.data)) {
+            for (const item of res.data) {
+              if (typeof item === "string") {
+                mappedItems.push({ id: item });
+              } else if (item && typeof item === "object") {
+                const rec = item as Record<string, unknown>;
+                const id = String(rec.id || rec.recordId || rec.userId || "").trim();
+                if (id) {
+                  mappedItems.push({
+                    id,
+                    label: String(rec.label || rec.employeeName || rec.description || id),
+                    details: rec.details ? String(rec.details) : undefined,
+                  });
+                }
               }
             }
           }
         }
 
-        if (mappedItems.length > 0) {
-          setItems(mappedItems);
-        } else if (staticItems && staticItems.length > 0) {
-          setItems(staticItems);
+        // Merge with static fallback items if backend returned none
+        const candidateItems =
+          mappedItems.length > 0
+            ? mappedItems
+            : staticItems && staticItems.length > 0
+              ? staticItems
+              : [];
+
+        // Filter by query if client query specified
+        const filteredItems = cleanQuery
+          ? candidateItems.filter(
+              (item) =>
+                item.id.toLowerCase().includes(cleanQuery) ||
+                item.label?.toLowerCase().includes(cleanQuery) ||
+                item.details?.toLowerCase().includes(cleanQuery),
+            )
+          : candidateItems;
+
+        // Sort naturally by ID (numeric-aware ascending)
+        const sortedItems = [...filteredItems].sort((a, b) =>
+          a.id.localeCompare(b.id, undefined, { numeric: true }),
+        );
+
+        setItems(sortedItems);
+      } catch (err: unknown) {
+        console.warn(`[useRecordLookup] Failed to fetch records for ${cleanControl}:`, err);
+        const fallback = staticItems || [];
+        const filtered = cleanQuery
+          ? fallback.filter(
+              (item) =>
+                item.id.toLowerCase().includes(cleanQuery) ||
+                item.label?.toLowerCase().includes(cleanQuery),
+            )
+          : fallback;
+        setItems(
+          [...filtered].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })),
+        );
+      } finally {
+        setLoading(false);
+        setHasFetched(true);
+      }
+    },
+    [cleanControl, loading, staticItems],
+  );
+
+  /**
+   * Action 3: Request new record ID sequence from backend ('GNI').
+   */
+  const fetchNewRecordId = React.useCallback(async (): Promise<string> => {
+    if (!cleanControl) {
+      return `NEW.${Date.now().toString().slice(-4)}`;
+    }
+
+    setGeneratingId(true);
+    try {
+      const payload = cbs.form.getNewRecordId(cleanControl);
+      const res = await cbs.send<{ recordId?: string; id?: string }>(payload, { silent: true });
+
+      if (res.status === "SUCCESS" && res.data) {
+        const allocatedId = String(res.data.recordId || res.data.id || "").trim();
+        if (allocatedId) {
+          return allocatedId;
         }
-      } else if (staticItems && staticItems.length > 0) {
-        setItems(staticItems);
       }
     } catch (err: unknown) {
-      console.warn(`[useRecordLookup] Failed to fetch records for ${cleanControl}:`, err);
-      if (staticItems && staticItems.length > 0) {
-        setItems(staticItems);
-      }
+      console.warn(`[useRecordLookup] GNI sequence request failed for ${cleanControl}:`, err);
     } finally {
-      setLoading(false);
-      setHasFetched(true);
+      setGeneratingId(false);
     }
-  }, [cleanControl, loading, hasFetched, staticItems]);
+
+    // Graceful offline fallback
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000).toString();
+    return `${cleanControl}.${randomSuffix}`;
+  }, [cleanControl]);
 
   return {
     items,
     loading,
+    generatingId,
     hasFetched,
     fetchRecordList,
+    fetchNewRecordId,
   };
 }

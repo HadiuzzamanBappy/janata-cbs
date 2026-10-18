@@ -33,7 +33,7 @@ export interface CbsFormHeaderProps {
   onAuthorizeReverse?: () => void;
   onProcessAction?: () => void;
   onReturnToSearch?: () => void;
-  onCreateNew?: () => void;
+  onCreateNew?: (newId?: string) => void;
   mode?: CbsScreenMode;
   submitting?: boolean;
   moreActions?: MoreActionItem[];
@@ -76,18 +76,16 @@ export function CbsFormHeader({
   const access = useCbsAccess({ mode });
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [hasSearched, setHasSearched] = React.useState(false);
 
-  // Dynamic GRL Record Lookup
+  // Dynamic GRL Record Lookup & GNI Sequencer
   const {
     items: lookupItems,
     loading: lookupLoading,
+    generatingId,
     fetchRecordList,
+    fetchNewRecordId,
   } = useRecordLookup(commandCode, availableItems);
-
-  const [searchResults, setSearchResults] = React.useState<
-    Array<{ id: string; label?: string; details?: string }>
-  >([]);
-  const [hasSearched, setHasSearched] = React.useState(false);
 
   const [canDock, setCanDock] = React.useState(false);
   React.useEffect(() => {
@@ -98,53 +96,70 @@ export function CbsFormHeader({
     setInputVal(recordId);
   }, [recordId]);
 
+  // Action 2: Chevron Dropdown open triggers server-side GRL lookup with inputVal prefix
   const handleDropdownOpenChange = React.useCallback(
     (open: boolean) => {
       setIsDropdownOpen(open);
       if (open) {
-        fetchRecordList();
+        fetchRecordList(inputVal.trim());
       }
     },
-    [fetchRecordList],
+    [fetchRecordList, inputVal],
   );
 
-  const demoItems = React.useMemo(() => {
-    if (lookupLoading) return [];
+  const itemsToDisplay = React.useMemo(() => {
     if (lookupItems.length > 0) return lookupItems;
     if (availableItems.length > 0) return availableItems;
     return [];
-  }, [lookupLoading, lookupItems, availableItems]);
+  }, [lookupItems, availableItems]);
 
+  // Action 1: Typing Record ID + Enter -> Load Record in Mode 'I'
   const handlePerformSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const query = inputVal.trim().toLowerCase();
+    const query = inputVal.trim();
+    if (!query) return;
 
-    const matches = query
-      ? demoItems.filter(
-          (item) =>
-            item.id.toLowerCase().includes(query) ||
-            item.label?.toLowerCase().includes(query) ||
-            item.details?.toLowerCase().includes(query),
-        )
-      : demoItems;
-
-    setSearchResults(matches);
+    setIsDropdownOpen(false);
     setHasSearched(true);
-    setIsDropdownOpen(true);
-    if (query && onRecordSearch) {
+    if (onRecordSearch) {
       onRecordSearch(query.toUpperCase());
+    } else if (onRecordIdChange) {
+      onRecordIdChange(query.toUpperCase());
     }
   };
 
+  // Selecting item from dropdown immediately opens record in Mode 'I'
   const handleSelectRecord = (id: string) => {
-    setInputVal(id);
+    const cleanId = id.trim().toUpperCase();
+    setInputVal(cleanId);
     setIsDropdownOpen(false);
-    if (onRecordIdChange) onRecordIdChange(id);
+    if (onRecordIdChange) onRecordIdChange(cleanId);
+    if (onRecordSearch) {
+      onRecordSearch(cleanId);
+    }
   };
+
+  // Action 3: New Button (+) -> Allocates sequence ID via 'GNI' and opens in Mode 'I'
+  const handleCreateNewClick = React.useCallback(async () => {
+    try {
+      const newId = await fetchNewRecordId();
+      if (newId) {
+        setInputVal(newId);
+        if (onRecordIdChange) onRecordIdChange(newId);
+        if (onCreateNew) {
+          onCreateNew(newId);
+        } else if (onRecordSearch) {
+          onRecordSearch(newId);
+        }
+      }
+    } catch (err) {
+      console.warn("[CbsFormHeader] Failed to allocate new record sequence:", err);
+      onCreateNew?.();
+    }
+  }, [fetchNewRecordId, onRecordIdChange, onCreateNew, onRecordSearch]);
 
   const handleClearRecord = () => {
     setInputVal("");
-    setSearchResults([]);
     setHasSearched(false);
     if (onRecordIdChange) onRecordIdChange("");
     if (onReset) onReset();
@@ -154,12 +169,6 @@ export function CbsFormHeader({
     setInputVal(val);
     if (onRecordIdChange) onRecordIdChange(val);
   };
-
-  const matchingItemsToDisplay = hasSearched
-    ? searchResults
-    : inputVal.trim()
-      ? demoItems.filter((item) => item.id.toLowerCase().includes(inputVal.trim().toLowerCase()))
-      : demoItems;
 
   return (
     <TooltipProvider delay={150}>
@@ -245,13 +254,14 @@ export function CbsFormHeader({
               onClear={handleClearRecord}
               onSubmit={handlePerformSearch}
               onSelectRecord={handleSelectRecord}
-              onCreateNew={onCreateNew}
-              matchingItems={matchingItemsToDisplay}
+              onCreateNew={handleCreateNewClick}
+              matchingItems={itemsToDisplay}
               isDropdownOpen={isDropdownOpen}
               onDropdownOpenChange={handleDropdownOpenChange}
               hasSearched={hasSearched}
               submitting={submitting}
               loadingItems={lookupLoading}
+              generatingId={generatingId}
               canCreate={access.canInput}
             />
           ) : (

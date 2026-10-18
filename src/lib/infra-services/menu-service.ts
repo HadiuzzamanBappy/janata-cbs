@@ -6,7 +6,6 @@ import type { MenuItem } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CbsRecordFunction, CbsRequestType } from "@/types/cbs";
-import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,
@@ -14,8 +13,6 @@ import {
 } from "./service-context";
 
 async function fetchMenuWirePayload(controlName: string, tokenParam?: string): Promise<unknown> {
-  if (isStaticMode()) return getStaticData("MENU", "", CbsRequestType.GUM);
-
   const ctx = await resolveServiceContext(tokenParam);
   const res = await grpcProcess(
     ctx.address,

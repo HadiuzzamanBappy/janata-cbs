@@ -1,6 +1,6 @@
 "use client";
 
-import { STATIC_INQUIRY_CONFIG_LIST, STATIC_INQUIRY_CONFIGS } from "@fixtures";
+import { SC_INQUIRY_CONFIG_LIST, SC_INQUIRY_CONFIG_LIVE } from "@fixtures";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
@@ -35,7 +35,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
 
   // Available inquiries catalog for search and quick-select
   const availableInquiries: AvailableInquiryItem[] = React.useMemo(() => {
-    const list = (STATIC_INQUIRY_CONFIG_LIST || []) as InquiryConfigRecord[];
+    const list = (SC_INQUIRY_CONFIG_LIST || []) as InquiryConfigRecord[];
     return list.map((record) => ({
       id: record.id,
       label: `${record.title} (${record.targetModel})`,
@@ -203,9 +203,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
         } else {
           // Check static fixtures as fallback
           const cleanId = targetId.trim().toUpperCase();
-          const staticMatch = (STATIC_INQUIRY_CONFIGS as Record<string, InquiryConfigRecord>)[
-            cleanId
-          ];
+          const staticMatch = SC_INQUIRY_CONFIG_LIVE[cleanId];
           if (staticMatch) {
             setFormData({
               ...staticMatch,

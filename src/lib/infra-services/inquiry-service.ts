@@ -7,7 +7,6 @@ import type { EnquirySchema } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types/cbs";
-import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,
@@ -16,8 +15,6 @@ import {
 } from "./service-context";
 
 async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): Promise<unknown> {
-  if (isStaticMode()) return getStaticData("INQUIRY", cleanCmd, "INQ");
-
   const ctx = await resolveServiceContext(tokenParam);
   const payload = {
     idempotencyKey: "",
@@ -38,7 +35,9 @@ async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): P
     "INQUIRY_SERVICE",
   );
 
-  const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, { token: ctx.token });
+  const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, {
+    token: ctx.token,
+  });
 
   logger.debug(`[InquiryService] Incoming gRPC Response for "${cleanCmd}"`, res, "INQUIRY_SERVICE");
 

@@ -1,6 +1,7 @@
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import type { CbsVersionedTable } from "./types";
 
-export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
+export const SC_FORM_CONFIG_LIVE: Record<string, FormConfigRecord> = {
   ACCOUNT: {
     recordId: "ACCOUNT",
     title: "Retail Account Opening Form",
@@ -207,30 +208,19 @@ export const STATIC_FORM_CONFIGS: Record<string, FormConfigRecord> = {
   },
 };
 
-export const STATIC_FORM_CONFIG_LIST: FormConfigRecord[] = Object.values(STATIC_FORM_CONFIGS);
+/* -------------------------------------------------------------------------- */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
+/* -------------------------------------------------------------------------- */
 
-export function findFormConfigFixture(recordId: string): FormConfigRecord | null {
-  const cleanId = recordId.trim().toUpperCase();
-  return (
-    STATIC_FORM_CONFIGS[cleanId] ??
-    STATIC_FORM_CONFIGS[cleanId.replace(/^(FC|SC)\./, "")] ??
-    STATIC_FORM_CONFIGS[`FC.${cleanId}`] ??
-    Object.values(STATIC_FORM_CONFIGS).find(
-      (cfg) =>
-        cfg.recordId?.toUpperCase() === cleanId ||
-        cfg.targetModel?.toUpperCase() === cleanId ||
-        cfg.recordId?.toUpperCase() === cleanId.replace(/^(FC|SC)\./, "") ||
-        cfg.targetModel?.toUpperCase() === cleanId.replace(/^(FC|SC)\./, ""),
-    ) ??
-    null
-  );
-}
+export const SC_FORM_CONFIG_INAU: Record<string, FormConfigRecord> = {};
+export const SC_FORM_CONFIG_HIS: Record<string, FormConfigRecord[]> = {};
+export const SC_FORM_CONFIG_DEL: Record<string, FormConfigRecord> = {};
 
-export function listFormConfigSummaries() {
-  return STATIC_FORM_CONFIG_LIST.map((record) => ({
-    id: record.recordId,
-    label: `${record.title} (${record.targetModel})`,
-    details: `${record.presentation.sections.length} sections • ${record.targetModel}`,
-    record,
-  }));
-}
+export const SC_FORM_CONFIG_TABLE: CbsVersionedTable<FormConfigRecord> = {
+  LIVE: SC_FORM_CONFIG_LIVE,
+  INAU: SC_FORM_CONFIG_INAU,
+  HIS: SC_FORM_CONFIG_HIS,
+  DEL: SC_FORM_CONFIG_DEL,
+};
+
+export const SC_FORM_CONFIG_LIST: FormConfigRecord[] = Object.values(SC_FORM_CONFIG_LIVE);

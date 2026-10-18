@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { appConfig, getService, REQUEST_TYPE_OVERLAYS } from "@/lib/core-config/server";
 import { grpcProcess, grpcStatusToHttp, type ProcessKind } from "@/lib/infra-grpc/client";
 import type { GrpcRequest } from "@/lib/infra-grpc/generated/service";
+import { mockDispatch } from "@/lib/mock-services";
 import type { ApiResponse, GrpcEnvelope } from "@/types";
 
 /* -------------------------------------------------------------------------- */
@@ -126,6 +127,10 @@ async function executeRestTransport(
  * Dynamically routes requests across either binary gRPC or HTTP REST microservices.
  */
 export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<ApiResponse> {
+  if (appConfig.dataSource === "static") {
+    return mockDispatch(envelope);
+  }
+
   try {
     const isDefault = envelope.servicePath === "default" || !envelope.servicePath;
     const targetServiceKey = isDefault ? "default" : envelope.servicePath.split("/")[0];

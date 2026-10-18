@@ -28,15 +28,33 @@ export interface ServiceContext {
  * Fails fast with UNAUTHENTICATED error if no session token or user ID is available.
  */
 export async function resolveServiceContext(tokenParam?: string): Promise<ServiceContext> {
-  const session = await getSession();
+  const session = await getSession().catch(() => null);
   const token = tokenParam || session?.token;
 
   if (!token) {
+    if (appConfig.dataSource === "static") {
+      return {
+        token: "mock_static_token",
+        userId: "ZZ0284590",
+        branchCode: appConfig.centralBranch || "JB9999",
+        address: getServiceUrl(),
+        clientId: appConfig.grpc.clientId,
+      };
+    }
     throw new Error("UNAUTHENTICATED: No valid session token available for gRPC request");
   }
 
   const userId = session?.currUser?.userId || session?.userId;
   if (!userId) {
+    if (appConfig.dataSource === "static") {
+      return {
+        token,
+        userId: "ZZ0284590",
+        branchCode: appConfig.centralBranch || "JB9999",
+        address: getServiceUrl(),
+        clientId: appConfig.grpc.clientId,
+      };
+    }
     throw new Error("UNAUTHENTICATED: No authenticated user ID found in session");
   }
 

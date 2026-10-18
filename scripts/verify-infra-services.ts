@@ -1,6 +1,7 @@
 /**
- * Automated Verification Suite for Infrastructure Services (@/lib/infra-services)
- * Tests both Static Mock Mode and Live gRPC Mode behaviors, security contracts, and error translations.
+ * Automated Verification Suite for Core Infrastructure Services (@/lib/infra-services)
+ * Tests Universal CBS Gateway Routing, Command Normalizer, Security Barriers,
+ * and the complete standard gRPC Protocol Error Translation Matrix.
  *
  * Usage:
  *   pnpm tsx scripts/verify-infra-services.ts
@@ -22,16 +23,11 @@ try {
   // Ignore if not resolvable
 }
 
+export {};
+
 async function runSuite() {
   const { appConfig } = await import("@/lib/core-config/server");
-  const { isStaticMode, getStaticData } = await import("@/lib/infra-services/cbs-gateway");
-  const {
-    parseAuthWirePayload,
-    parseBranchesWirePayload,
-    parseControlsWirePayload,
-    parseGMC,
-    parseMNU,
-  } = await import("@/lib/data-parsers");
+  const { isStaticMode } = await import("@/lib/infra-grpc");
   const { grpcStatusToHttp } = await import("@/lib/infra-grpc/client");
   const { DEFAULT_AUTH_LEVEL, GRPC_SERVICE_CATEGORY, normalizeCommand, resolveServiceContext } =
     await import("@/lib/infra-services/service-context");
@@ -57,7 +53,7 @@ async function runSuite() {
   const originalDataSource = appConfig.dataSource;
 
   console.log("\n========================================================");
-  console.log("   INFRASTRUCTURE SERVICES (STATIC & gRPC DUAL SUITE)   ");
+  console.log("   INFRASTRUCTURE SERVICES (gRPC & GATEWAY CORE SUITE)  ");
   console.log("========================================================");
   console.log(`  Active .env.local DATA_SOURCE : "${originalDataSource.toUpperCase()}"`);
   console.log(
@@ -69,9 +65,9 @@ async function runSuite() {
 
   try {
     // =========================================================================
-    // SECTION 1: Architecture Gate & Mode Detection
+    // SECTION 1: Gateway Routing & Runtime Configuration Switch
     // =========================================================================
-    console.log("── 1. Architecture Mode Gate & Active Setting ──────────");
+    console.log("── 1. Gateway Routing & Runtime Configuration Switch ──");
 
     assert(
       `Active Mode: isStaticMode() matches .env.local (${
@@ -82,138 +78,62 @@ async function runSuite() {
 
     (appConfig as { dataSource: string }).dataSource = "static";
     assert(
-      "Gate Switch: isStaticMode() returns true when DATA_SOURCE is 'static'",
+      "Gateway Switch: isStaticMode() returns true when DATA_SOURCE is 'static'",
       isStaticMode() === true,
     );
 
     (appConfig as { dataSource: string }).dataSource = "grpc";
     assert(
-      "Gate Switch: isStaticMode() returns false when DATA_SOURCE is 'grpc'",
+      "Gateway Switch: isStaticMode() returns false when DATA_SOURCE is 'grpc'",
       isStaticMode() === false,
     );
 
     // =========================================================================
-    // SECTION 2: Static Mode Service Dispatches (DATA_SOURCE=static)
+    // SECTION 2: Command Normalization Engine (normalizeCommand)
     // =========================================================================
-    console.log("\n── 2. Static Mode Domain Service Routing (getStaticData) ──");
-    (appConfig as { dataSource: string }).dataSource = "static";
+    console.log("\n── 2. Command Normalization Engine (normalizeCommand) ──");
 
-    // 2.1 Static Authentication
-    const mockUser = getStaticData("AUTH", "ZZ028459") as {
-      status: string;
-      statusCode: number;
-      data: Record<string, unknown>;
-    } | null;
     assert(
-      "Auth: getStaticData('AUTH', 'ZZ028459') returns valid user payload",
-      Boolean(mockUser && mockUser.status === "SUCCESS" && mockUser.statusCode === 200),
+      "Normalize: Strips INQ prefix and comma version (INQ AC.LIST,1 -> AC.LIST)",
+      normalizeCommand("INQ AC.LIST,1") === "AC.LIST",
     );
     assert(
-      "Auth: mock user contains real gRPC keys (userId, token, accessibility)",
-      Boolean(
-        mockUser?.data &&
-          mockUser.data.userId === "ZZ0284590" &&
-          typeof mockUser.data.accessibility === "string" &&
-          mockUser.data.accessibility.includes("L") &&
-          typeof mockUser.data.token === "string",
-      ),
+      "Normalize: Strips INQUIRY full prefix (INQUIRY GET.CUSTOMER -> GET.CUSTOMER)",
+      normalizeCommand("INQUIRY GET.CUSTOMER") === "GET.CUSTOMER",
     );
-
-    const unknownUser = getStaticData("AUTH", "NONEXISTENT_USER");
-    assert("Auth: getStaticData('AUTH', 'NONEXISTENT_USER') returns null", unknownUser === null);
-
-    const authParse = parseAuthWirePayload(mockUser?.data, "ZZ028459");
     assert(
-      "Auth: static user payload parses cleanly into CurrentUser session",
-      authParse.currUser.userId === "ZZ0284590" &&
-        authParse.currUser.accessibility === "RIDASHL" &&
-        authParse.currUser.branchCode === "JB9999",
+      "Normalize: Strips trailing function code (ACCOUNT I -> ACCOUNT)",
+      normalizeCommand("ACCOUNT I") === "ACCOUNT",
     );
-
-    // 2.2 Navigation Menu
-    const menuPayload = getStaticData("MENU");
     assert(
-      "Menu: getStaticData('MENU') returns navigation tree data",
-      menuPayload !== null && menuPayload !== undefined,
+      "Normalize: Strips trailing function code S (ACCOUNT S -> ACCOUNT)",
+      normalizeCommand("ACCOUNT S") === "ACCOUNT",
     );
-    const menuParsed = parseMNU(menuPayload);
     assert(
-      "Menu: static menu payload parses into valid MenuItem hierarchy",
-      menuParsed.success && menuParsed.data.length > 0,
+      "Normalize: Strips leading function code (S ACCOUNT -> ACCOUNT)",
+      normalizeCommand("S ACCOUNT") === "ACCOUNT",
     );
-
-    // 2.3 Branch Directory
-    const branchPayload = getStaticData("BRANCH");
     assert(
-      "Branches: getStaticData('BRANCH') returns records list",
-      branchPayload !== null && branchPayload !== undefined,
+      "Normalize: Strips leading function code I (I USER -> USER)",
+      normalizeCommand("I USER") === "USER",
     );
-    const branchesParsed = parseBranchesWirePayload(branchPayload);
     assert(
-      "Branches: static branches payload parses into BranchRecord array (JB0001)",
-      branchesParsed.length >= 4 && branchesParsed[0].recordId === "JB0001",
+      "Normalize: Preserves version suffix when preserveVersion: true",
+      normalizeCommand("USER.MGT,NEW1", { preserveVersion: true }) === "USER.MGT,NEW1",
     );
-
-    // 2.4 System Controls
-    const controlPayload = getStaticData("CONTROL");
     assert(
-      "Controls: getStaticData('CONTROL') returns controls list",
-      controlPayload !== null && controlPayload !== undefined,
+      "Normalize: Strips version suffix when preserveVersion: false",
+      normalizeCommand("USER.MGT,NEW1", { preserveVersion: false }) === "USER.MGT",
     );
-    const controlsParsed = parseControlsWirePayload(controlPayload);
     assert(
-      "Controls: static controls payload parses into SystemCommandItem array",
-      controlsParsed.length >= 6 && controlsParsed.some((c) => c.command === "ACCOUNT"),
-    );
-
-    // 2.5 Inquiries
-    const inqPayload = getStaticData("INQUIRY", "GET.EMP.INFO", "INQ");
-    assert(
-      "Inquiry: getStaticData('INQUIRY', 'GET.EMP.INFO') returns valid spec",
-      inqPayload !== null && inqPayload !== undefined,
-    );
-
-    // 2.6 Dynamic Form Schemas
-    const formPayload = getStaticData("FORM", "ACCOUNT", "GMC");
-    assert(
-      "Form: getStaticData('FORM', 'ACCOUNT', 'GMC') returns valid schema",
-      formPayload !== null && formPayload !== undefined,
-    );
-    const formParsed = parseGMC(formPayload, "ACCOUNT");
-    assert(
-      "Form: static form payload parses into FormSchema (ACCOUNT)",
-      formParsed.success && formParsed.data.code === "ACCOUNT",
-    );
-
-    const versionFormPayload = getStaticData("FORM", "USER.MGT,NEW1", "GMC");
-    assert(
-      "Form: versioned form 'USER.MGT,NEW1' resolves to base model schema",
-      versionFormPayload !== null && versionFormPayload !== undefined,
-    );
-
-    // 2.7 Proxy Dispatcher
-    const grlLookup = getStaticData("USER.MGT", "", "GRL") as {
-      status: string;
-      data: unknown[];
-    };
-    assert(
-      "Proxy Dispatcher: GRL record lookup returns SUCCESS with record array",
-      grlLookup.status === "SUCCESS" && Array.isArray(grlLookup.data) && grlLookup.data.length > 0,
-    );
-
-    const notFoundRecord = getStaticData("USER.MGT", "NONEXISTENT_9999", "GET") as {
-      statusCode: number;
-      status: string;
-    };
-    assert(
-      "Proxy Dispatcher: missing recordId returns 404 RECORD_NOT_FOUND",
-      notFoundRecord.statusCode === 404 && notFoundRecord.status === "RECORD_NOT_FOUND",
+      "Normalize: Resilient to extra surrounding whitespace and lowercase",
+      normalizeCommand("   inq   cust.portfolio,1   ") === "CUST.PORTFOLIO",
     );
 
     // =========================================================================
-    // SECTION 3: gRPC Mode Verification (DATA_SOURCE=grpc)
+    // SECTION 3: gRPC Mode Protocol, Security & Error Translation Matrix
     // =========================================================================
-    console.log("\n── 3. gRPC Mode Enforcement & Invariant Checks (Offline-Safe) ──");
+    console.log("\n── 3. gRPC Mode Protocol, Security & Status Code Mapping ──");
     console.log("  [Note: Tests protocol contracts, security barriers & error mappers");
     console.log("         without requiring a live backend connection or VPN.]\n");
     (appConfig as { dataSource: string }).dataSource = "grpc";
@@ -244,48 +164,50 @@ async function runSuite() {
       GRPC_SERVICE_CATEGORY === "nonfinancial",
     );
     assert("gRPC Contract: default auth level is 1", DEFAULT_AUTH_LEVEL === 1);
-    assert(
-      "gRPC Contract: command normalization strips function codes and params",
-      normalizeCommand("INQ AC.LIST,1") === "AC.LIST" &&
-        normalizeCommand("ACCOUNT I") === "ACCOUNT",
-    );
 
-    // 3.3 gRPC Status Code to HTTP Banking Status Mapping
+    // 3.3 Complete Standard gRPC Status Code to HTTP Translation Matrix
+    assert("gRPC Status 0 (OK) -> HTTP 200", grpcStatusToHttp({ code: 0 }).status === 200);
     assert(
-      "gRPC Status Mapper: translates OK (0) to 200",
-      grpcStatusToHttp({ code: 0 }).status === 200,
-    );
-    assert(
-      "gRPC Status Mapper: translates INVALID_ARGUMENT (3) to 400",
+      "gRPC Status 3 (INVALID_ARGUMENT) -> HTTP 400",
       grpcStatusToHttp({ code: 3 }).status === 400,
     );
     assert(
-      "gRPC Status Mapper: translates UNAUTHENTICATED (16) to 401",
-      grpcStatusToHttp({ code: 16 }).status === 401,
+      "gRPC Status 4 (DEADLINE_EXCEEDED) -> HTTP 504",
+      grpcStatusToHttp({ code: 4 }).status === 504,
     );
+    assert("gRPC Status 5 (NOT_FOUND) -> HTTP 404", grpcStatusToHttp({ code: 5 }).status === 404);
     assert(
-      "gRPC Status Mapper: translates PERMISSION_DENIED (7) to 403",
-      grpcStatusToHttp({ code: 7 }).status === 403,
-    );
-    assert(
-      "gRPC Status Mapper: translates NOT_FOUND (5) to 404",
-      grpcStatusToHttp({ code: 5 }).status === 404,
-    );
-    assert(
-      "gRPC Status Mapper: translates ALREADY_EXISTS (6) to 409",
+      "gRPC Status 6 (ALREADY_EXISTS) -> HTTP 409",
       grpcStatusToHttp({ code: 6 }).status === 409,
     );
     assert(
-      "gRPC Status Mapper: translates UNAVAILABLE (14) to 503",
+      "gRPC Status 7 (PERMISSION_DENIED) -> HTTP 403",
+      grpcStatusToHttp({ code: 7 }).status === 403,
+    );
+    assert(
+      "gRPC Status 14 (UNAVAILABLE) -> HTTP 503",
       grpcStatusToHttp({ code: 14 }).status === 503,
     );
     assert(
-      "gRPC Status Mapper: translates DEADLINE_EXCEEDED (4) to 504",
-      grpcStatusToHttp({ code: 4 }).status === 504,
+      "gRPC Status 16 (UNAUTHENTICATED) -> HTTP 401",
+      grpcStatusToHttp({ code: 16 }).status === 401,
     );
+    assert("gRPC Status 2 (UNKNOWN) -> HTTP 500", grpcStatusToHttp({ code: 2 }).status === 500);
+    assert("gRPC Status 13 (INTERNAL) -> HTTP 500", grpcStatusToHttp({ code: 13 }).status === 500);
+    assert("gRPC Status 15 (DATA_LOSS) -> HTTP 500", grpcStatusToHttp({ code: 15 }).status === 500);
     assert(
-      "gRPC Status Mapper: translates unhandled code to 500",
+      "gRPC Status Unhandled Code -> HTTP 500",
       grpcStatusToHttp({ code: 999 }).status === 500,
+    );
+
+    // 3.4 Status Message and Details Preservation
+    const mappedWithDetails = grpcStatusToHttp({
+      code: 3,
+      details: "Field 'accountTitle' is mandatory",
+    });
+    assert(
+      "gRPC Status Mapper: Preserves detailed error message from gRPC response",
+      mappedWithDetails.message === "Field 'accountTitle' is mandatory",
     );
   } finally {
     (appConfig as { dataSource: string }).dataSource = originalDataSource;
@@ -295,16 +217,19 @@ async function runSuite() {
   const allPassed = reports.every((r) => r.passed);
   if (allPassed) {
     console.log(
-      `ALL ${reports.length} INFRA SERVICES TEST CASES (STATIC & gRPC) PASSED WITH 100% SUCCESS!`,
+      `ALL ${reports.length} INFRASTRUCTURE SERVICE & gRPC PROTOCOL TESTS PASSED WITH 100% SUCCESS!`,
     );
+    console.log("========================================================\n");
+    process.exit(0);
   } else {
-    console.error("SOME INFRA SERVICES TESTS FAILED!");
+    const failedCount = reports.filter((r) => !r.passed).length;
+    console.error(`FAILED: ${failedCount} OF ${reports.length} TESTS FAILED!`);
+    console.log("========================================================\n");
     process.exit(1);
   }
-  console.log("========================================================\n");
 }
 
-runSuite().catch((err) => {
+runSuite().catch((err: unknown) => {
   console.error("Runner failed:", err);
   process.exit(1);
 });

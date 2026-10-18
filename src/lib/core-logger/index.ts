@@ -127,4 +127,4 @@ class BankingLogger {
 /* -------------------------------------------------------------------------- */
 
 export const logger = new BankingLogger();
-export { maskAccountNumber, redactSensitiveData } from "./redact";
+export { isSensitiveKey, maskAccountNumber, redactSensitiveData } from "./redact";

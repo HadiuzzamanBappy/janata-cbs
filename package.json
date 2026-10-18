@@ -21,6 +21,7 @@
     "verify:client": "tsx scripts/verify-cbs-client.ts",
     "verify:utils": "tsx scripts/verify-core-utils.ts",
     "verify:services": "tsx scripts/verify-infra-services.ts",
+    "verify:mock": "tsx scripts/verify-mock-service.ts",
     "cache:clear": "tsx scripts/cache-clear.ts",
     "cache:inspect": "tsx scripts/cache-inspect.ts",
     "fixture:clean": "tsx scripts/fixture-normalize.ts"

@@ -1,6 +1,5 @@
 // Canonical CBS Database Tables (Prefix_TableName)
 
-// Transition exports while migrating feature by feature
 export * from "./AC_ACCOUNT";
 export * from "./CUST_CUSTOMER";
 export * from "./SC_BRANCH";
@@ -12,3 +11,66 @@ export * from "./SC_MENU_TREE";
 export * from "./SC_MODEL_CONFIG";
 export * from "./SC_USER_GROUP";
 export * from "./SYS_USER";
+export * from "./types";
+
+import { AC_ACCOUNT_TABLE } from "./AC_ACCOUNT";
+import { CUST_CUSTOMER_TABLE } from "./CUST_CUSTOMER";
+import { SC_BRANCH_TABLE } from "./SC_BRANCH";
+import { SC_CONTROL_TABLE } from "./SC_CONTROL";
+import { SC_FORM_CONFIG_TABLE } from "./SC_FORM_CONFIG";
+import { SC_INQUIRY_CONFIG_TABLE } from "./SC_INQUIRY_CONFIG";
+import { SC_MENU_TABLE } from "./SC_MENU";
+import { SC_MENU_TREE_TABLE } from "./SC_MENU_TREE";
+import { SC_MODEL_CONFIG_TABLE } from "./SC_MODEL_CONFIG";
+import { SC_USER_GROUP_TABLE } from "./SC_USER_GROUP";
+import { SYS_USER_TABLE } from "./SYS_USER";
+import { type CbsTableVersion, type CbsVersionedTable, queryVersionedRecord } from "./types";
+
+/**
+ * Universal In-Memory Database Registry for CBS Offline / Mock Operations.
+ * Keyed by Canonical Model Name and Table Name.
+ */
+export const CBS_DATABASE = {
+  AC_ACCOUNT: AC_ACCOUNT_TABLE,
+  ACCOUNT: AC_ACCOUNT_TABLE,
+  CUST_CUSTOMER: CUST_CUSTOMER_TABLE,
+  CUSTOMER: CUST_CUSTOMER_TABLE,
+  SC_BRANCH: SC_BRANCH_TABLE,
+  BRANCH: SC_BRANCH_TABLE,
+  SC_CONTROL: SC_CONTROL_TABLE,
+  CONTROL: SC_CONTROL_TABLE,
+  SC_FORM_CONFIG: SC_FORM_CONFIG_TABLE,
+  FORM_CONFIG: SC_FORM_CONFIG_TABLE,
+  "FORM.CONFIG": SC_FORM_CONFIG_TABLE,
+  SC_INQUIRY_CONFIG: SC_INQUIRY_CONFIG_TABLE,
+  INQUIRY_CONFIG: SC_INQUIRY_CONFIG_TABLE,
+  "INQUIRY.CONFIG": SC_INQUIRY_CONFIG_TABLE,
+  SC_MENU: SC_MENU_TABLE,
+  MENU: SC_MENU_TABLE,
+  SC_MENU_TREE: SC_MENU_TREE_TABLE,
+  MENU_TREE: SC_MENU_TREE_TABLE,
+  "MENU.TREE": SC_MENU_TREE_TABLE,
+  SC_MODEL_CONFIG: SC_MODEL_CONFIG_TABLE,
+  MODEL_CONFIG: SC_MODEL_CONFIG_TABLE,
+  "MODEL.CONFIG": SC_MODEL_CONFIG_TABLE,
+  SC_USER_GROUP: SC_USER_GROUP_TABLE,
+  USER_GROUP: SC_USER_GROUP_TABLE,
+  "USER.GROUP": SC_USER_GROUP_TABLE,
+  SYS_USER: SYS_USER_TABLE,
+  USER: SYS_USER_TABLE,
+} as const;
+
+/**
+ * Universal Database Query Helper:
+ * Queries any CBS table by model/table name and record ID, supporting versioning.
+ */
+export function queryCbsDatabase<T = Record<string, unknown>>(
+  tableOrModelName: string,
+  recordId: string,
+  version: CbsTableVersion = "LIVE",
+): T | T[] | null {
+  const cleanName = tableOrModelName.trim().toUpperCase() as keyof typeof CBS_DATABASE;
+  const table = CBS_DATABASE[cleanName] as unknown as CbsVersionedTable<T> | undefined;
+  if (!table) return null;
+  return queryVersionedRecord(table, recordId, version);
+}

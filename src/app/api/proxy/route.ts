@@ -3,9 +3,8 @@ import { parseAccessibilityRights } from "@/lib/cbs-access";
 import { appConfig } from "@/lib/core-config/server";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { cbsWirePayloadSchema } from "@/lib/data-schemas";
-import { dispatch } from "@/lib/infra-grpc/dispatch";
+import { dispatch } from "@/lib/infra-grpc";
 import { getSession } from "@/lib/infra-redis";
-import { getStaticData, isStaticMode } from "@/lib/infra-services/cbs-gateway";
 import {
   type ApiResponse,
   CbsRecordFunction,
@@ -83,25 +82,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       }
     }
 
-    // =========================================================================
-    // 1. STATIC MODE: Return fixtures via unified static provider
-    // =========================================================================
-    if (isStaticMode()) {
-      const staticRes = getStaticData(
-        body.controlName ?? "",
-        body.recordId ?? "",
-        body.requestType,
-        body.data,
-      ) as ApiResponse;
-      return NextResponse.json(
-        { ...staticRes, success: staticRes.status === "SUCCESS" },
-        { status: staticRes.statusCode || 200 },
-      );
-    }
-
-    // =========================================================================
-    // 2. gRPC MODE: Dispatch to Core CBS Host (with graceful offline fallback)
-    // =========================================================================
     // Resilient Hierarchical Branch Code Resolution:
     // 1. Explicit request override in wire payload
     // 2. Client-synced HTTP cookie (survives Redis restarts/offline)

@@ -7,7 +7,6 @@ import type { ParsedFormData } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CbsRecordFunction, CbsRequestType } from "@/types/cbs";
-import { getStaticData, isStaticMode } from "./cbs-gateway";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,
@@ -16,8 +15,6 @@ import {
 } from "./service-context";
 
 async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Promise<unknown> {
-  if (isStaticMode()) return getStaticData("FORM", cleanCmd, "GMC");
-
   const ctx = await resolveServiceContext(tokenParam);
   const payload = {
     idempotencyKey: "",
@@ -32,7 +29,9 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
     data: {},
   };
 
-  const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, { token: ctx.token });
+  const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, {
+    token: ctx.token,
+  });
 
   if (res.statusCode !== 200 || !res.data) {
     // If a specific version (e.g. "USER.MGT,NEW1") wasn't found in the database,

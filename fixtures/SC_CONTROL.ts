@@ -1,19 +1,5 @@
 import type { RawControlRecord } from "@/lib/data-schemas/control-schema";
-import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
-
-/**
- * CBS Table Associate Suffixes:
- * - LIVE: Authorized live records (Production)
- * - $NAU / $INAU: Input / Unauthorized records waiting for checker authorization
- * - $HIS: Historical audit snapshots from previous modifications
- * - $DEL: Soft-deleted / reversed records
- */
-export interface CbsVersionedTable<T> {
-  LIVE: Record<string, T>;
-  INAU: Record<string, T>;
-  HIS: Record<string, T[]>;
-  DEL: Record<string, T>;
-}
+import type { CbsVersionedTable } from "./types";
 
 /* -------------------------------------------------------------------------- */
 /* SC_CONTROL$LIVE (Authorized Production Control Master)                     */
@@ -336,58 +322,4 @@ export const SC_CONTROL_TABLE: CbsVersionedTable<RawControlRecord> = {
   DEL: SC_CONTROL_DEL,
 };
 
-// Default flat map referencing LIVE for standard lookups
-export const SC_CONTROL_RECORD_MAP = SC_CONTROL_LIVE;
 export const SC_CONTROL_LIST: RawControlRecord[] = Object.values(SC_CONTROL_LIVE);
-
-/**
- * Standard gRPC wire envelope representation for CBS backward compatibility.
- */
-export const STATIC_CONTROL_RESPONSE: GrpcResponse = {
-  status: "SUCCESS",
-  statusCode: 200,
-  idempotencyKey: "",
-  message: "record successfully processed!",
-  errors: [],
-  timestamp: "2026-10-01T09:07:15.421489436Z",
-  data: {
-    records: SC_CONTROL_LIST,
-  },
-};
-
-export const STATIC_COMMANDS = STATIC_CONTROL_RESPONSE;
-
-/**
- * Universal lookup helper for CBS Control records supporting version suffixing:
- * - "ACCOUNT" -> returns LIVE record
- * - "ACCOUNT$NAU" or "ACCOUNT$INAU" -> returns INAU record
- * - "ACCOUNT$HIS" -> returns history array or latest history record
- * - "ACCOUNT$DEL" -> returns DEL record
- */
-export function getControlRecord(
-  commandName: string,
-  version: "LIVE" | "INAU" | "HIS" | "DEL" = "LIVE",
-): RawControlRecord | RawControlRecord[] | null {
-  const clean = commandName.trim().toUpperCase();
-
-  // Handle explicit version suffix in command string (e.g. "ACCOUNT$NAU")
-  if (clean.endsWith("$NAU") || clean.endsWith("$INAU")) {
-    const base = clean.replace(/\$(NAU|INAU)$/, "");
-    return SC_CONTROL_INAU[base] ?? null;
-  }
-  if (clean.endsWith("$HIS")) {
-    const base = clean.replace(/\$HIS$/, "");
-    return SC_CONTROL_HIS[base] ?? null;
-  }
-  if (clean.endsWith("$DEL")) {
-    const base = clean.replace(/\$DEL$/, "");
-    return SC_CONTROL_DEL[base] ?? null;
-  }
-
-  // Handle passed version parameter
-  if (version === "INAU") return SC_CONTROL_INAU[clean] ?? null;
-  if (version === "HIS") return SC_CONTROL_HIS[clean] ?? null;
-  if (version === "DEL") return SC_CONTROL_DEL[clean] ?? null;
-
-  return SC_CONTROL_LIVE[clean] ?? null;
-}

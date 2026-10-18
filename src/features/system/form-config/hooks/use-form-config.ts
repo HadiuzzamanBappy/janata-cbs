@@ -1,6 +1,6 @@
 "use client";
 
-import { findFormConfigFixture, listFormConfigSummaries } from "@fixtures";
+import { SC_FORM_CONFIG_LIST, SC_FORM_CONFIG_LIVE } from "@fixtures";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
@@ -35,10 +35,10 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   );
 
   const [availableForms, setAvailableForms] = React.useState<FormCatalogItem[]>(() =>
-    listFormConfigSummaries().map((item) => ({
-      id: item.id,
-      label: item.label,
-      details: item.details,
+    SC_FORM_CONFIG_LIST.map((item) => ({
+      id: item.recordId,
+      label: `${item.title} (${item.targetModel})`,
+      details: `${item.presentation.sections.length} sections • ${item.targetModel}`,
     })),
   );
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -77,7 +77,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
         const loadedRecord =
           (res.data as { data?: typeof INITIAL_FORM_CONFIG })?.data ||
           (res.data as typeof INITIAL_FORM_CONFIG) ||
-          findFormConfigFixture(cleanId);
+          SC_FORM_CONFIG_LIVE[cleanId] ||
+          SC_FORM_CONFIG_LIVE[cleanId.replace(/^(FC|SC)\./, "")];
 
         if (res.status === "SUCCESS" && loadedRecord) {
           const sanitizedRecord: FormConfigRecord = {

@@ -6,7 +6,6 @@ import type { LoginInput } from "@/lib/data-schemas";
 import { grpcStatusToHttp, loginProcess } from "@/lib/infra-grpc";
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 import { type CurrentUser, createSession, destroySession } from "@/lib/infra-redis";
-import { getStaticData, isStaticMode } from "./cbs-gateway";
 
 export interface LoginResult {
   success: boolean;
@@ -17,22 +16,6 @@ export interface LoginResult {
 }
 
 async function fetchAuthWirePayload({ username, password }: LoginInput): Promise<GrpcResponse> {
-  if (isStaticMode()) {
-    const mock = getStaticData("AUTH", username) as GrpcResponse | null;
-    if (!mock) {
-      return {
-        status: "FAILED",
-        statusCode: 401,
-        idempotencyKey: "",
-        message: "Invalid credentials",
-        errors: ["Invalid credentials"],
-        timestamp: new Date().toISOString(),
-        data: undefined,
-      };
-    }
-    return mock;
-  }
-
   try {
     return await loginProcess({ clientId: appConfig.grpc.clientId, username, password });
   } catch (err: unknown) {

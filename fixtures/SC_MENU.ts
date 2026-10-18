@@ -1,4 +1,5 @@
 import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-catalog-schema";
+import type { CbsVersionedTable } from "./types";
 
 /**
  * SC_MENU Table Master (PREFIX: SC, TABLE: MENU)
@@ -484,19 +485,19 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
   },
 };
 
-export const SC_MENU_TABLE = SC_MENU_LIVE;
+/* -------------------------------------------------------------------------- */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
+/* -------------------------------------------------------------------------- */
+
+export const SC_MENU_INAU: Record<string, MenuCatalogRecord> = {};
+export const SC_MENU_HIS: Record<string, MenuCatalogRecord[]> = {};
+export const SC_MENU_DEL: Record<string, MenuCatalogRecord> = {};
+
+export const SC_MENU_TABLE: CbsVersionedTable<MenuCatalogRecord> = {
+  LIVE: SC_MENU_LIVE,
+  INAU: SC_MENU_INAU,
+  HIS: SC_MENU_HIS,
+  DEL: SC_MENU_DEL,
+};
+
 export const SC_MENU_LIST: MenuCatalogRecord[] = Object.values(SC_MENU_LIVE);
-
-export function getMenuCatalogRecord(id: string): MenuCatalogRecord | null {
-  const cleanId = id.trim();
-  return SC_MENU_LIVE[cleanId] ?? null;
-}
-
-export function listMenuCatalogSummaries() {
-  return SC_MENU_LIST.map((m) => ({
-    id: m.recordId,
-    label: m.label,
-    details: `${m.command} • ${m.menuType}`,
-    record: m,
-  }));
-}

@@ -133,6 +133,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
       setRecordId(cleanId);
+      setValidationErrors([]);
 
       try {
         const json = await cbs.send<unknown>(cbs.userGroup.get(cleanId), {
@@ -174,6 +175,7 @@ export function useUserGroup(initialId?: string, tabId?: string) {
   const handleCreateNew = React.useCallback(() => {
     const nextId = `GRP.${Date.now().toString().slice(-4)}`;
     setRecordId(nextId);
+    setValidationErrors([]);
     setFormData({
       ...INITIAL_USER_GROUP,
       recordId: nextId,
@@ -307,6 +309,13 @@ export function useUserGroup(initialId?: string, tabId?: string) {
     setFormData(INITIAL_USER_GROUP);
     setValidationErrors([]);
   }, [setFormData, setMode, setRecordId]);
+
+  // Clear validation errors whenever switching away from edit mode
+  React.useEffect(() => {
+    if (mode !== "I") {
+      setValidationErrors([]);
+    }
+  }, [mode]);
 
   React.useEffect(() => {
     fetchMenus();

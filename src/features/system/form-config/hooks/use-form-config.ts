@@ -585,35 +585,45 @@ export function useFormConfig(initialId?: string, tabId?: string) {
         recordId: allocatedId || `FC.NEW_${Date.now().toString().slice(-4)}`,
         title: "New Form Layout",
         version: "1.0.0",
-      presentation: {
-        archetype: "grid",
-        density: "compact",
-        steps: [],
-        sections: [
-          {
-            id: `sec_${Date.now()}`,
-            title: "Primary Attributes",
-            type: "standard",
-            zone: "standard",
-            columns: 2,
-            collapsible: false,
-            isCollapsed: false,
-            fields: [],
-          },
-        ],
-      },
-    });
-    setMode("I");
-    toast.add({
-      title: "New Form Draft Created",
-      description: "Ready to design new layout",
-      type: "info",
-    });
-  }, [setFormData, setMode]);
+        presentation: {
+          archetype: "grid",
+          density: "compact",
+          steps: [],
+          sections: [
+            {
+              id: `sec_${Date.now()}`,
+              title: "Primary Attributes",
+              type: "standard",
+              zone: "standard",
+              columns: 2,
+              collapsible: false,
+              isCollapsed: false,
+              fields: [],
+            },
+          ],
+        },
+      });
+      setMode("I");
+      toast.add({
+        title: "New Form Draft Created",
+        description: "Ready to design new layout",
+        type: "info",
+      });
+    },
+    [setFormData, setMode],
+  );
 
   const resetToIdle = React.useCallback(() => {
     setMode("IDLE");
+    setValidationErrors([]);
   }, [setMode]);
+
+  // Clear validation errors whenever switching away from edit mode
+  React.useEffect(() => {
+    if (mode !== "I") {
+      setValidationErrors([]);
+    }
+  }, [mode]);
 
   return {
     recordId,

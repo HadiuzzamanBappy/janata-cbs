@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { appConfig } from "@/lib/core-config";
 
-const STORAGE_KEY = appConfig.storageKeys.lastActivity;
-const WARNING_BEFORE_LOGOUT_MS = appConfig.storageKeys.idleWarningWindowMs;
+const STORAGE_KEY = appConfig.storage.local.lastActivity;
+const WARNING_BEFORE_LOGOUT_MS = appConfig.storage.idleWarningWindowMs;
 
 interface UseIdleTimeoutOptions {
   timeoutMinutes?: number;

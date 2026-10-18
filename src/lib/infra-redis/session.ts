@@ -122,13 +122,13 @@ export async function getSession(): Promise<SessionData | null> {
 
   if (!session) return null;
 
-  // Server-side Inactivity Guard (with a 1-minute grace buffer so client warning dialog shows first)
-  const timeoutMinutes = appConfig.logoutTime;
-  const maxInactiveMs = (timeoutMinutes + 1) * 60 * 1000;
+  // Server-side Inactivity Guard governed strictly by appConfig.auth.sessionMaxAgeSeconds
+  const maxInactiveMs = TTL_SECONDS * 1000;
   const now = Date.now();
 
   if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
-    sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMinutes + 1}m)`);
+    const timeoutMinutes = Math.floor(TTL_SECONDS / 60);
+    sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
     await cacheDelete(getSessionRedisKey(id));
     memoryStore.delete(id);
     return null;

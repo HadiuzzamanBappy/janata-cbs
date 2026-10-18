@@ -4,6 +4,7 @@ import { createContext, type ReactNode, useContext, useEffect, useRef } from "re
 import { useStore } from "zustand";
 import { registerCommandAdapter } from "@/lib/cbs-command";
 import { CBS_SCREEN_MESSAGE } from "@/lib/cbs-screen";
+import { appConfig } from "@/lib/core-config";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
 let activeWorkbenchStore: WorkbenchStore | null = null;
@@ -42,7 +43,7 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     // Subscribe to BroadcastChannel bus for robust cross-window communication
     let busUnsubscribe: (() => void) | undefined;
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
-      const bus = new BroadcastChannel("cbs_workbench_bus");
+      const bus = new BroadcastChannel(appConfig.storage.broadcast.workbenchBus);
       bus.onmessage = (event) => {
         if (event.data?.type === "CBS_DOCK_TAB" && event.data?.payload) {
           store.getState().addTab(event.data.payload);

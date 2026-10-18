@@ -105,7 +105,7 @@ export const serverConfig = {
     ...clientConfig.auth,
     loginLimit: env.LOGIN_LIMIT,
     sessionPrefix: `${env.REDIS_KEY_PREFIX}:sess:`,
-    sessionMaxAgeSeconds: (env.NEXT_PUBLIC_LOGOUT_TIME + 2) * 60,
+    sessionMaxAgeSeconds: (env.NEXT_PUBLIC_LOGOUT_TIME + 1) * 60,
   },
 } as const;
 

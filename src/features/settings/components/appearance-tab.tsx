@@ -19,14 +19,14 @@ export function AppearanceTab() {
   const [activeTheme, setActiveTheme] = useState("color");
 
   useEffect(() => {
-    const saved = localStorage.getItem(appConfig.storageKeys.themeAccent) || "color";
+    const saved = localStorage.getItem(appConfig.storage.local.themeAccent) || "color";
     setActiveTheme(saved);
     document.documentElement.setAttribute("data-theme", saved);
   }, []);
 
   const handleThemeChange = (themeId: string) => {
     setActiveTheme(themeId);
-    localStorage.setItem(appConfig.storageKeys.themeAccent, themeId);
+    localStorage.setItem(appConfig.storage.local.themeAccent, themeId);
     document.documentElement.setAttribute("data-theme", themeId);
   };
 

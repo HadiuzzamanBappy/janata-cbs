@@ -37,7 +37,7 @@ export const createSessionStore = () => {
           // Cross-window coordination: notify detached windows without wiping draft form data
           if (typeof window !== "undefined") {
             try {
-              const channel = new BroadcastChannel("cbs_workbench_bus");
+              const channel = new BroadcastChannel(appConfig.storage.broadcast.workbenchBus);
               channel.postMessage({ type: "SESSION_LOGOUT" });
               channel.close();
             } catch {
@@ -51,7 +51,7 @@ export const createSessionStore = () => {
           // Broadcast branch change to detached popups
           if (typeof window !== "undefined") {
             try {
-              const channel = new BroadcastChannel("cbs_workbench_bus");
+              const channel = new BroadcastChannel(appConfig.storage.broadcast.workbenchBus);
               channel.postMessage({ type: "BRANCH_CHANGED", branch });
               channel.close();
             } catch {
@@ -61,7 +61,7 @@ export const createSessionStore = () => {
         },
       }),
       {
-        name: appConfig.storageKeys.sessionState,
+        name: appConfig.storage.session.sessionState,
         storage: createJSONStorage(() => sessionStorage),
       },
     ),

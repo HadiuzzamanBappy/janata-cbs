@@ -5,6 +5,13 @@
  * `NEXT_PUBLIC_*` variables and static banking invariants.
  * Safe to import in both Client Components ('use client') and Server contexts.
  */
+const APP_PREFIX = process.env.NEXT_PUBLIC_APP_KEY || "cbs";
+
+const COOKIES = {
+  sid: `${APP_PREFIX}_sid`,
+  branch: `${APP_PREFIX}_branch`,
+  initLogin: `${APP_PREFIX}_init_login`,
+} as const;
 
 export const clientConfig = {
   // 1. Client-exposed Config & Session
@@ -20,9 +27,9 @@ export const clientConfig = {
   auth: {
     loginLimit: 3,
     rateLimitWindowSec: 60,
-    cookieName: "sid",
-    branchCookie: "cbs_branch",
-    initLoginCookie: "initLogin",
+    cookieName: COOKIES.sid,
+    branchCookie: COOKIES.branch,
+    initLoginCookie: COOKIES.initLogin,
     minPasswordLength: 6,
   },
 
@@ -56,15 +63,26 @@ export const clientConfig = {
     },
   },
 
-  // 5. Client Storage & Sync Keys
-  storageKeys: {
-    lastActivity: "cbs:session:last_activity",
-    sessionState: "cbs:session:state",
-    workbenchTabs: "cbs:workbench:tabs",
-    themeAccent: "cbs:theme:accent",
-    sidebarState: "cbs:sidebar:state",
+  // 5. Client Storage & Sync Keys (Deterministic Namespaced Single Source of Truth)
+  storage: {
+    prefix: APP_PREFIX,
+    local: {
+      lastActivity: `${APP_PREFIX}:session:last_activity`,
+      themeMode: `${APP_PREFIX}:theme:mode`,
+      themeAccent: `${APP_PREFIX}:theme:accent`,
+    },
+    session: {
+      sessionState: `${APP_PREFIX}:session:state`,
+      workbenchTabs: `${APP_PREFIX}:workbench:tabs`,
+      draft: (tabId: string) => `${APP_PREFIX}:draft:${tabId}`,
+      criteria: (tabId: string) => `${APP_PREFIX}:criteria:${tabId}`,
+    },
+    cookies: COOKIES,
+    broadcast: {
+      workbenchBus: `${APP_PREFIX}_workbench_bus`,
+    },
     idleWarningWindowMs: 60 * 1000, // 60s warning before timeout
   },
-} as const;
+};
 
 export type ClientConfig = typeof clientConfig;

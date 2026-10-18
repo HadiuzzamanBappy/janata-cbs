@@ -64,6 +64,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
       setRecordId(cleanId);
+      setValidationErrors([]);
 
       try {
         const json = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(cleanId), {
@@ -106,6 +107,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       const nextId = allocatedId || `APP.CUSTOM.${Date.now().toString().slice(-4)}`;
       setRecordId(nextId);
       setCommittedSnSet(new Set());
+      setValidationErrors([]);
       setFormData({
         ...INITIAL_MODEL,
         recordId: nextId,
@@ -341,7 +343,15 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     setMode("IDLE");
     setRecordId("");
     setFormData(INITIAL_MODEL);
+    setValidationErrors([]);
   }, [setFormData, setMode, setRecordId]);
+
+  // Clear validation errors whenever switching away from edit mode
+  React.useEffect(() => {
+    if (mode !== "I") {
+      setValidationErrors([]);
+    }
+  }, [mode]);
 
   React.useEffect(() => {
     refreshCatalog();

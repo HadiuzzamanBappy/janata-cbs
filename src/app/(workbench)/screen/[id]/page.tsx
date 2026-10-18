@@ -11,6 +11,7 @@ import {
   getWorkbenchDraft,
   makePopupTabId,
 } from "@/lib/cbs-screen";
+import { clientConfig } from "@/lib/core-config";
 import { CbsAppStoreProvider, useWorkbenchStore } from "@/store";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
@@ -43,7 +44,9 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
 
       let criteria: Record<string, { value: string; operand: string }> | undefined;
       const storageCrit =
-        typeof window !== "undefined" ? sessionStorage.getItem(`cbs:criteria:${tabId}`) : null;
+        typeof window !== "undefined"
+          ? sessionStorage.getItem(clientConfig.storage.session.criteria(tabId))
+          : null;
       if (storageCrit) {
         try {
           criteria = JSON.parse(storageCrit);
@@ -129,6 +132,16 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
   );
 }
 
+/**
+ * Standalone Screen Window for detached/popup workstation views.
+ *
+ * NOTE ON SESSION TIMEOUT:
+ * AppTimeoutWatcher is INTENTIONALLY omitted from standalone popup windows.
+ * Session inactivity timeout monitoring, countdown warning modals, and session
+ * teardown triggers are managed exclusively by the centralized WorkbenchShell
+ * in the primary dashboard window. Detached popups operate within the same
+ * authenticated cookie session without rendering duplicate modal countdown triggers.
+ */
 export default function StandaloneScreenPage() {
   const params = useParams();
   const rawId = (params?.id as string) ?? "ACCOUNT";

@@ -33,10 +33,16 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
 
   // Store large payloads (150 - 1,000 fields) safely in session storage instead of fragile URLs
   if (options?.formData && Object.keys(options.formData).length > 0) {
-    sessionStorage.setItem(`cbs:draft:${tabId}`, JSON.stringify(options.formData));
+    sessionStorage.setItem(
+      clientConfig.storage.session.draft(tabId),
+      JSON.stringify(options.formData),
+    );
   }
   if (options?.criteria && Object.keys(options.criteria).length > 0) {
-    sessionStorage.setItem(`cbs:criteria:${tabId}`, JSON.stringify(options.criteria));
+    sessionStorage.setItem(
+      clientConfig.storage.session.criteria(tabId),
+      JSON.stringify(options.criteria),
+    );
   }
   const fullFormKey = parsed.version
     ? `${parsed.application},${parsed.version}`

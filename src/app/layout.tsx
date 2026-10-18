@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { clientConfig } from "@/lib/core-config";
 import { ThemeProvider } from "@/store";
 
 const inter = Inter({
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
+          storageKey={clientConfig.storage.local.themeMode}
         >
           <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>

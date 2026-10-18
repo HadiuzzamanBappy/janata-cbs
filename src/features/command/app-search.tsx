@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CommandDialog } from "@/components/ui/command";
+import { Command, CommandDialog } from "@/components/ui/command";
 import { useCbsAccess } from "@/lib/cbs-access";
 import { useSessionStore } from "@/store";
 import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS } from "@/types";
@@ -67,31 +67,37 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
   );
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-lg sm:max-w-xl">
-      <SearchInputBar
-        userHasCommandLine={userHasCommandLine}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        filteredCount={filteredCommands.length}
-        totalCount={authorizedCommands.length}
-        onExecuteRawInput={handleExecuteRawInput}
-      />
-
-      {commandGuideInfo && (
-        <CommandGuidance
-          guideInfo={commandGuideInfo}
-          options={RIDASH_OPTIONS}
-          permittedRights={access.grantedRights}
-          hasRight={access.hasFunctionRight}
-          onSelectOption={(code) => {
-            setSearchQuery(`${commandGuideInfo.appName} ${code} `);
-          }}
+    <CommandDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      className="top-12 sm:top-16 translate-y-0 max-w-lg sm:max-w-xl"
+    >
+      <Command shouldFilter={false}>
+        <SearchInputBar
+          userHasCommandLine={userHasCommandLine}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          filteredCount={filteredCommands.length}
+          totalCount={authorizedCommands.length}
+          onExecuteRawInput={handleExecuteRawInput}
         />
-      )}
 
-      <SearchResultsList categories={categories} onSelectCommand={handleSelectCommand} />
+        {commandGuideInfo && (
+          <CommandGuidance
+            guideInfo={commandGuideInfo}
+            options={RIDASH_OPTIONS}
+            permittedRights={access.grantedRights}
+            hasRight={access.hasFunctionRight}
+            onSelectOption={(code) => {
+              setSearchQuery(`${commandGuideInfo.appName} ${code} `);
+            }}
+          />
+        )}
 
-      <SearchFooterHelp />
+        <SearchResultsList categories={categories} onSelectCommand={handleSelectCommand} />
+
+        <SearchFooterHelp />
+      </Command>
     </CommandDialog>
   );
 }

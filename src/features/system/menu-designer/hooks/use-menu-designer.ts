@@ -171,6 +171,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
       setRecordId(cleanId);
+      setValidationErrors([]);
 
       try {
         const json = await cbs.send<unknown>(cbs.menu.getMenuTree(cleanId), {
@@ -216,6 +217,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
   const handleCreateNew = React.useCallback(() => {
     const nextId = `TREE.${Date.now().toString().slice(-4)}`;
     setRecordId(nextId);
+    setValidationErrors([]);
     setFormData({
       recordId: nextId,
       treeDescription: "",
@@ -308,6 +310,13 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     setFormData(INITIAL_MENU_TREE);
     setValidationErrors([]);
   }, [setFormData, setMode, setRecordId]);
+
+  // Clear validation errors whenever switching away from edit mode
+  React.useEffect(() => {
+    if (mode !== "I") {
+      setValidationErrors([]);
+    }
+  }, [mode]);
 
   React.useEffect(() => {
     fetchCatalogItems();

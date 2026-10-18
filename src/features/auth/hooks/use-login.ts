@@ -57,7 +57,7 @@ export function useLogin() {
         if (authenticatedUser) {
           // Reset client activity timestamp to current time on login
           if (typeof window !== "undefined") {
-            localStorage.setItem(appConfig.storageKeys.lastActivity, String(Date.now()));
+            localStorage.setItem(appConfig.storage.local.lastActivity, String(Date.now()));
           }
           // 3. Centralized Store sync
           setSession(authenticatedUser);

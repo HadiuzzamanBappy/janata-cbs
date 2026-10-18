@@ -128,15 +128,13 @@ export function CbsFormHeader({
     }
   };
 
-  // Selecting item from dropdown immediately opens record in Mode 'I'
+  // Selecting item from dropdown populates input field and closes dropdown,
+  // waiting for the user to prompt (e.g. press Enter / submit) to proceed.
   const handleSelectRecord = (id: string) => {
     const cleanId = id.trim().toUpperCase();
     setInputVal(cleanId);
     setIsDropdownOpen(false);
     if (onRecordIdChange) onRecordIdChange(cleanId);
-    if (onRecordSearch) {
-      onRecordSearch(cleanId);
-    }
   };
 
   // Action 3: New Button (+) -> Allocates sequence ID via 'GNI' and opens in Mode 'I'
@@ -200,8 +198,8 @@ export function CbsFormHeader({
             <ActionMoreMenu moreActions={moreActions} submitting={submitting} onSubmit={onSubmit} />
           </div>
 
-          {/* Validation Checklist Indicator & Drawer */}
-          {validationErrors.length > 0 && (
+          {/* Validation Checklist Indicator & Drawer (visible only in active edit mode 'I') */}
+          {mode === "I" && validationErrors.length > 0 && (
             <>
               <span className="h-4 w-px bg-border/60 mx-1" />
               <CbsValidationChecklist

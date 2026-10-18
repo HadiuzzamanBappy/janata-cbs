@@ -58,6 +58,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
       setRecordId(cleanId);
+      setValidationErrors([]);
 
       try {
         const json = await cbs.send<unknown>(cbs.menu.getMenuItem(cleanId), {
@@ -93,6 +94,7 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
   const handleCreateNew = React.useCallback(() => {
     const nextId = String(Date.now().toString().slice(-4));
     setRecordId(nextId);
+    setValidationErrors([]);
     setFormData({
       ...INITIAL_MENU_ITEM,
       recordId: nextId,
@@ -188,6 +190,13 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
     setFormData(INITIAL_MENU_ITEM);
     setValidationErrors([]);
   }, [setFormData, setMode, setRecordId]);
+
+  // Clear validation errors whenever switching away from edit mode
+  React.useEffect(() => {
+    if (mode !== "I") {
+      setValidationErrors([]);
+    }
+  }, [mode]);
 
   React.useEffect(() => {
     fetchItems();

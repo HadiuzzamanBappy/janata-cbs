@@ -80,8 +80,7 @@ export function createModelPayloads<TData = Record<string, unknown>>(
 
     list: (opts) => toPayload(CbsRequestType.GRL, CbsRecordFunction.LIST, "", opts?.criteria, opts),
 
-    getNewId: (opts) =>
-      toPayload(CbsRequestType.GNI, CbsRecordFunction.INPUT, "", undefined, opts),
+    getNewId: (opts) => toPayload(CbsRequestType.GNI, CbsRecordFunction.INPUT, "", undefined, opts),
 
     save: (data, opts) =>
       toPayload(

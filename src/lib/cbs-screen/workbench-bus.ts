@@ -7,13 +7,13 @@
  * Eliminates URL serialization limits and fragile `window.opener` dependencies.
  */
 
+import { clientConfig } from "@/lib/core-config";
+
 export interface WorkbenchBusMessage {
   type: "CBS_DOCK_TAB" | "CBS_TAB_CLOSED" | "CBS_RECORD_SAVED";
   tabId: string;
   payload?: unknown;
 }
-
-const DRAFT_PREFIX = "cbs:draft:";
 
 /**
  * Saves a tab's working draft (including 150+ to 1,000 fields) to shared session storage.
@@ -22,7 +22,7 @@ const DRAFT_PREFIX = "cbs:draft:";
 export function setWorkbenchDraft(tabId: string, data: Record<string, unknown>): void {
   if (typeof window === "undefined" || !tabId) return;
   try {
-    sessionStorage.setItem(`${DRAFT_PREFIX}${tabId}`, JSON.stringify(data));
+    sessionStorage.setItem(clientConfig.storage.session.draft(tabId), JSON.stringify(data));
   } catch (err) {
     console.warn(`[WorkbenchBus] Failed to store draft for ${tabId}:`, err);
   }
@@ -34,7 +34,7 @@ export function setWorkbenchDraft(tabId: string, data: Record<string, unknown>):
 export function getWorkbenchDraft<T = Record<string, unknown>>(tabId: string): T | null {
   if (typeof window === "undefined" || !tabId) return null;
   try {
-    const raw = sessionStorage.getItem(`${DRAFT_PREFIX}${tabId}`);
+    const raw = sessionStorage.getItem(clientConfig.storage.session.draft(tabId));
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     return null;
@@ -47,7 +47,7 @@ export function getWorkbenchDraft<T = Record<string, unknown>>(tabId: string): T
 export function clearWorkbenchDraft(tabId: string): void {
   if (typeof window === "undefined" || !tabId) return;
   try {
-    sessionStorage.removeItem(`${DRAFT_PREFIX}${tabId}`);
+    sessionStorage.removeItem(clientConfig.storage.session.draft(tabId));
   } catch {
     // Safe ignore
   }
@@ -63,7 +63,7 @@ export function getWorkbenchBus(): BroadcastChannel | null {
   if (!("BroadcastChannel" in window)) return null;
 
   if (!busInstance) {
-    busInstance = new BroadcastChannel("cbs_workbench_bus");
+    busInstance = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
   }
   return busInstance;
 }

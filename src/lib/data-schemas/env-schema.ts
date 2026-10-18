@@ -48,6 +48,7 @@ export const envSchema = z
     SPEC_TTL_SECONDS: z.coerce.number().default(3600),
 
     // 6. Client-exposed Config (Next.js Public Bundle)
+    NEXT_PUBLIC_APP_KEY: z.string().default("cbs"),
     NEXT_PUBLIC_CENTRAL_BRANCH: z.string().default("JB9999"),
     NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().default(10),
   })

@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { appConfig } from "@/lib/core-config";
 import { useLogin } from "../hooks/use-login";
 import type { LoginFormProps } from "../types";
 
@@ -14,6 +15,13 @@ export function LoginForm({ onSuccess, className = "mt-8 space-y-6" }: LoginForm
   const [password, setPassword] = React.useState("");
   const [showUsername, setShowUsername] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
+
+  // Clean up any stale inactivity timestamp when landing on login page
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(appConfig.storage.local.lastActivity);
+    }
+  }, []);
 
   const { login, loading, error } = useLogin();
 

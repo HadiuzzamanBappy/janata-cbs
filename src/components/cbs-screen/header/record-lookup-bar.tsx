@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, Loader2, Plus, X } from "lucide-react";
-import type * as React from "react";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,7 +34,7 @@ export interface RecordLookupBarProps {
  * Record ID lookup bar with inline autocomplete dropdown and create-new (+) button.
  * Enforces CBS 3-Action Workflow:
  * 1. Enter key -> Triggers Mode 'I' search/load.
- * 2. Chevron down -> Requests sorted GRL list from backend.
+ * 2. Chevron down -> Requests sorted GRL list from backend. Selecting an item sets input field and awaits user prompt.
  * 3. '+' Button -> Requests Next Sequence ID ('GNI') and opens in Mode 'I'.
  */
 export function RecordLookupBar({
@@ -53,11 +53,14 @@ export function RecordLookupBar({
   generatingId = false,
   canCreate = true,
 }: RecordLookupBarProps) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
   return (
     <div className="flex items-center gap-1">
       {/* Action 1: Text Input with Enter-to-Submit */}
       <form onSubmit={onSubmit} className="relative flex items-center">
         <Input
+          ref={inputRef}
           type="text"
           placeholder="Record ID..."
           value={inputVal}
@@ -125,7 +128,10 @@ export function RecordLookupBar({
             matchingItems.map((item) => (
               <DropdownMenuItem
                 key={item.id}
-                onClick={() => onSelectRecord(item.id)}
+                onClick={() => {
+                  onSelectRecord(item.id);
+                  inputRef.current?.focus();
+                }}
                 className="font-mono text-xs py-1.5 px-2 cursor-pointer hover:bg-muted/80 flex items-center font-semibold text-foreground"
               >
                 {item.id}

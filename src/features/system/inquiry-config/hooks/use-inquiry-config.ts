@@ -297,41 +297,43 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       setFormData({
         ...INITIAL_INQUIRY_CONFIG,
         id: newId,
-      title: "New Inquiry Layout",
-      targetModel: "ACCOUNT",
-      columns: [
-        {
-          id: "recordId",
-          label: "ID / Ref",
-          align: "left",
-          format: "text",
-          isMono: true,
-          sortable: true,
-          visible: true,
-          isPinned: false,
-        },
-      ],
-      filters: [],
-      actions: [
-        {
-          id: "VIEW",
-          label: "View",
-          targetCommand: "ACCOUNT,SEE",
-          actionType: "view",
-          icon: "eye",
-          openMode: "tab",
-          idParamField: "recordId",
-        },
-      ],
-    });
-    setRecordId(newId);
-    setMode("I");
-    toast.add({
-      title: "New Inquiry Created",
-      description: "Ready to configure new inquiry criteria and table layout",
-      type: "info",
-    });
-  }, [setFormData, setRecordId, setMode]);
+        title: "New Inquiry Layout",
+        targetModel: "ACCOUNT",
+        columns: [
+          {
+            id: "recordId",
+            label: "ID / Ref",
+            align: "left",
+            format: "text",
+            isMono: true,
+            sortable: true,
+            visible: true,
+            isPinned: false,
+          },
+        ],
+        filters: [],
+        actions: [
+          {
+            id: "VIEW",
+            label: "View",
+            targetCommand: "ACCOUNT,SEE",
+            actionType: "view",
+            icon: "eye",
+            openMode: "tab",
+            idParamField: "recordId",
+          },
+        ],
+      });
+      setRecordId(newId);
+      setMode("I");
+      toast.add({
+        title: "New Inquiry Created",
+        description: "Ready to configure new inquiry criteria and table layout",
+        type: "info",
+      });
+    },
+    [setFormData, setRecordId, setMode],
+  );
 
   const resetToIdle = React.useCallback(() => {
     setMode("IDLE");

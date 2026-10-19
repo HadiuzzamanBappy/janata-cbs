@@ -7,9 +7,9 @@ import {
   SC_MENU_TREE_LIVE,
   SC_MODEL_CONFIG_LIVE,
 } from "@fixtures";
+import type { ApiResponse, CbsWirePayload } from "@/types";
 import { resolveTable } from "./database-router";
 import { notFoundResult, successResult } from "./response-factory";
-import type { MockProxyResult, OperationContext } from "./types";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Wire Payload Accessors                                           */
@@ -64,13 +64,13 @@ export function getMockInquiryPayload(command: string): unknown {
 /* -------------------------------------------------------------------------- */
 
 /** Handles GUM (Get User Menu) */
-export function handleGetMenu(): MockProxyResult {
+export function handleGetMenu(): ApiResponse {
   return successResult(getMockMenuPayload(), "Menu loaded from simulated database");
 }
 
 /** Handles GMC (Get Model Configuration) */
-export function handleGetModelConfig(ctx: OperationContext): MockProxyResult {
-  const target = ctx.recordId || ctx.controlName;
+export function handleGetModelConfig(payload: CbsWirePayload): ApiResponse {
+  const target = (payload.recordId || payload.controlName || "").trim().toUpperCase();
   const formPayload = getMockFormPayload(target);
   if (!formPayload) {
     return notFoundResult(`Form schema for ${target} not found`);
@@ -79,75 +79,99 @@ export function handleGetModelConfig(ctx: OperationContext): MockProxyResult {
 }
 
 /** Handles INQ (Dynamic Inquiry Execution) */
-export function handleInquiry(ctx: OperationContext): MockProxyResult {
-  if (ctx.controlName === "ACCOUNT" || ctx.recordId === "ACCOUNT") {
-    const accountTable = resolveTable("ACCOUNT");
-    return successResult(accountTable?.getList() ?? [], "Account inquiry loaded");
-  }
-
-  const inqSpec = SC_INQUIRY_CONFIG_LIVE[ctx.controlName] || SC_INQUIRY_CONFIG_LIVE[ctx.recordId];
+export function handleInquiry(payload: CbsWirePayload): ApiResponse {
+  const cleanKey = (payload.controlName || payload.recordId || "").trim().toUpperCase();
+  const inqSpec =
+    SC_INQUIRY_CONFIG_LIVE[cleanKey] ||
+    (payload.controlName ? SC_INQUIRY_CONFIG_LIVE[payload.controlName] : undefined) ||
+    (payload.recordId ? SC_INQUIRY_CONFIG_LIVE[payload.recordId] : undefined);
 
   if (inqSpec) {
-    const targetModel = (inqSpec.targetModel || "").trim().toUpperCase();
+    const targetModel = (inqSpec.targetModel || cleanKey).trim().toUpperCase();
     const table = resolveTable(targetModel);
     return successResult(table?.getList() ?? [], "Inquiry data loaded from canonical table");
+  }
+
+  // Fallback: If querying a direct table name through INQ (e.g. INQ ACCOUNT)
+  const directTable = resolveTable(cleanKey);
+  if (directTable) {
+    return successResult(directTable.getList(), `Inquiry data loaded for ${cleanKey}`);
   }
 
   return successResult([], "No inquiry records found in fixture");
 }
 
 /** Handles GRL (Generic Record List) */
-export function handleRecordList(ctx: OperationContext): MockProxyResult {
-  const table = resolveTable(ctx.controlName);
+export function handleRecordList(payload: CbsWirePayload): ApiResponse {
+  const cmd = (payload.controlName || "").trim().toUpperCase();
+  const table = resolveTable(cmd);
   if (!table) {
-    return notFoundResult(`Table ${ctx.controlName} not found in database`);
+    return notFoundResult(`Table ${cmd} not found in database`);
   }
-  return successResult(table.getList(), `${ctx.controlName} list loaded`);
+  return successResult(table.getList(), `${cmd} list loaded`);
 }
 
 /** Handles GET (Single Record Query) */
-export function handleGetRecord(ctx: OperationContext): MockProxyResult {
-  if (!ctx.recordId || ctx.recordId === "LIST" || ctx.recordId === "ALL") {
-    return handleRecordList(ctx);
+export function handleGetRecord(payload: CbsWirePayload): ApiResponse {
+  const recId = (payload.recordId || "").trim();
+  if (!recId || recId.toUpperCase() === "LIST" || recId.toUpperCase() === "ALL") {
+    return handleRecordList(payload);
   }
 
-  const table = resolveTable(ctx.controlName);
+  const cmd = (payload.controlName || "").trim().toUpperCase();
+  const table = resolveTable(cmd);
   if (!table) {
-    return notFoundResult(`Table ${ctx.controlName} not found in database`);
+    return notFoundResult(`Table ${cmd} not found in database`);
   }
 
-  const record =
-    table.LIVE[ctx.recordId] ||
-    (table.prefix ? table.LIVE[`${table.prefix}${ctx.recordId}`] : null) ||
-    (table.prefix ? table.LIVE[ctx.recordId.replace(new RegExp(`^${table.prefix}`), "")] : null);
+  const upperId = recId.toUpperCase();
 
-  if (!record) {
-    return notFoundResult(`Record #${ctx.recordId} not found in database table ${ctx.controlName}`);
+  const rawRecord =
+    table.LIVE[recId] ||
+    table.LIVE[upperId] ||
+    (table.prefix
+      ? table.LIVE[`${table.prefix}${recId}`] || table.LIVE[`${table.prefix}${upperId}`]
+      : null) ||
+    (table.prefix
+      ? table.LIVE[recId.replace(new RegExp(`^${table.prefix}`, "i"), "")] ||
+        table.LIVE[upperId.replace(new RegExp(`^${table.prefix}`, "i"), "")]
+      : null);
+
+  if (!rawRecord) {
+    return notFoundResult(`Record #${recId} not found in database table ${cmd}`);
   }
 
-  return successResult(record, `${ctx.controlName} record loaded`);
+  const recordWithId = {
+    recordId: (rawRecord.recordId || rawRecord.id || recId) as string,
+    id: (rawRecord.id || rawRecord.recordId || recId) as string,
+    ...rawRecord,
+  };
+
+  return successResult(recordWithId, `${cmd} record loaded`);
 }
 
 /** Handles GNI (Get Next Sequence ID) */
-export function handleNextId(ctx: OperationContext): MockProxyResult {
-  const model = SC_MODEL_CONFIG_LIVE[ctx.controlName];
+export function handleNextId(payload: CbsWirePayload): ApiResponse {
+  const clean = (payload.controlName || "").trim().toUpperCase();
+  const model =
+    SC_MODEL_CONFIG_LIVE[clean] ||
+    SC_MODEL_CONFIG_LIVE[clean.replace(/\./g, "_")] ||
+    SC_MODEL_CONFIG_LIVE[clean.replace(/_/g, ".")];
+
   const prefix =
     model?.idDef?.idPrefix ||
-    (ctx.controlName === "ACCOUNT"
-      ? "100"
-      : ctx.controlName === "CUSTOMER"
-        ? "200"
-        : `${ctx.controlName}.`);
+    (clean === "ACCOUNT" ? "AC" : clean === "CUSTOMER" ? "CU" : `${clean}.`);
 
   const generatedId = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
   return successResult(
     { recordId: generatedId, id: generatedId },
-    `Generated next record sequence for ${ctx.controlName}`,
+    `Generated next record sequence for ${clean}`,
   );
 }
 
 /** Handles Mutations (PUT, AUT, DEL, HLD, REV) */
-export function handleMutation(ctx: OperationContext): MockProxyResult {
+export function handleMutation(payload: CbsWirePayload): ApiResponse {
+  const reqType = (payload.requestType || "").trim().toUpperCase();
   const statusMap: Record<string, { label: string; code: string }> = {
     AUT: { label: "authorized", code: "AU" },
     HLD: { label: "held", code: "HLD" },
@@ -155,18 +179,23 @@ export function handleMutation(ctx: OperationContext): MockProxyResult {
     REV: { label: "reversed", code: "REV" },
   };
 
-  const { label, code } = statusMap[ctx.requestType] || {
+  const { label, code } = statusMap[reqType] || {
     label: "saved",
     code: "INA",
   };
-  const targetId = ctx.recordId || (ctx.data?.id as string) || "REC-001";
+  const targetId =
+    payload.recordId ||
+    (payload.data?.id as string) ||
+    (payload.data?.recordId as string) ||
+    "REC-001";
 
   return successResult(
     {
       recordId: targetId,
-      ...(ctx.data || {}),
+      id: targetId,
+      ...(payload.data || {}),
       RECORD_STATUS: code,
     },
-    `Record #${targetId} ${label} successfully in ${ctx.controlName || "CBS"}`,
+    `Record #${targetId} ${label} successfully in ${payload.controlName || "CBS"}`,
   );
 }

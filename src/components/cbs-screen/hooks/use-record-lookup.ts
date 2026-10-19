@@ -97,13 +97,19 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
           }
         }
 
-        // Merge with static fallback items if backend returned none
-        const candidateItems =
+        // Merge with static fallback items if backend returned none, ensuring valid string IDs
+        const candidateItems: RecordLookupItem[] = (
           mappedItems.length > 0
             ? mappedItems
             : staticItems && staticItems.length > 0
               ? staticItems
-              : [];
+              : []
+        )
+          .map((item) => ({
+            ...item,
+            id: String(item.id || "").trim(),
+          }))
+          .filter((item) => item.id.length > 0);
 
         // Filter by query if client query specified
         const filteredItems = cleanQuery
@@ -115,15 +121,20 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
             )
           : candidateItems;
 
-        // Sort naturally by ID (numeric-aware ascending)
+        // Sort naturally by ID (numeric-aware ascending) safely
         const sortedItems = [...filteredItems].sort((a, b) =>
-          a.id.localeCompare(b.id, undefined, { numeric: true }),
+          (a.id || "").localeCompare(b.id || "", undefined, { numeric: true }),
         );
 
         setItems(sortedItems);
       } catch (err: unknown) {
         console.warn(`[useRecordLookup] Failed to fetch records for ${cleanControl}:`, err);
-        const fallback = staticItems || [];
+        const fallback = (staticItems || [])
+          .map((item) => ({
+            ...item,
+            id: String(item.id || "").trim(),
+          }))
+          .filter((item) => item.id.length > 0);
         const filtered = cleanQuery
           ? fallback.filter(
               (item) =>
@@ -132,7 +143,9 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
             )
           : fallback;
         setItems(
-          [...filtered].sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })),
+          [...filtered].sort((a, b) =>
+            (a.id || "").localeCompare(b.id || "", undefined, { numeric: true }),
+          ),
         );
       } finally {
         setLoading(false);

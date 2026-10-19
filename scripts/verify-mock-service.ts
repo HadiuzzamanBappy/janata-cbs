@@ -214,57 +214,62 @@ async function runSuite() {
         inqUnknown.data.length === 0,
     );
 
-    // 4.2 Metamodel Catalogs
-    const modelConfigList = getMockProxyResponse("GRL", "SC.MODEL.CONFIG");
+    // 4.2 Metamodel Catalogs (Canonical Model Config Names)
+    const modelConfigList = getMockProxyResponse("GRL", "MODEL.CONFIG");
+    const firstModelItem = Array.isArray(modelConfigList.data)
+      ? (modelConfigList.data[0] as Record<string, unknown>)
+      : null;
     assert(
-      "Proxy Dispatcher: SC.MODEL.CONFIG list returns catalog records",
+      "Proxy Dispatcher: MODEL.CONFIG list returns catalog records with valid ID",
       modelConfigList.status === "SUCCESS" &&
         Array.isArray(modelConfigList.data) &&
-        modelConfigList.data.length > 0,
+        modelConfigList.data.length > 0 &&
+        typeof firstModelItem?.id === "string" &&
+        firstModelItem.id.length > 0,
     );
 
-    const modelConfigRecord = getMockProxyResponse("GET", "SC.MODEL.CONFIG", "ACCOUNT");
+    const modelConfigRecord = getMockProxyResponse("GET", "MODEL.CONFIG", "ACCOUNT");
     assert(
-      "Proxy Dispatcher: SC.MODEL.CONFIG single record returns model definition",
+      "Proxy Dispatcher: MODEL.CONFIG single record returns model definition",
       modelConfigRecord.status === "SUCCESS" &&
         Boolean((modelConfigRecord.data as Record<string, unknown>)?.tableName),
     );
 
-    const formConfigList = getMockProxyResponse("GRL", "SC.FORM.CONFIG");
+    const formConfigList = getMockProxyResponse("GRL", "FORM.CONFIG");
     assert(
-      "Proxy Dispatcher: SC.FORM.CONFIG list returns form configurations",
+      "Proxy Dispatcher: FORM.CONFIG list returns form configurations",
       formConfigList.status === "SUCCESS" &&
         Array.isArray(formConfigList.data) &&
         formConfigList.data.length > 0,
     );
 
-    const inqConfigList = getMockProxyResponse("GRL", "SC.INQUIRY.CONFIG");
+    const inqConfigList = getMockProxyResponse("GRL", "INQUIRY.CONFIG");
     assert(
-      "Proxy Dispatcher: SC.INQUIRY.CONFIG list returns inquiry configurations",
+      "Proxy Dispatcher: INQUIRY.CONFIG list returns inquiry configurations",
       inqConfigList.status === "SUCCESS" &&
         Array.isArray(inqConfigList.data) &&
         inqConfigList.data.length > 0,
     );
 
-    const userGroupList = getMockProxyResponse("GRL", "SC.USER.GROUP");
+    const userGroupList = getMockProxyResponse("GRL", "USER.GROUP");
     assert(
-      "Proxy Dispatcher: SC.USER.GROUP list returns user group records",
+      "Proxy Dispatcher: USER.GROUP list returns user group records",
       userGroupList.status === "SUCCESS" &&
         Array.isArray(userGroupList.data) &&
         userGroupList.data.length > 0,
     );
 
-    const menuCatalogList = getMockProxyResponse("GRL", "SC.MENU");
+    const menuCatalogList = getMockProxyResponse("GRL", "MENU");
     assert(
-      "Proxy Dispatcher: SC.MENU list returns menu item records",
+      "Proxy Dispatcher: MENU list returns menu item records",
       menuCatalogList.status === "SUCCESS" &&
         Array.isArray(menuCatalogList.data) &&
         menuCatalogList.data.length > 0,
     );
 
-    const menuTreeList = getMockProxyResponse("GRL", "SC.MENU.TREE");
+    const menuTreeList = getMockProxyResponse("GRL", "MENU.TREE");
     assert(
-      "Proxy Dispatcher: SC.MENU.TREE list returns menu trees",
+      "Proxy Dispatcher: MENU.TREE list returns menu trees",
       menuTreeList.status === "SUCCESS" &&
         Array.isArray(menuTreeList.data) &&
         menuTreeList.data.length > 0,

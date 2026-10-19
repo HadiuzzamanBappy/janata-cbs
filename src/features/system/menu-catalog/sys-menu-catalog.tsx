@@ -41,11 +41,13 @@ export function SysMenuCatalog({ command, tabId }: ScreenProps) {
 
   const availableItems = React.useMemo(
     () =>
-      itemsPool.map((item) => ({
-        id: item.recordId,
-        label: item.label,
-        details: item.command ? `Command: ${item.command}` : item.menuType,
-      })),
+      itemsPool
+        .map((item) => ({
+          id: String(item.recordId || "").trim(),
+          label: item.label,
+          details: item.command ? `Command: ${item.command}` : item.menuType,
+        }))
+        .filter((item) => item.id.length > 0),
     [itemsPool],
   );
 

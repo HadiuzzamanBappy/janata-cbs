@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { GrpcRequest, GrpcResponse } from "@/lib/infra-grpc/generated/service";
-import type { ApiResponse, GrpcEnvelope } from "@/types";
+import type { ApiResponse, CbsWirePayload, GrpcEnvelope } from "@/types";
 import {
   buildMockUserAuthResponse,
   getMockUserResponse,
@@ -23,9 +23,7 @@ import {
   handleRecordList,
 } from "./operation-handlers";
 import { notFoundResult, successResult, toGrpcResponse } from "./response-factory";
-import type { MockProxyResult, OperationContext } from "./types";
 
-export type { MockProxyResult, OperationContext };
 export {
   buildMockUserAuthResponse,
   getMockBranchesPayload,
@@ -41,32 +39,43 @@ export {
 /**
  * Handles offline static CRUD and inquiry responses for the `/api/proxy` endpoint.
  * Direct dispatch following CBS Core requestType verbs.
+ * Accepts either a canonical CbsWirePayload or positional (requestType, controlName, recordId, data).
  */
 export function getMockProxyResponse(
-  requestType: string,
+  requestTypeOrPayload: string | CbsWirePayload,
   controlName?: string,
   recordId?: string,
   data?: Record<string, unknown>,
-): MockProxyResult {
-  const reqType = (requestType || "GET").trim().toUpperCase();
-  const cleanCmd = (controlName || "").trim().toUpperCase();
-  const recId = (recordId || "").trim().toUpperCase();
+): ApiResponse {
+  const payload: CbsWirePayload =
+    typeof requestTypeOrPayload === "object"
+      ? requestTypeOrPayload
+      : {
+          requestType: requestTypeOrPayload,
+          controlName,
+          recordId,
+          data,
+        };
 
-  const ctx: OperationContext = {
+  const reqType = (payload.requestType || "GET").trim().toUpperCase();
+  const cleanCmd = (payload.controlName || "").trim().toUpperCase();
+  const recId = (payload.recordId || "").trim().toUpperCase();
+
+  const normalizedPayload: CbsWirePayload = {
+    ...payload,
     requestType: reqType,
     controlName: cleanCmd,
     recordId: recId,
-    data,
   };
 
-  // 1. GUM (Get User Menu)
-  if (reqType === "GUM" || cleanCmd === "MENU") {
+  // 1. GUM (Get User Menu Navigation Tree)
+  if (reqType === "GUM" || cleanCmd === "GUM") {
     return handleGetMenu();
   }
 
   // 2. GMC (Get Model Configuration Schema)
   if (reqType === "GMC" || cleanCmd === "FORM") {
-    return handleGetModelConfig(ctx);
+    return handleGetModelConfig(normalizedPayload);
   }
 
   // 3. Inquiry Spec (GET on INQUIRY) vs Query Execution (INQ)
@@ -77,12 +86,12 @@ export function getMockProxyResponse(
   }
 
   if (reqType === "INQ" || cleanCmd === "INQUIRY") {
-    return handleInquiry(ctx);
+    return handleInquiry(normalizedPayload);
   }
 
   // 4. GNI (Get Next Sequence ID)
   if (reqType === "GNI") {
-    return handleNextId(ctx);
+    return handleNextId(normalizedPayload);
   }
 
   // 5. Transactional Mutations (PUT, AUT, DEL, HLD, REV)
@@ -93,47 +102,32 @@ export function getMockProxyResponse(
     reqType === "HLD" ||
     reqType === "REV";
   if (isMutation) {
-    return handleMutation(ctx);
+    return handleMutation(normalizedPayload);
   }
 
   // 6. GRL / SBI (Generic Record List / Record ID Search)
   if (reqType === "GRL" || reqType === "SBI" || reqType === "RECORD_LIST" || !recId) {
-    return handleRecordList(ctx);
+    return handleRecordList(normalizedPayload);
   }
 
   // 7. GET (Get Single Record)
   if (reqType === "GET") {
-    return handleGetRecord(ctx);
+    return handleGetRecord(normalizedPayload);
   }
 
-  return notFoundResult(`Unsupported requestType "${requestType}" for model "${cleanCmd}"`);
+  return notFoundResult(`Unsupported requestType "${reqType}" for model "${cleanCmd}"`);
 }
 
 /**
  * Simulates unary gRPC process request from local database fixtures.
+ * Universally dispatches all protocol operations through getMockProxyResponse.
  */
 export async function mockProcess(req: GrpcRequest): Promise<GrpcResponse> {
   const cleanCmd = (req.controlName || "").trim().toUpperCase();
   const reqType = (req.requestType || "").trim().toUpperCase();
   const recId = (req.recordId || "").trim().toUpperCase();
 
-  // Branch Directory
-  if (cleanCmd === "BRANCH" || (reqType === "GRL" && cleanCmd === "SC.BRANCH")) {
-    return toGrpcResponse(
-      successResult(getMockBranchesPayload(), "Branches loaded from simulated database"),
-      req.idempotencyKey,
-    );
-  }
-
-  // System Controls
-  if (cleanCmd === "CONTROL" || (reqType === "GRL" && cleanCmd === "SC.CONTROL")) {
-    return toGrpcResponse(
-      successResult(getMockControlsPayload(), "Controls loaded from simulated database"),
-      req.idempotencyKey,
-    );
-  }
-
-  // Dispatch all standard protocol operations
+  // Dispatch all standard protocol operations through the universal mock proxy router
   const result = getMockProxyResponse(
     reqType,
     cleanCmd,
@@ -163,6 +157,7 @@ export async function mockDispatch(envelope: GrpcEnvelope): Promise<ApiResponse>
 
   const res = await mockProcess(req);
   return {
+    success: res.statusCode === 200,
     status: res.status,
     statusCode: res.statusCode,
     message: res.message,

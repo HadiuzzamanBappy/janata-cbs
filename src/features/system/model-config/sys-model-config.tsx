@@ -49,11 +49,16 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
 
   const availableModels = React.useMemo(
     () =>
-      modelsPool.map((m) => ({
-        id: m.id,
-        label: m.label,
-        details: m.details,
-      })),
+      modelsPool
+        .map((m) => {
+          const id = String(m.id || m.record?.tableName || "").trim();
+          return {
+            id,
+            label: m.label || id,
+            details: m.details,
+          };
+        })
+        .filter((m) => m.id.length > 0),
     [modelsPool],
   );
 

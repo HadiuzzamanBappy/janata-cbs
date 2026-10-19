@@ -14,8 +14,7 @@ src/lib/mock-services/
 ├── operation-handlers.ts    # Pattern-based protocol handlers for CBS verbs (GUM, GMC, GRL, etc.)
 ├── auth-simulator.ts        # User authentication & JWT token generation from SYS_USER
 ├── response-factory.ts      # Standardized response envelopes (200, 404, 401, GrpcResponse)
-├── types.ts                 # Strict TypeScript contracts (MockProxyResult, OperationContext)
-├── index.ts                 # Public barrel: mockLogin, mockProcess, mockDispatch
+├── index.ts                 # Public barrel: mockLogin, mockProcess, mockDispatch, getMockProxyResponse
 └── README.md                # Documentation & architectural reference
 ```
 

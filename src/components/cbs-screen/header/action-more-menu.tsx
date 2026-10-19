@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -46,31 +47,33 @@ export function ActionMoreMenu({
             </Button>
           }
         />
-        <DropdownMenuContent align="end" className="w-45 text-xs">
-          <DropdownMenuLabel className="text-[11px] text-muted-foreground font-mono">
-            More operations
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {moreActions.length === 0 ? (
-            <DropdownMenuItem disabled className="text-xs font-mono">
-              No extra actions
-            </DropdownMenuItem>
-          ) : (
-            moreActions.map((action) => {
-              const allowed =
-                !action.requiredRight || access.hasFunctionRight(action.requiredRight);
-              return (
-                <DropdownMenuItem
-                  key={action.command || action.label}
-                  disabled={!allowed}
-                  onClick={() => setSelectedAction(action)}
-                  className="text-xs cursor-pointer"
-                >
-                  <span className="truncate">{action.label}</span>
-                </DropdownMenuItem>
-              );
-            })
-          )}
+        <DropdownMenuContent align="end" className="w-48 text-xs">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="text-[11px] text-muted-foreground font-mono">
+              More operations
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {moreActions.length === 0 ? (
+              <DropdownMenuItem disabled className="text-xs font-mono">
+                No extra actions
+              </DropdownMenuItem>
+            ) : (
+              moreActions.map((action) => {
+                const allowed =
+                  !action.requiredRight || access.hasFunctionRight(action.requiredRight);
+                return (
+                  <DropdownMenuItem
+                    key={action.command || action.label}
+                    disabled={!allowed}
+                    onClick={() => setSelectedAction(action)}
+                    className="text-xs cursor-pointer"
+                  >
+                    <span className="truncate">{action.label}</span>
+                  </DropdownMenuItem>
+                );
+              })
+            )}
+          </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
 

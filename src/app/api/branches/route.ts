@@ -22,7 +22,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
       );
     }
 
-    const branches = await getBranchesData(session.token);
+    const branches = await getBranchesData();
     return NextResponse.json(
       {
         success: true,

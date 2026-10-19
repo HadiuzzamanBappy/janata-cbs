@@ -38,10 +38,11 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       fetch(appConfig.routes.api.session)
         .then((res) => res.json())
         .then((json) => {
-          if (json.success && json.currUser) {
-            setSession(json.currUser);
-            if (json.currUser.branchCode && !currentBranch) {
-              setBranch(json.currUser.branchCode);
+          const userData = json.data || json.currUser;
+          if (json.success && userData) {
+            setSession(userData);
+            if (userData.branchCode && !currentBranch) {
+              setBranch(userData.branchCode);
             }
           }
         })

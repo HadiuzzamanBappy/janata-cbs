@@ -1,4 +1,5 @@
 import type { UserGroupRecord } from "@/lib/data-schemas/user-group-schema";
+import type { CbsVersionedTable } from "./types";
 
 /**
  * SC_USER_GROUP Table Master (PREFIX: SC, TABLE: USER_GROUP)
@@ -113,9 +114,19 @@ export const SC_USER_GROUP_LIVE: Record<string, UserGroupRecord> = {
   },
 };
 
-export const SC_USER_GROUP_LIST: UserGroupRecord[] = Object.values(SC_USER_GROUP_LIVE);
+/* -------------------------------------------------------------------------- */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
+/* -------------------------------------------------------------------------- */
 
-export function getUserGroupRecord(id: string): UserGroupRecord | null {
-  const cleanId = id.trim().toUpperCase();
-  return SC_USER_GROUP_LIVE[cleanId] ?? null;
-}
+export const SC_USER_GROUP_INAU: Record<string, UserGroupRecord> = {};
+export const SC_USER_GROUP_HIS: Record<string, UserGroupRecord[]> = {};
+export const SC_USER_GROUP_DEL: Record<string, UserGroupRecord> = {};
+
+export const SC_USER_GROUP_TABLE: CbsVersionedTable<UserGroupRecord> = {
+  LIVE: SC_USER_GROUP_LIVE,
+  INAU: SC_USER_GROUP_INAU,
+  HIS: SC_USER_GROUP_HIS,
+  DEL: SC_USER_GROUP_DEL,
+};
+
+export const SC_USER_GROUP_LIST: UserGroupRecord[] = Object.values(SC_USER_GROUP_LIVE);

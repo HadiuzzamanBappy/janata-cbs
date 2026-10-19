@@ -1,4 +1,4 @@
-import { STATIC_FORM_CONFIGS } from "@fixtures";
+import { SC_FORM_CONFIG_LIVE } from "@fixtures";
 import * as React from "react";
 import { FormRenderer } from "@/features/form-engine";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
@@ -22,13 +22,11 @@ export function FormGrid({
   disabled = false,
   mode = "I",
 }: FormGridProps) {
-  // 1. Check if a rich custom visual presentation exists in STATIC_FORM_CONFIGS or by screen code
+  // 1. Check if a rich custom visual presentation exists in SC_FORM_CONFIG_LIVE or by screen code
   const customConfig: FormConfigRecord | undefined =
-    STATIC_FORM_CONFIGS[schema.code] ||
-    STATIC_FORM_CONFIGS[`FC.${schema.code}`] ||
-    Object.values(STATIC_FORM_CONFIGS as Record<string, FormConfigRecord>).find(
-      (cfg) => cfg.targetModel === schema.code,
-    );
+    SC_FORM_CONFIG_LIVE[schema.code] ||
+    SC_FORM_CONFIG_LIVE[`FC.${schema.code}`] ||
+    Object.values(SC_FORM_CONFIG_LIVE).find((cfg) => cfg.targetModel === schema.code);
 
   const presentation = React.useMemo(() => {
     if (customConfig?.presentation) {

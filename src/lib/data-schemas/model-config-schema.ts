@@ -60,7 +60,7 @@ export type ModelProperty = z.infer<typeof modelPropertySchema>;
 
 /** Metamodel table definition record stored in the `MODEL.CONFIG` control table. */
 export const modelConfigRecordSchema = z.object({
-  recordId: z.string().min(1, "Model Table ID is required"),
+  recordId: z.string().optional(),
   tableName: z.string().min(1, "Table Name is required"),
   description: z.string().min(1, "Description is required"),
   prefix: z.string().default(""),

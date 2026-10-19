@@ -172,7 +172,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         markAsCommitted(validation.data.properties || []);
         setModelsPool((prev) => {
           const item = {
-            id: validation.data.recordId,
+            id: validation.data.recordId || formData.recordId || validation.data.tableName || "",
             label: validation.data.description,
             details: `${validation.data.properties.length} fields`,
             record: validation.data,

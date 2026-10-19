@@ -1,5 +1,5 @@
 import type { AuditData } from "@/lib/data-schemas/common-schema";
-import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
+import type { CbsVersionedTable } from "./types";
 
 /**
  * UserRecord: The real database table schema for SYS_USER (matching SC_MODEL_CONFIG USER).
@@ -84,49 +84,19 @@ export const SYS_USER_LIVE: Record<string, UserRecord> = {
   },
 };
 
-export const SYS_USER_TABLE = SYS_USER_LIVE;
+/* -------------------------------------------------------------------------- */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
+/* -------------------------------------------------------------------------- */
+
+export const SYS_USER_INAU: Record<string, UserRecord> = {};
+export const SYS_USER_HIS: Record<string, UserRecord[]> = {};
+export const SYS_USER_DEL: Record<string, UserRecord> = {};
+
+export const SYS_USER_TABLE: CbsVersionedTable<UserRecord> = {
+  LIVE: SYS_USER_LIVE,
+  INAU: SYS_USER_INAU,
+  HIS: SYS_USER_HIS,
+  DEL: SYS_USER_DEL,
+};
+
 export const SYS_USER_LIST: UserRecord[] = Object.values(SYS_USER_LIVE);
-
-export function getUserRecord(signonOrUserId: string): UserRecord | null {
-  const clean = signonOrUserId.trim().toUpperCase();
-  if (SYS_USER_LIVE[clean]) return SYS_USER_LIVE[clean];
-  const byUserId = SYS_USER_LIST.find((u) => u.userId.toUpperCase() === clean);
-  return byUserId ?? null;
-}
-
-/**
- * Builds the dynamic runtime authentication response expected by auth-parser and session layer.
- * Injects token, txnDate (bank working date), and authenticated status on top of table record.
- */
-export function buildMockUserAuthResponse(user: UserRecord): GrpcResponse {
-  const today = new Date().toISOString().split("T")[0];
-
-  return {
-    status: "SUCCESS",
-    statusCode: 200,
-    idempotencyKey: "",
-    message: "User authenticated successfully",
-    errors: [],
-    timestamp: new Date().toISOString(),
-    data: {
-      userId: user.userId,
-      fullName: user.fullName,
-      accessibility: user.accessibility,
-      userRole: user.userRole,
-      commandLine: user.commandLine,
-      branchName: user.branchName,
-      branchCode: user.branchCode,
-      txnDate: today,
-      userStatus: user.userStatus,
-      authenticated: true,
-      token: `mock_jwt_token_${user.userId}_${Date.now()}`,
-    },
-  };
-}
-
-/**
- * Static response dictionary for auth endpoints.
- */
-export const STATIC_USER_RESPONSES: Record<string, GrpcResponse> = Object.fromEntries(
-  Object.entries(SYS_USER_LIVE).map(([signon, user]) => [signon, buildMockUserAuthResponse(user)]),
-);

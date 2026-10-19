@@ -1,8 +1,8 @@
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import type { CbsVersionedTable } from "./types";
 
-export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
+export const SC_MODEL_CONFIG_LIVE: Record<string, ModelConfigRecord> = {
   "MENU.TREE": {
-    recordId: "MENU.TREE",
     tableName: "MENU_TREE",
     description: "Menu Tree",
     prefix: "SC",
@@ -73,7 +73,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   CONTROL: {
-    recordId: "CONTROL",
     tableName: "CONTROL",
     description: "Command and Application Control Catalog",
     prefix: "SC",
@@ -131,7 +130,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   BRANCH: {
-    recordId: "BRANCH",
     tableName: "BRANCH",
     description: "Core Banking Branch Master",
     prefix: "SC",
@@ -213,7 +211,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   USER: {
-    recordId: "USER",
     tableName: "USER",
     description: "System User Security & Authentication Profile",
     prefix: "SYS",
@@ -308,7 +305,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   MENU: {
-    recordId: "MENU",
     tableName: "MENU",
     description: "Menu List",
     prefix: "SC",
@@ -405,7 +401,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   ACCOUNT: {
-    recordId: "ACCOUNT",
     tableName: "ACCOUNT",
     description: "Retail & Corporate Bank Account Master",
     prefix: "AC",
@@ -660,7 +655,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   CUSTOMER: {
-    recordId: "CUSTOMER",
     tableName: "CUSTOMER",
     description: "Universal Customer Identification & KYC",
     prefix: "CUST",
@@ -742,7 +736,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   "INQUIRY.CONFIG": {
-    recordId: "INQUIRY.CONFIG",
     tableName: "INQUIRY_CONFIG",
     description: "Dynamic Inquiry & Query Definition Designer",
     prefix: "SC",
@@ -941,7 +934,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   "MODEL.CONFIG": {
-    recordId: "MODEL.CONFIG",
     tableName: "MODEL_CONFIG",
     description: "Data Model & Entity Schema Designer",
     prefix: "SC",
@@ -974,7 +966,6 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
     },
   },
   "FORM.CONFIG": {
-    recordId: "FORM.CONFIG",
     tableName: "FORM_CONFIG",
     description: "Dynamic Form Layout Designer",
     prefix: "SC",
@@ -1068,25 +1059,107 @@ export const STATIC_MODEL_CONFIGS: Record<string, ModelConfigRecord> = {
       recBranchCode: "JB9999",
     },
   },
+  "USER.GROUP": {
+    tableName: "USER_GROUP",
+    description: "Security Role & Menu Authorization Groups",
+    prefix: "SC",
+    category: "SYSTEM",
+    servicePath: "default",
+    userDefineId: true,
+    predefineId: false,
+    access: "G",
+    readOnly: false,
+    searchable: true,
+    authorize: false,
+    associates: ["HIS", "DEL", "UNA"],
+    devBy: "System",
+    devDate: "2025-09-04",
+    idDef: {
+      idPrefix: "",
+      idPattern: "",
+      sequenceReset: false,
+    },
+    isActive: true,
+    properties: [
+      {
+        sn: "1",
+        name: "groupLabel",
+        label: "Group Label",
+        type: "Text",
+        length: 100,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Descriptive name for security group",
+      },
+      {
+        sn: "2",
+        name: "menuIds",
+        label: "Authorized Menus",
+        type: "Text",
+        length: 50,
+        structure: "M",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "List of permitted menu identifiers",
+      },
+      {
+        sn: "3",
+        name: "roleIds",
+        label: "Assigned Roles",
+        type: "Text",
+        length: 50,
+        structure: "M",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "List of assigned security role codes",
+      },
+      {
+        sn: "4",
+        name: "isActive",
+        label: "Is Active",
+        type: "Boolean",
+        length: 1,
+        structure: "S",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Operational active status",
+      },
+    ],
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2026-01-01 10:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2026-01-01 10:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
 };
 
-export const STATIC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.values(STATIC_MODEL_CONFIGS);
+/* -------------------------------------------------------------------------- */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
+/* -------------------------------------------------------------------------- */
 
-export function getModelConfigRecord(id: string): ModelConfigRecord | null {
-  const cleanId = id.trim().toUpperCase();
-  return (
-    STATIC_MODEL_CONFIGS[cleanId] ??
-    STATIC_MODEL_CONFIGS[cleanId.replace(/_/g, ".")] ??
-    STATIC_MODEL_CONFIGS[cleanId.replace(/\./g, "_")] ??
-    null
-  );
-}
+export const SC_MODEL_CONFIG_INAU: Record<string, ModelConfigRecord> = {};
+export const SC_MODEL_CONFIG_HIS: Record<string, ModelConfigRecord[]> = {};
+export const SC_MODEL_CONFIG_DEL: Record<string, ModelConfigRecord> = {};
 
-export function listModelConfigSummaries() {
-  return STATIC_MODEL_CONFIG_LIST.map((record) => ({
-    id: record.recordId,
-    label: `${record.description} (${record.tableName})`,
-    details: `${record.properties.length} columns defined â€¢ ${record.category}`,
-    record,
-  }));
-}
+export const SC_MODEL_CONFIG_TABLE: CbsVersionedTable<ModelConfigRecord> = {
+  LIVE: SC_MODEL_CONFIG_LIVE,
+  INAU: SC_MODEL_CONFIG_INAU,
+  HIS: SC_MODEL_CONFIG_HIS,
+  DEL: SC_MODEL_CONFIG_DEL,
+};
+
+export const SC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.entries(SC_MODEL_CONFIG_LIVE).map(
+  ([key, val]) => ({
+    ...val,
+    recordId: val.recordId || key,
+  }),
+);

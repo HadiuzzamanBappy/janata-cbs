@@ -15,6 +15,12 @@ import {
   GrpcServiceClient,
   type LoginRequest,
 } from "@/lib/infra-grpc/generated/service";
+import { mockLogin, mockProcess } from "@/lib/mock-services";
+
+/**
+ * Single source of truth for runtime mode check.
+ */
+export const isStaticMode = (): boolean => appConfig.dataSource === "static";
 
 /* -------------------------------------------------------------------------- */
 /* Channel Pool Registry                                                      */
@@ -75,6 +81,10 @@ export interface CallOpts {
  * Unauthenticated RPC: Authenticates user credentials with the backend CBS host.
  */
 export function loginProcess(req: LoginRequest, _opts: CallOpts = {}): Promise<GrpcResponse> {
+  if (isStaticMode()) {
+    return mockLogin(req);
+  }
+
   const address = appConfig.grpc.host;
   const client = getClient(address);
 
@@ -95,6 +105,10 @@ export function grpcProcess(
   req: GrpcRequest,
   opts: CallOpts = {},
 ): Promise<GrpcResponse> {
+  if (isStaticMode()) {
+    return mockProcess(req);
+  }
+
   const client = getClient(address);
 
   const metadata = new Metadata();

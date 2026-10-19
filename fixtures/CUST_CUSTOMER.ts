@@ -1,8 +1,12 @@
+import type { CbsVersionedTable } from "./types";
+
+export type CustomerRecord = Record<string, unknown>;
+
 /**
  * CUST_CUSTOMER Database Table (PREFIX: CUST, TABLE: CUSTOMER)
  * Stores Universal Customer Master & KYC Information.
  */
-export const CUST_CUSTOMER_LIVE: Record<string, Record<string, unknown>> = {
+export const CUST_CUSTOMER_LIVE: Record<string, CustomerRecord> = {
   CUST1001: {
     recordId: "CUST1001",
     nationalId: "19852691234567890",
@@ -67,10 +71,19 @@ export const CUST_CUSTOMER_LIVE: Record<string, Record<string, unknown>> = {
   },
 };
 
-export const CUST_CUSTOMER_TABLE = CUST_CUSTOMER_LIVE;
-export const CUST_CUSTOMER_LIST = Object.values(CUST_CUSTOMER_LIVE);
+/* -------------------------------------------------------------------------- */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
+/* -------------------------------------------------------------------------- */
 
-export function getCustomerRecord(recordId: string): Record<string, unknown> | null {
-  const cleanId = recordId.trim().toUpperCase();
-  return CUST_CUSTOMER_LIVE[cleanId] ?? null;
-}
+export const CUST_CUSTOMER_INAU: Record<string, CustomerRecord> = {};
+export const CUST_CUSTOMER_HIS: Record<string, CustomerRecord[]> = {};
+export const CUST_CUSTOMER_DEL: Record<string, CustomerRecord> = {};
+
+export const CUST_CUSTOMER_TABLE: CbsVersionedTable<CustomerRecord> = {
+  LIVE: CUST_CUSTOMER_LIVE,
+  INAU: CUST_CUSTOMER_INAU,
+  HIS: CUST_CUSTOMER_HIS,
+  DEL: CUST_CUSTOMER_DEL,
+};
+
+export const CUST_CUSTOMER_LIST: CustomerRecord[] = Object.values(CUST_CUSTOMER_LIVE);

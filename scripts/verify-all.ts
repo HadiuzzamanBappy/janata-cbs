@@ -42,8 +42,12 @@ const SUITES = [
     command: "pnpm exec tsx scripts/verify-core-utils.ts",
   },
   {
-    title: "7. Infra Services, Mock Proxies & GRL Fallbacks (@/lib/infra-services)",
+    title: "7. Infra Services, Gateway & gRPC Protocol (@/lib/infra-services)",
     command: "pnpm exec tsx scripts/verify-infra-services.ts",
+  },
+  {
+    title: "8. In-Memory Mock Core Engine & Fixtures (@fixtures & @/lib/infra-services)",
+    command: "pnpm exec tsx scripts/verify-mock-service.ts",
   },
 ];
 

@@ -16,7 +16,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { getModelConfigRecord } from "@fixtures";
 import {
   Calendar,
   CheckCircle2,
@@ -438,27 +437,25 @@ export function IcTableTab({
   const [actPresetOpen, setActPresetOpen] = React.useState(false);
 
   // Model properties cache for lookup
-  const [modelProps, setModelProps] = React.useState<ModelProperty[]>(() => {
-    return getModelConfigRecord(targetModel)?.properties || [];
-  });
+  const [modelProps, setModelProps] = React.useState<ModelProperty[]>([]);
 
   // Fetch model properties dynamically when targetModel changes
   React.useEffect(() => {
     let mounted = true;
     async function loadModel() {
+      if (!targetModel) {
+        setModelProps([]);
+        return;
+      }
       try {
         const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), {
           silent: true,
         });
         if (mounted && res.status === "SUCCESS" && res.data?.properties) {
           setModelProps(res.data.properties);
-          return;
         }
       } catch {
-        // Fallback to static model fixtures
-      }
-      if (mounted) {
-        setModelProps(getModelConfigRecord(targetModel)?.properties || []);
+        if (mounted) setModelProps([]);
       }
     }
     loadModel();

@@ -1,8 +1,12 @@
+import type { CbsVersionedTable } from "./types";
+
+export type AccountRecord = Record<string, unknown>;
+
 /**
  * AC_ACCOUNT Database Table (PREFIX: AC, TABLE: ACCOUNT)
  * Stores core retail and corporate banking accounts.
  */
-export const AC_ACCOUNT_LIVE: Record<string, Record<string, unknown>> = {
+export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
   AC1001: {
     recordId: "AC1001",
     accountType: "SAVINGS",
@@ -59,37 +63,19 @@ export const AC_ACCOUNT_LIVE: Record<string, Record<string, unknown>> = {
   },
 };
 
-export const AC_ACCOUNT_ENQUIRY_ROWS = [
-  {
-    id: "AC1001",
-    accountNumber: "AC1001",
-    category: "SAVINGS",
-    currency: "BDT",
-    branch: "JB1001",
-    status: "LIVE",
-  },
-  {
-    id: "AC1002",
-    accountNumber: "AC1002",
-    category: "CURRENT",
-    currency: "BDT",
-    branch: "JB1001",
-    status: "LIVE",
-  },
-  {
-    id: "AC1003",
-    accountNumber: "AC1003",
-    category: "SAVINGS",
-    currency: "USD",
-    branch: "JB9999",
-    status: "LIVE",
-  },
-];
+/* -------------------------------------------------------------------------- */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
+/* -------------------------------------------------------------------------- */
 
-export const AC_ACCOUNT_TABLE = AC_ACCOUNT_LIVE;
-export const AC_ACCOUNT_LIST = Object.values(AC_ACCOUNT_LIVE);
+export const AC_ACCOUNT_INAU: Record<string, AccountRecord> = {};
+export const AC_ACCOUNT_HIS: Record<string, AccountRecord[]> = {};
+export const AC_ACCOUNT_DEL: Record<string, AccountRecord> = {};
 
-export function getAccountRecord(recordId: string): Record<string, unknown> | null {
-  const cleanId = recordId.trim().toUpperCase();
-  return AC_ACCOUNT_LIVE[cleanId] ?? null;
-}
+export const AC_ACCOUNT_TABLE: CbsVersionedTable<AccountRecord> = {
+  LIVE: AC_ACCOUNT_LIVE,
+  INAU: AC_ACCOUNT_INAU,
+  HIS: AC_ACCOUNT_HIS,
+  DEL: AC_ACCOUNT_DEL,
+};
+
+export const AC_ACCOUNT_LIST: AccountRecord[] = Object.values(AC_ACCOUNT_LIVE);

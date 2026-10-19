@@ -51,6 +51,61 @@ export function parseEnquiry(
   commandFallback = "ENQUIRY",
 ): { success: true; data: EnquirySchema } | { success: false; error: string } {
   try {
+    // 1. Direct handling of canonical InquiryConfigRecord (from SC_INQUIRY_CONFIG simulated DB)
+    if (
+      rawPayload &&
+      typeof rawPayload === "object" &&
+      ("columns" in (rawPayload as Record<string, unknown>) ||
+        ("data" in (rawPayload as Record<string, unknown>) &&
+          typeof (rawPayload as { data?: unknown }).data === "object" &&
+          (rawPayload as { data?: Record<string, unknown> }).data !== null &&
+          "columns" in (rawPayload as { data: Record<string, unknown> }).data))
+    ) {
+      const rec = (("data" in (rawPayload as Record<string, unknown>) &&
+        (rawPayload as { data: unknown }).data) ||
+        rawPayload) as Record<string, unknown>;
+      if (Array.isArray(rec.columns)) {
+        const mapped: EnquirySchema = {
+          code: String(rec.id || commandFallback),
+          title: String(rec.title || rec.id || commandFallback),
+          description: String(rec.description || ""),
+          controllerName: String(rec.controllerName || ""),
+          inqServicePath: String(rec.inqServicePath || ""),
+          perpageItem: Number(rec.recordPerPage || 30),
+          showSerial: rec.showSerial !== false,
+          showPagination: rec.showPagination !== false,
+          showBranchWise: Boolean(rec.showBranchWise),
+          selectionFields: Array.isArray(rec.filters)
+            ? (rec.filters as Array<Record<string, unknown>>).map((sf) => ({
+                id: String(sf.id || ""),
+                label: String(sf.label || sf.id || ""),
+                type: (sf.type === "date" || sf.type === "number" || sf.type === "select"
+                  ? sf.type
+                  : "text") as SelectionField["type"],
+                operand: (sf.defaultOperand || "EQ") as SelectionOperand,
+                value: String(sf.defaultValue || ""),
+                required: Boolean(sf.required),
+              }))
+            : [],
+          columns: (rec.columns as Array<Record<string, unknown>>).map((col) => ({
+            id: String(col.id || ""),
+            label: String(col.label || col.id || ""),
+            align: (col.align === "center" || col.align === "right"
+              ? col.align
+              : "left") as EnquiryColumn["align"],
+            width: col.width ? String(col.width) : undefined,
+            isMono: Boolean(col.isMono),
+            isDrilldown: Boolean(col.isDrilldown),
+            drilldownTargetCommand: col.drilldownTargetCommand
+              ? String(col.drilldownTargetCommand)
+              : undefined,
+          })),
+          actions: Array.isArray(rec.actions) ? (rec.actions as EnquirySchema["actions"]) : [],
+        };
+        return { success: true, data: mapped };
+      }
+    }
+
     const raw = extractRawEnquiry(rawPayload);
     if (!raw) {
       return {

@@ -10,7 +10,6 @@ It sits directly between Next.js API Routes (`/api/form`, `/api/inquiry`, `/api/
 
 ```text
 src/lib/infra-services/
-├── cbs-gateway.ts      # Runtime mode switch (isStaticMode) and mock data dispatcher (getStaticData)
 ├── service-context.ts  # Session token, user ID, branch code resolution, and command normalizer
 ├── auth-service.ts     # User authentication, credential validation, and session creation
 ├── form-service.ts     # Dynamic GMC form schema retrieval with version fallback (USER.MGT,NEW1 -> USER.MGT)
@@ -18,7 +17,6 @@ src/lib/infra-services/
 ├── menu-service.ts     # Navigation menu hierarchy provider (SC.MENU.TREE)
 ├── branch-service.ts   # Branch directory retrieval for branch switching and validation
 ├── control-service.ts  # Core banking table catalog (CONTROL) for command search
-├── mock-service.ts     # Realistic offline banking fixtures for local development & CI/CD
 └── index.ts            # Server-only public barrel export ('server-only')
 ```
 

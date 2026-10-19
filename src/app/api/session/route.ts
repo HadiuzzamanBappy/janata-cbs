@@ -35,7 +35,6 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
         status: "SUCCESS",
         statusCode: 200,
         data: currUser,
-        currUser,
         timestamp: new Date().toISOString(),
       },
       { status: 200 },

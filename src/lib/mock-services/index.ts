@@ -9,8 +9,6 @@ import {
   SYS_USER_AUTH_RESPONSES,
 } from "./auth-simulator";
 import {
-  getMockBranchesPayload,
-  getMockControlsPayload,
   getMockFormPayload,
   getMockInquiryPayload,
   getMockMenuPayload,
@@ -26,8 +24,6 @@ import { notFoundResult, successResult, toGrpcResponse } from "./response-factor
 
 export {
   buildMockUserAuthResponse,
-  getMockBranchesPayload,
-  getMockControlsPayload,
   getMockFormPayload,
   getMockInquiryPayload,
   getMockMenuPayload,

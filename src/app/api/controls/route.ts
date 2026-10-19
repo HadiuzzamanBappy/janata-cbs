@@ -22,7 +22,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
       );
     }
 
-    const controls = await getControlsData(session.token);
+    const controls = await getControlsData();
     return NextResponse.json(
       {
         success: true,

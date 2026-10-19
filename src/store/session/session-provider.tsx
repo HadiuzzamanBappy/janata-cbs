@@ -35,10 +35,11 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
       fetch(appConfig.routes.api.session)
         .then((res) => res.json())
         .then((json) => {
-          if (json.success && json.currUser) {
-            store.getState().setSession(json.currUser);
-            if (json.currUser.branchCode && !store.getState().currentBranch) {
-              store.getState().setBranch(json.currUser.branchCode);
+          const user = json.data || json.currUser;
+          if (json.success && user) {
+            store.getState().setSession(user);
+            if (user.branchCode && !store.getState().currentBranch) {
+              store.getState().setBranch(user.branchCode);
             }
           }
         })

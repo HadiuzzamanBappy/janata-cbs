@@ -30,7 +30,7 @@ export function useInquirySchema(command: string) {
         .trim();
 
       // 2. Fetch schema from dedicated inquiry endpoint
-      const res = await fetch(`${appConfig.routes.api.inquiry}/${cleanCmd}`);
+      const res = await fetch(`${appConfig.routes.api.inquiry}/${encodeURIComponent(cleanCmd)}`);
       const json = await res.json();
 
       if ((json.status === "SUCCESS" || json.success) && json.data) {

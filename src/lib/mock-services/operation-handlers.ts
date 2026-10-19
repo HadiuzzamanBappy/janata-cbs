@@ -1,8 +1,6 @@
 import "server-only";
 
 import {
-  SC_BRANCH_LIST,
-  SC_CONTROL_LIST,
   SC_INQUIRY_CONFIG_LIVE,
   SC_MENU_TREE_LIVE,
   SC_MODEL_CONFIG_LIVE,
@@ -18,18 +16,6 @@ import { notFoundResult, successResult } from "./response-factory";
 export function getMockMenuPayload(): unknown {
   return {
     records: SC_MENU_TREE_LIVE["MENU.MAIN"]?.menuTree ?? [],
-  };
-}
-
-export function getMockBranchesPayload(): unknown {
-  return {
-    records: SC_BRANCH_LIST,
-  };
-}
-
-export function getMockControlsPayload(): unknown {
-  return {
-    records: SC_CONTROL_LIST,
   };
 }
 

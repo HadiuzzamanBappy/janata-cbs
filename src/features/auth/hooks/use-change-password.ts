@@ -34,6 +34,7 @@ export function useChangePassword() {
           body: JSON.stringify({
             oldPassword: parseResult.data.oldPassword,
             newPassword: parseResult.data.newPassword,
+            confirmPassword: parseResult.data.confirmPassword,
           }),
         });
 

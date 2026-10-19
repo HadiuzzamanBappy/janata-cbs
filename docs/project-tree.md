@@ -1,7 +1,7 @@
 # Janata CBS Architecture & Complete Project Tree Structure
 
 > **System Profile:** Enterprise Core Banking Solution (CBS) Frontend  
-> **Framework:** Next.js 16 (App Router) + React 19 + TypeScript + Zustand + Tailwind CSS + Biome  
+> **Framework:** Next.js 15 (App Router) + React 19 + TypeScript + Zustand + Tailwind CSS + Biome  
 > **Target Scale:** 150 to 1,000 Dynamic Model Fields, Multi-Tab MDI Shell, Multi-Window Detached Popups with BroadcastChannel Sync  
 > **Last Updated:** October 2026  
 
@@ -18,11 +18,16 @@ janata-cbs/
 │   │   ├── cbs-screen/         # Standard banking action bar, headers, audit footers & scaffold
 │   │   ├── feedback/           # Error boundaries, confirmations & empty states
 │   │   ├── layout/             # Workbench tabbar, sidebar, shell containers
-│   │   └── ui/                 # Atomic Shadcn / Radix UI design tokens
+│   │   └── ui/                 # Atomic Base UI / Shadcn design tokens
 │   ├── features/               # Core Banking Domain Applications
+│   │   ├── auth/               # Operator Authentication, Login & Change Password
+│   │   ├── command/            # Global Command Gateway Bar & Hotkey Autocomplete
+│   │   ├── docs/               # In-App Technical Documentation & Interactive Viewer
 │   │   ├── form-engine/        # Headless Atomized Form Kernel (Zero-lag 150-1000 fields)
+│   │   ├── inquiry-engine/     # Dynamic Tabular Inquiry Rendering Engine
 │   │   ├── operations/         # Transaction Forms & Inquiry Result Grids
-│   │   ├── system/             # System Administration (Form Config, Metamodels, Menus, Users)
+│   │   ├── settings/           # Workstation Preferences, Theming & Hotkey Settings
+│   │   ├── system/             # System Administration (Form Config, Inquiry Config, Metamodels, Menus, Users, Report Studio)
 │   │   └── workbench/          # Dynamic Screen Loader & Screen Component Registry
 │   ├── hooks/                  # Global React hooks (idle timeouts, responsiveness)
 │   ├── lib/                    # Headless Core Banking Libraries & Infrastructure (Pure TypeScript)
@@ -35,15 +40,16 @@ janata-cbs/
 │   │   ├── core-config/        # Isomorphic Client Config & Server Secrets
 │   │   ├── core-logger/        # PII-Redacted Structured Logger
 │   │   ├── core-utils/         # Formatting (Currency, Account Masks, Formulas, Dates)
-│   │   ├── data-parsers/       # GMC Protobuf & Hex Response Wire Decoders
+│   │   ├── data-parsers/       # GMC Protobuf & Wire Decoders
 │   │   ├── data-schemas/       # Zod Runtime Validation Schemas
 │   │   ├── infra-grpc/         # HTTP/2 gRPC Transport to Java CBS Engine
 │   │   ├── infra-redis/        # Redis Session Store, Cache & Fail-Open Circuit Breaker
-│   │   └── infra-services/     # Read-Through Domain Services (Form, Inquiry, Menu, Branch)
+│   │   ├── infra-services/     # Read-Through Domain Services (Form, Inquiry, Menu, Branch)
+│   │   └── mock-services/      # Offline In-Memory Database & Fixture Router
 │   ├── store/                  # Global State (Session, Multi-Tab Workbench, Alert, Theme)
 │   ├── types/                  # Canonical Core Banking TypeScript Contracts
-│   └── proxy.ts                # Next.js Edge Auth & Route Protection Middleware
-├── fixtures/                   # Offline Mock Data & Static Oracle CBS Dictionaries
+│   └── proxy.ts                # Next.js Session Guard & Auth Route Middleware
+├── fixtures/                   # Offline Mock Data & Static CBS Table Fixtures
 ├── proto/                      # Protobuf Interface Definitions for Java CBS Host
 ├── scripts/                    # Test Verification Suites (100% Automated CI Validation)
 └── docs/                       # Architectural Specs, Takeover Guides & Audits
@@ -67,19 +73,20 @@ janata-cbs/
 |   +---devs/                                  # Developer deep-dive guides
 |   \---manual/                                # Core banking business manual
 |
-+---fixtures/                                  # Static Fixtures & Offline Oracle CBS Tables
-|   |   AC_ACCOUNT.ts                          # Account table live fixtures
-|   |   CUST_CUSTOMER.ts                       # Customer entity fixtures
-|   |   SC_BRANCH.ts                           # Branch directory fixtures
-|   |   SC_CONTROL.ts                          # Control command fixtures
-|   |   SC_FORM_CONFIG.ts                      # Visual form presentation catalog
-|   |   SC_INQUIRY.ts                          # Canonical enquiry grid specifications
-|   |   SC_MENU.ts                             # System menu catalog
-|   |   SC_MENU_TREE.ts                        # Application navigation tree
-|   |   SC_MODEL_CONFIG.ts                     # GMC Metamodel data dictionaries
-|   |   SYS_USER.ts                            # User directory & credentials
-|   |   index.ts                               # Unified fixture barrel export
-|   \---.response/                             # Raw recorded gRPC wire JSON responses
++---fixtures/                                  # Static Fixtures & Offline CBS Tables
+|       AC_ACCOUNT.ts                          # Account table live fixtures
+|       CUST_CUSTOMER.ts                       # Customer entity fixtures
+|       SC_BRANCH.ts                           # Branch directory fixtures
+|       SC_CONTROL.ts                          # Control command fixtures
+|       SC_FORM_CONFIG.ts                      # Visual form presentation catalog
+|       SC_INQUIRY_CONFIG.ts                   # Canonical enquiry grid specifications
+|       SC_MENU.ts                             # System menu catalog
+|       SC_MENU_TREE.ts                        # Application navigation tree
+|       SC_MODEL_CONFIG.ts                     # GMC Metamodel data dictionaries
+|       SC_USER_GROUP.ts                       # User group matrix fixtures
+|       SYS_USER.ts                            # User directory & credentials
+|       types.ts                               # Fixture row & table type definitions
+|       index.ts                               # Unified fixture barrel export
 |
 +---proto/                                     # gRPC Protocol Buffers
 |       service.proto                          # CBS transaction & inquiry RPC definition
@@ -96,10 +103,11 @@ janata-cbs/
 |       verify-cbs-record.ts                   # Delta mutation engine test suite
 |       verify-core-utils.ts                   # Formatting & calculation test suite
 |       verify-env-matrix.ts                   # Environment matrix test suite
-|       verify-infra-services.ts               # Offline/gRPC dual service test suite
+|       verify-infra-services.ts               # Infrastructure services test suite
+|       verify-mock-service.ts                 # Offline mock engine & fixture router test suite
 |
 \---src/                                       # Application Source Code
-    |   proxy.ts                               # Edge route protection & fragile session guard
+    |   proxy.ts                               # Session guard & auth route middleware
     |
     +---app/                                   # Next.js App Router
     |   |   globals.css                        # Design system theme tokens & scanline density
@@ -112,6 +120,11 @@ janata-cbs/
     |   |   |   layout.tsx                     # Auth card shell layout
     |   |   +---login/page.tsx                 # Core banking officer login screen
     |   |   \---change-password/page.tsx       # Mandatory first-login password update
+    |   |
+    |   +---(docs)/                            # Technical & Business Docs Route Group
+    |   |   |   layout.tsx                     # Documentation split viewer layout
+    |   |   +---devs/page.tsx                  # Developer guides & API architecture
+    |   |   \---manual/page.tsx                # Operator banking manual
     |   |
     |   +---(workbench)/                       # Authenticated Core Banking MDI Shell
     |   |   +---dashboard/
@@ -126,7 +139,7 @@ janata-cbs/
     |   \---api/                               # Backend-for-Frontend (BFF) HTTP API Endpoints
     |       +---branches/route.ts              # Branch directory endpoint
     |       +---cache/route.ts                 # Cache invalidation endpoint (DELETE /api/cache)
-    |       +---change-password/route.ts       # Password reset endpoint
+    |       +---change-password/route.ts       # Password reset & initLogin clearing
     |       +---controls/route.ts              # System control commands endpoint
     |       +---form/[cmd]/route.ts            # Form specification fetcher (GMC)
     |       +---inquiry/[cmd]/route.ts         # Inquiry specification fetcher
@@ -134,7 +147,7 @@ janata-cbs/
     |       +---logout/route.ts                # Session destruction endpoint
     |       +---menu/route.ts                  # Navigation menu endpoint
     |       +---proxy/route.ts                 # Universal gRPC/static CRUD dispatcher
-    |       \---session/route.ts               # Active session context reader
+    |       \---session/route.ts               # Active session context reader & branch switcher
     |
     +---components/                            # Shared Visual & Layout Components
     |   +---cbs-access/
@@ -179,12 +192,28 @@ janata-cbs/
     |   |   |   \---widgets/                   # Branch switcher & theme toggle
     |   |   \---tabs/                          # Tab items, context menus, popup triggers
     |   |
-    |   \---ui/                                # Atomic UI Components (Shadcn / Radix UI)
+    |   \---ui/                                # Atomic UI Components (Shadcn / Base UI)
     |           accordion.tsx, alert.tsx, button.tsx, calendar.tsx, card.tsx,
     |           checkbox.tsx, date-picker.tsx, dialog.tsx, dropdown-menu.tsx,
     |           input.tsx, select.tsx, table.tsx, tabs.tsx, toast.tsx, tooltip.tsx, etc.
     |
     +---features/                              # Feature Modules
+    |   +---auth/                              # Authentication & User Security
+    |   |       components/                    # Login & change-password form components
+    |   |       hooks/                         # use-login, use-change-password
+    |   |       types.ts, index.ts
+    |   |
+    |   +---command/                           # CBS Terminal Command Gateway
+    |   |       app-search.tsx                 # Command palette dialog (<Cmd+K>)
+    |   |       components/                    # Command search results & item rows
+    |   |       hooks/                         # use-search-commands
+    |   |       utils/                         # Command extractor & matchers
+    |   |       types.ts, index.ts
+    |   |
+    |   +---docs/                              # In-App Technical Documentation Portal
+    |   |       components/                    # Markdown doc viewer, sidebar, breadcrumbs
+    |   |       config.ts, types.ts, actions.ts, index.ts
+    |   |
     |   +---form-engine/                       # Headless Atomized Form Engine (Zero-Lag at 1000 fields)
     |   |   |   index.ts                       # Feature barrel export
     |   |   +---components/
@@ -197,6 +226,10 @@ janata-cbs/
     |   |   |       form-kernel-provider.tsx   # React context provider & selective useFormKernel hook
     |   |   \---validation/
     |   |           field-validator.ts         # Banking regex, length & mandatory field validator
+    |   |
+    |   +---inquiry-engine/                    # Dynamic Tabular Inquiry Rendering Engine
+    |   |       components/                    # Inquiry table, filter panel, pagination
+    |   |       index.ts
     |   |
     |   +---operations/                        # Core Banking Day-to-Day Operations
     |   |   +---forms/                         # Dynamic Maintenance & Transaction Forms
@@ -213,12 +246,18 @@ janata-cbs/
     |   |       +---components/                # Selection criteria & results data grid
     |   |       \---hooks/                     # Enquiry execution & export hooks
     |   |
+    |   +---settings/                          # User Preferences & Workstation Settings
+    |   |       app-settings.tsx               # Settings modal dialog
+    |   |       components/                    # General, appearance, hotkeys panels
+    |   |       types.ts, index.ts
+    |   |
     |   +---system/                            # System Administration Features
     |   |   +---form-config/                   # Visual Form Designer & Metamodel Catalog
+    |   |   +---inquiry-config/                # Inquiry Specification & Filter Configurator
     |   |   +---menu-catalog/                  # System Command & Screen Directory
     |   |   +---menu-designer/                 # Drag-and-drop Menu Hierarchy Builder
     |   |   +---model-config/                  # Database Metamodel & Table Editor
-    |   |   +---report-designer/               # Financial Report Layout & PDF Generator
+    |   |   +---report-studio/                 # Financial Report Layout & PDF Generator
     |   |   \---user-group/                    # User Roles & Matrix Permissions
     |   |
     |   \---workbench/                         # MDI Shell & Dynamic Screen Loader
@@ -298,7 +337,8 @@ janata-cbs/
     |   |   |   client.ts                      # gRPC client initialization & status mappers
     |   |   |   dispatch.ts                    # Dynamic envelope dispatcher
     |   |   |   index.ts
-    |   |   \---generated/                     # ts-proto compiled service definitions
+    |   |   \---generated/                     # Compiled service definitions
+    |   |           service.ts                 # Generated Protobuf TypeScript interfaces
     |   |
     |   +---infra-redis/                       # Caching & Session Layer
     |   |       cache.ts                       # Read-through getOrSet & request deduplication
@@ -307,28 +347,33 @@ janata-cbs/
     |   |       session.ts                     # Dual-store session manager (Redis + in-memory Map)
     |   |       index.ts
     |   |
-    |   \---infra-services/                    # Downstream Core Banking Services
-    |           auth-service.ts                # Authentication & password management
-    |           branch-service.ts              # Branch directory service
-    |           cbs-gateway.ts                 # Single entrypoint mode switcher (gRPC vs static)
-    |           control-service.ts             # System control commands service
-    |           form-service.ts                # GMC form specification service
-    |           inquiry-service.ts             # Enquiry specification service
-    |           menu-service.ts                # Navigation menu service
-    |           mock-service.ts                # Static fixture response provider
-    |           service-context.ts             # Session, branch, and command normalizer
-    |           index.ts
-    |
-    +---store/                                 # Global Reactive State Stores
-    |   |   index.ts                           # Unified store barrel export
-    |   |   root-provider.tsx                  # Master application store provider
-    |   |   theme-provider.tsx                 # Dark/light theme provider
-    |   |   +---alert/                         # Global modal alert store & provider
-    |   |   +---session/                       # User session store & provider
-    |   |   \---workbench/                     # Draggable tabbar & open screens store & provider
-    |
-    \---types/                                 # Core Banking Domain Types
-            api.ts                             # ApiResponse & HTTP envelopes
-            cbs.ts                             # CbsRecordFunction (RIDASHL), CbsRequestType, etc.
-            index.ts                           # Canonical type contracts export
+    |   +---infra-services/                    # Downstream Core Banking Services
+    |   |       auth-service.ts                # Authentication & password management
+    |   |       branch-service.ts              # Branch directory service
+    |   |       control-service.ts             # System control commands service
+    |   |       form-service.ts                # GMC form specification service
+    |   |       inquiry-service.ts             # Enquiry specification service
+    |   |       menu-service.ts                # Navigation menu service
+    |   |       service-context.ts             # Session, branch, and command normalizer
+    |   |       index.ts
+    |   |
+    |   +---mock-services/                     # Offline In-Memory Simulated Database
+    |   |       auth-simulator.ts              # Offline operator authentication simulator
+    |   |       database-router.ts             # In-memory CRUD router for 10 canonical tables
+    |   |       operation-handlers.ts          # GMC, INQ, GUM, GRL, GET, PUT protocol handlers
+    |   |       response-factory.ts            # Standardized mock ApiResponse envelope factory
+    |   |       index.ts, README.md
+    |   |
+    |   +---store/                             # Global Reactive State Stores
+    |   |   |   index.ts                       # Unified store barrel export
+    |   |   |   root-provider.tsx              # Master application store provider
+    |   |   |   theme-provider.tsx             # Dark/light theme provider
+    |   |   |   +---alert/                     # Global modal alert store & provider
+    |   |   |   +---session/                   # User session store & provider
+    |   |   |   \---workbench/                 # Draggable tabbar & open screens store & provider
+    |   |
+    |   \---types/                             # Core Banking Domain Types
+    |           api.ts                         # ApiResponse & HTTP envelopes
+    |           cbs.ts                         # CbsRecordFunction (RIDASHL), CbsRequestType, etc.
+    |           index.ts                       # Canonical type contracts export
 ```

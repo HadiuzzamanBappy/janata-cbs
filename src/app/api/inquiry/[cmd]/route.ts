@@ -15,6 +15,7 @@ export async function GET(
     if (!cmd) {
       return NextResponse.json(
         {
+          success: false,
           status: "FAIL",
           statusCode: 400,
           message: "Command parameter is required",
@@ -28,6 +29,7 @@ export async function GET(
     if (!session?.token) {
       return NextResponse.json(
         {
+          success: false,
           status: "FAIL",
           statusCode: 401,
           message: "Unauthorized: Active session required",
@@ -37,11 +39,12 @@ export async function GET(
       );
     }
 
-    const schema = await getEnquiryData(cmd, session.token);
+    const schema = await getEnquiryData(cmd);
 
     if (!schema) {
       return NextResponse.json(
         {
+          success: false,
           status: "RECORD_NOT_FOUND",
           statusCode: 404,
           message: `Inquiry schema not found for command "${cmd}"`,
@@ -53,6 +56,7 @@ export async function GET(
 
     return NextResponse.json(
       {
+        success: true,
         status: "SUCCESS",
         statusCode: 200,
         data: schema,
@@ -64,6 +68,7 @@ export async function GET(
     const message = err instanceof Error ? err.message : "Internal Inquiry Schema Fetch Error";
     return NextResponse.json(
       {
+        success: false,
         status: "ERROR",
         statusCode: 500,
         message,

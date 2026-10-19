@@ -48,7 +48,7 @@ Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of 
 - **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict Mode)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + OKLCH Design Tokens + [shadcn/ui](https://ui.shadcn.com/) / [@base-ui/react](https://base-ui.com/)
 - **State Management**: [Zustand](https://zustand-demo.pmnd.rs/) (Session, Workbench, Alerts)
-- **RPC & Data Transport**: `@grpc/grpc-js`, `@bufbuild/protobuf`, `ts-proto`
+- **RPC & Data Transport**: `@grpc/grpc-js`, `@grpc/proto-loader`, `@bufbuild/protobuf`
 - **Validation**: [Zod](https://zod.dev/)
 - **Caching & Sessions**: [ioredis](https://github.com/redis/ioredis) (with resilient fallback circuit breakers)
 - **Code Quality**: [Biome](https://biomejs.dev/)
@@ -62,7 +62,7 @@ src/
 ├── app/                  # Next.js App Router
 │   ├── (auth)/           # Authentication route group (Login, lock screen)
 │   ├── (workbench)/      # Core banking workbench (screen/[id], multi-tab layout)
-│   ├── [docs]/           # In-app operator & technical documentation portal
+│   ├── (docs)/           # In-app operator & technical documentation portal
 │   ├── api/              # API routes & gRPC proxy endpoints (/api/proxy)
 │   ├── globals.css       # Tailwind v4 semantic design tokens (OKLCH)
 │   └── layout.tsx        # Root HTML layout with providers
@@ -99,11 +99,12 @@ src/
 │   ├── data-schemas/     # Zod schemas for request/response payloads
 │   ├── infra-grpc/       # Server-only gRPC client, credentials, and dispatcher
 │   ├── infra-redis/      # Redis connection pool and caching circuit-breaker
-│   └── infra-services/   # Service layers & offline fallback mock generators
+│   ├── infra-services/   # Dual-mode service layers & transparent Redis caching
+│   └── mock-services/    # Offline simulated database & fixture router
 │
 ├── store/                # Zustand Global Stores (Workbench, Session, Alerts)
 ├── types/                # Global TypeScript definitions & banking types
-└── proxy.ts              # gRPC proxy core handler
+└── proxy.ts              # Next.js session guard & auth middleware
 ```
 
 ---
@@ -145,7 +146,8 @@ pnpm verify:client      # Tests wire request factories (GET, PUT, AUT, INQ, GRL)
 pnpm verify:record      # Tests CBS record status transitions (INA, AU, Hold, Reverse)
 pnpm verify:matrix      # Tests environment matrix, mock fixtures, and wire parsers
 pnpm verify:utils       # Tests currency formatting (BDT), account masks, and value dates
-pnpm verify:services    # Tests infrastructure services and mock fallback handlers
+pnpm verify:services    # Tests infrastructure services and gRPC protocol mapping
+pnpm verify:mock        # Tests in-memory mock engine & simulated database fixtures
 ```
 
 ---
@@ -155,5 +157,5 @@ pnpm verify:services    # Tests infrastructure services and mock fallback handle
 1. **High-Density Compact Sizing:** Banking operators require maximum screen real estate. Use compact control heights (`h-9`), `text-xs` typography for tables and labels, and 12-column grid structures.
 2. **Strict Server Boundary:** Never import `@grpc/grpc-js`, Redis, or server credentials in client components. Access backend services only via the `/api/proxy` route or Server Actions.
 3. **Four-Eyes Enforcement:** Always apply Four-Eyes checks on authorization actions (`Maker !== Checker`).
-4. **Unified Screen Loader:** Dynamic screens must resolve through `resolveScreen()` in [src/features/workbench/registry.tsx](file:///d:/CBS/In_house/finx/janata-cbs/src/features/workbench/registry.tsx) rather than hardcoded ad-hoc component switches.
+4. **Unified Screen Loader:** Dynamic screens must resolve through `resolveScreen()` in `src/features/workbench/registry.tsx` rather than hardcoded ad-hoc component switches.
 5. **Type Safety & No `any`:** All external wire payloads must pass through Zod schemas or typed data parsers before consumption.

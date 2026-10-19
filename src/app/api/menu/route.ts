@@ -22,7 +22,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
       );
     }
 
-    const menuItems = await getMenuData(session.token);
+    const menuItems = await getMenuData();
     return NextResponse.json(
       {
         success: true,

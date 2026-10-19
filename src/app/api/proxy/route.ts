@@ -22,6 +22,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     if (!session?.currUser) {
       return NextResponse.json(
         {
+          success: false,
           status: "FAIL",
           statusCode: 401,
           message: "User session expired or unauthorized",

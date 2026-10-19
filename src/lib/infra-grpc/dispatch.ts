@@ -2,6 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { appConfig, getService, REQUEST_TYPE_OVERLAYS } from "@/lib/core-config/server";
+import { logger } from "@/lib/core-logger";
 import { grpcProcess, grpcStatusToHttp, type ProcessKind } from "@/lib/infra-grpc/client";
 import type { GrpcRequest } from "@/lib/infra-grpc/generated/service";
 import { mockDispatch } from "@/lib/mock-services";
@@ -10,6 +11,8 @@ import type { ApiResponse, GrpcEnvelope } from "@/types";
 /* -------------------------------------------------------------------------- */
 /* Classification & Overlay Helpers                                           */
 /* -------------------------------------------------------------------------- */
+
+const grpcLogger = logger.withContext("GRPC");
 
 const FINANCIAL_REQUEST_TYPES = new Set(
   appConfig.grpc.financialTransactionTypes.map((s) => s.trim().toUpperCase()),
@@ -64,7 +67,18 @@ async function executeGrpcTransport(
     data: envelope.data,
   };
 
+  grpcLogger.debug(`→ ${kind} ${req.requestType} ${req.controlName}`, req);
   const res = await grpcProcess(address, kind, req, { token });
+
+  // Surface backend-side failures with the exact request that triggered them,
+  // since the host often returns ERROR with an empty message on unhandled exceptions.
+  if (res.status !== "SUCCESS") {
+    grpcLogger.warn(`← ${res.status} ${res.statusCode} for ${req.requestType} ${req.controlName}`, {
+      request: req,
+      response: res,
+    });
+  }
+
   return {
     status: res.status,
     statusCode: res.statusCode,

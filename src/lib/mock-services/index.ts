@@ -96,8 +96,8 @@ export function getMockProxyResponse(
     return handleMutation(ctx);
   }
 
-  // 6. GRL (Generic Record List)
-  if (reqType === "GRL" || reqType === "RECORD_LIST" || !recId) {
+  // 6. GRL / SBI (Generic Record List / Record ID Search)
+  if (reqType === "GRL" || reqType === "SBI" || reqType === "RECORD_LIST" || !recId) {
     return handleRecordList(ctx);
   }
 

@@ -106,12 +106,12 @@ async function runSuite() {
       delPayload.recordFunction === CbsRecordFunction.DELETE,
   );
 
-  // 1.7 Hold draft record (HLD, HISTORY)
+  // 1.7 Hold draft record (HLD, HOLD)
   const holdPayload = loanModel.hold("loan-1001", { draftStep: 2 });
   assert(
-    "BaseModel: hold (HLD, HISTORY)",
+    "BaseModel: hold (HLD, HOLD)",
     holdPayload.requestType === CbsRequestType.HLD &&
-      holdPayload.recordFunction === CbsRecordFunction.HISTORY,
+      holdPayload.recordFunction === CbsRecordFunction.HOLD,
   );
   assert(
     "BaseModel: hold data preserved",
@@ -172,11 +172,13 @@ async function runSuite() {
 
   // --- 3. Domain Form Payloads (cbs.form) ---
   console.log("\n--- 3. Domain Form Payloads (cbs.form) ---");
-  const formList = cbs.form.listRecords("ACCOUNT", { branch: "1001" });
+  const formSearch = cbs.form.searchRecordIds("ACCOUNT");
   assert(
-    "Form: listRecords (GRL, LIST)",
-    formList.requestType === CbsRequestType.GRL &&
-      formList.recordFunction === CbsRecordFunction.LIST,
+    "Form: searchRecordIds (SBI, LIST, no data)",
+    formSearch.requestType === CbsRequestType.SBI &&
+      formSearch.recordFunction === CbsRecordFunction.LIST &&
+      formSearch.recordId === "" &&
+      formSearch.data === undefined,
   );
 
   const formGni = cbs.form.getNewRecordId("ACCOUNT");
@@ -219,9 +221,9 @@ async function runSuite() {
 
   const formHold = cbs.form.holdRecord("ACCOUNT", "1000001", { pendingReview: true });
   assert(
-    "Form: holdRecord (HLD, HISTORY)",
+    "Form: holdRecord (HLD, HOLD)",
     formHold.requestType === CbsRequestType.HLD &&
-      formHold.recordFunction === CbsRecordFunction.HISTORY,
+      formHold.recordFunction === CbsRecordFunction.HOLD,
   );
 
   const formRev = cbs.form.reverseRecord("ACCOUNT", "1000001");

@@ -11,13 +11,10 @@ import { createModelPayloads } from "./base-model";
  */
 export const formPayloads = {
   /**
-   * List records for a specific model / control (Record Lookup).
+   * Search record IDs for a specific model / control ('SBI', Record Lookup).
    */
-  listRecords: (
-    controlName: string,
-    criteria?: Record<string, unknown>,
-    servicePath?: string,
-  ): CbsWirePayload => createModelPayloads(controlName, { servicePath }).list({ criteria }),
+  searchRecordIds: (controlName: string, servicePath?: string): CbsWirePayload =>
+    createModelPayloads(controlName, { servicePath }).searchIds(),
 
   /**
    * Allocate new record ID / sequence ('GNI') for a specific model / control.

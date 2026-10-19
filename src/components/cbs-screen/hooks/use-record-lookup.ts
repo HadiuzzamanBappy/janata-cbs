@@ -11,7 +11,7 @@ export interface RecordLookupItem {
 }
 
 /**
- * Universal hook for dynamic GRL record lookups and GNI sequence allocation.
+ * Universal hook for dynamic SBI record ID lookups and GNI sequence allocation.
  *
  * @param controlName - The target CBS model/table (e.g. "USER.MGT", "ACCOUNT")
  * @param staticItems - Optional initial or predefined static items
@@ -36,7 +36,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
   }, [cleanControl]);
 
   /**
-   * Action 2: Fetch sorted record list with optional prefix/search filter ('GRL').
+   * Action 2: Fetch sorted record ID list ('SBI') with optional client-side prefix filter.
    */
   const fetchRecordList = React.useCallback(
     async (query?: string) => {
@@ -46,10 +46,8 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
       setLoading(true);
 
       try {
-        const payload = cbs.form.listRecords(
-          cleanControl,
-          cleanQuery ? { search: cleanQuery, query: cleanQuery } : undefined,
-        );
+        // SBI returns the full ID list; the query prefix is applied client-side below.
+        const payload = cbs.form.searchRecordIds(cleanControl);
         const res = await cbs.send<unknown>(payload, { silent: true });
 
         const mappedItems: RecordLookupItem[] = [];

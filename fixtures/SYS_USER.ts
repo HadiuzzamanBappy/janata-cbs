@@ -14,6 +14,7 @@ export interface UserRecord {
   branchName: string;
   commandLine: boolean;
   userStatus: number;
+  password?: string;
   auditData?: AuditData;
 }
 
@@ -32,6 +33,7 @@ export const SYS_USER_LIVE: Record<string, UserRecord> = {
     branchName: "CENTRAL OFFICE, HO, DHAKA   ",
     branchCode: "JB9999",
     userStatus: 1,
+    password: "password123",
     auditData: {
       recStatus: "LIVE",
       recCurrNumber: 1,
@@ -52,6 +54,7 @@ export const SYS_USER_LIVE: Record<string, UserRecord> = {
     branchName: "CENTRAL OFFICE, HO, DHAKA   ",
     branchCode: "JB9999",
     userStatus: 1,
+    password: "password123",
     auditData: {
       recStatus: "LIVE",
       recCurrNumber: 1,
@@ -72,6 +75,7 @@ export const SYS_USER_LIVE: Record<string, UserRecord> = {
     branchName: "Gulshan Branch",
     branchCode: "JB1002",
     userStatus: 1,
+    password: "password123",
     auditData: {
       recStatus: "LIVE",
       recCurrNumber: 1,

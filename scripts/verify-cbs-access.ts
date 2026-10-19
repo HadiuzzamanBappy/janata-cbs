@@ -95,7 +95,7 @@ assert(
 );
 assert(
   "Full Access: hasFunctionRight('H')",
-  fullAccess.hasFunctionRight(CbsRecordFunction.HISTORY) === true,
+  fullAccess.hasFunctionRight(CbsRecordFunction.HOLD) === true,
 );
 assert("Full Access: canList (Function 'L')", fullAccess.canList === true);
 assert(
@@ -177,7 +177,7 @@ assert(
 );
 assert(
   "Screen Mode 'H' is Read-Only",
-  evaluateCbsAccess({ grantedRights: fullRights, mode: CbsRecordFunction.HISTORY }).isReadOnly ===
+  evaluateCbsAccess({ grantedRights: fullRights, mode: CbsRecordFunction.HOLD }).isReadOnly ===
     true,
 );
 assert(
@@ -264,6 +264,18 @@ assert(
   Boolean(
     liveDelete.getDisableReason(CbsRecordFunction.DELETE)?.includes("Use Reverse ('R') instead"),
   ),
+);
+
+// 10.3b Hold on Live AU record
+const liveHold = evaluateCbsAccess({
+  userId: "AD028459",
+  recordStatus: "AU",
+  mode: "H",
+  grantedRights: fullRights,
+});
+assert(
+  "getDisableReason: Hold on AU record explains record is already authorized",
+  Boolean(liveHold.getDisableReason(CbsRecordFunction.HOLD)?.includes("already authorized")),
 );
 
 // 10.4 Reverse on Non-AU record

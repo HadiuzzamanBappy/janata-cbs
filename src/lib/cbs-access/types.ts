@@ -38,7 +38,6 @@ export interface CbsAccessResult {
   readonly canHold: boolean;
   readonly canAuthorize: boolean;
   readonly canReverse: boolean;
-  readonly canHistory: boolean;
   readonly canList: boolean;
 
   /** True if screen should be rendered read-only */

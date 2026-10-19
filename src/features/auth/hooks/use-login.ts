@@ -8,10 +8,6 @@ import { type CurrentUser, type LoginInput, loginSchema } from "@/lib/data-schem
 import { useSessionStore } from "@/store";
 import type { ApiResponse } from "@/types";
 
-interface LoginApiResponseData {
-  user?: CurrentUser;
-}
-
 export function useLogin() {
   const router = useRouter();
   const setSession = useSessionStore((state) => state.setSession);
@@ -41,10 +37,7 @@ export function useLogin() {
           body: JSON.stringify(parseResult.data),
         });
 
-        const data = (await res.json().catch(() => ({}))) as ApiResponse<LoginApiResponseData> & {
-          user?: CurrentUser;
-          success?: boolean;
-        };
+        const data = (await res.json().catch(() => ({}))) as ApiResponse<CurrentUser>;
 
         if (!res.ok || (data.status && data.status !== "SUCCESS" && !data.success)) {
           const message =
@@ -53,7 +46,7 @@ export function useLogin() {
           return null;
         }
 
-        const authenticatedUser = data.user;
+        const authenticatedUser = data.data;
         if (authenticatedUser) {
           // Reset client activity timestamp to current time on login
           if (typeof window !== "undefined") {

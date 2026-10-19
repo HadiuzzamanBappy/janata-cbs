@@ -57,7 +57,7 @@ export function evaluateCbsAccess({
   // - Requires 'I' or 'H'
   // - Can only hold uncommitted or pending drafts
   const canHold =
-    (hasRight(CbsRecordFunction.HISTORY) || hasRight(CbsRecordFunction.INPUT)) &&
+    (hasRight(CbsRecordFunction.HOLD) || hasRight(CbsRecordFunction.INPUT)) &&
     !isIdle &&
     cleanStatus !== "AU";
 
@@ -76,19 +76,15 @@ export function evaluateCbsAccess({
   // - Record must be live authorized (status AU)
   const canReverse = hasRight(CbsRecordFunction.REVERSE) && !isIdle && cleanStatus === "AU";
 
-  // 7. Can History:
-  // - Requires 'H' in profile
-  const canHistory = hasRight(CbsRecordFunction.HISTORY);
-
-  // 8. Can List / Directory:
+  // 7. Can List / Directory:
   // - Requires 'L' in profile (defaults true if full access or explicitly granted)
   const canList = hasRight(CbsRecordFunction.LIST);
 
-  // 9. Screen Read-Only state:
+  // 8. Screen Read-Only state:
   // If in View mode ("S", "H") or user lacks 'I' rights, screen is locked
   const isReadOnly =
     mode === CbsRecordFunction.SEE ||
-    mode === CbsRecordFunction.HISTORY ||
+    mode === CbsRecordFunction.HOLD ||
     mode === CbsRecordFunction.AUTHORIZE ||
     mode === CbsRecordFunction.DELETE ||
     mode === CbsRecordFunction.REVERSE ||
@@ -120,6 +116,12 @@ export function evaluateCbsAccess({
       }
     }
 
+    if (action === CbsRecordFunction.HOLD) {
+      if (cleanStatus === "AU") {
+        return "Cannot Hold: Record is already authorized.";
+      }
+    }
+
     if (action === CbsRecordFunction.INPUT && isReadOnly) {
       return "Screen is in Read-Only mode.";
     }
@@ -135,7 +137,6 @@ export function evaluateCbsAccess({
     canHold,
     canAuthorize,
     canReverse,
-    canHistory,
     canList,
     isReadOnly,
     isFourEyesViolation,

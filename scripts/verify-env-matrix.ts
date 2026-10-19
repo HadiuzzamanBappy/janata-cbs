@@ -4,7 +4,7 @@
  * Enforces strict Single Responsibility Principle (SRP) and Don't Repeat Yourself (DRY):
  * 1. Environment Matrix Permutations & Runtime Configurations (@/lib/core-config & envSchema)
  * 2. Zod Domain Schemas, Boundary Validation & Widget Compatibility (@/lib/data-schemas)
- * 3. Canonical Database Fixture Schema Conformance (@fixtures validated by Zod contracts)
+ * 3. Canonical Database Fixture Schema Conformance (@mock/db validated by Zod contracts)
  * 4. Banking-Grade Logger, Log Levels & Deep PII Redaction Engine (@/lib/core-logger)
  *
  * Usage:
@@ -43,8 +43,8 @@ async function runSuite() {
     SC_MODEL_CONFIG_LIVE,
     SC_USER_GROUP_LIVE,
     SYS_USER_LIVE,
-  } = await import("@fixtures");
-  const { SYS_USER_AUTH_RESPONSES } = await import("@/lib/mock-core");
+  } = await import("@mock/db");
+  const { SYS_USER_AUTH_RESPONSES } = await import("@mock/core");
 
   const { clientConfig } = await import("@/lib/core-config/client");
   const { getService, getServices, getServiceUrl, REQUEST_TYPE_OVERLAYS } = await import(

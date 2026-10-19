@@ -8,6 +8,7 @@ import {
   Metadata,
   type ServiceError,
 } from "@grpc/grpc-js";
+import { mockLogin, mockProcess } from "@mock/core";
 import { appConfig } from "@/lib/core-config/server";
 import {
   type GrpcRequest,
@@ -15,7 +16,6 @@ import {
   GrpcServiceClient,
   type LoginRequest,
 } from "@/lib/infra-grpc/generated/service";
-import { mockLogin, mockProcess } from "@/lib/mock-core";
 
 /**
  * Single source of truth for runtime mode check.

@@ -21,6 +21,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     mode,
     formData,
     setFormData,
+    isDirty,
     loading,
     submitting,
     availableInquiries,
@@ -43,7 +44,10 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     fetchRecord,
     handleValidate,
     handleSubmit,
-    handleCreateNew,
+    handleAuthorize,
+    handleHold,
+    handleDelete,
+    handleReverse,
     resetToIdle,
   } = useInquiryConfig(initialId, tabId);
 
@@ -145,15 +149,21 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       commandCode="CONFIG.INQUIRY"
       recordId={recordId || formData.id}
       mode={mode}
+      isDirty={isDirty}
+      auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
       onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
-      onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "ACCOUNT", "I") : undefined}
+      onReset={mode !== "IDLE" && recordId ? () => fetchRecord(recordId, mode) : undefined}
       onAmend={() => recordId && fetchRecord(recordId, "I")}
       onView={() => recordId && fetchRecord(recordId, "S")}
       onValidate={handleValidate}
       onSubmit={handleSubmit}
+      onHold={handleHold}
+      onDelete={handleDelete}
+      onAuthorizeReverse={
+        formData.auditData?.recStatus === "AU" || mode === "R" ? handleReverse : handleAuthorize
+      }
       submitting={submitting || loading}
       availableItems={availableItems}
       variant="admin-tabs"

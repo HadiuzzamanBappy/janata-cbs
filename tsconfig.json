@@ -22,8 +22,14 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@fixtures": ["./fixtures"],
-      "@fixtures/*": ["./fixtures/*"]
+      "@mock/core": ["./mock/core"],
+      "@mock/core/*": ["./mock/core/*"],
+      "@mock/db": ["./mock/db"],
+      "@mock/db/*": ["./mock/db/*"],
+      "@mock-core": ["./mock/core"],
+      "@mock-core/*": ["./mock/core/*"],
+      "@mock-db": ["./mock/db"],
+      "@mock-db/*": ["./mock/db/*"]
     }
   },
   "include": [

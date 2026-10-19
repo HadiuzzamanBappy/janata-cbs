@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SYS_USER_LIVE, type UserRecord } from "@fixtures";
+import { SYS_USER_LIVE, type UserRecord } from "@mock/db";
 import type { GrpcResponse, LoginRequest } from "@/lib/infra-grpc/generated/service";
 
 /**

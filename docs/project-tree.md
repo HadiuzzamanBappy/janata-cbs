@@ -34,6 +34,7 @@ janata-cbs/
 │   │   ├── cbs-access/         # RIDASHL Capability Evaluator & Four-Eyes Enforcement
 │   │   ├── cbs-client/         # Canonical Client SDK & Typed Wire Payload Factories
 │   │   ├── cbs-command/        # Terminal Command Parser, Registry & Popup Dispatcher
+│   │   ├── cbs-form-spec/      # Form Spec & Dynamic Layout Generator
 │   │   ├── cbs-hotkeys/        # Terminal Banking Keyboard Shortcuts (F2, F5, F8, F10)
 │   │   ├── cbs-record/         # Deep Mutation Delta Engine (Touch-only commit payloads)
 │   │   ├── cbs-screen/         # Screen lifecycle, actions matrix & BroadcastChannel bus
@@ -44,12 +45,13 @@ janata-cbs/
 │   │   ├── data-schemas/       # Zod Runtime Validation Schemas
 │   │   ├── infra-grpc/         # HTTP/2 gRPC Transport to Java CBS Engine
 │   │   ├── infra-redis/        # Redis Session Store, Cache & Fail-Open Circuit Breaker
-│   │   ├── infra-services/     # Read-Through Domain Services (Form, Inquiry, Menu, Branch)
-│   │   └── mock-services/      # Offline In-Memory Database & Fixture Router
+│   │   └── infra-services/     # Read-Through Domain Services (Form, Inquiry, Menu, Branch)
 │   ├── store/                  # Global State (Session, Multi-Tab Workbench, Alert, Theme)
 │   ├── types/                  # Canonical Core Banking TypeScript Contracts
 │   └── proxy.ts                # Next.js Session Guard & Auth Route Middleware
-├── fixtures/                   # Offline Mock Data & Static CBS Table Fixtures
+├── mock/                       # Offline Mock Data & Simulated Core Engine
+│   ├── core/                   # Offline In-Memory Core Banking Simulator (@mock/core)
+│   └── db/                     # In-Memory CBS Database Tables & Schemas (@mock/db)
 ├── proto/                      # Protobuf Interface Definitions for Java CBS Host
 ├── scripts/                    # Test Verification Suites (100% Automated CI Validation)
 └── docs/                       # Architectural Specs, Takeover Guides & Audits
@@ -357,13 +359,6 @@ janata-cbs/
     |   |       service-context.ts             # Session, branch, and command normalizer
     |   |       index.ts
     |   |
-    |   +---mock-services/                     # Offline In-Memory Simulated Database
-    |   |       auth-simulator.ts              # Offline operator authentication simulator
-    |   |       database-router.ts             # In-memory CRUD router for 10 canonical tables
-    |   |       operation-handlers.ts          # GMC, INQ, GUM, GRL, GET, PUT protocol handlers
-    |   |       response-factory.ts            # Standardized mock ApiResponse envelope factory
-    |   |       index.ts, README.md
-    |   |
     |   +---store/                             # Global Reactive State Stores
     |   |   |   index.ts                       # Unified store barrel export
     |   |   |   root-provider.tsx              # Master application store provider
@@ -376,4 +371,20 @@ janata-cbs/
     |           api.ts                         # ApiResponse & HTTP envelopes
     |           cbs.ts                         # CbsRecordFunction (RIDASHL), CbsRequestType, etc.
     |           index.ts                       # Canonical type contracts export
+    |
+    +---mock/                                  # Core Banking Data Fixtures & Simulated Core
+    |   +---core/                              # In-Memory Core Banking Engine Simulator (@mock/core)
+    |   |       auth-simulator.ts              # Operator authentication simulator & JWT minting
+    |   |       database-router.ts             # Dynamic CRUD table resolver (10 canonical tables)
+    |   |       operation-handlers.ts          # CBS protocol verb handlers (GUM, GMC, GRL, GET, PUT)
+    |   |       response-factory.ts            # Wire response envelope factories
+    |   |       index.ts, README.md
+    |   |
+    |   \---db/                                # In-Memory CBS Database Tables & Schemas (@mock/db)
+    |           AC_ACCOUNT.ts, CUST_CUSTOMER.ts
+    |           SC_BRANCH.ts, SC_CONTROL.ts
+    |           SC_FORM_CONFIG.ts, SC_INQUIRY_CONFIG.ts
+    |           SC_MENU.ts, SC_MENU_TREE.ts
+    |           SC_MODEL_CONFIG.ts, SC_USER_GROUP.ts
+    |           SYS_USER.ts, types.ts, index.ts
 ```

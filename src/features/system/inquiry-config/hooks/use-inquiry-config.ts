@@ -1,21 +1,17 @@
 "use client";
 
-import { SC_INQUIRY_CONFIG_LIST, SC_INQUIRY_CONFIG_LIVE } from "@fixtures";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import type {
   InquiryActionConfig,
   InquiryColumnConfig,
   InquiryConfigRecord,
   InquiryFilterConfig,
 } from "@/lib/data-schemas/inquiry-config-schema";
-import { useWorkbenchStore } from "@/store";
 import type { CbsScreenMode } from "@/types";
-import {
-  INITIAL_INQUIRY_CONFIG,
-  useInquiryConfigPersistence,
-} from "./use-inquiry-config-persistence";
+import { useInquiryConfigPersistence } from "./use-inquiry-config-persistence";
 
 export interface AvailableInquiryItem {
   id: string;
@@ -25,34 +21,60 @@ export interface AvailableInquiryItem {
 }
 
 export function useInquiryConfig(initialId?: string, tabId?: string) {
-  const setTabDirty = useWorkbenchStore((state) => state.setTabDirty);
-
-  const { recordId, setRecordId, mode, setMode, formData, setFormData, updateConfig } =
-    useInquiryConfigPersistence(initialId, tabId);
+  const {
+    recordId,
+    setRecordId,
+    mode,
+    setMode,
+    formData,
+    setFormData,
+    hydrate,
+    rebaseline,
+    reset,
+    isDirty,
+    resolvedInitialId,
+    resolvedInitialMode,
+  } = useInquiryConfigPersistence(initialId, tabId);
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const [availableInquiries, setAvailableInquiries] = React.useState<AvailableInquiryItem[]>([]);
 
-  // Available inquiries catalog for search and quick-select
-  const availableInquiries: AvailableInquiryItem[] = React.useMemo(() => {
-    const list = (SC_INQUIRY_CONFIG_LIST || []) as InquiryConfigRecord[];
-    return list.map((record) => ({
-      id: record.id,
-      label: `${record.title} (${record.targetModel})`,
-      details: `${record.columns.length} columns • ${record.targetModel}`,
-      record,
-    }));
+  // 1. Fetch live inquiry configurations catalog
+  const refreshInquiries = React.useCallback(async () => {
+    try {
+      const res = await cbs.send<InquiryConfigRecord[]>(cbs.inquiryConfig.list(), {
+        silent: true,
+      });
+      if (res.status === "SUCCESS" && Array.isArray(res.data)) {
+        setAvailableInquiries(
+          res.data.map((record) => ({
+            id: record.id,
+            label: `${record.title || record.id} (${record.targetModel || "N/A"})`,
+            details: `${record.columns?.length || 0} columns • ${record.targetModel || "TABLE"}`,
+            record,
+          })),
+        );
+      }
+    } catch {
+      // Silent fail on background catalog sync
+    }
   }, []);
 
-  // ---------------------------------------------------------------------------
-  // Column Management
-  // ---------------------------------------------------------------------------
-  const addColumn = React.useCallback(
-    (column: InquiryColumnConfig) => {
-      updateConfig({
-        columns: [...formData.columns, column],
-      });
+  React.useEffect(() => {
+    refreshInquiries();
+  }, [refreshInquiries]);
+
+  // 2. Column / Filter / Action State Modifiers
+  const updateConfig = React.useCallback(
+    (patch: Partial<InquiryConfigRecord>) => {
+      setFormData((prev) => ({ ...prev, ...patch }));
     },
+    [setFormData],
+  );
+
+  const addColumn = React.useCallback(
+    (column: InquiryColumnConfig) => updateConfig({ columns: [...formData.columns, column] }),
     [formData.columns, updateConfig],
   );
 
@@ -68,22 +90,12 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   );
 
   const removeColumn = React.useCallback(
-    (index: number) => {
-      const nextCols = formData.columns.filter((_, i) => i !== index);
-      updateConfig({ columns: nextCols });
-    },
+    (index: number) => updateConfig({ columns: formData.columns.filter((_, i) => i !== index) }),
     [formData.columns, updateConfig],
   );
 
   const reorderColumns = React.useCallback(
     (fromIndex: number, toIndex: number) => {
-      if (
-        fromIndex < 0 ||
-        fromIndex >= formData.columns.length ||
-        toIndex < 0 ||
-        toIndex >= formData.columns.length
-      )
-        return;
       const nextCols = [...formData.columns];
       const [moved] = nextCols.splice(fromIndex, 1);
       nextCols.splice(toIndex, 0, moved);
@@ -92,15 +104,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     [formData.columns, updateConfig],
   );
 
-  // ---------------------------------------------------------------------------
-  // Selection / Filter Management
-  // ---------------------------------------------------------------------------
   const addFilter = React.useCallback(
-    (filter: InquiryFilterConfig) => {
-      updateConfig({
-        filters: [...(formData.filters || []), filter],
-      });
-    },
+    (filter: InquiryFilterConfig) =>
+      updateConfig({ filters: [...(formData.filters || []), filter] }),
     [formData.filters, updateConfig],
   );
 
@@ -116,19 +122,14 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   );
 
   const removeFilter = React.useCallback(
-    (index: number) => {
-      const nextFilters = (formData.filters || []).filter((_, i) => i !== index);
-      updateConfig({ filters: nextFilters });
-    },
+    (index: number) =>
+      updateConfig({ filters: (formData.filters || []).filter((_, i) => i !== index) }),
     [formData.filters, updateConfig],
   );
 
   const reorderFilters = React.useCallback(
     (fromIndex: number, toIndex: number) => {
-      const filters = formData.filters || [];
-      if (fromIndex < 0 || fromIndex >= filters.length || toIndex < 0 || toIndex >= filters.length)
-        return;
-      const nextFilters = [...filters];
+      const nextFilters = [...(formData.filters || [])];
       const [moved] = nextFilters.splice(fromIndex, 1);
       nextFilters.splice(toIndex, 0, moved);
       updateConfig({ filters: nextFilters });
@@ -136,15 +137,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     [formData.filters, updateConfig],
   );
 
-  // ---------------------------------------------------------------------------
-  // Row Action Buttons Management
-  // ---------------------------------------------------------------------------
   const addAction = React.useCallback(
-    (action: InquiryActionConfig) => {
-      updateConfig({
-        actions: [...(formData.actions || []), action],
-      });
-    },
+    (action: InquiryActionConfig) =>
+      updateConfig({ actions: [...(formData.actions || []), action] }),
     [formData.actions, updateConfig],
   );
 
@@ -160,19 +155,14 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   );
 
   const removeAction = React.useCallback(
-    (index: number) => {
-      const nextActions = (formData.actions || []).filter((_, i) => i !== index);
-      updateConfig({ actions: nextActions });
-    },
+    (index: number) =>
+      updateConfig({ actions: (formData.actions || []).filter((_, i) => i !== index) }),
     [formData.actions, updateConfig],
   );
 
   const reorderActions = React.useCallback(
     (fromIndex: number, toIndex: number) => {
-      const actions = formData.actions || [];
-      if (fromIndex < 0 || fromIndex >= actions.length || toIndex < 0 || toIndex >= actions.length)
-        return;
-      const nextActions = [...actions];
+      const nextActions = [...(formData.actions || [])];
       const [moved] = nextActions.splice(fromIndex, 1);
       nextActions.splice(toIndex, 0, moved);
       updateConfig({ actions: nextActions });
@@ -180,46 +170,31 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     [formData.actions, updateConfig],
   );
 
-  // ---------------------------------------------------------------------------
-  // Data Fetching & Operations
-  // ---------------------------------------------------------------------------
+  // 3. Fetch Single Record from Core
   const fetchRecord = React.useCallback(
     async (targetId: string, requestedMode: CbsScreenMode = "I") => {
-      if (!targetId.trim()) return;
+      const cleanId = targetId.trim().toUpperCase();
+      if (!cleanId) return;
       setLoading(true);
       try {
-        const payload = cbs.inquiryConfig.get(targetId);
-        const res = await cbs.send<InquiryConfigRecord>(payload);
+        const res = await cbs.send<InquiryConfigRecord>(cbs.inquiryConfig.get(cleanId));
         if (res.status === "SUCCESS" && res.data) {
           const rec = res.data;
-          setFormData({
+          hydrate({
             ...rec,
+            id: cleanId,
             actions: rec.actions || [],
             filters: rec.filters || [],
+            columns: rec.columns || [],
           });
-          setRecordId(targetId);
+          setRecordId(cleanId);
           setMode(requestedMode);
-          if (tabId) setTabDirty(tabId, false);
         } else {
-          // Check static fixtures as fallback
-          const cleanId = targetId.trim().toUpperCase();
-          const staticMatch = SC_INQUIRY_CONFIG_LIVE[cleanId];
-          if (staticMatch) {
-            setFormData({
-              ...staticMatch,
-              actions: staticMatch.actions || [],
-              filters: staticMatch.filters || [],
-            });
-            setRecordId(cleanId);
-            setMode(requestedMode);
-            if (tabId) setTabDirty(tabId, false);
-          } else {
-            toast.add({
-              title: "Record Not Found",
-              description: res.message || `No inquiry configuration for '${targetId}'`,
-              type: "info",
-            });
-          }
+          toast.add({
+            title: "Inquiry Not Found",
+            description: res.message || `No inquiry configuration for '${cleanId}'`,
+            type: "info",
+          });
         }
       } catch (err: unknown) {
         toast.add({
@@ -231,111 +206,154 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
         setLoading(false);
       }
     },
-    [setFormData, setRecordId, setMode, tabId, setTabDirty],
+    [hydrate, setRecordId, setMode],
   );
 
+  React.useEffect(() => {
+    if (resolvedInitialId) {
+      fetchRecord(resolvedInitialId, resolvedInitialMode || "I");
+    }
+  }, [resolvedInitialId, resolvedInitialMode, fetchRecord]);
+
+  // 4. Validate & Standard CBS Lifecycle Mutations
   const handleValidate = React.useCallback(() => {
-    // If ID is empty, auto-generate it from controller name or auto sequence
-    if (!formData.id.trim()) {
-      const generatedId = formData.controllerName.trim()
-        ? `INQ.${formData.controllerName.trim().toUpperCase()}`
-        : `INQ.NEW_${Date.now().toString().slice(-4)}`;
-      formData.id = generatedId;
-      setRecordId(generatedId);
-    }
-    // Auto-sync targetModel from controllerName if missing
-    if (!formData.targetModel.trim() && formData.controllerName.trim()) {
-      formData.targetModel = formData.controllerName.trim().toUpperCase();
-    }
-    if (!formData.controllerName.trim() && !formData.targetModel.trim()) {
+    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    if (!cleanId) {
       toast.add({
         title: "Validation Error",
-        description: "Controller Name is required",
+        description: "Inquiry ID is required",
+        type: "error",
+      });
+      return false;
+    }
+    if (!formData.targetModel.trim() && !formData.controllerName.trim()) {
+      toast.add({
+        title: "Validation Error",
+        description: "Target Model or Controller Name is required",
         type: "error",
       });
       return false;
     }
     return true;
-  }, [formData, setRecordId]);
+  }, [formData.id, formData.targetModel, formData.controllerName, recordId]);
 
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
+    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
     setSubmitting(true);
     try {
-      const payload = cbs.inquiryConfig.save(formData);
-      const res = await cbs.send(payload);
+      const res = await cbs.send<InquiryConfigRecord>(
+        cbs.inquiryConfig.save({ ...formData, id: cleanId }),
+      );
       if (res.status === "SUCCESS") {
+        rebaseline();
+        broadcastRecordMutation("INQUIRY.CONFIG", cleanId);
+        refreshInquiries();
         toast.add({
           title: "Inquiry Saved",
-          description: `Configuration '${formData.id}' saved successfully`,
+          description: `Configuration '${cleanId}' saved successfully`,
           type: "success",
         });
-        if (tabId) setTabDirty(tabId, false);
       } else {
         toast.add({
           title: "Save Failed",
-          description: res.message || "Failed to save inquiry configuration",
+          description: res.message || "Failed to save configuration",
           type: "error",
         });
       }
-    } catch (err: unknown) {
-      toast.add({
-        title: "Error",
-        description: err instanceof Error ? err.message : "Error saving configuration",
-        type: "error",
-      });
     } finally {
       setSubmitting(false);
     }
-  }, [formData, handleValidate, tabId, setTabDirty]);
+  }, [formData, handleValidate, rebaseline, refreshInquiries, recordId]);
 
-  const handleCreateNew = React.useCallback(
-    (allocatedId?: string) => {
-      const newId = allocatedId || `INQ.NEW_${Date.now().toString().slice(-4)}`;
-      setFormData({
-        ...INITIAL_INQUIRY_CONFIG,
-        id: newId,
-        title: "New Inquiry Layout",
-        targetModel: "ACCOUNT",
-        columns: [
-          {
-            id: "recordId",
-            label: "ID / Ref",
-            align: "left",
-            format: "text",
-            isMono: true,
-            sortable: true,
-            visible: true,
-            isPinned: false,
-          },
-        ],
-        filters: [],
-        actions: [
-          {
-            id: "VIEW",
-            label: "View",
-            targetCommand: "ACCOUNT,SEE",
-            actionType: "view",
-            icon: "eye",
-            openMode: "tab",
-            idParamField: "recordId",
-          },
-        ],
-      });
-      setRecordId(newId);
-      setMode("I");
-      toast.add({
-        title: "New Inquiry Created",
-        description: "Ready to configure new inquiry criteria and table layout",
-        type: "info",
-      });
-    },
-    [setFormData, setRecordId, setMode],
-  );
+  const handleAuthorize = React.useCallback(async () => {
+    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    if (!cleanId) return;
+    setSubmitting(true);
+    try {
+      const res = await cbs.send<InquiryConfigRecord>(cbs.inquiryConfig.authorize(cleanId));
+      if (res.status === "SUCCESS") {
+        rebaseline();
+        broadcastRecordMutation("INQUIRY.CONFIG", cleanId);
+        refreshInquiries();
+        toast.add({
+          title: "Inquiry Authorized",
+          description: `Configuration '${cleanId}' approved`,
+          type: "success",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [formData.id, recordId, rebaseline, refreshInquiries]);
+
+  const handleHold = React.useCallback(async () => {
+    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    if (!cleanId) return;
+    setSubmitting(true);
+    try {
+      const res = await cbs.send(cbs.inquiryConfig.hold(cleanId));
+      if (res.status === "SUCCESS") {
+        rebaseline();
+        broadcastRecordMutation("INQUIRY.CONFIG", cleanId);
+        refreshInquiries();
+        toast.add({
+          title: "Inquiry Held",
+          description: `Configuration '${cleanId}' placed on hold`,
+          type: "default",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [formData.id, recordId, rebaseline, refreshInquiries]);
+
+  const handleDelete = React.useCallback(async () => {
+    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    if (!cleanId) return;
+    setSubmitting(true);
+    try {
+      const res = await cbs.send(cbs.inquiryConfig.delete(cleanId));
+      if (res.status === "SUCCESS") {
+        broadcastRecordMutation("INQUIRY.CONFIG", cleanId);
+        refreshInquiries();
+        reset();
+        toast.add({
+          title: "Inquiry Deleted",
+          description: `Configuration '${cleanId}' deleted`,
+          type: "default",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [formData.id, recordId, reset, refreshInquiries]);
+
+  const handleReverse = React.useCallback(async () => {
+    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    if (!cleanId) return;
+    setSubmitting(true);
+    try {
+      const res = await cbs.send(cbs.inquiryConfig.reverse(cleanId));
+      if (res.status === "SUCCESS") {
+        rebaseline();
+        broadcastRecordMutation("INQUIRY.CONFIG", cleanId);
+        refreshInquiries();
+        toast.add({
+          title: "Inquiry Reversed",
+          description: `Configuration '${cleanId}' reversed`,
+          type: "default",
+        });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [formData.id, recordId, rebaseline, refreshInquiries]);
 
   const resetToIdle = React.useCallback(() => {
+    reset();
     setMode("IDLE");
-  }, [setMode]);
+  }, [reset, setMode]);
 
   return {
     recordId,
@@ -344,30 +362,29 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     setMode,
     formData,
     setFormData,
-    updateConfig,
+    isDirty,
     loading,
     submitting,
     availableInquiries,
-    // Columns
     addColumn,
     updateColumn,
     removeColumn,
     reorderColumns,
-    // Filters
     addFilter,
     updateFilter,
     removeFilter,
     reorderFilters,
-    // Actions
     addAction,
     updateAction,
     removeAction,
     reorderActions,
-    // Operations
     fetchRecord,
     handleValidate,
     handleSubmit,
-    handleCreateNew,
+    handleAuthorize,
+    handleHold,
+    handleDelete,
+    handleReverse,
     resetToIdle,
   };
 }

@@ -89,6 +89,7 @@ src/
 │   ├── cbs-access/       # RIDASHL permission engine & Four-Eyes verification
 │   ├── cbs-command/      # Command parser, grammar evaluator, and alias registry
 │   ├── cbs-client/       # Front-end API client interfacing with /api/proxy
+│   ├── cbs-form-spec/    # Form specification & layout generator from MODEL.CONFIG
 │   ├── cbs-hotkeys/      # Banking keyboard shortcut listener engine (F-keys, Esc, Enter)
 │   ├── cbs-record/       # CBS record status machines (INA, AU, Hold, Reverse, Delete)
 │   ├── cbs-screen/       # Screen metadata configuration & permission mapping
@@ -99,8 +100,11 @@ src/
 │   ├── data-schemas/     # Zod schemas for request/response payloads
 │   ├── infra-grpc/       # Server-only gRPC client, credentials, and dispatcher
 │   ├── infra-redis/      # Redis connection pool and caching circuit-breaker
-│   ├── infra-services/   # Dual-mode service layers & transparent Redis caching
-│   └── mock-services/    # Offline simulated database & fixture router
+│   └── infra-services/   # Dual-mode service layers & transparent Redis caching
+│
+├── mock/                 # Core Banking DB Tables & Simulated Core (Outside src/)
+│   ├── core/             # Offline in-memory CBS engine simulator (@mock/core)
+│   └── db/               # In-Memory CBS Database Tables & Schemas (@mock/db)
 │
 ├── store/                # Zustand Global Stores (Workbench, Session, Alerts)
 ├── types/                # Global TypeScript definitions & banking types

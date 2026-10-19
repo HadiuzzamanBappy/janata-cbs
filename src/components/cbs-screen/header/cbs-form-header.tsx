@@ -78,7 +78,7 @@ export function CbsFormHeader({
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [hasSearched, setHasSearched] = React.useState(false);
 
-  // Dynamic GRL Record Lookup & GNI Sequencer
+  // Dynamic SBI Record ID Lookup & GNI Sequencer
   const {
     items: lookupItems,
     loading: lookupLoading,
@@ -96,7 +96,7 @@ export function CbsFormHeader({
     setInputVal(recordId);
   }, [recordId]);
 
-  // Action 2: Chevron Dropdown open triggers server-side GRL lookup with inputVal prefix
+  // Action 2: Chevron Dropdown open triggers server-side SBI lookup, filtered by inputVal prefix
   const handleDropdownOpenChange = React.useCallback(
     (open: boolean) => {
       setIsDropdownOpen(open);

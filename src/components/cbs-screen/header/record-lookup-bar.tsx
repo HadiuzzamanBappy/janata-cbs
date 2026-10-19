@@ -34,7 +34,7 @@ export interface RecordLookupBarProps {
  * Record ID lookup bar with inline autocomplete dropdown and create-new (+) button.
  * Enforces CBS 3-Action Workflow:
  * 1. Enter key -> Triggers Mode 'I' search/load.
- * 2. Chevron down -> Requests sorted GRL list from backend. Selecting an item sets input field and awaits user prompt.
+ * 2. Chevron down -> Requests sorted SBI record ID list from backend. Selecting an item sets input field and awaits user prompt.
  * 3. '+' Button -> Requests Next Sequence ID ('GNI') and opens in Mode 'I'.
  */
 export function RecordLookupBar({

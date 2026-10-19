@@ -65,6 +65,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         (funcCode === CbsRecordFunction.AUTHORIZE ||
           funcCode === CbsRecordFunction.DELETE ||
           funcCode === CbsRecordFunction.REVERSE ||
+          funcCode === CbsRecordFunction.HOLD ||
           funcCode === CbsRecordFunction.INPUT) &&
         !userGrantedRights.includes(funcCode)
       ) {
@@ -132,9 +133,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         );
       }
 
+      // Backend may reply ERROR with an empty message (unhandled host exception);
+      // give the client something actionable instead of a blank toast.
+      const fallbackMessage = `CBS host returned ${response.status} (${response.statusCode}) for ${envelope.requestType} on ${envelope.controlName || "default"}`;
       return NextResponse.json(
         {
           ...response,
+          message: response.message || fallbackMessage,
+          errors: response.errors?.length ? response.errors : [fallbackMessage],
           success: false,
         },
         {

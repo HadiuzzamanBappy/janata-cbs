@@ -163,7 +163,7 @@ async function runSuite() {
   const fnHoldNoId = cbsCommand.parse("USER H");
   assert(
     "Grammar: Function History/Hold without ID (USER H)",
-    fnHoldNoId.functionCode === CbsRecordFunction.HISTORY && fnHoldNoId.screenMode === "H",
+    fnHoldNoId.functionCode === CbsRecordFunction.HOLD && fnHoldNoId.screenMode === "H",
   );
 
   // 1.8 Explicit Function Modes with Record ID

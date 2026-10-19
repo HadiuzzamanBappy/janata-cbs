@@ -129,7 +129,7 @@ export const CbsRecordFunction = {
   DELETE: "D",
   AUTHORIZE: "A",
   REVERSE: "R",
-  HISTORY: "H",
+  HOLD: "H",
   LIST: "L",
 } as const;
 
@@ -180,12 +180,12 @@ export const CBS_FUNCTION_DEFINITIONS = {
     description: "Delete and make history from live table",
     realWorldEffect: "Reverses live transaction with offsetting accounting entries",
   },
-  [CbsRecordFunction.HISTORY]: {
-    code: CbsRecordFunction.HISTORY,
-    name: "HISTORY",
-    label: "History",
-    description: "Inspect historical revisions ($HIS)",
-    realWorldEffect: "Audits prior version snapshots and historical deltas",
+  [CbsRecordFunction.HOLD]: {
+    code: CbsRecordFunction.HOLD,
+    name: "HOLD",
+    label: "Hold / Park",
+    description: "Park a draft record pending completion, without submitting for authorization",
+    realWorldEffect: "Maker parks an in-progress draft in the unauthorized queue",
   },
   [CbsRecordFunction.LIST]: {
     code: CbsRecordFunction.LIST,

@@ -2,22 +2,19 @@
 
 import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
-import { toast } from "@/components/ui/toast";
 import { FormKernelProvider } from "@/features/form-engine";
+import { cbs } from "@/lib/cbs-client";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
-import { getDefaultMoreActions } from "@/lib/cbs-screen";
+import { getDefaultMoreActions, useRecordMutationSubscriber } from "@/lib/cbs-screen";
+import type { AuditData } from "@/lib/data-schemas";
 import { FormGrid } from "./components/form-grid";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
 import { useFormPersistence } from "./hooks/use-form-persistence";
-import { useFormSchema } from "./hooks/use-form-schema";
+import { useFormSpec } from "./hooks/use-form-spec";
 import { useFormState } from "./hooks/use-form-state";
 import type { DynamicFormProps } from "./types";
-import {
-  findPrimaryKeyField,
-  findRecordInFixtures,
-  getAvailableFixtureRecords,
-} from "./utils/record-finder";
+import { findPrimaryKeyField } from "./utils/record-finder";
 import { normalizeRecordData } from "./utils/record-normalizer";
 
 const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
@@ -38,7 +35,8 @@ export function OpsForm({
   onSuccess,
   onReturn,
 }: FormScreenProps) {
-  const { schema, loading, error, refetch } = useFormSchema(command);
+  // Dynamically resolve CompiledFormSpec from live Model + Form Config
+  const { spec, loading, error, refetch } = useFormSpec(command);
 
   const {
     currentTab,
@@ -62,16 +60,16 @@ export function OpsForm({
         return command.trim().toUpperCase();
       }
     }
-    return schema?.code || command;
-  }, [command, schema?.code]);
+    return spec?.code || command;
+  }, [command, spec?.code]);
 
-  const { values, errors, setValue, validate, resetForm, setValues } = useFormState(
-    schema,
+  const { values, errors, isDirty, setValue, validate, resetForm, setValues } = useFormState(
+    spec,
     mergedInitialValues,
   );
 
   const actions = useFormActions({
-    schema,
+    spec,
     searchRecordId,
     setSearchRecordId,
     screenMode,
@@ -86,40 +84,68 @@ export function OpsForm({
     onReturn,
   });
 
-  // Auto-populate & synchronize record when schema loads or searchRecordId / formData changes
+  // Available records catalog loaded live from CBS Client
+  const [availableItems, setAvailableItems] = React.useState<
+    Array<{ id: string; label: string; details?: string }>
+  >([]);
+
   React.useEffect(() => {
-    if (!schema) return;
+    if (!spec?.code) return;
+    let mounted = true;
+    cbs
+      .send<Array<{ id: string; label?: string; details?: string }>>(cbs.model(spec.code).list(), {
+        silent: true,
+      })
+      .then((res) => {
+        if (mounted && res.status === "SUCCESS" && Array.isArray(res.data)) {
+          setAvailableItems(
+            res.data.map((item) => ({
+              id: item.id,
+              label: item.label || item.id,
+              details: item.details,
+            })),
+          );
+        }
+      })
+      .catch(() => {
+        // Fallback gracefully
+      });
 
-    const cleanModel = schema.code.toUpperCase();
+    return () => {
+      mounted = false;
+    };
+  }, [spec?.code]);
+
+  // Subscribe to real-time mutations of this entity
+  useRecordMutationSubscriber((mutation) => {
+    if (searchRecordId && mutation.recordId === searchRecordId.trim().toUpperCase()) {
+      actions.loadRecordData(searchRecordId, screenMode);
+    }
+  }, spec?.code);
+
+  // Synchronize working draft from tab if present
+  React.useEffect(() => {
+    if (!spec) return;
+
     const cleanId = (searchRecordId || "").trim();
-    const found = cleanId ? findRecordInFixtures(cleanModel, cleanId) : undefined;
-    const rawData = found || (currentTab?.formData as Record<string, unknown>) || undefined;
+    const rawDraft = (currentTab?.formData as Record<string, unknown>) || undefined;
 
-    if (rawData && Object.keys(rawData).length > 0) {
-      const normalized = normalizeRecordData(rawData, schema);
+    if (rawDraft && Object.keys(rawDraft).length > 0) {
+      const normalized = normalizeRecordData(rawDraft, spec);
       if (cleanId) {
-        const idField = findPrimaryKeyField(schema);
+        const idField = findPrimaryKeyField(spec);
         if (idField && !normalized[idField.fieldKey]) {
           normalized[idField.fieldKey] = cleanId;
         }
       }
-
       setValues(normalized);
-
-      if (screenMode === "I" && found) {
-        toast.add({
-          title: "Existing Record Found",
-          description: `Record #${cleanId} already exists. Loaded in Edit/Input mode.`,
-          type: "info",
-        });
-      }
     } else if (cleanId) {
-      const idField = findPrimaryKeyField(schema);
+      const idField = findPrimaryKeyField(spec);
       if (idField) {
         setValue(idField.fieldKey, cleanId);
       }
     }
-  }, [schema, searchRecordId, currentTab?.formData, screenMode, setValues, setValue]);
+  }, [spec, searchRecordId, currentTab?.formData, setValues, setValue]);
 
   const handleFieldChange = (name: string, val: unknown) => {
     setValue(name, val);
@@ -129,19 +155,19 @@ export function OpsForm({
   const validationErrors = React.useMemo(() => {
     return Object.entries(errors).map(([fieldName, msg]) => ({
       id: fieldName,
-      tab: schema?.code || "GENERAL",
+      tab: spec?.code || "GENERAL",
       fieldKey: fieldName,
       message: msg,
     }));
-  }, [errors, schema?.code]);
+  }, [errors, spec?.code]);
 
   if (loading) return <FormSkeleton />;
 
-  if (error || !schema) {
+  if (error || !spec) {
     return (
       <CbsErrorState
-        title="Failed to Load Command Schema"
-        message={error || `No schema found for "${command}"`}
+        title="Failed to Resolve Form Specification"
+        message={error || `No data model registered for command "${command}"`}
         command={command}
         onRetry={refetch}
       />
@@ -151,10 +177,12 @@ export function OpsForm({
   return (
     <CbsScreenScaffold
       variant="form"
-      title={schema.title}
+      title={spec.title}
       commandCode={displayCommandCode}
       mode={screenMode}
       recordId={searchRecordId}
+      isDirty={isDirty}
+      auditContext={values.auditData as AuditData | undefined}
       onRecordIdChange={setSearchRecordId}
       onRecordSearch={(query: string) => {
         actions.onAmend(query);
@@ -166,19 +194,18 @@ export function OpsForm({
       onHold={actions.onHold}
       onDelete={actions.onDelete}
       onAuthorizeReverse={actions.onAuthorizeReverse}
-      onProcessAction={actions.onProcessAction}
       onReturnToSearch={actions.onReturnToSearch}
       onReset={screenMode !== "IDLE" ? () => resetForm(initialValues) : undefined}
       onSubmit={actions.onSubmit}
       onValidate={actions.onValidate}
       submitting={actions.submitting}
       validationErrors={validationErrors}
-      availableItems={getAvailableFixtureRecords(schema.code)}
-      moreActions={getDefaultMoreActions(schema.code)}
+      availableItems={availableItems}
+      moreActions={getDefaultMoreActions(spec.code)}
     >
       <FormKernelProvider initialValues={values} onFieldChange={handleFieldChange}>
         <FormGrid
-          schema={schema}
+          presentation={spec.presentation}
           values={values}
           onChange={handleFieldChange}
           errors={errors}

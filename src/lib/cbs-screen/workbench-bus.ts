@@ -1,16 +1,22 @@
 /**
  * CBS Workbench Cross-Window Broadcast Bus & Shared Draft Storage
  *
- * Implements a bulletproof, standard BroadcastChannel communication bridge
+ * Implements a standard BroadcastChannel communication bridge
  * across the main shell and all detached popup windows.
  *
  * Eliminates URL serialization limits and fragile `window.opener` dependencies.
  */
 
+import * as React from "react";
 import { clientConfig } from "@/lib/core-config";
 
+export interface RecordMutationPayload {
+  control: string;
+  recordId: string;
+}
+
 export interface WorkbenchBusMessage {
-  type: "CBS_DOCK_TAB" | "CBS_TAB_CLOSED" | "CBS_RECORD_SAVED";
+  type: "CBS_DOCK_TAB" | "CBS_TAB_CLOSED" | "CBS_RECORD_SAVED" | "CBS_RECORD_MUTATED";
   tabId: string;
   payload?: unknown;
 }
@@ -80,4 +86,53 @@ export function broadcastDockTab(tabId: string, payload: unknown): void {
       payload,
     } satisfies WorkbenchBusMessage);
   }
+}
+
+/**
+ * Broadcasts a record mutation event (create, amend, authorize, reverse, delete)
+ * to all open workbench tabs and popup windows.
+ */
+export function broadcastRecordMutation(control: string, recordId: string): void {
+  const bus = getWorkbenchBus();
+  if (bus) {
+    bus.postMessage({
+      type: "CBS_RECORD_MUTATED",
+      tabId: "global",
+      payload: {
+        control: control.toUpperCase().trim(),
+        recordId: recordId.toUpperCase().trim(),
+      } satisfies RecordMutationPayload,
+    } satisfies WorkbenchBusMessage);
+  }
+}
+
+/**
+ * React hook subscribing to record mutation events broadcast across workbench tabs/windows.
+ * Enables sibling tabs (and detached popup windows) of the same record/control to refetch.
+ */
+export function useRecordMutationSubscriber(
+  callback: (mutation: RecordMutationPayload) => void,
+  controlFilter?: string,
+): void {
+  React.useEffect(() => {
+    const bus = getWorkbenchBus();
+    if (!bus) return;
+
+    const handler = (event: MessageEvent<WorkbenchBusMessage>) => {
+      if (event.data?.type === "CBS_RECORD_MUTATED" && event.data.payload) {
+        const payload = event.data.payload as RecordMutationPayload;
+        if (
+          !controlFilter ||
+          payload.control.toUpperCase() === controlFilter.toUpperCase().trim()
+        ) {
+          callback(payload);
+        }
+      }
+    };
+
+    bus.addEventListener("message", handler);
+    return () => {
+      bus.removeEventListener("message", handler);
+    };
+  }, [callback, controlFilter]);
 }

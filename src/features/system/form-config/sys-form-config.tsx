@@ -26,6 +26,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     mode,
     formData,
     setFormData,
+    isDirty,
     loading,
     submitting,
     selectedSectionId,
@@ -33,6 +34,10 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     selectedFieldId,
     setSelectedFieldId,
     validationErrors,
+    targetModelRecord,
+    staleIssues,
+    availableForms,
+    availableModels,
     addSection,
     updateSection,
     removeSection,
@@ -45,10 +50,12 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     convertSectionZone,
     handleValidate,
     handleSubmit,
-    handleCreateNew,
+    handleAuthorize,
+    handleHold,
+    handleDelete,
+    handleReverse,
     resetToIdle,
     fetchRecord,
-    availableForms,
   } = useFormConfig(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<FormConfigTabKey>("general");
@@ -71,16 +78,23 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         label: "General",
         icon: <FileText className="size-3 text-muted-foreground" />,
         content: (
-          <FcGeneralTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
+          <FcGeneralTab
+            formData={formData}
+            setFormData={setFormData}
+            isReadOnly={isReadOnly}
+            availableModels={availableModels}
+          />
         ),
       },
       {
         id: "designer",
         label: "Visual Designer",
         icon: <Palette className="size-3 text-primary" />,
+        badgeCount: staleIssues.length > 0 ? staleIssues.length : undefined,
         content: (
           <FcDesignerTab
             targetModel={formData.targetModel}
+            staleIssues={staleIssues}
             sections={formData.presentation.sections}
             selectedSectionId={selectedSectionId}
             selectedFieldId={selectedFieldId}
@@ -104,7 +118,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         id: "preview",
         label: "Live Preview",
         icon: <Eye className="size-3 text-emerald-500" />,
-        content: <FcPreviewTab formData={formData} />,
+        content: <FcPreviewTab formData={formData} targetModelRecord={targetModelRecord} />,
       },
       {
         id: "audit",
@@ -122,6 +136,9 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     [
       formData,
       isReadOnly,
+      availableModels,
+      staleIssues,
+      targetModelRecord,
       selectedSectionId,
       selectedFieldId,
       addSection,
@@ -143,18 +160,24 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   return (
     <CbsScreenScaffold<FormConfigTabKey>
       title="Form Designer"
-      commandCode="CONFIG.FORM"
+      commandCode="FORM.CONFIG"
       recordId={recordId}
       mode={mode}
+      isDirty={isDirty}
+      auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
       onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
-      onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "FC.ACCOUNT.RETAIL") : undefined}
+      onReset={mode !== "IDLE" ? () => recordId && fetchRecord(recordId, mode) : undefined}
       onAmend={() => recordId && fetchRecord(recordId, "I")}
       onView={() => recordId && fetchRecord(recordId, "S")}
       onValidate={handleValidate}
       onSubmit={handleSubmit}
+      onHold={handleHold}
+      onDelete={handleDelete}
+      onAuthorizeReverse={
+        formData.auditData?.recStatus === "AU" || mode === "R" ? handleReverse : handleAuthorize
+      }
       submitting={submitting || loading}
       availableItems={availableItems}
       variant="admin-tabs"

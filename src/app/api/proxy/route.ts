@@ -4,7 +4,7 @@ import { appConfig } from "@/lib/core-config/server";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { cbsWirePayloadSchema } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
-import { getSession } from "@/lib/infra-redis";
+import { getSession, invalidateCache } from "@/lib/infra-redis";
 import {
   type ApiResponse,
   CbsRecordFunction,
@@ -111,6 +111,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       const response = await dispatch(envelope, token);
 
       if (response.status === "SUCCESS") {
+        // Evict cached specs so model and layout mutations take immediate effect without manual purge
+        const ctrl = (envelope.controlName || "").toUpperCase();
+        const isMutationOrAuth =
+          envelope.requestType === "PUT" ||
+          envelope.requestType === "AUT" ||
+          envelope.recordFunction === "I" ||
+          envelope.recordFunction === "A";
+
+        if (isMutationOrAuth && (ctrl === "MODEL.CONFIG" || ctrl === "FORM.CONFIG")) {
+          const payloadData = envelope.data as Record<string, unknown> | undefined;
+          const targetModel =
+            (payloadData?.targetModel as string) ||
+            (payloadData?.tableName as string) ||
+            envelope.recordId ||
+            "";
+          if (targetModel.trim()) {
+            await invalidateCache(targetModel.trim());
+          }
+        }
+
         if (body.requestType === "INQ" && response.data) {
           const parsedRows = parseInquiryRecords(response);
           return NextResponse.json(

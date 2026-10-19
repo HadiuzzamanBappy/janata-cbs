@@ -44,7 +44,7 @@ async function runSuite() {
     SC_USER_GROUP_LIVE,
     SYS_USER_LIVE,
   } = await import("@fixtures");
-  const { SYS_USER_AUTH_RESPONSES } = await import("@/lib/mock-services");
+  const { SYS_USER_AUTH_RESPONSES } = await import("@/lib/mock-core");
 
   const { clientConfig } = await import("@/lib/core-config/client");
   const { getService, getServices, getServiceUrl, REQUEST_TYPE_OVERLAYS } = await import(

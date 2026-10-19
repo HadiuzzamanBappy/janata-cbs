@@ -65,11 +65,8 @@ export function TabItem({
       return;
     }
 
-    // In Input (I) mode, only confirm if the user has actually modified/typed changes
-    const isDirty =
-      tab.isDirty === true ||
-      (tab.formData &&
-        Object.values(tab.formData).some((v) => v !== undefined && v !== null && v !== ""));
+    // Only confirm if the user has actually modified/typed changes (tab.isDirty)
+    const isDirty = tab.isDirty === true;
 
     if (isDirty) {
       confirm({

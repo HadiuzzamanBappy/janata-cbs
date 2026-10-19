@@ -4,7 +4,7 @@
  * and Offline Proxy Dispatcher Matrix.
  *
  * Usage:
- *   pnpm tsx scripts/verify-mock-service.ts
+ *   pnpm tsx scripts/verify-mock-core.ts
  */
 
 // Pre-empt server-only in require.cache
@@ -28,7 +28,7 @@ export {};
 async function runSuite() {
   const { appConfig } = await import("@/lib/core-config/server");
   const { isStaticMode, loginProcess } = await import("@/lib/infra-grpc");
-  const { getMockProxyResponse, mockProcess, mockDispatch } = await import("@/lib/mock-services");
+  const { getMockProxyResponse, mockProcess, mockDispatch } = await import("@/lib/mock-core");
   const { getBranchesData } = await import("@/lib/infra-services/branch-service");
   const { getControlsData } = await import("@/lib/infra-services/control-service");
   const { getFormData } = await import("@/lib/infra-services/form-service");

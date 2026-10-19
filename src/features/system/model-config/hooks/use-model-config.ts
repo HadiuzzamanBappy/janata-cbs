@@ -3,23 +3,18 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { serializeModelToWireJson } from "@/lib/data-parsers";
 import {
   type ModelConfigRecord,
-  type ModelProperty,
   modelConfigRecordSchema,
   type ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
 import type { CbsScreenMode } from "@/types";
 import { mapZodIssuesToValidationErrors } from "./mc-validation";
-import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
-
-export interface ModelCatalogItem {
-  id: string;
-  label: string;
-  details: string;
-  record?: ModelConfigRecord;
-}
+import { useMcCatalog } from "./use-mc-catalog";
+import { useModelConfigPersistence } from "./use-mc-persistence";
+import { useMcTreeOps } from "./use-mc-tree-ops";
 
 export function useModelConfig(initialId?: string, tabId?: string) {
   const {
@@ -29,35 +24,31 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     setMode,
     formData,
     setFormData,
+    hydrate,
+    rebaseline,
+    reset,
+    isDirty,
+    dirtyKeys,
     resolvedInitialId,
     resolvedInitialMode,
   } = useModelConfigPersistence(initialId, tabId);
 
-  const [modelsPool, setModelsPool] = React.useState<ModelCatalogItem[]>([]);
+  const { modelsPool, refreshCatalog, upsertCatalogItem } = useMcCatalog();
+  const {
+    addField,
+    addChildField,
+    updateField,
+    removeField,
+    isFieldCommitted,
+    markAsCommitted,
+    clearCommitted,
+  } = useMcTreeOps(setFormData);
+
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const [validationErrors, setValidationErrors] = React.useState<ValidationErrorItem[]>([]);
-  const [committedSnSet, setCommittedSnSet] = React.useState<Set<string>>(new Set());
 
-  const markAsCommitted = React.useCallback((props: ModelProperty[]) => {
-    setCommittedSnSet(new Set(props.map((p) => p.sn)));
-  }, []);
-
-  // 1. Fetch catalog
-  const refreshCatalog = React.useCallback(async () => {
-    try {
-      const res = await cbs.send<ModelCatalogItem[]>(cbs.modelConfig.list(), {
-        silent: true,
-      });
-      if (res.status === "SUCCESS" && Array.isArray(res.data)) {
-        setModelsPool(res.data);
-      }
-    } catch {
-      // Graceful fallback
-    }
-  }, []);
-
-  // 2. Fetch specific record
+  // 1. Fetch specific record and hydrate baseline
   const fetchRecord = React.useCallback(
     async (targetId: string, targetMode: CbsScreenMode = "I") => {
       if (!targetId.trim()) return;
@@ -67,59 +58,26 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       setValidationErrors([]);
 
       try {
-        const json = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(cleanId), {
-          silent: true,
-        });
+        const json = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(cleanId));
         if (json.status === "SUCCESS" && json.data) {
-          setFormData(json.data);
+          hydrate(json.data);
           markAsCommitted(json.data.properties || []);
+          setValidationErrors([]);
           setMode(targetMode);
           toast.add({
             title: "Model Loaded",
             description: `Loaded data dictionary for #${cleanId}`,
             type: "success",
           });
-        } else {
-          setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: "" });
-          setCommittedSnSet(new Set());
-          setMode("I");
         }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Failed to load model from API";
-        toast.add({
-          title: "Model Fetch Failed",
-          description: msg,
-          type: "error",
-        });
-        setFormData({ ...INITIAL_MODEL, recordId: cleanId, description: "" });
-        setCommittedSnSet(new Set());
-        setMode("I");
       } finally {
         setLoading(false);
       }
     },
-    [markAsCommitted, setFormData, setMode, setRecordId],
+    [hydrate, markAsCommitted, setMode, setRecordId],
   );
 
-  // 3. Create fresh record
-  const handleCreateNew = React.useCallback(
-    (allocatedId?: string) => {
-      const nextId = allocatedId || `APP.CUSTOM.${Date.now().toString().slice(-4)}`;
-      setRecordId(nextId);
-      setCommittedSnSet(new Set());
-      setValidationErrors([]);
-      setFormData({
-        ...INITIAL_MODEL,
-        recordId: nextId,
-        description: "",
-        properties: [],
-      });
-      setMode("I");
-    },
-    [setFormData, setMode, setRecordId],
-  );
-
-  // 4. Validate
+  // 3. Validate
   const handleValidate = React.useCallback((): boolean => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
@@ -141,7 +99,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     return true;
   }, [formData]);
 
-  // 5. Submit
+  // 4. Submit & Rebaseline
   const handleSubmit = React.useCallback(async () => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
@@ -169,27 +127,27 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         },
       );
       if (json.status === "SUCCESS") {
+        rebaseline();
         markAsCommitted(validation.data.properties || []);
-        setModelsPool((prev) => {
-          const item = {
-            id: validation.data.recordId || formData.recordId || validation.data.tableName || "",
-            label: validation.data.description,
-            details: `${validation.data.properties.length} fields`,
-            record: validation.data,
-          };
-          const exists = prev.some((p) => p.id === item.id);
-          return exists ? prev.map((p) => (p.id === item.id ? item : p)) : [...prev, item];
+        const targetId =
+          validation.data.recordId || formData.recordId || validation.data.tableName || "";
+        upsertCatalogItem({
+          id: targetId,
+          label: validation.data.description,
+          details: `${validation.data.properties.length} fields`,
+          record: validation.data,
         });
+        broadcastRecordMutation("MODEL.CONFIG", targetId);
         setMode("I");
       }
     } catch {
-      // Toast error handled by cbs.send
+      // Toast handled by cbs.send
     } finally {
       setSubmitting(false);
     }
-  }, [formData, markAsCommitted, setMode]);
+  }, [formData, markAsCommitted, rebaseline, setMode, upsertCatalogItem]);
 
-  // 6. Authorize
+  // 5. Authorize
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;
     setSubmitting(true);
@@ -199,164 +157,91 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         successMessage: `Authorized live model #${recordId}`,
       });
       if (json.status === "SUCCESS") {
-        setMode("S");
+        broadcastRecordMutation("MODEL.CONFIG", recordId);
+        await fetchRecord(recordId, "S");
       }
     } catch {
-      // Toast error handled by cbs.send
+      // Toast handled by cbs.send
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, setMode]);
+  }, [fetchRecord, recordId]);
 
-  // 7. Property mutations
-  const addField = React.useCallback((): string => {
-    let createdSn = "";
-    setFormData((prev) => {
-      const maxSn = prev.properties.reduce((max, p) => {
-        if (p.sn.includes("_")) return max;
-        const num = Number.parseInt(p.sn, 10);
-        return !Number.isNaN(num) && num > max ? num : max;
-      }, 0);
-      const nextSn = String(maxSn + 1);
-      createdSn = nextSn;
-      const newField: ModelProperty = {
-        sn: nextSn,
-        name: "",
-        label: "",
-        type: "Text",
-        structure: "S",
-        length: 50,
-        required: false,
-        disabled: false,
-        status: "ACTIVE",
-      };
-      return {
-        ...prev,
-        properties: [...prev.properties, newField],
-      };
-    });
-    return createdSn;
-  }, [setFormData]);
-
-  const addChildField = React.useCallback(
-    (parentSN: string): string => {
-      let createdSn = "";
-      setFormData((prev) => {
-        const parentIndex = prev.properties.findIndex((p) => p.sn === parentSN);
-        if (parentIndex === -1) return prev;
-
-        const prefix = `${parentSN}_`;
-        const directChildren = prev.properties.filter((p) => {
-          if (!p.sn.startsWith(prefix)) return false;
-          const remainder = p.sn.slice(prefix.length);
-          return !remainder.includes("_");
-        });
-
-        const maxChildNum = directChildren.reduce((max, p) => {
-          const num = Number.parseInt(p.sn.slice(prefix.length), 10);
-          return !Number.isNaN(num) && num > max ? num : max;
-        }, 0);
-
-        const nextChildSn = `${parentSN}_${maxChildNum + 1}`;
-        createdSn = nextChildSn;
-
-        const newChild: ModelProperty = {
-          sn: nextChildSn,
-          name: "",
-          label: "",
-          type: "Text",
-          structure: "S",
-          length: 50,
-          required: false,
-          disabled: false,
-          status: "ACTIVE",
-        };
-
-        // Insert after the last descendant of parentSN
-        let insertIndex = parentIndex;
-        for (let i = parentIndex + 1; i < prev.properties.length; i++) {
-          if (prev.properties[i].sn.startsWith(prefix)) {
-            insertIndex = i;
-          } else {
-            break;
-          }
-        }
-
-        const nextProperties = [...prev.properties];
-        nextProperties.splice(insertIndex + 1, 0, newChild);
-
-        return {
-          ...prev,
-          properties: nextProperties,
-        };
+  // 6. Hold
+  const handleHold = React.useCallback(async () => {
+    if (!recordId) return;
+    setSubmitting(true);
+    try {
+      const json = await cbs.send(cbs.modelConfig.hold(recordId), {
+        successTitle: "Model Placed on Hold",
+        successMessage: `Record #${recordId} set to HLD status`,
       });
-      return createdSn;
-    },
-    [setFormData],
-  );
+      if (json.status === "SUCCESS") {
+        broadcastRecordMutation("MODEL.CONFIG", recordId);
+        await fetchRecord(recordId, "H");
+      }
+    } catch {
+      // Handled by cbs.send
+    } finally {
+      setSubmitting(false);
+    }
+  }, [fetchRecord, recordId]);
 
-  const updateField = React.useCallback(
-    (sn: string, patch: Partial<ModelProperty>) => {
-      setFormData((prev) => ({
-        ...prev,
-        properties: prev.properties.map((p) => (p.sn === sn ? { ...p, ...patch } : p)),
-      }));
-    },
-    [setFormData],
-  );
-
-  const isFieldCommitted = React.useCallback(
-    (sn: string) => committedSnSet.has(sn),
-    [committedSnSet],
-  );
-
-  const deprecateOrRemoveField = React.useCallback(
-    (sn: string, forceHardDelete = false) => {
-      setFormData((prev) => {
-        const isCommitted = committedSnSet.has(sn);
-        const prefix = `${sn}_`;
-        if (!isCommitted || forceHardDelete) {
-          return {
-            ...prev,
-            properties: prev.properties.filter((p) => p.sn !== sn && !p.sn.startsWith(prefix)),
-          };
-        }
-        return {
-          ...prev,
-          properties: prev.properties.map((p) => {
-            if (p.sn === sn || p.sn.startsWith(prefix)) {
-              return {
-                ...p,
-                status: p.status === "ARCHIVED" ? "ACTIVE" : "ARCHIVED",
-                disabled: p.status !== "ARCHIVED",
-              };
-            }
-            return p;
-          }),
-        };
+  // 7. Delete
+  const handleDelete = React.useCallback(async () => {
+    if (!recordId) return;
+    setSubmitting(true);
+    try {
+      const json = await cbs.send(cbs.modelConfig.delete(recordId), {
+        successTitle: "Model Deleted",
+        successMessage: `Pending model #${recordId} has been removed`,
       });
-    },
-    [committedSnSet, setFormData],
-  );
+      if (json.status === "SUCCESS") {
+        broadcastRecordMutation("MODEL.CONFIG", recordId);
+        reset();
+      }
+    } catch {
+      // Handled by cbs.send
+    } finally {
+      setSubmitting(false);
+    }
+  }, [recordId, reset]);
 
+  // 8. Reverse
+  const handleReverse = React.useCallback(async () => {
+    if (!recordId) return;
+    setSubmitting(true);
+    try {
+      const json = await cbs.send(cbs.modelConfig.reverse(recordId), {
+        successTitle: "Model Reversed",
+        successMessage: `Live model #${recordId} status reverted`,
+      });
+      if (json.status === "SUCCESS") {
+        broadcastRecordMutation("MODEL.CONFIG", recordId);
+        await fetchRecord(recordId, "R");
+      }
+    } catch {
+      // Handled by cbs.send
+    } finally {
+      setSubmitting(false);
+    }
+  }, [fetchRecord, recordId]);
+
+  // 9. Reset to Idle
   const resetToIdle = React.useCallback(() => {
-    setMode("IDLE");
-    setRecordId("");
-    setFormData(INITIAL_MODEL);
+    reset();
+    clearCommitted();
     setValidationErrors([]);
-  }, [setFormData, setMode, setRecordId]);
+  }, [clearCommitted, reset]);
 
-  // Clear validation errors whenever switching away from edit mode
+  // Clear validation errors when switching away from edit mode
   React.useEffect(() => {
     if (mode !== "I") {
       setValidationErrors([]);
     }
   }, [mode]);
 
-  React.useEffect(() => {
-    refreshCatalog();
-  }, [refreshCatalog]);
-
+  // Auto-load initial record once if deep-linked or restored
   const hasLoadedInitialRef = React.useRef(false);
   React.useEffect(() => {
     if (!hasLoadedInitialRef.current && resolvedInitialId) {
@@ -372,22 +257,25 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     setMode,
     formData,
     setFormData,
+    isDirty,
+    dirtyKeys,
     modelsPool,
     refreshCatalog,
     loading,
     submitting,
     fetchRecord,
-    handleCreateNew,
     handleValidate,
     handleSubmit,
     handleAuthorize,
+    handleHold,
+    handleDelete,
+    handleReverse,
     validationErrors,
     clearValidationErrors: () => setValidationErrors([]),
     addField,
     addChildField,
     updateField,
-    removeField: deprecateOrRemoveField,
-    deprecateOrRemoveField,
+    removeField,
     isFieldCommitted,
     resetToIdle,
   };

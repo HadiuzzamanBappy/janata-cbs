@@ -25,29 +25,37 @@ const SUITES = [
     command: "pnpm exec tsx scripts/verify-cbs-record.ts",
   },
   {
-    title: "3. CBS Command Gateway & Alias Parser (@/lib/cbs-command)",
+    title: "3. CBS Form Spec & Compiler Engine (@/lib/cbs-form-spec)",
+    command: "pnpm exec tsx scripts/verify-cbs-form-spec.ts",
+  },
+  {
+    title: "4. CBS Command Gateway & Alias Parser (@/lib/cbs-command)",
     command: "pnpm exec tsx scripts/verify-cbs-command.ts",
   },
   {
-    title: "4. CBS Client Wire Protocol & Payload Factories (@/lib/cbs-client)",
+    title: "5. CBS Client Wire Protocol & Payload Factories (@/lib/cbs-client)",
     command: "pnpm exec tsx scripts/verify-cbs-client.ts",
   },
   {
     title:
-      "5. Environment Matrix, Schemas & PII Redaction (@/lib/data-schemas & @/lib/core-logger)",
+      "6. Environment Matrix, Schemas & PII Redaction (@/lib/data-schemas & @/lib/core-logger)",
     command: "pnpm exec tsx scripts/verify-env-matrix.ts",
   },
   {
-    title: "6. Core Banking Utilities & Localization (@/lib/core-utils)",
+    title: "7. Core Banking Utilities & Localization (@/lib/core-utils)",
     command: "pnpm exec tsx scripts/verify-core-utils.ts",
   },
   {
-    title: "7. Infra Services, Gateway & gRPC Protocol (@/lib/infra-services)",
+    title: "8. Infra Services, Gateway & gRPC Protocol (@/lib/infra-services)",
     command: "pnpm exec tsx scripts/verify-infra-services.ts",
   },
   {
-    title: "8. In-Memory Mock Core Engine & Fixtures (@fixtures & @/lib/infra-services)",
-    command: "pnpm exec tsx scripts/verify-mock-service.ts",
+    title: "9. In-Memory Mock Core Engine & Fixtures (@fixtures & @/lib/mock-core)",
+    command: "pnpm exec tsx scripts/verify-mock-core.ts",
+  },
+  {
+    title: "10. Master Form Architecture E2E Flow (Phases 0-5 Integration)",
+    command: "pnpm exec tsx scripts/verify-master-form-flow.ts",
   },
 ];
 

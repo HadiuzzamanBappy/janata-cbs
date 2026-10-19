@@ -7,7 +7,13 @@
  *   pnpm tsx scripts/verify-cbs-record.ts
  */
 
-import { type CbsDeltaPatch, computeDelta } from "@/lib/cbs-record";
+import {
+  type CbsDeltaPatch,
+  computeDelta,
+  createBaseline,
+  evaluateDirty,
+  rebaseline,
+} from "@/lib/cbs-record";
 
 interface TestReport {
   name: string;
@@ -533,6 +539,57 @@ async function runSuite() {
   assert(
     "Immutability: Operates safely on Object.freeze() inputs without mutation",
     deltaFrozen.isDirty === true && frozenOrig.name === "Unchanged Original",
+  );
+
+  // ============================================================================
+  // --- 8. Baseline Lifecycle Management ---
+  // ============================================================================
+  console.log("\n--- 8. Baseline Lifecycle Management ---");
+
+  // 8.1 Hydrate is not dirty
+  const freshRecord = { ...baselineAccount };
+  const baselineInstance = createBaseline(freshRecord);
+  const deltaHydrate = evaluateDirty(baselineInstance, freshRecord);
+  assert(
+    "Baseline: Hydrate creates clean baseline where isDirty is false",
+    deltaHydrate.isDirty === false && deltaHydrate.dirtyKeys.length === 0,
+  );
+
+  // 8.2 Edit then undo returns to clean
+  const mutableDraft = { ...freshRecord, accountTitle: "Changed For Test" };
+  const deltaEdited = evaluateDirty(baselineInstance, mutableDraft);
+  assert("Baseline: Edit marks isDirty: true", deltaEdited.isDirty === true);
+
+  mutableDraft.accountTitle = freshRecord.accountTitle;
+  const deltaReverted = evaluateDirty(baselineInstance, mutableDraft);
+  assert(
+    "Baseline: Edit-then-undo returns to clean where isDirty is false",
+    deltaReverted.isDirty === false && deltaReverted.dirtyKeys.length === 0,
+  );
+
+  // 8.3 Rebaseline clears dirty state
+  mutableDraft.accountTitle = "Newly Committed Account Title";
+  assert(
+    "Baseline: Pre-rebaseline is dirty",
+    evaluateDirty(baselineInstance, mutableDraft).isDirty === true,
+  );
+  const committedBaseline = rebaseline(mutableDraft);
+  const deltaAfterRebaseline = evaluateDirty(committedBaseline, mutableDraft);
+  assert(
+    "Baseline: Rebaseline clears dirty state and sets new clean reference",
+    deltaAfterRebaseline.isDirty === false && deltaAfterRebaseline.dirtyKeys.length === 0,
+  );
+
+  // 8.4 Preserved ignored keys in baseline container
+  const auditBaseline = createBaseline(freshRecord, ["recInputter", "recCurrNumber"]);
+  const draftWithIgnoredAudit = {
+    ...freshRecord,
+    recInputter: "DIFF_TELLER",
+    recCurrNumber: 99,
+  };
+  assert(
+    "Baseline: Pre-configured ignoredKeys are filtered out during evaluateDirty",
+    evaluateDirty(auditBaseline, draftWithIgnoredAudit).isDirty === false,
   );
 
   // ============================================================================

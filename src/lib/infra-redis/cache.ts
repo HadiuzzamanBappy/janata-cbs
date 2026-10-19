@@ -59,12 +59,12 @@ export async function getOrSet<T>(
 export async function invalidateCache(controlName?: string): Promise<number> {
   if (controlName) {
     const cleanCmd = controlName.trim().toUpperCase();
-    const specKey = cacheKey(appConfig.redis.cacheKeys.formSpec(cleanCmd));
-    const enqKey = cacheKey(appConfig.redis.cacheKeys.inquirySpec(cleanCmd));
+    const specPattern = cacheKey(appConfig.redis.cacheKeys.formSpec(`${cleanCmd}*`));
+    const enqPattern = cacheKey(appConfig.redis.cacheKeys.inquirySpec(`${cleanCmd}*`));
     const menuKey = cacheKey(appConfig.redis.cacheKeys.menu(cleanCmd));
     const [specDel, enqDel, menuDel] = await Promise.all([
-      cacheDelete(specKey),
-      cacheDelete(enqKey),
+      cacheDelete(specPattern),
+      cacheDelete(enqPattern),
       cacheDelete(menuKey),
     ]);
     return specDel + enqDel + menuDel;

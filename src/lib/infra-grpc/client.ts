@@ -15,7 +15,7 @@ import {
   GrpcServiceClient,
   type LoginRequest,
 } from "@/lib/infra-grpc/generated/service";
-import { mockLogin, mockProcess } from "@/lib/mock-services";
+import { mockLogin, mockProcess } from "@/lib/mock-core";
 
 /**
  * Single source of truth for runtime mode check.

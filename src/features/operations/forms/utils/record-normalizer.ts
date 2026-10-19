@@ -1,5 +1,3 @@
-import type { ParsedFormData } from "@/lib/data-schemas";
-
 // Helper to strip non-alphanumeric chars for fuzzy matching
 const simplify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
@@ -16,17 +14,16 @@ const SEMANTIC_MAP: Record<string, string[]> = {
 };
 
 /**
- * Normalizes incoming raw DB / Enquiry record data into matching ParsedFormData field keys.
+ * Normalizes incoming raw DB / Enquiry record data into matching Form field keys.
  */
 export function normalizeRecordData(
   raw: Record<string, unknown> | undefined,
-  targetSchema: ParsedFormData | null,
+  targetSchema: { fields?: Array<{ fieldKey: string }> } | null,
 ): Record<string, unknown> {
   if (!targetSchema || !raw) return raw || {};
   const result: Record<string, unknown> = { ...raw };
 
-  for (const field of targetSchema.fields) {
-    // If field already has a value, preserve it
+  for (const field of targetSchema.fields || []) {
     if (
       result[field.fieldKey] !== undefined &&
       result[field.fieldKey] !== null &&
@@ -38,7 +35,6 @@ export function normalizeRecordData(
     const simplifiedFieldName = simplify(field.fieldKey);
     const aliases = SEMANTIC_MAP[field.fieldKey.toLowerCase()] || [simplifiedFieldName];
 
-    // Look for direct or alias matches in raw record
     for (const [k, v] of Object.entries(raw)) {
       if (v === undefined || v === null || v === "") continue;
       const simplifiedKey = simplify(k);

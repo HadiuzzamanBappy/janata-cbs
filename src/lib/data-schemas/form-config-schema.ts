@@ -65,6 +65,7 @@ export const formFieldItemSchema = z.object({
   options: z.array(z.string()).optional(), // Legacy string options (fallback)
   currencyPrefix: z.string().optional(), // For amount widgets (e.g. "BDT")
   formula: z.string().optional(), // Derived/Calculated expression
+  length: z.number().optional(), // Max character/digit constraint from MODEL.CONFIG
   // Binding metadata from MODEL.CONFIG — set when field is placed from palette
   modelType: z.string().optional(), // PropertyType: "Number", "Dropdown", "Date", etc.
   parameter: z.unknown().optional(), // PropertyParameter — typed as unknown for Zod safety

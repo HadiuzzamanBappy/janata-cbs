@@ -26,16 +26,19 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
     mode,
     formData,
     setFormData,
+    isDirty,
     loading,
     submitting,
     modelsPool,
     validationErrors,
     isFieldCommitted,
     fetchRecord,
-    handleCreateNew,
     handleValidate,
     handleSubmit,
     handleAuthorize,
+    handleHold,
+    handleDelete,
+    handleReverse,
     addField,
     addChildField,
     updateField,
@@ -135,14 +138,19 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       commandCode="MODEL.CONFIG"
       recordId={recordId}
       mode={mode}
+      isDirty={isDirty}
+      auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
       onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
-      onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" ? () => fetchRecord(recordId || "MENU_TREE") : undefined}
+      onReset={mode !== "IDLE" && recordId ? () => fetchRecord(recordId, mode) : undefined}
       onValidate={handleValidate}
       onSubmit={handleSubmit}
-      onAuthorizeReverse={handleAuthorize}
+      onHold={handleHold}
+      onDelete={handleDelete}
+      onAuthorizeReverse={
+        formData.auditData?.recStatus === "AU" || mode === "R" ? handleReverse : handleAuthorize
+      }
       onView={() => recordId && fetchRecord(recordId, "S")}
       onAmend={() => recordId && fetchRecord(recordId, "I")}
       submitting={submitting || loading}

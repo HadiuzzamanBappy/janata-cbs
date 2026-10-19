@@ -28,17 +28,7 @@ export function TabMenuItems({
   const isRightmost = tabs[tabs.length - 1]?.id === tab.id;
 
   const hasDirtyData = (t: WorkbenchTab) => {
-    // Non-input modes never require a confirmation dialog
-    if (t.screenMode !== "I") {
-      return false;
-    }
-
-    // In Input (I) mode, only require confirm if user modified/typed changes
-    return (
-      t.isDirty === true ||
-      (t.formData &&
-        Object.values(t.formData).some((v) => v !== undefined && v !== null && v !== ""))
-    );
+    return t.isDirty === true;
   };
 
   const handleCloseTab = () => {

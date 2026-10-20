@@ -50,7 +50,7 @@ const SUITES = [
     command: "pnpm exec tsx scripts/verify-infra-services.ts",
   },
   {
-    title: "9. In-Memory Mock Core Engine & Fixtures (@fixtures & @/lib/mock-core)",
+    title: "9. In-Memory Mock Core Engine & Database (@mock/db & @mock/core)",
     command: "pnpm exec tsx scripts/verify-mock-core.ts",
   },
   {

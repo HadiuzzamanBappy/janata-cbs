@@ -1,4 +1,4 @@
-# 🧪 CBS Mock Core: In-Memory Core Banking Simulator (`@/lib/mock-core`)
+# 🧪 CBS Mock Core: In-Memory Core Banking Simulator (`@mock/core`)
 
 A high-fidelity, in-memory **Core Banking Protocol Simulator** for the **Janata Core Banking Workbench**.
 
@@ -9,7 +9,7 @@ It powers the system when running in static mode (`DATA_SOURCE="static"` in `.en
 ## 📦 What It Contains
 
 ```text
-src/lib/mock-core/
+mock/core/
 ├── database-router.ts       # Resolves logical controlName to canonical CBS_DATABASE tables
 ├── operation-handlers.ts    # Pattern-based protocol handlers for CBS verbs (GUM, GMC, GRL, GET, etc.)
 ├── auth-simulator.ts        # User authentication & JWT token generation from SYS_USER
@@ -38,7 +38,7 @@ flowchart TD
     Op -- "Next ID (GNI)" --> Seq["model.idDef.idPrefix"]
     Op -- "Mutations (PUT, AUT...)" --> Mut["Lifecycle Status (AU, HLD, DEL)"]
 
-    Router --> DB[("CBS_DATABASE<br/>(fixtures/*.ts)")]
+    Router --> DB[("CBS_DATABASE<br/>(mock/db/*.ts)")]
     
     Auth --> Resp["response-factory.ts"]
     DB --> Resp
@@ -72,7 +72,7 @@ Every operation follows canonical CBS request verbs without requiring ad-hoc ali
 In Core Banking, the frontend passes a logical `controlName` (e.g. `ACCOUNT`, `CUSTOMER`). The database router resolves this to the physical database table (`AC_ACCOUNT`, `CUST_CUSTOMER`) automatically:
 
 ```typescript
-import { resolveTable } from "@/lib/mock-core/database-router";
+import { resolveTable } from "@mock/core/database-router";
 
 // Automatically resolves 'ACCOUNT' -> 'AC_ACCOUNT' via SC_MODEL_CONFIG
 const table = resolveTable("ACCOUNT");
@@ -94,7 +94,7 @@ Domain services call standard gRPC methods without knowing they are being interc
 ```typescript
 // Inside src/lib/infra-grpc/client.ts
 import { isStaticMode } from "./client";
-import { mockLogin, mockProcess } from "@/lib/mock-core";
+import { mockLogin, mockProcess } from "@mock/core";
 
 export async function grpcProcess(req: GrpcRequest): Promise<GrpcResponse> {
   if (isStaticMode()) {
@@ -108,7 +108,7 @@ export async function grpcProcess(req: GrpcRequest): Promise<GrpcResponse> {
 ### 2. In Direct Server-Side Simulation
 
 ```typescript
-import { getMockProxyResponse } from "@/lib/mock-core";
+import { getMockProxyResponse } from "@mock/core";
 
 // Fetch list of Accounts
 const accountList = getMockProxyResponse("GRL", "ACCOUNT");
@@ -127,13 +127,13 @@ const nextId = getMockProxyResponse("GNI", "ACCOUNT");
 The architecture is strictly data-driven:
 
 * **To add a new business table (e.g. `LOAN`)**:
-  1. Add `LN_LOAN.ts` in [`fixtures/`](file:///d:/Work/React/cbs/janata-cbs/fixtures/).
-  2. Add `LOAN: LN_LOAN_TABLE` to `CBS_DATABASE` in [`fixtures/index.ts`](file:///d:/Work/React/cbs/janata-cbs/fixtures/index.ts).
-  3. **Zero code changes needed in `mock-core`**! The database router immediately discovers and serves it.
+  1. Add `LN_LOAN.ts` in [`mock/db/`](file:///d:/Work/React/cbs/janata-cbs/mock/db/).
+  2. Add `LOAN: LN_LOAN_TABLE` to `CBS_DATABASE` in [`mock/db/index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/index.ts).
+  3. **Zero code changes needed in `core`**! The database router immediately discovers and serves it.
 
 * **To add a new CBS protocol verb (e.g. `VAL` for field validation)**:
-  1. Add `handleValidation()` in [`operation-handlers.ts`](file:///d:/Work/React/cbs/janata-cbs/src/lib/mock-core/operation-handlers.ts).
-  2. Map `reqType === "VAL"` in [`index.ts`](file:///d:/Work/React/cbs/janata-cbs/src/lib/mock-core/index.ts).
+  1. Add `handleValidation()` in [`operation-handlers.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/core/operation-handlers.ts).
+  2. Map `reqType === "VAL"` in [`index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/core/index.ts).
 
 ---
 
@@ -142,7 +142,7 @@ The architecture is strictly data-driven:
 Run the dedicated 33-test suite covering authentication, gRPC simulation, and proxy CRUD matrices:
 
 ```bash
-pnpm tsx scripts/verify-mock-service.ts
+pnpm tsx scripts/verify-mock-core.ts
 ```
 
 Run all system verification suites:

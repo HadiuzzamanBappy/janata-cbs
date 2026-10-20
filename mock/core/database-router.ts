@@ -1,6 +1,6 @@
 import "server-only";
 
-import { CBS_DATABASE, SC_MODEL_CONFIG_LIVE } from "@fixtures";
+import { CBS_DATABASE, SC_MODEL_CONFIG_LIVE } from "@mock/db";
 
 export interface ResolvedTable {
   name: string;

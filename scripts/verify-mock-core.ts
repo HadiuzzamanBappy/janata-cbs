@@ -28,7 +28,7 @@ export {};
 async function runSuite() {
   const { appConfig } = await import("@/lib/core-config/server");
   const { isStaticMode, loginProcess } = await import("@/lib/infra-grpc");
-  const { getMockProxyResponse, mockProcess, mockDispatch } = await import("@/lib/mock-core");
+  const { getMockProxyResponse, mockProcess, mockDispatch } = await import("@mock/core");
   const { getBranchesData } = await import("@/lib/infra-services/branch-service");
   const { getControlsData } = await import("@/lib/infra-services/control-service");
   const { getFormData } = await import("@/lib/infra-services/form-service");
@@ -249,6 +249,13 @@ async function runSuite() {
       inqConfigList.status === "SUCCESS" &&
         Array.isArray(inqConfigList.data) &&
         inqConfigList.data.length > 0,
+    );
+
+    const inqConfigNew = getMockProxyResponse("GET", "INQUIRY.CONFIG", "INQ.ACCOUNT");
+    assert(
+      "Proxy Dispatcher: INQUIRY.CONFIG generates dynamic template for new inquiry",
+      inqConfigNew.status === "SUCCESS" &&
+        Boolean((inqConfigNew.data as Record<string, unknown>)?.columns),
     );
 
     const userGroupList = getMockProxyResponse("GRL", "USER.GROUP");

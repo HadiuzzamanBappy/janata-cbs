@@ -1,6 +1,5 @@
 "use client";
 
-import { SC_MODEL_CONFIG_LIST, SC_MODEL_CONFIG_LIVE } from "@fixtures";
 import { Database, Sparkles } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -28,39 +27,34 @@ export interface IcGeneralTabProps {
 }
 
 export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGeneralTabProps) {
-  const [modelDef, setModelDef] = React.useState<ModelConfigRecord>(() => {
-    return (
-      SC_MODEL_CONFIG_LIVE["INQUIRY.CONFIG"] ||
-      SC_MODEL_CONFIG_LIVE.INQUIRY_CONFIG || {
-        recordId: "INQUIRY.CONFIG",
-        tableName: "INQUIRY_CONFIG",
-        description: "Dynamic Inquiry & Query Definition Designer",
-        prefix: "SC",
-        category: "SYSTEM",
-        servicePath: "default",
-        userDefineId: true,
-        predefineId: false,
-        access: "G",
-        readOnly: false,
-        searchable: true,
-        authorize: true,
-        associates: [],
-        devBy: "System",
-        devDate: "2026-10-17",
-        isActive: true,
-        properties: [],
-      }
-    );
+  const [modelDef, setModelDef] = React.useState<ModelConfigRecord>({
+    recordId: "INQUIRY.CONFIG",
+    tableName: "INQUIRY_CONFIG",
+    description: "Dynamic Inquiry & Query Definition Designer",
+    prefix: "SC",
+    category: "SYSTEM",
+    servicePath: "default",
+    userDefineId: true,
+    predefineId: false,
+    access: "G",
+    readOnly: false,
+    searchable: true,
+    authorize: true,
+    associates: [],
+    devBy: "System",
+    devDate: "2026-10-17",
+    isActive: true,
+    idDef: {
+      idPrefix: "",
+      idPattern: "",
+      sequenceReset: false,
+    },
+    properties: [],
   });
 
   const [availableModels, setAvailableModels] = React.useState<
     Array<{ id: string; label: string }>
-  >(() => {
-    return SC_MODEL_CONFIG_LIST.map((m) => ({
-      id: m.recordId || m.tableName,
-      label: `${m.tableName} — ${m.description || m.tableName}`,
-    }));
-  });
+  >([]);
 
   React.useEffect(() => {
     let mounted = true;

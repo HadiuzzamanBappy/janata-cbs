@@ -6,8 +6,8 @@ const fileArg = process.argv[2] || "branch";
 const fileName = fileArg.endsWith(".json") ? fileArg : `${fileArg}.json`;
 const baseName = fileName.replace(/\.json$/, "");
 
-const sourcePath = resolve(__dirname, `../fixtures/.response/${fileName}`);
-const targetPath = resolve(__dirname, `../fixtures/.response/${baseName}.normalized.json`);
+const sourcePath = resolve(__dirname, `../mock/.response/${fileName}`);
+const targetPath = resolve(__dirname, `../mock/.response/${baseName}.normalized.json`);
 
 try {
   const rawText = readFileSync(sourcePath, "utf-8");

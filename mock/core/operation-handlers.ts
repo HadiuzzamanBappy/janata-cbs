@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SC_INQUIRY_CONFIG_LIVE, SC_MENU_TREE_LIVE, SC_MODEL_CONFIG_LIVE } from "@fixtures";
+import { SC_INQUIRY_CONFIG_LIVE, SC_MENU_TREE_LIVE, SC_MODEL_CONFIG_LIVE } from "@mock/db";
 import type { ApiResponse, CbsWirePayload } from "@/types";
 import { resolveTable } from "./database-router";
 import { notFoundResult, successResult } from "./response-factory";
@@ -211,6 +211,97 @@ export function handleGetRecord(payload: CbsWirePayload): ApiResponse {
       };
 
       return successResult(initialModel, `Initialized new Model Config template for ${upperId}`);
+    }
+
+    // 3. Core Banking Resolution for INQUIRY.CONFIG (<INQUIRY_ID>)
+    if (cmd === "INQUIRY.CONFIG") {
+      const modelCandidate = upperId.startsWith("INQ.")
+        ? upperId.replace(/^INQ\./, "")
+        : upperId.startsWith("GET.")
+          ? upperId.replace(/^GET\./, "").replace(/\.LIST$|\.INFO$/, "")
+          : upperId;
+
+      const model =
+        SC_MODEL_CONFIG_LIVE[modelCandidate] ||
+        SC_MODEL_CONFIG_LIVE[modelCandidate.replace(/\./g, "_")];
+
+      const initialInquiry = {
+        id: upperId,
+        recordId: upperId,
+        title: `${modelCandidate} Directory`,
+        description: `Automated dynamic inquiry query for ${modelCandidate}`,
+        pageOrientation: "Portrait",
+        recordPerPage: 50,
+        showSerial: true,
+        showPagination: true,
+        showBranchWise: false,
+        inqServicePath: "default",
+        inquiryType: "Data From Table",
+        controllerName: modelCandidate,
+        reportControlName: `RPT.${modelCandidate}`,
+        cmdFromInternal: false,
+        cmdFieldName: "recordId",
+        fixedSelection: "",
+        targetModel: model ? model.tableName || modelCandidate : modelCandidate,
+        columns: model?.properties
+          ? model.properties.slice(0, 8).map((p) => ({
+              id: p.name,
+              label: p.label || p.name,
+              align: "left" as const,
+              format:
+                p.type === "Date"
+                  ? ("date" as const)
+                  : p.type === "Number" &&
+                      (p.name.toLowerCase().includes("amount") ||
+                        p.name.toLowerCase().includes("balance"))
+                    ? ("currency" as const)
+                    : p.type === "Number"
+                      ? ("number" as const)
+                      : ("text" as const),
+              isMono: p.name.toUpperCase().includes("ID") || p.name.toUpperCase().includes("NO"),
+              sortable: true,
+              visible: true,
+              isPinned: false,
+            }))
+          : [
+              {
+                id: "recordId",
+                label: "ID / Ref",
+                align: "left" as const,
+                format: "text" as const,
+                isMono: true,
+                sortable: true,
+                visible: true,
+                isPinned: false,
+              },
+            ],
+        filters: [],
+        actions: [
+          {
+            id: "VIEW",
+            label: "View",
+            targetCommand: `${modelCandidate},SEE`,
+            actionType: "view" as const,
+            icon: "eye" as const,
+            openMode: "tab" as const,
+            idParamField: "recordId",
+          },
+        ],
+        auditData: {
+          recStatus: "INA",
+          recCurrNumber: 1,
+          recInputter: "SYSTEM",
+          recInputTime: new Date().toISOString().replace("T", " ").slice(0, 19),
+          recAuthorizer: "",
+          recAuthTime: "",
+          recBranchCode: "JB9999",
+        },
+      };
+
+      return successResult(
+        initialInquiry,
+        `Initialized new Inquiry Config template for ${upperId}`,
+      );
     }
 
     return notFoundResult(`Record #${recId} not found in database table ${cmd}`);

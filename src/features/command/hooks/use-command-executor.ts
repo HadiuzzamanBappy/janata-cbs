@@ -10,7 +10,7 @@ interface UseCommandExecutorOptions {
 export function useCommandExecutor({ onClose }: UseCommandExecutorOptions) {
   const handleSelectCommand = (cmd: SystemCommandItem) => {
     onClose();
-    cbsCommand.execute(cmd.command || cmd.id, {
+    cbsCommand.execute(cmd.command, {
       title: cmd.title,
     });
   };

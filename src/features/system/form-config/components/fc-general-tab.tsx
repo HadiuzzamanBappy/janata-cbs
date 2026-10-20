@@ -1,6 +1,9 @@
 "use client";
 
-import type * as React from "react";
+import { Database, Info, Sparkles } from "lucide-react";
+import * as React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -10,172 +13,172 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/core-utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cbs } from "@/lib/cbs-client";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
-import { FORM_META_FIELDS, META_FIELD_GROUPS } from "../fields";
-
-import type { ModelCatalogItem } from "../hooks/use-fc-catalog";
+import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 export interface FcGeneralTabProps {
   formData: FormConfigRecord;
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>;
   isReadOnly?: boolean;
-  availableModels?: ModelCatalogItem[];
 }
 
-export function FcGeneralTab({
-  formData,
-  setFormData,
-  isReadOnly,
-  availableModels = [],
-}: FcGeneralTabProps) {
-  const getValue = (path: string): unknown => {
-    const parts = path.split(".");
-    let current: unknown = formData;
-    for (const part of parts) {
-      if (current === undefined || current === null || typeof current !== "object") return "";
-      current = (current as Record<string, unknown>)[part];
+export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGeneralTabProps) {
+  const [modelDef, setModelDef] = React.useState<ModelConfigRecord | null>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function loadFormModel() {
+      try {
+        const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get("FORM.CONFIG"), {
+          silent: true,
+        });
+        if (mounted && res.status === "SUCCESS" && res.data) {
+          setModelDef(res.data);
+        }
+      } catch {
+        // Fallback initialized
+      }
     }
-    return current;
+    loadFormModel();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const setValue = (field: string, val: unknown) => {
+    setFormData((prev) => ({ ...prev, [field]: val }));
   };
 
-  const setValue = (path: string, val: unknown) => {
-    setFormData((prev) => {
-      const parts = path.split(".");
-      const clone = JSON.parse(JSON.stringify(prev)) as Record<string, unknown>;
-      let current: Record<string, unknown> = clone;
-      for (let i = 0; i < parts.length - 1; i++) {
-        current = current[parts[i]] as Record<string, unknown>;
-      }
-      current[parts[parts.length - 1]] = val;
-      return clone as typeof prev;
-    });
-  };
+  const activeProperties: ModelProperty[] = modelDef?.properties || [];
 
   return (
-    <div className="h-full overflow-y-auto select-none">
-      <div className="max-w-3xl space-y-3">
-        {META_FIELD_GROUPS.map((group) => {
-          const groupFields = FORM_META_FIELDS.filter((f) => f.group === group.id);
-          if (groupFields.length === 0) return null;
-
-          return (
-            <div
-              key={group.id}
-              className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
-            >
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
-                {group.title}
+    <TooltipProvider delay={200}>
+      <div className="h-full overflow-y-auto select-none pr-1">
+        <div className="max-w-3xl space-y-3">
+          {activeProperties.length === 0 ? (
+            <div className="p-8 border border-dashed border-border/70 rounded-lg bg-card/40 text-center space-y-2">
+              <Info className="size-8 mx-auto text-muted-foreground/60" />
+              <div className="text-sm font-medium text-foreground">No Properties Configured</div>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                No custom metadata properties configured in MODEL.CONFIG for FORM.CONFIG. Any
+                properties added by the administrator in MODEL.CONFIG will appear here dynamically.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Database className="size-3 text-primary" />
+                  <span>{modelDef?.description || "Dynamic Form Properties"}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-mono py-0 px-1.5 bg-muted/30 text-muted-foreground flex items-center gap-1"
+                  >
+                    <Sparkles className="size-2.5 text-primary" />
+                    <span>Model: FORM.CONFIG</span>
+                  </Badge>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {activeProperties.length} Properties
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-2 text-xs">
-                {groupFields.map((field) => {
-                  const val = getValue(field.path);
-                  const inputWidth =
-                    field.width === "compact"
-                      ? "w-28"
-                      : field.width === "half"
-                        ? "max-w-xs flex-1"
-                        : "max-w-md flex-1";
+              <div className="space-y-2.5 text-xs">
+                {activeProperties.map((prop) => {
+                  const val = formData[prop.name];
+                  const isBoolean = prop.type === "Boolean";
+                  const isRequired = prop.required && !isReadOnly;
 
                   return (
-                    <div key={field.path} className="flex items-center gap-2">
-                      <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
-                        {field.label}
-                        {field.required && !isReadOnly && (
-                          <span className="text-destructive font-bold ml-1">*</span>
-                        )}
-                      </Label>
+                    <div key={prop.name} className="flex items-center gap-2">
+                      {prop.enrichText ? (
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <Label
+                                title={prop.enrichText}
+                                className="w-32 shrink-0 text-xs text-muted-foreground select-none cursor-help hover:text-foreground transition-colors flex items-center"
+                              >
+                                <span className="truncate underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
+                                  {prop.label}
+                                </span>
+                                {isRequired && (
+                                  <span className="text-destructive font-bold ml-1 select-none">
+                                    *
+                                  </span>
+                                )}
+                              </Label>
+                            }
+                          />
+                          <TooltipContent side="top" className="text-xs max-w-xs shadow-md">
+                            {prop.enrichText}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none flex items-center">
+                          <span className="truncate">{prop.label}</span>
+                          {isRequired && (
+                            <span className="text-destructive font-bold ml-1 select-none">*</span>
+                          )}
+                        </Label>
+                      )}
 
                       <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
 
-                      {field.type === "boolean" ? (
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            disabled={isReadOnly}
-                            checked={Boolean(val)}
-                            onChange={(e) => setValue(field.path, e.target.checked)}
-                            className="rounded border-border size-3.5"
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            {field.helperText || "Enable / Active"}
-                          </span>
-                        </label>
-                      ) : field.type === "select" ? (
-                        <div className={inputWidth}>
+                      <div className="flex-1 max-w-md">
+                        {isBoolean ? (
+                          <div className="flex items-center gap-2 h-7">
+                            <Checkbox
+                              id={`fc-prop-${prop.name}`}
+                              disabled={isReadOnly || prop.disabled}
+                              checked={Boolean(val)}
+                              onCheckedChange={(checked) => setValue(prop.name, Boolean(checked))}
+                            />
+                            <label
+                              htmlFor={`fc-prop-${prop.name}`}
+                              className="text-xs cursor-pointer select-none font-medium text-foreground"
+                            >
+                              {val ? "Yes" : "No"}
+                            </label>
+                          </div>
+                        ) : prop.type === "Dropdown" ? (
                           <Select
-                            disabled={isReadOnly}
-                            value={String(val || "")}
-                            onValueChange={(newVal) => setValue(field.path, newVal)}
+                            disabled={isReadOnly || prop.disabled}
+                            value={String(val || prop.defaultValue || "")}
+                            onValueChange={(newVal) => setValue(prop.name, newVal)}
                           >
-                            <SelectTrigger className="h-7 text-xs bg-background">
-                              <SelectValue placeholder={`Select ${field.label}`} />
+                            <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 w-44 font-sans">
+                              <SelectValue placeholder={`Select ${prop.label}...`} />
                             </SelectTrigger>
                             <SelectContent className="text-xs">
-                              {(field.options || []).map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="DEFAULT" className="text-xs">
+                                Default
+                              </SelectItem>
                             </SelectContent>
                           </Select>
-                        </div>
-                      ) : field.path === "targetModel" && availableModels.length > 0 ? (
-                        <div className={inputWidth}>
-                          <Select
-                            disabled={isReadOnly}
-                            value={String(val || "")}
-                            onValueChange={(newVal) => setValue(field.path, newVal)}
-                          >
-                            <SelectTrigger className="h-7 text-xs bg-background font-mono uppercase">
-                              <SelectValue placeholder="Select Target Model" />
-                            </SelectTrigger>
-                            <SelectContent className="text-xs max-h-56">
-                              {availableModels.map((m) => (
-                                <SelectItem
-                                  key={m.id}
-                                  value={m.tableName || m.id}
-                                  className="text-xs font-mono"
-                                >
-                                  <span>{m.tableName || m.id}</span>
-                                  {m.label && (
-                                    <span className="text-muted-foreground ml-2 text-[11px] font-sans">
-                                      ({m.label})
-                                    </span>
-                                  )}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ) : (
-                        <div className={cn("space-y-1", inputWidth)}>
+                        ) : (
                           <Input
-                            disabled={isReadOnly}
-                            placeholder={field.placeholder}
-                            value={String(val || "")}
-                            onChange={(e) => {
-                              const v = field.uppercase
-                                ? e.target.value.toUpperCase()
-                                : e.target.value;
-                              setValue(field.path, v);
-                            }}
-                            className={cn(
-                              "h-7 text-xs bg-background rounded border-border/80",
-                              field.uppercase && "font-mono uppercase",
-                            )}
+                            disabled={isReadOnly || prop.disabled}
+                            placeholder={prop.enrichText || `Enter ${prop.label}...`}
+                            value={String(val !== undefined ? val : prop.defaultValue || "")}
+                            onChange={(e) => setValue(prop.name, e.target.value)}
+                            maxLength={prop.length}
+                            className="h-7 text-xs bg-background rounded border-border/80 font-sans"
                           />
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   );
                 })}
               </div>
             </div>
-          );
-        })}
+          )}
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

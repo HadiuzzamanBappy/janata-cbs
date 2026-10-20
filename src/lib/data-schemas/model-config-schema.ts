@@ -67,7 +67,7 @@ export const modelConfigRecordSchema = z.object({
   category: z.string().default(""),
   servicePath: z.string().min(1, "Service Path is required"),
   userDefineId: z.boolean().default(false),
-  predefineId: z.boolean().default(false),
+  predefineId: z.boolean().optional(),
   access: z.string().min(1, "Table Type (Global / Branch) is required"),
   searchable: z.boolean().default(false),
   readOnly: z.boolean().default(false),

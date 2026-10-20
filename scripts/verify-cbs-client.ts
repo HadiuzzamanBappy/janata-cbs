@@ -272,19 +272,19 @@ async function runSuite() {
     inqSingle.requestType === CbsRequestType.INQ && inqSingle.recordId === "REC-888",
   );
 
-  // 4.4 Inherited Base Model CRUD on INQUIRY table
+  // 4.4 Inherited Base Model CRUD on INQUIRY.CONFIG table
   const inqBaseGet = cbs.inquiry.get("INQ.CUST.LIST");
   assert(
-    "Inquiry: Inherited base get (GET, SEE, INQUIRY)",
+    "Inquiry: Inherited base get (GET, SEE, INQUIRY.CONFIG)",
     inqBaseGet.requestType === CbsRequestType.GET &&
-      inqBaseGet.controlName === CbsControlTable.INQUIRY,
+      inqBaseGet.controlName === CbsControlTable.INQUIRY_CONFIG,
   );
 
   const inqBaseList = cbs.inquiry.list();
   assert(
-    "Inquiry: Inherited base list (GRL, LIST, INQUIRY)",
+    "Inquiry: Inherited base list (GRL, LIST, INQUIRY.CONFIG)",
     inqBaseList.requestType === CbsRequestType.GRL &&
-      inqBaseList.controlName === CbsControlTable.INQUIRY,
+      inqBaseList.controlName === CbsControlTable.INQUIRY_CONFIG,
   );
 
   // --- 5. Menu & Visual Tree Payloads (cbs.menu) ---

@@ -162,8 +162,12 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
 
   // Simulated dataset
   const sampleRows = React.useMemo(
-    () => generateSampleRows(tableColumns, formData.targetModel),
-    [tableColumns, formData.targetModel],
+    () =>
+      generateSampleRows(
+        tableColumns,
+        String(formData.controllerName || formData.targetModel || "ACCOUNT"),
+      ),
+    [tableColumns, formData.controllerName, formData.targetModel],
   );
 
   const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>(sampleRows);
@@ -215,9 +219,10 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
   };
 
   const handleExecuteAction = (action: InquiryActionConfig, recordId: string, _row: EnquiryRow) => {
+    const targetModel = String(formData.controllerName || formData.targetModel || "ACCOUNT");
     toast.add({
       title: `[Simulated Action] ${action.label}`,
-      description: `Target: ${action.targetCommand || `${formData.targetModel},SEE`} (Mode: ${action.openMode}) • Record: #${recordId}`,
+      description: `Target: ${action.targetCommand || `${targetModel},SEE`} (Mode: ${action.openMode}) • Record: #${recordId}`,
       type: "success",
     });
   };
@@ -241,11 +246,11 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
 
           <div className="flex items-center gap-1.5 text-xs">
             <span className="font-semibold text-foreground">
-              {formData.title || "Inquiry Preview"}
+              {String(formData.description || formData.title || "Inquiry Preview")}
             </span>
             <span className="text-muted-foreground/60 font-mono">&bull;</span>
             <span className="text-[11px] font-mono text-muted-foreground">
-              Target: {formData.targetModel || "GENERIC"}
+              Target: {String(formData.controllerName || formData.targetModel || "GENERIC")}
             </span>
           </div>
         </div>

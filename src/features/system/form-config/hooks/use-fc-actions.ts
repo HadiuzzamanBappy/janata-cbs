@@ -27,23 +27,26 @@ export function useFcActions({
 }: UseFcActionsParams) {
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
+    const targetId = recordId || (formData.recordId as string) || "";
     setSubmitting(true);
     try {
-      const res = await cbs.send<FormConfigRecord>(cbs.formConfig.save(formData));
+      const res = await cbs.send<FormConfigRecord>(
+        cbs.formConfig.save(formData, { recordId: targetId }),
+      );
       if (res.status === "SUCCESS") {
         rebaseline();
-        broadcastRecordMutation("FORM.CONFIG", formData.recordId);
+        broadcastRecordMutation("FORM.CONFIG", targetId);
         refreshForms();
         toast.add({
           title: "Form Saved",
-          description: `Form ${formData.recordId} successfully saved`,
+          description: `Form ${targetId || "configuration"} successfully saved`,
           type: "success",
         });
       }
     } finally {
       setSubmitting(false);
     }
-  }, [formData, handleValidate, rebaseline, refreshForms, setSubmitting]);
+  }, [formData, handleValidate, rebaseline, refreshForms, recordId, setSubmitting]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;

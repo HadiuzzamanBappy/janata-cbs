@@ -14,21 +14,20 @@ export function parseControlsWirePayload(data: unknown): SystemCommandItem[] {
   const result: SystemCommandItem[] = [];
 
   for (const fields of rawList) {
-    const recordId = fields.recordId ? String(fields.recordId).trim() : "";
-    const controlName = fields.controlName ? String(fields.controlName).trim() : recordId;
-    const desc = fields.description ? String(fields.description).trim() : controlName;
+    const rawAny = fields as Record<string, unknown>;
+    const command = String(fields.command || rawAny.controlName || rawAny.recordId || "").trim();
+    if (!command) continue;
 
-    if (controlName) {
-      const aliases = recordId && recordId !== controlName ? [recordId] : [];
-      result.push({
-        id: controlName,
-        title: desc,
-        category: "System Controls & Commands",
-        command: controlName,
-        aliases,
-        actionType: "SCREEN",
-      });
-    }
+    const title = String(fields.title || rawAny.description || command).trim();
+    const aliases = Array.isArray(fields.aliases) ? fields.aliases : [];
+    const actionType = fields.actionType || "SCREEN";
+
+    result.push({
+      command,
+      title,
+      aliases,
+      actionType,
+    });
   }
 
   return result;

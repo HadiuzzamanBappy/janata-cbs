@@ -75,12 +75,16 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
       <div className="flex items-center justify-between border-b border-border/60 pb-2">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-xs bg-muted/40 font-mono">
-            {formData.recordId || "UNNAMED"}
+            {String(formData.recordId || targetModelRecord.tableName || "PREVIEW")}
           </Badge>
-          <span className="text-xs font-semibold text-foreground">{formData.title}</span>
-          <span className="text-xs text-muted-foreground font-mono">
-            v{formData.version || "1.0.0"}
-          </span>
+          {Boolean(formData.title) && (
+            <span className="text-xs font-semibold text-foreground">{String(formData.title)}</span>
+          )}
+          {Boolean(formData.version) && (
+            <span className="text-xs text-muted-foreground font-mono">
+              v{String(formData.version)}
+            </span>
+          )}
           <Badge variant="secondary" className="text-[10px] font-mono">
             Model: {targetModelRecord.tableName || targetModelRecord.recordId}
           </Badge>

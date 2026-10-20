@@ -16,12 +16,6 @@ import { useFcModelBinding } from "./use-fc-model-binding";
 import { useFcSectionOps } from "./use-fc-section-ops";
 
 export const INITIAL_FORM_CONFIG: FormConfigRecord = {
-  recordId: "",
-  title: "",
-  targetModel: "",
-  version: "1.0.0",
-  description: "",
-  isActive: true,
   presentation: {
     steps: [],
     sections: [],
@@ -61,8 +55,10 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   const [selectedFieldId, setSelectedFieldId] = React.useState<string | null>(null);
   const [validationErrors, setValidationErrors] = React.useState<FormConfigValidationError[]>([]);
 
+  const resolvedTarget =
+    (formData.targetModel as string) || (recordId ? recordId.split(",")[0].trim() : "");
   const { targetModelRecord, loadingModel, layoutIssues, staleIssues, isStale } = useFcModelBinding(
-    formData.targetModel,
+    resolvedTarget,
     formData,
   );
 
@@ -92,28 +88,6 @@ export function useFormConfig(initialId?: string, tabId?: string) {
 
   const handleValidate = React.useCallback(() => {
     const issues: FormConfigValidationError[] = [];
-    if (!formData.recordId?.trim())
-      issues.push({
-        id: "id_req",
-        tab: "general",
-        fieldKey: "recordId",
-        message: "Form Code is required",
-      });
-    if (!formData.title?.trim())
-      issues.push({
-        id: "title_req",
-        tab: "general",
-        fieldKey: "title",
-        message: "Form Title is required",
-      });
-    if (!formData.targetModel?.trim())
-      issues.push({
-        id: "target_req",
-        tab: "general",
-        fieldKey: "targetModel",
-        message: "Target Model is required",
-      });
-
     for (const li of layoutIssues) {
       if (li.severity === "error") {
         issues.push({
@@ -140,7 +114,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       type: "success",
     });
     return true;
-  }, [formData, layoutIssues]);
+  }, [layoutIssues]);
 
   const actions = useFcActions({
     formData,

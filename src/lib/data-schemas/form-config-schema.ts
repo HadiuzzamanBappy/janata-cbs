@@ -120,19 +120,16 @@ export type FormWizardStep = z.infer<typeof formWizardStepSchema>;
 /* Canonical Master Form Config Record                                        */
 /* -------------------------------------------------------------------------- */
 
-export const formConfigRecordSchema = z.object({
-  recordId: z.string().min(1, "Form Code is required"),
-  title: z.string().min(1, "Form Title is required"),
-  targetModel: z.string().min(1, "Target Model is required"),
-  version: z.string().default("1.0.0"),
-  description: z.string().optional(),
-  isActive: z.boolean().default(true),
-  presentation: z.object({
-    archetype: formArchetypeSchema.optional(),
-    density: formDensitySchema.optional(),
-    steps: z.array(formWizardStepSchema).optional().default([]),
-    sections: z.array(formSectionSchema).default([]),
-  }),
+export const formConfigPresentationSchema = z.object({
+  archetype: formArchetypeSchema.optional(),
+  density: formDensitySchema.optional(),
+  steps: z.array(formWizardStepSchema).optional().default([]),
+  sections: z.array(formSectionSchema).default([]),
+});
+export type FormConfigPresentation = z.infer<typeof formConfigPresentationSchema>;
+
+export const formConfigRecordSchema = z.looseObject({
+  presentation: formConfigPresentationSchema,
   auditData: auditDataSchema.optional(),
 });
 

@@ -1,29 +1,27 @@
-import { Compass, Layers, Settings, ShieldCheck, Sliders, Terminal } from "lucide-react";
+import { Compass, Layers, Settings, Sliders, Terminal } from "lucide-react";
 import { CommandItem } from "@/components/ui/command";
 import type { CommandItemRowProps } from "../types";
 
 export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps) {
   // Resolve icon
   let IconComp = Layers;
-  if (cmd.category === "Preferences") {
+  if (cmd.actionType === "SETTINGS") {
     IconComp = Settings;
-  } else if (cmd.category === "Security & Authentication") {
-    IconComp = ShieldCheck;
-  } else if (cmd.category === "Quick Actions") {
+  } else if (cmd.actionType === "THEME" || cmd.actionType === "LOGOUT") {
     IconComp = Terminal;
-  } else if (category.includes("System") || category.includes("Control")) {
+  } else if (category.includes("System") || cmd.command.startsWith("SC.")) {
     IconComp = Sliders;
-  } else if (category.includes("Navigation") || category.includes("Operation")) {
+  } else {
     IconComp = Compass;
   }
 
-  // 1 short alias tag (if provided)
-  const aliasTag = cmd.aliases && cmd.aliases.length > 0 ? cmd.aliases[0] : undefined;
-  const searchValue = [cmd.title, aliasTag, cmd.command].filter(Boolean).join(" ");
+  // Search value indexing: includes title, all aliases, and canonical command
+  const distinctAliases = (cmd.aliases || []).filter((alias) => alias !== cmd.command);
+  const searchValue = [cmd.title, ...distinctAliases, cmd.command].filter(Boolean).join(" ");
 
   return (
     <CommandItem
-      key={cmd.id}
+      key={cmd.command}
       value={searchValue}
       onSelect={() => onSelect(cmd)}
       className="group flex items-center justify-between py-1.5 px-2.5 cursor-pointer"
@@ -38,11 +36,14 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
       </div>
 
       <div data-slot="command-shortcut" className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
-        {aliasTag && (
-          <span className="font-mono text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20">
-            {aliasTag}
+        {distinctAliases.map((alias) => (
+          <span
+            key={alias}
+            className="font-mono text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20"
+          >
+            {alias}
           </span>
-        )}
+        ))}
         <span className="font-mono text-[11px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md border border-border/40">
           {cmd.command}
         </span>

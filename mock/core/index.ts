@@ -74,7 +74,7 @@ export function getMockProxyResponse(
     return handleGetModelConfig(normalizedPayload);
   }
 
-  // 3. Inquiry Spec (GET on INQUIRY) vs Query Execution (INQ)
+  // 3. Legacy Inquiry Spec (GET on INQUIRY) vs Query Execution (INQ)
   if (cleanCmd === "INQUIRY" && reqType !== "INQ") {
     const spec = getMockInquiryPayload(recId || cleanCmd);
     if (!spec) return notFoundResult(`Inquiry spec for ${recId || cleanCmd} not found`);

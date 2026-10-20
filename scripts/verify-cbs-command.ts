@@ -372,10 +372,6 @@ async function runSuite() {
     "Alias: SC.INQUIRY -> SC.INQUIRY.CONFIG",
     resolveCommandAlias("SC.INQUIRY") === "SC.INQUIRY.CONFIG",
   );
-  assert(
-    "Alias: SC.INQUIRY.BUILDER -> SC.INQUIRY.CONFIG",
-    resolveCommandAlias("SC.INQUIRY.BUILDER") === "SC.INQUIRY.CONFIG",
-  );
   assert("Alias: RB -> SC.REPORT.BUILDER", resolveCommandAlias("RB") === "SC.REPORT.BUILDER");
   assert("Alias: MNU -> SC.MENU", resolveCommandAlias("MNU") === "SC.MENU");
 

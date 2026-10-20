@@ -48,12 +48,17 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       });
       if (res.status === "SUCCESS" && Array.isArray(res.data)) {
         setAvailableInquiries(
-          res.data.map((record) => ({
-            id: record.id,
-            label: `${record.title || record.id} (${record.targetModel || "N/A"})`,
-            details: `${record.columns?.length || 0} columns • ${record.targetModel || "TABLE"}`,
-            record,
-          })),
+          res.data.map((record) => {
+            const inqId = String(record.id || record.recordId || "");
+            const desc = String(record.description || record.title || inqId);
+            const ctrl = String(record.controllerName || record.targetModel || "N/A");
+            return {
+              id: inqId,
+              label: `${desc} (${ctrl})`,
+              details: `${record.columns?.length || 0} columns • ${ctrl}`,
+              record,
+            };
+          }),
         );
       }
     } catch {
@@ -217,7 +222,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
 
   // 4. Validate & Standard CBS Lifecycle Mutations
   const handleValidate = React.useCallback(() => {
-    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    const cleanId = String(recordId || formData.id || "")
+      .trim()
+      .toUpperCase();
     if (!cleanId) {
       toast.add({
         title: "Validation Error",
@@ -226,10 +233,11 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       });
       return false;
     }
-    if (!formData.targetModel.trim() && !formData.controllerName.trim()) {
+    const target = String(formData.controllerName || formData.targetModel || "").trim();
+    if (!target) {
       toast.add({
         title: "Validation Error",
-        description: "Target Model or Controller Name is required",
+        description: "Controller Name is required",
         type: "error",
       });
       return false;
@@ -239,7 +247,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
 
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
-    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    const cleanId = String(recordId || formData.id || "")
+      .trim()
+      .toUpperCase();
     setSubmitting(true);
     try {
       const res = await cbs.send<InquiryConfigRecord>(
@@ -267,7 +277,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   }, [formData, handleValidate, rebaseline, refreshInquiries, recordId]);
 
   const handleAuthorize = React.useCallback(async () => {
-    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    const cleanId = String(recordId || formData.id || "")
+      .trim()
+      .toUpperCase();
     if (!cleanId) return;
     setSubmitting(true);
     try {
@@ -288,7 +300,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   }, [formData.id, recordId, rebaseline, refreshInquiries]);
 
   const handleHold = React.useCallback(async () => {
-    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    const cleanId = String(recordId || formData.id || "")
+      .trim()
+      .toUpperCase();
     if (!cleanId) return;
     setSubmitting(true);
     try {
@@ -309,7 +323,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   }, [formData.id, recordId, rebaseline, refreshInquiries]);
 
   const handleDelete = React.useCallback(async () => {
-    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    const cleanId = String(recordId || formData.id || "")
+      .trim()
+      .toUpperCase();
     if (!cleanId) return;
     setSubmitting(true);
     try {
@@ -330,7 +346,9 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   }, [formData.id, recordId, reset, refreshInquiries]);
 
   const handleReverse = React.useCallback(async () => {
-    const cleanId = recordId.trim().toUpperCase() || formData.id.trim().toUpperCase();
+    const cleanId = String(recordId || formData.id || "")
+      .trim()
+      .toUpperCase();
     if (!cleanId) return;
     setSubmitting(true);
     try {

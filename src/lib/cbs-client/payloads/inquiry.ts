@@ -21,7 +21,7 @@ export interface InquiryExecuteOptions {
   readonly servicePath?: string;
 }
 
-const base = createModelPayloads(CbsControlTable.INQUIRY);
+const base = createModelPayloads(CbsControlTable.INQUIRY_CONFIG);
 
 export const inquiryPayloads = {
   ...base,

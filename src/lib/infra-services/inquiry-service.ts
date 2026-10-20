@@ -20,7 +20,7 @@ async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): P
     idempotencyKey: "",
     clientId: ctx.clientId,
     requestType: CbsRequestType.GET,
-    controlName: CbsControlTable.INQUIRY,
+    controlName: CbsControlTable.INQUIRY_CONFIG,
     recordFunction: CbsRecordFunction.SEE,
     recordId: cleanCmd,
     branchCode: ctx.branchCode,

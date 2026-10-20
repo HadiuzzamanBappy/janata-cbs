@@ -54,7 +54,7 @@ export function useSearchCommands({ open, userHasCommandLine }: UseSearchCommand
     }
     for (const cmd of staticCmds) {
       // If user lacks commandLine permission, hide quick action terminal commands
-      if (!userHasCommandLine && cmd.category === "Quick Actions") {
+      if (!userHasCommandLine && (cmd.actionType === "THEME" || cmd.actionType === "LOGOUT")) {
         continue;
       }
       map.set(cmd.command.toUpperCase(), cmd);

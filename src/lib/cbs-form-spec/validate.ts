@@ -37,7 +37,7 @@ export function validateLayoutAgainstModel(
 ): FormLayoutIssue[] {
   const issues: FormLayoutIssue[] = [];
   const modelCode = (model.tableName || model.recordId || "").toUpperCase();
-  const targetCode = (layout.targetModel || "").toUpperCase();
+  const targetCode = String(layout.targetModel || "").toUpperCase();
 
   // 1. Model Target & Version Check
   if (targetCode !== modelCode) {

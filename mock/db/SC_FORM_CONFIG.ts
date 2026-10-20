@@ -1,15 +1,16 @@
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type { CbsVersionedTable } from "./types";
 
+/**
+ * SC_FORM_CONFIG Database Table (PREFIX: SC, TABLE: FORM_CONFIG)
+ * Simple key-value dictionary keyed by <MODEL>,<VERSION>.
+ * All parsing, key decomposition, and hydration happen in @mock/core.
+ */
 export const SC_FORM_CONFIG_LIVE: Record<string, FormConfigRecord> = {
-  ACCOUNT: {
-    recordId: "ACCOUNT",
+  "ACCOUNT,1.0.0": {
     title: "Retail Account Opening Form",
-    targetModel: "ACCOUNT",
-    version: "1.0.0",
     description:
       "Modular canvas demonstration with root variables, card containers, object groups, and tab groups",
-    isActive: true,
     presentation: {
       steps: [],
       sections: [
@@ -191,6 +192,52 @@ export const SC_FORM_CONFIG_LIVE: Record<string, FormConfigRecord> = {
               currencyPrefix: "BDT",
               colSpan: 4,
               placeholder: "25000",
+            },
+          ],
+        },
+      ],
+    },
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "CBS.ADMIN",
+      recInputTime: "2026-10-13 01:25",
+      recAuthorizer: "CBS.MANAGER",
+      recAuthTime: "2026-10-13 01:26",
+      recBranchCode: "0001",
+    },
+  },
+  "USER,1.0.0": {
+    title: "User Management Registration Form",
+    description: "Standard operator creation and credential provisioning form",
+    presentation: {
+      steps: [],
+      sections: [
+        {
+          id: "sec_user_identity",
+          title: "User Identity",
+          type: "standard",
+          zone: "standard",
+          layoutStyle: "card",
+          columns: 2,
+          collapsible: false,
+          isCollapsed: false,
+          fields: [
+            {
+              id: "f_userId",
+              fieldKey: "userId",
+              label: "User Signon ID",
+              widget: "text",
+              colSpan: 6,
+              required: true,
+            },
+            {
+              id: "f_fullName",
+              fieldKey: "fullName",
+              label: "Full Name",
+              widget: "text",
+              colSpan: 6,
+              required: true,
             },
           ],
         },

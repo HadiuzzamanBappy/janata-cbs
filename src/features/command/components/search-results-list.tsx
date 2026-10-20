@@ -17,7 +17,12 @@ export function SearchResultsList({ categories, onSelectCommand }: SearchResults
       {categories.map(([category, items]) => (
         <CommandGroup key={category} heading={category}>
           {items.map((cmd) => (
-            <CommandItemRow key={cmd.id} cmd={cmd} category={category} onSelect={onSelectCommand} />
+            <CommandItemRow
+              key={cmd.command}
+              cmd={cmd}
+              category={category}
+              onSelect={onSelectCommand}
+            />
           ))}
         </CommandGroup>
       ))}

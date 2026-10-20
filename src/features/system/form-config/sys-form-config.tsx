@@ -37,7 +37,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     targetModelRecord,
     staleIssues,
     availableForms,
-    availableModels,
     addSection,
     updateSection,
     removeSection,
@@ -78,12 +77,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         label: "General",
         icon: <FileText className="size-3 text-muted-foreground" />,
         content: (
-          <FcGeneralTab
-            formData={formData}
-            setFormData={setFormData}
-            isReadOnly={isReadOnly}
-            availableModels={availableModels}
-          />
+          <FcGeneralTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
         ),
       },
       {
@@ -93,7 +87,11 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         badgeCount: staleIssues.length > 0 ? staleIssues.length : undefined,
         content: (
           <FcDesignerTab
-            targetModel={formData.targetModel}
+            targetModel={
+              typeof formData.targetModel === "string"
+                ? formData.targetModel
+                : targetModelRecord?.tableName
+            }
             staleIssues={staleIssues}
             sections={formData.presentation.sections}
             selectedSectionId={selectedSectionId}
@@ -136,7 +134,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     [
       formData,
       isReadOnly,
-      availableModels,
       staleIssues,
       targetModelRecord,
       selectedSectionId,

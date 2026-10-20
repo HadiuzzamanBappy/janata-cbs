@@ -81,7 +81,13 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         content: (
           <IcSelectionTab
             filters={formData.filters || []}
-            targetModel={formData.targetModel}
+            targetModel={
+              typeof formData.controllerName === "string"
+                ? formData.controllerName
+                : typeof formData.targetModel === "string"
+                  ? formData.targetModel
+                  : undefined
+            }
             onAddFilter={addFilter}
             onUpdateFilter={updateFilter}
             onRemoveFilter={removeFilter}
@@ -98,7 +104,13 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
           <IcTableTab
             columns={formData.columns || []}
             actions={formData.actions || []}
-            targetModel={formData.targetModel}
+            targetModel={
+              typeof formData.controllerName === "string"
+                ? formData.controllerName
+                : typeof formData.targetModel === "string"
+                  ? formData.targetModel
+                  : undefined
+            }
             onAddColumn={addColumn}
             onUpdateColumn={updateColumn}
             onRemoveColumn={removeColumn}
@@ -147,7 +159,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     <CbsScreenScaffold<InquiryConfigTabKey>
       title="Inquiry Designer"
       commandCode="CONFIG.INQUIRY"
-      recordId={recordId || formData.id}
+      recordId={recordId || (typeof formData.id === "string" ? formData.id : undefined)}
       mode={mode}
       isDirty={isDirty}
       auditContext={formData.auditData}

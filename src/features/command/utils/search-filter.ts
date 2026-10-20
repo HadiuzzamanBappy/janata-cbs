@@ -26,9 +26,18 @@ export function groupCommandsByCategory(
 ): [string, SystemCommandItem[]][] {
   const map = new Map<string, SystemCommandItem[]>();
   for (const cmd of commands) {
-    const list = map.get(cmd.category) ?? [];
+    const category =
+      cmd.actionType === "SETTINGS"
+        ? "Preferences"
+        : cmd.actionType === "THEME" || cmd.actionType === "LOGOUT"
+          ? "Quick Actions"
+          : cmd.command.startsWith("SC.")
+            ? "System Administration"
+            : "Applications & Screens";
+
+    const list = map.get(category) ?? [];
     list.push(cmd);
-    map.set(cmd.category, list);
+    map.set(category, list);
   }
   return Array.from(map.entries());
 }

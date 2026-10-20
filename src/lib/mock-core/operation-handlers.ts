@@ -1,10 +1,6 @@
 import "server-only";
 
-import {
-  SC_INQUIRY_CONFIG_LIVE,
-  SC_MENU_TREE_LIVE,
-  SC_MODEL_CONFIG_LIVE,
-} from "@fixtures";
+import { SC_INQUIRY_CONFIG_LIVE, SC_MENU_TREE_LIVE, SC_MODEL_CONFIG_LIVE } from "@fixtures";
 import type { ApiResponse, CbsWirePayload } from "@/types";
 import { resolveTable } from "./database-router";
 import { notFoundResult, successResult } from "./response-factory";
@@ -124,6 +120,99 @@ export function handleGetRecord(payload: CbsWirePayload): ApiResponse {
       : null);
 
   if (!rawRecord) {
+    // 1. Core Banking Resolution for FORM.CONFIG (<MODEL>,<VERSION>)
+    if (cmd === "FORM.CONFIG") {
+      const parts = upperId.split(",");
+      const modelKey = parts[0].trim();
+      const versionKey = parts[1]?.trim() || "1.0.0";
+
+      const model =
+        SC_MODEL_CONFIG_LIVE[modelKey] ||
+        SC_MODEL_CONFIG_LIVE[modelKey.replace(/\./g, "_")] ||
+        SC_MODEL_CONFIG_LIVE[modelKey.replace(/_/g, ".")];
+
+      if (!model) {
+        return notFoundResult(
+          `Target model '${modelKey}' does not exist in MODEL.CONFIG. Model must be defined first.`,
+        );
+      }
+
+      // Model exists: Core pre-seeds a fresh Form Config version layout
+      const formattedRecordId = parts.length > 1 ? `${modelKey},${versionKey}` : modelKey;
+      const initialFormConfig = {
+        recordId: formattedRecordId,
+        id: formattedRecordId,
+        title: `${modelKey} (${versionKey}) Form`,
+        targetModel: modelKey,
+        version: versionKey,
+        description: `${versionKey} layout for ${modelKey}`,
+        isActive: true,
+        presentation: {
+          archetype: "grid",
+          density: "compact",
+          steps: [],
+          sections: [
+            {
+              id: "sec_main",
+              title: model.description || modelKey,
+              type: "standard",
+              zone: "standard",
+              columns: 2,
+              collapsible: false,
+              isCollapsed: false,
+              layoutStyle: "card",
+              fields: (model.properties || [])
+                .filter((p) => p.status !== "ARCHIVED" && !p.sn.includes("_"))
+                .map((p) => ({
+                  id: `f_${p.name || p.sn}`,
+                  fieldKey: p.name,
+                  label: p.label || p.name,
+                  widget: "text",
+                  colSpan: 6,
+                  required: Boolean(p.required),
+                })),
+            },
+          ],
+        },
+      };
+
+      return successResult(
+        initialFormConfig,
+        `Initialized new Form Config layout for ${modelKey},${versionKey}`,
+      );
+    }
+
+    // 2. Core Banking Resolution for MODEL.CONFIG (<MODEL>)
+    if (cmd === "MODEL.CONFIG") {
+      const initialModel = {
+        recordId: upperId,
+        id: upperId,
+        tableName: upperId,
+        prefix: "",
+        description: `${upperId} Model`,
+        category: "CUSTOM",
+        servicePath: "default",
+        userDefineId: false,
+        predefineId: false,
+        access: "B",
+        searchable: true,
+        readOnly: false,
+        authorize: true,
+        associates: ["HIS", "UNA"],
+        devBy: "",
+        devDate: new Date().toISOString().split("T")[0],
+        idDef: {
+          idPrefix: "",
+          idPattern: "",
+          sequenceReset: false,
+        },
+        properties: [],
+        isActive: true,
+      };
+
+      return successResult(initialModel, `Initialized new Model Config template for ${upperId}`);
+    }
+
     return notFoundResult(`Record #${recId} not found in database table ${cmd}`);
   }
 

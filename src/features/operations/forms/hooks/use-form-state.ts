@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { ParsedFormData } from "@/lib/data-schemas";
+import { validateValues } from "@/lib/cbs-form-spec";
+import type { CompiledFormSpec } from "@/lib/data-schemas";
 
 export function useFormState(
-  schema: ParsedFormData | null,
+  spec: CompiledFormSpec | null,
   initialData: Record<string, unknown> = {},
 ) {
   const [values, setValues] = useState<Record<string, unknown>>(initialData);
@@ -33,21 +34,13 @@ export function useFormState(
   }, []);
 
   const validate = useCallback((): boolean => {
-    if (!schema) return true;
+    if (!spec) return true;
 
-    const newErrors: Record<string, string> = {};
-    for (const field of schema.fields) {
-      if (field.required) {
-        const val = values[field.fieldKey];
-        if (val === undefined || val === null || val === "") {
-          newErrors[field.fieldKey] = `${field.label} is required`;
-        }
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [schema, values]);
+    // Use pure cbs-form-spec rule validation engine
+    const validationErrors = validateValues(spec, values);
+    setErrors(validationErrors);
+    return Object.keys(validationErrors).length === 0;
+  }, [spec, values]);
 
   const resetForm = useCallback((newValues: Record<string, unknown> = {}) => {
     setValues(newValues);

@@ -65,9 +65,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           status: "FAIL",
           statusCode: result.statusCode || 401,
           message: result.error || "Invalid credentials",
-          errors: result.errors?.length
-            ? result.errors
-            : [result.error || "Invalid credentials"],
+          errors: result.errors?.length ? result.errors : [result.error || "Invalid credentials"],
           timestamp: new Date().toISOString(),
         },
         { status: result.statusCode || 401 },

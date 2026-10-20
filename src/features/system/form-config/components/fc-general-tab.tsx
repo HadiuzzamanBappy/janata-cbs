@@ -14,13 +14,21 @@ import { cn } from "@/lib/core-utils";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import { FORM_META_FIELDS, META_FIELD_GROUPS } from "../fields";
 
+import type { ModelCatalogItem } from "../hooks/use-fc-catalog";
+
 export interface FcGeneralTabProps {
   formData: FormConfigRecord;
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>;
   isReadOnly?: boolean;
+  availableModels?: ModelCatalogItem[];
 }
 
-export function FcGeneralTab({ formData, setFormData, isReadOnly }: FcGeneralTabProps) {
+export function FcGeneralTab({
+  formData,
+  setFormData,
+  isReadOnly,
+  availableModels = [],
+}: FcGeneralTabProps) {
   const getValue = (path: string): unknown => {
     const parts = path.split(".");
     let current: unknown = formData;
@@ -108,6 +116,34 @@ export function FcGeneralTab({ formData, setFormData, isReadOnly }: FcGeneralTab
                               {(field.options || []).map((opt) => (
                                 <SelectItem key={opt.value} value={opt.value} className="text-xs">
                                   {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : field.path === "targetModel" && availableModels.length > 0 ? (
+                        <div className={inputWidth}>
+                          <Select
+                            disabled={isReadOnly}
+                            value={String(val || "")}
+                            onValueChange={(newVal) => setValue(field.path, newVal)}
+                          >
+                            <SelectTrigger className="h-7 text-xs bg-background font-mono uppercase">
+                              <SelectValue placeholder="Select Target Model" />
+                            </SelectTrigger>
+                            <SelectContent className="text-xs max-h-56">
+                              {availableModels.map((m) => (
+                                <SelectItem
+                                  key={m.id}
+                                  value={m.tableName || m.id}
+                                  className="text-xs font-mono"
+                                >
+                                  <span>{m.tableName || m.id}</span>
+                                  {m.label && (
+                                    <span className="text-muted-foreground ml-2 text-[11px] font-sans">
+                                      ({m.label})
+                                    </span>
+                                  )}
                                 </SelectItem>
                               ))}
                             </SelectContent>

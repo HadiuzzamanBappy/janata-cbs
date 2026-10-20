@@ -3,14 +3,13 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { computeDelta } from "@/lib/cbs-record";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
-import type { ParsedFormData } from "@/lib/data-schemas";
-import { findRecordInFixtures } from "../utils/record-finder";
+import type { CompiledFormSpec } from "@/lib/data-schemas";
+import type { CbsScreenMode } from "@/types";
 import { normalizeRecordData } from "../utils/record-normalizer";
+import { useFormMutations } from "./use-form-mutations";
 
 export interface UseFormActionsOptions {
-  schema: ParsedFormData | null;
+  spec: CompiledFormSpec | null;
   searchRecordId: string;
   setSearchRecordId: (id: string) => void;
   screenMode: CbsScreenMode;
@@ -26,58 +25,46 @@ export interface UseFormActionsOptions {
 }
 
 export function useFormActions({
-  schema,
+  spec,
   searchRecordId,
   setSearchRecordId: _setSearchRecordId,
   screenMode,
   setScreenMode,
   values,
   setValues,
-  setValue: _setValue,
   resetForm,
   validate,
   initialValues,
   onSuccess,
   onReturn,
 }: UseFormActionsOptions) {
-  const [submitting, setSubmitting] = React.useState<boolean>(false);
-
-  // Load record from fixture database or CBS proxy
+  // Query record by ID via real CBS Client wire protocol
   const loadRecordData = React.useCallback(
     async (recordIdToLoad: string, modeToSet: CbsScreenMode) => {
-      if (!schema || !recordIdToLoad.trim()) return;
+      if (!spec || !recordIdToLoad.trim()) return;
 
-      const cleanModel = schema.code.toUpperCase();
+      const cleanCode = spec.code.toUpperCase();
       const cleanId = recordIdToLoad.trim();
-      const foundRecord = findRecordInFixtures(cleanModel, cleanId);
 
-      if (foundRecord) {
-        const normalized = normalizeRecordData(foundRecord, schema);
-        setValues(normalized);
-        setScreenMode(modeToSet);
-        toast.add({
-          title: modeToSet === "S" ? "Viewing Record" : "Editing Record",
-          description: `Loaded record #${cleanId} for ${schema.title}`,
-          type: "success",
-        });
-        return;
-      }
-
-      // Live backend query via proxy
       try {
-        const json = await cbs.send<Record<string, unknown>>(
-          cbs.inquiry.fetchSingleRecord(schema.code, cleanId),
+        const res = await cbs.send<Record<string, unknown>>(
+          cbs.form.fetchRecord(cleanCode, cleanId),
           { silent: true },
         );
 
-        if (json.status === "SUCCESS" && json.data) {
-          const normalized = normalizeRecordData(json.data, schema);
+        if (res.status === "SUCCESS" && res.data) {
+          const normalized = normalizeRecordData(res.data, spec);
           setValues(normalized);
           setScreenMode(modeToSet);
+          toast.add({
+            title: modeToSet === "S" ? "Viewing Record" : "Editing Record",
+            description: `Loaded record #${cleanId} for ${spec.title}`,
+            type: "success",
+          });
         } else {
           toast.add({
             title: "Record Not Found",
-            description: `Record #${cleanId} does not exist in ${schema.title}.`,
+            description: `Record #${cleanId} does not exist in ${spec.title}.`,
             type: "warning",
           });
         }
@@ -85,27 +72,38 @@ export function useFormActions({
         setScreenMode(modeToSet);
       }
     },
-    [schema, setScreenMode, setValues],
+    [spec, setScreenMode, setValues],
   );
 
   const handleCreateNew = React.useCallback(
-    (allocatedId?: string) => {
-      if (!schema) return;
-      const nextId = (allocatedId || searchRecordId).trim();
-      if (allocatedId && _setSearchRecordId) {
-        _setSearchRecordId(allocatedId);
+    async (allocatedId?: string) => {
+      if (!spec) return;
+      let nextId = allocatedId;
+      if (!nextId) {
+        try {
+          const gni = await cbs.send<{ recordId?: string }>(cbs.form.getNewRecordId(spec.code));
+          if (gni.status === "SUCCESS" && gni.data?.recordId) {
+            nextId = gni.data.recordId;
+          }
+        } catch {
+          // Fallback sequence
+        }
+      }
+      const targetId = (nextId || searchRecordId).trim();
+      if (nextId && _setSearchRecordId) {
+        _setSearchRecordId(nextId);
       }
       resetForm(initialValues);
       setScreenMode("I");
       toast.add({
         title: "New Record Entry",
-        description: nextId
-          ? `Creating new entry #${nextId} for ${schema.title}`
-          : `Ready to input new transaction for ${schema.title}`,
+        description: targetId
+          ? `Creating new entry #${targetId} for ${spec.title}`
+          : `Ready to input new transaction for ${spec.title}`,
         type: "info",
       });
     },
-    [schema, resetForm, initialValues, setScreenMode, searchRecordId, _setSearchRecordId],
+    [spec, resetForm, initialValues, setScreenMode, searchRecordId, _setSearchRecordId],
   );
 
   const handleAmend = React.useCallback(
@@ -124,31 +122,30 @@ export function useFormActions({
     [searchRecordId, loadRecordData],
   );
 
-  const handleView = React.useCallback(() => {
-    const id = searchRecordId.trim();
-    if (!id) {
-      toast.add({
-        title: "Input Required",
-        description: "Please enter or select a Record ID to view.",
-        type: "warning",
-      });
-      return;
-    }
-    loadRecordData(id, "S");
-  }, [searchRecordId, loadRecordData]);
+  const handleView = React.useCallback(
+    (targetId?: string) => {
+      const id = (targetId || searchRecordId).trim();
+      if (!id) {
+        toast.add({
+          title: "Input Required",
+          description: "Please enter or select a Record ID to view.",
+          type: "warning",
+        });
+        return;
+      }
+      loadRecordData(id, "S");
+    },
+    [searchRecordId, loadRecordData],
+  );
 
   const handlePerformAction = React.useCallback(() => {
     const id = searchRecordId.trim();
     if (!id) {
-      toast.add({
-        title: "Input Required",
-        description: "Please enter or select a Record ID to perform action.",
-        type: "warning",
-      });
+      handleCreateNew();
       return;
     }
     loadRecordData(id, "I");
-  }, [searchRecordId, loadRecordData]);
+  }, [searchRecordId, handleCreateNew, loadRecordData]);
 
   const handleReturnToSearch = React.useCallback(() => {
     if (onReturn) {
@@ -157,195 +154,49 @@ export function useFormActions({
     }
     resetForm(initialValues);
     setScreenMode("IDLE");
-    toast.add({
-      title: "Returned to Search",
-      description: "Returned to initial dashboard / lookup state.",
-      type: "info",
-    });
   }, [onReturn, resetForm, initialValues, setScreenMode]);
 
-  const handleSubmit = React.useCallback(
-    async (e?: React.SyntheticEvent) => {
-      if (e) e.preventDefault();
-      if (!validate()) {
-        toast.add({
-          title: "Validation Error",
-          description: "Please fill in all required fields.",
-          type: "warning",
-        });
-        return;
-      }
-
-      if (!schema) return;
-
-      setSubmitting(true);
-      try {
-        // Compute delta if updating an existing record, otherwise send full payload
-        const payload =
-          screenMode === "I" && Object.keys(initialValues).length > 0
-            ? computeDelta(initialValues, values).modifiedFields
-            : values;
-
-        const commitData = Object.keys(payload).length > 0 ? payload : values;
-
-        const json = await cbs.send(cbs.form.commitRecord(schema.code, commitData), {
-          successTitle: "Transaction Saved",
-          successMessage: `Record saved successfully for ${schema.title}`,
-        });
-
-        if (json.status === "SUCCESS") {
-          if (onSuccess) onSuccess(json);
-        }
-      } catch {
-        // Toast notification managed by cbs.send
-      } finally {
-        setSubmitting(false);
-      }
-    },
-    [validate, schema, values, screenMode, initialValues, onSuccess],
-  );
-
-  const handleHold = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema) return undefined;
-    return async () => {
-      setSubmitting(true);
-      try {
-        const id = searchRecordId.trim() || (values.id as string) || "";
-        const json = await cbs.send(cbs.form.holdRecord(schema.code, id, values), {
-          successTitle: "Transaction Held",
-          successMessage: `Record draft for ${schema.title} placed on Hold (HLD status).`,
-        });
-        if (json.status === "SUCCESS" && onSuccess) {
-          onSuccess(json);
-        }
-      } catch {
-        // Handled by cbs.send toast
-      } finally {
-        setSubmitting(false);
-      }
-    };
-  }, [screenMode, schema, searchRecordId, values, onSuccess]);
-
-  const handleDelete = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema) return undefined;
-    return async () => {
-      const id = searchRecordId.trim() || (values.id as string) || "";
-      if (!id) {
-        toast.add({
-          title: "Record ID Required",
-          description: "Cannot delete an unreferenced draft without a Record ID.",
-          type: "warning",
-        });
-        return;
-      }
-      setSubmitting(true);
-      try {
-        const json = await cbs.send(cbs.form.deleteRecord(schema.code, id), {
-          successTitle: "Record Deleted",
-          successMessage: `Record #${id} marked for deletion in ${schema.title}.`,
-        });
-        if (json.status === "SUCCESS") {
-          resetForm(initialValues);
-          setScreenMode("IDLE");
-          if (onSuccess) onSuccess(json);
-        }
-      } catch {
-        // Handled by cbs.send toast
-      } finally {
-        setSubmitting(false);
-      }
-    };
-  }, [
-    screenMode,
-    schema,
-    searchRecordId,
-    values.id,
-    resetForm,
-    initialValues,
-    setScreenMode,
-    onSuccess,
-  ]);
-
-  const handleAuthorizeReverse = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema) return undefined;
-    return async () => {
-      const id = searchRecordId.trim() || (values.id as string) || "";
-      if (!id) {
-        toast.add({
-          title: "Record ID Required",
-          description: "Cannot authorize or reverse without a Record ID.",
-          type: "warning",
-        });
-        return;
-      }
-      setSubmitting(true);
-      try {
-        const isLive = values.RECORD_STATUS === "AU" || values.status === "AU";
-        const payload = isLive
-          ? cbs.form.reverseRecord(schema.code, id)
-          : cbs.form.authorizeRecord(schema.code, id);
-
-        const actionName = isLive ? "Reversal" : "Authorization";
-        const json = await cbs.send(payload, {
-          successTitle: `${actionName} Successful`,
-          successMessage: `Transaction ${actionName.toLowerCase()} completed for record #${id}.`,
-        });
-        if (json.status === "SUCCESS") {
-          if (onSuccess) onSuccess(json);
-          loadRecordData(id, "S");
-        }
-      } catch {
-        // Handled by cbs.send toast
-      } finally {
-        setSubmitting(false);
-      }
-    };
-  }, [screenMode, schema, searchRecordId, values, onSuccess, loadRecordData]);
-
-  const handleProcessAction = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema) return undefined;
-    return () => {
-      toast.add({
-        title: "Process / Verify Record",
-        description: `Executing verification & end-of-stage process for ${schema.title}.`,
-        type: "success",
-      });
-    };
-  }, [screenMode, schema]);
-
   const handleValidate = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema) return undefined;
+    if (screenMode === "IDLE" || !spec) return undefined;
     return () => {
       const isValid = validate();
       if (!isValid) {
         toast.add({
           title: "Validation Issues",
-          description: `Required fields require attention before saving.`,
+          description: "Required fields require attention before saving.",
           type: "warning",
         });
         return;
       }
       toast.add({
         title: "Validation Check Passed",
-        description: `Onsite & DB rules validated for ${schema.title}`,
+        description: `All rules validated for ${spec.title}`,
         type: "success",
       });
     };
-  }, [screenMode, schema, validate]);
+  }, [screenMode, spec, validate]);
+
+  const mutations = useFormMutations({
+    spec,
+    searchRecordId,
+    screenMode,
+    setScreenMode,
+    values,
+    initialValues,
+    validate,
+    resetForm,
+    loadRecordData,
+    onSuccess,
+  });
 
   return {
-    submitting,
+    ...mutations,
     loadRecordData,
     onCreateNew: handleCreateNew,
     onAmend: handleAmend,
     onView: handleView,
     onPerformAction: handlePerformAction,
     onReturnToSearch: handleReturnToSearch,
-    onSubmit: screenMode !== "IDLE" ? handleSubmit : undefined,
-    onHold: handleHold,
-    onDelete: handleDelete,
-    onAuthorizeReverse: handleAuthorizeReverse,
-    onProcessAction: handleProcessAction,
     onValidate: handleValidate,
   };
 }

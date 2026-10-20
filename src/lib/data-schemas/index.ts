@@ -10,6 +10,7 @@ export * from "./env-schema";
 export * from "./field-compatibility";
 export * from "./form-config-schema";
 export * from "./form-schema";
+export * from "./form-spec-schema";
 export * from "./inquiry-config-schema";
 export * from "./inquiry-schema";
 export * from "./menu-catalog-schema";

@@ -1,11 +1,12 @@
-"use client";
-
+import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCbsAccess } from "@/lib/cbs-access";
 import { useCbsHotkeys } from "@/lib/cbs-hotkeys";
 import type { CbsScreenScaffoldProps } from "@/lib/cbs-screen";
 import { CbsFormHeader } from "./header/cbs-form-header";
 import { CbsInquiryHeader } from "./header/cbs-inquiry-header";
+import { useGuardedAction } from "./hooks/use-guarded-action";
 import { CbsIdleState } from "./states/cbs-idle-state";
 
 export function CbsScreenScaffold<TTab extends string = string>({
@@ -13,6 +14,8 @@ export function CbsScreenScaffold<TTab extends string = string>({
   commandCode,
   recordId = "",
   mode = "IDLE",
+  isDirty = false,
+  auditContext,
   onRecordIdChange,
   onRecordSearch,
   onCreateNew,
@@ -47,20 +50,49 @@ export function CbsScreenScaffold<TTab extends string = string>({
   children,
   className = "",
 }: CbsScreenScaffoldProps<TTab>) {
-  const isReadOnly = mode === "S" || mode === "A" || mode === "D" || mode === "H" || mode === "R";
+  // Derive access capability strictly from evaluateCbsAccess / useCbsAccess
+  const access = useCbsAccess({
+    command: commandCode,
+    recordStatus: auditContext?.recStatus,
+    recordInputter: auditContext?.recInputter,
+    mode,
+  });
+
+  const isReadOnly =
+    access.isReadOnly ||
+    mode === "S" ||
+    mode === "A" ||
+    mode === "D" ||
+    mode === "H" ||
+    mode === "R";
+
+  // Guard navigation when dirty (Return, Create New, Record Search)
+  const guarded = useGuardedAction({ isDirty });
+
+  const handleGuardedReturn = () => guarded.guard(onReturnToSearch);
+  const handleGuardedCreateNew = (newId?: string) => guarded.guard(() => onCreateNew?.(newId));
+  const handleGuardedRecordSearch = (searchedId: string) => {
+    guarded.guard(() => {
+      if (onRecordSearch) {
+        onRecordSearch(searchedId.toUpperCase());
+      } else {
+        onRecordIdChange?.(searchedId.toUpperCase());
+      }
+    });
+  };
 
   // Universal terminal hotkeys: F2 (New), F3/Esc (Return), F5/Ctrl+S (Commit), F6 (Hold), F7 (Validate), F8 (Auth), F9 (Process), F10 (Delete)
   useCbsHotkeys({
     enabled: true,
     handlers: {
-      onCreateNew,
-      onCommit: !isReadOnly ? onSubmit : undefined,
-      onHold: !isReadOnly ? onHold : undefined,
+      onCreateNew: handleGuardedCreateNew,
+      onCommit: !isReadOnly && access.canInput ? onSubmit : undefined,
+      onHold: access.canHold ? onHold : undefined,
       onValidate: !isReadOnly ? onValidate : undefined,
-      onAuthorize: onAuthorizeReverse,
+      onAuthorize: access.canAuthorize || access.canReverse ? onAuthorizeReverse : undefined,
       onProcessAction,
-      onDelete: !isReadOnly ? onDelete : undefined,
-      onReturn: onReturnToSearch,
+      onDelete: access.canDelete ? onDelete : undefined,
+      onReturn: handleGuardedReturn,
     },
   });
 
@@ -91,23 +123,19 @@ export function CbsScreenScaffold<TTab extends string = string>({
           commandCode={commandCode}
           recordId={recordId}
           onRecordIdChange={(newId) => onRecordIdChange?.(newId.toUpperCase())}
-          onRecordSearch={(searchedId) => {
-            if (onRecordSearch) {
-              onRecordSearch(searchedId.toUpperCase());
-            } else {
-              onRecordIdChange?.(searchedId.toUpperCase());
-            }
-          }}
-          onCreateNew={onCreateNew}
-          onReturnToSearch={onReturnToSearch}
+          onRecordSearch={handleGuardedRecordSearch}
+          onCreateNew={handleGuardedCreateNew}
+          onReturnToSearch={handleGuardedReturn}
           onReset={onReset}
           onValidate={!isReadOnly ? onValidate : undefined}
-          onSubmit={!isReadOnly ? onSubmit : undefined}
-          onHold={!isReadOnly ? onHold : undefined}
-          onDelete={!isReadOnly ? onDelete : undefined}
+          onSubmit={!isReadOnly && access.canInput ? onSubmit : undefined}
+          onHold={access.canHold ? onHold : undefined}
+          onDelete={access.canDelete ? onDelete : undefined}
           onView={onView}
           onAmend={onAmend}
-          onAuthorizeReverse={onAuthorizeReverse}
+          onAuthorizeReverse={
+            access.canAuthorize || access.canReverse ? onAuthorizeReverse : undefined
+          }
           onProcessAction={onProcessAction}
           mode={mode}
           submitting={submitting}
@@ -191,6 +219,19 @@ export function CbsScreenScaffold<TTab extends string = string>({
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">{children}</div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={guarded.isConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open) guarded.cancelPending();
+        }}
+        title={guarded.title}
+        description={guarded.message}
+        variant="destructive"
+        confirmText="Discard & Proceed"
+        cancelText="Keep Editing"
+        onConfirm={guarded.confirmPending}
+      />
     </div>
   );
 }

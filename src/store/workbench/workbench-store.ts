@@ -13,6 +13,7 @@ export interface WorkbenchTab {
   componentName: string;
   props?: Record<string, unknown>;
   formData?: Record<string, unknown>; // Draft form input values typed by user
+  baseline?: Record<string, unknown>; // Baseline snapshot for clean dirty evaluation
   isDirty?: boolean; // True only when the user has actually edited/typed changes
   screenMode?: CbsScreenMode;
   searchRecordId?: string;
@@ -129,6 +130,8 @@ export const createWorkbenchStore = () => {
               id: uniqueInstanceId,
               instanceNumber: sameScreenCount + 1,
               formData: undefined, // fresh — no stale draft
+              baseline: undefined,
+              isDirty: false,
             };
             const insertIndex = state.tabs.findIndex((t) => t.id === id) + 1;
             const newTabs = [
@@ -141,9 +144,7 @@ export const createWorkbenchStore = () => {
         updateFormData: (tabId, data) =>
           set((state) => ({
             tabs: state.tabs.map((tab) =>
-              tab.id === tabId
-                ? { ...tab, formData: { ...tab.formData, ...data }, isDirty: true }
-                : tab,
+              tab.id === tabId ? { ...tab, formData: { ...tab.formData, ...data } } : tab,
             ),
           })),
         setTabDirty: (tabId, isDirty) =>

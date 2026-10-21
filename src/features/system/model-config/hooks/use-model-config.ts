@@ -13,7 +13,7 @@ import {
 import type { CbsScreenMode } from "@/types";
 import { mapZodIssuesToValidationErrors } from "./mc-validation";
 import { useMcCatalog } from "./use-mc-catalog";
-import { useModelConfigPersistence } from "./use-mc-persistence";
+import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
 import { useMcTreeOps } from "./use-mc-tree-ops";
 
 export function useModelConfig(initialId?: string, tabId?: string) {
@@ -69,12 +69,51 @@ export function useModelConfig(initialId?: string, tabId?: string) {
             description: `Loaded data dictionary for #${cleanId}`,
             type: "success",
           });
+          return;
+        }
+
+        // If target mode is Input ('I') and record doesn't exist in DB, initialize new draft
+        if (targetMode === "I") {
+          const draft: ModelConfigRecord = {
+            ...INITIAL_MODEL,
+            recordId: cleanId,
+            tableName: cleanId.replace(/[\.-]/g, "_"),
+            description: cleanId.replace(/[_\.-]/g, " "),
+          };
+          hydrate(draft);
+          clearCommitted();
+          setValidationErrors([]);
+          setMode("I");
+          toast.add({
+            title: "New Model Draft",
+            description: `Created new draft schema for #${cleanId}. Complete fields and Save.`,
+            type: "info",
+          });
+        }
+      } catch {
+        // If target mode is Input ('I') on 404/failure, open as new entry
+        if (targetMode === "I") {
+          const draft: ModelConfigRecord = {
+            ...INITIAL_MODEL,
+            recordId: cleanId,
+            tableName: cleanId.replace(/[\.-]/g, "_"),
+            description: cleanId.replace(/[_\.-]/g, " "),
+          };
+          hydrate(draft);
+          clearCommitted();
+          setValidationErrors([]);
+          setMode("I");
+          toast.add({
+            title: "New Model Draft",
+            description: `Created new draft schema for #${cleanId}. Complete fields and Save.`,
+            type: "info",
+          });
         }
       } finally {
         setLoading(false);
       }
     },
-    [hydrate, markAsCommitted, setMode, setRecordId],
+    [clearCommitted, hydrate, markAsCommitted, setMode, setRecordId],
   );
 
   // 3. Validate
@@ -227,7 +266,18 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     }
   }, [fetchRecord, recordId]);
 
-  // 9. Reset to Idle
+  // 9. Create New (via + button or F2)
+  const handleCreateNew = React.useCallback(
+    (newId?: string) => {
+      const cleanId = (newId || "").trim().toUpperCase();
+      if (cleanId) {
+        fetchRecord(cleanId, "I");
+      }
+    },
+    [fetchRecord],
+  );
+
+  // 10. Reset to Idle
   const resetToIdle = React.useCallback(() => {
     reset();
     clearCommitted();
@@ -277,6 +327,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     updateField,
     removeField,
     isFieldCommitted,
+    handleCreateNew,
     resetToIdle,
   };
 }

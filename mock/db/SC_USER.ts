@@ -19,10 +19,10 @@ export interface UserRecord {
 }
 
 /**
- * SYS_USER Table Master (PREFIX: SYS, TABLE: USER)
+ * SC_USER Table Master (PREFIX: SC, TABLE: USER)
  * Holds pure static database table records for operators/users.
  */
-export const SYS_USER_LIVE: Record<string, UserRecord> = {
+export const SC_USER_LIVE: Record<string, UserRecord> = {
   ZZ028459: {
     recordId: "ZZ028459",
     userId: "ZZ0284590",
@@ -92,15 +92,23 @@ export const SYS_USER_LIVE: Record<string, UserRecord> = {
 /* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
 /* -------------------------------------------------------------------------- */
 
-export const SYS_USER_INAU: Record<string, UserRecord> = {};
-export const SYS_USER_HIS: Record<string, UserRecord[]> = {};
-export const SYS_USER_DEL: Record<string, UserRecord> = {};
+export const SC_USER_INAU: Record<string, UserRecord> = {};
+export const SC_USER_HIS: Record<string, UserRecord[]> = {};
+export const SC_USER_DEL: Record<string, UserRecord> = {};
 
-export const SYS_USER_TABLE: CbsVersionedTable<UserRecord> = {
-  LIVE: SYS_USER_LIVE,
-  INAU: SYS_USER_INAU,
-  HIS: SYS_USER_HIS,
-  DEL: SYS_USER_DEL,
+export const SC_USER_TABLE: CbsVersionedTable<UserRecord> = {
+  LIVE: SC_USER_LIVE,
+  INAU: SC_USER_INAU,
+  HIS: SC_USER_HIS,
+  DEL: SC_USER_DEL,
 };
 
-export const SYS_USER_LIST: UserRecord[] = Object.values(SYS_USER_LIVE);
+export const SC_USER_LIST: UserRecord[] = Object.values(SC_USER_LIVE);
+
+// Backwards compatibility aliases
+export const SYS_USER_LIVE = SC_USER_LIVE;
+export const SYS_USER_INAU = SC_USER_INAU;
+export const SYS_USER_HIS = SC_USER_HIS;
+export const SYS_USER_DEL = SC_USER_DEL;
+export const SYS_USER_TABLE = SC_USER_TABLE;
+export const SYS_USER_LIST = SC_USER_LIST;

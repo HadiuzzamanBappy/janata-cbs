@@ -43,6 +43,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
     addChildField,
     updateField,
     removeField,
+    handleCreateNew,
     resetToIdle,
   } = useModelConfig(initialId, tabId);
 
@@ -142,6 +143,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
       onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
+      onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" && recordId ? () => fetchRecord(recordId, mode) : undefined}
       onValidate={handleValidate}

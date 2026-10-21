@@ -235,7 +235,7 @@ export const SC_MODEL_CONFIG_LIVE: Record<string, ModelConfigRecord> = {
   USER: {
     tableName: "USER",
     description: "System User Security & Authentication Profile",
-    prefix: "SYS",
+    prefix: "SC",
     category: "SYSTEM",
     servicePath: "default",
     userDefineId: true,

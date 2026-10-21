@@ -164,6 +164,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
       onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
+      onCreateNew={(newId?: string) => newId && fetchRecord(newId.toUpperCase(), "I")}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => recordId && fetchRecord(recordId, mode) : undefined}
       onAmend={() => recordId && fetchRecord(recordId, "I")}

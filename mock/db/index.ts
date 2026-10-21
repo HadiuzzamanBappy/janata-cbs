@@ -9,8 +9,8 @@ export * from "./SC_INQUIRY_CONFIG";
 export * from "./SC_MENU";
 export * from "./SC_MENU_TREE";
 export * from "./SC_MODEL_CONFIG";
+export * from "./SC_USER";
 export * from "./SC_USER_GROUP";
-export * from "./SYS_USER";
 export * from "./types";
 
 import { AC_ACCOUNT_TABLE } from "./AC_ACCOUNT";
@@ -22,8 +22,8 @@ import { SC_INQUIRY_CONFIG_TABLE } from "./SC_INQUIRY_CONFIG";
 import { SC_MENU_TABLE } from "./SC_MENU";
 import { SC_MENU_TREE_TABLE } from "./SC_MENU_TREE";
 import { SC_MODEL_CONFIG_TABLE } from "./SC_MODEL_CONFIG";
+import { SC_USER_TABLE } from "./SC_USER";
 import { SC_USER_GROUP_TABLE } from "./SC_USER_GROUP";
-import { SYS_USER_TABLE } from "./SYS_USER";
 import { type CbsTableVersion, type CbsVersionedTable, queryVersionedRecord } from "./types";
 
 /**
@@ -40,7 +40,7 @@ export const CBS_DATABASE = {
   MENU: SC_MENU_TABLE,
   "MENU.TREE": SC_MENU_TREE_TABLE,
   "MODEL.CONFIG": SC_MODEL_CONFIG_TABLE,
-  USER: SYS_USER_TABLE,
+  USER: SC_USER_TABLE,
   "USER.GROUP": SC_USER_GROUP_TABLE,
 } as const;
 

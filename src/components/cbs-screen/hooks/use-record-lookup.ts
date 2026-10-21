@@ -46,34 +46,35 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
       setLoading(true);
 
       try {
-        // SBI returns the full ID list; the query prefix is applied client-side below.
-        const payload = cbs.form.searchRecordIds(cleanControl);
+        // SBI request carries the optional search/wildcard pattern (e.g. "...AC..." or prefix)
+        const payload = cbs.form.searchRecordIds(cleanControl, query?.trim());
         const res = await cbs.send<unknown>(payload, { silent: true });
 
         const mappedItems: RecordLookupItem[] = [];
 
         if (res.status === "SUCCESS" && res.data) {
-          const rawRecords = unwrapRecordsPayload<Record<string, unknown>>(res.data);
+          const rawRecords = unwrapRecordsPayload<unknown>(res.data);
 
           if (Array.isArray(rawRecords) && rawRecords.length > 0) {
             for (const item of rawRecords) {
-              const id = String(item.id || item.recordId || item.code || item.userId || "").trim();
+              const rec = (typeof item === "object" && item !== null) ? (item as Record<string, unknown>) : null;
+              const id = typeof item === "string" ? item.trim() : String(rec?.id || rec?.recordId || rec?.code || rec?.userId || "").trim();
               if (!id) continue;
 
-              const label = String(
-                item.label ||
-                  item.description ||
-                  item.employeeName ||
-                  item.name ||
-                  item.accountTitle1 ||
-                  item["ACCOUNT.TITLE"] ||
+              const label = typeof item === "string" ? id : String(
+                rec?.label ||
+                  rec?.description ||
+                  rec?.employeeName ||
+                  rec?.name ||
+                  rec?.accountTitle1 ||
+                  rec?.["ACCOUNT.TITLE"] ||
                   id,
               );
 
-              const details = item.details
-                ? String(item.details)
-                : item.branchCode
-                  ? `Branch: ${item.branchCode}`
+              const details = rec?.details
+                ? String(rec.details)
+                : rec?.branchCode
+                  ? `Branch: ${rec.branchCode}`
                   : undefined;
 
               mappedItems.push({ id, label, details });
@@ -156,16 +157,17 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
   );
 
   /**
-   * Action 3: Request new record ID sequence from backend ('GNI').
+   * Action 3: Request new record ID sequence or user-defined draft from backend ('GNI').
    */
-  const fetchNewRecordId = React.useCallback(async (): Promise<string> => {
+  const fetchNewRecordId = React.useCallback(async (candidateId?: string): Promise<string> => {
+    const cleanCandidate = (candidateId || "").trim().toUpperCase();
     if (!cleanControl) {
-      return `NEW.${Date.now().toString().slice(-4)}`;
+      return cleanCandidate || `NEW.${Date.now().toString().slice(-4)}`;
     }
 
     setGeneratingId(true);
     try {
-      const payload = cbs.form.getNewRecordId(cleanControl);
+      const payload = cbs.form.getNewRecordId(cleanControl, cleanCandidate || undefined);
       const res = await cbs.send<{ recordId?: string; id?: string }>(payload, { silent: true });
 
       if (res.status === "SUCCESS" && res.data) {
@@ -174,15 +176,15 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
           return allocatedId;
         }
       }
+
+      // If backend returned error (e.g. 400 userDefineId requires candidate ID), return empty string so caller doesn't fake an ID
+      return "";
     } catch (err: unknown) {
       console.warn(`[useRecordLookup] GNI sequence request failed for ${cleanControl}:`, err);
+      return "";
     } finally {
       setGeneratingId(false);
     }
-
-    // Graceful offline fallback
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000).toString();
-    return `${cleanControl}.${randomSuffix}`;
   }, [cleanControl]);
 
   return {

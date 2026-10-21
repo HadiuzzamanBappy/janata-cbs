@@ -78,6 +78,75 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           const firstSec = res.data.presentation?.sections?.[0];
           setSelectedSectionId(firstSec?.id || null);
           setSelectedFieldId(firstSec?.fields?.[0]?.id || null);
+          return;
+        }
+
+        if (targetMode === "I") {
+          const targetModel = cleanId.split(",")[0].trim();
+          const version = cleanId.split(",")[1]?.trim() || "1.0.0";
+          const draft: FormConfigRecord = {
+            ...INITIAL_FORM_CONFIG,
+            targetModel,
+            version,
+            title: `${targetModel} Form (${version})`,
+            presentation: {
+              steps: [],
+              sections: [
+                {
+                  id: "general_sec",
+                  title: "General Information",
+                  type: "standard",
+                  zone: "standard",
+                  columns: 2,
+                  collapsible: false,
+                  isCollapsed: false,
+                  fields: [],
+                },
+              ],
+            },
+          };
+          hydrate(draft);
+          setMode("I");
+          setSelectedSectionId("general_sec");
+          toast.add({
+            title: "New Form Config Draft",
+            description: `Initialized layout draft for #${cleanId}.`,
+            type: "info",
+          });
+        }
+      } catch {
+        if (targetMode === "I") {
+          const targetModel = cleanId.split(",")[0].trim();
+          const version = cleanId.split(",")[1]?.trim() || "1.0.0";
+          const draft: FormConfigRecord = {
+            ...INITIAL_FORM_CONFIG,
+            targetModel,
+            version,
+            title: `${targetModel} Form (${version})`,
+            presentation: {
+              steps: [],
+              sections: [
+                {
+                  id: "general_sec",
+                  title: "General Information",
+                  type: "standard",
+                  zone: "standard",
+                  columns: 2,
+                  collapsible: false,
+                  isCollapsed: false,
+                  fields: [],
+                },
+              ],
+            },
+          };
+          hydrate(draft);
+          setMode("I");
+          setSelectedSectionId("general_sec");
+          toast.add({
+            title: "New Form Config Draft",
+            description: `Initialized layout draft for #${cleanId}.`,
+            type: "info",
+          });
         }
       } finally {
         setLoading(false);

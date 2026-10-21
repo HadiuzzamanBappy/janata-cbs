@@ -26,6 +26,8 @@ export function useFormSpec(command: string) {
 
     try {
       const cleanCmd = command.trim().toUpperCase();
+      const hasExplicitVersion =
+        cleanCmd.includes(",") && cleanCmd.split(",")[1].trim().length > 0;
       const baseModel = cleanCmd.split(",")[0].trim();
       const layoutCode = cleanCmd;
 
@@ -43,29 +45,24 @@ export function useFormSpec(command: string) {
       const model = modelRes.data;
       setModelRecord(model);
 
-      // 2. Fetch Form layout presentation from CBS Form Config (if defined)
+      // 2. Fetch Form layout presentation from CBS Form Config ONLY when explicit MODEL,VERSION is specified
       let formConfig: FormConfigRecord | null = null;
-      try {
+      if (hasExplicitVersion) {
         const formRes = await cbs.send<FormConfigRecord>(cbs.formConfig.get(layoutCode), {
           silent: true,
         });
         if (formRes.status === "SUCCESS" && formRes.data) {
           formConfig = formRes.data;
-        } else if (layoutCode !== `FC.${layoutCode}`) {
-          // Try prefixed fallback "FC.<COMMAND>"
-          const fallbackRes = await cbs.send<FormConfigRecord>(
-            cbs.formConfig.get(`FC.${layoutCode}`),
-            { silent: true },
+        } else {
+          throw new Error(
+            `Form configuration "${layoutCode}" is not registered in FORM.CONFIG`,
           );
-          if (fallbackRes.status === "SUCCESS" && fallbackRes.data) {
-            formConfig = fallbackRes.data;
-          }
         }
-      } catch {
-        // Safe: fallback to canonical dynamic 12-column grid layout
       }
 
       // 3. Compile Model + Layout into canonical CompiledFormSpec
+      // - When cleanCmd is direct model (e.g. "ACCOUNT"): formConfig is null -> renders raw model field spec
+      // - When cleanCmd is versioned (e.g. "ACCOUNT,1.0.0"): compiles customized layout against the model
       const compiled = compileFormSpec(model, formConfig);
       setSpec(compiled);
     } catch (err) {

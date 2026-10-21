@@ -1,7 +1,9 @@
+import { CalendarIcon } from "lucide-react";
 import * as React from "react";
-import { DatePicker } from "@/components/ui/date-picker";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -70,6 +72,31 @@ function useModelLookup(param: FormFieldParameter | undefined) {
   }, [param?.type, param?.modelName, param?.reference, param?.displayField]);
 
   return { modelOptions, loading };
+}
+
+function getFieldWidthStyle(length?: number, widget?: string): React.CSSProperties | undefined {
+  if (
+    widget === "switch" ||
+    widget === "radio" ||
+    widget === "radio-group" ||
+    widget === "checkbox-group"
+  ) {
+    return undefined; // Natural content width
+  }
+  if (widget === "textarea") {
+    return { width: "100%", maxWidth: "600px" };
+  }
+  if (widget === "date") {
+    const ch = typeof length === "number" && length > 0 ? Math.max(length + 5, 16) : 16;
+    return { width: `${ch}ch`, maxWidth: "100%" };
+  }
+  if (typeof length === "number" && length > 0) {
+    // 1ch is approx the width of glyph '0'. Length + 4ch allows content + internal padding.
+    const ch = Math.max(length + 4, 10);
+    return { width: `${ch}ch`, maxWidth: "100%" };
+  }
+  // Standard compact fallback width when length is unspecified
+  return { width: "32ch", maxWidth: "100%" };
 }
 
 export function UnifiedFieldFactory({
@@ -151,15 +178,18 @@ export function UnifiedFieldFactory({
   };
 
   const widget = field.widget || "text";
+  const inputStyle = React.useMemo(() => {
+    return getFieldWidthStyle(field.length, widget);
+  }, [field.length, widget]);
 
   return (
     <div className="space-y-1">
-      {/* Scanline row: Label (w-32) + Colon + Input Widget */}
+      {/* Scanline row: Label (w-40) + Colon + Input Widget */}
       <div className="flex items-center gap-2">
         <Label
           htmlFor={field.id}
           className={cn(
-            "w-32 shrink-0 text-xs select-none",
+            "w-40 shrink-0 text-xs select-none",
             error
               ? "text-destructive font-semibold"
               : field.required
@@ -177,9 +207,12 @@ export function UnifiedFieldFactory({
 
         {/* View Mode: Read-Only Text Badge */}
         {isViewMode ? (
-          <div className="h-7 flex items-center px-2 rounded text-xs bg-muted/15 border border-border/80 font-mono text-foreground font-medium select-text w-full flex-1">
+          <div
+            style={inputStyle}
+            className="h-7 flex items-center px-2 rounded text-xs bg-muted/15 border border-border/80 font-mono text-foreground font-medium select-text"
+          >
             {value !== undefined && value !== null && value !== "" ? (
-              <span>
+              <span className="truncate">
                 {resolvedOptions.find((o) => o.code === String(value))?.label ?? String(value)}
               </span>
             ) : (
@@ -188,30 +221,32 @@ export function UnifiedFieldFactory({
           </div>
         ) : widget === "select" ? (
           /* Select Dropdown */
-          <Select
-            disabled={isReadOnly || modelLoading}
-            value={String(value ?? "")}
-            onValueChange={handleSelectOrRadioChange}
-          >
-            <SelectTrigger
-              id={field.id}
-              className={cn(
-                "h-7 text-xs bg-background rounded border-border/80 w-full flex-1",
-                error && "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
-              )}
+          <div style={inputStyle} className="min-w-32">
+            <Select
+              disabled={isReadOnly || modelLoading}
+              value={String(value ?? "")}
+              onValueChange={handleSelectOrRadioChange}
             >
-              <SelectValue
-                placeholder={modelLoading ? "Loading options..." : `Select ${field.label}`}
-              />
-            </SelectTrigger>
-            <SelectContent className="z-50 text-xs font-sans">
-              {resolvedOptions.map((opt) => (
-                <SelectItem key={opt.code} value={opt.code} className="text-xs">
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger
+                id={field.id}
+                className={cn(
+                  "h-7 text-xs bg-background rounded border-border/80 w-full",
+                  error && "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
+                )}
+              >
+                <SelectValue
+                  placeholder={modelLoading ? "Loading options..." : `Select ${field.label}`}
+                />
+              </SelectTrigger>
+              <SelectContent className="z-50 text-xs font-sans">
+                {resolvedOptions.map((opt) => (
+                  <SelectItem key={opt.code} value={opt.code} className="text-xs">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         ) : widget === "radio-group" ? (
           /* Radio Group Tabs / Segmented Buttons */
           <div className="inline-flex rounded border border-border/80 p-0.5 bg-muted/30 gap-0.5">
@@ -304,7 +339,7 @@ export function UnifiedFieldFactory({
           </div>
         ) : widget === "textarea" ? (
           /* Textarea */
-          <div className="w-full flex-1">
+          <div style={inputStyle}>
             <Textarea
               rows={2}
               id={field.id}
@@ -317,7 +352,7 @@ export function UnifiedFieldFactory({
           </div>
         ) : widget === "amount" ? (
           /* Currency Amount */
-          <div className="relative flex items-center w-full flex-1">
+          <div style={inputStyle} className="relative flex items-center min-w-32">
             {field.currencyPrefix && (
               <span className="absolute left-2 text-[10px] font-mono text-muted-foreground select-none">
                 {field.currencyPrefix}
@@ -330,25 +365,57 @@ export function UnifiedFieldFactory({
               value={String(value ?? "")}
               onChange={(e) => onChange(field.fieldKey, e.target.value)}
               className={cn(
-                "h-7 text-xs font-mono bg-background rounded border-border/80",
+                "h-7 text-xs font-mono bg-background rounded border-border/80 w-full",
                 field.currencyPrefix && "pl-9",
                 error && "border-destructive",
               )}
             />
           </div>
         ) : widget === "date" ? (
-          /* Date Picker */
-          <div className="w-full flex-1">
-            <DatePicker
+          /* Manual Typeable Date Input with Calendar Popover Helper */
+          <div style={inputStyle} className="relative flex items-center min-w-32">
+            <Input
+              type="text"
+              id={field.id}
               disabled={isReadOnly}
-              date={parseDateValue(value)}
-              onSelect={handleDateChange}
-              placeholder={field.placeholder || "Select date"}
+              placeholder={field.placeholder || "YYYY-MM-DD"}
+              value={String(value ?? "")}
+              onChange={(e) => onChange(field.fieldKey, e.target.value)}
+              maxLength={10}
+              className={cn(
+                "h-7 text-xs font-mono bg-background rounded border-border/80 w-full pr-7",
+                error && "border-destructive",
+              )}
             />
+            {!isReadOnly && (
+              <Popover>
+                <PopoverTrigger
+                  render={
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      className="absolute right-1.5 p-0.5 text-muted-foreground hover:text-foreground cursor-pointer rounded"
+                      title="Open calendar helper"
+                    />
+                  }
+                >
+                  <CalendarIcon className="size-3.5" />
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-50" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={parseDateValue(value)}
+                    onSelect={(d) => {
+                      handleDateChange(d);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         ) : (
           /* Standard Input (Text or Number) */
-          <div className="w-full flex-1">
+          <div style={inputStyle}>
             <Input
               type={widget === "number" ? "number" : "text"}
               id={field.id}
@@ -364,7 +431,7 @@ export function UnifiedFieldFactory({
                 )
               }
               className={cn(
-                "h-7 text-xs bg-background rounded border-border/80",
+                "h-7 text-xs bg-background rounded border-border/80 w-full",
                 error && "border-destructive",
               )}
             />
@@ -373,9 +440,9 @@ export function UnifiedFieldFactory({
       </div>
 
       {/* Field Error Message */}
-      {error && <div className="text-[11px] text-destructive pl-36 font-medium">{error}</div>}
+      {error && <div className="text-[11px] text-destructive pl-44 font-medium">{error}</div>}
       {field.helperText && !error && (
-        <div className="text-[11px] text-muted-foreground/70 pl-36">{field.helperText}</div>
+        <div className="text-[11px] text-muted-foreground/70 pl-44">{field.helperText}</div>
       )}
     </div>
   );

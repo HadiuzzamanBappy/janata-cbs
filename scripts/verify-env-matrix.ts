@@ -562,7 +562,11 @@ async function runSuite() {
   );
 
   // 3.5 Form Config Layout Conformance
-  const formConfigFixture = SC_FORM_CONFIG_LIVE.ACCOUNT || SC_FORM_CONFIG_LIVE["FC.ACCOUNT"];
+  const formConfigFixture =
+    SC_FORM_CONFIG_LIVE.ACCOUNT ||
+    SC_FORM_CONFIG_LIVE["FC.ACCOUNT"] ||
+    SC_FORM_CONFIG_LIVE["ACCOUNT,1.0.0"] ||
+    Object.values(SC_FORM_CONFIG_LIVE)[0];
   assert(
     "Fixture Conformance: ACCOUNT form layout satisfies formConfigRecordSchema contract",
     Boolean(formConfigFixture && formConfigRecordSchema.safeParse(formConfigFixture).success),

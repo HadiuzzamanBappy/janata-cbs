@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ContextMenu,
   ContextMenuContent,
+  ContextMenuGroup,
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
@@ -15,6 +16,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -193,6 +195,7 @@ export function TabItem({
           >
             <TabMenuItems
               tab={tab}
+              GroupComponent={DropdownMenuGroup}
               ItemComponent={DropdownMenuItem}
               LabelComponent={DropdownMenuLabel}
               SeparatorComponent={DropdownMenuSeparator}
@@ -232,6 +235,7 @@ export function TabItem({
       <ContextMenuContent className="w-52 text-xs border border-border/80">
         <TabMenuItems
           tab={tab}
+          GroupComponent={ContextMenuGroup}
           ItemComponent={ContextMenuItem}
           LabelComponent={ContextMenuLabel}
           SeparatorComponent={ContextMenuSeparator}

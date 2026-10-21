@@ -70,38 +70,40 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
   };
 
   return (
-    <div className="space-y-4">
-      {/* Informative Preview Header */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-xs bg-muted/40 font-mono">
-            {String(formData.recordId || targetModelRecord.tableName || "PREVIEW")}
-          </Badge>
-          {Boolean(formData.title) && (
-            <span className="text-xs font-semibold text-foreground">{String(formData.title)}</span>
-          )}
-          {Boolean(formData.version) && (
-            <span className="text-xs text-muted-foreground font-mono">
-              v{String(formData.version)}
-            </span>
-          )}
-          <Badge variant="secondary" className="text-[10px] font-mono">
-            Model: {targetModelRecord.tableName || targetModelRecord.recordId}
-          </Badge>
+    <div className="h-full flex-1 overflow-y-auto pr-1">
+      <div className="space-y-4 pb-8">
+        {/* Informative Preview Header */}
+        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs bg-muted/40 font-mono">
+              {String(formData.recordId || targetModelRecord.tableName || "PREVIEW")}
+            </Badge>
+            {Boolean(formData.title) && (
+              <span className="text-xs font-semibold text-foreground">{String(formData.title)}</span>
+            )}
+            {Boolean(formData.version) && (
+              <span className="text-xs text-muted-foreground font-mono">
+                v{String(formData.version)}
+              </span>
+            )}
+            <Badge variant="secondary" className="text-[10px] font-mono">
+              Model: {targetModelRecord.tableName || targetModelRecord.recordId}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/20 px-2 py-0.5 rounded border border-border/40">
+            <Sparkles className="size-3 text-primary" />
+            <span>Live Form Engine Preview ({spec.fields.length} active fields)</span>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/20 px-2 py-0.5 rounded border border-border/40">
-          <Sparkles className="size-3 text-primary" />
-          <span>Live Form Engine Preview ({spec.fields.length} active fields)</span>
-        </div>
-      </div>
 
-      {/* Unified Form Engine Execution */}
-      <FormRenderer
-        presentation={spec.presentation}
-        values={formValues}
-        onChange={handleInputChange}
-        mode="I"
-      />
+        {/* Unified Form Engine Execution */}
+        <FormRenderer
+          presentation={spec.presentation}
+          values={formValues}
+          onChange={handleInputChange}
+          mode="I"
+        />
+      </div>
     </div>
   );
 }

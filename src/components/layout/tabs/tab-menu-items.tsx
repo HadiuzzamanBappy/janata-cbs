@@ -2,12 +2,14 @@
 
 import { Copy, ExternalLink, X, XCircle, XSquare } from "lucide-react";
 import type * as React from "react";
+import { Fragment } from "react";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { WorkbenchTab } from "@/store";
 import { useAlertStore, useWorkbenchStore } from "@/store";
 
 export interface TabMenuActionProps {
   tab: WorkbenchTab;
+  GroupComponent?: React.ElementType;
   ItemComponent: React.ElementType;
   LabelComponent: React.ElementType;
   SeparatorComponent: React.ElementType;
@@ -16,6 +18,7 @@ export interface TabMenuActionProps {
 
 export function TabMenuItems({
   tab,
+  GroupComponent = Fragment,
   ItemComponent,
   LabelComponent,
   SeparatorComponent,
@@ -105,11 +108,15 @@ export function TabMenuItems({
     navigator.clipboard.writeText(code).catch(() => {});
   };
 
+  const Group = GroupComponent;
+
   return (
     <>
-      <LabelComponent className="truncate text-xs font-semibold text-foreground">
-        {tab.title}
-      </LabelComponent>
+      <Group>
+        <LabelComponent className="truncate text-xs font-semibold text-foreground">
+          {tab.title}
+        </LabelComponent>
+      </Group>
       <SeparatorComponent />
 
       <ItemComponent

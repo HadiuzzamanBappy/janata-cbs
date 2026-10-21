@@ -106,20 +106,20 @@ export function handleGetRecord(payload: CbsWirePayload): ApiResponse {
   const upperId = recId.toUpperCase();
   const hasVersion = upperId.includes(",");
   const baseKey = upperId.split(",")[0].trim();
-  const versionKey = hasVersion ? upperId.split(",")[1].trim() : "1.0.0";
-  const compositeKey = `${baseKey},${versionKey}`;
+  const versionKey = hasVersion ? upperId.split(",")[1].trim() : "";
+  const compositeKey = hasVersion ? `${baseKey},${versionKey}` : "";
 
   const matchingKey =
     (table.LIVE[recId] ? recId : null) ||
     (table.LIVE[upperId] ? upperId : null) ||
-    (table.LIVE[compositeKey] ? compositeKey : null) ||
-    (table.LIVE[baseKey] ? baseKey : null) ||
+    (compositeKey && table.LIVE[compositeKey] ? compositeKey : null) ||
+    (!hasVersion && table.LIVE[baseKey] ? baseKey : null) ||
     (table.prefix && table.LIVE[`${table.prefix}${recId}`] ? `${table.prefix}${recId}` : null) ||
     (table.prefix && table.LIVE[`${table.prefix}${upperId}`]
       ? `${table.prefix}${upperId}`
       : null) ||
     Object.keys(table.LIVE).find(
-      (k) => k.toUpperCase() === upperId || k.toUpperCase() === compositeKey,
+      (k) => k.toUpperCase() === upperId || (compositeKey && k.toUpperCase() === compositeKey),
     );
 
   const rawRecord = matchingKey ? table.LIVE[matchingKey] : null;

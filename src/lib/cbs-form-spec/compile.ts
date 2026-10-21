@@ -47,7 +47,7 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
       modelType: p.type,
       length: p.length,
       parameter: p.parameter,
-      colSpan: colSpanForLength(p),
+      colSpan: 12,
       required: p.required,
       readOnly: p.disabled,
       placeholder:
@@ -58,11 +58,11 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
     sections.push({
       id: "sec_default",
       title: model.description || model.tableName || "General Attributes",
-      description: "Default responsive grid layout",
+      description: "Raw Model Field Specifications",
       type: "standard",
       zone: "standard",
       layoutStyle: "card",
-      columns: 2,
+      columns: 1,
       collapsible: false,
       isCollapsed: false,
       fields: rootFields,

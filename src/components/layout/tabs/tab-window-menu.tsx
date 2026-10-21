@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   ContextMenu,
   ContextMenuContent,
+  ContextMenuGroup,
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
@@ -127,6 +128,7 @@ function TabWindowMenuItem({
         <ContextMenuContent className="w-52 text-xs border border-border/80">
           <TabMenuItems
             tab={tab}
+            GroupComponent={ContextMenuGroup}
             ItemComponent={ContextMenuItem}
             LabelComponent={ContextMenuLabel}
             SeparatorComponent={ContextMenuSeparator}

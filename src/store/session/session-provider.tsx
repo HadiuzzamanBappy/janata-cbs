@@ -8,6 +8,7 @@ import { logger } from "@/lib/core-logger";
 import { createSessionStore, type SessionState, type SessionStore } from "./session-store";
 
 let activeSessionStore: SessionStore | null = null;
+let sessionFetchPromise: Promise<unknown> | null = null;
 
 export function getActiveSessionStore(): SessionStore | null {
   return activeSessionStore;
@@ -30,20 +31,25 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
     const store = storeRef.current;
     if (!store) return;
 
-    // Universal session hydration across all windows & popups
+    // Universal session hydration across all windows & popups (deduplicated against React StrictMode & multiple mounts)
     if (!store.getState().user) {
-      fetch(appConfig.routes.api.session)
-        .then((res) => res.json())
-        .then((json) => {
-          const user = json.data || json.currUser;
-          if (json.success && user) {
-            store.getState().setSession(user);
-            if (user.branchCode && !store.getState().currentBranch) {
-              store.getState().setBranch(user.branchCode);
+      if (!sessionFetchPromise) {
+        sessionFetchPromise = fetch(appConfig.routes.api.session)
+          .then((res) => res.json())
+          .then((json) => {
+            const user = json.data || json.currUser;
+            if (json.success && user) {
+              store.getState().setSession(user);
+              if (user.branchCode && !store.getState().currentBranch) {
+                store.getState().setBranch(user.branchCode);
+              }
             }
-          }
-        })
-        .catch((err) => logger.error("Failed to hydrate session", err, "SESSION_PROVIDER"));
+          })
+          .catch((err) => logger.error("Failed to hydrate session", err, "SESSION_PROVIDER"))
+          .finally(() => {
+            sessionFetchPromise = null;
+          });
+      }
     }
 
     return registerCommandAdapter({

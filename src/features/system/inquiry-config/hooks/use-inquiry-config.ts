@@ -69,9 +69,6 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     }
   }, []);
 
-  React.useEffect(() => {
-    refreshInquiries();
-  }, [refreshInquiries]);
 
   // 2. Column / Filter / Action State Modifiers
   const updateConfig = React.useCallback(

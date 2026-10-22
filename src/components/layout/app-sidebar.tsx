@@ -21,6 +21,9 @@ import { useSessionStore } from "@/store";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
 
+let cachedMenuTreeNodes: TreeNode[] | null = null;
+let menuFetchPromise: Promise<TreeNode[]> | null = null;
+
 export function AppSidebar({ ...props }: AppSidebarProps) {
   const [treeNodes, setTreeNodes] = React.useState<TreeNode[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -28,30 +31,8 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [settingsTab, setSettingsTab] = React.useState("profile");
 
-  const { user, currentBranch, setSession, setBranch, logout } = useSessionStore();
-  const [userLoading, setUserLoading] = React.useState<boolean>(!user);
-
-  React.useEffect(() => {
-    // Hydrate User Session
-    if (!user) {
-      setUserLoading(true);
-      fetch(appConfig.routes.api.session)
-        .then((res) => res.json())
-        .then((json) => {
-          const userData = json.data || json.currUser;
-          if (json.success && userData) {
-            setSession(userData);
-            if (userData.branchCode && !currentBranch) {
-              setBranch(userData.branchCode);
-            }
-          }
-        })
-        .catch((err) => logger.error("Failed to hydrate session", err, "SIDEBAR"))
-        .finally(() => setUserLoading(false));
-    } else {
-      setUserLoading(false);
-    }
-  }, [user, currentBranch, setSession, setBranch]);
+  const { user, logout } = useSessionStore();
+  const userLoading = !user;
 
   useHotkeys("ctrl+k", () => setSearchOpen((prev) => !prev), {
     enableOnFormTags: true,
@@ -63,13 +44,33 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
   };
 
   React.useEffect(() => {
+    if (cachedMenuTreeNodes) {
+      setTreeNodes(cachedMenuTreeNodes);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    fetch(appConfig.routes.api.menu)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && Array.isArray(json.data)) {
-          setTreeNodes(json.data.map(mapMenuItemToTreeNode));
-        }
+
+    if (!menuFetchPromise) {
+      menuFetchPromise = fetch(appConfig.routes.api.menu)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && Array.isArray(json.data)) {
+            const nodes = json.data.map(mapMenuItemToTreeNode);
+            cachedMenuTreeNodes = nodes;
+            return nodes;
+          }
+          return [];
+        })
+        .finally(() => {
+          menuFetchPromise = null;
+        });
+    }
+
+    menuFetchPromise
+      .then((nodes) => {
+        setTreeNodes(nodes);
       })
       .catch((err) => {
         logger.error("Failed to load sidebar menu API", err, "SIDEBAR");

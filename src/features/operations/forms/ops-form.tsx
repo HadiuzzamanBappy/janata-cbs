@@ -3,7 +3,6 @@
 import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { FormKernelProvider } from "@/features/form-engine";
-import { cbs } from "@/lib/cbs-client";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { getDefaultMoreActions, useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
@@ -84,37 +83,9 @@ export function OpsForm({
     onReturn,
   });
 
-  // Available records catalog loaded live from CBS Client
-  const [availableItems, setAvailableItems] = React.useState<
-    Array<{ id: string; label: string; details?: string }>
-  >([]);
+  // Available records catalog fallback (SBI handles dynamic records on demand)
+  const availableItems = React.useMemo(() => [], []);
 
-  React.useEffect(() => {
-    if (!spec?.code) return;
-    let mounted = true;
-    cbs
-      .send<Array<{ id: string; label?: string; details?: string }>>(cbs.model(spec.code).list(), {
-        silent: true,
-      })
-      .then((res) => {
-        if (mounted && res.status === "SUCCESS" && Array.isArray(res.data)) {
-          setAvailableItems(
-            res.data.map((item) => ({
-              id: item.id,
-              label: item.label || item.id,
-              details: item.details,
-            })),
-          );
-        }
-      })
-      .catch(() => {
-        // Fallback gracefully
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [spec?.code]);
 
   // Subscribe to real-time mutations of this entity
   useRecordMutationSubscriber((mutation) => {

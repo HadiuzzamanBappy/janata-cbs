@@ -24,6 +24,9 @@ interface BranchSwitcherProps {
   align?: "start" | "center" | "end";
 }
 
+let cachedBranches: Array<{ code: string; name: string; type: string }> | null = null;
+let branchesFetchPromise: Promise<Array<{ code: string; name: string; type: string }>> | null = null;
+
 export function BranchSwitcher({
   className,
   triggerClassName,
@@ -41,20 +44,36 @@ export function BranchSwitcher({
   const loadBranches = React.useCallback(() => {
     setBranchLoading(true);
     setBranchError(null);
-    fetch(appConfig.routes.api.branches)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && Array.isArray(json.data)) {
-          setBranches(
-            json.data.map((b: { recordId: string; branchTitle: string }) => ({
+
+    if (cachedBranches) {
+      setBranches(cachedBranches);
+      setBranchLoading(false);
+      return;
+    }
+
+    if (!branchesFetchPromise) {
+      branchesFetchPromise = fetch(appConfig.routes.api.branches)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && Array.isArray(json.data)) {
+            const mapped = json.data.map((b: { recordId: string; branchTitle: string }) => ({
               code: b.recordId,
               name: b.branchTitle,
               type: b.recordId === appConfig.centralBranch ? "Head Office" : "General",
-            })),
-          );
-        } else {
-          setBranchError(json.error || "Failed to load branch list");
-        }
+            }));
+            cachedBranches = mapped;
+            return mapped;
+          }
+          throw new Error(json.error || "Failed to load branch list");
+        })
+        .finally(() => {
+          branchesFetchPromise = null;
+        });
+    }
+
+    branchesFetchPromise
+      .then((data) => {
+        setBranches(data);
       })
       .catch((err) => {
         setBranchError(err?.message || "Failed to connect to branch service");

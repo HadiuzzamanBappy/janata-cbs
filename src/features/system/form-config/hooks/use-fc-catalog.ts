@@ -22,7 +22,7 @@ export interface ModelCatalogItem {
 export function useFcCatalog() {
   const [availableForms, setAvailableForms] = React.useState<FormCatalogItem[]>([]);
   const [availableModels, setAvailableModels] = React.useState<ModelCatalogItem[]>([]);
-  const [loadingCatalog, setLoadingCatalog] = React.useState<boolean>(false);
+  const loadingCatalog = false;
 
   const refreshForms = React.useCallback(async () => {
     try {
@@ -70,16 +70,6 @@ export function useFcCatalog() {
     }
   }, []);
 
-  React.useEffect(() => {
-    let mounted = true;
-    setLoadingCatalog(true);
-    Promise.all([refreshForms(), refreshModels()]).finally(() => {
-      if (mounted) setLoadingCatalog(false);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, [refreshForms, refreshModels]);
 
   // Subscribe to cross-tab updates for FORM.CONFIG and MODEL.CONFIG
   useRecordMutationSubscriber(() => {

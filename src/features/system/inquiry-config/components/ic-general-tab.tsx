@@ -50,9 +50,7 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
     properties: [],
   });
 
-  const [availableModels, setAvailableModels] = React.useState<
-    Array<{ id: string; label: string }>
-  >([]);
+  const availableModels: Array<{ id: string; label: string }> = [];
 
   React.useEffect(() => {
     let mounted = true;
@@ -64,14 +62,6 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
         });
         if (mounted && res.status === "SUCCESS" && res.data) {
           setModelDef(res.data);
-        }
-
-        const listRes = await cbs.send<Array<{ id: string; label: string }>>(
-          cbs.modelConfig.list(),
-          { silent: true },
-        );
-        if (mounted && listRes.status === "SUCCESS" && listRes.data && listRes.data.length > 0) {
-          setAvailableModels(listRes.data);
         }
       } catch {
         // Safe fallback

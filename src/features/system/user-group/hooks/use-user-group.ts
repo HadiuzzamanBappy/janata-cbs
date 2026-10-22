@@ -317,10 +317,12 @@ export function useUserGroup(initialId?: string, tabId?: string) {
     }
   }, [mode]);
 
+  // Fetch menus only when a record is being viewed or edited (not in passive IDLE state)
   React.useEffect(() => {
-    fetchMenus();
-    fetchGroups();
-  }, [fetchMenus, fetchGroups]);
+    if (mode !== "IDLE") {
+      fetchMenus();
+    }
+  }, [mode, fetchMenus]);
 
   const hasLoadedInitialRef = React.useRef(false);
   React.useEffect(() => {

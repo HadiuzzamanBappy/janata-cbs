@@ -10,7 +10,6 @@ import {
   type ModelConfigRecord,
   type ModelProperty,
 } from "@/lib/data-schemas";
-import { validateLayoutAgainstModel } from "./validate";
 
 /* -------------------------------------------------------------------------- */
 /* Layout Generation Utilities                                                */
@@ -150,10 +149,7 @@ export function compileFormSpec(
   }
 
   // Case B: Custom Layout Composition
-  const issues = validateLayoutAgainstModel(model, layout);
-  const isStale = issues.length > 0;
-
-  // Build model property lookup index
+  // With append-only model evolution, layouts are directly composed against model properties
   const propertyMap = new Map((model.properties || []).map((p) => [p.name.toLowerCase(), p]));
 
   const cleanSections: FormSection[] = [];
@@ -203,7 +199,7 @@ export function compileFormSpec(
     targetModel: modelCode,
     version: layout.version || "1.0.0",
     layoutSource: "custom",
-    isStale,
+    isStale: false,
     idPrefix,
     idDef: model.idDef,
     fields: flatFields,

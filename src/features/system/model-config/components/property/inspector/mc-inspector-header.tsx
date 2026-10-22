@@ -1,11 +1,10 @@
 "use client";
 
-import { Archive, ArchiveRestore, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import * as React from "react";
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 interface McInspectorHeaderProps {
@@ -73,37 +72,16 @@ export function McInspectorHeader({
             {property.type} • {property.structure === "M" ? "Multi" : "Single"}
           </Badge>
 
-          {!isReadOnly && (
+          {!isReadOnly && !isCommitted && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => setDeleteConfirmOpen(true)}
-              className={cn(
-                "h-6.5 text-xs rounded gap-1 px-2 ml-1",
-                isArchived
-                  ? "text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
-                  : !isCommitted
-                    ? "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    : "text-amber-600 hover:text-amber-600 hover:bg-amber-500/10 dark:text-amber-400",
-              )}
+              className="h-6.5 text-xs rounded gap-1 px-2 ml-1 text-destructive hover:text-destructive hover:bg-destructive/10"
             >
-              {!isCommitted ? (
-                <>
-                  <Trash2 className="size-3.5" />
-                  <span>Delete</span>
-                </>
-              ) : isArchived ? (
-                <>
-                  <ArchiveRestore className="size-3.5" />
-                  <span>Restore</span>
-                </>
-              ) : (
-                <>
-                  <Archive className="size-3.5" />
-                  <span>Archive</span>
-                </>
-              )}
+              <Trash2 className="size-3.5" />
+              <span>Delete Draft</span>
             </Button>
           )}
         </div>
@@ -112,23 +90,15 @@ export function McInspectorHeader({
       <ConfirmDialog
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
-        title={
-          !isCommitted ? "Delete Draft Field?" : isArchived ? "Restore Field?" : "Archive Field?"
-        }
+        title="Delete Draft Field?"
         description={
-          <span className="text-xs text-muted-foreground leading-relaxed block space-y-1">
-            <span>
-              {!isCommitted
-                ? `Permanently delete field #${property.sn} (${property.name})? Since this field has not been saved or committed yet, it will be removed entirely.`
-                : isArchived
-                  ? `Restore field #${property.sn} (${property.name}) back to active status?`
-                  : `In Core Banking, committed field #${property.sn} (${property.name}) will be marked ARCHIVED. Its historical data mapping and physical column position are permanently preserved.`}
-            </span>
+          <span className="text-xs text-muted-foreground leading-relaxed block">
+            Permanently delete draft field #{property.sn} ({property.name || "UNNAMED"})? Since this field has not been saved or committed yet, it will be removed entirely.
           </span>
         }
-        confirmText={!isCommitted ? "Delete" : isArchived ? "Restore" : "Archive"}
+        confirmText="Delete"
         cancelText="Cancel"
-        variant={!isCommitted || !isArchived ? "destructive" : "default"}
+        variant="destructive"
         onConfirm={() => onDelete(property.sn)}
       />
     </>

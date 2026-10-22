@@ -122,8 +122,15 @@ In this Core Banking system, **there is NO RESTful "GET"**. Everything operates 
   * **If model is `userDefineId: false` (System Sequence, e.g. `ACCOUNT`):** Core generates the next sequential unique ID using `idDef.idPrefix` (e.g. `AC1001`, `CU1002`) and returns the fresh record in Input Mode (`I`).
 * **View (`S`) vs Edit (`I`) Invariant:** A newly initialized draft has no committed ledger state; therefore, View (`S`) mode is disabled for new entries. View (`S`) is only valid for committed existing records.
 
-### 5. `INQ` (Inquiry Query Execution)
-* **Purpose:** Executes a filtered data query against the target model and returns flat rows for tabular display.
+### 5. `INQ` (Inquiry Query Execution & Dynamic Schema Resolver)
+* **Purpose:** Core Brain resolver for inquiry execution and schema presentation.
+* **Flow:**
+  * **When custom `INQUIRY.CONFIG` exists:** Core returns the curated inquiry specification (configured columns, custom actions, default filters).
+  * **When no custom `INQUIRY.CONFIG` exists (Raw Model Inquiry):** Core does **NOT** error out. Core synthesizes a dynamic enquiry schema directly from `MODEL.CONFIG`:
+    1. **Columns:** Every property in `model.properties` becomes a table column with appropriate alignment and formatting (Amounts right-aligned, Dates centered, IDs monospaced).
+    2. **Search / Filter Fields:** Every non-disabled property becomes an available criterion in the Filter Builder, allowing user to filter across all columns.
+    3. **Rows:** Core pulls `table.getList()` to deliver table dataset.
+* **Dumb UI Contract:** The UI table engine renders whatever `columns` and `selectionFields` are provided by the Core, without knowing or caring whether the spec was hand-crafted or auto-synthesized.
 
 ### 6. Transactional Mutations (`PUT`, `AUT`, `DEL`, `HLD`, `REV`)
 * Enforces the Four-Eyes principle (`Maker !== Checker`):

@@ -30,8 +30,107 @@ export function getMockFormPayload(command: string): unknown {
 }
 
 export function getMockInquiryPayload(command: string): unknown {
-  const clean = command.trim().toUpperCase();
-  return SC_INQUIRY_CONFIG_LIVE[clean] || null;
+  const clean = command
+    .trim()
+    .toUpperCase()
+    .replace(/^(?:INQ\s+|INQUIRY\s+)/i, "")
+    .replace(/^(?:[SRIDAH]\s+)/i, "")
+    .trim();
+
+  // 1. If explicit Inquiry Config exists in SC_INQUIRY_CONFIG (e.g. ACCOUNT), return it
+  if (SC_INQUIRY_CONFIG_LIVE[clean]) {
+    return SC_INQUIRY_CONFIG_LIVE[clean];
+  }
+
+  // 2. Fallback: Synthesize raw Model Inquiry from MODEL.CONFIG
+  const model =
+    SC_MODEL_CONFIG_LIVE[clean] ||
+    SC_MODEL_CONFIG_LIVE[clean.replace(/\./g, "_")] ||
+    SC_MODEL_CONFIG_LIVE[clean.replace(/_/g, ".")];
+
+  if (!model) return null;
+
+  // Use model.properties, or fallback to core model definition attributes if properties is empty
+  const rawProps =
+    Array.isArray(model.properties) && model.properties.length > 0
+      ? model.properties
+      : [
+          { sn: "1", name: "tableName", label: "Table Name", type: "Text" as const, length: 50, required: true, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
+          { sn: "2", name: "description", label: "Description", type: "Text" as const, length: 100, required: true, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
+          { sn: "3", name: "category", label: "Category", type: "Text" as const, length: 30, required: false, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
+          { sn: "4", name: "access", label: "Access Level", type: "Text" as const, length: 10, required: true, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
+          { sn: "5", name: "userDefineId", label: "User Defined ID", type: "Boolean" as const, length: 1, required: false, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
+          { sn: "6", name: "isActive", label: "Is Active", type: "Boolean" as const, length: 1, required: false, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
+        ];
+
+  // Build columns from model properties
+  const columns = rawProps.map((prop) => {
+    const isAmount = prop.type?.toLowerCase() === "amount";
+    const isDate = prop.type?.toLowerCase() === "date";
+    const isNumber = prop.type?.toLowerCase() === "number";
+
+    return {
+      id: prop.name,
+      label: prop.label || prop.name,
+      align: isAmount || isNumber ? "right" : isDate ? "center" : "left",
+      width: isAmount ? "140px" : isDate ? "120px" : "150px",
+      format: isAmount ? "amount" : isDate ? "date" : "text",
+      isMono: Boolean(prop.name.toLowerCase().includes("id") || prop.sn === "1"),
+      sortable: true,
+      visible: true,
+      isPinned: false,
+    };
+  });
+
+  // Build filter fields from all non-disabled model properties
+  const filters = rawProps
+    .filter((prop) => !prop.disabled)
+    .map((prop) => {
+      const pType = prop.type?.toLowerCase();
+      const filterType =
+        pType === "date" ? "date" : pType === "number" || pType === "amount" ? "number" : "text";
+
+      return {
+        id: prop.name,
+        label: prop.label || prop.name,
+        type: filterType,
+        defaultOperand: "EQ",
+        defaultValue: "",
+        required: Boolean(prop.required),
+      };
+    });
+
+  // Return synthesized Enquiry spec contract
+  return {
+    id: clean,
+    code: clean,
+    title: `${model.description || clean} Inquiry`,
+    description: `Auto-generated raw model inquiry for ${clean}`,
+    controllerName: clean,
+    pageOrientation: "Landscape",
+    showSerial: true,
+    showPagination: true,
+    columns,
+    filters,
+    actions: [
+      {
+        id: "view_rec",
+        label: "View",
+        targetCommand: `${clean},SEE`,
+        actionType: "view",
+        icon: "eye",
+        openMode: "tab",
+      },
+      {
+        id: "edit_rec",
+        label: "Edit",
+        targetCommand: `${clean},EDIT`,
+        actionType: "edit",
+        icon: "edit",
+        openMode: "tab",
+      },
+    ],
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -124,6 +223,15 @@ export function handleSeeRecord(payload: CbsWirePayload): ApiResponse {
   const rawRecord = matchingKey ? table.LIVE[matchingKey] : null;
 
   if (!rawRecord || !matchingKey) {
+    // If querying INQUIRY.CONFIG table for a model (e.g. MODEL.CONFIG or USER) and no custom inquiry config exists,
+    // dynamically synthesize raw inquiry schema from MODEL.CONFIG properties!
+    if (cmd === "INQUIRY.CONFIG" || cmd === "CONFIG.INQUIRY" || cmd === "INQUIRY_CONFIG") {
+      const fallbackInquiry = getMockInquiryPayload(recId);
+      if (fallbackInquiry) {
+        return successResult(fallbackInquiry, `Synthesized raw model inquiry for ${recId}`);
+      }
+    }
+
     return notFoundResult(`Record #${recId} not found in database table ${cmd}`);
   }
 

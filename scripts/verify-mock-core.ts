@@ -182,7 +182,7 @@ async function runSuite() {
       formRes.status === "SUCCESS" && formOut.targetModel === "ACCOUNT",
     );
 
-    // 7. Tabular Inquiry Rows (INQ)
+    // 7a. Tabular Inquiry Rows (INQ)
     const inqInput = { requestType: "INQ", controlName: "GET.EMP.INFO" };
     const inqRes = getMockProxyResponse("INQ", "GET.EMP.INFO");
     const inqData = inqRes.data as Array<Record<string, unknown>> | undefined;
@@ -192,10 +192,30 @@ async function runSuite() {
       firstRowSample: inqData?.[0] ? { id: inqData[0].userId, name: inqData[0].fullName } : null,
     };
     recordTest(
-      "7. Tabular Inquiry Rows (INQ)",
+      "7a. Tabular Inquiry Rows (INQ)",
       inqInput,
       inqOut,
       inqRes.status === "SUCCESS" && Boolean(inqData && inqData.length > 0),
+    );
+
+    // 7b. Dynamic Raw Model Inquiry Synthesis (INQUIRY.CONFIG -> Fallback to MODEL.CONFIG)
+    const rawInqInput = { requestType: "S", controlName: "INQUIRY.CONFIG", recordId: "MODEL.CONFIG" };
+    const rawInqRes = getMockProxyResponse("S", "INQUIRY.CONFIG", "MODEL.CONFIG");
+    const rawInqData = rawInqRes.data as Record<string, unknown> | undefined;
+    const rawInqOut = {
+      status: rawInqRes.status,
+      id: rawInqData?.id,
+      title: rawInqData?.title,
+      columnsCount: (rawInqData?.columns as unknown[])?.length,
+      filtersCount: (rawInqData?.filters as unknown[])?.length,
+    };
+    recordTest(
+      "7b. Dynamic Raw Model Inquiry Synthesis (INQ MODEL.CONFIG)",
+      rawInqInput,
+      rawInqOut,
+      rawInqRes.status === "SUCCESS" &&
+        rawInqOut.id === "MODEL.CONFIG" &&
+        Number(rawInqOut.columnsCount) > 0,
     );
 
     // 8. Sequence ID Allocation (GNI)

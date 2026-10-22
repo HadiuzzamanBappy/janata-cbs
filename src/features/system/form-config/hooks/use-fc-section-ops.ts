@@ -70,7 +70,23 @@ export function useFcSectionOps(
       };
 
       setFormData((prev) => {
-        const nextSections = [...prev.presentation.sections];
+        // If initialFields contains fields already placed on canvas, remove them from existing sections
+        const newFieldKeys = new Set(initialFields.map((f) => f.fieldKey));
+        const cleanedExistingSections = prev.presentation.sections
+          .map((sec) => ({
+            ...sec,
+            fields: sec.fields.filter((f) => !newFieldKeys.has(f.fieldKey)),
+          }))
+          .filter((sec) => {
+            const isPlainRoot =
+              sec.layoutStyle === "plain" ||
+              !sec.title ||
+              sec.title === "Canvas Root" ||
+              (sec.type === "standard" && sec.zone === "standard" && !sec.title);
+            return !isPlainRoot || sec.fields.length > 0;
+          });
+
+        const nextSections = [...cleanedExistingSections];
         if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= nextSections.length) {
           nextSections.splice(insertIndex, 0, newSection);
         } else {

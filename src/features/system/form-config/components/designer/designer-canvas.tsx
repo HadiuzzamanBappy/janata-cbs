@@ -181,17 +181,17 @@ function CanvasRootDropzone({
         }
       }}
       className={cn(
-        "min-h-12 rounded-lg border-2 border-dashed transition-all flex items-center justify-center text-xs text-muted-foreground/60 my-2",
+        "transition-all flex items-center justify-center text-xs text-muted-foreground/60",
         show
-          ? "border-primary bg-primary/10 text-primary font-medium"
-          : "border-border/40 bg-muted/5 hover:border-border/80",
+          ? "min-h-12 rounded-lg border-2 border-dashed border-primary bg-primary/10 text-primary font-medium my-2"
+          : "h-0 my-0 border-0 opacity-0 overflow-hidden pointer-events-none",
       )}
     >
-      <span>
-        {show
-          ? "↓ Drop directly onto root canvas"
-          : "Canvas Root (Click outside any container to select canvas)"}
-      </span>
+      {show && (
+        <span>
+          ↓ Drop directly onto root canvas
+        </span>
+      )}
     </div>
   );
 }
@@ -451,7 +451,7 @@ export function DesignerCanvas({
     sections.length > 0 &&
     (totalFieldsCount > 0 || sections.some((s) => s.layoutStyle !== "plain" && Boolean(s.title)));
 
-  if (!hasContainersOrFields && sections.length === 0) {
+  if (!hasContainersOrFields) {
     return (
       <EmptyCanvasSplash
         isOver={isCanvasDragOver}

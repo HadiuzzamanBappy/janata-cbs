@@ -70,6 +70,7 @@ export const formFieldItemSchema = z.object({
   // Object group metadata
   groupKey: z.string().optional(), // Parent Object key (e.g. "nominee")
   groupSn: z.string().optional(), // Parent Object SN (e.g. "8")
+  groupLabel: z.string().optional(), // Parent Object Label (e.g. "Nominee Details")
   groupStructure: z.enum(["S", "M"]).optional(), // Parent Object structure ("S" or "M")
   isFirstInGroup: z.boolean().optional(), // True only for the 1st field of the group
   // Binding metadata from MODEL.CONFIG — set when field is placed from palette

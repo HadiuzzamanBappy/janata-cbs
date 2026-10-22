@@ -64,16 +64,33 @@ export function useFcFieldOps(
 
   const removeField = React.useCallback(
     (fieldId: string) => {
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          sections: prev.presentation.sections.map((sec) => ({
+      setFormData((prev) => {
+        const updatedSections = prev.presentation.sections
+          .map((sec) => ({
             ...sec,
             fields: sec.fields.filter((f) => f.id !== fieldId),
-          })),
-        },
-      }));
+          }))
+          // Automatically clean up empty plain root canvas sections (never leave an empty ghost plain root)
+          .filter((sec) => {
+            const isPlainRoot =
+              sec.layoutStyle === "plain" ||
+              !sec.title ||
+              sec.title === "Canvas Root" ||
+              (sec.type === "standard" && sec.zone === "standard" && !sec.title);
+            if (isPlainRoot && sec.fields.length === 0) {
+              return false; // remove ghost plain root
+            }
+            return true;
+          });
+
+        return {
+          ...prev,
+          presentation: {
+            ...prev.presentation,
+            sections: updatedSections,
+          },
+        };
+      });
       setSelectedFieldId(null);
     },
     [setFormData, setSelectedFieldId],

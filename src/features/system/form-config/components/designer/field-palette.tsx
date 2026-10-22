@@ -1,4 +1,4 @@
-import { Columns, Database, Layers, LayoutGrid, Plus } from "lucide-react";
+import { Boxes, ChevronDown, ChevronRight, Columns, Database, Layers, LayoutGrid, Plus } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -136,12 +136,97 @@ export function FieldPalette({
     return modelProperties.filter((p) => usedFieldKeys.has(p.name)).length;
   }, [modelProperties, usedFieldKeys]);
 
-  const displayedProperties = React.useMemo(() => {
-    if (modelFilter === "unplaced") {
-      return modelProperties.filter((p) => !usedFieldKeys.has(p.name));
+  // Group properties into standalone fields and hierarchical object groups
+  type PaletteItem =
+    | { kind: "single"; property: ModelProperty }
+    | { kind: "object-group"; parent: ModelProperty; children: ModelProperty[] };
+
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Record<string, boolean>>({});
+  const toggleGroupCollapse = (sn: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [sn]: !prev[sn] }));
+  };
+
+  const paletteItems: PaletteItem[] = React.useMemo(() => {
+    const objectMap = new Map<string, { parent: ModelProperty; children: ModelProperty[] }>();
+    const childSet = new Set<string>();
+
+    for (const p of modelProperties) {
+      if (p.type === "Object") {
+        objectMap.set(p.sn, { parent: p, children: [] });
+      }
     }
-    return modelProperties;
+
+    for (const p of modelProperties) {
+      if (p.type !== "Object" && p.sn.includes("_")) {
+        const parentSn = p.sn.substring(0, p.sn.lastIndexOf("_"));
+        const parentEntry = objectMap.get(parentSn);
+        if (parentEntry) {
+          parentEntry.children.push(p);
+          childSet.add(p.name);
+        }
+      }
+    }
+
+    const items: PaletteItem[] = [];
+    for (const p of modelProperties) {
+      if (p.type === "Object") {
+        const grp = objectMap.get(p.sn);
+        if (grp) {
+          items.push({ kind: "object-group", parent: grp.parent, children: grp.children });
+        }
+      } else if (!childSet.has(p.name)) {
+        items.push({ kind: "single", property: p });
+      }
+    }
+
+    // Filter by modelFilter ("all" | "unplaced")
+    if (modelFilter === "unplaced") {
+      return items.filter((item) => {
+        if (item.kind === "single") {
+          return !usedFieldKeys.has(item.property.name);
+        }
+        // For object group, show if any child is unplaced or parent is not fully placed
+        return item.children.some((c) => !usedFieldKeys.has(c.name));
+      });
+    }
+
+    return items;
   }, [modelProperties, modelFilter, usedFieldKeys]);
+
+  const handleAddEntireObjectGroup = (parent: ModelProperty, children: ModelProperty[]) => {
+    const initialFields: FormFieldItem[] = children.map((child, idx) => {
+      const mapped = mapPropertyToWidget(child);
+      return {
+        id: `f_${child.name}_${Date.now()}_${idx}`,
+        fieldKey: child.name,
+        label: child.label,
+        widget: mapped.widget,
+        currencyPrefix: mapped.currencyPrefix,
+        colSpan: 12,
+        options: mapped.options,
+        modelType: mapped.modelType,
+        parameter: mapped.parameter,
+        structure: child.structure || "S",
+        groupKey: parent.name,
+        groupSn: parent.sn,
+        groupLabel: parent.label || parent.name,
+        groupStructure: parent.structure,
+        isFirstInGroup: idx === 0,
+      };
+    });
+
+    onAddSection(
+      "object-group",
+      "standard",
+      initialFields,
+      "card",
+      parent.label || parent.name,
+      undefined,
+      undefined,
+      undefined,
+      1,
+    );
+  };
 
   return (
     <div className="w-60 border-r border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0">
@@ -219,52 +304,27 @@ export function FieldPalette({
               <div className="text-[10px] text-muted-foreground italic px-2 py-4 text-center font-mono">
                 Loading schema variables...
               </div>
-            ) : displayedProperties.length > 0 ? (
-              <div className="grid grid-cols-1 gap-1">
-                {displayedProperties.map((prop) => {
-                  const mapped = mapPropertyToWidget(prop);
-                  const isPlaced = usedFieldKeys.has(prop.name);
+            ) : paletteItems.length > 0 ? (
+              <div className="space-y-1.5">
+                {paletteItems.map((item) => {
+                  if (item.kind === "single") {
+                    const prop = item.property;
+                    const mapped = mapPropertyToWidget(prop);
+                    const isPlaced = usedFieldKeys.has(prop.name);
 
-                  return (
-                    // biome-ignore lint/a11y/noStaticElementInteractions: Draggable palette variable item
-                    <div
-                      key={prop.name}
-                      draggable={!disabled && !isPlaced}
-                      onDragStart={(e) => {
-                        if (disabled || isPlaced) {
-                          e.preventDefault();
-                          return;
-                        }
-                        const payload = {
-                          type: "palette-variable",
-                          template: {
-                            label: prop.label,
-                            fieldKey: prop.name,
-                            widget: mapped.widget,
-                            currencyPrefix: mapped.currencyPrefix,
-                            colSpan: 12,
-                            options: mapped.options,
-                            modelType: mapped.modelType,
-                            parameter: mapped.parameter,
-                          },
-                        };
-                        e.dataTransfer.setData("application/json", JSON.stringify(payload));
-                        e.dataTransfer.effectAllowed = "copy";
-                      }}
-                      className={cn(
-                        "flex items-center justify-between px-2 py-1.5 rounded border text-[11px] transition-all",
-                        isPlaced
-                          ? "bg-muted/20 border-emerald-500/30 text-muted-foreground cursor-default"
-                          : "bg-background border-border/70 text-foreground hover:border-primary/50 shadow-2xs cursor-grab active:cursor-grabbing",
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isPlaced) {
-                            onHighlightField?.(prop.name);
-                          } else {
-                            onAddField({
+                    return (
+                      // biome-ignore lint/a11y/noStaticElementInteractions: Draggable palette variable item
+                      <div
+                        key={prop.name}
+                        draggable={!disabled && !isPlaced}
+                        onDragStart={(e) => {
+                          if (disabled || isPlaced) {
+                            e.preventDefault();
+                            return;
+                          }
+                          const payload = {
+                            type: "palette-variable",
+                            template: {
                               label: prop.label,
                               fieldKey: prop.name,
                               widget: mapped.widget,
@@ -273,35 +333,227 @@ export function FieldPalette({
                               options: mapped.options,
                               modelType: mapped.modelType,
                               parameter: mapped.parameter,
-                            });
-                          }
+                              structure: prop.structure || "S",
+                            },
+                          };
+                          e.dataTransfer.setData("application/json", JSON.stringify(payload));
+                          e.dataTransfer.effectAllowed = "copy";
                         }}
-                        className="flex items-center gap-1.5 truncate flex-1 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer"
-                        title={
+                        className={cn(
+                          "flex items-center justify-between px-2 py-1.5 rounded border text-[11px] transition-all",
                           isPlaced
-                            ? `Field '${prop.name}' is already on canvas. Click to inspect.`
-                            : `Drag or click to add '${prop.name}' to canvas`
-                        }
-                      >
-                        {isPlaced ? (
-                          <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-                        ) : (
-                          <Plus className="size-3 text-primary shrink-0" />
+                            ? "bg-muted/20 border-emerald-500/30 text-muted-foreground cursor-default"
+                            : "bg-background border-border/70 text-foreground hover:border-primary/50 shadow-2xs cursor-grab active:cursor-grabbing",
                         )}
-                        <span className="truncate font-medium">{prop.label}</span>
-                      </button>
-
-                      <div className="flex items-center gap-1 shrink-0 ml-1">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[8px] h-3.5 px-1 font-mono uppercase",
-                            isPlaced && "text-emerald-500 border-emerald-500/40 bg-emerald-500/5",
-                          )}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isPlaced) {
+                              onHighlightField?.(prop.name);
+                            } else {
+                              onAddField({
+                                label: prop.label,
+                                fieldKey: prop.name,
+                                widget: mapped.widget,
+                                currencyPrefix: mapped.currencyPrefix,
+                                colSpan: 12,
+                                options: mapped.options,
+                                modelType: mapped.modelType,
+                                parameter: mapped.parameter,
+                              });
+                            }
+                          }}
+                          className="flex items-center gap-1.5 truncate flex-1 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer"
+                          title={
+                            isPlaced
+                              ? `Field '${prop.name}' is already on canvas. Click to inspect.`
+                              : `Drag or click to add '${prop.name}' to canvas`
+                          }
                         >
-                          {isPlaced ? "PLACED" : prop.type}
-                        </Badge>
+                          {isPlaced ? (
+                            <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          ) : (
+                            <Plus className="size-3 text-primary shrink-0" />
+                          )}
+                          <span className="truncate font-medium">{prop.label}</span>
+                        </button>
+
+                        <div className="flex items-center gap-1 shrink-0 ml-1">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[8px] h-3.5 px-1 font-mono uppercase",
+                              isPlaced && "text-emerald-500 border-emerald-500/40 bg-emerald-500/5",
+                            )}
+                          >
+                            {isPlaced ? "PLACED" : prop.type}
+                          </Badge>
+                        </div>
                       </div>
+                    );
+                  }
+
+                  // Object Group Card with hierarchical child fields
+                  const parent = item.parent;
+                  const children = item.children;
+                  const isCollapsed = collapsedGroups[parent.sn] ?? false;
+                  const allPlaced = children.length > 0 && children.every((c) => usedFieldKeys.has(c.name));
+                  const placedChildrenCount = children.filter((c) => usedFieldKeys.has(c.name)).length;
+
+                  return (
+                    <div
+                      key={parent.sn}
+                      className={cn(
+                        "rounded border text-[11px] transition-all bg-card/60 shadow-2xs overflow-hidden",
+                        allPlaced
+                          ? "border-emerald-500/40 bg-muted/15"
+                          : "border-primary/30 bg-primary/5",
+                      )}
+                    >
+                      {/* Object Group Header */}
+                      <div className="flex items-center justify-between p-1.5 bg-muted/30 border-b border-border/50 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroupCollapse(parent.sn)}
+                          className="flex items-center gap-1 min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
+                        >
+                          {isCollapsed ? (
+                            <ChevronRight className="size-3 text-muted-foreground shrink-0" />
+                          ) : (
+                            <ChevronDown className="size-3 text-muted-foreground shrink-0" />
+                          )}
+                          <Boxes className="size-3 text-primary shrink-0" />
+                          <span className="truncate font-semibold text-foreground text-[11px]">
+                            {parent.label || parent.name}
+                          </span>
+                        </button>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <Badge
+                            variant="outline"
+                            className="text-[8px] h-3.5 px-1 font-mono uppercase text-primary border-primary/40 bg-primary/10"
+                          >
+                            {parent.structure === "M" ? "OBJECT.M" : "OBJECT"}
+                          </Badge>
+                          <span className="text-[9px] font-mono text-muted-foreground">
+                            ({placedChildrenCount}/{children.length})
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Add Entire Object Group Button & Drag Handle */}
+                      {!isCollapsed && (
+                        <div className="p-1.5 space-y-1.5 bg-background/50">
+                          {!allPlaced && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddEntireObjectGroup(parent, children)}
+                              className="w-full h-6 text-[10px] gap-1 px-2 text-primary border-primary/30 hover:bg-primary/10 rounded font-medium cursor-pointer"
+                              title={`Add complete ${parent.label || parent.name} group section with all child fields`}
+                            >
+                              <Plus className="size-3 stroke-[2.5]" />
+                              <span>Add Entire Group to Canvas</span>
+                            </Button>
+                          )}
+
+                          {/* Children List */}
+                          <div className="space-y-1 pl-1 border-l-2 border-primary/20">
+                            {children.map((child, childIdx) => {
+                              const mapped = mapPropertyToWidget(child);
+                              const isChildPlaced = usedFieldKeys.has(child.name);
+
+                              return (
+                                // biome-ignore lint/a11y/noStaticElementInteractions: Draggable child variable
+                                <div
+                                  key={child.name}
+                                  draggable={!disabled && !isChildPlaced}
+                                  onDragStart={(e) => {
+                                    if (disabled || isChildPlaced) {
+                                      e.preventDefault();
+                                      return;
+                                    }
+                                    const payload = {
+                                      type: "palette-variable",
+                                      template: {
+                                        label: child.label,
+                                        fieldKey: child.name,
+                                        widget: mapped.widget,
+                                        currencyPrefix: mapped.currencyPrefix,
+                                        colSpan: 12,
+                                        options: mapped.options,
+                                        modelType: mapped.modelType,
+                                        parameter: mapped.parameter,
+                                        structure: child.structure || "S",
+                                        groupKey: parent.name,
+                                        groupSn: parent.sn,
+                                        groupLabel: parent.label || parent.name,
+                                        groupStructure: parent.structure,
+                                        isFirstInGroup: childIdx === 0,
+                                      },
+                                    };
+                                    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+                                    e.dataTransfer.effectAllowed = "copy";
+                                  }}
+                                  className={cn(
+                                    "flex items-center justify-between px-1.5 py-1 rounded border text-[10px] transition-all",
+                                    isChildPlaced
+                                      ? "bg-muted/20 border-emerald-500/30 text-muted-foreground cursor-default"
+                                      : "bg-background border-border/70 text-foreground hover:border-primary/50 shadow-2xs cursor-grab active:cursor-grabbing",
+                                  )}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (isChildPlaced) {
+                                        onHighlightField?.(child.name);
+                                      } else {
+                                        onAddField({
+                                          label: child.label,
+                                          fieldKey: child.name,
+                                          widget: mapped.widget,
+                                          currencyPrefix: mapped.currencyPrefix,
+                                          colSpan: 12,
+                                          options: mapped.options,
+                                          modelType: mapped.modelType,
+                                          parameter: mapped.parameter,
+                                        });
+                                      }
+                                    }}
+                                    className="flex items-center gap-1 truncate flex-1 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer"
+                                    title={
+                                      isChildPlaced
+                                        ? `Child field '${child.name}' is already placed`
+                                        : `Drag or click to place '${child.name}'`
+                                    }
+                                  >
+                                    {isChildPlaced ? (
+                                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                    ) : (
+                                      <Plus className="size-2.5 text-primary shrink-0" />
+                                    )}
+                                    <span className="truncate font-medium">{child.label}</span>
+                                  </button>
+
+                                  <div className="flex items-center gap-1 shrink-0 ml-1">
+                                    <Badge
+                                      variant="outline"
+                                      className={cn(
+                                        "text-[7px] h-3 px-1 font-mono uppercase",
+                                        isChildPlaced && "text-emerald-500 border-emerald-500/40 bg-emerald-500/5",
+                                      )}
+                                    >
+                                      {isChildPlaced ? "PLACED" : child.type}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

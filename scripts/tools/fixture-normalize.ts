@@ -1,13 +1,13 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { decodeProtobufValue } from "../src/lib/data-parsers/protobuf-decoder";
+import { decodeProtobufValue } from "@/lib/data-parsers/protobuf-decoder";
 
 const fileArg = process.argv[2] || "branch";
 const fileName = fileArg.endsWith(".json") ? fileArg : `${fileArg}.json`;
 const baseName = fileName.replace(/\.json$/, "");
 
-const sourcePath = resolve(__dirname, `../mock/.response/${fileName}`);
-const targetPath = resolve(__dirname, `../mock/.response/${baseName}.normalized.json`);
+const sourcePath = resolve(__dirname, `../../mock/.response/${fileName}`);
+const targetPath = resolve(__dirname, `../../mock/.response/${baseName}.normalized.json`);
 
 try {
   const rawText = readFileSync(sourcePath, "utf-8");

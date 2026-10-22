@@ -10,13 +10,7 @@ import { auditDataSchema } from "./common-schema";
  * Decides whether the item opens in a standard Workspace Tab ("SCREEN")
  * or in a multi-monitor Detached Window ("POPUP"), or executes a system action.
  */
-export const commandActionTypeSchema = z.enum([
-  "SCREEN",
-  "POPUP",
-  "SETTINGS",
-  "THEME",
-  "LOGOUT",
-]);
+export const commandActionTypeSchema = z.enum(["SCREEN", "POPUP", "SETTINGS", "THEME", "LOGOUT"]);
 export type CommandActionType = z.infer<typeof commandActionTypeSchema>;
 
 /* -------------------------------------------------------------------------- */

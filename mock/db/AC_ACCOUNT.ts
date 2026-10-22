@@ -8,7 +8,6 @@ export type AccountRecord = Record<string, unknown>;
  */
 export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
   AC1001: {
-    recordId: "AC1001",
     accountType: "SAVINGS",
     currency: "BDT",
     openingDate: "2024-01-15",
@@ -26,7 +25,6 @@ export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
     branchCode: "JB1001",
   },
   AC1002: {
-    recordId: "AC1002",
     accountType: "CURRENT",
     currency: "BDT",
     openingDate: "2024-02-20",
@@ -44,7 +42,6 @@ export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
     branchCode: "JB1001",
   },
   AC1003: {
-    recordId: "AC1003",
     accountType: "SAVINGS",
     currency: "USD",
     openingDate: "2024-03-10",

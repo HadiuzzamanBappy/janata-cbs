@@ -1,10 +1,11 @@
 "use client";
 
-import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Minus, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
+import { Button } from "@/components/ui/button";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
 import { FormKernelContext } from "../store/form-kernel-provider";
 import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";
@@ -171,6 +172,7 @@ export function SectionCard({
 }: SectionCardProps) {
   const hasKernel = Boolean(React.useContext(FormKernelContext));
   const [collapsed, setCollapsed] = React.useState<boolean>(section.isCollapsed ?? false);
+  const [groupCounts, setGroupCounts] = React.useState<Record<string, number>>({});
 
   const isPlain = section.layoutStyle === "plain";
   const isObjectGroup = section.type === "object-group";
@@ -275,26 +277,209 @@ export function SectionCard({
           />
         ) : (
           <div className={cn("grid gap-x-4 gap-y-2.5 text-xs pt-1", getGridColsClass(numCols))}>
-            {section.fields.map((field) => {
-              if (field.hidden) return null;
+            {(() => {
+              // Group consecutive fields that belong to the same multi-value object group
+              type RenderItem =
+                | { kind: "single"; field: FormFieldItem }
+                | { kind: "group"; groupSn: string; groupKey?: string; fields: FormFieldItem[] };
 
-              return (
-                <div key={field.id} className={getFieldColSpanClass(numCols, field.colSpan)}>
-                  {hasKernel ? (
-                    <FieldAtom field={field} disabled={disabled} mode={mode} />
-                  ) : (
-                    <UnifiedFieldFactory
-                      field={field}
-                      value={values[field.fieldKey]}
-                      onChange={onChange}
-                      error={errors[field.fieldKey]}
-                      disabled={disabled}
-                      mode={mode}
-                    />
-                  )}
-                </div>
-              );
-            })}
+              const renderItems: RenderItem[] = [];
+              let currentGroup: { groupSn: string; groupKey?: string; fields: FormFieldItem[] } | null = null;
+
+              for (const field of section.fields) {
+                if (field.hidden) continue;
+
+                if (field.groupSn && field.groupStructure === "M") {
+                  if (currentGroup && currentGroup.groupSn === field.groupSn) {
+                    currentGroup.fields.push(field);
+                  } else {
+                    if (currentGroup) renderItems.push({ kind: "group", ...currentGroup });
+                    currentGroup = {
+                      groupSn: field.groupSn,
+                      groupKey: field.groupKey,
+                      fields: [field],
+                    };
+                  }
+                } else {
+                  if (currentGroup) {
+                    renderItems.push({ kind: "group", ...currentGroup });
+                    currentGroup = null;
+                  }
+                  renderItems.push({ kind: "single", field });
+                }
+              }
+              if (currentGroup) {
+                renderItems.push({ kind: "group", ...currentGroup });
+              }
+
+              return renderItems.map((item) => {
+                if (item.kind === "single") {
+                  const field = item.field;
+                  return (
+                    <div key={field.id} className={getFieldColSpanClass(numCols, field.colSpan)}>
+                      {hasKernel ? (
+                        <FieldAtom field={field} disabled={disabled} mode={mode} />
+                      ) : (
+                        <UnifiedFieldFactory
+                          field={field}
+                          value={values[field.fieldKey]}
+                          onChange={onChange}
+                          error={errors[field.fieldKey]}
+                          disabled={disabled}
+                          mode={mode}
+                        />
+                      )}
+                    </div>
+                  );
+                }
+
+                // Multi-value Object Group:
+                // Derive how many group sets currently exist based on values.
+                // Each group set i (0, 1, ...) accesses values[fieldKey] or values[`${fieldKey}_${i}`]
+                const groupSn = item.groupSn;
+                const groupFields = item.fields;
+
+                // Derive number of sets from explicit form values (__group_${groupSn}_count) or state, or scan values
+                const derivedFromValues = (() => {
+                  if (values[`__group_${groupSn}_count`] !== undefined) {
+                    return Number(values[`__group_${groupSn}_count`]) || 1;
+                  }
+                  let maxIdx = 0;
+                  for (let i = 1; i < 50; i++) {
+                    const hasVal = groupFields.some((f) => {
+                      const k = `${f.fieldKey}_${i}`;
+                      return values[k] !== undefined && values[k] !== null && values[k] !== "";
+                    });
+                    if (hasVal) maxIdx = i;
+                  }
+                  return maxIdx + 1;
+                })();
+
+                const currentCount = groupCounts[groupSn] ?? derivedFromValues;
+                const setCount = Math.max(currentCount, 1);
+
+                const handleAddGroupSet = () => {
+                  const newCount = setCount + 1;
+                  setGroupCounts((prev) => ({ ...prev, [groupSn]: newCount }));
+                  onChange(`__group_${groupSn}_count`, newCount);
+                  // Initialize fields for the new set with empty string
+                  const newSetIdx = setCount;
+                  for (const f of groupFields) {
+                    const keyWithSuffix = `${f.fieldKey}_${newSetIdx}`;
+                    onChange(keyWithSuffix, "");
+                  }
+                };
+
+                const handleRemoveGroupSet = (removeIdx: number) => {
+                  if (setCount <= 1) return;
+                  const newCount = setCount - 1;
+                  setGroupCounts((prev) => ({ ...prev, [groupSn]: newCount }));
+                  onChange(`__group_${groupSn}_count`, newCount);
+
+                  // Shift subsequent sets down
+                  for (let i = removeIdx; i < setCount - 1; i++) {
+                    for (const f of groupFields) {
+                      const currKey = i === 0 ? f.fieldKey : `${f.fieldKey}_${i}`;
+                      const nextKey = `${f.fieldKey}_${i + 1}`;
+                      onChange(currKey, values[nextKey] ?? "");
+                    }
+                  }
+                  // Clear the last set
+                  const lastIdx = setCount - 1;
+                  for (const f of groupFields) {
+                    const lastKey = lastIdx === 0 ? f.fieldKey : `${f.fieldKey}_${lastIdx}`;
+                    onChange(lastKey, "");
+                  }
+                };
+
+                return (
+                  <React.Fragment key={`group_${groupSn}`}>
+                    {Array.from({ length: setCount }).map((_, setIdx) => {
+                      return groupFields.map((field, fieldIdx) => {
+                        const isFirstFieldInSet = fieldIdx === 0;
+                        const key = setIdx === 0 ? field.fieldKey : `${field.fieldKey}_${setIdx}`;
+                        const fieldVal = values[key];
+                        const fieldError = errors[key];
+
+                        // Set action (+/-) only on the FIRST field of each group set before colon
+                        const actionBeforeColon = isFirstFieldInSet && !disabled && mode === "I" ? (
+                          <div className="flex items-center gap-0.5 shrink-0">
+                            {setCount > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleRemoveGroupSet(setIdx);
+                                }}
+                                className="size-5 p-0 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+                                title="Remove this group set"
+                              >
+                                <Minus className="size-3.5 stroke-[2.5]" />
+                              </Button>
+                            )}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleAddGroupSet();
+                              }}
+                              className="size-5 p-0 text-primary hover:bg-primary/10 rounded cursor-pointer"
+                              title="Add new group set"
+                            >
+                              <Plus className="size-3.5 stroke-[2.5]" />
+                            </Button>
+                          </div>
+                        ) : undefined;
+
+                        const setIndicator = (
+                          <span className="font-mono text-[11px] text-muted-foreground/75 font-semibold">
+                            .{setIdx + 1}
+                          </span>
+                        );
+
+                        // Clone field with the set-specific fieldKey
+                        const setField: FormFieldItem = {
+                          ...field,
+                          id: `${field.id}_set_${setIdx}`,
+                          fieldKey: key,
+                        };
+
+                        return (
+                          <div key={setField.id} className={getFieldColSpanClass(numCols, setField.colSpan)}>
+                            {hasKernel ? (
+                              <FieldAtom
+                                field={setField}
+                                disabled={disabled}
+                                mode={mode}
+                                labelSuffix={setIndicator}
+                                actionBeforeColon={actionBeforeColon}
+                              />
+                            ) : (
+                              <UnifiedFieldFactory
+                                field={setField}
+                                value={fieldVal}
+                                onChange={onChange}
+                                error={fieldError}
+                                disabled={disabled}
+                                mode={mode}
+                                labelSuffix={setIndicator}
+                                actionBeforeColon={actionBeforeColon}
+                              />
+                            )}
+                          </div>
+                        );
+                      });
+                    })}
+                  </React.Fragment>
+                );
+              });
+            })()}
           </div>
         ))}
     </div>

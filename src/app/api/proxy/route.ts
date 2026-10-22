@@ -2,15 +2,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { parseAccessibilityRights } from "@/lib/cbs-access";
 import { appConfig } from "@/lib/core-config/server";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
-import { cbsWirePayloadSchema } from "@/lib/data-schemas";
+import { cbsWirePayloadSchema, type GrpcEnvelope } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
 import { getSession, invalidateCache } from "@/lib/infra-redis";
-import {
-  type ApiResponse,
-  CbsRecordFunction,
-  DEFAULT_SERVICE_PATH,
-  type GrpcEnvelope,
-} from "@/types";
+import { type ApiResponse, CbsRecordFunction, DEFAULT_SERVICE_PATH } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -30,28 +30,64 @@ export function colSpanForLength(prop: ModelProperty): number {
  */
 function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const activeProps = (model.properties || []).filter((p) => p.status !== "ARCHIVED");
-  const rootProps = activeProps.filter((p) => !p.sn.includes("_"));
-  const childProps = activeProps.filter((p) => p.sn.includes("_"));
+
+  // Identify parent Objects and their structure ("S" or "M")
+  const objectParents = new Map<string, ModelProperty>();
+  for (const p of activeProps) {
+    if (p.type === "Object") {
+      objectParents.set(p.sn, p);
+    }
+  }
+
+  // Track first child per group parent
+  const seenGroupFirstChild = new Set<string>();
+
+  // Keep all fields inline in natural sequence.
+  // Object containers themselves are not input fields, but their child fields are rendered inline.
+  // Format numbering: e.g. parent "8", child "8_1" -> label displays with numbering like "8.1".
+  const rootFields: FormFieldItem[] = activeProps
+    .filter((p) => p.type !== "Object")
+    .map((p) => {
+      // If property has an underscore SN (child of an Object group), format e.g. "8_1" -> "8.1"
+      const formattedSn = p.sn.replace(/_/g, ".");
+      const isGroupChild = p.sn.includes("_");
+      const parentSn = isGroupChild ? p.sn.substring(0, p.sn.lastIndexOf("_")) : null;
+      const parentObj = parentSn ? objectParents.get(parentSn) : null;
+
+      // Base label from property definition
+      const baseLabel = p.label || p.name || `Field #${p.sn}`;
+      const displayLabel = isGroupChild ? `${baseLabel} ${formattedSn}` : baseLabel;
+
+      // Group metadata:
+      // Multi-value ("M") belongs to the parent Object, NOT individual child fields!
+      // Each child field keeps its own structure (usually "S").
+      const isFirstInGroup = Boolean(parentSn && !seenGroupFirstChild.has(parentSn));
+      if (parentSn && isFirstInGroup) {
+        seenGroupFirstChild.add(parentSn);
+      }
+
+      return {
+        id: `f_${p.name || p.sn}`,
+        fieldKey: p.name || `field_${p.sn}`,
+        label: displayLabel,
+        widget: getDefaultWidget(p.type),
+        modelType: p.type,
+        length: p.length,
+        structure: p.structure || "S", // Keep individual field structure (single)
+        groupKey: parentObj?.name,
+        groupSn: parentSn ?? undefined,
+        groupStructure: parentObj?.structure,
+        isFirstInGroup: isFirstInGroup,
+        parameter: p.parameter,
+        colSpan: 12,
+        required: p.required,
+        readOnly: p.disabled,
+        placeholder:
+          p.enrichText || (p.defaultValue !== undefined ? String(p.defaultValue) : undefined),
+      };
+    });
 
   const sections: FormSection[] = [];
-
-  // 1. Primary Root Section
-  const rootFields: FormFieldItem[] = rootProps
-    .filter((p) => p.type !== "Object")
-    .map((p) => ({
-      id: `f_${p.name || p.sn}`,
-      fieldKey: p.name || `field_${p.sn}`,
-      label: p.label || p.name || `Field #${p.sn}`,
-      widget: getDefaultWidget(p.type),
-      modelType: p.type,
-      length: p.length,
-      parameter: p.parameter,
-      colSpan: 12,
-      required: p.required,
-      readOnly: p.disabled,
-      placeholder:
-        p.enrichText || (p.defaultValue !== undefined ? String(p.defaultValue) : undefined),
-    }));
 
   if (rootFields.length > 0) {
     sections.push({
@@ -65,42 +101,6 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
       collapsible: false,
       isCollapsed: false,
       fields: rootFields,
-    });
-  }
-
-  // 2. Structured Objects and Repeating Sub-Tables
-  const objectParents = rootProps.filter((p) => p.type === "Object");
-  for (const obj of objectParents) {
-    const prefix = `${obj.sn}_`;
-    const children = childProps.filter((cp) => cp.sn.startsWith(prefix));
-    const isMulti = obj.structure === "M";
-
-    const childFields: FormFieldItem[] = children.map((c) => ({
-      id: `f_${c.name || c.sn}`,
-      fieldKey: c.name || `child_${c.sn}`,
-      label: c.label || c.name || `Child #${c.sn}`,
-      widget: getDefaultWidget(c.type),
-      modelType: c.type,
-      length: c.length,
-      parameter: c.parameter,
-      colSpan: 12,
-      required: c.required,
-      readOnly: c.disabled,
-      placeholder: c.enrichText,
-    }));
-
-    sections.push({
-      id: `sec_obj_${obj.sn}`,
-      title: obj.label || obj.name || "Object Group",
-      description: isMulti ? "Repeatable multi-row table" : "Child field group",
-      type: isMulti ? "array-table" : "object-group",
-      zone: "standard",
-      layoutStyle: "card",
-      bindKey: obj.name || `obj_${obj.sn}`,
-      columns: isMulti ? 2 : 1,
-      collapsible: true,
-      isCollapsed: false,
-      fields: childFields,
     });
   }
 

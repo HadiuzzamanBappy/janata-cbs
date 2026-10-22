@@ -5,7 +5,7 @@ import { parseControlsWirePayload } from "@/lib/data-parsers";
 import type { SystemCommandItem } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types/cbs";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,

@@ -1,9 +1,8 @@
-import { CalendarIcon } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import * as React from "react";
-import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -24,6 +23,9 @@ export interface UnifiedFieldFactoryProps {
   error?: string;
   disabled?: boolean;
   mode?: CbsScreenMode;
+  labelOverride?: string;
+  labelSuffix?: React.ReactNode;
+  actionBeforeColon?: React.ReactNode;
 }
 
 /**
@@ -106,10 +108,14 @@ export function UnifiedFieldFactory({
   error,
   disabled = false,
   mode = "I",
+  labelOverride,
+  labelSuffix,
+  actionBeforeColon,
 }: UnifiedFieldFactoryProps) {
   const isInputMode = mode === "I";
   const isViewMode = !isInputMode;
   const isReadOnly = disabled || field.readOnly || isViewMode;
+  const effectiveLabel = labelOverride ?? field.label;
 
   const param = field.parameter as FormFieldParameter | undefined;
   const { modelOptions, loading: modelLoading } = useModelLookup(param);
@@ -148,78 +154,309 @@ export function UnifiedFieldFactory({
     }
   };
 
-  const parseDateValue = (val: unknown): Date | undefined => {
-    if (!val) return undefined;
-    if (val instanceof Date) return val;
-    if (typeof val === "string") {
-      const parts = val.split("-");
-      if (parts.length === 3) {
-        const year = Number.parseInt(parts[0], 10);
-        const month = Number.parseInt(parts[1], 10) - 1;
-        const day = Number.parseInt(parts[2], 10);
-        if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
-          return new Date(year, month, day);
-        }
-      }
-    }
-    const d = new Date(val as string | number);
-    return Number.isNaN(d.getTime()) ? undefined : d;
-  };
-
-  const handleDateChange = (selectedDate?: Date) => {
-    if (!selectedDate) {
-      onChange(field.fieldKey, "");
-      return;
-    }
-    const year = selectedDate.getFullYear();
-    const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
-    const day = String(selectedDate.getDate()).padStart(2, "0");
-    onChange(field.fieldKey, `${year}-${month}-${day}`);
-  };
-
   const widget = field.widget || "text";
   const inputStyle = React.useMemo(() => {
     return getFieldWidthStyle(field.length, widget);
   }, [field.length, widget]);
 
+  const isMulti = field.structure === "M";
+
+  // Support for Multi-Value (M) primitive arrays with stable keys
+  const [itemIds, setItemIds] = React.useState<string[]>(() => {
+    const count = Array.isArray(value) ? Math.max(value.length, 1) : 1;
+    return Array.from({ length: count }, () =>
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `mv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    );
+  });
+
+  const arrayValues: unknown[] = React.useMemo(() => {
+    if (!isMulti) return [];
+    if (Array.isArray(value)) return value;
+    return value !== undefined && value !== null && value !== "" ? [value] : [""];
+  }, [isMulti, value]);
+
+  // Keep itemIds synchronized with array length
+  React.useEffect(() => {
+    if (!isMulti) return;
+    setItemIds((prev) => {
+      if (prev.length === arrayValues.length) return prev;
+      if (prev.length < arrayValues.length) {
+        const addedCount = arrayValues.length - prev.length;
+        const newIds = Array.from({ length: addedCount }, () =>
+          typeof crypto !== "undefined" && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `mv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        );
+        return [...prev, ...newIds];
+      }
+      return prev.slice(0, arrayValues.length);
+    });
+  }, [isMulti, arrayValues.length]);
+
+  const handleArrayChange = (idx: number, newVal: unknown) => {
+    const next = [...arrayValues];
+    next[idx] = newVal;
+    onChange(field.fieldKey, next);
+  };
+
+  const handleAddArrayItem = (afterIdx?: number) => {
+    const newId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `mv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    
+    if (afterIdx !== undefined && afterIdx >= 0) {
+      const nextIds = [...itemIds];
+      nextIds.splice(afterIdx + 1, 0, newId);
+      setItemIds(nextIds);
+
+      const next = [...arrayValues];
+      next.splice(afterIdx + 1, 0, "");
+      onChange(field.fieldKey, next);
+    } else {
+      setItemIds((prev) => [...prev, newId]);
+      onChange(field.fieldKey, [...arrayValues, ""]);
+    }
+  };
+
+  const handleRemoveArrayItem = (idx: number) => {
+    setItemIds((prev) => prev.filter((_, i) => i !== idx));
+    const next = arrayValues.filter((_, i) => i !== idx);
+    onChange(field.fieldKey, next.length > 0 ? next : [""]);
+  };
+
   return (
     <div className="space-y-1">
-      {/* Scanline row: Label (w-40) + Colon + Input Widget */}
-      <div className="flex items-center gap-2">
-        <Label
-          htmlFor={field.id}
-          className={cn(
-            "w-40 shrink-0 text-xs select-none",
-            error
-              ? "text-destructive font-semibold"
-              : field.required
-                ? "text-foreground font-medium"
-                : "text-muted-foreground",
-          )}
-        >
-          {field.label}
-          {field.required && !isViewMode && (
-            <span className="text-destructive font-bold ml-1">*</span>
-          )}
-        </Label>
-
-        <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-
-        {/* View Mode: Read-Only Text Badge */}
-        {isViewMode ? (
+      {/* View Mode: Read-Only Text Badge */}
+      {isViewMode ? (
+        <div className="flex items-center gap-2">
+          <div className="w-40 shrink-0 flex items-center justify-between gap-1 select-none">
+            <div className="flex items-center gap-1 min-w-0">
+              <Label
+                htmlFor={field.id}
+                className="text-xs select-none text-muted-foreground truncate"
+              >
+                {effectiveLabel}
+              </Label>
+              {labelSuffix}
+            </div>
+            {actionBeforeColon}
+          </div>
+          <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
           <div
             style={inputStyle}
             className="h-7 flex items-center px-2 rounded text-xs bg-muted/15 border border-border/80 font-mono text-foreground font-medium select-text"
           >
             {value !== undefined && value !== null && value !== "" ? (
               <span className="truncate">
-                {resolvedOptions.find((o) => o.code === String(value))?.label ?? String(value)}
+                {Array.isArray(value)
+                  ? value.join(", ")
+                  : resolvedOptions.find((o) => o.code === String(value))?.label ?? String(value)}
               </span>
             ) : (
               <span className="text-muted-foreground/50 italic text-[11px]">Not specified</span>
             )}
           </div>
-        ) : widget === "select" ? (
+        </div>
+      ) : isMulti ? (
+        /* Multi-Value (M) Rows: Label + #Number + Action (+/-) before Colon */
+        <div className="space-y-1.5">
+          {arrayValues.map((itemVal, itemIdx) => {
+            const stableKey = itemIds[itemIdx] || `${field.id}-item-${itemIdx}`;
+            const isFirst = itemIdx === 0;
+
+            return (
+              <div key={stableKey} className="flex items-center gap-2">
+                {/* Left Label column: [Label Name] . [Index] [Action Button (+/-)] */}
+                <div className="w-40 shrink-0 flex items-center justify-between gap-1 select-none">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <Label
+                      htmlFor={isFirst ? field.id : undefined}
+                      className={cn(
+                        "text-xs truncate",
+                        error
+                          ? "text-destructive font-semibold"
+                          : field.required
+                            ? "text-foreground font-medium"
+                            : "text-muted-foreground",
+                      )}
+                    >
+                      {field.label}
+                      {field.required && isFirst && (
+                        <span className="text-destructive font-bold ml-0.5">*</span>
+                      )}
+                    </Label>
+                    {/* Number just after field label */}
+                    <span className="font-mono text-[11px] text-muted-foreground/75 font-semibold">
+                      .{itemIdx + 1}
+                    </span>
+                  </div>
+
+                  {/* Actions (- and +) placed cleanly before the colon on every row */}
+                  {!isReadOnly && (
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {/* Minus button to remove this specific item */}
+                      {arrayValues.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveArrayItem(itemIdx)}
+                          className="size-5 p-0 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+                          title="Remove this item"
+                        >
+                          <Minus className="size-3.5 stroke-[2.5]" />
+                        </Button>
+                      )}
+
+                      {/* Plus button to insert/append after this item */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleAddArrayItem(itemIdx)}
+                        className="size-5 p-0 text-primary hover:bg-primary/10 rounded cursor-pointer"
+                        title={`Insert another ${field.label} after item .${itemIdx + 1}`}
+                      >
+                        <Plus className="size-3.5 stroke-[2.5]" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+
+                {/* Input Control with Full Widget Support */}
+                {widget === "select" ? (
+                  <div style={inputStyle} className="min-w-32">
+                    <Select
+                      disabled={isReadOnly || modelLoading}
+                      value={String(itemVal ?? "")}
+                      onValueChange={(val) =>
+                        handleArrayChange(
+                          itemIdx,
+                          field.modelType === "Number" && val !== null
+                            ? Number.isNaN(Number(val))
+                              ? val
+                              : Number(val)
+                            : (val ?? ""),
+                        )
+                      }
+                    >
+                      <SelectTrigger
+                        className={cn(
+                          "h-7 text-xs bg-background rounded border-border/80 w-full",
+                          error && "border-destructive",
+                        )}
+                      >
+                        <SelectValue
+                          placeholder={modelLoading ? "Loading..." : `Select ${field.label}`}
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="z-50 text-xs font-sans">
+                        {resolvedOptions.map((opt) => (
+                          <SelectItem key={opt.code} value={opt.code} className="text-xs">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : widget === "date" ? (
+                  <div className="flex items-center gap-1.5 max-w-xs flex-1">
+                    <Input
+                      type="date"
+                      disabled={isReadOnly}
+                      value={String(itemVal ?? "")}
+                      onChange={(e) => handleArrayChange(itemIdx, e.target.value)}
+                      className={cn(
+                        "h-7 w-36 rounded text-xs bg-background border-border/80 font-mono",
+                        error && "border-destructive",
+                        isReadOnly &&
+                          "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",
+                      )}
+                    />
+                    {Boolean(itemVal) && !isReadOnly && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleArrayChange(itemIdx, "")}
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground rounded cursor-pointer"
+                        title="Clear date"
+                      >
+                        <X className="size-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ) : widget === "textarea" ? (
+                  <div style={inputStyle}>
+                    <Textarea
+                      rows={2}
+                      disabled={isReadOnly}
+                      placeholder={field.placeholder}
+                      value={String(itemVal ?? "")}
+                      onChange={(e) => handleArrayChange(itemIdx, e.target.value)}
+                      className="w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-1 min-h-14 resize-y"
+                    />
+                  </div>
+                ) : (
+                  <div style={inputStyle}>
+                    <Input
+                      type={widget === "number" ? "number" : "text"}
+                      disabled={isReadOnly}
+                      placeholder={field.placeholder || `Item #${itemIdx + 1}`}
+                      value={String(itemVal ?? "")}
+                      onChange={(e) =>
+                        handleArrayChange(
+                          itemIdx,
+                          widget === "number" && e.target.value !== ""
+                            ? Number(e.target.value)
+                            : e.target.value,
+                        )
+                      }
+                      className={cn(
+                        "h-7 text-xs bg-background rounded border-border/80 w-full",
+                        error && "border-destructive",
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Standard Single-Value Scanline row */
+        <div className="flex items-center gap-2">
+          <div className="w-40 shrink-0 flex items-center justify-between gap-1 select-none">
+            <div className="flex items-center gap-1 min-w-0">
+              <Label
+                htmlFor={field.id}
+                className={cn(
+                  "text-xs truncate",
+                  error
+                    ? "text-destructive font-semibold"
+                    : field.required
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground",
+                )}
+              >
+                {effectiveLabel}
+                {field.required && !isViewMode && (
+                  <span className="text-destructive font-bold ml-1">*</span>
+                )}
+              </Label>
+              {labelSuffix}
+            </div>
+            {actionBeforeColon}
+          </div>
+
+          <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+
+          {widget === "select" ? (
           /* Select Dropdown */
           <div style={inputStyle} className="min-w-32">
             <Select
@@ -372,45 +609,32 @@ export function UnifiedFieldFactory({
             />
           </div>
         ) : widget === "date" ? (
-          /* Manual Typeable Date Input with Calendar Popover Helper */
-          <div style={inputStyle} className="relative flex items-center min-w-32">
+          /* Date Input matching General Tab (type="date" with clean CBS styling and clear button) */
+          <div className="flex items-center gap-1.5 max-w-xs flex-1">
             <Input
-              type="text"
+              type="date"
               id={field.id}
               disabled={isReadOnly}
-              placeholder={field.placeholder || "YYYY-MM-DD"}
               value={String(value ?? "")}
               onChange={(e) => onChange(field.fieldKey, e.target.value)}
-              maxLength={10}
               className={cn(
-                "h-7 text-xs font-mono bg-background rounded border-border/80 w-full pr-7",
+                "h-7 w-36 rounded text-xs bg-background border-border/80 font-mono",
                 error && "border-destructive",
+                isReadOnly &&
+                  "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",
               )}
             />
-            {!isReadOnly && (
-              <Popover>
-                <PopoverTrigger
-                  render={
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      className="absolute right-1.5 p-0.5 text-muted-foreground hover:text-foreground cursor-pointer rounded"
-                      title="Open calendar helper"
-                    />
-                  }
-                >
-                  <CalendarIcon className="size-3.5" />
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-50" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={parseDateValue(value)}
-                    onSelect={(d) => {
-                      handleDateChange(d);
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
+            {Boolean(value) && !isReadOnly && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange(field.fieldKey, "")}
+                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground rounded cursor-pointer"
+                title="Clear date"
+              >
+                <X className="size-3.5" />
+              </Button>
             )}
           </div>
         ) : (
@@ -438,6 +662,7 @@ export function UnifiedFieldFactory({
           </div>
         )}
       </div>
+    )}
 
       {/* Field Error Message */}
       {error && <div className="text-[11px] text-destructive pl-44 font-medium">{error}</div>}

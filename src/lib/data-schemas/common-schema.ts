@@ -61,3 +61,26 @@ export const cbsWirePayloadSchema = z.object({
 });
 
 export type CbsWirePayload = z.infer<typeof cbsWirePayloadSchema>;
+
+/* -------------------------------------------------------------------------- */
+/* Full Server Envelope Contract (gRPC / Mock Dispatcher)                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Zod schema validating the enriched server envelope dispatched to Core CBS.
+ */
+export const grpcEnvelopeSchema = z.object({
+  authLevel: z.number().int(),
+  branchCode: z.string(),
+  clientId: z.string(),
+  controlName: z.string().optional(),
+  data: z.record(z.string(), z.unknown()),
+  idempotencyKey: z.string().optional(),
+  recordFunction: z.string(),
+  recordId: z.string(),
+  requestType: z.string(),
+  servicePath: z.string(),
+  userId: z.string(),
+});
+
+export type GrpcEnvelope = z.infer<typeof grpcEnvelopeSchema>;

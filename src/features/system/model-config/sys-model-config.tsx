@@ -3,6 +3,7 @@
 import { Database, Eye, FileCode, FileText, Layers, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
+import { CbsRecordFunction, CbsRecordStatus } from "@/types";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { McAuditTab } from "./components/mc-audit-tab";
@@ -49,7 +50,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
 
   const [activeTab, setActiveTab] = React.useState<ModelConfigTabKey>("general");
   const [selectedPropertySN, setSelectedPropertySN] = React.useState<string | null>(null);
-  const isReadOnly = mode !== "I";
+  const isReadOnly = mode !== CbsRecordFunction.INPUT;
 
   const availableModels = React.useMemo(
     () =>
@@ -142,7 +143,9 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       isDirty={isDirty}
       auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
+      onRecordSearch={(searchedId: string) =>
+        fetchRecord(searchedId.toUpperCase(), CbsRecordFunction.INPUT)
+      }
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" && recordId ? () => fetchRecord(recordId, mode) : undefined}
@@ -151,10 +154,12 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       onHold={handleHold}
       onDelete={handleDelete}
       onAuthorizeReverse={
-        formData.auditData?.recStatus === "AU" || mode === "R" ? handleReverse : handleAuthorize
+        formData.auditData?.recStatus === CbsRecordStatus.AU || mode === CbsRecordFunction.REVERSE
+          ? handleReverse
+          : handleAuthorize
       }
-      onView={() => recordId && fetchRecord(recordId, "S")}
-      onAmend={() => recordId && fetchRecord(recordId, "I")}
+      onView={() => recordId && fetchRecord(recordId, CbsRecordFunction.SEE)}
+      onAmend={() => recordId && fetchRecord(recordId, CbsRecordFunction.INPUT)}
       submitting={submitting || loading}
       availableItems={availableModels}
       variant="admin-tabs"

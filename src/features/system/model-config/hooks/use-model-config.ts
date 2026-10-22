@@ -10,7 +10,7 @@ import {
   modelConfigRecordSchema,
   type ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
-import type { CbsScreenMode } from "@/types";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { mapZodIssuesToValidationErrors } from "./mc-validation";
 import { useMcCatalog } from "./use-mc-catalog";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
@@ -50,7 +50,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
   // 1. Fetch specific record and hydrate baseline
   const fetchRecord = React.useCallback(
-    async (targetId: string, targetMode: CbsScreenMode = "I") => {
+    async (targetId: string, targetMode: CbsScreenMode = CbsRecordFunction.INPUT) => {
       if (!targetId.trim()) return;
       setLoading(true);
       const cleanId = targetId.trim().toUpperCase();
@@ -73,7 +73,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         }
 
         // If target mode is Input ('I') and record doesn't exist in DB, initialize new draft
-        if (targetMode === "I") {
+        if (targetMode === CbsRecordFunction.INPUT) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
             recordId: cleanId,
@@ -83,7 +83,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           hydrate(draft);
           clearCommitted();
           setValidationErrors([]);
-          setMode("I");
+          setMode(CbsRecordFunction.INPUT);
           toast.add({
             title: "New Model Draft",
             description: `Created new draft schema for #${cleanId}. Complete fields and Save.`,
@@ -92,7 +92,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         }
       } catch {
         // If target mode is Input ('I') on 404/failure, open as new entry
-        if (targetMode === "I") {
+        if (targetMode === CbsRecordFunction.INPUT) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
             recordId: cleanId,
@@ -102,7 +102,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           hydrate(draft);
           clearCommitted();
           setValidationErrors([]);
-          setMode("I");
+          setMode(CbsRecordFunction.INPUT);
           toast.add({
             title: "New Model Draft",
             description: `Created new draft schema for #${cleanId}. Complete fields and Save.`,
@@ -177,7 +177,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           record: validation.data,
         });
         broadcastRecordMutation("MODEL.CONFIG", targetId);
-        setMode("I");
+        setMode(CbsRecordFunction.INPUT);
       }
     } catch {
       // Toast handled by cbs.send
@@ -197,7 +197,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       });
       if (json.status === "SUCCESS") {
         broadcastRecordMutation("MODEL.CONFIG", recordId);
-        await fetchRecord(recordId, "S");
+        await fetchRecord(recordId, CbsRecordFunction.SEE);
       }
     } catch {
       // Toast handled by cbs.send
@@ -217,7 +217,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       });
       if (json.status === "SUCCESS") {
         broadcastRecordMutation("MODEL.CONFIG", recordId);
-        await fetchRecord(recordId, "H");
+        await fetchRecord(recordId, CbsRecordFunction.HOLD);
       }
     } catch {
       // Handled by cbs.send
@@ -257,7 +257,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       });
       if (json.status === "SUCCESS") {
         broadcastRecordMutation("MODEL.CONFIG", recordId);
-        await fetchRecord(recordId, "R");
+        await fetchRecord(recordId, CbsRecordFunction.REVERSE);
       }
     } catch {
       // Handled by cbs.send
@@ -271,7 +271,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     (newId?: string) => {
       const cleanId = (newId || "").trim().toUpperCase();
       if (cleanId) {
-        fetchRecord(cleanId, "I");
+        fetchRecord(cleanId, CbsRecordFunction.INPUT);
       }
     },
     [fetchRecord],
@@ -286,7 +286,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
   // Clear validation errors when switching away from edit mode
   React.useEffect(() => {
-    if (mode !== "I") {
+    if (mode !== CbsRecordFunction.INPUT) {
       setValidationErrors([]);
     }
   }, [mode]);

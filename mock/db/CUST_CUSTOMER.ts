@@ -8,7 +8,6 @@ export type CustomerRecord = Record<string, unknown>;
  */
 export const CUST_CUSTOMER_LIVE: Record<string, CustomerRecord> = {
   CUST1001: {
-    recordId: "CUST1001",
     nationalId: "19852691234567890",
     dateOfBirth: "1985-06-15",
     fatherName: "MD. ABDUR RAHMAN",
@@ -39,7 +38,6 @@ export const CUST_CUSTOMER_LIVE: Record<string, CustomerRecord> = {
     },
   },
   CUST1002: {
-    recordId: "CUST1002",
     nationalId: "19902699876543210",
     dateOfBirth: "1990-11-22",
     fatherName: "LATE ENAMUL HAQUE",

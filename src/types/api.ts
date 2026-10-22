@@ -18,23 +18,3 @@ export interface ApiResponse<T = unknown> {
 }
 
 export const DEFAULT_SERVICE_PATH = "default" as const;
-
-export type { CbsWirePayload } from "@/lib/data-schemas/common-schema";
-
-/**
- * Full Server Envelope sent across gRPC to backend CBS.
- * Enriched by the Next.js proxy route with session credentials.
- */
-export interface GrpcEnvelope {
-  readonly authLevel: number;
-  readonly branchCode: string;
-  readonly clientId: string;
-  readonly controlName?: string;
-  readonly data: Readonly<Record<string, unknown>>;
-  readonly idempotencyKey?: string;
-  readonly recordFunction: string;
-  readonly recordId: string;
-  readonly requestType: string;
-  readonly servicePath: string;
-  readonly userId: string;
-}

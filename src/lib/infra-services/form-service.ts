@@ -6,7 +6,7 @@ import { parseGMC } from "@/lib/data-parsers";
 import type { ParsedFormData } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
-import { CbsRecordFunction, CbsRequestType } from "@/types/cbs";
+import { CbsRecordFunction, CbsRequestType } from "@/types";
 import {
   DEFAULT_AUTH_LEVEL,
   GRPC_SERVICE_CATEGORY,

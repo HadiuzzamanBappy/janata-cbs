@@ -1,4 +1,5 @@
-import type { CbsRecordFunction, CbsWirePayload } from "@/types";
+import type { CbsWirePayload } from "@/lib/data-schemas";
+import type { CbsRecordFunction } from "@/types";
 import { createModelPayloads } from "./base-model";
 
 /* -------------------------------------------------------------------------- */

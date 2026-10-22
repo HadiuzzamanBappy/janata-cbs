@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { FormRenderer } from "@/features/form-engine";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import { CbsRecordFunction } from "@/types";
 
 export interface McPreviewTabProps {
   formData: ModelConfigRecord;
@@ -61,7 +62,7 @@ export function McPreviewTab({ formData }: McPreviewTabProps) {
           presentation={spec.presentation}
           values={formValues}
           onChange={handleInputChange}
-          mode="I"
+          mode={CbsRecordFunction.INPUT}
         />
       </div>
     </div>

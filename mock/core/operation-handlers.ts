@@ -177,6 +177,16 @@ export function handleInquiry(payload: CbsWirePayload): ApiResponse {
   return successResult([], "No inquiry records found in fixture");
 }
 
+/** Handles GRL (Generic Record List for Catalogs and Lookups) */
+export function handleRecordList(payload: CbsWirePayload): ApiResponse {
+  const cmd = (payload.controlName || "").trim().toUpperCase();
+  const table = resolveTable(cmd);
+  if (!table) {
+    return notFoundResult(`Table ${cmd} not found in database`);
+  }
+  return successResult(table.getList(), `${cmd} record collection loaded`);
+}
+
 /** Handles SBI (Search by recordId / wildcard) */
 export function handleSearchById(payload: CbsWirePayload): ApiResponse {
   const cmd = (payload.controlName || "").trim().toUpperCase();

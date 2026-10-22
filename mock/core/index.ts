@@ -17,6 +17,7 @@ import {
   handleInquiry,
   handleMutation,
   handleNextId,
+  handleRecordList,
   handleSearchById,
   handleSeeRecord,
 } from "./operation-handlers";
@@ -96,12 +97,17 @@ export function getMockProxyResponse(
     return handleMutation(normalizedPayload);
   }
 
-  // 6. SBI (Search by recordId / wildcard)
+  // 6. GRL (Generic Record List for catalogs and lookups)
+  if (reqType === "GRL") {
+    return handleRecordList(normalizedPayload);
+  }
+
+  // 7. SBI (Search by recordId / wildcard)
   if (reqType === "SBI") {
     return handleSearchById(normalizedPayload);
   }
 
-  // 7. S / SEE (Read / View Single Record in S mode)
+  // 8. S / SEE (Read / View Single Record in S mode)
   if (reqType === "S" || reqType === "SEE" || reqType === "GET" || payload.recordFunction === "S") {
     return handleSeeRecord(normalizedPayload);
   }

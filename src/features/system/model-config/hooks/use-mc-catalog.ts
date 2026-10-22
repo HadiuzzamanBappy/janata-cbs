@@ -34,9 +34,6 @@ export function useMcCatalog() {
     });
   }, []);
 
-  React.useEffect(() => {
-    refreshCatalog();
-  }, [refreshCatalog]);
 
   return {
     modelsPool,

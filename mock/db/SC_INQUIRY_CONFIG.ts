@@ -7,7 +7,7 @@ import type { CbsVersionedTable } from "./types";
  * Supports viewing and editing in SysInquiryConfig designer.
  */
 export const SC_INQUIRY_CONFIG_LIVE: Record<string, InquiryConfigRecord> = {
-  ACCOUNT: {
+  "GET.ACCOUNT": {
     description: "Account enquiry with customer balances, status, and branch code",
     pageOrientation: "Portrait",
     showSerial: true,
@@ -428,81 +428,7 @@ export const SC_INQUIRY_CONFIG_LIVE: Record<string, InquiryConfigRecord> = {
       recAuthTime: "2026-10-18 10:05:00",
       recBranchCode: "JB9999",
     },
-  },
-  "INQ.ACCOUNT": {
-    description: "Retail & Corporate Account Master List",
-    pageOrientation: "Portrait",
-    showSerial: true,
-    inqType: "DFT",
-    controllerName: "ACCOUNT",
-    rptControllerName: "RPT.ACC.LIST",
-    inqServicePath: "default",
-    columns: [
-      {
-        id: "recordId",
-        label: "Account No",
-        align: "left",
-        width: "140px",
-        format: "account",
-        isMono: true,
-        sortable: true,
-        visible: true,
-        isPinned: false,
-      },
-      {
-        id: "accountType",
-        label: "Account Type",
-        align: "left",
-        width: "130px",
-        format: "text",
-        isMono: false,
-        sortable: true,
-        visible: true,
-        isPinned: false,
-      },
-      {
-        id: "currency",
-        label: "CCY",
-        align: "center",
-        width: "70px",
-        format: "text",
-        isMono: true,
-        sortable: true,
-        visible: true,
-        isPinned: false,
-      },
-    ],
-    filters: [
-      {
-        id: "accountType",
-        label: "Account Type",
-        type: "select",
-        defaultOperand: "EQ",
-        defaultValue: "",
-        required: false,
-      },
-    ],
-    actions: [
-      {
-        id: "VIEW",
-        label: "View Details",
-        targetCommand: "ACCOUNT,SEE",
-        actionType: "view",
-        icon: "eye",
-        openMode: "tab",
-        idParamField: "recordId",
-      },
-    ],
-    auditData: {
-      recStatus: "AU",
-      recCurrNumber: 1,
-      recInputter: "SYSADMIN",
-      recInputTime: "2026-10-01 00:00:00",
-      recAuthorizer: "SYSADMIN",
-      recAuthTime: "2026-10-01 00:05:00",
-      recBranchCode: "JB9999",
-    },
-  },
+  }
 };
 
 /* -------------------------------------------------------------------------- */

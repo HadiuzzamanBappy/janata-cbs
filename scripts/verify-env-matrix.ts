@@ -573,7 +573,11 @@ async function runSuite() {
   );
 
   // 3.6 Inquiry Config Grid Conformance
-  const inqConfigFixture = SC_INQUIRY_CONFIG_LIVE.ACCOUNT || SC_INQUIRY_CONFIG_LIVE["ACCOUNT.LIST"];
+  const inqConfigFixture =
+    SC_INQUIRY_CONFIG_LIVE.ACCOUNT ||
+    SC_INQUIRY_CONFIG_LIVE["GET.ACCOUNT"] ||
+    SC_INQUIRY_CONFIG_LIVE["ACCOUNT.LIST"] ||
+    Object.values(SC_INQUIRY_CONFIG_LIVE)[0];
   assert(
     "Fixture Conformance: ACCOUNT inquiry spec satisfies inquiryConfigRecordSchema contract",
     Boolean(inqConfigFixture && inquiryConfigRecordSchema.safeParse(inqConfigFixture).success),

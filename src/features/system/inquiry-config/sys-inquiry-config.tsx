@@ -6,6 +6,7 @@ import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { type CbsScreenProps, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
 import { IcGeneralTab, IcJsonTab, IcPreviewTab, IcSelectionTab, IcTableTab } from "./components";
 import { useInquiryConfig } from "./hooks";
+import { CbsControlTable } from "@/types";
 
 type InquiryConfigTabKey = "general" | "selection" | "table" | "preview" | "json";
 
@@ -158,7 +159,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
   return (
     <CbsScreenScaffold<InquiryConfigTabKey>
       title="Inquiry Designer"
-      commandCode="CONFIG.INQUIRY"
+      commandCode={CbsControlTable.INQUIRY_CONFIG}
       recordId={recordId || (typeof formData.id === "string" ? formData.id : undefined)}
       mode={mode}
       isDirty={isDirty}

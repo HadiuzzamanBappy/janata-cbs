@@ -51,6 +51,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
     } else {
       cbsCommand.execute(node.command ?? node.id, {
         title: node.title,
+        target: node.menuType === "POPUP" ? "popup" : "workspace",
       });
     }
   };

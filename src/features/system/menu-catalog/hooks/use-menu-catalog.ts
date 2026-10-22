@@ -141,12 +141,13 @@ export function useMenuCatalog(initialId?: string, tabId?: string) {
     setValidationErrors([]);
     setSubmitting(true);
     try {
+      const targetId = formData.recordId || validation.data.command || "NEW";
       const wireData = serializeMenuCatalogToWireJson(validation.data);
       const json = await cbs.send(
-        cbs.menu.saveMenuItem(formData.recordId, wireData as unknown as Record<string, unknown>),
+        cbs.menu.saveMenuItem(targetId, wireData as unknown as Record<string, unknown>),
         {
           successTitle: "Menu Item Saved",
-          successMessage: `Saved menu action #${formData.recordId}`,
+          successMessage: `Saved menu action #${targetId}`,
         },
       );
       if (json.status === "SUCCESS") {

@@ -5,8 +5,18 @@ import { auditDataSchema } from "./common-schema";
 /* Canonical Domain Command / Control Action Types                            */
 /* -------------------------------------------------------------------------- */
 
-/** Action classification for quick launcher and keyboard navigation commands. */
-export const commandActionTypeSchema = z.enum(["SCREEN", "SETTINGS", "THEME", "LOGOUT"]);
+/**
+ * Canonical Action Type classification for CBS Commands and Menu Items.
+ * Decides whether the item opens in a standard Workspace Tab ("SCREEN")
+ * or in a multi-monitor Detached Window ("POPUP"), or executes a system action.
+ */
+export const commandActionTypeSchema = z.enum([
+  "SCREEN",
+  "POPUP",
+  "SETTINGS",
+  "THEME",
+  "LOGOUT",
+]);
 export type CommandActionType = z.infer<typeof commandActionTypeSchema>;
 
 /* -------------------------------------------------------------------------- */

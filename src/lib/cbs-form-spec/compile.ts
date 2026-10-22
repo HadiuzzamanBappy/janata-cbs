@@ -270,4 +270,3 @@ export function resolveFormRecord(
 
   throw new Error("Unknown schema format: payload has neither 'properties' nor 'presentation'");
 }
-

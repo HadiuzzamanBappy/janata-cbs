@@ -34,7 +34,9 @@ export function useFormSpec(command: string) {
 
       if (formRes.status === "SUCCESS" && formRes.data && "presentation" in formRes.data) {
         const formConfig = formRes.data;
-        const targetModelName = String(formConfig.targetModel || cleanCmd.split(",")[0] || cleanCmd).trim().toUpperCase();
+        const targetModelName = String(formConfig.targetModel || cleanCmd.split(",")[0] || cleanCmd)
+          .trim()
+          .toUpperCase();
 
         // Fetch underlying model schema to enrich validation rules
         let model: ModelConfigRecord | null = null;

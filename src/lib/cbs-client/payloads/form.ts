@@ -13,7 +13,11 @@ export const formPayloads = {
   /**
    * Search record IDs for a specific model / control ('SBI', Record Lookup).
    */
-  searchRecordIds: (controlName: string, searchPattern?: string, servicePath?: string): CbsWirePayload =>
+  searchRecordIds: (
+    controlName: string,
+    searchPattern?: string,
+    servicePath?: string,
+  ): CbsWirePayload =>
     createModelPayloads(controlName, { servicePath }).searchIds({ recordId: searchPattern }),
 
   /**

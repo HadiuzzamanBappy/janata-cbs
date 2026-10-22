@@ -62,8 +62,15 @@ export function getMockUserResponse(username?: string): GrpcResponse | null {
 /**
  * Simulates Core gRPC login process from local user fixtures.
  */
-export async function mockLogin(req: LoginRequest | { signon?: string; username?: string }): Promise<GrpcResponse> {
-  const username = ("username" in req && req.username) ? req.username : ("signon" in req && req.signon) ? req.signon : "";
+export async function mockLogin(
+  req: LoginRequest | { signon?: string; username?: string },
+): Promise<GrpcResponse> {
+  const username =
+    "username" in req && req.username
+      ? req.username
+      : "signon" in req && req.signon
+        ? req.signon
+        : "";
   const mock = getMockUserResponse(username);
   if (!mock) {
     return {

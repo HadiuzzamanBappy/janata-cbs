@@ -4,9 +4,9 @@ import { Code, Columns, Eye, FileText, Filter, Layers } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { type CbsScreenProps, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
+import { CbsControlTable } from "@/types";
 import { IcGeneralTab, IcJsonTab, IcPreviewTab, IcSelectionTab, IcTableTab } from "./components";
 import { useInquiryConfig } from "./hooks";
-import { CbsControlTable } from "@/types";
 
 type InquiryConfigTabKey = "general" | "selection" | "table" | "preview" | "json";
 

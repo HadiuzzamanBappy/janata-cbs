@@ -69,7 +69,6 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     }
   }, []);
 
-
   // 2. Column / Filter / Action State Modifiers
   const updateConfig = React.useCallback(
     (patch: Partial<InquiryConfigRecord>) => {
@@ -202,8 +201,8 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
             ...INITIAL_INQUIRY_CONFIG,
             id: cleanId,
             inquiryName: cleanId,
-            description: cleanId.replace(/[_\.-]/g, " "),
-            targetModel: cleanId.replace(/^INQ[\._]/, ""),
+            description: cleanId.replace(/[_.-]/g, " "),
+            targetModel: cleanId.replace(/^INQ[._]/, ""),
             columns: [],
             filters: [],
             actions: [],
@@ -229,8 +228,8 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
             ...INITIAL_INQUIRY_CONFIG,
             id: cleanId,
             inquiryName: cleanId,
-            description: cleanId.replace(/[_\.-]/g, " "),
-            targetModel: cleanId.replace(/^INQ[\._]/, ""),
+            description: cleanId.replace(/[_.-]/g, " "),
+            targetModel: cleanId.replace(/^INQ[._]/, ""),
             columns: [],
             filters: [],
             actions: [],

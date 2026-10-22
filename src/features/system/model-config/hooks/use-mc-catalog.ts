@@ -34,7 +34,6 @@ export function useMcCatalog() {
     });
   }, []);
 
-
   return {
     modelsPool,
     refreshCatalog,

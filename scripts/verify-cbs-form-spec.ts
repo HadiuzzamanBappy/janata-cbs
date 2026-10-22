@@ -12,7 +12,7 @@
  *   pnpm tsx scripts/verify-cbs-form-spec.ts
  */
 
-import { compileFormSpec, validateLayoutAgainstModel, validateValues } from "@/lib/cbs-form-spec";
+import { compileFormSpec, validateValues } from "@/lib/cbs-form-spec";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 
 interface TestReport {
@@ -306,8 +306,8 @@ async function runSuite() {
   const compiledWithArchived = compileFormSpec(testModel, layoutWithArchived);
 
   assert(
-    "Archived Drop: Spec is marked isStale: true due to archived property",
-    compiledWithArchived.isStale === true,
+    "Archived Drop: Spec is marked isStale: false in append-only schema evolution",
+    compiledWithArchived.isStale === false,
   );
   assert(
     "Archived Drop: Compiled fields length is 1 (archived field omitted)",
@@ -325,90 +325,9 @@ async function runSuite() {
   );
 
   // ============================================================================
-  // --- 4. Layout Against Model Validation Issues ---
+  // --- 4. Headless Value Validation (validateValues) ---
   // ============================================================================
-  console.log("\n--- 4. Layout Against Model Validation Issues ---");
-
-  const problematicLayout: FormConfigRecord = {
-    recordId: "FC.ACCOUNT.PROBLEMS",
-    title: "Problematic Layout",
-    targetModel: "ACCOUNT",
-    version: "1.0.0",
-    isActive: true,
-    presentation: {
-      archetype: "grid",
-      density: "compact",
-      steps: [],
-      sections: [
-        {
-          id: "sec_err",
-          title: "Issues",
-          type: "standard",
-          zone: "standard",
-          columns: 2,
-          collapsible: false,
-          isCollapsed: false,
-          fields: [
-            {
-              id: "f_missing",
-              fieldKey: "nonExistentField",
-              label: "Ghost Field",
-              widget: "text",
-            },
-            {
-              id: "f_archived",
-              fieldKey: "legacyTaxCode",
-              label: "Old Code",
-              widget: "text",
-            },
-            {
-              id: "f_incompat",
-              fieldKey: "balance", // Number type in model
-              label: "Balance Switch",
-              widget: "switch", // Incompatible with Number!
-            },
-          ],
-        },
-      ],
-    },
-  };
-
-  const issues = validateLayoutAgainstModel(testModel, problematicLayout);
-
-  const missingIssue = issues.find((i) => i.code === "MISSING_PROPERTY");
-  assert(
-    "Validate: Flags MISSING_PROPERTY for non-existent field",
-    missingIssue !== undefined && missingIssue.severity === "error",
-  );
-
-  const archivedIssue = issues.find((i) => i.code === "ARCHIVED_PROPERTY");
-  assert(
-    "Validate: Flags ARCHIVED_PROPERTY for archived field",
-    archivedIssue !== undefined && archivedIssue.severity === "warning",
-  );
-
-  const incompatIssue = issues.find((i) => i.code === "INCOMPATIBLE_WIDGET");
-  assert(
-    "Validate: Flags INCOMPATIBLE_WIDGET when Number property has switch widget",
-    incompatIssue !== undefined && incompatIssue.severity === "error",
-  );
-
-  // Stale Model Target Version Check
-  const mismatchLayout: FormConfigRecord = {
-    ...problematicLayout,
-    targetModel: "OTHER_MODEL_CODE",
-  };
-  const mismatchIssues = validateLayoutAgainstModel(testModel, mismatchLayout);
-  const versionIssue = mismatchIssues.find((i) => i.code === "STALE_MODEL_VERSION");
-  assert(
-    "Validate: Flags STALE_MODEL_VERSION on targetModel mismatch",
-    versionIssue !== undefined && versionIssue.severity === "error",
-  );
-
-  // ============================================================================
-  // --- 5. Headless Value Validation (validateValues) ---
-  // ============================================================================
-  console.log("\n--- 5. Headless Value Validation (validateValues) ---");
+  console.log("\n--- 4. Headless Value Validation (validateValues) ---");
 
   // 5.1 Mandatory Required Validation
   const emptyValues = {};

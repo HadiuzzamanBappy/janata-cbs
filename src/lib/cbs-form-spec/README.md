@@ -16,21 +16,14 @@ The library provides three core pure modules with zero React UI dependencies:
    - When no layout is provided: generates an automatic, responsive 12-column fallback grid (`layoutSource: "fallback"`).
    - Omit rule: strictly excludes properties flagged as `ARCHIVED`.
 
-2. **`validateLayoutAgainstModel(model, layout)`**:
-   Schema drift evaluator that verifies layout integrity against the current model definition:
-   - `MISSING_PROPERTY`: flags fields placed in the layout that no longer exist in the model.
-   - `ARCHIVED_PROPERTY`: flags fields placed in the layout that were marked `ARCHIVED`.
-   - `INCOMPATIBLE_WIDGET`: flags visual widgets that conflict with the property's data type (e.g. `switch` on a free-text field).
-   - `STALE_MODEL_VERSION`: flags target model name mismatches.
-
-3. **`validateValues(spec, values)`**:
+2. **`validateValues(spec, values)`**:
    Pure headless validator evaluating runtime draft values against the compiled specification:
    - Mandatory required checks (detects empty strings, `null`, `undefined`, empty arrays).
    - Numeric & amount validation (numeric strings, digit length boundaries).
    - ISO date formatting (`YYYY-MM-DD` and calendar validity).
    - Returns a clean `Record<string, string>` error map (`{}` when pristine).
 
-4. **`colSpanForLength(prop)`**:
+3. **`colSpanForLength(prop)`**:
    Responsive grid utility calculating optimal 12-column span based on model property type and length constraints (e.g. 12 for `Textarea` or long text, 4 for short IDs, 6 for standard fields).
 
 ---
@@ -88,25 +81,7 @@ console.log(customSpec.layoutSource); // "custom"
 
 ---
 
-### 2. Validating Layout Drift in Form Designer
-
-Used in `FormConfig` designer hooks and the `FcStaleLayoutBanner` component to warn developers before saving obsolete layouts:
-
-```typescript
-import { validateLayoutAgainstModel } from "@/lib/cbs-form-spec";
-
-const issues = validateLayoutAgainstModel(activeModel, currentLayout);
-
-if (issues.length > 0) {
-  const missing = issues.filter((i) => i.code === "MISSING_PROPERTY");
-  const archived = issues.filter((i) => i.code === "ARCHIVED_PROPERTY");
-  console.warn("Layout contains obsolete fields:", missing, archived);
-}
-```
-
----
-
-### 3. Validating Runtime Values on Commit
+### 2. Validating Runtime Values on Commit
 
 Used in `useFormState` and `useFormActions` to validate user inputs before transmitting wire payloads:
 

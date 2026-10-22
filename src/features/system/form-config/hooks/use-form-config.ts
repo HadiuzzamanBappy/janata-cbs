@@ -57,10 +57,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
 
   const resolvedTarget =
     (formData.targetModel as string) || (recordId ? recordId.split(",")[0].trim() : "");
-  const { targetModelRecord, loadingModel, layoutIssues, staleIssues, isStale } = useFcModelBinding(
-    resolvedTarget,
-    formData,
-  );
+  const { targetModelRecord, loadingModel } = useFcModelBinding(resolvedTarget);
 
   const sectionOps = useFcSectionOps(setFormData, setSelectedSectionId, setSelectedFieldId);
   const fieldOps = useFcFieldOps(setFormData, setSelectedFieldId, setSelectedSectionId);
@@ -157,15 +154,14 @@ export function useFormConfig(initialId?: string, tabId?: string) {
 
   const handleValidate = React.useCallback(() => {
     const issues: FormConfigValidationError[] = [];
-    for (const li of layoutIssues) {
-      if (li.severity === "error") {
-        issues.push({
-          id: `layout_${li.code}_${li.fieldKey || "err"}`,
-          tab: "designer",
-          fieldKey: li.fieldKey || "presentation",
-          message: li.message,
-        });
-      }
+    const title = typeof formData.title === "string" ? formData.title.trim() : "";
+    if (!title) {
+      issues.push({
+        id: "err_missing_title",
+        tab: "general",
+        fieldKey: "title",
+        message: "Form title is required",
+      });
     }
 
     setValidationErrors(issues);
@@ -183,7 +179,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       type: "success",
     });
     return true;
-  }, [layoutIssues]);
+  }, [formData.title]);
 
   const actions = useFcActions({
     formData,
@@ -218,9 +214,6 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     setSelectedFieldId,
     validationErrors,
     targetModelRecord,
-    layoutIssues,
-    staleIssues,
-    isStale,
     availableForms,
     availableModels,
     ...sectionOps,

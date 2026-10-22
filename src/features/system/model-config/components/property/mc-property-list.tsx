@@ -317,16 +317,16 @@ export function McPropertyList({
                     </Button>
                   )}
 
-                  {/* Delete button */}
-                  {!isReadOnly && onDeleteField && (!isCommitted || isSelected) && (
+                  {/* Delete button (Strict Core Banking: only uncommitted draft fields can be removed) */}
+                  {!isReadOnly && onDeleteField && !isCommitted && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      title="Delete field"
+                      title="Delete draft field"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDeleteField(prop.sn, !isCommitted);
+                        onDeleteField(prop.sn, true);
                       }}
                       className={cn(
                         "size-5 p-0 rounded transition-opacity",

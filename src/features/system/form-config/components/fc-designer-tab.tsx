@@ -1,20 +1,16 @@
 "use client";
-
 import * as React from "react";
-import type { FormLayoutIssue } from "@/lib/cbs-form-spec";
 import type {
   FormFieldItem,
   FormSection,
   FormWidgetType,
 } from "@/lib/data-schemas/form-config-schema";
 import { DesignerCanvas } from "./designer/designer-canvas";
-import { FcStaleLayoutBanner } from "./designer/fc-stale-layout-banner";
 import { FieldPalette } from "./designer/field-palette";
 import { PropertyInspector } from "./designer/property-inspector";
 
 export interface FcDesignerTabProps {
   targetModel?: string;
-  staleIssues?: FormLayoutIssue[];
   sections: FormSection[];
   selectedSectionId: string | null;
   selectedFieldId: string | null;
@@ -55,7 +51,6 @@ export interface FcDesignerTabProps {
 
 export function FcDesignerTab({
   targetModel,
-  staleIssues,
   sections,
   selectedSectionId,
   selectedFieldId,
@@ -236,11 +231,6 @@ export function FcDesignerTab({
 
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden">
-      {/* Schema Drift Warning Banner */}
-      {staleIssues && staleIssues.length > 0 && (
-        <FcStaleLayoutBanner issues={staleIssues} targetModel={targetModel} />
-      )}
-
       {/* 3-Column Designer Workspace */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left: Palette */}

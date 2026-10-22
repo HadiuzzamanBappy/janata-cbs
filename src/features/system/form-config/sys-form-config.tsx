@@ -35,7 +35,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     setSelectedFieldId,
     validationErrors,
     targetModelRecord,
-    staleIssues,
     availableForms,
     addSection,
     updateSection,
@@ -84,7 +83,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         id: "designer",
         label: "Visual Designer",
         icon: <Palette className="size-3 text-primary" />,
-        badgeCount: staleIssues.length > 0 ? staleIssues.length : undefined,
         content: (
           <FcDesignerTab
             targetModel={
@@ -92,7 +90,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
                 ? formData.targetModel
                 : targetModelRecord?.tableName
             }
-            staleIssues={staleIssues}
             sections={formData.presentation.sections}
             selectedSectionId={selectedSectionId}
             selectedFieldId={selectedFieldId}
@@ -134,7 +131,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     [
       formData,
       isReadOnly,
-      staleIssues,
       targetModelRecord,
       selectedSectionId,
       selectedFieldId,

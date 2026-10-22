@@ -110,29 +110,18 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
     [committedSnSet],
   );
 
-  const deprecateOrRemoveField = React.useCallback(
-    (sn: string, forceHardDelete = false) => {
+  const removeDraftField = React.useCallback(
+    (sn: string) => {
       setFormData((prev) => {
-        const isCommitted = committedSnSet.has(sn);
-        const prefix = `${sn}_`;
-        if (!isCommitted || forceHardDelete) {
-          return {
-            ...prev,
-            properties: prev.properties.filter((p) => p.sn !== sn && !p.sn.startsWith(prefix)),
-          };
+        // Core Banking Rule: Committed properties in database cannot be deleted (append-only schema evolution)
+        if (committedSnSet.has(sn)) {
+          return prev;
         }
+
+        const prefix = `${sn}_`;
         return {
           ...prev,
-          properties: prev.properties.map((p) => {
-            if (p.sn === sn || p.sn.startsWith(prefix)) {
-              return {
-                ...p,
-                status: p.status === "ARCHIVED" ? "ACTIVE" : "ARCHIVED",
-                disabled: p.status !== "ARCHIVED",
-              };
-            }
-            return p;
-          }),
+          properties: prev.properties.filter((p) => p.sn !== sn && !p.sn.startsWith(prefix)),
         };
       });
     },
@@ -143,8 +132,7 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
     addField,
     addChildField,
     updateField,
-    removeField: deprecateOrRemoveField,
-    deprecateOrRemoveField,
+    removeField: removeDraftField,
     isFieldCommitted,
     markAsCommitted,
     clearCommitted: () => setCommittedSnSet(new Set()),

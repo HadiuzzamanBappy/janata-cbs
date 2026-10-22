@@ -2,11 +2,9 @@
 
 import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
-import { type FormLayoutIssue, validateLayoutAgainstModel } from "@/lib/cbs-form-spec";
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
-export function useFcModelBinding(targetModelName: string, formData: FormConfigRecord) {
+export function useFcModelBinding(targetModelName: string) {
   const [targetModelRecord, setTargetModelRecord] = React.useState<ModelConfigRecord | null>(null);
   const [loadingModel, setLoadingModel] = React.useState<boolean>(false);
 
@@ -42,25 +40,8 @@ export function useFcModelBinding(targetModelName: string, formData: FormConfigR
     };
   }, [targetModelName]);
 
-  const layoutIssues = React.useMemo<FormLayoutIssue[]>(() => {
-    if (!targetModelRecord) return [];
-    return validateLayoutAgainstModel(targetModelRecord, formData);
-  }, [targetModelRecord, formData]);
-
-  const staleIssues = React.useMemo(() => {
-    return layoutIssues.filter(
-      (i) =>
-        i.code === "ARCHIVED_PROPERTY" ||
-        i.code === "MISSING_PROPERTY" ||
-        i.code === "STALE_MODEL_VERSION",
-    );
-  }, [layoutIssues]);
-
   return {
     targetModelRecord,
     loadingModel,
-    layoutIssues,
-    staleIssues,
-    isStale: staleIssues.length > 0,
   };
 }

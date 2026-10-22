@@ -137,10 +137,11 @@ export function CbsFormHeader({
     if (onRecordIdChange) onRecordIdChange(cleanId);
   };
 
-  // Action 3: New Button (+) -> Allocates sequence ID via 'GNI' and opens in Mode 'I'
+  // Action 3: New Button (+) -> Allocates sequence ID via 'GNI' or initializes user-defined draft and opens in Mode 'I'
   const handleCreateNewClick = React.useCallback(async () => {
     try {
-      const newId = await fetchNewRecordId();
+      const candidateId = inputVal.trim();
+      const newId = await fetchNewRecordId(candidateId || undefined);
       if (newId) {
         setInputVal(newId);
         if (onRecordIdChange) onRecordIdChange(newId);
@@ -152,9 +153,8 @@ export function CbsFormHeader({
       }
     } catch (err) {
       console.warn("[CbsFormHeader] Failed to allocate new record sequence:", err);
-      onCreateNew?.();
     }
-  }, [fetchNewRecordId, onRecordIdChange, onCreateNew, onRecordSearch]);
+  }, [fetchNewRecordId, inputVal, onRecordIdChange, onCreateNew, onRecordSearch]);
 
   const handleClearRecord = () => {
     setInputVal("");

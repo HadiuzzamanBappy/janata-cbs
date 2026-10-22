@@ -1,9 +1,12 @@
-import "server-only";
-
-import { SC_INQUIRY_CONFIG_LIVE, SC_MENU_TREE_LIVE, SC_MODEL_CONFIG_LIVE } from "@mock/db";
+import {
+  SC_FORM_CONFIG_LIVE,
+  SC_INQUIRY_CONFIG_LIVE,
+  SC_MENU_TREE_LIVE,
+  SC_MODEL_CONFIG_LIVE,
+} from "@mock/db";
 import type { ApiResponse, CbsWirePayload } from "@/types";
 import { resolveTable } from "./database-router";
-import { notFoundResult, successResult } from "./response-factory";
+import { errorResult, notFoundResult, successResult } from "./response-factory";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Wire Payload Accessors                                           */
@@ -14,26 +17,21 @@ export function getMockMenuPayload(): unknown {
 }
 
 export function getMockFormPayload(command: string): unknown {
-  const clean = command.trim().toUpperCase().split(",")[0].trim();
-  const resolved = clean === "USER.MGT" ? "USER" : clean;
-  const model =
-    SC_MODEL_CONFIG_LIVE[resolved] ||
-    SC_MODEL_CONFIG_LIVE[clean] ||
-    SC_MODEL_CONFIG_LIVE[clean.replace(/\./g, "_")] ||
-    SC_MODEL_CONFIG_LIVE[clean.replace(/_/g, ".")];
-  if (!model) return null;
+  const clean = command.trim().toUpperCase();
 
-  return model;
+  // 1. If explicit Form Config exists (e.g. ACCOUNT,1.0.0 or USER,1.0.0), return the form layout
+  if (SC_FORM_CONFIG_LIVE[clean]) {
+    return SC_FORM_CONFIG_LIVE[clean];
+  }
+
+  // 2. Otherwise return base Model Config (raw table schema)
+  const baseModel = clean.split(",")[0].trim();
+  return SC_MODEL_CONFIG_LIVE[baseModel] || SC_MODEL_CONFIG_LIVE[clean] || null;
 }
 
 export function getMockInquiryPayload(command: string): unknown {
   const clean = command.trim().toUpperCase();
-  return (
-    SC_INQUIRY_CONFIG_LIVE[clean] ||
-    SC_INQUIRY_CONFIG_LIVE[clean.replace(/^INQ\./, "")] ||
-    SC_INQUIRY_CONFIG_LIVE[`INQ.${clean}`] ||
-    null
-  );
+  return SC_INQUIRY_CONFIG_LIVE[clean] || null;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -80,21 +78,22 @@ export function handleInquiry(payload: CbsWirePayload): ApiResponse {
   return successResult([], "No inquiry records found in fixture");
 }
 
-/** Handles GRL (Generic Record List) */
-export function handleRecordList(payload: CbsWirePayload): ApiResponse {
+/** Handles SBI (Search by recordId / wildcard) */
+export function handleSearchById(payload: CbsWirePayload): ApiResponse {
   const cmd = (payload.controlName || "").trim().toUpperCase();
   const table = resolveTable(cmd);
   if (!table) {
     return notFoundResult(`Table ${cmd} not found in database`);
   }
-  return successResult(table.getList(), `${cmd} list loaded`);
+  const searchPattern = payload.recordId || "";
+  return successResult(table.getIdList(searchPattern), `${cmd} ID list loaded`);
 }
 
-/** Handles GET (Single Record Query) */
-export function handleGetRecord(payload: CbsWirePayload): ApiResponse {
+/** Handles S / SEE (Read / View Single Record) */
+export function handleSeeRecord(payload: CbsWirePayload): ApiResponse {
   const recId = (payload.recordId || "").trim();
-  if (!recId || recId.toUpperCase() === "LIST" || recId.toUpperCase() === "ALL") {
-    return handleRecordList(payload);
+  if (!recId) {
+    return notFoundResult("Missing recordId for SEE / View request");
   }
 
   const cmd = (payload.controlName || "").trim().toUpperCase();
@@ -148,18 +147,63 @@ export function handleGetRecord(payload: CbsWirePayload): ApiResponse {
   return successResult(recordWithId, `${cmd} record loaded`);
 }
 
-/** Handles GNI (Get Next Sequence ID) */
+/** Handles GNI (Get Next Sequence ID or User-Defined Draft Initialization) */
 export function handleNextId(payload: CbsWirePayload): ApiResponse {
   const clean = (payload.controlName || "").trim().toUpperCase();
+  const table = resolveTable(clean);
+  const inputId = (payload.recordId || "").trim().toUpperCase();
+
+  // 1. If an ID was provided and it already exists in the table, return the existing record in Edit Mode
+  if (inputId && table) {
+    const existing =
+      table.LIVE[inputId] ||
+      (table.prefix && table.LIVE[`${table.prefix}${inputId}`]) ||
+      Object.keys(table.LIVE).find((k) => k.toUpperCase() === inputId && table.LIVE[k]);
+
+    if (existing) {
+      const rec = typeof existing === "object" ? existing : {};
+      return successResult(
+        { recordId: inputId, id: inputId, ...rec, _isExisting: true },
+        `Existing ${clean} record #${inputId} loaded for edit`,
+      );
+    }
+  }
+
+  // 2. Resolve Model schema metadata to check ID definition
   const model =
     SC_MODEL_CONFIG_LIVE[clean] ||
     SC_MODEL_CONFIG_LIVE[clean.replace(/\./g, "_")] ||
     SC_MODEL_CONFIG_LIVE[clean.replace(/_/g, ".")];
 
-  const prefix = model?.idDef?.idPrefix || model?.prefix || clean;
+  const isUserDefineId = Boolean(model?.userDefineId) || clean === "MODEL.CONFIG" || clean === "CONFIG.MODEL";
+
+  // 3. If model is userDefineId:
+  //    - If user provided an ID: initialize draft with that ID.
+  //    - If user did NOT provide an ID: return error! User-defined models require the user to specify an ID.
+  if (isUserDefineId) {
+    if (!inputId) {
+      return errorResult(
+        400,
+        `${clean} has userDefineId enabled. Please enter a Record ID before clicking (+) New.`,
+      );
+    }
+
+    return successResult(
+      {
+        recordId: inputId,
+        id: inputId,
+        tableName: inputId.replace(/[\.-]/g, "_"),
+        _isNew: true,
+      },
+      `Initialized user-defined draft for ${clean} #${inputId}`,
+    );
+  }
+
+  // 4. Otherwise, model uses system sequence allocation (e.g. ACCOUNT)
+  const prefix = model?.idDef?.idPrefix || model?.prefix || clean.slice(0, 2);
   const generatedId = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
   return successResult(
-    { recordId: generatedId, id: generatedId },
+    { recordId: generatedId, id: generatedId, _isNew: true },
     `Generated next record sequence for ${clean}`,
   );
 }

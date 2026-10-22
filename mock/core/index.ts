@@ -14,13 +14,13 @@ import {
   getMockMenuPayload,
   handleGetMenu,
   handleGetModelConfig,
-  handleGetRecord,
   handleInquiry,
   handleMutation,
   handleNextId,
-  handleRecordList,
+  handleSearchById,
+  handleSeeRecord,
 } from "./operation-handlers";
-import { notFoundResult, successResult, toGrpcResponse } from "./response-factory";
+import { notFoundResult, toGrpcResponse } from "./response-factory";
 
 export {
   buildMockUserAuthResponse,
@@ -28,6 +28,7 @@ export {
   getMockInquiryPayload,
   getMockMenuPayload,
   getMockUserResponse,
+  handleSearchById,
   mockLogin,
   SYS_USER_AUTH_RESPONSES,
 };
@@ -65,23 +66,17 @@ export function getMockProxyResponse(
   };
 
   // 1. GUM (Get User Menu Navigation Tree)
-  if (reqType === "GUM" || cleanCmd === "GUM") {
+  if (reqType === "GUM") {
     return handleGetMenu();
   }
 
   // 2. GMC (Get Model Configuration Schema)
-  if (reqType === "GMC" || cleanCmd === "FORM") {
+  if (reqType === "GMC") {
     return handleGetModelConfig(normalizedPayload);
   }
 
-  // 3. Legacy Inquiry Spec (GET on INQUIRY) vs Query Execution (INQ)
-  if (cleanCmd === "INQUIRY" && reqType !== "INQ") {
-    const spec = getMockInquiryPayload(recId || cleanCmd);
-    if (!spec) return notFoundResult(`Inquiry spec for ${recId || cleanCmd} not found`);
-    return successResult(spec, "Inquiry spec loaded from simulated database");
-  }
-
-  if (reqType === "INQ" || cleanCmd === "INQUIRY") {
+  // 3. INQ (Dynamic Inquiry Execution)
+  if (reqType === "INQ") {
     return handleInquiry(normalizedPayload);
   }
 
@@ -101,14 +96,14 @@ export function getMockProxyResponse(
     return handleMutation(normalizedPayload);
   }
 
-  // 6. GRL / SBI (Generic Record List / Record ID Search)
-  if (reqType === "GRL" || reqType === "SBI" || reqType === "RECORD_LIST" || !recId) {
-    return handleRecordList(normalizedPayload);
+  // 6. SBI (Search by recordId / wildcard)
+  if (reqType === "SBI") {
+    return handleSearchById(normalizedPayload);
   }
 
-  // 7. GET (Get Single Record)
-  if (reqType === "GET") {
-    return handleGetRecord(normalizedPayload);
+  // 7. S / SEE (Read / View Single Record in S mode)
+  if (reqType === "S" || reqType === "SEE" || reqType === "GET" || payload.recordFunction === "S") {
+    return handleSeeRecord(normalizedPayload);
   }
 
   return notFoundResult(`Unsupported requestType "${reqType}" for model "${cleanCmd}"`);

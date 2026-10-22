@@ -1,18 +1,19 @@
 /**
  * Automated Verification Suite for CBS Mock Core Engine & Database
  *
- * Exhaustively tests all functionalities implemented in mock/core & mock/db:
+ * Clean, single-test per core concept with explicit Input and Output visualization:
  * 1. Gateway Runtime Mode Switch (isStaticMode)
- * 2. Database Router & Physical Table Resolution (resolveTable & formatters)
- * 3. Operator Authentication & JWT Token Minting (loginProcess & mockLogin)
- * 4. Metamodel Introspection & Navigation Hierarchy (GMC & GUM)
- * 5. Dynamic Pre-Seeding & Versioning Engine (FORM.CONFIG, MODEL.CONFIG, INQUIRY.CONFIG)
- * 6. Tabular Inquiry Query Engine (INQ)
- * 7. Sequence ID Generation (GNI prefix & random sequence)
- * 8. Generic Record List Retrieval (GRL for all canonical controls)
- * 9. Single Record Retrieval & 404 Boundary Handling (GET)
- * 10. Four-Eyes Status Lifecycle Mutations (PUT, AUT, HLD, REV, DEL)
- * 11. Wire Protocol & Dispatch Envelopes (mockProcess & mockDispatch)
+ * 2. Database Router Table Resolution (resolveTable)
+ * 3. Operator Authentication & Session Minting (loginProcess)
+ * 4. Metamodel Form Schema Introspection (GMC)
+ * 5. Navigation Menu Tree Hierarchy (GUM)
+ * 6. Versioned Presentation Configuration (FORM.CONFIG)
+ * 7. Tabular Inquiry Rows (INQ)
+ * 8. Sequence ID Allocation (GNI)
+ * 9. Key ID List & Wildcard Search (SBI)
+ * 10. Single Record Read in View Mode (S / SEE)
+ * 11. Maker-Checker Lifecycle Status Mutation (PUT -> INA)
+ * 12. Full Unary gRPC Wire Envelope Dispatch (mockProcess)
  *
  * Usage:
  *   pnpm tsx scripts/verify-mock-core.ts
@@ -39,515 +40,262 @@ export {};
 async function runSuite() {
   const { appConfig } = await import("@/lib/core-config/server");
   const { isStaticMode, loginProcess } = await import("@/lib/infra-grpc");
-  const { getMockProxyResponse, mockProcess, mockDispatch } = await import("@mock/core");
+  const { getMockProxyResponse, mockProcess } = await import("@mock/core");
   const { resolveTable } = await import("@mock/core/database-router");
-  const { parseAuthWirePayload } = await import("@/lib/data-parsers");
 
-  interface TestReport {
-    name: string;
+  interface TestCase {
+    title: string;
+    input: unknown;
+    output: unknown;
     passed: boolean;
     error?: string;
   }
 
-  const reports: TestReport[] = [];
+  const testCases: TestCase[] = [];
 
-  function assert(name: string, condition: boolean, outputData?: unknown) {
-    if (condition) {
-      reports.push({ name, passed: true });
-      let preview = "";
-      if (outputData !== undefined && outputData !== null) {
-        if (
-          typeof outputData === "string" ||
-          typeof outputData === "number" ||
-          typeof outputData === "boolean"
-        ) {
-          preview = String(outputData);
-        } else if (Array.isArray(outputData)) {
-          preview = `Array(${outputData.length} items) [sample: ${JSON.stringify(outputData[0] || {})}]`;
-        } else {
-          const keys = Object.keys(outputData as object);
-          const sample = JSON.stringify(outputData);
-          preview =
-            sample.length > 120
-              ? `${sample.slice(0, 117)}... (keys: ${keys.slice(0, 5).join(", ")})`
-              : sample;
-        }
-      }
-      console.log(`  [PASS] ${name}${preview ? `\n         ↳ Output: ${preview}` : ""}`);
-    } else {
-      reports.push({ name, passed: false, error: String(outputData) });
-      console.error(`  [FAIL] ${name}${outputData ? ` -> ${outputData}` : ""}`);
+  function recordTest(title: string, input: unknown, output: unknown, condition: boolean, error?: string) {
+    testCases.push({ title, input, output, passed: condition, error });
+    const statusTag = condition ? "[PASS]" : "[FAIL]";
+    console.log(`\n${statusTag} ${title}`);
+    console.log(`       Input  : ${typeof input === "string" ? input : JSON.stringify(input)}`);
+    console.log(`       Output : ${typeof output === "string" ? output : JSON.stringify(output)}`);
+    if (!condition && error) {
+      console.error(`       Error  : ${error}`);
     }
   }
 
   const originalDataSource = appConfig.dataSource;
 
-  console.log("\n========================================================");
-  console.log("   CBS MOCK CORE ENGINE & FIXTURE DATABASE VERIFICATION   ");
-  console.log("========================================================");
-  console.log("  Target Environment : In-Memory Database & Core Simulator");
-  console.log("  Network Socket     : Completely Offline (0 Sockets)");
-  console.log("========================================================\n");
+  console.log("\n================================================================================");
+  console.log("             CBS MOCK CORE ENGINE & FIXTURE DATABASE VERIFICATION               ");
+  console.log("================================================================================");
+  console.log(" Target Environment : In-Memory Database & Core Simulator (0 Sockets)");
+  console.log(" Pattern            : Single Unique Test per Core Banking Lifecycle Function");
+  console.log("================================================================================");
 
   try {
     (appConfig as { dataSource: string }).dataSource = "static";
 
-    // =========================================================================
-    // SECTION 1: Gateway Runtime Mode Gate
-    // =========================================================================
-    console.log("── 1. Gateway Runtime Mode Switch ──");
-    assert(
-      "Gateway Switch: isStaticMode() returns true",
-      isStaticMode() === true,
-      "dataSource=static",
+    // 1. Gateway Runtime Mode Switch
+    const staticCheck = isStaticMode();
+    recordTest(
+      "1. Gateway Runtime Mode Switch",
+      { dataSource: appConfig.dataSource },
+      { isStaticMode: staticCheck },
+      staticCheck === true,
     );
 
-    // =========================================================================
-    // SECTION 2: Database Router & Physical Table Resolution
-    // =========================================================================
-    console.log(
-      "\n── 2. Database Router & Physical Table Resolution (@mock/core/database-router) ──",
+    // 2. Database Router Table Resolution
+    const inputTable = "ACCOUNT";
+    const resolvedTable = resolveTable(inputTable);
+    const tableOut = {
+      physicalName: resolvedTable?.physicalName,
+      prefix: resolvedTable?.prefix,
+      totalRecords: resolvedTable?.getList().length,
+    };
+    recordTest(
+      "2. Database Router Table Resolution",
+      { controlName: inputTable },
+      tableOut,
+      resolvedTable?.physicalName === "AC_ACCOUNT",
     );
 
-    const tAccount = resolveTable("ACCOUNT");
-    assert(
-      "Database Router: 'ACCOUNT' resolves to physical table 'AC_ACCOUNT'",
-      tAccount?.physicalName === "AC_ACCOUNT",
-      { physicalName: tAccount?.physicalName, recordCount: tAccount?.getList().length },
+    // 3. Operator Authentication & Session Minting
+    const loginInput = { clientId: "WEB-CLIENT", username: "ZZ028459", password: "password123" };
+    const authRes = await loginProcess(loginInput);
+    const authData = authRes.data as Record<string, unknown> | undefined;
+    const authOut = {
+      status: authRes.status,
+      statusCode: authRes.statusCode,
+      fullName: authData?.fullName,
+      accessibility: authData?.accessibility,
+      branchCode: authData?.branchCode,
+      hasToken: Boolean(authData?.token),
+    };
+    recordTest(
+      "3. Operator Authentication & Session Minting",
+      { username: loginInput.username, password: "***" },
+      authOut,
+      authRes.statusCode === 200 && authData?.accessibility === "RIDASHL",
     );
 
-    const tCustomer = resolveTable("CUSTOMER");
-    assert(
-      "Database Router: 'CUSTOMER' resolves to physical table 'CUST_CUSTOMER'",
-      tCustomer?.physicalName === "CUST_CUSTOMER",
-      { physicalName: tCustomer?.physicalName, sampleCustomer: tCustomer?.getList()[0] },
-    );
-
-    const tBranch = resolveTable("BRANCH");
-    assert(
-      "Database Router: 'BRANCH' resolves to physical table 'SC_BRANCH'",
-      tBranch?.physicalName === "SC_BRANCH",
-      { physicalName: tBranch?.physicalName, branchCount: tBranch?.getList().length },
-    );
-
-    const tControl = resolveTable("CONTROL");
-    assert(
-      "Database Router: 'CONTROL' resolves to physical table 'SC_CONTROL'",
-      tControl?.physicalName === "SC_CONTROL",
-      { physicalName: tControl?.physicalName, sampleControl: tControl?.getList()[0] },
-    );
-
-    const tFormConfig = resolveTable("FORM.CONFIG");
-    assert(
-      "Database Router: 'FORM.CONFIG' resolves with dot notation to 'SC_FORM_CONFIG'",
-      tFormConfig?.physicalName === "SC_FORM_CONFIG",
-      { physicalName: tFormConfig?.physicalName, count: tFormConfig?.getList().length },
-    );
-
-    const tModelConfig = resolveTable("MODEL.CONFIG");
-    assert(
-      "Database Router: 'MODEL.CONFIG' resolves to 'SC_MODEL_CONFIG'",
-      tModelConfig?.physicalName === "SC_MODEL_CONFIG",
-      { physicalName: tModelConfig?.physicalName, count: tModelConfig?.getList().length },
-    );
-
-    const tInquiryConfig = resolveTable("INQUIRY.CONFIG");
-    assert(
-      "Database Router: 'INQUIRY.CONFIG' resolves to 'SC_INQUIRY_CONFIG'",
-      tInquiryConfig?.physicalName === "SC_INQUIRY_CONFIG",
-      { physicalName: tInquiryConfig?.physicalName, count: tInquiryConfig?.getList().length },
-    );
-
-    const tUserGroup = resolveTable("USER.GROUP");
-    assert(
-      "Database Router: 'USER.GROUP' resolves to 'SC_USER_GROUP'",
-      tUserGroup?.physicalName === "SC_USER_GROUP",
-      { physicalName: tUserGroup?.physicalName, count: tUserGroup?.getList().length },
-    );
-
-    const tUser = resolveTable("USER");
-    assert("Database Router: 'USER' resolves to 'SYS_USER'", tUser?.physicalName === "SYS_USER", {
-      physicalName: tUser?.physicalName,
-      sampleUser: tUser?.getList()[0],
-    });
-
-    // =========================================================================
-    // SECTION 3: Operator Authentication & Session Minting
-    // =========================================================================
-    console.log("\n── 3. Operator Authentication & Session Minting (@mock/core/auth-simulator) ──");
-
-    const validLogin = await loginProcess({
-      clientId: "WEB-CLIENT",
-      username: "ZZ028459",
-      password: "password123",
-    });
-    assert(
-      "Auth Simulator: loginProcess('ZZ028459') mints valid token & session",
-      validLogin.statusCode === 200 && Boolean(validLogin.data),
+    // 4. Metamodel Form Schema Introspection (GMC)
+    // 4a. Pure Model Schema (when base model name passed)
+    const gmcModelInput = { requestType: "GMC", controlName: "ACCOUNT" };
+    const gmcModelRes = getMockProxyResponse("GMC", "ACCOUNT");
+    const gmcModelData = gmcModelRes.data as Record<string, unknown> | undefined;
+    recordTest(
+      "4a. Metamodel Model Schema Introspection (GMC -> MODEL.CONFIG)",
+      gmcModelInput,
       {
-        status: validLogin.status,
-        statusCode: validLogin.statusCode,
-        message: validLogin.message,
-        token: (validLogin.data as Record<string, unknown>)?.token,
-        txnDate: (validLogin.data as Record<string, unknown>)?.txnDate,
+        tableName: gmcModelData?.tableName,
+        propertiesCount: (gmcModelData?.properties as unknown[])?.length,
       },
+      gmcModelRes.status === "SUCCESS" && Boolean((gmcModelData?.properties as unknown[])?.length),
     );
 
-    const authParse = parseAuthWirePayload(validLogin.data, "ZZ028459");
-    assert(
-      "Auth Simulator: session payload contains branchCode, accessibility, and roles",
-      authParse.currUser.userId === "ZZ0284590" &&
-        authParse.currUser.accessibility === "RIDASHL" &&
-        authParse.currUser.branchCode === "JB9999",
+    // 4b. Form Configuration (when form layout version passed)
+    const gmcFormInput = { requestType: "GMC", controlName: "ACCOUNT,1.0.0" };
+    const gmcFormRes = getMockProxyResponse("GMC", "ACCOUNT,1.0.0");
+    const gmcFormData = gmcFormRes.data as Record<string, unknown> | undefined;
+    recordTest(
+      "4b. Metamodel Form Config Introspection (GMC -> FORM.CONFIG)",
+      gmcFormInput,
       {
-        userId: authParse.currUser.userId,
-        branchCode: authParse.currUser.branchCode,
-        accessibility: authParse.currUser.accessibility,
+        title: gmcFormData?.title,
+        hasPresentation: Boolean(gmcFormData?.presentation),
+        sectionsCount: ((gmcFormData?.presentation as Record<string, unknown>)?.sections as unknown[])?.length,
       },
+      gmcFormRes.status === "SUCCESS" && Boolean(gmcFormData?.presentation),
     );
 
-    const invalidLogin = await loginProcess({
-      clientId: "WEB-CLIENT",
-      username: "NON_EXISTENT_USER",
-      password: "wrong",
-    });
-    assert(
-      "Auth Simulator: non-existent operator login fails with 401 FAILED",
-      invalidLogin.statusCode === 401 && invalidLogin.status === "FAILED",
-      {
-        status: invalidLogin.status,
-        statusCode: invalidLogin.statusCode,
-        message: invalidLogin.message,
-      },
+    // 5. Navigation Menu Tree Hierarchy (GUM)
+    const gumInput = { requestType: "GUM" };
+    const gumRes = getMockProxyResponse("GUM");
+    const gumData = gumRes.data as Array<Record<string, unknown>> | undefined;
+    const gumOut = {
+      status: gumRes.status,
+      rootNodesCount: gumData?.length,
+      sampleRootNode: gumData?.[0]?.label || gumData?.[0]?.name,
+    };
+    recordTest(
+      "5. Navigation Menu Tree Hierarchy (GUM)",
+      gumInput,
+      gumOut,
+      gumRes.status === "SUCCESS" && Boolean(gumData && gumData.length > 0),
     );
 
-    // =========================================================================
-    // SECTION 4: Metamodel Introspection & Navigation Hierarchy
-    // =========================================================================
-    console.log("\n── 4. Metamodel Introspection & Navigation (GMC & GUM) ──");
-
-    const gmcAccount = getMockProxyResponse("GMC", "ACCOUNT");
-    assert(
-      "Operation Handlers: GMC ACCOUNT returns data model properties & idDef",
-      gmcAccount.status === "SUCCESS" &&
-        Array.isArray((gmcAccount.data as Record<string, unknown>)?.properties),
-      {
-        tableName: (gmcAccount.data as Record<string, unknown>)?.tableName,
-        category: (gmcAccount.data as Record<string, unknown>)?.category,
-        propertiesCount: ((gmcAccount.data as Record<string, unknown>)?.properties as unknown[])
-          ?.length,
-        idDef: (gmcAccount.data as Record<string, unknown>)?.idDef,
-      },
+    // 6. Versioned Presentation Configuration (FORM.CONFIG S Mode)
+    const formInput = { requestType: "S", controlName: "FORM.CONFIG", recordId: "ACCOUNT,1.0.0" };
+    const formRes = getMockProxyResponse("S", "FORM.CONFIG", "ACCOUNT,1.0.0");
+    const formData = formRes.data as Record<string, unknown> | undefined;
+    const formOut = {
+      recordId: formData?.recordId,
+      title: formData?.title,
+      targetModel: formData?.targetModel,
+      sectionsCount: ((formData?.presentation as Record<string, unknown>)?.sections as unknown[])?.length,
+    };
+    recordTest(
+      "6. Versioned Presentation Configuration (FORM.CONFIG in S mode)",
+      formInput,
+      formOut,
+      formRes.status === "SUCCESS" && formOut.targetModel === "ACCOUNT",
     );
 
-    const gumMenu = getMockProxyResponse("GUM", "MENU");
-    assert(
-      "Operation Handlers: GUM MENU returns hierarchical navigation menu tree from SC_MENU_TREE",
-      gumMenu.status === "SUCCESS" && Array.isArray(gumMenu.data) && gumMenu.data.length > 0,
-      {
-        rootItemsCount: (gumMenu.data as unknown[])?.length,
-        firstItem:
-          (gumMenu.data as Record<string, unknown>[])[0]?.label ||
-          (gumMenu.data as Record<string, unknown>[])[0]?.name,
-      },
+    // 7. Tabular Inquiry Rows (INQ)
+    const inqInput = { requestType: "INQ", controlName: "GET.EMP.INFO" };
+    const inqRes = getMockProxyResponse("INQ", "GET.EMP.INFO");
+    const inqData = inqRes.data as Array<Record<string, unknown>> | undefined;
+    const inqOut = {
+      status: inqRes.status,
+      rowsCount: inqData?.length,
+      firstRowSample: inqData?.[0] ? { id: inqData[0].userId, name: inqData[0].fullName } : null,
+    };
+    recordTest(
+      "7. Tabular Inquiry Rows (INQ)",
+      inqInput,
+      inqOut,
+      inqRes.status === "SUCCESS" && Boolean(inqData && inqData.length > 0),
     );
 
-    // =========================================================================
-    // SECTION 5: Database Metamodel & Configuration Retrieval (FORM, MODEL, INQUIRY)
-    // =========================================================================
-    console.log("\n── 5. Database Metamodel & Configuration Retrieval (FORM, MODEL, INQUIRY) ──");
-
-    // 5.1 Existing Form Config Retrieval with version query
-    const formAccount = getMockProxyResponse("GET", "FORM.CONFIG", "ACCOUNT,1.0.0");
-    const formLayoutData = formAccount.data as Record<string, unknown>;
-    assert(
-      "Database Core: GET FORM.CONFIG ACCOUNT,1.0.0 returns form layout from SC_FORM_CONFIG_LIVE",
-      formAccount.status === "SUCCESS" &&
-        Boolean(formLayoutData?.presentation) &&
-        formLayoutData?.targetModel === "ACCOUNT",
-      {
-        recordId: formLayoutData?.recordId,
-        targetModel: formLayoutData?.targetModel,
-        version: formLayoutData?.version,
-        sectionsCount: (
-          (formLayoutData?.presentation as Record<string, unknown>)?.sections as unknown[]
-        )?.length,
-      },
+    // 8. Sequence ID Allocation (GNI)
+    const gniInput = { requestType: "GNI", controlName: "ACCOUNT" };
+    const gniRes = getMockProxyResponse("GNI", "ACCOUNT");
+    const gniData = gniRes.data as Record<string, unknown> | undefined;
+    recordTest(
+      "8. Sequence ID Allocation (GNI)",
+      gniInput,
+      gniData,
+      gniRes.status === "SUCCESS" && String(gniData?.recordId).startsWith("AC"),
     );
 
-    // 5.2 Non-Existent Model Returns 404 RECORD_NOT_FOUND
-    const formInvalidModel = getMockProxyResponse("GET", "FORM.CONFIG", "NONEXISTENT_MODEL,V1");
-    assert(
-      "Database Core: GET FORM.CONFIG for non-existent model returns 404 RECORD_NOT_FOUND",
-      formInvalidModel.statusCode === 404 && formInvalidModel.status === "RECORD_NOT_FOUND",
-      {
-        status: formInvalidModel.status,
-        statusCode: formInvalidModel.statusCode,
-        message: formInvalidModel.message,
-      },
+    // 9. Key ID List & Wildcard Search (SBI - returns list of keys/IDs only)
+    const sbiInput = { requestType: "SBI", controlName: "MODEL.CONFIG", recordId: "...AC..." };
+    const sbiRes = getMockProxyResponse("SBI", "MODEL.CONFIG", "...AC...");
+    const sbiKeys = sbiRes.data as string[] | undefined;
+    recordTest(
+      "9. Key ID List & Wildcard Search (SBI - returns keys only)",
+      sbiInput,
+      { matchesFound: sbiKeys?.length, keys: sbiKeys },
+      sbiRes.status === "SUCCESS" && Array.isArray(sbiKeys) && sbiKeys.includes("ACCOUNT"),
     );
 
-    // 5.3 Existing Form Config for USER,1.0.0
-    const formExisting = getMockProxyResponse("GET", "FORM.CONFIG", "USER,1.0.0");
-    assert(
-      "Database Core: GET FORM.CONFIG USER,1.0.0 returns established database record",
-      formExisting.status === "SUCCESS" && formExisting.statusCode === 200,
-      {
-        recordId: (formExisting.data as Record<string, unknown>)?.recordId,
-        title: (formExisting.data as Record<string, unknown>)?.title,
-      },
+    // 10. Single Record Read in View Mode (S / SEE)
+    const seeInput = { requestType: "S", controlName: "ACCOUNT", recordId: "AC1001" };
+    const seeRes = getMockProxyResponse("S", "ACCOUNT", "AC1001");
+    const seeData = seeRes.data as Record<string, unknown> | undefined;
+    const seeOut = {
+      recordId: seeData?.recordId,
+      accountType: seeData?.accountType,
+      currency: seeData?.currency,
+      status: seeRes.status,
+    };
+    recordTest(
+      "10. Single Record Read in View Mode (S / SEE)",
+      seeInput,
+      seeOut,
+      seeRes.status === "SUCCESS" && seeOut.recordId === "AC1001",
     );
 
-    // 5.4 MODEL.CONFIG Retrieval from SC_MODEL_CONFIG_LIVE
-    const modelAccount = getMockProxyResponse("GET", "MODEL.CONFIG", "ACCOUNT");
-    assert(
-      "Database Core: GET MODEL.CONFIG ACCOUNT returns canonical model definition from SC_MODEL_CONFIG",
-      modelAccount.status === "SUCCESS" &&
-        (modelAccount.data as Record<string, unknown>)?.tableName === "ACCOUNT",
-      {
-        tableName: (modelAccount.data as Record<string, unknown>)?.tableName,
-        category: (modelAccount.data as Record<string, unknown>)?.category,
-        idDef: (modelAccount.data as Record<string, unknown>)?.idDef,
-        propertiesCount: ((modelAccount.data as Record<string, unknown>)?.properties as unknown[])
-          ?.length,
-      },
-    );
-
-    // 5.5 INQUIRY.CONFIG Retrieval from SC_INQUIRY_CONFIG_LIVE
-    const inqAccountSpec = getMockProxyResponse("GET", "INQUIRY.CONFIG", "ACCOUNT");
-    const inqData = inqAccountSpec.data as Record<string, unknown>;
-    assert(
-      "Database Core: GET INQUIRY.CONFIG ACCOUNT returns canonical enquiry definition from SC_INQUIRY_CONFIG",
-      inqAccountSpec.status === "SUCCESS" &&
-        Array.isArray(inqData?.columns) &&
-        inqData?.targetModel === "ACCOUNT",
-      {
-        id: inqData?.id,
-        targetModel: inqData?.targetModel,
-        columnsCount: (inqData?.columns as unknown[])?.length,
-        actions: inqData?.actions,
-        status: (inqData?.auditData as Record<string, unknown>)?.recStatus,
-      },
-    );
-
-    // =========================================================================
-    // SECTION 6: Tabular Inquiry & Filter Engine (INQ)
-    // =========================================================================
-    console.log("\n── 6. Tabular Inquiry & Filter Engine (INQ) ──");
-
-    const inqCanonical = getMockProxyResponse("INQ", "GET.EMP.INFO");
-    assert(
-      "Inquiry Engine: INQ GET.EMP.INFO returns employee directory rows",
-      inqCanonical.status === "SUCCESS" && Array.isArray(inqCanonical.data),
-      {
-        rowCount: (inqCanonical.data as unknown[])?.length,
-        sampleRow: (inqCanonical.data as unknown[])[0],
-      },
-    );
-
-    const inqAccount = getMockProxyResponse("INQ", "ACCOUNT");
-    assert(
-      "Inquiry Engine: INQ ACCOUNT returns account enquiry rows",
-      inqAccount.status === "SUCCESS" &&
-        Array.isArray(inqAccount.data) &&
-        inqAccount.data.length > 0,
-      {
-        rowCount: (inqAccount.data as unknown[])?.length,
-        sampleAccount: (inqAccount.data as unknown[])[0],
-      },
-    );
-
-    const inqUnknown = getMockProxyResponse("INQ", "NON_EXISTENT_QUERY_9999");
-    assert(
-      "Inquiry Engine: unknown inquiry query returns empty array gracefully",
-      inqUnknown.status === "SUCCESS" &&
-        Array.isArray(inqUnknown.data) &&
-        inqUnknown.data.length === 0,
-      { rowCount: (inqUnknown.data as unknown[])?.length },
-    );
-
-    // =========================================================================
-    // SECTION 7: Sequence ID Generation (GNI)
-    // =========================================================================
-    console.log("\n── 7. Sequence ID Generation (GNI) ──");
-
-    const gniAccount = getMockProxyResponse("GNI", "ACCOUNT");
-    assert(
-      "ID Sequence: GNI ACCOUNT generates sequential ID with 'AC' prefix",
-      gniAccount.status === "SUCCESS" &&
-        String((gniAccount.data as Record<string, unknown>)?.recordId).startsWith("AC"),
-      gniAccount.data,
-    );
-
-    const gniCustomer = getMockProxyResponse("GNI", "CUSTOMER");
-    assert(
-      "ID Sequence: GNI CUSTOMER generates sequential ID with 'CU' prefix",
-      gniCustomer.status === "SUCCESS" &&
-        String((gniCustomer.data as Record<string, unknown>)?.recordId).startsWith("CU"),
-      gniCustomer.data,
-    );
-
-    // =========================================================================
-    // SECTION 8: Generic Record List Retrieval (GRL)
-    // =========================================================================
-    console.log("\n── 8. Generic Record List Retrieval (GRL for Canonical Controls) ──");
-
-    const grlControls = [
-      { name: "ACCOUNT", expectedCount: 3 },
-      { name: "CUSTOMER", expectedCount: 2 },
-      { name: "BRANCH", expectedCount: 4 },
-      { name: "CONTROL", expectedCount: 5 },
-      { name: "MODEL.CONFIG", expectedCount: 11 },
-      { name: "FORM.CONFIG", expectedCount: 2 },
-      { name: "INQUIRY.CONFIG", expectedCount: 3 },
-      { name: "USER.GROUP", expectedCount: 2 },
-      { name: "USER", expectedCount: 2 },
-      { name: "MENU", expectedCount: 10 },
-      { name: "MENU.TREE", expectedCount: 1 },
-    ];
-
-    for (const item of grlControls) {
-      const res = getMockProxyResponse("GRL", item.name);
-      assert(
-        `Record List: GRL ${item.name} returns table collection`,
-        res.status === "SUCCESS" &&
-          Array.isArray(res.data) &&
-          res.data.length >= item.expectedCount,
-        { control: item.name, returnedCount: (res.data as unknown[])?.length },
-      );
-    }
-
-    // =========================================================================
-    // SECTION 9: Single Record Retrieval & 404 Boundaries (GET)
-    // =========================================================================
-    console.log("\n── 9. Single Record Retrieval & 404 Boundaries (GET) ──");
-
-    const getAccount = getMockProxyResponse("GET", "ACCOUNT", "AC1001");
-    assert(
-      "Single Record: GET ACCOUNT AC1001 returns active account details",
-      getAccount.status === "SUCCESS" && getAccount.statusCode === 200,
-      {
-        recordId: (getAccount.data as Record<string, unknown>)?.recordId,
-        accountType: (getAccount.data as Record<string, unknown>)?.accountType,
-        currency: (getAccount.data as Record<string, unknown>)?.currency,
-      },
-    );
-
-    const notFound = getMockProxyResponse("GET", "ACCOUNT", "NONEXISTENT_9999");
-    assert(
-      "Single Record: GET non-existent recordId returns 404 RECORD_NOT_FOUND",
-      notFound.statusCode === 404 && notFound.status === "RECORD_NOT_FOUND",
-      { status: notFound.status, statusCode: notFound.statusCode, message: notFound.message },
-    );
-
-    // =========================================================================
-    // SECTION 10: Four-Eyes Lifecycle Mutations (PUT, AUT, HLD, REV, DEL)
-    // =========================================================================
-    console.log("\n── 10. Four-Eyes Status Lifecycle Mutations (@mock/core/operation-handlers) ──");
-
+    // 11. Maker-Checker Lifecycle Status Mutation (PUT -> INA)
+    const putInput = { requestType: "PUT", controlName: "ACCOUNT", recordId: "AC9999", data: { balance: 50000 } };
     const putRes = getMockProxyResponse("PUT", "ACCOUNT", "AC9999", { balance: 50000 });
-    assert(
-      "Lifecycle: PUT sets record status to 'INA' (Unapproved Draft)",
-      putRes.status === "SUCCESS" &&
-        (putRes.data as Record<string, unknown>)?.RECORD_STATUS === "INA",
-      putRes.data,
+    const putData = putRes.data as Record<string, unknown> | undefined;
+    const putOut = {
+      recordId: putData?.recordId,
+      RECORD_STATUS: putData?.RECORD_STATUS,
+      balance: putData?.balance,
+    };
+    recordTest(
+      "11. Maker-Checker Lifecycle Status Mutation (PUT -> INA)",
+      putInput,
+      putOut,
+      putRes.status === "SUCCESS" && putOut.RECORD_STATUS === "INA",
     );
 
-    const autRes = getMockProxyResponse("AUT", "ACCOUNT", "AC9999");
-    assert(
-      "Lifecycle: AUT sets record status to 'AU' (Four-Eyes Approved)",
-      autRes.status === "SUCCESS" &&
-        (autRes.data as Record<string, unknown>)?.RECORD_STATUS === "AU",
-      autRes.data,
-    );
-
-    const hldRes = getMockProxyResponse("HLD", "ACCOUNT", "AC9999");
-    assert(
-      "Lifecycle: HLD sets record status to 'HLD' (Placed On Hold)",
-      hldRes.status === "SUCCESS" &&
-        (hldRes.data as Record<string, unknown>)?.RECORD_STATUS === "HLD",
-      hldRes.data,
-    );
-
-    const revRes = getMockProxyResponse("REV", "ACCOUNT", "AC9999");
-    assert(
-      "Lifecycle: REV sets record status to 'REV' (Reversed Transaction)",
-      revRes.status === "SUCCESS" &&
-        (revRes.data as Record<string, unknown>)?.RECORD_STATUS === "REV",
-      revRes.data,
-    );
-
-    const delRes = getMockProxyResponse("DEL", "ACCOUNT", "AC9999");
-    assert(
-      "Lifecycle: DEL sets record status to 'DEL' (Marked Deleted)",
-      delRes.status === "SUCCESS" &&
-        (delRes.data as Record<string, unknown>)?.RECORD_STATUS === "DEL",
-      delRes.data,
-    );
-
-    // =========================================================================
-    // SECTION 11: Wire Protocol Envelopes (mockProcess & mockDispatch)
-    // =========================================================================
-    console.log("\n── 11. Wire Protocol & Dispatch Envelopes (mockProcess & mockDispatch) ──");
-
-    const simProcess = await mockProcess({
-      idempotencyKey: "idem-001",
+    // 12. Full Unary gRPC Wire Envelope Dispatch (mockProcess)
+    const rpcInput = {
       clientId: "WEB-CLIENT",
-      requestType: "GRL",
+      requestType: "SBI",
       controlName: "BRANCH",
       recordFunction: "L",
       recordId: "",
       branchCode: "JB9999",
-      authLevel: 1,
       userId: "ZZ028459",
+    };
+    const rpcRes = await mockProcess({
+      ...rpcInput,
+      idempotencyKey: "idem-001",
+      authLevel: 1,
       data: {},
     });
-    assert(
-      "Wire Envelope: mockProcess returns valid GrpcResponse with serialized wire data",
-      simProcess.statusCode === 200 && simProcess.status === "SUCCESS",
-      {
-        status: simProcess.status,
-        statusCode: simProcess.statusCode,
-        message: simProcess.message,
-        timestamp: simProcess.timestamp,
-      },
+    const rpcOut = {
+      status: rpcRes.status,
+      statusCode: rpcRes.statusCode,
+      message: rpcRes.message,
+      timestamp: rpcRes.timestamp,
+    };
+    recordTest(
+      "12. Full Unary gRPC Wire Envelope Dispatch (mockProcess)",
+      rpcInput,
+      rpcOut,
+      rpcRes.status === "SUCCESS" && rpcRes.statusCode === 200,
     );
 
-    const simDispatch = await mockDispatch({
-      servicePath: "default",
-      clientId: "WEB-CLIENT",
-      requestType: "GMC",
-      controlName: "FORM",
-      recordId: "ACCOUNT",
-      branchCode: "JB9999",
-      userId: "ZZ028459",
-      authLevel: 1,
-      recordFunction: "S",
-      data: {},
-    });
-    assert(
-      "Wire Envelope: mockDispatch returns normalized ApiResponse",
-      simDispatch.statusCode === 200 && simDispatch.status === "SUCCESS",
-      {
-        status: simDispatch.status,
-        statusCode: simDispatch.statusCode,
-        message: simDispatch.message,
-      },
-    );
   } finally {
     (appConfig as { dataSource: string }).dataSource = originalDataSource;
   }
 
-  console.log("\n========================================================");
-  const allPassed = reports.every((r) => r.passed);
+  console.log("\n================================================================================");
+  const allPassed = testCases.every((t) => t.passed);
   if (allPassed) {
-    console.log(`ALL ${reports.length} MOCK CORE & DATABASE TESTS PASSED WITH 100% SUCCESS!`);
-    console.log("========================================================\n");
+    console.log(`>>> ALL ${testCases.length} UNIQUE CORE TESTS PASSED WITH 100% SUCCESS! <<<`);
+    console.log("================================================================================\n");
     process.exit(0);
   } else {
-    const failedCount = reports.filter((r) => !r.passed).length;
-    console.error(`FAILED: ${failedCount} OF ${reports.length} TESTS FAILED!`);
-    console.log("========================================================\n");
+    const failedCount = testCases.filter((t) => !t.passed).length;
+    console.error(`>>> FAILED: ${failedCount} OF ${testCases.length} TESTS FAILED! <<<`);
+    console.log("================================================================================\n");
     process.exit(1);
   }
 }

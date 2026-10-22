@@ -216,3 +216,62 @@ export function compileFormSpec(
     auditData: layout.auditData || model.auditData,
   });
 }
+
+/**
+ * Structural / Duck-Typing Form Resolver:
+ * Introspects the raw record returned from Core:
+ * - If it has `presentation` -> compiles as Custom Form Layout
+ * - If it has `properties` -> compiles as Model Schema with responsive 12-col fallback
+ */
+export function resolveFormRecord(
+  record: unknown,
+  fallbackModel?: ModelConfigRecord | null,
+): CompiledFormSpec {
+  if (!record || typeof record !== "object") {
+    throw new Error("Invalid schema payload received from core backend");
+  }
+
+  const rec = record as Record<string, unknown>;
+
+  // 1. Is it a Form Config? (Has `presentation`)
+  if ("presentation" in rec && rec.presentation) {
+    const formConfig = rec as unknown as FormConfigRecord;
+    if (fallbackModel) {
+      return compileFormSpec(fallbackModel, formConfig);
+    }
+    // If no explicit model passed, build a synthetic model from the form fields
+    const syntheticProps: ModelProperty[] = (formConfig.presentation?.sections || []).flatMap(
+      (sec) =>
+        (sec.fields || []).map((f, idx) => ({
+          sn: String(idx + 1),
+          name: f.fieldKey,
+          label: f.label,
+          type: (f.modelType || "Text") as ModelProperty["type"],
+          structure: "S",
+          length: f.length || 50,
+          required: Boolean(f.required),
+          disabled: Boolean(f.readOnly),
+          status: "ACTIVE",
+        })),
+    );
+
+    const syntheticModel: ModelConfigRecord = {
+      tableName: String(formConfig.targetModel || formConfig.recordId || "FORM"),
+      description: String(formConfig.title || "Form"),
+      servicePath: "default",
+      access: "G",
+      properties: syntheticProps,
+    } as unknown as ModelConfigRecord;
+
+    return compileFormSpec(syntheticModel, formConfig);
+  }
+
+  // 2. Is it a Model Config? (Has `properties`)
+  if ("properties" in rec && Array.isArray(rec.properties)) {
+    const modelConfig = rec as unknown as ModelConfigRecord;
+    return compileFormSpec(modelConfig, null);
+  }
+
+  throw new Error("Unknown schema format: payload has neither 'properties' nor 'presentation'");
+}
+

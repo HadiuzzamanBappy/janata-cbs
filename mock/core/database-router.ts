@@ -7,6 +7,7 @@ export interface ResolvedTable {
   physicalName: string;
   LIVE: Record<string, Record<string, unknown>>;
   getList: () => unknown[];
+  getIdList: (searchPattern?: string) => string[];
   prefix?: string;
 }
 
@@ -64,6 +65,20 @@ function buildResolvedTable(
           ...(version ? { version } : {}),
         };
       });
+    },
+    getIdList: (searchPattern?: string) => {
+      const cleanPattern = searchPattern
+        ? searchPattern.replace(/\.+/g, "").trim().toUpperCase()
+        : "";
+
+      return Object.entries(live)
+        .map(([key, item]) => {
+          return String(item.recordId || item.id || item.code || item.userId || key).trim();
+        })
+        .filter((id) => {
+          if (!cleanPattern) return true;
+          return id.toUpperCase().includes(cleanPattern);
+        });
     },
     prefix,
   };

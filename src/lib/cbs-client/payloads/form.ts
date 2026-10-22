@@ -13,14 +13,14 @@ export const formPayloads = {
   /**
    * Search record IDs for a specific model / control ('SBI', Record Lookup).
    */
-  searchRecordIds: (controlName: string, servicePath?: string): CbsWirePayload =>
-    createModelPayloads(controlName, { servicePath }).searchIds(),
+  searchRecordIds: (controlName: string, searchPattern?: string, servicePath?: string): CbsWirePayload =>
+    createModelPayloads(controlName, { servicePath }).searchIds({ recordId: searchPattern }),
 
   /**
-   * Allocate new record ID / sequence ('GNI') for a specific model / control.
+   * Allocate new record ID / sequence ('GNI') or initialize user-defined draft for a specific model / control.
    */
-  getNewRecordId: (controlName: string, servicePath?: string): CbsWirePayload =>
-    createModelPayloads(controlName, { servicePath }).getNewId(),
+  getNewRecordId: (controlName: string, recordId?: string, servicePath?: string): CbsWirePayload =>
+    createModelPayloads(controlName, { servicePath }).getNewId({ recordId }),
 
   /**
    * Fetch a specific record by ID for a generic form screen.

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
-import { compileFormSpec } from "@/lib/cbs-form-spec";
+import { resolveFormRecord } from "@/lib/cbs-form-spec";
 import type { CompiledFormSpec } from "@/lib/data-schemas";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
@@ -26,45 +26,52 @@ export function useFormSpec(command: string) {
 
     try {
       const cleanCmd = command.trim().toUpperCase();
-      const hasExplicitVersion =
-        cleanCmd.includes(",") && cleanCmd.split(",")[1].trim().length > 0;
-      const baseModel = cleanCmd.split(",")[0].trim();
-      const layoutCode = cleanCmd;
 
-      // 1. Fetch Model definition from CBS Model Config
+      // 1. First, check if a Form Configuration exists for this exact command
+      const formRes = await cbs.send<FormConfigRecord>(cbs.formConfig.get(cleanCmd), {
+        silent: true,
+      });
+
+      if (formRes.status === "SUCCESS" && formRes.data && "presentation" in formRes.data) {
+        const formConfig = formRes.data;
+        const targetModelName = String(formConfig.targetModel || cleanCmd.split(",")[0] || cleanCmd).trim().toUpperCase();
+
+        // Fetch underlying model schema to enrich validation rules
+        let model: ModelConfigRecord | null = null;
+        try {
+          const modelRes = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModelName), {
+            silent: true,
+          });
+          if (modelRes.status === "SUCCESS" && modelRes.data) {
+            model = modelRes.data;
+            setModelRecord(model);
+          }
+        } catch {
+          // Model fetch is optional; fallback to formConfig standalone
+        }
+
+        const compiled = resolveFormRecord(formConfig, model);
+        setSpec(compiled);
+        return;
+      }
+
+      // 2. Otherwise, check if it is a pure Model Config (raw table schema)
+      const baseModel = cleanCmd.split(",")[0].trim();
       const modelRes = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(baseModel), {
         silent: true,
       });
 
-      if (modelRes.status !== "SUCCESS" || !modelRes.data) {
-        throw new Error(
-          modelRes.message || `Data model "${baseModel}" is not registered in MODEL.CONFIG`,
-        );
+      if (modelRes.status === "SUCCESS" && modelRes.data && "properties" in modelRes.data) {
+        const model = modelRes.data;
+        setModelRecord(model);
+        const compiled = resolveFormRecord(model, null);
+        setSpec(compiled);
+        return;
       }
 
-      const model = modelRes.data;
-      setModelRecord(model);
-
-      // 2. Fetch Form layout presentation from CBS Form Config ONLY when explicit MODEL,VERSION is specified
-      let formConfig: FormConfigRecord | null = null;
-      if (hasExplicitVersion) {
-        const formRes = await cbs.send<FormConfigRecord>(cbs.formConfig.get(layoutCode), {
-          silent: true,
-        });
-        if (formRes.status === "SUCCESS" && formRes.data) {
-          formConfig = formRes.data;
-        } else {
-          throw new Error(
-            `Form configuration "${layoutCode}" is not registered in FORM.CONFIG`,
-          );
-        }
-      }
-
-      // 3. Compile Model + Layout into canonical CompiledFormSpec
-      // - When cleanCmd is direct model (e.g. "ACCOUNT"): formConfig is null -> renders raw model field spec
-      // - When cleanCmd is versioned (e.g. "ACCOUNT,1.0.0"): compiles customized layout against the model
-      const compiled = compileFormSpec(model, formConfig);
-      setSpec(compiled);
+      throw new Error(
+        modelRes.message || `Neither Form Config nor Model Schema found for "${cleanCmd}"`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error resolving form specification");
       setSpec(null);

@@ -11,7 +11,10 @@ import type {
   InquiryFilterConfig,
 } from "@/lib/data-schemas/inquiry-config-schema";
 import type { CbsScreenMode } from "@/types";
-import { useInquiryConfigPersistence } from "./use-inquiry-config-persistence";
+import {
+  INITIAL_INQUIRY_CONFIG,
+  useInquiryConfigPersistence,
+} from "./use-inquiry-config-persistence";
 
 export interface AvailableInquiryItem {
   id: string;
@@ -194,6 +197,28 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
           });
           setRecordId(cleanId);
           setMode(requestedMode);
+          return;
+        }
+
+        if (requestedMode === "I") {
+          const draft: InquiryConfigRecord = {
+            ...INITIAL_INQUIRY_CONFIG,
+            id: cleanId,
+            inquiryName: cleanId,
+            description: cleanId.replace(/[_\.-]/g, " "),
+            targetModel: cleanId.replace(/^INQ[\._]/, ""),
+            columns: [],
+            filters: [],
+            actions: [],
+          };
+          hydrate(draft);
+          setRecordId(cleanId);
+          setMode("I");
+          toast.add({
+            title: "New Inquiry Draft",
+            description: `Initialized draft inquiry for '${cleanId}'. Complete settings and save.`,
+            type: "info",
+          });
         } else {
           toast.add({
             title: "Inquiry Not Found",
@@ -202,11 +227,32 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
           });
         }
       } catch (err: unknown) {
-        toast.add({
-          title: "Fetch Error",
-          description: err instanceof Error ? err.message : "Error fetching record",
-          type: "error",
-        });
+        if (requestedMode === "I") {
+          const draft: InquiryConfigRecord = {
+            ...INITIAL_INQUIRY_CONFIG,
+            id: cleanId,
+            inquiryName: cleanId,
+            description: cleanId.replace(/[_\.-]/g, " "),
+            targetModel: cleanId.replace(/^INQ[\._]/, ""),
+            columns: [],
+            filters: [],
+            actions: [],
+          };
+          hydrate(draft);
+          setRecordId(cleanId);
+          setMode("I");
+          toast.add({
+            title: "New Inquiry Draft",
+            description: `Initialized draft inquiry for '${cleanId}'. Complete settings and save.`,
+            type: "info",
+          });
+        } else {
+          toast.add({
+            title: "Fetch Error",
+            description: err instanceof Error ? err.message : "Error fetching record",
+            type: "error",
+          });
+        }
       } finally {
         setLoading(false);
       }

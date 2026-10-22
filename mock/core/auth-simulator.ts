@@ -44,7 +44,8 @@ export const SYS_USER_AUTH_RESPONSES: Record<string, GrpcResponse> = Object.from
  * Returns mock authentication response for the given username.
  * Looks up user via SYS_USER table and generates full gRPC response payload.
  */
-export function getMockUserResponse(username: string): GrpcResponse | null {
+export function getMockUserResponse(username?: string): GrpcResponse | null {
+  if (!username) return null;
   const clean = username.trim().toUpperCase();
   const user =
     SYS_USER_LIVE[clean] ||
@@ -61,7 +62,8 @@ export function getMockUserResponse(username: string): GrpcResponse | null {
 /**
  * Simulates Core gRPC login process from local user fixtures.
  */
-export async function mockLogin({ username }: LoginRequest): Promise<GrpcResponse> {
+export async function mockLogin(req: LoginRequest | { signon?: string; username?: string }): Promise<GrpcResponse> {
+  const username = ("username" in req && req.username) ? req.username : ("signon" in req && req.signon) ? req.signon : "";
   const mock = getMockUserResponse(username);
   if (!mock) {
     return {

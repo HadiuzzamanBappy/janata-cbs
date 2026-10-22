@@ -79,7 +79,9 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
               {String(formData.recordId || targetModelRecord.tableName || "PREVIEW")}
             </Badge>
             {Boolean(formData.title) && (
-              <span className="text-xs font-semibold text-foreground">{String(formData.title)}</span>
+              <span className="text-xs font-semibold text-foreground">
+                {String(formData.title)}
+              </span>
             )}
             {Boolean(formData.version) && (
               <span className="text-xs text-muted-foreground font-mono">

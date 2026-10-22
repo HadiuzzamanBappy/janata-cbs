@@ -72,41 +72,57 @@ janata-cbs/
 |   tsconfig.json                              # TypeScript strict configuration & path aliases
 |
 +---docs/                                      # Enterprise Documentation & Audits
-|   +---devs/                                  # Developer deep-dive guides
+|   |   CBS_ECOSYSTEM_FORMULA.md               # Core banking mathematical & operational model
+|   |   project-tree.md                        # Master architectural directory & tree specification
+|   |   REFACTORING_GUIDE.md                   # Systematic architectural refactoring plan
+|   +---devs/                                  # Developer deep-dive guides (architecture, engine, data flow)
 |   \---manual/                                # Core banking business manual
 |
-+---fixtures/                                  # Static Fixtures & Offline CBS Tables
-|       AC_ACCOUNT.ts                          # Account table live fixtures
-|       CUST_CUSTOMER.ts                       # Customer entity fixtures
-|       SC_BRANCH.ts                           # Branch directory fixtures
-|       SC_CONTROL.ts                          # Control command fixtures
-|       SC_FORM_CONFIG.ts                      # Visual form presentation catalog
-|       SC_INQUIRY_CONFIG.ts                   # Canonical enquiry grid specifications
-|       SC_MENU.ts                             # System menu catalog
-|       SC_MENU_TREE.ts                        # Application navigation tree
-|       SC_MODEL_CONFIG.ts                     # GMC Metamodel data dictionaries
-|       SC_USER_GROUP.ts                       # User group matrix fixtures
-|       SYS_USER.ts                            # User directory & credentials
-|       types.ts                               # Fixture row & table type definitions
-|       index.ts                               # Unified fixture barrel export
++---mock/                                      # Core Banking Data Fixtures & Simulated Core Engine
+|   +---core/                                  # In-Memory Core Banking Engine Simulator (@mock/core)
+|   |       auth-simulator.ts                  # Operator authentication simulator & JWT minting
+|   |       database-router.ts                 # Dynamic CRUD table resolver (11 canonical tables)
+|   |       operation-handlers.ts              # CBS protocol verb handlers (GUM, GMC, GRL, GET, PUT)
+|   |       response-factory.ts                # Wire response envelope factories
+|   |       index.ts, README.md
+|   |
+|   \---db/                                    # In-Memory CBS Database Tables & Schemas (@mock/db)
+|           AC_ACCOUNT.ts                      # Account table live fixtures
+|           CUST_CUSTOMER.ts                   # Customer entity fixtures
+|           SC_BRANCH.ts                       # Branch directory fixtures
+|           SC_CONTROL.ts                      # Control command fixtures
+|           SC_FORM_CONFIG.ts                  # Visual form presentation catalog
+|           SC_INQUIRY_CONFIG.ts               # Canonical enquiry grid specifications
+|           SC_MENU.ts                         # System menu catalog (SCREEN & POPUP actions)
+|           SC_MENU_TREE.ts                    # Hierarchical navigation menu tree
+|           SC_MODEL_CONFIG.ts                 # GMC Metamodel data dictionaries
+|           SC_USER.ts                         # User directory & credentials
+|           SC_USER_GROUP.ts                   # User group matrix fixtures
+|           types.ts, index.ts                 # Database row types & unified table exports
 |
 +---proto/                                     # gRPC Protocol Buffers
 |       service.proto                          # CBS transaction & inquiry RPC definition
 |
-+---scripts/                                   # Verification & Quality Assurance Suite
-|       cache-clear.ts                         # Redis cache purge utility
-|       cache-inspect.ts                       # Redis cache viewer
-|       fixture-normalize.ts                   # Fixture sanitizer
-|       proto-gen.ts                           # Protobuf TypeScript generator
-|       verify-all.ts                          # Master verification runner
-|       verify-cbs-access.ts                   # Access control & Four-Eyes test suite
-|       verify-cbs-client.ts                   # Wire payload factory test suite
-|       verify-cbs-command.ts                  # Command gateway test suite
-|       verify-cbs-record.ts                   # Delta mutation engine test suite
-|       verify-core-utils.ts                   # Formatting & calculation test suite
-|       verify-env-matrix.ts                   # Environment matrix test suite
-|       verify-infra-services.ts               # Infrastructure services test suite
-|       verify-mock-service.ts                 # Offline mock engine & fixture router test suite
++---scripts/                                   # Verification & Operational Script Suites
+|   +---cache/                                 # Redis Cache Management Utilities
+|   |       cache-clear.ts                     # Redis cache purge utility
+|   |       cache-inspect.ts                   # Redis cache viewer
+|   |
+|   +---tools/                                 # Codegen & Data Normalization Utilities
+|   |       fixture-normalize.ts               # Fixture protobuf sanitizer
+|   |       proto-gen.ts                       # Protobuf TypeScript generator
+|   |
+|   \---verify/                                # Automated CI Verification Test Suites
+|           verify-all.ts                      # Master verification runner
+|           verify-cbs-access.ts               # Access control & Four-Eyes test suite
+|           verify-cbs-client.ts               # Wire payload factory test suite
+|           verify-cbs-command.ts              # Command gateway test suite
+|           verify-cbs-form-spec.ts            # Form spec compiler & field rules test suite
+|           verify-cbs-record.ts               # Delta mutation engine test suite
+|           verify-core-utils.ts               # Formatting & calculation test suite
+|           verify-env-matrix.ts               # Environment matrix test suite
+|           verify-infra-services.ts           # Infrastructure services test suite
+|           verify-mock-services.ts            # Offline mock core engine & protocol test suite
 |
 \---src/                                       # Application Source Code
     |   proxy.ts                               # Session guard & auth route middleware
@@ -157,22 +173,26 @@ janata-cbs/
     |   |       index.ts
     |   |
     |   +---cbs-screen/                        # Standard Banking Screen Toolbars & Scaffold
-    |   |   |   action-buttons.tsx             # Action buttons (Commit, Validate, Hold, Delete)
-    |   |   |   action-more-menu.tsx           # Secondary action dropdowns
-    |   |   |   cbs-audit-footer.tsx           # Status, CurrNo, Inputter & Authorizer footer
-    |   |   |   cbs-audit-tab.tsx              # Audit history tab
-    |   |   |   cbs-form-header.tsx            # Form screen top header with search & actions
-    |   |   |   cbs-idle-state.tsx             # Initial lookup/selection canvas
-    |   |   |   cbs-inquiry-header.tsx         # Inquiry screen top header with export buttons
-    |   |   |   cbs-json-viewer-tab.tsx        # Raw payload inspection tab
-    |   |   |   cbs-screen-scaffold.tsx        # Standard screen frame unifying hotkeys & tabs
-    |   |   |   cbs-system-skeleton.tsx        # Universal loading skeletons
-    |   |   |   cbs-validation-checklist.tsx   # Pre-commit issue drawer
-    |   |   |   record-lookup-bar.tsx          # Fast GRL record searchbar
-    |   |   |   index.ts
-    |   |   \---hooks/
-    |   |           use-cbs-persistence.ts     # Screen state sync hook
-    |   |           use-record-lookup.ts       # GRL record search query hook
+    |   |   |   cbs-screen-scaffold.tsx        # Standard screen frame unifying hotkeys, header & tabs
+    |   |   |   index.ts                       # Unified screen component barrel export
+    |   |   +---header/                        # Screen top action & header widgets
+    |   |   |       action-buttons.tsx         # Action buttons (Commit, Validate, Hold, Delete)
+    |   |   |       action-more-menu.tsx       # Secondary action dropdowns (Audit, JSON, Raw)
+    |   |   |       cbs-form-header.tsx        # Form screen top header with search & actions
+    |   |   |       cbs-inquiry-header.tsx     # Inquiry screen top header with export buttons
+    |   |   |       cbs-validation-checklist.tsx # Pre-commit issue drawer
+    |   |   |       record-lookup-bar.tsx      # Fast GRL record searchbar
+    |   |   +---hooks/                         # Screen lifecycle & persistence hooks
+    |   |   |       use-cbs-persistence.ts     # Screen state sync hook
+    |   |   |       use-guarded-action.ts      # Action execution guard hook
+    |   |   |       use-record-lookup.ts       # GRL record search query hook
+    |   |   +---states/                        # Operational screen canvases
+    |   |   |       cbs-error-state.tsx        # Error boundary fallback canvas
+    |   |   |       cbs-idle-state.tsx         # Initial lookup/selection canvas
+    |   |   |       cbs-system-skeleton.tsx    # Universal loading skeletons
+    |   |   \---tabs/                          # Auxiliary inspection tabs
+    |   |           cbs-audit-tab.tsx          # Audit history & metadata tab
+    |   |           cbs-json-viewer-tab.tsx    # Raw payload inspection tab
     |   |
     |   +---feedback/                          # Error & Warning Feedback
     |   |       confirm-dialog.tsx             # Destructive action modal
@@ -291,12 +311,18 @@ janata-cbs/
     |   |   +---registry/                      # Command catalog & alias maps
     |   |   \---types/                         # Command, execution & validation types
     |   |
+    |   +---cbs-form-spec/                     # Dynamic Form Presentation Spec Compiler
+    |   |       compile.ts                     # Layout, section & field atom compiler
+    |   |       field-rules.ts                 # Banking business rules & validation spec
+    |   |       index.ts, README.md
+    |   |
     |   +---cbs-hotkeys/                       # Terminal Keyboard Shortcuts
     |   |       use-cbs-hotkeys.ts             # Banking standard hotkey mappings
     |   |       use-hotkeys.ts                 # Native event listener
     |   |       types.ts, index.ts
     |   |
     |   +---cbs-record/                        # Delta Mutation Engine
+    |   |       baseline.ts                    # Record state snapshot generator
     |   |       delta-engine.ts                # Deep equality comparison & touched-field extractor
     |   |       types.ts, index.ts
     |   |
@@ -327,13 +353,17 @@ janata-cbs/
     |   |
     |   +---data-parsers/                      # Protobuf & Wire Decoders
     |   |       auth-parser.ts, branch-parser.ts, control-parser.ts,
-    |   |       form-parser.ts, inquiry-parser.ts, menu-parser.ts,
-    |   |       model-config-parser.ts, protobuf-decoder.ts, index.ts
+    |   |       form-parser.ts, inquiry-parser.ts, menu-catalog-parser.ts,
+    |   |       menu-designer-parser.ts, menu-parser.ts,
+    |   |       model-config-parser.ts, protobuf-decoder.ts,
+    |   |       user-group-parser.ts, index.ts
     |   |
     |   +---data-schemas/                      # Zod Runtime Schemas
     |   |       auth-schema.ts, branch-schema.ts, common-schema.ts,
-    |   |       control-schema.ts, env-schema.ts, form-schema.ts,
-    |   |       inquiry-schema.ts, menu-schema.ts, model-config-schema.ts, index.ts
+    |   |       control-schema.ts, env-schema.ts, form-config-schema.ts,
+    |   |       form-schema.ts, form-spec-schema.ts, inquiry-config-schema.ts,
+    |   |       inquiry-schema.ts, menu-catalog-schema.ts, menu-designer-schema.ts,
+    |   |       menu-schema.ts, model-config-schema.ts, user-group-schema.ts, index.ts
     |   |
     |   +---infra-grpc/                        # gRPC Microservices Engine
     |   |   |   client.ts                      # gRPC client initialization & status mappers
@@ -371,20 +401,4 @@ janata-cbs/
     |           api.ts                         # ApiResponse & HTTP envelopes
     |           cbs.ts                         # CbsRecordFunction (RIDASHL), CbsRequestType, etc.
     |           index.ts                       # Canonical type contracts export
-    |
-    +---mock/                                  # Core Banking Data Fixtures & Simulated Core
-    |   +---core/                              # In-Memory Core Banking Engine Simulator (@mock/core)
-    |   |       auth-simulator.ts              # Operator authentication simulator & JWT minting
-    |   |       database-router.ts             # Dynamic CRUD table resolver (10 canonical tables)
-    |   |       operation-handlers.ts          # CBS protocol verb handlers (GUM, GMC, GRL, GET, PUT)
-    |   |       response-factory.ts            # Wire response envelope factories
-    |   |       index.ts, README.md
-    |   |
-    |   \---db/                                # In-Memory CBS Database Tables & Schemas (@mock/db)
-    |           AC_ACCOUNT.ts, CUST_CUSTOMER.ts
-    |           SC_BRANCH.ts, SC_CONTROL.ts
-    |           SC_FORM_CONFIG.ts, SC_INQUIRY_CONFIG.ts
-    |           SC_MENU.ts, SC_MENU_TREE.ts
-    |           SC_MODEL_CONFIG.ts, SC_USER_GROUP.ts
-    |           SYS_USER.ts, types.ts, index.ts
 ```

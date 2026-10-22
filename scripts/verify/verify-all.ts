@@ -18,44 +18,40 @@ interface SuiteResult {
 const SUITES = [
   {
     title: "1. CBS Access Control & RIDASHL Capabilities (@/lib/cbs-access)",
-    command: "pnpm exec tsx scripts/verify-cbs-access.ts",
+    command: "pnpm exec tsx scripts/verify/verify-cbs-access.ts",
   },
   {
     title: "2. Form Delta Mutation Engine (@/lib/cbs-record)",
-    command: "pnpm exec tsx scripts/verify-cbs-record.ts",
+    command: "pnpm exec tsx scripts/verify/verify-cbs-record.ts",
   },
   {
     title: "3. CBS Form Spec & Compiler Engine (@/lib/cbs-form-spec)",
-    command: "pnpm exec tsx scripts/verify-cbs-form-spec.ts",
+    command: "pnpm exec tsx scripts/verify/verify-cbs-form-spec.ts",
   },
   {
     title: "4. CBS Command Gateway & Alias Parser (@/lib/cbs-command)",
-    command: "pnpm exec tsx scripts/verify-cbs-command.ts",
+    command: "pnpm exec tsx scripts/verify/verify-cbs-command.ts",
   },
   {
     title: "5. CBS Client Wire Protocol & Payload Factories (@/lib/cbs-client)",
-    command: "pnpm exec tsx scripts/verify-cbs-client.ts",
+    command: "pnpm exec tsx scripts/verify/verify-cbs-client.ts",
   },
   {
     title:
       "6. Environment Matrix, Schemas & PII Redaction (@/lib/data-schemas & @/lib/core-logger)",
-    command: "pnpm exec tsx scripts/verify-env-matrix.ts",
+    command: "pnpm exec tsx scripts/verify/verify-env-matrix.ts",
   },
   {
     title: "7. Core Banking Utilities & Localization (@/lib/core-utils)",
-    command: "pnpm exec tsx scripts/verify-core-utils.ts",
+    command: "pnpm exec tsx scripts/verify/verify-core-utils.ts",
   },
   {
     title: "8. Infra Services, Gateway & gRPC Protocol (@/lib/infra-services)",
-    command: "pnpm exec tsx scripts/verify-infra-services.ts",
+    command: "pnpm exec tsx scripts/verify/verify-infra-services.ts",
   },
   {
     title: "9. In-Memory Mock Core Engine & Database (@mock/db & @mock/core)",
-    command: "pnpm exec tsx scripts/verify-mock-core.ts",
-  },
-  {
-    title: "10. Master Form Architecture E2E Flow (Phases 0-5 Integration)",
-    command: "pnpm exec tsx scripts/verify-master-form-flow.ts",
+    command: "pnpm exec tsx scripts/verify/verify-mock-services.ts",
   },
 ];
 

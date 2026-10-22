@@ -20,10 +20,10 @@ import {
   resolveCommandTitle,
   type UserSecurityProfile,
   validateSecurityPermissions,
-} from "../src/lib/cbs-command";
-import { clientConfig } from "../src/lib/core-config";
-import type { MenuItem } from "../src/lib/data-schemas";
-import { CbsRecordFunction } from "../src/types";
+} from "@/lib/cbs-command";
+import { clientConfig } from "@/lib/core-config";
+import type { MenuItem } from "@/lib/data-schemas";
+import { CbsRecordFunction } from "@/types";
 
 interface TestReport {
   name: string;

@@ -129,6 +129,12 @@ Before modifying any file, verify these non-negotiable architectural invariants:
 5. **No Client-Side ID Fabrication**:
    - Do NOT invent fake IDs like `INQ.NEW_${Date.now()}` on the frontend.
    - Creation in system screens is strictly input-driven: the user enters the ID/version, and Core validates and returns the template.
+6. **Strict Menu Action Types (`SCREEN` | `POPUP`)**:
+   - Navigation and catalog actions are strictly single-purpose: `"SCREEN"` (opens in workspace tab/screen) or `"POPUP"` (opens detached popup dialog).
+   - System functions (`THEME`, `LOGOUT`, `SETTINGS`) remain fixed client shell utilities and are not catalog action types.
+7. **Canonical Record Status Lifecycle (`CbsRecordStatus`)**:
+   - All database tables, schemas, and mutation flows must conform to `CbsRecordStatus`: `"NEW"` | `"INA"` | `"AU"` | `"HLD"` | `"REV"` | `"DEL"`.
+   - Authorized records are strictly `"AU"`. Uncommitted drafts are `"INA"`.
 
 ---
 
@@ -164,7 +170,7 @@ The foundation of offline simulation and test automation.
   - `SC_MODEL_CONFIG.ts`: The universal metamodel table. Verify it includes `MODEL.CONFIG`, `FORM.CONFIG`, `INQUIRY.CONFIG`, `ACCOUNT`, `CUSTOMER`, `USER`, `BRANCH`, `USER.GROUP`.
   - `SC_FORM_CONFIG.ts`: Visual layout configurations and 12-column zone definitions.
   - `SC_INQUIRY_CONFIG.ts`: Tabular query definitions, filters, column widths, and drilldown targets.
-  - `AC_ACCOUNT.ts`, `CUST_CUSTOMER.ts`, `SC_BRANCH.ts`, `SC_CONTROL.ts`, `SC_MENU.ts`, `SC_MENU_TREE.ts`, `SC_USER_GROUP.ts`, `SYS_USER.ts`.
+  - `AC_ACCOUNT.ts`, `CUST_CUSTOMER.ts`, `SC_BRANCH.ts`, `SC_CONTROL.ts`, `SC_MENU.ts` (SCREEN & POPUP types), `SC_MENU_TREE.ts`, `SC_USER.ts`, `SC_USER_GROUP.ts`.
 - [ ] **`index.ts`**:
   - Export all table constants (`*_LIVE`, `*_LIST`, `*_TABLE`).
   - Export universal dictionary `CBS_DATABASE` keyed by canonical model and table names.
@@ -187,7 +193,7 @@ The foundation of offline simulation and test automation.
   - `handleNextId()`: Formats next sequential ID using `idDef.idPrefix`.
   - `handleMutation()`: Processes `PUT` (`INA`), `AUT` (`AU`), `HLD` (`HLD`), `REV` (`REV`), `DEL` (`DEL`).
 - [ ] **`auth-simulator.ts`**:
-  - `mockLogin()`: Validates credentials against `SYS_USER_LIVE`, returns user session and JWT token.
+  - `mockLogin()`: Validates credentials against `SC_USER_LIVE`, returns user session and JWT token.
 - [ ] **`response-factory.ts`**:
   - Standardized response factories: `successResult()`, `notFoundResult()`, `toGrpcResponse()`.
 - [ ] **`index.ts`**:
@@ -214,7 +220,8 @@ Establish strong typing and runtime validation boundaries before touching client
 - [ ] **`model-config-schema.ts`**: Zod schema for `ModelConfigRecord`, properties, widgets, and validations.
 - [ ] **`form-config-schema.ts`**: Zod schema for `FormConfigRecord`, sections, zones, and field placements.
 - [ ] **`inquiry-config-schema.ts`**: Zod schema for `InquiryConfigRecord`, columns, filters, and row actions.
-- [ ] **`user-group-schema.ts`**, **`branch-schema.ts`**, **`env-schema.ts`**.
+- [ ] **`menu-catalog-schema.ts`** & **`menu-designer-schema.ts`**: Action types strictly restricted to `"SCREEN" | "POPUP"`.
+- [ ] **`user-group-schema.ts`**, **`branch-schema.ts`**, **`control-schema.ts`**, **`env-schema.ts`**.
 
 ---
 
@@ -243,13 +250,14 @@ The core engine powering all UI operations. Keep these modules headless and deco
   ```
 
 #### 3.2 `src/lib/cbs-command/` — Command Parser & Catalog
-- [ ] **`parser/grammar.ts`**: Parse input commands (`"ACCOUNT,SEE"`, `"USER.MGT,NEW1"`, `"CONFIG.INQUIRY"`).
+- [ ] **`engine/`**: Grammar parser & syntax validator (`"ACCOUNT,SEE"`, `"USER.MGT,NEW1"`, `"CONFIG.INQUIRY"`).
 - [ ] **`registry/catalog.ts`**: Command catalog mapping commands to screen components and default modes.
 - [ ] **`registry/alias-map.ts`**: Fast O(1) canonical alias resolution.
 
-#### 3.3 `src/lib/cbs-form-spec/` — 12-Column Layout Compiler
-- [ ] **`compiler.ts`**: Merges `MODEL.CONFIG` properties with `FORM.CONFIG` layout into a typed, validated form schema.
-- [ ] **`zone-builder.ts`**: Allocates 12-column grid spans, field offsets, and section tabs.
+#### 3.3 `src/lib/cbs-form-spec/` — Dynamic Form Presentation Spec Compiler
+- [ ] **`compile.ts`**: Dynamic Form Spec Compiler merging `MODEL.CONFIG` properties with `FORM.CONFIG` layout into a typed, validated form schema.
+- [ ] **`field-rules.ts`**: Metamodel field rules, 12-column spans, and validation constraints.
+- [ ] **`index.ts`**: Re-export `compileFormSpec`, `compileModelSpec`, and rule evaluators.
 
 #### 3.4 `src/lib/cbs-record/` — Mutation Delta Engine
 - [ ] **`delta-engine.ts`**: `computeTouchDelta(baseline, current)` — evaluates deep diffs so commits only touch modified keys.
@@ -358,20 +366,19 @@ The secure gateway guarding downstream Core Banking services.
 Maintain 100% CI pass rate at every commit.
 
 ```bash
-# Run all 10 verification suites
+# Run all 9 verification suites
 pnpm verify:all
 ```
 
-- [ ] `verify-cbs-access.ts` (Access control & RIDASHL rules)
-- [ ] `verify-cbs-record.ts` (Delta mutation engine & touch payload diffs)
-- [ ] `verify-cbs-form-spec.ts` (Form spec compiler & 12-column zone builder)
-- [ ] `verify-cbs-command.ts` (Command gateway & catalog alias parser)
-- [ ] `verify-cbs-client.ts` (Wire protocol payload factories & transport)
-- [ ] `verify-env-matrix.ts` (Config matrix, Zod schemas & PII redaction)
-- [ ] `verify-core-utils.ts` (Banking utilities & currency formatters)
-- [ ] `verify-infra-services.ts` (Gateway services & transparent caching)
-- [ ] `verify-mock-core.ts` (In-memory mock Core engine & database fixtures)
-- [ ] `verify-master-form-flow.ts` (End-to-end integration flow)
+- [ ] `scripts/verify/verify-cbs-access.ts` (Access control & RIDASHL rules)
+- [ ] `scripts/verify/verify-cbs-record.ts` (Delta mutation engine & touch payload diffs)
+- [ ] `scripts/verify/verify-cbs-form-spec.ts` (Form spec compiler & 12-column zone builder)
+- [ ] `scripts/verify/verify-cbs-command.ts` (Command gateway & catalog alias parser)
+- [ ] `scripts/verify/verify-cbs-client.ts` (Wire protocol payload factories & transport)
+- [ ] `scripts/verify/verify-env-matrix.ts` (Config matrix, Zod schemas & PII redaction)
+- [ ] `scripts/verify/verify-core-utils.ts` (Banking utilities & currency formatters)
+- [ ] `scripts/verify/verify-infra-services.ts` (Gateway services & transparent caching)
+- [ ] `scripts/verify/verify-mock-services.ts` (In-memory mock Core engine & database fixtures)
 
 ---
 

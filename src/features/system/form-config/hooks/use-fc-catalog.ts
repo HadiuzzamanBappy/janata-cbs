@@ -70,7 +70,6 @@ export function useFcCatalog() {
     }
   }, []);
 
-
   // Subscribe to cross-tab updates for FORM.CONFIG and MODEL.CONFIG
   useRecordMutationSubscriber(() => {
     refreshForms();

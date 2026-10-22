@@ -93,7 +93,8 @@ export function McInspectorHeader({
         title="Delete Draft Field?"
         description={
           <span className="text-xs text-muted-foreground leading-relaxed block">
-            Permanently delete draft field #{property.sn} ({property.name || "UNNAMED"})? Since this field has not been saved or committed yet, it will be removed entirely.
+            Permanently delete draft field #{property.sn} ({property.name || "UNNAMED"})? Since this
+            field has not been saved or committed yet, it will be removed entirely.
           </span>
         }
         confirmText="Delete"

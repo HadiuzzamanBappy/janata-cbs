@@ -77,8 +77,8 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
             recordId: cleanId,
-            tableName: cleanId.replace(/[\.-]/g, "_"),
-            description: cleanId.replace(/[_\.-]/g, " "),
+            tableName: cleanId.replace(/[.-]/g, "_"),
+            description: cleanId.replace(/[_.-]/g, " "),
           };
           hydrate(draft);
           clearCommitted();
@@ -96,8 +96,8 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
             recordId: cleanId,
-            tableName: cleanId.replace(/[\.-]/g, "_"),
-            description: cleanId.replace(/[_\.-]/g, " "),
+            tableName: cleanId.replace(/[.-]/g, "_"),
+            description: cleanId.replace(/[_.-]/g, " "),
           };
           hydrate(draft);
           clearCommitted();

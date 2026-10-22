@@ -86,7 +86,6 @@ export function OpsForm({
   // Available records catalog fallback (SBI handles dynamic records on demand)
   const availableItems = React.useMemo(() => [], []);
 
-
   // Subscribe to real-time mutations of this entity
   useRecordMutationSubscriber((mutation) => {
     if (searchRecordId && mutation.recordId === searchRecordId.trim().toUpperCase()) {

@@ -39,12 +39,12 @@ export const rawMenuRecordSchema: z.ZodType<RawMenuRecord> = z.lazy(() =>
 /* Canonical Domain Menu Item Schemas                                         */
 /* -------------------------------------------------------------------------- */
 
-/** Canonical recursive menu hierarchy rendered in the active CBS shell and sidebar. */
 export interface MenuItem {
   id: string;
   menuId: number;
   label: string;
   command?: string;
+  menuType?: "SCREEN" | "POPUP";
   children?: MenuItem[];
 }
 
@@ -54,6 +54,7 @@ export const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
     menuId: z.number(),
     label: z.string(),
     command: z.string().optional(),
+    menuType: z.enum(["SCREEN", "POPUP"]).optional(),
     children: z.array(menuItemSchema).optional(),
   }),
 );

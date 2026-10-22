@@ -53,7 +53,13 @@ async function runSuite() {
 
   const testCases: TestCase[] = [];
 
-  function recordTest(title: string, input: unknown, output: unknown, condition: boolean, error?: string) {
+  function recordTest(
+    title: string,
+    input: unknown,
+    output: unknown,
+    condition: boolean,
+    error?: string,
+  ) {
     testCases.push({ title, input, output, passed: condition, error });
     const statusTag = condition ? "[PASS]" : "[FAIL]";
     console.log(`\n${statusTag} ${title}`);
@@ -144,7 +150,9 @@ async function runSuite() {
       {
         title: gmcFormData?.title,
         hasPresentation: Boolean(gmcFormData?.presentation),
-        sectionsCount: ((gmcFormData?.presentation as Record<string, unknown>)?.sections as unknown[])?.length,
+        sectionsCount: (
+          (gmcFormData?.presentation as Record<string, unknown>)?.sections as unknown[]
+        )?.length,
       },
       gmcFormRes.status === "SUCCESS" && Boolean(gmcFormData?.presentation),
     );
@@ -173,7 +181,8 @@ async function runSuite() {
       recordId: formData?.recordId,
       title: formData?.title,
       targetModel: formData?.targetModel,
-      sectionsCount: ((formData?.presentation as Record<string, unknown>)?.sections as unknown[])?.length,
+      sectionsCount: ((formData?.presentation as Record<string, unknown>)?.sections as unknown[])
+        ?.length,
     };
     recordTest(
       "6. Versioned Presentation Configuration (FORM.CONFIG in S mode)",
@@ -199,7 +208,11 @@ async function runSuite() {
     );
 
     // 7b. Dynamic Raw Model Inquiry Synthesis (INQUIRY.CONFIG -> Fallback to MODEL.CONFIG)
-    const rawInqInput = { requestType: "S", controlName: "INQUIRY.CONFIG", recordId: "MODEL.CONFIG" };
+    const rawInqInput = {
+      requestType: "S",
+      controlName: "INQUIRY.CONFIG",
+      recordId: "MODEL.CONFIG",
+    };
     const rawInqRes = getMockProxyResponse("S", "INQUIRY.CONFIG", "MODEL.CONFIG");
     const rawInqData = rawInqRes.data as Record<string, unknown> | undefined;
     const rawInqOut = {
@@ -258,7 +271,12 @@ async function runSuite() {
     );
 
     // 11. Maker-Checker Lifecycle Status Mutation (PUT -> INA)
-    const putInput = { requestType: "PUT", controlName: "ACCOUNT", recordId: "AC9999", data: { balance: 50000 } };
+    const putInput = {
+      requestType: "PUT",
+      controlName: "ACCOUNT",
+      recordId: "AC9999",
+      data: { balance: 50000 },
+    };
     const putRes = getMockProxyResponse("PUT", "ACCOUNT", "AC9999", { balance: 50000 });
     const putData = putRes.data as Record<string, unknown> | undefined;
     const putOut = {
@@ -301,7 +319,6 @@ async function runSuite() {
       rpcOut,
       rpcRes.status === "SUCCESS" && rpcRes.statusCode === 200,
     );
-
   } finally {
     (appConfig as { dataSource: string }).dataSource = originalDataSource;
   }
@@ -310,12 +327,16 @@ async function runSuite() {
   const allPassed = testCases.every((t) => t.passed);
   if (allPassed) {
     console.log(`>>> ALL ${testCases.length} UNIQUE CORE TESTS PASSED WITH 100% SUCCESS! <<<`);
-    console.log("================================================================================\n");
+    console.log(
+      "================================================================================\n",
+    );
     process.exit(0);
   } else {
     const failedCount = testCases.filter((t) => !t.passed).length;
     console.error(`>>> FAILED: ${failedCount} OF ${testCases.length} TESTS FAILED! <<<`);
-    console.log("================================================================================\n");
+    console.log(
+      "================================================================================\n",
+    );
     process.exit(1);
   }
 }

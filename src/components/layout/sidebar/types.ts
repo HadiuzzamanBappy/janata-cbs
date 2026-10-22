@@ -5,6 +5,7 @@ export interface TreeNode {
   title: string;
   command?: string;
   componentName?: string;
+  menuType?: "SCREEN" | "POPUP";
   children?: TreeNode[];
 }
 
@@ -14,6 +15,7 @@ export function mapMenuItemToTreeNode(item: MenuItem): TreeNode {
     title: item.label,
     command: item.command,
     componentName: item.command ? item.command.replace(/\./g, "_") : undefined,
+    menuType: item.menuType,
     children: item.children?.map(mapMenuItemToTreeNode),
   };
 }

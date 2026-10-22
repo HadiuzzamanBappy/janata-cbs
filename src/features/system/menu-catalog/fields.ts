@@ -61,16 +61,13 @@ export const MENU_META_FIELDS: MenuFieldDef[] = [
   // --- Group 2: BEHAVIOR ---
   {
     path: "menuType",
-    label: "Menu Type",
+    label: "Action Type",
     group: "BEHAVIOR",
     type: "select",
     width: "half",
     options: [
-      { value: "SCREEN", label: "Interactive Screen" },
-      { value: "INQUIRY", label: "Ledger Inquiry (INQ)" },
-      { value: "REPORT", label: "Batch / Report Output" },
-      { value: "SUBMENU", label: "Folder / Submenu Node" },
-      { value: "EXTERNAL", label: "External Web URL" },
+      { value: "SCREEN", label: "Interactive Screen (Workspace Tab)" },
+      { value: "POPUP", label: "Detached Popup Window (Multi-Monitor)" },
     ],
   },
   {

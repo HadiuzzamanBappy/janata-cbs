@@ -428,7 +428,7 @@ export const SC_INQUIRY_CONFIG_LIVE: Record<string, InquiryConfigRecord> = {
       recAuthTime: "2026-10-18 10:05:00",
       recBranchCode: "JB9999",
     },
-  }
+  },
 };
 
 /* -------------------------------------------------------------------------- */

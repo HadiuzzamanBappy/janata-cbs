@@ -25,7 +25,8 @@ interface BranchSwitcherProps {
 }
 
 let cachedBranches: Array<{ code: string; name: string; type: string }> | null = null;
-let branchesFetchPromise: Promise<Array<{ code: string; name: string; type: string }>> | null = null;
+let branchesFetchPromise: Promise<Array<{ code: string; name: string; type: string }>> | null =
+  null;
 
 export function BranchSwitcher({
   className,

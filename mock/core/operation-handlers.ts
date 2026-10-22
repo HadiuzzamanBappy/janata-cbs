@@ -55,12 +55,72 @@ export function getMockInquiryPayload(command: string): unknown {
     Array.isArray(model.properties) && model.properties.length > 0
       ? model.properties
       : [
-          { sn: "1", name: "tableName", label: "Table Name", type: "Text" as const, length: 50, required: true, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
-          { sn: "2", name: "description", label: "Description", type: "Text" as const, length: 100, required: true, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
-          { sn: "3", name: "category", label: "Category", type: "Text" as const, length: 30, required: false, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
-          { sn: "4", name: "access", label: "Access Level", type: "Text" as const, length: 10, required: true, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
-          { sn: "5", name: "userDefineId", label: "User Defined ID", type: "Boolean" as const, length: 1, required: false, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
-          { sn: "6", name: "isActive", label: "Is Active", type: "Boolean" as const, length: 1, required: false, disabled: false, status: "ACTIVE" as const, structure: "S" as const },
+          {
+            sn: "1",
+            name: "tableName",
+            label: "Table Name",
+            type: "Text" as const,
+            length: 50,
+            required: true,
+            disabled: false,
+            status: "ACTIVE" as const,
+            structure: "S" as const,
+          },
+          {
+            sn: "2",
+            name: "description",
+            label: "Description",
+            type: "Text" as const,
+            length: 100,
+            required: true,
+            disabled: false,
+            status: "ACTIVE" as const,
+            structure: "S" as const,
+          },
+          {
+            sn: "3",
+            name: "category",
+            label: "Category",
+            type: "Text" as const,
+            length: 30,
+            required: false,
+            disabled: false,
+            status: "ACTIVE" as const,
+            structure: "S" as const,
+          },
+          {
+            sn: "4",
+            name: "access",
+            label: "Access Level",
+            type: "Text" as const,
+            length: 10,
+            required: true,
+            disabled: false,
+            status: "ACTIVE" as const,
+            structure: "S" as const,
+          },
+          {
+            sn: "5",
+            name: "userDefineId",
+            label: "User Defined ID",
+            type: "Boolean" as const,
+            length: 1,
+            required: false,
+            disabled: false,
+            status: "ACTIVE" as const,
+            structure: "S" as const,
+          },
+          {
+            sn: "6",
+            name: "isActive",
+            label: "Is Active",
+            type: "Boolean" as const,
+            length: 1,
+            required: false,
+            disabled: false,
+            status: "ACTIVE" as const,
+            structure: "S" as const,
+          },
         ];
 
   // Build columns from model properties
@@ -293,7 +353,8 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
     SC_MODEL_CONFIG_LIVE[clean.replace(/\./g, "_")] ||
     SC_MODEL_CONFIG_LIVE[clean.replace(/_/g, ".")];
 
-  const isUserDefineId = Boolean(model?.userDefineId) || clean === "MODEL.CONFIG" || clean === "CONFIG.MODEL";
+  const isUserDefineId =
+    Boolean(model?.userDefineId) || clean === "MODEL.CONFIG" || clean === "CONFIG.MODEL";
 
   // 3. If model is userDefineId:
   //    - If user provided an ID: initialize draft with that ID.
@@ -310,7 +371,7 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
       {
         recordId: inputId,
         id: inputId,
-        tableName: inputId.replace(/[\.-]/g, "_"),
+        tableName: inputId.replace(/[.-]/g, "_"),
         _isNew: true,
       },
       `Initialized user-defined draft for ${clean} #${inputId}`,

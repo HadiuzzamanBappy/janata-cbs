@@ -57,19 +57,28 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
 
           if (Array.isArray(rawRecords) && rawRecords.length > 0) {
             for (const item of rawRecords) {
-              const rec = (typeof item === "object" && item !== null) ? (item as Record<string, unknown>) : null;
-              const id = typeof item === "string" ? item.trim() : String(rec?.id || rec?.recordId || rec?.code || rec?.userId || "").trim();
+              const rec =
+                typeof item === "object" && item !== null
+                  ? (item as Record<string, unknown>)
+                  : null;
+              const id =
+                typeof item === "string"
+                  ? item.trim()
+                  : String(rec?.id || rec?.recordId || rec?.code || rec?.userId || "").trim();
               if (!id) continue;
 
-              const label = typeof item === "string" ? id : String(
-                rec?.label ||
-                  rec?.description ||
-                  rec?.employeeName ||
-                  rec?.name ||
-                  rec?.accountTitle1 ||
-                  rec?.["ACCOUNT.TITLE"] ||
-                  id,
-              );
+              const label =
+                typeof item === "string"
+                  ? id
+                  : String(
+                      rec?.label ||
+                        rec?.description ||
+                        rec?.employeeName ||
+                        rec?.name ||
+                        rec?.accountTitle1 ||
+                        rec?.["ACCOUNT.TITLE"] ||
+                        id,
+                    );
 
               const details = rec?.details
                 ? String(rec.details)
@@ -159,33 +168,36 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
   /**
    * Action 3: Request new record ID sequence or user-defined draft from backend ('GNI').
    */
-  const fetchNewRecordId = React.useCallback(async (candidateId?: string): Promise<string> => {
-    const cleanCandidate = (candidateId || "").trim().toUpperCase();
-    if (!cleanControl) {
-      return cleanCandidate || `NEW.${Date.now().toString().slice(-4)}`;
-    }
-
-    setGeneratingId(true);
-    try {
-      const payload = cbs.form.getNewRecordId(cleanControl, cleanCandidate || undefined);
-      const res = await cbs.send<{ recordId?: string; id?: string }>(payload, { silent: true });
-
-      if (res.status === "SUCCESS" && res.data) {
-        const allocatedId = String(res.data.recordId || res.data.id || "").trim();
-        if (allocatedId) {
-          return allocatedId;
-        }
+  const fetchNewRecordId = React.useCallback(
+    async (candidateId?: string): Promise<string> => {
+      const cleanCandidate = (candidateId || "").trim().toUpperCase();
+      if (!cleanControl) {
+        return cleanCandidate || `NEW.${Date.now().toString().slice(-4)}`;
       }
 
-      // If backend returned error (e.g. 400 userDefineId requires candidate ID), return empty string so caller doesn't fake an ID
-      return "";
-    } catch (err: unknown) {
-      console.warn(`[useRecordLookup] GNI sequence request failed for ${cleanControl}:`, err);
-      return "";
-    } finally {
-      setGeneratingId(false);
-    }
-  }, [cleanControl]);
+      setGeneratingId(true);
+      try {
+        const payload = cbs.form.getNewRecordId(cleanControl, cleanCandidate || undefined);
+        const res = await cbs.send<{ recordId?: string; id?: string }>(payload, { silent: true });
+
+        if (res.status === "SUCCESS" && res.data) {
+          const allocatedId = String(res.data.recordId || res.data.id || "").trim();
+          if (allocatedId) {
+            return allocatedId;
+          }
+        }
+
+        // If backend returned error (e.g. 400 userDefineId requires candidate ID), return empty string so caller doesn't fake an ID
+        return "";
+      } catch (err: unknown) {
+        console.warn(`[useRecordLookup] GNI sequence request failed for ${cleanControl}:`, err);
+        return "";
+      } finally {
+        setGeneratingId(false);
+      }
+    },
+    [cleanControl],
+  );
 
   return {
     items,

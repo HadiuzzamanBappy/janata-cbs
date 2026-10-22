@@ -40,8 +40,8 @@ export const VALID_FUNCTION_CODES_SET = new Set<string>(CBS_FUNCTION_CODES);
 // Chapter 3: Quick System Actions & Settings Modal Tabs
 // ============================================================================
 
-/** Command action type for static definitions */
-export type CommandActionType = "SCREEN" | "SETTINGS" | "THEME" | "LOGOUT";
+/** Command action type for static definitions and catalog entries */
+export type CommandActionType = "SCREEN" | "POPUP" | "SETTINGS" | "THEME" | "LOGOUT";
 
 /** Canonical quick system action identifiers */
 export const CBS_SYSTEM_ACTIONS = ["toggle_theme", "logout"] as const;

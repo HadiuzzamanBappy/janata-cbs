@@ -3,20 +3,24 @@ import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for Menu Catalog (TABLE: MENU)         */
-/* Derived directly from the MODEL.CONFIG properties for MENU:                 */
+/* Derived directly from the unified ActionType model:                        */
 /*   1. label (SN: 1, Type: Text, Length: 250, Required: true)                 */
 /*   2. command (SN: 2, Type: Text, Length: 250, Pattern: ^[A-Z0-9_.]+$)       */
-/*   3. menuType (SN: 3, Type: Text, Length: 50)                               */
+/*   3. actionType (SN: 3, Unified single-source-of-truth ActionType)          */
 /* -------------------------------------------------------------------------- */
 
-/** Functional menu category classification for CBS application catalog entries. */
-export const menuTypeSchema = z.enum(["SCREEN", "INQUIRY", "REPORT", "SUBMENU", "EXTERNAL"]);
+/**
+ * Action target for user-configurable menu catalog items.
+ * Strictly limited to how the interactive screen/inquiry opens:
+ * - "SCREEN": opens inside an integrated Workspace Tab
+ * - "POPUP": opens inside a multi-monitor detached popup window
+ */
+export const menuTypeSchema = z.enum(["SCREEN", "POPUP"]);
 export type MenuType = z.infer<typeof menuTypeSchema>;
 export const MENU_TYPES = menuTypeSchema.options;
 
-/** Menu item record contract persisted in the `SC.MENU` control table. */
 export const menuCatalogRecordSchema = z.object({
-  recordId: z.string().min(1, "Menu ID is required"),
+  recordId: z.string().optional(),
   label: z.string().min(1, "Menu Label is required").max(250, "Max 250 characters"),
   command: z
     .string()
@@ -24,6 +28,7 @@ export const menuCatalogRecordSchema = z.object({
     .max(250, "Max 250 characters")
     .regex(/^[A-Z0-9_. ,]+$/, "Must be uppercase alphanumeric command format"),
   menuType: menuTypeSchema.default("SCREEN"),
+  actionType: menuTypeSchema.optional(),
   description: z.string().optional(),
   isActive: z.boolean().optional(),
   auditData: auditDataSchema.optional(),

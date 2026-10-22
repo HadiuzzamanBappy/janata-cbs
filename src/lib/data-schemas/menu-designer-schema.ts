@@ -15,6 +15,7 @@ export type MenuTreeNode = {
   menuId: number | string;
   label: string;
   command?: string;
+  menuType?: "SCREEN" | "POPUP";
   isVisible: boolean;
   orderIndex: number;
   children: MenuTreeNode[];
@@ -26,6 +27,7 @@ export const menuTreeNodeSchema: z.ZodType<MenuTreeNode> = z.lazy(() =>
     menuId: z.union([z.number(), z.string()]),
     label: z.string().min(1, "Node label is required"),
     command: z.string().optional(),
+    menuType: z.enum(["SCREEN", "POPUP"]).optional(),
     isVisible: z.boolean().default(true),
     orderIndex: z.number().default(0),
     children: z.array(menuTreeNodeSchema).default([]),

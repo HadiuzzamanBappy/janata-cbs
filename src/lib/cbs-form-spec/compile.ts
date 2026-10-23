@@ -48,15 +48,14 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const rootFields: FormFieldItem[] = activeProps
     .filter((p) => p.type !== "Object")
     .map((p) => {
-      // If property has an underscore SN (child of an Object group), format e.g. "8_1" -> "8.1"
-      const formattedSn = p.sn.replace(/_/g, ".");
       const isGroupChild = p.sn.includes("_");
       const parentSn = isGroupChild ? p.sn.substring(0, p.sn.lastIndexOf("_")) : null;
       const parentObj = parentSn ? objectParents.get(parentSn) : null;
 
       // Base label from property definition
       const baseLabel = p.label || p.name || `Field #${p.sn}`;
-      const displayLabel = isGroupChild ? `${baseLabel} ${formattedSn}` : baseLabel;
+      // Clean display label without cluttering with parent/child suffix
+      const displayLabel = baseLabel;
 
       // Group metadata:
       // Multi-value ("M") belongs to the parent Object, NOT individual child fields!
@@ -76,6 +75,7 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
         structure: p.structure || "S", // Keep individual field structure (single)
         groupKey: parentObj?.name,
         groupSn: parentSn ?? undefined,
+        groupLabel: parentObj?.label || parentObj?.name,
         groupStructure: parentObj?.structure,
         isFirstInGroup: isFirstInGroup,
         parameter: p.parameter,
@@ -152,6 +152,15 @@ export function compileFormSpec(
   // With append-only model evolution, layouts are directly composed against model properties
   const propertyMap = new Map((model.properties || []).map((p) => [p.name.toLowerCase(), p]));
 
+  // Identify parent Objects and their structure ("S" or "M")
+  const objectParents = new Map<string, ModelProperty>();
+  for (const p of model.properties || []) {
+    if (p.type === "Object" && p.status !== "ARCHIVED") {
+      objectParents.set(p.sn, p);
+    }
+  }
+  const seenGroupFirstChild = new Set<string>();
+
   const cleanSections: FormSection[] = [];
   const flatFields: FormFieldItem[] = [];
 
@@ -172,12 +181,30 @@ export function compileFormSpec(
         ? currentWidget
         : getDefaultWidget(modelProp.type);
 
+      // Resolve group metadata from model property hierarchy
+      const isGroupChild = modelProp.sn.includes("_");
+      const parentSn = isGroupChild
+        ? modelProp.sn.substring(0, modelProp.sn.lastIndexOf("_"))
+        : null;
+      const parentObj = parentSn ? objectParents.get(parentSn) : null;
+
+      const isFirstInGroup = Boolean(parentSn && !seenGroupFirstChild.has(parentSn));
+      if (parentSn && isFirstInGroup) {
+        seenGroupFirstChild.add(parentSn);
+      }
+
       const resolvedField: FormFieldItem = {
         ...field,
         widget,
         label: field.label || modelProp.label || modelProp.name,
         modelType: modelProp.type,
         length: modelProp.length,
+        structure: modelProp.structure || field.structure || "S",
+        groupKey: parentObj?.name || field.groupKey,
+        groupSn: parentSn ?? field.groupSn,
+        groupLabel: parentObj?.label || parentObj?.name || field.groupLabel,
+        groupStructure: parentObj?.structure || field.groupStructure,
+        isFirstInGroup: isFirstInGroup || field.isFirstInGroup,
         required: modelProp.required ?? field.required,
         readOnly: modelProp.disabled ?? field.readOnly,
         parameter: modelProp.parameter ?? field.parameter,

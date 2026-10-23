@@ -333,11 +333,15 @@ export function SectionCard({
                   );
                 }
 
-                // Multi-value Object Group:
-                // Derive how many group sets currently exist based on values.
-                // Each group set i (0, 1, ...) accesses values[fieldKey] or values[`${fieldKey}_${i}`]
+                // Multi-value Object Group (Option 1: Nested Sub-Card / Fieldset Banner):
+                // Each group instance (Set #1, Set #2, ...) is rendered in its own clean container
+                // with a distinct header banner, actions on the top-right, and clean child field rows.
                 const groupSn = item.groupSn;
                 const groupFields = item.fields;
+                const groupTitle =
+                  groupFields[0]?.groupLabel ||
+                  item.groupKey ||
+                  `Group #${groupSn}`;
 
                 // Derive number of sets from explicit form values (__group_${groupSn}_count) or state, or scan values
                 const derivedFromValues = (() => {
@@ -358,12 +362,32 @@ export function SectionCard({
                 const currentCount = groupCounts[groupSn] ?? derivedFromValues;
                 const setCount = Math.max(currentCount, 1);
 
+                // Build stable unique keys for each group set so React does not use raw index
+                const groupSets = Array.from({ length: setCount }, (_, setIdx) => {
+                  const setIdentityKey =
+                    setIdx === 0
+                      ? `first`
+                      : String(values[`__group_${groupSn}_uid_${setIdx}`] || `idx_${setIdx}`);
+                  return {
+                    setIdx,
+                    setKey: `grp_${groupSn}_${setIdentityKey}`,
+                    isLastSet: setIdx === setCount - 1,
+                  };
+                });
+
                 const handleAddGroupSet = () => {
                   const newCount = setCount + 1;
+                  const newSetIdx = setCount;
+                  const uid =
+                    typeof crypto !== "undefined" && crypto.randomUUID
+                      ? crypto.randomUUID()
+                      : `set_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
                   setGroupCounts((prev) => ({ ...prev, [groupSn]: newCount }));
                   onChange(`__group_${groupSn}_count`, newCount);
+                  onChange(`__group_${groupSn}_uid_${newSetIdx}`, uid);
+
                   // Initialize fields for the new set with empty string
-                  const newSetIdx = setCount;
                   for (const f of groupFields) {
                     const keyWithSuffix = `${f.fieldKey}_${newSetIdx}`;
                     onChange(keyWithSuffix, "");
@@ -378,6 +402,10 @@ export function SectionCard({
 
                   // Shift subsequent sets down
                   for (let i = removeIdx; i < setCount - 1; i++) {
+                    const currUidKey = `__group_${groupSn}_uid_${i}`;
+                    const nextUidKey = `__group_${groupSn}_uid_${i + 1}`;
+                    onChange(currUidKey, values[nextUidKey] ?? "");
+
                     for (const f of groupFields) {
                       const currKey = i === 0 ? f.fieldKey : `${f.fieldKey}_${i}`;
                       const nextKey = `${f.fieldKey}_${i + 1}`;
@@ -386,6 +414,7 @@ export function SectionCard({
                   }
                   // Clear the last set
                   const lastIdx = setCount - 1;
+                  onChange(`__group_${groupSn}_uid_${lastIdx}`, "");
                   for (const f of groupFields) {
                     const lastKey = lastIdx === 0 ? f.fieldKey : `${f.fieldKey}_${lastIdx}`;
                     onChange(lastKey, "");
@@ -393,90 +422,106 @@ export function SectionCard({
                 };
 
                 return (
-                  <React.Fragment key={`group_${groupSn}`}>
-                    {Array.from({ length: setCount }).map((_, setIdx) => {
-                      return groupFields.map((field, fieldIdx) => {
-                        const isFirstFieldInSet = fieldIdx === 0;
-                        const key = setIdx === 0 ? field.fieldKey : `${field.fieldKey}_${setIdx}`;
-                        const fieldVal = values[key];
-                        const fieldError = errors[key];
+                  <div key={`group_${groupSn}`} className="col-span-full space-y-2.5 my-1">
+                    {groupSets.map(({ setIdx, setKey, isLastSet }) => {
+                      return (
+                        <div
+                          key={setKey}
+                          className="rounded border border-border/80 bg-muted/15 p-2.5 shadow-2xs space-y-2.5 transition-colors"
+                        >
+                          {/* Sub-Card Header Banner */}
+                          <div className="flex items-center justify-between pb-1.5 border-b border-border/50">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[10px] font-semibold text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">
+                                #{groupSn}
+                              </span>
+                              <span className="text-xs font-semibold text-foreground tracking-tight">
+                                {groupTitle} #{setIdx + 1}
+                              </span>
+                            </div>
 
-                        // Set action (+/-) only on the FIRST field of each group set before colon
-                        const actionBeforeColon = isFirstFieldInSet && !disabled && mode === "I" ? (
-                          <div className="flex items-center gap-0.5 shrink-0">
-                            {setCount > 1 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleRemoveGroupSet(setIdx);
-                                }}
-                                className="size-5 p-0 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
-                                title="Remove this group set"
-                              >
-                                <Minus className="size-3.5 stroke-[2.5]" />
-                              </Button>
-                            )}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleAddGroupSet();
-                              }}
-                              className="size-5 p-0 text-primary hover:bg-primary/10 rounded cursor-pointer"
-                              title="Add new group set"
-                            >
-                              <Plus className="size-3.5 stroke-[2.5]" />
-                            </Button>
-                          </div>
-                        ) : undefined;
-
-                        const setIndicator = (
-                          <span className="font-mono text-[11px] text-muted-foreground/75 font-semibold">
-                            .{setIdx + 1}
-                          </span>
-                        );
-
-                        // Clone field with the set-specific fieldKey
-                        const setField: FormFieldItem = {
-                          ...field,
-                          id: `${field.id}_set_${setIdx}`,
-                          fieldKey: key,
-                        };
-
-                        return (
-                          <div key={setField.id} className={getFieldColSpanClass(numCols, setField.colSpan)}>
-                            {hasKernel ? (
-                              <FieldAtom
-                                field={setField}
-                                disabled={disabled}
-                                mode={mode}
-                                labelSuffix={setIndicator}
-                                actionBeforeColon={actionBeforeColon}
-                              />
-                            ) : (
-                              <UnifiedFieldFactory
-                                field={setField}
-                                value={fieldVal}
-                                onChange={onChange}
-                                error={fieldError}
-                                disabled={disabled}
-                                mode={mode}
-                                labelSuffix={setIndicator}
-                                actionBeforeColon={actionBeforeColon}
-                              />
+                            {/* Actions Top-Right */}
+                            {!disabled && mode === "I" && (
+                              <div className="flex items-center gap-1.5">
+                                {setCount > 1 && (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleRemoveGroupSet(setIdx);
+                                    }}
+                                    className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer gap-1"
+                                    title="Remove this group set"
+                                  >
+                                    <Minus className="size-3 stroke-[2.5]" />
+                                    <span>Remove</span>
+                                  </Button>
+                                )}
+                                {isLastSet && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleAddGroupSet();
+                                    }}
+                                    className="h-6 px-2 text-[11px] text-primary border-primary/30 hover:bg-primary/10 rounded cursor-pointer gap-1"
+                                    title={`Add another ${groupTitle}`}
+                                  >
+                                    <Plus className="size-3 stroke-[2.5]" />
+                                    <span>Add {groupTitle}</span>
+                                  </Button>
+                                )}
+                              </div>
                             )}
                           </div>
-                        );
-                      });
+
+                          {/* Sub-Card Fields: Rendered in standard clean scanline rows */}
+                          <div className={cn("grid gap-x-4 gap-y-2 text-xs", getGridColsClass(numCols))}>
+                            {groupFields.map((field) => {
+                              const key = setIdx === 0 ? field.fieldKey : `${field.fieldKey}_${setIdx}`;
+                              const fieldVal = values[key];
+                              const fieldError = errors[key];
+
+                              // Clone field with the set-specific fieldKey
+                              const setField: FormFieldItem = {
+                                ...field,
+                                id: `${field.id}_set_${setIdx}`,
+                                fieldKey: key,
+                              };
+
+                              return (
+                                <div
+                                  key={setField.id}
+                                  className={getFieldColSpanClass(numCols, setField.colSpan)}
+                                >
+                                  {hasKernel ? (
+                                    <FieldAtom
+                                      field={setField}
+                                      disabled={disabled}
+                                      mode={mode}
+                                    />
+                                  ) : (
+                                    <UnifiedFieldFactory
+                                      field={setField}
+                                      value={fieldVal}
+                                      onChange={onChange}
+                                      error={fieldError}
+                                      disabled={disabled}
+                                      mode={mode}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
                     })}
-                  </React.Fragment>
+                  </div>
                 );
               });
             })()}

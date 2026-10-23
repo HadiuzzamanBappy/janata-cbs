@@ -68,7 +68,13 @@ export function FcDesignerTab({
   onConvertSectionZone,
   disabled,
 }: FcDesignerTabProps) {
-  const activeSection = sections.find((s) => s.id === selectedSectionId) || null;
+  // Always default to the first/root container section if no section or field is explicitly selected
+  const activeSection =
+    sections.find((s) => s.id === selectedSectionId) ||
+    (selectedFieldId
+      ? sections.find((s) => s.fields.some((f) => f.id === selectedFieldId)) || null
+      : sections[0] || null);
+
   const activeField =
     sections.flatMap((s) => s.fields).find((f) => f.id === selectedFieldId) || null;
 

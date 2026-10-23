@@ -66,6 +66,12 @@ export const formFieldItemSchema = z.object({
   currencyPrefix: z.string().optional(), // For amount widgets (e.g. "BDT")
   formula: z.string().optional(), // Derived/Calculated expression
   length: z.number().optional(), // Max character/digit constraint from MODEL.CONFIG
+  structure: z.enum(["S", "M"]).default("S").optional(), // S = Single value, M = Multi-value
+  // Object group metadata
+  groupKey: z.string().optional(), // Parent Object key (e.g. "nominee")
+  groupSn: z.string().optional(), // Parent Object SN (e.g. "8")
+  groupStructure: z.enum(["S", "M"]).optional(), // Parent Object structure ("S" or "M")
+  isFirstInGroup: z.boolean().optional(), // True only for the 1st field of the group
   // Binding metadata from MODEL.CONFIG — set when field is placed from palette
   modelType: z.string().optional(), // PropertyType: "Number", "Dropdown", "Date", etc.
   parameter: z.unknown().optional(), // PropertyParameter — typed as unknown for Zod safety

@@ -1,16 +1,12 @@
 "use client";
 
-import {
-  type ModelProperty,
-  PROPERTY_TYPES,
-  type PropertyType,
-  type ValidationErrorItem,
+import type {
+  ModelProperty,
+  ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
 import { McInspectorHeader } from "./inspector/mc-inspector-header";
 import { McInspectorIdentitySection } from "./inspector/mc-inspector-identity";
 import { McInspectorTypeSpecs } from "./inspector/mc-inspector-type-specs";
-
-export { PROPERTY_TYPES, type PropertyType };
 
 interface McPropertyInspectorProps {
   property?: ModelProperty;

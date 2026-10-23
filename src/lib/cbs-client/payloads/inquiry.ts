@@ -1,10 +1,5 @@
-import {
-  CbsControlTable,
-  CbsRecordFunction,
-  CbsRequestType,
-  type CbsWirePayload,
-  DEFAULT_SERVICE_PATH,
-} from "@/types";
+import type { CbsWirePayload } from "@/lib/data-schemas";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
 import { createModelPayloads } from "./base-model";
 
 export interface InquiryCriteriaParam {

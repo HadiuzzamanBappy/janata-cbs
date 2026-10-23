@@ -1,8 +1,8 @@
+import type { CbsWirePayload } from "@/lib/data-schemas";
 import {
   type CbsControlTable,
   CbsRecordFunction,
   CbsRequestType,
-  type CbsWirePayload,
   DEFAULT_SERVICE_PATH,
 } from "@/types";
 

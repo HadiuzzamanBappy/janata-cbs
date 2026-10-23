@@ -4,7 +4,8 @@ import {
   SC_MENU_TREE_LIVE,
   SC_MODEL_CONFIG_LIVE,
 } from "@mock/db";
-import type { ApiResponse, CbsWirePayload } from "@/types";
+import type { CbsWirePayload } from "@/lib/data-schemas";
+import type { ApiResponse } from "@/types";
 import { resolveTable } from "./database-router";
 import { errorResult, notFoundResult, successResult } from "./response-factory";
 
@@ -50,7 +51,7 @@ export function getMockInquiryPayload(command: string): unknown {
 
   if (!model) return null;
 
-  // Use model.properties, or fallback to core model definition attributes if properties is empty
+  // Use model.properties directly, or fallback to standard metamodel table properties if empty (e.g. MODEL.CONFIG itself)
   const rawProps =
     Array.isArray(model.properties) && model.properties.length > 0
       ? model.properties
@@ -71,7 +72,7 @@ export function getMockInquiryPayload(command: string): unknown {
             name: "description",
             label: "Description",
             type: "Text" as const,
-            length: 100,
+            length: 150,
             required: true,
             disabled: false,
             status: "ACTIVE" as const,
@@ -79,6 +80,17 @@ export function getMockInquiryPayload(command: string): unknown {
           },
           {
             sn: "3",
+            name: "prefix",
+            label: "Table Prefix",
+            type: "Text" as const,
+            length: 10,
+            required: false,
+            disabled: false,
+            status: "ACTIVE" as const,
+            structure: "S" as const,
+          },
+          {
+            sn: "4",
             name: "category",
             label: "Category",
             type: "Text" as const,
@@ -89,23 +101,12 @@ export function getMockInquiryPayload(command: string): unknown {
             structure: "S" as const,
           },
           {
-            sn: "4",
+            sn: "5",
             name: "access",
             label: "Access Level",
             type: "Text" as const,
             length: 10,
             required: true,
-            disabled: false,
-            status: "ACTIVE" as const,
-            structure: "S" as const,
-          },
-          {
-            sn: "5",
-            name: "userDefineId",
-            label: "User Defined ID",
-            type: "Boolean" as const,
-            length: 1,
-            required: false,
             disabled: false,
             status: "ACTIVE" as const,
             structure: "S" as const,

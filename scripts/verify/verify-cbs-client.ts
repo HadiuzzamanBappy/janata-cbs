@@ -8,11 +8,11 @@
 
 import { z } from "zod";
 import { cbs, createModelPayloads, sendCbsRequest } from "@/lib/cbs-client";
+import type { CbsWirePayload } from "@/lib/data-schemas";
 import {
   CbsControlTable,
   CbsRecordFunction,
   CbsRequestType,
-  type CbsWirePayload,
   DEFAULT_SERVICE_PATH,
 } from "@/types";
 
@@ -344,13 +344,6 @@ async function runSuite() {
 
   // --- 6. User Security Payloads (cbs.userSecurity) ---
   console.log("\n--- 6. User Security Payloads (cbs.userSecurity) ---");
-  const userProfile = cbs.userSecurity.get("USER-101");
-  assert(
-    "UserSecurity: get Profile (GET, SEE, USER.PASS.RESET)",
-    userProfile.requestType === CbsRequestType.GET &&
-      userProfile.controlName === CbsControlTable.USER_PASS_RESET &&
-      userProfile.recordId === "USER-101",
-  );
 
   const changePass = cbs.userSecurity.changePassword({ currPass: "old123", newPass: "new123" });
   assert(

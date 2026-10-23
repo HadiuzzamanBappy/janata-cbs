@@ -11,7 +11,7 @@ import {
   hasAccessibilityRight,
   parseAccessibilityRights,
 } from "@/lib/cbs-access";
-import { CbsRecordFunction } from "@/types/cbs";
+import { CbsRecordFunction } from "@/types";
 
 interface TestReport {
   name: string;

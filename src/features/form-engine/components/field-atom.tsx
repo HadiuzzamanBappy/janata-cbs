@@ -10,6 +10,9 @@ export interface FieldAtomProps {
   field: FormFieldItem;
   mode?: CbsScreenMode;
   disabled?: boolean;
+  labelOverride?: string;
+  labelSuffix?: React.ReactNode;
+  actionBeforeColon?: React.ReactNode;
 }
 
 /**
@@ -18,7 +21,14 @@ export interface FieldAtomProps {
  * Subscribes ONLY to its own fieldKey.
  * When other fields in the 150 - 1,000 field form mutate, this component DOES NOT re-render.
  */
-export function FieldAtom({ field, mode = "I", disabled = false }: FieldAtomProps) {
+export function FieldAtom({
+  field,
+  mode = "I",
+  disabled = false,
+  labelOverride,
+  labelSuffix,
+  actionBeforeColon,
+}: FieldAtomProps) {
   const fieldKey = field.fieldKey;
 
   // Selective subscriptions
@@ -47,6 +57,9 @@ export function FieldAtom({ field, mode = "I", disabled = false }: FieldAtomProp
       error={error}
       disabled={disabled || isReadOnly}
       mode={mode}
+      labelOverride={labelOverride}
+      labelSuffix={labelSuffix}
+      actionBeforeColon={actionBeforeColon}
     />
   );
 }

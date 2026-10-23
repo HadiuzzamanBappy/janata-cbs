@@ -24,7 +24,7 @@ export type BranchContact = z.infer<typeof branchContactSchema>;
  * Holds routing numbers for BEFTN, SWIFT codes, division codes, and current accounting dates.
  */
 export const branchRecordSchema = z.object({
-  recordId: z.string(),
+  recordId: z.string().optional(),
   branchTitle: z.string(),
   branchType: z.string().optional(),
   branchContact: z.array(branchContactSchema).optional().default([]),

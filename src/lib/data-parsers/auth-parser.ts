@@ -1,5 +1,5 @@
 import type { CurrentUser } from "@/lib/data-schemas/auth-schema";
-import { CBS_FUNCTION_CODES } from "@/types/cbs";
+import { CBS_FUNCTION_CODES } from "@/types";
 import { decodeProtobufValue } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */

@@ -7,7 +7,6 @@ import type { CbsVersionedTable } from "./types";
  */
 export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
   JB0001: {
-    recordId: "JB0001",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -38,7 +37,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0002: {
-    recordId: "JB0002",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -69,7 +67,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0003: {
-    recordId: "JB0003",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -100,7 +97,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0004: {
-    recordId: "JB0004",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -131,7 +127,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0005: {
-    recordId: "JB0005",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -162,7 +157,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0006: {
-    recordId: "JB0006",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -193,7 +187,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0007: {
-    recordId: "JB0007",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -224,7 +217,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0008: {
-    recordId: "JB0008",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -255,7 +247,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0009: {
-    recordId: "JB0009",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,
@@ -286,7 +277,6 @@ export const SC_BRANCH_LIVE: Record<string, BranchRecord> = {
     parentBranch: "",
   },
   JB0010: {
-    recordId: "JB0010",
     auditData: {
       recStatus: "",
       recCurrNumber: 0,

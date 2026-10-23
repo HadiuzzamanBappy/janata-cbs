@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
 import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
-import { PROPERTY_TYPES } from "./mc-property-inspector";
+import { PROPERTY_TYPES } from "@/lib/data-schemas/model-config-schema";
 
 interface McPropertyListProps {
   properties: ModelProperty[];
@@ -243,6 +243,19 @@ export function McPropertyList({
                         )}
                       >
                         <span>{prop.label || prop.name || "<UNNAMED>"}</span>
+                        {prop.structure === "M" && (
+                          <span
+                            className={cn(
+                              "text-[9px] font-mono font-bold px-1 py-0.2 rounded border",
+                              isSelected
+                                ? "bg-cyan-400 text-cyan-950 border-cyan-300"
+                                : "text-cyan-600 dark:text-cyan-400 bg-cyan-500/15 border-cyan-500/30",
+                            )}
+                            title="Multi-Value Field (Array/Stack)"
+                          >
+                            [M]
+                          </span>
+                        )}
                         {!isCommitted && (
                           <span
                             className={cn(

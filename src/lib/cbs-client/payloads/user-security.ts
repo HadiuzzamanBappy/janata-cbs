@@ -1,16 +1,6 @@
-import {
-  CbsControlTable,
-  CbsRequestType,
-  type CbsWirePayload,
-  DEFAULT_SERVICE_PATH,
-} from "@/types";
-import { createModelPayloads } from "./base-model";
-
-const base = createModelPayloads(CbsControlTable.USER_PASS_RESET);
-
+import type { CbsWirePayload } from "@/lib/data-schemas";
+import { CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
 export const userSecurityPayloads = {
-  ...base,
-
   changeSignOnName: (params: {
     oldUserName: string;
     newUserName: string;

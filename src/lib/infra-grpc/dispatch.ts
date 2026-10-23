@@ -4,9 +4,10 @@ import { randomUUID } from "node:crypto";
 import { mockDispatch } from "@mock/core";
 import { appConfig, getService, REQUEST_TYPE_OVERLAYS } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
+import type { GrpcEnvelope } from "@/lib/data-schemas";
 import { grpcProcess, grpcStatusToHttp, type ProcessKind } from "@/lib/infra-grpc/client";
 import type { GrpcRequest } from "@/lib/infra-grpc/generated/service";
-import type { ApiResponse, GrpcEnvelope } from "@/types";
+import type { ApiResponse } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* Classification & Overlay Helpers                                           */

@@ -40,30 +40,33 @@ export const SYS_USER_AUTH_RESPONSES: Record<string, GrpcResponse> = Object.from
   Object.entries(SYS_USER_LIVE).map(([signon, user]) => [signon, buildMockUserAuthResponse(user)]),
 );
 
-/**
- * Returns mock authentication response for the given username.
- * Looks up user via SYS_USER table and generates full gRPC response payload.
- */
-export function getMockUserResponse(username?: string): GrpcResponse | null {
+export function getMockUserResponse(username?: string, password?: string): GrpcResponse | null {
   if (!username) return null;
   const clean = username.trim().toUpperCase();
-  const user =
-    SYS_USER_LIVE[clean] ||
-    Object.values(SYS_USER_LIVE).find(
-      (u) => u.userId?.toUpperCase() === clean || u.recordId?.toUpperCase() === clean,
-    );
 
-  if (user) {
-    return buildMockUserAuthResponse(user);
+  // Find user strictly by entry key (username) or fallback to matching userId
+  const matchingEntry = Object.entries(SYS_USER_LIVE).find(
+    ([key, u]) => key.toUpperCase() === clean || u.userId?.toUpperCase() === clean,
+  );
+
+  if (!matchingEntry) return null;
+
+  const [_, user] = matchingEntry;
+
+  // If password was provided, verify it matches
+  if (password !== undefined && user.password && user.password !== password) {
+    return null;
   }
-  return null;
+
+  return buildMockUserAuthResponse(user);
 }
 
 /**
  * Simulates Core gRPC login process from local user fixtures.
+ * Properly checks username (entry ID) and password.
  */
 export async function mockLogin(
-  req: LoginRequest | { signon?: string; username?: string },
+  req: LoginRequest | { signon?: string; username?: string; password?: string },
 ): Promise<GrpcResponse> {
   const username =
     "username" in req && req.username
@@ -71,7 +74,9 @@ export async function mockLogin(
       : "signon" in req && req.signon
         ? req.signon
         : "";
-  const mock = getMockUserResponse(username);
+  const password = "password" in req && req.password ? req.password : undefined;
+
+  const mock = getMockUserResponse(username, password);
   if (!mock) {
     return {
       status: "FAILED",

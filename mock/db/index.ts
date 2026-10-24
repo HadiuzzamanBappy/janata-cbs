@@ -6,11 +6,9 @@ export * from "./SC_BRANCH";
 export * from "./SC_CONTROL";
 export * from "./SC_FORM_CONFIG";
 export * from "./SC_INQUIRY_CONFIG";
-export * from "./SC_MENU";
 export * from "./SC_MENU_TREE";
 export * from "./SC_MODEL_CONFIG";
 export * from "./SC_USER";
-export * from "./SC_USER_GROUP";
 export * from "./types";
 
 import { AC_ACCOUNT_TABLE } from "./AC_ACCOUNT";
@@ -19,11 +17,9 @@ import { SC_BRANCH_TABLE } from "./SC_BRANCH";
 import { SC_CONTROL_TABLE } from "./SC_CONTROL";
 import { SC_FORM_CONFIG_TABLE } from "./SC_FORM_CONFIG";
 import { SC_INQUIRY_CONFIG_TABLE } from "./SC_INQUIRY_CONFIG";
-import { SC_MENU_TABLE } from "./SC_MENU";
 import { SC_MENU_TREE_TABLE } from "./SC_MENU_TREE";
 import { SC_MODEL_CONFIG_TABLE } from "./SC_MODEL_CONFIG";
 import { SC_USER_TABLE } from "./SC_USER";
-import { SC_USER_GROUP_TABLE } from "./SC_USER_GROUP";
 import { type CbsTableVersion, type CbsVersionedTable, queryVersionedRecord } from "./types";
 
 /**
@@ -37,11 +33,9 @@ export const CBS_DATABASE = {
   CUSTOMER: CUST_CUSTOMER_TABLE,
   "FORM.CONFIG": SC_FORM_CONFIG_TABLE,
   "INQUIRY.CONFIG": SC_INQUIRY_CONFIG_TABLE,
-  MENU: SC_MENU_TABLE,
   "MENU.TREE": SC_MENU_TREE_TABLE,
   "MODEL.CONFIG": SC_MODEL_CONFIG_TABLE,
   USER: SC_USER_TABLE,
-  "USER.GROUP": SC_USER_GROUP_TABLE,
 } as const;
 
 /**

@@ -5,7 +5,6 @@ import type { CbsVersionedTable } from "./types";
  * UserRecord: The real database table schema for SYS_USER (matching SC_MODEL_CONFIG USER).
  */
 export interface UserRecord {
-  recordId: string;
   userId: string;
   fullName: string;
   userRole: string[];
@@ -21,10 +20,10 @@ export interface UserRecord {
 /**
  * SC_USER Table Master (PREFIX: SC, TABLE: USER)
  * Holds pure static database table records for operators/users.
+ * Key is the canonical username / operator ID (entry ID).
  */
 export const SC_USER_LIVE: Record<string, UserRecord> = {
   ZZ028459: {
-    recordId: "ZZ028459",
     userId: "ZZ0284590",
     fullName: "MD. HADIUZZAMAN BAPPY",
     accessibility: "RIDASHL",
@@ -33,7 +32,7 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     branchName: "CENTRAL OFFICE, HO, DHAKA   ",
     branchCode: "JB9999",
     userStatus: 1,
-    password: "password123",
+    password: "sc1234567",
     auditData: {
       recStatus: "LIVE",
       recCurrNumber: 1,
@@ -45,7 +44,6 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     },
   },
   AD028459: {
-    recordId: "AD028459",
     userId: "AD0284590",
     fullName: "System Administrator",
     accessibility: "RIDASHL",
@@ -54,7 +52,7 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     branchName: "CENTRAL OFFICE, HO, DHAKA   ",
     branchCode: "JB9999",
     userStatus: 1,
-    password: "password123",
+    password: "sc1234567",
     auditData: {
       recStatus: "LIVE",
       recCurrNumber: 1,
@@ -66,7 +64,6 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     },
   },
   ST028459: {
-    recordId: "ST028459",
     userId: "ST0284590",
     fullName: "New Staff Member",
     accessibility: "RS",
@@ -75,7 +72,7 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     branchName: "Gulshan Branch",
     branchCode: "JB1002",
     userStatus: 1,
-    password: "password123",
+    password: "sc1234567",
     auditData: {
       recStatus: "LIVE",
       recCurrNumber: 1,

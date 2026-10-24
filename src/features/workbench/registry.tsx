@@ -4,11 +4,8 @@ import { FormScreen } from "@/features/operations/forms";
 import { InquiryScreen } from "@/features/operations/inquiries";
 import { SysFormConfig } from "@/features/system/form-config";
 import { SysInquiryConfig } from "@/features/system/inquiry-config";
-import { SysMenuCatalog } from "@/features/system/menu-catalog";
 import { SysMenuDesigner } from "@/features/system/menu-designer";
 import { SysModelConfig } from "@/features/system/model-config";
-import ReportStudio from "@/features/system/report-studio";
-import { SysUserGroup } from "@/features/system/user-group";
 import { getCanonicalScreenKey } from "@/lib/cbs-command";
 import type { ScreenComponent } from "./types";
 
@@ -18,17 +15,10 @@ import type { ScreenComponent } from "./types";
  * (e.g. MD, PWD) are automatically resolved via `getCanonicalScreenKey`.
  */
 const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
-  "SC.MENU": SysMenuCatalog,
   "SC.MENU.DESIGN": SysMenuDesigner,
-  "SC.USER.GROUP": SysUserGroup,
   "SC.MODEL.CONFIG": SysModelConfig,
   "SC.FORM.CONFIG": SysFormConfig,
   "SC.INQUIRY.CONFIG": SysInquiryConfig,
-  "SC.REPORT.BUILDER": () => (
-    <div className="w-full h-full overflow-hidden">
-      <ReportStudio />
-    </div>
-  ),
 };
 
 /**

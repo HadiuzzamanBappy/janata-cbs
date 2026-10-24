@@ -8,21 +8,9 @@ import type { MenuItem, SystemCommandItem } from "@/lib/data-schemas";
 export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   // 1. System Administrative Canvases
   {
-    command: "SC.MENU",
-    title: "Menu Item",
-    aliases: ["MNU"],
-    actionType: "SCREEN",
-  },
-  {
     command: "SC.MENU.DESIGN",
     title: "Menu Hierarchy",
     aliases: ["MD", "SC.MENU.TREE"],
-    actionType: "SCREEN",
-  },
-  {
-    command: "SC.USER.GROUP",
-    title: "User Group",
-    aliases: ["UG"],
     actionType: "SCREEN",
   },
   {
@@ -41,12 +29,6 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
     command: "SC.INQUIRY.CONFIG",
     title: "Inquiry Design",
     aliases: ["IC", "SC.INQUIRY"],
-    actionType: "SCREEN",
-  },
-  {
-    command: "SC.REPORT.BUILDER",
-    title: "Report Studio",
-    aliases: ["RB"],
     actionType: "SCREEN",
   },
 

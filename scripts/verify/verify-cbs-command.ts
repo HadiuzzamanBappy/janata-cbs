@@ -356,7 +356,6 @@ async function runSuite() {
     "Alias: SC.MENU.TREE -> SC.MENU.DESIGN",
     resolveCommandAlias("SC.MENU.TREE") === "SC.MENU.DESIGN",
   );
-  assert("Alias: UG -> SC.USER.GROUP", resolveCommandAlias("UG") === "SC.USER.GROUP");
   assert("Alias: MC -> SC.MODEL.CONFIG", resolveCommandAlias("MC") === "SC.MODEL.CONFIG");
   assert(
     "Alias: SC.MODEL.BUILDER -> SC.MODEL.CONFIG",
@@ -372,8 +371,6 @@ async function runSuite() {
     "Alias: SC.INQUIRY -> SC.INQUIRY.CONFIG",
     resolveCommandAlias("SC.INQUIRY") === "SC.INQUIRY.CONFIG",
   );
-  assert("Alias: RB -> SC.REPORT.BUILDER", resolveCommandAlias("RB") === "SC.REPORT.BUILDER");
-  assert("Alias: MNU -> SC.MENU", resolveCommandAlias("MNU") === "SC.MENU");
 
   // 5.2 Case Insensitive & Unknown Alias Handling
   assert("Alias: Lowercase md resolves", resolveCommandAlias("md") === "SC.MENU.DESIGN");
@@ -404,14 +401,14 @@ async function runSuite() {
   // 5.5 Catalog Title Resolver (resolveCommandTitle)
   assert("Title: MD -> Menu Hierarchy", resolveCommandTitle("MD") === "Menu Hierarchy");
   assert(
-    "Title: SC.USER.GROUP -> User Group",
-    resolveCommandTitle("SC.USER.GROUP") === "User Group",
+    "Title: SC.MODEL.CONFIG -> Model Config",
+    resolveCommandTitle("SC.MODEL.CONFIG") === "Model Config",
   );
   assert("Title: Unknown returns undefined", resolveCommandTitle("NON_EXISTENT") === undefined);
 
   // 5.6 Master Catalog Definitions Integrity
   const allCommands = getAllRegisteredCommands();
-  assert("Catalog: MASTER_COMMAND_DEFINITIONS registered", allCommands.length >= 10);
+  assert("Catalog: MASTER_COMMAND_DEFINITIONS registered", allCommands.length >= 8);
   assert(
     "Catalog: Facade getCommands matches",
     cbsCommand.getCommands().length === allCommands.length,

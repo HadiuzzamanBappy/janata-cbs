@@ -107,7 +107,7 @@ async function runSuite() {
     );
 
     // 3. Operator Authentication & Session Minting
-    const loginInput = { clientId: "WEB-CLIENT", username: "ZZ028459", password: "password123" };
+    const loginInput = { clientId: "WEB-CLIENT", username: "ZZ028459", password: "sc1234567" };
     const authRes = await loginProcess(loginInput);
     const authData = authRes.data as Record<string, unknown> | undefined;
     const authOut = {

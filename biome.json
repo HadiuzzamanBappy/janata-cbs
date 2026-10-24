@@ -20,7 +20,6 @@
       "!**/src/components/ui",
       "!**/src/hooks/use-mobile.ts",
       "!**/src/lib/infra-grpc/generated",
-      "!**/src/features/system/report-studio",
       "!**/public",
       "!**/.response"
     ]

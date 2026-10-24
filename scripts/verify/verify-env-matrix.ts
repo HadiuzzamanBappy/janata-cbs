@@ -34,14 +34,12 @@ async function runSuite() {
     AC_ACCOUNT_LIVE,
     CUST_CUSTOMER_LIVE,
     SC_CONTROL_LIVE,
-    SC_MENU_LIVE,
     SC_MENU_TREE_LIVE,
     SC_BRANCH_LIST,
     SC_CONTROL_LIST,
     SC_FORM_CONFIG_LIVE,
     SC_INQUIRY_CONFIG_LIVE,
     SC_MODEL_CONFIG_LIVE,
-    SC_USER_GROUP_LIVE,
     SYS_USER_LIVE,
   } = await import("@mock/db");
   const { SYS_USER_AUTH_RESPONSES } = await import("@mock/core");
@@ -583,25 +581,11 @@ async function runSuite() {
     Boolean(inqConfigFixture && inquiryConfigRecordSchema.safeParse(inqConfigFixture).success),
   );
 
-  // 3.7 Menu Catalog Item Conformance
-  const menuCatalogFixture = SC_MENU_LIVE.ACCOUNT || Object.values(SC_MENU_LIVE)[0];
-  assert(
-    "Fixture Conformance: Menu catalog item satisfies menuCatalogRecordSchema contract",
-    Boolean(menuCatalogFixture && menuCatalogRecordSchema.safeParse(menuCatalogFixture).success),
-  );
-
   // 3.8 Menu Tree Record Conformance
   const menuTreeFixture = SC_MENU_TREE_LIVE["MENU.MAIN"];
   assert(
     "Fixture Conformance: MENU.MAIN primary navigation tree satisfies menuTreeRecordSchema contract",
     Boolean(menuTreeFixture && menuTreeRecordSchema.safeParse(menuTreeFixture).success),
-  );
-
-  // 3.9 User Group Security Profile Conformance
-  const userGroupFixture = SC_USER_GROUP_LIVE["ADMIN.GRP"];
-  assert(
-    "Fixture Conformance: ADMIN.GRP security profile satisfies userGroupRecordSchema contract",
-    Boolean(userGroupFixture && userGroupRecordSchema.safeParse(userGroupFixture).success),
   );
 
   // 3.10 Core Live Entities Existence

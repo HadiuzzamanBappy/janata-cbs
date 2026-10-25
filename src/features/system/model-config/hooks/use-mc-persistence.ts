@@ -5,7 +5,6 @@ import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import { modelConfigRecordSchema } from "@/lib/data-schemas/model-config-schema";
 
 export const INITIAL_MODEL: ModelConfigRecord = {
-  recordId: "",
   description: "",
   tableName: "",
   prefix: "",

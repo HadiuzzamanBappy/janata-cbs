@@ -915,9 +915,4 @@ export const SC_MODEL_CONFIG_TABLE: CbsVersionedTable<ModelConfigRecord> = {
   DEL: SC_MODEL_CONFIG_DEL,
 };
 
-export const SC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.entries(SC_MODEL_CONFIG_LIVE).map(
-  ([key, val]) => ({
-    ...val,
-    recordId: val.recordId || key,
-  }),
-);
+export const SC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.values(SC_MODEL_CONFIG_LIVE);

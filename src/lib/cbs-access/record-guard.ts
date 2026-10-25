@@ -29,7 +29,9 @@ export function evaluateCbsAccess({
   const rights = grantedRights ?? [];
   const hasRight = (code: CbsRecordFunction) => rights.includes(code);
 
-  const cleanStatus = (recordStatus || "").toUpperCase().trim();
+  const rawStatus = (recordStatus || "").toUpperCase().trim();
+  // Normalize legacy/wire status aliases: "UA" (Unauthorized) === "INA" (Input Not Authorized)
+  const cleanStatus = rawStatus === "UA" ? "INA" : rawStatus;
   const isIdle = mode === "IDLE";
 
   // Four-Eyes Rule: If the record has an inputter, the Maker cannot act as the Authorizer (Checker)

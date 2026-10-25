@@ -58,10 +58,17 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       setValidationErrors([]);
 
       try {
-        const json = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(cleanId));
-        if (json.status === "SUCCESS" && json.data) {
-          hydrate(json.data);
-          markAsCommitted(json.data.properties || []);
+        const json = await cbs.send<{ record?: ModelConfigRecord } | ModelConfigRecord>(
+          cbs.modelConfig.get(cleanId),
+        );
+        const record =
+          json.status === "SUCCESS" && json.data
+            ? ("record" in json.data && json.data.record ? json.data.record : (json.data as ModelConfigRecord))
+            : undefined;
+
+        if (record) {
+          hydrate(record);
+          markAsCommitted(record.properties || []);
           setValidationErrors([]);
           setMode(targetMode);
           toast.add({
@@ -76,7 +83,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         if (targetMode === CbsRecordFunction.INPUT) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
-            recordId: cleanId,
             tableName: cleanId.replace(/[.-]/g, "_"),
             description: cleanId.replace(/[_.-]/g, " "),
           };
@@ -95,7 +101,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         if (targetMode === CbsRecordFunction.INPUT) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
-            recordId: cleanId,
             tableName: cleanId.replace(/[.-]/g, "_"),
             description: cleanId.replace(/[_.-]/g, " "),
           };
@@ -155,21 +160,20 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     setValidationErrors([]);
     setSubmitting(true);
     try {
+      const targetId = recordId || formData.tableName || validation.data.tableName || "";
       const wireData = serializeModelToWireJson(validation.data);
       const json = await cbs.send(
         cbs.modelConfig.save(wireData as unknown as Record<string, unknown>, {
-          recordId: formData.recordId,
+          recordId: targetId,
         }),
         {
           successTitle: "Model Saved",
-          successMessage: `Saved schema #${formData.recordId} to MODEL.CONFIG`,
+          successMessage: `Saved schema #${targetId} to MODEL.CONFIG`,
         },
       );
       if (json.status === "SUCCESS") {
         rebaseline();
         markAsCommitted(validation.data.properties || []);
-        const targetId =
-          validation.data.recordId || formData.recordId || validation.data.tableName || "";
         upsertCatalogItem({
           id: targetId,
           label: validation.data.description,
@@ -177,14 +181,24 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           record: validation.data,
         });
         broadcastRecordMutation("MODEL.CONFIG", targetId);
-        setMode(CbsRecordFunction.INPUT);
+        reset();
+        clearCommitted();
+        setValidationErrors([]);
       }
     } catch {
       // Toast handled by cbs.send
     } finally {
       setSubmitting(false);
     }
-  }, [formData, markAsCommitted, rebaseline, setMode, upsertCatalogItem]);
+  }, [
+    clearCommitted,
+    formData,
+    markAsCommitted,
+    rebaseline,
+    recordId,
+    reset,
+    upsertCatalogItem,
+  ]);
 
   // 5. Authorize
   const handleAuthorize = React.useCallback(async () => {
@@ -197,14 +211,16 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       });
       if (json.status === "SUCCESS") {
         broadcastRecordMutation("MODEL.CONFIG", recordId);
-        await fetchRecord(recordId, CbsRecordFunction.SEE);
+        reset();
+        clearCommitted();
+        setValidationErrors([]);
       }
     } catch {
       // Toast handled by cbs.send
     } finally {
       setSubmitting(false);
     }
-  }, [fetchRecord, recordId]);
+  }, [clearCommitted, recordId, reset]);
 
   // 6. Hold
   const handleHold = React.useCallback(async () => {

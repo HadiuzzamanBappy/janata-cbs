@@ -373,7 +373,6 @@ async function runSuite() {
     recordId: "ACCOUNT",
     description: "Account Master Table",
     tableName: "AC.ACCOUNT",
-    category: "FINANCIAL",
     servicePath: "default",
     access: "Global",
     properties: [

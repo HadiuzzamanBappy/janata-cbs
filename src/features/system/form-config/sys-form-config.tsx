@@ -11,6 +11,7 @@ import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
 import { FcPreviewTab } from "./components/fc-preview-tab";
 import { useFormConfig } from "./hooks/use-form-config";
+import { CbsControlTable } from "@/types";
 
 type FormConfigTabKey = "general" | "designer" | "preview" | "audit" | "json";
 
@@ -153,7 +154,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   return (
     <CbsScreenScaffold<FormConfigTabKey>
       title="Form Designer"
-      commandCode="FORM.CONFIG"
+      commandCode={CbsControlTable.FORM_CONFIG}
       recordId={recordId}
       mode={mode}
       isDirty={isDirty}

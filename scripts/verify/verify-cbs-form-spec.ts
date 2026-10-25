@@ -44,12 +44,10 @@ async function runSuite() {
     tableName: "ACCOUNT",
     description: "Customer Account Definition",
     prefix: "AC",
-    category: "CUSTOMER_ACCOUNTS",
     servicePath: "account.service",
     access: "BRANCH",
     searchable: true,
     userDefineId: false,
-    predefineId: false,
     readOnly: false,
     authorize: true,
     associates: [],
@@ -151,7 +149,6 @@ async function runSuite() {
         status: "ACTIVE",
       },
     ],
-    isActive: true,
   };
 
   // ============================================================================
@@ -181,16 +178,28 @@ async function runSuite() {
     fallbackFieldKeys.includes("accountTitle"),
   );
 
-  // Check structured sections
+  // Check fallback section and inline field group hierarchy
   assert(
-    "Fallback: Creates 2 sections (root + structured object)",
-    fallbackSpec.presentation.sections.length === 2,
+    "Fallback: Generates 1 consolidated section with inline fields",
+    fallbackSpec.presentation.sections.length === 1,
   );
   const rootSection = fallbackSpec.presentation.sections[0];
-  const objSection = fallbackSpec.presentation.sections[1];
   assert("Fallback: Root section has layoutStyle card", rootSection.layoutStyle === "card");
-  assert("Fallback: Object section is bound to nominee", objSection.bindKey === "nominee");
-  assert("Fallback: Object section contains nominee child fields", objSection.fields.length === 2);
+  
+  // Verify inline group child fields preserve parent object association (nominee group)
+  const nomineeChildFields = rootSection.fields.filter((f) => f.groupKey === "nominee");
+  assert(
+    "Fallback: Contains nominee child fields associated via groupKey",
+    nomineeChildFields.length === 2,
+  );
+  assert(
+    "Fallback: First child of nominee group has isFirstInGroup true",
+    nomineeChildFields[0]?.isFirstInGroup === true,
+  );
+  assert(
+    "Fallback: Second child of nominee group has isFirstInGroup false",
+    nomineeChildFields[1]?.isFirstInGroup === false,
+  );
 
   // ============================================================================
   // --- 2. Compile With Valid Custom Layout ---

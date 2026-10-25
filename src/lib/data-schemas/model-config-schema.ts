@@ -64,10 +64,8 @@ export const modelConfigRecordSchema = z.object({
   tableName: z.string().min(1, "Table Name is required"),
   description: z.string().min(1, "Description is required"),
   prefix: z.string().default(""),
-  category: z.string().default(""),
   servicePath: z.string().min(1, "Service Path is required"),
   userDefineId: z.boolean().default(false),
-  predefineId: z.boolean().optional(),
   access: z.string().min(1, "Table Type (Global / Branch) is required"),
   searchable: z.boolean().default(false),
   readOnly: z.boolean().default(false),
@@ -84,7 +82,6 @@ export const modelConfigRecordSchema = z.object({
     })
     .default({ idPrefix: "", idPattern: "", sequenceReset: false }),
   properties: z.array(modelPropertySchema).default([]),
-  isActive: z.boolean().default(false),
   auditData: auditDataSchema.optional(),
 });
 

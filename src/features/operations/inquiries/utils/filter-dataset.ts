@@ -15,7 +15,13 @@ export function filterDatasetByCriteria(
     const term = filter.value.trim().toLowerCase();
 
     result = result.filter((row) => {
-      const val = String(row[key] ?? "").toLowerCase();
+      const rowVal =
+        row[key] ??
+        (key.toLowerCase().includes("id") || key.toLowerCase().includes("number")
+          ? (row.recordId ?? row.id ?? row.code ?? row.accountNumber ?? row.userId)
+          : undefined);
+
+      const val = String(rowVal ?? "").toLowerCase();
       if (filter.operand === "EQ") return val === term;
       if (filter.operand === "NE") return val !== term;
       return val.includes(term);

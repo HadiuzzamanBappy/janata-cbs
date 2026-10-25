@@ -31,18 +31,18 @@ export {};
 
 async function runSuite() {
   const {
-    AC_ACCOUNT_LIVE,
-    CUST_CUSTOMER_LIVE,
-    SC_CONTROL_LIVE,
-    SC_MENU_TREE_LIVE,
+    AC_ACCOUNT,
+    CUST_CUSTOMER,
+    SC_CONTROL,
+    SC_MENU_TREE,
     SC_BRANCH_LIST,
     SC_CONTROL_LIST,
-    SC_FORM_CONFIG_LIVE,
-    SC_INQUIRY_CONFIG_LIVE,
-    SC_MODEL_CONFIG_LIVE,
-    SYS_USER_LIVE,
+    SC_FORM_CONFIG,
+    SC_INQUIRY_CONFIG,
+    SC_MODEL_CONFIG,
+    SC_USER,
   } = await import("@mock/db");
-  const { SYS_USER_AUTH_RESPONSES } = await import("@mock/core");
+  const { buildMockUserAuthResponse } = await import("@mock/core");
 
   const { clientConfig } = await import("@/lib/core-config/client");
   const { getService, getServices, getServiceUrl, REQUEST_TYPE_OVERLAYS } = await import(
@@ -531,7 +531,7 @@ async function runSuite() {
   console.log("\n── 3. Canonical Database Fixture Schema Conformance ──");
 
   // 3.1 User Session Profile Conformance
-  const userFixture = SYS_USER_AUTH_RESPONSES.ZZ028459?.data;
+  const userFixture = buildMockUserAuthResponse(SC_USER.ZZ028459)?.data;
   assert(
     "Fixture Conformance: User session profile satisfies currentUserSchema contract",
     Boolean(userFixture && currentUserSchema.safeParse(userFixture).success),
@@ -552,7 +552,7 @@ async function runSuite() {
   );
 
   // 3.4 Model Config Metamodel Conformance
-  const modelConfigFixture = SC_MODEL_CONFIG_LIVE.ACCOUNT || SC_MODEL_CONFIG_LIVE["MENU.TREE"];
+  const modelConfigFixture = SC_MODEL_CONFIG.ACCOUNT || SC_MODEL_CONFIG["MENU.TREE"];
   assert(
     "Fixture Conformance: Model definition satisfies modelConfigRecordSchema contract",
     Boolean(modelConfigFixture && modelConfigRecordSchema.safeParse(modelConfigFixture).success),
@@ -560,10 +560,10 @@ async function runSuite() {
 
   // 3.5 Form Config Layout Conformance
   const formConfigFixture =
-    SC_FORM_CONFIG_LIVE.ACCOUNT ||
-    SC_FORM_CONFIG_LIVE["FC.ACCOUNT"] ||
-    SC_FORM_CONFIG_LIVE["ACCOUNT,1.0.0"] ||
-    Object.values(SC_FORM_CONFIG_LIVE)[0];
+    SC_FORM_CONFIG.ACCOUNT ||
+    SC_FORM_CONFIG["FC.ACCOUNT"] ||
+    SC_FORM_CONFIG["ACCOUNT,1.0.0"] ||
+    Object.values(SC_FORM_CONFIG)[0];
   assert(
     "Fixture Conformance: ACCOUNT form layout satisfies formConfigRecordSchema contract",
     Boolean(formConfigFixture && formConfigRecordSchema.safeParse(formConfigFixture).success),
@@ -571,17 +571,17 @@ async function runSuite() {
 
   // 3.6 Inquiry Config Grid Conformance
   const inqConfigFixture =
-    SC_INQUIRY_CONFIG_LIVE.ACCOUNT ||
-    SC_INQUIRY_CONFIG_LIVE["GET.ACCOUNT"] ||
-    SC_INQUIRY_CONFIG_LIVE["ACCOUNT.LIST"] ||
-    Object.values(SC_INQUIRY_CONFIG_LIVE)[0];
+    SC_INQUIRY_CONFIG.ACCOUNT ||
+    SC_INQUIRY_CONFIG["GET.ACCOUNT"] ||
+    SC_INQUIRY_CONFIG["ACCOUNT.LIST"] ||
+    Object.values(SC_INQUIRY_CONFIG)[0];
   assert(
     "Fixture Conformance: ACCOUNT inquiry spec satisfies inquiryConfigRecordSchema contract",
     Boolean(inqConfigFixture && inquiryConfigRecordSchema.safeParse(inqConfigFixture).success),
   );
 
   // 3.8 Menu Tree Record Conformance
-  const menuTreeFixture = SC_MENU_TREE_LIVE["MENU.MAIN"];
+  const menuTreeFixture = SC_MENU_TREE["MENU.MAIN"];
   assert(
     "Fixture Conformance: MENU.MAIN primary navigation tree satisfies menuTreeRecordSchema contract",
     Boolean(menuTreeFixture && menuTreeRecordSchema.safeParse(menuTreeFixture).success),
@@ -589,11 +589,11 @@ async function runSuite() {
 
   // 3.10 Core Live Entities Existence
   assert(
-    "Fixture Conformance: AC_ACCOUNT_LIVE, CUST_CUSTOMER_LIVE, SC_CONTROL_LIVE, and SYS_USER_LIVE contain production data",
-    Object.keys(AC_ACCOUNT_LIVE).length > 0 &&
-      Object.keys(CUST_CUSTOMER_LIVE).length > 0 &&
-      Object.keys(SC_CONTROL_LIVE).length > 0 &&
-      Object.keys(SYS_USER_LIVE).length > 0,
+    "Fixture Conformance: AC_ACCOUNT, CUST_CUSTOMER, SC_CONTROL, and SC_USER contain production data",
+    Object.keys(AC_ACCOUNT).length > 0 &&
+      Object.keys(CUST_CUSTOMER).length > 0 &&
+      Object.keys(SC_CONTROL).length > 0 &&
+      Object.keys(SC_USER).length > 0,
   );
 
   // ===========================================================================

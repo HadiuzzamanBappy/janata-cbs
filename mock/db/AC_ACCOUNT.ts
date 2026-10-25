@@ -6,10 +6,11 @@ export type AccountRecord = Record<string, unknown>;
  * AC_ACCOUNT Database Table (PREFIX: AC, TABLE: ACCOUNT)
  * Stores core retail and corporate banking accounts.
  */
-export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
+export const AC_ACCOUNT: Record<string, AccountRecord> = {
   AC1001: {
     accountType: "SAVINGS",
     currency: "BDT",
+    status: "ACTIVE",
     openingDate: "2024-01-15",
     interestRate: 7.5,
     enableChequeBook: true,
@@ -23,10 +24,20 @@ export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
     specialInstructions:
       "Standard retail savings account with biometric verification completed. Cheque book issued via branch mandate.",
     branchCode: "JB1001",
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSADMIN",
+      recInputTime: "2024-01-15 10:00:00",
+      recAuthorizer: "SUPV01",
+      recAuthTime: "2024-01-15 10:05:00",
+      recBranchCode: "JB1001",
+    },
   },
   AC1002: {
     accountType: "CURRENT",
     currency: "BDT",
+    status: "ACTIVE",
     openingDate: "2024-02-20",
     interestRate: 0.0,
     enableChequeBook: true,
@@ -40,10 +51,20 @@ export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
     specialInstructions:
       "Commercial trade account with dual signatory requirement. Tax exemption certificate verified and archived.",
     branchCode: "JB1001",
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSADMIN",
+      recInputTime: "2024-02-20 10:00:00",
+      recAuthorizer: "SUPV01",
+      recAuthTime: "2024-02-20 10:05:00",
+      recBranchCode: "JB1001",
+    },
   },
   AC1003: {
     accountType: "SAVINGS",
     currency: "USD",
+    status: "ACTIVE",
     openingDate: "2024-03-10",
     interestRate: 4.25,
     enableChequeBook: false,
@@ -57,6 +78,15 @@ export const AC_ACCOUNT_LIVE: Record<string, AccountRecord> = {
     specialInstructions:
       "Foreign currency remittance account. Non-resident Bangladeshi remit mandate.",
     branchCode: "JB9999",
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSADMIN",
+      recInputTime: "2024-03-10 10:00:00",
+      recAuthorizer: "SUPV01",
+      recAuthTime: "2024-03-10 10:05:00",
+      recBranchCode: "JB9999",
+    },
   },
 };
 
@@ -69,10 +99,10 @@ export const AC_ACCOUNT_HIS: Record<string, AccountRecord[]> = {};
 export const AC_ACCOUNT_DEL: Record<string, AccountRecord> = {};
 
 export const AC_ACCOUNT_TABLE: CbsVersionedTable<AccountRecord> = {
-  LIVE: AC_ACCOUNT_LIVE,
+  LIVE: AC_ACCOUNT,
   INAU: AC_ACCOUNT_INAU,
   HIS: AC_ACCOUNT_HIS,
   DEL: AC_ACCOUNT_DEL,
 };
 
-export const AC_ACCOUNT_LIST: AccountRecord[] = Object.values(AC_ACCOUNT_LIVE);
+export const AC_ACCOUNT_LIST: AccountRecord[] = Object.values(AC_ACCOUNT);

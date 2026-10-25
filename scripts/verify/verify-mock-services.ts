@@ -106,10 +106,15 @@ async function runSuite() {
       resolvedTable?.physicalName === "AC_ACCOUNT",
     );
 
-    // 3. Operator Authentication & Session Minting
-    const loginInput = { clientId: "WEB-CLIENT", username: "ZZ028459", password: "sc1234567" };
+    // 3. Operator Authentication & Session Minting (Strict username + password)
+    const loginInput = { clientId: "WEB-CLIENT", username: "ZZ028459", password: "password123" };
     const authRes = await loginProcess(loginInput);
     const authData = authRes.data as Record<string, unknown> | undefined;
+
+    // Negative tests: wrong password and missing password must fail with 401
+    const wrongPassRes = await loginProcess({ clientId: "WEB-CLIENT", username: "ZZ028459", password: "wrong_password" });
+    const noPassRes = await loginProcess({ clientId: "WEB-CLIENT", username: "ZZ028459", password: "" });
+
     const authOut = {
       status: authRes.status,
       statusCode: authRes.statusCode,
@@ -117,12 +122,17 @@ async function runSuite() {
       accessibility: authData?.accessibility,
       branchCode: authData?.branchCode,
       hasToken: Boolean(authData?.token),
+      rejectsWrongPass: wrongPassRes.statusCode === 401,
+      rejectsEmptyPass: noPassRes.statusCode === 401,
     };
     recordTest(
       "3. Operator Authentication & Session Minting",
       { username: loginInput.username, password: "***" },
       authOut,
-      authRes.statusCode === 200 && authData?.accessibility === "RIDASHL",
+      authRes.statusCode === 200 &&
+        authData?.accessibility === "RIDASHL" &&
+        wrongPassRes.statusCode === 401 &&
+        noPassRes.statusCode === 401,
     );
 
     // 4. Metamodel Form Schema Introspection (GMC)

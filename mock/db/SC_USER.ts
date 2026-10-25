@@ -2,7 +2,7 @@ import type { AuditData } from "@/lib/data-schemas/common-schema";
 import type { CbsVersionedTable } from "./types";
 
 /**
- * UserRecord: The real database table schema for SYS_USER (matching SC_MODEL_CONFIG USER).
+ * UserRecord: The canonical database table schema for SC_USER (matching SC_MODEL_CONFIG USER).
  */
 export interface UserRecord {
   userId: string;
@@ -22,7 +22,7 @@ export interface UserRecord {
  * Holds pure static database table records for operators/users.
  * Key is the canonical username / operator ID (entry ID).
  */
-export const SC_USER_LIVE: Record<string, UserRecord> = {
+export const SC_USER: Record<string, UserRecord> = {
   ZZ028459: {
     userId: "ZZ0284590",
     fullName: "MD. HADIUZZAMAN BAPPY",
@@ -32,9 +32,9 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     branchName: "CENTRAL OFFICE, HO, DHAKA   ",
     branchCode: "JB9999",
     userStatus: 1,
-    password: "sc1234567",
+    password: "password123",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -52,9 +52,9 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     branchName: "CENTRAL OFFICE, HO, DHAKA   ",
     branchCode: "JB9999",
     userStatus: 1,
-    password: "sc1234567",
+    password: "password123",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -72,9 +72,9 @@ export const SC_USER_LIVE: Record<string, UserRecord> = {
     branchName: "Gulshan Branch",
     branchCode: "JB1002",
     userStatus: 1,
-    password: "sc1234567",
+    password: "password123",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -94,18 +94,10 @@ export const SC_USER_HIS: Record<string, UserRecord[]> = {};
 export const SC_USER_DEL: Record<string, UserRecord> = {};
 
 export const SC_USER_TABLE: CbsVersionedTable<UserRecord> = {
-  LIVE: SC_USER_LIVE,
+  LIVE: SC_USER,
   INAU: SC_USER_INAU,
   HIS: SC_USER_HIS,
   DEL: SC_USER_DEL,
 };
 
-export const SC_USER_LIST: UserRecord[] = Object.values(SC_USER_LIVE);
-
-// Backwards compatibility aliases
-export const SYS_USER_LIVE = SC_USER_LIVE;
-export const SYS_USER_INAU = SC_USER_INAU;
-export const SYS_USER_HIS = SC_USER_HIS;
-export const SYS_USER_DEL = SC_USER_DEL;
-export const SYS_USER_TABLE = SC_USER_TABLE;
-export const SYS_USER_LIST = SC_USER_LIST;
+export const SC_USER_LIST: UserRecord[] = Object.values(SC_USER);

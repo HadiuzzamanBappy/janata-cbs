@@ -7,7 +7,6 @@ import {
   buildMockUserAuthResponse,
   getMockUserResponse,
   mockLogin,
-  SYS_USER_AUTH_RESPONSES,
 } from "./auth-simulator";
 import {
   getMockFormPayload,
@@ -32,7 +31,6 @@ export {
   getMockUserResponse,
   handleSearchById,
   mockLogin,
-  SYS_USER_AUTH_RESPONSES,
 };
 
 /**

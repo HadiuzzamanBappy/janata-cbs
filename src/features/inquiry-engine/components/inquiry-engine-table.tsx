@@ -118,10 +118,10 @@ export function InquiryEngineTable({
     row?: EnquiryRow,
   ) => {
     if (!recordId) return;
-    const cmd = targetCommand || "ACCOUNT";
-    const functionCode = mode === "EDIT" ? "A" : "S";
-    cbsCommand.execute(`${cmd} ${functionCode} ${recordId}`, {
-      title: `${cmd} #${recordId}`,
+    const cleanApp = (targetCommand || "ACCOUNT").split(",")[0].trim().toUpperCase();
+    const functionCode = mode === "EDIT" ? "I" : "S";
+    cbsCommand.execute(`${cleanApp} ${functionCode} ${recordId}`, {
+      title: `${cleanApp} #${recordId}`,
       formData: (row as Record<string, unknown>) || {},
     });
   };
@@ -263,63 +263,90 @@ export function InquiryEngineTable({
                         >
                           <div className="flex items-center justify-center gap-1">
                             {hasConfiguredActions ? (
-                              actions.map((act) => (
-                                <Tooltip key={act.id}>
-                                  <TooltipTrigger
-                                    render={
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          onExecuteAction
-                                            ? onExecuteAction(act, recordKey, row)
-                                            : handleDrilldown(
-                                                act.targetCommand,
-                                                recordKey,
-                                                act.actionType === "edit" ? "EDIT" : "VIEW",
-                                                row,
-                                              )
-                                        }
-                                        className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                      >
-                                        {renderActionIcon(act.icon)}
-                                      </button>
-                                    }
-                                  />
-                                  <TooltipContent className="text-xs">{act.label}</TooltipContent>
-                                </Tooltip>
-                              ))
-                            ) : (
-                              <>
-                                <Tooltip>
-                                  <TooltipTrigger
-                                    render={
-                                      <button
-                                        type="button"
-                                        onClick={() => handleView(recordKey, row)}
-                                        className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                      >
-                                        <Eye className="size-3" />
-                                      </button>
-                                    }
-                                  />
-                                  <TooltipContent className="text-xs">View</TooltipContent>
-                                </Tooltip>
+                              actions.map((act) => {
+                                const isEdit = act.actionType === "edit";
+                                const funcCode = isEdit ? "I" : "S";
+                                const app = (act.targetCommand || "ACCOUNT")
+                                  .split(",")[0]
+                                  .trim()
+                                  .toUpperCase();
+                                const commandStr = `${app} ${funcCode} ${recordKey}`;
 
-                                <Tooltip>
-                                  <TooltipTrigger
-                                    render={
-                                      <button
-                                        type="button"
-                                        onClick={() => handleEdit(recordKey, row)}
-                                        className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                      >
-                                        <Edit3 className="size-3" />
-                                      </button>
-                                    }
-                                  />
-                                  <TooltipContent className="text-xs">Edit</TooltipContent>
-                                </Tooltip>
-                              </>
+                                return (
+                                  <Tooltip key={act.id}>
+                                    <TooltipTrigger
+                                      render={
+                                        <button
+                                          type="button"
+                                          data-cbs-command={commandStr}
+                                          data-cbs-label={`${act.label} #${recordKey}`}
+                                          data-cbs-link-handled="true"
+                                          onClick={() =>
+                                            onExecuteAction
+                                              ? onExecuteAction(act, recordKey, row)
+                                              : handleDrilldown(
+                                                  act.targetCommand,
+                                                  recordKey,
+                                                  isEdit ? "EDIT" : "VIEW",
+                                                  row,
+                                                )
+                                          }
+                                          className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                        >
+                                          {renderActionIcon(act.icon)}
+                                        </button>
+                                      }
+                                    />
+                                    <TooltipContent className="text-xs">{act.label}</TooltipContent>
+                                  </Tooltip>
+                                );
+                              })
+                            ) : (
+                              (() => {
+                                const defaultApp = "ACCOUNT";
+                                const viewCmd = `${defaultApp} S ${recordKey}`;
+                                const editCmd = `${defaultApp} I ${recordKey}`;
+
+                                return (
+                                  <>
+                                    <Tooltip>
+                                      <TooltipTrigger
+                                        render={
+                                          <button
+                                            type="button"
+                                            data-cbs-command={viewCmd}
+                                            data-cbs-label={`View #${recordKey}`}
+                                            data-cbs-link-handled="true"
+                                            onClick={() => handleView(recordKey, row)}
+                                            className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                          >
+                                            <Eye className="size-3" />
+                                          </button>
+                                        }
+                                      />
+                                      <TooltipContent className="text-xs">View</TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger
+                                        render={
+                                          <button
+                                            type="button"
+                                            data-cbs-command={editCmd}
+                                            data-cbs-label={`Edit #${recordKey}`}
+                                            data-cbs-link-handled="true"
+                                            onClick={() => handleEdit(recordKey, row)}
+                                            className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                          >
+                                            <Edit3 className="size-3" />
+                                          </button>
+                                        }
+                                      />
+                                      <TooltipContent className="text-xs">Edit</TooltipContent>
+                                    </Tooltip>
+                                  </>
+                                );
+                              })()
                             )}
                           </div>
                         </TableCell>

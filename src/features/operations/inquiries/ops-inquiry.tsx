@@ -4,6 +4,8 @@ import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { InquiryEngineTable, InquiryFilterBuilder } from "@/features/inquiry-engine";
+import { cbs } from "@/lib/cbs-client";
+import type { EnquiryRow } from "@/lib/data-schemas";
 import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
 import { useInquiryActions, useInquirySchema, useInquiryState } from "./hooks";
@@ -63,9 +65,24 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     });
   }, [schema?.actions, schema?.commands, schema?.code]);
 
-  const handleFilterSearch = (criteria: typeof currentCriteria) => {
+  const handleFilterSearch = async (criteria: typeof currentCriteria) => {
     if (!schema) return;
-    const initialDataset = schema.sampleData || [];
+    let initialDataset = schema.sampleData || [];
+
+    if (initialDataset.length === 0) {
+      try {
+        const queryRes = await cbs.send<Record<string, unknown>[]>(
+          cbs.inquiry.executeQuery(schema.code),
+          { silent: true },
+        );
+        if (queryRes.data && Array.isArray(queryRes.data)) {
+          initialDataset = queryRes.data as EnquiryRow[];
+        }
+      } catch (err) {
+        console.warn("Dynamic inquiry fallback query failed", err);
+      }
+    }
+
     const results = filterDatasetByCriteria(initialDataset, criteria);
 
     setCurrentCriteria(criteria);

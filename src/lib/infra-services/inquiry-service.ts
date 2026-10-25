@@ -3,7 +3,7 @@ import "server-only";
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { parseEnquiry } from "@/lib/data-parsers";
-import type { EnquirySchema } from "@/lib/data-schemas";
+import type { EnquiryRow, EnquirySchema } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
@@ -50,8 +50,55 @@ async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): P
   return res.data;
 }
 
+async function fetchEnquiryRowsWirePayload(
+  cleanCmd: string,
+  tokenParam?: string,
+): Promise<EnquiryRow[]> {
+  try {
+    const ctx = await resolveServiceContext(tokenParam);
+    const payload = {
+      idempotencyKey: "",
+      clientId: ctx.clientId,
+      requestType: CbsRequestType.INQ,
+      controlName: cleanCmd,
+      recordFunction: CbsRecordFunction.SEE,
+      recordId: "",
+      branchCode: ctx.branchCode,
+      authLevel: DEFAULT_AUTH_LEVEL,
+      userId: ctx.userId,
+      data: {},
+    };
+
+    const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, {
+      token: ctx.token,
+    });
+
+    if (res.statusCode === 200 && res.data) {
+      if (Array.isArray(res.data)) {
+        return res.data as EnquiryRow[];
+      }
+      if (
+        typeof res.data === "object" &&
+        res.data !== null &&
+        "data" in res.data &&
+        Array.isArray((res.data as Record<string, unknown>).data)
+      ) {
+        return (res.data as Record<string, unknown>).data as EnquiryRow[];
+      }
+    }
+    return [];
+  } catch (err) {
+    logger.warn(
+      `[InquiryService] Could not preload inquiry records for "${cleanCmd}"`,
+      err,
+      "INQUIRY_SERVICE",
+    );
+    return [];
+  }
+}
+
 /**
- * Retrieves the enquiry grid specification schema for an inquiry command (cached in Redis).
+ * Retrieves the enquiry grid specification schema with dataset records for an inquiry command (cached in Redis).
  */
 export async function getEnquiryData(
   command: string,
@@ -62,10 +109,17 @@ export async function getEnquiryData(
   return getOrSet(
     appConfig.redis.cacheKeys.inquirySpec(cleanCmd),
     async () => {
-      const wireData = await fetchEnquiryWirePayload(cleanCmd, token);
+      const [wireData, rows] = await Promise.all([
+        fetchEnquiryWirePayload(cleanCmd, token),
+        fetchEnquiryRowsWirePayload(cleanCmd, token),
+      ]);
       if (!wireData) return null;
       const parseResult = parseEnquiry(wireData, cleanCmd);
-      return parseResult.success ? parseResult.data : null;
+      if (!parseResult.success) return null;
+      return {
+        ...parseResult.data,
+        sampleData: rows,
+      };
     },
     appConfig.redis.specTtlSeconds,
   );

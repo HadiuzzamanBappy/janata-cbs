@@ -6,7 +6,7 @@ export type CustomerRecord = Record<string, unknown>;
  * CUST_CUSTOMER Database Table (PREFIX: CUST, TABLE: CUSTOMER)
  * Stores Universal Customer Master & KYC Information.
  */
-export const CUST_CUSTOMER_LIVE: Record<string, CustomerRecord> = {
+export const CUST_CUSTOMER: Record<string, CustomerRecord> = {
   CUST1001: {
     nationalId: "19852691234567890",
     dateOfBirth: "1985-06-15",
@@ -28,7 +28,7 @@ export const CUST_CUSTOMER_LIVE: Record<string, CustomerRecord> = {
       postalCode: "3500",
     },
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSADMIN",
       recInputTime: "2026-01-01 10:00:00",
@@ -58,7 +58,7 @@ export const CUST_CUSTOMER_LIVE: Record<string, CustomerRecord> = {
       postalCode: "3100",
     },
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSADMIN",
       recInputTime: "2026-01-02 11:30:00",
@@ -78,10 +78,10 @@ export const CUST_CUSTOMER_HIS: Record<string, CustomerRecord[]> = {};
 export const CUST_CUSTOMER_DEL: Record<string, CustomerRecord> = {};
 
 export const CUST_CUSTOMER_TABLE: CbsVersionedTable<CustomerRecord> = {
-  LIVE: CUST_CUSTOMER_LIVE,
+  LIVE: CUST_CUSTOMER,
   INAU: CUST_CUSTOMER_INAU,
   HIS: CUST_CUSTOMER_HIS,
   DEL: CUST_CUSTOMER_DEL,
 };
 
-export const CUST_CUSTOMER_LIST: CustomerRecord[] = Object.values(CUST_CUSTOMER_LIVE);
+export const CUST_CUSTOMER_LIST: CustomerRecord[] = Object.values(CUST_CUSTOMER);

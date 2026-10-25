@@ -4,7 +4,7 @@ import type { CbsVersionedTable } from "./types";
 /**
  * SC_MENU_TREE Table Master (PREFIX: SC, TABLE: MENU_TREE)
  */
-export const SC_MENU_TREE_LIVE: Record<string, MenuTreeRecord> = {
+export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
   "MENU.MAIN": {
     recordId: "MENU.MAIN",
     treeDescription: "Primary Core Banking Navigation Tree",
@@ -104,8 +104,8 @@ export const SC_MENU_TREE_LIVE: Record<string, MenuTreeRecord> = {
               {
                 id: "n_1786862453089_3",
                 menuId: 5,
-                label: "Daily Transaction Journal",
-                command: "INQ S GET.TODAY.ENTRY",
+                label: "Customer Directory Inquiry",
+                command: "INQ S GET.CUSTOMER",
                 menuType: "POPUP",
                 isVisible: true,
                 orderIndex: 1,
@@ -114,8 +114,8 @@ export const SC_MENU_TREE_LIVE: Record<string, MenuTreeRecord> = {
               {
                 id: "n_1786862453089_30",
                 menuId: 7,
-                label: "Department Directory Inquiry",
-                command: "INQ S GET.DEP.LIST",
+                label: "Branch Directory Inquiry",
+                command: "INQ S GET.BRANCH",
                 isVisible: true,
                 orderIndex: 2,
                 children: [],
@@ -172,7 +172,7 @@ export const SC_MENU_TREE_LIVE: Record<string, MenuTreeRecord> = {
       },
     ],
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 5,
       recInputter: "SYSADMIN",
       recInputTime: "2026-08-12 10:36:40",
@@ -181,63 +181,9 @@ export const SC_MENU_TREE_LIVE: Record<string, MenuTreeRecord> = {
       recBranchCode: "JB9999",
     },
   },
-  "MENU.SECONDARY": {
-    recordId: "MENU.SECONDARY",
-    treeDescription: "Secondary Operations & Admin Tree",
-    isActive: true,
-    menuTree: [
-      {
-        id: "sec_node_100",
-        menuId: 200,
-        label: "Quick Operations",
-        command: "",
-        isVisible: true,
-        orderIndex: 1,
-        children: [
-          {
-            id: "sec_node_101",
-            menuId: 1,
-            label: "Account Maintenance",
-            command: "ACCOUNT",
-            isVisible: true,
-            orderIndex: 1,
-            children: [],
-          },
-          {
-            id: "sec_node_102",
-            menuId: 2,
-            label: "Customer Master",
-            command: "CUSTOMER",
-            isVisible: true,
-            orderIndex: 2,
-            children: [],
-          },
-          {
-            id: "sec_node_103",
-            menuId: 5,
-            label: "Daily Transaction Journal",
-            command: "INQ S GET.TODAY.ENTRY",
-            isVisible: true,
-            orderIndex: 3,
-            children: [],
-          },
-        ],
-      },
-    ],
-    auditData: {
-      recStatus: "LIVE",
-      recCurrNumber: 1,
-      recInputter: "SYSADMIN",
-      recInputTime: "2026-09-01 10:00:00",
-      recAuthorizer: "SYSADMIN",
-      recAuthTime: "2026-09-01 10:05:00",
-      recBranchCode: "JB9999",
-    },
-  },
 };
 
-export const CBS_MAIN_NAV_TREE: MenuTreeNode[] = SC_MENU_TREE_LIVE["MENU.MAIN"].menuTree;
-export const CBS_SECONDARY_NAV_TREE: MenuTreeNode[] = SC_MENU_TREE_LIVE["MENU.SECONDARY"].menuTree;
+export const CBS_MAIN_NAV_TREE: MenuTreeNode[] = SC_MENU_TREE["MENU.MAIN"].menuTree;
 
 /* -------------------------------------------------------------------------- */
 /* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
@@ -248,10 +194,10 @@ export const SC_MENU_TREE_HIS: Record<string, MenuTreeRecord[]> = {};
 export const SC_MENU_TREE_DEL: Record<string, MenuTreeRecord> = {};
 
 export const SC_MENU_TREE_TABLE: CbsVersionedTable<MenuTreeRecord> = {
-  LIVE: SC_MENU_TREE_LIVE,
+  LIVE: SC_MENU_TREE,
   INAU: SC_MENU_TREE_INAU,
   HIS: SC_MENU_TREE_HIS,
   DEL: SC_MENU_TREE_DEL,
 };
 
-export const SC_MENU_TREE_LIST: MenuTreeRecord[] = Object.values(SC_MENU_TREE_LIVE);
+export const SC_MENU_TREE_LIST: MenuTreeRecord[] = Object.values(SC_MENU_TREE);

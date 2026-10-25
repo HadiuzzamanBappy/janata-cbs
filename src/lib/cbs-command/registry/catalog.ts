@@ -16,7 +16,7 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
   {
     command: "SC.MODEL.CONFIG",
     title: "Model Config",
-    aliases: ["MC", "SC.MODEL.BUILDER"],
+    aliases: ["MC", "MODEL.CONFIG"],
     actionType: "SCREEN",
   },
   {

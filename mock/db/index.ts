@@ -24,7 +24,7 @@ import { type CbsTableVersion, type CbsVersionedTable, queryVersionedRecord } fr
 
 /**
  * Universal In-Memory Database Registry for CBS Offline / Mock Operations.
- * Keyed by Canonical Model Name and Table Name.
+ * Keyed strictly by Canonical Control / Model Name matching SC_MODEL_CONFIG.
  */
 export const CBS_DATABASE = {
   ACCOUNT: AC_ACCOUNT_TABLE,
@@ -40,15 +40,16 @@ export const CBS_DATABASE = {
 
 /**
  * Universal Database Query Helper:
- * Queries any CBS table by model/table name and record ID, supporting versioning.
+ * Queries any CBS table by canonical control/model name and record ID, supporting versioning.
  */
 export function queryCbsDatabase<T = Record<string, unknown>>(
-  tableOrModelName: string,
+  controlName: string,
   recordId: string,
   version: CbsTableVersion = "LIVE",
 ): T | T[] | null {
-  const cleanName = tableOrModelName.trim().toUpperCase() as keyof typeof CBS_DATABASE;
+  const cleanName = controlName.trim().toUpperCase() as keyof typeof CBS_DATABASE;
   const table = CBS_DATABASE[cleanName] as unknown as CbsVersionedTable<T> | undefined;
   if (!table) return null;
   return queryVersionedRecord(table, recordId, version);
 }
+

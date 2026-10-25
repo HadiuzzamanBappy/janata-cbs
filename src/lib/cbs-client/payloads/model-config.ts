@@ -23,6 +23,21 @@ export const modelConfigPayloads = {
   ...baseModelConfigPayloads,
 
   /**
+   * Get Model Configuration definition ('GMC').
+   * Dedicated metamodel verb replacing generic 'GET'.
+   */
+  get: (recordId: string, options?: ModelOptions): CbsWirePayload => {
+    const servicePath = options?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
+    return {
+      servicePath,
+      requestType: CbsRequestType.GMC,
+      controlName: CbsControlTable.MODEL_CONFIG,
+      recordFunction: CbsRecordFunction.SEE,
+      recordId: recordId.trim().toUpperCase(),
+    };
+  },
+
+  /**
    * Save Model Configuration definition ('SMC').
    * Dedicated metamodel verb replacing generic 'PUT'.
    */

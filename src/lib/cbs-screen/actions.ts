@@ -33,6 +33,9 @@ export interface CbsActionBarCapabilities {
 export interface UseCbsActionBarOptions {
   readonly mode: CbsScreenMode;
   readonly searchVal?: string;
+  readonly recordStatus?: string;
+  readonly recordInputter?: string;
+  readonly command?: string;
   readonly submitting?: boolean;
   // Handlers passed from screen
   readonly onAmend?: () => void;
@@ -54,6 +57,9 @@ export interface UseCbsActionBarOptions {
 export function useCbsActionBar({
   mode,
   searchVal = "",
+  recordStatus,
+  recordInputter,
+  command,
   submitting = false,
   onAmend,
   onView,
@@ -66,7 +72,7 @@ export function useCbsActionBar({
   onProcessAction,
   onReturnToSearch,
 }: UseCbsActionBarOptions): CbsActionBarCapabilities {
-  const access = useCbsAccess({ mode });
+  const access = useCbsAccess({ mode, recordStatus, recordInputter, command });
   const hasTargetId = Boolean(searchVal.trim());
   const isIdle = mode === "IDLE";
   const isView = mode === "S" || mode === "A";

@@ -42,7 +42,7 @@ export function McPreviewTab({ formData }: McPreviewTabProps) {
         <div className="flex items-center justify-between border-b border-border/60 pb-2">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs bg-muted/40 font-mono">
-              {formData.recordId || formData.tableName}
+              {formData.tableName || "MODEL"}
             </Badge>
             <span className="text-xs font-semibold text-foreground">
               {formData.description || formData.tableName}

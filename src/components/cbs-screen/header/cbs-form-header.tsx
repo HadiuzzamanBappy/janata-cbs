@@ -35,6 +35,8 @@ export interface CbsFormHeaderProps {
   onReturnToSearch?: () => void;
   onCreateNew?: (newId?: string) => void;
   mode?: CbsScreenMode;
+  recordStatus?: string;
+  recordInputter?: string;
   submitting?: boolean;
   moreActions?: MoreActionItem[];
   availableItems?: Array<{ id: string; label?: string; details?: string }>;
@@ -66,6 +68,8 @@ export function CbsFormHeader({
   onReturnToSearch,
   onCreateNew,
   mode = "IDLE",
+  recordStatus,
+  recordInputter,
   submitting = false,
   moreActions = [],
   availableItems = [],
@@ -73,7 +77,7 @@ export function CbsFormHeader({
   onSelectValidationTab,
   className = "",
 }: CbsFormHeaderProps) {
-  const access = useCbsAccess({ mode });
+  const access = useCbsAccess({ mode, recordStatus, recordInputter, command: commandCode });
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [hasSearched, setHasSearched] = React.useState(false);
@@ -178,6 +182,9 @@ export function CbsFormHeader({
           <ActionButtons
             mode={mode}
             searchVal={inputVal}
+            recordStatus={recordStatus}
+            recordInputter={recordInputter}
+            command={commandCode}
             submitting={submitting}
             onAmend={onAmend}
             onView={onView}

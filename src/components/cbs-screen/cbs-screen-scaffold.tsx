@@ -138,6 +138,8 @@ export function CbsScreenScaffold<TTab extends string = string>({
           }
           onProcessAction={onProcessAction}
           mode={mode}
+          recordStatus={auditContext?.recStatus}
+          recordInputter={auditContext?.recInputter}
           submitting={submitting}
           availableItems={availableItems}
           moreActions={moreActions}

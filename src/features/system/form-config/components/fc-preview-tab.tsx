@@ -89,7 +89,7 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
               </span>
             )}
             <Badge variant="secondary" className="text-[10px] font-mono">
-              Model: {targetModelRecord.tableName || targetModelRecord.recordId}
+              Model: {targetModelRecord.tableName}
             </Badge>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/20 px-2 py-0.5 rounded border border-border/40">

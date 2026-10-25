@@ -40,7 +40,6 @@ async function runSuite() {
 
   // --- Canonical Test Model Definition ---
   const testModel: ModelConfigRecord = {
-    recordId: "ACCOUNT",
     tableName: "ACCOUNT",
     description: "Customer Account Definition",
     prefix: "AC",

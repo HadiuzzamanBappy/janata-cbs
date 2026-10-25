@@ -10,7 +10,7 @@ interface McJsonTabProps {
 
 export function McJsonTab({ formData }: McJsonTabProps) {
   const wire = serializeModelToWireJson(formData);
-  const name = formData.tableName || formData.recordId || "model";
+  const name = formData.tableName || "model";
 
   return (
     <CbsJsonViewerTab

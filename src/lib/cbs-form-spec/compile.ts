@@ -120,7 +120,7 @@ export function compileFormSpec(
   model: ModelConfigRecord,
   layout: FormConfigRecord | null,
 ): CompiledFormSpec {
-  const modelCode = (model.tableName || model.recordId || "FORM").toUpperCase();
+  const modelCode = (model.tableName || "FORM").toUpperCase();
   const idPrefix = model.idDef?.idPrefix || model.prefix || modelCode.slice(0, 2);
 
   // Case A: Uncustomized / Fallback Layout

@@ -96,6 +96,9 @@ export function IdleActions({
 
 export interface ActiveActionsProps {
   mode: Exclude<CbsScreenMode, "IDLE">;
+  recordStatus?: string;
+  recordInputter?: string;
+  command?: string;
   submitting?: boolean;
   onSubmit?: () => void;
   onValidate?: () => void;
@@ -111,6 +114,9 @@ export interface ActiveActionsProps {
  */
 export function ActiveActions({
   mode,
+  recordStatus,
+  recordInputter,
+  command,
   submitting = false,
   onSubmit,
   onValidate,
@@ -122,6 +128,9 @@ export function ActiveActions({
 }: ActiveActionsProps) {
   const actions = useCbsActionBar({
     mode,
+    recordStatus,
+    recordInputter,
+    command,
     submitting,
     onSubmit,
     onValidate,
@@ -309,7 +318,10 @@ export function ActiveActions({
 
 export interface ActionButtonsProps {
   mode: CbsScreenMode;
-  searchVal: string;
+  searchVal?: string;
+  recordStatus?: string;
+  recordInputter?: string;
+  command?: string;
   submitting?: boolean;
   onAmend?: () => void;
   onView?: () => void;
@@ -329,6 +341,9 @@ export interface ActionButtonsProps {
 export function ActionButtons({
   mode,
   searchVal,
+  recordStatus,
+  recordInputter,
+  command,
   submitting = false,
   onAmend,
   onView,
@@ -344,7 +359,7 @@ export function ActionButtons({
   if (mode === "IDLE") {
     return (
       <IdleActions
-        searchVal={searchVal}
+        searchVal={searchVal || ""}
         submitting={submitting}
         onAmend={onAmend}
         onView={onView}
@@ -356,6 +371,9 @@ export function ActionButtons({
   return (
     <ActiveActions
       mode={mode}
+      recordStatus={recordStatus}
+      recordInputter={recordInputter}
+      command={command}
       submitting={submitting}
       onSubmit={onSubmit}
       onValidate={onValidate}

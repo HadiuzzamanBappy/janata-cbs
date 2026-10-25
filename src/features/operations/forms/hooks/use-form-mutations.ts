@@ -30,7 +30,7 @@ export function useFormMutations({
   initialValues,
   validate,
   resetForm,
-  loadRecordData,
+  loadRecordData: _loadRecordData,
   onSuccess,
 }: UseFormMutationsOptions) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
@@ -70,13 +70,25 @@ export function useFormMutations({
 
         if (json.status === "SUCCESS") {
           broadcastRecordMutation(spec.code, targetId);
+          resetForm(initialValues);
+          setScreenMode("IDLE");
           if (onSuccess) onSuccess(json);
         }
       } finally {
         setSubmitting(false);
       }
     },
-    [validate, spec, screenMode, initialValues, values, searchRecordId, onSuccess],
+    [
+      validate,
+      spec,
+      screenMode,
+      initialValues,
+      values,
+      searchRecordId,
+      resetForm,
+      setScreenMode,
+      onSuccess,
+    ],
   );
 
   const handleHold = React.useMemo(() => {
@@ -164,14 +176,24 @@ export function useFormMutations({
         });
         if (json.status === "SUCCESS") {
           broadcastRecordMutation(spec.code, id);
+          resetForm(initialValues);
+          setScreenMode("IDLE");
           if (onSuccess) onSuccess(json);
-          loadRecordData(id, "S");
         }
       } finally {
         setSubmitting(false);
       }
     };
-  }, [screenMode, spec, searchRecordId, values, onSuccess, loadRecordData]);
+  }, [
+    screenMode,
+    spec,
+    searchRecordId,
+    values,
+    resetForm,
+    initialValues,
+    setScreenMode,
+    onSuccess,
+  ]);
 
   return {
     submitting,

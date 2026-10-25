@@ -27,7 +27,6 @@ export interface IcGeneralTabProps {
 
 export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGeneralTabProps) {
   const [modelDef, setModelDef] = React.useState<ModelConfigRecord>({
-    recordId: "INQUIRY.CONFIG",
     tableName: "INQUIRY_CONFIG",
     description: "Dynamic Inquiry & Query Definition Designer",
     prefix: "SC",

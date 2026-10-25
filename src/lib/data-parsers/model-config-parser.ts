@@ -77,5 +77,11 @@ export function parseModelConfigList(
  */
 export function serializeModelToWireJson(record: ModelConfigRecord): ModelConfigRecord {
   const result = modelConfigRecordSchema.safeParse(record);
-  return result.success ? result.data : record;
+  const data = result.success ? result.data : record;
+  // Ensure legacy recordId is never emitted inside model JSON payload
+  if ("recordId" in data) {
+    const { recordId: _, ...clean } = data as Record<string, unknown>;
+    return clean as ModelConfigRecord;
+  }
+  return data;
 }

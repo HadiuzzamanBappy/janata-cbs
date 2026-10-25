@@ -135,6 +135,12 @@ Before modifying any file, verify these non-negotiable architectural invariants:
 7. **Canonical Record Status Lifecycle (`CbsRecordStatus`)**:
    - All database tables, schemas, and mutation flows must conform to `CbsRecordStatus`: `"NEW"` | `"INA"` | `"AU"` | `"HLD"` | `"REV"` | `"DEL"`.
    - Authorized records are strictly `"AU"`. Uncommitted drafts are `"INA"`.
+8. **High-Density Zero-Fluff UI (Layout Over Explanation)**:
+   - Eliminate marketing taglines, decorative subtitles, and verbose helper paragraphs.
+   - If a screen requires helper text to make sense, fix the layout, label, input mask, or grouping instead. Move critical context to `<Tooltip>` or the validation checklist drawer.
+9. **Tri-Experience Optimization & Zero-Breakage Invariant (UX / DX / AX)**:
+   - Every architectural change must simultaneously elevate User Experience (fast, keyboard-first, zero layout shifts), Developer Experience (strict unidirectional layers, zero `any`, modular components), and Agent Experience (deterministic schemas, explicit contracts, no magic side effects).
+   - Zero-breakage guarantee: All verifications (`pnpm verify:all`) must pass 100% clean at each milestone.
 
 ---
 
@@ -318,8 +324,14 @@ Refactor each screen to be a pure consumer of `@/lib/cbs-client`, `@/components/
 - [ ] **`tabbar/`**: Draggable multi-tab bar with dirty indicators and close confirmation dialog.
 
 #### 5.2 Dynamic Form & Inquiry Engines
-- [ ] **`features/form-engine/`**: Headless dynamic form kernel for GMC layouts (150–1000 fields).
+- [ ] **`features/form-engine/`**: Headless dynamic form kernel for GMC layouts (150–1,000 fields):
+  - **Two-Tier Form State Architecture (Pillar 5)**:
+    - *Tier 1 (Local Kernel State)*: `FormKernelStore` handles instant, isolated keystroke mutations and local formula calculations without triggering global Zustand tree re-renders.
+    - *Tier 2 (Global Tab Store Sync)*: Syncs to `WorkbenchStore` via debounced snapshots (400ms) or field blur events with lightweight `isDirty: true`.
+  - Self-subscribing field atoms (`FieldAtom`) to guarantee zero typing latency on dense screens.
 - [ ] **`features/inquiry-engine/`**: Tabular inquiry renderer with server-side pagination, sorting, and drilldown triggers.
+  - Zero-clutter, compact table rows (`text-xs`, `h-8`).
+  - Auto-synthesized column views for raw models when custom `INQUIRY.CONFIG` is absent.
 
 #### 5.3 System Administration Screens (`src/features/system/`)
 Audit each system screen to verify strict CBS protocol conformance:
@@ -404,10 +416,16 @@ When refactoring a specific module, follow these disciplined steps:
 2. **Review Target Contract**: Check corresponding Zod schema in `src/lib/data-schemas/`.
 3. **Refactor Hook First**: Implement persistence using `useCbsPersistence` and wire operations (`cbs.*`).
 4. **Refactor UI Second**: Update presentation components to consume the standardized hook.
-5. **Verify Locally**:
-   ```bash
-   pnpm typecheck
-   pnpm lint
-   pnpm verify:all
-   ```
+5. **Verify Locally & Incremental Gate**:
+   - Run typecheck and lint:
+     ```bash
+     pnpm typecheck
+     pnpm lint
+     ```
+   - Run the phase-specific verification test:
+     - **Phase 1 (Mock Database & Core)**: `pnpm verify:mock`
+     - **Phase 2 (Contracts & Matrix)**: `pnpm verify:matrix`
+     - **Phase 3 (Libraries & Foundations)**: `pnpm verify:client && pnpm verify:access && pnpm verify:record && pnpm verify:form-spec`
+     - **Phase 4 & 5 (Components & Screens)**: `pnpm verify:command && pnpm verify:form-spec`
+     - **Phase 6 & 7 (Gateway & Master)**: `pnpm verify:all`
 6. **Commit Milestone**: Create a clean Git commit marking the milestone complete.

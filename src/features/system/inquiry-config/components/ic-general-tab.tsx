@@ -31,7 +31,6 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
     tableName: "INQUIRY_CONFIG",
     description: "Dynamic Inquiry & Query Definition Designer",
     prefix: "SC",
-    category: "SYSTEM",
     servicePath: "default",
     userDefineId: true,
     access: "G",
@@ -41,7 +40,6 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
     associates: [],
     devBy: "System",
     devDate: "2026-10-17",
-    isActive: true,
     idDef: {
       idPrefix: "",
       idPattern: "",

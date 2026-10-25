@@ -7,7 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -47,7 +46,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
         align="end"
         className="w-84 p-1 shadow-lg bg-popover border border-destructive/30"
       >
-        <DropdownMenuLabel className="text-xs font-semibold px-2 py-1.5 flex items-center justify-between text-destructive bg-destructive/5 rounded-t-sm">
+        <div className="text-xs font-semibold px-2 py-1.5 flex items-center justify-between text-destructive bg-destructive/5 rounded-t-sm">
           <div className="flex items-center gap-1.5">
             <AlertTriangle className="size-3.5 text-destructive" />
             <span>Validation Checklist</span>
@@ -62,10 +61,11 @@ export function CbsValidationChecklist<TTab extends string = string>({
             type="button"
             variant="destructive"
             size="sm"
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               const first = errors[0];
               if (first) {
-                if (first.tab) onSelectTab?.(first.tab);
+                if (first.tab && onSelectTab) onSelectTab(first.tab);
                 focusFormField(first.fieldKey, first.nodeId);
               }
             }}
@@ -73,7 +73,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
           >
             Fix First →
           </Button>
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator className="my-1" />
         <div className="max-h-64 overflow-y-auto divide-y divide-border/40">
           {errors.map((err) => (

@@ -9,10 +9,8 @@ export const INITIAL_MODEL: ModelConfigRecord = {
   description: "",
   tableName: "",
   prefix: "",
-  category: "",
   servicePath: "",
   userDefineId: false,
-  predefineId: false,
   access: "",
   searchable: false,
   readOnly: false,
@@ -26,7 +24,6 @@ export const INITIAL_MODEL: ModelConfigRecord = {
     sequenceReset: false,
   },
   properties: [],
-  isActive: false,
 };
 
 export function useModelConfigPersistence(initialId?: string, tabId?: string) {

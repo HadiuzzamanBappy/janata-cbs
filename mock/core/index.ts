@@ -87,13 +87,16 @@ export function getMockProxyResponse(
     return handleNextId(normalizedPayload);
   }
 
-  // 5. Transactional Mutations (PUT, AUT, DEL, HLD, REV)
+  // 5. Transactional Mutations (PUT, AUT, DEL, HLD, REV, SMC, AMC, SFC)
   const isMutation =
     reqType === "PUT" ||
     reqType === "AUT" ||
     reqType === "DEL" ||
     reqType === "HLD" ||
-    reqType === "REV";
+    reqType === "REV" ||
+    reqType === "SMC" ||
+    reqType === "AMC" ||
+    reqType === "SFC";
   if (isMutation) {
     return handleMutation(normalizedPayload);
   }

@@ -393,9 +393,12 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
   const reqType = (payload.requestType || "").trim().toUpperCase();
   const statusMap: Record<string, { label: string; code: string }> = {
     AUT: { label: "authorized", code: "AU" },
+    AMC: { label: "authorized", code: "AU" },
     HLD: { label: "held", code: "HLD" },
     DEL: { label: "deleted", code: "DEL" },
     REV: { label: "reversed", code: "REV" },
+    SMC: { label: "saved", code: "INA" },
+    SFC: { label: "saved", code: "INA" },
   };
 
   const { label, code } = statusMap[reqType] || {

@@ -28,9 +28,10 @@ class ScreenErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`[ScreenLoader] CRASH in "${this.props.command}":`, error, errorInfo);
     logger.error(
-      `ScreenLoader error rendering "${this.props.command}":`,
-      { error, errorInfo },
+      `ScreenLoader error rendering "${this.props.command}": ${error?.message || "Unknown error"}`,
+      { message: error?.message, stack: error?.stack, componentStack: errorInfo?.componentStack },
       "SCREEN_LOADER",
     );
   }

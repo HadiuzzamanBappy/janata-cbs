@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # 00: The 7 Pillars of Core Engineering Invariants
 
 To guarantee that no architectural decisions need to be backtracked, all generated code must conform strictly to these 7 pillars:
@@ -46,3 +50,26 @@ Whenever any file is touched or refactored:
 - **Scattered Constants & Configurations**: If a literal string or number represents a route, endpoint, storage key, fallback value, or business parameter, **immediately migrate it to `src/lib/core-config/`** (`appConfig`).
 - **Prohibited Cross-Boundary References**: If a lower layer file (e.g., in `src/lib/infra-services/` or `src/lib/cbs-*`) references data from a higher layer (e.g., `src/store/`, `src/features/`, `src/components/`, or `src/app/`), **halt the direct import immediately**. Decouple it via parameters or `registerCommandAdapter`.
 - **No Half-Way Shims**: Do **NOT** leave duplicate copies or deprecation aliases in the original file. Update all consumers directly.
+
+## 8. High-Density Zero-Fluff UI (Layout Over Explanation)
+- **Eliminate Clutter**: Strictly eliminate marketing taglines, decorative subtitles, verbose helper paragraphs, and redundant secondary labels across all banking screens.
+- **Self-Explanatory Layouts**: If a field or screen needs a paragraph of explanation to make sense, the layout is broken. Fix it using:
+  1. Clear, unambiguous domain labels (e.g. `Debit Account No` instead of `Account` + helper text).
+  2. Sensible grouping, card sections, and 12-column grid visual hierarchy.
+  3. Input masks, currency badges, and contextual placeholders.
+- **Non-Obtrusive Assistance**: Where critical regulatory, compliance, or format guidance is required, use compact icon tooltips (`<Tooltip>`) or the pre-commit validation checklist drawer—never static canvas filler.
+
+## 9. The Tri-Experience Optimization & Zero-Breakage Invariant (UX / DX / AX)
+Every architectural and implementation decision must simultaneously elevate all three dimensions without regression:
+- **UX (User Experience)**:
+  - Keyboard-first interaction (F-keys, command gateway, tab indexing).
+  - Maximum visual density with zero layout shifts and instant tab switching.
+- **DX (Developer Experience)**:
+  - Strict unidirectional architecture (Level 0–6), zero circular dependencies, and single-source-of-truth registries.
+  - Pure TypeScript with zero `any` and modular, reusable domain components.
+- **AX (Agent Experience)**:
+  - Deterministic contracts, schema-driven metadata (`MODEL.CONFIG` / `FORM.CONFIG`), and explicit type boundaries.
+  - No hidden global mutations or dynamic `eval` shortcuts; every change must be verifiable via `pnpm verify:*`.
+- **Zero Breakage Guarantee**:
+  - Never sacrifice wire stability or core banking contracts for cosmetic refactors. All verifications (`pnpm verify:all`) must pass cleanly.
+

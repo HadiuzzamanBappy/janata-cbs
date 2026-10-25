@@ -6,6 +6,7 @@ import { createModelPayloads } from "./payloads/base-model";
 import { formPayloads } from "./payloads/form";
 import { inquiryPayloads } from "./payloads/inquiry";
 import { menuPayloads } from "./payloads/menu";
+import { modelConfigPayloads } from "./payloads/model-config";
 import { userSecurityPayloads } from "./payloads/user-security";
 import { sendCbsRequest } from "./transport/proxy-client";
 
@@ -22,7 +23,7 @@ export const cbs = {
   model: createModelPayloads,
   formConfig: createModelPayloads(CbsControlTable.FORM_CONFIG),
   inquiryConfig: createModelPayloads(CbsControlTable.INQUIRY_CONFIG),
-  modelConfig: createModelPayloads(CbsControlTable.MODEL_CONFIG),
+  modelConfig: modelConfigPayloads,
   userGroup: createModelPayloads(CbsControlTable.USER_GROUP),
   menu: menuPayloads,
   userSecurity: userSecurityPayloads,

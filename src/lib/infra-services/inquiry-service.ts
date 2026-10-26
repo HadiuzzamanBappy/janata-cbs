@@ -40,7 +40,9 @@ async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): P
   log.info(`Incoming gRPC Response for "${cleanCmd}"`, res);
 
   if (res.statusCode !== 200 || !res.data) {
-    log.error(`gRPC Enquiry fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`);
+    log.error(
+      `gRPC Enquiry fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`,
+    );
     throw new Error(
       `gRPC Enquiry fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`,
     );
@@ -87,10 +89,7 @@ async function fetchEnquiryRowsWirePayload(
     }
     return [];
   } catch (err) {
-    log.warn(
-      `Could not preload inquiry records for "${cleanCmd}"`,
-      err,
-    );
+    log.warn(`Could not preload inquiry records for "${cleanCmd}"`, err);
     return [];
   }
 }

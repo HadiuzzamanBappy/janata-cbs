@@ -217,7 +217,12 @@ export function InquiryEngineTable({
               <TableBody>
                 {paginatedRows.map((row, index) => {
                   const recordKey = String(
-                    row.recordId || row.id || row.txnReference || row.accountNo || row.accountNumber || `row_${startIndex + index}`,
+                    row.recordId ||
+                      row.id ||
+                      row.txnReference ||
+                      row.accountNo ||
+                      row.accountNumber ||
+                      `row_${startIndex + index}`,
                   );
                   const isStriped = index % 2 === 1;
 
@@ -269,146 +274,152 @@ export function InquiryEngineTable({
                           }`}
                         >
                           <div className="flex items-center justify-center gap-1">
-                            {hasConfiguredActions ? (
-                              actions.map((act) => {
-                                const isEdit = act.actionType === "edit";
-                                const funcCode = isEdit ? "I" : "S";
-                                const app = (act.targetCommand || "ACCOUNT")
-                                  .split(",")[0]
-                                  .trim()
-                                  .toUpperCase();
-                                const commandStr = `${app} ${funcCode} ${recordKey}`;
+                            {hasConfiguredActions
+                              ? actions.map((act) => {
+                                  const isEdit = act.actionType === "edit";
+                                  const funcCode = isEdit ? "I" : "S";
+                                  const app = (act.targetCommand || "ACCOUNT")
+                                    .split(",")[0]
+                                    .trim()
+                                    .toUpperCase();
+                                  const commandStr = `${app} ${funcCode} ${recordKey}`;
 
-                                return (
-                                  <Tooltip key={act.id}>
-                                    <TooltipTrigger
-                                      render={
-                                        <button
-                                          type="button"
-                                          data-cbs-command={commandStr}
-                                          data-cbs-label={`${act.label} #${recordKey}`}
-                                          data-cbs-link-handled="true"
-                                          onClick={() =>
-                                            onExecuteAction
-                                              ? onExecuteAction(act, recordKey, row)
-                                              : handleDrilldown(
-                                                  act.targetCommand,
-                                                  recordKey,
-                                                  isEdit ? "EDIT" : "VIEW",
-                                                  row,
-                                                )
-                                          }
-                                          className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                        >
-                                          {renderActionIcon(act.icon)}
-                                        </button>
-                                      }
-                                    />
-                                    <TooltipContent className="text-xs">
-                                      {act.label}
-                                    </TooltipContent>
-                                  </Tooltip>
-                                );
-                              })
-                            ) : Array.isArray(row.eventAction) && row.eventAction.length > 0 ? (
-                              (row.eventAction as Array<{ cmdButton?: string; cmdFor?: string }>).map((ea) => {
-                                const btnLabel = ea.cmdButton || "ACTION";
-                                const upperBtn = btnLabel.toUpperCase();
-                                const isAuth = upperBtn.includes("AUTH");
-                                const isEdit = upperBtn.includes("EDIT") || upperBtn.includes("AMEND");
-                                
-                                // Replace parameter placeholders (e.g. "recordId") with the actual key
-                                const rawCmd = ea.cmdFor || `ACCOUNT ${isEdit ? "I" : isAuth ? "A" : "S"} ${recordKey}`;
-                                const targetCmd = rawCmd.includes("recordId")
-                                  ? rawCmd.replace(/recordId/g, recordKey)
-                                  : `${rawCmd} ${recordKey}`;
-
-                                return (
-                                  <Tooltip key={`${recordKey}_${btnLabel}_${targetCmd}`}>
-                                    <TooltipTrigger
-                                      render={
-                                        <button
-                                          type="button"
-                                          data-cbs-command={targetCmd}
-                                          data-cbs-label={`${btnLabel} #${recordKey}`}
-                                          data-cbs-link-handled="true"
-                                          onClick={() =>
-                                            cbsCommand.execute(targetCmd, {
-                                              title: `${btnLabel} #${recordKey}`,
-                                              formData: (row as Record<string, unknown>) || {},
-                                            })
-                                          }
-                                          className={`inline-flex items-center justify-center size-6 rounded transition-colors cursor-pointer ${
-                                            isAuth
-                                              ? "hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                                              : isEdit
-                                                ? "hover:bg-amber-500/20 text-amber-600 dark:text-amber-400"
-                                                : "hover:bg-primary/15 text-muted-foreground hover:text-primary"
-                                          }`}
-                                        >
-                                          {isAuth ? (
-                                            <ShieldCheck className="size-3.5" />
-                                          ) : isEdit ? (
-                                            <Edit3 className="size-3.5" />
-                                          ) : (
-                                            <Eye className="size-3.5" />
-                                          )}
-                                        </button>
-                                      }
-                                    />
-                                    <TooltipContent className="text-xs font-mono">
-                                      {btnLabel} ({targetCmd})
-                                    </TooltipContent>
-                                  </Tooltip>
-                                );
-                              })
-                            ) : (
-                              (() => {
-                                const defaultApp = "ACCOUNT";
-                                const viewCmd = `${defaultApp} S ${recordKey}`;
-                                const editCmd = `${defaultApp} I ${recordKey}`;
-
-                                return (
-                                  <>
-                                    <Tooltip>
+                                  return (
+                                    <Tooltip key={act.id}>
                                       <TooltipTrigger
                                         render={
                                           <button
                                             type="button"
-                                            data-cbs-command={viewCmd}
-                                            data-cbs-label={`View #${recordKey}`}
+                                            data-cbs-command={commandStr}
+                                            data-cbs-label={`${act.label} #${recordKey}`}
                                             data-cbs-link-handled="true"
-                                            onClick={() => handleView(recordKey, row)}
-                                            className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                            onClick={() =>
+                                              onExecuteAction
+                                                ? onExecuteAction(act, recordKey, row)
+                                                : handleDrilldown(
+                                                    act.targetCommand,
+                                                    recordKey,
+                                                    isEdit ? "EDIT" : "VIEW",
+                                                    row,
+                                                  )
+                                            }
+                                            className="inline-flex items-center justify-center size-6 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                                           >
-                                            <Eye className="size-3" />
+                                            {renderActionIcon(act.icon)}
                                           </button>
                                         }
                                       />
-                                      <TooltipContent className="text-xs">View</TooltipContent>
+                                      <TooltipContent className="text-xs">
+                                        {act.label}
+                                      </TooltipContent>
                                     </Tooltip>
+                                  );
+                                })
+                              : Array.isArray(row.eventAction) && row.eventAction.length > 0
+                                ? (
+                                    row.eventAction as Array<{
+                                      cmdButton?: string;
+                                      cmdFor?: string;
+                                    }>
+                                  ).map((ea) => {
+                                    const btnLabel = ea.cmdButton || "ACTION";
+                                    const upperBtn = btnLabel.toUpperCase();
+                                    const isAuth = upperBtn.includes("AUTH");
+                                    const isEdit =
+                                      upperBtn.includes("EDIT") || upperBtn.includes("AMEND");
 
-                                    <Tooltip>
-                                      <TooltipTrigger
-                                        render={
-                                          <button
-                                            type="button"
-                                            data-cbs-command={editCmd}
-                                            data-cbs-label={`Edit #${recordKey}`}
-                                            data-cbs-link-handled="true"
-                                            onClick={() => handleEdit(recordKey, row)}
-                                            className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-                                          >
-                                            <Edit3 className="size-3" />
-                                          </button>
-                                        }
-                                      />
-                                      <TooltipContent className="text-xs">Edit</TooltipContent>
-                                    </Tooltip>
-                                  </>
-                                );
-                              })()
-                            )}
+                                    // Replace parameter placeholders (e.g. "recordId") with the actual key
+                                    const rawCmd =
+                                      ea.cmdFor ||
+                                      `ACCOUNT ${isEdit ? "I" : isAuth ? "A" : "S"} ${recordKey}`;
+                                    const targetCmd = rawCmd.includes("recordId")
+                                      ? rawCmd.replace(/recordId/g, recordKey)
+                                      : `${rawCmd} ${recordKey}`;
+
+                                    return (
+                                      <Tooltip key={`${recordKey}_${btnLabel}_${targetCmd}`}>
+                                        <TooltipTrigger
+                                          render={
+                                            <button
+                                              type="button"
+                                              data-cbs-command={targetCmd}
+                                              data-cbs-label={`${btnLabel} #${recordKey}`}
+                                              data-cbs-link-handled="true"
+                                              onClick={() =>
+                                                cbsCommand.execute(targetCmd, {
+                                                  title: `${btnLabel} #${recordKey}`,
+                                                  formData: (row as Record<string, unknown>) || {},
+                                                })
+                                              }
+                                              className={`inline-flex items-center justify-center size-6 rounded transition-colors cursor-pointer ${
+                                                isAuth
+                                                  ? "hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                                  : isEdit
+                                                    ? "hover:bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                                                    : "hover:bg-primary/15 text-muted-foreground hover:text-primary"
+                                              }`}
+                                            >
+                                              {isAuth ? (
+                                                <ShieldCheck className="size-3.5" />
+                                              ) : isEdit ? (
+                                                <Edit3 className="size-3.5" />
+                                              ) : (
+                                                <Eye className="size-3.5" />
+                                              )}
+                                            </button>
+                                          }
+                                        />
+                                        <TooltipContent className="text-xs font-mono">
+                                          {btnLabel} ({targetCmd})
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    );
+                                  })
+                                : (() => {
+                                    const defaultApp = "ACCOUNT";
+                                    const viewCmd = `${defaultApp} S ${recordKey}`;
+                                    const editCmd = `${defaultApp} I ${recordKey}`;
+
+                                    return (
+                                      <>
+                                        <Tooltip>
+                                          <TooltipTrigger
+                                            render={
+                                              <button
+                                                type="button"
+                                                data-cbs-command={viewCmd}
+                                                data-cbs-label={`View #${recordKey}`}
+                                                data-cbs-link-handled="true"
+                                                onClick={() => handleView(recordKey, row)}
+                                                className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                              >
+                                                <Eye className="size-3" />
+                                              </button>
+                                            }
+                                          />
+                                          <TooltipContent className="text-xs">View</TooltipContent>
+                                        </Tooltip>
+
+                                        <Tooltip>
+                                          <TooltipTrigger
+                                            render={
+                                              <button
+                                                type="button"
+                                                data-cbs-command={editCmd}
+                                                data-cbs-label={`Edit #${recordKey}`}
+                                                data-cbs-link-handled="true"
+                                                onClick={() => handleEdit(recordKey, row)}
+                                                className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                                              >
+                                                <Edit3 className="size-3" />
+                                              </button>
+                                            }
+                                          />
+                                          <TooltipContent className="text-xs">Edit</TooltipContent>
+                                        </Tooltip>
+                                      </>
+                                    );
+                                  })()}
                           </div>
                         </TableCell>
                       )}

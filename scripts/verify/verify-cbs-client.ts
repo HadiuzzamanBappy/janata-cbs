@@ -264,7 +264,9 @@ async function runSuite() {
       (inqCustom.data as Record<string, unknown>)?.perPage === 1000,
     inqCustom,
   );
-  const inqCustomData = inqCustom.data as { queryString?: Array<{ selectFieldName: string; selectFieldValue: string }> };
+  const inqCustomData = inqCustom.data as {
+    queryString?: Array<{ selectFieldName: string; selectFieldValue: string }>;
+  };
   assert(
     "Inquiry: executeQuery queryString filter for recordId with CT operator",
     Array.isArray(inqCustomData?.queryString) &&

@@ -55,7 +55,9 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
   const res = await fetchAuthWirePayload(input);
 
   if (res.statusCode !== 200 || res.status !== "SUCCESS") {
-    log.warn(`Login failed for user "${input.username}" (${res.statusCode}): ${res.message || "Invalid credentials"}`);
+    log.warn(
+      `Login failed for user "${input.username}" (${res.statusCode}): ${res.message || "Invalid credentials"}`,
+    );
     return {
       success: false,
       error: res.message || "Invalid credentials",

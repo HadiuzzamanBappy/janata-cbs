@@ -81,9 +81,10 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
       });
 
     try {
-      const targetControl = (schema.controllerName && schema.controllerName.trim() !== "")
-        ? schema.controllerName.trim()
-        : schema.code;
+      const targetControl =
+        schema.controllerName && schema.controllerName.trim() !== ""
+          ? schema.controllerName.trim()
+          : schema.code;
 
       const queryRes = await cbs.send<unknown>(
         cbs.inquiry.executeQuery(targetControl, {

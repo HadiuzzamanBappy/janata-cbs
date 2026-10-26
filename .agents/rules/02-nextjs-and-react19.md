@@ -1,6 +1,6 @@
 # 02: Modern Next.js (App Router) & React 19 Standards
 
-## 1. Asynchronous Dynamic APIs (Next.js Breaking Changes)
+## 1. Asynchronous Dynamic APIs (Next.js 16)
 
 Next.js dynamically-evaluated parameters and request contexts are asynchronous Promises:
 - **Cookies & Headers:** ALWAYS `await` them:
@@ -10,7 +10,7 @@ Next.js dynamically-evaluated parameters and request contexts are asynchronous P
   const cookieStore = await cookies();
   const token = cookieStore.get("cbs_token")?.value;
 
-  // INCORRECT - will trigger fatal runtime deprecation/error
+  // INCORRECT - fatal runtime error
   const token = cookies().get("cbs_token")?.value;
   ```
 - **Page Props (`params` & `searchParams`):**
@@ -28,22 +28,18 @@ Next.js dynamically-evaluated parameters and request contexts are asynchronous P
 
 ## 2. React 19 JSX & Script Rules
 
-- **No Raw Script Tags in Components:** React 19 prohibits inserting plain string children inside `<script>` elements during client hydration.
+- **No Raw Script Tags:** React 19 prohibits inserting plain string children inside `<script>` elements during client hydration. Always use `dangerouslySetInnerHTML`.
 
   ```tsx
-  // CORRECT
   <script
     dangerouslySetInnerHTML={{
       __html: `try{var s=localStorage.getItem('theme');...}catch(e){}`,
     }}
   />
-
-  // INCORRECT - will throw [browser] Encountered a script tag while rendering React component
-  <script>{`try{...}`}</script>
   ```
 
 ## 3. Server Components by Default & Boundary Pruning
 
 - Default to React Server Components (RSC) for all layouts, root wrappers, and data-fetching pages.
-- Add `"use client"` only at leaf components requiring browser APIs, event listeners, or Zustand store hooks.
-- **Root Provider Wrapping**: Any component using Zustand store hooks (`useSessionStore`, `useWorkbenchStore`, `useAlertStore`) must be contained inside `<CbsAppStoreProvider>`. Root layouts must mount `<CbsAppStoreProvider>` around all application children.
+- Add `"use client"` only at leaf components requiring browser APIs, interactive hooks, or Zustand stores.
+- **Root Provider Wrapping**: Components using Zustand store hooks (`useSessionStore`, `useWorkbenchStore`, `useAlertStore`) must be inside `<CbsAppStoreProvider>`.

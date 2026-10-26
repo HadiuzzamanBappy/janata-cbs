@@ -148,14 +148,17 @@ async function runSuite() {
     const gmcModelInput = { requestType: "GMC", controlName: "ACCOUNT" };
     const gmcModelRes = getMockProxyResponse("GMC", "ACCOUNT");
     const gmcModelData = gmcModelRes.data as Record<string, unknown> | undefined;
+    const gmcModelProps = (gmcModelData?.PROPERTIES ?? gmcModelData?.properties) as
+      | unknown[]
+      | undefined;
     recordTest(
       "4a. Metamodel Model Schema Introspection (GMC -> MODEL.CONFIG)",
       gmcModelInput,
       {
-        tableName: gmcModelData?.tableName,
-        propertiesCount: (gmcModelData?.properties as unknown[])?.length,
+        tableName: gmcModelData?.TABLENAME ?? gmcModelData?.tableName,
+        propertiesCount: gmcModelProps?.length,
       },
-      gmcModelRes.status === "SUCCESS" && Boolean((gmcModelData?.properties as unknown[])?.length),
+      gmcModelRes.status === "SUCCESS" && Boolean(gmcModelProps?.length),
     );
 
     // 4b. Form Configuration (when form layout version passed)

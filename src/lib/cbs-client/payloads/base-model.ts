@@ -56,7 +56,7 @@ export function createModelPayloads<TData = Record<string, unknown>>(
   controlName: CbsControlTable | string,
   defaultOptions?: ModelOptions,
 ): CbsModelPayloadFactory<TData> {
-  const control = controlName.trim().toUpperCase();
+  const control = (controlName || "").trim().toUpperCase();
   const servicePath = defaultOptions?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
 
   const toPayload = (

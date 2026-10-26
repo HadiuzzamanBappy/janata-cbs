@@ -2,20 +2,20 @@ import type { RawControlRecord } from "@/lib/data-schemas/control-schema";
 import type { CbsVersionedTable } from "./types";
 
 /* -------------------------------------------------------------------------- */
-/* SC_CONTROL$LIVE (Authorized Production Control Master)                     */
+/* SC_CONTROL (Authorized Production Control Master)                          */
 /* Strictly contains non-system business application controls                 */
 /* (System administrative canvases are declared in catalog.ts)                */
 /* Key is the canonical control record ID; inline recordId is omitted         */
 /* -------------------------------------------------------------------------- */
 
-export const SC_CONTROL_LIVE: Record<string, RawControlRecord> = {
+export const SC_CONTROL: Record<string, RawControlRecord> = {
   ACCOUNT: {
     command: "ACCOUNT",
     title: "Account Master",
     aliases: ["AC"],
     actionType: "SCREEN",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -30,7 +30,7 @@ export const SC_CONTROL_LIVE: Record<string, RawControlRecord> = {
     aliases: ["BR"],
     actionType: "SCREEN",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -45,7 +45,7 @@ export const SC_CONTROL_LIVE: Record<string, RawControlRecord> = {
     aliases: ["CMD"],
     actionType: "SCREEN",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -60,7 +60,7 @@ export const SC_CONTROL_LIVE: Record<string, RawControlRecord> = {
     aliases: ["CUST"],
     actionType: "SCREEN",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -75,7 +75,7 @@ export const SC_CONTROL_LIVE: Record<string, RawControlRecord> = {
     aliases: ["USR"],
     actionType: "SCREEN",
     auditData: {
-      recStatus: "LIVE",
+      recStatus: "AU",
       recCurrNumber: 1,
       recInputter: "SYSTEM",
       recInputTime: "2026-01-01 00:00:00",
@@ -87,50 +87,18 @@ export const SC_CONTROL_LIVE: Record<string, RawControlRecord> = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* SC_CONTROL$NAU / $INAU (Input / Unauthorized Records)                      */
+/* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
 /* -------------------------------------------------------------------------- */
 
 export const SC_CONTROL_INAU: Record<string, RawControlRecord> = {};
-
-/* -------------------------------------------------------------------------- */
-/* SC_CONTROL$HIS (Historical Audit Trail Snapshots)                          */
-/* -------------------------------------------------------------------------- */
-
-export const SC_CONTROL_HIS: Record<string, RawControlRecord[]> = {
-  ACCOUNT: [
-    {
-      command: "ACCOUNT",
-      title: "Account Initial Setup",
-      aliases: ["AC"],
-      actionType: "SCREEN",
-      auditData: {
-        recStatus: "LIVE",
-        recCurrNumber: 1,
-        recInputter: "SYSTEM",
-        recInputTime: "2025-01-01 00:00:00",
-        recAuthorizer: "SYSTEM",
-        recAuthTime: "2025-01-01 00:05:00",
-        recBranchCode: "JB9999",
-      },
-    },
-  ],
-};
-
-/* -------------------------------------------------------------------------- */
-/* SC_CONTROL$DEL (Reversed / Soft-Deleted Controls)                          */
-/* -------------------------------------------------------------------------- */
-
+export const SC_CONTROL_HIS: Record<string, RawControlRecord[]> = {};
 export const SC_CONTROL_DEL: Record<string, RawControlRecord> = {};
 
-/* -------------------------------------------------------------------------- */
-/* Versioned CBS Table Bundle                                                 */
-/* -------------------------------------------------------------------------- */
-
 export const SC_CONTROL_TABLE: CbsVersionedTable<RawControlRecord> = {
-  LIVE: SC_CONTROL_LIVE,
+  LIVE: SC_CONTROL,
   INAU: SC_CONTROL_INAU,
   HIS: SC_CONTROL_HIS,
   DEL: SC_CONTROL_DEL,
 };
 
-export const SC_CONTROL_LIST: RawControlRecord[] = Object.values(SC_CONTROL_LIVE);
+export const SC_CONTROL_LIST: RawControlRecord[] = Object.values(SC_CONTROL);

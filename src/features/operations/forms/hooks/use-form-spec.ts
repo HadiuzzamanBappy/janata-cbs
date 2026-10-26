@@ -27,37 +27,46 @@ export function useFormSpec(command: string) {
     try {
       const cleanCmd = command.trim().toUpperCase();
 
-      // 1. First, check if a Form Configuration exists for this exact command
-      const formRes = await cbs.send<FormConfigRecord>(cbs.formConfig.get(cleanCmd), {
-        silent: true,
-      });
-
-      if (formRes.status === "SUCCESS" && formRes.data && "presentation" in formRes.data) {
-        const formConfig = formRes.data;
-        const targetModelName = String(formConfig.targetModel || cleanCmd.split(",")[0] || cleanCmd)
-          .trim()
-          .toUpperCase();
-
-        // Fetch underlying model schema to enrich validation rules
-        let model: ModelConfigRecord | null = null;
-        try {
-          const modelRes = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModelName), {
+      // 1. If command explicitly specifies a version (e.g. ACCOUNT,1.0.0), it MUST exist in FORM.CONFIG
+      if (cleanCmd.includes(",")) {
+        const [app, version] = cleanCmd.split(",");
+        if (version?.trim()) {
+          const formRes = await cbs.send<FormConfigRecord>(cbs.formConfig.get(cleanCmd), {
             silent: true,
           });
-          if (modelRes.status === "SUCCESS" && modelRes.data) {
-            model = modelRes.data;
-            setModelRecord(model);
-          }
-        } catch {
-          // Model fetch is optional; fallback to formConfig standalone
-        }
 
-        const compiled = resolveFormRecord(formConfig, model);
-        setSpec(compiled);
-        return;
+          if (formRes.status === "SUCCESS" && formRes.data && "presentation" in formRes.data) {
+            const formConfig = formRes.data;
+            const targetModelName = String(formConfig.targetModel || app || cleanCmd)
+              .trim()
+              .toUpperCase();
+
+            // Fetch underlying model schema to enrich validation rules
+            let model: ModelConfigRecord | null = null;
+            try {
+              const modelRes = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModelName), {
+                silent: true,
+              });
+              if (modelRes.status === "SUCCESS" && modelRes.data) {
+                model = modelRes.data;
+                setModelRecord(model);
+              }
+            } catch {
+              // Model fetch is optional; fallback to formConfig standalone
+            }
+
+            const compiled = resolveFormRecord(formConfig, model);
+            setSpec(compiled);
+            return;
+          }
+
+          throw new Error(
+            `Version "${cleanCmd}" does not exist in FORM.CONFIG. Please verify the version code or create it in Form Design (FC).`,
+          );
+        }
       }
 
-      // 2. Otherwise, check if it is a pure Model Config (raw table schema)
+      // 2. Base Model Application (e.g. ACCOUNT, CUSTOMER, USER)
       const baseModel = cleanCmd.split(",")[0].trim();
       const modelRes = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(baseModel), {
         silent: true,
@@ -72,7 +81,7 @@ export function useFormSpec(command: string) {
       }
 
       throw new Error(
-        modelRes.message || `Neither Form Config nor Model Schema found for "${cleanCmd}"`,
+        modelRes.message || `No data model schema registered in MODEL.CONFIG for "${baseModel}"`,
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error resolving form specification");

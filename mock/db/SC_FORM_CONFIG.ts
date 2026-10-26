@@ -6,7 +6,7 @@ import type { CbsVersionedTable } from "./types";
  * Simple key-value dictionary keyed by <MODEL>,<VERSION>.
  * All parsing, key decomposition, and hydration happen in @mock/core.
  */
-export const SC_FORM_CONFIG_LIVE: Record<string, FormConfigRecord> = {
+export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
   "ACCOUNT,1.0.0": {
     title: "Retail Account Opening Form",
     description:
@@ -264,10 +264,10 @@ export const SC_FORM_CONFIG_HIS: Record<string, FormConfigRecord[]> = {};
 export const SC_FORM_CONFIG_DEL: Record<string, FormConfigRecord> = {};
 
 export const SC_FORM_CONFIG_TABLE: CbsVersionedTable<FormConfigRecord> = {
-  LIVE: SC_FORM_CONFIG_LIVE,
+  LIVE: SC_FORM_CONFIG,
   INAU: SC_FORM_CONFIG_INAU,
   HIS: SC_FORM_CONFIG_HIS,
   DEL: SC_FORM_CONFIG_DEL,
 };
 
-export const SC_FORM_CONFIG_LIST: FormConfigRecord[] = Object.values(SC_FORM_CONFIG_LIVE);
+export const SC_FORM_CONFIG_LIST: FormConfigRecord[] = Object.values(SC_FORM_CONFIG);

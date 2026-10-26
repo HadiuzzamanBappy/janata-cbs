@@ -1,8 +1,8 @@
 import {
-  SC_FORM_CONFIG_LIVE,
-  SC_INQUIRY_CONFIG_LIVE,
-  SC_MENU_TREE_LIVE,
-  SC_MODEL_CONFIG_LIVE,
+  SC_FORM_CONFIG,
+  SC_INQUIRY_CONFIG,
+  SC_MENU_TREE,
+  SC_MODEL_CONFIG,
 } from "@mock/db";
 import type { CbsWirePayload } from "@/lib/data-schemas";
 import type { ApiResponse } from "@/types";
@@ -14,20 +14,20 @@ import { errorResult, notFoundResult, successResult } from "./response-factory";
 /* -------------------------------------------------------------------------- */
 
 export function getMockMenuPayload(): unknown {
-  return SC_MENU_TREE_LIVE["MENU.MAIN"]?.menuTree ?? [];
+  return SC_MENU_TREE["MENU.MAIN"]?.menuTree ?? [];
 }
 
 export function getMockFormPayload(command: string): unknown {
   const clean = command.trim().toUpperCase();
 
-  // 1. If explicit Form Config exists (e.g. ACCOUNT,1.0.0 or USER,1.0.0), return the form layout
-  if (SC_FORM_CONFIG_LIVE[clean]) {
-    return SC_FORM_CONFIG_LIVE[clean];
+  // 1. If explicit Form Config exists (e.g. ACCOUNT,1.0.0 or USER,1.0.0), return layout
+  if (SC_FORM_CONFIG[clean]) {
+    return SC_FORM_CONFIG[clean];
   }
 
-  // 2. Otherwise return base Model Config (raw table schema)
+  // 2. Otherwise return base Model Config
   const baseModel = clean.split(",")[0].trim();
-  return SC_MODEL_CONFIG_LIVE[baseModel] || SC_MODEL_CONFIG_LIVE[clean] || null;
+  return SC_MODEL_CONFIG[baseModel] || SC_MODEL_CONFIG[clean] || null;
 }
 
 export function getMockInquiryPayload(command: string): unknown {
@@ -38,93 +38,21 @@ export function getMockInquiryPayload(command: string): unknown {
     .replace(/^(?:[SRIDAH]\s+)/i, "")
     .trim();
 
-  // 1. If explicit Inquiry Config exists in SC_INQUIRY_CONFIG (e.g. ACCOUNT), return it
-  if (SC_INQUIRY_CONFIG_LIVE[clean]) {
-    return SC_INQUIRY_CONFIG_LIVE[clean];
+  // 1. If explicit Inquiry Config exists in SC_INQUIRY_CONFIG, return it
+  if (SC_INQUIRY_CONFIG[clean]) {
+    return SC_INQUIRY_CONFIG[clean];
   }
 
-  // 2. Fallback: Synthesize raw Model Inquiry from MODEL.CONFIG
+  // 2. Fallback: Synthesize raw Model Inquiry dynamically from MODEL.CONFIG properties
   const model =
-    SC_MODEL_CONFIG_LIVE[clean] ||
-    SC_MODEL_CONFIG_LIVE[clean.replace(/\./g, "_")] ||
-    SC_MODEL_CONFIG_LIVE[clean.replace(/_/g, ".")];
+    SC_MODEL_CONFIG[clean] ||
+    Object.values(SC_MODEL_CONFIG).find((m) => m.tableName === clean);
 
   if (!model) return null;
 
-  // Use model.properties directly, or fallback to standard metamodel table properties if empty (e.g. MODEL.CONFIG itself)
-  const rawProps =
-    Array.isArray(model.properties) && model.properties.length > 0
-      ? model.properties
-      : [
-          {
-            sn: "1",
-            name: "tableName",
-            label: "Table Name",
-            type: "Text" as const,
-            length: 50,
-            required: true,
-            disabled: false,
-            status: "ACTIVE" as const,
-            structure: "S" as const,
-          },
-          {
-            sn: "2",
-            name: "description",
-            label: "Description",
-            type: "Text" as const,
-            length: 150,
-            required: true,
-            disabled: false,
-            status: "ACTIVE" as const,
-            structure: "S" as const,
-          },
-          {
-            sn: "3",
-            name: "prefix",
-            label: "Table Prefix",
-            type: "Text" as const,
-            length: 10,
-            required: false,
-            disabled: false,
-            status: "ACTIVE" as const,
-            structure: "S" as const,
-          },
-          {
-            sn: "4",
-            name: "category",
-            label: "Category",
-            type: "Text" as const,
-            length: 30,
-            required: false,
-            disabled: false,
-            status: "ACTIVE" as const,
-            structure: "S" as const,
-          },
-          {
-            sn: "5",
-            name: "access",
-            label: "Access Level",
-            type: "Text" as const,
-            length: 10,
-            required: true,
-            disabled: false,
-            status: "ACTIVE" as const,
-            structure: "S" as const,
-          },
-          {
-            sn: "6",
-            name: "isActive",
-            label: "Is Active",
-            type: "Boolean" as const,
-            length: 1,
-            required: false,
-            disabled: false,
-            status: "ACTIVE" as const,
-            structure: "S" as const,
-          },
-        ];
+  const rawProps = Array.isArray(model.properties) ? model.properties : [];
 
-  // Build columns from model properties
+  // Build inquiry columns from model properties
   const columns = rawProps.map((prop) => {
     const isAmount = prop.type?.toLowerCase() === "amount";
     const isDate = prop.type?.toLowerCase() === "date";
@@ -143,7 +71,7 @@ export function getMockInquiryPayload(command: string): unknown {
     };
   });
 
-  // Build filter fields from all non-disabled model properties
+  // Build inquiry filters from active model properties
   const filters = rawProps
     .filter((prop) => !prop.disabled)
     .map((prop) => {
@@ -161,7 +89,6 @@ export function getMockInquiryPayload(command: string): unknown {
       };
     });
 
-  // Return synthesized Enquiry spec contract
   return {
     id: clean,
     code: clean,
@@ -177,7 +104,7 @@ export function getMockInquiryPayload(command: string): unknown {
       {
         id: "view_rec",
         label: "View",
-        targetCommand: `${clean},SEE`,
+        targetCommand: clean,
         actionType: "view",
         icon: "eye",
         openMode: "tab",
@@ -185,7 +112,7 @@ export function getMockInquiryPayload(command: string): unknown {
       {
         id: "edit_rec",
         label: "Edit",
-        targetCommand: `${clean},EDIT`,
+        targetCommand: clean,
         actionType: "edit",
         icon: "edit",
         openMode: "tab",
@@ -216,15 +143,10 @@ export function handleGetModelConfig(payload: CbsWirePayload): ApiResponse {
 /** Handles INQ (Dynamic Inquiry Execution) */
 export function handleInquiry(payload: CbsWirePayload): ApiResponse {
   const cleanKey = (payload.controlName || payload.recordId || "").trim().toUpperCase();
-  const inqSpec =
-    SC_INQUIRY_CONFIG_LIVE[cleanKey] ||
-    (payload.controlName ? SC_INQUIRY_CONFIG_LIVE[payload.controlName] : undefined) ||
-    (payload.recordId ? SC_INQUIRY_CONFIG_LIVE[payload.recordId] : undefined);
+  const inqSpec = SC_INQUIRY_CONFIG[cleanKey];
 
   if (inqSpec) {
-    const targetModel = String(inqSpec.controllerName || inqSpec.targetModel || cleanKey)
-      .trim()
-      .toUpperCase();
+    const targetModel = String(inqSpec.controllerName || inqSpec.targetModel || cleanKey).trim().toUpperCase();
     const table = resolveTable(targetModel);
     return successResult(table?.getList() ?? [], "Inquiry data loaded from canonical table");
   }
@@ -274,29 +196,20 @@ export function handleSeeRecord(payload: CbsWirePayload): ApiResponse {
 
   const upperId = recId.toUpperCase();
   const hasVersion = upperId.includes(",");
-  const baseKey = upperId.split(",")[0].trim();
-  const versionKey = hasVersion ? upperId.split(",")[1].trim() : "";
-  const compositeKey = hasVersion ? `${baseKey},${versionKey}` : "";
+  const compositeKey = hasVersion
+    ? `${upperId.split(",")[0].trim()},${upperId.split(",")[1].trim()}`
+    : "";
 
-  const matchingKey =
-    (table.LIVE[recId] ? recId : null) ||
-    (table.LIVE[upperId] ? upperId : null) ||
-    (compositeKey && table.LIVE[compositeKey] ? compositeKey : null) ||
-    (!hasVersion && table.LIVE[baseKey] ? baseKey : null) ||
-    (table.prefix && table.LIVE[`${table.prefix}${recId}`] ? `${table.prefix}${recId}` : null) ||
-    (table.prefix && table.LIVE[`${table.prefix}${upperId}`]
-      ? `${table.prefix}${upperId}`
-      : null) ||
-    Object.keys(table.LIVE).find(
-      (k) => k.toUpperCase() === upperId || (compositeKey && k.toUpperCase() === compositeKey),
-    );
+  // Direct, clean key resolution: exact key, uppercase key, composite key, or prefix-prepended key
+  const rawRecord =
+    table.LIVE[recId] ||
+    table.LIVE[upperId] ||
+    (compositeKey ? table.LIVE[compositeKey] : undefined) ||
+    (table.prefix ? table.LIVE[`${table.prefix}${upperId}`] : undefined);
 
-  const rawRecord = matchingKey ? table.LIVE[matchingKey] : null;
-
-  if (!rawRecord || !matchingKey) {
-    // If querying INQUIRY.CONFIG table for a model (e.g. MODEL.CONFIG or USER) and no custom inquiry config exists,
-    // dynamically synthesize raw inquiry schema from MODEL.CONFIG properties!
-    if (cmd === "INQUIRY.CONFIG" || cmd === "CONFIG.INQUIRY" || cmd === "INQUIRY_CONFIG") {
+  if (!rawRecord) {
+    // If querying INQUIRY.CONFIG table for a model without custom inquiry, synthesize raw schema
+    if (cmd === "INQUIRY.CONFIG") {
       const fallbackInquiry = getMockInquiryPayload(recId);
       if (fallbackInquiry) {
         return successResult(fallbackInquiry, `Synthesized raw model inquiry for ${recId}`);
@@ -306,14 +219,13 @@ export function handleSeeRecord(payload: CbsWirePayload): ApiResponse {
     return notFoundResult(`Record #${recId} not found in database table ${cmd}`);
   }
 
-  const hasComma = matchingKey.includes(",");
+  const resolvedId = (rawRecord.recordId || rawRecord.id || recId) as string;
+  const hasComma = recId.includes(",");
   const targetModel =
     rawRecord.targetModel ||
     rawRecord.controllerName ||
-    (hasComma ? matchingKey.split(",")[0].trim() : undefined);
-  const version = rawRecord.version || (hasComma ? matchingKey.split(",")[1]?.trim() : undefined);
-
-  const resolvedId = (rawRecord.recordId || rawRecord.id || matchingKey) as string;
+    (hasComma ? recId.split(",")[0].trim() : undefined);
+  const version = rawRecord.version || (hasComma ? recId.split(",")[1]?.trim() : undefined);
 
   const recordWithId = {
     recordId: resolvedId,
@@ -332,12 +244,11 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
   const table = resolveTable(clean);
   const inputId = (payload.recordId || "").trim().toUpperCase();
 
-  // 1. If an ID was provided and it already exists in the table, return the existing record in Edit Mode
+  // 1. If an ID was provided and it already exists in the table, return existing record in Edit Mode
   if (inputId && table) {
     const existing =
       table.LIVE[inputId] ||
-      (table.prefix && table.LIVE[`${table.prefix}${inputId}`]) ||
-      Object.keys(table.LIVE).find((k) => k.toUpperCase() === inputId && table.LIVE[k]);
+      (table.prefix && table.LIVE[`${table.prefix}${inputId}`]);
 
     if (existing) {
       const rec = typeof existing === "object" ? existing : {};
@@ -349,17 +260,10 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
   }
 
   // 2. Resolve Model schema metadata to check ID definition
-  const model =
-    SC_MODEL_CONFIG_LIVE[clean] ||
-    SC_MODEL_CONFIG_LIVE[clean.replace(/\./g, "_")] ||
-    SC_MODEL_CONFIG_LIVE[clean.replace(/_/g, ".")];
+  const model = SC_MODEL_CONFIG[clean];
+  const isUserDefineId = Boolean(model?.userDefineId) || clean === "MODEL.CONFIG";
 
-  const isUserDefineId =
-    Boolean(model?.userDefineId) || clean === "MODEL.CONFIG" || clean === "CONFIG.MODEL";
-
-  // 3. If model is userDefineId:
-  //    - If user provided an ID: initialize draft with that ID.
-  //    - If user did NOT provide an ID: return error! User-defined models require the user to specify an ID.
+  // 3. User-defined models require the operator to specify the Record ID
   if (isUserDefineId) {
     if (!inputId) {
       return errorResult(
@@ -379,7 +283,7 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
     );
   }
 
-  // 4. Otherwise, model uses system sequence allocation (e.g. ACCOUNT)
+  // 4. Otherwise, system auto-allocates next sequence number (e.g. ACCOUNT -> AC1004)
   const prefix = model?.idDef?.idPrefix || model?.prefix || clean.slice(0, 2);
   const generatedId = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
   return successResult(
@@ -388,7 +292,7 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
   );
 }
 
-/** Handles Mutations (PUT, AUT, DEL, HLD, REV) */
+/** Handles Mutations (PUT, AUT, DEL, HLD, REV) with consistent audit status */
 export function handleMutation(payload: CbsWirePayload): ApiResponse {
   const reqType = (payload.requestType || "").trim().toUpperCase();
   const statusMap: Record<string, { label: string; code: string }> = {
@@ -397,6 +301,7 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
     HLD: { label: "held", code: "HLD" },
     DEL: { label: "deleted", code: "DEL" },
     REV: { label: "reversed", code: "REV" },
+    PUT: { label: "saved", code: "INA" },
     SMC: { label: "saved", code: "INA" },
     SFC: { label: "saved", code: "INA" },
   };
@@ -405,6 +310,7 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
     label: "saved",
     code: "INA",
   };
+
   const targetId =
     payload.recordId ||
     (payload.data?.id as string) ||
@@ -413,12 +319,20 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
 
   const cmd = (payload.controlName || "").trim().toUpperCase();
   const table = resolveTable(cmd);
+  const existingRecord = table?.LIVE[targetId] || {};
+  const currentAudit = (existingRecord.auditData as Record<string, unknown> | undefined) || {};
+
   const updatedRecord = {
-    ...(table?.LIVE[targetId] || {}),
+    ...existingRecord,
     ...(payload.data || {}),
     recordId: targetId,
     id: targetId,
     RECORD_STATUS: code,
+    auditData: {
+      ...currentAudit,
+      recStatus: code,
+      recCurrNumber: Number(currentAudit.recCurrNumber || 1) + (code === "AU" ? 1 : 0),
+    },
   };
 
   if (table?.LIVE) {

@@ -12,7 +12,7 @@ It powers the system when running in static mode (`DATA_SOURCE="static"` in `.en
 mock/core/
 ├── database-router.ts       # Resolves logical controlName to canonical CBS_DATABASE tables
 ├── operation-handlers.ts    # Pattern-based protocol handlers for CBS verbs (GUM, GMC, GRL, GET, etc.)
-├── auth-simulator.ts        # User authentication & JWT token generation from SYS_USER
+├── auth-simulator.ts        # User authentication & JWT token generation from SC_USER
 ├── response-factory.ts      # Standardized response envelopes (200, 404, 401, GrpcResponse)
 ├── index.ts                 # Public barrel: mockLogin, mockProcess, mockDispatch, getMockProxyResponse
 └── README.md                # Documentation & architectural reference
@@ -28,13 +28,13 @@ flowchart TD
     
     Client --> Route["mock-core/index.ts<br/>(Request Dispatcher)"]
 
-    Route -- "loginProcess" --> Auth["auth-simulator.ts<br/>(SYS_USER Authentication & Token Generation)"]
+    Route -- "loginProcess" --> Auth["auth-simulator.ts<br/>(SC_USER Authentication & Token Generation)"]
     Route -- "grpcProcess / dispatch" --> Op["operation-handlers.ts<br/>(RequestType Verb Router)"]
 
     Op -- "Table Query (GRL, GET)" --> Router["database-router.ts<br/>(Physical Table Resolver)"]
-    Op -- "Menu (GUM)" --> Menu["SC_MENU_TREE_LIVE"]
-    Op -- "Model Spec (GMC)" --> Model["SC_MODEL_CONFIG_LIVE"]
-    Op -- "Inquiry (INQ)" --> Inq["SC_INQUIRY_CONFIG_LIVE"]
+    Op -- "Menu (GUM)" --> Menu["SC_MENU_TREE"]
+    Op -- "Model Spec (GMC)" --> Model["SC_MODEL_CONFIG"]
+    Op -- "Inquiry (INQ)" --> Inq["SC_INQUIRY_CONFIG"]
     Op -- "Next ID (GNI)" --> Seq["model.idDef.idPrefix"]
     Op -- "Mutations (PUT, AUT...)" --> Mut["Lifecycle Status (AU, HLD, DEL)"]
 

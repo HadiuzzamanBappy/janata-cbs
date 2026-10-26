@@ -1,7 +1,7 @@
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import type { CbsVersionedTable } from "./types";
 
-export const SC_MODEL_CONFIG_LIVE: Record<string, ModelConfigRecord> = {
+export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
   "MENU.TREE": {
     tableName: "MENU_TREE",
     description: "Menu Tree",
@@ -833,7 +833,82 @@ export const SC_MODEL_CONFIG_LIVE: Record<string, ModelConfigRecord> = {
       idPattern: "",
       sequenceReset: false,
     },
-    properties: [],
+    properties: [
+      {
+        sn: "1",
+        name: "tableName",
+        label: "Table Name",
+        type: "Text",
+        length: 80,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Target database table name",
+      },
+      {
+        sn: "2",
+        name: "description",
+        label: "Description",
+        type: "Text",
+        length: 250,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Human-readable description of entity",
+      },
+      {
+        sn: "3",
+        name: "prefix",
+        label: "Table Prefix",
+        type: "Text",
+        length: 10,
+        structure: "S",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "System table prefix (e.g. AC, SC, CUST)",
+      },
+      {
+        sn: "4",
+        name: "access",
+        label: "Access Level",
+        type: "Text",
+        length: 5,
+        structure: "S",
+        required: true,
+        disabled: false,
+        status: "ACTIVE",
+        enrichText: "Scope classification: Global (G) or Branch (B)",
+      },
+      {
+        sn: "5",
+        name: "userDefineId",
+        label: "User Defined ID",
+        type: "Boolean",
+        length: 1,
+        structure: "S",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        defaultValue: false,
+        enrichText: "Operator supplies ID rather than auto-generator",
+      },
+      {
+        sn: "6",
+        name: "authorize",
+        label: "Requires Authorization",
+        type: "Boolean",
+        length: 1,
+        structure: "S",
+        required: false,
+        disabled: false,
+        status: "ACTIVE",
+        defaultValue: false,
+        enrichText: "Enforces maker-checker authorization workflow",
+      },
+    ],
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -909,10 +984,10 @@ export const SC_MODEL_CONFIG_HIS: Record<string, ModelConfigRecord[]> = {};
 export const SC_MODEL_CONFIG_DEL: Record<string, ModelConfigRecord> = {};
 
 export const SC_MODEL_CONFIG_TABLE: CbsVersionedTable<ModelConfigRecord> = {
-  LIVE: SC_MODEL_CONFIG_LIVE,
+  LIVE: SC_MODEL_CONFIG,
   INAU: SC_MODEL_CONFIG_INAU,
   HIS: SC_MODEL_CONFIG_HIS,
   DEL: SC_MODEL_CONFIG_DEL,
 };
 
-export const SC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.values(SC_MODEL_CONFIG_LIVE);
+export const SC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.values(SC_MODEL_CONFIG);

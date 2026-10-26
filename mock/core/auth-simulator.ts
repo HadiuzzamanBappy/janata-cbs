@@ -1,6 +1,6 @@
 import "server-only";
 
-import { SYS_USER_LIVE, type UserRecord } from "@mock/db";
+import { SC_USER, type UserRecord } from "@mock/db";
 import type { GrpcResponse, LoginRequest } from "@/lib/infra-grpc/generated/service";
 
 /**
@@ -33,28 +33,16 @@ export function buildMockUserAuthResponse(user: UserRecord): GrpcResponse {
   };
 }
 
-/**
- * Canonical user authentication response catalog.
- */
-export const SYS_USER_AUTH_RESPONSES: Record<string, GrpcResponse> = Object.fromEntries(
-  Object.entries(SYS_USER_LIVE).map(([signon, user]) => [signon, buildMockUserAuthResponse(user)]),
-);
-
 export function getMockUserResponse(username?: string, password?: string): GrpcResponse | null {
-  if (!username) return null;
-  const clean = username.trim().toUpperCase();
+  if (!username || !password) return null;
+  const cleanUser = username.trim().toUpperCase();
 
-  // Find user strictly by entry key (username) or fallback to matching userId
-  const matchingEntry = Object.entries(SYS_USER_LIVE).find(
-    ([key, u]) => key.toUpperCase() === clean || u.userId?.toUpperCase() === clean,
-  );
+  // Find user strictly by signon ID or userId
+  const user = SC_USER[cleanUser] || Object.values(SC_USER).find((u) => u.userId.toUpperCase() === cleanUser);
+  if (!user) return null;
 
-  if (!matchingEntry) return null;
-
-  const [_, user] = matchingEntry;
-
-  // If password was provided, verify it matches
-  if (password !== undefined && user.password && user.password !== password) {
+  // Strict password verification
+  if (!user.password || user.password !== password) {
     return null;
   }
 
@@ -63,21 +51,16 @@ export function getMockUserResponse(username?: string, password?: string): GrpcR
 
 /**
  * Simulates Core gRPC login process from local user fixtures.
- * Properly checks username (entry ID) and password.
+ * Strictly verifies that both username and password are provided and match.
  */
 export async function mockLogin(
   req: LoginRequest | { signon?: string; username?: string; password?: string },
 ): Promise<GrpcResponse> {
-  const username =
-    "username" in req && req.username
-      ? req.username
-      : "signon" in req && req.signon
-        ? req.signon
-        : "";
-  const password = "password" in req && req.password ? req.password : undefined;
+  const username = ("username" in req && req.username) || ("signon" in req && req.signon) || "";
+  const password = "password" in req && typeof req.password === "string" ? req.password : "";
 
-  const mock = getMockUserResponse(username, password);
-  if (!mock) {
+  const authResponse = getMockUserResponse(username, password);
+  if (!authResponse) {
     return {
       status: "FAILED",
       statusCode: 401,
@@ -88,5 +71,5 @@ export async function mockLogin(
       data: undefined,
     };
   }
-  return mock;
+  return authResponse;
 }

@@ -107,16 +107,15 @@ export async function getEnquiryData(
   return getOrSet(
     appConfig.redis.cacheKeys.inquirySpec(cleanCmd),
     async () => {
-      const [wireData, rows] = await Promise.all([
-        fetchEnquiryWirePayload(cleanCmd, token),
-        fetchEnquiryRowsWirePayload(cleanCmd, token),
-      ]);
+      const wireData = await fetchEnquiryWirePayload(cleanCmd, token);
       if (!wireData) return null;
       const parseResult = parseEnquiry(wireData, cleanCmd);
       if (!parseResult.success) {
         log.error(`parseEnquiry failed for "${cleanCmd}"`, parseResult.error);
         return null;
       }
+      const dataController = parseResult.data.controllerName?.trim() || cleanCmd;
+      const rows = await fetchEnquiryRowsWirePayload(dataController, token);
       return {
         ...parseResult.data,
         sampleData: rows,

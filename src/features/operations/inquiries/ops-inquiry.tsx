@@ -5,7 +5,7 @@ import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { InquiryEngineTable, InquiryFilterBuilder } from "@/features/inquiry-engine";
 import { cbs } from "@/lib/cbs-client";
-import type { EnquiryRow } from "@/lib/data-schemas";
+import { parseInquiryRecords } from "@/lib/data-parsers";
 import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
 import { useInquiryActions, useInquirySchema, useInquiryState } from "./hooks";
@@ -47,8 +47,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     if (schema?.actions && schema.actions.length > 0) {
       return schema.actions;
     }
-    if (!schema?.commands) return undefined;
-    if (schema.commands.length === 0) return [];
+    if (!schema?.commands || schema.commands.length === 0) return undefined;
     return schema.commands.map((cmd, i) => {
       const isEdit =
         cmd.cmdButton?.toLowerCase().includes("edit") ||
@@ -67,34 +66,62 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
 
   const handleFilterSearch = async (criteria: typeof currentCriteria) => {
     if (!schema) return;
-    let initialDataset = schema.sampleData || [];
 
-    if (initialDataset.length === 0) {
-      try {
-        const queryRes = await cbs.send<Record<string, unknown>[]>(
-          cbs.inquiry.executeQuery(schema.code),
-          { silent: true },
-        );
-        if (queryRes.data && Array.isArray(queryRes.data)) {
-          initialDataset = queryRes.data as EnquiryRow[];
-        }
-      } catch (err) {
-        console.warn("Dynamic inquiry fallback query failed", err);
-      }
+    // Convert UI criteria into CBS inquiry queryString parameters
+    const queryString = Object.entries(criteria)
+      .filter(([_, c]) => c.value && c.value.trim() !== "")
+      .map(([fieldId, c]) => {
+        const fieldDef = schema.selectionFields.find((f) => f.id === fieldId);
+        return {
+          selectFieldName: fieldId,
+          selectFieldType: fieldDef?.type || "text",
+          selectFieldOperator: c.operand || "EQ",
+          selectFieldValue: c.value.trim(),
+        };
+      });
+
+    try {
+      const targetControl = (schema.controllerName && schema.controllerName.trim() !== "")
+        ? schema.controllerName.trim()
+        : schema.code;
+
+      const queryRes = await cbs.send<unknown>(
+        cbs.inquiry.executeQuery(targetControl, {
+          servicePath: schema.inqServicePath,
+          perPage: pageSize || schema.perpageItem || 1000,
+          curPage: 1,
+          queryString,
+        }),
+        { silent: true },
+      );
+
+      const dataset = parseInquiryRecords(queryRes.data);
+
+      setCurrentCriteria(criteria);
+      setFilteredRows(dataset);
+      setCurrentPage(1);
+      setStep("RESULTS");
+
+      toast.add({
+        title: "Query Executed",
+        description: `Matched ${dataset.length} record(s)`,
+        type: "info",
+      });
+    } catch (err) {
+      console.warn("Dynamic inquiry query failed", err);
+      // Fallback to local memory filtering on sample data if available
+      const fallbackDataset = filterDatasetByCriteria(schema.sampleData || [], criteria);
+      setCurrentCriteria(criteria);
+      setFilteredRows(fallbackDataset);
+      setCurrentPage(1);
+      setStep("RESULTS");
+
+      toast.add({
+        title: "Query Fallback",
+        description: `Backend query failed. Matched ${fallbackDataset.length} local records.`,
+        type: "warning",
+      });
     }
-
-    const results = filterDatasetByCriteria(initialDataset, criteria);
-
-    setCurrentCriteria(criteria);
-    setFilteredRows(results);
-    setCurrentPage(1);
-    setStep("RESULTS");
-
-    toast.add({
-      title: "Query Executed",
-      description: `Matched ${results.length} records`,
-      type: "info",
-    });
   };
 
   const handleResetFilters = () => {

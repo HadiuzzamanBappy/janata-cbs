@@ -17,8 +17,8 @@ It acts as the single boundary between the React presentation layer and the serv
 2. **Payload Factories** (`payloads/`):
    - **`cbs.model(controlName)`**: Universal factory providing standard banking operations (`get`, `list`, `save`, `authorize`, `delete`, `hold`, `reverse`).
    - **`cbs.form`**: Dynamic form record actions (`fetchRecord`, `commitRecord`, `authorizeRecord`, `deleteRecord`, `holdRecord`, `reverseRecord`).
-   - **`cbs.inquiry`**: Dynamic enquiry queries (`executeQuery`, `fetchSingleRecord`) with filter criteria and pagination.
-   - **`cbs.menu`**: Flat menu items (`SC.MENU`) and hierarchical tree operations (`SC.MENU.TREE`).
+   - **`cbs.formConfig`**: Dedicated form configuration builder (`getConfig`, `saveConfig`) via `CONFIG.FORM`.
+   - **`cbs.inquiry`**: Dynamic enquiry runtime execution (`executeQuery`).
    - **`cbs.userSecurity`**: Password change (`CPW`), sign-on username change (`CUN`), and reset requests.
 
 ---

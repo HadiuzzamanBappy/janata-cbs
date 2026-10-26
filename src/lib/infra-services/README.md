@@ -70,7 +70,7 @@ export async function GET(req: Request) {
 
   // Fetches from Redis cache, falls back to gRPC/mock, parses via GMC
   const schema = await getFormData(command);
-  
+
   if (!schema) {
     return NextResponse.json({ error: "Form not found" }, { status: 404 });
   }
@@ -125,9 +125,11 @@ You can toggle the entire backend behavior using `.env.local`:
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. BFF Gateway Architecture: **SEALED**
+
 Dual-mode switching, session context resolution, version fallback mechanics, and Redis caching patterns are finalized.
 
 ### 2. Domain Services: **SCALABLE**
+
 When adding a new business domain (e.g., Loan Product Service):
 - Create `loan-service.ts` following the standard `getOrSet()` + `resolveServiceContext()` pattern.
 - Add mock fixture to `mock-service.ts` under `getStaticData("LOAN")`.

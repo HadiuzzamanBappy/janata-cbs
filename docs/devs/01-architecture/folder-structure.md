@@ -1,6 +1,7 @@
 # 📁 Domain-Driven Design (DDD) Folder Architecture & Colocation Rules
 
 ## 1. Executive Summary & Purpose
+
 This document defines the official, production folder structure for `finxui-ref`. It enforces a **Domain-Driven Design (DDD)** / Feature-Sliced architecture customized for the Next.js 16 App Router (React 19).
 
 This structure ensures clean separation of concerns, strict boundary isolation, zero cyclic dependencies, server-only safety, and predictable file locations for both human engineers and AI coding agents.
@@ -135,6 +136,7 @@ finxui-ref/
 Every business capability lives inside its dedicated domain directory under `src/features/`.
 
 ### Standard Feature Folder Layout
+
 ```text
 src/features/<domain-name>/
 ├── index.ts                       # Public API barrel export (ONLY exported symbols accessible outside)
@@ -147,6 +149,7 @@ src/features/<domain-name>/
 ```
 
 ### Feature Boundary Rules
+
 1. **NO Cross-Feature Deep Imports:** A feature under `src/features/auth/` **MUST NOT** import directly from `src/features/screens/forms/components/...`.
 2. **Public API Barrier (`index.ts`):** External code (pages or layouts) importing from a feature MUST import from `@/features/<domain>` (the barrel export), NEVER from deep internal files.
 3. **Shared Utility Promotion:** If logic or UI is required by more than one feature, it MUST be promoted to `src/components/` or `src/lib/`.
@@ -165,12 +168,14 @@ src/features/<domain-name>/
 ## 5. Verification & Anti-Patterns
 
 ### Anti-Patterns to Avoid
+
 - ❌ Creating monolithic 500+ line component files.
 - ❌ Deep relative imports across feature boundaries (e.g. `import { x } from '../../auth/components/login-form'`).
 - ❌ Placing domain business logic inside generic `src/components/ui/` primitives.
 - ❌ Initiating direct gRPC or database calls from client-rendered components.
 
 ### Verification Commands
+
 ```bash
 # Check for type errors and invalid feature imports
 pnpm typecheck
@@ -182,8 +187,8 @@ pnpm lint
 ---
 
 ## 6. Affected Documentation Updates
+
 When modifying directory layouts or colocation rules, the following files MUST be kept in sync:
 - [docs/devs/01-architecture/folder-structure.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/devs/01-architecture/folder-structure.md)
 - [AGENTS.md](file:///d:/CBS/In_house/finx/finxui-ref/AGENTS.md)
 - [README.md](file:///d:/CBS/In_house/finx/finxui-ref/README.md)
-

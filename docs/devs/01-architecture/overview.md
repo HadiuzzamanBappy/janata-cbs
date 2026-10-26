@@ -1,7 +1,8 @@
 # 🏛️ System Topology & Core Banking BFF Architecture
 
 ## 1. Executive Summary & Purpose
-This document defines the high-level system topology, security boundaries, and communication flow for the Janata CBS Core Banking Workbench (`finx-ui`). 
+
+This document defines the high-level system topology, security boundaries, and communication flow for the Janata CBS Core Banking Workbench (`finx-ui`).
 
 This project acts strictly as the **Presentation Layer and Backend-for-Frontend (BFF)** for the Java Core Banking Engine. It provides a dynamic, schema-driven user interface for banking officers and administrators without exposing backend databases or gRPC transport mechanisms directly to the browser.
 
@@ -36,15 +37,17 @@ flowchart TD
 ## 3. Tier Responsibilities & Boundaries
 
 ### Tier 1: Browser Client (UI Layer)
+
 - **Source of Truth:** User input state, UI active tabs (`useWorkbenchStore`), dynamic form field values, and transient modal dialogs.
 - **Dependencies:** `@tanstack/react-table`, `zustand`, `lucide-react`, `tailwindcss v4`.
-- **MUST NOT:** 
+- **MUST NOT:**
   - Import `@grpc/grpc-js`, `ioredis`, `ts-proto`, or any server-only modules.
   - Access environment variables missing the `NEXT_PUBLIC_` prefix.
   - Make direct HTTP calls to external Java Core gRPC endpoints.
   - Execute core banking transaction calculations or ledger mutations locally.
 
 ### Tier 2: Next.js BFF Server Layer (Gateway & Middleware)
+
 - **Source of Truth:** Session verification, request dispatching, Redis caching, gRPC client pool lifecycle, and Zod boundary validation.
 - **Dependencies:** `import "server-only"`, `@grpc/grpc-js`, `ioredis`, `zod`.
 - **MUST:**
@@ -54,6 +57,7 @@ flowchart TD
   - Inject officer credentials, branch context, and authorization tokens into gRPC metadata headers.
 
 ### Tier 3: Java Core Backend
+
 - **Source of Truth:** Account balances, general ledger state, database persistence, transaction settlement, and GMC form schema configurations.
 - **Boundary:** Isolated behind internal network interfaces. Communicates solely via gRPC defined in [proto/service.proto](file:///d:/CBS/In_house/finx/finxui-ref/proto/service.proto).
 
@@ -62,6 +66,7 @@ flowchart TD
 ## 4. Architectural Invariants & Rules
 
 ### Mandatory Rules (MUST)
+
 1. **MUST** route all client backend requests through [src/app/api/proxy/route.ts](file:///d:/CBS/In_house/finx/finxui-ref/src/app/api/proxy/route.ts) or domain route handlers.
 2. **MUST** protect server-side utilities with `import "server-only"`.
 3. **MUST** validate incoming payloads via Zod before gRPC conversion.
@@ -95,6 +100,7 @@ pnpm lint
 ---
 
 ## 7. Affected Documentation Updates
+
 When modifying the system topology or network interfaces, the following files MUST be updated:
 - [docs/01-architecture/overview.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/01-architecture/overview.md)
 - [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)

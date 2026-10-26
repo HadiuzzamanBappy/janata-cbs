@@ -58,12 +58,15 @@ const customerServiceUrl = getServiceUrl("customer");
 To keep the security boundary intact when adding new configurations, follow these strict rules:
 
 ### Rule 1: Adding a Server Secret / Environment Variable
+
 1. Add the variable and validation rules to `envSchema` in `src/lib/data-schemas/env-schema.ts`.
 2. Map it to `process.env.YOUR_VAR` in `src/lib/core-config/env.ts`.
 3. Expose it under the relevant category (`grpc`, `redis`, `services`) in `src/lib/core-config/server.ts`.
 
 ### Rule 2: Adding a Public Client Setting
+
 1. If it must be configurable per deployment, prefix with `NEXT_PUBLIC_` and add a fallback in `client.ts`:
+
    ```typescript
    export const clientConfig = {
      // ...
@@ -73,6 +76,7 @@ To keep the security boundary intact when adding new configurations, follow thes
 2. If it is a static banking invariant (route, localStorage key, format), add it directly into `client.ts`.
 
 ### Rule 3: Adding a Microservice Endpoint
+
 Add the endpoint entry to the `SERVICES` registry in `src/lib/core-config/server.ts`:
 ```typescript
 export const SERVICES: Record<string, ServiceDef> = {

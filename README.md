@@ -8,9 +8,10 @@ This project is built around a clean, **Domain-Driven Architecture (DDD)**. It f
 
 ## 🌍 Scope & Position in the Ecosystem
 
-Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of the Core Banking System. 
+Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of the Core Banking System.
 
 ### What it DOES:
+
 - Provides a fast, interactive, high-density interface for tellers, branch officers, and administrators.
 - Dynamically renders forms (`FormScreen`) and inquiry data views (`InquiryScreen`) from backend metadata specs.
 - Enforces strict banking role permissions (`RIDASHL`) and Maker-Checker (Four-Eyes) validation in the UI.
@@ -18,11 +19,13 @@ Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of 
 - Translates client requests to backend gRPC payloads securely through Next.js server proxies.
 
 ### What it DOES NOT DO (Limitations):
+
 - **No Direct Database Access:** Zero direct connections to the banking database. All state persistence flows through core backend services.
 - **No Direct gRPC from Browser:** The client bundle NEVER imports or invokes gRPC channels directly; everything flows through the `/api/proxy` gateway.
 - **No Core Financial Execution:** Complex banking ledger updates, interest calculations, and transaction settlement remain within the Java Core backend.
 
 ### System Flow
+
 1. **Browser (Client):** User interacts with React 19 UI (Tailwind CSS v4, Base UI, shadcn/ui primitives).
 2. **Next.js Server Gateway (BFF):** Validates client payloads via Zod, checks session tokens, interacts with Redis caching, and routes requests via `@grpc/grpc-js` (or mock fallback).
 3. **Java Core Backend:** Receives gRPC payloads, executes banking logic, updates database ledgers, and responds.
@@ -116,6 +119,7 @@ src/
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v20+)
 - [pnpm](https://pnpm.io/)
 - A running Java Core Banking backend (or enable static mock fallback)

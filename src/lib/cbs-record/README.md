@@ -11,12 +11,14 @@ It manages immutable baseline snapshots, evaluates whether working drafts are di
 The library provides four core APIs across two modules:
 
 ### 1. Baseline Management (`baseline.ts`)
+
 - **`createBaseline(record, ignoredKeys?)`**: Creates a frozen, deep-cloned immutable snapshot (`RecordBaseline<T>`) representing the pristine record as fetched from the backend.
 - **`evaluateDirty(baselineHolder, current, additionalIgnoredKeys?)`**: Pure evaluator that checks whether current working values differ from the established baseline snapshot. Returns a full `CbsDeltaPatch`.
 - **`rebaseline(current, ignoredKeys?)`**: Resets the baseline snapshot to the current working record following a successful commit or re-fetch, resetting the dirty state to clean (`isDirty: false`).
 - **`RecordBaseline<T>`**: Immutable container interface holding the frozen baseline object and ignored field list.
 
 ### 2. Delta Engine (`delta-engine.ts`)
+
 - **`computeDelta(original, current, ignoredKeys?)`**: Pure deep-comparison function that isolates modified fields between any two record states.
 - **`CbsDeltaPatch<T>`**: Standard TypeScript contract representing the calculated patch:
   - `modifiedFields`: Key-value dictionary containing only touched/updated properties.
@@ -84,8 +86,8 @@ let baseline = createBaseline(record, ["lastUpdated", "version"]);
 const draft = { ...record, title: "Janata Premium Savings" };
 const dirtyCheck = evaluateDirty(baseline, draft);
 
-console.log(dirtyCheck.isDirty);       // true
-console.log(dirtyCheck.dirtyKeys);     // ["title"]
+console.log(dirtyCheck.isDirty); // true
+console.log(dirtyCheck.dirtyKeys); // ["title"]
 console.log(dirtyCheck.modifiedFields); // { title: "Janata Premium Savings" }
 
 // 3. User reverts the change

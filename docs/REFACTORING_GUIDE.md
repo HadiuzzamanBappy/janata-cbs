@@ -171,6 +171,7 @@ Phase 7: scripts/ (Validation Suites)
 The foundation of offline simulation and test automation.
 
 #### 1.1 `mock/db/` — Database Tables & Schemas
+
 - [ ] **`types.ts`**: Define `CbsTableVersion` (`"LIVE"` | `"HIST"` | `"UNAUTH"`), `CbsVersionedTable<T>`, and `queryVersionedRecord()`.
 - [ ] **Physical Tables**:
   - `SC_MODEL_CONFIG.ts`: The universal metamodel table. Verify it includes `MODEL.CONFIG`, `FORM.CONFIG`, `INQUIRY.CONFIG`, `ACCOUNT`, `CUSTOMER`, `USER`, `BRANCH`, `USER.GROUP`.
@@ -183,6 +184,7 @@ The foundation of offline simulation and test automation.
   - Export `queryCbsDatabase(tableOrModel, recordId, version)`.
 
 #### 1.2 `mock/core/` — Protocol Simulator Engine
+
 - [ ] **`database-router.ts`**:
   - `resolveTable(controlName)`: Automatically resolves logical control (`ACCOUNT`) to physical database table (`AC_ACCOUNT`) via `SC_MODEL_CONFIG`.
   - Format helpers for customer, control, and system user records.
@@ -212,6 +214,7 @@ The foundation of offline simulation and test automation.
 Establish strong typing and runtime validation boundaries before touching client libraries.
 
 #### 2.1 `src/types/` — Universal TypeScript Contracts
+
 - [ ] **`api.ts`**: Define `ApiResponse<T>`, `ApiErrorResponse`, `ApiEnvelope<T>`.
 - [ ] **`cbs.ts`**:
   - `CbsRecordFunction` (`"S" | "L" | "I" | "A" | "D" | "H" | "R" | "V"`).
@@ -222,6 +225,7 @@ Establish strong typing and runtime validation boundaries before touching client
 - [ ] **`index.ts`**: Re-export all canonical contracts.
 
 #### 2.2 `src/lib/data-schemas/` — Runtime Zod Validation
+
 - [ ] **`common-schema.ts`**: `auditDataSchema` (recStatus, recInputter, recAuthorizer, recBranchCode, recInputTime).
 - [ ] **`model-config-schema.ts`**: Zod schema for `ModelConfigRecord`, properties, widgets, and validations.
 - [ ] **`form-config-schema.ts`**: Zod schema for `FormConfigRecord`, sections, zones, and field placements.
@@ -236,10 +240,12 @@ Establish strong typing and runtime validation boundaries before touching client
 The core engine powering all UI operations. Keep these modules headless and decoupled from React components.
 
 #### 3.1 `src/lib/cbs-client/` — Front-End Micro-Client
+
 - [ ] **`transport/proxy-client.ts`**: `sendCbsRequest<T>(payload, options)` — the **only** channel through which front-end code reaches `/api/proxy`.
 - [ ] **`payloads/base-model.ts`**: `createModelPayloads(controlName)` factory generating `get()`, `list()`, `save()`, `authorize()`, `hold()`, `delete()`, `reverse()`.
 - [ ] **`payloads/form.ts`**, **`payloads/inquiry.ts`**, **`payloads/menu.ts`**, **`payloads/user-security.ts`**.
 - [ ] **`index.ts`**: Export unified singleton `cbs`:
+
   ```typescript
   export const cbs = {
     send: sendCbsRequest,
@@ -256,30 +262,36 @@ The core engine powering all UI operations. Keep these modules headless and deco
   ```
 
 #### 3.2 `src/lib/cbs-command/` — Command Parser & Catalog
+
 - [ ] **`engine/`**: Grammar parser & syntax validator (`"ACCOUNT,SEE"`, `"USER.MGT,NEW1"`, `"CONFIG.INQUIRY"`).
 - [ ] **`registry/catalog.ts`**: Command catalog mapping commands to screen components and default modes.
 - [ ] **`registry/alias-map.ts`**: Fast O(1) canonical alias resolution.
 
 #### 3.3 `src/lib/cbs-form-spec/` — Dynamic Form Presentation Spec Compiler
+
 - [ ] **`compile.ts`**: Dynamic Form Spec Compiler merging `MODEL.CONFIG` properties with `FORM.CONFIG` layout into a typed, validated form schema.
 - [ ] **`field-rules.ts`**: Metamodel field rules, 12-column spans, and validation constraints.
 - [ ] **`index.ts`**: Re-export `compileFormSpec`, `compileModelSpec`, and rule evaluators.
 
 #### 3.4 `src/lib/cbs-record/` — Mutation Delta Engine
+
 - [ ] **`delta-engine.ts`**: `computeTouchDelta(baseline, current)` — evaluates deep diffs so commits only touch modified keys.
 - [ ] **`lifecycle.ts`**: Evaluates status transitions (`NEW` $\rightarrow$ `INA` $\rightarrow$ `AU`).
 
 #### 3.5 `src/lib/cbs-access/` — RIDASHL Capability Evaluator
+
 - [ ] **`parser.ts`**: `parseAccessibilityRights(raw)` normalizes RIDASHL string/array.
 - [ ] **`evaluator.ts`**: `evaluateCbsAccess()` — Four-Eyes evaluator (Authorize requires `INA` & `inputter !== currentUser`).
 - [ ] **`hooks/use-cbs-access.ts`**: React hook consuming `useSessionStore` for easy UI integration.
 
 #### 3.6 `src/lib/cbs-screen/` — Screen Scaffolding Hooks & Inter-Tab Bus
+
 - [ ] **`hooks/use-cbs-persistence.ts`**: Unified screen state management (baseline snapshots, dirty tracking, debounced tab writes).
 - [ ] **`hooks/use-cbs-action-bar.ts`**: Wires F-keys and action bar buttons to screen operations.
 - [ ] **`bus/broadcast.ts`**: `broadcastRecordMutation(control, id)` using native `BroadcastChannel`.
 
 #### 3.7 `src/lib/infra-grpc/` & `src/lib/infra-redis/` — Transport & Infrastructure
+
 - [ ] **`infra-grpc/dispatch.ts`**:
   - Classifies transactions (financial vs nonfinancial).
   - Routes to `@mock/core` when `DATA_SOURCE="static"`.
@@ -288,6 +300,7 @@ The core engine powering all UI operations. Keep these modules headless and deco
 - [ ] **`infra-redis/pool.ts`**: Redis connection pool with circuit breaker (fails open silently when Redis is unavailable).
 
 #### 3.8 `core-config`, `core-logger`, `core-utils`
+
 - [ ] **`core-config/`**: Type-safe isomorphic client/server env validation.
 - [ ] **`core-logger/`**: Structured logger with automatic PII redaction (account numbers, NIDs, JWT tokens).
 - [ ] **`core-utils/`**: BDT currency formatters, account number masks, date formatters.
@@ -299,10 +312,12 @@ The core engine powering all UI operations. Keep these modules headless and deco
 Ensure reusable presentation components adhere to Base UI/Tailwind v4 tokens and don't embed business logic.
 
 #### 4.1 `src/components/ui/` — Atomic UI Primitives
+
 - [ ] Button, Input, Select, Dialog, Dropdown, Table, Badge, Checkbox, Tabs, Tooltip.
 - [ ] Ensure all components are $\le 200$ lines and support dark/light modes.
 
 #### 4.2 `src/components/cbs-screen/` — Universal CBS Screen Shell
+
 - [ ] **`cbs-screen-scaffold.tsx`**:
   - The universal layout for all screens (Header, Record Search bar, Mode Badges, Tab strip, Action Footer).
   - Accepts `auditContext`, `isDirty`, `onValidate`, `onSubmit`, `onHold`, `onDelete`, `onAuthorizeReverse`.
@@ -317,6 +332,7 @@ Ensure reusable presentation components adhere to Base UI/Tailwind v4 tokens and
 Refactor each screen to be a pure consumer of `@/lib/cbs-client`, `@/components/cbs-screen`, and `useCbsPersistence`.
 
 #### 5.1 `src/features/workbench/` — Multi-Tab Desktop Shell
+
 - [ ] **`registry.tsx`**: `resolveScreen(command)`:
   1. Checks bespoke screen map (`MODEL.CONFIG`, `FORM.CONFIG`, `CONFIG.INQUIRY`, `MENU.CATALOG`).
   2. If starts with `INQ`/`INQUIRY`: renders `InquiryScreen`.
@@ -324,16 +340,18 @@ Refactor each screen to be a pure consumer of `@/lib/cbs-client`, `@/components/
 - [ ] **`tabbar/`**: Draggable multi-tab bar with dirty indicators and close confirmation dialog.
 
 #### 5.2 Dynamic Form & Inquiry Engines
+
 - [ ] **`features/form-engine/`**: Headless dynamic form kernel for GMC layouts (150–1,000 fields):
   - **Two-Tier Form State Architecture (Pillar 5)**:
-    - *Tier 1 (Local Kernel State)*: `FormKernelStore` handles instant, isolated keystroke mutations and local formula calculations without triggering global Zustand tree re-renders.
-    - *Tier 2 (Global Tab Store Sync)*: Syncs to `WorkbenchStore` via debounced snapshots (400ms) or field blur events with lightweight `isDirty: true`.
+    - _Tier 1 (Local Kernel State)_: `FormKernelStore` handles instant, isolated keystroke mutations and local formula calculations without triggering global Zustand tree re-renders.
+    - _Tier 2 (Global Tab Store Sync)_: Syncs to `WorkbenchStore` via debounced snapshots (400ms) or field blur events with lightweight `isDirty: true`.
   - Self-subscribing field atoms (`FieldAtom`) to guarantee zero typing latency on dense screens.
 - [ ] **`features/inquiry-engine/`**: Tabular inquiry renderer with server-side pagination, sorting, and drilldown triggers.
   - Zero-clutter, compact table rows (`text-xs`, `h-8`).
   - Auto-synthesized column views for raw models when custom `INQUIRY.CONFIG` is absent.
 
 #### 5.3 System Administration Screens (`src/features/system/`)
+
 Audit each system screen to verify strict CBS protocol conformance:
 - [ ] **`model-config/`** (`SC.MODEL.CONFIG`):
   - Uses `useCbsPersistence<ModelConfigRecord>`.
@@ -359,12 +377,14 @@ Audit each system screen to verify strict CBS protocol conformance:
 The secure gateway guarding downstream Core Banking services.
 
 #### 6.1 `src/proxy.ts` — Edge Request Middleware
+
 - [ ] Cookie presence check (`session_id`).
 - [ ] Redirects unauthenticated requests to `/login`.
 - [ ] Enforces forced password change workflow (`initLoginCookie`).
 - [ ] Excludes `/api/*` (API routes perform real session authentication in route handlers).
 
 #### 6.2 `src/app/api/proxy/route.ts` — The Single BFF Proxy
+
 - [ ] Validates session via `getSession()` from `infra-redis`.
 - [ ] Extracts user ID, branch code, and role profile.
 - [ ] Enforces RIDASHL permissions via `parseAccessibilityRights()` for modifying actions (I, A, D, R).
@@ -418,6 +438,7 @@ When refactoring a specific module, follow these disciplined steps:
 4. **Refactor UI Second**: Update presentation components to consume the standardized hook.
 5. **Verify Locally & Incremental Gate**:
    - Run typecheck and lint:
+
      ```bash
      pnpm typecheck
      pnpm lint

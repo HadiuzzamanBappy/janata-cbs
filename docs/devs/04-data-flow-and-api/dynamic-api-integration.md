@@ -1,6 +1,7 @@
 # 🌐 Dynamic API Integration & Generic Model Architecture
 
 ## 1. Executive Summary & Purpose
+
 This document specifies the Dynamic API Integration architecture for Janata CBS Core Banking Workbench (`finx-ui`).
 
 Instead of exposing thousands of individual REST endpoints for every banking model (Customer, Account, Loan, Deposit, General Ledger), the core backend exposes a unified **Dynamic API**. One generic request envelope handles queries, mutations, authorization workflows, and dynamic UI schema definitions across all core banking models.
@@ -25,12 +26,12 @@ flowchart TD
 
 Dynamic operations specify the exact database action using standard single-character record function codes:
 
-| Code | Function Name | Description |
-| :--- | :--- | :--- |
-| `S` | **Select / Query** | Retrieves model details or inquiry record sets. |
-| `M` | **Mutate / Update** | Submits form field updates or creates new entity drafts. |
-| `A` | **Authorize** | Approves pending transactions (Maker-Checker workflow). |
-| `D` | **Delete / Deactivate** | Soft deletes or deactivates target record instances. |
+| Code | Function Name           | Description                                              |
+| :--- | :---------------------- | :------------------------------------------------------- |
+| `S`  | **Select / Query**      | Retrieves model details or inquiry record sets.          |
+| `M`  | **Mutate / Update**     | Submits form field updates or creates new entity drafts. |
+| `A`  | **Authorize**           | Approves pending transactions (Maker-Checker workflow).  |
+| `D`  | **Delete / Deactivate** | Soft deletes or deactivates target record instances.     |
 
 ---
 
@@ -55,6 +56,7 @@ export interface APIResponse<T = unknown> {
 ## 5. Architectural Invariants & Rules
 
 ### Mandatory Rules (MUST)
+
 - **MUST** parse dynamic data objects against Zod model validation schemas before processing.
 - **MUST** handle `status === "FAIL"` or `status === "ERROR"` by surfacing localized error alerts via `useAlertStore`.
 
@@ -71,6 +73,7 @@ pnpm lint
 ---
 
 ## 7. Affected Documentation Updates
+
 When modifying Dynamic API contracts, update:
 - [docs/04-data-flow-and-api/dynamic-api-integration.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/dynamic-api-integration.md)
 - [docs/04-data-flow-and-api/grpc-and-bff-proxy.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/04-data-flow-and-api/grpc-and-bff-proxy.md)

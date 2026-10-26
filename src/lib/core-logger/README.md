@@ -59,7 +59,7 @@ You do not need to manually sanitize payloads—the logger handles it automatica
 logger.info("Processing user login", {
   username: "teller01",
   password: "super-secret-password", // Automatically redacted
-  accountNo: "AC10000000001",         // Automatically masked
+  accountNo: "AC10000000001", // Automatically masked
 });
 ```
 
@@ -82,9 +82,11 @@ logger.info("Processing user login", {
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. Logger Core (`index.ts`): **SEALED**
+
 Log level priorities, streaming stdout handling, and browser-safe formatting are complete.
 
 ### 2. Redaction Patterns (`redact.ts`): **SCALABLE**
+
 If new sensitive fields or account prefixes are introduced by the banking system:
 - **Adding Sensitive Keys:** Add regex pattern to `SENSITIVE_KEY_PATTERNS` in `redact.ts`.
 - **Adding Account Prefixes:** Update the prefix pattern (e.g. `AC|SB|CD|FD|LN`) in `redact.ts:59`.

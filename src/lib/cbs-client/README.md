@@ -33,10 +33,9 @@ Combine a payload factory with `cbs.send()` to execute operations:
 import { cbs } from "@/lib/cbs-client";
 
 // Read an Account record
-const response = await cbs.send(
-  cbs.form.fetchRecord("ACCOUNT", "10000001"),
-  { successTitle: "Account Loaded" }
-);
+const response = await cbs.send(cbs.form.fetchRecord("ACCOUNT", "10000001"), {
+  successTitle: "Account Loaded",
+});
 
 if (response.status === "SUCCESS") {
   console.log("Account data:", response.data);
@@ -49,16 +48,14 @@ if (response.status === "SUCCESS") {
 import { cbs } from "@/lib/cbs-client";
 
 // Authorize pending record
-await cbs.send(
-  cbs.form.authorizeRecord("CUSTOMER", "CUST-9901"),
-  { successMessage: "Customer record authorized successfully" }
-);
+await cbs.send(cbs.form.authorizeRecord("CUSTOMER", "CUST-9901"), {
+  successMessage: "Customer record authorized successfully",
+});
 
 // Reverse live record
-await cbs.send(
-  cbs.form.reverseRecord("CUSTOMER", "CUST-9901"),
-  { successMessage: "Transaction reversed" }
-);
+await cbs.send(cbs.form.reverseRecord("CUSTOMER", "CUST-9901"), {
+  successMessage: "Transaction reversed",
+});
 ```
 
 ### 3. Dynamic Inquiries with Filter Criteria
@@ -77,7 +74,7 @@ const response = await cbs.send(
         selectFieldValue: "0101",
       },
     ],
-  })
+  }),
 );
 ```
 
@@ -86,17 +83,19 @@ const response = await cbs.send(
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. Transport Layer (`transport/proxy-client.ts`): **SEALED**
+
 The transport mechanics are complete and finalized:
 - Client-to-proxy wire routing (`/api/proxy`).
 - Pre-flight Zod validation.
 - Standard HTTP status code and error toast handling.
 - `AbortSignal` and session expiration handling.
-**You do not need to modify or touch this transport layer.**
+  **You do not need to modify or touch this transport layer.**
 
 ---
 
 ### 2. Payload Registration (`index.ts`): **SCALABLE**
-When your core banking system introduces a new banking table or model, you **never** write new HTTP endpoints, fetch wrappers, or custom CRUD functions. 
+
+When your core banking system introduces a new banking table or model, you **never** write new HTTP endpoints, fetch wrappers, or custom CRUD functions.
 
 You register it in `index.ts` with a single line:
 

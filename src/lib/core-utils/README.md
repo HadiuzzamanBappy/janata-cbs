@@ -32,15 +32,15 @@ Converts numbers into localized BDT with South Asian comma grouping (Lakhs and C
 import { formatCurrency, formatNumber } from "@/lib/core-utils";
 
 // Standard BDT formatting:
-formatCurrency(150000); 
+formatCurrency(150000);
 // "1,50,000.00 BDT"
 
 // Accounting negative format:
-formatCurrency(-5000, { accountingNegative: true }); 
+formatCurrency(-5000, { accountingNegative: true });
 // "(5,000.00 BDT)"
 
 // Raw number without currency symbol:
-formatNumber(1234567.89); 
+formatNumber(1234567.89);
 // "12,34,567.89"
 ```
 
@@ -72,11 +72,11 @@ Translates raw banking dates into human-readable British English (`en-GB`) date 
 import { formatValueDate, formatDateTime } from "@/lib/core-utils";
 
 // CBS 8-digit Value Date:
-formatValueDate("20261012"); 
+formatValueDate("20261012");
 // "12 Oct 2026"
 
 // Transaction timestamp:
-formatDateTime(new Date()); 
+formatDateTime(new Date());
 // "17-Oct-2026 02:11:00"
 ```
 
@@ -95,16 +95,11 @@ const context = {
 };
 
 // Safe computation (whitelisted math tokens only):
-const total = evaluateFormula(
-  "principalAmount + (principalAmount * interestRate / 100)",
-  context
-);
+const total = evaluateFormula("principalAmount + (principalAmount * interestRate / 100)", context);
 // 109500
 
 // Extract field dependencies for reactive change detection:
-const deps = extractFormulaDependencies(
-  "principalAmount + (principalAmount * interestRate / 100)"
-);
+const deps = extractFormulaDependencies("principalAmount + (principalAmount * interestRate / 100)");
 // ["principalAmount", "interestRate"]
 ```
 
@@ -152,9 +147,11 @@ exportToHtmlReport("accounts_report", columns, rows, {
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. Formatting & Formula Primitives: **SEALED**
+
 Currency formatters, value date parsers, account chunkers, and math evaluators are complete and finalized.
 
 ### 2. Acronyms & Currency Settings: **SCALABLE**
+
 - If new banking acronyms should be preserved in title case, add them to `acronyms` in `string.ts`.
 - Default currency and locale can be tuned in `src/lib/core-config/client.ts` (`format.currency`, `format.locale`).
 

@@ -91,7 +91,7 @@ import { validateValues } from "@/lib/cbs-form-spec";
 const draftValues = {
   accountNo: "AC10001",
   balance: "invalid-amount", // will fail numeric check
-  openDate: "",              // will fail if required
+  openDate: "", // will fail if required
 };
 
 const errors = validateValues(compiledSpec, draftValues);

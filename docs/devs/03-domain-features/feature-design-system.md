@@ -1,10 +1,12 @@
 # CBS System Feature Development Rules & Checklist
+
 > **Standard Reference**: `src/features/system/model-config`  
 > **Rule Level**: Mandatory for AI Agents & Developers on every new CBS feature screen (`MENU`, `MENU.TREE`, `USER.GROUP`, `MODEL.CONFIG`, etc.).
 
 ---
 
 ## 1. Schema & Contracts Rules (Zero Legacy)
+
 - [ ] **Single Source of Truth**: All domain contracts live in `@/lib/schemas/<feature>-schema.ts`.
 - [ ] **No Proxy Type Files**: Never create `features/<feature>/types.ts` that merely re-exports schemas. UI files must import directly from `@/lib/schemas/<feature>-schema`.
 - [ ] **Zero Legacy Capital-Case Wire Schemas**: If the DB stores modern JSON, define only clean camelCase schemas (`recordId`, `tableName`, `properties`). Do not write redundant uppercase schemas (`TABLENAME`, `PROPERTIES`).
@@ -16,6 +18,7 @@
 ---
 
 ## 2. Inbound/Outbound Parser & Serialization Rules
+
 - [ ] **Mandatory Dedicated Parser**: Every feature must have a parser in `@/lib/parsers/<feature>-parser.ts` (e.g. `parse<Feature>Record`, `parse<Feature>List`, `serialize<Feature>ToWireJson`) and re-exported in `@/lib/parsers/index.ts`.
 - [ ] **Safe Serialization (No Runtime Exceptions on Drafts)**: `serialize<Feature>ToWireJson` must use `.safeParse()` and return the draft record fallback so live typing in drafts or opening the JSON preview tab never throws a `Runtime ZodError`.
 - [ ] **No Silent Property Dropping**: Never use `.filter()` inside serializers to silently drop rows with empty values. Let pre-submit validation catch errors; preserve all user-defined items to prevent column/order shifts in banking tables.
@@ -24,6 +27,7 @@
 ---
 
 ## 2.1. Development Mode & Data Source Architecture Rules
+
 - [ ] **`dataSource: "static"` is a Dedicated Dev Mode (Not a Failure Fallback)**:
   - When `appConfig.dataSource === "static"`, the application is explicitly running in offline development/mock mode.
   - The API proxy (`/api/proxy`) must check `appConfig.dataSource === "static"` **at the top** and return directly from static fixtures. gRPC should never be called.
@@ -40,6 +44,7 @@
 ---
 
 ## 3. State Management, Refresh & Multi-Monitor Popup Rules
+
 - [ ] **Dual-Layer Hydration on Mount**:
   1. **Layer 1 (Detached Popup Window)**: Inspect `window.location.search` for `?recordId=...&mode=...`.
   2. **Layer 2 (In-App Tab / F5 Refresh)**: Inspect `currentTab.formData` from `useWorkbenchStore` (persisted in `sessionStorage`).
@@ -54,6 +59,7 @@
 ---
 
 ## 4. Modularity & File Size Rules (< 250 Lines)
+
 - [ ] **Strict File Size Cap**: Every component and hook should be between **150–250 lines**.
 - [ ] **Root Component Location**: Screen components live at the feature root as `src/features/system/<feature>/sys-<feature>.tsx` (e.g. `sys-model-config.tsx`, `sys-menu-catalog.tsx`), NEVER buried inside `components/`.
 - [ ] **Orchestrator Pattern**: Screen and tab parents (`mc-property-inspector.tsx`, `mc-properties-tab.tsx`) must be clean orchestrators (**< 80 lines**) wiring layout and passing props.
@@ -67,6 +73,7 @@
 ---
 
 ## 5. UI/UX Rules, Micro-Attributes & Layout Standards
+
 - [ ] **Standard 3-Zone Layout**:
   - **Zone 1 (Header)**: Uses `<CbsFormHeader title="..." commandCode="..." />` with direct toolbar props:
     - `onValidate`: Primary toolbar validate button (`?✓`).
@@ -115,6 +122,7 @@
 ---
 
 ## 6. Standard Feature Directory Blueprint
+
 Every new system feature must adhere to this folder structure:
 
 ```

@@ -90,11 +90,14 @@ const validEnv = envSchema.parse(process.env);
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. Common Wire Envelopes (`common-schema.ts`, `env-schema.ts`): **SEALED**
+
 `cbsWirePayloadSchema`, `apiResponseSchema`, and `auditDataSchema` define the fundamental core banking wire protocol. They are finalized.
 
 ### 2. Domain Entity Schemas: **SCALABLE**
+
 When the banking backend introduces a new table or screen model (e.g. `loan-schema.ts`):
 1. Define the Zod schema:
+
    ```typescript
    export const loanRecordSchema = z.object({
      recordId: z.string(),

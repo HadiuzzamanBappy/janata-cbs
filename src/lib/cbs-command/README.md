@@ -34,25 +34,25 @@ Raw Command String (e.g. "ACCOUNT I 1001" or "MD")
 
 ## 🏛️ Supported Command Syntax
 
-| Syntax Pattern | Example | Mode | Description |
-| :--- | :--- | :--- | :--- |
-| **Base App** | `ACCOUNT` | `IDLE` | Opens application in search / idle mode |
-| **Comma Version** | `ACCOUNT,` | `I` | Admin Auto-Auth direct entry (`authLevel: 0`) |
-| **Named Version** | `CUSTOMER,KYC` | `IDLE` | Opens specific sub-version of an application |
-| **Record Lookup** | `ACCOUNT 1000001` | `I` | Opens account for editing / viewing |
-| **Explicit Function** | `ACCOUNT I 1000001` | `I` | Explicit **Input** mode |
-| | `ACCOUNT S 1000001` | `S` | Explicit **See** (Read-Only) mode |
-| | `ACCOUNT A 1000001` | `A` | Explicit **Authorize** mode (Checker) |
-| | `ACCOUNT D 1000001` | `D` | Explicit **Delete** mode |
-| | `ACCOUNT R 1000001` | `R` | Explicit **Reverse** mode |
-| **Composite Record ID**| `ACCOUNT S 1000001;2`| `S` | Supports semicolon multi-part keys |
-| **Inquiry Query** | `INQ GET.CUST.LIST` | `S` | Executes standard enquiry data view |
-| **Shorthand Alias** | `MD` | `IDLE` | Resolves to `SC.MENU.DESIGN` |
-| | `MC` | `IDLE` | Resolves to `SC.MODEL.CONFIG` |
-| | `UG` | `IDLE` | Resolves to `SC.USER.GROUP` |
-| **Settings Dialog** | `SETTINGS:PROFILE` | — | Opens Profile tab in Settings modal |
-| | `THEME` / `DARK` | — | Toggles dark / light theme instantly |
-| | `LOGOUT` / `EXIT` | — | Triggers confirmation logout modal |
+| Syntax Pattern          | Example               | Mode   | Description                                   |
+| :---------------------- | :-------------------- | :----- | :-------------------------------------------- |
+| **Base App**            | `ACCOUNT`             | `IDLE` | Opens application in search / idle mode       |
+| **Comma Version**       | `ACCOUNT,`            | `I`    | Admin Auto-Auth direct entry (`authLevel: 0`) |
+| **Named Version**       | `CUSTOMER,KYC`        | `IDLE` | Opens specific sub-version of an application  |
+| **Record Lookup**       | `ACCOUNT 1000001`     | `I`    | Opens account for editing / viewing           |
+| **Explicit Function**   | `ACCOUNT I 1000001`   | `I`    | Explicit **Input** mode                       |
+|                         | `ACCOUNT S 1000001`   | `S`    | Explicit **See** (Read-Only) mode             |
+|                         | `ACCOUNT A 1000001`   | `A`    | Explicit **Authorize** mode (Checker)         |
+|                         | `ACCOUNT D 1000001`   | `D`    | Explicit **Delete** mode                      |
+|                         | `ACCOUNT R 1000001`   | `R`    | Explicit **Reverse** mode                     |
+| **Composite Record ID** | `ACCOUNT S 1000001;2` | `S`    | Supports semicolon multi-part keys            |
+| **Inquiry Query**       | `INQ GET.CUST.LIST`   | `S`    | Executes standard enquiry data view           |
+| **Shorthand Alias**     | `MD`                  | `IDLE` | Resolves to `SC.MENU.DESIGN`                  |
+|                         | `MC`                  | `IDLE` | Resolves to `SC.MODEL.CONFIG`                 |
+|                         | `UG`                  | `IDLE` | Resolves to `SC.USER.GROUP`                   |
+| **Settings Dialog**     | `SETTINGS:PROFILE`    | —      | Opens Profile tab in Settings modal           |
+|                         | `THEME` / `DARK`      | —      | Toggles dark / light theme instantly          |
+|                         | `LOGOUT` / `EXIT`     | —      | Triggers confirmation logout modal            |
 
 ---
 
@@ -81,10 +81,10 @@ import { cbsCommand } from "@/lib/cbs-command";
 
 const ast = cbsCommand.parse("USER,");
 
-console.log(ast.application);    // "USER"
+console.log(ast.application); // "USER"
 console.log(ast.isCommaVersion); // true
-console.log(ast.authLevel);      // 0 (Auto-Auth)
-console.log(ast.screenMode);     // "I"
+console.log(ast.authLevel); // 0 (Auto-Auth)
+console.log(ast.screenMode); // "I"
 ```
 
 ### 3. Registering the Shell Adapter (`registerCommandAdapter`)
@@ -108,14 +108,17 @@ const unregister = registerCommandAdapter({
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. Grammar Parser & Engine: **SEALED**
+
 The grammar tokenizer (`grammar.ts`), security validator (`validator.ts`), and execution router (`terminal.ts`) implement standard Core Banking command grammar. **You do not need to modify the parsing logic.**
 
 ---
 
 ### 2. Command Catalog & Aliases: **SCALABLE**
+
 When adding a new bespoke system screen or shorthand alias:
 
 #### Step 1: Add to `MASTER_COMMAND_DEFINITIONS` in `registry/catalog.ts`
+
 ```typescript
 {
   id: "SC.LOAN.CONFIG",
@@ -128,6 +131,7 @@ When adding a new bespoke system screen or shorthand alias:
 ```
 
 #### Step 2: That's It!
+
 The alias dictionary (`registry/alias.ts`) dynamically generates `O(1)` Map lookups at initialization. Typing `LC`, `lc`, or `SC.LOAN.CONFIG` will immediately resolve and route to the correct screen.
 
 ---

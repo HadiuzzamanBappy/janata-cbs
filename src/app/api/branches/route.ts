@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/core-logger";
 import { getSession } from "@/lib/infra-redis";
 import { getBranchesData } from "@/lib/infra-services";
 import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const branchesLogger = logger.withContext("BRANCHES_API");
 
 export async function GET(): Promise<NextResponse<ApiResponse>> {
   try {
@@ -34,6 +37,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
       { status: 200 },
     );
   } catch (error: unknown) {
+    branchesLogger.error("GET /api/branches failed", error);
     const message = error instanceof Error ? error.message : "Failed to fetch branch list";
     return NextResponse.json(
       {

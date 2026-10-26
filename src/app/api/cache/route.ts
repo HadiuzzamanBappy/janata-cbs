@@ -7,6 +7,8 @@ import type { ApiResponse } from "@/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const cacheLogger = logger.withContext("CACHE_API");
+
 export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const secret = appConfig.redis.invalidateToken;
@@ -30,10 +32,9 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResp
     const removed = await invalidateCache(control);
     const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "internal";
 
-    logger.info(
-      `[Cache] Invalidated ${removed} key(s) for pattern/control: "${control ?? "*"}" by [${clientIp}]`,
+    cacheLogger.info(
+      `Invalidated ${removed} key(s) for pattern/control: "${control ?? "*"}" by [${clientIp}]`,
       { control: control ?? "*", removed, clientIp },
-      "CACHE",
     );
 
     return NextResponse.json(
@@ -48,6 +49,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResp
       { status: 200 },
     );
   } catch (err: unknown) {
+    cacheLogger.error("DELETE /api/cache failed", err);
     const message = err instanceof Error ? err.message : "Cache invalidation failed";
     return NextResponse.json(
       {

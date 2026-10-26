@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/core-logger";
 import { getSession } from "@/lib/infra-redis";
 import { getMenuData } from "@/lib/infra-services";
 import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const menuLogger = logger.withContext("MENU_API");
 
 export async function GET(): Promise<NextResponse<ApiResponse>> {
   try {
@@ -34,6 +37,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
       { status: 200 },
     );
   } catch (error: unknown) {
+    menuLogger.error("GET /api/menu failed", error);
     const message = error instanceof Error ? error.message : "Failed to fetch menu items";
     return NextResponse.json(
       {

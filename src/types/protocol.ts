@@ -99,6 +99,17 @@ export type CbsRequestType = (typeof CbsRequestType)[keyof typeof CbsRequestType
 /* 2. Target Control Table Identifiers                                       */
 /* -------------------------------------------------------------------------- */
 
+// export const CbsControlTable = {
+//   BRANCH: "BRANCH",
+//   CONTROL: "CONTROL",
+//   MENU: "MENU",
+//   MENU_TREE: "MENU.TREE",
+//   USER_GROUP: "USER.GROUP",
+//   MODEL_CONFIG: "MODEL.CONFIG",
+//   FORM_CONFIG: "FORM.CONFIG",
+//   INQUIRY_CONFIG: "INQUIRY.CONFIG",
+// } as const;
+
 export const CbsControlTable = {
   BRANCH: "BRANCH",
   CONTROL: "CONTROL",
@@ -106,8 +117,8 @@ export const CbsControlTable = {
   MENU_TREE: "MENU.TREE",
   USER_GROUP: "USER.GROUP",
   MODEL_CONFIG: "MODEL.CONFIG",
-  FORM_CONFIG: "FORM.CONFIG",
-  INQUIRY_CONFIG: "INQUIRY.CONFIG",
+  FORM_CONFIG: "CONFIG.FORM",
+  INQUIRY_CONFIG: "INQUIRY",
 } as const;
 
 export type CbsControlTable = (typeof CbsControlTable)[keyof typeof CbsControlTable];

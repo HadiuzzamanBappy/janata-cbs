@@ -44,9 +44,12 @@ export function useFormSpec(command: string) {
             // Fetch underlying model schema to enrich validation rules
             let model: ModelConfigRecord | null = null;
             try {
-              const modelRes = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModelName), {
-                silent: true,
-              });
+              const modelRes = await cbs.send<ModelConfigRecord>(
+                cbs.modelConfig.get(targetModelName),
+                {
+                  silent: true,
+                },
+              );
               if (modelRes.status === "SUCCESS" && modelRes.data) {
                 model = modelRes.data;
                 setModelRecord(model);

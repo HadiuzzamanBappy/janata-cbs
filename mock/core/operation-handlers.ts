@@ -1,9 +1,4 @@
-import {
-  SC_FORM_CONFIG,
-  SC_INQUIRY_CONFIG,
-  SC_MENU_TREE,
-  SC_MODEL_CONFIG,
-} from "@mock/db";
+import { SC_FORM_CONFIG, SC_INQUIRY_CONFIG, SC_MENU_TREE, SC_MODEL_CONFIG } from "@mock/db";
 import type { CbsWirePayload } from "@/lib/data-schemas";
 import type { ApiResponse } from "@/types";
 import { resolveTable } from "./database-router";
@@ -45,8 +40,7 @@ export function getMockInquiryPayload(command: string): unknown {
 
   // 2. Fallback: Synthesize raw Model Inquiry dynamically from MODEL.CONFIG properties
   const model =
-    SC_MODEL_CONFIG[clean] ||
-    Object.values(SC_MODEL_CONFIG).find((m) => m.tableName === clean);
+    SC_MODEL_CONFIG[clean] || Object.values(SC_MODEL_CONFIG).find((m) => m.tableName === clean);
 
   if (!model) return null;
 
@@ -146,7 +140,9 @@ export function handleInquiry(payload: CbsWirePayload): ApiResponse {
   const inqSpec = SC_INQUIRY_CONFIG[cleanKey];
 
   if (inqSpec) {
-    const targetModel = String(inqSpec.controllerName || inqSpec.targetModel || cleanKey).trim().toUpperCase();
+    const targetModel = String(inqSpec.controllerName || inqSpec.targetModel || cleanKey)
+      .trim()
+      .toUpperCase();
     const table = resolveTable(targetModel);
     return successResult(table?.getList() ?? [], "Inquiry data loaded from canonical table");
   }
@@ -247,8 +243,7 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
   // 1. If an ID was provided and it already exists in the table, return existing record in Edit Mode
   if (inputId && table) {
     const existing =
-      table.LIVE[inputId] ||
-      (table.prefix && table.LIVE[`${table.prefix}${inputId}`]);
+      table.LIVE[inputId] || (table.prefix && table.LIVE[`${table.prefix}${inputId}`]);
 
     if (existing) {
       const rec = typeof existing === "object" ? existing : {};

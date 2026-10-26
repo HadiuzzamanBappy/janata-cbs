@@ -284,7 +284,11 @@ export function SectionCard({
                 | { kind: "group"; groupSn: string; groupKey?: string; fields: FormFieldItem[] };
 
               const renderItems: RenderItem[] = [];
-              let currentGroup: { groupSn: string; groupKey?: string; fields: FormFieldItem[] } | null = null;
+              let currentGroup: {
+                groupSn: string;
+                groupKey?: string;
+                fields: FormFieldItem[];
+              } | null = null;
 
               for (const field of section.fields) {
                 if (field.hidden) continue;
@@ -339,9 +343,7 @@ export function SectionCard({
                 const groupSn = item.groupSn;
                 const groupFields = item.fields;
                 const groupTitle =
-                  groupFields[0]?.groupLabel ||
-                  item.groupKey ||
-                  `Group #${groupSn}`;
+                  groupFields[0]?.groupLabel || item.groupKey || `Group #${groupSn}`;
 
                 // Derive number of sets from explicit form values (__group_${groupSn}_count) or state, or scan values
                 const derivedFromValues = (() => {
@@ -480,9 +482,15 @@ export function SectionCard({
                           </div>
 
                           {/* Sub-Card Fields: Rendered in standard clean scanline rows */}
-                          <div className={cn("grid gap-x-4 gap-y-2 text-xs", getGridColsClass(numCols))}>
+                          <div
+                            className={cn(
+                              "grid gap-x-4 gap-y-2 text-xs",
+                              getGridColsClass(numCols),
+                            )}
+                          >
                             {groupFields.map((field) => {
-                              const key = setIdx === 0 ? field.fieldKey : `${field.fieldKey}_${setIdx}`;
+                              const key =
+                                setIdx === 0 ? field.fieldKey : `${field.fieldKey}_${setIdx}`;
                               const fieldVal = values[key];
                               const fieldError = errors[key];
 
@@ -499,11 +507,7 @@ export function SectionCard({
                                   className={getFieldColSpanClass(numCols, setField.colSpan)}
                                 >
                                   {hasKernel ? (
-                                    <FieldAtom
-                                      field={setField}
-                                      disabled={disabled}
-                                      mode={mode}
-                                    />
+                                    <FieldAtom field={setField} disabled={disabled} mode={mode} />
                                   ) : (
                                     <UnifiedFieldFactory
                                       field={setField}

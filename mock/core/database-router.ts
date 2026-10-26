@@ -65,7 +65,8 @@ export function resolveTable(controlName: string): ResolvedTable | null {
         const itemVersion = item.version || (hasComma ? key.split(",")[1]?.trim() : undefined);
 
         const audit = item.auditData as Record<string, unknown> | undefined;
-        const status = item.status || (audit?.recStatus === "AU" ? "ACTIVE" : audit?.recStatus) || "ACTIVE";
+        const status =
+          item.status || (audit?.recStatus === "AU" ? "ACTIVE" : audit?.recStatus) || "ACTIVE";
 
         return {
           status,
@@ -89,7 +90,9 @@ export function resolveTable(controlName: string): ResolvedTable | null {
         : "";
 
       return Object.entries(bucket)
-        .map(([key, item]) => String(item.recordId || item.id || item.code || item.userId || key).trim())
+        .map(([key, item]) =>
+          String(item.recordId || item.id || item.code || item.userId || key).trim(),
+        )
         .filter((id) => !cleanPattern || id.toUpperCase().includes(cleanPattern));
     },
 

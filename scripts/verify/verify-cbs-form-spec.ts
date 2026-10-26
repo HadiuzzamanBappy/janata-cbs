@@ -184,7 +184,7 @@ async function runSuite() {
   );
   const rootSection = fallbackSpec.presentation.sections[0];
   assert("Fallback: Root section has layoutStyle card", rootSection.layoutStyle === "card");
-  
+
   // Verify inline group child fields preserve parent object association (nominee group)
   const nomineeChildFields = rootSection.fields.filter((f) => f.groupKey === "nominee");
   assert(

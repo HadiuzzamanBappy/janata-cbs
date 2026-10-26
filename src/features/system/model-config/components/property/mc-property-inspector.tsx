@@ -1,9 +1,6 @@
 "use client";
 
-import type {
-  ModelProperty,
-  ValidationErrorItem,
-} from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
 import { McInspectorHeader } from "./inspector/mc-inspector-header";
 import { McInspectorIdentitySection } from "./inspector/mc-inspector-identity";
 import { McInspectorTypeSpecs } from "./inspector/mc-inspector-type-specs";

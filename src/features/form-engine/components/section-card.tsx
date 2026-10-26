@@ -3,9 +3,9 @@
 import { ChevronDown, ChevronRight, Minus, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
 import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { CbsScreenMode } from "@/types";
 import { FormKernelContext } from "../store/form-kernel-provider";
 import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";

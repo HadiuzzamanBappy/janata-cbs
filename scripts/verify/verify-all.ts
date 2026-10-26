@@ -53,6 +53,10 @@ const SUITES = [
     title: "9. In-Memory Mock Core Engine & Database (@mock/db & @mock/core)",
     command: "pnpm exec tsx scripts/verify/verify-mock-services.ts",
   },
+  {
+    title: "10. CBS Screen Architecture & Capabilities (@/lib/cbs-screen)",
+    command: "pnpm exec tsx scripts/verify/verify-cbs-screen.ts",
+  },
 ];
 
 console.log("\n================================================================================");

@@ -15,7 +15,7 @@ import { focusFormField } from "@/lib/cbs-screen";
 
 export interface CbsValidationChecklistProps<TTab extends string = string> {
   errors: CbsScreenValidationError<TTab>[];
-  onSelectTab: (tab: TTab) => void;
+  onSelectTab?: (tab: TTab) => void;
 }
 
 export function CbsValidationChecklist<TTab extends string = string>({
@@ -23,6 +23,11 @@ export function CbsValidationChecklist<TTab extends string = string>({
   onSelectTab,
 }: CbsValidationChecklistProps<TTab>) {
   if (errors.length === 0) return null;
+
+  const jumpToError = (err: CbsScreenValidationError<TTab>) => {
+    if (err.tab) onSelectTab?.(err.tab);
+    focusFormField(err.fieldKey, err.nodeId);
+  };
 
   return (
     <DropdownMenu>
@@ -63,11 +68,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              const first = errors[0];
-              if (first) {
-                if (first.tab && onSelectTab) onSelectTab(first.tab);
-                focusFormField(first.fieldKey, first.nodeId);
-              }
+              jumpToError(errors[0]);
             }}
             className="h-5 px-1.5 text-[10px] font-semibold shadow-none cursor-pointer"
           >
@@ -79,10 +80,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
           {errors.map((err) => (
             <DropdownMenuItem
               key={err.id}
-              onClick={() => {
-                if (err.tab) onSelectTab?.(err.tab);
-                focusFormField(err.fieldKey, err.nodeId);
-              }}
+              onClick={() => jumpToError(err)}
               className="px-2 py-1.5 text-xs cursor-pointer flex flex-col items-start gap-0.5 rounded-sm hover:bg-destructive/10"
             >
               <div className="flex items-center gap-1.5 w-full">

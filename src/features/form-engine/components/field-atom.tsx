@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 import type { FormFieldItem } from "@/lib/data-schemas/form-config-schema";
+import type { CbsScreenMode } from "@/types";
 import { useFormKernel } from "../store/form-kernel-provider";
 import { UnifiedFieldFactory } from "./field-factory";
 

@@ -2,19 +2,17 @@
 
 import { ArrowDownToLine, Lock } from "lucide-react";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useCbsAccess } from "@/lib/cbs-access";
-import type { CbsScreenMode, CbsScreenValidationError } from "@/lib/cbs-screen";
-import { CBS_SCREEN_EVENT } from "@/lib/cbs-screen";
-import type { MoreActionItem } from "@/lib/cbs-screen/types";
+import type { CbsScreenValidationError, MoreActionItem, RecordLookupItem } from "@/lib/cbs-screen";
+import { CBS_SCREEN_EVENT, resolveMoreActions } from "@/lib/cbs-screen";
+import type { CbsScreenMode } from "@/types";
 import { useRecordLookup } from "../hooks/use-record-lookup";
+import { ActionBtn } from "./action-btn";
 import { ActionButtons } from "./action-buttons";
 import { ActionMoreMenu } from "./action-more-menu";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
 import { RecordLookupBar } from "./record-lookup-bar";
-
-export type { MoreActionItem };
 
 export interface CbsFormHeaderProps {
   title: string;
@@ -39,7 +37,7 @@ export interface CbsFormHeaderProps {
   recordInputter?: string;
   submitting?: boolean;
   moreActions?: MoreActionItem[];
-  availableItems?: Array<{ id: string; label?: string; details?: string }>;
+  availableItems?: RecordLookupItem[];
   validationErrors?: CbsScreenValidationError[];
   onSelectValidationTab?: (tab: string) => void;
   className?: string;
@@ -111,11 +109,7 @@ export function CbsFormHeader({
     [fetchRecordList, inputVal],
   );
 
-  const itemsToDisplay = React.useMemo(() => {
-    if (lookupItems.length > 0) return lookupItems;
-    if (availableItems.length > 0) return availableItems;
-    return [];
-  }, [lookupItems, availableItems]);
+  const itemsToDisplay = lookupItems.length > 0 ? lookupItems : availableItems;
 
   // Action 1: Typing Record ID + Enter -> Load Record in Mode 'I'
   const handlePerformSearch = (e?: React.FormEvent) => {
@@ -125,30 +119,25 @@ export function CbsFormHeader({
 
     setIsDropdownOpen(false);
     setHasSearched(true);
-    if (onRecordSearch) {
-      onRecordSearch(query.toUpperCase());
-    } else if (onRecordIdChange) {
-      onRecordIdChange(query.toUpperCase());
-    }
+    onRecordSearch?.(query.toUpperCase());
   };
 
-  // Selecting item from dropdown populates input field and closes dropdown,
-  // waiting for the user to prompt (e.g. press Enter / submit) to proceed.
+  // Selecting item from dropdown populates input field and closes dropdown
   const handleSelectRecord = (id: string) => {
     const cleanId = id.trim().toUpperCase();
     setInputVal(cleanId);
     setIsDropdownOpen(false);
-    if (onRecordIdChange) onRecordIdChange(cleanId);
+    onRecordIdChange?.(cleanId);
   };
 
-  // Action 3: New Button (+) -> Allocates sequence ID via 'GNI' or initializes user-defined draft and opens in Mode 'I'
+  // Action 3: New Button (+) -> Allocates sequence ID via 'GNI' or initializes user-defined draft
   const handleCreateNewClick = React.useCallback(async () => {
     try {
       const candidateId = inputVal.trim();
       const newId = await fetchNewRecordId(candidateId || undefined);
       if (newId) {
         setInputVal(newId);
-        if (onRecordIdChange) onRecordIdChange(newId);
+        onRecordIdChange?.(newId);
         if (onCreateNew) {
           onCreateNew(newId);
         } else if (onRecordSearch) {
@@ -163,13 +152,13 @@ export function CbsFormHeader({
   const handleClearRecord = () => {
     setInputVal("");
     setHasSearched(false);
-    if (onRecordIdChange) onRecordIdChange("");
-    if (onReset) onReset();
+    onRecordIdChange?.("");
+    onReset?.();
   };
 
   const handleInputChange = (val: string) => {
     setInputVal(val);
-    if (onRecordIdChange) onRecordIdChange(val);
+    onRecordIdChange?.(val);
   };
 
   return (
@@ -200,9 +189,12 @@ export function CbsFormHeader({
 
           <span className="h-4 w-px bg-border/60 mx-1" />
 
-          {/* More Actions Dropdown & Dedicated CTA */}
+          {/* More Actions Dropdown & Dedicated CTA (Automatic Base Inheritance + Extensions) */}
           <div className="flex items-center gap-1">
-            <ActionMoreMenu moreActions={moreActions} submitting={submitting} onSubmit={onSubmit} />
+            <ActionMoreMenu
+              moreActions={resolveMoreActions(commandCode, moreActions)}
+              submitting={submitting}
+            />
           </div>
 
           {/* Validation Checklist Indicator & Drawer (visible only in active edit mode 'I') */}
@@ -211,7 +203,7 @@ export function CbsFormHeader({
               <span className="h-4 w-px bg-border/60 mx-1" />
               <CbsValidationChecklist
                 errors={validationErrors}
-                onSelectTab={(tab) => onSelectValidationTab?.(tab)}
+                onSelectTab={onSelectValidationTab}
               />
             </>
           )}
@@ -219,29 +211,18 @@ export function CbsFormHeader({
           {/* Right Action: Back to Tab (Dock into main window) when in popup window mode */}
           {canDock && (
             <div className="ml-auto flex items-center pl-2">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      onClick={() => {
-                        if (typeof window !== "undefined") {
-                          window.dispatchEvent(new CustomEvent(CBS_SCREEN_EVENT.DOCK_TO_SHELL));
-                        }
-                      }}
-                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                      aria-label="Back to tab bar"
-                    >
-                      <ArrowDownToLine className="size-3.5" />
-                    </Button>
+              <ActionBtn
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(new CustomEvent(CBS_SCREEN_EVENT.DOCK_TO_SHELL));
                   }
-                />
-                <TooltipContent side="bottom" className="text-xs">
-                  Back to tab bar
-                </TooltipContent>
-              </Tooltip>
+                }}
+                defaultTooltip="Back to tab bar"
+                variant="ghost"
+                className="size-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+              >
+                <ArrowDownToLine className="size-3.5" />
+              </ActionBtn>
             </div>
           )}
         </div>
@@ -249,7 +230,7 @@ export function CbsFormHeader({
         {/* ROW 2: CBS Record Header: Label + Record ID Field + Add Button */}
         <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
-            {title || "Basic Details"}
+            {title}
           </span>
 
           {mode === "IDLE" ? (

@@ -10,8 +10,6 @@ import type { z } from "zod";
 import type { AuditData } from "@/lib/data-schemas";
 import type { CbsRecordFunction, CbsScreenMode } from "@/types";
 
-export type { CbsScreenMode };
-
 export interface MoreActionItem {
   readonly label: string;
   readonly command?: string;
@@ -37,9 +35,10 @@ export interface CbsPersistenceOptions<TRecord> {
   initialData: TRecord;
   schema?: z.ZodType<TRecord>;
   fallbackMode?: CbsScreenMode;
+  ignoredKeys?: readonly string[] | string[];
 }
 
-export type CbsScreenLayoutVariant = "admin-tabs" | "form" | "inquiry" | "custom";
+export type CbsScreenLayoutVariant = "system" | "form" | "inquiry" | "custom";
 
 export interface CbsScreenTab<TTab extends string = string> {
   id: TTab;
@@ -47,6 +46,12 @@ export interface CbsScreenTab<TTab extends string = string> {
   icon?: React.ReactNode;
   badgeCount?: number;
   content: React.ReactNode;
+}
+
+export interface RecordLookupItem {
+  id: string;
+  label?: string;
+  details?: string;
 }
 
 export interface CbsScreenScaffoldProps<TTab extends string = string> {
@@ -72,7 +77,7 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   onAuthorizeReverse?: () => void;
   onProcessAction?: () => void;
   submitting?: boolean;
-  availableItems?: Array<{ id: string; label?: string; details?: string }>;
+  availableItems?: RecordLookupItem[];
   moreActions?: MoreActionItem[];
 
   // 1.1 Inquiry Variant Header Props

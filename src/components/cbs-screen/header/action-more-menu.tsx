@@ -12,33 +12,38 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCbsAccess } from "@/lib/cbs-access";
 import type { MoreActionItem } from "@/lib/cbs-screen/types";
+import { ActionBtn } from "./action-btn";
 
 export interface ActionMoreMenuProps {
   moreActions?: MoreActionItem[];
   submitting?: boolean;
-  onSubmit?: () => void;
 }
 
-export function ActionMoreMenu({
-  moreActions = [],
-  submitting = false,
-  onSubmit,
-}: ActionMoreMenuProps) {
+/**
+ * Secondary Operations Dropdown & Executor for CBS screens.
+ * Allows users to pick an extra lifecycle action and execute it with permission enforcement.
+ */
+export function ActionMoreMenu({ moreActions = [], submitting = false }: ActionMoreMenuProps) {
   const access = useCbsAccess();
   const [selectedAction, setSelectedAction] = React.useState<MoreActionItem | null>(null);
 
+  const isAllowed = selectedAction
+    ? !selectedAction.requiredRight || access.hasFunctionRight(selectedAction.requiredRight)
+    : false;
+
+  const isExecutable = Boolean(selectedAction && isAllowed && !submitting);
+
   return (
-    <>
+    <div className="flex items-center gap-1 shrink-0">
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-2 text-xs gap-1.5 min-w-37.5 max-w-47.5 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0"
+              className="h-7 px-2 text-xs gap-1.5 w-44 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0"
             >
               <span className="truncate">
                 {selectedAction ? selectedAction.label : "More operations"}
@@ -77,39 +82,20 @@ export function ActionMoreMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              type="button"
-              size="icon-sm"
-              onClick={() => {
-                if (selectedAction) {
-                  selectedAction.onClick();
-                } else if (onSubmit) {
-                  onSubmit();
-                }
-              }}
-              disabled={
-                submitting ||
-                !selectedAction ||
-                (selectedAction.requiredRight
-                  ? !access.hasFunctionRight(selectedAction.requiredRight)
-                  : false)
-              }
-              variant="default"
-              className="h-7 w-9 shrink-0 shadow-xs disabled:opacity-40"
-            >
-              <CheckCircle2 className="size-3.5" />
-            </Button>
-          }
-        />
-        <TooltipContent className="text-xs">
-          {selectedAction
-            ? `Execute: ${selectedAction.label}`
-            : "Select an action from More Actions to enable"}
-        </TooltipContent>
-      </Tooltip>
-    </>
+      <ActionBtn
+        onClick={() => selectedAction?.onClick()}
+        enabled={isExecutable}
+        reason={
+          !selectedAction
+            ? "Select an operation from the dropdown"
+            : !isAllowed
+              ? `Requires ${selectedAction.requiredRight} right`
+              : undefined
+        }
+        defaultTooltip={selectedAction ? `Execute: ${selectedAction.label}` : "Execute Operation"}
+      >
+        <CheckCircle2 className="size-3.5" />
+      </ActionBtn>
+    </div>
   );
 }

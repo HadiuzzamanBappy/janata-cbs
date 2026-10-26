@@ -24,6 +24,15 @@ pnpm verify:all      # Standalone CBS domain invariant test suite
 ```
 _Never commit code with type errors, linter warnings, or failing verification suites._
 
+### 1.1 Pre-Edit File Checklist
+
+Before saving edits to any file, ensure:
+- [ ] **DRY Check**: No duplicate logic (e.g., `isReadOnly` delegates to `@/lib/cbs-access`).
+- [ ] **Zero Legacy**: No backward-compatibility shims, legacy query params (`?id=`), or deprecated aliases.
+- [ ] **Zero Magic Strings**: Mode strings and action codes use `CbsRecordFunction.*` and `CBS_SCREEN_MODES`.
+- [ ] **No Fake IDs**: No `Date.now()` timestamp ID generation.
+- [ ] **Size Budget**: Components $\le 300$ lines, hooks/helpers $\le 200$ lines.
+
 ---
 
 ## 2. Command Reference

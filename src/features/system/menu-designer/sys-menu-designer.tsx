@@ -136,7 +136,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       onAmend={() => recordId && fetchTreeRecord(recordId, "I")}
       submitting={submitting || loading}
       availableItems={availableItems}
-      variant="admin-tabs"
+      variant="system"
       tabs={tabs}
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}

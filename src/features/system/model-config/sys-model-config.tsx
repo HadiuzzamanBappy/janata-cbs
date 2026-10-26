@@ -164,7 +164,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
       onAmend={() => recordId && fetchRecord(recordId, CbsRecordFunction.INPUT)}
       submitting={submitting || loading}
       availableItems={availableModels}
-      variant="admin-tabs"
+      variant="system"
       tabs={tabs}
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}

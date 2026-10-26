@@ -14,8 +14,11 @@ export interface CbsJsonViewerTabProps {
 }
 
 // ---------------------------------------------------------------------------
-// Pure-React JSON Syntax Highlighting Tokenizer
+// Pure-React JSON Syntax Highlighting Tokenizer (Semantic Tokens)
 // ---------------------------------------------------------------------------
+const JSON_TOKEN_REGEX =
+  /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"\s*:)|("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|([{}[\],])/g;
+
 function renderJsonLine(line: string, lineIndex: number): React.ReactNode {
   const indentMatch = line.match(/^(\s*)/);
   const indent = indentMatch ? indentMatch[1] : "";
@@ -29,14 +32,7 @@ function renderJsonLine(line: string, lineIndex: number): React.ReactNode {
     );
   }
 
-  // Regex to match:
-  // 1. JSON Property key followed by colon: ("key":)
-  // 2. String literal value: ("...")
-  // 3. Boolean/Null literal: (true|false|null)
-  // 4. Number literal: (-?\d+(\.\d+)?)
-  // 5. Brackets & punctuation: ({, }, [, ], ,)
-  const tokenRegex =
-    /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"\s*:)|("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|([{}[\],])/g;
+  const tokenRegex = new RegExp(JSON_TOKEN_REGEX.source, "g");
 
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
@@ -53,24 +49,18 @@ function renderJsonLine(line: string, lineIndex: number): React.ReactNode {
       const colonIndex = keyMatch.lastIndexOf(":");
       const keyStr = keyMatch.slice(0, colonIndex);
       parts.push(
-        <span
-          key={`${lineIndex}-k-${match.index}`}
-          className="text-blue-700 dark:text-sky-400 font-medium"
-        >
+        <span key={`${lineIndex}-k-${match.index}`} className="text-primary font-medium">
           {keyStr}
         </span>,
       );
       parts.push(
-        <span key={`${lineIndex}-c-${match.index}`} className="text-zinc-400 dark:text-zinc-500">
+        <span key={`${lineIndex}-c-${match.index}`} className="text-muted-foreground/60">
           :
         </span>,
       );
     } else if (stringMatch) {
       parts.push(
-        <span
-          key={`${lineIndex}-s-${match.index}`}
-          className="text-emerald-700 dark:text-emerald-400"
-        >
+        <span key={`${lineIndex}-s-${match.index}`} className="text-foreground font-normal">
           {stringMatch}
         </span>,
       );
@@ -79,33 +69,27 @@ function renderJsonLine(line: string, lineIndex: number): React.ReactNode {
         parts.push(
           <span
             key={`${lineIndex}-n-${match.index}`}
-            className="text-rose-600 dark:text-rose-400 italic font-semibold"
+            className="text-destructive italic font-medium"
           >
             {boolMatch}
           </span>,
         );
       } else {
         parts.push(
-          <span
-            key={`${lineIndex}-b-${match.index}`}
-            className="text-purple-700 dark:text-purple-400 font-semibold"
-          >
+          <span key={`${lineIndex}-b-${match.index}`} className="text-primary/90 font-semibold">
             {boolMatch}
           </span>,
         );
       }
     } else if (numberMatch) {
       parts.push(
-        <span
-          key={`${lineIndex}-num-${match.index}`}
-          className="text-amber-800 dark:text-amber-400 font-semibold"
-        >
+        <span key={`${lineIndex}-num-${match.index}`} className="text-foreground/90 font-semibold">
           {numberMatch}
         </span>,
       );
     } else if (punctMatch) {
       parts.push(
-        <span key={`${lineIndex}-p-${match.index}`} className="text-zinc-500 dark:text-zinc-400">
+        <span key={`${lineIndex}-p-${match.index}`} className="text-muted-foreground">
           {punctMatch}
         </span>,
       );
@@ -144,12 +128,12 @@ export function CbsJsonViewerTab({
     }
   }, [data]);
 
-  const lineObjects = React.useMemo(
-    () => jsonString.split("\n").map((text, idx) => ({ num: idx + 1, text })),
+  const lines = React.useMemo(
+    () => jsonString.split("\n").map((text, idx) => ({ id: `L${idx + 1}`, num: idx + 1, text })),
     [jsonString],
   );
-  const linesCount = lineObjects.length;
-  const sizeBytes = React.useMemo(() => new Blob([jsonString]).size, [jsonString]);
+  const linesCount = lines.length;
+  const sizeBytes = React.useMemo(() => new TextEncoder().encode(jsonString).length, [jsonString]);
 
   const handleCopy = React.useCallback(() => {
     navigator.clipboard.writeText(jsonString);
@@ -207,8 +191,8 @@ export function CbsJsonViewerTab({
             >
               {copied ? (
                 <>
-                  <Check className="size-3 text-emerald-500" />
-                  <span className="text-emerald-500 font-medium">Copied</span>
+                  <Check className="size-3 text-primary" />
+                  <span className="text-primary font-medium">Copied</span>
                 </>
               ) : (
                 <>
@@ -231,21 +215,21 @@ export function CbsJsonViewerTab({
           </div>
         </div>
 
-        {/* Code Display Area with Theme-Aware Syntax Highlighting & Line Gutter */}
-        <div className="flex-1 overflow-auto min-h-0 bg-zinc-50 dark:bg-zinc-950 p-3 font-mono text-[11.5px] select-text transition-colors selection:bg-primary/20 selection:text-primary dark:selection:bg-primary/30 dark:selection:text-primary">
+        {/* Code Display Area with Theme-Aware Semantic Syntax Highlighting & Line Gutter */}
+        <div className="flex-1 overflow-auto min-h-0 bg-muted/15 p-3 font-mono text-[11.5px] select-text transition-colors selection:bg-primary/20 selection:text-primary">
           <div className="flex min-w-full">
             {/* Line numbers gutter */}
-            <div className="select-none text-right pr-3.5 text-zinc-400 dark:text-zinc-600 font-mono text-[11px] border-r border-zinc-200 dark:border-zinc-800/80 mr-3.5 shrink-0">
-              {lineObjects.map((line) => (
-                <div key={`gutter-${line.num}`} className="leading-5">
+            <div className="select-none text-right pr-3.5 text-muted-foreground/50 font-mono text-[11px] border-r border-border/60 mr-3.5 shrink-0">
+              {lines.map((line) => (
+                <div key={`gutter-${line.id}`} className="leading-5">
                   {line.num}
                 </div>
               ))}
             </div>
 
             {/* Syntax highlighted code */}
-            <div className="flex-1 font-mono overflow-x-auto text-zinc-800 dark:text-zinc-200">
-              {lineObjects.map((line) => renderJsonLine(line.text, line.num))}
+            <div className="flex-1 font-mono overflow-x-auto text-foreground">
+              {lines.map((line) => renderJsonLine(line.text, line.num))}
             </div>
           </div>
         </div>

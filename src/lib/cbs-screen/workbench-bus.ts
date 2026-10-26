@@ -1,7 +1,7 @@
 /**
  * CBS Workbench Cross-Window Broadcast Bus & Shared Draft Storage
  *
- * Implements a standard BroadcastChannel communication bridge
+ * Implements a standard BroadcastChannel communication bridge and session storage draft cache
  * across the main shell and all detached popup windows.
  *
  * Eliminates URL serialization limits and fragile `window.opener` dependencies.
@@ -10,16 +10,44 @@
 import * as React from "react";
 import { clientConfig } from "@/lib/core-config";
 
+// ============================================================================
+// Window & Event Contracts
+// ============================================================================
+
+/** Custom DOM event name dispatched by popup header buttons to trigger docking back to shell */
+export const CBS_SCREEN_EVENT = {
+  DOCK_TO_SHELL: "cbs:dock-to-shell",
+} as const;
+
+/** postMessage / BroadcastChannel message types for cross-window coordination */
+export const CBS_SCREEN_MESSAGE = {
+  DOCK_TAB: "CBS_DOCK_TAB",
+  RECORD_MUTATED: "CBS_RECORD_MUTATED",
+} as const;
+
+/** Canonical popup tab ID — synchronized between page.tsx and popup openers */
+export function makePopupTabId(screenId: string): string {
+  return `popup-${screenId.replace(/\s+/g, "_")}`;
+}
+
+// ============================================================================
+// Message Payloads & Message Interfaces
+// ============================================================================
+
 export interface RecordMutationPayload {
   control: string;
   recordId: string;
 }
 
 export interface WorkbenchBusMessage {
-  type: "CBS_DOCK_TAB" | "CBS_TAB_CLOSED" | "CBS_RECORD_SAVED" | "CBS_RECORD_MUTATED";
+  type: (typeof CBS_SCREEN_MESSAGE)[keyof typeof CBS_SCREEN_MESSAGE];
   tabId: string;
   payload?: unknown;
 }
+
+// ============================================================================
+// Shared Working Draft Session Cache
+// ============================================================================
 
 /**
  * Saves a tab's working draft (including 150+ to 1,000 fields) to shared session storage.
@@ -59,9 +87,10 @@ export function clearWorkbenchDraft(tabId: string): void {
   }
 }
 
-/**
- * Global singleton instance of BroadcastChannel for the workbench bus.
- */
+// ============================================================================
+// Broadcast Channel Singleton & Dispatchers
+// ============================================================================
+
 let busInstance: BroadcastChannel | null = null;
 
 export function getWorkbenchBus(): BroadcastChannel | null {
@@ -81,7 +110,7 @@ export function broadcastDockTab(tabId: string, payload: unknown): void {
   const bus = getWorkbenchBus();
   if (bus) {
     bus.postMessage({
-      type: "CBS_DOCK_TAB",
+      type: CBS_SCREEN_MESSAGE.DOCK_TAB,
       tabId,
       payload,
     } satisfies WorkbenchBusMessage);
@@ -96,7 +125,7 @@ export function broadcastRecordMutation(control: string, recordId: string): void
   const bus = getWorkbenchBus();
   if (bus) {
     bus.postMessage({
-      type: "CBS_RECORD_MUTATED",
+      type: CBS_SCREEN_MESSAGE.RECORD_MUTATED,
       tabId: "global",
       payload: {
         control: control.toUpperCase().trim(),
@@ -108,24 +137,27 @@ export function broadcastRecordMutation(control: string, recordId: string): void
 
 /**
  * React hook subscribing to record mutation events broadcast across workbench tabs/windows.
- * Enables sibling tabs (and detached popup windows) of the same record/control to refetch.
+ * Uses a stable callback ref to avoid tearing down and re-adding event listeners on each render.
  */
 export function useRecordMutationSubscriber(
   callback: (mutation: RecordMutationPayload) => void,
   controlFilter?: string,
 ): void {
+  const savedCallback = React.useRef(callback);
+  savedCallback.current = callback;
+
   React.useEffect(() => {
     const bus = getWorkbenchBus();
     if (!bus) return;
 
     const handler = (event: MessageEvent<WorkbenchBusMessage>) => {
-      if (event.data?.type === "CBS_RECORD_MUTATED" && event.data.payload) {
+      if (event.data?.type === CBS_SCREEN_MESSAGE.RECORD_MUTATED && event.data.payload) {
         const payload = event.data.payload as RecordMutationPayload;
         if (
           !controlFilter ||
           payload.control.toUpperCase() === controlFilter.toUpperCase().trim()
         ) {
-          callback(payload);
+          savedCallback.current(payload);
         }
       }
     };
@@ -134,5 +166,5 @@ export function useRecordMutationSubscriber(
     return () => {
       bus.removeEventListener("message", handler);
     };
-  }, [callback, controlFilter]);
+  }, [controlFilter]);
 }

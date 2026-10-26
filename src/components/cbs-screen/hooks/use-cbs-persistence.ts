@@ -1,140 +1,106 @@
-// ============================================================================
-// Universal Dual-Layer Persistence Hook for CBS Screens & Workbench Tabs
-//
-// Implements the canonical persistence contract:
-//  - hydrate(record): sets data AND baseline (isDirty: false)
-//  - rebaseline(): sets baseline to current data
-//  - isDirty: computed via computeDelta(baseline, formData)
-//  - reset(): resets to IDLE, clears ID, restores initialData and clean baseline
-//  - 400ms debounced synchronization to the WorkbenchStore
-// ============================================================================
-
+/**
+ * Universal Dual-Layer Persistence Hook for CBS Screens & Workbench Tabs.
+ * Manages form state, baseline snapshots, dirty tracking via delta engine, and 400ms tab sync.
+ */
 "use client";
 
 import * as React from "react";
 import { evaluateDirty } from "@/lib/cbs-record";
-import type { CbsPersistenceOptions, CbsScreenMode } from "@/lib/cbs-screen";
+import type { CbsPersistenceOptions } from "@/lib/cbs-screen";
+import {
+  resolveInitialFormData,
+  resolveInitialRecordId,
+  resolveInitialScreenMode,
+} from "@/lib/cbs-screen";
 import { useWorkbenchStore } from "@/store";
+import type { CbsScreenMode } from "@/types";
 
 export interface UseCbsPersistenceReturn<TRecord> {
+  // Identity & Mode
   recordId: string;
   setRecordId: (id: string) => void;
   mode: CbsScreenMode;
   setMode: (mode: CbsScreenMode) => void;
+
+  // Form State & Mutators
   formData: TRecord;
   setFormData: React.Dispatch<React.SetStateAction<TRecord>>;
   hydrate: (record: TRecord) => void;
   rebaseline: () => void;
+  reset: () => void;
+
+  // Delta Engine Dirty State
   isDirty: boolean;
   dirtyKeys: string[];
-  reset: () => void;
+
+  // Mount Conditions
   resolvedInitialId: string;
   resolvedInitialMode: CbsScreenMode;
 }
 
-export function useCbsPersistence<TRecord>({
+export function useCbsPersistence<TRecord extends Record<string, unknown>>({
   initialId,
   tabId,
   initialData,
   schema,
   fallbackMode = "IDLE",
   ignoredKeys = [],
-}: CbsPersistenceOptions<TRecord> & {
-  ignoredKeys?: string[];
-}): UseCbsPersistenceReturn<TRecord> {
+}: CbsPersistenceOptions<TRecord>): UseCbsPersistenceReturn<TRecord> {
   const { tabs, updateTabState } = useWorkbenchStore();
   const currentTab = tabs.find((t) => t.id === tabId);
 
-  // 1. Resolve initial record ID once on mount
+  // ---------------------------------------------------------------------------
+  // 1. Initial State Resolution (Mount-time resolution)
+  // ---------------------------------------------------------------------------
   const initialIdRef = React.useRef<string | null>(null);
   if (initialIdRef.current === null) {
-    if (initialId?.trim()) {
-      initialIdRef.current = initialId.trim().toUpperCase();
-    } else if (currentTab?.searchRecordId) {
-      initialIdRef.current = currentTab.searchRecordId.toUpperCase();
-    } else if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const urlId = p.get("recordId") || p.get("id");
-      initialIdRef.current = urlId?.trim() ? urlId.trim().toUpperCase() : "";
-    } else {
-      initialIdRef.current = "";
-    }
+    initialIdRef.current = resolveInitialRecordId(initialId, currentTab?.searchRecordId);
   }
-  const resolvedInitialId = initialId?.trim()
-    ? initialId.trim().toUpperCase()
-    : (initialIdRef.current ?? "");
+  const resolvedInitialId = initialIdRef.current;
 
-  // 2. Resolve initial screen mode once on mount
   const initialModeRef = React.useRef<CbsScreenMode | null>(null);
   if (initialModeRef.current === null) {
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const urlMode = p.get("mode") as CbsScreenMode | null;
-      if (
-        urlMode === "IDLE" ||
-        urlMode === "S" ||
-        urlMode === "I" ||
-        urlMode === "D" ||
-        urlMode === "A" ||
-        urlMode === "R" ||
-        urlMode === "H"
-      ) {
-        initialModeRef.current = urlMode;
-      }
-    }
-    if (!initialModeRef.current) {
-      if (currentTab?.screenMode) {
-        initialModeRef.current = currentTab.screenMode as CbsScreenMode;
-      } else {
-        initialModeRef.current = resolvedInitialId ? "I" : fallbackMode;
-      }
-    }
+    initialModeRef.current = resolveInitialScreenMode(
+      currentTab?.screenMode,
+      resolvedInitialId,
+      fallbackMode,
+    );
   }
-  const resolvedInitialMode = initialModeRef.current || fallbackMode;
+  const resolvedInitialMode = initialModeRef.current;
 
+  // ---------------------------------------------------------------------------
+  // 2. Active Screen State & Baseline Snapshot
+  // ---------------------------------------------------------------------------
   const [recordId, setRecordIdState] = React.useState<string>(resolvedInitialId);
   const [mode, setModeState] = React.useState<CbsScreenMode>(resolvedInitialMode);
 
-  // 3. Hydrate initial form data with schema validation fallback
-  const [formData, setFormDataState] = React.useState<TRecord>(() => {
-    if (currentTab?.formData && typeof currentTab.formData === "object") {
-      if (schema) {
-        const parseResult = schema.safeParse(currentTab.formData);
-        if (parseResult.success) {
-          return parseResult.data;
-        }
-      } else {
-        return currentTab.formData as unknown as TRecord;
-      }
-    }
-    return initialData;
-  });
-
-  // 4. Baseline snapshot (restored from tab baseline if tab reloaded)
-  const baselineRef = React.useRef<TRecord>(
-    (currentTab?.baseline as unknown as TRecord) ??
-      (currentTab?.formData ? (currentTab.formData as unknown as TRecord) : initialData),
+  // Tier 1: Fast local state for instant keystroke response
+  const [formData, setFormData] = React.useState<TRecord>(() =>
+    resolveInitialFormData(currentTab?.formData, schema, initialData),
   );
 
-  // 5. Evaluate dirty state strictly via delta engine
+  // Baseline snapshot for deterministic dirty comparison
+  const baselineRef = React.useRef<TRecord>(
+    (currentTab?.baseline as TRecord) ?? (currentTab?.formData as TRecord) ?? initialData,
+  );
+
+  // ---------------------------------------------------------------------------
+  // 3. Dirty Evaluation (Delta Engine)
+  // ---------------------------------------------------------------------------
   const delta = React.useMemo(() => {
-    return evaluateDirty(
-      baselineRef.current as Record<string, unknown>,
-      formData as Record<string, unknown>,
-      ignoredKeys,
-    );
+    return evaluateDirty(baselineRef.current, formData, ignoredKeys as string[]);
   }, [formData, ignoredKeys]);
 
   const isDirty = delta.isDirty;
   const dirtyKeys = delta.dirtyKeys as string[];
 
-  // 6. Mutators
+  // ---------------------------------------------------------------------------
+  // 4. Tab State Synchronizers
+  // ---------------------------------------------------------------------------
   const setRecordId = React.useCallback(
     (id: string) => {
       setRecordIdState(id);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, { searchRecordId: id });
-      }
+      if (tabId) updateTabState(tabId, { searchRecordId: id });
     },
     [tabId, updateTabState],
   );
@@ -142,25 +108,22 @@ export function useCbsPersistence<TRecord>({
   const setMode = React.useCallback(
     (nextMode: CbsScreenMode) => {
       setModeState(nextMode);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, { screenMode: nextMode });
-      }
+      if (tabId) updateTabState(tabId, { screenMode: nextMode });
     },
     [tabId, updateTabState],
   );
 
-  const setFormData = React.useCallback<React.Dispatch<React.SetStateAction<TRecord>>>((action) => {
-    setFormDataState(action);
-  }, []);
-
+  // ---------------------------------------------------------------------------
+  // 5. Canonical CBS Lifecycle Mutators
+  // ---------------------------------------------------------------------------
   const hydrate = React.useCallback(
     (record: TRecord) => {
-      baselineRef.current = JSON.parse(JSON.stringify(record)) as TRecord;
-      setFormDataState(record);
-      if (tabId && typeof updateTabState === "function") {
+      baselineRef.current = structuredClone(record);
+      setFormData(record);
+      if (tabId) {
         updateTabState(tabId, {
-          formData: record as unknown as Record<string, unknown>,
-          baseline: record as unknown as Record<string, unknown>,
+          formData: record,
+          baseline: record,
           isDirty: false,
         });
       }
@@ -169,10 +132,10 @@ export function useCbsPersistence<TRecord>({
   );
 
   const rebaseline = React.useCallback(() => {
-    baselineRef.current = JSON.parse(JSON.stringify(formData)) as TRecord;
-    if (tabId && typeof updateTabState === "function") {
+    baselineRef.current = structuredClone(formData);
+    if (tabId) {
       updateTabState(tabId, {
-        baseline: formData as unknown as Record<string, unknown>,
+        baseline: formData,
         isDirty: false,
       });
     }
@@ -181,20 +144,22 @@ export function useCbsPersistence<TRecord>({
   const reset = React.useCallback(() => {
     setModeState("IDLE");
     setRecordIdState("");
-    setFormDataState(initialData);
-    baselineRef.current = JSON.parse(JSON.stringify(initialData)) as TRecord;
-    if (tabId && typeof updateTabState === "function") {
+    setFormData(initialData);
+    baselineRef.current = structuredClone(initialData);
+    if (tabId) {
       updateTabState(tabId, {
         searchRecordId: "",
         screenMode: "IDLE",
-        formData: initialData as unknown as Record<string, unknown>,
-        baseline: initialData as unknown as Record<string, unknown>,
+        formData: initialData,
+        baseline: initialData,
         isDirty: false,
       });
     }
   }, [initialData, tabId, updateTabState]);
 
-  // 7. Debounced (400ms) sync to tab store while typing
+  // ---------------------------------------------------------------------------
+  // 6. Tier 2: Debounced (400ms) Global Tab Store Sync (Pillar 5)
+  // ---------------------------------------------------------------------------
   const isHydratedOrReset = React.useRef(true);
   React.useEffect(() => {
     if (isHydratedOrReset.current) {
@@ -202,13 +167,10 @@ export function useCbsPersistence<TRecord>({
       return;
     }
 
-    if (!tabId || typeof updateTabState !== "function") return;
+    if (!tabId) return;
 
     const timer = setTimeout(() => {
-      updateTabState(tabId, {
-        formData: formData as unknown as Record<string, unknown>,
-        isDirty,
-      });
+      updateTabState(tabId, { formData, isDirty });
     }, 400);
 
     return () => clearTimeout(timer);
@@ -223,9 +185,9 @@ export function useCbsPersistence<TRecord>({
     setFormData,
     hydrate,
     rebaseline,
+    reset,
     isDirty,
     dirtyKeys,
-    reset,
     resolvedInitialId,
     resolvedInitialMode,
   };

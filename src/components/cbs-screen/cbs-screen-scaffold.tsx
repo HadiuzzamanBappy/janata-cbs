@@ -9,29 +9,51 @@ import { CbsInquiryHeader } from "./header/cbs-inquiry-header";
 import { useGuardedAction } from "./hooks/use-guarded-action";
 import { CbsIdleState } from "./states/cbs-idle-state";
 
+/**
+ * Universal Screen Scaffold for all Core Banking Workbench screens.
+ *
+ * Responsibilities:
+ * 1. Enforces RIDASHL access rules & Four-Eyes principle via `useCbsAccess`.
+ * 2. Wires banking terminal function hotkeys (F2, F3/Esc, F5, F6, F7, F8, F10) via `useCbsHotkeys`.
+ * 3. Intercepts navigation when dirty via `useGuardedAction` and renders `ConfirmDialog`.
+ * 4. Adapts layout between Form Tabs, Tabular Inquiries, and Dynamic Form Grids.
+ */
 export function CbsScreenScaffold<TTab extends string = string>({
+  // 1. Screen Identity & Mode
   title,
   commandCode,
   recordId = "",
   mode = "IDLE",
+
+  // 2. State & Audit Context
   isDirty = false,
+  submitting = false,
   auditContext,
+
+  // 3. Navigation & Search Callbacks
   onRecordIdChange,
   onRecordSearch,
   onCreateNew,
   onReturnToSearch,
   onReset,
-  onValidate,
+
+  // 4. Banking Mutation Callbacks (RIDASHL)
   onSubmit,
+  onValidate,
   onHold,
   onDelete,
-  onView,
-  onAmend,
   onAuthorizeReverse,
   onProcessAction,
-  submitting = false,
+  onView,
+  onAmend,
+  onPerformAction,
+
+  // 5. Lookup & Toolbar Extras
   availableItems = [],
   moreActions = [],
+  validationErrors = [],
+
+  // 6. Inquiry-Specific Callbacks
   inquiryStep,
   onInquiryBackToSelection,
   onInquiryRefresh,
@@ -40,17 +62,20 @@ export function CbsScreenScaffold<TTab extends string = string>({
   onInquiryExportCSV,
   onInquiryExportHTML,
   onInquiryExportXML,
-  idleMessage,
-  variant = "admin-tabs",
+
+  // 7. Layout & Presentation
+  variant = "system",
   tabs = [],
   activeTab,
   onActiveTabChange,
-  validationErrors = [],
   rightTabContent,
+  idleMessage,
   children,
   className = "",
 }: CbsScreenScaffoldProps<TTab>) {
-  // Derive access capability strictly from evaluateCbsAccess / useCbsAccess
+  // ===========================================================================
+  // 1. ACCESS & CAPABILITY GATE (RIDASHL & Four-Eyes Principle)
+  // ===========================================================================
   const access = useCbsAccess({
     command: commandCode,
     recordStatus: auditContext?.recStatus,
@@ -58,30 +83,24 @@ export function CbsScreenScaffold<TTab extends string = string>({
     mode,
   });
 
-  const isReadOnly =
-    access.isReadOnly ||
-    mode === "S" ||
-    mode === "A" ||
-    mode === "D" ||
-    mode === "H" ||
-    mode === "R";
+  const isReadOnly = access.isReadOnly;
 
-  // Guard navigation when dirty (Return, Create New, Record Search)
+  // ===========================================================================
+  // 2. DIRTY NAVIGATION GUARDS (Intercepts navigation on unsaved changes)
+  // ===========================================================================
   const guarded = useGuardedAction({ isDirty });
 
   const handleGuardedReturn = () => guarded.guard(onReturnToSearch);
   const handleGuardedCreateNew = (newId?: string) => guarded.guard(() => onCreateNew?.(newId));
   const handleGuardedRecordSearch = (searchedId: string) => {
     guarded.guard(() => {
-      if (onRecordSearch) {
-        onRecordSearch(searchedId.toUpperCase());
-      } else {
-        onRecordIdChange?.(searchedId.toUpperCase());
-      }
+      onRecordSearch?.(searchedId.toUpperCase());
     });
   };
 
-  // Universal terminal hotkeys: F2 (New), F3/Esc (Return), F5/Ctrl+S (Commit), F6 (Hold), F7 (Validate), F8 (Auth), F9 (Process), F10 (Delete)
+  // ===========================================================================
+  // 3. TERMINAL HOTKEYS (F2: New, F3/Esc: Return, F5: Save, F6: Hold, F8: Auth)
+  // ===========================================================================
   useCbsHotkeys({
     enabled: true,
     handlers: {
@@ -96,17 +115,19 @@ export function CbsScreenScaffold<TTab extends string = string>({
     },
   });
 
+  // ===========================================================================
+  // 4. PRESENTATION CANVAS (Header, Body, and Guard Dialog)
+  // ===========================================================================
   return (
     <div
       className={`flex flex-col h-full w-full bg-background overflow-hidden select-none font-sans ${className}`}
     >
-      {/* 1. CBS HEADER: Inquiry Header for Inquiry screens, Form Header for others */}
+      {/* 4.1 TOP CBS HEADER */}
       {variant === "inquiry" ? (
         inquiryStep === "RESULTS" ? (
           <CbsInquiryHeader
             title={title}
             commandCode={commandCode}
-            step={inquiryStep}
             onBackToSelection={onInquiryBackToSelection}
             onRefresh={onInquiryRefresh}
             onPrintLocal={onInquiryPrintLocal}
@@ -133,6 +154,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
           onDelete={access.canDelete ? onDelete : undefined}
           onView={onView}
           onAmend={onAmend}
+          onPerformAction={onPerformAction}
           onAuthorizeReverse={
             access.canAuthorize || access.canReverse ? onAuthorizeReverse : undefined
           }
@@ -148,7 +170,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
         />
       )}
 
-      {/* 2. MAIN BODY CANVAS */}
+      {/* 4.2 MAIN BODY CANVAS */}
       <div className="flex-1 overflow-hidden p-2 flex flex-col min-h-0">
         {mode === "IDLE" && variant !== "inquiry" ? (
           <div className="h-full flex flex-col items-center justify-center">
@@ -161,14 +183,14 @@ export function CbsScreenScaffold<TTab extends string = string>({
               }
             />
           </div>
-        ) : variant === "admin-tabs" ? (
+        ) : variant === "system" ? (
           <div className="flex flex-col h-full overflow-hidden min-h-0">
             <Tabs
               value={activeTab || tabs[0]?.id}
               onValueChange={(val) => onActiveTabChange?.(val as TTab)}
               className="flex-1 flex flex-col overflow-hidden min-h-0 gap-1.5"
             >
-              {/* TAB ROW STRIP */}
+              {/* TAB STRIP */}
               <div className="border-b border-border/70 pb-1 flex items-center justify-between shrink-0">
                 <TabsList className="h-7 bg-muted/60 p-0.5 rounded-sm">
                   {tabs.map((tab) => {
@@ -198,7 +220,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
                   })}
                 </TabsList>
 
-                {/* Right toolbar item: domain items (e.g. status tags) */}
+                {/* Right Tab Extra Action (e.g. status tags) */}
                 {rightTabContent && (
                   <div className="flex items-center gap-2 pr-1">{rightTabContent}</div>
                 )}
@@ -217,11 +239,12 @@ export function CbsScreenScaffold<TTab extends string = string>({
             </Tabs>
           </div>
         ) : (
-          /* Form / Inquiry / Custom Body */
+          /* Form / Inquiry / Dynamic Engine Body */
           <div className="flex-1 flex flex-col overflow-hidden min-h-0">{children}</div>
         )}
       </div>
 
+      {/* 4.3 UNSAVED CHANGES CONFIRMATION DIALOG */}
       <ConfirmDialog
         open={guarded.isConfirmOpen}
         onOpenChange={(open) => {

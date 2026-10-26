@@ -19,6 +19,17 @@ interface McPropertiesTabProps {
   onRemoveField: (sn: string, forceHardDelete?: boolean) => void;
 }
 
+function findPropertyBySN(items: ModelProperty[], sn: string): ModelProperty | undefined {
+  for (const item of items) {
+    if (item.SN === sn) return item;
+    if (item.PROP && item.PROP.length > 0) {
+      const match = findPropertyBySN(item.PROP, sn);
+      if (match) return match;
+    }
+  }
+  return undefined;
+}
+
 export function McPropertiesTab({
   properties,
   isReadOnly,
@@ -54,9 +65,9 @@ export function McPropertiesTab({
       setInternalSN(null);
       return;
     }
-    const exists = properties.some((p) => p.sn === selectedSN);
+    const exists = selectedSN ? findPropertyBySN(properties, selectedSN) !== undefined : false;
     if (!exists) {
-      const fallback = properties[0]?.sn || null;
+      const fallback = properties[0]?.SN || null;
       if (onControlledSelectSN && fallback) onControlledSelectSN(fallback);
       setInternalSN(fallback);
     }
@@ -64,7 +75,7 @@ export function McPropertiesTab({
 
   const selectedProperty = React.useMemo(() => {
     if (!selectedSN) return undefined;
-    return properties.find((p) => p.sn === selectedSN);
+    return findPropertyBySN(properties, selectedSN);
   }, [properties, selectedSN]);
 
   return (
@@ -89,7 +100,7 @@ export function McPropertiesTab({
             property={selectedProperty}
             allProperties={properties}
             isReadOnly={isReadOnly}
-            isCommitted={isFieldCommitted(selectedProperty.sn)}
+            isCommitted={isFieldCommitted(selectedProperty.SN)}
             validationErrors={validationErrors}
             onUpdate={onUpdateField}
             onDelete={onRemoveField}

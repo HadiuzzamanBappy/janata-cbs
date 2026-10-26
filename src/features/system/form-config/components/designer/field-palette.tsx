@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
+import { flattenModelProperties } from "@/lib/data-parsers";
 import type { FormFieldItem, FormWidgetType } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
@@ -68,8 +69,8 @@ export function FieldPalette({
     cbs
       .send<ModelConfigRecord>(cbs.modelConfig.get(targetModel))
       .then((res) => {
-        if (isMounted && res.data?.properties) {
-          setModelProperties(res.data.properties);
+        if (isMounted && res.data?.PROPERTIES) {
+          setModelProperties(flattenModelProperties(res.data.PROPERTIES));
         }
       })
       .catch(() => {
@@ -98,51 +99,51 @@ export function FieldPalette({
     parameter?: unknown;
   } => {
     const isAmount =
-      prop.name.toLowerCase().includes("deposit") ||
-      prop.name.toLowerCase().includes("amount") ||
-      prop.name.toLowerCase().includes("balance");
+      prop.NAME.toLowerCase().includes("deposit") ||
+      prop.NAME.toLowerCase().includes("amount") ||
+      prop.NAME.toLowerCase().includes("balance");
 
     if (isAmount) {
       return {
         widget: "amount",
         currencyPrefix: "BDT",
-        modelType: prop.type,
-        parameter: prop.parameter,
+        modelType: prop.TYPE,
+        parameter: prop.PARAMETER,
       };
     }
 
     const staticOptions =
-      prop.parameter?.type === "O" && Array.isArray(prop.parameter.data)
-        ? prop.parameter.data.map((d) => d.itemLabel || d.itemCode)
+      prop.PARAMETER?.TYPE === "O" && Array.isArray(prop.PARAMETER.DATA)
+        ? prop.PARAMETER.DATA.map((d) => d.ITEMLABEL || d.ITEMCODE)
         : undefined;
 
     let widget: FormWidgetType = "text";
-    if (prop.type === "Number") {
+    if (prop.TYPE === "Number") {
       widget = staticOptions?.length ? "select" : "number";
-    } else if (prop.type === "Date") {
+    } else if (prop.TYPE === "Date") {
       widget = "date";
-    } else if (prop.type === "Boolean") {
+    } else if (prop.TYPE === "Boolean") {
       widget = "switch";
-    } else if (prop.type === "Dropdown") {
+    } else if (prop.TYPE === "Dropdown") {
       widget = "select";
-    } else if (prop.type === "Radio") {
+    } else if (prop.TYPE === "Radio") {
       widget = "radio-group";
-    } else if (prop.type === "Checkbox" || prop.type === "Array") {
+    } else if (prop.TYPE === "Checkbox" || prop.TYPE === "Array") {
       widget = "checkbox-group";
-    } else if (prop.type === "Textarea") {
+    } else if (prop.TYPE === "Textarea") {
       widget = "textarea";
     }
 
     return {
       widget,
       options: staticOptions,
-      modelType: prop.type,
-      parameter: prop.parameter,
+      modelType: prop.TYPE,
+      parameter: prop.PARAMETER,
     };
   };
 
   const placedCount = React.useMemo(() => {
-    return modelProperties.filter((p) => usedFieldKeys.has(p.name)).length;
+    return modelProperties.filter((p) => usedFieldKeys.has(p.NAME)).length;
   }, [modelProperties, usedFieldKeys]);
 
   // Group properties into standalone fields and hierarchical object groups
@@ -160,30 +161,30 @@ export function FieldPalette({
     const childSet = new Set<string>();
 
     for (const p of modelProperties) {
-      if (p.type === "Object") {
-        objectMap.set(p.sn, { parent: p, children: [] });
+      if (p.TYPE === "Object") {
+        objectMap.set(p.SN, { parent: p, children: [] });
       }
     }
 
     for (const p of modelProperties) {
-      if (p.type !== "Object" && p.sn.includes("_")) {
-        const parentSn = p.sn.substring(0, p.sn.lastIndexOf("_"));
+      if (p.TYPE !== "Object" && p.SN.includes("_")) {
+        const parentSn = p.SN.substring(0, p.SN.lastIndexOf("_"));
         const parentEntry = objectMap.get(parentSn);
         if (parentEntry) {
           parentEntry.children.push(p);
-          childSet.add(p.name);
+          childSet.add(p.NAME);
         }
       }
     }
 
     const items: PaletteItem[] = [];
     for (const p of modelProperties) {
-      if (p.type === "Object") {
-        const grp = objectMap.get(p.sn);
+      if (p.TYPE === "Object") {
+        const grp = objectMap.get(p.SN);
         if (grp) {
           items.push({ kind: "object-group", parent: grp.parent, children: grp.children });
         }
-      } else if (!childSet.has(p.name)) {
+      } else if (!childSet.has(p.NAME)) {
         items.push({ kind: "single", property: p });
       }
     }
@@ -192,10 +193,10 @@ export function FieldPalette({
     if (modelFilter === "unplaced") {
       return items.filter((item) => {
         if (item.kind === "single") {
-          return !usedFieldKeys.has(item.property.name);
+          return !usedFieldKeys.has(item.property.NAME);
         }
         // For object group, show if any child is unplaced or parent is not fully placed
-        return item.children.some((c) => !usedFieldKeys.has(c.name));
+        return item.children.some((c) => !usedFieldKeys.has(c.NAME));
       });
     }
 
@@ -206,20 +207,20 @@ export function FieldPalette({
     const initialFields: FormFieldItem[] = children.map((child, idx) => {
       const mapped = mapPropertyToWidget(child);
       return {
-        id: `f_${child.name}_${Date.now()}_${idx}`,
-        fieldKey: child.name,
-        label: child.label,
+        id: `f_${child.NAME}_${Date.now()}_${idx}`,
+        fieldKey: child.NAME,
+        label: child.LABEL,
         widget: mapped.widget,
         currencyPrefix: mapped.currencyPrefix,
         colSpan: 12,
         options: mapped.options,
         modelType: mapped.modelType,
         parameter: mapped.parameter,
-        structure: child.structure || "S",
-        groupKey: parent.name,
-        groupSn: parent.sn,
-        groupLabel: parent.label || parent.name,
-        groupStructure: parent.structure,
+        structure: child.STRUCTURE || "S",
+        groupKey: parent.NAME,
+        groupSn: parent.SN,
+        groupLabel: parent.LABEL || parent.NAME,
+        groupStructure: parent.STRUCTURE,
         isFirstInGroup: idx === 0,
       };
     });
@@ -229,7 +230,7 @@ export function FieldPalette({
       "standard",
       initialFields,
       "card",
-      parent.label || parent.name,
+      parent.LABEL || parent.NAME,
       undefined,
       undefined,
       undefined,
@@ -319,12 +320,12 @@ export function FieldPalette({
                   if (item.kind === "single") {
                     const prop = item.property;
                     const mapped = mapPropertyToWidget(prop);
-                    const isPlaced = usedFieldKeys.has(prop.name);
+                    const isPlaced = usedFieldKeys.has(prop.NAME);
 
                     return (
                       // biome-ignore lint/a11y/noStaticElementInteractions: Draggable palette variable item
                       <div
-                        key={prop.name}
+                        key={prop.NAME}
                         draggable={!disabled && !isPlaced}
                         onDragStart={(e) => {
                           if (disabled || isPlaced) {
@@ -334,15 +335,15 @@ export function FieldPalette({
                           const payload = {
                             type: "palette-variable",
                             template: {
-                              label: prop.label,
-                              fieldKey: prop.name,
+                              label: prop.LABEL,
+                              fieldKey: prop.NAME,
                               widget: mapped.widget,
                               currencyPrefix: mapped.currencyPrefix,
                               colSpan: 12,
                               options: mapped.options,
                               modelType: mapped.modelType,
                               parameter: mapped.parameter,
-                              structure: prop.structure || "S",
+                              structure: prop.STRUCTURE || "S",
                             },
                           };
                           e.dataTransfer.setData("application/json", JSON.stringify(payload));
@@ -359,11 +360,11 @@ export function FieldPalette({
                           type="button"
                           onClick={() => {
                             if (isPlaced) {
-                              onHighlightField?.(prop.name);
+                              onHighlightField?.(prop.NAME);
                             } else {
                               onAddField({
-                                label: prop.label,
-                                fieldKey: prop.name,
+                                label: prop.LABEL,
+                                fieldKey: prop.NAME,
                                 widget: mapped.widget,
                                 currencyPrefix: mapped.currencyPrefix,
                                 colSpan: 12,
@@ -376,8 +377,8 @@ export function FieldPalette({
                           className="flex items-center gap-1.5 truncate flex-1 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer"
                           title={
                             isPlaced
-                              ? `Field '${prop.name}' is already on canvas. Click to inspect.`
-                              : `Drag or click to add '${prop.name}' to canvas`
+                              ? `Field '${prop.NAME}' is already on canvas. Click to inspect.`
+                              : `Drag or click to add '${prop.NAME}' to canvas`
                           }
                         >
                           {isPlaced ? (
@@ -385,7 +386,7 @@ export function FieldPalette({
                           ) : (
                             <Plus className="size-3 text-primary shrink-0" />
                           )}
-                          <span className="truncate font-medium">{prop.label}</span>
+                          <span className="truncate font-medium">{prop.LABEL}</span>
                         </button>
 
                         <div className="flex items-center gap-1 shrink-0 ml-1">
@@ -396,7 +397,7 @@ export function FieldPalette({
                               isPlaced && "text-emerald-500 border-emerald-500/40 bg-emerald-500/5",
                             )}
                           >
-                            {isPlaced ? "PLACED" : prop.type}
+                            {isPlaced ? "PLACED" : prop.TYPE}
                           </Badge>
                         </div>
                       </div>
@@ -406,16 +407,16 @@ export function FieldPalette({
                   // Object Group Card with hierarchical child fields
                   const parent = item.parent;
                   const children = item.children;
-                  const isCollapsed = collapsedGroups[parent.sn] ?? false;
+                  const isCollapsed = collapsedGroups[parent.SN] ?? false;
                   const allPlaced =
-                    children.length > 0 && children.every((c) => usedFieldKeys.has(c.name));
+                    children.length > 0 && children.every((c) => usedFieldKeys.has(c.NAME));
                   const placedChildrenCount = children.filter((c) =>
-                    usedFieldKeys.has(c.name),
+                    usedFieldKeys.has(c.NAME),
                   ).length;
 
                   return (
                     <div
-                      key={parent.sn}
+                      key={parent.SN}
                       className={cn(
                         "rounded border text-[11px] transition-all bg-card/60 shadow-2xs overflow-hidden",
                         allPlaced
@@ -427,7 +428,7 @@ export function FieldPalette({
                       <div className="flex items-center justify-between p-1.5 bg-muted/30 border-b border-border/50 gap-1">
                         <button
                           type="button"
-                          onClick={() => toggleGroupCollapse(parent.sn)}
+                          onClick={() => toggleGroupCollapse(parent.SN)}
                           className="flex items-center gap-1 min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
                         >
                           {isCollapsed ? (
@@ -437,7 +438,7 @@ export function FieldPalette({
                           )}
                           <Boxes className="size-3 text-primary shrink-0" />
                           <span className="truncate font-semibold text-foreground text-[11px]">
-                            {parent.label || parent.name}
+                            {parent.LABEL || parent.NAME}
                           </span>
                         </button>
 
@@ -446,7 +447,7 @@ export function FieldPalette({
                             variant="outline"
                             className="text-[8px] h-3.5 px-1 font-mono uppercase text-primary border-primary/40 bg-primary/10"
                           >
-                            {parent.structure === "M" ? "OBJECT.M" : "OBJECT"}
+                            {parent.STRUCTURE === "M" ? "OBJECT.M" : "OBJECT"}
                           </Badge>
                           <span className="text-[9px] font-mono text-muted-foreground">
                             ({placedChildrenCount}/{children.length})
@@ -464,7 +465,7 @@ export function FieldPalette({
                               size="sm"
                               onClick={() => handleAddEntireObjectGroup(parent, children)}
                               className="w-full h-6 text-[10px] gap-1 px-2 text-primary border-primary/30 hover:bg-primary/10 rounded font-medium cursor-pointer"
-                              title={`Add complete ${parent.label || parent.name} group section with all child fields`}
+                              title={`Add complete ${parent.LABEL || parent.NAME} group section with all child fields`}
                             >
                               <Plus className="size-3 stroke-[2.5]" />
                               <span>Add Entire Group to Canvas</span>
@@ -475,12 +476,12 @@ export function FieldPalette({
                           <div className="space-y-1 pl-1 border-l-2 border-primary/20">
                             {children.map((child, childIdx) => {
                               const mapped = mapPropertyToWidget(child);
-                              const isChildPlaced = usedFieldKeys.has(child.name);
+                              const isChildPlaced = usedFieldKeys.has(child.NAME);
 
                               return (
                                 // biome-ignore lint/a11y/noStaticElementInteractions: Draggable child variable
                                 <div
-                                  key={child.name}
+                                  key={child.NAME}
                                   draggable={!disabled && !isChildPlaced}
                                   onDragStart={(e) => {
                                     if (disabled || isChildPlaced) {
@@ -490,19 +491,19 @@ export function FieldPalette({
                                     const payload = {
                                       type: "palette-variable",
                                       template: {
-                                        label: child.label,
-                                        fieldKey: child.name,
+                                        label: child.LABEL,
+                                        fieldKey: child.NAME,
                                         widget: mapped.widget,
                                         currencyPrefix: mapped.currencyPrefix,
                                         colSpan: 12,
                                         options: mapped.options,
                                         modelType: mapped.modelType,
                                         parameter: mapped.parameter,
-                                        structure: child.structure || "S",
-                                        groupKey: parent.name,
-                                        groupSn: parent.sn,
-                                        groupLabel: parent.label || parent.name,
-                                        groupStructure: parent.structure,
+                                        structure: child.STRUCTURE || "S",
+                                        groupKey: parent.NAME,
+                                        groupSn: parent.SN,
+                                        groupLabel: parent.LABEL || parent.NAME,
+                                        groupStructure: parent.STRUCTURE,
                                         isFirstInGroup: childIdx === 0,
                                       },
                                     };
@@ -523,11 +524,11 @@ export function FieldPalette({
                                     type="button"
                                     onClick={() => {
                                       if (isChildPlaced) {
-                                        onHighlightField?.(child.name);
+                                        onHighlightField?.(child.NAME);
                                       } else {
                                         onAddField({
-                                          label: child.label,
-                                          fieldKey: child.name,
+                                          label: child.LABEL,
+                                          fieldKey: child.NAME,
                                           widget: mapped.widget,
                                           currencyPrefix: mapped.currencyPrefix,
                                           colSpan: 12,
@@ -540,8 +541,8 @@ export function FieldPalette({
                                     className="flex items-center gap-1 truncate flex-1 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer"
                                     title={
                                       isChildPlaced
-                                        ? `Child field '${child.name}' is already placed`
-                                        : `Drag or click to place '${child.name}'`
+                                        ? `Child field '${child.NAME}' is already placed`
+                                        : `Drag or click to place '${child.NAME}'`
                                     }
                                   >
                                     {isChildPlaced ? (
@@ -549,7 +550,7 @@ export function FieldPalette({
                                     ) : (
                                       <Plus className="size-2.5 text-primary shrink-0" />
                                     )}
-                                    <span className="truncate font-medium">{child.label}</span>
+                                    <span className="truncate font-medium">{child.LABEL}</span>
                                   </button>
 
                                   <div className="flex items-center gap-1 shrink-0 ml-1">
@@ -561,7 +562,7 @@ export function FieldPalette({
                                           "text-emerald-500 border-emerald-500/40 bg-emerald-500/5",
                                       )}
                                     >
-                                      {isChildPlaced ? "PLACED" : child.type}
+                                      {isChildPlaced ? "PLACED" : child.TYPE}
                                     </Badge>
                                   </div>
                                 </div>

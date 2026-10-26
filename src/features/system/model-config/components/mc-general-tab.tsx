@@ -99,7 +99,7 @@ export function McGeneralTab({
                               id={fieldId}
                               checked={isChecked}
                               disabled={isReadOnly}
-                              onCheckedChange={(val) => handleBooleanChange(field, !!val)}
+                              onCheckedChange={(val: boolean) => handleBooleanChange(field, !!val)}
                               className={cn(
                                 "rounded",
                                 isReadOnly && "disabled:opacity-90 disabled:cursor-default",
@@ -169,7 +169,9 @@ export function McGeneralTab({
                                 id={boolFieldId}
                                 checked={isChecked}
                                 disabled={isReadOnly}
-                                onCheckedChange={(val) => handleBooleanChange(field, !!val)}
+                                onCheckedChange={(val: boolean) =>
+                                  handleBooleanChange(field, !!val)
+                                }
                                 className={cn(
                                   "rounded",
                                   isReadOnly && "disabled:opacity-90 disabled:cursor-default",
@@ -214,7 +216,7 @@ export function McGeneralTab({
                           <div className="flex items-center gap-5 max-w-md flex-1">
                             <RadioGroup
                               value={rawVal ? String(rawVal) : ""}
-                              onValueChange={(val) =>
+                              onValueChange={(val: string) =>
                                 setFormData((prev) =>
                                   setFieldValue(prev, field.path, String(val ?? "")),
                                 )
@@ -281,7 +283,7 @@ export function McGeneralTab({
                                     id={optId}
                                     checked={isChecked}
                                     disabled={isReadOnly}
-                                    onCheckedChange={(checked) => {
+                                    onCheckedChange={(checked: boolean) => {
                                       const next = checked
                                         ? [...selectedValues, opt.value]
                                         : selectedValues.filter((v: string) => v !== opt.value);
@@ -368,7 +370,7 @@ export function McGeneralTab({
                                     id={optId}
                                     checked={isChecked}
                                     disabled={isReadOnly}
-                                    onCheckedChange={(checked) => {
+                                    onCheckedChange={(checked: boolean) => {
                                       const next = checked
                                         ? [...selectedValues, opt.value]
                                         : selectedValues.filter((v: string) => v !== opt.value);

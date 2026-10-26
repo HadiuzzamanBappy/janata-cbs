@@ -23,64 +23,83 @@ export const PROPERTY_TYPES = propertyTypeSchema.options;
 
 /** Option item for Parameterized types (Dropdown, Checkbox, Radio) */
 export const propertyParameterOptionSchema = z.object({
-  id: z.string().optional(),
-  itemCode: z.string().default(""),
-  itemLabel: z.string().default(""),
+  ID: z.string().optional(),
+  ITEMCODE: z.string().default(""),
+  ITEMLABEL: z.string().default(""),
 });
 export type PropertyParameterOption = z.infer<typeof propertyParameterOptionSchema>;
 
 /** Parameter definition for Dropdown / Checkbox / Radio types */
 export const propertyParameterSchema = z.object({
-  type: z.enum(["O", "M", ""]).default("O"), // O = Options (static), M = Model (DB)
-  data: z.array(propertyParameterOptionSchema).default([]),
-  modelName: z.string().default(""),
-  displayField: z.string().default(""),
-  condition: z.string().default(""),
-  reference: z.string().default(""),
+  TYPE: z.enum(["O", "M", ""]).default("O"), // O = Options (static), M = Model (DB)
+  DATA: z.array(propertyParameterOptionSchema).default([]),
+  MODELNAME: z.string().default(""),
+  DISPLAYFIELD: z.string().default(""),
+  CONDITION: z.string().default(""),
+  REFERENCE: z.string().default(""),
 });
 export type PropertyParameter = z.infer<typeof propertyParameterSchema>;
 
-/** Column attribute descriptor defining data structure, constraints, and masks for model properties. */
-export const modelPropertySchema = z.object({
-  sn: z.string(),
-  name: z.string().min(1, "Field name is required"),
-  label: z.string().min(1, "Field label is required"),
-  type: propertyTypeSchema.default("Text"),
-  structure: z.enum(["S", "M"]).default("S"), // S = Single value, M = Multi-value
-  length: z.number().default(50),
-  required: z.boolean().default(false),
-  disabled: z.boolean().default(false),
-  status: z.enum(["ACTIVE", "ARCHIVED"]).default("ACTIVE"),
-  defaultValue: z.unknown().optional(),
-  enrichText: z.string().optional(),
-  parameter: propertyParameterSchema.optional(),
-});
+export type ModelProperty = {
+  SN: string;
+  NAME: string;
+  LABEL: string;
+  TYPE: PropertyType;
+  STRUCTURE?: "S" | "M";
+  LENGTH?: number;
+  WIDTH?: number;
+  REQUIRED?: boolean;
+  DISABLED?: boolean;
+  STATUS?: "ACTIVE" | "ARCHIVED";
+  DEFAULTVALUE?: unknown;
+  ENRICHTEXT?: string;
+  PARAMETER?: PropertyParameter;
+  PROP?: ModelProperty[];
+};
 
-export type ModelProperty = z.infer<typeof modelPropertySchema>;
+/** Column attribute descriptor defining data structure, constraints, and masks for model properties. */
+export const modelPropertySchema: z.ZodType<ModelProperty> = z.lazy(() =>
+  z.object({
+    SN: z.string(),
+    NAME: z.string().min(1, "Field name is required"),
+    LABEL: z.string().min(1, "Field label is required"),
+    TYPE: propertyTypeSchema.default("Text"),
+    STRUCTURE: z.enum(["S", "M"]).default("S"), // S = Single value, M = Multi-value
+    LENGTH: z.number().default(50),
+    WIDTH: z.number().optional(),
+    REQUIRED: z.boolean().default(false),
+    DISABLED: z.boolean().default(false),
+    STATUS: z.enum(["ACTIVE", "ARCHIVED"]).default("ACTIVE"),
+    DEFAULTVALUE: z.unknown().optional(),
+    ENRICHTEXT: z.string().optional(),
+    PARAMETER: propertyParameterSchema.optional(),
+    PROP: z.array(z.lazy(() => modelPropertySchema)).default([]),
+  }),
+);
 
 /** Metamodel table definition record stored in the `MODEL.CONFIG` control table. */
 export const modelConfigRecordSchema = z.object({
-  tableName: z.string().min(1, "Table Name is required"),
-  description: z.string().min(1, "Description is required"),
-  prefix: z.string().default(""),
-  servicePath: z.string().min(1, "Service Path is required"),
-  userDefineId: z.boolean().default(false),
-  access: z.string().min(1, "Table Type (Global / Branch) is required"),
-  searchable: z.boolean().default(false),
-  readOnly: z.boolean().default(false),
-  authorize: z.boolean().default(false),
-  associates: z.array(z.string()).default([]),
-  devBy: z.string().default(""),
-  devDate: z.string().default(""),
-  idDef: z
+  TABLENAME: z.string().min(1, "Table Name is required"),
+  DESCRIPTION: z.string().min(1, "Description is required"),
+  PREFIX: z.string().default(""),
+  SERVICEPATH: z.string().min(1, "Service Path is required"),
+  USERDEFINEID: z.boolean().default(false),
+  ACCESS: z.string().min(1, "Table Type (Global / Branch) is required"),
+  SEARCHABLE: z.boolean().default(false),
+  READONLY: z.boolean().default(false),
+  AUTHORIZE: z.boolean().default(false),
+  ASSOCIATES: z.array(z.string()).default([]),
+  _DEVBY: z.string().default(""),
+  _DEVDATE: z.string().default(""),
+  IDDEF: z
     .object({
-      idPrefix: z.string().default(""),
-      idPattern: z.string().default(""),
-      sequenceLength: z.union([z.number(), z.string()]).optional(),
-      sequenceReset: z.boolean().default(false),
+      IDPREFIX: z.string().default(""),
+      IDPATTERN: z.string().default(""),
+      SEQUENCELENGTH: z.union([z.number(), z.string()]).default("").optional(),
+      SEQUENCERESET: z.boolean().default(false),
     })
-    .default({ idPrefix: "", idPattern: "", sequenceReset: false }),
-  properties: z.array(modelPropertySchema).default([]),
+    .default({ IDPREFIX: "", IDPATTERN: "", SEQUENCELENGTH: "", SEQUENCERESET: false }),
+  PROPERTIES: z.array(modelPropertySchema).default([]),
   auditData: auditDataSchema.optional(),
 });
 
@@ -93,7 +112,7 @@ export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
 /** Screen validation error mapped to tab headers and field serial numbers. */
 export interface ValidationErrorItem {
   id: string;
-  tab: "general" | "fields" | "audit";
+  tab: "general" | "properties" | "audit";
   sn?: string;
   fieldKey: string;
   message: string;

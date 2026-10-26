@@ -7,33 +7,42 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
   const [committedSnSet, setCommittedSnSet] = React.useState<Set<string>>(new Set());
 
   const markAsCommitted = React.useCallback((props: ModelProperty[]) => {
-    setCommittedSnSet(new Set(props.map((p) => p.sn)));
+    const snList: string[] = [];
+    const walk = (items: ModelProperty[]) => {
+      for (const p of items) {
+        snList.push(p.SN);
+        if (p.PROP && p.PROP.length > 0) walk(p.PROP);
+      }
+    };
+    walk(props);
+    setCommittedSnSet(new Set(snList));
   }, []);
 
   const addField = React.useCallback((): string => {
     let createdSn = "";
     setFormData((prev) => {
-      const maxSn = prev.properties.reduce((max, p) => {
-        if (p.sn.includes("_")) return max;
-        const num = Number.parseInt(p.sn, 10);
+      const props = prev.PROPERTIES || [];
+      const maxSn = props.reduce((max, p) => {
+        const num = Number.parseInt(p.SN, 10);
         return !Number.isNaN(num) && num > max ? num : max;
       }, 0);
       const nextSn = String(maxSn + 1);
       createdSn = nextSn;
       const newField: ModelProperty = {
-        sn: nextSn,
-        name: "",
-        label: "",
-        type: "Text",
-        structure: "S",
-        length: 50,
-        required: false,
-        disabled: false,
-        status: "ACTIVE",
+        SN: nextSn,
+        NAME: "",
+        LABEL: "",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 50,
+        REQUIRED: false,
+        DISABLED: false,
+        STATUS: "ACTIVE",
+        PROP: [],
       };
       return {
         ...prev,
-        properties: [...prev.properties, newField],
+        PROPERTIES: [...props, newField],
       };
     });
     return createdSn;
@@ -43,51 +52,49 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
     (parentSN: string): string => {
       let createdSn = "";
       setFormData((prev) => {
-        const parentIndex = prev.properties.findIndex((p) => p.sn === parentSN);
-        if (parentIndex === -1) return prev;
+        const props = prev.PROPERTIES || [];
 
-        const prefix = `${parentSN}_`;
-        const directChildren = prev.properties.filter((p) => {
-          if (!p.sn.startsWith(prefix)) return false;
-          const remainder = p.sn.slice(prefix.length);
-          return !remainder.includes("_");
-        });
-
-        const maxChildNum = directChildren.reduce((max, p) => {
-          const num = Number.parseInt(p.sn.slice(prefix.length), 10);
-          return !Number.isNaN(num) && num > max ? num : max;
-        }, 0);
-
-        const nextChildSn = `${parentSN}_${maxChildNum + 1}`;
-        createdSn = nextChildSn;
-
-        const newChild: ModelProperty = {
-          sn: nextChildSn,
-          name: "",
-          label: "",
-          type: "Text",
-          structure: "S",
-          length: 50,
-          required: false,
-          disabled: false,
-          status: "ACTIVE",
+        const appendChild = (items: ModelProperty[]): ModelProperty[] => {
+          return items.map((p) => {
+            if (p.SN === parentSN) {
+              const children = p.PROP || [];
+              const maxChildNum = children.reduce((max, c) => {
+                const parts = c.SN.split("_");
+                const lastNum = Number.parseInt(parts[parts.length - 1], 10);
+                return !Number.isNaN(lastNum) && lastNum > max ? lastNum : max;
+              }, 0);
+              const nextChildSn = `${parentSN}_${maxChildNum + 1}`;
+              createdSn = nextChildSn;
+              const newChild: ModelProperty = {
+                SN: nextChildSn,
+                NAME: "",
+                LABEL: "",
+                TYPE: "Text",
+                STRUCTURE: "S",
+                LENGTH: 50,
+                REQUIRED: false,
+                DISABLED: false,
+                STATUS: "ACTIVE",
+                PROP: [],
+              };
+              return {
+                ...p,
+                PROP: [...children, newChild],
+              };
+            }
+            if (p.PROP && p.PROP.length > 0) {
+              return {
+                ...p,
+                PROP: appendChild(p.PROP),
+              };
+            }
+            return p;
+          });
         };
-
-        let insertIndex = parentIndex;
-        for (let i = parentIndex + 1; i < prev.properties.length; i++) {
-          if (prev.properties[i].sn.startsWith(prefix)) {
-            insertIndex = i;
-          } else {
-            break;
-          }
-        }
-
-        const nextProperties = [...prev.properties];
-        nextProperties.splice(insertIndex + 1, 0, newChild);
 
         return {
           ...prev,
-          properties: nextProperties,
+          PROPERTIES: appendChild(props),
         };
       });
       return createdSn;
@@ -97,10 +104,23 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
 
   const updateField = React.useCallback(
     (sn: string, patch: Partial<ModelProperty>) => {
-      setFormData((prev) => ({
-        ...prev,
-        properties: prev.properties.map((p) => (p.sn === sn ? { ...p, ...patch } : p)),
-      }));
+      setFormData((prev) => {
+        const updateRecursive = (items: ModelProperty[]): ModelProperty[] => {
+          return items.map((p) => {
+            if (p.SN === sn) {
+              return { ...p, ...patch };
+            }
+            if (p.PROP && p.PROP.length > 0) {
+              return { ...p, PROP: updateRecursive(p.PROP) };
+            }
+            return p;
+          });
+        };
+        return {
+          ...prev,
+          PROPERTIES: updateRecursive(prev.PROPERTIES || []),
+        };
+      });
     },
     [setFormData],
   );
@@ -118,10 +138,20 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
           return prev;
         }
 
-        const prefix = `${sn}_`;
+        const removeRecursive = (items: ModelProperty[]): ModelProperty[] => {
+          return items
+            .filter((p) => p.SN !== sn)
+            .map((p) => {
+              if (p.PROP && p.PROP.length > 0) {
+                return { ...p, PROP: removeRecursive(p.PROP) };
+              }
+              return p;
+            });
+        };
+
         return {
           ...prev,
-          properties: prev.properties.filter((p) => p.sn !== sn && !p.sn.startsWith(prefix)),
+          PROPERTIES: removeRecursive(prev.PROPERTIES || []),
         };
       });
     },

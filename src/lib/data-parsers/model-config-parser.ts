@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   type ModelConfigRecord,
+  type ModelProperty,
   modelConfigRecordSchema,
 } from "@/lib/data-schemas/model-config-schema";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
@@ -68,20 +69,19 @@ export function parseModelConfigList(
 }
 
 /* -------------------------------------------------------------------------- */
-/* Wire Serializer                                                            */
+/* Tree Transformation Utilities (PROP Nesting)                              */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Serializes internal ModelConfigRecord for database storage or JSON preview.
- * Safely handles in-progress draft models during live editing.
+ * Recursively flattens a nested ModelProperty tree (with PROP: [...]) into a flat array.
  */
-export function serializeModelToWireJson(record: ModelConfigRecord): ModelConfigRecord {
-  const result = modelConfigRecordSchema.safeParse(record);
-  const data = result.success ? result.data : record;
-  // Ensure legacy recordId is never emitted inside model JSON payload
-  if ("recordId" in data) {
-    const { recordId: _, ...clean } = data as Record<string, unknown>;
-    return clean as ModelConfigRecord;
+export function flattenModelProperties(props: ModelProperty[]): ModelProperty[] {
+  const result: ModelProperty[] = [];
+  for (const p of props) {
+    result.push(p);
+    if (Array.isArray(p.PROP) && p.PROP.length > 0) {
+      result.push(...flattenModelProperties(p.PROP));
+    }
   }
-  return data;
+  return result;
 }

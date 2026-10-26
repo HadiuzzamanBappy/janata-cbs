@@ -40,25 +40,25 @@ export function getMockInquiryPayload(command: string): unknown {
 
   // 2. Fallback: Synthesize raw Model Inquiry dynamically from MODEL.CONFIG properties
   const model =
-    SC_MODEL_CONFIG[clean] || Object.values(SC_MODEL_CONFIG).find((m) => m.tableName === clean);
+    SC_MODEL_CONFIG[clean] || Object.values(SC_MODEL_CONFIG).find((m) => m.TABLENAME === clean);
 
   if (!model) return null;
 
-  const rawProps = Array.isArray(model.properties) ? model.properties : [];
+  const rawProps = Array.isArray(model.PROPERTIES) ? model.PROPERTIES : [];
 
   // Build inquiry columns from model properties
   const columns = rawProps.map((prop) => {
-    const isAmount = prop.type?.toLowerCase() === "amount";
-    const isDate = prop.type?.toLowerCase() === "date";
-    const isNumber = prop.type?.toLowerCase() === "number";
+    const isAmount = prop.TYPE?.toLowerCase() === "amount";
+    const isDate = prop.TYPE?.toLowerCase() === "date";
+    const isNumber = prop.TYPE?.toLowerCase() === "number";
 
     return {
-      id: prop.name,
-      label: prop.label || prop.name,
+      id: prop.NAME,
+      label: prop.LABEL || prop.NAME,
       align: isAmount || isNumber ? "right" : isDate ? "center" : "left",
       width: isAmount ? "140px" : isDate ? "120px" : "150px",
       format: isAmount ? "amount" : isDate ? "date" : "text",
-      isMono: Boolean(prop.name.toLowerCase().includes("id") || prop.sn === "1"),
+      isMono: Boolean(prop.NAME.toLowerCase().includes("id") || prop.SN === "1"),
       sortable: true,
       visible: true,
       isPinned: false,
@@ -67,26 +67,26 @@ export function getMockInquiryPayload(command: string): unknown {
 
   // Build inquiry filters from active model properties
   const filters = rawProps
-    .filter((prop) => !prop.disabled)
+    .filter((prop) => !prop.DISABLED)
     .map((prop) => {
-      const pType = prop.type?.toLowerCase();
+      const pType = prop.TYPE?.toLowerCase();
       const filterType =
         pType === "date" ? "date" : pType === "number" || pType === "amount" ? "number" : "text";
 
       return {
-        id: prop.name,
-        label: prop.label || prop.name,
+        id: prop.NAME,
+        label: prop.LABEL || prop.NAME,
         type: filterType,
         defaultOperand: "EQ",
         defaultValue: "",
-        required: Boolean(prop.required),
+        required: Boolean(prop.REQUIRED),
       };
     });
 
   return {
     id: clean,
     code: clean,
-    title: `${model.description || clean} Inquiry`,
+    title: `${model.DESCRIPTION || clean} Inquiry`,
     description: `Auto-generated raw model inquiry for ${clean}`,
     controllerName: clean,
     pageOrientation: "Landscape",
@@ -275,7 +275,7 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
 
   // 2. Resolve Model schema metadata to check ID definition
   const model = SC_MODEL_CONFIG[clean];
-  const isUserDefineId = Boolean(model?.userDefineId) || clean === "MODEL.CONFIG";
+  const isUserDefineId = Boolean(model?.USERDEFINEID) || clean === "MODEL.CONFIG";
 
   // 3. User-defined models require the operator to specify the Record ID
   if (isUserDefineId) {
@@ -298,7 +298,7 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
   }
 
   // 4. Otherwise, system auto-allocates next sequence number (e.g. ACCOUNT -> AC1004)
-  const prefix = model?.idDef?.idPrefix || model?.prefix || clean.slice(0, 2);
+  const prefix = model?.IDDEF?.IDPREFIX || model?.PREFIX || clean.slice(0, 2);
   const generatedId = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
   return successResult(
     { recordId: generatedId, id: generatedId, _isNew: true },

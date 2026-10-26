@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
+import { flattenModelProperties } from "@/lib/data-parsers";
 import type { InquiryFilterConfig } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
@@ -224,8 +225,8 @@ export function IcSelectionTab({
         const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), {
           silent: true,
         });
-        if (mounted && res.status === "SUCCESS" && res.data?.properties) {
-          setModelProps(res.data.properties);
+        if (mounted && res.status === "SUCCESS" && res.data?.PROPERTIES) {
+          setModelProps(flattenModelProperties(res.data.PROPERTIES));
         }
       } catch {
         if (mounted) setModelProps([]);
@@ -253,32 +254,32 @@ export function IcSelectionTab({
   );
 
   const availableProps = React.useMemo(() => {
-    return modelProps.filter((p) => p.name && !p.disabled);
+    return modelProps.filter((p) => p.NAME && !p.DISABLED);
   }, [modelProps]);
 
   const filteredProps = React.useMemo(() => {
     if (!fieldSearch.trim()) return availableProps;
     const q = fieldSearch.trim().toLowerCase();
     return availableProps.filter(
-      (p) => p.name.toLowerCase().includes(q) || Boolean(p.label?.toLowerCase().includes(q)),
+      (p) => p.NAME.toLowerCase().includes(q) || Boolean(p.LABEL?.toLowerCase().includes(q)),
     );
   }, [availableProps, fieldSearch]);
 
   const handleAddFromProperty = (prop: ModelProperty) => {
     let filterType: InquiryFilterConfig["type"] = "text";
-    const propType = prop.type.toLowerCase();
+    const propType = prop.TYPE.toLowerCase();
     if (propType.includes("date")) filterType = "date";
     else if (propType.includes("number") || propType.includes("amount")) filterType = "number";
     else if (propType.includes("drop") || propType.includes("select") || propType.includes("radio"))
       filterType = "select";
 
     const newFilter: InquiryFilterConfig = {
-      id: prop.name,
-      label: prop.label || prop.name,
+      id: prop.NAME,
+      label: prop.LABEL || prop.NAME,
       type: filterType,
       defaultOperand: "EQ",
       defaultValue: "",
-      required: prop.required || false,
+      required: prop.REQUIRED || false,
     };
 
     onAddFilter(newFilter);
@@ -369,10 +370,10 @@ export function IcSelectionTab({
                       </div>
                     ) : (
                       filteredProps.map((prop) => {
-                        const isAdded = configuredIds.has(prop.name.toLowerCase());
+                        const isAdded = configuredIds.has(prop.NAME.toLowerCase());
                         return (
                           <button
-                            key={prop.name}
+                            key={prop.NAME}
                             type="button"
                             disabled={isAdded}
                             onClick={() => {
@@ -389,17 +390,17 @@ export function IcSelectionTab({
                           >
                             <div className="min-w-0 flex-1">
                               <span className="font-mono text-xs font-medium block truncate group-hover:text-primary">
-                                {prop.name}
+                                {prop.NAME}
                               </span>
-                              {prop.label && (
+                              {prop.LABEL && (
                                 <span className="text-[10px] text-muted-foreground block truncate">
-                                  {prop.label}
+                                  {prop.LABEL}
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-1 shrink-0 ml-1">
                               <span className="text-[9px] font-mono uppercase px-1 py-0 bg-muted rounded text-muted-foreground">
-                                {prop.type}
+                                {prop.TYPE}
                               </span>
                               {isAdded && <CheckCircle2 className="size-3 text-muted-foreground" />}
                             </div>
@@ -523,9 +524,9 @@ export function IcSelectionTab({
                 <Select
                   disabled={disabled}
                   value={activeFilter.type}
-                  onValueChange={(val) =>
+                  onValueChange={(val: string | null) =>
                     onUpdateFilter(selectedIdx, {
-                      type: val as InquiryFilterConfig["type"],
+                      type: (val || "text") as InquiryFilterConfig["type"],
                     })
                   }
                 >
@@ -550,9 +551,9 @@ export function IcSelectionTab({
                 <Select
                   disabled={disabled}
                   value={activeFilter.defaultOperand}
-                  onValueChange={(val) =>
+                  onValueChange={(val: string | null) =>
                     onUpdateFilter(selectedIdx, {
-                      defaultOperand: val as InquiryFilterConfig["defaultOperand"],
+                      defaultOperand: (val || "EQ") as InquiryFilterConfig["defaultOperand"],
                     })
                   }
                 >
@@ -598,7 +599,7 @@ export function IcSelectionTab({
                     id="ic-filter-mandatory"
                     disabled={disabled}
                     checked={activeFilter.required}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       onUpdateFilter(selectedIdx, { required: Boolean(checked) })
                     }
                   />

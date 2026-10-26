@@ -13,7 +13,7 @@ import { McPreviewTab } from "./components/mc-preview-tab";
 import { McPropertiesTab } from "./components/mc-properties-tab";
 import { useModelConfig } from "./hooks/use-model-config";
 
-type ModelConfigTabKey = "general" | "fields" | "preview" | "audit" | "json";
+type ModelConfigTabKey = "general" | "properties" | "preview" | "audit" | "json";
 
 export function SysModelConfig({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
@@ -56,7 +56,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
     () =>
       modelsPool
         .map((m) => {
-          const id = String(m.id || m.record?.tableName || "").trim();
+          const id = String(m.id || m.record?.TABLENAME || "").trim();
           return {
             id,
             label: m.label || id,
@@ -73,6 +73,7 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
         id: "general",
         label: "General",
         icon: <FileText className="size-3 text-muted-foreground" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "general").length || undefined,
         content: (
           <McGeneralTab
             formData={formData}
@@ -83,12 +84,13 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
         ),
       },
       {
-        id: "fields",
-        label: "Fields",
+        id: "properties",
+        label: "Properties",
         icon: <Database className="size-3 text-primary" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "properties").length || undefined,
         content: (
           <McPropertiesTab
-            properties={formData.properties}
+            properties={formData.PROPERTIES || []}
             isReadOnly={isReadOnly}
             isFieldCommitted={isFieldCommitted}
             selectedSN={selectedPropertySN}

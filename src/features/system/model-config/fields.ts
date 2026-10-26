@@ -61,7 +61,7 @@ export const ID_PATTERN_OPTIONS: Array<{ value: string; label: string }> = [
 export const MODEL_META_FIELDS: MetaFieldDef[] = [
   // --- Group 1: IDENTITY ---
   {
-    path: "tableName",
+    path: "TABLENAME",
     label: "Table Name",
     group: "IDENTITY",
     type: "text",
@@ -71,7 +71,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "half",
   },
   {
-    path: "prefix",
+    path: "PREFIX",
     label: "Table Prefix",
     group: "IDENTITY",
     type: "text",
@@ -80,7 +80,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "compact",
   },
   {
-    path: "description",
+    path: "DESCRIPTION",
     label: "Description",
     group: "IDENTITY",
     type: "text",
@@ -89,7 +89,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "full",
   },
   {
-    path: "servicePath",
+    path: "SERVICEPATH",
     label: "Service Path",
     group: "IDENTITY",
     type: "text",
@@ -98,7 +98,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "full",
   },
   {
-    path: "access",
+    path: "ACCESS",
     label: "Table Type",
     group: "IDENTITY",
     type: "radio-group",
@@ -109,7 +109,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     ],
   },
   {
-    path: "associates",
+    path: "ASSOCIATES",
     label: "Other Tables",
     group: "IDENTITY",
     type: "checkbox-group",
@@ -120,7 +120,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     ],
   },
   {
-    path: "devBy",
+    path: "_DEVBY",
     label: "Developed By",
     group: "IDENTITY",
     type: "text",
@@ -128,7 +128,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "half",
   },
   {
-    path: "devDate",
+    path: "_DEVDATE",
     label: "Developement Date",
     group: "IDENTITY",
     type: "date",
@@ -138,13 +138,13 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
 
   // --- Group 2: ID_RULES ---
   {
-    path: "userDefineId",
+    path: "USERDEFINEID",
     label: "User Define Id",
     group: "ID_RULES",
     type: "boolean",
   },
   {
-    path: "idDef.idPrefix",
+    path: "IDDEF.IDPREFIX",
     label: "ID Prefix",
     group: "ID_RULES",
     type: "text",
@@ -153,14 +153,14 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "compact",
   },
   {
-    path: "idDef.idPatternSelect",
+    path: "IDDEF.idPatternSelect",
     label: "Select Id Pattern",
     group: "ID_RULES",
     type: "id-pattern-select",
     options: ID_PATTERN_OPTIONS,
   },
   {
-    path: "idDef.idPattern",
+    path: "IDDEF.IDPATTERN",
     label: "Id Pattern",
     group: "ID_RULES",
     type: "text",
@@ -168,7 +168,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "half",
   },
   {
-    path: "idDef.sequenceLength",
+    path: "IDDEF.SEQUENCELENGTH",
     label: "Id Length",
     group: "ID_RULES",
     type: "number",
@@ -176,7 +176,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     width: "compact",
   },
   {
-    path: "idDef.sequenceReset",
+    path: "IDDEF.SEQUENCERESET",
     label: "Reset Sequence",
     group: "ID_RULES",
     type: "boolean",
@@ -184,19 +184,19 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
 
   // --- Group 3: FLAGS ---
   {
-    path: "authorize",
+    path: "AUTHORIZE",
     label: "Authorization",
     group: "FLAGS",
     type: "boolean",
   },
   {
-    path: "readOnly",
+    path: "READONLY",
     label: "Read Only",
     group: "FLAGS",
     type: "boolean",
   },
   {
-    path: "searchable",
+    path: "SEARCHABLE",
     label: "Searchable",
     group: "FLAGS",
     type: "boolean",
@@ -207,12 +207,16 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
  * Utility to get value from ModelConfigRecord via dot path
  */
 export function getFieldValue(record: ModelConfigRecord, path: string): unknown {
-  if (path === "idDef.idPatternSelect") {
-    return record.idDef?.idPattern ? record.idDef.idPattern.split("#").filter(Boolean) : [];
+  if (path === "IDDEF.idPatternSelect" || path === "idDef.idPatternSelect") {
+    return record.IDDEF?.IDPATTERN ? record.IDDEF.IDPATTERN.split("#").filter(Boolean) : [];
+  }
+  if (path.startsWith("IDDEF.")) {
+    const key = path.replace("IDDEF.", "") as keyof typeof record.IDDEF;
+    return record.IDDEF?.[key];
   }
   if (path.startsWith("idDef.")) {
-    const key = path.replace("idDef.", "") as keyof typeof record.idDef;
-    return record.idDef?.[key];
+    const key = path.replace("idDef.", "").toUpperCase() as keyof typeof record.IDDEF;
+    return record.IDDEF?.[key];
   }
   return record[path as keyof ModelConfigRecord];
 }
@@ -225,22 +229,32 @@ export function setFieldValue(
   path: string,
   value: unknown,
 ): ModelConfigRecord {
-  if (path === "idDef.idPatternSelect") {
+  if (path === "IDDEF.idPatternSelect" || path === "idDef.idPatternSelect") {
     const arr = Array.isArray(value) ? value : [];
     return {
       ...record,
-      idDef: {
-        ...record.idDef,
-        idPattern: arr.join("#"),
+      IDDEF: {
+        ...record.IDDEF,
+        IDPATTERN: arr.join("#"),
+      },
+    };
+  }
+  if (path.startsWith("IDDEF.")) {
+    const key = path.replace("IDDEF.", "");
+    return {
+      ...record,
+      IDDEF: {
+        ...record.IDDEF,
+        [key]: value,
       },
     };
   }
   if (path.startsWith("idDef.")) {
-    const key = path.replace("idDef.", "");
+    const key = path.replace("idDef.", "").toUpperCase();
     return {
       ...record,
-      idDef: {
-        ...record.idDef,
+      IDDEF: {
+        ...record.IDDEF,
         [key]: value,
       },
     };

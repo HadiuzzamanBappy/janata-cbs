@@ -4,7 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
-import { serializeModelToWireJson } from "@/lib/data-parsers";
+
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
@@ -70,7 +70,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
         if (record) {
           hydrate(record);
-          markAsCommitted(record.properties || []);
+          markAsCommitted(record.PROPERTIES || []);
           setValidationErrors([]);
           setMode(targetMode);
           toast.add({
@@ -85,8 +85,8 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         if (targetMode === CbsRecordFunction.INPUT) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
-            tableName: cleanId.replace(/[.-]/g, "_"),
-            description: cleanId.replace(/[_.-]/g, " "),
+            TABLENAME: cleanId.replace(/[.-]/g, "_"),
+            DESCRIPTION: cleanId.replace(/[_.-]/g, " "),
           };
           hydrate(draft);
           clearCommitted();
@@ -94,7 +94,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           setMode(CbsRecordFunction.INPUT);
           toast.add({
             title: "New Model Draft",
-            description: `Created new draft schema for #${cleanId}. Complete fields and Save.`,
+            description: `Created new draft schema for #${cleanId}. Complete properties and Save.`,
             type: "info",
           });
         }
@@ -103,8 +103,8 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         if (targetMode === CbsRecordFunction.INPUT) {
           const draft: ModelConfigRecord = {
             ...INITIAL_MODEL,
-            tableName: cleanId.replace(/[.-]/g, "_"),
-            description: cleanId.replace(/[_.-]/g, " "),
+            TABLENAME: cleanId.replace(/[.-]/g, "_"),
+            DESCRIPTION: cleanId.replace(/[_.-]/g, " "),
           };
           hydrate(draft);
           clearCommitted();
@@ -112,7 +112,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           setMode(CbsRecordFunction.INPUT);
           toast.add({
             title: "New Model Draft",
-            description: `Created new draft schema for #${cleanId}. Complete fields and Save.`,
+            description: `Created new draft schema for #${cleanId}. Complete properties and Save.`,
             type: "info",
           });
         }
@@ -127,7 +127,10 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   const handleValidate = React.useCallback((): boolean => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
-      const errors = mapZodIssuesToValidationErrors(validation.error.issues, formData.properties);
+      const errors = mapZodIssuesToValidationErrors(
+        validation.error.issues,
+        formData.PROPERTIES || [],
+      );
       setValidationErrors(errors);
       toast.add({
         title: "Validation Issues Found",
@@ -139,7 +142,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     setValidationErrors([]);
     toast.add({
       title: "Validation Successful",
-      description: "All dictionary constraints and required fields verified (✓).",
+      description: "All dictionary constraints and required properties verified (✓).",
       type: "success",
     });
     return true;
@@ -149,7 +152,10 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   const handleSubmit = React.useCallback(async () => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
-      const errors = mapZodIssuesToValidationErrors(validation.error.issues, formData.properties);
+      const errors = mapZodIssuesToValidationErrors(
+        validation.error.issues,
+        formData.PROPERTIES || [],
+      );
       setValidationErrors(errors);
       toast.add({
         title: "Validation Issues Found",
@@ -162,10 +168,9 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     setValidationErrors([]);
     setSubmitting(true);
     try {
-      const targetId = recordId || formData.tableName || validation.data.tableName || "";
-      const wireData = serializeModelToWireJson(validation.data);
+      const targetId = recordId || formData.TABLENAME || validation.data.TABLENAME || "";
       const json = await cbs.send(
-        cbs.modelConfig.save(wireData as unknown as Record<string, unknown>, {
+        cbs.modelConfig.save(validation.data as unknown as Record<string, unknown>, {
           recordId: targetId,
         }),
         {
@@ -175,11 +180,11 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       );
       if (json.status === "SUCCESS") {
         rebaseline();
-        markAsCommitted(validation.data.properties || []);
+        markAsCommitted(validation.data.PROPERTIES || []);
         upsertCatalogItem({
           id: targetId,
-          label: validation.data.description,
-          details: `${validation.data.properties.length} fields`,
+          label: validation.data.DESCRIPTION,
+          details: `${validation.data.PROPERTIES.length} properties`,
           record: validation.data,
         });
         broadcastRecordMutation("MODEL.CONFIG", targetId);

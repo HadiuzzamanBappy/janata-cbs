@@ -34,54 +34,54 @@ export function McInspectorIdentitySection({
   onUpdate,
 }: McInspectorIdentitySectionProps) {
   const nameError = validationErrors.find(
-    (e) => e.sn === property.sn && (e.fieldKey === "name" || e.fieldKey === "NAME"),
+    (e) => e.sn === property.SN && (e.fieldKey === "NAME" || e.fieldKey === "name"),
   );
   const labelError = validationErrors.find(
-    (e) => e.sn === property.sn && (e.fieldKey === "label" || e.fieldKey === "LABEL"),
+    (e) => e.sn === property.SN && (e.fieldKey === "LABEL" || e.fieldKey === "label"),
   );
 
   const handleTypeChange = (val: string | null) => {
     if (!val) return;
     const nextType = val as PropertyType;
-    const patch: Partial<ModelProperty> = { type: nextType };
+    const patch: Partial<ModelProperty> = { TYPE: nextType };
     if (nextType === "Boolean") {
-      patch.length = 1;
-      patch.structure = "S";
-      if (typeof property.defaultValue !== "boolean") {
-        patch.defaultValue = false;
+      patch.LENGTH = 1;
+      patch.STRUCTURE = "S";
+      if (typeof property.DEFAULTVALUE !== "boolean") {
+        patch.DEFAULTVALUE = false;
       }
     } else if (nextType === "Radio" || nextType === "Textarea") {
-      patch.structure = "S";
-      if (nextType === "Textarea") patch.length = 500;
+      patch.STRUCTURE = "S";
+      if (nextType === "Textarea") patch.LENGTH = 500;
     } else if (nextType === "Array") {
-      patch.structure = "M";
+      patch.STRUCTURE = "M";
     } else if (nextType === "Date") {
-      patch.length = 10;
+      patch.LENGTH = 10;
     } else if (nextType === "Number") {
-      if (property.length === 1 || property.length === 10) {
-        patch.length = 15;
+      if (property.LENGTH === 1 || property.LENGTH === 10) {
+        patch.LENGTH = 15;
       }
     } else if (nextType === "Text") {
-      if (property.length === 1 || property.length === 500) {
-        patch.length = 50;
+      if (property.LENGTH === 1 || property.LENGTH === 500) {
+        patch.LENGTH = 50;
       }
     } else if (nextType === "Object") {
-      if (property.length < 500) {
-        patch.length = 1000;
+      if ((property.LENGTH ?? 0) < 500) {
+        patch.LENGTH = 1000;
       }
     } else if (nextType === "Dropdown" || nextType === "Checkbox") {
-      if (!property.parameter) {
-        patch.parameter = {
-          type: "O",
-          data: [{ id: crypto.randomUUID(), itemCode: "", itemLabel: "" }],
-          modelName: "",
-          displayField: "",
-          condition: "",
-          reference: "",
+      if (!property.PARAMETER) {
+        patch.PARAMETER = {
+          TYPE: "O",
+          DATA: [{ ID: crypto.randomUUID(), ITEMCODE: "", ITEMLABEL: "" }],
+          MODELNAME: "",
+          DISPLAYFIELD: "",
+          CONDITION: "",
+          REFERENCE: "",
         };
       }
     }
-    onUpdate(property.sn, patch);
+    onUpdate(property.SN, patch);
   };
 
   return (
@@ -110,11 +110,11 @@ export function McInspectorIdentitySection({
             </Label>
             <span className="text-muted-foreground/60 font-mono text-xs">:</span>
             <Input
-              value={property.name}
+              value={property.NAME}
               disabled={isReadOnly}
               onChange={(e) =>
-                onUpdate(property.sn, {
-                  name: e.target.value.replace(/\s+/g, ""),
+                onUpdate(property.SN, {
+                  NAME: e.target.value.replace(/\s+/g, ""),
                 })
               }
               placeholder="e.g. CUSTOMER_ID"
@@ -146,9 +146,9 @@ export function McInspectorIdentitySection({
             </Label>
             <span className="text-muted-foreground/60 font-mono text-xs">:</span>
             <Input
-              value={property.label}
+              value={property.LABEL}
               disabled={isReadOnly}
-              onChange={(e) => onUpdate(property.sn, { label: e.target.value })}
+              onChange={(e) => onUpdate(property.SN, { LABEL: e.target.value })}
               placeholder="e.g. Customer Identifier"
               className={cn(
                 "h-7 rounded text-xs bg-background max-w-md flex-1",
@@ -172,9 +172,9 @@ export function McInspectorIdentitySection({
           </Label>
           <span className="text-muted-foreground/60 font-mono text-xs">:</span>
           <Input
-            value={property.enrichText || ""}
+            value={property.ENRICHTEXT || ""}
             disabled={isReadOnly}
-            onChange={(e) => onUpdate(property.sn, { enrichText: e.target.value })}
+            onChange={(e) => onUpdate(property.SN, { ENRICHTEXT: e.target.value })}
             placeholder="Tooltip / Field dictionary description"
             className="h-7 rounded text-xs bg-background border-border/80 max-w-md flex-1"
           />
@@ -187,7 +187,7 @@ export function McInspectorIdentitySection({
           </Label>
           <span className="text-muted-foreground/60 font-mono text-xs">:</span>
           <div className="max-w-md flex-1">
-            <Select value={property.type} disabled={isReadOnly} onValueChange={handleTypeChange}>
+            <Select value={property.TYPE} disabled={isReadOnly} onValueChange={handleTypeChange}>
               <SelectTrigger
                 size="sm"
                 className="h-7 text-xs rounded bg-background border-border/80 w-full"
@@ -208,10 +208,10 @@ export function McInspectorIdentitySection({
         {/* Structure: Single vs Multi */}
         {(() => {
           const isSingleOnly =
-            property.type === "Boolean" ||
-            property.type === "Radio" ||
-            property.type === "Textarea";
-          const isMultiOnly = property.type === "Array";
+            property.TYPE === "Boolean" ||
+            property.TYPE === "Radio" ||
+            property.TYPE === "Textarea";
+          const isMultiOnly = property.TYPE === "Array";
           const isSingleDisabled = isReadOnly || isMultiOnly;
           const isMultiDisabled = isReadOnly || isSingleOnly;
 
@@ -224,14 +224,14 @@ export function McInspectorIdentitySection({
               <div className="flex items-center gap-1.5 max-w-md flex-1">
                 <Button
                   type="button"
-                  variant={property.structure === "S" ? "default" : "outline"}
+                  variant={property.STRUCTURE === "S" ? "default" : "outline"}
                   size="sm"
                   disabled={isSingleDisabled}
-                  onClick={() => onUpdate(property.sn, { structure: "S" })}
+                  onClick={() => onUpdate(property.SN, { STRUCTURE: "S" })}
                   className={cn(
                     "h-7 px-3 text-xs rounded flex-1",
                     isSingleDisabled &&
-                      property.structure !== "S" &&
+                      property.STRUCTURE !== "S" &&
                       "opacity-40 cursor-not-allowed",
                   )}
                   title={isMultiOnly ? "Array types are always Multi-Value" : undefined}
@@ -240,17 +240,17 @@ export function McInspectorIdentitySection({
                 </Button>
                 <Button
                   type="button"
-                  variant={property.structure === "M" ? "default" : "outline"}
+                  variant={property.STRUCTURE === "M" ? "default" : "outline"}
                   size="sm"
                   disabled={isMultiDisabled}
-                  onClick={() => onUpdate(property.sn, { structure: "M" })}
+                  onClick={() => onUpdate(property.SN, { STRUCTURE: "M" })}
                   className={cn(
                     "h-7 px-3 text-xs rounded flex-1",
                     isMultiDisabled &&
-                      property.structure !== "M" &&
+                      property.STRUCTURE !== "M" &&
                       "opacity-40 cursor-not-allowed",
                   )}
-                  title={isSingleOnly ? `${property.type} cannot be Multi-Value` : undefined}
+                  title={isSingleOnly ? `${property.TYPE} cannot be Multi-Value` : undefined}
                 >
                   Multi-Value (M)
                 </Button>
@@ -267,17 +267,17 @@ export function McInspectorIdentitySection({
           <span className="text-muted-foreground/60 font-mono text-xs">:</span>
           <div className="flex items-center gap-6 max-w-md flex-1">
             <label
-              htmlFor={`prop-required-${property.sn}`}
+              htmlFor={`prop-required-${property.SN}`}
               className={cn(
                 "flex items-center gap-1.5 select-none",
                 isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
               )}
             >
               <Checkbox
-                id={`prop-required-${property.sn}`}
-                checked={property.required}
+                id={`prop-required-${property.SN}`}
+                checked={property.REQUIRED}
                 disabled={isReadOnly}
-                onCheckedChange={(val) => onUpdate(property.sn, { required: !!val })}
+                onCheckedChange={(val: boolean) => onUpdate(property.SN, { REQUIRED: !!val })}
                 className={cn(
                   "rounded",
                   isReadOnly && "disabled:opacity-90 disabled:cursor-default",
@@ -287,17 +287,17 @@ export function McInspectorIdentitySection({
             </label>
 
             <label
-              htmlFor={`prop-disabled-${property.sn}`}
+              htmlFor={`prop-disabled-${property.SN}`}
               className={cn(
                 "flex items-center gap-1.5 select-none",
                 isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
               )}
             >
               <Checkbox
-                id={`prop-disabled-${property.sn}`}
-                checked={property.disabled}
+                id={`prop-disabled-${property.SN}`}
+                checked={property.DISABLED}
                 disabled={isReadOnly}
-                onCheckedChange={(val) => onUpdate(property.sn, { disabled: !!val })}
+                onCheckedChange={(val: boolean) => onUpdate(property.SN, { DISABLED: !!val })}
                 className={cn(
                   "rounded",
                   isReadOnly && "disabled:opacity-90 disabled:cursor-default",

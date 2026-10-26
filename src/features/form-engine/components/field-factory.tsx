@@ -14,7 +14,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cbs } from "@/lib/cbs-client";
 import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
+import { flattenModelProperties } from "@/lib/data-parsers";
 import type { FormFieldItem, FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
+import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 export interface UnifiedFieldFactoryProps {
   field: FormFieldItem;
@@ -45,14 +47,19 @@ function useModelLookup(param: FormFieldParameter | undefined) {
     setLoading(true);
 
     cbs
-      .send<Record<string, unknown>>(cbs.modelConfig.get(param.modelName), { silent: true })
+      .send<ModelConfigRecord>(cbs.modelConfig.get(param.modelName), { silent: true })
       .then((res) => {
         if (!isMounted) return;
-        const rawProps = (res.data?.properties as Array<Record<string, unknown>>) || [];
+        const rawProps: ModelProperty[] = flattenModelProperties(res.data?.PROPERTIES || []);
         const opts = rawProps
           .map((p) => {
-            const codeVal = param.reference ? p[param.reference] : p.name || p.id;
-            const labelVal = param.displayField ? p[param.displayField] : p.label || p.name;
+            const pObj = p as unknown as Record<string, unknown>;
+            const codeVal = param.reference
+              ? (pObj[param.reference] ?? pObj[param.reference.toUpperCase()])
+              : p.NAME || p.SN;
+            const labelVal = param.displayField
+              ? (pObj[param.displayField] ?? pObj[param.displayField.toUpperCase()])
+              : p.LABEL || p.NAME;
             return {
               code: String(codeVal ?? ""),
               label: String(labelVal ?? codeVal ?? ""),
@@ -334,7 +341,7 @@ export function UnifiedFieldFactory({
                     <Select
                       disabled={isReadOnly || modelLoading}
                       value={String(itemVal ?? "")}
-                      onValueChange={(val) =>
+                      onValueChange={(val: string | null) =>
                         handleArrayChange(
                           itemIdx,
                           field.modelType === "Number" && val !== null

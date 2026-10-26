@@ -45,7 +45,7 @@ export const modelConfigPayloads = {
     },
   ): CbsWirePayload => {
     const servicePath = options?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
-    const targetId = (options?.recordId || data?.recordId || data?.tableName || "")
+    const targetId = (options?.recordId || data?.recordId || data?.TABLENAME || "")
       .toString()
       .trim()
       .toUpperCase();

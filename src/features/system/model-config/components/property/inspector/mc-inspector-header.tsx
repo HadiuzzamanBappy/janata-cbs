@@ -21,7 +21,7 @@ export function McInspectorHeader({
   onDelete,
 }: McInspectorHeaderProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
-  const isArchived = property.status === "ARCHIVED";
+  const isArchived = property.STATUS === "ARCHIVED";
 
   return (
     <>
@@ -31,13 +31,13 @@ export function McInspectorHeader({
             variant="outline"
             className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs"
           >
-            SN #{property.sn}
+            SN #{property.SN}
           </Badge>
           <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-            {property.name || "<UNNAMED_FIELD>"}
+            {property.NAME || "<UNNAMED_FIELD>"}
           </span>
-          {property.label && (
-            <span className="text-xs text-muted-foreground truncate">— {property.label}</span>
+          {property.LABEL && (
+            <span className="text-xs text-muted-foreground truncate">— {property.LABEL}</span>
           )}
         </div>
 
@@ -69,7 +69,7 @@ export function McInspectorHeader({
             variant="outline"
             className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-muted-foreground"
           >
-            {property.type} • {property.structure === "M" ? "Multi" : "Single"}
+            {property.TYPE} • {property.STRUCTURE === "M" ? "Multi" : "Single"}
           </Badge>
 
           {!isReadOnly && !isCommitted && (
@@ -93,14 +93,14 @@ export function McInspectorHeader({
         title="Delete Draft Field?"
         description={
           <span className="text-xs text-muted-foreground leading-relaxed block">
-            Permanently delete draft field #{property.sn} ({property.name || "UNNAMED"})? Since this
+            Permanently delete draft field #{property.SN} ({property.NAME || "UNNAMED"})? Since this
             field has not been saved or committed yet, it will be removed entirely.
           </span>
         }
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"
-        onConfirm={() => onDelete(property.sn)}
+        onConfirm={() => onDelete(property.SN)}
       />
     </>
   );

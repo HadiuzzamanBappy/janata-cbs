@@ -30,6 +30,19 @@ export function isSystemScreen(command: string): boolean {
   return Boolean(BESPOKE_SCREENS[canonicalKey]);
 }
 
+function DynamicInquiryWrapper(props: { command: string; tabId?: string }) {
+  const decodedCmd = decodeURIComponent(props.command || "");
+  const cleanCmd = decodedCmd.split(",")[0].trim().toUpperCase();
+  const inqCommand = cleanCmd.startsWith("INQ ") ? cleanCmd : `INQ ${cleanCmd}`;
+  return <InquiryScreen command={props.command || inqCommand} tabId={props.tabId} />;
+}
+
+function DynamicFormWrapper(props: { command: string; tabId?: string }) {
+  const decodedCmd = decodeURIComponent(props.command || "");
+  const cleanCmd = decodedCmd.split(",")[0].trim().toUpperCase();
+  return <FormScreen command={props.command || cleanCmd} tabId={props.tabId} />;
+}
+
 /**
  * Universal Screen Resolver.
  * 1. Checks canonical key via CBS Command Gateway alias map.
@@ -48,14 +61,9 @@ export function resolveScreen(command: string): ScreenComponent {
 
   // 2. Check if command is an Inquiry screen
   if (cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY")) {
-    const inqCommand = cleanCmd.startsWith("INQ ") ? cleanCmd : `INQ ${cleanCmd}`;
-    return function InquiryWrapper(props: { command: string; tabId?: string }) {
-      return <InquiryScreen command={props.command || inqCommand} tabId={props.tabId} />;
-    };
+    return DynamicInquiryWrapper;
   }
 
   // 3. Dynamic GMC Form Screen Fallback
-  return function FormWrapper(props: { command: string; tabId?: string }) {
-    return <FormScreen command={props.command || cleanCmd} tabId={props.tabId} />;
-  };
+  return DynamicFormWrapper;
 }

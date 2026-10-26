@@ -37,20 +37,14 @@ const isParameterized = (t: PropertyType): boolean =>
 
 export function McInspectorTypeSpecs({
   property,
-  allProperties = [],
   isReadOnly,
   onUpdate,
   onSelectSN,
   onAddChild,
 }: McInspectorTypeSpecsProps) {
   // If property is an Object, render the Object Children Group Manager (Screenshot 1)
-  if (property.type === "Object") {
-    const prefix = `${property.sn}_`;
-    const directChildren = allProperties.filter((p) => {
-      if (!p.sn.startsWith(prefix)) return false;
-      const remainder = p.sn.slice(prefix.length);
-      return !remainder.includes("_");
-    });
+  if (property.TYPE === "Object") {
+    const directChildren = property.PROP || [];
 
     return (
       <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-3">
@@ -63,7 +57,7 @@ export function McInspectorTypeSpecs({
             variant="outline"
             className="font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider text-primary border-primary/30"
           >
-            {property.structure === "M" ? "Object.M (Multi-Value)" : "Object (Single)"}
+            {property.STRUCTURE === "M" ? "Object.M (Multi-Value)" : "Object (Single)"}
           </Badge>
         </div>
 
@@ -82,23 +76,23 @@ export function McInspectorTypeSpecs({
                 {directChildren.map((child) => (
                   <button
                     type="button"
-                    key={child.sn}
-                    onClick={() => onSelectSN?.(child.sn)}
+                    key={child.SN}
+                    onClick={() => onSelectSN?.(child.SN)}
                     className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs bg-background hover:bg-muted/60 cursor-pointer transition-colors border border-border/40 select-none text-left"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="font-mono text-[10px] text-muted-foreground font-semibold">
-                        #{child.sn}
+                        #{child.SN}
                       </span>
                       <span className="font-medium truncate text-foreground">
-                        {child.label || child.name || "<unnamed>"}
+                        {child.LABEL || child.NAME || "<unnamed>"}
                       </span>
                     </div>
                     <Badge
                       variant="outline"
                       className="font-mono text-[9px] h-4 px-1 rounded text-muted-foreground shrink-0"
                     >
-                      {child.type}
+                      {child.TYPE}
                     </Badge>
                   </button>
                 ))}
@@ -112,7 +106,7 @@ export function McInspectorTypeSpecs({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => onAddChild(property.sn)}
+                onClick={() => onAddChild(property.SN)}
                 className="h-7 text-xs gap-1.5 px-3 rounded border-dashed"
               >
                 <Plus className="size-3" />
@@ -124,18 +118,18 @@ export function McInspectorTypeSpecs({
       </div>
     );
   }
-  const parameter: PropertyParameter = property.parameter ?? {
-    type: "O",
-    data: [],
-    modelName: "",
-    displayField: "",
-    condition: "",
-    reference: "",
+  const parameter: PropertyParameter = property.PARAMETER ?? {
+    TYPE: "O",
+    DATA: [],
+    MODELNAME: "",
+    DISPLAYFIELD: "",
+    CONDITION: "",
+    REFERENCE: "",
   };
 
   const updateParameter = (patch: Partial<PropertyParameter>) => {
-    onUpdate(property.sn, {
-      parameter: {
+    onUpdate(property.SN, {
+      PARAMETER: {
         ...parameter,
         ...patch,
       },
@@ -143,12 +137,12 @@ export function McInspectorTypeSpecs({
   };
 
   // Normalize options with stable persistent IDs (independent of array indices)
-  const options = (parameter.data ?? []).map((opt, i) => {
-    if (opt.id) return opt as PropertyParameterOption & { id: string };
-    const fallbackId = opt.itemCode
-      ? `opt-${property.sn}-${opt.itemCode}`
-      : `opt-${property.sn}-entry-${i + 1}`;
-    return { ...opt, id: fallbackId };
+  const options = (parameter.DATA ?? []).map((opt, i) => {
+    if (opt.ID) return opt as PropertyParameterOption & { ID: string };
+    const fallbackId = opt.ITEMCODE
+      ? `opt-${property.SN}-${opt.ITEMCODE}`
+      : `opt-${property.SN}-entry-${i + 1}`;
+    return { ...opt, ID: fallbackId };
   });
 
   const handleAddOption = () => {
@@ -157,18 +151,18 @@ export function McInspectorTypeSpecs({
         ? crypto.randomUUID()
         : `opt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     updateParameter({
-      data: [...options, { id: newId, itemCode: "", itemLabel: "" }],
+      DATA: [...options, { ID: newId, ITEMCODE: "", ITEMLABEL: "" }],
     });
   };
 
-  const handleUpdateOption = (targetId: string, field: "itemCode" | "itemLabel", val: string) => {
-    const nextData = options.map((opt) => (opt.id === targetId ? { ...opt, [field]: val } : opt));
-    updateParameter({ data: nextData });
+  const handleUpdateOption = (targetId: string, field: "ITEMCODE" | "ITEMLABEL", val: string) => {
+    const nextData = options.map((opt) => (opt.ID === targetId ? { ...opt, [field]: val } : opt));
+    updateParameter({ DATA: nextData });
   };
 
   const handleRemoveOption = (targetId: string) => {
-    const nextData = options.filter((opt) => opt.id !== targetId);
-    updateParameter({ data: nextData });
+    const nextData = options.filter((opt) => opt.ID !== targetId);
+    updateParameter({ DATA: nextData });
   };
 
   return (
@@ -182,7 +176,7 @@ export function McInspectorTypeSpecs({
           variant="outline"
           className="font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider text-primary border-primary/30"
         >
-          {property.type} Mode
+          {property.TYPE} Mode
         </Badge>
       </div>
 
@@ -194,38 +188,38 @@ export function McInspectorTypeSpecs({
           </Label>
           <span className="text-muted-foreground/60 font-mono text-xs pt-1">:</span>
           <div className="max-w-md flex-1">
-            {property.type === "Boolean" ? (
+            {property.TYPE === "Boolean" ? (
               <div className="flex items-center gap-1.5">
                 <Button
                   type="button"
-                  variant={property.defaultValue === true ? "default" : "outline"}
+                  variant={property.DEFAULTVALUE === true ? "default" : "outline"}
                   size="sm"
                   disabled={isReadOnly}
-                  onClick={() => onUpdate(property.sn, { defaultValue: true })}
+                  onClick={() => onUpdate(property.SN, { DEFAULTVALUE: true })}
                   className="h-7 px-3 text-xs rounded flex-1"
                 >
                   True
                 </Button>
                 <Button
                   type="button"
-                  variant={property.defaultValue === false ? "default" : "outline"}
+                  variant={property.DEFAULTVALUE === false ? "default" : "outline"}
                   size="sm"
                   disabled={isReadOnly}
-                  onClick={() => onUpdate(property.sn, { defaultValue: false })}
+                  onClick={() => onUpdate(property.SN, { DEFAULTVALUE: false })}
                   className="h-7 px-3 text-xs rounded flex-1"
                 >
                   False
                 </Button>
               </div>
-            ) : property.type === "Textarea" ? (
+            ) : property.TYPE === "Textarea" ? (
               <Textarea
                 value={
-                  property.defaultValue !== undefined && property.defaultValue !== null
-                    ? String(property.defaultValue)
+                  property.DEFAULTVALUE !== undefined && property.DEFAULTVALUE !== null
+                    ? String(property.DEFAULTVALUE)
                     : ""
                 }
                 disabled={isReadOnly}
-                onChange={(e) => onUpdate(property.sn, { defaultValue: e.target.value })}
+                onChange={(e) => onUpdate(property.SN, { DEFAULTVALUE: e.target.value })}
                 placeholder="Optional multiline initial text"
                 rows={3}
                 className="rounded text-xs bg-background border-border/80 w-full resize-y min-h-15"
@@ -233,29 +227,29 @@ export function McInspectorTypeSpecs({
             ) : (
               <Input
                 type={
-                  property.type === "Number" ? "number" : property.type === "Date" ? "date" : "text"
+                  property.TYPE === "Number" ? "number" : property.TYPE === "Date" ? "date" : "text"
                 }
                 value={
-                  property.defaultValue !== undefined && property.defaultValue !== null
-                    ? String(property.defaultValue)
+                  property.DEFAULTVALUE !== undefined && property.DEFAULTVALUE !== null
+                    ? String(property.DEFAULTVALUE)
                     : ""
                 }
                 disabled={isReadOnly}
                 onChange={(e) => {
                   const val = e.target.value;
-                  onUpdate(property.sn, {
-                    defaultValue:
-                      property.type === "Number" ? (val === "" ? undefined : Number(val)) : val,
+                  onUpdate(property.SN, {
+                    DEFAULTVALUE:
+                      property.TYPE === "Number" ? (val === "" ? undefined : Number(val)) : val,
                   });
                 }}
                 placeholder={
-                  property.type === "Date"
+                  property.TYPE === "Date"
                     ? "YYYY-MM-DD"
-                    : property.type === "Number"
+                    : property.TYPE === "Number"
                       ? "0.00"
-                      : property.type === "Array"
+                      : property.TYPE === "Array"
                         ? 'e.g. ["VAL1", "VAL2"] or comma-separated'
-                        : isParameterized(property.type)
+                        : isParameterized(property.TYPE)
                           ? "Default item code or blank"
                           : "Optional base fallback"
                 }
@@ -268,27 +262,27 @@ export function McInspectorTypeSpecs({
         {/* Max Length / Digits Precision */}
         <div className="flex items-center gap-2">
           <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
-            {property.type === "Number" ? "Max Digits" : "Max Length"}
+            {property.TYPE === "Number" ? "Max Digits" : "Max Length"}
           </Label>
           <span className="text-muted-foreground/60 font-mono text-xs">:</span>
           <div className="flex items-center gap-2 max-w-md flex-1">
             <Input
               type="number"
               value={
-                property.type === "Boolean" ? 1 : property.type === "Date" ? 10 : property.length
+                property.TYPE === "Boolean" ? 1 : property.TYPE === "Date" ? 10 : property.LENGTH
               }
-              disabled={isReadOnly || property.type === "Boolean" || property.type === "Date"}
-              onChange={(e) => onUpdate(property.sn, { length: Number(e.target.value) || 0 })}
+              disabled={isReadOnly || property.TYPE === "Boolean" || property.TYPE === "Date"}
+              onChange={(e) => onUpdate(property.SN, { LENGTH: Number(e.target.value) || 0 })}
               className="h-7 rounded text-xs font-mono w-28 bg-background border-border/80 disabled:opacity-75 disabled:bg-muted/40"
             />
-            {property.type === "Boolean" ? (
+            {property.TYPE === "Boolean" ? (
               <Badge
                 variant="outline"
                 className="text-[10px] font-normal text-muted-foreground h-5 rounded px-1.5 border-border/60"
               >
                 Fixed (1 char / flag)
               </Badge>
-            ) : property.type === "Date" ? (
+            ) : property.TYPE === "Date" ? (
               <Badge
                 variant="outline"
                 className="text-[10px] font-normal text-muted-foreground h-5 rounded px-1.5 border-border/60"
@@ -297,13 +291,13 @@ export function McInspectorTypeSpecs({
               </Badge>
             ) : (
               <span className="text-[11px] text-muted-foreground">
-                {property.type === "Number"
+                {property.TYPE === "Number"
                   ? "digits precision"
-                  : property.type === "Textarea"
+                  : property.TYPE === "Textarea"
                     ? "characters (multiline)"
-                    : property.type === "Array"
+                    : property.TYPE === "Array"
                       ? "buffer / item limit"
-                      : isParameterized(property.type)
+                      : isParameterized(property.TYPE)
                         ? "storage characters"
                         : "characters"}
               </span>
@@ -312,7 +306,7 @@ export function McInspectorTypeSpecs({
         </div>
 
         {/* Parameter Configuration for Dropdown, Checkbox, Radio */}
-        {isParameterized(property.type) && (
+        {isParameterized(property.TYPE) && (
           <div className="pt-2 border-t border-border/60 space-y-2 max-w-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -323,9 +317,9 @@ export function McInspectorTypeSpecs({
                 <Button
                   type="button"
                   size="sm"
-                  variant={parameter.type === "O" ? "default" : "outline"}
+                  variant={parameter.TYPE === "O" ? "default" : "outline"}
                   disabled={isReadOnly}
-                  onClick={() => updateParameter({ type: "O" })}
+                  onClick={() => updateParameter({ TYPE: "O" })}
                   className="h-6 px-2 text-[11px] rounded"
                 >
                   Options (Static)
@@ -333,9 +327,9 @@ export function McInspectorTypeSpecs({
                 <Button
                   type="button"
                   size="sm"
-                  variant={parameter.type === "M" ? "default" : "outline"}
+                  variant={parameter.TYPE === "M" ? "default" : "outline"}
                   disabled={isReadOnly}
-                  onClick={() => updateParameter({ type: "M" })}
+                  onClick={() => updateParameter({ TYPE: "M" })}
                   className="h-6 px-2 text-[11px] rounded"
                 >
                   Model (DB)
@@ -343,7 +337,7 @@ export function McInspectorTypeSpecs({
               </div>
             </div>
 
-            {parameter.type === "O" ? (
+            {parameter.TYPE === "O" ? (
               <div className="space-y-1.5 bg-muted/20 p-2 rounded border border-border/50">
                 <div className="flex items-center gap-2 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">
                   <span className="w-28 shrink-0">Item Code</span>
@@ -351,18 +345,18 @@ export function McInspectorTypeSpecs({
                   <span className="w-6 text-center shrink-0">Act</span>
                 </div>
                 {options.map((opt) => (
-                  <div key={opt.id} className="flex items-center gap-2">
+                  <div key={opt.ID} className="flex items-center gap-2">
                     <Input
-                      value={opt.itemCode}
+                      value={opt.ITEMCODE}
                       disabled={isReadOnly}
-                      onChange={(e) => handleUpdateOption(opt.id, "itemCode", e.target.value)}
+                      onChange={(e) => handleUpdateOption(opt.ID, "ITEMCODE", e.target.value)}
                       placeholder="e.g. 01"
                       className="h-6 text-xs font-mono w-28 shrink-0 bg-background"
                     />
                     <Input
-                      value={opt.itemLabel}
+                      value={opt.ITEMLABEL}
                       disabled={isReadOnly}
-                      onChange={(e) => handleUpdateOption(opt.id, "itemLabel", e.target.value)}
+                      onChange={(e) => handleUpdateOption(opt.ID, "ITEMLABEL", e.target.value)}
                       placeholder="e.g. Active"
                       className="h-6 text-xs bg-background flex-1"
                     />
@@ -371,7 +365,7 @@ export function McInspectorTypeSpecs({
                       variant="ghost"
                       size="icon"
                       disabled={isReadOnly}
-                      onClick={() => handleRemoveOption(opt.id)}
+                      onClick={() => handleRemoveOption(opt.ID)}
                       className="size-6 text-muted-foreground hover:text-destructive rounded shrink-0"
                       title="Remove option"
                     >
@@ -436,9 +430,9 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
     };
   }, []);
 
-  // 2. When modelName changes, fetch its properties to populate Reference & Display dropdowns
+  // 2. When MODELNAME changes, fetch its properties to populate Reference & Display dropdowns
   React.useEffect(() => {
-    const targetModel = parameter.modelName?.trim();
+    const targetModel = parameter.MODELNAME?.trim();
     if (!targetModel) {
       setTargetModelFields([]);
       return;
@@ -448,8 +442,8 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
     cbs
       .send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), { silent: true })
       .then((res) => {
-        if (mounted && res.status === "SUCCESS" && res.data?.properties) {
-          setTargetModelFields(res.data.properties);
+        if (mounted && res.status === "SUCCESS" && res.data?.PROPERTIES) {
+          setTargetModelFields(res.data.PROPERTIES);
         }
       })
       .catch(() => {
@@ -461,7 +455,7 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
     return () => {
       mounted = false;
     };
-  }, [parameter.modelName]);
+  }, [parameter.MODELNAME]);
 
   return (
     <div className="bg-muted/15 p-2.5 rounded border border-border/70 space-y-2 text-xs">
@@ -474,13 +468,13 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
         <span className="text-muted-foreground/60 font-mono text-xs">:</span>
         <div className="max-w-md flex-1">
           <Select
-            value={parameter.modelName || ""}
+            value={parameter.MODELNAME || ""}
             disabled={isReadOnly || loadingModels}
-            onValueChange={(val) => {
+            onValueChange={(val: string | null) => {
               onUpdate({
-                modelName: val || "",
-                displayField: "",
-                reference: "",
+                MODELNAME: val || "",
+                DISPLAYFIELD: "",
+                REFERENCE: "",
               });
             }}
           >
@@ -510,27 +504,27 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
         <div className="max-w-md flex-1">
           {targetModelFields.length > 0 ? (
             <Select
-              value={parameter.reference || ""}
+              value={parameter.REFERENCE || ""}
               disabled={isReadOnly || loadingFields}
-              onValueChange={(val) => onUpdate({ reference: val || "" })}
+              onValueChange={(val: string | null) => onUpdate({ REFERENCE: val || "" })}
             >
               <SelectTrigger size="sm" className="h-7 text-xs font-mono bg-background w-full">
                 <SelectValue placeholder="Select reference key (DB column)" />
               </SelectTrigger>
               <SelectContent className="rounded max-h-56">
                 {targetModelFields.map((f) => (
-                  <SelectItem key={f.sn} value={f.name} className="text-xs font-mono">
-                    {f.name}
+                  <SelectItem key={f.SN} value={f.NAME} className="text-xs font-mono">
+                    {f.NAME}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           ) : (
             <Input
-              value={parameter.reference ?? ""}
+              value={parameter.REFERENCE ?? ""}
               disabled={isReadOnly}
-              onChange={(e) => onUpdate({ reference: e.target.value })}
-              placeholder={parameter.modelName ? "e.g. branchCode" : "Select model first"}
+              onChange={(e) => onUpdate({ REFERENCE: e.target.value })}
+              placeholder={parameter.MODELNAME ? "e.g. branchCode" : "Select model first"}
               className="h-7 text-xs font-mono bg-background w-full"
             />
           )}
@@ -546,27 +540,27 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
         <div className="max-w-md flex-1">
           {targetModelFields.length > 0 ? (
             <Select
-              value={parameter.displayField || ""}
+              value={parameter.DISPLAYFIELD || ""}
               disabled={isReadOnly || loadingFields}
-              onValueChange={(val) => onUpdate({ displayField: val || "" })}
+              onValueChange={(val: string | null) => onUpdate({ DISPLAYFIELD: val || "" })}
             >
               <SelectTrigger size="sm" className="h-7 text-xs bg-background w-full">
                 <SelectValue placeholder="Select display label (UI text)" />
               </SelectTrigger>
               <SelectContent className="rounded max-h-56">
                 {targetModelFields.map((f) => (
-                  <SelectItem key={f.sn} value={f.name} className="text-xs font-mono">
-                    {f.label || f.name}
+                  <SelectItem key={f.SN} value={f.NAME} className="text-xs font-mono">
+                    {f.LABEL || f.NAME}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           ) : (
             <Input
-              value={parameter.displayField ?? ""}
+              value={parameter.DISPLAYFIELD ?? ""}
               disabled={isReadOnly}
-              onChange={(e) => onUpdate({ displayField: e.target.value })}
-              placeholder={parameter.modelName ? "e.g. branchName" : "Select model first"}
+              onChange={(e) => onUpdate({ DISPLAYFIELD: e.target.value })}
+              placeholder={parameter.MODELNAME ? "e.g. branchName" : "Select model first"}
               className="h-7 text-xs bg-background w-full"
             />
           )}
@@ -576,7 +570,7 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
       {/* 4. Filter Condition Clause */}
       {(() => {
         // Parse existing condition string like "STATUS = 'ACTIVE'" or "REGION = 'DHAKA'"
-        const raw = (parameter.condition || "").trim();
+        const raw = (parameter.CONDITION || "").trim();
         let fieldPart = "";
         let valPart = "";
 
@@ -592,20 +586,20 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
 
         const handleConditionFieldChange = (newField: string | null) => {
           if (!newField) {
-            onUpdate({ condition: "" });
+            onUpdate({ CONDITION: "" });
             return;
           }
           const nextVal = valPart || "ACTIVE";
-          onUpdate({ condition: `${newField} = '${nextVal}'` });
+          onUpdate({ CONDITION: `${newField} = '${nextVal}'` });
         };
 
         const handleConditionValChange = (newVal: string) => {
           if (!newVal && !fieldPart) {
-            onUpdate({ condition: "" });
+            onUpdate({ CONDITION: "" });
             return;
           }
-          const targetField = fieldPart || targetModelFields[0]?.name || "STATUS";
-          onUpdate({ condition: newVal ? `${targetField} = '${newVal}'` : "" });
+          const targetField = fieldPart || targetModelFields[0]?.NAME || "STATUS";
+          onUpdate({ CONDITION: newVal ? `${targetField} = '${newVal}'` : "" });
         };
 
         return (
@@ -627,8 +621,8 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
                     </SelectTrigger>
                     <SelectContent className="rounded max-h-56">
                       {targetModelFields.map((f) => (
-                        <SelectItem key={f.sn} value={f.name} className="text-xs font-mono">
-                          {f.name}
+                        <SelectItem key={f.SN} value={f.NAME} className="text-xs font-mono">
+                          {f.NAME}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -648,9 +642,9 @@ function ModelLookupConfig({ parameter, isReadOnly, onUpdate }: ModelLookupConfi
                 </>
               ) : (
                 <Input
-                  value={parameter.condition ?? ""}
+                  value={parameter.CONDITION ?? ""}
                   disabled={isReadOnly}
-                  onChange={(e) => onUpdate({ condition: e.target.value })}
+                  onChange={(e) => onUpdate({ CONDITION: e.target.value })}
                   placeholder="e.g. STATUS = 'ACTIVE'"
                   className="h-7 text-xs font-mono bg-background w-full"
                 />

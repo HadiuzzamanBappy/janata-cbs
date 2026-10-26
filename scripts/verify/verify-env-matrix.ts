@@ -371,17 +371,17 @@ async function runSuite() {
 
   const sampleModelConfig = {
     recordId: "ACCOUNT",
-    description: "Account Master Table",
-    tableName: "AC.ACCOUNT",
-    servicePath: "default",
-    access: "Global",
-    properties: [
+    DESCRIPTION: "Account Master Table",
+    TABLENAME: "AC.ACCOUNT",
+    SERVICEPATH: "default",
+    ACCESS: "Global",
+    PROPERTIES: [
       {
-        sn: "1",
-        name: "accountType",
-        type: "Dropdown",
-        label: "Account Type",
-        required: true,
+        SN: "1",
+        NAME: "accountType",
+        TYPE: "Dropdown",
+        LABEL: "Account Type",
+        REQUIRED: true,
       },
     ],
   };

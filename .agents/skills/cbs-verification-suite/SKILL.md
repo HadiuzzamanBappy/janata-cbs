@@ -21,14 +21,16 @@ To run the complete verification suite across all domain modules:
 pnpm verify:all
 ```
 
-This sequentially executes all 7 verification sub-suites:
+This sequentially executes all 9 verification sub-suites:
 1. `CBS Access Control & RIDASHL Capabilities` (`@/lib/cbs-access`)
 2. `Form Delta Mutation Engine` (`@/lib/cbs-record`)
-3. `CBS Command Gateway & Alias Parser` (`@/lib/cbs-command`)
-4. `CBS Client Wire Protocol & Payload Factories` (`@/lib/cbs-client`)
-5. `Environment Matrix, Schemas & PII Redaction` (`@/lib/data-schemas` & `@/lib/core-logger`)
-6. `Core Banking Utilities & Localization` (`@/lib/core-utils`)
-7. `Infra Services, Mock Proxies & GRL Fallbacks` (`@/lib/infra-services`)
+3. `CBS Form Spec & Compiler Engine` (`@/lib/cbs-form-spec`)
+4. `CBS Command Gateway & Alias Parser` (`@/lib/cbs-command`)
+5. `CBS Client Wire Protocol & Payload Factories` (`@/lib/cbs-client`)
+6. `Environment Matrix, Schemas & PII Redaction` (`@/lib/data-schemas` & `@/lib/core-logger`)
+7. `Core Banking Utilities & Localization` (`@/lib/core-utils`)
+8. `Infra Services, Gateway & gRPC Protocol` (`@/lib/infra-services`)
+9. `In-Memory Mock Core Engine & Database` (`@mock/db` & `@mock/core`)
 
 ---
 
@@ -36,15 +38,17 @@ This sequentially executes all 7 verification sub-suites:
 
 When working on a specific feature, run the targeted test to quickly verify your changes:
 
-| Command                | Target Scope      | Key Things Verified                                             |
-| :--------------------- | :---------------- | :-------------------------------------------------------------- |
-| `pnpm verify:access`   | Access & Security | RIDASHL functions, Four-Eyes principle, Maker-Checker blocking  |
-| `pnpm verify:record`   | Record & Forms    | Delta calculation, dirty mutations, INA/AU lifecycle            |
-| `pnpm verify:command`  | Command Gateway   | Syntax parsing, comma auto-auth (`USER,`), aliases (`MD`, `UG`) |
-| `pnpm verify:client`   | Wire Protocol     | Payload factories (`GET`, `PUT`, `AUT`, `INQ`, `GRL`)           |
-| `pnpm verify:utils`    | Core Utils        | Currency formatting (`BDT`), masking (`****`), value dates      |
-| `pnpm verify:matrix`   | Env & Matrix      | Wire fixtures, mock parsers, PII redaction                      |
-| `pnpm verify:services` | Infra Services    | Mock responses, fallback dispatcher, GRL catalog items          |
+| Command                 | Target Scope      | Key Things Verified                                             |
+| :---------------------- | :---------------- | :-------------------------------------------------------------- |
+| `pnpm verify:access`    | Access & Security | RIDASHL functions, Four-Eyes principle, Maker-Checker blocking  |
+| `pnpm verify:record`    | Record & Forms    | Delta calculation, dirty mutations, INA/AU lifecycle            |
+| `pnpm verify:form-spec` | Dynamic Form Spec | GMC form schemas, field types, validation rules                 |
+| `pnpm verify:command`   | Command Gateway   | Syntax parsing, comma auto-auth (`USER,`), aliases (`MD`, `UG`) |
+| `pnpm verify:client`    | Wire Protocol     | Payload factories (`GET`, `PUT`, `AUT`, `INQ`, `GRL`)           |
+| `pnpm verify:utils`     | Core Utils        | Currency formatting (`BDT`), masking (`****`), value dates      |
+| `pnpm verify:matrix`    | Env & Matrix      | Wire fixtures, mock parsers, PII redaction                      |
+| `pnpm verify:services`  | Infra Services    | Mock responses, fallback dispatcher, GRL catalog items          |
+| `pnpm verify:mock`      | Mock Database     | In-memory core dispatch, login, and process paths               |
 
 ---
 
@@ -77,7 +81,7 @@ Before concluding any development task:
 ## 4. Failure Triage Runbook
 
 If a verification test fails:
-1. Read the exact test failure output (the test files are in `scripts/verify-*.ts`).
+1. Read the exact test failure output (the test files are in `scripts/verify/verify-*.ts`).
 2. Identify whether the regression is due to:
    - A broken layer boundary (e.g. importing a higher layer into `src/lib/`).
    - A missing enum mapping or schema mismatch in `src/lib/data-schemas/`.

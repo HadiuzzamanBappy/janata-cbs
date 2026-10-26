@@ -30,4 +30,3 @@ export function queryVersionedRecord<T>(
   if (!bucket) return null;
   return (bucket[cleanId] ?? bucket[cleanId.toUpperCase()] ?? null) as T | T[] | null;
 }
-

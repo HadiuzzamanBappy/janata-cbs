@@ -187,11 +187,7 @@ function CanvasRootDropzone({
           : "h-0 my-0 border-0 opacity-0 overflow-hidden pointer-events-none",
       )}
     >
-      {show && (
-        <span>
-          ↓ Drop directly onto root canvas
-        </span>
-      )}
+      {show && <span>↓ Drop directly onto root canvas</span>}
     </div>
   );
 }

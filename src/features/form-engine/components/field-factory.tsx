@@ -206,7 +206,7 @@ export function UnifiedFieldFactory({
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : `mv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    
+
     if (afterIdx !== undefined && afterIdx >= 0) {
       const nextIds = [...itemIds];
       nextIds.splice(afterIdx + 1, 0, newId);
@@ -253,7 +253,7 @@ export function UnifiedFieldFactory({
               <span className="truncate">
                 {Array.isArray(value)
                   ? value.join(", ")
-                  : resolvedOptions.find((o) => o.code === String(value))?.label ?? String(value)}
+                  : (resolvedOptions.find((o) => o.code === String(value))?.label ?? String(value))}
               </span>
             ) : (
               <span className="text-muted-foreground/50 italic text-[11px]">Not specified</span>
@@ -457,212 +457,213 @@ export function UnifiedFieldFactory({
           <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
 
           {widget === "select" ? (
-          /* Select Dropdown */
-          <div style={inputStyle} className="min-w-32">
-            <Select
-              disabled={isReadOnly || modelLoading}
-              value={String(value ?? "")}
-              onValueChange={handleSelectOrRadioChange}
-            >
-              <SelectTrigger
-                id={field.id}
-                className={cn(
-                  "h-7 text-xs bg-background rounded border-border/80 w-full",
-                  error && "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
-                )}
+            /* Select Dropdown */
+            <div style={inputStyle} className="min-w-32">
+              <Select
+                disabled={isReadOnly || modelLoading}
+                value={String(value ?? "")}
+                onValueChange={handleSelectOrRadioChange}
               >
-                <SelectValue
-                  placeholder={modelLoading ? "Loading options..." : `Select ${field.label}`}
-                />
-              </SelectTrigger>
-              <SelectContent className="z-50 text-xs font-sans">
-                {resolvedOptions.map((opt) => (
-                  <SelectItem key={opt.code} value={opt.code} className="text-xs">
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        ) : widget === "radio-group" ? (
-          /* Radio Group Tabs / Segmented Buttons */
-          <div className="inline-flex rounded border border-border/80 p-0.5 bg-muted/30 gap-0.5">
-            {resolvedOptions.map((opt) => {
-              const isSelected = String(value) === opt.code;
-              return (
-                <button
-                  key={opt.code}
-                  type="button"
-                  disabled={isReadOnly}
-                  onClick={() => handleSelectOrRadioChange(opt.code)}
+                <SelectTrigger
+                  id={field.id}
                   className={cn(
-                    "px-2.5 py-0.5 text-xs rounded transition-all cursor-pointer font-medium border-0",
-                    isSelected
-                      ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-background/50 bg-transparent",
+                    "h-7 text-xs bg-background rounded border-border/80 w-full",
+                    error &&
+                      "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
                   )}
                 >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        ) : widget === "radio" ? (
-          /* Standard Radio Buttons */
-          <div className="flex items-center gap-3">
-            {resolvedOptions.map((opt) => (
-              <label
-                key={opt.code}
-                className="inline-flex items-center gap-1.5 cursor-pointer text-xs"
-              >
-                <input
-                  type="radio"
-                  name={field.id}
-                  value={opt.code}
-                  disabled={isReadOnly}
-                  checked={String(value) === opt.code}
-                  onChange={() => handleSelectOrRadioChange(opt.code)}
-                  className="size-3.5 text-primary focus:ring-primary/40 border-border"
-                />
-                <span className="text-foreground">{opt.label}</span>
-              </label>
-            ))}
-          </div>
-        ) : widget === "switch" ? (
-          /* Boolean Switch Toggle */
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              id={field.id}
-              disabled={isReadOnly}
-              checked={Boolean(value)}
-              onChange={(e) => onChange(field.fieldKey, e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-8 h-4 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-primary-foreground after:border-border after:border after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-primary" />
-          </label>
-        ) : widget === "checkbox-group" ? (
-          /* Multi-Select Tag Checkbox Group */
-          <div className="flex flex-wrap gap-1.5">
-            {resolvedOptions.map((opt) => {
-              const currentArr = Array.isArray(value) ? (value as string[]) : [];
-              const isChecked = currentArr.includes(opt.code);
-              return (
+                  <SelectValue
+                    placeholder={modelLoading ? "Loading options..." : `Select ${field.label}`}
+                  />
+                </SelectTrigger>
+                <SelectContent className="z-50 text-xs font-sans">
+                  {resolvedOptions.map((opt) => (
+                    <SelectItem key={opt.code} value={opt.code} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : widget === "radio-group" ? (
+            /* Radio Group Tabs / Segmented Buttons */
+            <div className="inline-flex rounded border border-border/80 p-0.5 bg-muted/30 gap-0.5">
+              {resolvedOptions.map((opt) => {
+                const isSelected = String(value) === opt.code;
+                return (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    disabled={isReadOnly}
+                    onClick={() => handleSelectOrRadioChange(opt.code)}
+                    className={cn(
+                      "px-2.5 py-0.5 text-xs rounded transition-all cursor-pointer font-medium border-0",
+                      isSelected
+                        ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
+                        : "text-muted-foreground hover:text-foreground hover:bg-background/50 bg-transparent",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : widget === "radio" ? (
+            /* Standard Radio Buttons */
+            <div className="flex items-center gap-3">
+              {resolvedOptions.map((opt) => (
                 <label
                   key={opt.code}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs cursor-pointer transition-colors",
-                    isChecked
-                      ? "border-primary bg-primary/10 text-primary font-medium"
-                      : "border-border/80 bg-background text-muted-foreground hover:border-foreground/40",
-                  )}
+                  className="inline-flex items-center gap-1.5 cursor-pointer text-xs"
                 >
                   <input
-                    type="checkbox"
+                    type="radio"
+                    name={field.id}
+                    value={opt.code}
                     disabled={isReadOnly}
-                    checked={isChecked}
-                    onChange={(e) => {
-                      const nextArr = e.target.checked
-                        ? [...currentArr, opt.code]
-                        : currentArr.filter((item) => item !== opt.code);
-                      onChange(field.fieldKey, nextArr);
-                    }}
-                    className="sr-only"
+                    checked={String(value) === opt.code}
+                    onChange={() => handleSelectOrRadioChange(opt.code)}
+                    className="size-3.5 text-primary focus:ring-primary/40 border-border"
                   />
-                  <span>{opt.label}</span>
+                  <span className="text-foreground">{opt.label}</span>
                 </label>
-              );
-            })}
-          </div>
-        ) : widget === "textarea" ? (
-          /* Textarea */
-          <div style={inputStyle}>
-            <Textarea
-              rows={2}
-              id={field.id}
-              disabled={isReadOnly}
-              placeholder={field.placeholder}
-              value={String(value ?? "")}
-              onChange={(e) => onChange(field.fieldKey, e.target.value)}
-              className="w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-1 focus-visible:ring-ring min-h-14 resize-y"
-            />
-          </div>
-        ) : widget === "amount" ? (
-          /* Currency Amount */
-          <div style={inputStyle} className="relative flex items-center min-w-32">
-            {field.currencyPrefix && (
-              <span className="absolute left-2 text-[10px] font-mono text-muted-foreground select-none">
-                {field.currencyPrefix}
-              </span>
-            )}
-            <Input
-              type="text"
-              id={field.id}
-              disabled={isReadOnly}
-              value={String(value ?? "")}
-              onChange={(e) => onChange(field.fieldKey, e.target.value)}
-              className={cn(
-                "h-7 text-xs font-mono bg-background rounded border-border/80 w-full",
-                field.currencyPrefix && "pl-9",
-                error && "border-destructive",
+              ))}
+            </div>
+          ) : widget === "switch" ? (
+            /* Boolean Switch Toggle */
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                id={field.id}
+                disabled={isReadOnly}
+                checked={Boolean(value)}
+                onChange={(e) => onChange(field.fieldKey, e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-8 h-4 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-primary-foreground after:border-border after:border after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-primary" />
+            </label>
+          ) : widget === "checkbox-group" ? (
+            /* Multi-Select Tag Checkbox Group */
+            <div className="flex flex-wrap gap-1.5">
+              {resolvedOptions.map((opt) => {
+                const currentArr = Array.isArray(value) ? (value as string[]) : [];
+                const isChecked = currentArr.includes(opt.code);
+                return (
+                  <label
+                    key={opt.code}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs cursor-pointer transition-colors",
+                      isChecked
+                        ? "border-primary bg-primary/10 text-primary font-medium"
+                        : "border-border/80 bg-background text-muted-foreground hover:border-foreground/40",
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      disabled={isReadOnly}
+                      checked={isChecked}
+                      onChange={(e) => {
+                        const nextArr = e.target.checked
+                          ? [...currentArr, opt.code]
+                          : currentArr.filter((item) => item !== opt.code);
+                        onChange(field.fieldKey, nextArr);
+                      }}
+                      className="sr-only"
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          ) : widget === "textarea" ? (
+            /* Textarea */
+            <div style={inputStyle}>
+              <Textarea
+                rows={2}
+                id={field.id}
+                disabled={isReadOnly}
+                placeholder={field.placeholder}
+                value={String(value ?? "")}
+                onChange={(e) => onChange(field.fieldKey, e.target.value)}
+                className="w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-1 focus-visible:ring-ring min-h-14 resize-y"
+              />
+            </div>
+          ) : widget === "amount" ? (
+            /* Currency Amount */
+            <div style={inputStyle} className="relative flex items-center min-w-32">
+              {field.currencyPrefix && (
+                <span className="absolute left-2 text-[10px] font-mono text-muted-foreground select-none">
+                  {field.currencyPrefix}
+                </span>
               )}
-            />
-          </div>
-        ) : widget === "date" ? (
-          /* Date Input matching General Tab (type="date" with clean CBS styling and clear button) */
-          <div className="flex items-center gap-1.5 max-w-xs flex-1">
-            <Input
-              type="date"
-              id={field.id}
-              disabled={isReadOnly}
-              value={String(value ?? "")}
-              onChange={(e) => onChange(field.fieldKey, e.target.value)}
-              className={cn(
-                "h-7 w-36 rounded text-xs bg-background border-border/80 font-mono",
-                error && "border-destructive",
-                isReadOnly &&
-                  "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",
+              <Input
+                type="text"
+                id={field.id}
+                disabled={isReadOnly}
+                value={String(value ?? "")}
+                onChange={(e) => onChange(field.fieldKey, e.target.value)}
+                className={cn(
+                  "h-7 text-xs font-mono bg-background rounded border-border/80 w-full",
+                  field.currencyPrefix && "pl-9",
+                  error && "border-destructive",
+                )}
+              />
+            </div>
+          ) : widget === "date" ? (
+            /* Date Input matching General Tab (type="date" with clean CBS styling and clear button) */
+            <div className="flex items-center gap-1.5 max-w-xs flex-1">
+              <Input
+                type="date"
+                id={field.id}
+                disabled={isReadOnly}
+                value={String(value ?? "")}
+                onChange={(e) => onChange(field.fieldKey, e.target.value)}
+                className={cn(
+                  "h-7 w-36 rounded text-xs bg-background border-border/80 font-mono",
+                  error && "border-destructive",
+                  isReadOnly &&
+                    "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",
+                )}
+              />
+              {Boolean(value) && !isReadOnly && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onChange(field.fieldKey, "")}
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground rounded cursor-pointer"
+                  title="Clear date"
+                >
+                  <X className="size-3.5" />
+                </Button>
               )}
-            />
-            {Boolean(value) && !isReadOnly && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onChange(field.fieldKey, "")}
-                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground rounded cursor-pointer"
-                title="Clear date"
-              >
-                <X className="size-3.5" />
-              </Button>
-            )}
-          </div>
-        ) : (
-          /* Standard Input (Text or Number) */
-          <div style={inputStyle}>
-            <Input
-              type={widget === "number" ? "number" : "text"}
-              id={field.id}
-              disabled={isReadOnly}
-              placeholder={field.placeholder}
-              value={String(value ?? "")}
-              onChange={(e) =>
-                onChange(
-                  field.fieldKey,
-                  widget === "number" && e.target.value !== ""
-                    ? Number(e.target.value)
-                    : e.target.value,
-                )
-              }
-              className={cn(
-                "h-7 text-xs bg-background rounded border-border/80 w-full",
-                error && "border-destructive",
-              )}
-            />
-          </div>
-        )}
-      </div>
-    )}
+            </div>
+          ) : (
+            /* Standard Input (Text or Number) */
+            <div style={inputStyle}>
+              <Input
+                type={widget === "number" ? "number" : "text"}
+                id={field.id}
+                disabled={isReadOnly}
+                placeholder={field.placeholder}
+                value={String(value ?? "")}
+                onChange={(e) =>
+                  onChange(
+                    field.fieldKey,
+                    widget === "number" && e.target.value !== ""
+                      ? Number(e.target.value)
+                      : e.target.value,
+                  )
+                }
+                className={cn(
+                  "h-7 text-xs bg-background rounded border-border/80 w-full",
+                  error && "border-destructive",
+                )}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Field Error Message */}
       {error && <div className="text-[11px] text-destructive pl-44 font-medium">{error}</div>}

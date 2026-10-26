@@ -38,7 +38,8 @@ export function getMockUserResponse(username?: string, password?: string): GrpcR
   const cleanUser = username.trim().toUpperCase();
 
   // Find user strictly by signon ID or userId
-  const user = SC_USER[cleanUser] || Object.values(SC_USER).find((u) => u.userId.toUpperCase() === cleanUser);
+  const user =
+    SC_USER[cleanUser] || Object.values(SC_USER).find((u) => u.userId.toUpperCase() === cleanUser);
   if (!user) return null;
 
   // Strict password verification

@@ -3,9 +3,9 @@
 import { Database, Eye, FileCode, FileText, Layers, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
-import { CbsRecordFunction, CbsRecordStatus } from "@/types";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
+import { CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { McAuditTab } from "./components/mc-audit-tab";
 import { McGeneralTab } from "./components/mc-general-tab";
 import { McJsonTab } from "./components/mc-json-tab";

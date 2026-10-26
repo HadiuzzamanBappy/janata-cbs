@@ -5,13 +5,13 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
+import { CbsControlTable } from "@/types";
 import { FcAuditTab } from "./components/fc-audit-tab";
 import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
 import { FcPreviewTab } from "./components/fc-preview-tab";
 import { useFormConfig } from "./hooks/use-form-config";
-import { CbsControlTable } from "@/types";
 
 type FormConfigTabKey = "general" | "designer" | "preview" | "audit" | "json";
 

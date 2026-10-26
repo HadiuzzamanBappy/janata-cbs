@@ -1,4 +1,13 @@
-import { Boxes, ChevronDown, ChevronRight, Columns, Database, Layers, LayoutGrid, Plus } from "lucide-react";
+import {
+  Boxes,
+  ChevronDown,
+  ChevronRight,
+  Columns,
+  Database,
+  Layers,
+  LayoutGrid,
+  Plus,
+} from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -398,8 +407,11 @@ export function FieldPalette({
                   const parent = item.parent;
                   const children = item.children;
                   const isCollapsed = collapsedGroups[parent.sn] ?? false;
-                  const allPlaced = children.length > 0 && children.every((c) => usedFieldKeys.has(c.name));
-                  const placedChildrenCount = children.filter((c) => usedFieldKeys.has(c.name)).length;
+                  const allPlaced =
+                    children.length > 0 && children.every((c) => usedFieldKeys.has(c.name));
+                  const placedChildrenCount = children.filter((c) =>
+                    usedFieldKeys.has(c.name),
+                  ).length;
 
                   return (
                     <div
@@ -494,7 +506,10 @@ export function FieldPalette({
                                         isFirstInGroup: childIdx === 0,
                                       },
                                     };
-                                    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+                                    e.dataTransfer.setData(
+                                      "application/json",
+                                      JSON.stringify(payload),
+                                    );
                                     e.dataTransfer.effectAllowed = "copy";
                                   }}
                                   className={cn(
@@ -542,7 +557,8 @@ export function FieldPalette({
                                       variant="outline"
                                       className={cn(
                                         "text-[7px] h-3 px-1 font-mono uppercase",
-                                        isChildPlaced && "text-emerald-500 border-emerald-500/40 bg-emerald-500/5",
+                                        isChildPlaced &&
+                                          "text-emerald-500 border-emerald-500/40 bg-emerald-500/5",
                                       )}
                                     >
                                       {isChildPlaced ? "PLACED" : child.type}

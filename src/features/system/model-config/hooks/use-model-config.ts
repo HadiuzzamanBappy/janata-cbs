@@ -63,7 +63,9 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         );
         const record =
           json.status === "SUCCESS" && json.data
-            ? ("record" in json.data && json.data.record ? json.data.record : (json.data as ModelConfigRecord))
+            ? "record" in json.data && json.data.record
+              ? json.data.record
+              : (json.data as ModelConfigRecord)
             : undefined;
 
         if (record) {
@@ -190,15 +192,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     } finally {
       setSubmitting(false);
     }
-  }, [
-    clearCommitted,
-    formData,
-    markAsCommitted,
-    rebaseline,
-    recordId,
-    reset,
-    upsertCatalogItem,
-  ]);
+  }, [clearCommitted, formData, markAsCommitted, rebaseline, recordId, reset, upsertCatalogItem]);
 
   // 5. Authorize
   const handleAuthorize = React.useCallback(async () => {

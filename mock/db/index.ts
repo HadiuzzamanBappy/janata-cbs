@@ -52,4 +52,3 @@ export function queryCbsDatabase<T = Record<string, unknown>>(
   if (!table) return null;
   return queryVersionedRecord(table, recordId, version);
 }
-

@@ -155,7 +155,7 @@ export const SC_BRANCH: Record<string, BranchRecord> = {
     routingNumber: "135275713",
     swiftCode: "JANBBDDHJRD ",
     parentBranch: "",
-  }
+  },
 };
 
 /* -------------------------------------------------------------------------- */

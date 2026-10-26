@@ -3,11 +3,7 @@ import "server-only";
 import type { CbsWirePayload, GrpcEnvelope } from "@/lib/data-schemas";
 import type { GrpcRequest, GrpcResponse } from "@/lib/infra-grpc/generated/service";
 import type { ApiResponse } from "@/types";
-import {
-  buildMockUserAuthResponse,
-  getMockUserResponse,
-  mockLogin,
-} from "./auth-simulator";
+import { buildMockUserAuthResponse, getMockUserResponse, mockLogin } from "./auth-simulator";
 import {
   getMockFormPayload,
   getMockInquiryPayload,

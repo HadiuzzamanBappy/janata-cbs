@@ -112,8 +112,16 @@ async function runSuite() {
     const authData = authRes.data as Record<string, unknown> | undefined;
 
     // Negative tests: wrong password and missing password must fail with 401
-    const wrongPassRes = await loginProcess({ clientId: "WEB-CLIENT", username: "ZZ028459", password: "wrong_password" });
-    const noPassRes = await loginProcess({ clientId: "WEB-CLIENT", username: "ZZ028459", password: "" });
+    const wrongPassRes = await loginProcess({
+      clientId: "WEB-CLIENT",
+      username: "ZZ028459",
+      password: "wrong_password",
+    });
+    const noPassRes = await loginProcess({
+      clientId: "WEB-CLIENT",
+      username: "ZZ028459",
+      password: "",
+    });
 
     const authOut = {
       status: authRes.status,

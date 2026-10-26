@@ -9,12 +9,7 @@
 import { z } from "zod";
 import { cbs, createModelPayloads, sendCbsRequest } from "@/lib/cbs-client";
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import {
-  CbsControlTable,
-  CbsRecordFunction,
-  CbsRequestType,
-  DEFAULT_SERVICE_PATH,
-} from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
 
 interface TestReport {
   name: string;

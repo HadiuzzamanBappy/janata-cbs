@@ -1,6 +1,5 @@
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
-import { createModelPayloads } from "./base-model";
+import { CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
 
 export interface InquiryCriteriaParam {
   readonly selectFieldName: string;
@@ -16,12 +15,14 @@ export interface InquiryExecuteOptions {
   readonly servicePath?: string;
 }
 
-const base = createModelPayloads(CbsControlTable.INQUIRY_CONFIG);
-
+/**
+ * Pure runtime enquiry executor payload builder.
+ * Table definition maintenance (get, list, save) is handled by `cbs.inquiryConfig`.
+ */
 export const inquiryPayloads = {
-  ...base,
-
-  // Runtime Enquiry Queries
+  /**
+   * Execute tabular runtime enquiry query ('INQ').
+   */
   executeQuery: (controlName: string, options: InquiryExecuteOptions = {}): CbsWirePayload => ({
     servicePath: options.servicePath || DEFAULT_SERVICE_PATH,
     requestType: CbsRequestType.INQ,
@@ -34,16 +35,5 @@ export const inquiryPayloads = {
       perPage: options.perPage || 1000,
     },
   }),
-
-  fetchSingleRecord: (
-    controlName: string,
-    recordId: string,
-    servicePath = DEFAULT_SERVICE_PATH,
-  ): CbsWirePayload => ({
-    servicePath,
-    requestType: CbsRequestType.INQ,
-    controlName: controlName.trim().toUpperCase(),
-    recordFunction: CbsRecordFunction.SEE,
-    recordId: recordId.trim(),
-  }),
 };
+

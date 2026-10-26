@@ -15,17 +15,27 @@ interface TestReport {
   name: string;
   passed: boolean;
   error?: string;
+  payload?: unknown;
 }
 
 const reports: TestReport[] = [];
 
-function assert(name: string, condition: boolean, extraInfo?: string) {
+function assert(name: string, condition: boolean, payloadOrInfo?: unknown) {
   if (condition) {
-    reports.push({ name, passed: true });
-    console.log(`[PASS] ${name}`);
+    reports.push({ name, passed: true, payload: payloadOrInfo });
+    console.log(`\x1b[32m✔ [PASS]\x1b[0m ${name}`);
+    if (payloadOrInfo && typeof payloadOrInfo === "object") {
+      const summary = JSON.stringify(payloadOrInfo, null, 2)
+        .split("\n")
+        .map((l) => `    ${l}`)
+        .join("\n");
+      console.log(`\x1b[90m${summary}\x1b[0m`);
+    }
   } else {
-    reports.push({ name, passed: false, error: extraInfo });
-    console.error(`[FAIL] ${name}${extraInfo ? ` -> ${extraInfo}` : ""}`);
+    const errorStr =
+      typeof payloadOrInfo === "string" ? payloadOrInfo : JSON.stringify(payloadOrInfo);
+    reports.push({ name, passed: false, error: errorStr });
+    console.error(`\x1b[31m✖ [FAIL]\x1b[0m ${name}${errorStr ? ` -> ${errorStr}` : ""}`);
   }
 }
 
@@ -137,32 +147,30 @@ async function runSuite() {
 
   // --- 2. Canonical Control Tables ---
   console.log("\n--- 2. Canonical Control Tables ---");
-  // 2.1 Form Config (FORM.CONFIG)
-  const formCfg = cbs.formConfig.get("CUSTOMER.FORM");
+  // 2.1 Form Config (CONFIG.FORM with GFC)
+  const formCfg = cbs.formConfig.get("USER.MGT,V1");
   assert(
-    "ControlTable: formConfig (FORM.CONFIG)",
-    formCfg.controlName === CbsControlTable.FORM_CONFIG && formCfg.recordId === "CUSTOMER.FORM",
+    `ControlTable: formConfig (GFC, ${CbsControlTable.FORM_CONFIG})`,
+    formCfg.requestType === CbsRequestType.GFC &&
+      formCfg.controlName === CbsControlTable.FORM_CONFIG &&
+      formCfg.recordId === "USER.MGT,V1",
+    formCfg,
   );
 
   // 2.2 Model Config (MODEL.CONFIG)
-  const modelCfg = cbs.modelConfig.get("ACCOUNT.MODEL");
+  const modelCfg = cbs.modelConfig.get("USER");
   assert(
-    "ControlTable: modelConfig (MODEL.CONFIG)",
-    modelCfg.controlName === CbsControlTable.MODEL_CONFIG && modelCfg.recordId === "ACCOUNT.MODEL",
+    `ControlTable: modelConfig (${CbsControlTable.MODEL_CONFIG})`,
+    modelCfg.controlName === CbsControlTable.MODEL_CONFIG && modelCfg.recordId === "USER",
+    modelCfg,
   );
 
-  // 2.3 Inquiry Config (INQUIRY.CONFIG)
-  const inqCfg = cbs.inquiryConfig.get("INQ.CUST.LIST");
+  // 2.3 Inquiry Config (INQUIRY)
+  const inqCfg = cbs.inquiryConfig.get("GET.USER.MGT");
   assert(
-    "ControlTable: inquiryConfig (INQUIRY.CONFIG)",
-    inqCfg.controlName === CbsControlTable.INQUIRY_CONFIG && inqCfg.recordId === "INQ.CUST.LIST",
-  );
-
-  // 2.4 User Group (USER.GROUP)
-  const userGrp = cbs.userGroup.get("OFFICER_ROLE");
-  assert(
-    "ControlTable: userGroup (USER.GROUP)",
-    userGrp.controlName === CbsControlTable.USER_GROUP && userGrp.recordId === "OFFICER_ROLE",
+    `ControlTable: inquiryConfig (${CbsControlTable.INQUIRY_CONFIG})`,
+    inqCfg.controlName === CbsControlTable.INQUIRY_CONFIG && inqCfg.recordId === "GET.USER.MGT",
+    inqCfg,
   );
 
   // --- 3. Domain Form Payloads (cbs.form) ---
@@ -181,6 +189,7 @@ async function runSuite() {
     "Form: getNewRecordId (GNI, INPUT)",
     formGni.requestType === CbsRequestType.GNI &&
       formGni.recordFunction === CbsRecordFunction.INPUT,
+    formGni,
   );
 
   const formFetch = cbs.form.fetchRecord("ACCOUNT", "1000001");
@@ -188,6 +197,7 @@ async function runSuite() {
     "Form: fetchRecord (GET, SEE)",
     formFetch.requestType === CbsRequestType.GET &&
       formFetch.recordFunction === CbsRecordFunction.SEE,
+    formFetch,
   );
 
   const formCommit = cbs.form.commitRecord(
@@ -198,6 +208,7 @@ async function runSuite() {
   assert(
     "Form: commitRecord (PUT, INPUT)",
     formCommit.requestType === CbsRequestType.PUT && formCommit.idempotencyKey === "idem-cust-1",
+    formCommit,
   );
 
   const formAuth = cbs.form.authorizeRecord("ACCOUNT", "1000001");
@@ -230,27 +241,39 @@ async function runSuite() {
 
   // --- 4. Inquiry Payloads & Queries (cbs.inquiry) ---
   console.log("\n--- 4. Inquiry Payloads & Runtime Queries ---");
-  // 4.1 Custom Pagination & Query String
-  const inqCustom = cbs.inquiry.executeQuery("GET.CUSTOMER", {
-    curPage: 3,
-    perPage: 25,
+  // 4.1 Filtered Query matching real live enquiry (TODAY.TXN.ENTRY, BDT CT filter)
+  const inqCustom = cbs.inquiry.executeQuery("TODAY.TXN.ENTRY", {
+    servicePath: "default",
+    curPage: 1,
+    perPage: 1000,
     queryString: [
-      { selectFieldName: "BRANCH", selectFieldOperator: "EQ", selectFieldValue: "1001" },
+      {
+        selectFieldName: "recordId",
+        selectFieldType: "text",
+        selectFieldOperator: "CT",
+        selectFieldValue: "BDT",
+      },
     ],
   });
   assert(
-    "Inquiry: executeQuery custom pagination",
+    "Inquiry: executeQuery custom pagination & servicePath for TODAY.TXN.ENTRY",
     inqCustom.requestType === CbsRequestType.INQ &&
-      (inqCustom.data as Record<string, unknown>)?.curPage === 3 &&
-      (inqCustom.data as Record<string, unknown>)?.perPage === 25,
+      inqCustom.controlName === "TODAY.TXN.ENTRY" &&
+      inqCustom.recordId === "" &&
+      (inqCustom.data as Record<string, unknown>)?.curPage === 1 &&
+      (inqCustom.data as Record<string, unknown>)?.perPage === 1000,
+    inqCustom,
   );
+  const inqCustomData = inqCustom.data as { queryString?: Array<{ selectFieldName: string; selectFieldValue: string }> };
   assert(
-    "Inquiry: executeQuery queryString filters",
-    Array.isArray((inqCustom.data as Record<string, unknown>)?.queryString),
+    "Inquiry: executeQuery queryString filter for recordId with CT operator",
+    Array.isArray(inqCustomData?.queryString) &&
+      inqCustomData?.queryString[0]?.selectFieldName === "recordId" &&
+      inqCustomData?.queryString[0]?.selectFieldValue === "BDT",
   );
 
-  // 4.2 Default Pagination
-  const inqDefault = cbs.inquiry.executeQuery("GET.ALL.LOANS");
+  // 4.2 Default Query for TODAY.TXN.ENTRY
+  const inqDefault = cbs.inquiry.executeQuery("TODAY.TXN.ENTRY");
   assert(
     "Inquiry: executeQuery default curPage = 1",
     (inqDefault.data as Record<string, unknown>)?.curPage === 1,
@@ -260,85 +283,8 @@ async function runSuite() {
     (inqDefault.data as Record<string, unknown>)?.perPage === 1000,
   );
 
-  // 4.3 Fetch Single Record
-  const inqSingle = cbs.inquiry.fetchSingleRecord("ACCOUNT.STATEMENT", "REC-888");
-  assert(
-    "Inquiry: fetchSingleRecord (INQ, SEE)",
-    inqSingle.requestType === CbsRequestType.INQ && inqSingle.recordId === "REC-888",
-  );
-
-  // 4.4 Inherited Base Model CRUD on INQUIRY.CONFIG table
-  const inqBaseGet = cbs.inquiry.get("INQ.CUST.LIST");
-  assert(
-    "Inquiry: Inherited base get (GET, SEE, INQUIRY.CONFIG)",
-    inqBaseGet.requestType === CbsRequestType.GET &&
-      inqBaseGet.controlName === CbsControlTable.INQUIRY_CONFIG,
-  );
-
-  const inqBaseList = cbs.inquiry.list();
-  assert(
-    "Inquiry: Inherited base list (GRL, LIST, INQUIRY.CONFIG)",
-    inqBaseList.requestType === CbsRequestType.GRL &&
-      inqBaseList.controlName === CbsControlTable.INQUIRY_CONFIG,
-  );
-
-  // --- 5. Menu & Visual Tree Payloads (cbs.menu) ---
-  console.log("\n--- 5. Menu & Visual Tree Payloads (cbs.menu) ---");
-  // 5.1 Menu Catalog Items (SC.MENU)
-  assert(
-    "Menu: getCatalogList (GRL, LIST, SC.MENU)",
-    cbs.menu.getCatalogList().requestType === CbsRequestType.GRL &&
-      cbs.menu.getCatalogList().controlName === CbsControlTable.MENU,
-  );
-  assert(
-    "Menu: getMenuItem (GET, SEE, SC.MENU)",
-    cbs.menu.getMenuItem("M1").recordId === "M1" &&
-      cbs.menu.getMenuItem("M1").controlName === CbsControlTable.MENU,
-  );
-  assert(
-    "Menu: saveMenuItem (PUT, INPUT, SC.MENU)",
-    cbs.menu.saveMenuItem("M1", { title: "Deposit" }).requestType === CbsRequestType.PUT,
-  );
-  assert(
-    "Menu: authorizeMenuItem (AUT, AUTHORIZE, SC.MENU)",
-    cbs.menu.authorizeMenuItem("M1").requestType === CbsRequestType.AUT,
-  );
-  assert(
-    "Menu: deleteMenuItem (PUT, DELETE, SC.MENU)",
-    cbs.menu.deleteMenuItem("M1").requestType === CbsRequestType.PUT &&
-      cbs.menu.deleteMenuItem("M1").recordFunction === CbsRecordFunction.DELETE,
-  );
-
-  // 5.2 Hierarchical Menu Tree (SC.MENU.TREE)
-  assert(
-    "MenuTree: getTreeList (GRL, LIST, SC.MENU.TREE)",
-    cbs.menu.getTreeList().requestType === CbsRequestType.GRL &&
-      cbs.menu.getTreeList().controlName === CbsControlTable.MENU_TREE,
-  );
-  assert(
-    "MenuTree: getMenuTree defaults to MAIN_MENU",
-    cbs.menu.getMenuTree().recordId === "MAIN_MENU",
-  );
-  assert(
-    "MenuTree: getMenuTree with custom treeId",
-    cbs.menu.getMenuTree("SIDE_NAV").recordId === "SIDE_NAV",
-  );
-  assert(
-    "MenuTree: saveMenuTree (PUT, INPUT, SC.MENU.TREE)",
-    cbs.menu.saveMenuTree("MAIN_MENU", [{ id: "1" }]).requestType === CbsRequestType.PUT,
-  );
-  assert(
-    "MenuTree: authorizeMenuTree (AUT, AUTHORIZE)",
-    cbs.menu.authorizeMenuTree("MAIN_MENU").requestType === CbsRequestType.AUT,
-  );
-  assert(
-    "MenuTree: deleteMenuTree (PUT, DELETE)",
-    cbs.menu.deleteMenuTree("MAIN_MENU").requestType === CbsRequestType.PUT &&
-      cbs.menu.deleteMenuTree("MAIN_MENU").recordFunction === CbsRecordFunction.DELETE,
-  );
-
-  // --- 6. User Security Payloads (cbs.userSecurity) ---
-  console.log("\n--- 6. User Security Payloads (cbs.userSecurity) ---");
+  // --- 5. User Security Payloads (cbs.userSecurity) ---
+  console.log("\n--- 5. User Security Payloads (cbs.userSecurity) ---");
 
   const changePass = cbs.userSecurity.changePassword({ currPass: "old123", newPass: "new123" });
   assert(

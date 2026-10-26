@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config/server";
+import { logger } from "@/lib/core-logger";
 import { updateBranchSessionSchema } from "@/lib/data-schemas";
 import {
   destroySession,
@@ -11,6 +12,8 @@ import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const sessionLogger = logger.withContext("SESSION_API");
 
 export async function GET(): Promise<NextResponse<ApiResponse>> {
   try {
@@ -40,6 +43,7 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
       { status: 200 },
     );
   } catch (error: unknown) {
+    sessionLogger.error("GET /api/session failed", error);
     const message =
       error instanceof Error ? error.message : "Internal server error retrieving session";
     return NextResponse.json(
@@ -128,6 +132,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       { status: 200 },
     );
   } catch (error: unknown) {
+    sessionLogger.error("POST /api/session failed", error);
     const message =
       error instanceof Error ? error.message : "Internal server error updating session";
     return NextResponse.json(
@@ -144,6 +149,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 }
 
 export async function DELETE(): Promise<NextResponse<ApiResponse>> {
+  sessionLogger.info("Destroying session via DELETE /api/session");
   await destroySession();
   return NextResponse.json(
     {

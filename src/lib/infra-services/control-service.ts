@@ -1,6 +1,7 @@
 import "server-only";
 
 import { appConfig } from "@/lib/core-config/server";
+import { logger } from "@/lib/core-logger";
 import { parseControlsWirePayload } from "@/lib/data-parsers";
 import type { SystemCommandItem } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
@@ -12,27 +13,33 @@ import {
   resolveServiceContext,
 } from "./service-context";
 
+const log = logger.withContext("CONTROL_SERVICE");
+
 async function fetchControlWirePayload(tokenParam?: string): Promise<unknown> {
   const ctx = await resolveServiceContext(tokenParam);
-  const res = await grpcProcess(
-    ctx.address,
-    GRPC_SERVICE_CATEGORY,
-    {
-      idempotencyKey: "",
-      clientId: ctx.clientId,
-      requestType: CbsRequestType.GRL,
-      controlName: CbsControlTable.CONTROL,
-      recordFunction: CbsRecordFunction.LIST,
-      recordId: "",
-      branchCode: ctx.branchCode,
-      authLevel: DEFAULT_AUTH_LEVEL,
-      userId: ctx.userId,
-      data: {},
-    },
-    { token: ctx.token },
-  );
+  const payload = {
+    idempotencyKey: "",
+    clientId: ctx.clientId,
+    requestType: CbsRequestType.GRL,
+    controlName: CbsControlTable.CONTROL,
+    recordFunction: CbsRecordFunction.LIST,
+    recordId: "",
+    branchCode: ctx.branchCode,
+    authLevel: DEFAULT_AUTH_LEVEL,
+    userId: ctx.userId,
+    data: {},
+  };
+
+  log.info("Outgoing gRPC Payload for CONTROL", payload);
+
+  const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, {
+    token: ctx.token,
+  });
+
+  log.info("Incoming gRPC Response for CONTROL", res);
 
   if (res.statusCode !== 200 || !res.data) {
+    log.error(`gRPC controls fetch failed (${res.statusCode}): ${res.message || "No data"}`);
     throw new Error(`gRPC controls fetch failed (${res.statusCode}): ${res.message || "No data"}`);
   }
 

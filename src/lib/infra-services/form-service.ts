@@ -14,6 +14,8 @@ import {
   resolveServiceContext,
 } from "./service-context";
 
+const log = logger.withContext("FORM_SERVICE");
+
 async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Promise<unknown> {
   const ctx = await resolveServiceContext(tokenParam);
   const payload = {
@@ -29,19 +31,21 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
     data: {},
   };
 
+  log.info(`Outgoing gRPC Payload for GMC "${cleanCmd}"`, payload);
+
   const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, {
     token: ctx.token,
   });
+
+  log.info(`Incoming gRPC Response for GMC "${cleanCmd}"`, res);
 
   if (res.statusCode !== 200 || !res.data) {
     // If a specific version (e.g. "USER.MGT,NEW1") wasn't found in the database,
     // fallback to the base model table ("USER.MGT") so the form can still render
     if (cleanCmd.includes(",")) {
       const baseCmd = cleanCmd.split(",")[0].trim();
-      logger.warn(
+      log.warn(
         `Specific version "${cleanCmd}" not found (404). Falling back to base model "${baseCmd}"...`,
-        undefined,
-        "FORM_SERVICE",
       );
       return fetchModelWirePayload(baseCmd, tokenParam);
     }
@@ -67,7 +71,7 @@ export async function getFormData(command: string, token?: string): Promise<Pars
       if (!wireData) return null;
       const parseResult = parseGMC(wireData, cleanCmd);
       if (!parseResult.success) {
-        logger.error(`parseGMC failed for "${cleanCmd}"`, parseResult.error, "FORM_SERVICE");
+        log.error(`parseGMC failed for "${cleanCmd}"`, parseResult.error);
         return null;
       }
       return parseResult.data;

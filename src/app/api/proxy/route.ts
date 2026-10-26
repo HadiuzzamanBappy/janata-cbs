@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { parseAccessibilityRights } from "@/lib/cbs-access";
 import { appConfig } from "@/lib/core-config/server";
+import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { cbsWirePayloadSchema, type GrpcEnvelope } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
@@ -9,6 +10,8 @@ import { type ApiResponse, CbsRecordFunction, DEFAULT_SERVICE_PATH } from "@/typ
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const proxyLogger = logger.withContext("PROXY_API");
 
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
@@ -65,6 +68,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           funcCode === CbsRecordFunction.INPUT) &&
         !userGrantedRights.includes(funcCode)
       ) {
+        proxyLogger.warn(`Access Denied: Missing '${funcCode}' for user ${currUser.userId}`, {
+          controlName: body.controlName,
+          recordId: body.recordId,
+        });
         return NextResponse.json(
           {
             success: false,
@@ -152,6 +159,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       // Backend may reply ERROR with an empty message (unhandled host exception);
       // give the client something actionable instead of a blank toast.
       const fallbackMessage = `CBS host returned ${response.status} (${response.statusCode}) for ${envelope.requestType} on ${envelope.controlName || "default"}`;
+      proxyLogger.warn(`Proxy downstream returned non-success (${response.statusCode})`, {
+        controlName: envelope.controlName,
+        requestType: envelope.requestType,
+        message: response.message || fallbackMessage,
+      });
       return NextResponse.json(
         {
           ...response,
@@ -164,6 +176,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         },
       );
     } catch (dispatchErr: unknown) {
+      proxyLogger.error("CBS Host communication failed", dispatchErr);
       const errMsg =
         dispatchErr instanceof Error ? dispatchErr.message : "CBS Host communication failed";
       return NextResponse.json(
@@ -179,6 +192,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
     }
   } catch (err: unknown) {
+    proxyLogger.error("Internal Proxy Dispatch Error", err);
     const message = err instanceof Error ? err.message : "Internal Proxy Dispatch Error";
     return NextResponse.json(
       {

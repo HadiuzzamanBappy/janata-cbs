@@ -14,6 +14,8 @@ import {
   resolveServiceContext,
 } from "./service-context";
 
+const log = logger.withContext("INQUIRY_SERVICE");
+
 async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): Promise<unknown> {
   const ctx = await resolveServiceContext(tokenParam);
   const payload = {
@@ -29,19 +31,16 @@ async function fetchEnquiryWirePayload(cleanCmd: string, tokenParam?: string): P
     data: {},
   };
 
-  logger.debug(
-    `[InquiryService] Outgoing gRPC Payload for "${cleanCmd}"`,
-    payload,
-    "INQUIRY_SERVICE",
-  );
+  log.info(`Outgoing gRPC Payload for "${cleanCmd}"`, payload);
 
   const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, {
     token: ctx.token,
   });
 
-  logger.debug(`[InquiryService] Incoming gRPC Response for "${cleanCmd}"`, res, "INQUIRY_SERVICE");
+  log.info(`Incoming gRPC Response for "${cleanCmd}"`, res);
 
   if (res.statusCode !== 200 || !res.data) {
+    log.error(`gRPC Enquiry fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`);
     throw new Error(
       `gRPC Enquiry fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`,
     );
@@ -88,10 +87,9 @@ async function fetchEnquiryRowsWirePayload(
     }
     return [];
   } catch (err) {
-    logger.warn(
-      `[InquiryService] Could not preload inquiry records for "${cleanCmd}"`,
+    log.warn(
+      `Could not preload inquiry records for "${cleanCmd}"`,
       err,
-      "INQUIRY_SERVICE",
     );
     return [];
   }
@@ -115,7 +113,10 @@ export async function getEnquiryData(
       ]);
       if (!wireData) return null;
       const parseResult = parseEnquiry(wireData, cleanCmd);
-      if (!parseResult.success) return null;
+      if (!parseResult.success) {
+        log.error(`parseEnquiry failed for "${cleanCmd}"`, parseResult.error);
+        return null;
+      }
       return {
         ...parseResult.data,
         sampleData: rows,

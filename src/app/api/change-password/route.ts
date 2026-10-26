@@ -1,12 +1,15 @@
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config";
+import { logger } from "@/lib/core-logger";
 import { changePasswordSchema } from "@/lib/data-schemas";
 import { getSession, updateSession } from "@/lib/infra-redis";
 import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const pwdLogger = logger.withContext("AUTH_CHANGE_PASSWORD");
 
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
@@ -53,6 +56,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     const store = await cookies();
     store.delete(appConfig.auth.initLoginCookie);
 
+    pwdLogger.info(`Password successfully changed for user ${session.userId}`);
+
     return NextResponse.json(
       {
         success: true,
@@ -64,6 +69,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       { status: 200 },
     );
   } catch (err: unknown) {
+    pwdLogger.error("POST /api/change-password failed", err);
     const message = err instanceof Error ? err.message : "Failed to update password.";
     return NextResponse.json(
       {

@@ -1,12 +1,14 @@
 ---
+
 name: cbs-client-wire-protocol
 description: >-
-  Use this skill when communicating between the frontend and backend, calling the /api/proxy endpoint, fetching dynamic GMC schemas, running inquiry queries, or executing record transactions.
+Use this skill when communicating between the frontend and backend, calling the /api/proxy endpoint, fetching dynamic GMC schemas, running inquiry queries, or executing record transactions.
 ---
 
 # CBS Client Wire Protocol & Proxy Gateway Runbook
 
 ## Overview
+
 Janata CBS adheres strictly to the **Backend-For-Frontend (BFF)** pattern. The browser client **NEVER** communicates directly with Java gRPC backends, databases, or Redis caches. All communication routes through the Next.js API proxy (`/api/proxy`) using the canonical wire request factories in `src/lib/cbs-client`.
 
 ---
@@ -16,13 +18,13 @@ Janata CBS adheres strictly to the **Backend-For-Frontend (BFF)** pattern. The b
 Always use the typed factory functions to construct outgoing wire payloads:
 
 ```ts
-import { 
-  buildGetRecordRequest, 
-  buildPutRecordRequest, 
-  buildAuthorizeRecordRequest, 
+import {
+  buildGetRecordRequest,
+  buildPutRecordRequest,
+  buildAuthorizeRecordRequest,
   buildInquiryRequest,
   buildGrlLookupRequest,
-  cbsClient 
+  cbsClient,
 } from "@/lib/cbs-client";
 
 // 1. Fetching a Form Record (GET, SEE)
@@ -58,6 +60,7 @@ const inqPayload = buildInquiryRequest({
 
 The backend dispatchers and gRPC clients live exclusively on the server side:
 - **Server-Only Modules:** Any file inside `src/lib/infra-grpc/`, `src/lib/infra-redis/`, or `src/proxy.ts` must declare:
+
   ```ts
   import "server-only";
   ```
@@ -75,6 +78,7 @@ The backend dispatchers and gRPC clients live exclusively on the server side:
 Never pass raw client payloads to backend dispatchers without validating them first:
 - All incoming requests must be parsed against Zod schemas in `src/lib/data-schemas/`.
 - Use `safeParse()` and handle validation failures before invoking the gRPC dispatcher:
+
   ```ts
   const validation = requestSchema.safeParse(body);
   if (!validation.success) {

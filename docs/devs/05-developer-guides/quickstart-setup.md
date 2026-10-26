@@ -1,6 +1,7 @@
 # 🚀 Quickstart & Local Setup Guide
 
 ## 1. Executive Summary & Purpose
+
 This document provides local setup, environment configuration, dependency installation, and script execution instructions for developers onboarding onto the Janata CBS Core Banking Workbench (`finx-ui`).
 
 ---
@@ -17,6 +18,7 @@ This document provides local setup, environment configuration, dependency instal
 ## 3. Step-by-Step Local Setup
 
 ### Step 1: Clone & Install Dependencies
+
 ```bash
 # Clone project repository
 git clone <repository-url>
@@ -27,6 +29,7 @@ pnpm install
 ```
 
 ### Step 2: Environment Configuration (`.env.local`)
+
 Create a `.env.local` file in the root workspace directory based on `.env.example`:
 
 ```ini
@@ -40,6 +43,7 @@ REDIS_URL=redis://127.0.0.1:6379
 ```
 
 ### Step 3: Launch Local Development Server
+
 ```bash
 pnpm dev
 ```
@@ -49,19 +53,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 4. Operational Scripts Reference
 
-| Command | Action |
-| :--- | :--- |
-| `pnpm dev` | Starts Next.js development server with hot module reloading. |
-| `pnpm build` | Executes standalone production build validation. |
-| `pnpm start` | Runs built production server bundle. |
-| `pnpm lint` | Runs Biome linter and formatting checks. |
-| `pnpm typecheck` | Executes TypeScript strict type checks (`tsc --noEmit`). |
+| Command          | Action                                                       |
+| :--------------- | :----------------------------------------------------------- |
+| `pnpm dev`       | Starts Next.js development server with hot module reloading. |
+| `pnpm build`     | Executes standalone production build validation.             |
+| `pnpm start`     | Runs built production server bundle.                         |
+| `pnpm lint`      | Runs Biome linter and formatting checks.                     |
+| `pnpm typecheck` | Executes TypeScript strict type checks (`tsc --noEmit`).     |
 
 ---
 
 ## 5. Architectural Rules (MUST / MUST NOT)
 
 ### Mandatory Rules (MUST)
+
 - **MUST** use `pnpm` exclusively as package manager to maintain deterministic lockfiles (`pnpm-lock.yaml`).
 - **MUST** run `pnpm typecheck` and `pnpm lint` before pushing branch commits.
 - **MUST NOT** commit `.env` or `.env.local` containing live production Redis connection strings or secrets to git.
@@ -80,6 +85,7 @@ pnpm build
 ---
 
 ## 7. Affected Documentation Updates
+
 When modifying setup instructions or dev scripts, update:
 - [docs/05-developer-guides/quickstart-setup.md](file:///d:/CBS/In_house/finx/finxui-ref/docs/05-developer-guides/quickstart-setup.md)
 - [README.md](file:///d:/CBS/In_house/finx/finxui-ref/README.md)

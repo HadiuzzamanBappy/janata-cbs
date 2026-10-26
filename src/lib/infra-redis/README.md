@@ -22,6 +22,7 @@ src/lib/infra-redis/
 ## 🛡️ Resilience & Production Engineering
 
 ### 1. Circuit Breaker ("Fail-Open" Resilience)
+
 If Redis crashes or is not running during local development:
 - The connection failure trips the circuit breaker (`tripCircuit()`).
 - During the cooldown window (`appConfig.redis.cooldownMs` = 5,000ms), all cache operations **fail open** without throwing errors or halting the banking operator.
@@ -29,15 +30,18 @@ If Redis crashes or is not running during local development:
 - The entire workbench remains 100% operational with zero Redis dependencies.
 
 ### 2. Single-Flight Concurrency Deduplication (`singleFlight`)
+
 Prevents **cache stampedes ("thundering herd")** when 50+ tellers open the same form simultaneously on a cold morning:
 - The first request triggers the database/gRPC fetch or compiler.
 - All subsequent concurrent requests for the same key are attached to the **same in-flight Promise**.
 - Only 1 compilation or query hits the backend, resolving simultaneously for all callers.
 
 ### 3. Non-Blocking Pattern Deletions
+
 Invalidations never run the blocking `KEYS *` command. Instead, `cacheDelete()` runs cursor-based `SCAN ... COUNT 200` to delete keys in safe micro-batches.
 
 ### 4. Wildcard Form Specification Invalidation (`spec:form:*`)
+
 When a developer saves or authorizes changes in **Model Config** (`SC.MODEL.CONFIG`) or **Form Config** (`SC.FORM.CONFIG`):
 - `/api/proxy` automatically calls `invalidateCache(targetModel)`.
 - It deletes wildcard pattern matches:
@@ -106,7 +110,7 @@ const compiledSpec = await getOrSet(
     ]);
     return compileFormSpec(model, formLayout);
   },
-  3600 // TTL in seconds (1 hour)
+  3600, // TTL in seconds (1 hour)
 );
 ```
 

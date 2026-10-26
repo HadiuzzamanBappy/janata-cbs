@@ -76,7 +76,7 @@ import { dispatch } from "@/lib/infra-grpc";
 import type { GrpcEnvelope } from "@/types";
 
 const envelope: GrpcEnvelope = {
-  servicePath: "default",          // Routes to primary core gRPC host
+  servicePath: "default", // Routes to primary core gRPC host
   requestType: "PUT",
   controlName: "ACCOUNT",
   recordFunction: "I",
@@ -148,9 +148,11 @@ const loginResponse = await loginProcess({
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. Transport Core & Channel Pooling: **SEALED**
+
 Connection pooling, TLS creation, metadata forwarding, and status code translation are complete and finalized.
 
 ### 2. Service Endpoints & Command Overlays: **SCALABLE**
+
 When integrating new microservices or special command codes:
 - **Adding Microservices:** Add endpoint to `SERVICES` in `src/lib/core-config/server.ts`.
 - **Custom Request Type Overlays:** Add special command mapping in `REQUEST_TYPE_OVERLAYS` (e.g. `FUNDS.TRANSFER -> AFT`).

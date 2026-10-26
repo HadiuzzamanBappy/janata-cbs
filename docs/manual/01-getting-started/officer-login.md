@@ -42,6 +42,7 @@ Follow these exact steps to initiate your daily banking session:
 5. Click **Sign In**.
 
 ### Expected Result
+
 Upon successful verification, the system loads the **Workbench Main Dashboard**, displaying your active business date, assigned branch, and navigation sidebar menu.
 
 ---
@@ -59,6 +60,7 @@ If you are logging in with a temporary password or if your password has expired 
 2. Click **Update Password**.
 
 ### Password Format & Strength Rules:
+
 - Minimum length of **8 characters**.
 - Must contain at least **one uppercase letter (A–Z)**.
 - Must contain at least **one lowercase letter (a–z)**.
@@ -70,12 +72,12 @@ If you are logging in with a temporary password or if your password has expired 
 
 ## 6. Common Errors & Troubleshooting
 
-| Error Message | Cause | Corrective Action |
-| :--- | :--- | :--- |
-| **Invalid User ID or Password** | Incorrect credentials entered. | Verify caps lock is off and re-enter credentials carefully. |
-| **Account Locked (3 Failed Attempts)** | Account suspended due to multiple invalid password attempts. | Contact your Branch System Administrator to unlock your profile. |
-| **Session Expired Due to Inactivity** | Terminal left idle for over 15 minutes. | Click **Re-Authenticate**, re-enter your password, and resume work. |
-| **Unauthorized Branch Selected** | Selected branch code does not match your assigned branch profile. | Select your assigned home branch code from the dropdown. |
+| Error Message                          | Cause                                                             | Corrective Action                                                   |
+| :------------------------------------- | :---------------------------------------------------------------- | :------------------------------------------------------------------ |
+| **Invalid User ID or Password**        | Incorrect credentials entered.                                    | Verify caps lock is off and re-enter credentials carefully.         |
+| **Account Locked (3 Failed Attempts)** | Account suspended due to multiple invalid password attempts.      | Contact your Branch System Administrator to unlock your profile.    |
+| **Session Expired Due to Inactivity**  | Terminal left idle for over 15 minutes.                           | Click **Re-Authenticate**, re-enter your password, and resume work. |
+| **Unauthorized Branch Selected**       | Selected branch code does not match your assigned branch profile. | Select your assigned home branch code from the dropdown.            |
 
 ---
 
@@ -84,7 +86,7 @@ If you are logging in with a temporary password or if your password has expired 
 To ensure security when leaving your workstation:
 1. Click your **User Profile Avatar** in the top-right toolbar.
 2. Select **Sign Out Session**.
-3. Confirm the logout prompt when asked: *"Are you sure you want to terminate your active session?"*
+3. Confirm the logout prompt when asked: _"Are you sure you want to terminate your active session?"_
 
 ---
 

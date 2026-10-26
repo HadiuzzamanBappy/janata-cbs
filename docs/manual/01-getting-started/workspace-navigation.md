@@ -20,12 +20,12 @@ The **Janata CBS Workbench** provides a modern multi-tasking workspace designed 
 
 The workbench layout is organized into four main operational areas:
 
-| Area | Location | Purpose |
-| :--- | :--- | :--- |
-| **Header Toolbar** | Top of screen | Displays current Business Date, Active Branch, User Profile, Quick Search bar (`Ctrl + K`), and Theme toggle. |
-| **Navigation Sidebar** | Left side of screen | Displays hierarchical tree navigation for all authorized banking menus and operations. |
-| **Workspace Tab Bar** | Below header | Displays all currently open screens and forms as active tabs. |
-| **Main Content Canvas** | Center area | Displays the active banking form, inquiry table, or reporting tool. |
+| Area                    | Location            | Purpose                                                                                                       |
+| :---------------------- | :------------------ | :------------------------------------------------------------------------------------------------------------ |
+| **Header Toolbar**      | Top of screen       | Displays current Business Date, Active Branch, User Profile, Quick Search bar (`Ctrl + K`), and Theme toggle. |
+| **Navigation Sidebar**  | Left side of screen | Displays hierarchical tree navigation for all authorized banking menus and operations.                        |
+| **Workspace Tab Bar**   | Below header        | Displays all currently open screens and forms as active tabs.                                                 |
+| **Main Content Canvas** | Center area         | Displays the active banking form, inquiry table, or reporting tool.                                           |
 
 ---
 
@@ -70,11 +70,11 @@ The **Global Command Search** tool allows officers to find any banking operation
 
 ## 7. Troubleshooting & Common Questions
 
-| Question / Issue | Explanation & Resolution |
-| :--- | :--- |
-| **Cannot find a specific menu item?** | Menus are filtered by your assigned role permissions (RBAC). Contact your supervisor if you require access to restricted screens. |
-| **Accidentally closed a tab with unsubmitted data?** | Unsaved form entries in closed tabs are discarded. Re-open the screen and re-enter the required fields. |
-| **Pop-out window blocked by browser?** | Enable pop-ups for the Janata CBS Workbench domain in your browser settings bar. |
+| Question / Issue                                     | Explanation & Resolution                                                                                                          |
+| :--------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| **Cannot find a specific menu item?**                | Menus are filtered by your assigned role permissions (RBAC). Contact your supervisor if you require access to restricted screens. |
+| **Accidentally closed a tab with unsubmitted data?** | Unsaved form entries in closed tabs are discarded. Re-open the screen and re-enter the required fields.                           |
+| **Pop-out window blocked by browser?**               | Enable pop-ups for the Janata CBS Workbench domain in your browser settings bar.                                                  |
 
 ---
 

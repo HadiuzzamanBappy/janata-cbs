@@ -31,14 +31,14 @@ export function AccountOpeningScreen() {
   useCbsHotkeys({
     enabled: true, // conditionally disable if tab is hidden
     handlers: {
-      onCommit: handleSave,       // Triggered by F5
-      onReturn: handleReturn,     // Triggered by F3 or Esc (when no modal is open)
-      onValidate: () => {},       // F7
-      onAuthorize: () => {},      // F8
-      onCreateNew: () => {},      // F2
-      onHold: () => {},           // F6
-      onDelete: () => {},         // F10
-      onRefresh: () => {},        // F12
+      onCommit: handleSave, // Triggered by F5
+      onReturn: handleReturn, // Triggered by F3 or Esc (when no modal is open)
+      onValidate: () => {}, // F7
+      onAuthorize: () => {}, // F8
+      onCreateNew: () => {}, // F2
+      onHold: () => {}, // F6
+      onDelete: () => {}, // F10
+      onRefresh: () => {}, // F12
     },
   });
 
@@ -48,20 +48,20 @@ export function AccountOpeningScreen() {
 
 #### Standard Banking Key Bindings:
 
-| Key | Action | Description |
-| :--- | :--- | :--- |
-| **`F1`** | `onHelp` | Open validation checklist / screen guidance |
-| **`F2`** | `onCreateNew` | Reset screen into new entry creation mode |
-| **`F3`** | `onReturn` | Return to search or idle view |
-| **`F4`** | `onSearchFocus` | Focus the primary search/lookup input |
-| **`F5`** | `onCommit` | Save draft or submit record |
-| **`F6`** | `onHold` | Mark uncommitted record as Hold |
-| **`F7`** | `onValidate` | Run business logic & cross-field validations |
-| **`F8`** | `onAuthorize` | Approve pending record (Checker role) |
-| **`F9`** | `onProcessAction`| Execute end-of-stage process |
-| **`F10`**| `onDelete` | Delete record |
-| **`F12`**| `onRefresh` | Reload dataset or inquiry results |
-| **`Esc`** | `onReturn` | Return/Back (guarded: ignores if an open dialog is active) |
+| Key       | Action            | Description                                                |
+| :-------- | :---------------- | :--------------------------------------------------------- |
+| **`F1`**  | `onHelp`          | Open validation checklist / screen guidance                |
+| **`F2`**  | `onCreateNew`     | Reset screen into new entry creation mode                  |
+| **`F3`**  | `onReturn`        | Return to search or idle view                              |
+| **`F4`**  | `onSearchFocus`   | Focus the primary search/lookup input                      |
+| **`F5`**  | `onCommit`        | Save draft or submit record                                |
+| **`F6`**  | `onHold`          | Mark uncommitted record as Hold                            |
+| **`F7`**  | `onValidate`      | Run business logic & cross-field validations               |
+| **`F8`**  | `onAuthorize`     | Approve pending record (Checker role)                      |
+| **`F9`**  | `onProcessAction` | Execute end-of-stage process                               |
+| **`F10`** | `onDelete`        | Delete record                                              |
+| **`F12`** | `onRefresh`       | Reload dataset or inquiry results                          |
+| **`Esc`** | `onReturn`        | Return/Back (guarded: ignores if an open dialog is active) |
 
 ---
 
@@ -96,6 +96,7 @@ export function HeaderSearch() {
 ---
 
 ## 🛠️ Adding a New Screen Function Key
+
 To bind an additional function key across all banking screens:
 1. Add the handler signature to `CbsHotkeysHandlers` in `types.ts`.
 2. Map the key to the action in `CBS_FKEY_ACTION_MAP` inside `use-cbs-hotkeys.ts`.

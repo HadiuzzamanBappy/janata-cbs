@@ -51,19 +51,19 @@ flowchart TD
 
 Every operation follows canonical CBS request verbs without requiring ad-hoc alias maps or fuzzy guessing:
 
-| Request Verb | Operation | Source / Handler | Returns |
-|---|---|---|---|
-| **`GUM`** | Get User Menu | `handleGetMenu()` | Hierarchical navigation tree from `SC_MENU_TREE` |
-| **`GMC`** | Get Model Configuration | `handleGetModelConfig()` | Dynamic form & column definition from `SC_MODEL_CONFIG` |
-| **`INQ`** | Execute Inquiry Query | `handleInquiry()` | Query rows matching target model from `SC_INQUIRY_CONFIG` |
-| **`GRL`** | Generic Record List | `handleRecordList()` | Complete record collection (`table.LIST`) for `controlName` |
-| **`GET`** | Get Single Record | `handleGetRecord()` | Exact record by ID, or dynamic `MODEL,VERSION` layout template |
-| **`GNI`** | Get Next ID Sequence | `handleNextId()` | Next sequential ID formatted with `idDef.idPrefix` |
-| **`PUT`** | Create / Update Record | `handleMutation()` | In-memory record with `RECORD_STATUS: "INA"` |
-| **`AUT`** | Authorize Record | `handleMutation()` | In-memory record with `RECORD_STATUS: "AU"` |
-| **`DEL`** | Delete Record | `handleMutation()` | In-memory record with `RECORD_STATUS: "DEL"` |
-| **`HLD`** | Hold Record | `handleMutation()` | In-memory record with `RECORD_STATUS: "HLD"` |
-| **`REV`** | Reverse Record | `handleMutation()` | In-memory record with `RECORD_STATUS: "REV"` |
+| Request Verb | Operation               | Source / Handler         | Returns                                                        |
+| ------------ | ----------------------- | ------------------------ | -------------------------------------------------------------- |
+| **`GUM`**    | Get User Menu           | `handleGetMenu()`        | Hierarchical navigation tree from `SC_MENU_TREE`               |
+| **`GMC`**    | Get Model Configuration | `handleGetModelConfig()` | Dynamic form & column definition from `SC_MODEL_CONFIG`        |
+| **`INQ`**    | Execute Inquiry Query   | `handleInquiry()`        | Query rows matching target model from `SC_INQUIRY_CONFIG`      |
+| **`GRL`**    | Generic Record List     | `handleRecordList()`     | Complete record collection (`table.LIST`) for `controlName`    |
+| **`GET`**    | Get Single Record       | `handleGetRecord()`      | Exact record by ID, or dynamic `MODEL,VERSION` layout template |
+| **`GNI`**    | Get Next ID Sequence    | `handleNextId()`         | Next sequential ID formatted with `idDef.idPrefix`             |
+| **`PUT`**    | Create / Update Record  | `handleMutation()`       | In-memory record with `RECORD_STATUS: "INA"`                   |
+| **`AUT`**    | Authorize Record        | `handleMutation()`       | In-memory record with `RECORD_STATUS: "AU"`                    |
+| **`DEL`**    | Delete Record           | `handleMutation()`       | In-memory record with `RECORD_STATUS: "DEL"`                   |
+| **`HLD`**    | Hold Record             | `handleMutation()`       | In-memory record with `RECORD_STATUS: "HLD"`                   |
+| **`REV`**    | Reverse Record          | `handleMutation()`       | In-memory record with `RECORD_STATUS: "REV"`                   |
 
 ---
 
@@ -126,12 +126,12 @@ const nextId = getMockProxyResponse("GNI", "ACCOUNT");
 
 The architecture is strictly data-driven:
 
-* **To add a new business table (e.g. `LOAN`)**:
+- **To add a new business table (e.g. `LOAN`)**:
   1. Add `LN_LOAN.ts` in [`mock/db/`](file:///d:/Work/React/cbs/janata-cbs/mock/db/).
   2. Add `LOAN: LN_LOAN_TABLE` to `CBS_DATABASE` in [`mock/db/index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/index.ts).
   3. **Zero code changes needed in `core`**! The database router immediately discovers and serves it.
 
-* **To add a new CBS protocol verb (e.g. `VAL` for field validation)**:
+- **To add a new CBS protocol verb (e.g. `VAL` for field validation)**:
   1. Add `handleValidation()` in [`operation-handlers.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/core/operation-handlers.ts).
   2. Map `reqType === "VAL"` in [`index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/core/index.ts).
 

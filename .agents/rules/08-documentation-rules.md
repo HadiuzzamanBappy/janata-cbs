@@ -43,4 +43,3 @@ This rule file defines the mandatory authoring standards for all documentation f
 - **Theme Adaptability:** All diagrams MUST use clean, un-filled bordered box nodes that automatically adapt to light and dark theme switching.
 - **Transparent Labels:** Edge/connector text labels MUST render transparently over lines without blocky grey or dark rectangle background fills.
 - **Diagram Conversions:** Only convert existing text ASCII box-art into compact Mermaid flowcharts (`flowchart TD` or `flowchart LR`). Do NOT create new un-requested diagrams.
-

@@ -42,6 +42,7 @@ src/store/
 ## 3. Store Breakdown
 
 ### 3.1. Session Store (`session/`)
+
 Manages the authenticated operator identity, current active branch, and session lifecycle.
 
 - **State**:
@@ -56,6 +57,7 @@ Manages the authenticated operator identity, current active branch, and session 
   On mount, `SessionStoreProvider` verifies whether `user` exists; if null, it fetches `/api/session` to hydrate the teller profile.
 
 ### 3.2. Workbench Store (`workbench/`)
+
 Powers the CBS Multiple Document Interface (MDI), managing up to 15 concurrent operational tabs with isolated draft inputs.
 
 - **State**:
@@ -69,6 +71,7 @@ Powers the CBS Multiple Document Interface (MDI), managing up to 15 concurrent o
   - **Persistence Filtering**: Uses `partialize` to only persist serializable tab metadata (`tabs`, `activeTabId`) to `sessionStorage`.
 
 ### 3.3. Alert Store (`alert/`)
+
 Provides a programmatic confirmation dialog store for destructive actions (e.g., closing dirty tabs or confirming large financial transfers).
 
 - **State**:
@@ -83,6 +86,7 @@ Provides a programmatic confirmation dialog store for destructive actions (e.g.,
 ## 4. Usage Guide
 
 ### 4.1. Application Root Setup
+
 Wrap your layout with `CbsAppStoreProvider` (located in [root-provider.tsx](file:///d:/Work/React/cbs/janata-cbs/src/store/root-provider.tsx)). This sets up the complete provider hierarchy:
 
 ```tsx
@@ -92,9 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <CbsAppStoreProvider>
-          {children}
-        </CbsAppStoreProvider>
+        <CbsAppStoreProvider>{children}</CbsAppStoreProvider>
       </body>
     </html>
   );
@@ -102,6 +104,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 ### 4.2. Consuming State with Selectors
+
 Always pass selectors to store hooks to prevent unnecessary re-renders:
 
 ```tsx
@@ -125,12 +128,16 @@ export function TellerHeader() {
         title: "Unsaved Changes",
         message: "You have unsaved input on this screen. Are you sure you want to close it?",
         variant: "destructive",
-        onConfirm: () => useWorkbenchStore.getState?.() // or call action
+        onConfirm: () => useWorkbenchStore.getState?.(), // or call action
       });
     }
   };
 
-  return <div>{user?.fullName} ({currentBranch})</div>;
+  return (
+    <div>
+      {user?.fullName} ({currentBranch})
+    </div>
+  );
 }
 ```
 
@@ -140,14 +147,15 @@ export function TellerHeader() {
 
 The store system is deliberately partitioned into **sealed core operational stores** and **extensible screen-level state**:
 
-| Store | Architectural Status | Rationalization |
-| :--- | :--- | :--- |
-| **`SessionStore`** | **Sealed Core** | Sealed. The authentication, branch assignment, and logout lifecycle are core banking concerns governed by security protocols. Custom business attributes belong in `CurrentUser` schema, not ad-hoc store mutations. |
-| **`AlertStore`** | **Sealed Core** | Sealed. Purpose-built strictly for two-button confirmation dialogs. Complex multi-step wizard dialogues should use local component state or screen-specific dialogs. |
-| **`WorkbenchStore`** | **Sealed Infrastructure** | Sealed infrastructure. The tab model, memory capping (15 tabs), title de-duplication, and cross-window docking mechanisms are sealed to protect workspace stability. |
-| **Screen Form State** | **Scalable Payloads** | Open/Scalable. Dynamic banking forms do not require new Zustand stores. Instead, store form drafts directly into `WorkbenchTab.formData` using `updateFormData(tabId, data)` or isolate them within React Hook Form inside individual screen components. |
+| Store                 | Architectural Status      | Rationalization                                                                                                                                                                                                                                          |
+| :-------------------- | :------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`SessionStore`**    | **Sealed Core**           | Sealed. The authentication, branch assignment, and logout lifecycle are core banking concerns governed by security protocols. Custom business attributes belong in `CurrentUser` schema, not ad-hoc store mutations.                                     |
+| **`AlertStore`**      | **Sealed Core**           | Sealed. Purpose-built strictly for two-button confirmation dialogs. Complex multi-step wizard dialogues should use local component state or screen-specific dialogs.                                                                                     |
+| **`WorkbenchStore`**  | **Sealed Infrastructure** | Sealed infrastructure. The tab model, memory capping (15 tabs), title de-duplication, and cross-window docking mechanisms are sealed to protect workspace stability.                                                                                     |
+| **Screen Form State** | **Scalable Payloads**     | Open/Scalable. Dynamic banking forms do not require new Zustand stores. Instead, store form drafts directly into `WorkbenchTab.formData` using `updateFormData(tabId, data)` or isolate them within React Hook Form inside individual screen components. |
 
 ### How to Add a New Domain Store
+
 If a new cross-cutting concern is introduced (e.g., an Offline Sync Queue or Notification Feed):
 1. **Create the store factory** (`src/store/<domain>/<domain>-store.ts`) using vanilla `createStore<T>()`.
 2. **Create the React Context Provider** (`src/store/<domain>/<domain>-provider.tsx`) using `useRef` + `createContext` + `useStore`.

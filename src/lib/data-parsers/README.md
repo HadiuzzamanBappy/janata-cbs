@@ -115,9 +115,11 @@ if (formResult.success) {
 ## 🔒 Architectural State: Scalable or Sealed?
 
 ### 1. Decoder Engine (`protobuf-decoder.ts`): **SEALED**
+
 Protobuf `Value`, `ListValue`, and `Struct` unwrapping mechanics are complete and finalized.
 
 ### 2. Domain Parsers: **SCALABLE**
+
 When creating a new domain schema (e.g. `loan-schema.ts`), pair it with a parser:
 1. Create `src/lib/data-parsers/loan-parser.ts`.
 2. Use `unwrapRecordsPayload` or `decodeProtobufValue`.

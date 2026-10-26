@@ -1,12 +1,14 @@
 ---
+
 name: cbs-command-and-navigation
 description: >-
-  Use this skill when adding new screens, registering screen aliases, implementing quick actions, or wiring user navigation and hotkeys.
+Use this skill when adding new screens, registering screen aliases, implementing quick actions, or wiring user navigation and hotkeys.
 ---
 
 # CBS Command Gateway & Navigation Runbook
 
 ## Overview
+
 In Janata CBS, screen navigation does **NOT** use standard Next.js `<Link>` tags or `router.push()`. Navigating via URLs destroys active form draft sessions and tab state. All screen opening and function dispatching is handled through the **CBS Command Gateway** (`cbsCommand.execute()`).
 
 ---
@@ -14,9 +16,11 @@ In Janata CBS, screen navigation does **NOT** use standard Next.js `<Link>` tags
 ## 1. Navigating Between Screens
 
 ### The Invariant
+
 > **NEVER use `<Link href="/screen/...">` or `router.push()` to switch or open banking screens.**
 
 ### The Correct Command Dispatch
+
 Use `cbsCommand.execute()` or the `data-cbs-command` DOM attribute:
 
 ```tsx
@@ -26,12 +30,9 @@ import { cbsCommand } from "@/lib/cbs-command";
 cbsCommand.execute("ACCOUNT I 10001", { title: "Account 10001" });
 
 // Declarative DOM button execution (handled by global delegation in WorkbenchShell)
-<button 
-  data-cbs-command="SC.MENU.DESIGN" 
-  data-cbs-label="Menu Designer"
->
+<button data-cbs-command="SC.MENU.DESIGN" data-cbs-label="Menu Designer">
   Open Menu Designer
-</button>
+</button>;
 ```
 
 ---
@@ -66,6 +67,7 @@ The Command Gateway supports standard core-banking shorthand and canonical alias
 
 When adding a custom screen component:
 1. Register its canonical command key in `BESPOKE_SCREENS` inside `src/features/workbench/registry.tsx`:
+
    ```tsx
    const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
      "SC.MENU": SysMenuCatalog,

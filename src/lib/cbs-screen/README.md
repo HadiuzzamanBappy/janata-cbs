@@ -9,6 +9,7 @@ It translates raw banking entitlements (`cbs-access`) into **reactive action bar
 ## 📦 What It Contains
 
 ### 1. Screen Architecture & Persistence (`src/components/cbs-screen/hooks/`)
+
 - **`useCbsPersistence`**: Unified screen persistence hook powered by `@/lib/cbs-record`. Employs pure baseline delta evaluation and debounced workbench store writes ($\le$ 1 write per 400ms), eliminating unneeded re-renders.
 - **`useGuardedAction`**: Navigation and dirty-state guard protecting operators from accidental work loss when clicking Return, Reset, Create New, or searching records.
 - **`useCbsHotkeys`**: Universal Core Banking terminal keyboard navigation:
@@ -21,20 +22,24 @@ It translates raw banking entitlements (`cbs-access`) into **reactive action bar
   - `F10`: Delete Uncommitted Draft
 
 ### 2. Workbench Bus & Inter-Tab Synchronization (`workbench-bus.ts`)
+
 - **`broadcastRecordMutation(controlName, recordId)`**: Broadcasts mutation events across tabs and detached popup windows whenever a record is created, amended, authorized, or deleted.
 - **`useRecordMutationSubscriber(callback, controlFilter?)`**: Reactive hook that subscribes to mutation broadcasts, triggering background refetches when related records update in another tab.
 - **`setWorkbenchDraft` / `getWorkbenchDraft`**: In-memory draft storage enabling 150+ to 1,000+ field forms to be transferred into detached popup windows without exceeding browser URL limits.
 - **`broadcastDockTab` / `broadcastUndockTab`**: Cross-window docking bridge between the main shell and detached browser windows via `BroadcastChannel`.
 
 ### 3. Action Bar Capabilities (`actions.ts`)
+
 - **`useCbsActionBar`**: Headless state engine that computes `enabled` and `reason` for all 11 action bar buttons (`Commit`, `Validate`, `Hold`, `Delete`, `Authorize`, `Reverse`, `Process`, `Amend`, `View`, `PerformAction`, `ReturnToSearch`).
 - Automatically factors in submitting state, screen mode (`IDLE`, `I`, `S`, `A`), and user entitlements (`evaluateCbsAccess`).
 
 ### 4. Validation & Focus Utilities (`validation.ts`)
+
 - **`mapZodIssuesToTabs`**: Maps raw Zod validation issues to specific screen tabs for high-density multi-tab forms.
 - **`focusFormField`**: Smoothly scrolls and focuses the offending input element when an operator clicks an error in the validation checklist drawer.
 
 ### 5. Audit Adapter (`audit.ts`)
+
 - **`DEFAULT_AUDIT_FIELDS`**: Standard Core Banking audit descriptors (`recStatus`, `recCurrNumber`, `recBranchCode`, `recInputter`, `recAuthorizer`).
 - **`extractAuditValue`**: Dot-path extractor to read audit attributes from nested wire records.
 
@@ -124,12 +129,7 @@ function handleErrorClick(error: CbsScreenValidationError) {
 import { CbsScreenScaffold, useCbsPersistence } from "@/components/cbs-screen";
 
 export function ModelConfigScreen({ command, tabId }) {
-  const {
-    formData,
-    setFormData,
-    isDirty,
-    rebaseline,
-  } = useCbsPersistence({
+  const { formData, setFormData, isDirty, rebaseline } = useCbsPersistence({
     tabId,
     initialData: defaultModel,
   });

@@ -21,7 +21,7 @@ The architecture is inspired by **Temenos Transact (T24)**, enforcing the **Four
 
 ## 🗄️ 1. Architecture & The 4 Storage Buckets
 
-In a Core Banking System, live financial and customer records are **never overwritten in place**. 
+In a Core Banking System, live financial and customer records are **never overwritten in place**.
 Every table is physically partitioned into **4 lifecycle storage rooms**:
 
 ```
@@ -37,12 +37,12 @@ Every table is physically partitioned into **4 lifecycle storage rooms**:
 
 ### Bucket Definitions (`mock/db/types.ts`)
 
-| Bucket | Type | Banking Meaning |
-| :--- | :--- | :--- |
-| **`LIVE`** | `Record<string, T>` | **Active Production.** Official authorized records with `recStatus: "AU"`. Accessible for read transactions and reports. |
-| **`INAU`** | `Record<string, T>` | **Input Unauthorized.** Pending draft saved by a Maker (`PUT` / `SMC`). Awaiting Supervisor authorization (`AUT`). |
-| **`HIS`** | `Record<string, T[]>` | **Historical Audit.** Immutable chronologically appended snapshots of previous modifications. |
-| **`DEL`** | `Record<string, T>` | **Reversed / Tombstone.** Records deleted or reversed (`REV`). Preserved for compliance. |
+| Bucket     | Type                  | Banking Meaning                                                                                                          |
+| :--------- | :-------------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| **`LIVE`** | `Record<string, T>`   | **Active Production.** Official authorized records with `recStatus: "AU"`. Accessible for read transactions and reports. |
+| **`INAU`** | `Record<string, T>`   | **Input Unauthorized.** Pending draft saved by a Maker (`PUT` / `SMC`). Awaiting Supervisor authorization (`AUT`).       |
+| **`HIS`**  | `Record<string, T[]>` | **Historical Audit.** Immutable chronologically appended snapshots of previous modifications.                            |
+| **`DEL`**  | `Record<string, T>`   | **Reversed / Tombstone.** Records deleted or reversed (`REV`). Preserved for compliance.                                 |
 
 ```typescript
 export type CbsTableVersion = "LIVE" | "INAU" | "HIS" | "DEL";
@@ -61,17 +61,17 @@ export interface CbsVersionedTable<T = Record<string, unknown>> {
 
 The database contains **9 production-grade canonical tables**:
 
-| Model Name | Physical Table Name | File | Description | Record Key Example |
-| :--- | :--- | :--- | :--- | :--- |
-| **`ACCOUNT`** | `AC_ACCOUNT` | [`AC_ACCOUNT.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/AC_ACCOUNT.ts) | Retail & Corporate Banking Accounts | `"AC1001"` |
-| **`BRANCH`** | `SC_BRANCH` | [`SC_BRANCH.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_BRANCH.ts) | Branch Network & Routing Master | `"JB0001"` |
-| **`CONTROL`** | `SC_CONTROL` | [`SC_CONTROL.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_CONTROL.ts) | Screen & Application Command Catalog | `"ACCOUNT"` |
-| **`CUSTOMER`** | `CUST_CUSTOMER` | [`CUST_CUSTOMER.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/CUST_CUSTOMER.ts) | Universal Customer Master & KYC | `"CUST1001"` |
-| **`FORM.CONFIG`** | `SC_FORM_CONFIG` | [`SC_FORM_CONFIG.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_FORM_CONFIG.ts) | Form Presentation Layouts (Tabs/Sections) | `"ACCOUNT,1.0.0"` |
-| **`INQUIRY.CONFIG`** | `SC_INQUIRY_CONFIG` | [`SC_INQUIRY_CONFIG.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_INQUIRY_CONFIG.ts) | Tabular Inquiry Specs (Columns/Filters) | `"GET.ACCOUNT"` |
-| **`MENU.TREE`** | `SC_MENU_TREE` | [`SC_MENU_TREE.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_MENU_TREE.ts) | Primary Navigation Tree Hierarchy | `"MENU.MAIN"` |
-| **`MODEL.CONFIG`** | `SC_MODEL_CONFIG` | [`SC_MODEL_CONFIG.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_MODEL_CONFIG.ts) | System Metamodel & Field Data Dictionary | `"ACCOUNT"` |
-| **`USER`** | `SC_USER` | [`SC_USER.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_USER.ts) | Operator Profiles, Passwords & Access | `"ZZ028459"` |
+| Model Name           | Physical Table Name | File                                                                                        | Description                               | Record Key Example |
+| :------------------- | :------------------ | :------------------------------------------------------------------------------------------ | :---------------------------------------- | :----------------- |
+| **`ACCOUNT`**        | `AC_ACCOUNT`        | [`AC_ACCOUNT.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/AC_ACCOUNT.ts)               | Retail & Corporate Banking Accounts       | `"AC1001"`         |
+| **`BRANCH`**         | `SC_BRANCH`         | [`SC_BRANCH.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_BRANCH.ts)                 | Branch Network & Routing Master           | `"JB0001"`         |
+| **`CONTROL`**        | `SC_CONTROL`        | [`SC_CONTROL.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_CONTROL.ts)               | Screen & Application Command Catalog      | `"ACCOUNT"`        |
+| **`CUSTOMER`**       | `CUST_CUSTOMER`     | [`CUST_CUSTOMER.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/CUST_CUSTOMER.ts)         | Universal Customer Master & KYC           | `"CUST1001"`       |
+| **`FORM.CONFIG`**    | `SC_FORM_CONFIG`    | [`SC_FORM_CONFIG.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_FORM_CONFIG.ts)       | Form Presentation Layouts (Tabs/Sections) | `"ACCOUNT,1.0.0"`  |
+| **`INQUIRY.CONFIG`** | `SC_INQUIRY_CONFIG` | [`SC_INQUIRY_CONFIG.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_INQUIRY_CONFIG.ts) | Tabular Inquiry Specs (Columns/Filters)   | `"GET.ACCOUNT"`    |
+| **`MENU.TREE`**      | `SC_MENU_TREE`      | [`SC_MENU_TREE.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_MENU_TREE.ts)           | Primary Navigation Tree Hierarchy         | `"MENU.MAIN"`      |
+| **`MODEL.CONFIG`**   | `SC_MODEL_CONFIG`   | [`SC_MODEL_CONFIG.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_MODEL_CONFIG.ts)     | System Metamodel & Field Data Dictionary  | `"ACCOUNT"`        |
+| **`USER`**           | `SC_USER`           | [`SC_USER.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/SC_USER.ts)                     | Operator Profiles, Passwords & Access     | `"ZZ028459"`       |
 
 Each table file exports:
 1. Canonical live dictionary (e.g. `export const AC_ACCOUNT: Record<string, AccountRecord> = { ... }`)
@@ -82,7 +82,7 @@ Each table file exports:
 
 ## 🗃️ 3. Universal Database Registry (`CBS_DATABASE`)
 
-Exported from [`mock/db/index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/index.ts). 
+Exported from [`mock/db/index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/index.ts).
 Keyed **strictly by Canonical Model / Control Name** matching `SC_MODEL_CONFIG`:
 
 ```typescript
@@ -142,12 +142,12 @@ All records maintain standard Core Banking audit metadata conformant with `audit
 ```typescript
 export interface AuditData {
   recStatus: "AU" | "INA" | "HLD" | "DEL" | "REV"; // Current lifecycle status
-  recCurrNumber: number;                           // Edit sequence number (starts at 1)
-  recInputter: string;                             // User ID of maker officer
-  recInputTime: string;                            // YYYY-MM-DD HH:mm:ss timestamp
-  recAuthorizer: string;                           // User ID of supervisor checker
-  recAuthTime: string;                             // YYYY-MM-DD HH:mm:ss timestamp
-  recBranchCode: string;                           // Booking branch code (e.g. "JB9999")
+  recCurrNumber: number; // Edit sequence number (starts at 1)
+  recInputter: string; // User ID of maker officer
+  recInputTime: string; // YYYY-MM-DD HH:mm:ss timestamp
+  recAuthorizer: string; // User ID of supervisor checker
+  recAuthTime: string; // YYYY-MM-DD HH:mm:ss timestamp
+  recBranchCode: string; // Booking branch code (e.g. "JB9999")
 }
 ```
 
@@ -161,12 +161,14 @@ export interface AuditData {
 When implementing or extending mutation handlers in [`mock/core/operation-handlers.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/core/operation-handlers.ts), follow this state machine:
 
 ### A. Maker Saves Draft (`PUT` / `SMC`)
+
 1. Create or update record in `table.INAU[recordId]`.
 2. Set `auditData.recStatus = "INA"`.
 3. Set `auditData.recInputter = payload.userId`.
 4. Leave `table.LIVE[recordId]` untouched.
 
 ### B. Supervisor Authorizes Draft (`AUT` / `AMC`)
+
 1. Read the draft from `table.INAU[recordId]`.
 2. If an existing live record exists in `table.LIVE[recordId]`:
    - Append the current live record into `table.HIS[recordId]` (array).
@@ -177,6 +179,7 @@ When implementing or extending mutation handlers in [`mock/core/operation-handle
 6. Delete draft from `table.INAU[recordId]`.
 
 ### C. Officer Reverses Record (`REV` / `DEL`)
+
 1. Read live record from `table.LIVE[recordId]`.
 2. Append to `table.HIS[recordId]`.
 3. Set `auditData.recStatus = "REV"` (or `"DEL"`).

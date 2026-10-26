@@ -1,12 +1,14 @@
 ---
+
 name: cbs-verification-suite
 description: >-
-  Use this skill when validating code changes, diagnosing regressions, running banking rule tests, or checking layer dependencies and contracts before finalizing a task.
+Use this skill when validating code changes, diagnosing regressions, running banking rule tests, or checking layer dependencies and contracts before finalizing a task.
 ---
 
 # CBS Verification & Testing Runbook
 
 ## Overview
+
 Janata CBS maintains an automated verification test harness ensuring banking rules, security models, wire contracts, and utility functions never regress. Always run these test suites to validate your code.
 
 ---
@@ -34,15 +36,15 @@ This sequentially executes all 7 verification sub-suites:
 
 When working on a specific feature, run the targeted test to quickly verify your changes:
 
-| Command | Target Scope | Key Things Verified |
-| :--- | :--- | :--- |
-| `pnpm verify:access` | Access & Security | RIDASHL functions, Four-Eyes principle, Maker-Checker blocking |
-| `pnpm verify:record` | Record & Forms | Delta calculation, dirty mutations, INA/AU lifecycle |
-| `pnpm verify:command`| Command Gateway | Syntax parsing, comma auto-auth (`USER,`), aliases (`MD`, `UG`) |
-| `pnpm verify:client` | Wire Protocol | Payload factories (`GET`, `PUT`, `AUT`, `INQ`, `GRL`) |
-| `pnpm verify:utils`  | Core Utils | Currency formatting (`BDT`), masking (`****`), value dates |
-| `pnpm verify:matrix` | Env & Matrix | Wire fixtures, mock parsers, PII redaction |
-| `pnpm verify:services`| Infra Services | Mock responses, fallback dispatcher, GRL catalog items |
+| Command                | Target Scope      | Key Things Verified                                             |
+| :--------------------- | :---------------- | :-------------------------------------------------------------- |
+| `pnpm verify:access`   | Access & Security | RIDASHL functions, Four-Eyes principle, Maker-Checker blocking  |
+| `pnpm verify:record`   | Record & Forms    | Delta calculation, dirty mutations, INA/AU lifecycle            |
+| `pnpm verify:command`  | Command Gateway   | Syntax parsing, comma auto-auth (`USER,`), aliases (`MD`, `UG`) |
+| `pnpm verify:client`   | Wire Protocol     | Payload factories (`GET`, `PUT`, `AUT`, `INQ`, `GRL`)           |
+| `pnpm verify:utils`    | Core Utils        | Currency formatting (`BDT`), masking (`****`), value dates      |
+| `pnpm verify:matrix`   | Env & Matrix      | Wire fixtures, mock parsers, PII redaction                      |
+| `pnpm verify:services` | Infra Services    | Mock responses, fallback dispatcher, GRL catalog items          |
 
 ---
 
@@ -51,16 +53,21 @@ When working on a specific feature, run the targeted test to quickly verify your
 Before concluding any development task:
 
 1. **Verify TypeScript Strictness:**
+
    ```bash
    pnpm typecheck
    ```
+
    Must pass with zero errors (`tsc --noEmit` exit code 0). Never ignore types or use `any`.
 
 2. **Verify Biome Formatting & Lints:**
+
    ```bash
    pnpm lint
    ```
+
    Or auto-fix via:
+
    ```bash
    pnpm lint:fix
    ```

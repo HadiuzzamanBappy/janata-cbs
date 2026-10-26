@@ -20,15 +20,15 @@ The library consists of three core components:
 
 Every core banking user profile is assigned a subset of standard function codes:
 
-| Code | Name | Action Capability | State Dependency |
-| :--- | :--- | :--- | :--- |
-| **`R`** | **Reverse** | Reverse an already committed transaction | Record must be authorized (`AU`) |
-| **`I`** | **Input / Maker**| Create new records and edit drafts | Allowed on uncommitted / editable drafts |
-| **`D`** | **Delete** | Delete uncommitted draft | Only on drafts (`INA` or `NEW`); blocked on `AU` |
-| **`A`** | **Authorize / Checker** | Authorize pending transaction | Pending (`INA`) only; **Blocked if Maker === Checker** |
-| **`S`** | **See** | View and inspect record details | Read-only access |
-| **`H`** | **History / Hold**| Place draft on hold or view history | Uncommitted drafts |
-| **`L`** | **List** | Query directories and inquiry tables | Read-only listing |
+| Code    | Name                    | Action Capability                        | State Dependency                                       |
+| :------ | :---------------------- | :--------------------------------------- | :----------------------------------------------------- |
+| **`R`** | **Reverse**             | Reverse an already committed transaction | Record must be authorized (`AU`)                       |
+| **`I`** | **Input / Maker**       | Create new records and edit drafts       | Allowed on uncommitted / editable drafts               |
+| **`D`** | **Delete**              | Delete uncommitted draft                 | Only on drafts (`INA` or `NEW`); blocked on `AU`       |
+| **`A`** | **Authorize / Checker** | Authorize pending transaction            | Pending (`INA`) only; **Blocked if Maker === Checker** |
+| **`S`** | **See**                 | View and inspect record details          | Read-only access                                       |
+| **`H`** | **History / Hold**      | Place draft on hold or view history      | Uncommitted drafts                                     |
+| **`L`** | **List**                | Query directories and inquiry tables     | Read-only listing                                      |
 
 ---
 
@@ -51,7 +51,7 @@ export function CustomerScreen({ customerRecord }) {
     isFourEyesViolation,
     getDisableReason,
   } = useCbsAccess({
-    recordStatus: customerRecord?.status,       // e.g. "INA", "AU"
+    recordStatus: customerRecord?.status, // e.g. "INA", "AU"
     recordInputter: customerRecord?.inputterId, // Maker user ID
     mode: "I",
   });
@@ -59,23 +59,16 @@ export function CustomerScreen({ customerRecord }) {
   return (
     <div>
       {/* Commit / Save */}
-      <button disabled={!canInput || isReadOnly}>
-        Save
-      </button>
+      <button disabled={!canInput || isReadOnly}>Save</button>
 
       {/* Authorize Button (Protected by Four-Eyes) */}
-      <button 
-        disabled={!canAuthorize} 
-        title={getDisableReason("A") ?? undefined}
-      >
+      <button disabled={!canAuthorize} title={getDisableReason("A") ?? undefined}>
         Authorize
       </button>
 
       {/* Four-Eyes Warning Badge */}
       {isFourEyesViolation && (
-        <span className="text-amber-600">
-          Four-Eyes: Maker cannot authorize this record
-        </span>
+        <span className="text-amber-600">Four-Eyes: Maker cannot authorize this record</span>
       )}
     </div>
   );
@@ -96,13 +89,13 @@ const rights = parseAccessibilityRights("RIDASHL");
 const access = evaluateCbsAccess({
   userId: "OFFICER01",
   recordInputter: "TELLER02", // Different user -> Four-Eyes passes
-  recordStatus: "INA",        // Pending authorization
+  recordStatus: "INA", // Pending authorization
   grantedRights: rights,
 });
 
 console.log(access.canAuthorize); // true
-console.log(access.canDelete);    // true
-console.log(access.canReverse);   // false (must be 'AU' to reverse)
+console.log(access.canDelete); // true
+console.log(access.canReverse); // false (must be 'AU' to reverse)
 ```
 
 ---
@@ -113,7 +106,7 @@ console.log(access.canReverse);   // false (must be 'AU' to reverse)
    - Automatically detects if the active user created the record:
      `userId.trim() === recordInputter.trim()`.
    - If true, `canAuthorize` is strictly `false`, and `getDisableReason("A")` returns:
-     > *"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."*
+     > _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_
 2. **Lifecycle State Transition Safety:**
    - Live authorized records (`AU`) **cannot** be deleted; operators are directed to use Reverse (`R`).
    - Non-pending records cannot be authorized.
@@ -123,12 +116,14 @@ console.log(access.canReverse);   // false (must be 'AU' to reverse)
 ---
 
 ## 🛠️ Adding a Function Right
+
 To add a new entitlement code (e.g. extending `RIDASHL`):
 1. Add the code to `CbsRecordFunction` in `src/types/cbs.ts`.
 2. Update `evaluateCbsAccess` in `record-guard.ts` to compute the capability flag (`canX`).
 3. Add the return flag to `CbsAccessResult` in `types.ts`.
 
 ## 🧪 Verification
+
 ```bash
 pnpm verify:access
 ```

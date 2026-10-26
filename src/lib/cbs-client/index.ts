@@ -6,6 +6,7 @@ import { createModelPayloads } from "./payloads/base-model";
 import { formPayloads } from "./payloads/form";
 import { formConfigPayloads } from "./payloads/form-config";
 import { inquiryPayloads } from "./payloads/inquiry";
+import { menuPayloads } from "./payloads/menu";
 import { modelConfigPayloads } from "./payloads/model-config";
 import { userSecurityPayloads } from "./payloads/user-security";
 import { sendCbsRequest } from "./transport/proxy-client";
@@ -27,6 +28,7 @@ export const cbs = {
   userSecurity: userSecurityPayloads,
   inquiry: inquiryPayloads,
   form: formPayloads,
+  menu: menuPayloads,
 } as const;
 
 export default cbs;

@@ -171,7 +171,9 @@ export function PropertyInspector({
               <Select
                 disabled={disabled}
                 value={selectedField.widget}
-                onValueChange={(val) => onUpdateField({ widget: val as FormFieldItem["widget"] })}
+                onValueChange={(val: string | null) =>
+                  onUpdateField({ widget: (val || "text") as FormFieldItem["widget"] })
+                }
               >
                 <SelectTrigger className="w-full h-7 text-xs bg-background">
                   <SelectValue />
@@ -201,7 +203,7 @@ export function PropertyInspector({
               <Select
                 disabled={disabled}
                 value={String(selectedField.colSpan || 12)}
-                onValueChange={(val) => onUpdateField({ colSpan: Number(val) })}
+                onValueChange={(val: string | null) => onUpdateField({ colSpan: Number(val) })}
               >
                 <SelectTrigger className="w-full h-7 text-xs bg-background">
                   <SelectValue />
@@ -229,7 +231,9 @@ export function PropertyInspector({
                 <Select
                   disabled={disabled}
                   value={selectedField.currencyPrefix || "BDT"}
-                  onValueChange={(val) => onUpdateField({ currencyPrefix: val ?? undefined })}
+                  onValueChange={(val: string | null) =>
+                    onUpdateField({ currencyPrefix: val ?? undefined })
+                  }
                 >
                   <SelectTrigger className="w-full h-7 text-xs bg-background">
                     <SelectValue />
@@ -447,7 +451,7 @@ export function PropertyInspector({
               <Select
                 disabled={disabled}
                 value={selectedSection.type || "standard"}
-                onValueChange={(val) =>
+                onValueChange={(val: string | null) =>
                   onUpdateSection({ type: (val || "standard") as FormSection["type"] })
                 }
               >
@@ -489,7 +493,9 @@ export function PropertyInspector({
               <Select
                 disabled={disabled}
                 value={selectedSection.zone || "standard"}
-                onValueChange={(val) => onUpdateSection({ zone: val as FormSection["zone"] })}
+                onValueChange={(val: string | null) =>
+                  onUpdateSection({ zone: (val || "standard") as FormSection["zone"] })
+                }
               >
                 <SelectTrigger className="w-full h-7 text-xs bg-background">
                   <SelectValue />
@@ -545,7 +551,9 @@ export function PropertyInspector({
               <Select
                 disabled={disabled}
                 value={selectedSection.layoutStyle || "card"}
-                onValueChange={(val) => onUpdateSection({ layoutStyle: val as "card" | "plain" })}
+                onValueChange={(val: string | null) =>
+                  onUpdateSection({ layoutStyle: (val || "card") as "card" | "plain" })
+                }
               >
                 <SelectTrigger className="w-full h-7 text-xs bg-background">
                   <SelectValue />

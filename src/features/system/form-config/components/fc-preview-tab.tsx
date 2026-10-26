@@ -5,6 +5,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { FormRenderer } from "@/features/form-engine";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
+import { flattenModelProperties } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
@@ -44,9 +45,10 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
   // Seed default values directly from model properties
   const [formValues, setFormValues] = React.useState<Record<string, unknown>>(() => {
     const initial: Record<string, unknown> = {};
-    for (const p of targetModelRecord.properties || []) {
-      if (p.defaultValue !== undefined && p.defaultValue !== "") {
-        initial[p.name] = p.defaultValue;
+    const flatProps = flattenModelProperties(targetModelRecord.PROPERTIES || []);
+    for (const p of flatProps) {
+      if (p.DEFAULTVALUE !== undefined && p.DEFAULTVALUE !== "") {
+        initial[p.NAME] = p.DEFAULTVALUE;
       }
     }
     return initial;
@@ -56,9 +58,10 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
   React.useEffect(() => {
     setFormValues((prev) => {
       const next = { ...prev };
-      for (const p of targetModelRecord.properties || []) {
-        if (p.defaultValue !== undefined && next[p.name] === undefined) {
-          next[p.name] = p.defaultValue;
+      const flatProps = flattenModelProperties(targetModelRecord.PROPERTIES || []);
+      for (const p of flatProps) {
+        if (p.DEFAULTVALUE !== undefined && next[p.NAME] === undefined) {
+          next[p.NAME] = p.DEFAULTVALUE;
         }
       }
       return next;
@@ -76,7 +79,7 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
         <div className="flex items-center justify-between border-b border-border/60 pb-2">
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs bg-muted/40 font-mono">
-              {String(formData.recordId || targetModelRecord.tableName || "PREVIEW")}
+              {String(formData.recordId || targetModelRecord.TABLENAME || "PREVIEW")}
             </Badge>
             {Boolean(formData.title) && (
               <span className="text-xs font-semibold text-foreground">
@@ -89,7 +92,7 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
               </span>
             )}
             <Badge variant="secondary" className="text-[10px] font-mono">
-              Model: {targetModelRecord.tableName}
+              Model: {targetModelRecord.TABLENAME}
             </Badge>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/20 px-2 py-0.5 rounded border border-border/40">

@@ -5,24 +5,25 @@ import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import { modelConfigRecordSchema } from "@/lib/data-schemas/model-config-schema";
 
 export const INITIAL_MODEL: ModelConfigRecord = {
-  description: "",
-  tableName: "",
-  prefix: "",
-  servicePath: "",
-  userDefineId: false,
-  access: "",
-  searchable: false,
-  readOnly: false,
-  authorize: false,
-  associates: [],
-  devBy: "",
-  devDate: "",
-  idDef: {
-    idPrefix: "",
-    idPattern: "",
-    sequenceReset: false,
+  DESCRIPTION: "",
+  TABLENAME: "",
+  PREFIX: "",
+  SERVICEPATH: "",
+  USERDEFINEID: false,
+  ACCESS: "",
+  SEARCHABLE: false,
+  READONLY: false,
+  AUTHORIZE: false,
+  ASSOCIATES: [],
+  _DEVBY: "",
+  _DEVDATE: "",
+  IDDEF: {
+    IDPREFIX: "",
+    IDPATTERN: "",
+    SEQUENCELENGTH: "",
+    SEQUENCERESET: false,
   },
-  properties: [],
+  PROPERTIES: [],
 };
 
 export function useModelConfigPersistence(initialId?: string, tabId?: string) {

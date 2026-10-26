@@ -29,7 +29,7 @@ export function resolveTable(controlName: string): ResolvedTable | null {
   const model =
     SC_MODEL_CONFIG[clean] ||
     Object.values(SC_MODEL_CONFIG).find(
-      (m) => `${m.prefix}_${m.tableName}` === clean || m.tableName === clean,
+      (m) => `${m.PREFIX}_${m.TABLENAME}` === clean || m.TABLENAME === clean,
     );
 
   // 2. Resolve canonical model key for CBS_DATABASE
@@ -45,7 +45,7 @@ export function resolveTable(controlName: string): ResolvedTable | null {
 
   if (!versionedTable?.LIVE) return null;
 
-  const physicalName = model ? `${model.prefix}_${model.tableName}` : clean;
+  const physicalName = model ? `${model.PREFIX}_${model.TABLENAME}` : clean;
 
   return {
     name: clean,
@@ -96,6 +96,6 @@ export function resolveTable(controlName: string): ResolvedTable | null {
         .filter((id) => !cleanPattern || id.toUpperCase().includes(cleanPattern));
     },
 
-    prefix: model?.prefix,
+    prefix: model?.PREFIX,
   };
 }

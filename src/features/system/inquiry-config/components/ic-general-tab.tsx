@@ -27,24 +27,24 @@ export interface IcGeneralTabProps {
 
 export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGeneralTabProps) {
   const [modelDef, setModelDef] = React.useState<ModelConfigRecord>({
-    tableName: "INQUIRY_CONFIG",
-    description: "Dynamic Inquiry & Query Definition Designer",
-    prefix: "SC",
-    servicePath: "default",
-    userDefineId: true,
-    access: "G",
-    readOnly: false,
-    searchable: true,
-    authorize: true,
-    associates: [],
-    devBy: "System",
-    devDate: "2026-10-17",
-    idDef: {
-      idPrefix: "",
-      idPattern: "",
-      sequenceReset: false,
+    TABLENAME: "INQUIRY_CONFIG",
+    DESCRIPTION: "Dynamic Inquiry & Query Definition Designer",
+    PREFIX: "SC",
+    SERVICEPATH: "default",
+    USERDEFINEID: true,
+    ACCESS: "G",
+    READONLY: false,
+    SEARCHABLE: true,
+    AUTHORIZE: true,
+    ASSOCIATES: [],
+    _DEVBY: "System",
+    _DEVDATE: "2026-10-17",
+    IDDEF: {
+      IDPREFIX: "",
+      IDPATTERN: "",
+      SEQUENCERESET: false,
     },
-    properties: [],
+    PROPERTIES: [],
   });
 
   const availableModels: Array<{ id: string; label: string }> = [];
@@ -75,7 +75,7 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
     setFormData((prev) => ({ ...prev, [field]: val }));
   };
 
-  const activeProperties: ModelProperty[] = modelDef.properties || [];
+  const activeProperties: ModelProperty[] = modelDef.PROPERTIES || [];
 
   return (
     <TooltipProvider delay={200}>
@@ -95,7 +95,7 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Database className="size-3 text-primary" />
-                  <span>{modelDef.description || "Inquiry Metadata Properties"}</span>
+                  <span>{modelDef.DESCRIPTION || "Inquiry Metadata Properties"}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Badge
@@ -113,26 +113,26 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
 
               <div className="space-y-2.5 text-xs">
                 {activeProperties.map((prop) => {
-                  const rawVal = (formData as Record<string, unknown>)[prop.name];
-                  const val = rawVal !== undefined ? rawVal : (prop.defaultValue ?? "");
-                  const isBoolean = prop.type === "Boolean";
-                  const isRequired = prop.required && !isReadOnly;
-                  const isPageOrientation = prop.name === "pageOrientation";
-                  const isInqType = prop.name === "inqType";
-                  const isController = prop.name === "controllerName";
+                  const rawVal = (formData as Record<string, unknown>)[prop.NAME];
+                  const val = rawVal !== undefined ? rawVal : (prop.DEFAULTVALUE ?? "");
+                  const isBoolean = prop.TYPE === "Boolean";
+                  const isRequired = prop.REQUIRED && !isReadOnly;
+                  const isPageOrientation = prop.NAME === "pageOrientation";
+                  const isInqType = prop.NAME === "inqType";
+                  const isController = prop.NAME === "controllerName";
 
                   return (
-                    <div key={prop.name} className="flex items-center gap-2">
-                      {prop.enrichText ? (
+                    <div key={prop.NAME} className="flex items-center gap-2">
+                      {prop.ENRICHTEXT ? (
                         <Tooltip>
                           <TooltipTrigger
                             render={
                               <Label
-                                title={prop.enrichText}
+                                title={prop.ENRICHTEXT}
                                 className="w-40 shrink-0 text-xs text-muted-foreground select-none cursor-help hover:text-foreground transition-colors flex items-center"
                               >
                                 <span className="truncate underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
-                                  {prop.label}
+                                  {prop.LABEL}
                                 </span>
                                 {isRequired && (
                                   <span className="text-destructive font-bold ml-1 select-none">
@@ -143,12 +143,12 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
                             }
                           />
                           <TooltipContent side="top" className="text-xs max-w-xs shadow-md">
-                            {prop.enrichText}
+                            {prop.ENRICHTEXT}
                           </TooltipContent>
                         </Tooltip>
                       ) : (
                         <Label className="w-40 shrink-0 text-xs text-muted-foreground select-none flex items-center">
-                          <span className="truncate">{prop.label}</span>
+                          <span className="truncate">{prop.LABEL}</span>
                           {isRequired && (
                             <span className="text-destructive font-bold ml-1 select-none">*</span>
                           )}
@@ -161,13 +161,15 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
                         {isBoolean ? (
                           <div className="flex items-center gap-2 h-7">
                             <Checkbox
-                              id={`inq-prop-${prop.name}`}
-                              disabled={isReadOnly || prop.disabled}
+                              id={`inq-prop-${prop.NAME}`}
+                              disabled={isReadOnly || prop.DISABLED}
                               checked={Boolean(val)}
-                              onCheckedChange={(checked) => setValue(prop.name, Boolean(checked))}
+                              onCheckedChange={(checked: boolean) =>
+                                setValue(prop.NAME, Boolean(checked))
+                              }
                             />
                             <label
-                              htmlFor={`inq-prop-${prop.name}`}
+                              htmlFor={`inq-prop-${prop.NAME}`}
                               className="text-xs cursor-pointer select-none font-medium text-foreground"
                             >
                               {val ? "Yes" : "No"}
@@ -175,9 +177,11 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
                           </div>
                         ) : isPageOrientation ? (
                           <Select
-                            disabled={isReadOnly || prop.disabled}
+                            disabled={isReadOnly || prop.DISABLED}
                             value={String(val || "Portrait")}
-                            onValueChange={(newVal) => setValue("pageOrientation", newVal)}
+                            onValueChange={(newVal: string | null) =>
+                              setValue("pageOrientation", newVal ?? "Portrait")
+                            }
                           >
                             <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 w-36 font-sans">
                               <SelectValue placeholder="Orientation..." />
@@ -193,9 +197,11 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
                           </Select>
                         ) : isInqType ? (
                           <Select
-                            disabled={isReadOnly || prop.disabled}
+                            disabled={isReadOnly || prop.DISABLED}
                             value={String(val || "DFT")}
-                            onValueChange={(newVal) => setValue("inqType", newVal)}
+                            onValueChange={(newVal: string | null) =>
+                              setValue("inqType", newVal ?? "DFT")
+                            }
                           >
                             <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 w-52 font-sans">
                               <SelectValue placeholder="Inquiry Type..." />
@@ -214,9 +220,11 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
                           </Select>
                         ) : isController && availableModels.length > 0 ? (
                           <Select
-                            disabled={isReadOnly || prop.disabled}
+                            disabled={isReadOnly || prop.DISABLED}
                             value={String(val || "")}
-                            onValueChange={(newVal) => setValue("controllerName", newVal)}
+                            onValueChange={(newVal: string | null) =>
+                              setValue("controllerName", newVal ?? "")
+                            }
                           >
                             <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 font-mono">
                               <SelectValue placeholder="Select Target CBS Model..." />
@@ -229,33 +237,33 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
                               ))}
                             </SelectContent>
                           </Select>
-                        ) : prop.type === "Number" ? (
+                        ) : prop.TYPE === "Number" ? (
                           <Input
                             type="number"
-                            disabled={isReadOnly || prop.disabled}
+                            disabled={isReadOnly || prop.DISABLED}
                             value={val !== undefined && val !== null ? String(val) : "50"}
                             onChange={(e) =>
-                              setValue(prop.name, e.target.value ? Number(e.target.value) : 0)
+                              setValue(prop.NAME, e.target.value ? Number(e.target.value) : 0)
                             }
                             className="h-7 text-xs bg-background rounded border-border/80 w-28 font-mono"
                           />
                         ) : (
                           <Input
-                            disabled={isReadOnly || prop.disabled}
-                            placeholder={prop.enrichText || `Enter ${prop.label}...`}
+                            disabled={isReadOnly || prop.DISABLED}
+                            placeholder={prop.ENRICHTEXT || `Enter ${prop.LABEL}...`}
                             value={String(val || "")}
                             onChange={(e) => {
                               const isUpper =
-                                prop.name === "controllerName" || prop.name === "rptControllerName";
+                                prop.NAME === "controllerName" || prop.NAME === "rptControllerName";
                               setValue(
-                                prop.name,
+                                prop.NAME,
                                 isUpper ? e.target.value.toUpperCase() : e.target.value,
                               );
                             }}
                             className={cn(
                               "h-7 text-xs bg-background rounded border-border/80",
-                              (prop.name === "controllerName" ||
-                                prop.name === "rptControllerName") &&
+                              (prop.NAME === "controllerName" ||
+                                prop.NAME === "rptControllerName") &&
                                 "font-mono uppercase",
                             )}
                           />

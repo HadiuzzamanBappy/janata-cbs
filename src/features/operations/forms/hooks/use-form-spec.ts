@@ -75,7 +75,7 @@ export function useFormSpec(command: string) {
         silent: true,
       });
 
-      if (modelRes.status === "SUCCESS" && modelRes.data && "properties" in modelRes.data) {
+      if (modelRes.status === "SUCCESS" && modelRes.data && "PROPERTIES" in modelRes.data) {
         const model = modelRes.data;
         setModelRecord(model);
         const compiled = resolveFormRecord(model, null);

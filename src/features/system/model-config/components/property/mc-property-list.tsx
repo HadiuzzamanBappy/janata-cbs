@@ -61,33 +61,50 @@ export function McPropertyList({
     });
   };
 
-  const isHiddenByCollapse = React.useCallback(
-    (sn: string): boolean => {
-      if (searchFilter.trim()) return false;
-      const parts = sn.split("_");
-      if (parts.length <= 1) return false;
-      let prefix = parts[0];
-      for (let i = 1; i < parts.length; i++) {
-        if (collapsedSNs.has(prefix)) return true;
-        prefix = `${prefix}_${parts[i]}`;
+  const totalCount = React.useMemo(() => {
+    const countTotal = (items: ModelProperty[]): number => {
+      let count = 0;
+      for (const item of items) {
+        count++;
+        if (Array.isArray(item.PROP) && item.PROP.length > 0) {
+          count += countTotal(item.PROP);
+        }
       }
-      return false;
-    },
-    [collapsedSNs, searchFilter],
-  );
+      return count;
+    };
+    return countTotal(properties);
+  }, [properties]);
 
-  const filteredProperties = React.useMemo(() => {
-    return properties.filter((p) => {
-      if (isHiddenByCollapse(p.sn)) return false;
+  const displayItems = React.useMemo(() => {
+    const flattenForDisplay = (
+      items: ModelProperty[],
+      depth = 0,
+    ): Array<{ prop: ModelProperty; depth: number; hasChildren: boolean }> => {
+      const result: Array<{ prop: ModelProperty; depth: number; hasChildren: boolean }> = [];
+      for (const item of items) {
+        const hasChildren = Array.isArray(item.PROP) && item.PROP.length > 0;
+        result.push({ prop: item, depth, hasChildren });
+        if (hasChildren && item.PROP && !collapsedSNs.has(item.SN)) {
+          result.push(...flattenForDisplay(item.PROP, depth + 1));
+        }
+      }
+      return result;
+    };
+
+    const flat = flattenForDisplay(properties);
+    const term = searchFilter.trim().toLowerCase();
+    if (!term && typeFilter === "ALL") return flat;
+
+    return flat.filter(({ prop }) => {
       const matchSearch =
-        !searchFilter.trim() ||
-        p.name.toLowerCase().includes(searchFilter.trim().toLowerCase()) ||
-        p.label.toLowerCase().includes(searchFilter.trim().toLowerCase()) ||
-        p.sn.includes(searchFilter.trim());
-      const matchType = typeFilter === "ALL" || p.type === typeFilter;
+        !term ||
+        prop.NAME.toLowerCase().includes(term) ||
+        prop.LABEL.toLowerCase().includes(term) ||
+        prop.SN.includes(term);
+      const matchType = typeFilter === "ALL" || prop.TYPE === typeFilter;
       return matchSearch && matchType;
     });
-  }, [properties, isHiddenByCollapse, searchFilter, typeFilter]);
+  }, [properties, collapsedSNs, searchFilter, typeFilter]);
 
   return (
     <div className="w-80 sm:w-96 border-r border-border/70 flex flex-col bg-muted/10 shrink-0 min-h-0">
@@ -99,10 +116,10 @@ export function McPropertyList({
               <Database className="size-3" />
             </div>
             <span className="text-xs font-semibold text-foreground uppercase tracking-wide truncate">
-              Fields
+              Properties
             </span>
             <span className="px-1.5 py-0.2 rounded bg-primary/10 text-primary font-mono text-[10px] font-bold border border-primary/20">
-              {properties.length}
+              {totalCount}
             </span>
           </div>
 
@@ -114,7 +131,7 @@ export function McPropertyList({
               className="h-7 text-xs gap-1 px-2.5 font-medium rounded shadow-xs shrink-0"
             >
               <Plus className="size-3.5" />
-              <span>Add Field</span>
+              <span>Add Property</span>
             </Button>
           )}
         </div>
@@ -124,12 +141,15 @@ export function McPropertyList({
             <Search className="size-3 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             <Input
               value={searchFilter}
-              onChange={(e) => setSearchFilter(e.target.value)}
-              placeholder="Filter fields..."
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchFilter(e.target.value)}
+              placeholder="Filter properties..."
               className="h-7 text-xs pl-7 pr-2 rounded bg-background border-border/80 focus:bg-background w-full"
             />
           </div>
-          <Select value={typeFilter} onValueChange={(val) => val && setTypeFilter(val)}>
+          <Select
+            value={typeFilter}
+            onValueChange={(val: string | null) => val && setTypeFilter(val)}
+          >
             <SelectTrigger
               size="sm"
               className="h-7 text-xs w-24 rounded border-border/80 bg-background shrink-0"
@@ -152,27 +172,27 @@ export function McPropertyList({
 
       {/* Property Items Tree List */}
       <div className="flex-1 overflow-y-auto min-h-0 divide-y divide-border/20">
-        {filteredProperties.length === 0 ? (
+        {displayItems.length === 0 ? (
           <div className="p-6 text-center text-xs text-muted-foreground select-none">
-            <p>No fields match</p>
+            <p>No properties match</p>
           </div>
         ) : (
-          filteredProperties.map((prop) => {
-            const isSelected = prop.sn === selectedSN;
-            const isCommitted = isFieldCommitted ? isFieldCommitted(prop.sn) : true;
-            const isArchived = prop.status === "ARCHIVED";
-            const propErrors = validationErrors.filter((e) => e.sn === prop.sn);
+          displayItems.map(({ prop, depth, hasChildren }) => {
+            const isSelected = prop.SN === selectedSN;
+            const isCommitted = isFieldCommitted ? isFieldCommitted(prop.SN) : true;
+            const isArchived = prop.STATUS === "ARCHIVED";
+            const propErrors = validationErrors.filter(
+              (err: ValidationErrorItem) => err.sn === prop.SN,
+            );
             const hasError = propErrors.length > 0;
 
-            const parts = prop.sn.split("_");
-            const depth = parts.length - 1;
-            const isObject = prop.type === "Object";
-            const isCollapsed = collapsedSNs.has(prop.sn);
-            const badgeLabel = isObject && prop.structure === "M" ? "Object.M" : prop.type;
+            const isObject = prop.TYPE === "Object" || hasChildren;
+            const isCollapsed = collapsedSNs.has(prop.SN);
+            const badgeLabel = isObject && prop.STRUCTURE === "M" ? "Object.M" : prop.TYPE;
 
             return (
               <div
-                key={prop.sn}
+                key={prop.SN}
                 style={{ paddingLeft: `${depth * 14 + 8}px` }}
                 className={cn(
                   "relative flex items-center justify-between w-full py-1 pr-2 transition-colors group select-none",
@@ -192,7 +212,7 @@ export function McPropertyList({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={(e) => toggleCollapse(prop.sn, e)}
+                      onClick={(e: React.MouseEvent) => toggleCollapse(prop.SN, e)}
                       className={cn(
                         "size-4.5 p-0 rounded shrink-0",
                         isSelected
@@ -219,7 +239,7 @@ export function McPropertyList({
 
                   <button
                     type="button"
-                    onClick={() => onSelectSN(prop.sn)}
+                    onClick={() => onSelectSN(prop.SN)}
                     className="flex items-center gap-1.5 min-w-0 flex-1 text-left cursor-pointer outline-none"
                   >
                     <span
@@ -232,7 +252,7 @@ export function McPropertyList({
                             : "bg-muted text-muted-foreground border-border/70",
                       )}
                     >
-                      #{prop.sn}
+                      #{prop.SN}
                     </span>
                     <div className="min-w-0 flex-1">
                       <div
@@ -242,8 +262,8 @@ export function McPropertyList({
                           hasError && !isSelected && "text-destructive",
                         )}
                       >
-                        <span>{prop.label || prop.name || "<UNNAMED>"}</span>
-                        {prop.structure === "M" && (
+                        <span>{prop.LABEL || prop.NAME || "<UNNAMED>"}</span>
+                        {prop.STRUCTURE === "M" && (
                           <span
                             className={cn(
                               "text-[9px] font-mono font-bold px-1 py-0.2 rounded border",
@@ -269,7 +289,7 @@ export function McPropertyList({
                             D
                           </span>
                         )}
-                        {prop.required && !isArchived && (
+                        {prop.REQUIRED && !isArchived && (
                           <span
                             className={cn(
                               isSelected ? "text-primary-foreground" : "text-destructive",
@@ -280,14 +300,14 @@ export function McPropertyList({
                           </span>
                         )}
                       </div>
-                      {prop.name && prop.label && prop.name !== prop.label && (
+                      {prop.NAME && prop.LABEL && prop.NAME !== prop.LABEL && (
                         <div
                           className={cn(
                             "text-[10px] truncate leading-tight font-mono",
                             isSelected ? "text-primary-foreground/80" : "text-muted-foreground",
                           )}
                         >
-                          {prop.name}
+                          {prop.NAME}
                         </div>
                       )}
                     </div>
@@ -314,10 +334,10 @@ export function McPropertyList({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      title="Add child field to this object group"
-                      onClick={(e) => {
+                      title="Add child property to this object group"
+                      onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
-                        onAddChild(prop.sn);
+                        onAddChild(prop.SN);
                       }}
                       className={cn(
                         "size-5 p-0 rounded transition-opacity",
@@ -336,10 +356,10 @@ export function McPropertyList({
                       type="button"
                       variant="ghost"
                       size="icon"
-                      title="Delete draft field"
-                      onClick={(e) => {
+                      title="Delete draft property"
+                      onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
-                        onDeleteField(prop.sn, true);
+                        onDeleteField(prop.SN, true);
                       }}
                       className={cn(
                         "size-5 p-0 rounded transition-opacity",

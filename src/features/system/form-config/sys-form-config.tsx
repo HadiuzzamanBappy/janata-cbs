@@ -89,7 +89,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             targetModel={
               typeof formData.targetModel === "string"
                 ? formData.targetModel
-                : targetModelRecord?.tableName
+                : targetModelRecord?.TABLENAME
             }
             sections={formData.presentation.sections}
             selectedSectionId={selectedSectionId}

@@ -77,7 +77,9 @@ export function DesignerGeneralTab({
                           id="designer-is-active"
                           checked={Boolean(formData.isActive)}
                           disabled={isReadOnly}
-                          onCheckedChange={(val) => setFormData((p) => ({ ...p, isActive: !!val }))}
+                          onCheckedChange={(val: boolean) =>
+                            setFormData((p) => ({ ...p, isActive: !!val }))
+                          }
                           className={cn(
                             "rounded",
                             isReadOnly && "disabled:opacity-90 disabled:cursor-default",

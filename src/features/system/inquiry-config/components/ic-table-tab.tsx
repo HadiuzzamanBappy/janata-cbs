@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/select";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
+import { flattenModelProperties } from "@/lib/data-parsers";
 import type {
   InquiryActionConfig,
   InquiryColumnConfig,
@@ -112,8 +113,8 @@ const FORMAT_OPTIONS: Array<{
 ];
 
 function inferColumnConfig(prop: ModelProperty): InquiryColumnConfig {
-  const nameLower = prop.name.toLowerCase();
-  const propType = prop.type.toLowerCase();
+  const nameLower = prop.NAME.toLowerCase();
+  const propType = prop.TYPE.toLowerCase();
 
   let format: InquiryColumnConfig["format"] = "text";
   let align: InquiryColumnConfig["align"] = "left";
@@ -166,8 +167,8 @@ function inferColumnConfig(prop: ModelProperty): InquiryColumnConfig {
   }
 
   return {
-    id: prop.name,
-    label: prop.label || prop.name,
+    id: prop.NAME,
+    label: prop.LABEL || prop.NAME,
     align,
     format,
     isMono,
@@ -451,8 +452,8 @@ export function IcTableTab({
         const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), {
           silent: true,
         });
-        if (mounted && res.status === "SUCCESS" && res.data?.properties) {
-          setModelProps(res.data.properties);
+        if (mounted && res.status === "SUCCESS" && res.data?.PROPERTIES) {
+          setModelProps(flattenModelProperties(res.data.PROPERTIES));
         }
       } catch {
         if (mounted) setModelProps([]);
@@ -487,19 +488,19 @@ export function IcTableTab({
   }, [columns]);
 
   const availableProps = React.useMemo(() => {
-    return modelProps.filter((p) => p.name && !p.disabled);
+    return modelProps.filter((p) => p.NAME && !p.DISABLED);
   }, [modelProps]);
 
   const filteredProps = React.useMemo(() => {
     if (!fieldSearch.trim()) return availableProps;
     const q = fieldSearch.trim().toLowerCase();
     return availableProps.filter(
-      (p) => p.name.toLowerCase().includes(q) || Boolean(p.label?.toLowerCase().includes(q)),
+      (p) => p.NAME.toLowerCase().includes(q) || Boolean(p.LABEL?.toLowerCase().includes(q)),
     );
   }, [availableProps, fieldSearch]);
 
   const handleAddFromModel = (prop: ModelProperty) => {
-    if (configuredColIds.has(prop.name.toLowerCase())) return;
+    if (configuredColIds.has(prop.NAME.toLowerCase())) return;
     const newCol = inferColumnConfig(prop);
     onAddColumn(newCol);
     setSelectedColIdx(columns.length);
@@ -767,10 +768,10 @@ export function IcTableTab({
                           </div>
                         ) : (
                           filteredProps.map((prop) => {
-                            const isAdded = configuredColIds.has(prop.name.toLowerCase());
+                            const isAdded = configuredColIds.has(prop.NAME.toLowerCase());
                             return (
                               <button
-                                key={prop.name}
+                                key={prop.NAME}
                                 type="button"
                                 disabled={isAdded}
                                 onClick={() => {
@@ -787,17 +788,17 @@ export function IcTableTab({
                               >
                                 <div className="min-w-0 flex-1">
                                   <span className="font-mono text-xs font-medium block truncate group-hover:text-primary">
-                                    {prop.name}
+                                    {prop.NAME}
                                   </span>
-                                  {prop.label && (
+                                  {prop.LABEL && (
                                     <span className="text-[10px] text-muted-foreground block truncate">
-                                      {prop.label}
+                                      {prop.LABEL}
                                     </span>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-1 shrink-0 ml-1">
                                   <span className="text-[9px] font-mono uppercase px-1 py-0 bg-muted rounded text-muted-foreground">
-                                    {prop.type}
+                                    {prop.TYPE}
                                   </span>
                                   {isAdded && (
                                     <CheckCircle2 className="size-3 text-muted-foreground" />
@@ -931,9 +932,9 @@ export function IcTableTab({
                     <Select
                       value={activeCol.format || "text"}
                       disabled={disabled}
-                      onValueChange={(val) =>
+                      onValueChange={(val: string | null) =>
                         onUpdateColumn(selectedColIdx, {
-                          format: val as InquiryColumnConfig["format"],
+                          format: (val || "text") as InquiryColumnConfig["format"],
                         })
                       }
                     >
@@ -961,9 +962,9 @@ export function IcTableTab({
                     <Select
                       value={activeCol.align || "left"}
                       disabled={disabled}
-                      onValueChange={(val) =>
+                      onValueChange={(val: string | null) =>
                         onUpdateColumn(selectedColIdx, {
-                          align: val as InquiryColumnConfig["align"],
+                          align: (val || "left") as InquiryColumnConfig["align"],
                         })
                       }
                     >
@@ -1016,7 +1017,7 @@ export function IcTableTab({
                           id="mono-toggle"
                           checked={Boolean(activeCol.isMono)}
                           disabled={disabled}
-                          onCheckedChange={(val) =>
+                          onCheckedChange={(val: boolean) =>
                             onUpdateColumn(selectedColIdx, { isMono: Boolean(val) })
                           }
                           className="rounded"
@@ -1040,7 +1041,7 @@ export function IcTableTab({
                             id="sortable-toggle"
                             checked={activeCol.sortable !== false}
                             disabled={disabled}
-                            onCheckedChange={(val) =>
+                            onCheckedChange={(val: boolean) =>
                               onUpdateColumn(selectedColIdx, { sortable: Boolean(val) })
                             }
                             className="rounded"
@@ -1058,7 +1059,7 @@ export function IcTableTab({
                             id="pinned-toggle"
                             checked={Boolean(activeCol.isPinned)}
                             disabled={disabled}
-                            onCheckedChange={(val) =>
+                            onCheckedChange={(val: boolean) =>
                               onUpdateColumn(selectedColIdx, { isPinned: Boolean(val) })
                             }
                             className="rounded"
@@ -1076,7 +1077,7 @@ export function IcTableTab({
                             id="visible-toggle"
                             checked={activeCol.visible !== false}
                             disabled={disabled}
-                            onCheckedChange={(val) =>
+                            onCheckedChange={(val: boolean) =>
                               onUpdateColumn(selectedColIdx, { visible: Boolean(val) })
                             }
                             className="rounded"
@@ -1337,9 +1338,9 @@ export function IcTableTab({
                     <Select
                       value={activeAct.actionType || "view"}
                       disabled={disabled}
-                      onValueChange={(val) =>
+                      onValueChange={(val: string | null) =>
                         onUpdateAction(selectedActIdx, {
-                          actionType: val as InquiryActionConfig["actionType"],
+                          actionType: (val || "view") as InquiryActionConfig["actionType"],
                         })
                       }
                     >
@@ -1363,9 +1364,9 @@ export function IcTableTab({
                     <Select
                       value={activeAct.icon || "eye"}
                       disabled={disabled}
-                      onValueChange={(val) =>
+                      onValueChange={(val: string | null) =>
                         onUpdateAction(selectedActIdx, {
-                          icon: val as InquiryActionConfig["icon"],
+                          icon: (val || "eye") as InquiryActionConfig["icon"],
                         })
                       }
                     >
@@ -1421,9 +1422,9 @@ export function IcTableTab({
                     <Select
                       value={activeAct.openMode || "tab"}
                       disabled={disabled}
-                      onValueChange={(val) =>
+                      onValueChange={(val: string | null) =>
                         onUpdateAction(selectedActIdx, {
-                          openMode: val as InquiryActionConfig["openMode"],
+                          openMode: (val || "tab") as InquiryActionConfig["openMode"],
                         })
                       }
                     >

@@ -1,3 +1,4 @@
+import { flattenModelProperties } from "@/lib/data-parsers";
 import {
   type CompiledFormSpec,
   compiledFormSpecSchema,
@@ -19,9 +20,9 @@ import {
  * Computes optimal 12-column grid span based on model property type and length.
  */
 export function colSpanForLength(prop: ModelProperty): number {
-  if (prop.type === "Textarea") return 12;
-  if (prop.length && prop.length > 60) return 12;
-  if (prop.length && prop.length <= 15) return 4;
+  if (prop.TYPE === "Textarea") return 12;
+  if (prop.LENGTH && prop.LENGTH > 60) return 12;
+  if (prop.LENGTH && prop.LENGTH <= 15) return 4;
   return 6;
 }
 
@@ -29,13 +30,14 @@ export function colSpanForLength(prop: ModelProperty): number {
  * Generates canonical 12-column responsive fallback sections from a model.
  */
 function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
-  const activeProps = (model.properties || []).filter((p) => p.status !== "ARCHIVED");
+  const allProps = flattenModelProperties(model.PROPERTIES || []);
+  const activeProps = allProps.filter((p) => p.STATUS !== "ARCHIVED");
 
   // Identify parent Objects and their structure ("S" or "M")
   const objectParents = new Map<string, ModelProperty>();
   for (const p of activeProps) {
-    if (p.type === "Object") {
-      objectParents.set(p.sn, p);
+    if (p.TYPE === "Object") {
+      objectParents.set(p.SN, p);
     }
   }
 
@@ -46,14 +48,14 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   // Object containers themselves are not input fields, but their child fields are rendered inline.
   // Format numbering: e.g. parent "8", child "8_1" -> label displays with numbering like "8.1".
   const rootFields: FormFieldItem[] = activeProps
-    .filter((p) => p.type !== "Object")
+    .filter((p) => p.TYPE !== "Object")
     .map((p) => {
-      const isGroupChild = p.sn.includes("_");
-      const parentSn = isGroupChild ? p.sn.substring(0, p.sn.lastIndexOf("_")) : null;
+      const isGroupChild = p.SN.includes("_");
+      const parentSn = isGroupChild ? p.SN.substring(0, p.SN.lastIndexOf("_")) : null;
       const parentObj = parentSn ? objectParents.get(parentSn) : null;
 
       // Base label from property definition
-      const baseLabel = p.label || p.name || `Field #${p.sn}`;
+      const baseLabel = p.LABEL || p.NAME || `Field #${p.SN}`;
       // Clean display label without cluttering with parent/child suffix
       const displayLabel = baseLabel;
 
@@ -66,24 +68,24 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
       }
 
       return {
-        id: `f_${p.name || p.sn}`,
-        fieldKey: p.name || `field_${p.sn}`,
+        id: `f_${p.NAME || p.SN}`,
+        fieldKey: p.NAME || `field_${p.SN}`,
         label: displayLabel,
-        widget: getDefaultWidget(p.type),
-        modelType: p.type,
-        length: p.length,
-        structure: p.structure || "S", // Keep individual field structure (single)
-        groupKey: parentObj?.name,
+        widget: getDefaultWidget(p.TYPE),
+        modelType: p.TYPE,
+        length: p.LENGTH,
+        structure: p.STRUCTURE || "S", // Keep individual field structure (single)
+        groupKey: parentObj?.NAME,
         groupSn: parentSn ?? undefined,
-        groupLabel: parentObj?.label || parentObj?.name,
-        groupStructure: parentObj?.structure,
+        groupLabel: parentObj?.LABEL || parentObj?.NAME,
+        groupStructure: parentObj?.STRUCTURE,
         isFirstInGroup: isFirstInGroup,
-        parameter: p.parameter,
+        parameter: p.PARAMETER,
         colSpan: 12,
-        required: p.required,
-        readOnly: p.disabled,
+        required: p.REQUIRED,
+        readOnly: p.DISABLED,
         placeholder:
-          p.enrichText || (p.defaultValue !== undefined ? String(p.defaultValue) : undefined),
+          p.ENRICHTEXT || (p.DEFAULTVALUE !== undefined ? String(p.DEFAULTVALUE) : undefined),
       };
     });
 
@@ -92,7 +94,7 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   if (rootFields.length > 0) {
     sections.push({
       id: "sec_default",
-      title: model.description || model.tableName || "General Attributes",
+      title: model.DESCRIPTION || model.TABLENAME || "General Attributes",
       description: "Raw Model Field Specifications",
       type: "standard",
       zone: "standard",
@@ -120,8 +122,8 @@ export function compileFormSpec(
   model: ModelConfigRecord,
   layout: FormConfigRecord | null,
 ): CompiledFormSpec {
-  const modelCode = (model.tableName || "FORM").toUpperCase();
-  const idPrefix = model.idDef?.idPrefix || model.prefix || modelCode.slice(0, 2);
+  const modelCode = (model.TABLENAME || "FORM").toUpperCase();
+  const idPrefix = model.IDDEF?.IDPREFIX || model.PREFIX || modelCode.slice(0, 2);
 
   // Case A: Uncustomized / Fallback Layout
   if (!layout) {
@@ -130,13 +132,13 @@ export function compileFormSpec(
 
     return compiledFormSpecSchema.parse({
       code: modelCode,
-      title: model.description || modelCode,
+      title: model.DESCRIPTION || modelCode,
       targetModel: modelCode,
       version: "1.0.0",
       layoutSource: "fallback",
       isStale: false,
       idPrefix,
-      idDef: model.idDef,
+      idDef: model.IDDEF,
       fields: flatFields,
       presentation: {
         archetype: "grid",
@@ -150,13 +152,14 @@ export function compileFormSpec(
 
   // Case B: Custom Layout Composition
   // With append-only model evolution, layouts are directly composed against model properties
-  const propertyMap = new Map((model.properties || []).map((p) => [p.name.toLowerCase(), p]));
+  const allProps = flattenModelProperties(model.PROPERTIES || []);
+  const propertyMap = new Map(allProps.map((p) => [p.NAME.toLowerCase(), p]));
 
   // Identify parent Objects and their structure ("S" or "M")
   const objectParents = new Map<string, ModelProperty>();
-  for (const p of model.properties || []) {
-    if (p.type === "Object" && p.status !== "ARCHIVED") {
-      objectParents.set(p.sn, p);
+  for (const p of allProps) {
+    if (p.TYPE === "Object" && p.STATUS !== "ARCHIVED") {
+      objectParents.set(p.SN, p);
     }
   }
   const seenGroupFirstChild = new Set<string>();
@@ -171,20 +174,20 @@ export function compileFormSpec(
       const modelProp = propertyMap.get(field.fieldKey.toLowerCase());
 
       // DROP ARCHIVED OR MISSING FIELDS AT RUNTIME
-      if (!modelProp || modelProp.status === "ARCHIVED") {
+      if (!modelProp || modelProp.STATUS === "ARCHIVED") {
         continue;
       }
 
       // Re-synchronize validation rules and safe widget fallback
       const currentWidget = field.widget as FormWidgetType;
-      const widget = isWidgetCompatible(modelProp.type, currentWidget)
+      const widget = isWidgetCompatible(modelProp.TYPE, currentWidget)
         ? currentWidget
-        : getDefaultWidget(modelProp.type);
+        : getDefaultWidget(modelProp.TYPE);
 
       // Resolve group metadata from model property hierarchy
-      const isGroupChild = modelProp.sn.includes("_");
+      const isGroupChild = modelProp.SN.includes("_");
       const parentSn = isGroupChild
-        ? modelProp.sn.substring(0, modelProp.sn.lastIndexOf("_"))
+        ? modelProp.SN.substring(0, modelProp.SN.lastIndexOf("_"))
         : null;
       const parentObj = parentSn ? objectParents.get(parentSn) : null;
 
@@ -196,18 +199,18 @@ export function compileFormSpec(
       const resolvedField: FormFieldItem = {
         ...field,
         widget,
-        label: field.label || modelProp.label || modelProp.name,
-        modelType: modelProp.type,
-        length: modelProp.length,
-        structure: modelProp.structure || field.structure || "S",
-        groupKey: parentObj?.name || field.groupKey,
+        label: field.label || modelProp.LABEL || modelProp.NAME,
+        modelType: modelProp.TYPE,
+        length: modelProp.LENGTH,
+        structure: modelProp.STRUCTURE || field.structure || "S",
+        groupKey: parentObj?.NAME || field.groupKey,
         groupSn: parentSn ?? field.groupSn,
-        groupLabel: parentObj?.label || parentObj?.name || field.groupLabel,
-        groupStructure: parentObj?.structure || field.groupStructure,
+        groupLabel: parentObj?.LABEL || parentObj?.NAME || field.groupLabel,
+        groupStructure: parentObj?.STRUCTURE || field.groupStructure,
         isFirstInGroup: isFirstInGroup || field.isFirstInGroup,
-        required: modelProp.required ?? field.required,
-        readOnly: modelProp.disabled ?? field.readOnly,
-        parameter: modelProp.parameter ?? field.parameter,
+        required: modelProp.REQUIRED ?? field.required,
+        readOnly: modelProp.DISABLED ?? field.readOnly,
+        parameter: modelProp.PARAMETER ?? field.parameter,
       };
 
       cleanFields.push(resolvedField);
@@ -222,13 +225,13 @@ export function compileFormSpec(
 
   return compiledFormSpecSchema.parse({
     code: layout.recordId || modelCode,
-    title: layout.title || model.description || modelCode,
+    title: layout.title || model.DESCRIPTION || modelCode,
     targetModel: modelCode,
     version: layout.version || "1.0.0",
     layoutSource: "custom",
     isStale: false,
     idPrefix,
-    idDef: model.idDef,
+    idDef: model.IDDEF,
     fields: flatFields,
     presentation: {
       archetype: layout.presentation?.archetype || "grid",
@@ -244,7 +247,7 @@ export function compileFormSpec(
  * Structural / Duck-Typing Form Resolver:
  * Introspects the raw record returned from Core:
  * - If it has `presentation` -> compiles as Custom Form Layout
- * - If it has `properties` -> compiles as Model Schema with responsive 12-col fallback
+ * - If it has `PROPERTIES` -> compiles as Model Schema with responsive 12-col fallback
  */
 export function resolveFormRecord(
   record: unknown,
@@ -266,34 +269,44 @@ export function resolveFormRecord(
     const syntheticProps: ModelProperty[] = (formConfig.presentation?.sections || []).flatMap(
       (sec) =>
         (sec.fields || []).map((f, idx) => ({
-          sn: String(idx + 1),
-          name: f.fieldKey,
-          label: f.label,
-          type: (f.modelType || "Text") as ModelProperty["type"],
-          structure: "S",
-          length: f.length || 50,
-          required: Boolean(f.required),
-          disabled: Boolean(f.readOnly),
-          status: "ACTIVE",
+          SN: String(idx + 1),
+          NAME: f.fieldKey,
+          LABEL: f.label,
+          TYPE: (f.modelType || "Text") as ModelProperty["TYPE"],
+          STRUCTURE: "S" as const,
+          LENGTH: f.length || 50,
+          REQUIRED: Boolean(f.required),
+          DISABLED: Boolean(f.readOnly),
+          STATUS: "ACTIVE" as const,
         })),
     );
 
     const syntheticModel: ModelConfigRecord = {
-      tableName: String(formConfig.targetModel || formConfig.recordId || "FORM"),
-      description: String(formConfig.title || "Form"),
-      servicePath: "default",
-      access: "G",
-      properties: syntheticProps,
-    } as unknown as ModelConfigRecord;
+      TABLENAME: String(formConfig.targetModel || formConfig.recordId || "FORM"),
+      DESCRIPTION: String(formConfig.title || "Form"),
+      PREFIX: "",
+      SERVICEPATH: "default",
+      USERDEFINEID: false,
+      ACCESS: "G",
+      SEARCHABLE: false,
+      READONLY: false,
+      AUTHORIZE: false,
+      ASSOCIATES: [],
+      _DEVBY: "",
+      _DEVDATE: "",
+      IDDEF: { IDPREFIX: "", IDPATTERN: "", SEQUENCERESET: false },
+      PROPERTIES: syntheticProps,
+    };
 
     return compileFormSpec(syntheticModel, formConfig);
   }
 
-  // 2. Is it a Model Config? (Has `properties`)
-  if ("properties" in rec && Array.isArray(rec.properties)) {
+  // 2. Is it a Model Config? (Has `PROPERTIES`)
+  const rawProps = rec.PROPERTIES;
+  if (Array.isArray(rawProps)) {
     const modelConfig = rec as unknown as ModelConfigRecord;
     return compileFormSpec(modelConfig, null);
   }
 
-  throw new Error("Unknown schema format: payload has neither 'properties' nor 'presentation'");
+  throw new Error("Unknown schema format: payload has neither 'PROPERTIES' nor 'presentation'");
 }

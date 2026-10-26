@@ -54,12 +54,12 @@ export function useFcCatalog() {
         setAvailableModels(
           res.data.map((item) => {
             const rec = item.record;
-            const tableName = rec?.tableName || item.id;
+            const tableName = rec?.TABLENAME || item.id;
             const isAuthorized = rec?.auditData?.recStatus === "AU";
             return {
               id: item.id,
               tableName,
-              label: item.label || `${tableName} (${rec?.description || item.id})`,
+              label: item.label || `${tableName} (${rec?.DESCRIPTION || item.id})`,
               isAuthorized,
             };
           }),

@@ -31,7 +31,7 @@ export function WorkbenchShell({
         const cmd = trigger.getAttribute("data-cbs-command");
         if (cmd) {
           const title =
-            trigger.getAttribute("data-cbs-label") || trigger.innerText?.slice(0, 40)?.trim();
+            trigger.getAttribute("data-cbs-label") || trigger.textContent?.slice(0, 40)?.trim();
           cbsCommand.execute(cmd, { title: title || undefined });
         }
       }

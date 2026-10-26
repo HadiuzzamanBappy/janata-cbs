@@ -8,6 +8,7 @@ import {
   getMockFormPayload,
   getMockInquiryPayload,
   getMockMenuPayload,
+  handleGetFormConfig,
   handleGetMenu,
   handleGetModelConfig,
   handleInquiry,
@@ -71,12 +72,17 @@ export function getMockProxyResponse(
     return handleGetModelConfig(normalizedPayload);
   }
 
-  // 3. INQ (Dynamic Inquiry Execution)
+  // 3. GFC (Get Form Configuration Layout Presentation)
+  if (reqType === "GFC") {
+    return handleGetFormConfig(normalizedPayload);
+  }
+
+  // 4. INQ (Dynamic Inquiry Execution)
   if (reqType === "INQ") {
     return handleInquiry(normalizedPayload);
   }
 
-  // 4. GNI (Get Next Sequence ID)
+  // 5. GNI (Get Next Sequence ID)
   if (reqType === "GNI") {
     return handleNextId(normalizedPayload);
   }

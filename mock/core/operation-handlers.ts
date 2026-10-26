@@ -124,14 +124,33 @@ export function handleGetMenu(): ApiResponse {
   return successResult(getMockMenuPayload(), "Menu loaded from simulated database");
 }
 
-/** Handles GMC (Get Model Configuration) */
+/** Handles GMC (Get Model Configuration) - Returns pure Model definition schema */
 export function handleGetModelConfig(payload: CbsWirePayload): ApiResponse {
+  const target = (payload.recordId || payload.controlName || "").trim().toUpperCase();
+  const formPayload = SC_FORM_CONFIG[target];
+  if (formPayload) {
+    return successResult(formPayload, `Form schema for ${target} loaded from simulated database`);
+  }
+
+  const baseModel = target.split(",")[0].trim();
+  const modelPayload = SC_MODEL_CONFIG[baseModel] || SC_MODEL_CONFIG[target] || null;
+  if (!modelPayload) {
+    return notFoundResult(`Model configuration for "${target}" not found`);
+  }
+  return successResult(modelPayload, `Model schema for ${target} loaded from simulated database`);
+}
+
+/** Handles GFC (Get Form Configuration) - Returns Form presentation layout (or base model layout) */
+export function handleGetFormConfig(payload: CbsWirePayload): ApiResponse {
   const target = (payload.recordId || payload.controlName || "").trim().toUpperCase();
   const formPayload = getMockFormPayload(target);
   if (!formPayload) {
-    return notFoundResult(`Form schema for ${target} not found`);
+    return notFoundResult(`Form specification for "${target}" not found`);
   }
-  return successResult(formPayload, "Form schema loaded from simulated database");
+  return successResult(
+    formPayload,
+    `Form specification for ${target} loaded from simulated database`,
+  );
 }
 
 /** Handles INQ (Dynamic Inquiry Execution) */

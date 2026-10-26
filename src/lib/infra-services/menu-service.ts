@@ -56,7 +56,10 @@ export async function getMenuData(token?: string, controlName: string = ""): Pro
       const wireData = await fetchMenuWirePayload(controlName, token);
       const parseResult = parseMNU(wireData);
       if (!parseResult.success) {
-        log.error(`Failed to parse menu "${controlName || "DEFAULT"}": ${parseResult.error}`, wireData);
+        log.error(
+          `Failed to parse menu "${controlName || "DEFAULT"}": ${parseResult.error}`,
+          wireData,
+        );
         throw new Error(`Failed to parse menu: ${parseResult.error}`);
       }
       return parseResult.data;

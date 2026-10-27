@@ -305,6 +305,55 @@ export function McInspectorTypeSpecs({
           </div>
         </div>
 
+        {/* Layout Column Width */}
+        <div className="flex items-center gap-2">
+          <Label className="w-28 shrink-0 text-xs text-muted-foreground select-none">
+            Column Width
+          </Label>
+          <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+          <div className="flex items-center gap-2 max-w-md flex-1">
+            <Select
+              value={property.WIDTH ? String(property.WIDTH) : "auto"}
+              disabled={isReadOnly}
+              onValueChange={(val: string | null) => {
+                onUpdate(property.SN, {
+                  WIDTH: val && val !== "auto" ? Number(val) : undefined,
+                });
+              }}
+            >
+              <SelectTrigger
+                size="sm"
+                className="h-7 text-xs rounded bg-background border-border/80 w-36"
+              >
+                <SelectValue placeholder="Auto" />
+              </SelectTrigger>
+              <SelectContent className="rounded">
+                <SelectItem value="auto" className="text-xs rounded">
+                  Auto (Default)
+                </SelectItem>
+                <SelectItem value="3" className="text-xs rounded">
+                  Col-3 (Quarter)
+                </SelectItem>
+                <SelectItem value="4" className="text-xs rounded">
+                  Col-4 (Third)
+                </SelectItem>
+                <SelectItem value="6" className="text-xs rounded">
+                  Col-6 (Half)
+                </SelectItem>
+                <SelectItem value="8" className="text-xs rounded">
+                  Col-8 (Two Thirds)
+                </SelectItem>
+                <SelectItem value="12" className="text-xs rounded">
+                  Col-12 (Full Width)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-[11px] text-muted-foreground">
+              {property.WIDTH ? `${property.WIDTH}/12 grid columns` : "Computed dynamically"}
+            </span>
+          </div>
+        </div>
+
         {/* Parameter Configuration for Dropdown, Checkbox, Radio */}
         {isParameterized(property.TYPE) && (
           <div className="pt-2 border-t border-border/60 space-y-2 max-w-xl">

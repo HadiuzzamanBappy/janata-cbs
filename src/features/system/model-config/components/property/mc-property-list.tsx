@@ -180,7 +180,6 @@ export function McPropertyList({
           displayItems.map(({ prop, depth, hasChildren }) => {
             const isSelected = prop.SN === selectedSN;
             const isCommitted = isFieldCommitted ? isFieldCommitted(prop.SN) : true;
-            const isArchived = prop.STATUS === "ARCHIVED";
             const propErrors = validationErrors.filter(
               (err: ValidationErrorItem) => err.sn === prop.SN,
             );
@@ -258,7 +257,6 @@ export function McPropertyList({
                       <div
                         className={cn(
                           "font-mono text-xs font-semibold truncate leading-tight flex items-center gap-1",
-                          isArchived && "line-through opacity-70",
                           hasError && !isSelected && "text-destructive",
                         )}
                       >
@@ -289,7 +287,7 @@ export function McPropertyList({
                             D
                           </span>
                         )}
-                        {prop.REQUIRED && !isArchived && (
+                        {prop.REQUIRED && (
                           <span
                             className={cn(
                               isSelected ? "text-primary-foreground" : "text-destructive",

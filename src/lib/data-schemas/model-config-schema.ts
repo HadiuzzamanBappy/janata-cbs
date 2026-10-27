@@ -22,22 +22,52 @@ export type PropertyType = z.infer<typeof propertyTypeSchema>;
 export const PROPERTY_TYPES = propertyTypeSchema.options;
 
 /** Option item for Parameterized types (Dropdown, Checkbox, Radio) */
-export const propertyParameterOptionSchema = z.object({
-  ID: z.string().optional(),
-  ITEMCODE: z.string().default(""),
-  ITEMLABEL: z.string().default(""),
-});
-export type PropertyParameterOption = z.infer<typeof propertyParameterOptionSchema>;
+export const propertyParameterOptionSchema = z
+  .object({
+    ID: z.string().optional(),
+    id: z.string().optional(),
+    ITEMCODE: z.string().optional(),
+    itemCode: z.string().optional(),
+    ITEMLABEL: z.string().optional(),
+    itemLabel: z.string().optional(),
+  })
+  .passthrough()
+  .transform((val) => ({
+    ID: val.ID ?? val.id,
+    ITEMCODE: val.ITEMCODE ?? val.itemCode ?? "",
+    ITEMLABEL: val.ITEMLABEL ?? val.itemLabel ?? "",
+  }));
+export interface PropertyParameterOption {
+  ID?: string;
+  ITEMCODE: string;
+  ITEMLABEL: string;
+}
 
 /** Parameter definition for Dropdown / Checkbox / Radio types */
-export const propertyParameterSchema = z.object({
-  TYPE: z.enum(["O", "M", ""]).default("O"), // O = Options (static), M = Model (DB)
-  DATA: z.array(propertyParameterOptionSchema).default([]),
-  MODELNAME: z.string().default(""),
-  DISPLAYFIELD: z.string().default(""),
-  CONDITION: z.string().default(""),
-  REFERENCE: z.string().default(""),
-});
+export const propertyParameterSchema = z
+  .object({
+    TYPE: z.enum(["O", "M", ""]).optional(),
+    type: z.enum(["O", "M", ""]).optional(),
+    DATA: z.array(propertyParameterOptionSchema).optional(),
+    data: z.array(propertyParameterOptionSchema).optional(),
+    MODELNAME: z.string().optional(),
+    modelName: z.string().optional(),
+    DISPLAYFIELD: z.string().optional(),
+    displayField: z.string().optional(),
+    CONDITION: z.string().optional(),
+    condition: z.string().optional(),
+    REFERENCE: z.string().optional(),
+    reference: z.string().optional(),
+  })
+  .passthrough()
+  .transform((val) => ({
+    TYPE: (val.TYPE ?? val.type ?? "O") as "O" | "M" | "",
+    DATA: (val.DATA ?? val.data ?? []) as PropertyParameterOption[],
+    MODELNAME: val.MODELNAME ?? val.modelName ?? "",
+    DISPLAYFIELD: val.DISPLAYFIELD ?? val.displayField ?? "",
+    CONDITION: val.CONDITION ?? val.condition ?? "",
+    REFERENCE: val.REFERENCE ?? val.reference ?? "",
+  }));
 export type PropertyParameter = z.infer<typeof propertyParameterSchema>;
 
 export type ModelProperty = {
@@ -50,7 +80,6 @@ export type ModelProperty = {
   WIDTH?: number;
   REQUIRED?: boolean;
   DISABLED?: boolean;
-  STATUS?: "ACTIVE" | "ARCHIVED";
   DEFAULTVALUE?: unknown;
   ENRICHTEXT?: string;
   PARAMETER?: PropertyParameter;
@@ -60,7 +89,7 @@ export type ModelProperty = {
 /** Column attribute descriptor defining data structure, constraints, and masks for model properties. */
 export const modelPropertySchema: z.ZodType<ModelProperty> = z.lazy(() =>
   z.object({
-    SN: z.string(),
+    SN: z.coerce.string(),
     NAME: z.string().min(1, "Field name is required"),
     LABEL: z.string().min(1, "Field label is required"),
     TYPE: propertyTypeSchema.default("Text"),
@@ -69,7 +98,6 @@ export const modelPropertySchema: z.ZodType<ModelProperty> = z.lazy(() =>
     WIDTH: z.number().optional(),
     REQUIRED: z.boolean().default(false),
     DISABLED: z.boolean().default(false),
-    STATUS: z.enum(["ACTIVE", "ARCHIVED"]).default("ACTIVE"),
     DEFAULTVALUE: z.unknown().optional(),
     ENRICHTEXT: z.string().optional(),
     PARAMETER: propertyParameterSchema.optional(),

@@ -37,7 +37,6 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
         LENGTH: 50,
         REQUIRED: false,
         DISABLED: false,
-        STATUS: "ACTIVE",
         PROP: [],
       };
       return {
@@ -74,7 +73,6 @@ export function useMcTreeOps(setFormData: React.Dispatch<React.SetStateAction<Mo
                 LENGTH: 50,
                 REQUIRED: false,
                 DISABLED: false,
-                STATUS: "ACTIVE",
                 PROP: [],
               };
               return {

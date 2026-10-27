@@ -194,9 +194,9 @@ async function runSuite() {
       gumRes.status === "SUCCESS" && Boolean(gumData && gumData.length > 0),
     );
 
-    // 6. Versioned Presentation Configuration (FORM.CONFIG S Mode)
-    const formInput = { requestType: "S", controlName: "FORM.CONFIG", recordId: "ACCOUNT,1.0.0" };
-    const formRes = getMockProxyResponse("S", "FORM.CONFIG", "ACCOUNT,1.0.0");
+    // 6. Versioned Presentation Configuration (CONFIG.FORM S Mode)
+    const formInput = { requestType: "S", controlName: "CONFIG.FORM", recordId: "ACCOUNT,1.0.0" };
+    const formRes = getMockProxyResponse("S", "CONFIG.FORM", "ACCOUNT,1.0.0");
     const formData = formRes.data as Record<string, unknown> | undefined;
     const formOut = {
       recordId: formData?.recordId,
@@ -206,7 +206,7 @@ async function runSuite() {
         ?.length,
     };
     recordTest(
-      "6. Versioned Presentation Configuration (FORM.CONFIG in S mode)",
+      "6. Versioned Presentation Configuration (CONFIG.FORM in S mode)",
       formInput,
       formOut,
       formRes.status === "SUCCESS" && formOut.targetModel === "ACCOUNT",

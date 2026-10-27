@@ -879,7 +879,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       recBranchCode: "JB9999",
     },
   },
-  "FORM.CONFIG": {
+  "CONFIG.FORM": {
     TABLENAME: "FORM_CONFIG",
     DESCRIPTION: "Dynamic Form Layout Designer",
     PREFIX: "SC",
@@ -898,30 +898,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
     },
-    PROPERTIES: [
-      {
-        SN: "1",
-        NAME: "title",
-        LABEL: "Form Title",
-        TYPE: "Text",
-        LENGTH: 120,
-        STRUCTURE: "S",
-        REQUIRED: true,
-        DISABLED: false,
-        ENRICHTEXT: "Display screen title for the form layout",
-      },
-      {
-        SN: "2",
-        NAME: "description",
-        LABEL: "Description",
-        TYPE: "Text",
-        LENGTH: 250,
-        STRUCTURE: "S",
-        REQUIRED: false,
-        DISABLED: false,
-        ENRICHTEXT: "Summary description of this form layout",
-      },
-    ],
+    PROPERTIES: [],
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,

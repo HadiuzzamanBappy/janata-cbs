@@ -2,7 +2,7 @@ import "server-only";
 
 import type { CbsWirePayload, GrpcEnvelope } from "@/lib/data-schemas";
 import type { GrpcRequest, GrpcResponse } from "@/lib/infra-grpc/generated/service";
-import type { ApiResponse } from "@/types";
+import { type ApiResponse, CbsRecordFunction, CbsRequestType } from "@/types";
 import { buildMockUserAuthResponse, getMockUserResponse, mockLogin } from "./auth-simulator";
 import {
   getMockFormPayload,
@@ -17,7 +17,7 @@ import {
   handleRecordList,
   handleSearchById,
   handleSeeRecord,
-} from "./operation-handlers";
+} from "./handlers";
 import { notFoundResult, toGrpcResponse } from "./response-factory";
 
 export {
@@ -51,7 +51,7 @@ export function getMockProxyResponse(
           data,
         };
 
-  const reqType = (payload.requestType || "GET").trim().toUpperCase();
+  const reqType = (payload.requestType || CbsRequestType.GET).trim().toUpperCase();
   const cleanCmd = (payload.controlName || "").trim().toUpperCase();
   const recId = (payload.recordId || "").trim().toUpperCase();
 
@@ -62,58 +62,76 @@ export function getMockProxyResponse(
     recordId: recId,
   };
 
-  // 1. GUM (Get User Menu Navigation Tree)
-  if (reqType === "GUM") {
+  // 1. GUM / GCM (Navigation Menu Tree Hierarchy)
+  if (reqType === CbsRequestType.GUM || reqType === CbsRequestType.GCM) {
     return handleGetMenu();
   }
 
   // 2. GMC (Get Model Configuration Schema)
-  if (reqType === "GMC") {
+  if (reqType === CbsRequestType.GMC) {
     return handleGetModelConfig(normalizedPayload);
   }
 
   // 3. GFC (Get Form Configuration Layout Presentation)
-  if (reqType === "GFC") {
+  if (reqType === CbsRequestType.GFC) {
     return handleGetFormConfig(normalizedPayload);
   }
 
   // 4. INQ (Dynamic Inquiry Execution)
-  if (reqType === "INQ") {
+  if (reqType === CbsRequestType.INQ) {
     return handleInquiry(normalizedPayload);
   }
 
   // 5. GNI (Get Next Sequence ID)
-  if (reqType === "GNI") {
+  if (reqType === CbsRequestType.GNI) {
     return handleNextId(normalizedPayload);
   }
 
-  // 5. Transactional Mutations (PUT, AUT, DEL, HLD, REV, SMC, AMC, SFC)
-  const isMutation =
-    reqType === "PUT" ||
-    reqType === "AUT" ||
-    reqType === "DEL" ||
-    reqType === "HLD" ||
-    reqType === "REV" ||
-    reqType === "SMC" ||
-    reqType === "AMC" ||
-    reqType === "SFC";
-  if (isMutation) {
-    return handleMutation(normalizedPayload);
-  }
-
-  // 6. GRL (Generic Record List for catalogs and lookups)
-  if (reqType === "GRL") {
-    return handleRecordList(normalizedPayload);
-  }
-
-  // 7. SBI (Search by recordId / wildcard)
-  if (reqType === "SBI") {
+  // 6. SBI / RIL (Search by Record ID / Wildcard or Key List)
+  if (reqType === CbsRequestType.SBI || reqType === CbsRequestType.RIL) {
     return handleSearchById(normalizedPayload);
   }
 
-  // 8. S / SEE (Read / View Single Record in S mode)
-  if (reqType === "S" || reqType === "SEE" || reqType === "GET" || payload.recordFunction === "S") {
+  // 7. GRL / GCQ / GMV / GGL (Generic Record Collection Queries)
+  if (
+    reqType === CbsRequestType.GRL ||
+    reqType === CbsRequestType.GCQ ||
+    reqType === CbsRequestType.GMV ||
+    reqType === CbsRequestType.GGL
+  ) {
+    return handleRecordList(normalizedPayload);
+  }
+
+  // 8. S / SEE / GET / GRV (Read / View Single Record in View Mode)
+  if (
+    reqType === CbsRequestType.GET ||
+    reqType === CbsRequestType.GRV ||
+    reqType === "S" ||
+    reqType === "SEE" ||
+    payload.recordFunction === CbsRecordFunction.SEE
+  ) {
     return handleSeeRecord(normalizedPayload);
+  }
+
+  // 9. Transactional Mutations (PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, SMR, DTR, ATT, CTT, AFT)
+  const isMutation =
+    reqType === CbsRequestType.PUT ||
+    reqType === CbsRequestType.AUT ||
+    reqType === CbsRequestType.DEL ||
+    reqType === CbsRequestType.HLD ||
+    reqType === CbsRequestType.REV ||
+    reqType === CbsRequestType.TRV ||
+    reqType === CbsRequestType.SMC ||
+    reqType === CbsRequestType.AMC ||
+    reqType === CbsRequestType.SFC ||
+    reqType === CbsRequestType.SMR ||
+    reqType === CbsRequestType.DTR ||
+    reqType === CbsRequestType.ATT ||
+    reqType === CbsRequestType.CTT ||
+    reqType === CbsRequestType.AFT;
+
+  if (isMutation) {
+    return handleMutation(normalizedPayload);
   }
 
   return notFoundResult(`Unsupported requestType "${reqType}" for model "${cleanCmd}"`);

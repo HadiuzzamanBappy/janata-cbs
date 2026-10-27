@@ -1,9 +1,9 @@
 import "server-only";
 
 import {
-  CBS_DATABASE,
   type CbsTableVersion,
   type CbsVersionedTable,
+  getVersionedTable,
   SC_MODEL_CONFIG,
 } from "@mock/db";
 
@@ -25,25 +25,14 @@ export function resolveTable(controlName: string): ResolvedTable | null {
   if (!controlName) return null;
   const clean = controlName.trim().toUpperCase();
 
-  // 1. Direct O(1) hashmap lookup in SC_MODEL_CONFIG, or fallback to physical name lookup
+  const versionedTable = getVersionedTable(clean);
+  if (!versionedTable?.LIVE) return null;
+
   const model =
     SC_MODEL_CONFIG[clean] ||
     Object.values(SC_MODEL_CONFIG).find(
-      (m) => `${m.PREFIX}_${m.TABLENAME}` === clean || m.TABLENAME === clean,
+      (m) => m.TABLENAME === clean || `${m.PREFIX}_${m.TABLENAME}` === clean,
     );
-
-  // 2. Resolve canonical model key for CBS_DATABASE
-  const modelKey = (
-    SC_MODEL_CONFIG[clean]
-      ? clean
-      : Object.keys(SC_MODEL_CONFIG).find((k) => SC_MODEL_CONFIG[k] === model) || clean
-  ) as keyof typeof CBS_DATABASE;
-
-  const versionedTable = CBS_DATABASE[modelKey] as unknown as
-    | CbsVersionedTable<Record<string, unknown>>
-    | undefined;
-
-  if (!versionedTable?.LIVE) return null;
 
   const physicalName = model ? `${model.PREFIX}_${model.TABLENAME}` : clean;
 

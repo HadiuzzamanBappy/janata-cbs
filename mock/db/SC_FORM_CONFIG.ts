@@ -254,6 +254,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
     },
   },
   "CUSTOMER,GENERAL": {
+    presentation: { steps: [], sections: [] },
     frmDescription: "General Customer",
     authNumber: 1.0,
     rtnValidate: [

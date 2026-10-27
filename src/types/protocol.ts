@@ -106,17 +106,7 @@ export const CbsControlTable = {
   MENU_TREE: "MENU.TREE",
   MODEL_CONFIG: "MODEL.CONFIG",
   FORM_CONFIG: "CONFIG.FORM",
-  INQUIRY_CONFIG: "INQUIRY",
+  INQUIRY_CONFIG: "INQUIRY.CONFIG",
 } as const;
-
-// export const CbsControlTable = {
-//   BRANCH: "BRANCH",
-//   CONTROL: "CONTROL",
-//   MENU: "MENU",
-//   MENU_TREE: "MENU.TREE",
-//   MODEL_CONFIG: "MODEL.CONFIG",
-//   FORM_CONFIG: "CONFIG.FORM",
-//   INQUIRY_CONFIG: "INQUIRY",
-// } as const;
 
 export type CbsControlTable = (typeof CbsControlTable)[keyof typeof CbsControlTable];

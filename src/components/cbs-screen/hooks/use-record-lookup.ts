@@ -2,23 +2,19 @@
 
 import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
+import type { RecordLookupItem } from "@/lib/cbs-screen";
 import { unwrapRecordsPayload } from "@/lib/data-parsers";
-
-export interface RecordLookupItem {
-  id: string;
-  label?: string;
-  details?: string;
-}
 
 /**
  * Universal hook for dynamic SBI record ID lookups and GNI sequence allocation.
+ * Enforces Golden Rule 5: Zero client-side ID invention.
  *
  * @param controlName - The target CBS model/table (e.g. "USER.MGT", "ACCOUNT")
  * @param staticItems - Optional initial or predefined static items
  */
 export function useRecordLookup(controlName?: string, staticItems?: RecordLookupItem[]) {
   const cleanControl = (controlName || "").split(",")[0].trim().toUpperCase();
-  const [items, setItems] = React.useState<RecordLookupItem[]>([]);
+  const [items, setItems] = React.useState<RecordLookupItem[]>(staticItems ?? []);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [generatingId, setGeneratingId] = React.useState<boolean>(false);
   const [hasFetched, setHasFetched] = React.useState<boolean>(false);
@@ -28,135 +24,54 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
   React.useEffect(() => {
     if (prevControlRef.current !== cleanControl) {
       prevControlRef.current = cleanControl;
-      setItems([]);
+      setItems(staticItems ?? []);
       setHasFetched(false);
       setLoading(false);
       setGeneratingId(false);
     }
-  }, [cleanControl]);
+  }, [cleanControl, staticItems]);
 
   /**
-   * Action 2: Fetch sorted record ID list ('SBI') with optional client-side prefix filter.
+   * Action 2: Fetch record ID list from backend ('SBI').
+   * The backend database handles indexing, prefix matching, and sorting.
    */
   const fetchRecordList = React.useCallback(
     async (query?: string) => {
       if (!cleanControl || loading) return;
 
-      const cleanQuery = (query || "").trim().toLowerCase();
       setLoading(true);
 
       try {
-        // SBI request carries the optional search/wildcard pattern (e.g. "...AC..." or prefix)
         const payload = cbs.form.searchRecordIds(cleanControl, query?.trim());
         const res = await cbs.send<unknown>(payload, { silent: true });
 
-        const mappedItems: RecordLookupItem[] = [];
-
         if (res.status === "SUCCESS" && res.data) {
-          const rawRecords = unwrapRecordsPayload<unknown>(res.data);
+          const raw = unwrapRecordsPayload<unknown>(res.data);
+          const list =
+            Array.isArray(raw) && raw.length > 0 ? raw : Array.isArray(res.data) ? res.data : [];
 
-          if (Array.isArray(rawRecords) && rawRecords.length > 0) {
-            for (const item of rawRecords) {
-              const rec =
-                typeof item === "object" && item !== null
-                  ? (item as Record<string, unknown>)
-                  : null;
-              const id =
-                typeof item === "string"
-                  ? item.trim()
-                  : String(rec?.id || rec?.recordId || rec?.code || rec?.userId || "").trim();
-              if (!id) continue;
-
-              const label =
-                typeof item === "string"
-                  ? id
-                  : String(
-                      rec?.label ||
-                        rec?.description ||
-                        rec?.employeeName ||
-                        rec?.name ||
-                        rec?.accountTitle1 ||
-                        rec?.["ACCOUNT.TITLE"] ||
-                        id,
-                    );
-
-              const details = rec?.details
-                ? String(rec.details)
-                : rec?.branchCode
-                  ? `Branch: ${rec.branchCode}`
-                  : undefined;
-
-              mappedItems.push({ id, label, details });
-            }
-          } else if (Array.isArray(res.data)) {
-            for (const item of res.data) {
-              if (typeof item === "string") {
-                mappedItems.push({ id: item });
-              } else if (item && typeof item === "object") {
-                const rec = item as Record<string, unknown>;
-                const id = String(rec.id || rec.recordId || rec.userId || "").trim();
-                if (id) {
-                  mappedItems.push({
-                    id,
-                    label: String(rec.label || rec.employeeName || rec.description || id),
-                    details: rec.details ? String(rec.details) : undefined,
-                  });
-                }
-              }
-            }
-          }
-        }
-
-        // Merge with static fallback items if backend returned none, ensuring valid string IDs
-        const candidateItems: RecordLookupItem[] = (
-          mappedItems.length > 0
-            ? mappedItems
-            : staticItems && staticItems.length > 0
-              ? staticItems
-              : []
-        )
-          .map((item) => ({
-            ...item,
-            id: String(item.id || "").trim(),
-          }))
-          .filter((item) => item.id.length > 0);
-
-        // Filter by query if client query specified
-        const filteredItems = cleanQuery
-          ? candidateItems.filter(
-              (item) =>
-                item.id.toLowerCase().includes(cleanQuery) ||
-                item.label?.toLowerCase().includes(cleanQuery) ||
-                item.details?.toLowerCase().includes(cleanQuery),
+          const mapped: RecordLookupItem[] = list
+            .map((item) =>
+              typeof item === "string"
+                ? item.trim()
+                : typeof item === "object" && item
+                  ? String(
+                      (item as Record<string, unknown>).id ||
+                        (item as Record<string, unknown>).recordId ||
+                        "",
+                    ).trim()
+                  : "",
             )
-          : candidateItems;
+            .filter(Boolean)
+            .map((id) => ({ id }));
 
-        // Sort naturally by ID (numeric-aware ascending) safely
-        const sortedItems = [...filteredItems].sort((a, b) =>
-          (a.id || "").localeCompare(b.id || "", undefined, { numeric: true }),
-        );
-
-        setItems(sortedItems);
+          setItems(mapped.length > 0 ? mapped : (staticItems ?? []));
+        } else {
+          setItems(staticItems ?? []);
+        }
       } catch (err: unknown) {
         console.warn(`[useRecordLookup] Failed to fetch records for ${cleanControl}:`, err);
-        const fallback = (staticItems || [])
-          .map((item) => ({
-            ...item,
-            id: String(item.id || "").trim(),
-          }))
-          .filter((item) => item.id.length > 0);
-        const filtered = cleanQuery
-          ? fallback.filter(
-              (item) =>
-                item.id.toLowerCase().includes(cleanQuery) ||
-                item.label?.toLowerCase().includes(cleanQuery),
-            )
-          : fallback;
-        setItems(
-          [...filtered].sort((a, b) =>
-            (a.id || "").localeCompare(b.id || "", undefined, { numeric: true }),
-          ),
-        );
+        setItems(staticItems ?? []);
       } finally {
         setLoading(false);
         setHasFetched(true);
@@ -167,12 +82,13 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
 
   /**
    * Action 3: Request new record ID sequence or user-defined draft from backend ('GNI').
+   * Pure protocol: If no sequence can be allocated and no candidate ID given, returns empty string.
    */
   const fetchNewRecordId = React.useCallback(
     async (candidateId?: string): Promise<string> => {
       const cleanCandidate = (candidateId || "").trim().toUpperCase();
       if (!cleanControl) {
-        return cleanCandidate || `NEW.${Date.now().toString().slice(-4)}`;
+        return cleanCandidate || "";
       }
 
       setGeneratingId(true);
@@ -187,11 +103,10 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
           }
         }
 
-        // If backend returned error (e.g. 400 userDefineId requires candidate ID), return empty string so caller doesn't fake an ID
-        return "";
+        return cleanCandidate || "";
       } catch (err: unknown) {
         console.warn(`[useRecordLookup] GNI sequence request failed for ${cleanControl}:`, err);
-        return "";
+        return cleanCandidate || "";
       } finally {
         setGeneratingId(false);
       }

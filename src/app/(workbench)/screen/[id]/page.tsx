@@ -3,7 +3,6 @@
 import { useParams, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { ScreenLoader } from "@/features/workbench";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 import {
   broadcastDockTab,
   CBS_SCREEN_EVENT,
@@ -13,6 +12,7 @@ import {
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { CbsAppStoreProvider, useWorkbenchStore } from "@/store";
+import type { CbsScreenMode } from "@/types";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const searchParams = useSearchParams();

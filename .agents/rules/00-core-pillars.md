@@ -61,3 +61,30 @@ $$\text{Level 6 (App)} \longrightarrow \text{Level 5 (Features)} \longrightarrow
 - **DX**: Pure TypeScript with zero `any`, unidirectional layers, Biome compliance (`pnpm lint:fix`).
 - **AX (Agent Experience)**: Deterministic contracts, schema-driven metadata (`MODEL.CONFIG` / `FORM.CONFIG`), and explicit type boundaries.
 - **Zero Breakage**: All verification suites (`pnpm verify:all`, `pnpm typecheck`) must pass cleanly after every task.
+
+## 10. Universal File Revision & Refactoring Checklist
+
+Whenever reviewing, refactoring, or editing ANY file in the codebase, you MUST apply this 5-point test before completing the task:
+
+1. **Zero Duplicate Logic (DRY & Headless Core Delegation)**:
+   - Does this file compute logic that already exists in `@/lib`?
+   - **Access & Permissions**: NEVER calculate `isReadOnly` or `maker !== checker` inline. Delegate 100% to `access.isReadOnly` from `@/lib/cbs-access`.
+   - **Dirty Detection**: NEVER write manual JSON equality diffs. Delegate to `evaluateDirty` from `@/lib/cbs-record`.
+   - **Hotkeys**: NEVER attach manual `window.addEventListener("keydown")`. Use `useCbsHotkeys`.
+
+2. **Zero Legacy Baggage & Dead Fallbacks**:
+   - The application is NOT in production. Do NOT keep backward-compatibility polyfills, legacy query params (e.g. `?id=` fallback when `recordId` is canonical), obsolete aliases, or unused props.
+   - If an alias is obsolete (e.g. `admin-tabs` -> `system`), rename it across all call sites immediately.
+
+3. **Zero Magic Strings & Centralized Enums**:
+   - NEVER hardcode mode strings (`"I"`, `"S"`, `"IDLE"`), action codes, or arrays of modes like `Set(["IDLE", "S", ...])`.
+   - Always import canonical enums and sets: `CBS_SCREEN_MODES`, `CbsRecordFunction.INPUT`, `CbsRecordStatus`.
+
+4. **Zero Client-Side ID Invention (Golden Rule 5)**:
+   - NEVER fabricate IDs with timestamps (e.g., `NEW.${Date.now()}`).
+   - New record creation is strictly input-driven or sequence-allocated via the core backend (`GNI`). If sequence allocation fails and no candidate ID is provided, return empty string `""`.
+
+5. **Strict File Budget Compliance (Rule 2)**:
+   - Presentation components: **$\le 300$ lines**.
+   - Custom hooks, persistence, and pure helpers: **$\le 200$ lines**.
+   - If a file exceeds budget, decompose into single-responsibility child modules immediately.

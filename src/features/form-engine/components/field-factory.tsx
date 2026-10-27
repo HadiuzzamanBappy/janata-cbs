@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cbs } from "@/lib/cbs-client";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn } from "@/lib/core-utils";
 import { flattenModelProperties } from "@/lib/data-parsers";
 import type { FormFieldItem, FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { CbsScreenMode } from "@/types";
 
 export interface UnifiedFieldFactoryProps {
   field: FormFieldItem;

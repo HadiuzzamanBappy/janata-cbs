@@ -1,3 +1,7 @@
+/**
+ * Navigation guard hook for CBS Screens.
+ * Intercepts navigation when form is dirty to prevent accidental data loss.
+ */
 "use client";
 
 import * as React from "react";
@@ -17,10 +21,6 @@ export interface UseGuardedActionResult {
   message: string;
 }
 
-/**
- * Hook to guard sensitive screen navigation actions (Return, Create New, Record Search)
- * when working form draft is dirty. If clean, executes immediately; if dirty, opens confirmation.
- */
 export function useGuardedAction({
   isDirty = false,
   title = "Discard unsaved changes?",

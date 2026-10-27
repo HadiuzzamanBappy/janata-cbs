@@ -6,7 +6,7 @@ export interface SystemSkeletonProps {
 }
 
 /**
- * SystemSkeleton mirrors the exact IDLE / Tabbed layout of System Screens (variant="admin-tabs"):
+ * SystemSkeleton mirrors the exact IDLE / Tabbed layout of System Screens (variant="system"):
  * - Row 1: Action toolbar (Save, Validate, Authorize, More Actions)
  * - Row 2: Screen title + Record lookup ID input box
  * - Row 3: Admin Tab strip ([General] [Fields / Specific] [Audit Data] [JSON Output])

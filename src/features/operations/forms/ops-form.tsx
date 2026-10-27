@@ -3,9 +3,9 @@
 import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { FormKernelProvider } from "@/features/form-engine";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { getDefaultMoreActions, useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
+import type { CbsScreenMode } from "@/types";
 import { FormGrid } from "./components/form-grid";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";

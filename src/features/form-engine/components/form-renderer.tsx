@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 import { cn, evaluateFormula } from "@/lib/core-utils";
 import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { CbsScreenMode } from "@/types";
 import { SectionCard } from "./section-card";
 
 export interface FormRendererProps {

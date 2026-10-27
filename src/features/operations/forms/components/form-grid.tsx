@@ -1,8 +1,8 @@
 "use client";
 
 import { FormRenderer } from "@/features/form-engine";
-import type { CbsScreenMode } from "@/lib/cbs-screen";
 import type { CompiledFormSpec } from "@/lib/data-schemas";
+import type { CbsScreenMode } from "@/types";
 
 export interface FormGridProps {
   presentation: CompiledFormSpec["presentation"];

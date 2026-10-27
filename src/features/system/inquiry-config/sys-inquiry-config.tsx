@@ -180,7 +180,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       }
       submitting={submitting || loading}
       availableItems={availableItems}
-      variant="admin-tabs"
+      variant="system"
       tabs={tabs}
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}

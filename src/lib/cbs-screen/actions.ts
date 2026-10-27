@@ -6,7 +6,8 @@
 
 import { toast } from "@/components/ui/toast";
 import { useCbsAccess } from "@/lib/cbs-access";
-import type { CbsScreenMode, MoreActionItem } from "./types";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import type { MoreActionItem } from "./types";
 
 export interface ActionCapability {
   readonly enabled: boolean;
@@ -75,17 +76,18 @@ export function useCbsActionBar({
   const access = useCbsAccess({ mode, recordStatus, recordInputter, command });
   const hasTargetId = Boolean(searchVal.trim());
   const isIdle = mode === "IDLE";
-  const isView = mode === "S" || mode === "A";
-  const isCreate = mode === "I" && !hasTargetId;
-  const isEdit = mode === "I" && hasTargetId;
-  const isAuth = mode === "A";
+  const isSee = mode === CbsRecordFunction.SEE;
+  const isAuth = mode === CbsRecordFunction.AUTHORIZE;
+  const isReadOnly = isSee || isAuth;
+  const isCreate = mode === CbsRecordFunction.INPUT && !hasTargetId;
+  const isEdit = mode === CbsRecordFunction.INPUT && hasTargetId;
 
   // 1. Idle Amend (Pencil)
   const amendEnabled = Boolean(isIdle && onAmend && !submitting && hasTargetId && access.canInput);
   const amendReason = !hasTargetId
     ? "Enter or select a Record ID to edit"
     : !access.canInput
-      ? "Requires Input/Amend ('I') permission"
+      ? access.getDisableReason(CbsRecordFunction.INPUT) || "Requires Input/Amend ('I') permission"
       : undefined;
 
   // 2. Idle View (Search)
@@ -93,7 +95,7 @@ export function useCbsActionBar({
   const viewReason = !hasTargetId
     ? "Enter or select a Record ID to view"
     : !access.canSee
-      ? "Requires See ('S') permission"
+      ? access.getDisableReason(CbsRecordFunction.SEE) || "Requires See ('S') permission"
       : undefined;
 
   // 3. Idle Perform Action (Wrench)
@@ -105,68 +107,68 @@ export function useCbsActionBar({
       : undefined;
 
   // 4. Commit / Save (Check ✓)
-  const commitEnabled = Boolean(!isView && onSubmit && !submitting && access.canInput);
-  const commitReason = isView
+  const commitEnabled = Boolean(!isReadOnly && onSubmit && !submitting && access.canInput);
+  const commitReason = isReadOnly
     ? "Disabled in View mode (Read-Only)"
     : !access.canInput
-      ? "Requires Input ('I') permission"
+      ? access.getDisableReason(CbsRecordFunction.INPUT) || "Requires Input ('I') permission"
       : undefined;
 
   // 5. Validate (?✓)
-  const validateEnabled = Boolean(!isView && onValidate && !submitting && access.canInput);
-  const validateReason = isView
+  const validateEnabled = Boolean(!isReadOnly && onValidate && !submitting && access.canInput);
+  const validateReason = isReadOnly
     ? "Disabled in View mode"
     : !access.canInput
-      ? "Requires Input ('I') permission"
+      ? access.getDisableReason(CbsRecordFunction.INPUT) || "Requires Input ('I') permission"
       : undefined;
 
   // 6. Hold (❚❚)
-  const holdEnabled = Boolean(!isView && onHold && !submitting && access.canHold);
-  const holdReason = isView
+  const holdEnabled = Boolean(!isReadOnly && onHold && !submitting && access.canHold);
+  const holdReason = isReadOnly
     ? "Disabled in View mode"
     : !access.canHold
-      ? "Requires Input ('I') permission to hold draft"
+      ? access.getDisableReason(CbsRecordFunction.HOLD) ||
+        "Requires Input ('I') permission to hold draft"
       : undefined;
 
   // 7. Delete (✕)
   const deleteEnabled = Boolean(isEdit && onDelete && !submitting && access.canDelete);
-  const deleteReason = isView
+  const deleteReason = isReadOnly
     ? "Disabled in View mode"
     : isCreate
       ? "Cannot delete an unsaved new record"
       : !access.canDelete
-        ? "Requires Delete ('D') permission"
+        ? access.getDisableReason(CbsRecordFunction.DELETE) || "Requires Delete ('D') permission"
         : undefined;
 
   // 8. Authorize (✓✓)
   const authorizeEnabled = Boolean(
     isAuth && onAuthorizeReverse && !submitting && access.canAuthorize,
   );
-  const authorizeReason =
-    isView && !isAuth
-      ? "Disabled in View mode"
-      : isCreate
-        ? "Cannot authorize an uncommitted record"
-        : !access.canAuthorize
-          ? access.getDisableReason("A") || "Requires Authorize ('A') permission"
-          : undefined;
+  const authorizeReason = isSee
+    ? "Disabled in View mode"
+    : isCreate
+      ? "Cannot authorize an uncommitted record"
+      : !access.canAuthorize
+        ? access.getDisableReason(CbsRecordFunction.AUTHORIZE) ||
+          "Requires Authorize ('A') permission"
+        : undefined;
 
   // 9. Reverse (✕✓)
   const reverseEnabled = Boolean(isAuth && onAuthorizeReverse && !submitting && access.canReverse);
-  const reverseReason =
-    isView && !isAuth
-      ? "Disabled in View mode"
-      : isCreate
-        ? "Cannot reverse an uncommitted record"
-        : !access.canReverse
-          ? access.getDisableReason("R") || "Requires Reverse ('R') permission"
-          : undefined;
+  const reverseReason = isSee
+    ? "Disabled in View mode"
+    : isCreate
+      ? "Cannot reverse an uncommitted record"
+      : !access.canReverse
+        ? access.getDisableReason(CbsRecordFunction.REVERSE) || "Requires Reverse ('R') permission"
+        : undefined;
 
   // 10. Process (▶)
   const processEnabled = Boolean(!submitting && onProcessAction);
 
   // 11. Return to Search (⬆)
-  const returnToSearchEnabled = Boolean(Boolean(onReturnToSearch) && !submitting);
+  const returnToSearchEnabled = Boolean(onReturnToSearch && !submitting);
 
   return {
     amend: { enabled: amendEnabled, reason: amendReason },
@@ -209,7 +211,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
           description: `Pasted record data into ${cleanCode}`,
           type: "info",
         }),
-      requiredRight: "I",
+      requiredRight: CbsRecordFunction.INPUT,
     },
     {
       label: "Search from live",
@@ -220,7 +222,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
           description: `Searching live file for ${cleanCode}`,
           type: "info",
         }),
-      requiredRight: "S",
+      requiredRight: CbsRecordFunction.SEE,
     },
     {
       label: "Search from unauth",
@@ -231,7 +233,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
           description: `Searching unauthorized file for ${cleanCode}`,
           type: "info",
         }),
-      requiredRight: "S",
+      requiredRight: CbsRecordFunction.SEE,
     },
     {
       label: "Search from history",
@@ -242,7 +244,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
           description: `Searching history file for ${cleanCode}`,
           type: "info",
         }),
-      requiredRight: "R",
+      requiredRight: CbsRecordFunction.REVERSE,
     },
     {
       label: "Show history record",
@@ -253,7 +255,36 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
           description: `Displaying history record for ${cleanCode}`,
           type: "info",
         }),
-      requiredRight: "R",
+      requiredRight: CbsRecordFunction.REVERSE,
     },
   ];
+}
+
+/**
+ * Resolves standard CBS More Actions preset with optional feature extensions.
+ * Automatically guarantees all CBS screens inherit standard actions (Copy, Paste, SFL, SFU, etc.)
+ * while allowing screens to append custom domain-specific operations.
+ */
+export function resolveMoreActions(
+  commandCode?: string,
+  extraActions: MoreActionItem[] = [],
+): MoreActionItem[] {
+  const baseActions = getDefaultMoreActions(commandCode || "RECORD");
+  if (!extraActions || extraActions.length === 0) {
+    return baseActions;
+  }
+
+  const seen = new Set<string>();
+  const merged: MoreActionItem[] = [];
+
+  // Extra actions take precedence over base presets
+  for (const item of [...extraActions, ...baseActions]) {
+    const key = item.command || item.label;
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(item);
+    }
+  }
+
+  return merged;
 }

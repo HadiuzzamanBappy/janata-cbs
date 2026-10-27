@@ -4,7 +4,6 @@ import { Code, Eye, FileText, Layers, Palette, ShieldCheck } from "lucide-react"
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
-import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { CbsControlTable } from "@/types";
 import { FcAuditTab } from "./components/fc-audit-tab";
 import { FcDesignerTab } from "./components/fc-designer-tab";
@@ -175,7 +174,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       }
       submitting={submitting || loading}
       availableItems={availableItems}
-      variant="admin-tabs"
+      variant="system"
       tabs={tabs}
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
@@ -186,8 +185,8 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
           <span>PRESENTATION_BUILDER</span>
         </div>
       }
+      // Clean extension: automatically inherits base actions (Copy, Paste, SFL, etc.)
       moreActions={[
-        ...getDefaultMoreActions("FORM.CONFIG"),
         {
           label: "Export Form JSON Spec",
           onClick: () => {

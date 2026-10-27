@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { cbs } from "@/lib/cbs-client";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import { CbsControlTable } from "@/types";
 
 export interface FcGeneralTabProps {
   formData: FormConfigRecord;
@@ -31,9 +32,10 @@ export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGe
     let mounted = true;
     async function loadFormModel() {
       try {
-        const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get("FORM.CONFIG"), {
-          silent: true,
-        });
+        const res = await cbs.send<ModelConfigRecord>(
+          cbs.modelConfig.get(CbsControlTable.FORM_CONFIG),
+          { silent: true },
+        );
         if (mounted && res.status === "SUCCESS" && res.data) {
           setModelDef(res.data);
         }

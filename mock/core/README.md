@@ -1,98 +1,71 @@
-# 🧪 CBS Mock Core: In-Memory Core Banking Simulator (`@mock/core`)
+# 🧪 CBS Mock Core (`@mock/core`)
 
-A high-fidelity, in-memory **Core Banking Protocol Simulator** for the **Janata Core Banking Workbench**.
-
-It powers the system when running in static mode (`DATA_SOURCE="static"` in `.env.local`), providing a 100% offline simulation of the CBS Core backend with **zero network sockets**, **zero external database dependencies**, and **exact wire protocol parity**.
+In-memory Core Banking protocol simulator for offline development (`DATA_SOURCE="static"` or `MOCK_CBS="true"`). Provides zero-socket simulation with strict wire parity to live gRPC endpoints.
 
 ---
 
-## 📦 What It Contains
+## 📦 Directory Map
 
 ```text
 mock/core/
-├── database-router.ts       # Resolves logical controlName to canonical CBS_DATABASE tables
-├── operation-handlers.ts    # Pattern-based protocol handlers for CBS verbs (GUM, GMC, GRL, GET, etc.)
-├── auth-simulator.ts        # User authentication & JWT token generation from SC_USER
-├── response-factory.ts      # Standardized response envelopes (200, 404, 401, GrpcResponse)
-├── index.ts                 # Public barrel: mockLogin, mockProcess, mockDispatch, getMockProxyResponse
-└── README.md                # Documentation & architectural reference
+├── auth-simulator.ts     # User authentication & token creation from SC_USER
+├── database-router.ts    # Resolves controlName to physical tables via SC_MODEL_CONFIG
+├── response-factory.ts   # Standardized envelopes (200, 404, 401, GrpcResponse)
+├── handlers/             # Domain protocol handlers partitioned by CBS verb
+│   ├── menu-handlers.ts      # GUM, GCM (Navigation tree)
+│   ├── model-handlers.ts     # GMC, GFC (Metamodels & form specs)
+│   ├── inquiry-handlers.ts   # INQ (Dynamic tabular inquiry executions)
+│   ├── query-handlers.ts     # GET, S, GRL, SBI, RIL (Read, list & search)
+│   └── mutation-handlers.ts  # PUT, AUT, DEL, HLD, REV, GNI (Mutations & IDs)
+└── index.ts              # Public entry: mockLogin, mockProcess, mockDispatch, getMockProxyResponse
 ```
 
 ---
 
-## ⚙️ Core Architecture & Execution Flow
+## 🎯 Supported Protocol Verbs & Handler Mapping
 
-```mermaid
-flowchart TD
-    Client["Transport Interceptor (@/lib/infra-grpc)<br/>(loginProcess, grpcProcess, dispatch)"]
-    
-    Client --> Route["mock-core/index.ts<br/>(Request Dispatcher)"]
+Requests dispatch dynamically by `requestType` to modular domain handlers:
 
-    Route -- "loginProcess" --> Auth["auth-simulator.ts<br/>(SC_USER Authentication & Token Generation)"]
-    Route -- "grpcProcess / dispatch" --> Op["operation-handlers.ts<br/>(RequestType Verb Router)"]
-
-    Op -- "Table Query (GRL, GET)" --> Router["database-router.ts<br/>(Physical Table Resolver)"]
-    Op -- "Menu (GUM)" --> Menu["SC_MENU_TREE"]
-    Op -- "Model Spec (GMC)" --> Model["SC_MODEL_CONFIG"]
-    Op -- "Inquiry (INQ)" --> Inq["SC_INQUIRY_CONFIG"]
-    Op -- "Next ID (GNI)" --> Seq["model.idDef.idPrefix"]
-    Op -- "Mutations (PUT, AUT...)" --> Mut["Lifecycle Status (AU, HLD, DEL)"]
-
-    Router --> DB[("CBS_DATABASE<br/>(mock/db/*.ts)")]
-    
-    Auth --> Resp["response-factory.ts"]
-    DB --> Resp
-    Resp --> Wire["Standard GrpcResponse / ApiResponse"]
-```
+| Verb(s)                         | Category            | Handler File           | Implementation           | Target Source                      |
+| :------------------------------ | :------------------ | :--------------------- | :----------------------- | :--------------------------------- |
+| **`GUM`**, **`GCM`**            | Navigation Menu     | `menu-handlers.ts`     | `handleGetMenu()`        | `SC_MENU_TREE`                     |
+| **`GMC`**                       | Model Spec          | `model-handlers.ts`    | `handleGetModelConfig()` | `SC_MODEL_CONFIG`                  |
+| **`GFC`**                       | Form Layout         | `model-handlers.ts`    | `handleGetFormConfig()`  | `SC_FORM_CONFIG`                   |
+| **`INQ`**                       | Dynamic Inquiry     | `inquiry-handlers.ts`  | `handleInquiry()`        | `SC_INQUIRY_CONFIG` + Target Table |
+| **`GET`**, **`S`**, **`GRV`**   | Read Record         | `query-handlers.ts`    | `handleSeeRecord()`      | Target Table `LIVE`                |
+| **`GRL`**, **`GCQ`**, **`GMV`** | List Records        | `query-handlers.ts`    | `handleRecordList()`     | Target Table `getList()`           |
+| **`SBI`**, **`RIL`**            | Search / ID List    | `query-handlers.ts`    | `handleSearchById()`     | Target Table `getIdList()`         |
+| **`GNI`**                       | Sequence / Draft ID | `mutation-handlers.ts` | `handleNextId()`         | Model `IDDEF` or user ID           |
+| **`PUT`**, **`SMC`**, **`SFC`** | Save Draft (Maker)  | `mutation-handlers.ts` | `handleMutation()`       | Writes `recStatus: "INA"`          |
+| **`AUT`**, **`AMC`**            | Authorize (Checker) | `mutation-handlers.ts` | `handleMutation()`       | Writes `recStatus: "AU"`           |
+| **`DEL`**, **`REV`**, **`HLD`** | Delete / Reverse    | `mutation-handlers.ts` | `handleMutation()`       | Status `"DEL"`, `"REV"`, `"HLD"`   |
 
 ---
 
-## 🎯 Supported Core Protocol Verbs
+## 🗄️ Database Resolution (`database-router.ts`)
 
-Every operation follows canonical CBS request verbs without requiring ad-hoc alias maps or fuzzy guessing:
-
-| Request Verb | Operation               | Source / Handler         | Returns                                                        |
-| ------------ | ----------------------- | ------------------------ | -------------------------------------------------------------- |
-| **`GUM`**    | Get User Menu           | `handleGetMenu()`        | Hierarchical navigation tree from `SC_MENU_TREE`               |
-| **`GMC`**    | Get Model Configuration | `handleGetModelConfig()` | Dynamic form & column definition from `SC_MODEL_CONFIG`        |
-| **`INQ`**    | Execute Inquiry Query   | `handleInquiry()`        | Query rows matching target model from `SC_INQUIRY_CONFIG`      |
-| **`GRL`**    | Generic Record List     | `handleRecordList()`     | Complete record collection (`table.LIST`) for `controlName`    |
-| **`GET`**    | Get Single Record       | `handleGetRecord()`      | Exact record by ID, or dynamic `MODEL,VERSION` layout template |
-| **`GNI`**    | Get Next ID Sequence    | `handleNextId()`         | Next sequential ID formatted with `idDef.idPrefix`             |
-| **`PUT`**    | Create / Update Record  | `handleMutation()`       | In-memory record with `RECORD_STATUS: "INA"`                   |
-| **`AUT`**    | Authorize Record        | `handleMutation()`       | In-memory record with `RECORD_STATUS: "AU"`                    |
-| **`DEL`**    | Delete Record           | `handleMutation()`       | In-memory record with `RECORD_STATUS: "DEL"`                   |
-| **`HLD`**    | Hold Record             | `handleMutation()`       | In-memory record with `RECORD_STATUS: "HLD"`                   |
-| **`REV`**    | Reverse Record          | `handleMutation()`       | In-memory record with `RECORD_STATUS: "REV"`                   |
-
----
-
-## 🗄️ Two-Tier Model to Physical Database Routing
-
-In Core Banking, the frontend passes a logical `controlName` (e.g. `ACCOUNT`, `CUSTOMER`). The database router resolves this to the physical database table (`AC_ACCOUNT`, `CUST_CUSTOMER`) automatically:
+Translates client `controlName` into physical table accessors via `SC_MODEL_CONFIG`:
 
 ```typescript
 import { resolveTable } from "@mock/core/database-router";
 
-// Automatically resolves 'ACCOUNT' -> 'AC_ACCOUNT' via SC_MODEL_CONFIG
-const table = resolveTable("ACCOUNT");
+const table = resolveTable("CONFIG.FORM"); // Resolves to SC_FORM_CONFIG
 
 if (table) {
-  console.log("Physical table:", table.name); // 'AC_ACCOUNT'
-  console.log("Records available:", table.getList().length);
+  const records = table.getList("LIVE"); // Array of live records
+  const ids = table.getIdList("AC*"); // Matching record IDs
+  const liveRec = table.LIVE["ACCOUNT,1.0.0"];
 }
 ```
 
 ---
 
-## 🚀 How to Use
+## 🚀 Execution Points
 
-### 1. In Transport Layer (`@/lib/infra-grpc`)
+### 1. Transport Interception (`@/lib/infra-grpc`)
 
-Domain services call standard gRPC methods without knowing they are being intercepted:
-
+Intercepts gRPC calls during static/mock execution:
 ```typescript
-// Inside src/lib/infra-grpc/client.ts
 import { isStaticMode } from "./client";
 import { mockLogin, mockProcess } from "@mock/core";
 
@@ -100,53 +73,37 @@ export async function grpcProcess(req: GrpcRequest): Promise<GrpcResponse> {
   if (isStaticMode()) {
     return mockProcess(req);
   }
-  // Otherwise, live HTTP/2 gRPC channel
   return liveClient.Process(req);
 }
 ```
 
-### 2. In Direct Server-Side Simulation
+### 2. Direct Server Dispatch (`getMockProxyResponse`)
 
+Used by `/api/proxy` to service UI requests:
 ```typescript
 import { getMockProxyResponse } from "@mock/core";
 
-// Fetch list of Accounts
-const accountList = getMockProxyResponse("GRL", "ACCOUNT");
-
-// Fetch single Customer by ID
-const customer = getMockProxyResponse("GET", "CUSTOMER", "CU1001");
-
-// Generate Next ID for Account opening
-const nextId = getMockProxyResponse("GNI", "ACCOUNT");
+const menu = getMockProxyResponse("GUM");
+const model = getMockProxyResponse("GMC", "ACCOUNT");
+const form = getMockProxyResponse("GFC", "CONFIG.FORM", "ACCOUNT,1.0.0");
+const record = getMockProxyResponse("GET", "ACCOUNT", "AC1001");
 ```
 
 ---
 
-## 📈 How to Scale in the Future
+## ➕ Scaling: Adding Verbs or Tables
 
-The architecture is strictly data-driven:
-
-- **To add a new business table (e.g. `LOAN`)**:
-  1. Add `LN_LOAN.ts` in [`mock/db/`](file:///d:/Work/React/cbs/janata-cbs/mock/db/).
-  2. Add `LOAN: LN_LOAN_TABLE` to `CBS_DATABASE` in [`mock/db/index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/db/index.ts).
-  3. **Zero code changes needed in `core`**! The database router immediately discovers and serves it.
-
-- **To add a new CBS protocol verb (e.g. `VAL` for field validation)**:
-  1. Add `handleValidation()` in [`operation-handlers.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/core/operation-handlers.ts).
-  2. Map `reqType === "VAL"` in [`index.ts`](file:///d:/Work/React/cbs/janata-cbs/mock/core/index.ts).
+- **Add a Table**: Add `mock/db/<PREFIX>_<TABLENAME>.ts`, register in `CBS_PHYSICAL_TABLES`, and define in `SC_MODEL_CONFIG.ts`. Core automatically discovers and serves it without changes.
+- **Add a Verb**: Implement the handler under `mock/core/handlers/<domain>-handlers.ts` and route `reqType` in `mock/core/index.ts`.
 
 ---
 
-## 🧪 Verification & Testing
-
-Run the dedicated 33-test suite covering authentication, gRPC simulation, and proxy CRUD matrices:
+## 🧪 Verification
 
 ```bash
-pnpm tsx scripts/verify-mock-core.ts
-```
+# Run mock services test suite
+pnpm tsx scripts/verify/verify-mock-services.ts
 
-Run all system verification suites:
-
-```bash
+# Run all 10 CBS verification suites
 pnpm run verify:all
 ```

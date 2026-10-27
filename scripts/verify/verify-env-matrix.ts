@@ -71,7 +71,6 @@ async function runSuite() {
     rawControlRecordSchema,
     systemCommandItemSchema,
     updateBranchSessionSchema,
-    userGroupRecordSchema,
     WIDGET_COMPATIBILITY_MAP,
   } = await import("@/lib/data-schemas");
 
@@ -379,7 +378,7 @@ async function runSuite() {
       {
         SN: "1",
         NAME: "accountType",
-        TYPE: "Dropdown",
+        TYPE: "Text",
         LABEL: "Account Type",
         REQUIRED: true,
       },
@@ -485,38 +484,27 @@ async function runSuite() {
     validMenuTree.success,
   );
 
-  // 2.8 User Group & Permissions Schemas
-  const sampleUserGroup = {
-    recordId: "UG_ADMIN",
-    groupLabel: "System Administrators",
-    menuIds: ["MENU_1", "MENU_2"],
-    roleIds: ["ROLE_ADMIN"],
-  };
-  const validUserGroup = userGroupRecordSchema.safeParse(sampleUserGroup);
-  assert(
-    "Data Schemas: userGroupRecordSchema validates role group authorization specs",
-    validUserGroup.success,
-  );
-
   // 2.9 Widget & Field Compatibility Rules
   assert(
-    "Field Compatibility: WIDGET_COMPATIBILITY_MAP maps all 10 property types to valid widgets",
-    Object.keys(WIDGET_COMPATIBILITY_MAP).length >= 10 &&
+    "Field Compatibility: WIDGET_COMPATIBILITY_MAP maps all primitive property types to valid widgets",
+    Object.keys(WIDGET_COMPATIBILITY_MAP).length === 3 &&
+      WIDGET_COMPATIBILITY_MAP.Text.includes("switch") &&
       WIDGET_COMPATIBILITY_MAP.Number.includes("amount") &&
-      WIDGET_COMPATIBILITY_MAP.Boolean.includes("switch"),
+      WIDGET_COMPATIBILITY_MAP.Date.includes("date"),
   );
 
   assert(
     "Field Compatibility: isWidgetCompatible confirms valid bindings",
     isWidgetCompatible("Number", "amount") === true &&
       isWidgetCompatible("Text", "textarea") === true &&
-      isWidgetCompatible("Boolean", "textarea") === false,
+      isWidgetCompatible("Text", "switch") === true &&
+      isWidgetCompatible("Date", "textarea") === false,
   );
 
   assert(
     "Field Compatibility: getDefaultWidget returns primary presentation widget",
-    getDefaultWidget("Number") === "number" &&
-      getDefaultWidget("Boolean") === "switch" &&
+    getDefaultWidget("Text") === "text" &&
+      getDefaultWidget("Number") === "number" &&
       getDefaultWidget("Date") === "date",
   );
 

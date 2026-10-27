@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/select";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import { flattenModelProperties } from "@/lib/data-parsers";
 import type { InquiryFilterConfig } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
@@ -226,7 +225,7 @@ export function IcSelectionTab({
           silent: true,
         });
         if (mounted && res.status === "SUCCESS" && res.data?.PROPERTIES) {
-          setModelProps(flattenModelProperties(res.data.PROPERTIES));
+          setModelProps(res.data.PROPERTIES);
         }
       } catch {
         if (mounted) setModelProps([]);

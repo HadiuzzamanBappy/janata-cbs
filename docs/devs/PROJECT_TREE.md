@@ -355,15 +355,14 @@ janata-cbs/
     |   |       auth-parser.ts, branch-parser.ts, control-parser.ts,
     |   |       form-parser.ts, inquiry-parser.ts, menu-catalog-parser.ts,
     |   |       menu-designer-parser.ts, menu-parser.ts,
-    |   |       model-config-parser.ts, protobuf-decoder.ts,
-    |   |       user-group-parser.ts, index.ts
+    |   |       model-config-parser.ts, protobuf-decoder.ts, index.ts
     |   |
     |   +---data-schemas/                      # Zod Runtime Schemas
     |   |       auth-schema.ts, branch-schema.ts, common-schema.ts,
     |   |       control-schema.ts, env-schema.ts, form-config-schema.ts,
-    |   |       form-schema.ts, form-spec-schema.ts, inquiry-config-schema.ts,
-    |   |       inquiry-schema.ts, menu-catalog-schema.ts, menu-designer-schema.ts,
-    |   |       menu-schema.ts, model-config-schema.ts, user-group-schema.ts, index.ts
+    |   |       form-schema.ts, inquiry-config-schema.ts, inquiry-schema.ts,
+    |   |       menu-catalog-schema.ts, menu-designer-schema.ts, menu-schema.ts,
+    |   |       model-config-schema.ts, index.ts
     |   |
     |   +---infra-grpc/                        # gRPC Microservices Engine
     |   |   |   client.ts                      # gRPC client initialization & status mappers

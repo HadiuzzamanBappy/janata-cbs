@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import { flattenModelProperties } from "@/lib/data-parsers";
 import type { FormFieldItem, FormWidgetType } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
@@ -70,7 +69,7 @@ export function FieldPalette({
       .send<ModelConfigRecord>(cbs.modelConfig.get(targetModel))
       .then((res) => {
         if (isMounted && res.data?.PROPERTIES) {
-          setModelProperties(flattenModelProperties(res.data.PROPERTIES));
+          setModelProperties(res.data.PROPERTIES);
         }
       })
       .catch(() => {

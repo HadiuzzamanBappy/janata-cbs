@@ -53,7 +53,6 @@ import {
 } from "@/components/ui/select";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import { flattenModelProperties } from "@/lib/data-parsers";
 import type {
   InquiryActionConfig,
   InquiryColumnConfig,
@@ -453,7 +452,7 @@ export function IcTableTab({
           silent: true,
         });
         if (mounted && res.status === "SUCCESS" && res.data?.PROPERTIES) {
-          setModelProps(flattenModelProperties(res.data.PROPERTIES));
+          setModelProps(res.data.PROPERTIES);
         }
       } catch {
         if (mounted) setModelProps([]);

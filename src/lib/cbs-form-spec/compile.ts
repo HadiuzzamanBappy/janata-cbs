@@ -1,4 +1,3 @@
-import { flattenModelProperties } from "@/lib/data-parsers";
 import {
   type CompiledFormSpec,
   compiledFormSpecSchema,
@@ -20,7 +19,6 @@ import {
  * Computes optimal 12-column grid span based on model property type and length.
  */
 export function colSpanForLength(prop: ModelProperty): number {
-  if (prop.TYPE === "Textarea") return 12;
   if (prop.LENGTH && prop.LENGTH > 60) return 12;
   if (prop.LENGTH && prop.LENGTH <= 15) return 4;
   return 6;
@@ -30,76 +28,32 @@ export function colSpanForLength(prop: ModelProperty): number {
  * Generates canonical 12-column responsive fallback sections from a model.
  */
 function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
-  const allProps = flattenModelProperties(model.PROPERTIES || []);
-  const activeProps = allProps;
+  const allProps = model.PROPERTIES || [];
 
-  // Identify parent Objects and their structure ("S" or "M")
-  const objectParents = new Map<string, ModelProperty>();
-  for (const p of activeProps) {
-    if (p.TYPE === "Object") {
-      objectParents.set(p.SN, p);
+  const rootFields: FormFieldItem[] = allProps.map((p) => {
+    const snStr = String(p.SN ?? "");
+    const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
+
+    let resolvedColSpan = 12;
+    if (typeof p.WIDTH === "number" && p.WIDTH >= 1 && p.WIDTH <= 12) {
+      resolvedColSpan = p.WIDTH;
+    } else {
+      resolvedColSpan = colSpanForLength(p);
     }
-  }
 
-  // Track first child per group parent
-  const seenGroupFirstChild = new Set<string>();
-
-  // Keep all fields inline in natural sequence.
-  // Object containers themselves are not input fields, but their child fields are rendered inline.
-  // Format numbering: e.g. parent "8", child "8_1" -> label displays with numbering like "8.1".
-  const rootFields: FormFieldItem[] = activeProps
-    .filter((p) => p.TYPE !== "Object")
-    .map((p) => {
-      const snStr = String(p.SN ?? "");
-      const isGroupChild = snStr.includes("_");
-      const parentSn = isGroupChild ? snStr.substring(0, snStr.lastIndexOf("_")) : null;
-      const parentObj = parentSn ? objectParents.get(parentSn) : null;
-
-      // Base label from property definition
-      const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
-      // Clean display label without cluttering with parent/child suffix
-      const displayLabel = baseLabel;
-
-      // Group metadata:
-      // Multi-value ("M") belongs to the parent Object, NOT individual child fields!
-      // Each child field keeps its own structure (usually "S").
-      const isFirstInGroup = Boolean(parentSn && !seenGroupFirstChild.has(parentSn));
-      if (parentSn && isFirstInGroup) {
-        seenGroupFirstChild.add(parentSn);
-      }
-
-      // Determine colSpan: if p.WIDTH is provided and valid (1..12), use it;
-      // otherwise, if p.WIDTH is larger than 12 (e.g. pixels from legacy), or not specified, fallback to colSpanForLength(p) or 12.
-      let resolvedColSpan = 12;
-      if (typeof p.WIDTH === "number" && p.WIDTH >= 1 && p.WIDTH <= 12) {
-        resolvedColSpan = p.WIDTH;
-      } else if (p.TYPE === "Textarea") {
-        resolvedColSpan = 12;
-      } else {
-        resolvedColSpan = colSpanForLength(p);
-      }
-
-      return {
-        id: `f_${p.NAME || p.SN}`,
-        fieldKey: p.NAME || `field_${p.SN}`,
-        label: displayLabel,
-        widget: getDefaultWidget(p.TYPE),
-        modelType: p.TYPE,
-        length: p.LENGTH,
-        structure: p.STRUCTURE || "S", // Keep individual field structure (single)
-        groupKey: parentObj?.NAME,
-        groupSn: parentSn ?? undefined,
-        groupLabel: parentObj?.LABEL || parentObj?.NAME,
-        groupStructure: parentObj?.STRUCTURE,
-        isFirstInGroup: isFirstInGroup,
-        parameter: p.PARAMETER,
-        colSpan: Math.min(Math.max(resolvedColSpan, 1), 12),
-        required: p.REQUIRED,
-        readOnly: p.DISABLED,
-        placeholder:
-          p.ENRICHTEXT || (p.DEFAULTVALUE !== undefined ? String(p.DEFAULTVALUE) : undefined),
-      };
-    });
+    return {
+      id: `f_${p.NAME || p.SN}`,
+      fieldKey: p.NAME || `field_${p.SN}`,
+      label: baseLabel,
+      widget: getDefaultWidget(p.TYPE),
+      modelType: p.TYPE,
+      length: p.LENGTH,
+      structure: p.STRUCTURE || "S",
+      colSpan: Math.min(Math.max(resolvedColSpan, 1), 12),
+      required: p.REQUIRED,
+      readOnly: false,
+    };
+  });
 
   const sections: FormSection[] = [];
 
@@ -107,7 +61,7 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
     sections.push({
       id: "sec_default",
       title: model.DESCRIPTION || model.TABLENAME || "General Attributes",
-      description: "Raw Model Field Specifications",
+      description: "Physical Data Dictionary Fields",
       type: "standard",
       zone: "standard",
       layoutStyle: "card",
@@ -163,18 +117,9 @@ export function compileFormSpec(
   }
 
   // Case B: Custom Layout Composition
-  // With append-only model evolution, layouts are directly composed against model properties
-  const allProps = flattenModelProperties(model.PROPERTIES || []);
+  // Layouts are composed directly against physical model properties
+  const allProps = model.PROPERTIES || [];
   const propertyMap = new Map(allProps.map((p) => [p.NAME.toLowerCase(), p]));
-
-  // Identify parent Objects and their structure ("S" or "M")
-  const objectParents = new Map<string, ModelProperty>();
-  for (const p of allProps) {
-    if (p.TYPE === "Object") {
-      objectParents.set(p.SN, p);
-    }
-  }
-  const seenGroupFirstChild = new Set<string>();
 
   const cleanSections: FormSection[] = [];
   const flatFields: FormFieldItem[] = [];
@@ -196,23 +141,12 @@ export function compileFormSpec(
         ? currentWidget
         : getDefaultWidget(modelProp.TYPE);
 
-      // Resolve group metadata from model property hierarchy
-      const propSnStr = String(modelProp.SN ?? "");
-      const isGroupChild = propSnStr.includes("_");
-      const parentSn = isGroupChild ? propSnStr.substring(0, propSnStr.lastIndexOf("_")) : null;
-      const parentObj = parentSn ? objectParents.get(parentSn) : null;
-
-      const isFirstInGroup = Boolean(parentSn && !seenGroupFirstChild.has(parentSn));
-      if (parentSn && isFirstInGroup) {
-        seenGroupFirstChild.add(parentSn);
-      }
-
       const fieldColSpan =
         typeof field.colSpan === "number" && field.colSpan >= 1 && field.colSpan <= 12
           ? field.colSpan
           : typeof modelProp.WIDTH === "number" && modelProp.WIDTH >= 1 && modelProp.WIDTH <= 12
             ? modelProp.WIDTH
-            : 12;
+            : colSpanForLength(modelProp);
 
       const resolvedField: FormFieldItem = {
         ...field,
@@ -221,15 +155,9 @@ export function compileFormSpec(
         modelType: modelProp.TYPE,
         length: modelProp.LENGTH,
         structure: modelProp.STRUCTURE || field.structure || "S",
-        groupKey: parentObj?.NAME || field.groupKey,
-        groupSn: parentSn ?? field.groupSn,
-        groupLabel: parentObj?.LABEL || parentObj?.NAME || field.groupLabel,
-        groupStructure: parentObj?.STRUCTURE || field.groupStructure,
-        isFirstInGroup: isFirstInGroup || field.isFirstInGroup,
         colSpan: Math.min(Math.max(fieldColSpan, 1), 12),
         required: modelProp.REQUIRED ?? field.required,
-        readOnly: modelProp.DISABLED ?? field.readOnly,
-        parameter: modelProp.PARAMETER ?? field.parameter,
+        readOnly: field.readOnly ?? false,
       };
 
       cleanFields.push(resolvedField);
@@ -291,12 +219,13 @@ export function resolveFormRecord(
           SN: String(idx + 1),
           NAME: f.fieldKey,
           LABEL: f.label,
-          TYPE: (f.modelType || "Text") as ModelProperty["TYPE"],
+          TYPE: (f.modelType === "Number" || f.modelType === "Date"
+            ? f.modelType
+            : "Text") as ModelProperty["TYPE"],
           STRUCTURE: "S" as const,
           LENGTH: f.length || 50,
           REQUIRED: Boolean(f.required),
-          DISABLED: Boolean(f.readOnly),
-          STATUS: "ACTIVE" as const,
+          WIDTH: 200,
         })),
     );
 
@@ -313,8 +242,11 @@ export function resolveFormRecord(
       ASSOCIATES: [],
       _DEVBY: "",
       _DEVDATE: "",
-      IDDEF: { IDPREFIX: "", IDPATTERN: "", SEQUENCERESET: false },
+      IDDEF: { IDPREFIX: "", IDPATTERN: "", SEQUENCERESET: false, SEQUENCELENGTH: "" },
       PROPERTIES: syntheticProps,
+      VIEWDEF: [],
+      IDROUTINE: "",
+      FIELDBASED: false,
     };
 
     return compileFormSpec(syntheticModel, formConfig);

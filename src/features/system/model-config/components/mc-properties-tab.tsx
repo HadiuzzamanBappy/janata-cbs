@@ -14,20 +14,8 @@ interface McPropertiesTabProps {
   onSelectSN?: (sn: string) => void;
   validationErrors?: ValidationErrorItem[];
   onAddField: () => string;
-  onAddChildField?: (parentSN: string) => string;
   onUpdateField: (sn: string, patch: Partial<ModelProperty>) => void;
   onRemoveField: (sn: string, forceHardDelete?: boolean) => void;
-}
-
-function findPropertyBySN(items: ModelProperty[], sn: string): ModelProperty | undefined {
-  for (const item of items) {
-    if (item.SN === sn) return item;
-    if (item.PROP && item.PROP.length > 0) {
-      const match = findPropertyBySN(item.PROP, sn);
-      if (match) return match;
-    }
-  }
-  return undefined;
 }
 
 export function McPropertiesTab({
@@ -38,7 +26,6 @@ export function McPropertiesTab({
   onSelectSN: onControlledSelectSN,
   validationErrors = [],
   onAddField,
-  onAddChildField,
   onUpdateField,
   onRemoveField,
 }: McPropertiesTabProps) {
@@ -50,14 +37,6 @@ export function McPropertiesTab({
     setInternalSN(sn);
   };
 
-  const handleAddChild = (parentSN: string) => {
-    if (!onAddChildField) return;
-    const newSn = onAddChildField(parentSN);
-    if (newSn) {
-      handleSelectSN(newSn);
-    }
-  };
-
   // Keep selectedSN valid
   React.useEffect(() => {
     if (properties.length === 0) {
@@ -65,22 +44,23 @@ export function McPropertiesTab({
       setInternalSN(null);
       return;
     }
-    const exists = selectedSN ? findPropertyBySN(properties, selectedSN) !== undefined : false;
-    if (!exists) {
-      const fallback = properties[0]?.SN || null;
-      if (onControlledSelectSN && fallback) onControlledSelectSN(fallback);
-      setInternalSN(fallback);
+
+    const currentExists = selectedSN ? properties.some((p) => p.SN === selectedSN) : false;
+    if (!currentExists && properties.length > 0) {
+      const fallbackSN = properties[0].SN;
+      if (onControlledSelectSN) onControlledSelectSN(fallbackSN);
+      setInternalSN(fallbackSN);
     }
   }, [properties, selectedSN, onControlledSelectSN]);
 
   const selectedProperty = React.useMemo(() => {
     if (!selectedSN) return undefined;
-    return findPropertyBySN(properties, selectedSN);
+    return properties.find((p) => p.SN === selectedSN);
   }, [properties, selectedSN]);
 
   return (
     <div className="h-full w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0">
-      {/* 1. Left Panel: Master Field Navigator */}
+      {/* 1. Left Panel: Flat Column Navigator */}
       <McPropertyList
         properties={properties}
         selectedSN={selectedSN}
@@ -89,29 +69,25 @@ export function McPropertiesTab({
         isFieldCommitted={isFieldCommitted}
         validationErrors={validationErrors}
         onAddField={onAddField}
-        onAddChild={handleAddChild}
         onDeleteField={onRemoveField}
       />
 
-      {/* 2. Right Panel: Field Details Inspector Form */}
+      {/* 2. Right Panel: Column Details Inspector Form */}
       <div className="flex-1 flex flex-col min-h-0 bg-background/50 overflow-hidden">
         {selectedProperty ? (
           <McPropertyInspector
             property={selectedProperty}
-            allProperties={properties}
             isReadOnly={isReadOnly}
             isCommitted={isFieldCommitted(selectedProperty.SN)}
             validationErrors={validationErrors}
             onUpdate={onUpdateField}
             onDelete={onRemoveField}
-            onSelectSN={handleSelectSN}
-            onAddChild={handleAddChild}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">
             <Layers className="size-7 text-muted-foreground/35 mb-2" />
             <p className="text-xs text-muted-foreground/80">
-              Select a property on the left to inspect or edit details
+              Select a column on the left to inspect or edit details
             </p>
           </div>
         )}

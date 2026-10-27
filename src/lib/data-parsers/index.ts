@@ -14,4 +14,3 @@ export * from "./menu-designer-parser";
 export * from "./menu-parser";
 export * from "./model-config-parser";
 export * from "./protobuf-decoder";
-export * from "./user-group-parser";

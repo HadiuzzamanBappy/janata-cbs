@@ -11,21 +11,16 @@ export function mapZodIssuesToValidationErrors(
 ): ValidationErrorItem[] {
   return issues.map((issue, idx) => {
     const path = issue.path;
-    let tab: "general" | "properties" | "audit" = "general";
+    let tab: "general" | "properties" | "views" | "audit" = "general";
     let sn: string | undefined;
     const fieldKey = String(path[path.length - 1] || "unknown");
 
     if ((path[0] === "PROPERTIES" || path[0] === "properties") && typeof path[1] === "number") {
       tab = "properties";
-      let currentProps: ModelProperty[] | undefined = properties;
-      let targetProp: ModelProperty | undefined;
-      for (let i = 1; i < path.length; i++) {
-        if (typeof path[i] === "number" && currentProps) {
-          targetProp = currentProps[path[i] as number];
-          currentProps = targetProp?.PROP;
-        }
-      }
+      const targetProp = properties[path[1] as number];
       sn = targetProp?.SN;
+    } else if (path[0] === "VIEWDEF" || path[0] === "viewDef") {
+      tab = "views";
     } else if (path[0] === "auditData" || path[0] === "AUDITDATA") {
       tab = "audit";
     }

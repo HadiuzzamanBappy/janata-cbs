@@ -144,6 +144,15 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     type: "boolean",
   },
   {
+    path: "IDROUTINE",
+    label: "ID Routine",
+    group: "ID_RULES",
+    type: "text",
+    placeholder: "e.g. RT.GEN.CUST.ID",
+    uppercase: true,
+    width: "half",
+  },
+  {
     path: "IDDEF.IDPREFIX",
     label: "ID Prefix",
     group: "ID_RULES",
@@ -198,6 +207,12 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
   {
     path: "SEARCHABLE",
     label: "Searchable",
+    group: "FLAGS",
+    type: "boolean",
+  },
+  {
+    path: "FIELDBASED",
+    label: "Field Based Auth",
     group: "FLAGS",
     type: "boolean",
   },

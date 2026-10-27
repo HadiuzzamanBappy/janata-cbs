@@ -13,16 +13,16 @@ src/lib/data-schemas/
 ├── common-schema.ts        # Universal wire request envelope (cbsWirePayloadSchema), audit models, and responses
 ├── env-schema.ts           # Runtime environment and secrets validation (envSchema)
 ├── auth-schema.ts          # Login credentials, session token contracts, and CurrentUser profile
-├── form-schema.ts          # Dynamic GMC FormSchema, field definitions, sections, and tab layouts
-├── form-config-schema.ts   # Form Designer Canvas and component layout schema models
+├── form-schema.ts          # Raw gRPC GMC wire records and parser output models
+├── form-config-schema.ts   # Form Designer Canvas layout, widget compatibility & CompiledFormSpec contracts
 ├── inquiry-schema.ts       # Enquiry query parameters, filter operators, and high-density column specs
+├── inquiry-config-schema.ts# Visual inquiry designer configurations (columns, filters, actions)
 ├── branch-schema.ts        # Core banking branch directory record schema (BranchRecord)
 ├── control-schema.ts       # System commands, alias mappings, and control table catalog models
-├── user-group-schema.ts    # Role-Based Access Control (RBAC), user groups, and matrix permissions
-├── menu-schema.ts          # Navigation menu item schema (MenuItem)
+├── menu-schema.ts          # Navigation menu item schema (MenuItem & raw gRPC menu records)
 ├── menu-catalog-schema.ts  # Flat menu item definition schema (SC.MENU)
 ├── menu-designer-schema.ts # Hierarchical visual menu tree schema (SC.MENU.TREE)
-├── model-config-schema.ts  # Dynamic Model Builder & schema configuration models
+├── model-config-schema.ts  # Dynamic Model Builder & schema configuration models (SC.MODEL.CONFIG)
 └── index.ts                # Public barrel export
 ```
 

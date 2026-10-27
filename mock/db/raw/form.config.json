@@ -1,0 +1,1164 @@
+[
+  {
+    "servicePath": "default",
+    "requestType": "GFC",
+    "controlName": "CONFIG.FORM",
+    "recordFunction": "S",
+    "recordId": "USERS,NEWUSER"
+  },
+  {
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "message": "record successfully processed!",
+    "idempotencyKey": "",
+    "errors": [],
+    "timestamp": "2026-10-27T10:34:13.390530321Z",
+    "data": {
+      "_DEVBY": "AVIJIT SAHA",
+      "_DEVDATE": "2026-01-19",
+      "DESCRIPTION": "USERS MAIN TABLE",
+      "PREFIX": "UM",
+      "TABLENAME": "USERS",
+      "USERDEFINEID": true,
+      "ACCESS": "G",
+      "READONLY": false,
+      "SEARCHABLE": false,
+      "ASSOCIATES": ["HIS", "UNA", "DEL"],
+      "AUTHORIZE": true,
+      "SERVICEPATH": "finxurm",
+      "IDDEF": {
+        "IDPREFIX": "",
+        "SEQUENCELENGTH": "20",
+        "SEQUENCERESET": false,
+        "IDPATTERN": ""
+      },
+      "PROPERTIES": [
+        {
+          "SN": "1",
+          "NAME": "userName",
+          "LABEL": "User Name",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "65",
+          "REQUIRED": false,
+          "WIDTH": 265
+        },
+        {
+          "SN": "2",
+          "NAME": "signOnName",
+          "LABEL": "Sign On Name",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "16",
+          "REQUIRED": false,
+          "WIDTH": 216
+        },
+        {
+          "SN": "3",
+          "NAME": "classification",
+          "LABEL": "Classification",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "8",
+          "REQUIRED": false,
+          "WIDTH": 208
+        },
+        {
+          "SN": "4",
+          "NAME": "language",
+          "LABEL": "Language",
+          "TYPE": "Number",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "5",
+          "NAME": "companyCode",
+          "LABEL": "Company Code",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "6",
+          "NAME": "departmentCode",
+          "LABEL": "Department Code",
+          "TYPE": "Number",
+          "STRUCTURE": "S",
+          "LENGTH": "4",
+          "REQUIRED": false,
+          "WIDTH": 204
+        },
+        {
+          "SN": "7",
+          "NAME": "passwordValidity",
+          "LABEL": "Password Validity",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "17",
+          "REQUIRED": false,
+          "WIDTH": 217
+        },
+        {
+          "SN": "8",
+          "NAME": "startDateProfile",
+          "LABEL": "Start Date Profile",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "9",
+          "NAME": "endDateProfile",
+          "LABEL": "End Date Profile",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "10",
+          "NAME": "startTime",
+          "LABEL": "Start Time",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "5",
+          "REQUIRED": false,
+          "WIDTH": 205
+        },
+        {
+          "SN": "11",
+          "NAME": "endTime",
+          "LABEL": "End Time",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "5",
+          "REQUIRED": false,
+          "WIDTH": 205
+        },
+        {
+          "SN": "12",
+          "NAME": "timeOutMinutes",
+          "LABEL": "Time Out Minutes",
+          "TYPE": "Number",
+          "STRUCTURE": "S",
+          "LENGTH": "3",
+          "REQUIRED": false,
+          "WIDTH": 203
+        },
+        {
+          "SN": "13",
+          "NAME": "attempts",
+          "LABEL": "Attempts",
+          "TYPE": "Number",
+          "STRUCTURE": "S",
+          "LENGTH": "1",
+          "REQUIRED": false,
+          "WIDTH": 201
+        },
+        {
+          "SN": "14",
+          "NAME": "initApplication",
+          "LABEL": "Init Application",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "42",
+          "REQUIRED": false,
+          "WIDTH": 242
+        },
+        {
+          "SN": "15",
+          "NAME": "customer",
+          "LABEL": "Customer",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "10",
+          "REQUIRED": false,
+          "WIDTH": 210
+        },
+        {
+          "SN": "16",
+          "NAME": "account",
+          "LABEL": "Account",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "16",
+          "REQUIRED": false,
+          "WIDTH": 216
+        },
+        {
+          "SN": "17",
+          "NAME": "companyRestr",
+          "LABEL": "Company Restr",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "18",
+          "NAME": "application",
+          "LABEL": "Application",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "40",
+          "REQUIRED": false,
+          "WIDTH": 240
+        },
+        {
+          "SN": "19",
+          "NAME": "version",
+          "LABEL": "Version",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "50",
+          "REQUIRED": false,
+          "WIDTH": 250
+        },
+        {
+          "SN": "20",
+          "NAME": "function",
+          "LABEL": "Function",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "31",
+          "REQUIRED": false,
+          "WIDTH": 231
+        },
+        {
+          "SN": "21",
+          "NAME": "fieldNo",
+          "LABEL": "Field No",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "55",
+          "REQUIRED": false,
+          "WIDTH": 255
+        },
+        {
+          "SN": "22",
+          "NAME": "dataComparison",
+          "LABEL": "Data Comparison",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "7",
+          "REQUIRED": false,
+          "WIDTH": 207
+        },
+        {
+          "SN": "23",
+          "NAME": "dataFrom",
+          "LABEL": "Data From",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "55",
+          "REQUIRED": false,
+          "WIDTH": 255
+        },
+        {
+          "SN": "24",
+          "NAME": "dataTo",
+          "LABEL": "Data To",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "55",
+          "REQUIRED": false,
+          "WIDTH": 255
+        },
+        {
+          "SN": "25",
+          "NAME": "signOnOffLog",
+          "LABEL": "Sign On Off Log",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "26",
+          "NAME": "securityMgmtL",
+          "LABEL": "Security Mgmt L",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "27",
+          "NAME": "applicationLog",
+          "LABEL": "Application Log",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "28",
+          "NAME": "functionIdLog",
+          "LABEL": "Function Id Log",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "29",
+          "NAME": "inputDayMonth",
+          "LABEL": "Input Day Month",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "4",
+          "REQUIRED": false,
+          "WIDTH": 204
+        },
+        {
+          "SN": "30",
+          "NAME": "attemptsSince",
+          "LABEL": "Attempts Since",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "1",
+          "REQUIRED": false,
+          "WIDTH": 201
+        },
+        {
+          "SN": "31",
+          "NAME": "dateLastSignOn",
+          "LABEL": "Date Last Sign On",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "32",
+          "NAME": "timeLastSignOn",
+          "LABEL": "Time Last Sign On",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "8",
+          "REQUIRED": false,
+          "WIDTH": 208
+        },
+        {
+          "SN": "33",
+          "NAME": "password",
+          "LABEL": "Password",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "16",
+          "REQUIRED": false,
+          "WIDTH": 216
+        },
+        {
+          "SN": "34",
+          "NAME": "passwChangeDate",
+          "LABEL": "Passw Change Date",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "35",
+          "NAME": "passwEndDate",
+          "LABEL": "Passw End Date",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "36",
+          "NAME": "deactivationDate",
+          "LABEL": "Deactivation Date",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "37",
+          "NAME": "reactivationDate",
+          "LABEL": "Reactivation Date",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "38",
+          "NAME": "clearScreen",
+          "LABEL": "Clear Screen",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "39",
+          "NAME": "overrideClass",
+          "LABEL": "Override Class",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "4",
+          "REQUIRED": false,
+          "WIDTH": 204
+        },
+        {
+          "SN": "40",
+          "NAME": "dealerDesk",
+          "LABEL": "Dealer Desk",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "41",
+          "NAME": "printerForRpts",
+          "LABEL": "Printer For Rpts",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "30",
+          "REQUIRED": false,
+          "WIDTH": 230
+        },
+        {
+          "SN": "42",
+          "NAME": "printerForPFunc",
+          "LABEL": "Printer For PFunc",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "30",
+          "REQUIRED": false,
+          "WIDTH": 230
+        },
+        {
+          "SN": "43",
+          "NAME": "userAddr",
+          "LABEL": "User Addr",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "22",
+          "REQUIRED": false,
+          "WIDTH": 222
+        },
+        {
+          "SN": "44",
+          "NAME": "rptToReceive",
+          "LABEL": "Rpt To Receive",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "30",
+          "REQUIRED": false,
+          "WIDTH": 230
+        },
+        {
+          "SN": "45",
+          "NAME": "rptCopies",
+          "LABEL": "Rpt Copies",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "46",
+          "NAME": "lastSpoolDate",
+          "LABEL": "Last Spool Date",
+          "TYPE": "Date",
+          "STRUCTURE": "M",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "47",
+          "NAME": "lastSpoolTime",
+          "LABEL": "Last Spool Time",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "5",
+          "REQUIRED": false,
+          "WIDTH": 205
+        },
+        {
+          "SN": "48",
+          "NAME": "amountFormat",
+          "LABEL": "Amount Format",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "49",
+          "NAME": "maxSessions",
+          "LABEL": "Max Sessions",
+          "TYPE": "Number",
+          "STRUCTURE": "S",
+          "LENGTH": "2",
+          "REQUIRED": false,
+          "WIDTH": 202
+        },
+        {
+          "SN": "50",
+          "NAME": "attributes",
+          "LABEL": "Attributes",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "20",
+          "REQUIRED": false,
+          "WIDTH": 220
+        },
+        {
+          "SN": "51",
+          "NAME": "dispoOfficer",
+          "LABEL": "Dispo Officer",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "4",
+          "REQUIRED": false,
+          "WIDTH": 204
+        },
+        {
+          "SN": "52",
+          "NAME": "signOnItem",
+          "LABEL": "Sign On Item",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "53",
+          "NAME": "signOffItem",
+          "LABEL": "Sign Off Item",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "54",
+          "NAME": "processDept",
+          "LABEL": "Process Dept",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "3",
+          "REQUIRED": false,
+          "WIDTH": 203
+        },
+        {
+          "SN": "55",
+          "NAME": "oc1",
+          "LABEL": "Oc1",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "4",
+          "REQUIRED": false,
+          "WIDTH": 204
+        },
+        {
+          "SN": "56",
+          "NAME": "othBookAccess",
+          "LABEL": "Oth Book Access",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "57",
+          "NAME": "othBookBlock",
+          "LABEL": "Oth Book Block",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "58",
+          "NAME": "dispoRights",
+          "LABEL": "Dispo Rights",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "4",
+          "REQUIRED": false,
+          "WIDTH": 204
+        },
+        {
+          "SN": "59",
+          "NAME": "allowedDays",
+          "LABEL": "Allowed Days",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "1",
+          "REQUIRED": false,
+          "WIDTH": 201
+        },
+        {
+          "SN": "60",
+          "NAME": "dayStTime",
+          "LABEL": "Day St Time",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "5",
+          "REQUIRED": false,
+          "WIDTH": 205
+        },
+        {
+          "SN": "61",
+          "NAME": "dayEndTime",
+          "LABEL": "Day End Time",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "5",
+          "REQUIRED": false,
+          "WIDTH": 205
+        },
+        {
+          "SN": "62",
+          "NAME": "ldapId",
+          "LABEL": "Ldap Id",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "63",
+          "NAME": "ldapDn",
+          "LABEL": "Ldap Dn",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "65",
+          "REQUIRED": false,
+          "WIDTH": 265
+        },
+        {
+          "SN": "64",
+          "NAME": "leadPref",
+          "LABEL": "Lead Pref",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "1",
+          "REQUIRED": false,
+          "WIDTH": 201
+        },
+        {
+          "SN": "65",
+          "NAME": "dateFormat",
+          "LABEL": "Date Format",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "1",
+          "REQUIRED": false,
+          "WIDTH": 201
+        },
+        {
+          "SN": "66",
+          "NAME": "offlineSmsProfile",
+          "LABEL": "Offline Sms Profile",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "67",
+          "NAME": "signOnRtn",
+          "LABEL": "Sign On Rtn",
+          "TYPE": "Text",
+          "STRUCTURE": "M",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "68",
+          "NAME": "empBankId",
+          "LABEL": "Emp Bank Id",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "6",
+          "REQUIRED": false,
+          "WIDTH": 206
+        },
+        {
+          "SN": "69",
+          "NAME": "mobileNumber",
+          "LABEL": "Mobile Number",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "11",
+          "REQUIRED": false,
+          "WIDTH": 211
+        },
+        {
+          "SN": "70",
+          "NAME": "email",
+          "LABEL": "Email",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "35",
+          "REQUIRED": false,
+          "WIDTH": 235
+        },
+        {
+          "SN": "71",
+          "NAME": "tDate",
+          "LABEL": "T Date",
+          "TYPE": "Date",
+          "STRUCTURE": "S",
+          "LENGTH": "8",
+          "REQUIRED": false,
+          "WIDTH": 208
+        },
+        {
+          "SN": "72",
+          "NAME": "tTime",
+          "LABEL": "T Time",
+          "TYPE": "Text",
+          "STRUCTURE": "S",
+          "LENGTH": "5",
+          "REQUIRED": false,
+          "WIDTH": 205
+        }
+      ],
+      "PREDIFINEID": true,
+      "FIELDBASED": false,
+      "VIEWDEF": [
+        {
+          "VIEWNAME": "",
+          "DESCRIPTION": "",
+          "FIELDS": [
+            {
+              "TABLENAME": "",
+              "FIELDNAME": ""
+            }
+          ]
+        }
+      ],
+      "IDROUTINE": "",
+      "auditFields": {
+        "recStatus": "AU",
+        "recCurrNumber": 8,
+        "recInputter": "ADMIN02",
+        "recInputTime": "2026-04-22 10:13:41",
+        "recAuthorizer": "ADMIN02",
+        "recAuthTime": "2026-04-22 10:14:05",
+        "recBranchCode": "JB9999"
+      },
+      "auditData": {
+        "recStatus": "AU",
+        "recCurrNumber": 2,
+        "recInputter": "IA0245820",
+        "recInputTime": "2026-10-12 09:12:09",
+        "recAuthorizer": "IA0245820",
+        "recAuthTime": "2026-10-12 09:12:47",
+        "recBranchCode": "JB9999"
+      },
+      "FORMCONTROL": {
+        "frmDescription": "New User Creation",
+        "authNumber": 1,
+        "rtnValidate": [
+          {
+            "routineName": "",
+            "routineDescription": ""
+          }
+        ],
+        "rtnBeforeAuth": [
+          {
+            "routineName": "",
+            "routineDescription": ""
+          }
+        ],
+        "rtnAfterAuth": [
+          {
+            "routineName": "",
+            "routineDescription": ""
+          }
+        ],
+        "frmElements": [
+          {
+            "SN": "1",
+            "NAME": "userName",
+            "LABEL": "User Name",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 265,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "2,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "2",
+            "NAME": "signOnName",
+            "LABEL": "Sign On Name",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 216,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "1,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "5",
+            "NAME": "companyCode",
+            "LABEL": "Company Code",
+            "TYPE": "Text",
+            "STRUCTURE": "M",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 211,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "3,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": [""]
+          },
+          {
+            "SN": "7",
+            "NAME": "passwordValidity",
+            "LABEL": "Password Validity",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 217,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "6,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "8",
+            "NAME": "startDateProfile",
+            "LABEL": "Start Date Profile",
+            "TYPE": "Date",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 211,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "4,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "9",
+            "NAME": "endDateProfile",
+            "LABEL": "End Date Profile",
+            "TYPE": "Date",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 211,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "5,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "10",
+            "NAME": "startTime",
+            "LABEL": "Start Time",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 205,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "4,2",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "11",
+            "NAME": "endTime",
+            "LABEL": "End Time",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 205,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "5,2",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "12",
+            "NAME": "timeOutMinutes",
+            "LABEL": "Time Out Minutes",
+            "TYPE": "Number",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 203,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "7,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "13",
+            "NAME": "attempts",
+            "LABEL": "Attempts",
+            "TYPE": "Number",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 201,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "7,2",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "68",
+            "NAME": "empBankId",
+            "LABEL": "Emp Bank Id",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 206,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "1,2",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "69",
+            "NAME": "mobileNumber",
+            "LABEL": "Mobile Number",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 211,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "8,1",
+            "DISABLED": true,
+            "PROP": [],
+            "VALUE": ""
+          },
+          {
+            "SN": "70",
+            "NAME": "email",
+            "LABEL": "Email",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 235,
+            "DEFAULTVALUE": "",
+            "ISOPEN": false,
+            "ISLOADING": false,
+            "PARAMETER": {
+              "type": "O",
+              "data": [],
+              "modelName": "",
+              "displayField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": [],
+            "POSITION": "8,2",
+            "DISABLED": false,
+            "PROP": [],
+            "VALUE": ""
+          }
+        ],
+        "auditData": {
+          "recStatus": "",
+          "recCurrNumber": 1,
+          "recInputter": "IA0245820",
+          "recInputTime": "2026-10-14 10:21:11",
+          "recAuthorizer": "",
+          "recAuthTime": "",
+          "recBranchCode": "JB9999"
+        }
+      }
+    },
+    "success": true
+  }
+]

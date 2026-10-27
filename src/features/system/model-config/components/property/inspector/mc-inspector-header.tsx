@@ -21,8 +21,6 @@ export function McInspectorHeader({
   onDelete,
 }: McInspectorHeaderProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
-  const isArchived = property.STATUS === "ARCHIVED";
-
   return (
     <>
       <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
@@ -42,14 +40,7 @@ export function McInspectorHeader({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          {isArchived ? (
-            <Badge
-              variant="destructive"
-              className="font-mono text-[10px] h-5 rounded uppercase tracking-wider"
-            >
-              Archived
-            </Badge>
-          ) : !isCommitted ? (
+          {!isCommitted ? (
             <Badge
               variant="outline"
               className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-amber-500 border-amber-500/30 bg-amber-500/10"

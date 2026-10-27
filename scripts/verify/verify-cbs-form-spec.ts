@@ -68,7 +68,6 @@ async function runSuite() {
         LENGTH: 12,
         REQUIRED: true,
         DISABLED: false,
-        STATUS: "ACTIVE",
       },
       {
         SN: "2",
@@ -79,7 +78,6 @@ async function runSuite() {
         LENGTH: 50,
         REQUIRED: true,
         DISABLED: false,
-        STATUS: "ACTIVE",
       },
       {
         SN: "3",
@@ -90,7 +88,6 @@ async function runSuite() {
         LENGTH: 10,
         REQUIRED: false,
         DISABLED: false,
-        STATUS: "ACTIVE",
       },
       {
         SN: "4",
@@ -101,21 +98,9 @@ async function runSuite() {
         LENGTH: 10,
         REQUIRED: false,
         DISABLED: false,
-        STATUS: "ACTIVE",
       },
       {
         SN: "5",
-        NAME: "legacyTaxCode",
-        LABEL: "Old Tax Reference",
-        TYPE: "Text",
-        STRUCTURE: "S",
-        LENGTH: 20,
-        REQUIRED: false,
-        DISABLED: false,
-        STATUS: "ARCHIVED", // ARCHIVED FIELD
-      },
-      {
-        SN: "6",
         NAME: "nominee",
         LABEL: "Primary Nominee",
         TYPE: "Object",
@@ -123,10 +108,9 @@ async function runSuite() {
         LENGTH: 50,
         REQUIRED: false,
         DISABLED: false,
-        STATUS: "ACTIVE",
       },
       {
-        SN: "6_1",
+        SN: "5_1",
         NAME: "nomineeName",
         LABEL: "Nominee Full Name",
         TYPE: "Text",
@@ -134,10 +118,9 @@ async function runSuite() {
         LENGTH: 40,
         REQUIRED: true,
         DISABLED: false,
-        STATUS: "ACTIVE",
       },
       {
-        SN: "6_2",
+        SN: "5_2",
         NAME: "nomineeShare",
         LABEL: "Nominee Share %",
         TYPE: "Number",
@@ -145,7 +128,6 @@ async function runSuite() {
         LENGTH: 3,
         REQUIRED: true,
         DISABLED: false,
-        STATUS: "ACTIVE",
       },
     ],
   };
@@ -162,12 +144,7 @@ async function runSuite() {
   assert("Fallback: Pristine spec is not stale", fallbackSpec.isStale === false);
   assert("Fallback: Inherits idPrefix from model", fallbackSpec.idPrefix === "AC");
 
-  // Check that archived property is excluded from fallback
   const fallbackFieldKeys = fallbackSpec.fields.map((f) => f.fieldKey);
-  assert(
-    "Fallback: Excludes ARCHIVED property legacyTaxCode",
-    !fallbackFieldKeys.includes("legacyTaxCode"),
-  );
   assert(
     "Fallback: Includes active property accountNumber",
     fallbackFieldKeys.includes("accountNumber"),

@@ -31,7 +31,7 @@ export function colSpanForLength(prop: ModelProperty): number {
  */
 function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const allProps = flattenModelProperties(model.PROPERTIES || []);
-  const activeProps = allProps.filter((p) => p.STATUS !== "ARCHIVED");
+  const activeProps = allProps;
 
   // Identify parent Objects and their structure ("S" or "M")
   const objectParents = new Map<string, ModelProperty>();
@@ -50,12 +50,13 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const rootFields: FormFieldItem[] = activeProps
     .filter((p) => p.TYPE !== "Object")
     .map((p) => {
-      const isGroupChild = p.SN.includes("_");
-      const parentSn = isGroupChild ? p.SN.substring(0, p.SN.lastIndexOf("_")) : null;
+      const snStr = String(p.SN ?? "");
+      const isGroupChild = snStr.includes("_");
+      const parentSn = isGroupChild ? snStr.substring(0, snStr.lastIndexOf("_")) : null;
       const parentObj = parentSn ? objectParents.get(parentSn) : null;
 
       // Base label from property definition
-      const baseLabel = p.LABEL || p.NAME || `Field #${p.SN}`;
+      const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
       // Clean display label without cluttering with parent/child suffix
       const displayLabel = baseLabel;
 
@@ -65,6 +66,17 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
       const isFirstInGroup = Boolean(parentSn && !seenGroupFirstChild.has(parentSn));
       if (parentSn && isFirstInGroup) {
         seenGroupFirstChild.add(parentSn);
+      }
+
+      // Determine colSpan: if p.WIDTH is provided and valid (1..12), use it;
+      // otherwise, if p.WIDTH is larger than 12 (e.g. pixels from legacy), or not specified, fallback to colSpanForLength(p) or 12.
+      let resolvedColSpan = 12;
+      if (typeof p.WIDTH === "number" && p.WIDTH >= 1 && p.WIDTH <= 12) {
+        resolvedColSpan = p.WIDTH;
+      } else if (p.TYPE === "Textarea") {
+        resolvedColSpan = 12;
+      } else {
+        resolvedColSpan = colSpanForLength(p);
       }
 
       return {
@@ -81,7 +93,7 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
         groupStructure: parentObj?.STRUCTURE,
         isFirstInGroup: isFirstInGroup,
         parameter: p.PARAMETER,
-        colSpan: 12,
+        colSpan: Math.min(Math.max(resolvedColSpan, 1), 12),
         required: p.REQUIRED,
         readOnly: p.DISABLED,
         placeholder:
@@ -158,7 +170,7 @@ export function compileFormSpec(
   // Identify parent Objects and their structure ("S" or "M")
   const objectParents = new Map<string, ModelProperty>();
   for (const p of allProps) {
-    if (p.TYPE === "Object" && p.STATUS !== "ARCHIVED") {
+    if (p.TYPE === "Object") {
       objectParents.set(p.SN, p);
     }
   }
@@ -173,8 +185,8 @@ export function compileFormSpec(
     for (const field of section.fields || []) {
       const modelProp = propertyMap.get(field.fieldKey.toLowerCase());
 
-      // DROP ARCHIVED OR MISSING FIELDS AT RUNTIME
-      if (!modelProp || modelProp.STATUS === "ARCHIVED") {
+      // DROP MISSING FIELDS AT RUNTIME
+      if (!modelProp) {
         continue;
       }
 
@@ -185,16 +197,22 @@ export function compileFormSpec(
         : getDefaultWidget(modelProp.TYPE);
 
       // Resolve group metadata from model property hierarchy
-      const isGroupChild = modelProp.SN.includes("_");
-      const parentSn = isGroupChild
-        ? modelProp.SN.substring(0, modelProp.SN.lastIndexOf("_"))
-        : null;
+      const propSnStr = String(modelProp.SN ?? "");
+      const isGroupChild = propSnStr.includes("_");
+      const parentSn = isGroupChild ? propSnStr.substring(0, propSnStr.lastIndexOf("_")) : null;
       const parentObj = parentSn ? objectParents.get(parentSn) : null;
 
       const isFirstInGroup = Boolean(parentSn && !seenGroupFirstChild.has(parentSn));
       if (parentSn && isFirstInGroup) {
         seenGroupFirstChild.add(parentSn);
       }
+
+      const fieldColSpan =
+        typeof field.colSpan === "number" && field.colSpan >= 1 && field.colSpan <= 12
+          ? field.colSpan
+          : typeof modelProp.WIDTH === "number" && modelProp.WIDTH >= 1 && modelProp.WIDTH <= 12
+            ? modelProp.WIDTH
+            : 12;
 
       const resolvedField: FormFieldItem = {
         ...field,
@@ -208,6 +226,7 @@ export function compileFormSpec(
         groupLabel: parentObj?.LABEL || parentObj?.NAME || field.groupLabel,
         groupStructure: parentObj?.STRUCTURE || field.groupStructure,
         isFirstInGroup: isFirstInGroup || field.isFirstInGroup,
+        colSpan: Math.min(Math.max(fieldColSpan, 1), 12),
         required: modelProp.REQUIRED ?? field.required,
         readOnly: modelProp.DISABLED ?? field.readOnly,
         parameter: modelProp.PARAMETER ?? field.parameter,

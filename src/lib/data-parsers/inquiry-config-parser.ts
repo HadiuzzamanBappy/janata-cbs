@@ -21,7 +21,7 @@ export function parseInquiryConfig(
   }
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  const list = unwrapRecordsPayload(decoded);
+  const list = unwrapRecordsPayload<Record<string, unknown>>(decoded);
   const target = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
 
   if (!target || typeof target !== "object") {
@@ -56,7 +56,7 @@ export function parseInquiryConfigList(
     return { success: true, data: [] };
   }
 
-  const rawList = unwrapRecordsPayload(rawPayload);
+  const rawList = unwrapRecordsPayload<unknown>(rawPayload);
   const parseResult = z.array(inquiryConfigRecordSchema).safeParse(rawList);
 
   if (!parseResult.success) {

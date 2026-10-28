@@ -52,4 +52,3 @@ export function validateFormConfig(formData: { title?: string }): FormConfigVali
   }
   return issues;
 }
-

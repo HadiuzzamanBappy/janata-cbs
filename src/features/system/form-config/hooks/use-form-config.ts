@@ -6,10 +6,7 @@ import { cbs } from "@/lib/cbs-client";
 import { parseGfcResponse } from "@/lib/data-parsers";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import type { CbsScreenMode } from "@/types";
-import {
-  type FormConfigValidationError,
-  validateFormConfig,
-} from "./fc-validation";
+import { type FormConfigValidationError, validateFormConfig } from "./fc-validation";
 import { useFcActions } from "./use-fc-actions";
 import { useFcCatalog } from "./use-fc-catalog";
 import { useFcFieldOps } from "./use-fc-field-ops";
@@ -20,8 +17,8 @@ import {
 } from "./use-fc-persistence";
 import { useFcSectionOps } from "./use-fc-section-ops";
 
-export { INITIAL_FORM_CONFIG };
 export type { FormConfigValidationError };
+export { INITIAL_FORM_CONFIG };
 
 export function useFormConfig(initialId?: string, tabId?: string) {
   const {

@@ -36,11 +36,12 @@ export const META_FIELD_GROUPS: Array<{
 
 /**
  * Extensible declarative registry of all metadata fields on the Inquiry General tab.
+ * Uses exact canonical wire paths under INQInfo.
  */
 export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
   // --- Group 1: IDENTITY ---
   {
-    path: "description",
+    path: "INQInfo.description",
     label: "Description",
     group: "IDENTITY",
     type: "text",
@@ -50,7 +51,7 @@ export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
     helperText: "Descriptive title of this inquiry definition",
   },
   {
-    path: "controllerName",
+    path: "INQInfo.controllerName",
     label: "Controller / Model",
     group: "IDENTITY",
     type: "text",
@@ -61,7 +62,7 @@ export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
     helperText: "Target CBS entity or primary controller table",
   },
   {
-    path: "inqType",
+    path: "INQInfo.inqType",
     label: "Inquiry Type",
     group: "IDENTITY",
     type: "select",
@@ -76,7 +77,7 @@ export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
 
   // --- Group 2: LAYOUT_PAGING ---
   {
-    path: "pageOrientation",
+    path: "INQInfo.pageOrientation",
     label: "Page Orientation",
     group: "LAYOUT_PAGING",
     type: "select",
@@ -87,7 +88,7 @@ export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
     ],
   },
   {
-    path: "recordPerPage",
+    path: "INQInfo.perpageItem",
     label: "Records Per Page",
     group: "LAYOUT_PAGING",
     type: "number",
@@ -95,21 +96,21 @@ export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
     width: "compact",
   },
   {
-    path: "showSerial",
+    path: "INQInfo.showSerial",
     label: "Show Serial Numbers",
     group: "LAYOUT_PAGING",
     type: "boolean",
     helperText: "Render row serial number (1, 2, 3...) in table results",
   },
   {
-    path: "showPagination",
+    path: "INQInfo.showPagination",
     label: "Enable Pagination",
     group: "LAYOUT_PAGING",
     type: "boolean",
     helperText: "Show footer paging controls and page navigation",
   },
   {
-    path: "showBranchWise",
+    path: "INQInfo.showBranchWise",
     label: "Branch-Wise Segregation",
     group: "LAYOUT_PAGING",
     type: "boolean",
@@ -118,7 +119,7 @@ export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
 
   // --- Group 3: ROUTING ---
   {
-    path: "rptControllerName",
+    path: "INQInfo.rptControllerName",
     label: "Report Controller",
     group: "ROUTING",
     type: "text",
@@ -128,7 +129,7 @@ export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
     helperText: "Optional report controller identifier for PDF/print generation",
   },
   {
-    path: "inqServicePath",
+    path: "INQInfo.inqServicePath",
     label: "Inq Service Path",
     group: "ROUTING",
     type: "text",

@@ -4,7 +4,7 @@ import { Code, Columns, Eye, FileText, Filter, Layers } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { type CbsScreenProps, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
-import { CbsControlTable } from "@/types";
+import { CbsControlTable, CbsRecordFunction } from "@/types";
 import { IcGeneralTab } from "./components/ic-general-tab";
 import { IcJsonTab } from "./components/ic-json-tab";
 import { IcPreviewTab } from "./components/ic-preview-tab";
@@ -29,31 +29,14 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     isDirty,
     loading,
     submitting,
-    availableInquiries,
-    // Columns
-    addColumn,
-    updateColumn,
-    removeColumn,
-    reorderColumns,
-    // Filters
-    addFilter,
-    updateFilter,
-    removeFilter,
-    reorderFilters,
-    // Actions
-    addAction,
-    updateAction,
-    removeAction,
-    reorderActions,
-    // Operations
-    fetchRecord,
-    handleValidate,
-    handleSubmit,
-    handleAuthorize,
-    handleHold,
-    handleDelete,
-    handleReverse,
+    inquiriesPool,
     resetToIdle,
+    initDraft,
+    loadRecord,
+    handleSubmit,
+    filterOps,
+    columnOps,
+    actionOps,
   } = useInquiryConfig(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<InquiryConfigTabKey>("general");
@@ -61,12 +44,12 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
 
   const availableItems = React.useMemo(
     () =>
-      availableInquiries.map((inq) => ({
+      inquiriesPool.map((inq) => ({
         id: inq.id,
         label: inq.label,
         details: inq.details,
       })),
-    [availableInquiries],
+    [inquiriesPool],
   );
 
   const tabs: CbsScreenTab<InquiryConfigTabKey>[] = React.useMemo(
@@ -85,12 +68,12 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         icon: <Filter className="size-3 text-sky-500" />,
         content: (
           <IcSelectionTab
-            filters={formData.filters || []}
-            targetModel={formData.controllerName}
-            onAddFilter={addFilter}
-            onUpdateFilter={updateFilter}
-            onRemoveFilter={removeFilter}
-            onReorderFilters={reorderFilters}
+            filters={formData.INQSelectField || []}
+            targetModel={formData.INQInfo?.controllerName}
+            onAddFilter={filterOps.addFilter}
+            onUpdateFilter={filterOps.updateFilter}
+            onRemoveFilter={filterOps.removeFilter}
+            onReorderFilters={filterOps.reorderFilters}
             disabled={isReadOnly}
           />
         ),
@@ -101,17 +84,17 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         icon: <Columns className="size-3 text-primary" />,
         content: (
           <IcTableTab
-            columns={formData.columns || []}
-            actions={formData.actions || []}
-            targetModel={formData.controllerName}
-            onAddColumn={addColumn}
-            onUpdateColumn={updateColumn}
-            onRemoveColumn={removeColumn}
-            onReorderColumns={reorderColumns}
-            onAddAction={addAction}
-            onUpdateAction={updateAction}
-            onRemoveAction={removeAction}
-            onReorderActions={reorderActions}
+            columns={formData.INQDef || []}
+            actions={formData.INQCmds || []}
+            targetModel={formData.INQInfo?.controllerName}
+            onAddColumn={columnOps.addColumn}
+            onUpdateColumn={columnOps.updateColumn}
+            onRemoveColumn={columnOps.removeColumn}
+            onReorderColumns={columnOps.reorderColumns}
+            onAddAction={actionOps.addAction}
+            onUpdateAction={actionOps.updateAction}
+            onRemoveAction={actionOps.removeAction}
+            onReorderActions={actionOps.reorderActions}
             disabled={isReadOnly}
           />
         ),
@@ -133,18 +116,9 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       formData,
       isReadOnly,
       setFormData,
-      addFilter,
-      updateFilter,
-      removeFilter,
-      reorderFilters,
-      addColumn,
-      updateColumn,
-      removeColumn,
-      reorderColumns,
-      addAction,
-      updateAction,
-      removeAction,
-      reorderActions,
+      filterOps,
+      columnOps,
+      actionOps,
     ],
   );
 
@@ -152,23 +126,26 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     <CbsScreenScaffold<InquiryConfigTabKey>
       title="Inquiry Designer"
       commandCode={CbsControlTable.INQUIRY_CONFIG}
-      recordId={recordId || (typeof formData.id === "string" ? formData.id : undefined)}
+      recordId={recordId || formData.INQInfo?.controllerName}
       mode={mode}
       isDirty={isDirty}
       auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
-      onCreateNew={(newId?: string) => newId && fetchRecord(newId.toUpperCase(), "I")}
+      onRecordSearch={(searchedId: string) => loadRecord(searchedId.toUpperCase(), "I")}
+      onCreateNew={(newId?: string) => newId && initDraft(newId.toUpperCase())}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" && recordId ? () => fetchRecord(recordId, mode) : undefined}
-      onAmend={() => recordId && fetchRecord(recordId, "I")}
-      onView={() => recordId && fetchRecord(recordId, "S")}
-      onValidate={handleValidate}
-      onSubmit={handleSubmit}
-      onHold={handleHold}
-      onDelete={handleDelete}
-      onAuthorizeReverse={
-        formData.auditData?.recStatus === "AU" || mode === "R" ? handleReverse : handleAuthorize
+      onReset={mode !== "IDLE" && recordId ? () => loadRecord(recordId, mode) : undefined}
+      onAmend={() => recordId && loadRecord(recordId, "I")}
+      onView={() => recordId && loadRecord(recordId, "S")}
+      onSubmit={() => handleSubmit(CbsRecordFunction.INPUT)}
+      onHold={() => handleSubmit(CbsRecordFunction.HOLD)}
+      onDelete={() => handleSubmit(CbsRecordFunction.DELETE)}
+      onAuthorizeReverse={() =>
+        handleSubmit(
+          formData.auditData?.recStatus === "AU" || mode === "R"
+            ? CbsRecordFunction.REVERSE
+            : CbsRecordFunction.AUTHORIZE,
+        )
       }
       submitting={submitting || loading}
       availableItems={availableItems}
@@ -193,7 +170,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${formData.id || "inquiry"}.json`;
+            a.download = `${recordId || formData.INQInfo?.controllerName || "inquiry"}.json`;
             a.click();
             URL.revokeObjectURL(url);
           },

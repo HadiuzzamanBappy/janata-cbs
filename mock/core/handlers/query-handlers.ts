@@ -1,10 +1,9 @@
 import "server-only";
 
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { type ApiResponse, CbsControlTable } from "@/types";
+import type { ApiResponse } from "@/types";
 import { resolveTable } from "../database-router";
 import { notFoundResult, successResult } from "../response-factory";
-import { getMockInquiryPayload } from "./inquiry-handlers";
 
 /**
  * Handles GRL (Generic Record List), GCQ (Custom Queries), GMV (Materialized View), and GGL.
@@ -60,20 +59,6 @@ export function handleSeeRecord(payload: CbsWirePayload): ApiResponse {
     (table.prefix ? table.LIVE[`${table.prefix}${upperId}`] : undefined);
 
   if (!rawRecord) {
-    // If querying INQUIRY table for a model without custom inquiry, synthesize raw schema dynamically
-    const inqTable = resolveTable(CbsControlTable.INQUIRY_CONFIG);
-    const isInquiryTable =
-      cmd === CbsControlTable.INQUIRY_CONFIG ||
-      inqTable?.name === cmd ||
-      inqTable?.physicalName === table.physicalName;
-
-    if (isInquiryTable) {
-      const fallbackInquiry = getMockInquiryPayload(recId);
-      if (fallbackInquiry) {
-        return successResult(fallbackInquiry, `Synthesized raw model inquiry for ${recId}`);
-      }
-    }
-
     return notFoundResult(`Record #${recId} not found in database table ${cmd}`);
   }
 

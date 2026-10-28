@@ -2,117 +2,95 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pin, Trash2 } from "lucide-react";
-import type * as React from "react";
+import { GripVertical, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { InquiryColumnConfig } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 
-export interface SortableColumnItemProps {
-  id: string;
+export interface ColumnItemProps {
+  col: INQDef;
   index: number;
-  col: InquiryColumnConfig;
   isSelected: boolean;
   disabled?: boolean;
   onSelect: () => void;
   onRemove: () => void;
 }
 
-export function SortableColumnItem({
-  id,
-  index,
+export function ColumnItem({
   col,
+  index,
   isSelected,
-  disabled,
+  disabled = false,
   onSelect,
   onRemove,
-}: SortableColumnItemProps) {
+}: ColumnItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id,
+    id: `col-${col.fieldName}-${index}`,
     disabled,
   });
 
-  const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
+  const style = {
+    transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.35 : 1,
-    zIndex: isDragging ? 40 : undefined,
   };
+
+  const [lenPart, alignPart] = (col.fieldLength || "20,L").split(",");
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center justify-between p-1.5 rounded border transition-all gap-1.5 text-xs select-none",
+        "group flex items-center justify-between px-2.5 py-1.5 rounded-md border text-xs transition-colors",
         isSelected
-          ? "bg-primary/10 border-primary text-foreground shadow-2xs font-medium"
-          : "bg-background/90 hover:bg-muted/30 border-border/70 text-foreground/90",
-        isDragging && "ring-1 ring-primary shadow-md bg-accent/30",
+          ? "bg-primary/10 border-primary/50 text-foreground shadow-xs"
+          : "bg-card border-border/70 hover:bg-muted/50 text-muted-foreground",
+        isDragging && "opacity-50 z-50 shadow-md",
       )}
     >
-      {/* Reordering drag handle */}
-      {!disabled && (
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        {!disabled && (
+          <span
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground p-0.5 inline-flex items-center"
+          >
+            <GripVertical className="size-3.5" />
+          </span>
+        )}
+
         <button
           type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground shrink-0 p-0.5 rounded touch-none focus-visible:outline-none"
-          title="Drag to reorder"
-          aria-label="Drag to reorder"
+          onClick={onSelect}
+          className="flex flex-col min-w-0 flex-1 text-left cursor-pointer focus-visible:outline-hidden"
         >
-          <GripVertical className="size-3.5" />
-        </button>
-      )}
-
-      <button
-        type="button"
-        onClick={onSelect}
-        className="flex items-center gap-2 min-w-0 flex-1 text-left outline-none cursor-pointer"
-      >
-        <span className="font-mono text-[11px] text-muted-foreground/80 w-4 text-center shrink-0">
-          {index + 1}.
-        </span>
-
-        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold truncate">{col.label || col.id}</span>
-            {col.isPinned && <Pin className="size-2.5 text-amber-500 shrink-0 fill-amber-500/20" />}
-            {!col.visible && (
-              <span className="text-[9px] uppercase px-1 py-0 bg-muted text-muted-foreground rounded">
-                Hidden
-              </span>
-            )}
+            <span className="font-semibold text-foreground truncate">
+              {col.fieldDisplay || col.fieldName}
+            </span>
+            <Badge variant="outline" className="text-[9px] font-mono px-1 py-0 uppercase">
+              {col.fieldType}
+            </Badge>
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5 font-mono text-[10px] text-muted-foreground">
-            <span className="text-foreground/70">{col.id}</span>
-            <span>&bull;</span>
-            <span className="uppercase">{col.format || "text"}</span>
-            <span>&bull;</span>
-            <span>{col.align || "left"}</span>
-          </div>
-        </div>
-      </button>
-
-      {/* Badges and Remove */}
-      <div className="flex items-center gap-1 shrink-0 ml-1">
-        <Badge variant="secondary" className="text-[10px] font-mono px-1 py-0 uppercase">
-          {col.format || "text"}
-        </Badge>
-        {!disabled && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onRemove}
-            className="size-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
-            title="Delete column"
-          >
-            <Trash2 className="size-3" />
-          </Button>
-        )}
+          <span className="font-mono text-[10px] text-muted-foreground/80 truncate">
+            {col.fieldName} • {lenPart}ch • {alignPart || "L"}
+          </span>
+        </button>
       </div>
+
+      {!disabled && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+          onClick={onRemove}
+          title="Remove Column"
+        >
+          <Trash2 className="size-3" />
+        </Button>
+      )}
     </div>
   );
 }

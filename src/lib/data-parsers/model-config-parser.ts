@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   type ModelConfigRecord,
-  type ModelProperty,
   modelConfigRecordSchema,
 } from "@/lib/data-schemas/model-config-schema";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
@@ -66,22 +65,4 @@ export function parseModelConfigList(
     success: true,
     data: parseResult.data,
   };
-}
-
-/* -------------------------------------------------------------------------- */
-/* Tree Transformation Utilities (PROP Nesting)                              */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Recursively flattens a nested ModelProperty tree (with PROP: [...]) into a flat array.
- */
-export function flattenModelProperties(props: ModelProperty[]): ModelProperty[] {
-  const result: ModelProperty[] = [];
-  for (const p of props) {
-    result.push(p);
-    if (Array.isArray(p.PROP) && p.PROP.length > 0) {
-      result.push(...flattenModelProperties(p.PROP));
-    }
-  }
-  return result;
 }

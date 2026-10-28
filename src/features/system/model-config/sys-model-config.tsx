@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Eye, FileCode, FileText, Layers, ShieldCheck } from "lucide-react";
+import { Database, Eye, FileCode, FileText, Layers, LayoutGrid, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
@@ -11,9 +11,10 @@ import { McGeneralTab } from "./components/mc-general-tab";
 import { McJsonTab } from "./components/mc-json-tab";
 import { McPreviewTab } from "./components/mc-preview-tab";
 import { McPropertiesTab } from "./components/mc-properties-tab";
+import { McViewsTab } from "./components/mc-views-tab";
 import { useModelConfig } from "./hooks/use-model-config";
 
-type ModelConfigTabKey = "general" | "properties" | "preview" | "audit" | "json";
+type ModelConfigTabKey = "general" | "properties" | "views" | "preview" | "audit" | "json";
 
 export function SysModelConfig({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
@@ -41,7 +42,6 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
     handleDelete,
     handleReverse,
     addField,
-    addChildField,
     updateField,
     removeField,
     handleCreateNew,
@@ -97,10 +97,18 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
             onSelectSN={setSelectedPropertySN}
             validationErrors={validationErrors}
             onAddField={addField}
-            onAddChildField={addChildField}
             onUpdateField={updateField}
             onRemoveField={removeField}
           />
+        ),
+      },
+      {
+        id: "views",
+        label: "Views",
+        icon: <LayoutGrid className="size-3 text-indigo-500" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "views").length || undefined,
+        content: (
+          <McViewsTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
         ),
       },
       {
@@ -124,7 +132,6 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
     ],
     [
       addField,
-      addChildField,
       formData,
       isFieldCommitted,
       isReadOnly,

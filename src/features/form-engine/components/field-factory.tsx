@@ -13,7 +13,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import { flattenModelProperties } from "@/lib/data-parsers";
 import type { FormFieldItem, FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { CbsScreenMode } from "@/types";
@@ -50,7 +49,7 @@ function useModelLookup(param: FormFieldParameter | undefined) {
       .send<ModelConfigRecord>(cbs.modelConfig.get(param.modelName), { silent: true })
       .then((res) => {
         if (!isMounted) return;
-        const rawProps: ModelProperty[] = flattenModelProperties(res.data?.PROPERTIES || []);
+        const rawProps: ModelProperty[] = res.data?.PROPERTIES || [];
         const opts = rawProps
           .map((p) => {
             const pObj = p as unknown as Record<string, unknown>;

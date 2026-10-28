@@ -5,7 +5,6 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { FormRenderer } from "@/features/form-engine";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
-import { flattenModelProperties } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
@@ -45,10 +44,11 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
   // Seed default values directly from model properties
   const [formValues, setFormValues] = React.useState<Record<string, unknown>>(() => {
     const initial: Record<string, unknown> = {};
-    const flatProps = flattenModelProperties(targetModelRecord.PROPERTIES || []);
-    for (const p of flatProps) {
-      if (p.DEFAULTVALUE !== undefined && p.DEFAULTVALUE !== "") {
-        initial[p.NAME] = p.DEFAULTVALUE;
+    const props = targetModelRecord.PROPERTIES || [];
+    for (const p of props) {
+      const rawVal = (p as Record<string, unknown>).DEFAULTVALUE;
+      if (rawVal !== undefined && rawVal !== "") {
+        initial[p.NAME] = rawVal;
       }
     }
     return initial;
@@ -58,10 +58,11 @@ function FcPreviewContent({ formData, targetModelRecord, spec }: FcPreviewConten
   React.useEffect(() => {
     setFormValues((prev) => {
       const next = { ...prev };
-      const flatProps = flattenModelProperties(targetModelRecord.PROPERTIES || []);
-      for (const p of flatProps) {
-        if (p.DEFAULTVALUE !== undefined && next[p.NAME] === undefined) {
-          next[p.NAME] = p.DEFAULTVALUE;
+      const props = targetModelRecord.PROPERTIES || [];
+      for (const p of props) {
+        const rawVal = (p as Record<string, unknown>).DEFAULTVALUE;
+        if (rawVal !== undefined && next[p.NAME] === undefined) {
+          next[p.NAME] = rawVal;
         }
       }
       return next;

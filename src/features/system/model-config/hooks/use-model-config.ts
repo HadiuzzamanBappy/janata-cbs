@@ -4,7 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
-
+import type { CbsWirePayload } from "@/lib/data-schemas";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
@@ -14,7 +14,7 @@ import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { mapZodIssuesToValidationErrors } from "./mc-validation";
 import { useMcCatalog } from "./use-mc-catalog";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
-import { useMcTreeOps } from "./use-mc-tree-ops";
+import { useMcPropertyOps } from "./use-mc-property-ops";
 
 export function useModelConfig(initialId?: string, tabId?: string) {
   const {
@@ -34,21 +34,42 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   } = useModelConfigPersistence(initialId, tabId);
 
   const { modelsPool, refreshCatalog, upsertCatalogItem } = useMcCatalog();
-  const {
-    addField,
-    addChildField,
-    updateField,
-    removeField,
-    isFieldCommitted,
-    markAsCommitted,
-    clearCommitted,
-  } = useMcTreeOps(setFormData);
+  const { addField, updateField, removeField, isFieldCommitted, markAsCommitted, clearCommitted } =
+    useMcPropertyOps(setFormData);
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const [validationErrors, setValidationErrors] = React.useState<ValidationErrorItem[]>([]);
 
-  // 1. Fetch specific record and hydrate baseline
+  // 1. Reset screen and commit set to idle
+  const resetToIdle = React.useCallback(() => {
+    reset();
+    clearCommitted();
+    setValidationErrors([]);
+  }, [clearCommitted, reset]);
+
+  // 2. Initialize new empty draft
+  const initDraft = React.useCallback(
+    (cleanId: string) => {
+      const draft: ModelConfigRecord = {
+        ...INITIAL_MODEL,
+        TABLENAME: cleanId.replace(/[.-]/g, "_"),
+        DESCRIPTION: cleanId.replace(/[_.-]/g, " "),
+      };
+      hydrate(draft);
+      clearCommitted();
+      setValidationErrors([]);
+      setMode(CbsRecordFunction.INPUT);
+      toast.add({
+        title: "New Model Draft",
+        description: `Created new draft schema for #${cleanId}. Complete properties and Save.`,
+        type: "info",
+      });
+    },
+    [clearCommitted, hydrate, setMode],
+  );
+
+  // 3. Fetch record from database
   const fetchRecord = React.useCallback(
     async (targetId: string, targetMode: CbsScreenMode = CbsRecordFunction.INPUT) => {
       if (!targetId.trim()) return;
@@ -61,11 +82,10 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         const json = await cbs.send<{ record?: ModelConfigRecord } | ModelConfigRecord>(
           cbs.modelConfig.get(cleanId),
         );
+        const rawData = json.data;
         const record =
-          json.status === "SUCCESS" && json.data
-            ? "record" in json.data && json.data.record
-              ? json.data.record
-              : (json.data as ModelConfigRecord)
+          json.status === "SUCCESS" && rawData
+            ? ((rawData as { record?: ModelConfigRecord }).record ?? (rawData as ModelConfigRecord))
             : undefined;
 
         if (record) {
@@ -81,49 +101,21 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           return;
         }
 
-        // If target mode is Input ('I') and record doesn't exist in DB, initialize new draft
         if (targetMode === CbsRecordFunction.INPUT) {
-          const draft: ModelConfigRecord = {
-            ...INITIAL_MODEL,
-            TABLENAME: cleanId.replace(/[.-]/g, "_"),
-            DESCRIPTION: cleanId.replace(/[_.-]/g, " "),
-          };
-          hydrate(draft);
-          clearCommitted();
-          setValidationErrors([]);
-          setMode(CbsRecordFunction.INPUT);
-          toast.add({
-            title: "New Model Draft",
-            description: `Created new draft schema for #${cleanId}. Complete properties and Save.`,
-            type: "info",
-          });
+          initDraft(cleanId);
         }
       } catch {
-        // If target mode is Input ('I') on 404/failure, open as new entry
         if (targetMode === CbsRecordFunction.INPUT) {
-          const draft: ModelConfigRecord = {
-            ...INITIAL_MODEL,
-            TABLENAME: cleanId.replace(/[.-]/g, "_"),
-            DESCRIPTION: cleanId.replace(/[_.-]/g, " "),
-          };
-          hydrate(draft);
-          clearCommitted();
-          setValidationErrors([]);
-          setMode(CbsRecordFunction.INPUT);
-          toast.add({
-            title: "New Model Draft",
-            description: `Created new draft schema for #${cleanId}. Complete properties and Save.`,
-            type: "info",
-          });
+          initDraft(cleanId);
         }
       } finally {
         setLoading(false);
       }
     },
-    [clearCommitted, hydrate, markAsCommitted, setMode, setRecordId],
+    [hydrate, initDraft, markAsCommitted, setMode, setRecordId],
   );
 
-  // 3. Validate
+  // 4. Validate against Zod schema
   const handleValidate = React.useCallback((): boolean => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
@@ -148,7 +140,38 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     return true;
   }, [formData]);
 
-  // 4. Submit & Rebaseline
+  // 5. Generic mutation runner for CBS screen actions
+  const executeMutation = React.useCallback(
+    async (
+      payload: CbsWirePayload,
+      options: {
+        successTitle: string;
+        successMessage: string;
+        targetId?: string;
+        onSuccess?: () => void | Promise<void>;
+      },
+    ) => {
+      setSubmitting(true);
+      try {
+        const json = await cbs.send(payload, {
+          successTitle: options.successTitle,
+          successMessage: options.successMessage,
+        });
+        if (json.status === "SUCCESS") {
+          const syncId = options.targetId || recordId;
+          if (syncId) {
+            broadcastRecordMutation("MODEL.CONFIG", syncId);
+          }
+          await options.onSuccess?.();
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [recordId],
+  );
+
+  // 6. Action Handlers
   const handleSubmit = React.useCallback(async () => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
@@ -166,122 +189,74 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     }
 
     setValidationErrors([]);
-    setSubmitting(true);
-    try {
-      const targetId = recordId || formData.TABLENAME || validation.data.TABLENAME || "";
-      const json = await cbs.send(
-        cbs.modelConfig.save(validation.data as unknown as Record<string, unknown>, {
-          recordId: targetId,
-        }),
-        {
-          successTitle: "Model Saved",
-          successMessage: `Saved schema #${targetId} to MODEL.CONFIG`,
+    const targetId = recordId || formData.TABLENAME || validation.data.TABLENAME || "";
+    await executeMutation(
+      cbs.modelConfig.save(validation.data as unknown as Record<string, unknown>, {
+        recordId: targetId,
+      }),
+      {
+        targetId,
+        successTitle: "Model Saved",
+        successMessage: `Saved schema #${targetId} to MODEL.CONFIG`,
+        onSuccess: () => {
+          rebaseline();
+          markAsCommitted(validation.data.PROPERTIES || []);
+          upsertCatalogItem({
+            id: targetId,
+            label: validation.data.DESCRIPTION,
+            details: `${validation.data.PROPERTIES.length} properties`,
+            record: validation.data,
+          });
+          resetToIdle();
         },
-      );
-      if (json.status === "SUCCESS") {
-        rebaseline();
-        markAsCommitted(validation.data.PROPERTIES || []);
-        upsertCatalogItem({
-          id: targetId,
-          label: validation.data.DESCRIPTION,
-          details: `${validation.data.PROPERTIES.length} properties`,
-          record: validation.data,
-        });
-        broadcastRecordMutation("MODEL.CONFIG", targetId);
-        reset();
-        clearCommitted();
-        setValidationErrors([]);
-      }
-    } catch {
-      // Toast handled by cbs.send
-    } finally {
-      setSubmitting(false);
-    }
-  }, [clearCommitted, formData, markAsCommitted, rebaseline, recordId, reset, upsertCatalogItem]);
+      },
+    );
+  }, [
+    executeMutation,
+    formData,
+    markAsCommitted,
+    rebaseline,
+    recordId,
+    resetToIdle,
+    upsertCatalogItem,
+  ]);
 
-  // 5. Authorize
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;
-    setSubmitting(true);
-    try {
-      const json = await cbs.send(cbs.modelConfig.authorize(recordId), {
-        successTitle: "Model Authorized",
-        successMessage: `Authorized live model #${recordId}`,
-      });
-      if (json.status === "SUCCESS") {
-        broadcastRecordMutation("MODEL.CONFIG", recordId);
-        reset();
-        clearCommitted();
-        setValidationErrors([]);
-      }
-    } catch {
-      // Toast handled by cbs.send
-    } finally {
-      setSubmitting(false);
-    }
-  }, [clearCommitted, recordId, reset]);
+    await executeMutation(cbs.modelConfig.authorize(recordId), {
+      successTitle: "Model Authorized",
+      successMessage: `Authorized live model #${recordId}`,
+      onSuccess: () => resetToIdle(),
+    });
+  }, [executeMutation, recordId, resetToIdle]);
 
-  // 6. Hold
   const handleHold = React.useCallback(async () => {
     if (!recordId) return;
-    setSubmitting(true);
-    try {
-      const json = await cbs.send(cbs.modelConfig.hold(recordId), {
-        successTitle: "Model Placed on Hold",
-        successMessage: `Record #${recordId} set to HLD status`,
-      });
-      if (json.status === "SUCCESS") {
-        broadcastRecordMutation("MODEL.CONFIG", recordId);
-        await fetchRecord(recordId, CbsRecordFunction.HOLD);
-      }
-    } catch {
-      // Handled by cbs.send
-    } finally {
-      setSubmitting(false);
-    }
-  }, [fetchRecord, recordId]);
+    await executeMutation(cbs.modelConfig.hold(recordId), {
+      successTitle: "Model Placed on Hold",
+      successMessage: `Record #${recordId} set to HLD status`,
+      onSuccess: () => fetchRecord(recordId, CbsRecordFunction.HOLD),
+    });
+  }, [executeMutation, fetchRecord, recordId]);
 
-  // 7. Delete
   const handleDelete = React.useCallback(async () => {
     if (!recordId) return;
-    setSubmitting(true);
-    try {
-      const json = await cbs.send(cbs.modelConfig.delete(recordId), {
-        successTitle: "Model Deleted",
-        successMessage: `Pending model #${recordId} has been removed`,
-      });
-      if (json.status === "SUCCESS") {
-        broadcastRecordMutation("MODEL.CONFIG", recordId);
-        reset();
-      }
-    } catch {
-      // Handled by cbs.send
-    } finally {
-      setSubmitting(false);
-    }
-  }, [recordId, reset]);
+    await executeMutation(cbs.modelConfig.delete(recordId), {
+      successTitle: "Model Deleted",
+      successMessage: `Pending model #${recordId} has been removed`,
+      onSuccess: () => resetToIdle(),
+    });
+  }, [executeMutation, recordId, resetToIdle]);
 
-  // 8. Reverse
   const handleReverse = React.useCallback(async () => {
     if (!recordId) return;
-    setSubmitting(true);
-    try {
-      const json = await cbs.send(cbs.modelConfig.reverse(recordId), {
-        successTitle: "Model Reversed",
-        successMessage: `Live model #${recordId} status reverted`,
-      });
-      if (json.status === "SUCCESS") {
-        broadcastRecordMutation("MODEL.CONFIG", recordId);
-        await fetchRecord(recordId, CbsRecordFunction.REVERSE);
-      }
-    } catch {
-      // Handled by cbs.send
-    } finally {
-      setSubmitting(false);
-    }
-  }, [fetchRecord, recordId]);
+    await executeMutation(cbs.modelConfig.reverse(recordId), {
+      successTitle: "Model Reversed",
+      successMessage: `Live model #${recordId} status reverted`,
+      onSuccess: () => fetchRecord(recordId, CbsRecordFunction.REVERSE),
+    });
+  }, [executeMutation, fetchRecord, recordId]);
 
-  // 9. Create New (via + button or F2)
   const handleCreateNew = React.useCallback(
     (newId?: string) => {
       const cleanId = (newId || "").trim().toUpperCase();
@@ -291,13 +266,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     },
     [fetchRecord],
   );
-
-  // 10. Reset to Idle
-  const resetToIdle = React.useCallback(() => {
-    reset();
-    clearCommitted();
-    setValidationErrors([]);
-  }, [clearCommitted, reset]);
 
   // Clear validation errors when switching away from edit mode
   React.useEffect(() => {
@@ -338,7 +306,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     validationErrors,
     clearValidationErrors: () => setValidationErrors([]),
     addField,
-    addChildField,
     updateField,
     removeField,
     isFieldCommitted,

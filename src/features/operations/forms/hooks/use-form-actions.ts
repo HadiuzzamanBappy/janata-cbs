@@ -3,72 +3,61 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import type { CompiledFormSpec } from "@/lib/data-schemas";
+import type { FormConfigRecord } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
-import { normalizeRecordData } from "../utils/record-normalizer";
-import { useFormMutations } from "./use-form-mutations";
 
 export interface UseFormActionsOptions {
-  command: string;
-  spec: CompiledFormSpec | null;
+  modelCode: string;
+  schema: FormConfigRecord | null;
   searchRecordId: string;
   setSearchRecordId: (id: string) => void;
   screenMode: CbsScreenMode;
   setScreenMode: (mode: CbsScreenMode) => void;
-  values: Record<string, unknown>;
   setValues: (values: Record<string, unknown>) => void;
-  setValue: (field: string, val: unknown) => void;
   resetForm: (values?: Record<string, unknown>) => void;
   validate: () => boolean;
   initialValues: Record<string, unknown>;
-  onSuccess?: (result: unknown) => void;
   onReturn?: () => void;
 }
 
 export function useFormActions({
-  command,
-  spec,
+  modelCode,
+  schema,
   searchRecordId,
-  setSearchRecordId: _setSearchRecordId,
+  setSearchRecordId,
   screenMode,
   setScreenMode,
-  values,
   setValues,
   resetForm,
   validate,
   initialValues,
-  onSuccess,
   onReturn,
 }: UseFormActionsOptions) {
-  const modelCode = (command || "").split(",")[0].trim().toUpperCase();
-
-  // Query record by ID via real CBS Client wire protocol
+  // Query record by ID via CBS Client wire protocol
   const loadRecordData = React.useCallback(
     async (recordIdToLoad: string, modeToSet: CbsScreenMode) => {
-      if (!spec || !recordIdToLoad.trim()) return;
+      if (!schema || !recordIdToLoad.trim() || !modelCode) return;
 
-      const cleanCode = modelCode;
       const cleanId = recordIdToLoad.trim();
 
       try {
         const res = await cbs.send<Record<string, unknown>>(
-          cbs.form.fetchRecord(cleanCode, cleanId),
+          cbs.form.fetchRecord(modelCode, cleanId),
           { silent: true },
         );
 
         if (res.status === "SUCCESS" && res.data) {
-          const normalized = normalizeRecordData(res.data, spec);
-          setValues(normalized);
+          setValues(res.data);
           setScreenMode(modeToSet);
           toast.add({
             title: modeToSet === "S" ? "Viewing Record" : "Editing Record",
-            description: `Loaded record #${cleanId} for ${spec.title}`,
+            description: `Loaded record #${cleanId} for ${schema.title}`,
             type: "success",
           });
         } else {
           toast.add({
             title: "Record Not Found",
-            description: `Record #${cleanId} does not exist in ${spec.title}.`,
+            description: `Record #${cleanId} does not exist in ${schema.title}.`,
             type: "warning",
           });
         }
@@ -76,12 +65,13 @@ export function useFormActions({
         setScreenMode(modeToSet);
       }
     },
-    [spec, modelCode, setScreenMode, setValues],
+    [schema, modelCode, setScreenMode, setValues],
   );
 
+  // Allocate new ID & open in Input mode (I)
   const handleCreateNew = React.useCallback(
     async (allocatedId?: string) => {
-      if (!spec) return;
+      if (!schema || !modelCode) return;
       let nextId = allocatedId;
       if (!nextId) {
         try {
@@ -90,26 +80,27 @@ export function useFormActions({
             nextId = gni.data.recordId;
           }
         } catch {
-          // Fallback sequence
+          // GNI failure fallback
         }
       }
       const targetId = (nextId || searchRecordId).trim();
-      if (nextId && _setSearchRecordId) {
-        _setSearchRecordId(nextId);
+      if (nextId) {
+        setSearchRecordId(nextId);
       }
       resetForm(initialValues);
       setScreenMode("I");
       toast.add({
         title: "New Record Entry",
         description: targetId
-          ? `Creating new entry #${targetId} for ${spec.title}`
-          : `Ready to input new transaction for ${spec.title}`,
+          ? `Draft initiated with ID #${targetId}`
+          : "Draft initiated for new record.",
         type: "info",
       });
     },
-    [spec, resetForm, initialValues, setScreenMode, searchRecordId, modelCode, _setSearchRecordId],
+    [schema, resetForm, initialValues, setScreenMode, searchRecordId, modelCode, setSearchRecordId],
   );
 
+  // Edit / Amend record
   const handleAmend = React.useCallback(
     (targetId?: unknown) => {
       const raw = typeof targetId === "string" ? targetId : searchRecordId;
@@ -127,6 +118,7 @@ export function useFormActions({
     [searchRecordId, loadRecordData],
   );
 
+  // View record
   const handleView = React.useCallback(
     (targetId?: unknown) => {
       const raw = typeof targetId === "string" ? targetId : searchRecordId;
@@ -164,7 +156,7 @@ export function useFormActions({
   }, [onReturn, resetForm, initialValues, setScreenMode]);
 
   const handleValidate = React.useMemo(() => {
-    if (screenMode === "IDLE" || !spec) return undefined;
+    if (screenMode === "IDLE" || !schema) return undefined;
     return () => {
       const isValid = validate();
       if (!isValid) {
@@ -177,28 +169,13 @@ export function useFormActions({
       }
       toast.add({
         title: "Validation Check Passed",
-        description: `All rules validated for ${spec.title}`,
+        description: `All rules validated for ${schema.title}`,
         type: "success",
       });
     };
-  }, [screenMode, spec, validate]);
-
-  const mutations = useFormMutations({
-    command,
-    spec,
-    searchRecordId,
-    screenMode,
-    setScreenMode,
-    values,
-    initialValues,
-    validate,
-    resetForm,
-    loadRecordData,
-    onSuccess,
-  });
+  }, [screenMode, schema, validate]);
 
   return {
-    ...mutations,
     loadRecordData,
     onCreateNew: handleCreateNew,
     onAmend: handleAmend,

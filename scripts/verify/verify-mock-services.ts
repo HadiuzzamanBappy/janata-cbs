@@ -173,10 +173,12 @@ async function runSuite() {
         title: formControl?.title || gfcFormData?.title,
         hasFrmElements: Boolean(formControl?.frmElements || gfcFormData?.frmElements),
         sectionsCount: (
-          ((formControl?.frmElements || gfcFormData?.frmElements) as Record<string, unknown>)?.sections as unknown[]
+          ((formControl?.frmElements || gfcFormData?.frmElements) as Record<string, unknown>)
+            ?.sections as unknown[]
         )?.length,
       },
-      gfcFormRes.status === "SUCCESS" && Boolean(formControl?.frmElements || gfcFormData?.frmElements),
+      gfcFormRes.status === "SUCCESS" &&
+        Boolean(formControl?.frmElements || gfcFormData?.frmElements),
     );
 
     // 5. Navigation Menu Tree Hierarchy (GUM)

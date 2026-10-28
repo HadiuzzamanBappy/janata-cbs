@@ -1,18 +1,7 @@
-import type { FormConfigRecord } from "@/lib/data-schemas";
-
 export interface DynamicFormProps {
   command: string;
   tabId?: string;
   initialData?: Record<string, unknown>;
   onSuccess?: (response: unknown) => void;
   className?: string;
-}
-
-export interface FormRendererProps {
-  schema: FormConfigRecord;
-  values: Record<string, unknown>;
-  onChange: (field: string, value: unknown) => void;
-  errors?: Record<string, string>;
-  disabled?: boolean;
-  readOnly?: boolean;
 }

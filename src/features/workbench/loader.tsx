@@ -6,7 +6,7 @@ import { SystemSkeleton } from "@/components/cbs-screen";
 import { FormSkeleton } from "@/features/operations/forms";
 import { InquirySkeleton } from "@/features/operations/inquiries";
 import { logger } from "@/lib/core-logger";
-import { isSystemScreen, resolveScreen } from "./registry";
+import { isInquiryCommand, isSystemScreen, resolveScreen } from "./registry";
 import type { ScreenLoaderProps } from "./types";
 
 interface ErrorBoundaryState {
@@ -55,7 +55,7 @@ class ScreenErrorBoundary extends React.Component<
 
 /**
  * Universal Screen Loader mounting the resolved screen within Suspense & ErrorBoundary.
- * Provides individual loading skeletons for Enquiry vs Form screens.
+ * Provides individual loading skeletons for System vs Inquiry vs Form screens.
  */
 export function ScreenLoader({
   command,
@@ -69,11 +69,7 @@ export function ScreenLoader({
     if (isSystemScreen(command)) {
       return <SystemSkeleton />;
     }
-
-    const cleanCmd = (command || "").split(",")[0].trim().toUpperCase();
-    const isEnquiry = cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY");
-
-    return isEnquiry ? <InquirySkeleton /> : <FormSkeleton rowCount={4} />;
+    return isInquiryCommand(command) ? <InquirySkeleton /> : <FormSkeleton rowCount={4} />;
   }, [command]);
 
   return (

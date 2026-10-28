@@ -126,11 +126,16 @@ async function runSuite() {
 
   const fallbackSpec = compileFormSpec(testModel, null);
 
-  assert("Fallback: Generates compiled spec with title", fallbackSpec.title === "Customer Account Definition");
+  assert(
+    "Fallback: Generates compiled spec with title",
+    fallbackSpec.title === "Customer Account Definition",
+  );
   assert("Fallback: Sets authNumber to 1", fallbackSpec.authNumber === 1);
   assert("Fallback: Generates sections array", Array.isArray(fallbackSpec.frmElements?.sections));
 
-  const allFallbackFields = (fallbackSpec.frmElements?.sections || []).flatMap((s) => s.fields || []);
+  const allFallbackFields = (fallbackSpec.frmElements?.sections || []).flatMap(
+    (s) => s.fields || [],
+  );
   const fallbackFieldKeys = allFallbackFields.map((f) => f.NAME);
   assert(
     "Fallback: Includes active property accountNumber",
@@ -191,7 +196,14 @@ async function runSuite() {
               DISABLED: false,
               WIDTH: 200,
               POSITION: "",
-              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              PARAMETER: {
+                type: "O",
+                data: [],
+                modelName: "",
+                displayField: "",
+                condition: "",
+                reference: "",
+              },
               ENRICHTEXT: "",
               VALUE: "",
               FIXEDVALUE: "",
@@ -212,7 +224,14 @@ async function runSuite() {
               DISABLED: false,
               WIDTH: 200,
               POSITION: "",
-              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              PARAMETER: {
+                type: "O",
+                data: [],
+                modelName: "",
+                displayField: "",
+                condition: "",
+                reference: "",
+              },
               ENRICHTEXT: "",
               VALUE: "",
               FIXEDVALUE: "",
@@ -233,7 +252,14 @@ async function runSuite() {
               DISABLED: false,
               WIDTH: 200,
               POSITION: "",
-              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              PARAMETER: {
+                type: "O",
+                data: [],
+                modelName: "",
+                displayField: "",
+                condition: "",
+                reference: "",
+              },
               ENRICHTEXT: "",
               VALUE: "",
               FIXEDVALUE: "",
@@ -259,10 +285,7 @@ async function runSuite() {
   const compiledAccNo = compiledFields.find((f) => f.NAME === "accountNumber");
   assert("Custom: Model rule 'REQUIRED: true' synced to field", compiledAccNo?.REQUIRED === true);
   assert("Custom: Model rule 'LENGTH: 12' synced to field", compiledAccNo?.LENGTH === 12);
-  assert(
-    "Custom: Model rule 'TYPE: Text' synced to field",
-    compiledAccNo?.TYPE === "Text",
-  );
+  assert("Custom: Model rule 'TYPE: Text' synced to field", compiledAccNo?.TYPE === "Text");
 
   // ============================================================================
   // --- 3. Custom Layout Element Enrichment ---
@@ -302,7 +325,14 @@ async function runSuite() {
               DISABLED: false,
               WIDTH: 200,
               POSITION: "",
-              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              PARAMETER: {
+                type: "O",
+                data: [],
+                modelName: "",
+                displayField: "",
+                condition: "",
+                reference: "",
+              },
               ENRICHTEXT: "",
               VALUE: "",
               FIXEDVALUE: "",
@@ -321,18 +351,12 @@ async function runSuite() {
   const enrichedSpec = compileFormSpec(testModel, layoutToEnrich);
   const enrichedFields = (enrichedSpec.frmElements?.sections || []).flatMap((s) => s.fields || []);
 
-  assert(
-    "Enrichment: Compiled fields length is 1",
-    enrichedFields.length === 1,
-  );
+  assert("Enrichment: Compiled fields length is 1", enrichedFields.length === 1);
   assert(
     "Enrichment: Empty label enriched from model property",
     enrichedFields[0]?.LABEL === "Account Number",
   );
-  assert(
-    "Enrichment: Zero length enriched from model property",
-    enrichedFields[0]?.LENGTH === 12,
-  );
+  assert("Enrichment: Zero length enriched from model property", enrichedFields[0]?.LENGTH === 12);
 
   // ============================================================================
   // --- 4. Headless Value Validation (validateValues) ---

@@ -40,7 +40,11 @@ export function UnifiedFieldFactory({
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =
     useMultiValue(value, isMulti, onChange, fieldKey);
 
-  const renderSingleWidget = (val: unknown, onValChange: (next: unknown) => void, rowId: string) => {
+  const renderSingleWidget = (
+    val: unknown,
+    onValChange: (next: unknown) => void,
+    rowId: string,
+  ) => {
     return renderFieldWidget({
       widget,
       field,

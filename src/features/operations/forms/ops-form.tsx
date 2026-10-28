@@ -2,19 +2,16 @@
 
 import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
-import { FormKernelProvider } from "@/features/form-engine";
+import { FormKernelProvider, FormRenderer } from "@/features/form-engine";
 import { getDefaultMoreActions, useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
-import { FormGrid } from "./components/form-grid";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
-import { useFormPersistence } from "./hooks/use-form-persistence";
-import { useFormSpec } from "./hooks/use-form-spec";
+import { useFormMutations } from "./hooks/use-form-mutations";
+import { useFormSchema } from "./hooks/use-form-schema";
 import { useFormState } from "./hooks/use-form-state";
 import type { DynamicFormProps } from "./types";
-import { findPrimaryKeyField } from "./utils/record-finder";
-import { normalizeRecordData } from "./utils/record-normalizer";
 
 const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
 
@@ -34,103 +31,80 @@ export function OpsForm({
   onSuccess,
   onReturn,
 }: FormScreenProps) {
-  // Dynamically resolve CompiledFormSpec from live Model + Form Config
-  const { spec, loading, error, refetch } = useFormSpec(command);
+  const modelCode = (command || "").split(",")[0].trim().toUpperCase();
 
+  // 1. Authoritative CBS Form & Model Schema Resolver
+  const { schema, loading, error, refetch } = useFormSchema(command);
+
+  // 2. Draft values, errors, dirty tracking, and tab persistence
   const {
-    currentTab,
     screenMode,
     setScreenMode,
     searchRecordId,
     setSearchRecordId,
-    mergedInitialValues,
-    persistFieldChange,
-  } = useFormPersistence({
+    values,
+    setValue,
+    setValues,
+    errors,
+    isDirty,
+    validate,
+    resetForm,
+  } = useFormState({
+    schema,
     tabId,
     initialScreenMode,
     initialRecordId: initialRecordIdProp,
     initialValues,
   });
 
-  const displayCommandCode = React.useMemo(() => {
-    return command.trim().toUpperCase();
-  }, [command]);
+  // 3. CBS Transactional Mutations (Commit, Hold, Delete, Authorize/Reverse)
+  const mutations = useFormMutations({
+    modelCode,
+    schema,
+    searchRecordId,
+    screenMode,
+    setScreenMode,
+    values,
+    initialValues,
+    validate,
+    resetForm,
+    onSuccess,
+  });
 
-  const { values, errors, isDirty, setValue, validate, resetForm, setValues } = useFormState(
-    spec,
-    mergedInitialValues,
-  );
-
+  // 4. CBS Navigation & Operator Actions
   const actions = useFormActions({
-    command,
-    spec,
+    modelCode,
+    schema,
     searchRecordId,
     setSearchRecordId,
     screenMode,
     setScreenMode,
-    values,
     setValues,
-    setValue,
     resetForm,
     validate,
     initialValues,
-    onSuccess,
     onReturn,
   });
 
-  // Available records catalog fallback (SBI handles dynamic records on demand)
-  const availableItems = React.useMemo(() => [], []);
-
-  // Subscribe to real-time mutations of this entity
-  const appCode = command.split(",")[0].trim().toUpperCase();
-
+  // Real-time record mutation subscriber
   useRecordMutationSubscriber((mutation) => {
     if (searchRecordId && mutation.recordId === searchRecordId.trim().toUpperCase()) {
       actions.loadRecordData(searchRecordId, screenMode);
     }
-  }, appCode);
-
-  // Synchronize working draft from tab if present
-  React.useEffect(() => {
-    if (!spec) return;
-
-    const cleanId = (searchRecordId || "").trim();
-    const rawDraft = (currentTab?.formData as Record<string, unknown>) || undefined;
-
-    if (rawDraft && Object.keys(rawDraft).length > 0) {
-      const normalized = normalizeRecordData(rawDraft, spec);
-      if (cleanId) {
-        const idField = findPrimaryKeyField(spec);
-        if (idField && !normalized[idField.NAME]) {
-          normalized[idField.NAME] = cleanId;
-        }
-      }
-      setValues(normalized);
-    } else if (cleanId) {
-      const idField = findPrimaryKeyField(spec);
-      if (idField) {
-        setValue(idField.NAME, cleanId);
-      }
-    }
-  }, [spec, searchRecordId, currentTab?.formData, setValues, setValue]);
-
-  const handleFieldChange = (name: string, val: unknown) => {
-    setValue(name, val);
-    persistFieldChange(name, val);
-  };
+  }, modelCode);
 
   const validationErrors = React.useMemo(() => {
     return Object.entries(errors).map(([fieldName, msg]) => ({
       id: fieldName,
-      tab: appCode || "GENERAL",
+      tab: modelCode || "GENERAL",
       fieldKey: fieldName,
       message: msg,
     }));
-  }, [errors, appCode]);
+  }, [errors, modelCode]);
 
   if (loading) return <FormSkeleton />;
 
-  if (error || !spec) {
+  if (error || !schema) {
     return (
       <CbsErrorState
         title="Failed to Resolve Form Specification"
@@ -144,8 +118,8 @@ export function OpsForm({
   return (
     <CbsScreenScaffold
       variant="form"
-      title={spec.title}
-      commandCode={displayCommandCode}
+      title={schema.title}
+      commandCode={command.trim().toUpperCase()}
       mode={screenMode}
       recordId={searchRecordId}
       isDirty={isDirty}
@@ -158,25 +132,25 @@ export function OpsForm({
       onAmend={actions.onAmend}
       onView={actions.onView}
       onPerformAction={actions.onPerformAction}
-      onHold={actions.onHold}
-      onDelete={actions.onDelete}
-      onAuthorizeReverse={actions.onAuthorizeReverse}
+      onHold={mutations.onHold}
+      onDelete={mutations.onDelete}
+      onAuthorizeReverse={mutations.onAuthorizeReverse}
       onReturnToSearch={actions.onReturnToSearch}
       onReset={screenMode !== "IDLE" ? () => resetForm(initialValues) : undefined}
-      onSubmit={actions.onSubmit}
+      onSubmit={mutations.onSubmit}
       onValidate={actions.onValidate}
-      submitting={actions.submitting}
+      submitting={mutations.submitting}
       validationErrors={validationErrors}
-      availableItems={availableItems}
-      moreActions={getDefaultMoreActions(appCode)}
+      availableItems={[]}
+      moreActions={getDefaultMoreActions(modelCode)}
     >
-      <FormKernelProvider initialValues={values} onFieldChange={handleFieldChange}>
-        <FormGrid
-          frmElements={spec.frmElements}
+      <FormKernelProvider initialValues={values} onFieldChange={setValue}>
+        <FormRenderer
+          frmElements={schema.frmElements}
           values={values}
-          onChange={handleFieldChange}
+          onChange={setValue}
           errors={errors}
-          disabled={actions.submitting}
+          disabled={mutations.submitting || screenMode === "S"}
           mode={screenMode}
         />
       </FormKernelProvider>
@@ -184,4 +158,4 @@ export function OpsForm({
   );
 }
 
-export const FormScreen = OpsForm;
+export { OpsForm as FormScreen };

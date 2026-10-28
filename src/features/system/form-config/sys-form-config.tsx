@@ -195,24 +195,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
           <span>PRESENTATION_BUILDER</span>
         </div>
       }
-      // Clean extension: automatically inherits base actions (Copy, Paste, SFL, etc.)
-      moreActions={[
-        {
-          label: "Export Form JSON Spec",
-          onClick: () => {
-            const blob = new Blob([JSON.stringify(formData, null, 2)], {
-              type: "application/json",
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${formData.recordId || "form"}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-          },
-          requiredRight: "S",
-        },
-      ]}
     />
   );
 }

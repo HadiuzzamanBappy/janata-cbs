@@ -1,4 +1,3 @@
-import type { CbsScreenComponent } from "@/lib/cbs-screen";
 import type { WorkspaceDisplayMode } from "@/types";
 
 export interface ScreenLoaderProps {
@@ -7,5 +6,3 @@ export interface ScreenLoaderProps {
   mode?: WorkspaceDisplayMode;
   className?: string;
 }
-
-export type ScreenComponent = CbsScreenComponent;

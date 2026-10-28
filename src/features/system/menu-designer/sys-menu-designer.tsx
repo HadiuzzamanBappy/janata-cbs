@@ -4,7 +4,6 @@ import { Eye, FileCode, FileText, History, Layers, Network } from "lucide-react"
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { DesignerAuditTab } from "./components/designer-audit-tab";
 import { DesignerCanvasTab } from "./components/designer-canvas-tab";
 import { DesignerGeneralTab } from "./components/designer-general-tab";
@@ -147,14 +146,6 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
           <span>SYS_MENU_TREE</span>
         </div>
       }
-      moreActions={[
-        {
-          label: "Toggle Tree Active Status",
-          onClick: () => setFormData((p) => ({ ...p, isActive: !p.isActive })),
-          requiredRight: "A",
-        },
-        ...getDefaultMoreActions("MENU_TREE"),
-      ]}
     />
   );
 }

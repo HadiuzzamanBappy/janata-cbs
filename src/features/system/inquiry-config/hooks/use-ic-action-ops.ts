@@ -1,10 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type {
-  INQCmd,
-  InquiryConfigRecord,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd, InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 
 export function useIcActionOps(
   setFormData: React.Dispatch<React.SetStateAction<InquiryConfigRecord>>,
@@ -56,12 +53,7 @@ export function useIcActionOps(
     (fromIndex: number, toIndex: number) => {
       setFormData((prev) => {
         const items = [...(prev.INQCmds || [])];
-        if (
-          fromIndex < 0 ||
-          fromIndex >= items.length ||
-          toIndex < 0 ||
-          toIndex >= items.length
-        ) {
+        if (fromIndex < 0 || fromIndex >= items.length || toIndex < 0 || toIndex >= items.length) {
           return prev;
         }
         const [moved] = items.splice(fromIndex, 1);
@@ -84,4 +76,3 @@ export function useIcActionOps(
     reorderActions,
   };
 }
-

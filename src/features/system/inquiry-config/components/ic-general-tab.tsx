@@ -12,10 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
-import type {
-  InquiryConfigRecord,
-  InquiryValidationErrorItem,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 import {
   getFieldValue,
   INQUIRY_META_FIELDS,
@@ -23,6 +20,7 @@ import {
   type MetaFieldDef,
   setFieldValue,
 } from "../fields";
+import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 
 export interface IcGeneralTabProps {
   formData: InquiryConfigRecord;

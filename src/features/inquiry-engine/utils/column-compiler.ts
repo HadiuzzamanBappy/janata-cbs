@@ -62,4 +62,3 @@ export function deriveInquiryColumnMeta(col: INQDef): DerivedColumnMeta {
     canPass: Boolean(col.dataPassable),
   };
 }
-

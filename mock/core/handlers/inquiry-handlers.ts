@@ -38,15 +38,15 @@ export function handleInquiry(payload: CbsWirePayload): ApiResponse {
     | undefined;
 
   // 1. Resolve target table either from INQInfo.controllerName or direct controlName
-  const targetModel = (
-    inqSpec?.INQInfo?.controllerName ||
-    inqSpec?.controllerName ||
-    cleanKey
-  ).trim().toUpperCase();
+  const targetModel = (inqSpec?.INQInfo?.controllerName || inqSpec?.controllerName || cleanKey)
+    .trim()
+    .toUpperCase();
 
   const table = resolveTable(targetModel);
   if (!table) {
-    return notFoundResult(`Target database table "${targetModel}" not found for inquiry "${cleanKey}"`);
+    return notFoundResult(
+      `Target database table "${targetModel}" not found for inquiry "${cleanKey}"`,
+    );
   }
 
   const records = table.getList();

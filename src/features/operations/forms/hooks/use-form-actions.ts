@@ -9,6 +9,7 @@ import { normalizeRecordData } from "../utils/record-normalizer";
 import { useFormMutations } from "./use-form-mutations";
 
 export interface UseFormActionsOptions {
+  command: string;
   spec: CompiledFormSpec | null;
   searchRecordId: string;
   setSearchRecordId: (id: string) => void;
@@ -25,6 +26,7 @@ export interface UseFormActionsOptions {
 }
 
 export function useFormActions({
+  command,
   spec,
   searchRecordId,
   setSearchRecordId: _setSearchRecordId,
@@ -38,12 +40,14 @@ export function useFormActions({
   onSuccess,
   onReturn,
 }: UseFormActionsOptions) {
+  const modelCode = (command || "").split(",")[0].trim().toUpperCase();
+
   // Query record by ID via real CBS Client wire protocol
   const loadRecordData = React.useCallback(
     async (recordIdToLoad: string, modeToSet: CbsScreenMode) => {
       if (!spec || !recordIdToLoad.trim()) return;
 
-      const cleanCode = spec.code.toUpperCase();
+      const cleanCode = modelCode;
       const cleanId = recordIdToLoad.trim();
 
       try {
@@ -72,7 +76,7 @@ export function useFormActions({
         setScreenMode(modeToSet);
       }
     },
-    [spec, setScreenMode, setValues],
+    [spec, modelCode, setScreenMode, setValues],
   );
 
   const handleCreateNew = React.useCallback(
@@ -81,7 +85,7 @@ export function useFormActions({
       let nextId = allocatedId;
       if (!nextId) {
         try {
-          const gni = await cbs.send<{ recordId?: string }>(cbs.form.getNewRecordId(spec.code));
+          const gni = await cbs.send<{ recordId?: string }>(cbs.form.getNewRecordId(modelCode));
           if (gni.status === "SUCCESS" && gni.data?.recordId) {
             nextId = gni.data.recordId;
           }
@@ -103,12 +107,13 @@ export function useFormActions({
         type: "info",
       });
     },
-    [spec, resetForm, initialValues, setScreenMode, searchRecordId, _setSearchRecordId],
+    [spec, resetForm, initialValues, setScreenMode, searchRecordId, modelCode, _setSearchRecordId],
   );
 
   const handleAmend = React.useCallback(
-    (targetId?: string) => {
-      const id = (targetId || searchRecordId).trim();
+    (targetId?: unknown) => {
+      const raw = typeof targetId === "string" ? targetId : searchRecordId;
+      const id = (typeof raw === "string" ? raw : String(raw || "")).trim();
       if (!id) {
         toast.add({
           title: "Input Required",
@@ -123,8 +128,9 @@ export function useFormActions({
   );
 
   const handleView = React.useCallback(
-    (targetId?: string) => {
-      const id = (targetId || searchRecordId).trim();
+    (targetId?: unknown) => {
+      const raw = typeof targetId === "string" ? targetId : searchRecordId;
+      const id = (typeof raw === "string" ? raw : String(raw || "")).trim();
       if (!id) {
         toast.add({
           title: "Input Required",
@@ -139,7 +145,8 @@ export function useFormActions({
   );
 
   const handlePerformAction = React.useCallback(() => {
-    const id = searchRecordId.trim();
+    const raw = searchRecordId;
+    const id = (typeof raw === "string" ? raw : String(raw || "")).trim();
     if (!id) {
       handleCreateNew();
       return;
@@ -177,6 +184,7 @@ export function useFormActions({
   }, [screenMode, spec, validate]);
 
   const mutations = useFormMutations({
+    command,
     spec,
     searchRecordId,
     screenMode,

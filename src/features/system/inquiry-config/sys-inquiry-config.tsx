@@ -112,14 +112,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         content: <IcJsonTab formData={formData} />,
       },
     ],
-    [
-      formData,
-      isReadOnly,
-      setFormData,
-      filterOps,
-      columnOps,
-      actionOps,
-    ],
+    [formData, isReadOnly, setFormData, filterOps, columnOps, actionOps],
   );
 
   return (

@@ -58,4 +58,3 @@ export function useInquirySort(rows: EnquiryRow[]) {
     sortedRows,
   };
 }
-

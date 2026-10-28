@@ -9,6 +9,7 @@ import type { CompiledFormSpec } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
 
 export interface UseFormMutationsOptions {
+  command?: string;
   spec: CompiledFormSpec | null;
   searchRecordId: string;
   screenMode: CbsScreenMode;
@@ -22,6 +23,7 @@ export interface UseFormMutationsOptions {
 }
 
 export function useFormMutations({
+  command = "",
   spec,
   searchRecordId,
   screenMode,
@@ -34,6 +36,7 @@ export function useFormMutations({
   onSuccess,
 }: UseFormMutationsOptions) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const modelCode = (command || "").split(",")[0].trim().toUpperCase();
 
   const handleSubmit = React.useCallback(
     async (e?: React.SyntheticEvent) => {
@@ -59,7 +62,7 @@ export function useFormMutations({
         const targetId = (searchRecordId || (values.id as string) || "").trim();
 
         const json = await cbs.send(
-          cbs.form.commitRecord(spec.code, commitData, {
+          cbs.form.commitRecord(modelCode, commitData, {
             recordId: targetId,
           }),
           {
@@ -69,7 +72,7 @@ export function useFormMutations({
         );
 
         if (json.status === "SUCCESS") {
-          broadcastRecordMutation(spec.code, targetId);
+          broadcastRecordMutation(modelCode, targetId);
           resetForm(initialValues);
           setScreenMode("IDLE");
           if (onSuccess) onSuccess(json);
@@ -81,6 +84,7 @@ export function useFormMutations({
     [
       validate,
       spec,
+      modelCode,
       screenMode,
       initialValues,
       values,
@@ -97,19 +101,19 @@ export function useFormMutations({
       const id = searchRecordId.trim() || (values.id as string) || "";
       setSubmitting(true);
       try {
-        const json = await cbs.send(cbs.form.holdRecord(spec.code, id, values), {
+        const json = await cbs.send(cbs.form.holdRecord(modelCode, id, values), {
           successTitle: "Transaction Held",
           successMessage: `Record draft for ${spec.title} placed on Hold.`,
         });
         if (json.status === "SUCCESS") {
-          broadcastRecordMutation(spec.code, id);
+          broadcastRecordMutation(modelCode, id);
           if (onSuccess) onSuccess(json);
         }
       } finally {
         setSubmitting(false);
       }
     };
-  }, [screenMode, spec, searchRecordId, values, onSuccess]);
+  }, [screenMode, spec, modelCode, searchRecordId, values, onSuccess]);
 
   const handleDelete = React.useMemo(() => {
     if (screenMode === "IDLE" || !spec) return undefined;
@@ -125,12 +129,12 @@ export function useFormMutations({
       }
       setSubmitting(true);
       try {
-        const json = await cbs.send(cbs.form.deleteRecord(spec.code, id), {
+        const json = await cbs.send(cbs.form.deleteRecord(modelCode, id), {
           successTitle: "Record Deleted",
           successMessage: `Record #${id} marked for deletion in ${spec.title}.`,
         });
         if (json.status === "SUCCESS") {
-          broadcastRecordMutation(spec.code, id);
+          broadcastRecordMutation(modelCode, id);
           resetForm(initialValues);
           setScreenMode("IDLE");
           if (onSuccess) onSuccess(json);
@@ -142,6 +146,7 @@ export function useFormMutations({
   }, [
     screenMode,
     spec,
+    modelCode,
     searchRecordId,
     values.id,
     resetForm,
@@ -166,8 +171,8 @@ export function useFormMutations({
       try {
         const isLive = values.RECORD_STATUS === "AU" || values.status === "AU";
         const payload = isLive
-          ? cbs.form.reverseRecord(spec.code, id)
-          : cbs.form.authorizeRecord(spec.code, id);
+          ? cbs.form.reverseRecord(modelCode, id)
+          : cbs.form.authorizeRecord(modelCode, id);
 
         const actionName = isLive ? "Reversal" : "Authorization";
         const json = await cbs.send(payload, {
@@ -175,7 +180,7 @@ export function useFormMutations({
           successMessage: `Transaction ${actionName.toLowerCase()} completed for record #${id}.`,
         });
         if (json.status === "SUCCESS") {
-          broadcastRecordMutation(spec.code, id);
+          broadcastRecordMutation(modelCode, id);
           resetForm(initialValues);
           setScreenMode("IDLE");
           if (onSuccess) onSuccess(json);
@@ -187,6 +192,7 @@ export function useFormMutations({
   }, [
     screenMode,
     spec,
+    modelCode,
     searchRecordId,
     values,
     resetForm,

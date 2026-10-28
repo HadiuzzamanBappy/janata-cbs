@@ -1,14 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import { useInquiryPagination } from "../hooks/use-inquiry-pagination";
 import { useInquirySort } from "../hooks/use-inquiry-sort";
@@ -33,7 +26,9 @@ export function InquiryTable({
 }: InquiryTableProps) {
   // 1. Derive rich metadata from canonical INQDef wire spec
   const columnMetas = React.useMemo(() => {
-    return (columns || []).map((col: INQDef) => deriveInquiryColumnMeta(col)).sort((a, b) => a.order - b.order);
+    return (columns || [])
+      .map((col: INQDef) => deriveInquiryColumnMeta(col))
+      .sort((a, b) => a.order - b.order);
   }, [columns]);
 
   // 2. Client-side sort state
@@ -50,83 +45,39 @@ export function InquiryTable({
     paginatedRows,
   } = useInquiryPagination({
     rows: sortedRows,
-    controlledPage,
     controlledPageSize,
-    onPageChange,
     onPageSizeChange,
+    controlledPage,
+    onPageChange,
     totalRows,
   });
 
-  return (
-    <div
-      className={`flex flex-col border border-border rounded-lg bg-card overflow-hidden shadow-xs ${className}`}
-    >
-      <div className="overflow-x-auto">
-        <Table className="w-full text-xs">
-          <TableHeader className="bg-muted/50 border-b border-border">
-            <TableRow className="hover:bg-transparent">
-              {showSerial && (
-                <TableHead className="w-12 text-center text-muted-foreground font-mono text-[11px]">
-                  #
-                </TableHead>
-              )}
-              {columnMetas.map((col) => (
-                <TableHead
-                  key={col.id}
-                  style={{ width: col.width }}
-                  className="px-3 py-2 text-foreground font-semibold"
-                >
-                  <ColumnHeader
-                    title={col.label}
-                    align={col.align}
-                    sortDirection={sortState.column === col.id ? sortState.direction : null}
-                    onSort={() => handleSort(col.id)}
-                  />
-                </TableHead>
-              ))}
-              {commands.length > 0 && (
-                <TableHead className="w-24 text-right pr-4 text-foreground font-semibold">
-                  Actions
-                </TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
+  const showActionsColumn = commands.length > 0;
 
-          <TableBody>
-            {paginatedRows.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={
-                    columnMetas.length + (showSerial ? 1 : 0) + (commands.length > 0 ? 1 : 0)
-                  }
-                  className="h-32 text-center text-muted-foreground text-xs"
-                >
-                  No matching records found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedRows.map((row, rowIdx) => {
-                const serialNum = (currentPage - 1) * pageSize + rowIdx + 1;
-                const rowKey =
-                  typeof row.id === "string" && row.id.length > 0
-                    ? row.id
-                    : typeof row.recordId === "string" && row.recordId.length > 0
-                      ? row.recordId
-                      : `inq-row-${serialNum}`;
-                return (
-                  <TableRow
-                    key={rowKey}
-                    className="hover:bg-muted/40 transition-colors border-b border-border/40"
-                  >
+  return (
+    <TooltipProvider delay={150}>
+      <div className={`flex-1 flex flex-col min-h-0 overflow-hidden pr-1 gap-1 ${className}`}>
+        {/* Table Container: rounded, border-border/80, bg-card/60, shadow-2xs matching system layout */}
+        <div className="flex-1 min-h-0 overflow-auto rounded border border-border/80 bg-card/60 shadow-2xs flex flex-col">
+          {rows.length === 0 ? (
+            <div className="flex-1 min-h-50 flex flex-col items-center justify-center p-6 text-center bg-muted/10">
+              <p className="text-xs text-muted-foreground font-mono">No matching records found.</p>
+            </div>
+          ) : (
+            <div className="flex-1 min-h-0 overflow-auto">
+              <table className="w-full caption-bottom text-sm">
+                <thead className="bg-muted/50 sticky top-0 z-10 border-b border-border/70 [&_tr]:border-b">
+                  <tr className="hover:bg-transparent border-b border-border/60">
                     {showSerial && (
-                      <TableCell className="text-center font-mono text-[11px] text-muted-foreground">
-                        {serialNum}
-                      </TableCell>
+                      <th className="w-12 text-center text-xs font-semibold text-muted-foreground py-1 px-2 whitespace-nowrap">
+                        #
+                      </th>
                     )}
                     {columnMetas.map((col) => (
-                      <TableCell
+                      <th
                         key={col.id}
-                        className={`px-3 py-2 text-xs ${
+                        style={{ width: col.width }}
+                        className={`text-xs font-semibold text-foreground/90 py-1.5 px-2.5 h-7.5 whitespace-nowrap ${
                           col.align === "right"
                             ? "text-right"
                             : col.align === "center"
@@ -134,34 +85,96 @@ export function InquiryTable({
                               : "text-left"
                         }`}
                       >
-                        <CellFormatter
-                          value={row[col.id]}
-                          format={col.format}
-                          isMono={col.isMono}
+                        <ColumnHeader
+                          label={col.label}
+                          columnId={col.id}
+                          align={col.align}
+                          sortDirection={sortState?.column === col.id ? sortState.direction : null}
+                          onSort={handleSort}
                         />
-                      </TableCell>
+                      </th>
                     ))}
-                    {commands.length > 0 && (
-                      <TableCell className="pr-4 py-1.5 text-right">
-                        <InquiryRowActions commands={commands} row={row} />
-                      </TableCell>
-                    )}
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
 
-      <InquiryPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalCount={totalCount}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-      />
-    </div>
+                    {/* Actions Column Header pinned on the Right */}
+                    {showActionsColumn && (
+                      <th className="w-20 px-2 py-1 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20 whitespace-nowrap">
+                        Actions
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+
+                <tbody className="[&_tr:last-child]:border-0">
+                  {paginatedRows.map((row, rowIdx) => {
+                    const serialNum = (currentPage - 1) * pageSize + rowIdx + 1;
+                    const rowKey =
+                      typeof row.id === "string" && row.id.length > 0
+                        ? row.id
+                        : typeof row.recordId === "string" && row.recordId.length > 0
+                          ? row.recordId
+                          : `inq-row-${serialNum}`;
+                    const isStriped = rowIdx % 2 === 1;
+
+                    return (
+                      <tr
+                        key={rowKey}
+                        className={`hover:bg-primary/10 transition-colors border-b border-border/30 font-mono text-xs ${
+                          isStriped ? "bg-muted/40" : "bg-transparent"
+                        }`}
+                      >
+                        {showSerial && (
+                          <td className="w-12 text-center font-mono text-[11px] text-muted-foreground py-1.5 px-2 whitespace-nowrap">
+                            {serialNum}
+                          </td>
+                        )}
+                        {columnMetas.map((col) => (
+                          <td
+                            key={col.id}
+                            className={`py-1.5 px-2.5 text-xs whitespace-nowrap ${col.isMono ? "font-mono" : ""} ${
+                              col.align === "right"
+                                ? "text-right"
+                                : col.align === "center"
+                                  ? "text-center"
+                                  : "text-left"
+                            }`}
+                          >
+                            <CellFormatter
+                              value={row[col.id]}
+                              format={col.format}
+                              isMono={col.isMono}
+                            />
+                          </td>
+                        ))}
+
+                        {/* Action Column pinned right with matching striped background */}
+                        {showActionsColumn && (
+                          <td
+                            className={`w-20 px-1.5 py-1 text-center sticky right-0 backdrop-blur-xs border-l border-border/30 whitespace-nowrap ${
+                              isStriped ? "bg-muted/95" : "bg-card/95"
+                            }`}
+                          >
+                            <InquiryRowActions commands={commands} row={row} />
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination Bar */}
+        <InquiryPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalCount={totalCount}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      </div>
+    </TooltipProvider>
   );
 }

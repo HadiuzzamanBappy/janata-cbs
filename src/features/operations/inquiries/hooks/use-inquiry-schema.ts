@@ -20,7 +20,7 @@ export function useInquirySchema(command: string) {
     setError(null);
 
     try {
-      // 1. Clean command: strip INQ and record functions (e.g. S, R) to get recordId
+      // 1. Clean command: strip INQ and record functions to extract canonical inquiry record key
       const cleanCmd = command
         .split(",")[0]
         .trim()
@@ -36,10 +36,10 @@ export function useInquirySchema(command: string) {
       if ((json.status === "SUCCESS" || json.success) && json.data) {
         setSchema(json.data);
       } else {
-        setError(json.message || json.error || `Failed to fetch enquiry schema for ${cleanCmd}`);
+        setError(json.message || json.error || `Failed to fetch inquiry schema for ${cleanCmd}`);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Network error fetching enquiry schema");
+      setError(err instanceof Error ? err.message : "Network error fetching inquiry schema");
     } finally {
       setLoading(false);
     }
@@ -51,5 +51,3 @@ export function useInquirySchema(command: string) {
 
   return { schema, loading, error, refetch: fetchSchema };
 }
-
-export const useEnquirySchema = useInquirySchema;

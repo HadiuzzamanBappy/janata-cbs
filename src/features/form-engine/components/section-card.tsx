@@ -6,7 +6,9 @@ import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
 import { FormKernelContext } from "../store/form-kernel-provider";
-import { ArrayTableSection, ObjectGroupSection, StandardGridSection } from "./sections";
+import { ArrayTableSection } from "./sections/array-table-section";
+import { ObjectGroupSection } from "./sections/object-group-section";
+import { StandardGridSection } from "./sections/standard-grid-section";
 
 export interface SectionCardProps {
   section: FormSection;

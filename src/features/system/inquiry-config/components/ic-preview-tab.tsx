@@ -1,241 +1,149 @@
 "use client";
 
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import {
   type FilterCriteriaMap,
   InquiryFilterBar,
   InquiryTable,
+  serializeCriteriaToWire,
 } from "@/features/inquiry-engine";
-import type {
-  EnquiryRow,
-  INQDef,
-  InquiryConfigRecord,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import { cbs } from "@/lib/cbs-client";
+import { parseInquiryRecords } from "@/lib/data-parsers";
+import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface IcPreviewTabProps {
   formData: InquiryConfigRecord;
 }
 
-function generateSampleRows(_columns: INQDef[], targetModel?: string): EnquiryRow[] {
-  const isAccount = !targetModel || targetModel.toUpperCase() === "ACCOUNT";
-  const isUser = targetModel?.toUpperCase() === "USER";
-
-  return [
-    {
-      id: "1",
-      recordId: isAccount ? "01002345678" : isUser ? "EMP00102" : "TXN987201",
-      accountNumber: "01002345678",
-      accountTitle: "Bashir Ahmed",
-      employeeName: "Bashir Ahmed",
-      empBankId: "JB00921",
-      userDesignation: "Principal Officer",
-      placeOfPosting: "Dilkusha Principal Br",
-      mobileNo: "01711223344",
-      email: "bashir.ahmed@janatabank.com.bd",
-      accountType: "SAVINGS",
-      currency: "BDT",
-      openingDate: "2023-01-15",
-      interestRate: 6.5,
-      branchCode: "JB0001",
-      txnAmount: 450000.0,
-      inputter: "SYSADMIN",
-      authorizer: "SUPV01",
-      balance: 450000.5,
-      status: "ACTIVE",
-    },
-    {
-      id: "2",
-      recordId: isAccount ? "01002345679" : isUser ? "EMP00103" : "TXN987202",
-      accountNumber: "01002345679",
-      accountTitle: "Karim Ullah",
-      employeeName: "Karim Ullah",
-      empBankId: "JB00922",
-      userDesignation: "Senior Officer",
-      placeOfPosting: "Motijheel Corporate Br",
-      mobileNo: "01811334455",
-      email: "karim.ullah@janatabank.com.bd",
-      accountType: "CURRENT",
-      currency: "BDT",
-      openingDate: "2023-03-22",
-      interestRate: 0.0,
-      branchCode: "JB0002",
-      txnAmount: 1200000.0,
-      inputter: "OPERATOR2",
-      authorizer: "SUPV01",
-      balance: 1200000.0,
-      status: "ACTIVE",
-    },
-    {
-      id: "3",
-      recordId: isAccount ? "01002345680" : isUser ? "EMP00104" : "TXN987203",
-      accountNumber: "01002345680",
-      accountTitle: "Nasreen Sultana",
-      employeeName: "Nasreen Sultana",
-      empBankId: "JB00923",
-      userDesignation: "Executive Officer",
-      placeOfPosting: "Gulshan Corporate Br",
-      mobileNo: "01911445566",
-      email: "nasreen.sultana@janatabank.com.bd",
-      accountType: "FIXED_DEP",
-      currency: "BDT",
-      openingDate: "2023-06-10",
-      interestRate: 8.5,
-      branchCode: "JB0005",
-      txnAmount: 2500000.0,
-      inputter: "OPERATOR1",
-      authorizer: "MANAGER01",
-      balance: 2500000.0,
-      status: "DORMANT",
-    },
-  ];
-}
-
 export function IcPreviewTab({ formData }: IcPreviewTabProps) {
-  const [step, setStep] = React.useState<"SELECTION" | "RESULTS">("RESULTS");
-  const targetController = formData.INQInfo?.controllerName || "ACCOUNT";
-
-  const sampleRows = React.useMemo(() => {
-    return generateSampleRows(formData.INQDef || [], targetController);
-  }, [formData.INQDef, targetController]);
-
-  const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>(sampleRows);
-
-  React.useEffect(() => {
-    setFilteredRows(sampleRows);
-  }, [sampleRows]);
-
   const hasFilters = Boolean(formData.INQSelectField && formData.INQSelectField.length > 0);
+  const [step, setStep] = React.useState<"SELECTION" | "RESULTS">(
+    hasFilters ? "SELECTION" : "RESULTS",
+  );
+  const [rows, setRows] = React.useState<EnquiryRow[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [criteria, setCriteria] = React.useState<FilterCriteriaMap>({});
 
-  const handleFilterSearch = (criteria: FilterCriteriaMap) => {
-    const activeFilters = Object.entries(criteria).filter(([_, c]) => c.value && c.value.trim() !== "");
+  const targetController = formData.INQInfo?.controllerName?.trim() || "ACCOUNT";
 
-    if (activeFilters.length === 0) {
-      setFilteredRows(sampleRows);
-    } else {
-      const filtered = sampleRows.filter((row) => {
-        return activeFilters.every(([fieldId, crit]) => {
-          const val = String(row[fieldId] ?? "").toLowerCase();
-          const target = crit.value.toLowerCase().trim();
-
-          switch (crit.operand) {
-            case "EQ":
-              return val === target;
-            case "LK":
-            case "CT":
-              return val.includes(target);
-            case "NE":
-              return val !== target;
-            case "GT":
-              return Number(val) > Number(target);
-            case "LT":
-              return Number(val) < Number(target);
-            default:
-              return true;
-          }
-        });
-      });
-      setFilteredRows(filtered);
+  // Initialize criteria from select fields
+  React.useEffect(() => {
+    const initial: FilterCriteriaMap = {};
+    for (const f of formData.INQSelectField || []) {
+      initial[f.selectFieldName] = {
+        value: f.selectFieldValue || "",
+        operand: (f.selectFieldOperator as FilterCriteriaMap[string]["operand"]) || "EQ",
+      };
     }
+    setCriteria(initial);
+    setStep(hasFilters ? "SELECTION" : "RESULTS");
+  }, [formData.INQSelectField, hasFilters]);
 
-    setStep("RESULTS");
-    toast.add({
-      title: "Simulation Query Executed",
-      description: `Matched ${filteredRows.length} simulated record(s)`,
-      type: "info",
-    });
+  // Execute real backend query simulation
+  const executeQuery = React.useCallback(
+    async (critMap: FilterCriteriaMap) => {
+      setLoading(true);
+      const queryString = serializeCriteriaToWire(critMap, formData.INQSelectField || []);
+
+      try {
+        const queryRes = await cbs.send<unknown>(
+          cbs.inquiry.executeQuery(targetController, {
+            servicePath: formData.INQInfo?.inqServicePath,
+            perPage: Number(formData.INQInfo?.perpageItem) || 1000,
+            curPage: 1,
+            queryString,
+          }),
+          { silent: true },
+        );
+
+        const dataset = parseInquiryRecords(queryRes.data);
+        setRows(dataset);
+        setStep("RESULTS");
+      } catch (err) {
+        console.warn("Inquiry simulation failed", err);
+        toast.add({
+          title: "Query Failed",
+          description: err instanceof Error ? err.message : "Target controller query failed",
+          type: "destructive",
+        });
+        setRows([]);
+        setStep("RESULTS");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      targetController,
+      formData.INQInfo?.inqServicePath,
+      formData.INQInfo?.perpageItem,
+      formData.INQSelectField,
+    ],
+  );
+
+  // Auto-fetch if no selection filters exist and on RESULTS step
+  React.useEffect(() => {
+    if (!hasFilters && step === "RESULTS") {
+      executeQuery({});
+    }
+  }, [hasFilters, step, executeQuery]);
+
+  const handleFilterSearch = (searchCrit: FilterCriteriaMap) => {
+    setCriteria(searchCrit);
+    executeQuery(searchCrit);
   };
 
   const handleResetFilters = () => {
-    setFilteredRows(sampleRows);
+    const cleared: FilterCriteriaMap = {};
+    for (const f of formData.INQSelectField || []) {
+      cleared[f.selectFieldName] = {
+        value: "",
+        operand: (f.selectFieldOperator as FilterCriteriaMap[string]["operand"]) || "EQ",
+      };
+    }
+    setCriteria(cleared);
+    setRows([]);
   };
 
   const pageSize = Number(formData.INQInfo?.perpageItem || 30) || 30;
 
   return (
-    <div className="h-full flex flex-col gap-2 overflow-hidden select-none pr-1">
-      {/* Simulation Control Toolbar */}
-      <div className="shrink-0 flex items-center justify-between p-2 rounded border border-border/70 bg-card/70 shadow-2xs">
-        <div className="flex items-center gap-2">
-          {step === "RESULTS" && hasFilters && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setStep("SELECTION")}
-              className="h-6.5 text-xs px-2 gap-1 rounded bg-background"
-            >
-              <ArrowLeft className="size-3" /> Back to Selection
-            </Button>
-          )}
-
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="font-semibold text-foreground">
-              {formData.INQInfo?.description || "Inquiry Preview"}
-            </span>
-            <span className="text-muted-foreground/60 font-mono">&bull;</span>
-            <span className="text-[11px] font-mono text-muted-foreground">
-              Target: {formData.INQInfo?.controllerName || "GENERIC"}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className="text-[10px] font-mono px-1.5 py-0.5 rounded text-primary border-primary/30 bg-primary/5 flex items-center gap-1"
+    <div className="h-full flex flex-col min-h-0 overflow-hidden pr-1">
+      {step === "RESULTS" && hasFilters && (
+        <div className="shrink-0 pb-1.5 flex items-center">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setStep("SELECTION")}
+            className="h-6 text-xs px-2 gap-1 text-primary hover:text-primary/80"
           >
-            <Sparkles className="size-2.5" />
-            <span>LIVE PREVIEW</span>
-          </Badge>
-
-          {formData.INQCmds && formData.INQCmds.length > 0 ? (
-            <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0.5 rounded">
-              {formData.INQCmds.length} Action(s) Active
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="text-[10px] font-mono px-1.5 py-0.5 rounded text-muted-foreground"
-            >
-              No Actions (Table Only)
-            </Badge>
-          )}
+            <ArrowLeft className="size-3" />
+            <span>Selection Criteria</span>
+          </Button>
         </div>
-      </div>
+      )}
 
-      {/* Main Execution Stage */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {step === "SELECTION" && hasFilters ? (
-          <div className="p-4">
-            <InquiryFilterBar
-              fields={formData.INQSelectField || []}
-              onSearch={handleFilterSearch}
-              onReset={handleResetFilters}
-            />
-          </div>
+        {step === "SELECTION" ? (
+          <InquiryFilterBar
+            fields={formData.INQSelectField || []}
+            criteria={criteria}
+            onCriteriaChange={setCriteria}
+            onSearch={handleFilterSearch}
+            onReset={handleResetFilters}
+            loading={loading}
+          />
         ) : (
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-2">
-            {hasFilters && (
-              <InquiryFilterBar
-                fields={formData.INQSelectField || []}
-                onSearch={handleFilterSearch}
-                onReset={handleResetFilters}
-              />
-            )}
-            <div className="flex-1 min-h-0">
-              <InquiryTable
-                columns={formData.INQDef || []}
-                rows={filteredRows}
-                commands={formData.INQCmds || []}
-                pageSize={pageSize}
-                showSerial={formData.INQInfo?.showSerial}
-              />
-            </div>
-          </div>
+          <InquiryTable
+            columns={formData.INQDef || []}
+            rows={rows}
+            commands={formData.INQCmds || []}
+            pageSize={pageSize}
+            showSerial={formData.INQInfo?.showSerial}
+          />
         )}
       </div>
     </div>

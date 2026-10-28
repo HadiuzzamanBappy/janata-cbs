@@ -4,23 +4,23 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface ColumnHeaderProps {
-  title: string;
-  isSortable?: boolean;
-  sortDirection?: "asc" | "desc" | null;
-  onSort?: () => void;
+  label: string;
+  columnId: string;
   align?: "left" | "center" | "right";
+  sortDirection?: "asc" | "desc" | null;
+  onSort?: (columnId: string) => void;
   className?: string;
 }
 
 export function ColumnHeader({
-  title,
-  isSortable = true,
+  label,
+  columnId,
+  align = "left",
   sortDirection,
   onSort,
-  align = "left",
   className = "",
 }: ColumnHeaderProps) {
-  if (!isSortable) {
+  if (!onSort) {
     return (
       <span
         className={`text-xs font-semibold uppercase tracking-wider text-muted-foreground ${
@@ -31,7 +31,7 @@ export function ColumnHeader({
               : "text-left"
         } ${className}`}
       >
-        {title}
+        {label}
       </span>
     );
   }
@@ -40,12 +40,12 @@ export function ColumnHeader({
     <Button
       variant="ghost"
       size="sm"
-      onClick={onSort}
+      onClick={() => onSort(columnId)}
       className={`h-7 px-1.5 -ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-1 ${
         align === "right" ? "ml-auto" : align === "center" ? "mx-auto" : ""
       } ${className}`}
     >
-      <span>{title}</span>
+      <span>{label}</span>
       {sortDirection === "asc" ? (
         <ArrowUp className="size-3 text-primary" />
       ) : sortDirection === "desc" ? (

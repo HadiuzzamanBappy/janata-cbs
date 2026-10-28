@@ -16,8 +16,8 @@ export interface InquiryPaginationProps {
   pageSize: number;
   totalCount: number;
   onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
-  pageSizeOptions?: number[];
+  onPageSizeChange: (pageSize: number) => void;
+  className?: string;
 }
 
 export function InquiryPagination({
@@ -27,81 +27,106 @@ export function InquiryPagination({
   totalCount,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 30, 50, 100],
+  className = "",
 }: InquiryPaginationProps) {
-  const from = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const to = Math.min(currentPage * pageSize, totalCount);
+  const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, totalCount);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 border-t border-border bg-muted/20 text-xs">
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <span>
-          Showing <span className="font-semibold text-foreground">{from}</span>–
-          <span className="font-semibold text-foreground">{to}</span> of{" "}
-          <span className="font-semibold text-foreground">{totalCount}</span> records
+    <div
+      className={`flex items-center justify-between px-3 py-1 bg-card/60 border border-border/80 rounded text-xs select-none shadow-2xs ${className}`}
+    >
+      {/* Total Counter */}
+      <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+        <span>Showing</span>
+        <span className="font-semibold text-foreground">
+          {startItem}-{endItem}
         </span>
+        <span>of</span>
+        <span className="font-semibold text-foreground">{totalCount}</span>
+        <span>records</span>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1.5">
-          <span className="text-muted-foreground">Rows per page:</span>
-          <Select value={String(pageSize)} onValueChange={(v) => onPageSizeChange(Number(v))}>
-            <SelectTrigger className="h-7 w-[70px] text-xs">
-              <SelectValue placeholder={String(pageSize)} />
+      {/* Navigation Controls */}
+      <div className="flex items-center gap-2">
+        {/* Page Size Selector */}
+        <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
+          <span className="text-muted-foreground text-[11px]">Rows:</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(val: string | null) => {
+              if (val) onPageSizeChange(Number(val));
+            }}
+          >
+            <SelectTrigger
+              size="sm"
+              className="h-6 w-auto min-w-11.5 text-xs font-mono px-1.5 py-0 gap-1 bg-background text-foreground border-border/80 rounded shadow-none [&_svg]:size-3 [&_svg]:text-muted-foreground"
+            >
+              <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {pageSizeOptions.map((opt) => (
-                <SelectItem key={opt} value={String(opt)} className="text-xs">
-                  {opt}
-                </SelectItem>
-              ))}
+            <SelectContent className="rounded min-w-14">
+              <SelectItem value="10" className="text-xs rounded font-mono">
+                10
+              </SelectItem>
+              <SelectItem value="25" className="text-xs rounded font-mono">
+                25
+              </SelectItem>
+              <SelectItem value="50" className="text-xs rounded font-mono">
+                50
+              </SelectItem>
+              <SelectItem value="100" className="text-xs rounded font-mono">
+                100
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
+        {/* Page Buttons */}
         <div className="flex items-center gap-1">
-          <span className="text-muted-foreground mr-1">
-            Page {currentPage} of {totalPages}
-          </span>
           <Button
-            variant="outline"
-            size="icon"
-            className="size-7"
-            disabled={currentPage <= 1}
+            variant="ghost"
+            size="icon-xs"
             onClick={() => onPageChange(1)}
-            title="First Page"
-          >
-            <ChevronsLeft className="size-3.5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-7"
             disabled={currentPage <= 1}
-            onClick={() => onPageChange(currentPage - 1)}
-            title="Previous Page"
+            className="size-6 rounded"
+            title="First page"
           >
-            <ChevronLeft className="size-3.5" />
+            <ChevronsLeft className="size-3" />
           </Button>
           <Button
-            variant="outline"
-            size="icon"
-            className="size-7"
-            disabled={currentPage >= totalPages}
-            onClick={() => onPageChange(currentPage + 1)}
-            title="Next Page"
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            className="size-6 rounded"
+            title="Previous page"
           >
-            <ChevronRight className="size-3.5" />
+            <ChevronLeft className="size-3" />
+          </Button>
+
+          <span className="text-xs font-mono px-1.5 text-muted-foreground">
+            {currentPage} / {totalPages}
+          </span>
+
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage >= totalPages}
+            className="size-6 rounded"
+            title="Next page"
+          >
+            <ChevronRight className="size-3" />
           </Button>
           <Button
-            variant="outline"
-            size="icon"
-            className="size-7"
-            disabled={currentPage >= totalPages}
+            variant="ghost"
+            size="icon-xs"
             onClick={() => onPageChange(totalPages)}
-            title="Last Page"
+            disabled={currentPage >= totalPages}
+            className="size-6 rounded"
+            title="Last page"
           >
-            <ChevronsRight className="size-3.5" />
+            <ChevronsRight className="size-3" />
           </Button>
         </div>
       </div>

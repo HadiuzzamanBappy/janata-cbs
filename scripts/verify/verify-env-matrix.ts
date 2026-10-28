@@ -57,21 +57,17 @@ async function runSuite() {
     currentUserSchema,
     envSchema,
     formConfigRecordSchema,
-    getCompatibleWidgets,
-    getDefaultWidget,
+    formElementSchema,
     inquiryConfigRecordSchema,
-    isWidgetCompatible,
     loginSchema,
     menuCatalogRecordSchema,
     menuItemSchema,
     menuTreeRecordSchema,
     MIN_PASSWORD_LENGTH,
     modelConfigRecordSchema,
-    parsedFormDataSchema,
     rawControlRecordSchema,
     systemCommandItemSchema,
     updateBranchSessionSchema,
-    WIDGET_COMPATIBILITY_MAP,
   } = await import("@/lib/data-schemas");
 
   interface TestReport {
@@ -347,25 +343,19 @@ async function runSuite() {
   );
 
   // 2.4 Form & Metamodel Schemas
-  const sampleFormData = {
-    code: "ACCOUNT",
-    title: "Account Master",
-    idPrefix: "AC",
-    fields: [
-      {
-        id: "accountNumber",
-        fieldKey: "accountNumber",
-        label: "Account Number",
-        widget: "text",
-        required: true,
-        readOnly: false,
-      },
-    ],
+  const sampleFormElement = {
+    SN: "1",
+    NAME: "accountNumber",
+    LABEL: "Account Number",
+    TYPE: "Text",
+    LENGTH: 12,
+    STRUCTURE: "S",
+    REQUIRED: true,
   };
-  const validFormData = parsedFormDataSchema.safeParse(sampleFormData);
+  const validFormElement = formElementSchema.safeParse(sampleFormElement);
   assert(
-    "Data Schemas: parsedFormDataSchema validates parsed form structures",
-    validFormData.success,
+    "Data Schemas: formElementSchema validates form element structures",
+    validFormElement.success,
   );
 
   const sampleModelConfig = {
@@ -392,10 +382,16 @@ async function runSuite() {
 
   // 2.5 Form Config & Layout Schemas
   const sampleFormConfig = {
-    recordId: "FC.ACCOUNT",
-    targetModel: "ACCOUNT",
     title: "Retail Account Layout",
-    presentation: {
+    description: "Retail account form description",
+    authNumber: 1,
+    frmRoutine: {
+      rtnValidate: [],
+      rtnBeforeAuth: [],
+      rtnAfterAuth: [],
+    },
+    frmElements: {
+      steps: [],
       sections: [
         {
           id: "general_sec",
@@ -403,10 +399,11 @@ async function runSuite() {
           columns: 2,
           fields: [
             {
-              id: "accountNumber",
-              fieldKey: "accountNumber",
-              label: "Account Number",
-              widget: "text",
+              SN: "1",
+              NAME: "accountNumber",
+              LABEL: "Account Number",
+              TYPE: "Text",
+              LENGTH: 12,
             },
           ],
         },
@@ -421,14 +418,37 @@ async function runSuite() {
 
   // 2.6 Inquiry & Grid Schemas
   const sampleInquiryConfig = {
-    id: "INQ.ACCOUNT",
-    title: "Account Listing Grid",
-    targetModel: "ACCOUNT",
-    columns: [
-      { id: "recordId", label: "Account No", width: 140 },
-      { id: "accountType", label: "Type", width: 120 },
+    INQInfo: {
+      description: "Account Listing Grid",
+      controllerName: "ACCOUNT",
+      inqServicePath: "default",
+      perpageItem: "30",
+      showSerial: true,
+      showPagination: true,
+      showBranchWise: false,
+      inqType: "DFT",
+    },
+    INQSelectField: [
+      {
+        selectFieldName: "branchCode",
+        selectFieldDisplay: "Branch",
+        selectFieldType: "text",
+        selectFieldOperator: "EQ",
+      },
     ],
-    filters: [{ id: "branchCode", label: "Branch", defaultOperand: "EQ" }],
+    INQDef: [
+      {
+        fieldName: "recordId",
+        fieldDisplay: "Account No",
+        fieldType: "CH",
+      },
+      {
+        fieldName: "accountType",
+        fieldDisplay: "Type",
+        fieldType: "CH",
+      },
+    ],
+    INQCmds: [],
   };
   const validInquiryConfig = inquiryConfigRecordSchema.safeParse(sampleInquiryConfig);
   assert(
@@ -484,33 +504,16 @@ async function runSuite() {
     validMenuTree.success,
   );
 
-  // 2.9 Widget & Field Compatibility Rules
+  // 2.9 Form Config Compatibility
   assert(
-    "Field Compatibility: WIDGET_COMPATIBILITY_MAP maps all primitive property types to valid widgets",
-    Object.keys(WIDGET_COMPATIBILITY_MAP).length === 3 &&
-      WIDGET_COMPATIBILITY_MAP.Text.includes("switch") &&
-      WIDGET_COMPATIBILITY_MAP.Number.includes("amount") &&
-      WIDGET_COMPATIBILITY_MAP.Date.includes("date"),
-  );
-
-  assert(
-    "Field Compatibility: isWidgetCompatible confirms valid bindings",
-    isWidgetCompatible("Number", "amount") === true &&
-      isWidgetCompatible("Text", "textarea") === true &&
-      isWidgetCompatible("Text", "switch") === true &&
-      isWidgetCompatible("Date", "textarea") === false,
-  );
-
-  assert(
-    "Field Compatibility: getDefaultWidget returns primary presentation widget",
-    getDefaultWidget("Text") === "text" &&
-      getDefaultWidget("Number") === "number" &&
-      getDefaultWidget("Date") === "date",
-  );
-
-  assert(
-    "Field Compatibility: getCompatibleWidgets handles unbound / undefined property types gracefully",
-    getCompatibleWidgets(undefined).length > 5,
+    "Form Config: formConfigRecordSchema validates empty routine and element arrays",
+    formConfigRecordSchema.safeParse({
+      title: "Test Form",
+      description: "Test Description",
+      authNumber: 1,
+      frmRoutine: { rtnValidate: [], rtnBeforeAuth: [], rtnAfterAuth: [] },
+      frmElements: { steps: [], sections: [] },
+    }).success,
   );
 
   // ===========================================================================

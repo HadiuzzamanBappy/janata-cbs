@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import type { EnquiryRow, InquiryConfigRecord, SelectionOperand } from "@/lib/data-schemas";
+import type { FilterCriteriaMap, SelectionOperand } from "@/features/inquiry-engine";
+import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
-import { filterDatasetByCriteria } from "../utils/filter-dataset";
 
 export interface UseInquiryStateOptions {
   tabId?: string;
@@ -25,25 +25,19 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
   }, [currentTab]);
 
   // 2. Restore criteria from tab state or URL query params
-  const initialCriteria = React.useMemo((): Record<
-    string,
-    { value: string; operand: SelectionOperand }
-  > => {
+  const initialCriteria = React.useMemo((): FilterCriteriaMap => {
     if (
       currentTab?.enquiryState?.criteria &&
       Object.keys(currentTab.enquiryState.criteria).length > 0
     ) {
-      return currentTab.enquiryState.criteria as Record<
-        string,
-        { value: string; operand: SelectionOperand }
-      >;
+      return currentTab.enquiryState.criteria as unknown as FilterCriteriaMap;
     }
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
       const raw = p.get("criteria");
       if (raw) {
         try {
-          return JSON.parse(raw) as Record<string, { value: string; operand: SelectionOperand }>;
+          return JSON.parse(raw) as FilterCriteriaMap;
         } catch {
           // Safe parse fallback
         }
@@ -79,7 +73,7 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
   const [currentPage, setCurrentPageState] = React.useState(initialPage);
   const [pageSize, setPageSizeState] = React.useState(initialPageSize);
   const [currentCriteria, setCurrentCriteriaState] =
-    React.useState<Record<string, { value: string; operand: SelectionOperand }>>(initialCriteria);
+    React.useState<FilterCriteriaMap>(initialCriteria);
 
   const setStep = React.useCallback(
     (newStep: "SELECTION" | "RESULTS") => {
@@ -127,7 +121,7 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
   );
 
   const setCurrentCriteria = React.useCallback(
-    (crit: Record<string, { value: string; operand: SelectionOperand }>) => {
+    (crit: FilterCriteriaMap) => {
       setCurrentCriteriaState(crit);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, {
@@ -149,24 +143,18 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
     isInitializedRef.current = true;
 
     const hasPersisted = Object.keys(initialCriteria).length > 0;
-    const initial: Record<string, { value: string; operand: SelectionOperand }> = hasPersisted
-      ? initialCriteria
-      : {};
+    const initial: FilterCriteriaMap = hasPersisted ? initialCriteria : {};
 
     if (!hasPersisted) {
-      for (const f of schema.filters || []) {
-        initial[f.id] = { value: f.defaultValue || "", operand: f.defaultOperand || "EQ" };
+      for (const f of schema.INQSelectField || []) {
+        initial[f.selectFieldName] = {
+          value: f.selectFieldValue || "",
+          operand: (f.selectFieldOperator || "EQ") as SelectionOperand,
+        };
       }
     }
 
     setCurrentCriteriaState(initial);
-
-    // If step was persisted as RESULTS, execute initial query or use sampleData
-    if (initialStep === "RESULTS") {
-      const result = filterDatasetByCriteria(schema.sampleData || [], initial);
-      setFilteredRows(result);
-    }
-
     setStepState(initialStep);
   }, [schema, initialStep, initialCriteria]);
 

@@ -33,8 +33,10 @@ export function ColumnInspector({
 }: ColumnInspectorProps) {
   if (!activeCol) {
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-xs text-muted-foreground">
-        Select a column to inspect its wire definition.
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">
+        <p className="text-xs font-mono">
+          Select a column from the left to inspect its definition.
+        </p>
       </div>
     );
   }
@@ -43,6 +45,9 @@ export function ColumnInspector({
   const [lenPart, alignPart] = (activeCol.fieldLength || "20,L").split(",");
   const currentLen = lenPart?.trim() || "20";
   const currentAlign = alignPart?.trim().toUpperCase() || "L";
+
+  // Decompose fieldRowCol (e.g. "1,2")
+  const [rowPart, colPart] = (activeCol.fieldRowCol || "1,1").split(",");
 
   const handleLengthChange = (newLen: string) => {
     onUpdateColumn(selectedColIdx, {
@@ -56,8 +61,15 @@ export function ColumnInspector({
     });
   };
 
+  const handleCoordChange = (rowVal: string, colVal: string) => {
+    onUpdateColumn(selectedColIdx, {
+      fieldRowCol: `${rowVal || "1"},${colVal || "1"}`,
+    });
+  };
+
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background/50">
+      {/* Inspector Header */}
       <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -73,10 +85,11 @@ export function ColumnInspector({
 
         {!disabled && (
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             onClick={() => onRemoveColumn(selectedColIdx)}
-            className="h-7 px-2 text-destructive hover:bg-destructive/10 text-xs gap-1"
+            className="h-6 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded cursor-pointer"
           >
             <Trash2 className="size-3.5" />
             <span>Delete Column</span>
@@ -84,150 +97,170 @@ export function ColumnInspector({
         )}
       </div>
 
+      {/* Inspector Form */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* Field Identity */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="col-field-name" className="text-xs">
-              Field Name (Key)
+        <div className="space-y-3 text-xs max-w-xl">
+          {/* Field Name / Key */}
+          <div className="flex items-center gap-2">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Field Key :
             </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
             <Input
-              id="col-field-name"
               value={activeCol.fieldName}
               disabled={disabled}
               onChange={(e) => onUpdateColumn(selectedColIdx, { fieldName: e.target.value })}
-              className="h-8 text-xs font-mono"
-              placeholder="e.g. recordId"
+              className="h-7 text-xs font-mono bg-background rounded border-border/80 flex-1"
+              placeholder="e.g. recordId, branchTitle"
             />
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="col-field-display" className="text-xs">
-              Display Header
+          {/* Display Header */}
+          <div className="flex items-center gap-2">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Header Label :
             </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
             <Input
-              id="col-field-display"
               value={activeCol.fieldDisplay}
               disabled={disabled}
               onChange={(e) => onUpdateColumn(selectedColIdx, { fieldDisplay: e.target.value })}
-              className="h-8 text-xs"
-              placeholder="e.g. Account No"
+              className="h-7 text-xs bg-background rounded border-border/80 flex-1"
+              placeholder="e.g. Account Number, Branch Title"
             />
           </div>
-        </div>
 
-        {/* Physical CBS Type & Length */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="col-field-type" className="text-xs">
-              Physical Type
+          {/* CBS Field Type */}
+          <div className="flex items-center gap-2">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Data Type :
             </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
             <Select
               value={activeCol.fieldType}
               disabled={disabled}
-              onValueChange={(val) => onUpdateColumn(selectedColIdx, { fieldType: val || "CH" })}
+              onValueChange={(val) => onUpdateColumn(selectedColIdx, { fieldType: val ?? "CH" })}
             >
-              <SelectTrigger id="col-field-type" className="h-8 text-xs">
+              <SelectTrigger className="h-7 text-xs font-mono bg-background rounded border-border/80 flex-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {CBS_TYPE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                    <span className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5">
                       {opt.icon}
                       <span>{opt.label}</span>
-                    </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="col-field-length" className="text-xs">
-              Length (Characters)
+          {/* Cell Alignment */}
+          <div className="flex items-center gap-2">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Alignment :
             </Label>
-            <Input
-              id="col-field-length"
-              value={currentLen}
-              disabled={disabled}
-              onChange={(e) => handleLengthChange(e.target.value)}
-              className="h-8 text-xs font-mono"
-              placeholder="20"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="col-field-align" className="text-xs">
-              Text Alignment
-            </Label>
-            <Select
-              value={currentAlign}
-              disabled={disabled}
-              onValueChange={handleAlignChange}
-            >
-              <SelectTrigger id="col-field-align" className="h-8 text-xs">
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+            <Select value={currentAlign} disabled={disabled} onValueChange={handleAlignChange}>
+              <SelectTrigger className="h-7 text-xs font-mono bg-background rounded border-border/80 flex-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {CBS_ALIGN_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs font-mono">
                     {opt.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* Grid Coordinates & Formula */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="col-field-coord" className="text-xs">
-              Row,Col Coordinate
+          {/* Character Length */}
+          <div className="flex items-center gap-2">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Char Width / Length :
             </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
             <Input
-              id="col-field-coord"
-              value={activeCol.fieldRowCol}
+              type="number"
+              value={currentLen}
               disabled={disabled}
-              onChange={(e) => onUpdateColumn(selectedColIdx, { fieldRowCol: e.target.value })}
-              className="h-8 text-xs font-mono"
-              placeholder="1,1"
+              onChange={(e) => handleLengthChange(e.target.value)}
+              className="h-7 text-xs font-mono bg-background rounded border-border/80 w-32"
+              placeholder="20"
+              min={1}
+              max={500}
             />
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="col-field-func" className="text-xs">
-              Aggregation / Formula
+          {/* Row & Column Order Coordinates */}
+          <div className="flex items-center gap-2">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Row, Column Order :
             </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                value={rowPart || "1"}
+                disabled={disabled}
+                onChange={(e) => handleCoordChange(e.target.value, colPart || "1")}
+                className="h-7 text-xs font-mono bg-background rounded border-border/80 w-20"
+                placeholder="Row"
+                min={1}
+              />
+              <span className="text-muted-foreground/60 font-mono text-xs">,</span>
+              <Input
+                type="number"
+                value={colPart || "1"}
+                disabled={disabled}
+                onChange={(e) => handleCoordChange(rowPart || "1", e.target.value)}
+                className="h-7 text-xs font-mono bg-background rounded border-border/80 w-20"
+                placeholder="Col"
+                min={1}
+              />
+            </div>
+          </div>
+
+          {/* Function / Routine */}
+          <div className="flex items-center gap-2">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Conversion Function :
+            </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
             <Input
-              id="col-field-func"
-              value={activeCol.fieldFunc}
+              value={activeCol.fieldFunc || ""}
               disabled={disabled}
               onChange={(e) => onUpdateColumn(selectedColIdx, { fieldFunc: e.target.value })}
-              className="h-8 text-xs font-mono"
-              placeholder="e.g. SUM, COUNT"
+              className="h-7 text-xs font-mono bg-background rounded border-border/80 flex-1"
+              placeholder="e.g. SUBSTRING, DATE.CONVERT"
             />
           </div>
-        </div>
 
-        {/* Drilldown Passable */}
-        <div className="pt-2 border-t border-border/50">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="col-field-passable"
-              checked={Boolean(activeCol.dataPassable)}
-              disabled={disabled}
-              onCheckedChange={(checked) =>
-                onUpdateColumn(selectedColIdx, { dataPassable: checked ? true : null })
-              }
-            />
-            <label htmlFor="col-field-passable" className="flex flex-col cursor-pointer">
-              <span className="text-xs font-medium">Data Passable</span>
-              <span className="text-[11px] text-muted-foreground">
-                Permits passing this field value into linked action commands
-              </span>
-            </label>
+          {/* Data Passable Flag */}
+          <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+            <Label className="w-36 shrink-0 text-muted-foreground font-mono text-[11px] select-none">
+              Passable Flag :
+            </Label>
+            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="col-passable"
+                checked={Boolean(activeCol.dataPassable)}
+                disabled={disabled}
+                onCheckedChange={(checked) =>
+                  onUpdateColumn(selectedColIdx, { dataPassable: Boolean(checked) })
+                }
+              />
+              <Label
+                htmlFor="col-passable"
+                className="text-xs text-muted-foreground font-normal cursor-pointer"
+              >
+                Allow passing this column's value into drilldown or action commands
+              </Label>
+            </div>
           </div>
         </div>
       </div>

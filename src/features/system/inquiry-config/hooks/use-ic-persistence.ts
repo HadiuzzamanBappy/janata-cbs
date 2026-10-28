@@ -36,4 +36,3 @@ export function useIcPersistence(initialId?: string, tabId?: string) {
     fallbackMode: "IDLE",
   });
 }
-

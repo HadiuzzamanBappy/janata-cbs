@@ -14,18 +14,18 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Columns, MousePointerClick, Plus, Sparkles } from "lucide-react";
+import { Columns, MousePointerClick, Plus } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
 import type { INQCmd, INQDef } from "@/lib/data-schemas/inquiry-config-schema";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { ActionInspector } from "./table/action-inspector";
 import { ActionItem } from "./table/action-item";
 import { ColumnInspector } from "./table/column-inspector";
 import { ColumnItem } from "./table/column-item";
+import { ColumnModelPopover } from "./table/column-model-popover";
 import { inferInqDefFromModelProperty } from "./table/table-constants";
 
 export interface IcTableTabProps {
@@ -62,67 +62,116 @@ export function IcTableTab({
   const [selectedActionIdx, setSelectedActionIdx] = React.useState<number>(0);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  // Keep selection indices within bounds
+  React.useEffect(() => {
+    if (columns.length === 0) {
+      setSelectedColIdx(0);
+    } else if (selectedColIdx >= columns.length) {
+      setSelectedColIdx(columns.length - 1);
+    }
+  }, [columns.length, selectedColIdx]);
+
+  React.useEffect(() => {
+    if (actions.length === 0) {
+      setSelectedActionIdx(0);
+    } else if (selectedActionIdx >= actions.length) {
+      setSelectedActionIdx(actions.length - 1);
+    }
+  }, [actions.length, selectedActionIdx]);
+
+  const columnKeys = React.useMemo(() => columns.map((c) => `col-${c.fieldName}`), [columns]);
+
+  const actionKeys = React.useMemo(
+    () => actions.map((a) => `action-${a.cmdButton}-${a.cmdFor}`),
+    [actions],
+  );
+
+  const configuredFieldNames = React.useMemo(
+    () => new Set(columns.map((c) => c.fieldName.toLowerCase())),
+    [columns],
   );
 
   const handleDragEndColumns = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const from = columns.findIndex((c, i) => `col-${c.fieldName}-${i}` === active.id);
-      const to = columns.findIndex((c, i) => `col-${c.fieldName}-${i}` === over.id);
-      if (from !== -1 && to !== -1) {
-        onReorderColumns(from, to);
-        setSelectedColIdx(to);
+    if (!over || active.id === over.id) return;
+
+    const fromIndex = columnKeys.indexOf(String(active.id));
+    const toIndex = columnKeys.indexOf(String(over.id));
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+      onReorderColumns(fromIndex, toIndex);
+      if (selectedColIdx === fromIndex) {
+        setSelectedColIdx(toIndex);
+      } else if (selectedColIdx > fromIndex && selectedColIdx <= toIndex) {
+        setSelectedColIdx(selectedColIdx - 1);
+      } else if (selectedColIdx < fromIndex && selectedColIdx >= toIndex) {
+        setSelectedColIdx(selectedColIdx + 1);
       }
     }
   };
 
   const handleDragEndActions = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const from = actions.findIndex((a, i) => `action-${a.cmdButton}-${i}` === active.id);
-      const to = actions.findIndex((a, i) => `action-${a.cmdButton}-${i}` === over.id);
-      if (from !== -1 && to !== -1) {
-        onReorderActions(from, to);
-        setSelectedActionIdx(to);
+    if (!over || active.id === over.id) return;
+
+    const fromIndex = actionKeys.indexOf(String(active.id));
+    const toIndex = actionKeys.indexOf(String(over.id));
+
+    if (fromIndex !== -1 && toIndex !== -1) {
+      onReorderActions(fromIndex, toIndex);
+      if (selectedActionIdx === fromIndex) {
+        setSelectedActionIdx(toIndex);
+      } else if (selectedActionIdx > fromIndex && selectedActionIdx <= toIndex) {
+        setSelectedActionIdx(selectedActionIdx - 1);
+      } else if (selectedActionIdx < fromIndex && selectedActionIdx >= toIndex) {
+        setSelectedActionIdx(selectedActionIdx + 1);
       }
     }
   };
 
-  // Import fields directly from Model table
-  const handleImportFromModel = React.useCallback(async () => {
-    if (!targetModel) return;
-    try {
-      const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), {
-        silent: true,
-      });
-      if (res.status === "SUCCESS" && res.data?.PROPERTIES) {
-        res.data.PROPERTIES.forEach((prop, idx) => {
-          const exists = columns.some((c) => c.fieldName === prop.NAME);
-          if (!exists) {
-            const inferred = inferInqDefFromModelProperty(prop, columns.length + idx + 1);
-            onAddColumn(inferred);
-          }
-        });
-      }
-    } catch {
-      // Ignore background import errors
-    }
-  }, [targetModel, columns, onAddColumn]);
+  const handleImportProperty = (prop: ModelProperty) => {
+    const newCol = inferInqDefFromModelProperty(prop, columns.length + 1);
+    onAddColumn(newCol);
+    setSelectedColIdx(columns.length);
+  };
+
+  const handleAddCustomColumn = () => {
+    onAddColumn({
+      fieldName: `column_${columns.length + 1}`,
+      fieldDisplay: `Column ${columns.length + 1}`,
+      fieldType: "CH",
+      fieldFunc: "",
+      fieldRowCol: `1,${columns.length + 1}`,
+      fieldLength: "20,L",
+      dataPassable: null,
+    });
+    setSelectedColIdx(columns.length);
+  };
+
+  const handleAddCustomAction = () => {
+    onAddAction({
+      cmdButton: "View",
+      cmdFor: `${targetModel || "ACCOUNT"},1.0.0 S recordId`,
+    });
+    setSelectedActionIdx(actions.length);
+  };
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 bg-card rounded-b-lg border-t-0">
-      {/* Sub-header Navigation */}
-      <div className="flex items-center justify-between px-3 h-10 border-b border-border bg-muted/30 shrink-0">
-        <div className="flex items-center gap-1.5 p-0.5 bg-muted/60 rounded-md border border-border/50">
+    <div className="h-full flex flex-col gap-2 overflow-hidden select-none">
+      {/* 1. Header Segment Switcher & Add Actions */}
+      <div className="flex items-center justify-between border-b border-border/70 pb-2 px-0.5 shrink-0">
+        <div className="flex items-center gap-1.5 p-0.5 bg-muted/40 rounded border border-border/60">
           <button
             type="button"
             onClick={() => setActiveSegment("columns")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-all",
+              "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-all cursor-pointer",
               activeSegment === "columns"
-                ? "bg-background text-foreground shadow-xs border border-border/50"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -137,9 +186,9 @@ export function IcTableTab({
             type="button"
             onClick={() => setActiveSegment("actions")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1 rounded text-xs font-semibold transition-all",
+              "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-all cursor-pointer",
               activeSegment === "actions"
-                ? "bg-background text-foreground shadow-xs border border-border/50"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -152,23 +201,21 @@ export function IcTableTab({
         </div>
 
         {activeSegment === "columns" && !disabled && (
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleImportFromModel}
-              className="h-7 text-xs gap-1.5"
-            >
-              <Sparkles className="size-3 text-primary" />
-              <span>Import Model Fields</span>
-            </Button>
+          <div className="flex items-center gap-1.5">
+            <ColumnModelPopover
+              targetModel={targetModel}
+              configuredFieldNames={configuredFieldNames}
+              onImportProperty={handleImportProperty}
+              disabled={disabled}
+            />
+
             <Button
               type="button"
               variant="default"
               size="sm"
-              onClick={() => onAddColumn()}
-              className="h-7 text-xs gap-1"
+              onClick={handleAddCustomColumn}
+              className="h-7 text-xs px-2 gap-1 rounded"
+              title="Add a custom column"
             >
               <Plus className="size-3" />
               <span>Add Column</span>
@@ -181,8 +228,9 @@ export function IcTableTab({
             type="button"
             variant="default"
             size="sm"
-            onClick={() => onAddAction()}
-            className="h-7 text-xs gap-1"
+            onClick={handleAddCustomAction}
+            className="h-7 text-xs px-2 gap-1 rounded"
+            title="Add a command action button"
           >
             <Plus className="size-3" />
             <span>Add Action</span>
@@ -190,30 +238,57 @@ export function IcTableTab({
         )}
       </div>
 
-      {/* Master-Detail Layout */}
-      <div className="flex-1 flex min-h-0 divide-x divide-border">
+      {/* 2. Main Studio: Master-Detail Panels */}
+      <div className="flex-1 w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0">
         {activeSegment === "columns" ? (
           <>
-            <div className="w-72 flex flex-col min-h-0 bg-muted/10 p-2 overflow-y-auto space-y-1.5 shrink-0">
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndColumns}>
-                <SortableContext
-                  items={columns.map((c, i) => `col-${c.fieldName}-${i}`)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {columns.map((col, idx) => (
-                    <ColumnItem
-                      key={`col-${col.fieldName}-${idx}`}
-                      col={col}
-                      index={idx}
-                      isSelected={selectedColIdx === idx}
-                      disabled={disabled}
-                      onSelect={() => setSelectedColIdx(idx)}
-                      onRemove={() => onRemoveColumn(idx)}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
+            {/* Left Panel: Columns Navigator */}
+            <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
+              <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Columns className="size-3.5 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
+                    Columns ({columns.length})
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-1.5 space-y-1 min-h-0">
+                {columns.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+                    <Columns className="size-8 text-muted-foreground/30 mb-2" />
+                    <p className="text-xs font-medium">No Columns Defined</p>
+                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-[200px]">
+                      Import properties from {targetModel || "the model"} or add a custom column.
+                    </p>
+                  </div>
+                ) : (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEndColumns}
+                  >
+                    <SortableContext items={columnKeys} strategy={verticalListSortingStrategy}>
+                      <div className="space-y-1">
+                        {columns.map((col, idx) => (
+                          <ColumnItem
+                            key={columnKeys[idx]}
+                            col={col}
+                            index={idx}
+                            isSelected={selectedColIdx === idx}
+                            disabled={disabled}
+                            onSelect={() => setSelectedColIdx(idx)}
+                            onRemove={() => onRemoveColumn(idx)}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </div>
             </div>
+
+            {/* Right Panel: Column Inspector */}
             <ColumnInspector
               activeCol={columns[selectedColIdx]}
               selectedColIdx={selectedColIdx}
@@ -224,26 +299,53 @@ export function IcTableTab({
           </>
         ) : (
           <>
-            <div className="w-72 flex flex-col min-h-0 bg-muted/10 p-2 overflow-y-auto space-y-1.5 shrink-0">
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndActions}>
-                <SortableContext
-                  items={actions.map((a, i) => `action-${a.cmdButton}-${i}`)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {actions.map((action, idx) => (
-                    <ActionItem
-                      key={`action-${action.cmdButton}-${idx}`}
-                      action={action}
-                      index={idx}
-                      isSelected={selectedActionIdx === idx}
-                      disabled={disabled}
-                      onSelect={() => setSelectedActionIdx(idx)}
-                      onRemove={() => onRemoveAction(idx)}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
+            {/* Left Panel: Actions Navigator */}
+            <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
+              <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <MousePointerClick className="size-3.5 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
+                    Actions ({actions.length})
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-1.5 space-y-1 min-h-0">
+                {actions.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+                    <MousePointerClick className="size-8 text-muted-foreground/30 mb-2" />
+                    <p className="text-xs font-medium">No Actions Defined</p>
+                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-[200px]">
+                      Add row command buttons (e.g. View, Edit, Auth).
+                    </p>
+                  </div>
+                ) : (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEndActions}
+                  >
+                    <SortableContext items={actionKeys} strategy={verticalListSortingStrategy}>
+                      <div className="space-y-1">
+                        {actions.map((action, idx) => (
+                          <ActionItem
+                            key={actionKeys[idx]}
+                            action={action}
+                            index={idx}
+                            isSelected={selectedActionIdx === idx}
+                            disabled={disabled}
+                            onSelect={() => setSelectedActionIdx(idx)}
+                            onRemove={() => onRemoveAction(idx)}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </div>
             </div>
+
+            {/* Right Panel: Action Inspector */}
             <ActionInspector
               activeAction={actions[selectedActionIdx]}
               selectedActionIdx={selectedActionIdx}

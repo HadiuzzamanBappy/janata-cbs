@@ -1,10 +1,4 @@
-import {
-  Calendar,
-  CheckCircle2,
-  DollarSign,
-  Hash,
-  Type,
-} from "lucide-react";
+import { Calendar, CheckCircle2, DollarSign, Hash, Type } from "lucide-react";
 import type * as React from "react";
 import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";

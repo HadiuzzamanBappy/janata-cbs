@@ -3,7 +3,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Play, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
 
@@ -18,20 +17,21 @@ export interface ActionItemProps {
 
 export function ActionItem({
   action,
-  index,
   isSelected,
   disabled = false,
   onSelect,
   onRemove,
 }: ActionItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `action-${action.cmdButton}-${index}`,
+    id: `action-${action.cmdButton}-${action.cmdFor}`,
     disabled,
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
     transition,
+    opacity: isDragging ? 0.35 : 1,
+    zIndex: isDragging ? 40 : undefined,
   };
 
   return (
@@ -39,51 +39,51 @@ export function ActionItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center justify-between px-2.5 py-1.5 rounded-md border text-xs transition-colors",
+        "group p-1.5 rounded border transition-all flex items-center gap-1.5 text-xs select-none",
         isSelected
-          ? "bg-primary/10 border-primary/50 text-foreground shadow-xs"
-          : "bg-card border-border/70 hover:bg-muted/50 text-muted-foreground",
-        isDragging && "opacity-50 z-50 shadow-md",
+          ? "bg-primary/10 border-primary text-foreground shadow-2xs font-medium"
+          : "bg-background/90 hover:bg-muted/30 border-border/70 text-foreground/90",
+        isDragging && "ring-1 ring-primary shadow-md bg-accent/30",
       )}
     >
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        {!disabled && (
-          <span
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground p-0.5 inline-flex items-center"
-          >
-            <GripVertical className="size-3.5" />
-          </span>
-        )}
+      {!disabled && (
+        <span
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground shrink-0 p-0.5"
+          title="Drag to reorder"
+        >
+          <GripVertical className="size-3.5" />
+        </span>
+      )}
 
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex items-center gap-2 flex-1 min-w-0 text-left outline-none cursor-pointer"
+      >
         <Play className="size-3 text-primary shrink-0" />
 
-        <button
-          type="button"
-          onClick={onSelect}
-          className="flex flex-col min-w-0 flex-1 text-left cursor-pointer focus-visible:outline-hidden"
-        >
-          <span className="font-semibold text-foreground truncate">
-            {action.cmdButton}
-          </span>
-          <span className="font-mono text-[10px] text-muted-foreground/80 truncate">
+        <div className="flex-1 min-w-0">
+          <span className="font-medium truncate block">{action.cmdButton}</span>
+          <span className="text-[10px] font-mono text-muted-foreground/70 truncate block">
             {action.cmdFor}
           </span>
-        </button>
-      </div>
+        </div>
+      </button>
 
       {!disabled && (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className="size-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-          onClick={onRemove}
-          title="Remove Action"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="opacity-0 group-hover:opacity-100 hover:text-destructive text-muted-foreground/50 transition-opacity p-1 cursor-pointer"
+          title="Remove action"
         >
-          <Trash2 className="size-3" />
-        </Button>
+          <Trash2 className="size-3.5" />
+        </button>
       )}
     </div>
   );

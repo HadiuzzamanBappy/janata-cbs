@@ -4,7 +4,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 
@@ -26,13 +25,15 @@ export function ColumnItem({
   onRemove,
 }: ColumnItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `col-${col.fieldName}-${index}`,
+    id: `col-${col.fieldName}`,
     disabled,
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
+  const style: React.CSSProperties = {
+    transform: CSS.Translate.toString(transform),
     transition,
+    opacity: isDragging ? 0.35 : 1,
+    zIndex: isDragging ? 40 : undefined,
   };
 
   const [lenPart, alignPart] = (col.fieldLength || "20,L").split(",");
@@ -42,54 +43,65 @@ export function ColumnItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center justify-between px-2.5 py-1.5 rounded-md border text-xs transition-colors",
+        "group p-1.5 rounded border transition-all flex items-center gap-1.5 text-xs select-none",
         isSelected
-          ? "bg-primary/10 border-primary/50 text-foreground shadow-xs"
-          : "bg-card border-border/70 hover:bg-muted/50 text-muted-foreground",
-        isDragging && "opacity-50 z-50 shadow-md",
+          ? "bg-primary/10 border-primary text-foreground shadow-2xs font-medium"
+          : "bg-background/90 hover:bg-muted/30 border-border/70 text-foreground/90",
+        isDragging && "ring-1 ring-primary shadow-md bg-accent/30",
       )}
     >
-      <div className="flex items-center gap-2 min-w-0 flex-1">
-        {!disabled && (
-          <span
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground p-0.5 inline-flex items-center"
-          >
-            <GripVertical className="size-3.5" />
-          </span>
-        )}
-
-        <button
-          type="button"
-          onClick={onSelect}
-          className="flex flex-col min-w-0 flex-1 text-left cursor-pointer focus-visible:outline-hidden"
+      {!disabled && (
+        <span
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground shrink-0 p-0.5"
+          title="Drag to reorder"
         >
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-foreground truncate">
-              {col.fieldDisplay || col.fieldName}
-            </span>
-            <Badge variant="outline" className="text-[9px] font-mono px-1 py-0 uppercase">
-              {col.fieldType}
-            </Badge>
-          </div>
-          <span className="font-mono text-[10px] text-muted-foreground/80 truncate">
-            {col.fieldName} • {lenPart}ch • {alignPart || "L"}
+          <GripVertical className="size-3.5" />
+        </span>
+      )}
+
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex items-center gap-2 flex-1 min-w-0 text-left outline-none cursor-pointer"
+      >
+        <span className="text-[10px] font-mono text-muted-foreground w-4 shrink-0">
+          {index + 1}.
+        </span>
+
+        <div className="flex-1 min-w-0">
+          <span className="font-medium truncate block">{col.fieldDisplay || col.fieldName}</span>
+          <span className="text-[10px] font-mono text-muted-foreground/70 truncate block">
+            {col.fieldName}
           </span>
-        </button>
-      </div>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          <Badge
+            variant="outline"
+            className="text-[9px] font-mono px-1 py-0 h-4 border-border/60 text-muted-foreground uppercase"
+          >
+            {col.fieldType}
+          </Badge>
+          <span className="text-[9px] font-mono text-muted-foreground/60">
+            {lenPart || "20"}:{alignPart || "L"}
+          </span>
+        </div>
+      </button>
 
       {!disabled && (
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className="size-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-          onClick={onRemove}
-          title="Remove Column"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          className="opacity-0 group-hover:opacity-100 hover:text-destructive text-muted-foreground/50 transition-opacity p-1 cursor-pointer"
+          title="Remove column"
         >
-          <Trash2 className="size-3" />
-        </Button>
+          <Trash2 className="size-3.5" />
+        </button>
       )}
     </div>
   );

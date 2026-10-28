@@ -5,17 +5,8 @@ import { useFieldOptions } from "../hooks/use-field-options";
 import { useMultiValue } from "../hooks/use-multi-value";
 import type { UnifiedFieldFactoryProps } from "../types";
 import { getFieldWidthStyle, resolveWidgetType } from "../utils/widget-utils";
-import {
-  AmountWidget,
-  CheckboxGroupWidget,
-  DateWidget,
-  FieldRow,
-  RadioWidget,
-  SelectWidget,
-  SwitchWidget,
-  TextareaWidget,
-  TextWidget,
-} from "./widgets";
+import { renderFieldWidget } from "./widget-renderer";
+import { FieldRow } from "./widgets/field-row";
 
 export function UnifiedFieldFactory({
   field,
@@ -49,138 +40,22 @@ export function UnifiedFieldFactory({
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =
     useMultiValue(value, isMulti, onChange, fieldKey);
 
-  // Render individual widget component
-  const renderWidget = (val: unknown, onValChange: (next: unknown) => void, rowId: string) => {
-    switch (widget) {
-      case "select":
-        return (
-          <SelectWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            error={error}
-            placeholder={placeholder}
-            style={inputStyle}
-            options={resolvedOptions}
-            loading={modelLoading}
-            isNumeric={field.TYPE.toLowerCase() === "number"}
-            label={effectiveLabel}
-          />
-        );
-      case "date":
-        return (
-          <DateWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            error={error}
-            style={inputStyle}
-          />
-        );
-      case "textarea":
-        return (
-          <TextareaWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            error={error}
-            placeholder={placeholder}
-            style={inputStyle}
-          />
-        );
-      case "switch":
-        return (
-          <SwitchWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-          />
-        );
-      case "radio":
-        return (
-          <RadioWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            options={resolvedOptions}
-            variant="standard"
-          />
-        );
-      case "radio-group":
-        return (
-          <RadioWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            options={resolvedOptions}
-            variant="group"
-          />
-        );
-      case "checkbox-group":
-        return (
-          <CheckboxGroupWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            options={resolvedOptions}
-          />
-        );
-      case "amount":
-        return (
-          <AmountWidget
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            error={error}
-            placeholder={placeholder}
-            style={inputStyle}
-          />
-        );
-      case "number":
-        return (
-          <TextWidget
-            type="number"
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            error={error}
-            placeholder={placeholder}
-            style={inputStyle}
-          />
-        );
-      default:
-        return (
-          <TextWidget
-            type="text"
-            id={rowId}
-            fieldKey={fieldKey}
-            value={val}
-            onChange={onValChange}
-            disabled={isReadOnly}
-            error={error}
-            placeholder={placeholder}
-            style={inputStyle}
-          />
-        );
-    }
+  const renderSingleWidget = (val: unknown, onValChange: (next: unknown) => void, rowId: string) => {
+    return renderFieldWidget({
+      widget,
+      field,
+      fieldKey,
+      rowId,
+      value: val,
+      onChange: onValChange,
+      isReadOnly,
+      error,
+      placeholder,
+      inputStyle,
+      resolvedOptions,
+      modelLoading,
+      effectiveLabel,
+    });
   };
 
   // Multi-Value Mode (M)
@@ -228,7 +103,7 @@ export function UnifiedFieldFactory({
               indexSuffix={itemIdx + 1}
               actionBeforeColon={actionControls}
             >
-              {renderWidget(
+              {renderSingleWidget(
                 itemVal,
                 (newVal) => handleArrayChange(itemIdx, newVal),
                 `${elementId}_${itemIdx}`,
@@ -261,7 +136,7 @@ export function UnifiedFieldFactory({
       actionBeforeColon={actionBeforeColon}
       style={inputStyle}
     >
-      {renderWidget(value, (newVal) => onChange(fieldKey, newVal), elementId)}
+      {renderSingleWidget(value, (newVal) => onChange(fieldKey, newVal), elementId)}
     </FieldRow>
   );
 }

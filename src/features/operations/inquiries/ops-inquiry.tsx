@@ -1,20 +1,24 @@
 "use client";
 
-import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { InquiryEngineTable, InquiryFilterBuilder } from "@/features/inquiry-engine";
+import {
+  type FilterCriteriaMap,
+  InquiryFilterBar,
+  InquiryTable,
+  type SelectionOperand,
+  serializeCriteriaToWire,
+} from "@/features/inquiry-engine";
 import { cbs } from "@/lib/cbs-client";
+import type { CbsScreenProps } from "@/lib/cbs-screen";
 import { parseInquiryRecords } from "@/lib/data-parsers";
-import { type DrillRecord, InquiryDrillDown } from "./components/inquiry-drill-down";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
-import { useInquiryActions, useInquirySchema, useInquiryState } from "./hooks";
-import type { InquiryScreenProps } from "./types";
-import { filterDatasetByCriteria } from "./utils/filter-dataset";
+import { useInquiryActions } from "./hooks/use-inquiry-actions";
+import { useInquirySchema } from "./hooks/use-inquiry-schema";
+import { useInquiryState } from "./hooks/use-inquiry-state";
 
-export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProps) {
+export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
   const { schema, loading, error, refetch } = useInquirySchema(command);
-  const [drillRecord, setDrillRecord] = React.useState<DrillRecord | null>(null);
 
   const {
     step,
@@ -29,49 +33,25 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     setCurrentCriteria,
   } = useInquiryState({ schema, tabId });
 
-  const {
-    handleViewRecord,
-    handleEditRecord,
-    handleExportCSV,
-    handleExportHTML,
-    handleExportXML,
-    handleRefresh,
-  } = useInquiryActions({
+  const { handleExportCSV, handleExportHTML, handleExportXML, handleRefresh } = useInquiryActions({
     schema,
     filteredRows,
-    setFilteredRows,
-    setDrillRecord,
   });
 
-  const commandCode = schema?.id || command;
-  const title = schema?.title || schema?.description || commandCode;
+  const commandCode = schema?.INQInfo?.controllerName || command;
+  const title = schema?.INQInfo?.description || commandCode;
 
-  const handleFilterSearch = async (criteria: typeof currentCriteria) => {
+  const handleFilterSearch = async (criteria: FilterCriteriaMap) => {
     if (!schema) return;
 
-    // Convert UI criteria into CBS inquiry queryString parameters
-    const queryString = Object.entries(criteria)
-      .filter(([_, c]) => c.value && c.value.trim() !== "")
-      .map(([fieldId, c]) => {
-        const fieldDef = (schema.filters || []).find((f) => f.id === fieldId);
-        return {
-          selectFieldName: fieldId,
-          selectFieldType: fieldDef?.type || "text",
-          selectFieldOperator: c.operand || "EQ",
-          selectFieldValue: c.value.trim(),
-        };
-      });
+    const queryString = serializeCriteriaToWire(criteria, schema.INQSelectField);
+    const targetControl = schema.INQInfo?.controllerName?.trim() || commandCode;
 
     try {
-      const targetControl =
-        schema.controllerName && schema.controllerName.trim() !== ""
-          ? schema.controllerName.trim()
-          : commandCode;
-
       const queryRes = await cbs.send<unknown>(
         cbs.inquiry.executeQuery(targetControl, {
-          servicePath: schema.inqServicePath,
-          perPage: pageSize || schema.recordPerPage || 1000,
+          servicePath: schema.INQInfo?.inqServicePath,
+          perPage: pageSize || 1000,
           curPage: 1,
           queryString,
         }),
@@ -92,29 +72,25 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
       });
     } catch (err) {
       console.warn("Dynamic inquiry query failed", err);
-      // Fallback to local memory filtering on sample data if available
-      const fallbackDataset = filterDatasetByCriteria(schema.sampleData || [], criteria);
-      setCurrentCriteria(criteria);
-      setFilteredRows(fallbackDataset);
-      setCurrentPage(1);
-      setStep("RESULTS");
-
       toast.add({
-        title: "Query Fallback",
-        description: `Backend query failed. Matched ${fallbackDataset.length} local records.`,
-        type: "warning",
+        title: "Query Failed",
+        description: err instanceof Error ? err.message : "Backend query failed",
+        type: "destructive",
       });
     }
   };
 
   const handleResetFilters = () => {
     if (!schema) return;
-    const initialCriteria: typeof currentCriteria = {};
-    for (const f of schema.filters || []) {
-      initialCriteria[f.id] = { value: "", operand: f.defaultOperand || "EQ" };
+    const initialCriteria: FilterCriteriaMap = {};
+    for (const f of schema.INQSelectField || []) {
+      initialCriteria[f.selectFieldName] = {
+        value: f.selectFieldValue || "",
+        operand: (f.selectFieldOperator || "EQ") as SelectionOperand,
+      };
     }
     setCurrentCriteria(initialCriteria);
-    setFilteredRows(schema.sampleData || []);
+    setFilteredRows([]);
     setCurrentPage(1);
   };
 
@@ -129,17 +105,6 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
         message={error || `No schema found for "${command}"`}
         command={command}
         onRetry={refetch}
-        className={className}
-      />
-    );
-  }
-
-  if (drillRecord) {
-    return (
-      <InquiryDrillDown
-        drillRecord={drillRecord}
-        schemaTitle={title}
-        onReturn={() => setDrillRecord(null)}
         className={className}
       />
     );
@@ -168,24 +133,23 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     >
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === "SELECTION" ? (
-          <InquiryFilterBuilder
-            fields={schema.filters || []}
+          <InquiryFilterBar
+            fields={schema.INQSelectField}
             criteria={currentCriteria}
             onCriteriaChange={setCurrentCriteria}
             onSearch={handleFilterSearch}
             onReset={handleResetFilters}
           />
         ) : (
-          <InquiryEngineTable
-            columns={schema.columns}
+          <InquiryTable
+            columns={schema.INQDef}
+            commands={schema.INQCmds}
             rows={filteredRows}
-            actions={schema.actions}
-            onViewRecord={handleViewRecord}
-            onEditRecord={handleEditRecord}
             pageSize={pageSize}
             onPageSizeChange={setPageSize}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
+            showSerial={schema.INQInfo.showSerial}
           />
         )}
       </div>

@@ -25,6 +25,8 @@ export interface InquiryTableProps {
   totalRows?: number;
   showSerial?: boolean;
   className?: string;
+  onViewRecord?: (recordId: string, row: EnquiryRow) => void;
+  onEditRecord?: (recordId: string, row: EnquiryRow) => void;
 }
 
 export interface InquiryFilterBarProps {
@@ -35,4 +37,3 @@ export interface InquiryFilterBarProps {
   onReset: () => void;
   loading?: boolean;
 }
-

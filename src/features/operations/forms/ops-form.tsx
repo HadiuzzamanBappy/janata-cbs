@@ -53,14 +53,8 @@ export function OpsForm({
   });
 
   const displayCommandCode = React.useMemo(() => {
-    if (command?.includes(",")) {
-      const parts = command.split(",");
-      if (parts[1] && !parts[1].match(/^\d+$/) && !Number.isNaN(Number(parts[1]))) {
-        return command.trim().toUpperCase();
-      }
-    }
-    return spec?.code || command;
-  }, [command, spec?.code]);
+    return command.trim().toUpperCase();
+  }, [command]);
 
   const { values, errors, isDirty, setValue, validate, resetForm, setValues } = useFormState(
     spec,
@@ -68,6 +62,7 @@ export function OpsForm({
   );
 
   const actions = useFormActions({
+    command,
     spec,
     searchRecordId,
     setSearchRecordId,
@@ -87,11 +82,13 @@ export function OpsForm({
   const availableItems = React.useMemo(() => [], []);
 
   // Subscribe to real-time mutations of this entity
+  const appCode = command.split(",")[0].trim().toUpperCase();
+
   useRecordMutationSubscriber((mutation) => {
     if (searchRecordId && mutation.recordId === searchRecordId.trim().toUpperCase()) {
       actions.loadRecordData(searchRecordId, screenMode);
     }
-  }, spec?.code);
+  }, appCode);
 
   // Synchronize working draft from tab if present
   React.useEffect(() => {
@@ -104,15 +101,15 @@ export function OpsForm({
       const normalized = normalizeRecordData(rawDraft, spec);
       if (cleanId) {
         const idField = findPrimaryKeyField(spec);
-        if (idField && !normalized[idField.fieldKey]) {
-          normalized[idField.fieldKey] = cleanId;
+        if (idField && !normalized[idField.NAME]) {
+          normalized[idField.NAME] = cleanId;
         }
       }
       setValues(normalized);
     } else if (cleanId) {
       const idField = findPrimaryKeyField(spec);
       if (idField) {
-        setValue(idField.fieldKey, cleanId);
+        setValue(idField.NAME, cleanId);
       }
     }
   }, [spec, searchRecordId, currentTab?.formData, setValues, setValue]);
@@ -125,11 +122,11 @@ export function OpsForm({
   const validationErrors = React.useMemo(() => {
     return Object.entries(errors).map(([fieldName, msg]) => ({
       id: fieldName,
-      tab: spec?.code || "GENERAL",
+      tab: appCode || "GENERAL",
       fieldKey: fieldName,
       message: msg,
     }));
-  }, [errors, spec?.code]);
+  }, [errors, appCode]);
 
   if (loading) return <FormSkeleton />;
 
@@ -171,11 +168,11 @@ export function OpsForm({
       submitting={actions.submitting}
       validationErrors={validationErrors}
       availableItems={availableItems}
-      moreActions={getDefaultMoreActions(spec.code)}
+      moreActions={getDefaultMoreActions(appCode)}
     >
       <FormKernelProvider initialValues={values} onFieldChange={handleFieldChange}>
         <FormGrid
-          presentation={spec.presentation}
+          frmElements={spec.frmElements}
           values={values}
           onChange={handleFieldChange}
           errors={errors}

@@ -74,11 +74,11 @@ export type INQInfo = z.infer<typeof inqInfoSchema>;
  * 1:1 Canonical CBS Wire Data Schema matching actual backend response payloads.
  */
 export const inquiryConfigRecordSchema = z.object({
-  auditData: auditDataSchema.optional(),
   INQInfo: inqInfoSchema,
   INQSelectField: z.array(inqSelectFieldSchema).default([]),
   INQDef: z.array(inqDefSchema).default([]),
   INQCmds: z.array(inqCmdSchema).default([]),
+  auditData: auditDataSchema.optional(),
 });
 
 export type InquiryConfigRecord = z.infer<typeof inquiryConfigRecordSchema>;

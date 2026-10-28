@@ -5,7 +5,8 @@ import type { CompiledFormSpec } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
 
 export interface FormGridProps {
-  presentation: CompiledFormSpec["presentation"];
+  presentation?: CompiledFormSpec["frmElements"];
+  frmElements?: CompiledFormSpec["frmElements"];
   values: Record<string, unknown>;
   onChange: (name: string, value: unknown) => void;
   errors?: Record<string, string>;
@@ -15,6 +16,7 @@ export interface FormGridProps {
 
 export function FormGrid({
   presentation,
+  frmElements,
   values,
   onChange,
   errors = {},
@@ -23,7 +25,7 @@ export function FormGrid({
 }: FormGridProps) {
   return (
     <FormRenderer
-      presentation={presentation}
+      frmElements={frmElements || presentation}
       values={values}
       onChange={onChange}
       errors={errors}

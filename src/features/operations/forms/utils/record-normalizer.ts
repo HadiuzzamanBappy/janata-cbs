@@ -18,28 +18,41 @@ const SEMANTIC_MAP: Record<string, string[]> = {
  */
 export function normalizeRecordData(
   raw: Record<string, unknown> | undefined,
-  targetSchema: { fields?: Array<{ fieldKey: string }> } | null,
+  targetSchema: { frmElements?: { sections?: Array<{ fields?: Array<{ NAME: string }> }> }; fields?: Array<{ fieldKey: string }> } | null,
 ): Record<string, unknown> {
   if (!targetSchema || !raw) return raw || {};
   const result: Record<string, unknown> = { ...raw };
 
-  for (const field of targetSchema.fields || []) {
+  const fieldKeys: string[] = [];
+  if (targetSchema.frmElements?.sections) {
+    for (const s of targetSchema.frmElements.sections) {
+      for (const f of s.fields || []) {
+        if (f.NAME) fieldKeys.push(f.NAME);
+      }
+    }
+  } else if (targetSchema.fields) {
+    for (const f of targetSchema.fields) {
+      if (f.fieldKey) fieldKeys.push(f.fieldKey);
+    }
+  }
+
+  for (const key of fieldKeys) {
     if (
-      result[field.fieldKey] !== undefined &&
-      result[field.fieldKey] !== null &&
-      result[field.fieldKey] !== ""
+      result[key] !== undefined &&
+      result[key] !== null &&
+      result[key] !== ""
     ) {
       continue;
     }
 
-    const simplifiedFieldName = simplify(field.fieldKey);
-    const aliases = SEMANTIC_MAP[field.fieldKey.toLowerCase()] || [simplifiedFieldName];
+    const simplifiedFieldName = simplify(key);
+    const aliases = SEMANTIC_MAP[key.toLowerCase()] || [simplifiedFieldName];
 
     for (const [k, v] of Object.entries(raw)) {
       if (v === undefined || v === null || v === "") continue;
       const simplifiedKey = simplify(k);
       if (simplifiedKey === simplifiedFieldName || aliases.includes(simplifiedKey)) {
-        result[field.fieldKey] = v;
+        result[key] = v;
         break;
       }
     }

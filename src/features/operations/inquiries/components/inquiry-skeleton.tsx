@@ -5,8 +5,6 @@ export interface InquirySkeletonProps {
   rowCount?: number;
 }
 
-export type EnquirySkeletonProps = InquirySkeletonProps;
-
 /**
  * InquirySkeleton mirrors the exact IDLE (SELECTION) state layout of InquiryScreen:
  * - Centered selection criteria card with filter rows (label, operand, value input)

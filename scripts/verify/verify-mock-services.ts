@@ -161,21 +161,22 @@ async function runSuite() {
       gmcModelRes.status === "SUCCESS" && Boolean(gmcModelProps?.length),
     );
 
-    // 4b. Form Configuration (when form layout version passed)
-    const gmcFormInput = { requestType: "GMC", controlName: "ACCOUNT,1.0.0" };
-    const gmcFormRes = getMockProxyResponse("GMC", "ACCOUNT,1.0.0");
-    const gmcFormData = gmcFormRes.data as Record<string, unknown> | undefined;
+    // 4b. Form Configuration (when form layout version passed via GFC)
+    const gfcFormInput = { requestType: "GFC", controlName: "ACCOUNT,1.0.0" };
+    const gfcFormRes = getMockProxyResponse("GFC", "ACCOUNT,1.0.0");
+    const gfcFormData = gfcFormRes.data as Record<string, unknown> | undefined;
+    const formControl = gfcFormData?.FORMCONTROL as Record<string, unknown> | undefined;
     recordTest(
-      "4b. Metamodel Form Config Introspection (GMC -> FORM.CONFIG)",
-      gmcFormInput,
+      "4b. Form Configuration Wire Presentation (GFC -> FORM.CONFIG)",
+      gfcFormInput,
       {
-        title: gmcFormData?.title,
-        hasPresentation: Boolean(gmcFormData?.presentation),
+        title: formControl?.title || gfcFormData?.title,
+        hasFrmElements: Boolean(formControl?.frmElements || gfcFormData?.frmElements),
         sectionsCount: (
-          (gmcFormData?.presentation as Record<string, unknown>)?.sections as unknown[]
+          ((formControl?.frmElements || gfcFormData?.frmElements) as Record<string, unknown>)?.sections as unknown[]
         )?.length,
       },
-      gmcFormRes.status === "SUCCESS" && Boolean(gmcFormData?.presentation),
+      gfcFormRes.status === "SUCCESS" && Boolean(formControl?.frmElements || gfcFormData?.frmElements),
     );
 
     // 5. Navigation Menu Tree Hierarchy (GUM)
@@ -228,28 +229,27 @@ async function runSuite() {
       inqRes.status === "SUCCESS" && Boolean(inqData && inqData.length > 0),
     );
 
-    // 7b. Dynamic Raw Model Inquiry Synthesis (INQUIRY.CONFIG -> Fallback to MODEL.CONFIG)
-    const rawInqInput = {
+    // 7b. Inquiry Definition Retrieval (S INQUIRY.CONFIG GET.ACCOUNT)
+    const inqConfigInput = {
       requestType: "S",
       controlName: "INQUIRY.CONFIG",
-      recordId: "MODEL.CONFIG",
+      recordId: "GET.ACCOUNT",
     };
-    const rawInqRes = getMockProxyResponse("S", "INQUIRY.CONFIG", "MODEL.CONFIG");
-    const rawInqData = rawInqRes.data as Record<string, unknown> | undefined;
-    const rawInqOut = {
-      status: rawInqRes.status,
-      id: rawInqData?.id,
-      title: rawInqData?.title,
-      columnsCount: (rawInqData?.columns as unknown[])?.length,
-      filtersCount: (rawInqData?.filters as unknown[])?.length,
+    const inqConfigRes = getMockProxyResponse("S", "INQUIRY.CONFIG", "GET.ACCOUNT");
+    const inqConfigData = inqConfigRes.data as Record<string, unknown> | undefined;
+    const inqConfigOut = {
+      status: inqConfigRes.status,
+      description: (inqConfigData?.INQInfo as Record<string, unknown>)?.description,
+      columnsCount: (inqConfigData?.INQDef as unknown[])?.length,
+      filtersCount: (inqConfigData?.INQSelectField as unknown[])?.length,
     };
     recordTest(
-      "7b. Dynamic Raw Model Inquiry Synthesis (INQ MODEL.CONFIG)",
-      rawInqInput,
-      rawInqOut,
-      rawInqRes.status === "SUCCESS" &&
-        rawInqOut.id === "MODEL.CONFIG" &&
-        Number(rawInqOut.columnsCount) > 0,
+      "7b. Inquiry Definition Configuration (S INQUIRY.CONFIG GET.ACCOUNT)",
+      inqConfigInput,
+      inqConfigOut,
+      inqConfigRes.status === "SUCCESS" &&
+        Number(inqConfigOut.columnsCount) > 0 &&
+        Number(inqConfigOut.filtersCount) > 0,
     );
 
     // 8. Sequence ID Allocation (GNI)

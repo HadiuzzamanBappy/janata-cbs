@@ -1,10 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type {
-  INQSelectField,
-  InquiryConfigRecord,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQSelectField, InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 
 export function useIcFilterOps(
   setFormData: React.Dispatch<React.SetStateAction<InquiryConfigRecord>>,
@@ -61,12 +58,7 @@ export function useIcFilterOps(
     (fromIndex: number, toIndex: number) => {
       setFormData((prev) => {
         const items = [...(prev.INQSelectField || [])];
-        if (
-          fromIndex < 0 ||
-          fromIndex >= items.length ||
-          toIndex < 0 ||
-          toIndex >= items.length
-        ) {
+        if (fromIndex < 0 || fromIndex >= items.length || toIndex < 0 || toIndex >= items.length) {
           return prev;
         }
         const [moved] = items.splice(fromIndex, 1);
@@ -89,4 +81,3 @@ export function useIcFilterOps(
     reorderFilters,
   };
 }
-

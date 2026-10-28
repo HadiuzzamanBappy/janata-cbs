@@ -52,6 +52,9 @@ async function runSuite() {
     ASSOCIATES: [],
     _DEVBY: "SYSTEM",
     _DEVDATE: "2026-10-20",
+    VIEWDEF: [],
+    IDROUTINE: "",
+    FIELDBASED: false,
     IDDEF: {
       IDPREFIX: "AC",
       IDPATTERN: "AC{YYYY}{SEQ:6}",
@@ -67,7 +70,6 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 12,
         REQUIRED: true,
-        DISABLED: false,
       },
       {
         SN: "2",
@@ -77,7 +79,6 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: true,
-        DISABLED: false,
       },
       {
         SN: "3",
@@ -87,7 +88,6 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
-        DISABLED: false,
       },
       {
         SN: "4",
@@ -97,17 +97,6 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
-        DISABLED: false,
-      },
-      {
-        SN: "5",
-        NAME: "nominee",
-        LABEL: "Primary Nominee",
-        TYPE: "Object",
-        STRUCTURE: "S",
-        LENGTH: 50,
-        REQUIRED: false,
-        DISABLED: false,
       },
       {
         SN: "5_1",
@@ -117,7 +106,6 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 40,
         REQUIRED: true,
-        DISABLED: false,
       },
       {
         SN: "5_2",
@@ -127,7 +115,6 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: true,
-        DISABLED: false,
       },
     ],
   };
@@ -139,12 +126,12 @@ async function runSuite() {
 
   const fallbackSpec = compileFormSpec(testModel, null);
 
-  assert("Fallback: Generates compiled spec with code", fallbackSpec.code === "ACCOUNT");
-  assert("Fallback: Sets layoutSource to 'fallback'", fallbackSpec.layoutSource === "fallback");
-  assert("Fallback: Pristine spec is not stale", fallbackSpec.isStale === false);
-  assert("Fallback: Inherits idPrefix from model", fallbackSpec.idPrefix === "AC");
+  assert("Fallback: Generates compiled spec with title", fallbackSpec.title === "Customer Account Definition");
+  assert("Fallback: Sets authNumber to 1", fallbackSpec.authNumber === 1);
+  assert("Fallback: Generates sections array", Array.isArray(fallbackSpec.frmElements?.sections));
 
-  const fallbackFieldKeys = fallbackSpec.fields.map((f) => f.fieldKey);
+  const allFallbackFields = (fallbackSpec.frmElements?.sections || []).flatMap((s) => s.fields || []);
+  const fallbackFieldKeys = allFallbackFields.map((f) => f.NAME);
   assert(
     "Fallback: Includes active property accountNumber",
     fallbackFieldKeys.includes("accountNumber"),
@@ -156,25 +143,14 @@ async function runSuite() {
 
   // Check fallback section and inline field group hierarchy
   assert(
-    "Fallback: Generates 1 consolidated section with inline fields",
-    fallbackSpec.presentation.sections.length === 1,
+    "Fallback: Generates 1 consolidated section with fields",
+    fallbackSpec.frmElements.sections.length === 1,
   );
-  const rootSection = fallbackSpec.presentation.sections[0];
+  const rootSection = fallbackSpec.frmElements.sections[0];
   assert("Fallback: Root section has layoutStyle card", rootSection.layoutStyle === "card");
-
-  // Verify inline group child fields preserve parent object association (nominee group)
-  const nomineeChildFields = rootSection.fields.filter((f) => f.groupKey === "nominee");
   assert(
-    "Fallback: Contains nominee child fields associated via groupKey",
-    nomineeChildFields.length === 2,
-  );
-  assert(
-    "Fallback: First child of nominee group has isFirstInGroup true",
-    nomineeChildFields[0]?.isFirstInGroup === true,
-  );
-  assert(
-    "Fallback: Second child of nominee group has isFirstInGroup false",
-    nomineeChildFields[1]?.isFirstInGroup === false,
+    "Fallback: Root section contains all model properties",
+    rootSection.fields.length === testModel.PROPERTIES.length,
   );
 
   // ============================================================================
@@ -183,14 +159,15 @@ async function runSuite() {
   console.log("\n--- 2. Compile With Valid Custom Layout ---");
 
   const validLayout: FormConfigRecord = {
-    recordId: "FC.ACCOUNT.STANDARD",
     title: "Standard Account Opening Form",
-    targetModel: "ACCOUNT",
-    version: "1.0.0",
-    isActive: true,
-    presentation: {
-      archetype: "grid",
-      density: "compact",
+    description: "Account opening layout",
+    authNumber: 1,
+    frmRoutine: {
+      rtnValidate: [],
+      rtnBeforeAuth: [],
+      rtnAfterAuth: [],
+    },
+    frmElements: {
       steps: [],
       sections: [
         {
@@ -201,27 +178,70 @@ async function runSuite() {
           columns: 2,
           collapsible: false,
           isCollapsed: false,
+          layoutStyle: "card",
           fields: [
             {
-              id: "f_acc_no",
-              fieldKey: "accountNumber",
-              label: "A/C Number",
-              widget: "text",
-              colSpan: 6,
+              SN: "1",
+              NAME: "accountNumber",
+              LABEL: "A/C Number",
+              TYPE: "Text",
+              LENGTH: 12,
+              STRUCTURE: "S",
+              REQUIRED: true,
+              DISABLED: false,
+              WIDTH: 200,
+              POSITION: "",
+              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              ENRICHTEXT: "",
+              VALUE: "",
+              FIXEDVALUE: "",
+              ISOPEN: false,
+              ISLOADING: false,
+              PROP: [],
+              DATASOURCE: [],
+              DEFAULTVALUE: "",
             },
             {
-              id: "f_acc_title",
-              fieldKey: "accountTitle",
-              label: "A/C Title",
-              widget: "text",
-              colSpan: 6,
+              SN: "2",
+              NAME: "accountTitle",
+              LABEL: "A/C Title",
+              TYPE: "Text",
+              LENGTH: 50,
+              STRUCTURE: "S",
+              REQUIRED: true,
+              DISABLED: false,
+              WIDTH: 200,
+              POSITION: "",
+              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              ENRICHTEXT: "",
+              VALUE: "",
+              FIXEDVALUE: "",
+              ISOPEN: false,
+              ISLOADING: false,
+              PROP: [],
+              DATASOURCE: [],
+              DEFAULTVALUE: "",
             },
             {
-              id: "f_acc_bal",
-              fieldKey: "balance",
-              label: "Opening Balance",
-              widget: "amount",
-              colSpan: 6,
+              SN: "3",
+              NAME: "balance",
+              LABEL: "Opening Balance",
+              TYPE: "Number",
+              LENGTH: 10,
+              STRUCTURE: "S",
+              REQUIRED: false,
+              DISABLED: false,
+              WIDTH: 200,
+              POSITION: "",
+              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              ENRICHTEXT: "",
+              VALUE: "",
+              FIXEDVALUE: "",
+              ISOPEN: false,
+              ISLOADING: false,
+              PROP: [],
+              DATASOURCE: [],
+              DEFAULTVALUE: "",
             },
           ],
         },
@@ -231,34 +251,34 @@ async function runSuite() {
 
   const validSpec = compileFormSpec(testModel, validLayout);
 
-  assert("Custom: Sets layoutSource to 'custom'", validSpec.layoutSource === "custom");
-  assert("Custom: Valid layout produces isStale: false", validSpec.isStale === false);
   assert("Custom: Retains layout title", validSpec.title === "Standard Account Opening Form");
-  assert("Custom: Compiled fields length is 3", validSpec.fields.length === 3);
+  const compiledFields = (validSpec.frmElements?.sections || []).flatMap((s) => s.fields || []);
+  assert("Custom: Compiled fields length is 3", compiledFields.length === 3);
 
   // Check synchronization of model rules into layout fields
-  const compiledAccNo = validSpec.fields.find((f) => f.fieldKey === "accountNumber");
-  assert("Custom: Model rule 'required: true' synced to field", compiledAccNo?.required === true);
-  assert("Custom: Model rule 'length: 12' synced to field", compiledAccNo?.length === 12);
+  const compiledAccNo = compiledFields.find((f) => f.NAME === "accountNumber");
+  assert("Custom: Model rule 'REQUIRED: true' synced to field", compiledAccNo?.REQUIRED === true);
+  assert("Custom: Model rule 'LENGTH: 12' synced to field", compiledAccNo?.LENGTH === 12);
   assert(
-    "Custom: Model rule 'modelType: Text' synced to field",
-    compiledAccNo?.modelType === "Text",
+    "Custom: Model rule 'TYPE: Text' synced to field",
+    compiledAccNo?.TYPE === "Text",
   );
 
   // ============================================================================
-  // --- 3. Archived Field Dropping & Stale Detection ---
+  // --- 3. Custom Layout Element Enrichment ---
   // ============================================================================
-  console.log("\n--- 3. Archived Field Dropping & Stale Detection ---");
+  console.log("\n--- 3. Custom Layout Element Enrichment ---");
 
-  const layoutWithArchived: FormConfigRecord = {
-    recordId: "FC.ACCOUNT.LEGACY",
-    title: "Legacy Layout with Archived Field",
-    targetModel: "ACCOUNT",
-    version: "1.0.0",
-    isActive: true,
-    presentation: {
-      archetype: "grid",
-      density: "compact",
+  const layoutToEnrich: FormConfigRecord = {
+    title: "Enriched Form Layout",
+    description: "Layout with partial field definitions",
+    authNumber: 1,
+    frmRoutine: {
+      rtnValidate: [],
+      rtnBeforeAuth: [],
+      rtnAfterAuth: [],
+    },
+    frmElements: {
       steps: [],
       sections: [
         {
@@ -269,18 +289,28 @@ async function runSuite() {
           columns: 2,
           collapsible: false,
           isCollapsed: false,
+          layoutStyle: "card",
           fields: [
             {
-              id: "f_acc_no",
-              fieldKey: "accountNumber",
-              label: "Account Number",
-              widget: "text",
-            },
-            {
-              id: "f_archived",
-              fieldKey: "legacyTaxCode", // ARCHIVED in testModel
-              label: "Legacy Tax Code",
-              widget: "text",
+              SN: "1",
+              NAME: "accountNumber",
+              LABEL: "", // Empty to test fallback to model label
+              TYPE: "Text",
+              LENGTH: 0, // 0 to test fallback to model length
+              STRUCTURE: "S",
+              REQUIRED: false,
+              DISABLED: false,
+              WIDTH: 200,
+              POSITION: "",
+              PARAMETER: { type: "O", data: [], modelName: "", displayField: "", condition: "", reference: "" },
+              ENRICHTEXT: "",
+              VALUE: "",
+              FIXEDVALUE: "",
+              ISOPEN: false,
+              ISLOADING: false,
+              PROP: [],
+              DATASOURCE: [],
+              DEFAULTVALUE: "",
             },
           ],
         },
@@ -288,25 +318,20 @@ async function runSuite() {
     },
   };
 
-  const compiledWithArchived = compileFormSpec(testModel, layoutWithArchived);
+  const enrichedSpec = compileFormSpec(testModel, layoutToEnrich);
+  const enrichedFields = (enrichedSpec.frmElements?.sections || []).flatMap((s) => s.fields || []);
 
   assert(
-    "Archived Drop: Spec is marked isStale: false in append-only schema evolution",
-    compiledWithArchived.isStale === false,
+    "Enrichment: Compiled fields length is 1",
+    enrichedFields.length === 1,
   );
   assert(
-    "Archived Drop: Compiled fields length is 1 (archived field omitted)",
-    compiledWithArchived.fields.length === 1,
+    "Enrichment: Empty label enriched from model property",
+    enrichedFields[0]?.LABEL === "Account Number",
   );
   assert(
-    "Archived Drop: Compiled fields does NOT contain legacyTaxCode",
-    !compiledWithArchived.fields.some((f) => f.fieldKey === "legacyTaxCode"),
-  );
-  assert(
-    "Archived Drop: Section fields does NOT contain legacyTaxCode",
-    !compiledWithArchived.presentation.sections[0].fields.some(
-      (f) => f.fieldKey === "legacyTaxCode",
-    ),
+    "Enrichment: Zero length enriched from model property",
+    enrichedFields[0]?.LENGTH === 12,
   );
 
   // ============================================================================

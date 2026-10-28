@@ -29,4 +29,3 @@ export function executeInquiryCommand(command: INQCmd, row: EnquiryRow) {
 
   cbsCommand.execute(executable);
 }
-

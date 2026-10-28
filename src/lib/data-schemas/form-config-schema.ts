@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
+import { modelConfigRecordSchema } from "./model-config-schema";
 
 /* ========================================================================== */
 /* 1. ROUTINE HOOKS CONTRACT                                                  */
@@ -68,9 +69,6 @@ export const formElementSchema = z.object({
   DEFAULTVALUE: z.string().default(""),
 });
 export type FormElement = z.infer<typeof formElementSchema>;
-
-/** Type aliases for backward compatibility across the canvas during migration */
-export type FormElementWireProps = FormElement;
 export type FormFieldItem = FormElement;
 
 /* ========================================================================== */
@@ -86,7 +84,7 @@ export const formSectionSchema = z.object({
   tabGroupId: z.string().optional(),
   tabTitle: z.string().optional(),
   bindKey: z.string().optional(),
-  columns: z.number().min(1).max(4).default(2),
+  columns: z.number().min(1).max(4).default(1),
   collapsible: z.boolean().default(false),
   isCollapsed: z.boolean().default(false),
   layoutStyle: z.enum(["card", "plain"]).optional().default("card"),
@@ -125,3 +123,12 @@ export const formConfigRecordSchema = z.looseObject({
 });
 export type FormConfigRecord = z.infer<typeof formConfigRecordSchema>;
 export type CompiledFormSpec = FormConfigRecord;
+
+/* ========================================================================== */
+/* 6. COMBINED GFC / GNI WIRE RESPONSE CONTRACT                               */
+/* ========================================================================== */
+
+export const gfcResponseSchema = modelConfigRecordSchema.extend({
+  FORMCONTROL: z.union([formConfigRecordSchema, z.record(z.string(), z.any())]).default({}),
+});
+export type GfcResponse = z.infer<typeof gfcResponseSchema>;

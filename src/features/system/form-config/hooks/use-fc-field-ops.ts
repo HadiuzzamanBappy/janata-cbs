@@ -22,50 +22,50 @@ export function useFcFieldOps(
 ) {
   const addFieldToSection = React.useCallback(
     (sectionId: string, fieldTemplate?: Partial<FormElement>) => {
-      const fieldSn = fieldTemplate?.SN || String(Date.now()).slice(-4);
-      const fieldName = fieldTemplate?.NAME || `field_${Date.now().toString().slice(-4)}`;
-      const fieldLabel = fieldTemplate?.LABEL || "New Field";
-
-      const newField: FormElement = {
-        id: fieldTemplate?.id || fieldName,
-        SN: fieldSn,
-        NAME: fieldName,
-        LABEL: fieldLabel,
-        TYPE: fieldTemplate?.TYPE || "Text",
-        LENGTH: fieldTemplate?.LENGTH ?? 35,
-        STRUCTURE: fieldTemplate?.STRUCTURE || "S",
-        REQUIRED: fieldTemplate?.REQUIRED ?? false,
-        DISABLED: fieldTemplate?.DISABLED ?? false,
-        WIDTH: fieldTemplate?.WIDTH ?? 200,
-        POSITION: fieldTemplate?.POSITION || "",
-        PARAMETER: fieldTemplate?.PARAMETER || {
-          type: "O",
-          data: [],
-          modelName: "",
-          displayField: "",
-          condition: "",
-          reference: "",
-        },
-        ENRICHTEXT: fieldTemplate?.ENRICHTEXT || "",
-        VALUE: fieldTemplate?.VALUE || "",
-        FIXEDVALUE: fieldTemplate?.FIXEDVALUE || "",
-        ISOPEN: fieldTemplate?.ISOPEN ?? false,
-        ISLOADING: fieldTemplate?.ISLOADING ?? false,
-        PROP: fieldTemplate?.PROP || [],
-        DATASOURCE: fieldTemplate?.DATASOURCE || [],
-        DEFAULTVALUE: fieldTemplate?.DEFAULTVALUE || "",
-      };
-
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
+        const targetSection = sections.find((s) => s.id === sectionId);
+        const existingCount = (targetSection?.fields?.length || 0) + 1;
+
+        const fieldSn = fieldTemplate?.SN || String(existingCount);
+        const fieldName = fieldTemplate?.NAME || `field_${existingCount}`;
+        const fieldLabel = fieldTemplate?.LABEL || `Field ${existingCount}`;
+
+        const newField: FormElement = {
+          id: fieldTemplate?.id || fieldName,
+          SN: fieldSn,
+          NAME: fieldName,
+          LABEL: fieldLabel,
+          TYPE: fieldTemplate?.TYPE || "Text",
+          LENGTH: fieldTemplate?.LENGTH ?? 35,
+          STRUCTURE: fieldTemplate?.STRUCTURE || "S",
+          REQUIRED: fieldTemplate?.REQUIRED ?? false,
+          DISABLED: fieldTemplate?.DISABLED ?? false,
+          WIDTH: fieldTemplate?.WIDTH ?? 200,
+          POSITION: fieldTemplate?.POSITION || "",
+          PARAMETER: fieldTemplate?.PARAMETER || {
+            type: "O",
+            data: [],
+            modelName: "",
+            displayField: "",
+            condition: "",
+            reference: "",
+          },
+          ENRICHTEXT: fieldTemplate?.ENRICHTEXT || "",
+          VALUE: fieldTemplate?.VALUE || "",
+          FIXEDVALUE: fieldTemplate?.FIXEDVALUE || "",
+          ISOPEN: fieldTemplate?.ISOPEN ?? false,
+          ISLOADING: fieldTemplate?.ISLOADING ?? false,
+          PROP: fieldTemplate?.PROP || [],
+          DATASOURCE: fieldTemplate?.DATASOURCE || [],
+          DEFAULTVALUE: fieldTemplate?.DEFAULTVALUE || "",
+        };
 
         const updatedSections = sections.map((sec) =>
           sec.id === sectionId ? { ...sec, fields: [...(sec.fields || []), newField] } : sec,
         );
+
+        setSelectedFieldId(fieldName);
 
         return {
           ...prev,
@@ -75,8 +75,6 @@ export function useFcFieldOps(
           },
         };
       });
-
-      setSelectedFieldId(fieldName);
     },
     [setFormData, setSelectedFieldId],
   );
@@ -84,11 +82,7 @@ export function useFcFieldOps(
   const updateField = React.useCallback(
     (fieldId: string, patch: Partial<FormElement>) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
 
         const updatedSections = sections.map((sec) => ({
           ...sec,
@@ -112,18 +106,13 @@ export function useFcFieldOps(
   const removeField = React.useCallback(
     (fieldId: string) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
 
         const updatedSections = sections
           .map((sec) => ({
             ...sec,
             fields: (sec.fields || []).filter((f) => !isMatchingField(f, fieldId)),
           }))
-          // Automatically clean up empty plain root canvas sections (never leave an empty ghost plain root)
           .filter((sec) => {
             const isPlainRoot =
               sec.layoutStyle === "plain" ||
@@ -131,7 +120,7 @@ export function useFcFieldOps(
               sec.title === "Canvas Root" ||
               (sec.type === "standard" && sec.zone === "standard" && !sec.title);
             if (isPlainRoot && (!sec.fields || sec.fields.length === 0)) {
-              return false; // remove ghost plain root
+              return false;
             }
             return true;
           });
@@ -153,12 +142,7 @@ export function useFcFieldOps(
   const reorderFields = React.useCallback(
     (sectionId: string, activeId: string, overId: string) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
-
+        const sections = prev.frmElements?.sections || [];
         const section = sections.find((s) => s.id === sectionId);
         if (!section?.fields) return prev;
 
@@ -197,12 +181,7 @@ export function useFcFieldOps(
       insertAtIndex?: number,
     ) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
-
+        const sections = prev.frmElements?.sections || [];
         const sourceSec = sections.find((s) => s.id === sourceSecId);
         if (!sourceSec?.fields) return prev;
 
@@ -213,11 +192,11 @@ export function useFcFieldOps(
 
         if (targetSecId === "canvas-root" || targetSecId.startsWith("gap-")) {
           const newRootSec: FormSection = {
-            id: `sec_root_${Date.now()}`,
+            id: `sec_root_${crypto.randomUUID().slice(0, 8)}`,
             title: "",
             type: "standard",
             zone: "standard",
-            columns: 2,
+            columns: 1,
             collapsible: false,
             isCollapsed: false,
             layoutStyle: "plain",

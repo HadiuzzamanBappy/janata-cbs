@@ -24,43 +24,39 @@ export function useFcSectionOps(
       insertIndex?: number,
       columns?: number,
     ) => {
-      const newId = `sec_${Date.now()}`;
-      const defaultTitle =
-        customTitle !== undefined
-          ? customTitle
-          : layoutStyle === "plain"
-            ? ""
-            : zone === "header"
-              ? "Master Header Card"
-              : zone === "tab"
-                ? tabTitle || "Tab 1"
-                : type === "object-group"
-                  ? "New Object Group"
-                  : "Form Fields";
-
-      const newSection: FormSection = {
-        id: newId,
-        title: defaultTitle,
-        type,
-        zone,
-        tabGroupId: zone === "tab" ? tabGroupId || `tabgrp_${Date.now()}` : undefined,
-        tabTitle: zone === "tab" ? tabTitle || defaultTitle || "Tab 1" : undefined,
-        bindKey: type !== "standard" ? `group_${Date.now()}` : undefined,
-        columns: columns ?? 1,
-        collapsible: type !== "standard",
-        isCollapsed: false,
-        layoutStyle:
-          layoutStyle ??
-          (type === "standard" && zone === "standard" && !customTitle ? "plain" : "card"),
-        fields: initialFields,
-      };
-
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
+        const nextIndex = sections.length + 1;
+        const newId = `sec_${nextIndex}`;
+        const defaultTitle =
+          customTitle !== undefined
+            ? customTitle
+            : layoutStyle === "plain"
+              ? ""
+              : zone === "header"
+                ? "Master Header Card"
+                : zone === "tab"
+                  ? tabTitle || `Tab ${nextIndex}`
+                  : type === "object-group"
+                    ? "New Object Group"
+                    : "Form Fields";
+
+        const newSection: FormSection = {
+          id: newId,
+          title: defaultTitle,
+          type,
+          zone,
+          tabGroupId: zone === "tab" ? tabGroupId || `tabgrp_${nextIndex}` : undefined,
+          tabTitle: zone === "tab" ? tabTitle || defaultTitle || `Tab ${nextIndex}` : undefined,
+          bindKey: type !== "standard" ? `group_${nextIndex}` : undefined,
+          columns: columns ?? 1,
+          collapsible: type !== "standard",
+          isCollapsed: false,
+          layoutStyle:
+            layoutStyle ??
+            (type === "standard" && zone === "standard" && !customTitle ? "plain" : "card"),
+          fields: initialFields,
+        };
 
         // If initialFields contains fields already placed on canvas, remove them from existing sections
         const newFieldKeys = new Set(
@@ -92,6 +88,11 @@ export function useFcSectionOps(
           nextSections.push(newSection);
         }
 
+        setSelectedSectionId(newId);
+        if (initialFields.length > 0) {
+          setSelectedFieldId(initialFields[0].NAME || initialFields[0].SN);
+        }
+
         return {
           ...prev,
           frmElements: {
@@ -100,11 +101,6 @@ export function useFcSectionOps(
           },
         };
       });
-
-      setSelectedSectionId(newId);
-      if (initialFields.length > 0) {
-        setSelectedFieldId(initialFields[0].NAME || initialFields[0].SN);
-      }
     },
     [setFormData, setSelectedFieldId, setSelectedSectionId],
   );
@@ -112,11 +108,7 @@ export function useFcSectionOps(
   const updateSection = React.useCallback(
     (sectionId: string, patch: Partial<FormSection>) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
 
         return {
           ...prev,
@@ -133,11 +125,7 @@ export function useFcSectionOps(
   const removeSection = React.useCallback(
     (sectionId: string) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
 
         return {
           ...prev,
@@ -155,11 +143,7 @@ export function useFcSectionOps(
   const reorderSections = React.useCallback(
     (activeId: string, overId: string, insertIndex?: number) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
 
         const oldIndex = sections.findIndex((s) => s.id === activeId);
         if (oldIndex === -1) return prev;
@@ -193,21 +177,17 @@ export function useFcSectionOps(
       opts?: { tabGroupId?: string; tabTitle?: string },
     ) => {
       setFormData((prev) => {
-        const sections =
-          prev.frmElements?.sections ||
-          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
-            ?.sections ||
-          [];
+        const sections = prev.frmElements?.sections || [];
 
         return {
           ...prev,
           frmElements: {
             steps: prev.frmElements?.steps || [],
-            sections: sections.map((sec) => {
+            sections: sections.map((sec, idx) => {
               if (sec.id !== sectionId) return sec;
               if (targetZone === "tab") {
-                const grpId = opts?.tabGroupId || `tabgrp_${Date.now()}`;
-                const title = opts?.tabTitle || sec.title || "New Tab";
+                const grpId = opts?.tabGroupId || `tabgrp_${idx + 1}`;
+                const title = opts?.tabTitle || sec.title || `Tab ${idx + 1}`;
                 return {
                   ...sec,
                   zone: "tab" as const,

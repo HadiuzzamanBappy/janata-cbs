@@ -1,7 +1,6 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-
 import { rectSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Layers, Plus, Trash2, X } from "lucide-react";
@@ -80,40 +79,20 @@ function TabDropBody({
     }
   };
 
-  const getFieldColSpanClass = (cols: number, span?: number) => {
+  const getFieldColSpanClass = (cols: number, width?: number) => {
     if (cols <= 1) {
-      switch (span) {
-        case 3:
-          return "w-1/4 min-w-[200px]";
-        case 4:
-          return "w-1/3 min-w-[240px]";
-        case 6:
-          return "w-1/2 min-w-[280px]";
-        case 8:
-          return "w-2/3 min-w-[320px]";
-        default:
-          return "w-full";
-      }
+      return "w-full";
     }
-    if (cols === 2) {
-      return span && span >= 12 ? "col-span-2 w-full" : "col-span-1 w-full";
+    if (width && width >= 400) {
+      return "col-span-2 w-full";
     }
-    if (cols === 3) {
-      if (span && span >= 12) return "col-span-3 w-full";
-      if (span && span >= 8) return "col-span-2 w-full";
-      return "col-span-1 w-full";
-    }
-    if (cols === 4) {
-      if (span && span >= 12) return "col-span-4 w-full";
-      if (span && span >= 9) return "col-span-3 w-full";
-      if (span && span >= 6) return "col-span-2 w-full";
-      return "col-span-1 w-full";
-    }
-    return "w-full";
+    return "col-span-1 w-full";
   };
 
+  const fieldKeys = section.fields.map((f) => f.id || f.NAME || String(f.SN || "field"));
+
   return (
-    <SortableContext items={section.fields.map((f) => f.id)} strategy={rectSortingStrategy}>
+    <SortableContext items={fieldKeys} strategy={rectSortingStrategy}>
       <div
         ref={setDropRef}
         className={cn(
@@ -128,28 +107,40 @@ function TabDropBody({
         )}
       >
         {isEmpty ? (
-          <span>
+          <button
+            type="button"
+            onClick={() => onSelectSection(section.id)}
+            className="w-full h-full py-4 bg-transparent border-0 text-xs text-muted-foreground/60 cursor-pointer"
+          >
             {showHover
               ? "↓ Drop field here"
               : "No fields placed in this tab yet — drag variables or click from the left palette."}
-          </span>
+          </button>
         ) : (
           <div className={cn("grid gap-2", getGridColsClass(numCols))}>
-            {section.fields.map((field) => (
-              <DesignerFieldCard
-                key={field.id}
-                field={field}
-                sectionId={section.id}
-                isSelected={selectedFieldId === field.id}
-                className={getFieldColSpanClass(numCols, field.colSpan)}
-                onSelect={() => {
-                  onSelectSection(section.id);
-                  onSelectField(section.id, field.id);
-                }}
-                onRemove={() => onRemoveField(field.id)}
-                disabled={disabled}
-              />
-            ))}
+            {section.fields.map((field) => {
+              const fieldId = field.id || field.NAME || String(field.SN || "field");
+              const isSelected =
+                selectedFieldId === fieldId ||
+                selectedFieldId === field.NAME ||
+                selectedFieldId === field.SN;
+
+              return (
+                <DesignerFieldCard
+                  key={fieldId}
+                  field={field}
+                  sectionId={section.id}
+                  isSelected={Boolean(isSelected)}
+                  className={getFieldColSpanClass(numCols, field.WIDTH)}
+                  onSelect={() => {
+                    onSelectSection(section.id);
+                    onSelectField(section.id, fieldId);
+                  }}
+                  onRemove={() => onRemoveField(fieldId)}
+                  disabled={disabled}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -235,21 +226,13 @@ export function SortableTabGroupCard({
   const isAnyTabSelected = tabSections.some((s) => s.id === selectedSectionId);
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Tab group container selection
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Tab group container selection
-    <div
+    <section
+      aria-label="Tab group container"
       ref={setNodeRef}
       style={style}
       onDragOver={handleNativeDragOver}
       onDragLeave={handleNativeDragLeave}
       onDrop={handleNativeDrop}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (activeTabId) {
-          onSelectSection(activeTabId);
-          onSelectField(null, null);
-        }
-      }}
       className={cn(
         "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs mb-3.5",
         isAnyTabSelected && "border-sky-500/80 ring-1 ring-sky-500/30",
@@ -322,6 +305,7 @@ export function SortableTabGroupCard({
                       }}
                       className="text-muted-foreground/60 hover:text-destructive p-0.5 rounded cursor-pointer ml-0.5"
                       title="Remove tab"
+                      aria-label={`Remove tab ${tab.tabTitle || tab.title}`}
                     >
                       <X className="size-3" />
                     </button>
@@ -357,6 +341,7 @@ export function SortableTabGroupCard({
             }}
             className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer shrink-0"
             title="Remove entire tab group"
+            aria-label="Remove entire tab group"
           >
             <Trash2 className="size-3" />
           </Button>
@@ -406,6 +391,6 @@ export function SortableTabGroupCard({
           />
         </div>
       )}
-    </div>
+    </section>
   );
 }

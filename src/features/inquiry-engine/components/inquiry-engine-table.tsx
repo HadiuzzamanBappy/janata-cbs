@@ -35,11 +35,14 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cbsCommand } from "@/lib/cbs-command";
-import type { EnquiryColumn, EnquiryRow } from "@/lib/data-schemas";
-import type { InquiryActionConfig } from "@/lib/data-schemas/inquiry-config-schema";
+import type { EnquiryRow } from "@/lib/data-schemas";
+import type {
+  InquiryActionConfig,
+  InquiryColumnConfig,
+} from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface InquiryEngineTableProps {
-  columns: EnquiryColumn[];
+  columns: InquiryColumnConfig[];
   rows: EnquiryRow[];
   actions?: InquiryActionConfig[];
   onViewRecord?: (recordId: string, row: EnquiryRow) => void;

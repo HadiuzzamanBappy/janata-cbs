@@ -1,15 +1,16 @@
-import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
 
 /** Callback signature for adding a new section/container to the canvas */
 export type AddSectionFn = (
   type: "standard" | "object-group" | "array-table",
   zone?: "header" | "tab" | "standard",
-  initialFields?: FormFieldItem[],
+  initialFields?: FormElement[],
   layoutStyle?: "card" | "plain",
   customTitle?: string,
   tabGroupId?: string,
   tabTitle?: string,
   insertIndex?: number,
+  columns?: number,
 ) => void;
 
 export interface DesignerCanvasProps {

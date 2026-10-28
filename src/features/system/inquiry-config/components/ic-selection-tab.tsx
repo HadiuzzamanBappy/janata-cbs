@@ -253,7 +253,7 @@ export function IcSelectionTab({
   );
 
   const availableProps = React.useMemo(() => {
-    return modelProps.filter((p) => p.NAME && !p.DISABLED);
+    return modelProps.filter((p) => Boolean(p.NAME));
   }, [modelProps]);
 
   const filteredProps = React.useMemo(() => {

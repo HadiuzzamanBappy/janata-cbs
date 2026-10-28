@@ -1,8 +1,6 @@
 "use client";
 
-import { Database, Info, Sparkles } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,260 +11,200 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type {
+  InquiryConfigRecord,
+  InquiryValidationErrorItem,
+} from "@/lib/data-schemas/inquiry-config-schema";
+import {
+  getFieldValue,
+  INQUIRY_META_FIELDS,
+  META_FIELD_GROUPS,
+  type MetaFieldDef,
+  setFieldValue,
+} from "../fields";
 
 export interface IcGeneralTabProps {
   formData: InquiryConfigRecord;
   setFormData: React.Dispatch<React.SetStateAction<InquiryConfigRecord>>;
   isReadOnly?: boolean;
+  validationErrors?: InquiryValidationErrorItem[];
 }
 
-export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGeneralTabProps) {
-  const [modelDef, setModelDef] = React.useState<ModelConfigRecord>({
-    TABLENAME: "INQUIRY_CONFIG",
-    DESCRIPTION: "Dynamic Inquiry & Query Definition Designer",
-    PREFIX: "SC",
-    SERVICEPATH: "default",
-    USERDEFINEID: true,
-    ACCESS: "G",
-    READONLY: false,
-    SEARCHABLE: true,
-    AUTHORIZE: true,
-    ASSOCIATES: [],
-    _DEVBY: "System",
-    _DEVDATE: "2026-10-17",
-    IDDEF: {
-      IDPREFIX: "",
-      IDPATTERN: "",
-      SEQUENCERESET: false,
-    },
-    PROPERTIES: [],
-  });
-
-  const availableModels: Array<{ id: string; label: string }> = [];
-
-  React.useEffect(() => {
-    let mounted = true;
-
-    async function syncRegistry() {
-      try {
-        const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get("INQUIRY.CONFIG"), {
-          silent: true,
-        });
-        if (mounted && res.status === "SUCCESS" && res.data) {
-          setModelDef(res.data);
-        }
-      } catch {
-        // Safe fallback
+export function IcGeneralTab({
+  formData,
+  setFormData,
+  isReadOnly = false,
+  validationErrors = [],
+}: IcGeneralTabProps) {
+  const handleInputChange = React.useCallback(
+    (def: MetaFieldDef, rawValue: string) => {
+      let finalVal: unknown = rawValue;
+      if (def.type === "number") {
+        finalVal = rawValue ? Number(rawValue) : 0;
+      } else if (def.uppercase) {
+        finalVal = rawValue.toUpperCase();
       }
-    }
+      setFormData((prev) => setFieldValue(prev, def.path, finalVal));
+    },
+    [setFormData],
+  );
 
-    syncRegistry();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const setValue = (field: string, val: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: val }));
-  };
-
-  const activeProperties: ModelProperty[] = modelDef.PROPERTIES || [];
+  const handleBooleanChange = React.useCallback(
+    (def: MetaFieldDef, checked: boolean) => {
+      setFormData((prev) => setFieldValue(prev, def.path, checked));
+    },
+    [setFormData],
+  );
 
   return (
-    <TooltipProvider delay={200}>
-      <div className="h-full overflow-y-auto select-none pr-1">
-        <div className="max-w-3xl space-y-3">
-          {activeProperties.length === 0 ? (
-            <div className="p-8 border border-dashed border-border/70 rounded-lg bg-card/40 text-center space-y-2">
-              <Info className="size-8 mx-auto text-muted-foreground/60" />
-              <div className="text-sm font-medium text-foreground">No Properties Configured</div>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                No custom metadata properties configured in MODEL.CONFIG for INQUIRY.CONFIG. Any
-                properties added by the administrator in MODEL.CONFIG will appear here dynamically.
-              </p>
-            </div>
-          ) : (
-            <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Database className="size-3 text-primary" />
-                  <span>{modelDef.DESCRIPTION || "Inquiry Metadata Properties"}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] font-mono py-0 px-1.5 bg-muted/30 text-muted-foreground flex items-center gap-1"
-                  >
-                    <Sparkles className="size-2.5 text-primary" />
-                    <span>Model: INQUIRY.CONFIG</span>
-                  </Badge>
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    {activeProperties.length} Properties
-                  </span>
-                </div>
+    <div className="h-full overflow-y-auto select-none pr-1">
+      <div className="max-w-3xl space-y-3">
+        {META_FIELD_GROUPS.map((group) => {
+          const groupFields = INQUIRY_META_FIELDS.filter((f) => f.group === group.id);
+
+          return (
+            <div
+              key={group.id}
+              className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
+            >
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
+                {group.title}
               </div>
 
-              <div className="space-y-2.5 text-xs">
-                {activeProperties.map((prop) => {
-                  const rawVal = (formData as Record<string, unknown>)[prop.NAME];
-                  const val = rawVal !== undefined ? rawVal : (prop.DEFAULTVALUE ?? "");
-                  const isBoolean = prop.TYPE === "Boolean";
-                  const isRequired = prop.REQUIRED && !isReadOnly;
-                  const isPageOrientation = prop.NAME === "pageOrientation";
-                  const isInqType = prop.NAME === "inqType";
-                  const isController = prop.NAME === "controllerName";
+              {/* Data Fields: Aligned scanline controls */}
+              <div className="space-y-2 text-xs">
+                {groupFields.map((field) => {
+                  const rawVal = getFieldValue(formData, field.path);
+                  const displayVal = rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
 
-                  return (
-                    <div key={prop.NAME} className="flex items-center gap-2">
-                      {prop.ENRICHTEXT ? (
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={
-                              <Label
-                                title={prop.ENRICHTEXT}
-                                className="w-40 shrink-0 text-xs text-muted-foreground select-none cursor-help hover:text-foreground transition-colors flex items-center"
-                              >
-                                <span className="truncate underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
-                                  {prop.LABEL}
-                                </span>
-                                {isRequired && (
-                                  <span className="text-destructive font-bold ml-1 select-none">
-                                    *
-                                  </span>
-                                )}
-                              </Label>
+                  const fieldError = validationErrors.find(
+                    (e) => e.tab === "general" && e.fieldKey === field.path,
+                  );
+
+                  // Boolean Field
+                  if (field.type === "boolean") {
+                    const boolId = `inq-bool-${field.path}`;
+                    const isChecked = Boolean(rawVal);
+                    return (
+                      <div key={field.path} className="min-h-7 flex items-center gap-2">
+                        <Label className="w-40 shrink-0 text-xs text-muted-foreground font-normal select-none">
+                          {field.label}
+                        </Label>
+                        <span className="text-muted-foreground/60 font-mono text-xs shrink-0">
+                          :
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            id={boolId}
+                            checked={isChecked}
+                            disabled={isReadOnly || field.disabled}
+                            onCheckedChange={(checked: boolean) =>
+                              handleBooleanChange(field, Boolean(checked))
                             }
+                            className="rounded"
                           />
-                          <TooltipContent side="top" className="text-xs max-w-xs shadow-md">
-                            {prop.ENRICHTEXT}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <Label className="w-40 shrink-0 text-xs text-muted-foreground select-none flex items-center">
-                          <span className="truncate">{prop.LABEL}</span>
-                          {isRequired && (
+                          {field.helperText && (
+                            <Label
+                              htmlFor={boolId}
+                              className="text-xs text-muted-foreground font-normal cursor-pointer"
+                            >
+                              {field.helperText}
+                            </Label>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Select Field
+                  if (field.type === "select") {
+                    return (
+                      <div key={field.path} className="flex items-center gap-2">
+                        <Label className="w-40 shrink-0 text-xs text-muted-foreground font-normal select-none flex items-center">
+                          <span className="truncate">{field.label}</span>
+                          {field.required && !isReadOnly && (
                             <span className="text-destructive font-bold ml-1 select-none">*</span>
                           )}
                         </Label>
-                      )}
-
-                      <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-
-                      <div className="flex-1 max-w-md">
-                        {isBoolean ? (
-                          <div className="flex items-center gap-2 h-7">
-                            <Checkbox
-                              id={`inq-prop-${prop.NAME}`}
-                              disabled={isReadOnly || prop.DISABLED}
-                              checked={Boolean(val)}
-                              onCheckedChange={(checked: boolean) =>
-                                setValue(prop.NAME, Boolean(checked))
-                              }
-                            />
-                            <label
-                              htmlFor={`inq-prop-${prop.NAME}`}
-                              className="text-xs cursor-pointer select-none font-medium text-foreground"
+                        <span className="text-muted-foreground/60 font-mono text-xs shrink-0">
+                          :
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={displayVal}
+                            disabled={isReadOnly || field.disabled}
+                            onValueChange={(val: string | null) =>
+                              handleInputChange(field, val || "")
+                            }
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                "h-7 text-xs bg-background rounded border-border/80",
+                                field.width === "compact" ? "w-52" : "w-64",
+                                fieldError && "border-destructive",
+                              )}
                             >
-                              {val ? "Yes" : "No"}
-                            </label>
-                          </div>
-                        ) : isPageOrientation ? (
-                          <Select
-                            disabled={isReadOnly || prop.DISABLED}
-                            value={String(val || "Portrait")}
-                            onValueChange={(newVal: string | null) =>
-                              setValue("pageOrientation", newVal ?? "Portrait")
-                            }
-                          >
-                            <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 w-36 font-sans">
-                              <SelectValue placeholder="Orientation..." />
+                              <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent className="text-xs">
-                              <SelectItem value="Portrait" className="text-xs">
-                                Portrait
-                              </SelectItem>
-                              <SelectItem value="Landscape" className="text-xs">
-                                Landscape
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : isInqType ? (
-                          <Select
-                            disabled={isReadOnly || prop.DISABLED}
-                            value={String(val || "DFT")}
-                            onValueChange={(newVal: string | null) =>
-                              setValue("inqType", newVal ?? "DFT")
-                            }
-                          >
-                            <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 w-52 font-sans">
-                              <SelectValue placeholder="Inquiry Type..." />
-                            </SelectTrigger>
-                            <SelectContent className="text-xs">
-                              <SelectItem value="DFT" className="text-xs font-sans">
-                                DFT (Data From Table)
-                              </SelectItem>
-                              <SelectItem value="DFR" className="text-xs font-sans">
-                                DFR (Data From Routine)
-                              </SelectItem>
-                              <SelectItem value="DFV" className="text-xs font-sans">
-                                DFV (Data From View)
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : isController && availableModels.length > 0 ? (
-                          <Select
-                            disabled={isReadOnly || prop.DISABLED}
-                            value={String(val || "")}
-                            onValueChange={(newVal: string | null) =>
-                              setValue("controllerName", newVal ?? "")
-                            }
-                          >
-                            <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 font-mono">
-                              <SelectValue placeholder="Select Target CBS Model..." />
-                            </SelectTrigger>
-                            <SelectContent className="text-xs">
-                              {availableModels.map((m) => (
-                                <SelectItem key={m.id} value={m.id} className="text-xs font-mono">
-                                  {m.label || m.id}
+                              {(field.options || []).map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                        ) : prop.TYPE === "Number" ? (
-                          <Input
-                            type="number"
-                            disabled={isReadOnly || prop.DISABLED}
-                            value={val !== undefined && val !== null ? String(val) : "50"}
-                            onChange={(e) =>
-                              setValue(prop.NAME, e.target.value ? Number(e.target.value) : 0)
-                            }
-                            className="h-7 text-xs bg-background rounded border-border/80 w-28 font-mono"
-                          />
-                        ) : (
-                          <Input
-                            disabled={isReadOnly || prop.DISABLED}
-                            placeholder={prop.ENRICHTEXT || `Enter ${prop.LABEL}...`}
-                            value={String(val || "")}
-                            onChange={(e) => {
-                              const isUpper =
-                                prop.NAME === "controllerName" || prop.NAME === "rptControllerName";
-                              setValue(
-                                prop.NAME,
-                                isUpper ? e.target.value.toUpperCase() : e.target.value,
-                              );
-                            }}
-                            className={cn(
-                              "h-7 text-xs bg-background rounded border-border/80",
-                              (prop.NAME === "controllerName" ||
-                                prop.NAME === "rptControllerName") &&
-                                "font-mono uppercase",
-                            )}
-                          />
+                          {fieldError && (
+                            <span className="text-[11px] text-destructive font-mono">
+                              {fieldError.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Text & Number Fields
+                  const inputWidthClass =
+                    field.width === "compact"
+                      ? "w-36"
+                      : field.width === "half"
+                        ? "w-64"
+                        : "w-full max-w-md";
+
+                  return (
+                    <div key={field.path} className="flex items-center gap-2">
+                      <Label className="w-40 shrink-0 text-xs text-muted-foreground font-normal select-none flex items-center">
+                        <span className="truncate">{field.label}</span>
+                        {field.required && !isReadOnly && (
+                          <span className="text-destructive font-bold ml-1 select-none">*</span>
+                        )}
+                      </Label>
+                      <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+                      <div className="flex-1 flex items-center gap-2">
+                        <Input
+                          type={field.type === "number" ? "number" : "text"}
+                          value={displayVal}
+                          disabled={isReadOnly || field.disabled}
+                          placeholder={field.placeholder}
+                          onChange={(e) => handleInputChange(field, e.target.value)}
+                          className={cn(
+                            "h-7 text-xs bg-background rounded border-border/80",
+                            inputWidthClass,
+                            field.uppercase && "font-mono uppercase",
+                            fieldError && "border-destructive",
+                          )}
+                        />
+                        {field.helperText && (
+                          <span className="text-[11px] text-muted-foreground hidden sm:inline truncate">
+                            {field.helperText}
+                          </span>
+                        )}
+                        {fieldError && (
+                          <span className="text-[11px] text-destructive font-mono shrink-0">
+                            {fieldError.message}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -274,9 +212,9 @@ export function IcGeneralTab({ formData, setFormData, isReadOnly = false }: IcGe
                 })}
               </div>
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
-    </TooltipProvider>
+    </div>
   );
 }

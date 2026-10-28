@@ -16,7 +16,15 @@ import { useFcModelBinding } from "./use-fc-model-binding";
 import { useFcSectionOps } from "./use-fc-section-ops";
 
 export const INITIAL_FORM_CONFIG: FormConfigRecord = {
-  presentation: {
+  title: "",
+  description: "",
+  authNumber: 1,
+  frmRoutine: {
+    rtnValidate: [],
+    rtnBeforeAuth: [],
+    rtnAfterAuth: [],
+  },
+  frmElements: {
     steps: [],
     sections: [],
   },
@@ -24,7 +32,7 @@ export const INITIAL_FORM_CONFIG: FormConfigRecord = {
 
 export interface FormConfigValidationError {
   id: string;
-  tab: "general" | "designer" | "preview" | "audit" | "json";
+  tab: "general" | "formRoutine" | "formDesigner" | "preview" | "audit" | "json";
   fieldKey: string;
   message: string;
 }
@@ -72,9 +80,17 @@ export function useFormConfig(initialId?: string, tabId?: string) {
         if (res.status === "SUCCESS" && res.data) {
           hydrate(res.data);
           setMode(targetMode);
-          const firstSec = res.data.presentation?.sections?.[0];
+          const elements =
+            res.data.frmElements || (res.data as unknown as Record<string, unknown>).presentation;
+          const firstSec = (elements as FormConfigRecord["frmElements"])?.sections?.[0];
           setSelectedSectionId(firstSec?.id || null);
-          setSelectedFieldId(firstSec?.fields?.[0]?.id || null);
+          const firstField = firstSec?.fields?.[0];
+          setSelectedFieldId(
+            firstField?.SN ||
+              firstField?.NAME ||
+              ((firstField as unknown as Record<string, unknown>)?.id as string) ||
+              null,
+          );
           return;
         }
 
@@ -86,7 +102,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
             targetModel,
             version,
             title: `${targetModel} Form (${version})`,
-            presentation: {
+            description: `${targetModel} form layout version ${version}`,
+            frmElements: {
               steps: [],
               sections: [
                 {
@@ -94,6 +111,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
                   title: "General Information",
                   type: "standard",
                   zone: "standard",
+                  layoutStyle: "card",
                   columns: 2,
                   collapsible: false,
                   isCollapsed: false,
@@ -120,7 +138,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
             targetModel,
             version,
             title: `${targetModel} Form (${version})`,
-            presentation: {
+            description: `${targetModel} form layout version ${version}`,
+            frmElements: {
               steps: [],
               sections: [
                 {
@@ -128,6 +147,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
                   title: "General Information",
                   type: "standard",
                   zone: "standard",
+                  layoutStyle: "card",
                   columns: 2,
                   collapsible: false,
                   isCollapsed: false,

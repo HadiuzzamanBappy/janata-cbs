@@ -1,24 +1,29 @@
-import type { CompiledFormSpec } from "@/lib/data-schemas";
+import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Headless Form Values Validator                                             */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Pure, headless validation engine for CBS form runtime values against a CompiledFormSpec.
+ * Pure, headless validation engine for CBS form runtime values against a FormConfigRecord.
  * Evaluates mandatory required status, numeric/date format types, and max length/digit constraints.
  *
- * @returns Map of fieldKey -> error message. Returns empty object {} if clean.
+ * @returns Map of field NAME -> error message. Returns empty object {} if clean.
  */
 export function validateValues(
-  spec: CompiledFormSpec,
+  spec: FormConfigRecord,
   values: Record<string, unknown> | null | undefined,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   const currentValues = values || {};
 
-  for (const field of spec.fields) {
-    const rawVal = currentValues[field.fieldKey];
+  const allFields = (spec.frmElements?.sections || []).flatMap((s) => s.fields || []);
+
+  for (const field of allFields) {
+    const fieldKey = field.NAME;
+    if (!fieldKey) continue;
+
+    const rawVal = currentValues[fieldKey];
     const isMissingOrEmpty =
       rawVal === undefined ||
       rawVal === null ||
@@ -26,8 +31,8 @@ export function validateValues(
       (Array.isArray(rawVal) && rawVal.length === 0);
 
     // 1. Mandatory Required Check
-    if (field.required && isMissingOrEmpty) {
-      errors[field.fieldKey] = `${field.label} is required`;
+    if (field.REQUIRED && isMissingOrEmpty) {
+      errors[fieldKey] = `${field.LABEL || fieldKey} is required`;
       continue;
     }
 
@@ -37,21 +42,24 @@ export function validateValues(
     }
 
     const isNumeric =
-      field.widget === "number" || field.widget === "amount" || field.modelType === "Number";
+      field.TYPE === "Number" ||
+      field.TYPE === "Amount" ||
+      field.TYPE === "Integer" ||
+      field.TYPE === "Decimal";
 
-    const isDate = field.widget === "date" || field.modelType === "Date";
+    const isDate = field.TYPE === "Date" || field.TYPE === "DateTime";
 
     // 2. Numeric Type & Digit Validation
     if (isNumeric) {
       const num = Number(rawVal);
       if (typeof rawVal === "string" && (Number.isNaN(num) || rawVal.trim() === "")) {
-        errors[field.fieldKey] = `${field.label} must be a valid number`;
+        errors[fieldKey] = `${field.LABEL || fieldKey} must be a valid number`;
         continue;
       }
-      if (typeof field.length === "number" && field.length > 0) {
+      if (typeof field.LENGTH === "number" && field.LENGTH > 0) {
         const digits = String(Math.abs(num)).replace(".", "");
-        if (digits.length > field.length) {
-          errors[field.fieldKey] = `${field.label} cannot exceed ${field.length} digits`;
+        if (digits.length > field.LENGTH) {
+          errors[fieldKey] = `${field.LABEL || fieldKey} cannot exceed ${field.LENGTH} digits`;
           continue;
         }
       }
@@ -61,16 +69,16 @@ export function validateValues(
     // 3. Date Type Validation
     if (isDate) {
       if (typeof rawVal === "string" && Number.isNaN(Date.parse(rawVal))) {
-        errors[field.fieldKey] = `${field.label} must be a valid date`;
+        errors[fieldKey] = `${field.LABEL || fieldKey} must be a valid date`;
         continue;
       }
       continue;
     }
 
     // 4. Standard Text / String Max Length Validation
-    if (typeof field.length === "number" && field.length > 0) {
-      if (typeof rawVal === "string" && rawVal.length > field.length) {
-        errors[field.fieldKey] = `${field.label} cannot exceed ${field.length} characters`;
+    if (typeof field.LENGTH === "number" && field.LENGTH > 0) {
+      if (typeof rawVal === "string" && rawVal.length > field.LENGTH) {
+        errors[fieldKey] = `${field.LABEL || fieldKey} cannot exceed ${field.LENGTH} characters`;
       }
     }
   }

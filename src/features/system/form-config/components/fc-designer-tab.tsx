@@ -1,10 +1,7 @@
 "use client";
+
 import * as React from "react";
-import type {
-  FormFieldItem,
-  FormSection,
-  FormWidgetType,
-} from "@/lib/data-schemas/form-config-schema";
+import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
 import { DesignerCanvas } from "./designer/designer-canvas";
 import { FieldPalette } from "./designer/field-palette";
 import { PropertyInspector } from "./designer/property-inspector";
@@ -15,11 +12,11 @@ export interface FcDesignerTabProps {
   selectedSectionId: string | null;
   selectedFieldId: string | null;
   onSelectSection: (id: string | null) => void;
-  onSelectField: (id: string | null) => void; // kept as single-arg for the parent hook
+  onSelectField: (id: string | null) => void;
   onAddSection: (
     type: "standard" | "object-group" | "array-table",
     zone?: "header" | "tab" | "standard",
-    initialFields?: FormFieldItem[],
+    initialFields?: FormElement[],
     layoutStyle?: "card" | "plain",
     customTitle?: string,
     tabGroupId?: string,
@@ -29,8 +26,8 @@ export interface FcDesignerTabProps {
   ) => void;
   onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection: (id: string) => void;
-  onAddFieldToSection: (sectionId: string, template?: Record<string, unknown>) => void;
-  onUpdateField: (fieldId: string, patch: Record<string, unknown>) => void;
+  onAddFieldToSection: (sectionId: string, template?: Partial<FormElement>) => void;
+  onUpdateField: (fieldId: string, patch: Partial<FormElement>) => void;
   onRemoveField: (fieldId: string) => void;
   onReorderFields: (sectionId: string, activeId: string, overId: string) => void;
   onMoveFieldAcrossSections?: (
@@ -68,65 +65,74 @@ export function FcDesignerTab({
   onConvertSectionZone,
   disabled,
 }: FcDesignerTabProps) {
-  // Always default to the first/root container section if no section or field is explicitly selected
   const activeSection =
     sections.find((s) => s.id === selectedSectionId) ||
     (selectedFieldId
-      ? sections.find((s) => s.fields.some((f) => f.id === selectedFieldId)) || null
+      ? sections.find((s) =>
+          (s.fields || []).some(
+            (f) =>
+              f.id === selectedFieldId || f.NAME === selectedFieldId || f.SN === selectedFieldId,
+          ),
+        ) || null
       : sections[0] || null);
 
   const activeField =
-    sections.flatMap((s) => s.fields).find((f) => f.id === selectedFieldId) || null;
+    sections
+      .flatMap((s) => s.fields || [])
+      .find(
+        (f) => f.id === selectedFieldId || f.NAME === selectedFieldId || f.SN === selectedFieldId,
+      ) || null;
 
-  // Track all fieldKeys currently used on the canvas
-  const usedFieldKeys = React.useMemo(() => {
-    return new Set(sections.flatMap((s) => s.fields.map((f) => f.fieldKey)));
+  const usedFieldNames = React.useMemo(() => {
+    return new Set(sections.flatMap((s) => (s.fields || []).map((f) => f.NAME)));
   }, [sections]);
 
-  const handlePaletteAddField = (template: {
-    label: string;
-    widget: FormWidgetType;
-    colSpan: number;
-    fieldKey?: string;
-    currencyPrefix?: string;
-    options?: string[];
-    modelType?: string;
-    parameter?: unknown;
-  }) => {
-    // 1. If user selected a specific container/section, add directly to that container!
+  const handlePaletteAddField = (template: Partial<FormElement>) => {
     if (selectedSectionId) {
       onAddFieldToSection(selectedSectionId, template);
       return;
     }
 
-    // 2. If no section selected (or user clicked outside on canvas):
-    // Check if an existing plain root canvas section exists
     const rootCanvasSection = sections.find(
       (s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root",
     );
 
     if (rootCanvasSection) {
-      // Add variable directly onto existing canvas root
       onAddFieldToSection(rootCanvasSection.id, template);
       return;
     }
 
-    // 3. Otherwise create a plain root canvas section directly with this variable (no card wrapper, no header)
-    const fieldId = `f_${Date.now()}`;
-    const newField: FormFieldItem = {
-      id: fieldId,
-      fieldKey: template.fieldKey || `field_${Date.now().toString().slice(-4)}`,
-      label: template.label,
-      widget: template.widget,
-      colSpan: template.colSpan,
-      required: false,
-      readOnly: false,
-      hidden: false,
-      options: template.options,
-      currencyPrefix: template.currencyPrefix,
-      modelType: template.modelType,
-      parameter: template.parameter,
+    const fieldName = template.NAME || `field_${Date.now().toString().slice(-4)}`;
+    const newField: FormElement = {
+      id: template.id || fieldName,
+      SN: template.SN || String(Date.now()).slice(-4),
+      NAME: fieldName,
+      LABEL: template.LABEL || "New Field",
+      TYPE: template.TYPE || "Text",
+      LENGTH: template.LENGTH ?? 35,
+      STRUCTURE: template.STRUCTURE || "S",
+      REQUIRED: template.REQUIRED ?? false,
+      DISABLED: template.DISABLED ?? false,
+      WIDTH: template.WIDTH ?? 200,
+      POSITION: template.POSITION || "",
+      PARAMETER: template.PARAMETER || {
+        type: "O",
+        data: [],
+        modelName: "",
+        displayField: "",
+        condition: "",
+        reference: "",
+      },
+      ENRICHTEXT: template.ENRICHTEXT || "",
+      VALUE: template.VALUE || "",
+      FIXEDVALUE: template.FIXEDVALUE || "",
+      ISOPEN: template.ISOPEN ?? false,
+      ISLOADING: template.ISLOADING ?? false,
+      PROP: template.PROP || [],
+      DATASOURCE: template.DATASOURCE || [],
+      DEFAULTVALUE: template.DEFAULTVALUE || "",
     };
+
     onAddSection(
       "standard",
       "standard",
@@ -140,21 +146,19 @@ export function FcDesignerTab({
     );
   };
 
-  const handleHighlightField = (fieldKey: string) => {
+  const handleHighlightField = (fieldName: string) => {
     for (const sec of sections) {
-      const match = sec.fields.find((f) => f.fieldKey === fieldKey);
+      const match = (sec.fields || []).find(
+        (f) => f.NAME === fieldName || f.id === fieldName || f.SN === fieldName,
+      );
       if (match) {
         onSelectSection(sec.id);
-        onSelectField(match.id);
+        onSelectField(match.id || match.NAME || match.SN);
         break;
       }
     }
   };
 
-  /**
-   * Canvas uses (sectionId | null, fieldId | null) so the section can be
-   * activated in the same call, preventing it being cleared by subsequent events.
-   */
   const handleCanvasSelectField = (sectionId: string | null, fieldId: string | null) => {
     if (sectionId) onSelectSection(sectionId);
     onSelectField(fieldId);
@@ -168,16 +172,7 @@ export function FcDesignerTab({
     if (!payload || typeof payload !== "object") return;
     const data = payload as {
       type?: string;
-      template?: {
-        label: string;
-        widget: FormWidgetType;
-        colSpan: number;
-        fieldKey?: string;
-        currencyPrefix?: string;
-        options?: string[];
-        modelType?: string;
-        parameter?: unknown;
-      };
+      element?: FormElement;
       containerType?: "standard" | "object-group" | "array-table";
       zone?: "header" | "tab" | "standard";
       layoutStyle?: "card" | "plain";
@@ -187,29 +182,14 @@ export function FcDesignerTab({
       columns?: number;
     };
 
-    if (data.type === "palette-variable" && data.template) {
+    if (data.type === "palette-variable" && data.element) {
       if (targetSectionId && targetSectionId !== "canvas-root") {
-        onAddFieldToSection(targetSectionId, data.template);
+        onAddFieldToSection(targetSectionId, data.element);
       } else if (insertIndex !== undefined) {
-        const fieldId = `f_${Date.now()}`;
-        const newField: FormFieldItem = {
-          id: fieldId,
-          fieldKey: data.template.fieldKey || `field_${Date.now().toString().slice(-4)}`,
-          label: data.template.label,
-          widget: data.template.widget,
-          colSpan: data.template.colSpan,
-          required: false,
-          readOnly: false,
-          hidden: false,
-          options: data.template.options,
-          currencyPrefix: data.template.currencyPrefix,
-          modelType: data.template.modelType,
-          parameter: data.template.parameter,
-        };
         onAddSection(
           "standard",
           "standard",
-          [newField],
+          [data.element],
           "plain",
           "",
           undefined,
@@ -218,7 +198,7 @@ export function FcDesignerTab({
           1,
         );
       } else {
-        handlePaletteAddField(data.template);
+        handlePaletteAddField(data.element);
       }
     } else if (data.type === "palette-container" && data.containerType) {
       onAddSection(
@@ -237,12 +217,11 @@ export function FcDesignerTab({
 
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden">
-      {/* 3-Column Designer Workspace */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left: Palette */}
         <FieldPalette
           targetModel={targetModel}
-          usedFieldKeys={usedFieldKeys}
+          usedFieldNames={usedFieldNames}
           onHighlightField={handleHighlightField}
           onAddField={handlePaletteAddField}
           onAddSection={onAddSection}
@@ -276,7 +255,10 @@ export function FcDesignerTab({
           selectedSection={activeSection}
           selectedField={activeField}
           onUpdateSection={(patch) => activeSection && onUpdateSection(activeSection.id, patch)}
-          onUpdateField={(patch) => activeField && onUpdateField(activeField.id, patch)}
+          onUpdateField={(patch) => {
+            const targetId = activeField?.id || activeField?.NAME || activeField?.SN;
+            if (targetId) onUpdateField(targetId, patch);
+          }}
           onClose={() => {
             onSelectSection(null);
             onSelectField(null);

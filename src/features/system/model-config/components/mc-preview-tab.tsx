@@ -25,7 +25,7 @@ export function McPreviewTab({ formData }: McPreviewTabProps) {
   return (
     <div className="h-full flex-1 overflow-y-auto pr-1">
       <FormRenderer
-        presentation={spec.presentation}
+        frmElements={spec.frmElements}
         values={formValues}
         onChange={handleInputChange}
         mode={CbsRecordFunction.INPUT}

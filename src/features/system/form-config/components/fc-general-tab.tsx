@@ -1,23 +1,18 @@
 "use client";
 
-import { Database, Info, Sparkles } from "lucide-react";
+import { Shield } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { cbs } from "@/lib/cbs-client";
+import { cn } from "@/lib/core-utils";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
-import { CbsControlTable } from "@/types";
+import {
+  FORM_META_FIELDS,
+  getFieldValue,
+  META_FIELD_GROUPS,
+  type MetaFieldDef,
+  setFieldValue,
+} from "../fields";
 
 export interface FcGeneralTabProps {
   formData: FormConfigRecord;
@@ -26,165 +21,89 @@ export interface FcGeneralTabProps {
 }
 
 export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGeneralTabProps) {
-  const [modelDef, setModelDef] = React.useState<ModelConfigRecord | null>(null);
-
-  React.useEffect(() => {
-    let mounted = true;
-    async function loadFormModel() {
-      try {
-        const res = await cbs.send<ModelConfigRecord>(
-          cbs.modelConfig.get(CbsControlTable.FORM_CONFIG),
-          { silent: true },
-        );
-        if (mounted && res.status === "SUCCESS" && res.data) {
-          setModelDef(res.data);
-        }
-      } catch {
-        // Fallback initialized
+  const handleInputChange = React.useCallback(
+    (def: MetaFieldDef, rawValue: string) => {
+      let finalVal: unknown = rawValue;
+      if (def.type === "number") {
+        finalVal = rawValue ? Number(rawValue) : 1;
+      } else if (def.uppercase) {
+        finalVal = rawValue.toUpperCase();
       }
-    }
-    loadFormModel();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const setValue = (field: string, val: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: val }));
-  };
-
-  const activeProperties: ModelProperty[] = modelDef?.PROPERTIES || [];
+      setFormData((prev) => setFieldValue(prev, def.path, finalVal));
+    },
+    [setFormData],
+  );
 
   return (
-    <TooltipProvider delay={200}>
-      <div className="h-full overflow-y-auto select-none pr-1">
-        <div className="max-w-3xl space-y-3">
-          {activeProperties.length === 0 ? (
-            <div className="p-8 border border-dashed border-border/70 rounded-lg bg-card/40 text-center space-y-2">
-              <Info className="size-8 mx-auto text-muted-foreground/60" />
-              <div className="text-sm font-medium text-foreground">No Properties Configured</div>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                No custom metadata properties configured in MODEL.CONFIG for FORM.CONFIG. Any
-                properties added by the administrator in MODEL.CONFIG will appear here dynamically.
-              </p>
-            </div>
-          ) : (
-            <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
+    <div className="h-full overflow-y-auto select-none pr-1">
+      <div className="max-w-3xl space-y-3 pb-8">
+        {/* Core Field Groups */}
+        {META_FIELD_GROUPS.map((group) => {
+          const groupFields = FORM_META_FIELDS.filter((f) => f.group === group.id);
+
+          return (
+            <div
+              key={group.id}
+              className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
+            >
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <Database className="size-3 text-primary" />
-                  <span>{modelDef?.DESCRIPTION || "Dynamic Form Properties"}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] font-mono py-0 px-1.5 bg-muted/30 text-muted-foreground flex items-center gap-1"
-                  >
-                    <Sparkles className="size-2.5 text-primary" />
-                    <span>Model: FORM.CONFIG</span>
-                  </Badge>
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    {activeProperties.length} Properties
-                  </span>
-                </div>
+                <span>{group.title}</span>
+                {group.id === "AUTHORIZATION" && <Shield className="size-3 text-primary" />}
               </div>
 
               <div className="space-y-2.5 text-xs">
-                {activeProperties.map((prop) => {
-                  const val = formData[prop.NAME];
-                  const isBoolean = prop.TYPE === "Boolean";
-                  const isRequired = prop.REQUIRED && !isReadOnly;
+                {groupFields.map((field) => {
+                  const rawVal = getFieldValue(formData, field.path);
+                  const displayVal = rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
 
                   return (
-                    <div key={prop.NAME} className="flex items-center gap-2">
-                      {prop.ENRICHTEXT ? (
-                        <Tooltip>
-                          <TooltipTrigger
-                            render={
-                              <Label
-                                title={prop.ENRICHTEXT}
-                                className="w-32 shrink-0 text-xs text-muted-foreground select-none cursor-help hover:text-foreground transition-colors flex items-center"
-                              >
-                                <span className="truncate underline decoration-dotted decoration-muted-foreground/50 underline-offset-2">
-                                  {prop.LABEL}
-                                </span>
-                                {isRequired && (
-                                  <span className="text-destructive font-bold ml-1 select-none">
-                                    *
-                                  </span>
-                                )}
-                              </Label>
-                            }
-                          />
-                          <TooltipContent side="top" className="text-xs max-w-xs shadow-md">
-                            {prop.ENRICHTEXT}
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none flex items-center">
-                          <span className="truncate">{prop.LABEL}</span>
-                          {isRequired && (
-                            <span className="text-destructive font-bold ml-1 select-none">*</span>
-                          )}
-                        </Label>
-                      )}
+                    <div key={field.path} className="flex items-center gap-2">
+                      <Label className="w-36 shrink-0 text-xs text-muted-foreground select-none flex items-center">
+                        <span className="truncate">{field.label}</span>
+                        {field.required && !isReadOnly && (
+                          <span className="text-destructive font-bold ml-1 select-none">*</span>
+                        )}
+                      </Label>
 
                       <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
 
-                      <div className="flex-1 max-w-md">
-                        {isBoolean ? (
-                          <div className="flex items-center gap-2 h-7">
-                            <Checkbox
-                              id={`fc-prop-${prop.NAME}`}
-                              disabled={isReadOnly || prop.DISABLED}
-                              checked={Boolean(val)}
-                              onCheckedChange={(checked: boolean) =>
-                                setValue(prop.NAME, Boolean(checked))
-                              }
-                            />
-                            <label
-                              htmlFor={`fc-prop-${prop.NAME}`}
-                              className="text-xs cursor-pointer select-none font-medium text-foreground"
-                            >
-                              {val ? "Yes" : "No"}
-                            </label>
-                          </div>
-                        ) : prop.TYPE === "Dropdown" ? (
-                          <Select
-                            disabled={isReadOnly || prop.DISABLED}
-                            value={String(val || prop.DEFAULTVALUE || "")}
-                            onValueChange={(newVal: string | null) =>
-                              setValue(prop.NAME, newVal ?? "")
-                            }
-                          >
-                            <SelectTrigger className="h-7 text-xs bg-background rounded border-border/80 w-44 font-sans">
-                              <SelectValue placeholder={`Select ${prop.LABEL}...`} />
-                            </SelectTrigger>
-                            <SelectContent className="text-xs">
-                              <SelectItem value="DEFAULT" className="text-xs">
-                                Default
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        ) : (
-                          <Input
-                            disabled={isReadOnly || prop.DISABLED}
-                            placeholder={prop.ENRICHTEXT || `Enter ${prop.LABEL}...`}
-                            value={String(val !== undefined ? val : prop.DEFAULTVALUE || "")}
-                            onChange={(e) => setValue(prop.NAME, e.target.value)}
-                            maxLength={prop.LENGTH}
-                            className="h-7 text-xs bg-background rounded border-border/80 font-sans"
-                          />
+                      <div
+                        className={cn(
+                          "flex-1",
+                          field.width === "compact"
+                            ? "max-w-30"
+                            : field.width === "half"
+                              ? "max-w-xs"
+                              : "max-w-md",
                         )}
+                      >
+                        <Input
+                          type={field.type === "number" ? "number" : "text"}
+                          disabled={isReadOnly}
+                          placeholder={field.placeholder}
+                          value={displayVal}
+                          onChange={(e) => handleInputChange(field, e.target.value)}
+                          className={cn(
+                            "h-7 text-xs bg-background rounded border-border/80",
+                            field.uppercase && "font-mono uppercase",
+                            field.type === "number" && "font-mono",
+                          )}
+                        />
                       </div>
+
+                      {field.helperText && (
+                        <span className="text-[11px] text-muted-foreground/70 hidden sm:inline truncate">
+                          {field.helperText}
+                        </span>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
-    </TooltipProvider>
+    </div>
   );
 }

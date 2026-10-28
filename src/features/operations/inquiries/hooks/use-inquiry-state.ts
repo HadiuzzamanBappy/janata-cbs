@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import type { EnquiryRow, EnquirySchema, SelectionOperand } from "@/lib/data-schemas";
+import type { EnquiryRow, InquiryConfigRecord, SelectionOperand } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
 import { filterDatasetByCriteria } from "../utils/filter-dataset";
 
 export interface UseInquiryStateOptions {
   tabId?: string;
-  schema: EnquirySchema | null;
+  schema: InquiryConfigRecord | null;
 }
 
 export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
@@ -154,8 +154,8 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
       : {};
 
     if (!hasPersisted) {
-      for (const f of schema.selectionFields) {
-        initial[f.id] = { value: f.value || "", operand: f.operand };
+      for (const f of schema.filters || []) {
+        initial[f.id] = { value: f.defaultValue || "", operand: f.defaultOperand || "EQ" };
       }
     }
 

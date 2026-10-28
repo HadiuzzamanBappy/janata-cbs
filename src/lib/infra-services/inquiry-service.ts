@@ -2,8 +2,8 @@ import "server-only";
 
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
-import { parseEnquiry } from "@/lib/data-parsers";
-import type { EnquiryRow, EnquirySchema } from "@/lib/data-schemas";
+import { parseInquiryConfig } from "@/lib/data-parsers";
+import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
@@ -100,7 +100,7 @@ async function fetchEnquiryRowsWirePayload(
 export async function getEnquiryData(
   command: string,
   token?: string,
-): Promise<EnquirySchema | null> {
+): Promise<InquiryConfigRecord | null> {
   const cleanCmd = normalizeCommand(command);
 
   return getOrSet(
@@ -108,15 +108,16 @@ export async function getEnquiryData(
     async () => {
       const wireData = await fetchEnquiryWirePayload(cleanCmd, token);
       if (!wireData) return null;
-      const parseResult = parseEnquiry(wireData, cleanCmd);
+      const parseResult = parseInquiryConfig(wireData);
       if (!parseResult.success) {
-        log.error(`parseEnquiry failed for "${cleanCmd}"`, parseResult.error);
+        log.error(`parseInquiryConfig failed for "${cleanCmd}"`, parseResult.error);
         return null;
       }
       const dataController = parseResult.data.controllerName?.trim() || cleanCmd;
       const rows = await fetchEnquiryRowsWirePayload(dataController, token);
       return {
         ...parseResult.data,
+        id: cleanCmd,
         sampleData: rows,
       };
     },

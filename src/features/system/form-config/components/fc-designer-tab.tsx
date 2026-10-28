@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { DesignerCanvas } from "./designer/designer-canvas";
 import { FieldPalette } from "./designer/field-palette";
 import { PropertyInspector } from "./designer/property-inspector";
 
 export interface FcDesignerTabProps {
   targetModel?: string;
+  modelProperties?: ModelProperty[];
   sections: FormSection[];
   selectedSectionId: string | null;
   selectedFieldId: string | null;
@@ -48,6 +50,7 @@ export interface FcDesignerTabProps {
 
 export function FcDesignerTab({
   targetModel,
+  modelProperties,
   sections,
   selectedSectionId,
   selectedFieldId,
@@ -102,10 +105,10 @@ export function FcDesignerTab({
       return;
     }
 
-    const fieldName = template.NAME || `field_${Date.now().toString().slice(-4)}`;
+    const fieldName = template.NAME || `field_${(sections.length + 1).toString()}`;
     const newField: FormElement = {
       id: template.id || fieldName,
-      SN: template.SN || String(Date.now()).slice(-4),
+      SN: template.SN || String(sections.length + 1),
       NAME: fieldName,
       LABEL: template.LABEL || "New Field",
       TYPE: template.TYPE || "Text",
@@ -221,6 +224,7 @@ export function FcDesignerTab({
         {/* Left: Palette */}
         <FieldPalette
           targetModel={targetModel}
+          modelProperties={modelProperties}
           usedFieldNames={usedFieldNames}
           onHighlightField={handleHighlightField}
           onAddField={handlePaletteAddField}
@@ -270,3 +274,5 @@ export function FcDesignerTab({
     </div>
   );
 }
+
+

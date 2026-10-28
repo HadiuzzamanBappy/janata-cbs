@@ -20,7 +20,7 @@ export function FcRoutineTab({ formData, setFormData, isReadOnly = false }: FcRo
     (key: RoutineKey) => {
       if (isReadOnly) return;
       const newRoutine: RoutineItem = {
-        id: `rtn_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        id: `rtn_${Math.floor(Math.random() * 10000)}_${Math.random().toString(36).slice(2, 7)}`,
         routineName: "",
         routineDescription: "",
       };
@@ -209,3 +209,4 @@ export function FcRoutineTab({ formData, setFormData, isReadOnly = false }: FcRo
     </div>
   );
 }
+

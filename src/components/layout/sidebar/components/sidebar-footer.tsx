@@ -6,7 +6,7 @@ import { SidebarFooter } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toTitleCase } from "@/lib/core-utils";
-import { useAlertStore, useSessionStore } from "@/store";
+import { useSessionStore } from "@/store";
 import { BranchSwitcher } from "../widgets/branch-switcher";
 import { ThemeToggle } from "../widgets/theme-toggle";
 
@@ -17,7 +17,6 @@ interface SidebarFooterNavProps {
 
 export function SidebarFooterNav({ onOpenSettingsTab, userLoading }: SidebarFooterNavProps) {
   const { user, logout } = useSessionStore();
-  const { confirm: confirmAlert } = useAlertStore();
 
   const displayUser = user?.fullName ? toTitleCase(user.fullName) : "";
   const displayId = user?.userId;
@@ -25,14 +24,7 @@ export function SidebarFooterNav({ onOpenSettingsTab, userLoading }: SidebarFoot
   const businessDate = user?.txnDate;
 
   const handleLogout = () => {
-    confirmAlert({
-      title: "Sign Out Confirmation",
-      message:
-        "Are you sure you want to terminate your current active session? Any unsaved form progress will be lost.",
-      variant: "destructive",
-      confirmText: "Sign Out",
-      onConfirm: () => logout(),
-    });
+    logout();
   };
 
   return (

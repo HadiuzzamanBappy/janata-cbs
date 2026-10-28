@@ -1,41 +1,27 @@
 "use client";
 
 import * as React from "react";
-import { useCbsPersistence } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import {
-  type FormConfigRecord,
-  formConfigRecordSchema,
-} from "@/lib/data-schemas/form-config-schema";
+import { parseGfcResponse } from "@/lib/data-parsers";
+import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import type { CbsScreenMode } from "@/types";
+import {
+  type FormConfigValidationError,
+  validateFormConfig,
+} from "./fc-validation";
 import { useFcActions } from "./use-fc-actions";
 import { useFcCatalog } from "./use-fc-catalog";
 import { useFcFieldOps } from "./use-fc-field-ops";
-import { useFcModelBinding } from "./use-fc-model-binding";
+import {
+  createInitialDraft,
+  INITIAL_FORM_CONFIG,
+  useFormConfigPersistence,
+} from "./use-fc-persistence";
 import { useFcSectionOps } from "./use-fc-section-ops";
 
-export const INITIAL_FORM_CONFIG: FormConfigRecord = {
-  title: "",
-  description: "",
-  authNumber: 1,
-  frmRoutine: {
-    rtnValidate: [],
-    rtnBeforeAuth: [],
-    rtnAfterAuth: [],
-  },
-  frmElements: {
-    steps: [],
-    sections: [],
-  },
-};
-
-export interface FormConfigValidationError {
-  id: string;
-  tab: "general" | "formRoutine" | "formDesigner" | "preview" | "audit" | "json";
-  fieldKey: string;
-  message: string;
-}
+export { INITIAL_FORM_CONFIG };
+export type { FormConfigValidationError };
 
 export function useFormConfig(initialId?: string, tabId?: string) {
   const {
@@ -49,12 +35,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     hydrate,
     rebaseline,
     reset,
-  } = useCbsPersistence<FormConfigRecord>({
-    initialId,
-    tabId,
-    initialData: INITIAL_FORM_CONFIG,
-    schema: formConfigRecordSchema,
-  });
+  } = useFormConfigPersistence(initialId, tabId);
 
   const { availableForms, availableModels, refreshForms } = useFcCatalog();
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -62,10 +43,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   const [selectedSectionId, setSelectedSectionId] = React.useState<string | null>(null);
   const [selectedFieldId, setSelectedFieldId] = React.useState<string | null>(null);
   const [validationErrors, setValidationErrors] = React.useState<FormConfigValidationError[]>([]);
-
-  const resolvedTarget =
-    (formData.targetModel as string) || (recordId ? recordId.split(",")[0].trim() : "");
-  const { targetModelRecord, loadingModel } = useFcModelBinding(resolvedTarget);
+  const [targetModelRecord, setTargetModelRecord] = React.useState<ModelConfigRecord | null>(null);
 
   const sectionOps = useFcSectionOps(setFormData, setSelectedSectionId, setSelectedFieldId);
   const fieldOps = useFcFieldOps(setFormData, setSelectedFieldId, setSelectedSectionId);
@@ -74,52 +52,45 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     async (id: string, targetMode: CbsScreenMode = "I") => {
       const cleanId = (id || "").trim().toUpperCase();
       if (!cleanId) return;
+      setRecordId(cleanId);
       setLoading(true);
       try {
-        const res = await cbs.send<FormConfigRecord>(cbs.formConfig.get(cleanId));
+        const res = await cbs.send<Record<string, unknown>>(cbs.formConfig.get(cleanId));
         if (res.status === "SUCCESS" && res.data) {
-          hydrate(res.data);
-          setMode(targetMode);
-          const elements =
-            res.data.frmElements || (res.data as unknown as Record<string, unknown>).presentation;
-          const firstSec = (elements as FormConfigRecord["frmElements"])?.sections?.[0];
-          setSelectedSectionId(firstSec?.id || null);
-          const firstField = firstSec?.fields?.[0];
-          setSelectedFieldId(
-            firstField?.SN ||
-              firstField?.NAME ||
-              ((firstField as unknown as Record<string, unknown>)?.id as string) ||
-              null,
-          );
-          return;
+          const parsed = parseGfcResponse(res.data);
+          if (parsed.success) {
+            const { model, form, isNew } = parsed.data;
+            setTargetModelRecord(model);
+
+            // 1. Existing Form Config: hydrate saved layout into canvas
+            if (!isNew && form) {
+              hydrate(form);
+              setMode(targetMode);
+              const firstSec = form.frmElements?.sections?.[0];
+              setSelectedSectionId(firstSec?.id || null);
+              const firstField = firstSec?.fields?.[0];
+              setSelectedFieldId(firstField?.SN || firstField?.NAME || null);
+              return;
+            }
+
+            // 2. New Form Config (FORMCONTROL is {}): initialize 1-col draft
+            if (targetMode === "I") {
+              const draft = createInitialDraft(cleanId, model.DESCRIPTION);
+              hydrate(draft);
+              setMode("I");
+              setSelectedSectionId("general_sec");
+              toast.add({
+                title: "New Form Config Draft",
+                description: `Initialized layout draft for #${cleanId}.`,
+                type: "info",
+              });
+              return;
+            }
+          }
         }
 
         if (targetMode === "I") {
-          const targetModel = cleanId.split(",")[0].trim();
-          const version = cleanId.split(",")[1]?.trim() || "1.0.0";
-          const draft: FormConfigRecord = {
-            ...INITIAL_FORM_CONFIG,
-            targetModel,
-            version,
-            title: `${targetModel} Form (${version})`,
-            description: `${targetModel} form layout version ${version}`,
-            frmElements: {
-              steps: [],
-              sections: [
-                {
-                  id: "general_sec",
-                  title: "General Information",
-                  type: "standard",
-                  zone: "standard",
-                  layoutStyle: "card",
-                  columns: 2,
-                  collapsible: false,
-                  isCollapsed: false,
-                  fields: [],
-                },
-              ],
-            },
-          };
+          const draft = createInitialDraft(cleanId);
           hydrate(draft);
           setMode("I");
           setSelectedSectionId("general_sec");
@@ -131,31 +102,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
         }
       } catch {
         if (targetMode === "I") {
-          const targetModel = cleanId.split(",")[0].trim();
-          const version = cleanId.split(",")[1]?.trim() || "1.0.0";
-          const draft: FormConfigRecord = {
-            ...INITIAL_FORM_CONFIG,
-            targetModel,
-            version,
-            title: `${targetModel} Form (${version})`,
-            description: `${targetModel} form layout version ${version}`,
-            frmElements: {
-              steps: [],
-              sections: [
-                {
-                  id: "general_sec",
-                  title: "General Information",
-                  type: "standard",
-                  zone: "standard",
-                  layoutStyle: "card",
-                  columns: 2,
-                  collapsible: false,
-                  isCollapsed: false,
-                  fields: [],
-                },
-              ],
-            },
-          };
+          const draft = createInitialDraft(cleanId);
           hydrate(draft);
           setMode("I");
           setSelectedSectionId("general_sec");
@@ -169,21 +116,11 @@ export function useFormConfig(initialId?: string, tabId?: string) {
         setLoading(false);
       }
     },
-    [hydrate, setMode],
+    [hydrate, setMode, setRecordId],
   );
 
   const handleValidate = React.useCallback(() => {
-    const issues: FormConfigValidationError[] = [];
-    const title = typeof formData.title === "string" ? formData.title.trim() : "";
-    if (!title) {
-      issues.push({
-        id: "err_missing_title",
-        tab: "general",
-        fieldKey: "title",
-        message: "Form title is required",
-      });
-    }
-
+    const issues = validateFormConfig(formData);
     setValidationErrors(issues);
     if (issues.length > 0) {
       toast.add({
@@ -199,7 +136,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       type: "success",
     });
     return true;
-  }, [formData.title]);
+  }, [formData]);
 
   const actions = useFcActions({
     formData,
@@ -215,8 +152,17 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     setSelectedSectionId(null);
     setSelectedFieldId(null);
     setValidationErrors([]);
+    setTargetModelRecord(null);
     reset();
   }, [reset]);
+
+  const hasLoadedInitialRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!hasLoadedInitialRef.current && initialId) {
+      hasLoadedInitialRef.current = true;
+      fetchRecord(initialId, "I");
+    }
+  }, [fetchRecord, initialId]);
 
   return {
     recordId,
@@ -226,7 +172,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     formData,
     setFormData,
     isDirty,
-    loading: loading || loadingModel,
+    loading,
     submitting,
     selectedSectionId,
     setSelectedSectionId,

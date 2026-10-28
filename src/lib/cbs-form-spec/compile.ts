@@ -73,7 +73,7 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
       type: "standard",
       zone: "standard",
       layoutStyle: "card",
-      columns: 2,
+      columns: 1,
       collapsible: false,
       isCollapsed: false,
       fields: rootFields,
@@ -163,8 +163,8 @@ export function compileFormSpec(
 /**
  * Structural / Duck-Typing Form Resolver:
  * Introspects the raw record returned from Core:
- * - If it has `frmElements` (or legacy `presentation`) -> compiles as Custom Form Layout
- * - If it has `PROPERTIES` -> compiles as Model Schema with responsive 12-col fallback
+ * - If it has `frmElements` -> compiles as Custom Form Layout
+ * - If it has `PROPERTIES` -> compiles as Model Schema with responsive fallback
  */
 export function resolveFormRecord(
   record: unknown,
@@ -176,9 +176,28 @@ export function resolveFormRecord(
 
   const rec = record as Record<string, unknown>;
 
-  // 1. Is it a Form Config? (Has `frmElements` or legacy `presentation`)
-  if ("frmElements" in rec || "presentation" in rec) {
-    const rawContainer = (rec.frmElements || rec.presentation) as FormElementsContainer;
+  // 0. Is it a Combined GFC Payload? (Has `FORMCONTROL`)
+  if ("FORMCONTROL" in rec && rec.FORMCONTROL && typeof rec.FORMCONTROL === "object") {
+    const fc = rec.FORMCONTROL as Record<string, unknown>;
+    const model = Array.isArray(rec.PROPERTIES)
+      ? (rec as unknown as ModelConfigRecord)
+      : fallbackModel;
+
+    const hasLayout =
+      Object.keys(fc).length > 0 &&
+      ("frmElements" in fc || "title" in fc);
+
+    if (hasLayout) {
+      return resolveFormRecord(fc, model);
+    }
+    if (model) {
+      return compileFormSpec(model, null);
+    }
+  }
+
+  // 1. Is it a Form Config? (Has `frmElements`)
+  if ("frmElements" in rec) {
+    const rawContainer = rec.frmElements as FormElementsContainer;
     const formConfig: FormConfigRecord = {
       title: String(rec.title || rec.description || ""),
       description: String(rec.description || rec.title || ""),

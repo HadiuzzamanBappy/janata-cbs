@@ -18,6 +18,7 @@ import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-
 
 export interface FieldPaletteProps {
   targetModel?: string;
+  modelProperties?: ModelProperty[];
   usedFieldNames?: Set<string>;
   onHighlightField?: (fieldName: string) => void;
   onAddField: (template: Partial<FormElement>) => void;
@@ -37,7 +38,7 @@ export interface FieldPaletteProps {
 
 function modelPropToFormElement(prop: ModelProperty): FormElement {
   return {
-    id: `f_${prop.NAME}_${Date.now()}`,
+    id: `f_${prop.NAME}`,
     SN: prop.SN || "1",
     NAME: prop.NAME,
     LABEL: prop.LABEL || prop.NAME,
@@ -69,19 +70,24 @@ function modelPropToFormElement(prop: ModelProperty): FormElement {
 
 export function FieldPalette({
   targetModel,
+  modelProperties: propsModelProperties,
   usedFieldNames = new Set(),
   onHighlightField,
   onAddField,
   onAddSection,
   disabled,
 }: FieldPaletteProps) {
-  const [modelProperties, setModelProperties] = React.useState<ModelProperty[]>([]);
+  const [fetchedProperties, setFetchedProperties] = React.useState<ModelProperty[]>([]);
+  const modelProperties =
+    propsModelProperties && propsModelProperties.length > 0
+      ? propsModelProperties
+      : fetchedProperties;
   const [loadingModel, setLoadingModel] = React.useState<boolean>(false);
   const [modelFilter, setModelFilter] = React.useState<"all" | "unplaced">("all");
 
   React.useEffect(() => {
-    if (!targetModel) {
-      setModelProperties([]);
+    if ((propsModelProperties && propsModelProperties.length > 0) || !targetModel) {
+      setFetchedProperties([]);
       return;
     }
 
@@ -92,11 +98,11 @@ export function FieldPalette({
       .send<ModelConfigRecord>(cbs.modelConfig.get(targetModel))
       .then((res) => {
         if (isMounted && res.data?.PROPERTIES) {
-          setModelProperties(res.data.PROPERTIES);
+          setFetchedProperties(res.data.PROPERTIES);
         }
       })
       .catch(() => {
-        if (isMounted) setModelProperties([]);
+        if (isMounted) setFetchedProperties([]);
       })
       .finally(() => {
         if (isMounted) setLoadingModel(false);
@@ -105,7 +111,7 @@ export function FieldPalette({
     return () => {
       isMounted = false;
     };
-  }, [targetModel]);
+  }, [targetModel, propsModelProperties]);
 
   const [activePaletteTab, setActivePaletteTab] = React.useState<"variables" | "containers">(
     "variables",

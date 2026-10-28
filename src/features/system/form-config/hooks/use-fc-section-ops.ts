@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import type {
-  FormArchetype,
   FormConfigRecord,
-  FormFieldItem,
+  FormElement,
   FormSection,
 } from "@/lib/data-schemas/form-config-schema";
 
@@ -13,24 +12,11 @@ export function useFcSectionOps(
   setSelectedSectionId: (id: string | null) => void,
   setSelectedFieldId: (id: string | null) => void,
 ) {
-  const setArchetype = React.useCallback(
-    (archetype: FormArchetype) => {
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          archetype,
-        },
-      }));
-    },
-    [setFormData],
-  );
-
   const addSection = React.useCallback(
     (
       type: "standard" | "object-group" | "array-table" = "standard",
       zone: "header" | "tab" | "standard" = "standard",
-      initialFields: FormFieldItem[] = [],
+      initialFields: FormElement[] = [],
       layoutStyle?: "card" | "plain",
       customTitle?: string,
       tabGroupId?: string,
@@ -70,12 +56,25 @@ export function useFcSectionOps(
       };
 
       setFormData((prev) => {
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
         // If initialFields contains fields already placed on canvas, remove them from existing sections
-        const newFieldKeys = new Set(initialFields.map((f) => f.fieldKey));
-        const cleanedExistingSections = prev.presentation.sections
+        const newFieldKeys = new Set(
+          initialFields.map((f) => f.NAME || f.SN || (f as unknown as { id?: string }).id),
+        );
+        const cleanedExistingSections = sections
           .map((sec) => ({
             ...sec,
-            fields: sec.fields.filter((f) => !newFieldKeys.has(f.fieldKey)),
+            fields: (sec.fields || []).filter(
+              (f) =>
+                !newFieldKeys.has(f.NAME) &&
+                !newFieldKeys.has(f.SN) &&
+                !newFieldKeys.has((f as unknown as { id?: string }).id),
+            ),
           }))
           .filter((sec) => {
             const isPlainRoot =
@@ -83,7 +82,7 @@ export function useFcSectionOps(
               !sec.title ||
               sec.title === "Canvas Root" ||
               (sec.type === "standard" && sec.zone === "standard" && !sec.title);
-            return !isPlainRoot || sec.fields.length > 0;
+            return !isPlainRoot || (sec.fields && sec.fields.length > 0);
           });
 
         const nextSections = [...cleanedExistingSections];
@@ -92,17 +91,19 @@ export function useFcSectionOps(
         } else {
           nextSections.push(newSection);
         }
+
         return {
           ...prev,
-          presentation: {
-            ...prev.presentation,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
             sections: nextSections,
           },
         };
       });
+
       setSelectedSectionId(newId);
       if (initialFields.length > 0) {
-        setSelectedFieldId(initialFields[0].id);
+        setSelectedFieldId(initialFields[0].NAME || initialFields[0].SN);
       }
     },
     [setFormData, setSelectedFieldId, setSelectedSectionId],
@@ -110,28 +111,42 @@ export function useFcSectionOps(
 
   const updateSection = React.useCallback(
     (sectionId: string, patch: Partial<FormSection>) => {
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          sections: prev.presentation.sections.map((sec) =>
-            sec.id === sectionId ? { ...sec, ...patch } : sec,
-          ),
-        },
-      }));
+      setFormData((prev) => {
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
+        return {
+          ...prev,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
+            sections: sections.map((sec) => (sec.id === sectionId ? { ...sec, ...patch } : sec)),
+          },
+        };
+      });
     },
     [setFormData],
   );
 
   const removeSection = React.useCallback(
     (sectionId: string) => {
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          sections: prev.presentation.sections.filter((sec) => sec.id !== sectionId),
-        },
-      }));
+      setFormData((prev) => {
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
+        return {
+          ...prev,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
+            sections: sections.filter((sec) => sec.id !== sectionId),
+          },
+        };
+      });
       setSelectedSectionId(null);
     },
     [setFormData, setSelectedSectionId],
@@ -140,23 +155,29 @@ export function useFcSectionOps(
   const reorderSections = React.useCallback(
     (activeId: string, overId: string, insertIndex?: number) => {
       setFormData((prev) => {
-        const oldIndex = prev.presentation.sections.findIndex((s) => s.id === activeId);
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
+        const oldIndex = sections.findIndex((s) => s.id === activeId);
         if (oldIndex === -1) return prev;
 
-        let newIndex = prev.presentation.sections.findIndex((s) => s.id === overId);
+        let newIndex = sections.findIndex((s) => s.id === overId);
         if (insertIndex !== undefined) {
           newIndex = insertIndex;
         }
         if (newIndex === -1 || oldIndex === newIndex) return prev;
 
-        const newSections = [...prev.presentation.sections];
+        const newSections = [...sections];
         const [moved] = newSections.splice(oldIndex, 1);
         newSections.splice(newIndex, 0, moved);
 
         return {
           ...prev,
-          presentation: {
-            ...prev.presentation,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
             sections: newSections,
           },
         };
@@ -171,40 +192,47 @@ export function useFcSectionOps(
       targetZone: "standard" | "tab",
       opts?: { tabGroupId?: string; tabTitle?: string },
     ) => {
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          sections: prev.presentation.sections.map((sec) => {
-            if (sec.id !== sectionId) return sec;
-            if (targetZone === "tab") {
-              const grpId = opts?.tabGroupId || `tabgrp_${Date.now()}`;
-              const title = opts?.tabTitle || sec.title || "New Tab";
+      setFormData((prev) => {
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
+        return {
+          ...prev,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
+            sections: sections.map((sec) => {
+              if (sec.id !== sectionId) return sec;
+              if (targetZone === "tab") {
+                const grpId = opts?.tabGroupId || `tabgrp_${Date.now()}`;
+                const title = opts?.tabTitle || sec.title || "New Tab";
+                return {
+                  ...sec,
+                  zone: "tab" as const,
+                  tabGroupId: grpId,
+                  tabTitle: title,
+                  title,
+                  layoutStyle: "card" as const,
+                };
+              }
               return {
                 ...sec,
-                zone: "tab" as const,
-                tabGroupId: grpId,
-                tabTitle: title,
-                title,
+                zone: "standard" as const,
+                tabGroupId: undefined,
+                tabTitle: undefined,
                 layoutStyle: "card" as const,
               };
-            }
-            return {
-              ...sec,
-              zone: "standard" as const,
-              tabGroupId: undefined,
-              tabTitle: undefined,
-              layoutStyle: "card" as const,
-            };
-          }),
-        },
-      }));
+            }),
+          },
+        };
+      });
     },
     [setFormData],
   );
 
   return {
-    setArchetype,
     addSection,
     updateSection,
     removeSection,

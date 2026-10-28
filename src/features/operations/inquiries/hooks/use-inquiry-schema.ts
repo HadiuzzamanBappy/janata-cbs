@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { appConfig } from "@/lib/core-config";
-import type { EnquirySchema } from "@/lib/data-schemas";
+import type { InquiryConfigRecord } from "@/lib/data-schemas";
 
 export function useInquirySchema(command: string) {
-  const [schema, setSchema] = useState<EnquirySchema | null>(null);
+  const [schema, setSchema] = useState<InquiryConfigRecord | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 

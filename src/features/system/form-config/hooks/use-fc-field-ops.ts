@@ -3,9 +3,17 @@
 import * as React from "react";
 import type {
   FormConfigRecord,
-  FormFieldItem,
+  FormElement,
   FormSection,
 } from "@/lib/data-schemas/form-config-schema";
+
+function isMatchingField(field: FormElement, identifier: string): boolean {
+  return (
+    field.NAME === identifier ||
+    field.SN === identifier ||
+    (field as unknown as Record<string, unknown>).id === identifier
+  );
+}
 
 export function useFcFieldOps(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
@@ -13,51 +21,90 @@ export function useFcFieldOps(
   setSelectedSectionId?: (id: string | null) => void,
 ) {
   const addFieldToSection = React.useCallback(
-    (sectionId: string, fieldTemplate?: Partial<FormFieldItem>) => {
-      const fieldId = `f_${Date.now()}`;
-      const newField: FormFieldItem = {
-        id: fieldId,
-        fieldKey: fieldTemplate?.fieldKey || `field_${Date.now().toString().slice(-4)}`,
-        label: fieldTemplate?.label || "New Field",
-        widget: fieldTemplate?.widget || "text",
-        colSpan: fieldTemplate?.colSpan || 6,
-        required: fieldTemplate?.required || false,
-        readOnly: fieldTemplate?.readOnly || false,
-        hidden: false,
-        placeholder: fieldTemplate?.placeholder || "",
-        options: fieldTemplate?.options,
-        currencyPrefix: fieldTemplate?.currencyPrefix,
-        formula: fieldTemplate?.formula,
-        modelType: fieldTemplate?.modelType,
-        parameter: fieldTemplate?.parameter,
+    (sectionId: string, fieldTemplate?: Partial<FormElement>) => {
+      const fieldSn = fieldTemplate?.SN || String(Date.now()).slice(-4);
+      const fieldName = fieldTemplate?.NAME || `field_${Date.now().toString().slice(-4)}`;
+      const fieldLabel = fieldTemplate?.LABEL || "New Field";
+
+      const newField: FormElement = {
+        id: fieldTemplate?.id || fieldName,
+        SN: fieldSn,
+        NAME: fieldName,
+        LABEL: fieldLabel,
+        TYPE: fieldTemplate?.TYPE || "Text",
+        LENGTH: fieldTemplate?.LENGTH ?? 35,
+        STRUCTURE: fieldTemplate?.STRUCTURE || "S",
+        REQUIRED: fieldTemplate?.REQUIRED ?? false,
+        DISABLED: fieldTemplate?.DISABLED ?? false,
+        WIDTH: fieldTemplate?.WIDTH ?? 200,
+        POSITION: fieldTemplate?.POSITION || "",
+        PARAMETER: fieldTemplate?.PARAMETER || {
+          type: "O",
+          data: [],
+          modelName: "",
+          displayField: "",
+          condition: "",
+          reference: "",
+        },
+        ENRICHTEXT: fieldTemplate?.ENRICHTEXT || "",
+        VALUE: fieldTemplate?.VALUE || "",
+        FIXEDVALUE: fieldTemplate?.FIXEDVALUE || "",
+        ISOPEN: fieldTemplate?.ISOPEN ?? false,
+        ISLOADING: fieldTemplate?.ISLOADING ?? false,
+        PROP: fieldTemplate?.PROP || [],
+        DATASOURCE: fieldTemplate?.DATASOURCE || [],
+        DEFAULTVALUE: fieldTemplate?.DEFAULTVALUE || "",
       };
 
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          sections: prev.presentation.sections.map((sec) =>
-            sec.id === sectionId ? { ...sec, fields: [...sec.fields, newField] } : sec,
-          ),
-        },
-      }));
-      setSelectedFieldId(fieldId);
+      setFormData((prev) => {
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
+        const updatedSections = sections.map((sec) =>
+          sec.id === sectionId ? { ...sec, fields: [...(sec.fields || []), newField] } : sec,
+        );
+
+        return {
+          ...prev,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
+            sections: updatedSections,
+          },
+        };
+      });
+
+      setSelectedFieldId(fieldName);
     },
     [setFormData, setSelectedFieldId],
   );
 
   const updateField = React.useCallback(
-    (fieldId: string, patch: Partial<FormFieldItem>) => {
-      setFormData((prev) => ({
-        ...prev,
-        presentation: {
-          ...prev.presentation,
-          sections: prev.presentation.sections.map((sec) => ({
-            ...sec,
-            fields: sec.fields.map((f) => (f.id === fieldId ? { ...f, ...patch } : f)),
-          })),
-        },
-      }));
+    (fieldId: string, patch: Partial<FormElement>) => {
+      setFormData((prev) => {
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
+        const updatedSections = sections.map((sec) => ({
+          ...sec,
+          fields: (sec.fields || []).map((f) =>
+            isMatchingField(f, fieldId) ? { ...f, ...patch } : f,
+          ),
+        }));
+
+        return {
+          ...prev,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
+            sections: updatedSections,
+          },
+        };
+      });
     },
     [setFormData],
   );
@@ -65,10 +112,16 @@ export function useFcFieldOps(
   const removeField = React.useCallback(
     (fieldId: string) => {
       setFormData((prev) => {
-        const updatedSections = prev.presentation.sections
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
+
+        const updatedSections = sections
           .map((sec) => ({
             ...sec,
-            fields: sec.fields.filter((f) => f.id !== fieldId),
+            fields: (sec.fields || []).filter((f) => !isMatchingField(f, fieldId)),
           }))
           // Automatically clean up empty plain root canvas sections (never leave an empty ghost plain root)
           .filter((sec) => {
@@ -77,7 +130,7 @@ export function useFcFieldOps(
               !sec.title ||
               sec.title === "Canvas Root" ||
               (sec.type === "standard" && sec.zone === "standard" && !sec.title);
-            if (isPlainRoot && sec.fields.length === 0) {
+            if (isPlainRoot && (!sec.fields || sec.fields.length === 0)) {
               return false; // remove ghost plain root
             }
             return true;
@@ -85,12 +138,13 @@ export function useFcFieldOps(
 
         return {
           ...prev,
-          presentation: {
-            ...prev.presentation,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };
       });
+
       setSelectedFieldId(null);
     },
     [setFormData, setSelectedFieldId],
@@ -99,24 +153,34 @@ export function useFcFieldOps(
   const reorderFields = React.useCallback(
     (sectionId: string, activeId: string, overId: string) => {
       setFormData((prev) => {
-        const section = prev.presentation.sections.find((s) => s.id === sectionId);
-        if (!section) return prev;
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
 
-        const oldIndex = section.fields.findIndex((f) => f.id === activeId);
-        const newIndex = section.fields.findIndex((f) => f.id === overId);
-        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
+        const section = sections.find((s) => s.id === sectionId);
+        if (!section?.fields) return prev;
+
+        const oldIndex = section.fields.findIndex((f) => isMatchingField(f, activeId));
+        const newIndex = section.fields.findIndex((f) => isMatchingField(f, overId));
+        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+          return prev;
+        }
 
         const newFields = [...section.fields];
         const [moved] = newFields.splice(oldIndex, 1);
         newFields.splice(newIndex, 0, moved);
 
+        const updatedSections = sections.map((s) =>
+          s.id === sectionId ? { ...s, fields: newFields } : s,
+        );
+
         return {
           ...prev,
-          presentation: {
-            ...prev.presentation,
-            sections: prev.presentation.sections.map((s) =>
-              s.id === sectionId ? { ...s, fields: newFields } : s,
-            ),
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
+            sections: updatedSections,
           },
         };
       });
@@ -133,10 +197,16 @@ export function useFcFieldOps(
       insertAtIndex?: number,
     ) => {
       setFormData((prev) => {
-        const sourceSec = prev.presentation.sections.find((s) => s.id === sourceSecId);
-        if (!sourceSec) return prev;
+        const sections =
+          prev.frmElements?.sections ||
+          (prev as unknown as { presentation?: { sections: FormSection[] } }).presentation
+            ?.sections ||
+          [];
 
-        const fieldIndex = sourceSec.fields.findIndex((f) => f.id === fieldId);
+        const sourceSec = sections.find((s) => s.id === sourceSecId);
+        if (!sourceSec?.fields) return prev;
+
+        const fieldIndex = sourceSec.fields.findIndex((f) => isMatchingField(f, fieldId));
         if (fieldIndex === -1) return prev;
 
         const fieldToMove = sourceSec.fields[fieldIndex];
@@ -154,11 +224,19 @@ export function useFcFieldOps(
             fields: [fieldToMove],
           };
 
-          const newSections = prev.presentation.sections
+          const newSections = sections
             .map((s) =>
-              s.id === sourceSecId ? { ...s, fields: s.fields.filter((f) => f.id !== fieldId) } : s,
+              s.id === sourceSecId
+                ? {
+                    ...s,
+                    fields: s.fields.filter((f) => !isMatchingField(f, fieldId)),
+                  }
+                : s,
             )
-            .filter((s) => !(s.layoutStyle === "plain" && !s.title && s.fields.length === 0));
+            .filter(
+              (s) =>
+                !(s.layoutStyle === "plain" && !s.title && (!s.fields || s.fields.length === 0)),
+            );
 
           if (
             insertAtIndex !== undefined &&
@@ -171,10 +249,13 @@ export function useFcFieldOps(
               (s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root",
             );
             if (existingRoot) {
-              existingRoot.fields.push(fieldToMove);
+              existingRoot.fields = [...(existingRoot.fields || []), fieldToMove];
               return {
                 ...prev,
-                presentation: { ...prev.presentation, sections: newSections },
+                frmElements: {
+                  steps: prev.frmElements?.steps || [],
+                  sections: newSections,
+                },
               };
             }
             newSections.push(newRootSec);
@@ -182,39 +263,46 @@ export function useFcFieldOps(
 
           return {
             ...prev,
-            presentation: {
-              ...prev.presentation,
+            frmElements: {
+              steps: prev.frmElements?.steps || [],
               sections: newSections,
             },
           };
         }
 
-        const targetSec = prev.presentation.sections.find((s) => s.id === targetSecId);
+        const targetSec = sections.find((s) => s.id === targetSecId);
         if (!targetSec) return prev;
 
         if (sourceSecId === targetSecId) {
           if (!targetFieldId || targetFieldId === fieldId) return prev;
-          const targetIndex = targetSec.fields.findIndex((f) => f.id === targetFieldId);
+          const targetIndex = (targetSec.fields || []).findIndex((f) =>
+            isMatchingField(f, targetFieldId),
+          );
           if (targetIndex === -1) return prev;
-          const newFields = [...sourceSec.fields];
+          const newFields = [...(sourceSec.fields || [])];
           newFields.splice(fieldIndex, 1);
           newFields.splice(targetIndex, 0, fieldToMove);
+
+          const updatedSections = sections.map((s) =>
+            s.id === sourceSecId ? { ...s, fields: newFields } : s,
+          );
+
           return {
             ...prev,
-            presentation: {
-              ...prev.presentation,
-              sections: prev.presentation.sections.map((s) =>
-                s.id === sourceSecId ? { ...s, fields: newFields } : s,
-              ),
+            frmElements: {
+              steps: prev.frmElements?.steps || [],
+              sections: updatedSections,
             },
           };
         }
 
-        const newSourceFields = sourceSec.fields.filter((f) => f.id !== fieldId);
-        const newTargetFields = [...targetSec.fields];
+        const newSourceFields = (sourceSec.fields || []).filter(
+          (f) => !isMatchingField(f, fieldId),
+        );
+        const newTargetFields = [...(targetSec.fields || [])];
 
         if (targetFieldId) {
-          const targetIndex = newTargetFields.findIndex((f) => f.id === targetFieldId);
+          const targetIndex = newTargetFields.findIndex((f) => isMatchingField(f, targetFieldId));
           if (targetIndex !== -1) {
             newTargetFields.splice(targetIndex, 0, fieldToMove);
           } else {
@@ -224,18 +312,20 @@ export function useFcFieldOps(
           newTargetFields.push(fieldToMove);
         }
 
-        const updatedSections = prev.presentation.sections
+        const updatedSections = sections
           .map((s) => {
             if (s.id === sourceSecId) return { ...s, fields: newSourceFields };
             if (s.id === targetSecId) return { ...s, fields: newTargetFields };
             return s;
           })
-          .filter((s) => !(s.layoutStyle === "plain" && !s.title && s.fields.length === 0));
+          .filter(
+            (s) => !(s.layoutStyle === "plain" && !s.title && (!s.fields || s.fields.length === 0)),
+          );
 
         return {
           ...prev,
-          presentation: {
-            ...prev.presentation,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };

@@ -29,7 +29,7 @@ export function FieldAtom({
   labelSuffix,
   actionBeforeColon,
 }: FieldAtomProps) {
-  const fieldKey = field.fieldKey;
+  const fieldKey = field.NAME;
 
   // Selective subscriptions
   const value = useFormKernel(useCallback((s) => s.values[fieldKey], [fieldKey]));
@@ -55,7 +55,7 @@ export function FieldAtom({
       value={value}
       onChange={handleChange}
       error={error}
-      disabled={disabled || isReadOnly}
+      disabled={disabled || field.DISABLED || isReadOnly}
       mode={mode}
       labelOverride={labelOverride}
       labelSuffix={labelSuffix}

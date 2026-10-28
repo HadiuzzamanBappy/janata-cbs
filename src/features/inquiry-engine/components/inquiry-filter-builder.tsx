@@ -11,10 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { SelectionField, SelectionOperand } from "@/lib/data-schemas";
+import type { InquiryFilterConfig, SelectionOperand } from "@/lib/data-schemas";
 
 export interface InquiryFilterBuilderProps {
-  fields: SelectionField[];
+  fields: InquiryFilterConfig[];
   criteria?: Record<string, { value: string; operand: SelectionOperand }>;
   onCriteriaChange?: (
     criteria: Record<string, { value: string; operand: SelectionOperand }>,
@@ -49,8 +49,8 @@ export function InquiryFilterBuilder({
     const initial: Record<string, { value: string; operand: SelectionOperand }> = {};
     for (const f of fields) {
       const saved = urlData[f.id];
-      const savedVal = typeof saved === "string" ? saved : f.value || "";
-      initial[f.id] = { value: savedVal, operand: f.operand };
+      const savedVal = typeof saved === "string" ? saved : f.defaultValue || "";
+      initial[f.id] = { value: savedVal, operand: f.defaultOperand || "EQ" };
     }
     return initial;
   });
@@ -93,7 +93,7 @@ export function InquiryFilterBuilder({
   const handleClear = () => {
     const cleared: Record<string, { value: string; operand: SelectionOperand }> = {};
     for (const f of fields) {
-      cleared[f.id] = { value: "", operand: f.operand };
+      cleared[f.id] = { value: "", operand: f.defaultOperand || "EQ" };
     }
     if (!controlledCriteria) {
       setInternalCriteria(cleared);
@@ -122,7 +122,10 @@ export function InquiryFilterBuilder({
 
           <form onSubmit={handleSubmit} className="space-y-2 text-xs">
             {fields.map((field) => {
-              const current = criteria[field.id] || { value: "", operand: field.operand };
+              const current = criteria[field.id] || {
+                value: field.defaultValue || "",
+                operand: field.defaultOperand || "EQ",
+              };
 
               return (
                 <div key={field.id} className="flex items-center gap-2">

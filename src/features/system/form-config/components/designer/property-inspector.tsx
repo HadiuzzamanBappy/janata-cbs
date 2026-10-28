@@ -2,10 +2,10 @@
 
 import {
   ArrowLeft,
-  Calculator,
   Columns,
-  DollarSign,
-  Layers,
+  Database,
+  Hash,
+  HelpCircle,
   LayoutGrid,
   Settings,
   Type,
@@ -22,19 +22,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
-import {
-  type FormFieldItem,
-  type FormSection,
-  getCompatibleWidgets,
-  type PropertyType,
-  WIDGET_LABELS,
-} from "@/lib/data-schemas";
+import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
 
 export interface PropertyInspectorProps {
   selectedSection: FormSection | null;
-  selectedField: FormFieldItem | null;
+  selectedField: FormElement | null;
   onUpdateSection: (patch: Partial<FormSection>) => void;
-  onUpdateField: (patch: Partial<FormFieldItem>) => void;
+  onUpdateField: (patch: Partial<FormElement>) => void;
   onClose: () => void;
   onDeselectField?: () => void;
   disabled?: boolean;
@@ -57,7 +51,7 @@ export function PropertyInspector({
         </div>
         <span className="font-semibold text-foreground text-xs">Property Inspector</span>
         <p className="text-[11px] text-muted-foreground/80 leading-relaxed mt-1">
-          Click any field or container on the canvas to configure its layout, widgets, and
+          Click any field or container on the canvas to configure its layout, parameters, and
           validation rules.
         </p>
       </div>
@@ -122,7 +116,7 @@ export function PropertyInspector({
       <div className="flex-1 overflow-y-auto p-3 space-y-3.5">
         {selectedField ? (
           /* ================================================================ */
-          /* FIELD INSPECTOR                                                  */
+          /* FIELD INSPECTOR (Canonical CBS 18 Properties)                    */
           /* ================================================================ */
           <>
             {/* Display Label */}
@@ -130,8 +124,8 @@ export function PropertyInspector({
               <Label className="text-[11px] font-medium text-muted-foreground">Display Label</Label>
               <Input
                 disabled={disabled}
-                value={selectedField.label}
-                onChange={(e) => onUpdateField({ label: e.target.value })}
+                value={selectedField.LABEL || ""}
+                onChange={(e) => onUpdateField({ LABEL: e.target.value })}
                 className="h-7 text-xs bg-background"
                 placeholder="Field label"
               />
@@ -141,188 +135,160 @@ export function PropertyInspector({
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] font-medium text-muted-foreground">
-                  Model Column
+                  Field Key (NAME)
                 </Label>
-                <Badge
-                  variant="outline"
-                  className="text-[9px] font-mono h-3.5 px-1 text-emerald-500 border-emerald-500/40 bg-emerald-500/5"
-                >
-                  SCHEMA BOUND
-                </Badge>
-              </div>
-              <div className="h-7 px-2.5 rounded border border-border/70 bg-muted/30 flex items-center text-xs font-mono text-foreground font-medium select-all truncate">
-                {selectedField.fieldKey}
-              </div>
-            </div>
-
-            {/* Widget Type Selector */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <Label className="text-[11px] font-medium text-muted-foreground">Widget Type</Label>
-                {selectedField.modelType && (
+                <div className="flex items-center gap-1">
+                  <Badge variant="secondary" className="text-[9px] font-mono h-3.5 px-1">
+                    SN: {selectedField.SN}
+                  </Badge>
                   <Badge
                     variant="outline"
-                    className="text-[9px] font-mono h-3.5 px-1 uppercase text-primary border-primary/30 bg-primary/5"
+                    className="text-[9px] font-mono h-3.5 px-1 text-emerald-500 border-emerald-500/40 bg-emerald-500/5"
                   >
-                    {selectedField.modelType}
+                    CANONICAL
                   </Badge>
-                )}
-              </div>
-              <Select
-                disabled={disabled}
-                value={selectedField.widget}
-                onValueChange={(val: string | null) =>
-                  onUpdateField({ widget: (val || "text") as FormFieldItem["widget"] })
-                }
-              >
-                <SelectTrigger className="w-full h-7 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="text-xs">
-                  {getCompatibleWidgets(selectedField.modelType as PropertyType | undefined).map(
-                    (w) => (
-                      <SelectItem key={w} value={w}>
-                        {WIDGET_LABELS[w]?.label || w}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Width / Column Span inside parent container */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label className="text-[11px] font-medium text-muted-foreground">
-                  Width / Column Span
-                </Label>
-                <span className="text-[10px] font-mono text-muted-foreground/70">
-                  {selectedField.colSpan ? `${selectedField.colSpan}/12` : "Auto"}
-                </span>
-              </div>
-              <Select
-                disabled={disabled}
-                value={String(selectedField.colSpan || 12)}
-                onValueChange={(val: string | null) => onUpdateField({ colSpan: Number(val) })}
-              >
-                <SelectTrigger className="w-full h-7 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="text-xs">
-                  <SelectItem value="12">Full Width (12/12 - 100%)</SelectItem>
-                  <SelectItem value="8">Two-Thirds (8/12 - 66%)</SelectItem>
-                  <SelectItem value="6">Half Width (6/12 - 50%)</SelectItem>
-                  <SelectItem value="4">One-Third (4/12 - 33%)</SelectItem>
-                  <SelectItem value="3">One-Quarter (3/12 - 25%)</SelectItem>
-                </SelectContent>
-              </Select>
-              <span className="text-[10px] text-muted-foreground/70 leading-tight block">
-                Determines how much space this field takes inside multi-column containers.
-              </span>
-            </div>
-
-            {/* Amount: Currency Prefix */}
-            {selectedField.widget === "amount" && (
-              <div className="space-y-1 p-2 rounded border border-border/60 bg-muted/20">
-                <div className="flex items-center gap-1 text-[11px] font-semibold text-foreground">
-                  <DollarSign className="size-3 text-emerald-500" />
-                  <span>Currency Prefix</span>
                 </div>
+              </div>
+              <div className="h-7 px-2.5 rounded border border-border/70 bg-muted/30 flex items-center text-xs font-mono text-foreground font-medium select-all truncate">
+                {selectedField.NAME}
+              </div>
+            </div>
+
+            {/* Field Type Selector */}
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium text-muted-foreground">Field Type</Label>
+              <Select
+                disabled={disabled}
+                value={selectedField.TYPE || "Text"}
+                onValueChange={(val: string | null) => onUpdateField({ TYPE: val || "Text" })}
+              >
+                <SelectTrigger className="w-full h-7 text-xs bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="text-xs">
+                  <SelectItem value="Text">Text (Standard)</SelectItem>
+                  <SelectItem value="Number">Number (Numeric)</SelectItem>
+                  <SelectItem value="Amount">Amount (Currency)</SelectItem>
+                  <SelectItem value="Date">Date (Calendar)</SelectItem>
+                  <SelectItem value="Select">Select (Lookup / Options)</SelectItem>
+                  <SelectItem value="Boolean">Boolean (Toggle)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Length & Structure Split */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                  <Hash className="size-3 opacity-60" />
+                  <span>Max Length</span>
+                </Label>
+                <Input
+                  type="number"
+                  disabled={disabled}
+                  value={selectedField.LENGTH ?? 35}
+                  onChange={(e) => onUpdateField({ LENGTH: Number(e.target.value) || 0 })}
+                  className="h-7 text-xs bg-background font-mono"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[11px] font-medium text-muted-foreground">Structure</Label>
                 <Select
                   disabled={disabled}
-                  value={selectedField.currencyPrefix || "BDT"}
-                  onValueChange={(val: string | null) =>
-                    onUpdateField({ currencyPrefix: val ?? undefined })
-                  }
+                  value={selectedField.STRUCTURE || "S"}
+                  onValueChange={(val: string | null) => onUpdateField({ STRUCTURE: val || "S" })}
                 >
-                  <SelectTrigger className="w-full h-7 text-xs bg-background">
+                  <SelectTrigger className="w-full h-7 text-xs bg-background font-mono">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="text-xs">
-                    <SelectItem value="BDT">BDT (Bangladeshi Taka)</SelectItem>
-                    <SelectItem value="USD">USD (US Dollar)</SelectItem>
-                    <SelectItem value="EUR">EUR (Euro)</SelectItem>
-                    <SelectItem value="GBP">GBP (British Pound)</SelectItem>
+                    <SelectItem value="S">S (Single)</SelectItem>
+                    <SelectItem value="M">M (Multi-value)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            )}
+            </div>
 
-            {/* Options List (for Select, Radio, Radio-Group, Checkbox-Group) */}
-            {["select", "radio", "radio-group", "checkbox-group"].includes(
-              selectedField.widget,
-            ) && (
-              <div className="space-y-1.5 p-2 rounded border border-border/60 bg-muted/20">
-                <Label className="text-[11px] font-semibold text-foreground">
-                  Options (Comma-separated)
+            {/* Width Preset / Width in PX */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] font-medium text-muted-foreground">
+                  Width (Pixels)
                 </Label>
+                <span className="text-[10px] font-mono text-muted-foreground/70">
+                  {selectedField.WIDTH || 200}px
+                </span>
+              </div>
+              <Input
+                type="number"
+                disabled={disabled}
+                value={selectedField.WIDTH ?? 200}
+                onChange={(e) => onUpdateField({ WIDTH: Number(e.target.value) || 200 })}
+                className="h-7 text-xs bg-background font-mono"
+              />
+            </div>
+
+            {/* Default Value */}
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium text-muted-foreground">Default Value</Label>
+              <Input
+                disabled={disabled}
+                placeholder="Initial default value..."
+                value={selectedField.DEFAULTVALUE || ""}
+                onChange={(e) => onUpdateField({ DEFAULTVALUE: e.target.value })}
+                className="h-7 text-xs bg-background font-mono"
+              />
+            </div>
+
+            {/* Enrich Text (Guidance / Tooltip) */}
+            <div className="space-y-1">
+              <Label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1">
+                <HelpCircle className="size-3 opacity-60" />
+                <span>Help / Tooltip (ENRICHTEXT)</span>
+              </Label>
+              <Input
+                disabled={disabled}
+                placeholder="e.g. As stated on official documents"
+                value={selectedField.ENRICHTEXT || ""}
+                onChange={(e) => onUpdateField({ ENRICHTEXT: e.target.value })}
+                className="h-7 text-xs bg-background"
+              />
+            </div>
+
+            {/* Lookup / Parameter Section (if applicable) */}
+            <div className="space-y-1.5 p-2 rounded border border-border/60 bg-muted/15">
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-foreground">
+                <Database className="size-3 text-primary" />
+                <span>Lookup / Parameter (PARAMETER)</span>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] text-muted-foreground">Model Target</span>
                 <Input
                   disabled={disabled}
-                  placeholder="SAVINGS, CURRENT, DEPOSIT"
-                  value={selectedField.options ? selectedField.options.join(", ") : ""}
+                  placeholder="e.g. CUSTOMER, BRANCH"
+                  value={selectedField.PARAMETER?.modelName || ""}
                   onChange={(e) =>
                     onUpdateField({
-                      options: e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
+                      PARAMETER: {
+                        ...(selectedField.PARAMETER || {
+                          type: "O",
+                          data: [],
+                          modelName: "",
+                          displayField: "",
+                          condition: "",
+                          reference: "",
+                        }),
+                        modelName: e.target.value,
+                      },
                     })
                   }
                   className="h-7 text-xs bg-background font-mono"
                 />
-                <span className="text-[10px] text-muted-foreground/70 leading-tight block">
-                  Define selectable options for this field.
-                </span>
               </div>
-            )}
-
-            {/* Placeholder Text */}
-            <div className="space-y-1">
-              <Label className="text-[11px] font-medium text-muted-foreground">
-                Placeholder Text
-              </Label>
-              <Input
-                disabled={disabled}
-                placeholder="e.g. Enter full legal name..."
-                value={selectedField.placeholder || ""}
-                onChange={(e) => onUpdateField({ placeholder: e.target.value })}
-                className="h-7 text-xs bg-background"
-              />
             </div>
 
-            {/* Helper Guidance Text */}
-            <div className="space-y-1">
-              <Label className="text-[11px] font-medium text-muted-foreground">
-                Helper Guidance Text
-              </Label>
-              <Input
-                disabled={disabled}
-                placeholder="e.g. As stated on NID or passport"
-                value={selectedField.helperText || ""}
-                onChange={(e) => onUpdateField({ helperText: e.target.value })}
-                className="h-7 text-xs bg-background"
-              />
-            </div>
-
-            {/* Derived Formula */}
-            <div className="space-y-1 p-2 rounded border border-border/60 bg-muted/15">
-              <div className="flex items-center gap-1 text-[11px] font-semibold text-foreground">
-                <Calculator className="size-3 text-amber-500" />
-                <span>Derived Formula</span>
-              </div>
-              <Input
-                disabled={disabled}
-                placeholder="e.g. principal * 0.075"
-                value={selectedField.formula || ""}
-                onChange={(e) => onUpdateField({ formula: e.target.value || undefined })}
-                className="h-7 text-xs bg-background font-mono"
-              />
-              <span className="text-[10px] text-muted-foreground/70 leading-tight block">
-                Calculates automatically based on other field keys.
-              </span>
-            </div>
-
-            {/* Field State & Validation Flags */}
+            {/* Field Flags */}
             <div className="pt-2 border-t border-border/60 space-y-2">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
                 Validation & Flags
@@ -331,8 +297,8 @@ export function PropertyInspector({
                 <input
                   type="checkbox"
                   disabled={disabled}
-                  checked={Boolean(selectedField.required)}
-                  onChange={(e) => onUpdateField({ required: e.target.checked })}
+                  checked={Boolean(selectedField.REQUIRED)}
+                  onChange={(e) => onUpdateField({ REQUIRED: e.target.checked })}
                   className="rounded border-border size-3.5"
                 />
                 <span className="text-foreground">Required (Mandatory)</span>
@@ -341,21 +307,11 @@ export function PropertyInspector({
                 <input
                   type="checkbox"
                   disabled={disabled}
-                  checked={Boolean(selectedField.readOnly)}
-                  onChange={(e) => onUpdateField({ readOnly: e.target.checked })}
+                  checked={Boolean(selectedField.DISABLED)}
+                  onChange={(e) => onUpdateField({ DISABLED: e.target.checked })}
                   className="rounded border-border size-3.5"
                 />
-                <span className="text-foreground">Read-Only (Protected)</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer text-xs">
-                <input
-                  type="checkbox"
-                  disabled={disabled}
-                  checked={Boolean(selectedField.hidden)}
-                  onChange={(e) => onUpdateField({ hidden: e.target.checked })}
-                  className="rounded border-border size-3.5"
-                />
-                <span className="text-foreground">Hidden from Form View</span>
+                <span className="text-foreground">Disabled / Read-Only</span>
               </label>
             </div>
           </>
@@ -392,7 +348,7 @@ export function PropertyInspector({
               />
             </div>
 
-            {/* ── Grid Columns Layout (User's Key Feature) ──────────────────── */}
+            {/* ── Grid Columns Layout ────────────────────────────────────────── */}
             <div className="space-y-1.5 p-2 rounded-lg border border-border/80 bg-muted/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-[11px] font-semibold text-foreground">
@@ -430,17 +386,6 @@ export function PropertyInspector({
                   );
                 })}
               </div>
-
-              <span className="text-[10px] text-muted-foreground/80 leading-snug block">
-                {(selectedSection.columns || 1) === 1 &&
-                  "1 Column: Fields stack vertically, 1 per row."}
-                {selectedSection.columns === 2 &&
-                  "2 Columns: Fields arrange side-by-side in 2 columns (50% / 50%)."}
-                {selectedSection.columns === 3 &&
-                  "3 Columns: Up to 3 fields per row (33% each). Columns can remain free if fewer fields exist."}
-                {selectedSection.columns === 4 &&
-                  "4 Columns: Compact 4-way split for high-density teller inputs."}
-              </span>
             </div>
 
             {/* Container Type */}
@@ -479,128 +424,8 @@ export function PropertyInspector({
                   onChange={(e) => onUpdateSection({ bindKey: e.target.value })}
                   className="h-7 text-xs bg-background font-mono"
                 />
-                <span className="text-[10px] text-muted-foreground/70 leading-tight block">
-                  Binds all fields inside this container into the nested model property.
-                </span>
               </div>
             )}
-
-            {/* Presentation Zone */}
-            <div className="space-y-1">
-              <Label className="text-[11px] font-medium text-muted-foreground">
-                Presentation Zone
-              </Label>
-              <Select
-                disabled={disabled}
-                value={selectedSection.zone || "standard"}
-                onValueChange={(val: string | null) =>
-                  onUpdateSection({ zone: (val || "standard") as FormSection["zone"] })
-                }
-              >
-                <SelectTrigger className="w-full h-7 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="text-xs">
-                  <SelectItem value="standard">Standard Flowing Container</SelectItem>
-                  <SelectItem value="tab">Tabbed Page (Inside Tab Group)</SelectItem>
-                  <SelectItem value="header">Fixed Master Header (Pinned at Top)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Tab Settings (if Zone is 'tab') */}
-            {selectedSection.zone === "tab" && (
-              <div className="space-y-2 p-2 rounded border border-sky-500/30 bg-sky-500/5">
-                <div className="flex items-center gap-1 text-[11px] font-semibold text-sky-400">
-                  <Layers className="size-3" />
-                  <span>Tab Group Settings</span>
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">Tab Button Label</Label>
-                  <Input
-                    disabled={disabled}
-                    value={selectedSection.tabTitle || ""}
-                    placeholder={selectedSection.title || "Tab Label"}
-                    onChange={(e) => onUpdateSection({ tabTitle: e.target.value })}
-                    className="h-7 text-xs bg-background"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">Tab Group ID</Label>
-                  <Input
-                    disabled={disabled}
-                    value={selectedSection.tabGroupId || ""}
-                    placeholder="e.g. tabgrp_remarks"
-                    onChange={(e) => onUpdateSection({ tabGroupId: e.target.value || undefined })}
-                    className="h-7 text-xs bg-background font-mono"
-                  />
-                  <span className="text-[10px] text-muted-foreground/70 leading-tight block">
-                    Tabs with the same Tab Group ID dock together into one tab strip.
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Block Style */}
-            <div className="space-y-1">
-              <Label className="text-[11px] font-medium text-muted-foreground">
-                Block Visual Style
-              </Label>
-              <Select
-                disabled={disabled}
-                value={selectedSection.layoutStyle || "card"}
-                onValueChange={(val: string | null) =>
-                  onUpdateSection({ layoutStyle: (val || "card") as "card" | "plain" })
-                }
-              >
-                <SelectTrigger className="w-full h-7 text-xs bg-background">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="text-xs">
-                  <SelectItem value="card">Bordered Card Box</SelectItem>
-                  <SelectItem value="plain">Plain / Borderless Canvas Block</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Behavior & Collapsible */}
-            <div className="pt-2 border-t border-border/60 space-y-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block">
-                Container Behavior
-              </span>
-              <label className="flex items-center gap-2 cursor-pointer text-xs">
-                <input
-                  type="checkbox"
-                  disabled={disabled}
-                  checked={Boolean(selectedSection.collapsible)}
-                  onChange={(e) => onUpdateSection({ collapsible: e.target.checked })}
-                  className="rounded border-border size-3.5"
-                />
-                <span className="text-foreground">Allow Container Collapse</span>
-              </label>
-              {selectedSection.collapsible && (
-                <label className="flex items-center gap-2 cursor-pointer text-xs pl-5">
-                  <input
-                    type="checkbox"
-                    disabled={disabled}
-                    checked={Boolean(selectedSection.isCollapsed)}
-                    onChange={(e) => onUpdateSection({ isCollapsed: e.target.checked })}
-                    className="rounded border-border size-3.5"
-                  />
-                  <span className="text-muted-foreground">Default to Collapsed</span>
-                </label>
-              )}
-            </div>
-
-            {/* Field count summary */}
-            <div className="pt-2 border-t border-border/40 text-[11px] text-muted-foreground flex items-center justify-between">
-              <span>Fields in container:</span>
-              <span className="font-mono font-semibold text-foreground">
-                {selectedSection.fields.length}
-              </span>
-            </div>
           </>
         ) : null}
       </div>

@@ -7,7 +7,8 @@ import type { CbsScreenMode } from "@/types";
 import { SectionCard } from "./section-card";
 
 export interface FormRendererProps {
-  presentation: FormConfigRecord["presentation"];
+  presentation?: FormConfigRecord["frmElements"];
+  frmElements?: FormConfigRecord["frmElements"];
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
   errors?: Record<string, string>;
@@ -48,19 +49,23 @@ function buildRendererBlocks(sections: FormSection[]): RendererBlock[] {
 
 export function FormRenderer({
   presentation,
+  frmElements,
   values,
   onChange,
   errors = {},
   disabled = false,
   mode = "I",
 }: FormRendererProps) {
+  const container = frmElements || presentation || { steps: [], sections: [] };
+  const sections = container.sections || [];
+
   // Map of active tab ID per tab group
   const [activeTabs, setActiveTabs] = React.useState<Record<string, string>>({});
 
   // Cluster sections preserving designer order
   const blocks = React.useMemo(() => {
-    return buildRendererBlocks(presentation.sections);
-  }, [presentation.sections]);
+    return buildRendererBlocks(sections);
+  }, [sections]);
 
   // Extract all tab groups from blocks
   const tabGroups = React.useMemo(() => {
@@ -97,12 +102,20 @@ export function FormRenderer({
 
     // Evaluate derived formulas across all sections
     const nextValues = { ...values, [key]: val };
-    presentation.sections.forEach((sec) => {
-      sec.fields.forEach((f) => {
-        if (f.formula) {
-          const calculated = evaluateFormula(f.formula, nextValues);
-          if (calculated !== undefined && calculated !== nextValues[f.fieldKey]) {
-            onChange(f.fieldKey, calculated);
+    sections.forEach((sec) => {
+      (sec.fields || []).forEach((f) => {
+        const fieldKey = f.NAME;
+        const rawFormula = f.FIXEDVALUE || f.DEFAULTVALUE;
+        const formula =
+          typeof rawFormula === "string" && rawFormula.startsWith("=")
+            ? rawFormula.slice(1)
+            : typeof rawFormula === "string" && /[+\-*/]/.test(rawFormula)
+              ? rawFormula
+              : undefined;
+        if (formula && fieldKey) {
+          const calculated = evaluateFormula(formula, nextValues);
+          if (calculated !== undefined && calculated !== nextValues[fieldKey]) {
+            onChange(fieldKey, calculated);
           }
         }
       });

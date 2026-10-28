@@ -14,7 +14,7 @@ import { McPropertiesTab } from "./components/mc-properties-tab";
 import { McViewsTab } from "./components/mc-views-tab";
 import { useModelConfig } from "./hooks/use-model-config";
 
-type ModelConfigTabKey = "general" | "properties" | "views" | "preview" | "audit" | "json";
+type ModelConfigTabKey = "general" | "properties" | "views" | "audit" | "preview" | "json";
 
 export function SysModelConfig({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
@@ -112,16 +112,16 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
         ),
       },
       {
-        id: "preview",
-        label: "Form Preview",
-        icon: <Eye className="size-3 text-cyan-500" />,
-        content: <McPreviewTab formData={formData} />,
-      },
-      {
         id: "audit",
         label: "Audit Data",
         icon: <ShieldCheck className="size-3 text-emerald-500" />,
         content: <McAuditTab formData={formData} />,
+      },
+      {
+        id: "preview",
+        label: "Live Preview",
+        icon: <Eye className="size-3 text-cyan-500" />,
+        content: <McPreviewTab formData={formData} />,
       },
       {
         id: "json",

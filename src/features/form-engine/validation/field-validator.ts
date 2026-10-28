@@ -60,16 +60,18 @@ export function validateFormFields(
   const errors: Record<string, string> = {};
 
   for (const field of fields) {
+    const fieldName = field.NAME;
     const err = validateSingleField(
       {
-        required: field.required,
-        label: field.label,
+        required: field.REQUIRED,
+        length: field.LENGTH,
+        label: field.LABEL || fieldName,
       },
-      values[field.fieldKey],
+      values[fieldName],
     );
 
     if (err) {
-      errors[field.fieldKey] = err;
+      errors[fieldName] = err;
     }
   }
 

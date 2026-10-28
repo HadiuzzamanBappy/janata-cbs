@@ -43,26 +43,8 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     setDrillRecord,
   });
 
-  const mappedActions = React.useMemo(() => {
-    if (schema?.actions && schema.actions.length > 0) {
-      return schema.actions;
-    }
-    if (!schema?.commands || schema.commands.length === 0) return undefined;
-    return schema.commands.map((cmd, i) => {
-      const isEdit =
-        cmd.cmdButton?.toLowerCase().includes("edit") ||
-        cmd.cmdButton?.toLowerCase().includes("amend");
-      return {
-        id: `CMD_${i}_${cmd.cmdButton}`,
-        label: cmd.cmdButton,
-        targetCommand: cmd.cmdFor || `${schema.code},SEE`,
-        actionType: (isEdit ? "edit" : "view") as "edit" | "view",
-        icon: (isEdit ? "edit" : "eye") as "edit" | "eye",
-        openMode: "tab" as const,
-        idParamField: "recordId",
-      };
-    });
-  }, [schema?.actions, schema?.commands, schema?.code]);
+  const commandCode = schema?.id || command;
+  const title = schema?.title || schema?.description || commandCode;
 
   const handleFilterSearch = async (criteria: typeof currentCriteria) => {
     if (!schema) return;
@@ -71,7 +53,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     const queryString = Object.entries(criteria)
       .filter(([_, c]) => c.value && c.value.trim() !== "")
       .map(([fieldId, c]) => {
-        const fieldDef = schema.selectionFields.find((f) => f.id === fieldId);
+        const fieldDef = (schema.filters || []).find((f) => f.id === fieldId);
         return {
           selectFieldName: fieldId,
           selectFieldType: fieldDef?.type || "text",
@@ -84,12 +66,12 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
       const targetControl =
         schema.controllerName && schema.controllerName.trim() !== ""
           ? schema.controllerName.trim()
-          : schema.code;
+          : commandCode;
 
       const queryRes = await cbs.send<unknown>(
         cbs.inquiry.executeQuery(targetControl, {
           servicePath: schema.inqServicePath,
-          perPage: pageSize || schema.perpageItem || 1000,
+          perPage: pageSize || schema.recordPerPage || 1000,
           curPage: 1,
           queryString,
         }),
@@ -128,8 +110,8 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
   const handleResetFilters = () => {
     if (!schema) return;
     const initialCriteria: typeof currentCriteria = {};
-    for (const f of schema.selectionFields) {
-      initialCriteria[f.id] = { value: "", operand: f.operand };
+    for (const f of schema.filters || []) {
+      initialCriteria[f.id] = { value: "", operand: f.defaultOperand || "EQ" };
     }
     setCurrentCriteria(initialCriteria);
     setFilteredRows(schema.sampleData || []);
@@ -156,7 +138,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
     return (
       <InquiryDrillDown
         drillRecord={drillRecord}
-        schemaTitle={schema.title}
+        schemaTitle={title}
         onReturn={() => setDrillRecord(null)}
         className={className}
       />
@@ -165,8 +147,8 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
 
   return (
     <CbsScreenScaffold
-      title={schema.title}
-      commandCode={schema.code}
+      title={title}
+      commandCode={commandCode}
       variant="inquiry"
       inquiryStep={step}
       onInquiryBackToSelection={() => setStep("SELECTION")}
@@ -175,7 +157,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
       onInquiryPrintServer={() =>
         toast.add({
           title: "Server Print Spooled",
-          description: `Report spooled for ${schema.code}`,
+          description: `Report spooled for ${commandCode}`,
           type: "info",
         })
       }
@@ -187,7 +169,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === "SELECTION" ? (
           <InquiryFilterBuilder
-            fields={schema.selectionFields}
+            fields={schema.filters || []}
             criteria={currentCriteria}
             onCriteriaChange={setCurrentCriteria}
             onSearch={handleFilterSearch}
@@ -197,7 +179,7 @@ export function OpsInquiry({ command, tabId, className = "" }: InquiryScreenProp
           <InquiryEngineTable
             columns={schema.columns}
             rows={filteredRows}
-            actions={mappedActions}
+            actions={schema.actions}
             onViewRecord={handleViewRecord}
             onEditRecord={handleEditRecord}
             pageSize={pageSize}

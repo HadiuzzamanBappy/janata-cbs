@@ -7,21 +7,18 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { InquiryEngineTable, InquiryFilterBuilder } from "@/features/inquiry-engine";
 import type {
-  EnquiryColumn,
   EnquiryRow,
-  SelectionField,
+  InquiryActionConfig,
+  InquiryColumnConfig,
+  InquiryConfigRecord,
   SelectionOperand,
 } from "@/lib/data-schemas";
-import type {
-  InquiryActionConfig,
-  InquiryConfigRecord,
-} from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface IcPreviewTabProps {
   formData: InquiryConfigRecord;
 }
 
-function generateSampleRows(_columns: EnquiryColumn[], targetModel?: string): EnquiryRow[] {
+function generateSampleRows(_columns: InquiryColumnConfig[], targetModel?: string): EnquiryRow[] {
   const isAccount = !targetModel || targetModel.toUpperCase() === "ACCOUNT";
   const isUser = targetModel?.toUpperCase() === "USER";
 
@@ -132,42 +129,14 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
     }
   }, [hasFilters]);
 
-  // Transform criteria selection fields
-  const selectionFields: SelectionField[] = React.useMemo(
-    () =>
-      (formData.filters || []).map((f) => ({
-        id: f.id,
-        label: f.label,
-        type: f.type,
-        operand: f.defaultOperand,
-        value: f.defaultValue,
-        required: f.required,
-      })),
-    [formData.filters],
-  );
-
-  // Transform normalized columns for table
-  const tableColumns: EnquiryColumn[] = React.useMemo(
-    () =>
-      formData.columns.map((col) => ({
-        id: col.id,
-        label: col.label,
-        align: col.align,
-        width: col.width !== undefined ? String(col.width) : undefined,
-        isMono: col.isMono,
-        isDrilldown: false,
-      })),
-    [formData.columns],
-  );
-
   // Simulated dataset
   const sampleRows = React.useMemo(
     () =>
       generateSampleRows(
-        tableColumns,
+        formData.columns,
         String(formData.controllerName || formData.targetModel || "ACCOUNT"),
       ),
-    [tableColumns, formData.controllerName, formData.targetModel],
+    [formData.columns, formData.controllerName, formData.targetModel],
   );
 
   const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>(sampleRows);
@@ -284,7 +253,7 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
         {step === "SELECTION" && hasFilters ? (
           <div className="h-full flex flex-col items-center justify-center py-4">
             <InquiryFilterBuilder
-              fields={selectionFields}
+              fields={formData.filters || []}
               onSearch={handleFilterSearch}
               onReset={handleResetFilters}
             />
@@ -292,7 +261,7 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
         ) : (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             <InquiryEngineTable
-              columns={tableColumns}
+              columns={formData.columns}
               rows={filteredRows}
               actions={formData.actions || []}
               onExecuteAction={handleExecuteAction}

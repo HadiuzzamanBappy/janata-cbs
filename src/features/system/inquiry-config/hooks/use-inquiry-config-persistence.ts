@@ -7,6 +7,16 @@ import {
 } from "@/lib/data-schemas/inquiry-config-schema";
 
 export const INITIAL_INQUIRY_CONFIG: InquiryConfigRecord = {
+  description: "",
+  pageOrientation: "Portrait",
+  showSerial: true,
+  showPagination: true,
+  showBranchWise: false,
+  recordPerPage: 30,
+  inqType: "DFT",
+  controllerName: "",
+  rptControllerName: "",
+  inqServicePath: "default",
   columns: [],
   filters: [],
   actions: [],

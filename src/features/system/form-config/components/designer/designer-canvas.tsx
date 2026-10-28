@@ -23,7 +23,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { DesignerCanvasProps } from "./canvas-types";
 import { SortableSectionCard } from "./section-card";
 import { SortableTabGroupCard } from "./tab-group-card";
@@ -88,8 +88,8 @@ function BetweenBlockDropZone({
   const showIndicator = isActive || isNativeOver;
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Drag and drop target container
-    <div
+    <section
+      aria-label={`Drop gap ${gapIndex}`}
       ref={setNodeRef}
       onDragOver={(e) => {
         e.preventDefault();
@@ -129,7 +129,7 @@ function BetweenBlockDropZone({
           + Place item here
         </span>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -153,8 +153,8 @@ function CanvasRootDropzone({
   const show = isOver || isNativeOver;
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Canvas root drop target
-    <div
+    <section
+      aria-label="Root canvas drop target"
       ref={setNodeRef}
       onDragOver={(e) => {
         e.preventDefault();
@@ -188,7 +188,7 @@ function CanvasRootDropzone({
       )}
     >
       {show && <span>↓ Drop directly onto root canvas</span>}
-    </div>
+    </section>
   );
 }
 
@@ -215,11 +215,10 @@ function EmptyCanvasSplash({
   disabled,
 }: EmptyCanvasProps) {
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Canvas background click deselects active section
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Canvas background click deselects active section
-    <div
+    <button
+      type="button"
       className={cn(
-        "flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl m-4 transition-all cursor-pointer",
+        "flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl m-4 transition-all cursor-pointer bg-transparent",
         isOver
           ? "border-primary bg-primary/10 text-primary scale-[1.01]"
           : "border-border/60 bg-muted/5",
@@ -238,12 +237,7 @@ function EmptyCanvasSplash({
       </p>
 
       {!disabled && onAddSection && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: Stop propagation wrapper
-        // biome-ignore lint/a11y/useKeyWithClickEvents: Stop propagation wrapper
-        <div
-          className="flex flex-wrap items-center justify-center gap-2 max-w-md"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="flex flex-wrap items-center justify-center gap-2 max-w-md mt-2">
           <Button
             size="sm"
             variant="outline"
@@ -270,7 +264,7 @@ function EmptyCanvasSplash({
           </Button>
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -296,7 +290,7 @@ export function DesignerCanvas({
 }: DesignerCanvasProps) {
   const [activeDragItem, setActiveDragItem] = React.useState<{
     type: "field" | "section";
-    data: FormFieldItem | FormSection;
+    data: FormElement | FormSection;
   } | null>(null);
 
   const isDragging = activeDragItem !== null;
@@ -312,7 +306,7 @@ export function DesignerCanvas({
   const handleDragStart = (event: DragStartEvent) => {
     const d = event.active.data.current;
     if (d?.type === "field") {
-      setActiveDragItem({ type: "field", data: d.field as FormFieldItem });
+      setActiveDragItem({ type: "field", data: d.field as FormElement });
     } else if (d?.type === "section") {
       setActiveDragItem({ type: "section", data: d.section as FormSection });
     }
@@ -401,7 +395,6 @@ export function DesignerCanvas({
       if (overData?.type === "section-dropzone" && onConvertSectionZone) {
         const targetSec = sections.find((s) => s.id === overData.sectionId);
         if (targetSec && targetSec.zone === "tab" && activeId !== String(targetSec.id)) {
-          // Convert the dragged section into a new tab inside that group
           onConvertSectionZone(activeId, "tab", {
             tabGroupId: targetSec.tabGroupId,
             tabTitle: sections.find((s) => s.id === activeId)?.title || "New Tab",
@@ -442,7 +435,7 @@ export function DesignerCanvas({
   };
 
   // ── Empty-state ────────────────────────────────────────────────────────────
-  const totalFieldsCount = sections.reduce((acc, s) => acc + s.fields.length, 0);
+  const totalFieldsCount = sections.reduce((acc, s) => acc + (s.fields?.length || 0), 0);
   const hasContainersOrFields =
     sections.length > 0 &&
     (totalFieldsCount > 0 || sections.some((s) => s.layoutStyle !== "plain" && Boolean(s.title)));
@@ -466,15 +459,13 @@ export function DesignerCanvas({
 
   // ── Build render blocks ────────────────────────────────────────────────────
   const blocks = buildRenderBlocks(sections);
-  // SortableContext IDs: use first section of each tab group (or the section itself)
   const sortableCardIds = blocks.map((b) =>
     b.type === "single" ? b.section.id : b.tabSections[0]?.id || b.groupId,
   );
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Canvas workspace click deselects
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Canvas workspace click deselects
-    <div
+    <section
+      aria-label="Form designer canvas workspace"
       className={cn(
         "flex-1 overflow-y-auto p-3 select-none transition-colors",
         isCanvasDragOver && "bg-primary/5 ring-1 ring-primary/40",
@@ -482,10 +473,6 @@ export function DesignerCanvas({
       onDragOver={handleNativeCanvasDragOver}
       onDragLeave={handleNativeCanvasDragLeave}
       onDrop={handleNativeCanvasDrop}
-      onClick={() => {
-        onSelectSection(null);
-        onSelectField(null, null);
-      }}
     >
       <DndContext
         sensors={dndSensors}
@@ -538,7 +525,7 @@ export function DesignerCanvas({
                 />
               )}
 
-              {/* Gap between blocks — expands when dragging for visual placement indicator */}
+              {/* Gap between blocks */}
               <BetweenBlockDropZone
                 id={`gap-${i}`}
                 gapIndex={i + 1}
@@ -550,7 +537,7 @@ export function DesignerCanvas({
           ))}
         </SortableContext>
 
-        {/* Root drop target at end — catches any variable/card drop */}
+        {/* Root drop target at end */}
         <CanvasRootDropzone onDropPaletteItem={onDropPaletteItem} disabled={disabled} />
 
         {/* Drag Overlay Preview */}
@@ -558,10 +545,10 @@ export function DesignerCanvas({
           {activeDragItem?.type === "field" ? (
             <div className="rounded border px-2 py-1.5 flex items-center justify-between text-xs bg-card shadow-xl ring-2 ring-primary border-primary">
               <span className="font-semibold text-foreground truncate">
-                {(activeDragItem.data as FormFieldItem).label}
+                {(activeDragItem.data as FormElement).LABEL}
               </span>
               <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase ml-2">
-                {(activeDragItem.data as FormFieldItem).widget}
+                {(activeDragItem.data as FormElement).TYPE}
               </Badge>
             </div>
           ) : activeDragItem?.type === "section" ? (
@@ -574,12 +561,7 @@ export function DesignerCanvas({
 
       {/* Bottom add-block prompt */}
       {!disabled && onAddSection && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: Prevent propagating canvas background deselect
-        // biome-ignore lint/a11y/useKeyWithClickEvents: Prevent propagating canvas background deselect
-        <div
-          className="mt-3 pt-2 border-t border-dashed border-border/60 flex items-center justify-between text-xs text-muted-foreground px-1"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="mt-3 pt-2 border-t border-dashed border-border/60 flex items-center justify-between text-xs text-muted-foreground px-1">
           <span className="text-[11px]">Add to canvas:</span>
           <div className="flex items-center gap-1.5">
             <button
@@ -608,6 +590,6 @@ export function DesignerCanvas({
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 }

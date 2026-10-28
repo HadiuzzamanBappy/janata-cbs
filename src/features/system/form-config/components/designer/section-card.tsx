@@ -79,41 +79,20 @@ function SectionDropBody({
     }
   };
 
-  const getFieldColSpanClass = (cols: number, span?: number) => {
+  const getFieldColSpanClass = (cols: number, width?: number) => {
     if (cols <= 1) {
-      switch (span) {
-        case 3:
-          return "w-1/4 min-w-[200px]";
-        case 4:
-          return "w-1/3 min-w-[240px]";
-        case 6:
-          return "w-1/2 min-w-[280px]";
-        case 8:
-          return "w-2/3 min-w-[320px]";
-        default:
-          return "w-full";
-      }
+      return "w-full";
     }
-    if (cols === 2) {
-      return span && span >= 12 ? "col-span-2 w-full" : "col-span-1 w-full";
+    if (width && width >= 400) {
+      return cols === 2 ? "col-span-2 w-full" : "col-span-2 w-full";
     }
-    if (cols === 3) {
-      if (span && span >= 12) return "col-span-3 w-full";
-      if (span && span >= 8) return "col-span-2 w-full";
-      return "col-span-1 w-full";
-    }
-    if (cols === 4) {
-      if (span && span >= 12) return "col-span-4 w-full";
-      if (span && span >= 9) return "col-span-3 w-full";
-      if (span && span >= 6) return "col-span-2 w-full";
-      return "col-span-1 w-full";
-    }
-    return "w-full";
+    return "col-span-1 w-full";
   };
 
+  const fieldKeys = section.fields.map((f) => f.id || f.NAME || String(f.SN || "field"));
+
   return (
-    <SortableContext items={section.fields.map((f) => f.id)} strategy={rectSortingStrategy}>
-      {/* Full-width droppable wrapper — always present */}
+    <SortableContext items={fieldKeys} strategy={rectSortingStrategy}>
       <div
         ref={setDropRef}
         className={cn(
@@ -129,30 +108,42 @@ function SectionDropBody({
         )}
       >
         {isEmpty ? (
-          <span>
+          <button
+            type="button"
+            onClick={() => onSelectSection(section.id)}
+            className="w-full h-full py-3 bg-transparent border-0 text-[11px] text-muted-foreground/60 cursor-pointer"
+          >
             {showHover
               ? "↓ Drop here"
               : isPlainRoot
                 ? "Drop variables here to place directly on canvas"
                 : "No fields yet — drag variables here"}
-          </span>
+          </button>
         ) : (
           <div className={cn("grid gap-2", getGridColsClass(numCols))}>
-            {section.fields.map((field) => (
-              <DesignerFieldCard
-                key={field.id}
-                field={field}
-                sectionId={section.id}
-                isSelected={selectedFieldId === field.id}
-                className={getFieldColSpanClass(numCols, field.colSpan)}
-                onSelect={() => {
-                  onSelectSection(section.id);
-                  onSelectField(section.id, field.id);
-                }}
-                onRemove={() => onRemoveField(field.id)}
-                disabled={disabled}
-              />
-            ))}
+            {section.fields.map((field) => {
+              const fieldId = field.id || field.NAME || String(field.SN || "field");
+              const isSelected =
+                selectedFieldId === fieldId ||
+                selectedFieldId === field.NAME ||
+                selectedFieldId === field.SN;
+
+              return (
+                <DesignerFieldCard
+                  key={fieldId}
+                  field={field}
+                  sectionId={section.id}
+                  isSelected={Boolean(isSelected)}
+                  className={getFieldColSpanClass(numCols, field.WIDTH)}
+                  onSelect={() => {
+                    onSelectSection(section.id);
+                    onSelectField(section.id, fieldId);
+                  }}
+                  onRemove={() => onRemoveField(fieldId)}
+                  disabled={disabled}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -224,19 +215,13 @@ export function SortableSectionCard({
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Section card selection on click
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Section card selection on click
-    <div
+    <section
+      aria-label={section.title || "Form Section"}
       ref={setNodeRef}
       style={style}
       onDragOver={handleNativeDragOver}
       onDragLeave={handleNativeDragLeave}
       onDrop={handleNativeDrop}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelectSection(section.id);
-        onSelectField(null, null);
-      }}
       className={cn(
         "rounded-lg transition-all relative",
         isPlainRoot
@@ -275,7 +260,7 @@ export function SortableSectionCard({
                   e.stopPropagation();
                   onUpdateSection(section.id, { isCollapsed: !section.isCollapsed });
                 }}
-                className="text-muted-foreground hover:text-foreground p-0.5"
+                className="text-muted-foreground hover:text-foreground p-0.5 cursor-pointer"
                 aria-label={section.isCollapsed ? "Expand section" : "Collapse section"}
               >
                 {section.isCollapsed ? (
@@ -355,6 +340,7 @@ export function SortableSectionCard({
                 }}
                 className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer"
                 title="Remove container"
+                aria-label={`Remove section ${section.title || section.id}`}
               >
                 <Trash2 className="size-3" />
               </Button>
@@ -378,6 +364,6 @@ export function SortableSectionCard({
           />
         </div>
       )}
-    </div>
+    </section>
   );
 }

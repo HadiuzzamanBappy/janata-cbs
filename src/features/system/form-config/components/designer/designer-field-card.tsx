@@ -6,10 +6,10 @@ import { GripVertical, Trash2 } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
-import type { FormFieldItem } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-config-schema";
 
 export interface DesignerFieldCardProps {
-  field: FormFieldItem;
+  field: FormElement;
   sectionId: string;
   isSelected: boolean;
   onSelect: () => void;
@@ -27,8 +27,10 @@ export function DesignerFieldCard({
   className,
   disabled,
 }: DesignerFieldCardProps) {
+  const fieldId = field.id || field.NAME || String(field.SN || "field");
+
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: field.id,
+    id: fieldId,
     data: {
       type: "field",
       sectionId,
@@ -44,17 +46,11 @@ export function DesignerFieldCard({
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Click to select field inspector
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Click to select field inspector
     <div
       ref={setNodeRef}
       style={style}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}
       className={cn(
-        "rounded-md border px-2.5 py-1.5 flex items-center justify-between text-xs transition-all bg-card/90 hover:border-primary/50 cursor-pointer select-none",
+        "rounded-md border px-2.5 py-1.5 flex items-center justify-between text-xs transition-all bg-card/90 hover:border-primary/50 select-none",
         isSelected
           ? "border-primary ring-1 ring-primary/40 bg-primary/10 shadow-xs"
           : "border-border/70",
@@ -83,45 +79,34 @@ export function DesignerFieldCard({
           className="min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
         >
           <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-foreground truncate">{field.label}</span>
-            {field.required && <span className="text-destructive font-bold text-xs">*</span>}
+            <span className="font-semibold text-foreground truncate">{field.LABEL}</span>
+            {field.REQUIRED && <span className="text-destructive font-bold text-xs">*</span>}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground font-mono">
-            <span>{field.fieldKey}</span>
+            <span>{field.NAME}</span>
             <span>&bull;</span>
             <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase">
-              {field.widget}
+              {field.TYPE}
             </Badge>
-            {field.colSpan && field.colSpan < 12 && (
+            {field.WIDTH && (
               <Badge variant="secondary" className="text-[8px] h-3.5 px-1 font-mono">
-                {field.colSpan === 6
-                  ? "50%"
-                  : field.colSpan === 4
-                    ? "33%"
-                    : field.colSpan === 8
-                      ? "66%"
-                      : field.colSpan === 3
-                        ? "25%"
-                        : `${field.colSpan}/12`}
+                {field.WIDTH}px
               </Badge>
             )}
-            {field.colSpan && field.colSpan === 12 && (
-              <Badge variant="secondary" className="text-[8px] h-3.5 px-1 font-mono">
-                FULL
-              </Badge>
-            )}
-            <Badge
-              variant="outline"
-              className="text-[9px] h-3.5 px-1 text-emerald-500 border-emerald-500/40 bg-emerald-500/5 font-mono"
-            >
-              Model
-            </Badge>
-            {field.formula && (
+            {field.STRUCTURE === "M" && (
               <Badge
-                variant="secondary"
-                className="text-[9px] h-3.5 px-1 bg-amber-500/10 text-amber-500"
+                variant="outline"
+                className="text-[8px] h-3.5 px-1 text-sky-500 border-sky-500/40 bg-sky-500/5 font-mono"
               >
-                Formula
+                MULTI
+              </Badge>
+            )}
+            {field.DISABLED && (
+              <Badge
+                variant="outline"
+                className="text-[8px] h-3.5 px-1 text-muted-foreground border-border bg-muted/40 font-mono"
+              >
+                DISABLED
               </Badge>
             )}
           </div>
@@ -135,7 +120,8 @@ export function DesignerFieldCard({
             e.stopPropagation();
             onRemove();
           }}
-          className="text-muted-foreground/40 hover:text-destructive p-1 rounded transition-colors"
+          className="text-muted-foreground/40 hover:text-destructive p-1 rounded transition-colors cursor-pointer"
+          aria-label={`Remove field ${field.LABEL}`}
         >
           <Trash2 className="size-3" />
         </button>

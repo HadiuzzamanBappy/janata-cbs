@@ -13,27 +13,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import type { FormFieldItem, FormWidgetType } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-config-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 export interface FieldPaletteProps {
   targetModel?: string;
-  usedFieldKeys?: Set<string>;
-  onHighlightField?: (fieldKey: string) => void;
-  onAddField: (template: {
-    label: string;
-    widget: FormWidgetType;
-    colSpan: number;
-    fieldKey?: string;
-    currencyPrefix?: string;
-    options?: string[];
-    modelType?: string;
-    parameter?: unknown;
-  }) => void;
+  usedFieldNames?: Set<string>;
+  onHighlightField?: (fieldName: string) => void;
+  onAddField: (template: Partial<FormElement>) => void;
   onAddSection: (
     type: "standard" | "object-group" | "array-table",
     zone?: "header" | "tab" | "standard",
-    initialFields?: FormFieldItem[],
+    initialFields?: FormElement[],
     layoutStyle?: "card" | "plain",
     customTitle?: string,
     tabGroupId?: string,
@@ -44,9 +35,41 @@ export interface FieldPaletteProps {
   disabled?: boolean;
 }
 
+function modelPropToFormElement(prop: ModelProperty): FormElement {
+  return {
+    id: `f_${prop.NAME}_${Date.now()}`,
+    SN: prop.SN || "1",
+    NAME: prop.NAME,
+    LABEL: prop.LABEL || prop.NAME,
+    TYPE: prop.TYPE || "Text",
+    LENGTH: prop.LENGTH ?? 35,
+    STRUCTURE: prop.STRUCTURE || "S",
+    REQUIRED: prop.REQUIRED ?? false,
+    DISABLED: false,
+    WIDTH: prop.WIDTH ?? 200,
+    POSITION: "",
+    PARAMETER: {
+      type: "O",
+      data: [],
+      modelName: "",
+      displayField: "",
+      condition: "",
+      reference: "",
+    },
+    ENRICHTEXT: "",
+    VALUE: "",
+    FIXEDVALUE: "",
+    ISOPEN: false,
+    ISLOADING: false,
+    PROP: [],
+    DATASOURCE: [],
+    DEFAULTVALUE: "",
+  };
+}
+
 export function FieldPalette({
   targetModel,
-  usedFieldKeys = new Set(),
+  usedFieldNames = new Set(),
   onHighlightField,
   onAddField,
   onAddSection,
@@ -88,62 +111,9 @@ export function FieldPalette({
     "variables",
   );
 
-  const mapPropertyToWidget = (
-    prop: ModelProperty,
-  ): {
-    widget: FormWidgetType;
-    currencyPrefix?: string;
-    options?: string[];
-    modelType?: string;
-    parameter?: unknown;
-  } => {
-    const isAmount =
-      prop.NAME.toLowerCase().includes("deposit") ||
-      prop.NAME.toLowerCase().includes("amount") ||
-      prop.NAME.toLowerCase().includes("balance");
-
-    if (isAmount) {
-      return {
-        widget: "amount",
-        currencyPrefix: "BDT",
-        modelType: prop.TYPE,
-        parameter: prop.PARAMETER,
-      };
-    }
-
-    const staticOptions =
-      prop.PARAMETER?.TYPE === "O" && Array.isArray(prop.PARAMETER.DATA)
-        ? prop.PARAMETER.DATA.map((d) => d.ITEMLABEL || d.ITEMCODE)
-        : undefined;
-
-    let widget: FormWidgetType = "text";
-    if (prop.TYPE === "Number") {
-      widget = staticOptions?.length ? "select" : "number";
-    } else if (prop.TYPE === "Date") {
-      widget = "date";
-    } else if (prop.TYPE === "Boolean") {
-      widget = "switch";
-    } else if (prop.TYPE === "Dropdown") {
-      widget = "select";
-    } else if (prop.TYPE === "Radio") {
-      widget = "radio-group";
-    } else if (prop.TYPE === "Checkbox" || prop.TYPE === "Array") {
-      widget = "checkbox-group";
-    } else if (prop.TYPE === "Textarea") {
-      widget = "textarea";
-    }
-
-    return {
-      widget,
-      options: staticOptions,
-      modelType: prop.TYPE,
-      parameter: prop.PARAMETER,
-    };
-  };
-
   const placedCount = React.useMemo(() => {
-    return modelProperties.filter((p) => usedFieldKeys.has(p.NAME)).length;
-  }, [modelProperties, usedFieldKeys]);
+    return modelProperties.filter((p) => usedFieldNames.has(p.NAME)).length;
+  }, [modelProperties, usedFieldNames]);
 
   // Group properties into standalone fields and hierarchical object groups
   type PaletteItem =
@@ -160,13 +130,13 @@ export function FieldPalette({
     const childSet = new Set<string>();
 
     for (const p of modelProperties) {
-      if (p.TYPE === "Object") {
+      if ((p.TYPE as string) === "Object") {
         objectMap.set(p.SN, { parent: p, children: [] });
       }
     }
 
     for (const p of modelProperties) {
-      if (p.TYPE !== "Object" && p.SN.includes("_")) {
+      if ((p.TYPE as string) !== "Object" && p.SN.includes("_")) {
         const parentSn = p.SN.substring(0, p.SN.lastIndexOf("_"));
         const parentEntry = objectMap.get(parentSn);
         if (parentEntry) {
@@ -178,7 +148,7 @@ export function FieldPalette({
 
     const items: PaletteItem[] = [];
     for (const p of modelProperties) {
-      if (p.TYPE === "Object") {
+      if ((p.TYPE as string) === "Object") {
         const grp = objectMap.get(p.SN);
         if (grp) {
           items.push({ kind: "object-group", parent: grp.parent, children: grp.children });
@@ -188,41 +158,23 @@ export function FieldPalette({
       }
     }
 
-    // Filter by modelFilter ("all" | "unplaced")
     if (modelFilter === "unplaced") {
       return items.filter((item) => {
         if (item.kind === "single") {
-          return !usedFieldKeys.has(item.property.NAME);
+          return !usedFieldNames.has(item.property.NAME);
         }
-        // For object group, show if any child is unplaced or parent is not fully placed
-        return item.children.some((c) => !usedFieldKeys.has(c.NAME));
+        return item.children.some((c) => !usedFieldNames.has(c.NAME));
       });
     }
 
     return items;
-  }, [modelProperties, modelFilter, usedFieldKeys]);
+  }, [modelProperties, modelFilter, usedFieldNames]);
 
   const handleAddEntireObjectGroup = (parent: ModelProperty, children: ModelProperty[]) => {
-    const initialFields: FormFieldItem[] = children.map((child, idx) => {
-      const mapped = mapPropertyToWidget(child);
-      return {
-        id: `f_${child.NAME}_${Date.now()}_${idx}`,
-        fieldKey: child.NAME,
-        label: child.LABEL,
-        widget: mapped.widget,
-        currencyPrefix: mapped.currencyPrefix,
-        colSpan: 12,
-        options: mapped.options,
-        modelType: mapped.modelType,
-        parameter: mapped.parameter,
-        structure: child.STRUCTURE || "S",
-        groupKey: parent.NAME,
-        groupSn: parent.SN,
-        groupLabel: parent.LABEL || parent.NAME,
-        groupStructure: parent.STRUCTURE,
-        isFirstInGroup: idx === 0,
-      };
-    });
+    const initialFields: FormElement[] = children.map((child, idx) => ({
+      ...modelPropToFormElement(child),
+      SN: child.SN || `${parent.SN || "1"}_${idx + 1}`,
+    }));
 
     onAddSection(
       "object-group",
@@ -239,7 +191,7 @@ export function FieldPalette({
 
   return (
     <div className="w-60 border-r border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0">
-      {/* Palette Navigation Tabs: Variables (First & Default) vs Containers */}
+      {/* Palette Navigation Tabs */}
       <div className="border-b border-border/70 bg-muted/20 flex items-center p-1 gap-1">
         <button
           type="button"
@@ -276,10 +228,9 @@ export function FieldPalette({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {/* TAB 1: VARIABLES (Model Schema Fields) - DEFAULT & FIRST */}
+        {/* TAB 1: VARIABLES */}
         {activePaletteTab === "variables" && (
           <div className="p-2 space-y-2">
-            {/* Full-width Sub-Tab Strip under Root Tabs */}
             {modelProperties.length > 0 && (
               <div className="flex items-center w-full bg-muted/30 p-0.5 rounded border border-border/60">
                 <button
@@ -318,13 +269,12 @@ export function FieldPalette({
                 {paletteItems.map((item) => {
                   if (item.kind === "single") {
                     const prop = item.property;
-                    const mapped = mapPropertyToWidget(prop);
-                    const isPlaced = usedFieldKeys.has(prop.NAME);
+                    const isPlaced = usedFieldNames.has(prop.NAME);
 
                     return (
-                      // biome-ignore lint/a11y/noStaticElementInteractions: Draggable palette variable item
-                      <div
+                      <button
                         key={prop.NAME}
+                        type="button"
                         draggable={!disabled && !isPlaced}
                         onDragStart={(e) => {
                           if (disabled || isPlaced) {
@@ -333,60 +283,38 @@ export function FieldPalette({
                           }
                           const payload = {
                             type: "palette-variable",
-                            template: {
-                              label: prop.LABEL,
-                              fieldKey: prop.NAME,
-                              widget: mapped.widget,
-                              currencyPrefix: mapped.currencyPrefix,
-                              colSpan: 12,
-                              options: mapped.options,
-                              modelType: mapped.modelType,
-                              parameter: mapped.parameter,
-                              structure: prop.STRUCTURE || "S",
-                            },
+                            element: modelPropToFormElement(prop),
                           };
                           e.dataTransfer.setData("application/json", JSON.stringify(payload));
                           e.dataTransfer.effectAllowed = "copy";
                         }}
+                        onClick={() => {
+                          if (isPlaced) {
+                            onHighlightField?.(prop.NAME);
+                          } else {
+                            onAddField(modelPropToFormElement(prop));
+                          }
+                        }}
                         className={cn(
-                          "flex items-center justify-between px-2 py-1.5 rounded border text-[11px] transition-all",
+                          "w-full flex items-center justify-between px-2 py-1.5 rounded border text-[11px] transition-all text-left cursor-pointer",
                           isPlaced
                             ? "bg-muted/20 border-emerald-500/30 text-muted-foreground cursor-default"
                             : "bg-background border-border/70 text-foreground hover:border-primary/50 shadow-2xs cursor-grab active:cursor-grabbing",
                         )}
+                        title={
+                          isPlaced
+                            ? `Field '${prop.NAME}' is already on canvas. Click to inspect.`
+                            : `Drag or click to add '${prop.NAME}' to canvas`
+                        }
                       >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (isPlaced) {
-                              onHighlightField?.(prop.NAME);
-                            } else {
-                              onAddField({
-                                label: prop.LABEL,
-                                fieldKey: prop.NAME,
-                                widget: mapped.widget,
-                                currencyPrefix: mapped.currencyPrefix,
-                                colSpan: 12,
-                                options: mapped.options,
-                                modelType: mapped.modelType,
-                                parameter: mapped.parameter,
-                              });
-                            }
-                          }}
-                          className="flex items-center gap-1.5 truncate flex-1 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer"
-                          title={
-                            isPlaced
-                              ? `Field '${prop.NAME}' is already on canvas. Click to inspect.`
-                              : `Drag or click to add '${prop.NAME}' to canvas`
-                          }
-                        >
+                        <div className="flex items-center gap-1.5 truncate flex-1 min-w-0">
                           {isPlaced ? (
                             <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
                           ) : (
                             <Plus className="size-3 text-primary shrink-0" />
                           )}
                           <span className="truncate font-medium">{prop.LABEL}</span>
-                        </button>
+                        </div>
 
                         <div className="flex items-center gap-1 shrink-0 ml-1">
                           <Badge
@@ -399,18 +327,18 @@ export function FieldPalette({
                             {isPlaced ? "PLACED" : prop.TYPE}
                           </Badge>
                         </div>
-                      </div>
+                      </button>
                     );
                   }
 
-                  // Object Group Card with hierarchical child fields
+                  // Object Group Card
                   const parent = item.parent;
                   const children = item.children;
                   const isCollapsed = collapsedGroups[parent.SN] ?? false;
                   const allPlaced =
-                    children.length > 0 && children.every((c) => usedFieldKeys.has(c.NAME));
+                    children.length > 0 && children.every((c) => usedFieldNames.has(c.NAME));
                   const placedChildrenCount = children.filter((c) =>
-                    usedFieldKeys.has(c.NAME),
+                    usedFieldNames.has(c.NAME),
                   ).length;
 
                   return (
@@ -454,7 +382,7 @@ export function FieldPalette({
                         </div>
                       </div>
 
-                      {/* Add Entire Object Group Button & Drag Handle */}
+                      {/* Add Entire Object Group Button */}
                       {!isCollapsed && (
                         <div className="p-1.5 space-y-1.5 bg-background/50">
                           {!allPlaced && (
@@ -473,14 +401,13 @@ export function FieldPalette({
 
                           {/* Children List */}
                           <div className="space-y-1 pl-1 border-l-2 border-primary/20">
-                            {children.map((child, childIdx) => {
-                              const mapped = mapPropertyToWidget(child);
-                              const isChildPlaced = usedFieldKeys.has(child.NAME);
+                            {children.map((child) => {
+                              const isChildPlaced = usedFieldNames.has(child.NAME);
 
                               return (
-                                // biome-ignore lint/a11y/noStaticElementInteractions: Draggable child variable
-                                <div
+                                <button
                                   key={child.NAME}
+                                  type="button"
                                   draggable={!disabled && !isChildPlaced}
                                   onDragStart={(e) => {
                                     if (disabled || isChildPlaced) {
@@ -489,22 +416,7 @@ export function FieldPalette({
                                     }
                                     const payload = {
                                       type: "palette-variable",
-                                      template: {
-                                        label: child.LABEL,
-                                        fieldKey: child.NAME,
-                                        widget: mapped.widget,
-                                        currencyPrefix: mapped.currencyPrefix,
-                                        colSpan: 12,
-                                        options: mapped.options,
-                                        modelType: mapped.modelType,
-                                        parameter: mapped.parameter,
-                                        structure: child.STRUCTURE || "S",
-                                        groupKey: parent.NAME,
-                                        groupSn: parent.SN,
-                                        groupLabel: parent.LABEL || parent.NAME,
-                                        groupStructure: parent.STRUCTURE,
-                                        isFirstInGroup: childIdx === 0,
-                                      },
+                                      element: modelPropToFormElement(child),
                                     };
                                     e.dataTransfer.setData(
                                       "application/json",
@@ -512,45 +424,33 @@ export function FieldPalette({
                                     );
                                     e.dataTransfer.effectAllowed = "copy";
                                   }}
+                                  onClick={() => {
+                                    if (isChildPlaced) {
+                                      onHighlightField?.(child.NAME);
+                                    } else {
+                                      onAddField(modelPropToFormElement(child));
+                                    }
+                                  }}
                                   className={cn(
-                                    "flex items-center justify-between px-1.5 py-1 rounded border text-[10px] transition-all",
+                                    "w-full flex items-center justify-between px-1.5 py-1 rounded border text-[10px] transition-all text-left cursor-pointer",
                                     isChildPlaced
                                       ? "bg-muted/20 border-emerald-500/30 text-muted-foreground cursor-default"
                                       : "bg-background border-border/70 text-foreground hover:border-primary/50 shadow-2xs cursor-grab active:cursor-grabbing",
                                   )}
+                                  title={
+                                    isChildPlaced
+                                      ? `Child field '${child.NAME}' is already placed`
+                                      : `Drag or click to place '${child.NAME}'`
+                                  }
                                 >
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (isChildPlaced) {
-                                        onHighlightField?.(child.NAME);
-                                      } else {
-                                        onAddField({
-                                          label: child.LABEL,
-                                          fieldKey: child.NAME,
-                                          widget: mapped.widget,
-                                          currencyPrefix: mapped.currencyPrefix,
-                                          colSpan: 12,
-                                          options: mapped.options,
-                                          modelType: mapped.modelType,
-                                          parameter: mapped.parameter,
-                                        });
-                                      }
-                                    }}
-                                    className="flex items-center gap-1 truncate flex-1 min-w-0 bg-transparent border-0 p-0 text-left cursor-pointer"
-                                    title={
-                                      isChildPlaced
-                                        ? `Child field '${child.NAME}' is already placed`
-                                        : `Drag or click to place '${child.NAME}'`
-                                    }
-                                  >
+                                  <div className="flex items-center gap-1 truncate flex-1 min-w-0">
                                     {isChildPlaced ? (
                                       <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
                                     ) : (
                                       <Plus className="size-2.5 text-primary shrink-0" />
                                     )}
                                     <span className="truncate font-medium">{child.LABEL}</span>
-                                  </button>
+                                  </div>
 
                                   <div className="flex items-center gap-1 shrink-0 ml-1">
                                     <Badge
@@ -564,7 +464,7 @@ export function FieldPalette({
                                       {isChildPlaced ? "PLACED" : child.TYPE}
                                     </Badge>
                                   </div>
-                                </div>
+                                </button>
                               );
                             })}
                           </div>
@@ -584,12 +484,14 @@ export function FieldPalette({
           </div>
         )}
 
-        {/* TAB 2: CONTAINERS (Layout Containers: 2-Col, 3-Col, Card, Group, Tab) */}
+        {/* TAB 2: CONTAINERS */}
         {activePaletteTab === "containers" && (
           <div className="p-2 space-y-1.5">
             {/* 2-Column Row Container */}
-            {/* biome-ignore lint/a11y/noStaticElementInteractions: Draggable container button wrapper */}
-            <div
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={disabled}
               draggable={!disabled}
               onDragStart={(e) => {
                 if (disabled) return;
@@ -604,40 +506,35 @@ export function FieldPalette({
                 e.dataTransfer.setData("application/json", JSON.stringify(payload));
                 e.dataTransfer.effectAllowed = "copy";
               }}
-              className="cursor-grab active:cursor-grabbing"
+              onClick={() =>
+                onAddSection(
+                  "standard",
+                  "standard",
+                  [],
+                  "card",
+                  "2-Column Row",
+                  undefined,
+                  undefined,
+                  undefined,
+                  2,
+                )
+              }
+              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={disabled}
-                onClick={() =>
-                  onAddSection(
-                    "standard",
-                    "standard",
-                    [],
-                    "card",
-                    "2-Column Row",
-                    undefined,
-                    undefined,
-                    undefined,
-                    2,
-                  )
-                }
-                className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs pointer-events-auto"
-              >
-                <Columns className="size-3.5 text-blue-500" />
-                <div className="flex flex-col text-left">
-                  <span className="font-semibold">+ 2-Column Row</span>
-                  <span className="text-[9px] text-muted-foreground">
-                    2 columns layout (50% / 50%)
-                  </span>
-                </div>
-              </Button>
-            </div>
+              <Columns className="size-3.5 text-blue-500" />
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">+ 2-Column Row</span>
+                <span className="text-[9px] text-muted-foreground">
+                  2 columns layout (50% / 50%)
+                </span>
+              </div>
+            </Button>
 
             {/* 3-Column Row Container */}
-            {/* biome-ignore lint/a11y/noStaticElementInteractions: Draggable container button wrapper */}
-            <div
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={disabled}
               draggable={!disabled}
               onDragStart={(e) => {
                 if (disabled) return;
@@ -652,40 +549,35 @@ export function FieldPalette({
                 e.dataTransfer.setData("application/json", JSON.stringify(payload));
                 e.dataTransfer.effectAllowed = "copy";
               }}
-              className="cursor-grab active:cursor-grabbing"
+              onClick={() =>
+                onAddSection(
+                  "standard",
+                  "standard",
+                  [],
+                  "card",
+                  "3-Column Row",
+                  undefined,
+                  undefined,
+                  undefined,
+                  3,
+                )
+              }
+              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={disabled}
-                onClick={() =>
-                  onAddSection(
-                    "standard",
-                    "standard",
-                    [],
-                    "card",
-                    "3-Column Row",
-                    undefined,
-                    undefined,
-                    undefined,
-                    3,
-                  )
-                }
-                className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs pointer-events-auto"
-              >
-                <LayoutGrid className="size-3.5 text-emerald-500" />
-                <div className="flex flex-col text-left">
-                  <span className="font-semibold">+ 3-Column Row</span>
-                  <span className="text-[9px] text-muted-foreground">
-                    3 columns layout (33% each / free columns)
-                  </span>
-                </div>
-              </Button>
-            </div>
+              <LayoutGrid className="size-3.5 text-emerald-500" />
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">+ 3-Column Row</span>
+                <span className="text-[9px] text-muted-foreground">
+                  3 columns layout (33% each / free columns)
+                </span>
+              </div>
+            </Button>
 
             {/* Standard 1-Col Card Container */}
-            {/* biome-ignore lint/a11y/noStaticElementInteractions: Draggable container button wrapper */}
-            <div
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={disabled}
               draggable={!disabled}
               onDragStart={(e) => {
                 if (disabled) return;
@@ -700,40 +592,35 @@ export function FieldPalette({
                 e.dataTransfer.setData("application/json", JSON.stringify(payload));
                 e.dataTransfer.effectAllowed = "copy";
               }}
-              className="cursor-grab active:cursor-grabbing"
+              onClick={() =>
+                onAddSection(
+                  "standard",
+                  "standard",
+                  [],
+                  "card",
+                  "Card Container",
+                  undefined,
+                  undefined,
+                  undefined,
+                  1,
+                )
+              }
+              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={disabled}
-                onClick={() =>
-                  onAddSection(
-                    "standard",
-                    "standard",
-                    [],
-                    "card",
-                    "Card Container",
-                    undefined,
-                    undefined,
-                    undefined,
-                    1,
-                  )
-                }
-                className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs pointer-events-auto"
-              >
-                <Layers className="size-3.5 text-amber-500" />
-                <div className="flex flex-col text-left">
-                  <span className="font-semibold">+ Card Container</span>
-                  <span className="text-[9px] text-muted-foreground">
-                    Standard 1-column visual section card
-                  </span>
-                </div>
-              </Button>
-            </div>
+              <Layers className="size-3.5 text-amber-500" />
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">+ Card Container</span>
+                <span className="text-[9px] text-muted-foreground">
+                  Standard 1-column visual section card
+                </span>
+              </div>
+            </Button>
 
             {/* Object Group */}
-            {/* biome-ignore lint/a11y/noStaticElementInteractions: Draggable container button wrapper */}
-            <div
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={disabled}
               draggable={!disabled}
               onDragStart={(e) => {
                 if (disabled) return;
@@ -748,38 +635,33 @@ export function FieldPalette({
                 e.dataTransfer.setData("application/json", JSON.stringify(payload));
                 e.dataTransfer.effectAllowed = "copy";
               }}
-              className="cursor-grab active:cursor-grabbing"
+              onClick={() =>
+                onAddSection(
+                  "object-group",
+                  "standard",
+                  [],
+                  "card",
+                  "Object Group",
+                  undefined,
+                  undefined,
+                  undefined,
+                  1,
+                )
+              }
+              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={disabled}
-                onClick={() =>
-                  onAddSection(
-                    "object-group",
-                    "standard",
-                    [],
-                    "card",
-                    "Object Group",
-                    undefined,
-                    undefined,
-                    undefined,
-                    1,
-                  )
-                }
-                className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs pointer-events-auto"
-              >
-                <Layers className="size-3.5 text-purple-500" />
-                <div className="flex flex-col text-left">
-                  <span className="font-semibold">+ Object Group</span>
-                  <span className="text-[9px] text-muted-foreground">Nested sub-model binding</span>
-                </div>
-              </Button>
-            </div>
+              <Layers className="size-3.5 text-purple-500" />
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">+ Object Group</span>
+                <span className="text-[9px] text-muted-foreground">Nested sub-model binding</span>
+              </div>
+            </Button>
 
             {/* Tab Group */}
-            {/* biome-ignore lint/a11y/noStaticElementInteractions: Draggable container button wrapper */}
-            <div
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={disabled}
               draggable={!disabled}
               onDragStart={(e) => {
                 if (disabled) return;
@@ -795,36 +677,29 @@ export function FieldPalette({
                 e.dataTransfer.setData("application/json", JSON.stringify(payload));
                 e.dataTransfer.effectAllowed = "copy";
               }}
-              className="cursor-grab active:cursor-grabbing"
+              onClick={() =>
+                onAddSection(
+                  "standard",
+                  "tab",
+                  [],
+                  "card",
+                  "Tab 1",
+                  undefined,
+                  "Tab 1",
+                  undefined,
+                  1,
+                )
+              }
+              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
             >
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={disabled}
-                onClick={() =>
-                  onAddSection(
-                    "standard",
-                    "tab",
-                    [],
-                    "card",
-                    "Tab 1",
-                    undefined,
-                    "Tab 1",
-                    undefined,
-                    1,
-                  )
-                }
-                className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs pointer-events-auto"
-              >
-                <Layers className="size-3.5 text-sky-500" />
-                <div className="flex flex-col text-left">
-                  <span className="font-semibold">+ Tab Group</span>
-                  <span className="text-[9px] text-muted-foreground">
-                    Tab container with addable tabs
-                  </span>
-                </div>
-              </Button>
-            </div>
+              <Layers className="size-3.5 text-sky-500" />
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">+ Tab Group</span>
+                <span className="text-[9px] text-muted-foreground">
+                  Tab container with addable tabs
+                </span>
+              </div>
+            </Button>
           </div>
         )}
       </div>

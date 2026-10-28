@@ -1,6 +1,6 @@
 "use client";
 
-import { Code, Eye, FileText, Layers, Palette, ShieldCheck } from "lucide-react";
+import { Code, Eye, FileText, Layers, Palette, ShieldCheck, Workflow } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
@@ -10,9 +10,10 @@ import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
 import { FcPreviewTab } from "./components/fc-preview-tab";
+import { FcRoutineTab } from "./components/fc-routine-tab";
 import { useFormConfig } from "./hooks/use-form-config";
 
-type FormConfigTabKey = "general" | "designer" | "preview" | "audit" | "json";
+type FormConfigTabKey = "general" | "formRoutine" | "formDesigner" | "audit" | "preview" | "json";
 
 export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -80,8 +81,16 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         ),
       },
       {
-        id: "designer",
-        label: "Visual Designer",
+        id: "formRoutine",
+        label: "Form Routine",
+        icon: <Workflow className="size-3 text-cyan-500" />,
+        content: (
+          <FcRoutineTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
+        ),
+      },
+      {
+        id: "formDesigner",
+        label: "Form Designer",
         icon: <Palette className="size-3 text-primary" />,
         content: (
           <FcDesignerTab
@@ -90,7 +99,15 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
                 ? formData.targetModel
                 : targetModelRecord?.TABLENAME
             }
-            sections={formData.presentation.sections}
+            sections={
+              formData.frmElements?.sections ||
+              (
+                formData as unknown as {
+                  presentation?: { sections: typeof formData.frmElements.sections };
+                }
+              ).presentation?.sections ||
+              []
+            }
             selectedSectionId={selectedSectionId}
             selectedFieldId={selectedFieldId}
             onSelectSection={setSelectedSectionId}
@@ -110,16 +127,16 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         ),
       },
       {
-        id: "preview",
-        label: "Live Preview",
-        icon: <Eye className="size-3 text-emerald-500" />,
-        content: <FcPreviewTab formData={formData} targetModelRecord={targetModelRecord} />,
-      },
-      {
         id: "audit",
         label: "Audit Data",
         icon: <ShieldCheck className="size-3 text-purple-500" />,
         content: <FcAuditTab formData={formData} />,
+      },
+      {
+        id: "preview",
+        label: "Live Preview",
+        icon: <Eye className="size-3 text-emerald-500" />,
+        content: <FcPreviewTab formData={formData} targetModelRecord={targetModelRecord} />,
       },
       {
         id: "json",

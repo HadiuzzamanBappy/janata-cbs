@@ -1,12 +1,12 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { exportToCSV, exportToHTML, exportToXML } from "@/lib/core-utils/export";
-import type { EnquiryRow, EnquirySchema } from "@/lib/data-schemas";
+import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
 import type { DrillRecord } from "../components/inquiry-drill-down";
 import { resolveDrillDownFormCommand } from "../utils/resolve-form-command";
 
 export interface UseInquiryActionsProps {
-  schema: EnquirySchema | null;
+  schema: InquiryConfigRecord | null;
   filteredRows: EnquiryRow[];
   setFilteredRows: (rows: EnquiryRow[]) => void;
   setDrillRecord: (record: DrillRecord | null) => void;
@@ -58,7 +58,8 @@ export function useInquiryActions({
 
   const handleExportCSV = React.useCallback(() => {
     if (!schema || filteredRows.length === 0) return;
-    exportToCSV(filteredRows, schema.columns, schema.code);
+    const filename = schema.id || "inquiry";
+    exportToCSV(filteredRows, schema.columns, filename);
     toast.add({
       title: "Export Completed",
       description: `Exported ${filteredRows.length} rows to CSV`,
@@ -68,7 +69,8 @@ export function useInquiryActions({
 
   const handleExportHTML = React.useCallback(() => {
     if (!schema || filteredRows.length === 0) return;
-    exportToHTML(filteredRows, schema.columns, schema.code, schema.title);
+    const filename = schema.id || "inquiry";
+    exportToHTML(filteredRows, schema.columns, filename, schema.title || filename);
     toast.add({
       title: "HTML Export Completed",
       description: `Saved HTML report with ${filteredRows.length} records`,
@@ -78,7 +80,8 @@ export function useInquiryActions({
 
   const handleExportXML = React.useCallback(() => {
     if (!schema || filteredRows.length === 0) return;
-    exportToXML(filteredRows, schema.columns, schema.code, schema.title);
+    const filename = schema.id || "inquiry";
+    exportToXML(filteredRows, schema.columns, filename, schema.title || filename);
     toast.add({
       title: "XML Export Completed",
       description: `Saved XML report with ${filteredRows.length} records`,

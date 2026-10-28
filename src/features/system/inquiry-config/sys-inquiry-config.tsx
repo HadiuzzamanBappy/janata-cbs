@@ -5,8 +5,12 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { type CbsScreenProps, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
 import { CbsControlTable } from "@/types";
-import { IcGeneralTab, IcJsonTab, IcPreviewTab, IcSelectionTab, IcTableTab } from "./components";
-import { useInquiryConfig } from "./hooks";
+import { IcGeneralTab } from "./components/ic-general-tab";
+import { IcJsonTab } from "./components/ic-json-tab";
+import { IcPreviewTab } from "./components/ic-preview-tab";
+import { IcSelectionTab } from "./components/ic-selection-tab";
+import { IcTableTab } from "./components/ic-table-tab";
+import { useInquiryConfig } from "./hooks/use-inquiry-config";
 
 type InquiryConfigTabKey = "general" | "selection" | "table" | "preview" | "json";
 
@@ -82,13 +86,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         content: (
           <IcSelectionTab
             filters={formData.filters || []}
-            targetModel={
-              typeof formData.controllerName === "string"
-                ? formData.controllerName
-                : typeof formData.targetModel === "string"
-                  ? formData.targetModel
-                  : undefined
-            }
+            targetModel={formData.controllerName}
             onAddFilter={addFilter}
             onUpdateFilter={updateFilter}
             onRemoveFilter={removeFilter}
@@ -105,13 +103,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
           <IcTableTab
             columns={formData.columns || []}
             actions={formData.actions || []}
-            targetModel={
-              typeof formData.controllerName === "string"
-                ? formData.controllerName
-                : typeof formData.targetModel === "string"
-                  ? formData.targetModel
-                  : undefined
-            }
+            targetModel={formData.controllerName}
             onAddColumn={addColumn}
             onUpdateColumn={updateColumn}
             onRemoveColumn={removeColumn}

@@ -2,8 +2,8 @@ import "server-only";
 
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
-import { parseGMC } from "@/lib/data-parsers";
-import type { ParsedFormData } from "@/lib/data-schemas";
+import { parseFormConfig } from "@/lib/data-parsers";
+import type { FormConfigRecord } from "@/lib/data-schemas";
 import { grpcProcess } from "@/lib/infra-grpc";
 import { getOrSet } from "@/lib/infra-redis";
 import { CbsRecordFunction, CbsRequestType } from "@/types";
@@ -21,8 +21,8 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
   const payload = {
     idempotencyKey: "",
     clientId: ctx.clientId,
-    requestType: CbsRequestType.GMC,
-    controlName: "?",
+    requestType: CbsRequestType.GFC,
+    controlName: "CONFIG.FORM",
     recordFunction: CbsRecordFunction.SEE,
     recordId: cleanCmd,
     branchCode: ctx.branchCode,
@@ -31,17 +31,15 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
     data: {},
   };
 
-  log.info(`Outgoing gRPC Payload for GMC "${cleanCmd}"`, payload);
+  log.info(`Outgoing gRPC Payload for GFC "${cleanCmd}"`, payload);
 
   const res = await grpcProcess(ctx.address, GRPC_SERVICE_CATEGORY, payload, {
     token: ctx.token,
   });
 
-  log.info(`Incoming gRPC Response for GMC "${cleanCmd}"`, res);
+  log.info(`Incoming gRPC Response for GFC "${cleanCmd}"`, res);
 
   if (res.statusCode !== 200 || !res.data) {
-    // If a specific version (e.g. "USER.MGT,NEW1") wasn't found in the database,
-    // fallback to the base model table ("USER.MGT") so the form can still render
     if (cleanCmd.includes(",")) {
       const baseCmd = cleanCmd.split(",")[0].trim();
       log.warn(
@@ -51,7 +49,7 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
     }
 
     throw new Error(
-      `gRPC GMC fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`,
+      `gRPC GFC fetch failed for ${cleanCmd} (${res.statusCode}): ${res.message || "No data"}`,
     );
   }
 
@@ -61,7 +59,10 @@ async function fetchModelWirePayload(cleanCmd: string, tokenParam?: string): Pro
 /**
  * Retrieves the screen schema specification for a dynamic CBS transaction form (cached in Redis).
  */
-export async function getFormData(command: string, token?: string): Promise<ParsedFormData | null> {
+export async function getFormData(
+  command: string,
+  token?: string,
+): Promise<FormConfigRecord | null> {
   const cleanCmd = normalizeCommand(command, { preserveVersion: true });
 
   return getOrSet(
@@ -69,9 +70,9 @@ export async function getFormData(command: string, token?: string): Promise<Pars
     async () => {
       const wireData = await fetchModelWirePayload(cleanCmd, token);
       if (!wireData) return null;
-      const parseResult = parseGMC(wireData, cleanCmd);
+      const parseResult = parseFormConfig(wireData);
       if (!parseResult.success) {
-        log.error(`parseGMC failed for "${cleanCmd}"`, parseResult.error);
+        log.error(`parseFormConfig failed for "${cleanCmd}"`, parseResult.error);
         return null;
       }
       return parseResult.data;

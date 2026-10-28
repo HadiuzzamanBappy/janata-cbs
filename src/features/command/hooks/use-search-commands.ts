@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { extractMenuCommands, getAllRegisteredCommands } from "@/lib/cbs-command";
 import { appConfig } from "@/lib/core-config";
@@ -11,37 +12,45 @@ interface UseSearchCommandsOptions {
 }
 
 export function useSearchCommands({ open, userHasCommandLine }: UseSearchCommandsOptions) {
-  const [apiMenuItems, setApiMenuItems] = React.useState<SystemCommandItem[]>([]);
+  // 1. Re-use the exact same menu-raw query cache used by sidebar navigation
+  const { data: menuCmds = [] } = useQuery<SystemCommandItem[]>({
+    queryKey: ["app", "sidebar", "menu-raw"],
+    enabled: open,
+    queryFn: async () => {
+      try {
+        const res = await fetch(appConfig.routes.api.menu);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          return extractMenuCommands(json.data);
+        }
+      } catch {
+        // Fallback
+      }
+      return [];
+    },
+  });
 
-  React.useEffect(() => {
-    if (!open) {
-      return;
-    }
+  // 2. Fetch controls commands only if user has commandLine permission
+  const { data: controlCmds = [] } = useQuery<SystemCommandItem[]>({
+    queryKey: ["app", "commands", "controls"],
+    enabled: open && userHasCommandLine,
+    queryFn: async () => {
+      try {
+        const res = await fetch(appConfig.routes.api.controls);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          return json.data;
+        }
+      } catch {
+        // Fallback
+      }
+      return [];
+    },
+  });
 
-    const fetches: Promise<{ success: boolean; data?: unknown }>[] = [
-      fetch(appConfig.routes.api.menu)
-        .then((res) => res.json())
-        .catch(() => ({ success: false })),
-    ];
-
-    // Only fetch and expose system control commands if user has commandLine permission
-    if (userHasCommandLine) {
-      fetches.push(
-        fetch(appConfig.routes.api.controls)
-          .then((res) => res.json())
-          .catch(() => ({ success: false })),
-      );
-    }
-
-    Promise.all(fetches).then(([menuJson, controlsJson]) => {
-      const menuCmds =
-        menuJson?.success && Array.isArray(menuJson.data) ? extractMenuCommands(menuJson.data) : [];
-      const controlCmds =
-        controlsJson?.success && Array.isArray(controlsJson.data) ? controlsJson.data : [];
-
-      setApiMenuItems([...menuCmds, ...controlCmds]);
-    });
-  }, [open, userHasCommandLine]);
+  const apiMenuItems = React.useMemo(() => {
+    return [...menuCmds, ...(userHasCommandLine ? controlCmds : [])];
+  }, [menuCmds, controlCmds, userHasCommandLine]);
 
   // Merge static registry commands + dynamic API menu commands (deduplicated by command string)
   const allCommands = React.useMemo(() => {

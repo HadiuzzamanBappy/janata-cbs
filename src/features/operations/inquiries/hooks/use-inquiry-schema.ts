@@ -1,53 +1,41 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { appConfig } from "@/lib/core-config";
 import type { InquiryConfigRecord } from "@/lib/data-schemas";
 
 export function useInquirySchema(command: string) {
-  const [schema, setSchema] = useState<InquiryConfigRecord | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchSchema = useCallback(async () => {
-    if (!command) {
-      setSchema(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      // 1. Clean command: strip INQ and record functions to extract canonical inquiry record key
-      const cleanCmd = command
+  const cleanCmd = command
+    ? command
         .split(",")[0]
         .trim()
         .toUpperCase()
         .replace(/^(?:INQ\s+|INQUIRY\s+)/i, "")
         .replace(/^(?:[SRIDAH]\s+)/i, "")
-        .trim();
+        .trim()
+    : "";
 
-      // 2. Fetch schema from dedicated inquiry endpoint
+  const { data, isLoading, error, refetch } = useQuery<InquiryConfigRecord>({
+    queryKey: ["cbs", "inquiry-schema", cleanCmd],
+    enabled: Boolean(cleanCmd),
+    queryFn: async () => {
       const res = await fetch(`${appConfig.routes.api.inquiry}/${encodeURIComponent(cleanCmd)}`);
       const json = await res.json();
 
       if ((json.status === "SUCCESS" || json.success) && json.data) {
-        setSchema(json.data);
-      } else {
-        setError(json.message || json.error || `Failed to fetch inquiry schema for ${cleanCmd}`);
+        return json.data;
       }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Network error fetching inquiry schema");
-    } finally {
-      setLoading(false);
-    }
-  }, [command]);
 
-  useEffect(() => {
-    fetchSchema();
-  }, [fetchSchema]);
+      throw new Error(
+        json.message || json.error || `Failed to fetch inquiry schema for ${cleanCmd}`,
+      );
+    },
+  });
 
-  return { schema, loading, error, refetch: fetchSchema };
+  return {
+    schema: data ?? null,
+    loading: isLoading,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+    refetch,
+  };
 }

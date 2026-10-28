@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
 import { resolveFormRecord } from "@/lib/cbs-form-spec";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
@@ -10,29 +10,21 @@ export interface UseFormSchemaResult {
   modelRecord: ModelConfigRecord | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<unknown>;
+}
+
+interface ResolvedFormSchemaData {
+  schema: FormConfigRecord | null;
+  modelRecord: ModelConfigRecord | null;
 }
 
 export function useFormSchema(command: string): UseFormSchemaResult {
-  const [schema, setSchema] = React.useState<FormConfigRecord | null>(null);
-  const [modelRecord, setModelRecord] = React.useState<ModelConfigRecord | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const cleanCmd = command ? command.trim().toUpperCase() : "";
 
-  const fetchSchema = React.useCallback(async () => {
-    if (!command) {
-      setSchema(null);
-      setModelRecord(null);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const cleanCmd = command.trim().toUpperCase();
-
+  const { data, isLoading, error, refetch } = useQuery<ResolvedFormSchemaData>({
+    queryKey: ["cbs", "form-schema", cleanCmd],
+    enabled: Boolean(cleanCmd),
+    queryFn: async () => {
       // Case 1: Command has explicit layout version (e.g., ACCOUNT,1.0.0)
       if (cleanCmd.includes(",")) {
         const [app, version] = cleanCmd.split(",");
@@ -55,15 +47,13 @@ export function useFormSchema(command: string): UseFormSchemaResult {
               );
               if (modelRes.status === "SUCCESS" && modelRes.data) {
                 model = modelRes.data;
-                setModelRecord(model);
               }
             } catch {
               // Model is optional when form layout is standalone
             }
 
             const compiled = resolveFormRecord(formConfig, model);
-            setSchema(compiled);
-            return;
+            return { schema: compiled, modelRecord: model };
           }
 
           throw new Error(
@@ -80,27 +70,21 @@ export function useFormSchema(command: string): UseFormSchemaResult {
 
       if (modelRes.status === "SUCCESS" && modelRes.data && "PROPERTIES" in modelRes.data) {
         const model = modelRes.data;
-        setModelRecord(model);
         const compiled = resolveFormRecord(model, null);
-        setSchema(compiled);
-        return;
+        return { schema: compiled, modelRecord: model };
       }
 
       throw new Error(
         modelRes.message || `No data model schema registered in MODEL.CONFIG for "${baseModel}"`,
       );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error resolving form specification");
-      setSchema(null);
-      setModelRecord(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [command]);
+    },
+  });
 
-  React.useEffect(() => {
-    fetchSchema();
-  }, [fetchSchema]);
-
-  return { schema, modelRecord, loading, error, refetch: fetchSchema };
+  return {
+    schema: data?.schema ?? null,
+    modelRecord: data?.modelRecord ?? null,
+    loading: isLoading,
+    error: error instanceof Error ? error.message : error ? String(error) : null,
+    refetch,
+  };
 }

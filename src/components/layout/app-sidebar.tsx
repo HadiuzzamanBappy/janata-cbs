@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import * as React from "react";
 import {
@@ -21,12 +22,7 @@ import { useSessionStore } from "@/store";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
 
-let cachedMenuTreeNodes: TreeNode[] | null = null;
-let menuFetchPromise: Promise<TreeNode[]> | null = null;
-
 export function AppSidebar({ ...props }: AppSidebarProps) {
-  const [treeNodes, setTreeNodes] = React.useState<TreeNode[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(true);
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [settingsTab, setSettingsTab] = React.useState("profile");
@@ -43,42 +39,21 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
     setSettingsOpen(true);
   };
 
-  React.useEffect(() => {
-    if (cachedMenuTreeNodes) {
-      setTreeNodes(cachedMenuTreeNodes);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    if (!menuFetchPromise) {
-      menuFetchPromise = fetch(appConfig.routes.api.menu)
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.success && Array.isArray(json.data)) {
-            const nodes = json.data.map(mapMenuItemToTreeNode);
-            cachedMenuTreeNodes = nodes;
-            return nodes;
-          }
-          return [];
-        })
-        .finally(() => {
-          menuFetchPromise = null;
-        });
-    }
-
-    menuFetchPromise
-      .then((nodes) => {
-        setTreeNodes(nodes);
-      })
-      .catch((err) => {
+  const { data: treeNodes = [], isLoading: loading } = useQuery<TreeNode[]>({
+    queryKey: ["app", "sidebar", "menu-tree"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(appConfig.routes.api.menu);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          return json.data.map(mapMenuItemToTreeNode);
+        }
+      } catch (err) {
         logger.error("Failed to load sidebar menu API", err, "SIDEBAR");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+      }
+      return [];
+    },
+  });
 
   return (
     <>

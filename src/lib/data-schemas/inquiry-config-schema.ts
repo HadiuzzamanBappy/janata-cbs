@@ -2,146 +2,95 @@ import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
 
 /* ========================================================================== */
-/* 1. FILTER OPERANDS & ROW DATA                                              */
+/* 1. SELECTION / FILTER FIELDS (INQSelectField)                              */
 /* ========================================================================== */
 
-export const selectionOperandSchema = z.enum(["EQ", "LK", "RG", "NE", "GT", "LT", "CT"]);
-export type SelectionOperand = z.infer<typeof selectionOperandSchema>;
-export const SELECTION_OPERANDS = selectionOperandSchema.options;
-
-export const enquiryRowSchema = z
-  .object({
-    id: z.string(),
-  })
-  .passthrough();
-
-export type EnquiryRow = z.infer<typeof enquiryRowSchema> & {
-  [key: string]: unknown;
-};
-
-/* ========================================================================== */
-/* 2. INQUIRY COLUMN CONFIGURATION                                            */
-/* ========================================================================== */
-
-export const inquiryColumnFormatSchema = z.enum([
-  "text",
-  "currency",
-  "date",
-  "account",
-  "badge",
-  "number",
-]);
-export type InquiryColumnFormat = z.infer<typeof inquiryColumnFormatSchema>;
-
-export const inquiryColumnConfigSchema = z.object({
-  id: z.string().min(1, "Column ID is required"),
-  label: z.string().min(1, "Column Header is required"),
-  width: z.union([z.string(), z.number()]).optional(),
-  align: z.enum(["left", "center", "right"]).default("left"),
-  format: inquiryColumnFormatSchema.default("text"),
-  currencyCode: z.string().optional(),
-  isMono: z.boolean().default(false),
-  sortable: z.boolean().default(true),
-  visible: z.boolean().default(true),
-  isPinned: z.boolean().default(false),
+export const inqSelectFieldSchema = z.object({
+  selectFieldName: z.string().min(1, "Field name is required"),
+  selectFieldType: z.string().default("text"),
+  selectFieldOperator: z.string().default(""),
+  selectFieldOperatorFixed: z.string().default(""),
+  selectFieldDisplay: z.string().min(1, "Display label is required"),
+  selectFieldValue: z.string().default(""),
+  selectFieldRequired: z.boolean().default(false),
 });
 
-export type InquiryColumnConfig = z.infer<typeof inquiryColumnConfigSchema>;
+export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
 
 /* ========================================================================== */
-/* 3. INQUIRY FILTER CONFIGURATION                                            */
+/* 2. COLUMN DEFINITION (INQDef)                                             */
 /* ========================================================================== */
 
-export const inquiryFilterOptionSchema = z.object({
-  label: z.string(),
-  value: z.string(),
+export const inqDefSchema = z.object({
+  fieldName: z.string().min(1, "Field name is required"),
+  fieldType: z.string().default("CH"),
+  fieldFunc: z.string().default(""),
+  fieldRowCol: z.string().default("1,1"),
+  fieldLength: z.string().default("20,L"),
+  fieldDisplay: z.string().min(1, "Display header is required"),
+  dataPassable: z.union([z.string(), z.boolean()]).nullish().default(null),
 });
 
-export type InquiryFilterOption = z.infer<typeof inquiryFilterOptionSchema>;
+export type INQDef = z.infer<typeof inqDefSchema>;
 
-export const inquiryFilterTypeSchema = z.enum(["text", "select", "date", "number"]);
-export type InquiryFilterType = z.infer<typeof inquiryFilterTypeSchema>;
+/* ========================================================================== */
+/* 3. COMMAND ACTIONS (INQCmds)                                               */
+/* ========================================================================== */
 
-export const inquiryFilterConfigSchema = z.object({
-  id: z.string().min(1, "Filter ID is required"),
-  label: z.string().min(1, "Filter Label is required"),
-  type: inquiryFilterTypeSchema.default("text"),
-  defaultOperand: selectionOperandSchema.default("EQ"),
-  defaultValue: z.string().default(""),
-  options: z.array(inquiryFilterOptionSchema).optional().default([]),
-  required: z.boolean().default(false),
+export const inqCmdSchema = z.object({
+  cmdFor: z.string().min(1, "Command target is required"),
+  cmdButton: z.string().min(1, "Button label is required"),
 });
 
-export type InquiryFilterConfig = z.infer<typeof inquiryFilterConfigSchema>;
+export type INQCmd = z.infer<typeof inqCmdSchema>;
 
 /* ========================================================================== */
-/* 4. INQUIRY ACTION CONFIGURATION                                            */
+/* 4. GENERAL INQUIRY INFO (INQInfo)                                          */
 /* ========================================================================== */
 
-export const inquiryActionTypeSchema = z.enum(["view", "edit", "command", "drilldown"]);
-export type InquiryActionType = z.infer<typeof inquiryActionTypeSchema>;
-
-export const inquiryActionIconSchema = z.enum([
-  "eye",
-  "edit",
-  "rotate-ccw",
-  "history",
-  "external-link",
-  "file-text",
-]);
-export type InquiryActionIcon = z.infer<typeof inquiryActionIconSchema>;
-
-export const inquiryActionOpenModeSchema = z.enum(["tab", "popup", "drilldown"]);
-export type InquiryActionOpenMode = z.infer<typeof inquiryActionOpenModeSchema>;
-
-export const inquiryActionConfigSchema = z.object({
-  id: z.string().min(1, "Action ID is required"),
-  label: z.string().min(1, "Action Label is required"),
-  targetCommand: z.string().default(""),
-  actionType: inquiryActionTypeSchema.default("view"),
-  icon: inquiryActionIconSchema.default("eye"),
-  openMode: inquiryActionOpenModeSchema.default("tab"),
-  idParamField: z.string().default("recordId"),
-});
-
-export type InquiryActionConfig = z.infer<typeof inquiryActionConfigSchema>;
-
-/* ========================================================================== */
-/* 5. TABLE RECORD: INQUIRY CONFIG RECORD (INQUIRY.CONFIG)                    */
-/* ========================================================================== */
-
-/**
- * Canonical control table definition record for `INQUIRY.CONFIG`.
- * Single source of truth across Designer, Database, and Runtime.
- */
-export const inquiryConfigRecordSchema = z.object({
-  id: z.string().optional(),
+export const inqInfoSchema = z.object({
   description: z.string().min(1, "Description is required"),
-  pageOrientation: z.enum(["Portrait", "Landscape", ""]).default("Portrait"),
+  pageOrientation: z.string().default(""),
+  perpageItem: z.union([z.string(), z.number()]).transform(String).default("30"),
   showSerial: z.boolean().default(true),
   showPagination: z.boolean().default(true),
   showBranchWise: z.boolean().default(false),
-  recordPerPage: z.coerce.number().default(30),
   inqType: z.string().default("DFT"),
-  controllerName: z.string().min(1, "Target controller/model is required"),
+  controllerName: z.string().min(1, "Target controller/table is required"),
   rptControllerName: z.string().default(""),
+  fixedSelection: z.string().default(""),
   inqServicePath: z.string().default("default"),
-  columns: z.array(inquiryColumnConfigSchema).default([]),
-  filters: z.array(inquiryFilterConfigSchema).default([]),
-  actions: z.array(inquiryActionConfigSchema).default([]),
-  sampleData: z.array(enquiryRowSchema).optional(),
+  cmdFromInternal: z.string().nullable().optional().default(null),
+  cmdFieldName: z.string().nullable().optional().default(null),
+});
+
+export type INQInfo = z.infer<typeof inqInfoSchema>;
+
+/* ========================================================================== */
+/* 5. CANONICAL INQUIRY RECORD SCHEMA (INQUIRY / INQUIRY.CONFIG)              */
+/* ========================================================================== */
+
+/**
+ * 1:1 Canonical CBS Wire Data Schema matching actual backend response payloads.
+ */
+export const inquiryConfigRecordSchema = z.object({
   auditData: auditDataSchema.optional(),
+  INQInfo: inqInfoSchema,
+  INQSelectField: z.array(inqSelectFieldSchema).default([]),
+  INQDef: z.array(inqDefSchema).default([]),
+  INQCmds: z.array(inqCmdSchema).default([]),
 });
 
 export type InquiryConfigRecord = z.infer<typeof inquiryConfigRecordSchema>;
 
 /* ========================================================================== */
-/* 6. VALIDATION ERRORS                                                       */
+/* 6. DATASET ROW / RESULT SCHEMA                                             */
 /* ========================================================================== */
 
-export interface InquiryValidationErrorItem {
-  id: string;
-  tab: "general" | "selection" | "table";
-  fieldKey: string;
-  message: string;
-}
+export const enquiryRowSchema = z.looseObject({
+  id: z.string(),
+});
+
+export type EnquiryRow = z.infer<typeof enquiryRowSchema> & {
+  [key: string]: unknown;
+};

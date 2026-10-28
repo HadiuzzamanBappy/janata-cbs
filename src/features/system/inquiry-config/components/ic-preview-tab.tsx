@@ -5,20 +5,22 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import { InquiryEngineTable, InquiryFilterBuilder } from "@/features/inquiry-engine";
+import {
+  type FilterCriteriaMap,
+  InquiryFilterBar,
+  InquiryTable,
+} from "@/features/inquiry-engine";
 import type {
   EnquiryRow,
-  InquiryActionConfig,
-  InquiryColumnConfig,
+  INQDef,
   InquiryConfigRecord,
-  SelectionOperand,
-} from "@/lib/data-schemas";
+} from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface IcPreviewTabProps {
   formData: InquiryConfigRecord;
 }
 
-function generateSampleRows(_columns: InquiryColumnConfig[], targetModel?: string): EnquiryRow[] {
+function generateSampleRows(_columns: INQDef[], targetModel?: string): EnquiryRow[] {
   const isAccount = !targetModel || targetModel.toUpperCase() === "ACCOUNT";
   const isUser = targetModel?.toUpperCase() === "USER";
 
@@ -39,7 +41,7 @@ function generateSampleRows(_columns: InquiryColumnConfig[], targetModel?: strin
       openingDate: "2023-01-15",
       interestRate: 6.5,
       branchCode: "JB0001",
-      txnAmount: "450,000.00",
+      txnAmount: 450000.0,
       inputter: "SYSADMIN",
       authorizer: "SUPV01",
       balance: 450000.5,
@@ -58,121 +60,85 @@ function generateSampleRows(_columns: InquiryColumnConfig[], targetModel?: strin
       email: "karim.ullah@janatabank.com.bd",
       accountType: "CURRENT",
       currency: "BDT",
-      openingDate: "2022-08-20",
+      openingDate: "2023-03-22",
       interestRate: 0.0,
-      branchCode: "JB0001",
-      txnAmount: "12,500.00",
-      inputter: "IA0245820",
+      branchCode: "JB0002",
+      txnAmount: 1200000.0,
+      inputter: "OPERATOR2",
       authorizer: "SUPV01",
-      balance: 12500.0,
-      status: "BLOCKED",
+      balance: 1200000.0,
+      status: "ACTIVE",
     },
     {
       id: "3",
       recordId: isAccount ? "01002345680" : isUser ? "EMP00104" : "TXN987203",
       accountNumber: "01002345680",
-      accountTitle: "Shahidul Islam",
-      employeeName: "Shahidul Islam",
+      accountTitle: "Nasreen Sultana",
+      employeeName: "Nasreen Sultana",
       empBankId: "JB00923",
-      userDesignation: "Assistant General Manager",
-      placeOfPosting: "Head Office IT Div",
-      mobileNo: "01911445566",
-      email: "shahidul.islam@janatabank.com.bd",
-      accountType: "FIXED_DEPOSIT",
-      currency: "BDT",
-      openingDate: "2021-05-10",
-      interestRate: 8.75,
-      branchCode: "JB0002",
-      txnAmount: "2,340,000.75",
-      inputter: "SYSUSER",
-      authorizer: "SUPV02",
-      balance: 2340000.75,
-      status: "AUTHORIZED",
-    },
-    {
-      id: "4",
-      recordId: isAccount ? "01002345681" : isUser ? "EMP00105" : "TXN987204",
-      accountNumber: "01002345681",
-      accountTitle: "Fatema Begum",
-      employeeName: "Fatema Begum",
-      empBankId: "JB00924",
       userDesignation: "Executive Officer",
       placeOfPosting: "Gulshan Corporate Br",
-      mobileNo: "01611556677",
-      email: "fatema.begum@janatabank.com.bd",
-      accountType: "SAVINGS",
-      currency: "USD",
-      openingDate: "2024-02-01",
-      interestRate: 5.0,
+      mobileNo: "01911445566",
+      email: "nasreen.sultana@janatabank.com.bd",
+      accountType: "FIXED_DEP",
+      currency: "BDT",
+      openingDate: "2023-06-10",
+      interestRate: 8.5,
       branchCode: "JB0005",
-      txnAmount: "50,000.00",
-      inputter: "IA0245820",
-      authorizer: "SUPV01",
-      balance: 50000.0,
-      status: "ACTIVE",
+      txnAmount: 2500000.0,
+      inputter: "OPERATOR1",
+      authorizer: "MANAGER01",
+      balance: 2500000.0,
+      status: "DORMANT",
     },
   ];
 }
 
 export function IcPreviewTab({ formData }: IcPreviewTabProps) {
-  const hasFilters = (formData.filters || []).length > 0;
+  const [step, setStep] = React.useState<"SELECTION" | "RESULTS">("RESULTS");
+  const targetController = formData.INQInfo?.controllerName || "ACCOUNT";
 
-  // If there are filters, default step to "SELECTION"; otherwise go directly to "RESULTS"
-  const [step, setStep] = React.useState<"SELECTION" | "RESULTS">(() =>
-    hasFilters ? "SELECTION" : "RESULTS",
-  );
-
-  // Sync step if filters are added/removed dynamically
-  React.useEffect(() => {
-    if (!hasFilters) {
-      setStep("RESULTS");
-    }
-  }, [hasFilters]);
-
-  // Simulated dataset
-  const sampleRows = React.useMemo(
-    () =>
-      generateSampleRows(
-        formData.columns,
-        String(formData.controllerName || formData.targetModel || "ACCOUNT"),
-      ),
-    [formData.columns, formData.controllerName, formData.targetModel],
-  );
+  const sampleRows = React.useMemo(() => {
+    return generateSampleRows(formData.INQDef || [], targetController);
+  }, [formData.INQDef, targetController]);
 
   const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>(sampleRows);
 
-  // Reset sample rows when model/columns change
   React.useEffect(() => {
     setFilteredRows(sampleRows);
   }, [sampleRows]);
 
-  const handleFilterSearch = (
-    criteria: Record<string, { value: string; operand: SelectionOperand }>,
-  ) => {
-    // Filter sample rows based on search criteria
-    const activeFilters = Object.entries(criteria).filter(([_, c]) => c.value.trim() !== "");
+  const hasFilters = Boolean(formData.INQSelectField && formData.INQSelectField.length > 0);
+
+  const handleFilterSearch = (criteria: FilterCriteriaMap) => {
+    const activeFilters = Object.entries(criteria).filter(([_, c]) => c.value && c.value.trim() !== "");
 
     if (activeFilters.length === 0) {
       setFilteredRows(sampleRows);
     } else {
-      const results = sampleRows.filter((row) =>
-        activeFilters.every(([fieldId, c]) => {
-          const rowVal = String(row[fieldId] ?? "").toLowerCase();
-          const searchVal = c.value.toLowerCase().trim();
-          switch (c.operand) {
+      const filtered = sampleRows.filter((row) => {
+        return activeFilters.every(([fieldId, crit]) => {
+          const val = String(row[fieldId] ?? "").toLowerCase();
+          const target = crit.value.toLowerCase().trim();
+
+          switch (crit.operand) {
             case "EQ":
-              return rowVal === searchVal;
+              return val === target;
             case "LK":
             case "CT":
-              return rowVal.includes(searchVal);
+              return val.includes(target);
             case "NE":
-              return rowVal !== searchVal;
+              return val !== target;
+            case "GT":
+              return Number(val) > Number(target);
+            case "LT":
+              return Number(val) < Number(target);
             default:
-              return rowVal.includes(searchVal);
+              return true;
           }
-        }),
-      );
-      setFilteredRows(results);
+        });
+      });
+      setFilteredRows(filtered);
     }
 
     setStep("RESULTS");
@@ -187,14 +153,7 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
     setFilteredRows(sampleRows);
   };
 
-  const handleExecuteAction = (action: InquiryActionConfig, recordId: string, _row: EnquiryRow) => {
-    const targetModel = String(formData.controllerName || formData.targetModel || "ACCOUNT");
-    toast.add({
-      title: `[Simulated Action] ${action.label}`,
-      description: `Target: ${action.targetCommand || `${targetModel},SEE`} (Mode: ${action.openMode}) • Record: #${recordId}`,
-      type: "success",
-    });
-  };
+  const pageSize = Number(formData.INQInfo?.perpageItem || 30) || 30;
 
   return (
     <div className="h-full flex flex-col gap-2 overflow-hidden select-none pr-1">
@@ -215,11 +174,11 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
 
           <div className="flex items-center gap-1.5 text-xs">
             <span className="font-semibold text-foreground">
-              {String(formData.description || formData.title || "Inquiry Preview")}
+              {formData.INQInfo?.description || "Inquiry Preview"}
             </span>
             <span className="text-muted-foreground/60 font-mono">&bull;</span>
             <span className="text-[11px] font-mono text-muted-foreground">
-              Target: {String(formData.controllerName || formData.targetModel || "GENERIC")}
+              Target: {formData.INQInfo?.controllerName || "GENERIC"}
             </span>
           </div>
         </div>
@@ -230,12 +189,12 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
             className="text-[10px] font-mono px-1.5 py-0.5 rounded text-primary border-primary/30 bg-primary/5 flex items-center gap-1"
           >
             <Sparkles className="size-2.5" />
-            <span>LIVE SIMULATION</span>
+            <span>LIVE PREVIEW</span>
           </Badge>
 
-          {formData.actions && formData.actions.length > 0 ? (
+          {formData.INQCmds && formData.INQCmds.length > 0 ? (
             <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0.5 rounded">
-              {formData.actions.length} Action(s) Active
+              {formData.INQCmds.length} Action(s) Active
             </Badge>
           ) : (
             <Badge
@@ -251,22 +210,31 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
       {/* Main Execution Stage */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === "SELECTION" && hasFilters ? (
-          <div className="h-full flex flex-col items-center justify-center py-4">
-            <InquiryFilterBuilder
-              fields={formData.filters || []}
+          <div className="p-4">
+            <InquiryFilterBar
+              fields={formData.INQSelectField || []}
               onSearch={handleFilterSearch}
               onReset={handleResetFilters}
             />
           </div>
         ) : (
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <InquiryEngineTable
-              columns={formData.columns}
-              rows={filteredRows}
-              actions={formData.actions || []}
-              onExecuteAction={handleExecuteAction}
-              pageSize={25}
-            />
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden space-y-2">
+            {hasFilters && (
+              <InquiryFilterBar
+                fields={formData.INQSelectField || []}
+                onSearch={handleFilterSearch}
+                onReset={handleResetFilters}
+              />
+            )}
+            <div className="flex-1 min-h-0">
+              <InquiryTable
+                columns={formData.INQDef || []}
+                rows={filteredRows}
+                commands={formData.INQCmds || []}
+                pageSize={pageSize}
+                showSerial={formData.INQInfo?.showSerial}
+              />
+            </div>
           </div>
         )}
       </div>

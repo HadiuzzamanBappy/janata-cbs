@@ -183,9 +183,7 @@ export function resolveFormRecord(
       ? (rec as unknown as ModelConfigRecord)
       : fallbackModel;
 
-    const hasLayout =
-      Object.keys(fc).length > 0 &&
-      ("frmElements" in fc || "title" in fc);
+    const hasLayout = Object.keys(fc).length > 0 && ("frmElements" in fc || "title" in fc);
 
     if (hasLayout) {
       return resolveFormRecord(fc, model);

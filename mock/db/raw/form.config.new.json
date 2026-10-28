@@ -769,15 +769,6 @@
         }
       ],
       "IDROUTINE": "",
-      "auditFields": {
-        "recStatus": "AU",
-        "recCurrNumber": 8,
-        "recInputter": "ADMIN02",
-        "recInputTime": "2026-04-22 10:13:41",
-        "recAuthorizer": "ADMIN02",
-        "recAuthTime": "2026-04-22 10:14:05",
-        "recBranchCode": "JB9999"
-      },
       "auditData": {
         "recStatus": "AU",
         "recCurrNumber": 2,

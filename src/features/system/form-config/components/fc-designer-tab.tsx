@@ -274,5 +274,3 @@ export function FcDesignerTab({
     </div>
   );
 }
-
-

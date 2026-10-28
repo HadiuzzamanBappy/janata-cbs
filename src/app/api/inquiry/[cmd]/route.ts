@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/core-logger";
 import { getSession } from "@/lib/infra-redis";
-import { getEnquiryData } from "@/lib/infra-services";
+import { getInquiryData } from "@/lib/infra-services";
 import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";
@@ -42,7 +42,7 @@ export async function GET(
       );
     }
 
-    const schema = await getEnquiryData(cmd);
+    const schema = await getInquiryData(cmd);
 
     if (!schema) {
       return NextResponse.json(

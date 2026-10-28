@@ -216,4 +216,3 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     />
   );
 }
-

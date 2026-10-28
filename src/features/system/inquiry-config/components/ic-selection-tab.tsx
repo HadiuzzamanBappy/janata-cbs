@@ -16,14 +16,13 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CheckCircle2, Filter, GripVertical, Plus, Search, Trash2 } from "lucide-react";
+import { GripVertical, Plus, Sparkles, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -33,135 +32,170 @@ import {
 } from "@/components/ui/select";
 import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import type { InquiryFilterConfig } from "@/lib/data-schemas/inquiry-config-schema";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
+import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 export interface IcSelectionTabProps {
-  filters: InquiryFilterConfig[];
+  filters: INQSelectField[];
   targetModel?: string;
-  onAddFilter: (filter: InquiryFilterConfig) => void;
-  onUpdateFilter: (index: number, patch: Partial<InquiryFilterConfig>) => void;
+  onAddFilter: (filter?: Partial<INQSelectField>) => void;
+  onUpdateFilter: (index: number, patch: Partial<INQSelectField>) => void;
   onRemoveFilter: (index: number) => void;
   onReorderFilters: (fromIndex: number, toIndex: number) => void;
   disabled?: boolean;
 }
 
-const OPERAND_OPTIONS: Array<{
-  value: InquiryFilterConfig["defaultOperand"];
-  label: string;
-  badge: string;
-}> = [
-  { value: "EQ", label: "Equals (Exact Match)", badge: "EQ =" },
-  { value: "LK", label: "Like (Wildcard / Contains)", badge: "LK *" },
-  { value: "RG", label: "Range (Between Two Values)", badge: "RG ↔" },
-  { value: "NE", label: "Not Equal", badge: "NE ≠" },
-  { value: "GT", label: "Greater Than", badge: "GT >" },
-  { value: "LT", label: "Less Than", badge: "LT <" },
-  { value: "CT", label: "Contains (Substring)", badge: "CT ⊂" },
+const OPERAND_OPTIONS = [
+  { value: "EQ", label: "Equals (=)", badge: "EQ" },
+  { value: "LK", label: "Like (*)", badge: "LK" },
+  { value: "RG", label: "Range (Between)", badge: "RG" },
+  { value: "NE", label: "Not Equal (≠)", badge: "NE" },
+  { value: "GT", label: "Greater Than (>)", badge: "GT" },
+  { value: "LT", label: "Less Than (<)", badge: "LT" },
+  { value: "CT", label: "Contains (Substring)", badge: "CT" },
 ];
 
-interface SortableFilterItemProps {
-  id: string;
-  index: number;
-  filter: InquiryFilterConfig;
-  isSelected: boolean;
-  disabled?: boolean;
-  onSelect: () => void;
-  onRemove: () => void;
-}
-
-function SortableFilterItem({
-  id,
+function FilterCardItem({
+  field,
   index,
-  filter,
-  isSelected,
   disabled,
-  onSelect,
+  onUpdate,
   onRemove,
-}: SortableFilterItemProps) {
+}: {
+  field: INQSelectField;
+  index: number;
+  disabled?: boolean;
+  onUpdate: (patch: Partial<INQSelectField>) => void;
+  onRemove: () => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id,
+    id: `filter-${field.selectFieldName}-${index}`,
     disabled,
   });
 
-  const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
+  const style = {
+    transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.35 : 1,
-    zIndex: isDragging ? 40 : undefined,
   };
-
-  const operandBadge =
-    OPERAND_OPTIONS.find((o) => o.value === filter.defaultOperand)?.badge || filter.defaultOperand;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group p-1.5 rounded border transition-all flex items-center gap-1.5 text-xs select-none",
-        isSelected
-          ? "bg-primary/10 border-primary text-foreground shadow-2xs font-medium"
-          : "bg-background/90 hover:bg-muted/30 border-border/70 text-foreground/90",
-        isDragging && "ring-1 ring-primary shadow-md bg-accent/30",
+        "bg-card border border-border/80 rounded-lg p-3 space-y-3 transition-colors",
+        isDragging && "opacity-50 shadow-md",
       )}
     >
-      {/* Drag Grip Handle */}
-      {!disabled && (
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground shrink-0 p-0.5 rounded touch-none focus-visible:outline-none"
-          title="Drag to reorder"
-          aria-label="Drag to reorder"
-        >
-          <GripVertical className="size-3.5" />
-        </button>
-      )}
-
-      {/* Filter Info Button */}
-      <button
-        type="button"
-        onClick={onSelect}
-        className="flex items-center gap-2 flex-1 min-w-0 text-left outline-none cursor-pointer"
-      >
-        <span className="text-[10px] font-mono text-muted-foreground w-4 shrink-0">
-          {index + 1}.
-        </span>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium truncate">{filter.label}</span>
-            {filter.required && (
-              <span className="text-destructive font-bold text-xs" title="Mandatory search filter">
-                *
-              </span>
-            )}
-          </div>
-          <div className="text-[10px] font-mono text-muted-foreground truncate">
-            Key: {filter.id} • {filter.type}
-          </div>
+      <div className="flex items-center justify-between border-b border-border/40 pb-2">
+        <div className="flex items-center gap-2">
+          {!disabled && (
+            <button
+              type="button"
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground p-0.5"
+            >
+              <GripVertical className="size-3.5" />
+            </button>
+          )}
+          <span className="text-xs font-bold text-foreground">
+            {field.selectFieldDisplay || field.selectFieldName}
+          </span>
+          <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 uppercase">
+            {field.selectFieldType}
+          </Badge>
         </div>
 
-        <Badge variant="outline" className="text-[9px] font-mono px-1 py-0 h-4 shrink-0">
-          {operandBadge}
-        </Badge>
-      </button>
+        {!disabled && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
+            className="h-6 px-1.5 text-muted-foreground hover:text-destructive text-xs"
+          >
+            <Trash2 className="size-3" />
+          </Button>
+        )}
+      </div>
 
-      {/* Delete Action */}
-      {!disabled && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          onClick={onRemove}
-          className="size-6 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 shrink-0 rounded cursor-pointer"
-          title="Remove criterion"
-        >
-          <Trash2 className="size-3" />
-        </Button>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5">
+        <div className="space-y-1">
+          <Label className="text-[11px] text-muted-foreground">Field Key</Label>
+          <Input
+            value={field.selectFieldName}
+            disabled={disabled}
+            onChange={(e) => onUpdate({ selectFieldName: e.target.value })}
+            className="h-7 text-xs font-mono"
+            placeholder="e.g. recordId"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-[11px] text-muted-foreground">Display Label</Label>
+          <Input
+            value={field.selectFieldDisplay}
+            disabled={disabled}
+            onChange={(e) => onUpdate({ selectFieldDisplay: e.target.value })}
+            className="h-7 text-xs"
+            placeholder="e.g. Record ID"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-[11px] text-muted-foreground">Default Operand</Label>
+          <Select
+            value={field.selectFieldOperator || "EQ"}
+            disabled={disabled}
+            onValueChange={(val) => onUpdate({ selectFieldOperator: val })}
+          >
+            <SelectTrigger className="h-7 text-xs font-mono">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {OPERAND_OPTIONS.map((op) => (
+                <SelectItem key={op.value} value={op.value} className="text-xs">
+                  {op.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-1">
+          <Label className="text-[11px] text-muted-foreground">Default Value</Label>
+          <Input
+            value={field.selectFieldValue}
+            disabled={disabled}
+            onChange={(e) => onUpdate({ selectFieldValue: e.target.value })}
+            className="h-7 text-xs"
+            placeholder="Optional default..."
+          />
+        </div>
+      </div>
+
+      <div className="pt-2 border-t border-border/30 flex items-center gap-6">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <Checkbox
+            checked={field.selectFieldRequired}
+            disabled={disabled}
+            onCheckedChange={(checked) => onUpdate({ selectFieldRequired: Boolean(checked) })}
+          />
+          <span className="text-xs text-foreground font-medium">Mandatory Filter</span>
+        </label>
+
+        <label className="flex items-center gap-2 cursor-pointer">
+          <Checkbox
+            checked={Boolean(field.selectFieldOperatorFixed)}
+            disabled={disabled}
+            onCheckedChange={(checked) =>
+              onUpdate({ selectFieldOperatorFixed: checked ? field.selectFieldOperator || "EQ" : "" })
+            }
+          />
+          <span className="text-xs text-foreground font-medium">Lock Operator (Fixed)</span>
+        </label>
+      </div>
     </div>
   );
 }
@@ -175,450 +209,106 @@ export function IcSelectionTab({
   onReorderFilters,
   disabled = false,
 }: IcSelectionTabProps) {
-  const [selectedIdx, setSelectedIdx] = React.useState<number>(0);
-  const [fieldSearch, setFieldSearch] = React.useState("");
-  const [lookupOpen, setLookupOpen] = React.useState(false);
-
-  // Dnd-kit sensors with pointer distance constraint so clicks work without dragging
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  // Filter keys for SortableContext
-  const filterKeys = React.useMemo(
-    () => filters.map((f, i) => `${f.id || "filter"}_${i}`),
-    [filters],
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over || active.id === over.id || disabled) return;
-
-    const fromIndex = filterKeys.indexOf(String(active.id));
-    const toIndex = filterKeys.indexOf(String(over.id));
-
-    if (fromIndex !== -1 && toIndex !== -1) {
-      onReorderFilters(fromIndex, toIndex);
-      if (selectedIdx === fromIndex) {
-        setSelectedIdx(toIndex);
-      } else if (selectedIdx > fromIndex && selectedIdx <= toIndex) {
-        setSelectedIdx(selectedIdx - 1);
-      } else if (selectedIdx < fromIndex && selectedIdx >= toIndex) {
-        setSelectedIdx(selectedIdx + 1);
+    if (over && active.id !== over.id) {
+      const from = filters.findIndex((f, i) => `filter-${f.selectFieldName}-${i}` === active.id);
+      const to = filters.findIndex((f, i) => `filter-${f.selectFieldName}-${i}` === over.id);
+      if (from !== -1 && to !== -1) {
+        onReorderFilters(from, to);
       }
     }
   };
 
-  const [modelProps, setModelProps] = React.useState<ModelProperty[]>([]);
-
-  // Fetch model properties dynamically when targetModel changes
-  React.useEffect(() => {
-    let mounted = true;
-    async function loadModel() {
-      if (!targetModel) {
-        setModelProps([]);
-        return;
-      }
-      try {
-        const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), {
-          silent: true,
+  const handleImportFromModel = React.useCallback(async () => {
+    if (!targetModel) return;
+    try {
+      const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModel), {
+        silent: true,
+      });
+      if (res.status === "SUCCESS" && res.data?.PROPERTIES) {
+        res.data.PROPERTIES.forEach((prop) => {
+          const exists = filters.some((f) => f.selectFieldName === prop.NAME);
+          if (!exists) {
+            onAddFilter({
+              selectFieldName: prop.NAME,
+              selectFieldDisplay: prop.LABEL || prop.NAME,
+              selectFieldType: (prop.TYPE || "Text").toLowerCase(),
+              selectFieldOperator: "EQ",
+              selectFieldRequired: Boolean(prop.REQUIRED),
+            });
+          }
         });
-        if (mounted && res.status === "SUCCESS" && res.data?.PROPERTIES) {
-          setModelProps(res.data.PROPERTIES);
-        }
-      } catch {
-        if (mounted) setModelProps([]);
       }
+    } catch {
+      // Ignore background import errors
     }
-    loadModel();
-    return () => {
-      mounted = false;
-    };
-  }, [targetModel]);
-
-  // Keep selectedIdx in bounds
-  React.useEffect(() => {
-    if (filters.length === 0) {
-      setSelectedIdx(0);
-    } else if (selectedIdx >= filters.length) {
-      setSelectedIdx(filters.length - 1);
-    }
-  }, [filters.length, selectedIdx]);
-
-  const activeFilter = filters[selectedIdx] || null;
-  const configuredIds = React.useMemo(
-    () => new Set(filters.map((f) => f.id.toLowerCase())),
-    [filters],
-  );
-
-  const availableProps = React.useMemo(() => {
-    return modelProps.filter((p) => Boolean(p.NAME));
-  }, [modelProps]);
-
-  const filteredProps = React.useMemo(() => {
-    if (!fieldSearch.trim()) return availableProps;
-    const q = fieldSearch.trim().toLowerCase();
-    return availableProps.filter(
-      (p) => p.NAME.toLowerCase().includes(q) || Boolean(p.LABEL?.toLowerCase().includes(q)),
-    );
-  }, [availableProps, fieldSearch]);
-
-  const handleAddFromProperty = (prop: ModelProperty) => {
-    let filterType: InquiryFilterConfig["type"] = "text";
-    const propType = prop.TYPE.toLowerCase();
-    if (propType.includes("date")) filterType = "date";
-    else if (propType.includes("number") || propType.includes("amount")) filterType = "number";
-    else if (propType.includes("drop") || propType.includes("select") || propType.includes("radio"))
-      filterType = "select";
-
-    const newFilter: InquiryFilterConfig = {
-      id: prop.NAME,
-      label: prop.LABEL || prop.NAME,
-      type: filterType,
-      defaultOperand: "EQ",
-      defaultValue: "",
-      required: prop.REQUIRED || false,
-    };
-
-    onAddFilter(newFilter);
-    setSelectedIdx(filters.length);
-  };
-
-  const handleAddCustomFilter = () => {
-    const nextIdx = filters.length + 1;
-    const newFilter: InquiryFilterConfig = {
-      id: `filter_${nextIdx}`,
-      label: `Filter Criterion ${nextIdx}`,
-      type: "text",
-      defaultOperand: "EQ",
-      defaultValue: "",
-      required: false,
-    };
-    onAddFilter(newFilter);
-    setSelectedIdx(filters.length);
-  };
+  }, [targetModel, filters, onAddFilter]);
 
   return (
-    <div className="h-full w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0 select-none">
-      {/* 1. Left Panel: Master Criteria Navigator (Fixed Compact Width) */}
-      <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
-        {/* Header with Title + Compact Lookup Popover */}
-        <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Filter className="size-3.5 text-primary shrink-0" />
-            <span className="text-xs font-semibold text-foreground truncate">
-              Criteria ({filters.length})
-            </span>
-          </div>
-
-          {!disabled && (
-            <div className="flex items-center gap-1">
-              {/* Compact Field Lookup Popover */}
-              <Popover open={lookupOpen} onOpenChange={setLookupOpen}>
-                <PopoverTrigger
-                  render={
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-6 text-xs gap-1 rounded bg-background border-border/80 cursor-pointer"
-                      disabled={availableProps.length === 0}
-                      title={`Search & add field from ${targetModel}`}
-                    >
-                      <Plus className="size-3 text-primary" />
-                      <span>Add Field</span>
-                    </Button>
-                  }
-                />
-                <PopoverContent className="w-72 p-0 gap-0 overflow-hidden shadow-md" align="start">
-                  <div className="p-2 space-y-1.5 border-b border-border/60 bg-muted/10">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
-                        Model: {targetModel}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleAddCustomFilter();
-                          setLookupOpen(false);
-                          setFieldSearch("");
-                        }}
-                        className="flex items-center gap-1 text-[10px] font-medium text-primary hover:text-primary/80 hover:bg-primary/10 px-1.5 py-0.5 rounded cursor-pointer transition-colors"
-                        title="Add custom criterion"
-                      >
-                        <Plus className="size-2.5" />
-                        <span>Custom</span>
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <Search className="size-3 text-muted-foreground absolute left-2 top-2" />
-                      <Input
-                        placeholder="Search model field..."
-                        value={fieldSearch}
-                        onChange={(e) => setFieldSearch(e.target.value)}
-                        className="h-7 text-xs pl-7 bg-background font-mono"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-52 overflow-y-auto p-1 space-y-0.5">
-                    {filteredProps.length === 0 ? (
-                      <div className="p-3 text-center text-xs text-muted-foreground font-mono">
-                        No matching fields
-                      </div>
-                    ) : (
-                      filteredProps.map((prop) => {
-                        const isAdded = configuredIds.has(prop.NAME.toLowerCase());
-                        return (
-                          <button
-                            key={prop.NAME}
-                            type="button"
-                            disabled={isAdded}
-                            onClick={() => {
-                              handleAddFromProperty(prop);
-                              setLookupOpen(false);
-                              setFieldSearch("");
-                            }}
-                            className={cn(
-                              "w-full flex items-center justify-between px-2 py-1 rounded text-left transition-colors cursor-pointer group",
-                              isAdded
-                                ? "opacity-50 cursor-not-allowed bg-muted/20"
-                                : "hover:bg-primary/10",
-                            )}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <span className="font-mono text-xs font-medium block truncate group-hover:text-primary">
-                                {prop.NAME}
-                              </span>
-                              {prop.LABEL && (
-                                <span className="text-[10px] text-muted-foreground block truncate">
-                                  {prop.LABEL}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0 ml-1">
-                              <span className="text-[9px] font-mono uppercase px-1 py-0 bg-muted rounded text-muted-foreground">
-                                {prop.TYPE}
-                              </span>
-                              {isAdded && <CheckCircle2 className="size-3 text-muted-foreground" />}
-                            </div>
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          )}
+    <div className="flex-1 flex flex-col h-full min-h-0 bg-card rounded-b-lg border-t-0">
+      <div className="flex items-center justify-between px-4 h-10 border-b border-border bg-muted/30 shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-foreground">Filter Criteria (INQSelectField)</span>
+          <Badge variant="secondary" className="text-[10px] h-4 px-1 font-mono">
+            {filters.length}
+          </Badge>
         </div>
 
-        {/* Scrollable Criteria Items */}
-        <div className="flex-1 overflow-y-auto p-1.5 space-y-1 min-h-0">
-          {filters.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-              <Filter className="size-8 text-muted-foreground/30 mb-2" />
-              <p className="text-xs font-medium">No selection filters configured</p>
-              <p className="text-[11px] text-muted-foreground/80 mt-1 max-w-xs">
-                Use &ldquo;+ Add Field&rdquo; to pick fields from {targetModel} or click &ldquo;+
-                Custom&rdquo;.
-              </p>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext items={filterKeys} strategy={verticalListSortingStrategy}>
-                <div className="space-y-1">
-                  {filters.map((filter, index) => (
-                    <SortableFilterItem
-                      key={filterKeys[index]}
-                      id={filterKeys[index]}
-                      index={index}
-                      filter={filter}
-                      isSelected={index === selectedIdx}
-                      disabled={disabled}
-                      onSelect={() => setSelectedIdx(index)}
-                      onRemove={() => onRemoveFilter(index)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </div>
-      </div>
-
-      {/* 2. Right Panel: Criteria Details (Expands to Full Width) */}
-      <div className="flex-1 flex flex-col min-h-0 bg-background/50">
-        {/* Right Header: Exactly matching left header height and baseline */}
-        <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
+        {!disabled && (
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Criterion Inspector:
-            </span>
-            {activeFilter && (
-              <span className="text-xs font-bold text-foreground">
-                #{selectedIdx + 1} &bull; {activeFilter.id}
-              </span>
-            )}
-          </div>
-          {!disabled && activeFilter && (
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="sm"
-              onClick={() => onRemoveFilter(selectedIdx)}
-              className="h-6 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded cursor-pointer"
+              onClick={handleImportFromModel}
+              className="h-7 text-xs gap-1.5"
             >
-              <Trash2 className="size-3" /> Delete
+              <Sparkles className="size-3 text-primary" />
+              <span>Import Model Filters</span>
             </Button>
-          )}
-        </div>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => onAddFilter()}
+              className="h-7 text-xs gap-1"
+            >
+              <Plus className="size-3" />
+              <span>Add Filter Field</span>
+            </Button>
+          </div>
+        )}
+      </div>
 
-        {/* Scrollable Form Content */}
-        {activeFilter ? (
-          <div className="flex-1 overflow-y-auto p-3 space-y-4">
-            {/* CBS Scanline Form */}
-            <div className="space-y-2.5 text-xs">
-              {/* Field Key */}
-              <div className="flex items-center gap-2">
-                <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
-                  Field Key
-                </Label>
-                <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-                <Input
-                  disabled={disabled}
-                  value={activeFilter.id}
-                  onChange={(e) => onUpdateFilter(selectedIdx, { id: e.target.value })}
-                  placeholder="e.g. accountNo"
-                  className="h-7 text-xs w-56 bg-background rounded border-border/80 font-mono"
-                />
-              </div>
-
-              {/* Display Label */}
-              <div className="flex items-center gap-2">
-                <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
-                  Display Label
-                </Label>
-                <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-                <Input
-                  disabled={disabled}
-                  value={activeFilter.label}
-                  onChange={(e) => onUpdateFilter(selectedIdx, { label: e.target.value })}
-                  placeholder="e.g. Account Number"
-                  className="h-7 text-xs w-72 bg-background rounded border-border/80"
-                />
-              </div>
-
-              {/* Widget Type */}
-              <div className="flex items-center gap-2">
-                <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
-                  Widget Type
-                </Label>
-                <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-                <Select
-                  disabled={disabled}
-                  value={activeFilter.type}
-                  onValueChange={(val: string | null) =>
-                    onUpdateFilter(selectedIdx, {
-                      type: (val || "text") as InquiryFilterConfig["type"],
-                    })
-                  }
-                >
-                  <SelectTrigger className="h-7 text-xs w-44 bg-background rounded border-border/80">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="text-xs">
-                    <SelectItem value="text">Text Input</SelectItem>
-                    <SelectItem value="select">Dropdown / Selection</SelectItem>
-                    <SelectItem value="date">Date Picker</SelectItem>
-                    <SelectItem value="number">Numeric Input</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Default Operand */}
-              <div className="flex items-center gap-2">
-                <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
-                  Default Operand
-                </Label>
-                <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-                <Select
-                  disabled={disabled}
-                  value={activeFilter.defaultOperand}
-                  onValueChange={(val: string | null) =>
-                    onUpdateFilter(selectedIdx, {
-                      defaultOperand: (val || "EQ") as InquiryFilterConfig["defaultOperand"],
-                    })
-                  }
-                >
-                  <SelectTrigger className="h-7 text-xs w-44 bg-background rounded border-border/80">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="text-xs">
-                    {OPERAND_OPTIONS.map((op) => (
-                      <SelectItem key={op.value} value={op.value}>
-                        <div className="flex items-center gap-2 font-mono">
-                          <span className="text-primary font-semibold">{op.badge}</span>
-                          <span className="text-muted-foreground font-sans">{op.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Default Pre-fill Value */}
-              <div className="flex items-center gap-2">
-                <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
-                  Pre-fill Value
-                </Label>
-                <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-                <Input
-                  disabled={disabled}
-                  value={activeFilter.defaultValue || ""}
-                  onChange={(e) => onUpdateFilter(selectedIdx, { defaultValue: e.target.value })}
-                  placeholder="Optional default / initial query value"
-                  className="h-7 text-xs w-64 bg-background rounded border-border/80 font-mono"
-                />
-              </div>
-
-              {/* Mandatory Requirement */}
-              <div className="flex items-center gap-2 pt-1">
-                <Label className="w-32 shrink-0 text-xs text-muted-foreground select-none">
-                  Mandatory Flag
-                </Label>
-                <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-                <div className="flex items-center gap-1.5">
-                  <Checkbox
-                    id="ic-filter-mandatory"
-                    disabled={disabled}
-                    checked={activeFilter.required}
-                    onCheckedChange={(checked: boolean) =>
-                      onUpdateFilter(selectedIdx, { required: Boolean(checked) })
-                    }
-                  />
-                  <Label
-                    htmlFor="ic-filter-mandatory"
-                    className="text-xs text-muted-foreground cursor-pointer font-normal"
-                  >
-                    Require operator to input this criterion before query execution
-                  </Label>
-                </div>
-              </div>
-            </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {filters.length === 0 ? (
+          <div className="text-center py-12 text-xs text-muted-foreground">
+            No search filter criteria defined. Click "+ Add Filter Field" or "Import Model Filters".
           </div>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">
-            <Filter className="size-7 text-muted-foreground/35 mb-2" />
-            <p className="text-xs text-muted-foreground/80">
-              Select a criterion on the left to inspect or edit details
-            </p>
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext
+              items={filters.map((f, i) => `filter-${f.selectFieldName}-${i}`)}
+              strategy={verticalListSortingStrategy}
+            >
+              {filters.map((field, idx) => (
+                <FilterCardItem
+                  key={`filter-${field.selectFieldName}-${idx}`}
+                  field={field}
+                  index={idx}
+                  disabled={disabled}
+                  onUpdate={(patch) => onUpdateFilter(idx, patch)}
+                  onRemove={() => onRemoveFilter(idx)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>

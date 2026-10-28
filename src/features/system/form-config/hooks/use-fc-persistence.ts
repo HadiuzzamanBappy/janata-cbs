@@ -57,4 +57,3 @@ export function useFormConfigPersistence(initialId?: string, tabId?: string) {
     schema: formConfigRecordSchema,
   });
 }
-

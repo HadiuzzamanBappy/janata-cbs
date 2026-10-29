@@ -21,30 +21,24 @@ export const INITIAL_FORM_CONFIG: FormConfigRecord = {
   },
 };
 
-export function createInitialDraft(cleanId: string, description?: string): FormConfigRecord {
-  const targetModel = cleanId.split(",")[0].trim();
-  const version = cleanId.split(",")[1]?.trim() || "1.0.0";
+/**
+ * Creates a clean, empty form layout draft for self-entry.
+ * No synthetic titles, descriptions, or dummy sections are pre-filled.
+ */
+export function createInitialDraft(_cleanId?: string, _description?: string): FormConfigRecord {
   return {
     ...INITIAL_FORM_CONFIG,
-    targetModel,
-    version,
-    title: `${targetModel} Form (${version})`,
-    description: description || `${targetModel} form layout version ${version}`,
+    title: "",
+    description: "",
+    authNumber: 1,
+    frmRoutine: {
+      rtnValidate: [],
+      rtnBeforeAuth: [],
+      rtnAfterAuth: [],
+    },
     frmElements: {
       steps: [],
-      sections: [
-        {
-          id: "general_sec",
-          title: "General Information",
-          type: "standard",
-          zone: "standard",
-          layoutStyle: "card",
-          columns: 1,
-          collapsible: false,
-          isCollapsed: false,
-          fields: [],
-        },
-      ],
+      sections: [],
     },
   };
 }

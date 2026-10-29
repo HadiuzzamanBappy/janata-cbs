@@ -4,7 +4,6 @@ import { Database, Eye, FileCode, FileText, Layers, LayoutGrid, ShieldCheck } fr
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { McAuditTab } from "./components/mc-audit-tab";
 import { McGeneralTab } from "./components/mc-general-tab";
@@ -182,7 +181,24 @@ export function SysModelConfig({ command, tabId }: ScreenProps) {
           <span>SYS_MODEL_DEFINITION</span>
         </div>
       }
-      moreActions={getDefaultMoreActions("MODEL.CONFIG")}
+      moreActions={[
+        {
+          label: "Export Model Schema JSON",
+          command: "EXP.MODEL.JSON",
+          onClick: () => {
+            const blob = new Blob([JSON.stringify(formData, null, 2)], {
+              type: "application/json",
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${formData.TABLENAME || "model"}.config.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+          },
+          requiredRight: CbsRecordFunction.SEE,
+        },
+      ]}
     />
   );
 }

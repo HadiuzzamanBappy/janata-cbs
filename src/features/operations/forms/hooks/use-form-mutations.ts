@@ -5,12 +5,12 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { computeDelta } from "@/lib/cbs-record";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
-import type { CompiledFormSpec } from "@/lib/data-schemas";
+import type { FormConfigRecord } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
 
 export interface UseFormMutationsOptions {
-  command?: string;
-  spec: CompiledFormSpec | null;
+  modelCode: string;
+  schema: FormConfigRecord | null;
   searchRecordId: string;
   screenMode: CbsScreenMode;
   setScreenMode: (mode: CbsScreenMode) => void;
@@ -18,13 +18,12 @@ export interface UseFormMutationsOptions {
   initialValues: Record<string, unknown>;
   validate: () => boolean;
   resetForm: (values?: Record<string, unknown>) => void;
-  loadRecordData: (id: string, mode: CbsScreenMode) => Promise<void>;
   onSuccess?: (result: unknown) => void;
 }
 
 export function useFormMutations({
-  command = "",
-  spec,
+  modelCode,
+  schema,
   searchRecordId,
   screenMode,
   setScreenMode,
@@ -32,12 +31,11 @@ export function useFormMutations({
   initialValues,
   validate,
   resetForm,
-  loadRecordData: _loadRecordData,
   onSuccess,
 }: UseFormMutationsOptions) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
-  const modelCode = (command || "").split(",")[0].trim().toUpperCase();
 
+  // Commit / Save (PUT / POST)
   const handleSubmit = React.useCallback(
     async (e?: React.SyntheticEvent) => {
       if (e) e.preventDefault();
@@ -49,7 +47,7 @@ export function useFormMutations({
         });
         return;
       }
-      if (!spec) return;
+      if (!schema || !modelCode) return;
 
       setSubmitting(true);
       try {
@@ -67,7 +65,7 @@ export function useFormMutations({
           }),
           {
             successTitle: "Transaction Saved",
-            successMessage: `Record saved successfully for ${spec.title}`,
+            successMessage: `Record saved successfully for ${schema.title}`,
           },
         );
 
@@ -83,7 +81,7 @@ export function useFormMutations({
     },
     [
       validate,
-      spec,
+      schema,
       modelCode,
       screenMode,
       initialValues,
@@ -95,15 +93,16 @@ export function useFormMutations({
     ],
   );
 
+  // Hold Draft (HLD)
   const handleHold = React.useMemo(() => {
-    if (screenMode === "IDLE" || !spec) return undefined;
+    if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
       const id = searchRecordId.trim() || (values.id as string) || "";
       setSubmitting(true);
       try {
         const json = await cbs.send(cbs.form.holdRecord(modelCode, id, values), {
           successTitle: "Transaction Held",
-          successMessage: `Record draft for ${spec.title} placed on Hold.`,
+          successMessage: `Record draft for ${schema.title} placed on Hold.`,
         });
         if (json.status === "SUCCESS") {
           broadcastRecordMutation(modelCode, id);
@@ -113,16 +112,17 @@ export function useFormMutations({
         setSubmitting(false);
       }
     };
-  }, [screenMode, spec, modelCode, searchRecordId, values, onSuccess]);
+  }, [screenMode, schema, modelCode, searchRecordId, values, onSuccess]);
 
+  // Delete Record / Draft (DEL)
   const handleDelete = React.useMemo(() => {
-    if (screenMode === "IDLE" || !spec) return undefined;
+    if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
       const id = searchRecordId.trim() || (values.id as string) || "";
       if (!id) {
         toast.add({
           title: "Record ID Required",
-          description: "Cannot delete an unreferenced draft without a Record ID.",
+          description: "Cannot delete without a Record ID.",
           type: "warning",
         });
         return;
@@ -131,7 +131,7 @@ export function useFormMutations({
       try {
         const json = await cbs.send(cbs.form.deleteRecord(modelCode, id), {
           successTitle: "Record Deleted",
-          successMessage: `Record #${id} marked for deletion in ${spec.title}.`,
+          successMessage: `Record #${id} marked for deletion in ${schema.title}.`,
         });
         if (json.status === "SUCCESS") {
           broadcastRecordMutation(modelCode, id);
@@ -145,7 +145,7 @@ export function useFormMutations({
     };
   }, [
     screenMode,
-    spec,
+    schema,
     modelCode,
     searchRecordId,
     values.id,
@@ -155,8 +155,9 @@ export function useFormMutations({
     onSuccess,
   ]);
 
+  // Authorize or Reverse (AUT / REV)
   const handleAuthorizeReverse = React.useMemo(() => {
-    if (screenMode === "IDLE" || !spec) return undefined;
+    if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
       const id = searchRecordId.trim() || (values.id as string) || "";
       if (!id) {
@@ -191,7 +192,7 @@ export function useFormMutations({
     };
   }, [
     screenMode,
-    spec,
+    schema,
     modelCode,
     searchRecordId,
     values,

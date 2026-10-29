@@ -3,19 +3,25 @@
 import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
 import { resolveFormRecord } from "@/lib/cbs-form-spec";
-import type { CompiledFormSpec } from "@/lib/data-schemas";
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 
-export function useFormSpec(command: string) {
-  const [spec, setSpec] = React.useState<CompiledFormSpec | null>(null);
+export interface UseFormSchemaResult {
+  schema: FormConfigRecord | null;
+  modelRecord: ModelConfigRecord | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useFormSchema(command: string): UseFormSchemaResult {
+  const [schema, setSchema] = React.useState<FormConfigRecord | null>(null);
   const [modelRecord, setModelRecord] = React.useState<ModelConfigRecord | null>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  const fetchSpec = React.useCallback(async () => {
+  const fetchSchema = React.useCallback(async () => {
     if (!command) {
-      setSpec(null);
+      setSchema(null);
       setModelRecord(null);
       setLoading(false);
       return;
@@ -27,7 +33,7 @@ export function useFormSpec(command: string) {
     try {
       const cleanCmd = command.trim().toUpperCase();
 
-      // 1. If command explicitly specifies a version (e.g. ACCOUNT,1.0.0), it MUST exist in FORM.CONFIG
+      // Case 1: Command has explicit layout version (e.g., ACCOUNT,1.0.0)
       if (cleanCmd.includes(",")) {
         const [app, version] = cleanCmd.split(",");
         if (version?.trim()) {
@@ -35,41 +41,38 @@ export function useFormSpec(command: string) {
             silent: true,
           });
 
-          if (formRes.status === "SUCCESS" && formRes.data && "presentation" in formRes.data) {
+          if (formRes.status === "SUCCESS" && formRes.data && "frmElements" in formRes.data) {
             const formConfig = formRes.data;
-            const targetModelName = String(formConfig.targetModel || app || cleanCmd)
+            const targetModelName = String(app || cleanCmd)
               .trim()
               .toUpperCase();
 
-            // Fetch underlying model schema to enrich validation rules
             let model: ModelConfigRecord | null = null;
             try {
               const modelRes = await cbs.send<ModelConfigRecord>(
                 cbs.modelConfig.get(targetModelName),
-                {
-                  silent: true,
-                },
+                { silent: true },
               );
               if (modelRes.status === "SUCCESS" && modelRes.data) {
                 model = modelRes.data;
                 setModelRecord(model);
               }
             } catch {
-              // Model fetch is optional; fallback to formConfig standalone
+              // Model is optional when form layout is standalone
             }
 
             const compiled = resolveFormRecord(formConfig, model);
-            setSpec(compiled);
+            setSchema(compiled);
             return;
           }
 
           throw new Error(
-            `Version "${cleanCmd}" does not exist in FORM.CONFIG. Please verify the version code or create it in Form Design (FC).`,
+            `Version "${cleanCmd}" does not exist in FORM.CONFIG. Please verify the version or create it in Form Design.`,
           );
         }
       }
 
-      // 2. Base Model Application (e.g. ACCOUNT, CUSTOMER, USER)
+      // Case 2: Base Model Application (e.g. ACCOUNT, CUSTOMER)
       const baseModel = cleanCmd.split(",")[0].trim();
       const modelRes = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(baseModel), {
         silent: true,
@@ -79,7 +82,7 @@ export function useFormSpec(command: string) {
         const model = modelRes.data;
         setModelRecord(model);
         const compiled = resolveFormRecord(model, null);
-        setSpec(compiled);
+        setSchema(compiled);
         return;
       }
 
@@ -88,7 +91,7 @@ export function useFormSpec(command: string) {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error resolving form specification");
-      setSpec(null);
+      setSchema(null);
       setModelRecord(null);
     } finally {
       setLoading(false);
@@ -96,8 +99,8 @@ export function useFormSpec(command: string) {
   }, [command]);
 
   React.useEffect(() => {
-    fetchSpec();
-  }, [fetchSpec]);
+    fetchSchema();
+  }, [fetchSchema]);
 
-  return { spec, modelRecord, loading, error, refetch: fetchSpec };
+  return { schema, modelRecord, loading, error, refetch: fetchSchema };
 }

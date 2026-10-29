@@ -3,7 +3,7 @@
 import { Code, Columns, Eye, FileText, Filter, Layers } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
-import { type CbsScreenProps, type CbsScreenTab, getDefaultMoreActions } from "@/lib/cbs-screen";
+import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { CbsControlTable, CbsRecordFunction } from "@/types";
 import { IcGeneralTab } from "./components/ic-general-tab";
 import { IcJsonTab } from "./components/ic-json-tab";
@@ -152,24 +152,6 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
           <span>INQUIRY_DESIGNER</span>
         </div>
       }
-      moreActions={[
-        ...getDefaultMoreActions("INQUIRY.CONFIG"),
-        {
-          label: "Export Inquiry Spec (JSON)",
-          onClick: () => {
-            const blob = new Blob([JSON.stringify(formData, null, 2)], {
-              type: "application/json",
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${recordId || formData.INQInfo?.controllerName || "inquiry"}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-          },
-          requiredRight: "S",
-        },
-      ]}
     />
   );
 }

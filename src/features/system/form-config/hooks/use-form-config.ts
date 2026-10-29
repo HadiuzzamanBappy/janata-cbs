@@ -70,15 +70,16 @@ export function useFormConfig(initialId?: string, tabId?: string) {
               return;
             }
 
-            // 2. New Form Config (FORMCONTROL is {}): initialize 1-col draft
+            // 2. New Form Config (FORMCONTROL is {}): initialize clean empty draft
             if (targetMode === "I") {
-              const draft = createInitialDraft(cleanId, model.DESCRIPTION);
+              const draft = createInitialDraft(cleanId);
               hydrate(draft);
               setMode("I");
-              setSelectedSectionId("general_sec");
+              setSelectedSectionId(null);
+              setSelectedFieldId(null);
               toast.add({
                 title: "New Form Config Draft",
-                description: `Initialized layout draft for #${cleanId}.`,
+                description: `Initialized clean layout draft for #${cleanId}.`,
                 type: "info",
               });
               return;
@@ -90,10 +91,11 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           const draft = createInitialDraft(cleanId);
           hydrate(draft);
           setMode("I");
-          setSelectedSectionId("general_sec");
+          setSelectedSectionId(null);
+          setSelectedFieldId(null);
           toast.add({
             title: "New Form Config Draft",
-            description: `Initialized layout draft for #${cleanId}.`,
+            description: `Initialized clean layout draft for #${cleanId}.`,
             type: "info",
           });
         }

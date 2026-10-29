@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Building2, Check, ChevronsUpDown, RefreshCw } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -24,9 +25,11 @@ interface BranchSwitcherProps {
   align?: "start" | "center" | "end";
 }
 
-let cachedBranches: Array<{ code: string; name: string; type: string }> | null = null;
-let branchesFetchPromise: Promise<Array<{ code: string; name: string; type: string }>> | null =
-  null;
+interface BranchItem {
+  code: string;
+  name: string;
+  type: string;
+}
 
 export function BranchSwitcher({
   className,
@@ -34,59 +37,34 @@ export function BranchSwitcher({
   align = "end",
 }: BranchSwitcherProps = {}) {
   const [branchSearch, setBranchSearch] = React.useState("");
-  const [branches, setBranches] = React.useState<
-    Array<{ code: string; name: string; type: string }>
-  >([]);
-  const [branchLoading, setBranchLoading] = React.useState(true);
-  const [branchError, setBranchError] = React.useState<string | null>(null);
-
   const { currentBranch, setBranch } = useSessionStore();
 
+  const {
+    data: branches = [],
+    isLoading: branchLoading,
+    error: queryError,
+    refetch,
+  } = useQuery<BranchItem[]>({
+    queryKey: ["app", "branches"],
+    queryFn: async () => {
+      const res = await fetch(appConfig.routes.api.branches);
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        return json.data.map((b: { recordId: string; branchTitle: string }) => ({
+          code: b.recordId,
+          name: b.branchTitle,
+          type: b.recordId === appConfig.centralBranch ? "Head Office" : "General",
+        }));
+      }
+      throw new Error(json.error || "Failed to load branch list");
+    },
+  });
+
+  const branchError =
+    queryError instanceof Error ? queryError.message : queryError ? String(queryError) : null;
   const loadBranches = React.useCallback(() => {
-    setBranchLoading(true);
-    setBranchError(null);
-
-    if (cachedBranches) {
-      setBranches(cachedBranches);
-      setBranchLoading(false);
-      return;
-    }
-
-    if (!branchesFetchPromise) {
-      branchesFetchPromise = fetch(appConfig.routes.api.branches)
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.success && Array.isArray(json.data)) {
-            const mapped = json.data.map((b: { recordId: string; branchTitle: string }) => ({
-              code: b.recordId,
-              name: b.branchTitle,
-              type: b.recordId === appConfig.centralBranch ? "Head Office" : "General",
-            }));
-            cachedBranches = mapped;
-            return mapped;
-          }
-          throw new Error(json.error || "Failed to load branch list");
-        })
-        .finally(() => {
-          branchesFetchPromise = null;
-        });
-    }
-
-    branchesFetchPromise
-      .then((data) => {
-        setBranches(data);
-      })
-      .catch((err) => {
-        setBranchError(err?.message || "Failed to connect to branch service");
-      })
-      .finally(() => {
-        setBranchLoading(false);
-      });
-  }, []);
-
-  React.useEffect(() => {
-    loadBranches();
-  }, [loadBranches]);
+    refetch();
+  }, [refetch]);
 
   const activeBranchCode = currentBranch ?? appConfig.centralBranch;
   const activeBranchObj =

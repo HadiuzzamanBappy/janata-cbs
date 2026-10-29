@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
@@ -12,31 +13,37 @@ export interface ModelCatalogItem {
 }
 
 export function useMcCatalog() {
-  const [modelsPool, setModelsPool] = React.useState<ModelCatalogItem[]>([]);
+  const queryClient = useQueryClient();
 
-  const refreshCatalog = React.useCallback(async () => {
-    try {
+  const { data: modelsPool = [], refetch } = useQuery<ModelCatalogItem[]>({
+    queryKey: ["cbs", "model-config", "catalog"],
+    queryFn: async () => {
       const res = await cbs.send<ModelCatalogItem[]>(cbs.modelConfig.list(), {
         silent: true,
       });
       if (res.status === "SUCCESS" && Array.isArray(res.data)) {
-        setModelsPool(res.data);
+        return res.data;
       }
-    } catch {
-      // Graceful fallback
-    }
-  }, []);
+      return [];
+    },
+  });
 
-  const upsertCatalogItem = React.useCallback((item: ModelCatalogItem) => {
-    setModelsPool((prev) => {
-      const exists = prev.some((p) => p.id === item.id);
-      return exists ? prev.map((p) => (p.id === item.id ? item : p)) : [...prev, item];
-    });
-  }, []);
+  const upsertCatalogItem = React.useCallback(
+    (item: ModelCatalogItem) => {
+      queryClient.setQueryData<ModelCatalogItem[]>(
+        ["cbs", "model-config", "catalog"],
+        (prev = []) => {
+          const exists = prev.some((p) => p.id === item.id);
+          return exists ? prev.map((p) => (p.id === item.id ? item : p)) : [...prev, item];
+        },
+      );
+    },
+    [queryClient],
+  );
 
   return {
     modelsPool,
-    refreshCatalog,
+    refreshCatalog: refetch,
     upsertCatalogItem,
   };
 }

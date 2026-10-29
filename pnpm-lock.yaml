@@ -31,9 +31,9 @@ importers:
       "@react-pdf/renderer":
         specifier: ^4.9.0
         version: 4.9.0(react@19.3.1)
-      chart.js:
-        specifier: ^4.6.1
-        version: 4.6.1
+      "@tanstack/react-query":
+        specifier: ^5.105.0
+        version: 5.105.0(@types/react@19.3.0)(react@19.3.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1188,12 +1188,6 @@ packages:
         integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==,
       }
 
-  "@kurkle/color@0.3.4":
-    resolution:
-      {
-        integrity: sha512-M5UknZPHRu3DEDWoipU6sE8PdkZ6Z/S+v4dD+Ke8IaNlpdSQah50lz1KtcFBa2vsdOnwbbnxJwVM4wty6udA5w==,
-      }
-
   "@mermaid-js/parser@2.0.1":
     resolution:
       {
@@ -1846,6 +1840,24 @@ packages:
         integrity: sha512-JTSZZGQi1AyKirbLN3azmjVzef92tcX7h+iSqPdaeStyFpGpDlKvvpxeOE8njhbUanbRwr3z8DyzhICWnMtQeg==,
       }
 
+  "@tanstack/query-core@5.105.0":
+    resolution:
+      {
+        integrity: sha512-7p56vRmT/z4UJ6sctGIdl5WRUQyUv53IUpUwEKi2g97zMbO7zh8ZsCLffGAvCPBR4xD72e3VXsDyLwXHhoNTMQ==,
+      }
+
+  "@tanstack/react-query@5.105.0":
+    resolution:
+      {
+        integrity: sha512-y+hMuDERvgg6ay1da0V1a6ZC0ZONt7dELxSFkqRZuwm7p1TTZs0MoXrPlBRflIpRoYjvzQVYxycnLImpFLhWrw==,
+      }
+    peerDependencies:
+      "@types/react": ^18 || ^19
+      react: ^18 || ^19
+    peerDependenciesMeta:
+      "@types/react":
+        optional: true
+
   "@ts-morph/common@0.27.0":
     resolution:
       {
@@ -2378,13 +2390,6 @@ packages:
       {
         integrity: sha512-iBZ4F4wRbyORVsu0jPV7gXkOsGYjGHPmAyv+HiHG8gi5PtC9KI2j1+v8/tlibRvjoWX027ypmG/n0HtO5t7unw==,
       }
-
-  chart.js@4.6.1:
-    resolution:
-      {
-        integrity: sha512-hJyniucsFmq//EvXYvJ6c6mahPoI3kaxdjVH8awTaJ/fDNWeSqqqArixMJWkWNN6fcYvPU3HneSANFNYtRi61g==,
-      }
-    engines: { pnpm: ">=8" }
 
   chevrotain@11.1.2:
     resolution:
@@ -6436,8 +6441,6 @@ snapshots:
 
   "@js-sdsl/ordered-map@4.4.2": {}
 
-  "@kurkle/color@0.3.4": {}
-
   "@mermaid-js/parser@2.0.1":
     dependencies:
       "@chevrotain/types": 13.2.0
@@ -6867,6 +6870,15 @@ snapshots:
       postcss: 8.5.31
       tailwindcss: 4.3.3
 
+  "@tanstack/query-core@5.105.0": {}
+
+  "@tanstack/react-query@5.105.0(@types/react@19.3.0)(react@19.3.1)":
+    dependencies:
+      "@tanstack/query-core": 5.105.0
+      react: 19.3.1
+    optionalDependencies:
+      "@types/react": 19.3.0
+
   "@ts-morph/common@0.27.0":
     dependencies:
       fast-glob: 3.3.3
@@ -7161,10 +7173,6 @@ snapshots:
   character-entities@2.0.2: {}
 
   character-reference-invalid@2.0.1: {}
-
-  chart.js@4.6.1:
-    dependencies:
-      "@kurkle/color": 0.3.4
 
   chevrotain@11.1.2:
     dependencies:

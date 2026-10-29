@@ -74,7 +74,6 @@ export function parseGfcResponse(
     SERVICEPATH: combined.SERVICEPATH,
     IDDEF: combined.IDDEF,
     PROPERTIES: combined.PROPERTIES,
-    VIEWDEF: combined.VIEWDEF,
     IDROUTINE: combined.IDROUTINE || "",
     FIELDBASED: combined.FIELDBASED,
     auditData: combined.auditData,

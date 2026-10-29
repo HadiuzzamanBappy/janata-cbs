@@ -118,6 +118,7 @@ When working in specific domain areas, refer to the focused runbooks in `.agents
   - `cbs-access-control` — RIDASHL capability evaluation and button states.
   - `cbs-client-wire-protocol` — BFF proxy client and wire request factories.
   - `cbs-command-and-navigation` — Command syntax, screen aliases, and bespoke screen registration.
+  - `cbs-compact-ui-and-layout` — High-density, minimal CBS UI conventions, 12-column grids, and multi-monitor resolution consistency (1366x768 to 1920x1080).
   - `cbs-form-and-record-lifecycle` — Two-tier form state (prevent keystroke thrashing) & delta payloads.
   - `cbs-verification-suite` — Test runbook and regression triage.
   - `documentation-authoring` — Architecture docs and end-user manual authoring standards.

@@ -52,7 +52,6 @@ async function runSuite() {
     ASSOCIATES: [],
     _DEVBY: "SYSTEM",
     _DEVDATE: "2026-10-20",
-    VIEWDEF: [],
     IDROUTINE: "",
     FIELDBASED: false,
     IDDEF: {

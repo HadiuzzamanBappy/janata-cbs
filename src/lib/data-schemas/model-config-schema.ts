@@ -43,21 +43,6 @@ export const idDefSchema = z.object({
 
 export type IdDef = z.infer<typeof idDefSchema>;
 
-export const viewDefFieldSchema = z.object({
-  TABLENAME: z.string().default(""),
-  FIELDNAME: z.string().default(""),
-});
-
-export type ViewDefField = z.infer<typeof viewDefFieldSchema>;
-
-export const viewDefItemSchema = z.object({
-  VIEWNAME: z.string().default(""),
-  DESCRIPTION: z.string().default(""),
-  FIELDS: z.array(viewDefFieldSchema).default([]),
-});
-
-export type ViewDefItem = z.infer<typeof viewDefItemSchema>;
-
 export const modelConfigRecordSchema = z.object({
   _DEVBY: z.string().default(""),
   _DEVDATE: z.string().default(""),
@@ -78,7 +63,6 @@ export const modelConfigRecordSchema = z.object({
     IDPATTERN: "",
   }),
   PROPERTIES: z.array(modelPropertySchema).default([]),
-  VIEWDEF: z.array(viewDefItemSchema).default([]),
   IDROUTINE: z.string().default(""),
   FIELDBASED: z.boolean().default(false),
   auditData: auditDataSchema.optional(),
@@ -92,7 +76,7 @@ export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
 
 export interface ValidationErrorItem {
   id: string;
-  tab: "general" | "properties" | "views" | "audit";
+  tab: "general" | "properties" | "audit";
   sn?: string;
   fieldKey: string;
   message: string;

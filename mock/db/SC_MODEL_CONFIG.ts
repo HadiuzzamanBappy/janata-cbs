@@ -53,18 +53,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         WIDTH: 250,
       },
     ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     IDROUTINE: "",
     FIELDBASED: false,
     auditData: {
@@ -138,18 +126,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         WIDTH: 230,
       },
     ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     IDROUTINE: "",
     FIELDBASED: false,
     auditData: {
@@ -221,18 +197,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         LENGTH: 20,
         REQUIRED: false,
         WIDTH: 220,
-      },
-    ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
       },
     ],
     IDROUTINE: "",
@@ -318,18 +282,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         WIDTH: 201,
       },
     ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     IDROUTINE: "",
     FIELDBASED: false,
     auditData: {
@@ -363,18 +315,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     },
     FIELDBASED: false,
     IDROUTINE: "",
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     PROPERTIES: [
       {
         SN: "1",
@@ -1288,18 +1228,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         WIDTH: 700,
       },
     ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     IDROUTINE: "",
     FIELDBASED: false,
     auditData: {
@@ -1371,18 +1299,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         LENGTH: 100,
         REQUIRED: true,
         WIDTH: 300,
-      },
-    ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
       },
     ],
     IDROUTINE: "",
@@ -1488,18 +1404,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         WIDTH: 350,
       },
     ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     IDROUTINE: "",
     FIELDBASED: false,
     auditData: {
@@ -1593,18 +1497,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         WIDTH: 201,
       },
     ],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     IDROUTINE: "",
     FIELDBASED: false,
     auditData: {
@@ -1637,18 +1529,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPATTERN: "",
     },
     PROPERTIES: [],
-    VIEWDEF: [
-      {
-        VIEWNAME: "",
-        DESCRIPTION: "",
-        FIELDS: [
-          {
-            TABLENAME: "",
-            FIELDNAME: "",
-          },
-        ],
-      },
-    ],
     IDROUTINE: "",
     FIELDBASED: false,
     auditData: {

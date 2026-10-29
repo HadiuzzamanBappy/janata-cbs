@@ -11,7 +11,7 @@ export function mapZodIssuesToValidationErrors(
 ): ValidationErrorItem[] {
   return issues.map((issue, idx) => {
     const path = issue.path;
-    let tab: "general" | "properties" | "views" | "audit" = "general";
+    let tab: "general" | "properties" | "audit" = "general";
     let sn: string | undefined;
     const fieldKey = String(path[path.length - 1] || "unknown");
 
@@ -19,8 +19,6 @@ export function mapZodIssuesToValidationErrors(
       tab = "properties";
       const targetProp = properties[path[1] as number];
       sn = targetProp?.SN;
-    } else if (path[0] === "VIEWDEF" || path[0] === "viewDef") {
-      tab = "views";
     } else if (path[0] === "auditData" || path[0] === "AUDITDATA") {
       tab = "audit";
     }

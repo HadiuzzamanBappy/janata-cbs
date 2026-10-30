@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as React from "react";
 import { AlertStoreProvider } from "./alert/alert-provider";
 import { SessionStoreProvider } from "./session/session-provider";
-import { ThemeProvider } from "./theme-provider";
 import { WorkbenchStoreProvider } from "./workbench/workbench-provider";
 
 export interface CbsAppStoreProviderProps {
@@ -33,13 +32,11 @@ export function CbsAppStoreProvider({ children }: CbsAppStoreProviderProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-        <SessionStoreProvider>
-          <WorkbenchStoreProvider>
-            <AlertStoreProvider>{children}</AlertStoreProvider>
-          </WorkbenchStoreProvider>
-        </SessionStoreProvider>
-      </ThemeProvider>
+      <SessionStoreProvider>
+        <WorkbenchStoreProvider>
+          <AlertStoreProvider>{children}</AlertStoreProvider>
+        </WorkbenchStoreProvider>
+      </SessionStoreProvider>
     </QueryClientProvider>
   );
 }

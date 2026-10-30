@@ -11,6 +11,7 @@ const COOKIES = {
   sid: `${APP_PREFIX}_sid`,
   branch: `${APP_PREFIX}_branch`,
   initLogin: `${APP_PREFIX}_init_login`,
+  themeAccent: `${APP_PREFIX}_theme_accent`,
 } as const;
 
 export const clientConfig = {

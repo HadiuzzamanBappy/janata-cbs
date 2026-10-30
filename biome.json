@@ -46,7 +46,8 @@
       "preset": "recommended",
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole": "off"
+        "noConsole": "off",
+        "noDocumentCookie": "off"
       },
       "style": {
         "noRestrictedImports": {

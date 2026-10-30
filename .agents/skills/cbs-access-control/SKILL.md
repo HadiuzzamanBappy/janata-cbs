@@ -1,8 +1,7 @@
 ---
 
 name: cbs-access-control
-description: >-
-Use this skill when implementing or modifying screens, action bars, buttons, or workflows that require banking entitlements (RIDASHL), Four-Eyes (Maker-Checker) authorization checks, or clearance level restrictions.
+description: Use this skill when implementing or modifying screens, action bars, buttons, or workflows that require banking entitlements (RIDASHL), Four-Eyes (Maker-Checker) authorization checks, or clearance level restrictions.
 ---
 
 # CBS Access Control & Four-Eyes Principle Runbook

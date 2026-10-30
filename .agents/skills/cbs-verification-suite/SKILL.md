@@ -1,8 +1,7 @@
----
+﻿---
 
 name: cbs-verification-suite
-description: >-
-Use this skill when validating code changes, diagnosing regressions, running banking rule tests, or checking layer dependencies and contracts before finalizing a task.
+description: Use this skill when validating code changes, diagnosing regressions, running banking rule tests, or checking layer dependencies and contracts before finalizing a task.
 ---
 
 # CBS Verification & Testing Runbook

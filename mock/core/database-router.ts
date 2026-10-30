@@ -79,9 +79,7 @@ export function resolveTable(controlName: string): ResolvedTable | null {
         : "";
 
       return Object.entries(bucket)
-        .map(([key, item]) =>
-          String(item.recordId || item.id || item.code || item.userId || key).trim(),
-        )
+        .map(([key, item]) => String(key || item.recordId || item.id).trim())
         .filter((id) => !cleanPattern || id.toUpperCase().includes(cleanPattern));
     },
 

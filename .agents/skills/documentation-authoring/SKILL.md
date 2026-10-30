@@ -1,4 +1,4 @@
----
+﻿---
 
 name: documentation-authoring
 description: Use this skill when writing, updating, or reviewing developer portals (docs/devs/), end-user manuals (docs/manual/), or Mermaid diagrams.

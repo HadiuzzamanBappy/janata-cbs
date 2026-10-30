@@ -28,7 +28,7 @@ export function TextWidget({
   };
 
   return (
-    <div style={style} className={className}>
+    <div style={style} className={cn("w-full", className)}>
       <Input
         type={type}
         id={id}

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
-import { modelConfigRecordSchema } from "./model-config-schema";
+import { modelConfigRecordSchema, propertyWidthSchema } from "./model-config-schema";
 
 /* ========================================================================== */
 /* 1. ROUTINE HOOKS CONTRACT                                                  */
@@ -49,7 +49,7 @@ export const formElementSchema = z.object({
   STRUCTURE: z.string().default("S"),
   REQUIRED: z.boolean().default(false),
   DISABLED: z.boolean().default(false),
-  WIDTH: z.coerce.number().default(200),
+  WIDTH: z.union([propertyWidthSchema, z.number()]).default("md"),
   POSITION: z.string().default(""),
   PARAMETER: formElementParameterSchema.default({
     type: "O",

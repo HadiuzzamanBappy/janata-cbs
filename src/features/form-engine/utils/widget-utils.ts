@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
+import type { PropertyWidth } from "@/lib/data-schemas/model-config-schema";
 
 export function resolveWidgetType(type?: string, param?: FormFieldParameter): string {
   const typeLower = (type || "text").toLowerCase();
@@ -18,10 +19,14 @@ export function resolveWidgetType(type?: string, param?: FormFieldParameter): st
   return "text";
 }
 
+/**
+ * Standard semantic token width mapping aligned with banking density guidelines.
+ * 'full' stretches across the entire available row.
+ */
 export function getFieldWidthStyle(
   length?: number,
   widget?: string,
-  width?: number,
+  width?: PropertyWidth | string | number,
 ): CSSProperties | undefined {
   if (
     widget === "switch" ||
@@ -32,17 +37,44 @@ export function getFieldWidthStyle(
     return undefined;
   }
   if (widget === "textarea") {
-    return { width: "100%", maxWidth: "600px" };
+    return { width: "100%", flex: 1 };
   }
   if (widget === "date") {
-    return { width: "144px", maxWidth: "100%" };
+    return { width: "160px", maxWidth: "100%" };
   }
-  if (typeof width === "number" && width > 0) {
-    return { width: `${width}px`, maxWidth: "100%" };
+
+  // Handle semantic tokens
+  const token = typeof width === "string" ? width.toLowerCase().trim() : undefined;
+  if (token === "full") {
+    return { width: "100%", flex: 1 };
   }
+  if (token === "xs") {
+    return { width: "120px", maxWidth: "100%" };
+  }
+  if (token === "sm") {
+    return { width: "180px", maxWidth: "100%" };
+  }
+  if (token === "md") {
+    return { width: "280px", maxWidth: "100%" };
+  }
+  if (token === "lg") {
+    return { width: "450px", maxWidth: "100%" };
+  }
+  if (token === "xl") {
+    return {
+      width: "600px",
+      maxWidth: "100%",
+    };
+  }
+  if (token === "xxl")
+    return {
+      width: "700px",
+      maxWidth: "100%",
+    };
+  // Fallback to length ch or standard md width
   if (typeof length === "number" && length > 0) {
     const ch = Math.max(length + 4, 10);
     return { width: `${ch}ch`, maxWidth: "100%" };
   }
-  return { width: "240px", maxWidth: "100%" };
+  return { width: "280px", maxWidth: "100%" };
 }

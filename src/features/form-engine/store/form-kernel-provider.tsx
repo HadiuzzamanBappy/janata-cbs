@@ -32,7 +32,9 @@ export function FormKernelProvider({
       storeRef.current.subscribe((state) => {
         for (const [key, val] of Object.entries(state.values)) {
           if (val !== prevValues[key]) {
-            onFieldChange(key, val);
+            queueMicrotask(() => {
+              onFieldChange(key, val);
+            });
           }
         }
         prevValues = { ...state.values };

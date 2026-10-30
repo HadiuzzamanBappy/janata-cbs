@@ -66,13 +66,41 @@ export function useFormState({
     [tabId, updateTabState],
   );
 
+  const syncTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const pendingSyncDataRef = React.useRef<Record<string, unknown> | null>(null);
+
+  // Clean up any debounced sync timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Flush tab persistence outside the React render/updater cycle
+  const scheduleTabSync = React.useCallback(
+    (nextData: Record<string, unknown>) => {
+      if (!tabId || typeof updateFormData !== "function") return;
+      pendingSyncDataRef.current = nextData;
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+      }
+      syncTimerRef.current = setTimeout(() => {
+        if (pendingSyncDataRef.current && tabId && typeof updateFormData === "function") {
+          updateFormData(tabId, pendingSyncDataRef.current);
+          pendingSyncDataRef.current = null;
+        }
+      }, 150);
+    },
+    [tabId, updateFormData],
+  );
+
   const setValue = React.useCallback(
     (name: string, val: unknown) => {
       setValuesState((prev) => {
         const next = { ...prev, [name]: val };
-        if (tabId && typeof updateFormData === "function") {
-          updateFormData(tabId, next);
-        }
+        scheduleTabSync(next);
         return next;
       });
       setIsDirty(true);
@@ -85,7 +113,7 @@ export function useFormState({
         return next;
       });
     },
-    [tabId, updateFormData],
+    [scheduleTabSync],
   );
 
   const setValues = React.useCallback(
@@ -94,7 +122,9 @@ export function useFormState({
       setIsDirty(false);
       setErrors({});
       if (tabId && typeof updateFormData === "function") {
-        updateFormData(tabId, nextValues);
+        queueMicrotask(() => {
+          updateFormData(tabId, nextValues);
+        });
       }
     },
     [tabId, updateFormData],
@@ -106,7 +136,9 @@ export function useFormState({
       setErrors({});
       setIsDirty(false);
       if (tabId && typeof updateFormData === "function") {
-        updateFormData(tabId, resetValues);
+        queueMicrotask(() => {
+          updateFormData(tabId, resetValues);
+        });
       }
     },
     [tabId, initialValues, updateFormData],

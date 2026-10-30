@@ -8,18 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
 import {
   type ModelProperty,
   PROPERTY_TYPES,
+  PROPERTY_WIDTHS,
   type PropertyType,
+  type PropertyWidth,
   type ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
 
@@ -36,32 +32,56 @@ function InspectorRow({
   label,
   required,
   error,
+  description,
   children,
 }: {
   label: string;
   required?: boolean;
   error?: string;
+  description?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <div className="min-h-7 flex items-center gap-2">
-        <Label
-          className={cn(
-            "w-28 shrink-0 text-xs select-none font-normal",
-            error ? "text-destructive font-semibold" : "text-muted-foreground",
-          )}
-        >
-          {label} {required && <span className="text-destructive font-semibold ml-0.5">*</span>}
-        </Label>
-        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
-        <div className="max-w-md flex-1">{children}</div>
+    <div className="min-h-7 flex items-center gap-2">
+      <div className="w-28 shrink-0 flex items-center text-xs select-none font-normal">
+        {description ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <span className="inline-flex items-center">
+                  <span
+                    className={cn(
+                      "cursor-help underline decoration-dotted decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground hover:text-foreground transition-colors",
+                      error ? "text-destructive font-semibold" : "text-muted-foreground",
+                    )}
+                  >
+                    {label}
+                  </span>
+                  {required && (
+                    <span className="text-destructive font-semibold ml-0.5 no-underline select-none">
+                      *
+                    </span>
+                  )}
+                </span>
+              }
+            />
+            <TooltipContent side="right" className="text-xs max-w-xs z-50">
+              {description}
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <Label
+            className={cn(
+              "text-xs select-none font-normal",
+              error ? "text-destructive font-semibold" : "text-muted-foreground",
+            )}
+          >
+            {label} {required && <span className="text-destructive font-semibold ml-0.5">*</span>}
+          </Label>
+        )}
       </div>
-      {error && (
-        <div className="pl-30 text-[11px] text-destructive flex items-center gap-1 font-medium">
-          <span>• {error}</span>
-        </div>
-      )}
+      <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+      <div className="max-w-md flex-1">{children}</div>
     </div>
   );
 }
@@ -167,7 +187,12 @@ export function McPropertyInspector({
             </div>
 
             <div className="space-y-2 text-xs">
-              <InspectorRow label="Field Name" required error={nameError?.message}>
+              <InspectorRow
+                label="Field Name"
+                required
+                error={nameError?.message}
+                description="Database column identifier (snake_case or camelCase) mapped to backend tables."
+              >
                 <Input
                   value={property.NAME}
                   disabled={isReadOnly}
@@ -176,7 +201,6 @@ export function McPropertyInspector({
                       NAME: e.target.value.replace(/\s+/g, ""),
                     })
                   }
-                  placeholder="e.g. accountType"
                   className={cn(
                     "h-7 rounded text-xs font-mono bg-background",
                     nameError
@@ -186,12 +210,16 @@ export function McPropertyInspector({
                 />
               </InspectorRow>
 
-              <InspectorRow label="Display Label" required error={labelError?.message}>
+              <InspectorRow
+                label="Display Label"
+                required
+                error={labelError?.message}
+                description="Human-readable label displayed across user interface screens."
+              >
                 <Input
                   value={property.LABEL}
                   disabled={isReadOnly}
                   onChange={(e) => onUpdate(property.SN, { LABEL: e.target.value })}
-                  placeholder="e.g. Account Type"
                   className={cn(
                     "h-7 rounded text-xs bg-background",
                     labelError
@@ -201,29 +229,31 @@ export function McPropertyInspector({
                 />
               </InspectorRow>
 
-              <InspectorRow label="Data Type">
-                <Select
-                  value={property.TYPE}
-                  disabled={isReadOnly}
-                  onValueChange={handleTypeChange}
-                >
-                  <SelectTrigger
-                    size="sm"
-                    className="h-7 text-xs rounded bg-background border-border/80 w-full"
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded">
-                    {PROPERTY_TYPES.map((t) => (
-                      <SelectItem key={t} value={t} className="text-xs rounded">
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <InspectorRow
+                label="Data Type"
+                description="Physical database column data type: Text, Number, or ISO-8601 Date."
+              >
+                <div className="flex items-center gap-1.5">
+                  {PROPERTY_TYPES.map((t) => (
+                    <Button
+                      key={t}
+                      type="button"
+                      variant={property.TYPE === t ? "default" : "outline"}
+                      size="sm"
+                      disabled={isReadOnly}
+                      onClick={() => handleTypeChange(t)}
+                      className="h-7 px-2.5 text-xs rounded flex-1"
+                    >
+                      {t}
+                    </Button>
+                  ))}
+                </div>
               </InspectorRow>
 
-              <InspectorRow label="Structure">
+              <InspectorRow
+                label="Structure"
+                description="Single (S) scalar value or Multi-Value (M) repeating primitive array."
+              >
                 <div className="flex items-center gap-1.5">
                   <Button
                     type="button"
@@ -261,7 +291,10 @@ export function McPropertyInspector({
             </div>
 
             <div className="space-y-2 text-xs">
-              <InspectorRow label="Length / Size">
+              <InspectorRow
+                label="Length / Size"
+                description="Maximum character storage limit or numerical precision allowed."
+              >
                 <Input
                   type="number"
                   min={1}
@@ -273,34 +306,39 @@ export function McPropertyInspector({
                       LENGTH: Number.parseInt(e.target.value, 10) || 0,
                     })
                   }
-                  placeholder="e.g. 50"
                   className="h-7 rounded text-xs bg-background border-border/80"
                 />
               </InspectorRow>
 
-              <InspectorRow label="Display Width (px)">
-                <Input
-                  type="number"
-                  min={50}
-                  max={1200}
-                  step={10}
-                  value={property.WIDTH ?? 200}
-                  disabled={isReadOnly}
-                  onChange={(e) =>
-                    onUpdate(property.SN, {
-                      WIDTH: Number.parseInt(e.target.value, 10) || 200,
-                    })
-                  }
-                  placeholder="e.g. 200"
-                  className="h-7 rounded text-xs bg-background border-border/80"
-                />
+              <InspectorRow
+                label="Display Width"
+                description="Semantic layout width token: XS (120px/flags), SM (180px/dates), MD (240px/standard), LG (360px), FULL (row-wide)."
+              >
+                <div className="flex items-center gap-1">
+                  {PROPERTY_WIDTHS.map((w) => (
+                    <Button
+                      key={w}
+                      type="button"
+                      variant={(property.WIDTH || "md") === w ? "default" : "outline"}
+                      size="sm"
+                      disabled={isReadOnly || property.TYPE === "Date"}
+                      onClick={() => onUpdate(property.SN, { WIDTH: w as PropertyWidth })}
+                      className="h-7 px-2 text-xs rounded flex-1 uppercase"
+                    >
+                      {w}
+                    </Button>
+                  ))}
+                </div>
               </InspectorRow>
 
-              <InspectorRow label="Mandatory">
+              <InspectorRow
+                label="Required"
+                description="Whether this column enforces non-null constraint at database commit."
+              >
                 <label
                   htmlFor={`prop-required-${property.SN}`}
                   className={cn(
-                    "flex items-center gap-1.5 select-none",
+                    "flex items-center gap-2 select-none",
                     isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
                   )}
                 >
@@ -314,7 +352,16 @@ export function McPropertyInspector({
                       isReadOnly && "disabled:opacity-90 disabled:cursor-default",
                     )}
                   />
-                  <span className="text-xs text-foreground font-medium">Required in Database</span>
+                  <span
+                    className={cn(
+                      "text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold",
+                      property.REQUIRED
+                        ? "bg-primary/10 text-primary border-primary/25"
+                        : "bg-muted text-muted-foreground border-border/40",
+                    )}
+                  >
+                    {property.REQUIRED ? "Yes" : "No"}
+                  </span>
                 </label>
               </InspectorRow>
             </div>

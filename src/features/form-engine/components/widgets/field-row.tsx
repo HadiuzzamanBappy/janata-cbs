@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
 
 export interface FieldRowProps {
@@ -12,6 +13,7 @@ export interface FieldRowProps {
   labelSuffix?: ReactNode;
   actionBeforeColon?: ReactNode;
   indexSuffix?: number | string;
+  enrichText?: string;
   style?: CSSProperties;
   children: ReactNode;
 }
@@ -26,36 +28,61 @@ export function FieldRow({
   labelSuffix,
   actionBeforeColon,
   indexSuffix,
+  enrichText,
   style,
   children,
 }: FieldRowProps) {
+  // Tooltip only for enrichText
+  const showTooltip = Boolean(enrichText);
+
+  const labelCore = (
+    <Label
+      htmlFor={id}
+      title={label}
+      className={cn(
+        "text-xs truncate min-w-0 block select-none",
+        showTooltip &&
+          "cursor-help underline decoration-dotted decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground hover:text-foreground transition-colors",
+        error
+          ? "text-destructive font-semibold"
+          : required && !isViewMode
+            ? "text-foreground font-medium"
+            : "text-muted-foreground",
+      )}
+    >
+      {label}
+    </Label>
+  );
+
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
         {/* Label Column */}
         <div className="w-36 shrink-0 flex items-center justify-between gap-1 select-none">
-          <div className="flex items-center gap-1 min-w-0">
-            <Label
-              htmlFor={id}
-              className={cn(
-                "text-xs truncate",
-                error
-                  ? "text-destructive font-semibold"
-                  : required && !isViewMode
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground",
-              )}
-            >
-              {label}
-              {required && !isViewMode && (
-                <span className="text-destructive font-bold ml-1">*</span>
-              )}
-            </Label>
+          <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+            {showTooltip ? (
+              <Tooltip>
+                <TooltipTrigger
+                  render={<div className="min-w-0 flex-1 truncate">{labelCore}</div>}
+                />
+                <TooltipContent side="right" className="text-xs max-w-xs z-50">
+                  {enrichText}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <div className="min-w-0 flex-1 truncate">{labelCore}</div>
+            )}
+
             {indexSuffix !== undefined && (
-              <span className="font-mono text-[11px] text-muted-foreground/75 font-semibold">
+              <span className="shrink-0 font-mono text-[11px] text-muted-foreground/75 font-semibold">
                 .{indexSuffix}
               </span>
             )}
+
+            {required && !isViewMode && (
+              <span className="shrink-0 text-destructive font-bold ml-0.5 select-none">*</span>
+            )}
+
             {labelSuffix}
           </div>
           {actionBeforeColon}
@@ -79,7 +106,9 @@ export function FieldRow({
             )}
           </div>
         ) : (
-          children
+          <div style={style} className="min-w-0 flex items-center max-w-full flex-1">
+            {children}
+          </div>
         )}
       </div>
 

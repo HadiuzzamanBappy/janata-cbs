@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
 import type {
   ModelConfigRecord,
@@ -51,12 +52,55 @@ export function McGeneralTab({
     [setFormData],
   );
 
-  const handleBooleanChange = React.useCallback(
-    (def: MetaFieldDef, checked: boolean) => {
-      setFormData((prev) => setFieldValue(prev, def.path, checked));
-    },
-    [setFormData],
-  );
+  const renderLabel = (
+    field: MetaFieldDef,
+    fieldError?: { message?: string },
+    labelWidthClass = "w-32 shrink-0",
+  ) => {
+    const labelContent = (
+      <span className="inline-flex items-center">
+        <span
+          className={cn(
+            field.description
+              ? "cursor-help underline decoration-dotted decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground hover:text-foreground transition-colors"
+              : "",
+            fieldError ? "text-destructive font-semibold" : "text-muted-foreground",
+          )}
+        >
+          {field.label}
+        </span>
+        {field.required && (
+          <span className="text-destructive font-semibold ml-0.5 select-none no-underline">*</span>
+        )}
+      </span>
+    );
+
+    if (field.description) {
+      return (
+        <div className={cn(labelWidthClass, "flex items-center text-xs select-none font-normal")}>
+          <Tooltip>
+            <TooltipTrigger render={labelContent} />
+            <TooltipContent side="right" className="text-xs max-w-xs z-50">
+              {field.description}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
+    }
+
+    return (
+      <Label
+        className={cn(
+          labelWidthClass,
+          "text-xs select-none font-normal",
+          fieldError ? "text-destructive font-semibold" : "text-muted-foreground",
+        )}
+      >
+        {field.label}
+        {field.required && <span className="text-destructive font-semibold ml-0.5">*</span>}
+      </Label>
+    );
+  };
 
   return (
     <div className="h-full overflow-y-auto">
@@ -96,9 +140,7 @@ export function McGeneralTab({
                     const isChecked = Boolean(rawVal);
                     return (
                       <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        <Label className="w-32 shrink-0 text-xs text-muted-foreground font-normal select-none">
-                          {field.label}
-                        </Label>
+                        {renderLabel(field, fieldError)}
                         <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                         <div className="flex items-center gap-2 max-w-md flex-1">
                           <label
@@ -112,7 +154,9 @@ export function McGeneralTab({
                               id={boolFieldId}
                               checked={isChecked}
                               disabled={isReadOnly}
-                              onCheckedChange={(val: boolean) => handleBooleanChange(field, !!val)}
+                              onCheckedChange={(val: boolean) =>
+                                setFormData((prev) => setFieldValue(prev, field.path, !!val))
+                              }
                               className={cn(
                                 "rounded",
                                 isReadOnly && "disabled:opacity-90 disabled:cursor-default",
@@ -138,17 +182,7 @@ export function McGeneralTab({
                   if (field.type === "radio-group") {
                     return (
                       <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        <Label
-                          className={cn(
-                            "w-32 shrink-0 text-xs select-none font-normal",
-                            fieldError ? "text-destructive font-semibold" : "text-muted-foreground",
-                          )}
-                        >
-                          {field.label}
-                          {field.required && (
-                            <span className="text-destructive font-semibold ml-0.5">*</span>
-                          )}
-                        </Label>
+                        {renderLabel(field, fieldError)}
                         <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                         <div className="flex items-center gap-5 max-w-md flex-1">
                           <RadioGroup
@@ -199,9 +233,7 @@ export function McGeneralTab({
                     const selectedValues = Array.isArray(rawVal) ? (rawVal as string[]) : [];
                     return (
                       <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        <Label className="w-32 shrink-0 text-xs text-muted-foreground font-normal select-none">
-                          {field.label}
-                        </Label>
+                        {renderLabel(field, fieldError)}
                         <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                         <div className="flex items-center gap-4 flex-wrap max-w-xl flex-1">
                           {field.options?.map((opt) => {
@@ -246,9 +278,7 @@ export function McGeneralTab({
                   if (field.type === "date") {
                     return (
                       <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        <Label className="w-32 shrink-0 text-xs text-muted-foreground font-normal select-none">
-                          {field.label}
-                        </Label>
+                        {renderLabel(field, fieldError)}
                         <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                         <div className="flex items-center gap-1.5 max-w-xs flex-1">
                           <Input
@@ -286,9 +316,7 @@ export function McGeneralTab({
                     const selectedValues = Array.isArray(rawVal) ? (rawVal as string[]) : [];
                     return (
                       <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        <Label className="w-32 shrink-0 text-xs text-muted-foreground font-normal select-none">
-                          {field.label}
-                        </Label>
+                        {renderLabel(field, fieldError)}
                         <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                         <div className="flex items-center gap-4 max-w-md flex-1">
                           {field.options?.map((opt) => {
@@ -343,24 +371,13 @@ export function McGeneralTab({
 
                   return (
                     <div key={field.path} className="min-h-7 flex items-center gap-2">
-                      <Label
-                        className={cn(
-                          "w-32 shrink-0 text-xs select-none font-normal",
-                          fieldError ? "text-destructive font-semibold" : "text-muted-foreground",
-                        )}
-                      >
-                        {field.label}
-                        {field.required && (
-                          <span className="text-destructive font-semibold ml-0.5">*</span>
-                        )}
-                      </Label>
+                      {renderLabel(field, fieldError)}
                       <span className="text-muted-foreground/60 font-mono text-xs">:</span>
                       <Input
                         type={field.type === "number" ? "number" : "text"}
                         value={displayVal}
                         disabled={isFieldDisabled}
                         onChange={(e) => handleInputChange(field, e.target.value)}
-                        placeholder={field.placeholder}
                         className={cn(
                           "h-7 rounded text-xs bg-background",
                           fieldError

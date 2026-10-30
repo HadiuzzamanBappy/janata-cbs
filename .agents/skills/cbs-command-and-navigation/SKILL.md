@@ -1,8 +1,7 @@
 ---
 
 name: cbs-command-and-navigation
-description: >-
-Use this skill when adding new screens, registering screen aliases, implementing quick actions, or wiring user navigation and hotkeys.
+description: Use this skill when adding new screens, registering screen aliases, implementing quick actions, or wiring user navigation and hotkeys.
 ---
 
 # CBS Command Gateway & Navigation Runbook

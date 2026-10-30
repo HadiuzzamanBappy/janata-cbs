@@ -26,7 +26,7 @@ export function DateWidget({
         value={strVal}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-7 w-36 rounded text-xs bg-background border-border/80 font-mono",
+          "h-7 w-full min-w-[155px] max-w-[190px] rounded text-xs bg-background border-border/80 font-mono [color-scheme:light] dark:[color-scheme:dark]",
           error && "border-destructive",
           disabled &&
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",

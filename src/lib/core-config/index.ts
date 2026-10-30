@@ -7,3 +7,5 @@
 
 export * from "./client";
 export { clientConfig as appConfig } from "./client";
+export * from "./theme";
+export * from "./theme";

@@ -1,8 +1,7 @@
----
+﻿---
 
 name: cbs-form-and-record-lifecycle
-description: >-
-Use this skill when building or refactoring dynamic GMC forms, form fields, record state mutations, delta calculations, or form submit and commit flows.
+description: Use this skill when building or refactoring dynamic GMC forms, form fields, record state mutations, delta calculations, or form submit and commit flows.
 ---
 
 # CBS Form & Record Lifecycle Runbook

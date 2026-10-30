@@ -1,8 +1,7 @@
----
+﻿---
 
 name: cbs-compact-ui-and-layout
-description: >-
-Use this skill when designing, authoring, or refactoring user interfaces, screens, forms, tables, and dialogs in Janata CBS. Enforces minimal, compact, high-density banking layout conventions, semantic OKLCH design tokens, 12-column grids, and multi-monitor resolution consistency (from 1366x768 branch terminals to 1920x1080+ workstations).
+description: Use this skill when designing, authoring, or refactoring user interfaces, screens, forms, tables, and dialogs in Janata CBS. Enforces minimal, compact, high-density banking layout conventions, semantic OKLCH design tokens, 12-column grids, and multi-monitor resolution consistency (from 1366x768 branch terminals to 1920x1080+ workstations).
 ---
 
 # CBS Compact UI & Responsive Layout Design Runbook

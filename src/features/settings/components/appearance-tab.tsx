@@ -1,34 +1,12 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/layout/sidebar";
-import { appConfig } from "@/lib/core-config";
 import { cn } from "@/lib/core-utils";
-
-const THEME_PRESETS = [
-  { id: "color", name: "Janata Brand (Cyan)", color: "bg-[#00adee]" },
-  {
-    id: "bw",
-    name: "Monochrome (B&W)",
-    color: "bg-zinc-900 dark:bg-zinc-100 border border-border",
-  },
-];
+import { useThemeAccent } from "@/store";
 
 export function AppearanceTab() {
-  const [activeTheme, setActiveTheme] = useState("color");
-
-  useEffect(() => {
-    const saved = localStorage.getItem(appConfig.storage.local.themeAccent) || "color";
-    setActiveTheme(saved);
-    document.documentElement.setAttribute("data-theme", saved);
-  }, []);
-
-  const handleThemeChange = (themeId: string) => {
-    setActiveTheme(themeId);
-    localStorage.setItem(appConfig.storage.local.themeAccent, themeId);
-    document.documentElement.setAttribute("data-theme", themeId);
-  };
+  const { accent, setAccent, presets } = useThemeAccent();
 
   return (
     <div className="max-w-xl space-y-3">
@@ -53,25 +31,23 @@ export function AppearanceTab() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 pt-0.5">
-          {THEME_PRESETS.map((preset) => (
+          {presets.map((preset) => (
             <button
               key={preset.id}
               type="button"
-              onClick={() => handleThemeChange(preset.id)}
+              onClick={() => setAccent(preset.id)}
               className={cn(
                 "flex items-center gap-2 p-2 rounded-md border transition text-xs font-medium cursor-pointer",
-                activeTheme === preset.id
+                accent === preset.id
                   ? "border-primary bg-primary/10 text-primary font-semibold"
                   : "border-border/60 hover:bg-muted/40 hover:text-foreground text-muted-foreground",
               )}
             >
               <div
-                className={cn(
-                  "size-5 rounded-full flex items-center justify-center shrink-0 shadow-xs",
-                  preset.color,
-                )}
+                style={{ backgroundColor: preset.previewColor }}
+                className="size-5 rounded-full flex items-center justify-center shrink-0 shadow-xs border border-border/40"
               >
-                {activeTheme === preset.id && <Check className="size-3 text-white" />}
+                {accent === preset.id && <Check className="size-3 text-white" />}
               </div>
               <span className="text-[11px] truncate text-left">{preset.name}</span>
             </button>

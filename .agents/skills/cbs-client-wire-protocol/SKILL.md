@@ -1,8 +1,7 @@
 ---
 
 name: cbs-client-wire-protocol
-description: >-
-Use this skill when communicating between the frontend and backend, calling the /api/proxy endpoint, fetching dynamic GMC schemas, running inquiry queries, or executing record transactions.
+description: Use this skill when communicating between the frontend and backend, calling the /api/proxy endpoint, fetching dynamic GMC schemas, running inquiry queries, or executing record transactions.
 ---
 
 # CBS Client Wire Protocol & Proxy Gateway Runbook

@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
+import { getFieldColSpanClass, getGridColsClass } from "../../utils/section-utils";
 import { FieldAtom } from "../field-atom";
 import { UnifiedFieldFactory } from "../field-factory";
-import { getFieldColSpanClass, getGridColsClass } from "./section-utils";
 
 export interface ObjectGroupSectionProps {
   section: FormSection;

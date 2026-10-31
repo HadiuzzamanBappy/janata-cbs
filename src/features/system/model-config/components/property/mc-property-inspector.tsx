@@ -1,22 +1,19 @@
 "use client";
 
-import { FileText, Settings2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import * as React from "react";
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
+import { SectionCard } from "@/features/form-engine/components/section-card";
 import { cn } from "@/lib/core-utils";
-import {
-  type ModelProperty,
-  PROPERTY_TYPES,
-  PROPERTY_WIDTHS,
-  type PropertyType,
-  type PropertyWidth,
-  type ValidationErrorItem,
+import type {
+  ModelProperty,
+  PropertyType,
+  ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
+import { CbsRecordFunction } from "@/types";
+import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields";
 
 interface McPropertyInspectorProps {
   property?: ModelProperty;
@@ -25,26 +22,6 @@ interface McPropertyInspectorProps {
   validationErrors?: ValidationErrorItem[];
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
   onDelete: (sn: string, forceHardDelete?: boolean) => void;
-}
-
-function InspectorRow({
-  label,
-  required,
-  error,
-  description,
-  children,
-}: {
-  label: string;
-  required?: boolean;
-  error?: string;
-  description?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <FieldRow label={label} required={required} error={error} enrichText={description}>
-      <div className="max-w-md flex-1">{children}</div>
-    </FieldRow>
-  );
 }
 
 export function McPropertyInspector({
@@ -57,28 +34,68 @@ export function McPropertyInspector({
 }: McPropertyInspectorProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
-  if (!property) return null;
-
-  const nameError = validationErrors.find(
-    (e) => e.sn === property.SN && (e.fieldKey === "NAME" || e.fieldKey === "name"),
-  );
-  const labelError = validationErrors.find(
-    (e) => e.sn === property.SN && (e.fieldKey === "LABEL" || e.fieldKey === "label"),
-  );
-
-  const handleTypeChange = (val: string | null) => {
-    if (!val) return;
-    const nextType = val as PropertyType;
-    const patch: Partial<ModelProperty> = { TYPE: nextType };
-    if (nextType === "Date") {
-      patch.LENGTH = 10;
-    } else if (nextType === "Number") {
-      patch.LENGTH = 15;
-    } else if (nextType === "Text") {
-      patch.LENGTH = 50;
+  // Map validation errors for this specific property
+  const errorMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!property) return map;
+    for (const err of validationErrors) {
+      if (err.sn === property.SN && err.fieldKey) {
+        map[err.fieldKey] = err.message;
+      }
     }
-    onUpdate(property.SN, patch);
-  };
+    return map;
+  }, [validationErrors, property]);
+
+  // Form values record for the inspector
+  const formValues = React.useMemo(() => {
+    if (!property) return {};
+    return {
+      NAME: property.NAME,
+      LABEL: property.LABEL,
+      TYPE: property.TYPE,
+      STRUCTURE: property.STRUCTURE,
+      LENGTH: property.LENGTH ?? (property.TYPE === "Date" ? 10 : 50),
+      WIDTH: property.WIDTH || "md",
+      REQUIRED: property.REQUIRED ?? false,
+    };
+  }, [property]);
+
+  // Centralized field change dispatcher
+  const handleFieldChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      if (!property) return;
+      const patch: Partial<ModelProperty> = {};
+
+      if (fieldKey === "NAME") {
+        patch.NAME = typeof value === "string" ? value.replace(/\s+/g, "") : "";
+      } else if (fieldKey === "LABEL") {
+        patch.LABEL = String(value ?? "");
+      } else if (fieldKey === "TYPE") {
+        const nextType = value as PropertyType;
+        patch.TYPE = nextType;
+        if (nextType === "Date") {
+          patch.LENGTH = 10;
+        } else if (nextType === "Number") {
+          patch.LENGTH = 15;
+        } else if (nextType === "Text") {
+          patch.LENGTH = 50;
+        }
+      } else if (fieldKey === "STRUCTURE") {
+        patch.STRUCTURE = (value as "S" | "M") || "S";
+      } else if (fieldKey === "LENGTH") {
+        patch.LENGTH = value !== "" && value !== undefined ? Number(value) : undefined;
+      } else if (fieldKey === "WIDTH") {
+        patch.WIDTH = value as ModelProperty["WIDTH"];
+      } else if (fieldKey === "REQUIRED") {
+        patch.REQUIRED = Boolean(value);
+      }
+
+      onUpdate(property.SN, patch);
+    },
+    [property, onUpdate],
+  );
+
+  if (!property) return null;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -125,7 +142,7 @@ export function McPropertyInspector({
               variant="ghost"
               size="sm"
               onClick={() => setDeleteConfirmOpen(true)}
-              className="h-6.5 text-xs rounded gap-1 px-2 ml-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="h-6.5 text-xs rounded gap-1 px-2 ml-1 text-destructive hover:text-destructive hover:bg-destructive/10 cursor-pointer"
             >
               <Trash2 className="size-3.5" />
               <span>Delete Draft</span>
@@ -134,199 +151,20 @@ export function McPropertyInspector({
         </div>
       </div>
 
-      {/* 2. Inspector Panels */}
+      {/* 2. Form Engine Rendered Property Sections */}
       <div className="flex-1 overflow-y-auto p-3">
         <div className="max-w-3xl space-y-3">
-          {/* Panel 1: Column Identity & Data Type */}
-          <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <FileText className="size-3.5 text-primary" />
-                <span>Column Identity</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">SN #{property.SN}</span>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <InspectorRow
-                label="Field Name"
-                required
-                error={nameError?.message}
-                description="Database column identifier (snake_case or camelCase) mapped to backend tables."
-              >
-                <Input
-                  value={property.NAME}
-                  disabled={isReadOnly}
-                  onChange={(e) =>
-                    onUpdate(property.SN, {
-                      NAME: e.target.value.replace(/\s+/g, ""),
-                    })
-                  }
-                  className={cn(
-                    "h-7 rounded text-xs font-mono bg-background",
-                    nameError
-                      ? "border-destructive focus-visible:ring-destructive/30 bg-destructive/5"
-                      : "border-border/80",
-                  )}
-                />
-              </InspectorRow>
-
-              <InspectorRow
-                label="Display Label"
-                required
-                error={labelError?.message}
-                description="Human-readable label displayed across user interface screens."
-              >
-                <Input
-                  value={property.LABEL}
-                  disabled={isReadOnly}
-                  onChange={(e) => onUpdate(property.SN, { LABEL: e.target.value })}
-                  className={cn(
-                    "h-7 rounded text-xs bg-background",
-                    labelError
-                      ? "border-destructive focus-visible:ring-destructive/30 bg-destructive/5"
-                      : "border-border/80",
-                  )}
-                />
-              </InspectorRow>
-
-              <InspectorRow
-                label="Data Type"
-                description="Physical database column data type: Text, Number, or ISO-8601 Date."
-              >
-                <div className="flex items-center gap-1.5">
-                  {PROPERTY_TYPES.map((t) => (
-                    <Button
-                      key={t}
-                      type="button"
-                      variant={property.TYPE === t ? "default" : "outline"}
-                      size="sm"
-                      disabled={isReadOnly}
-                      onClick={() => handleTypeChange(t)}
-                      className="h-7 px-2.5 text-xs rounded flex-1"
-                    >
-                      {t}
-                    </Button>
-                  ))}
-                </div>
-              </InspectorRow>
-
-              <InspectorRow
-                label="Structure"
-                description="Single (S) scalar value or Multi-Value (M) repeating primitive array."
-              >
-                <div className="flex items-center gap-1.5">
-                  <Button
-                    type="button"
-                    variant={property.STRUCTURE === "S" ? "default" : "outline"}
-                    size="sm"
-                    disabled={isReadOnly}
-                    onClick={() => onUpdate(property.SN, { STRUCTURE: "S" })}
-                    className="h-7 px-3 text-xs rounded flex-1"
-                  >
-                    Single (S)
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={property.STRUCTURE === "M" ? "default" : "outline"}
-                    size="sm"
-                    disabled={isReadOnly}
-                    onClick={() => onUpdate(property.SN, { STRUCTURE: "M" })}
-                    className="h-7 px-3 text-xs rounded flex-1"
-                  >
-                    Multi-Value (M)
-                  </Button>
-                </div>
-              </InspectorRow>
-            </div>
-          </div>
-
-          {/* Panel 2: Storage & Display Constraints */}
-          <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Settings2 className="size-3.5 text-primary" />
-                <span>Storage & Display Constraints</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground">Physical Specifications</span>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <InspectorRow
-                label="Length / Size"
-                description="Maximum character storage limit or numerical precision allowed."
-              >
-                <Input
-                  type="number"
-                  min={1}
-                  max={4000}
-                  value={property.LENGTH ?? 50}
-                  disabled={isReadOnly || property.TYPE === "Date"}
-                  onChange={(e) =>
-                    onUpdate(property.SN, {
-                      LENGTH: Number.parseInt(e.target.value, 10) || 0,
-                    })
-                  }
-                  className="h-7 rounded text-xs bg-background border-border/80"
-                />
-              </InspectorRow>
-
-              <InspectorRow
-                label="Display Width"
-                description="Semantic layout width token: XS (120px/flags), SM (180px/dates), MD (240px/standard), LG (360px), FULL (row-wide)."
-              >
-                <div className="flex items-center gap-1">
-                  {PROPERTY_WIDTHS.map((w) => (
-                    <Button
-                      key={w}
-                      type="button"
-                      variant={(property.WIDTH || "md") === w ? "default" : "outline"}
-                      size="sm"
-                      disabled={isReadOnly || property.TYPE === "Date"}
-                      onClick={() => onUpdate(property.SN, { WIDTH: w as PropertyWidth })}
-                      className="h-7 px-2 text-xs rounded flex-1 uppercase"
-                    >
-                      {w}
-                    </Button>
-                  ))}
-                </div>
-              </InspectorRow>
-
-              <InspectorRow
-                label="Required"
-                description="Whether this column enforces non-null constraint at database commit."
-              >
-                <label
-                  htmlFor={`prop-required-${property.SN}`}
-                  className={cn(
-                    "flex items-center gap-2 select-none",
-                    isReadOnly ? "cursor-default opacity-85" : "cursor-pointer",
-                  )}
-                >
-                  <Checkbox
-                    id={`prop-required-${property.SN}`}
-                    checked={property.REQUIRED}
-                    disabled={isReadOnly}
-                    onCheckedChange={(val: boolean) => onUpdate(property.SN, { REQUIRED: !!val })}
-                    className={cn(
-                      "rounded",
-                      isReadOnly && "disabled:opacity-90 disabled:cursor-default",
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      "text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold",
-                      property.REQUIRED
-                        ? "bg-primary/10 text-primary border-primary/25"
-                        : "bg-muted text-muted-foreground border-border/40",
-                    )}
-                  >
-                    {property.REQUIRED ? "Yes" : "No"}
-                  </span>
-                </label>
-              </InspectorRow>
-            </div>
-          </div>
+          {PROPERTY_INSPECTOR_SECTIONS.map((section) => (
+            <SectionCard
+              key={section.id}
+              section={section}
+              values={formValues}
+              onChange={handleFieldChange}
+              errors={errorMap}
+              disabled={isReadOnly}
+              mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+            />
+          ))}
         </div>
       </div>
 

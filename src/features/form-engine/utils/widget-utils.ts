@@ -15,7 +15,8 @@ export function resolveWidgetType(
   if (typeLower === "textarea") return "textarea";
   if (typeLower === "date") return "date";
   if (typeLower === "select") return "select";
-  if (typeLower === "switch" || typeLower === "boolean") return "switch";
+  if (typeLower === "switch") return "switch";
+  if (typeLower === "boolean" || typeLower === "checkbox") return "checkbox";
   if (typeLower === "radio") return "radio";
   if (typeLower === "radiogroup" || typeLower === "radio-group") return "radio-group";
   if (typeLower === "checkbox-group" || typeLower === "checkboxgroup") return "checkbox-group";
@@ -38,6 +39,7 @@ export function getFieldWidthStyle(
 ): CSSProperties | undefined {
   if (
     widget === "switch" ||
+    widget === "checkbox" ||
     widget === "radio" ||
     widget === "radio-group" ||
     widget === "checkbox-group"

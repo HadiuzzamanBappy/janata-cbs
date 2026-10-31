@@ -126,7 +126,7 @@ function TabDropBody({
     return "col-span-1 w-full";
   };
 
-  const fieldKeys = section.fields.map((f) => f.id || f.NAME || String(f.SN || "field"));
+  const fieldKeys = section.fields.map((f) => String(f.SN || f.NAME || "field"));
 
   return (
     <SortableContext items={fieldKeys} strategy={rectSortingStrategy}>
@@ -160,11 +160,11 @@ function TabDropBody({
         ) : (
           <div className={cn("grid gap-2", getGridColsClass(numCols))}>
             {section.fields.map((field) => {
-              const fieldId = field.id || field.NAME || String(field.SN || "field");
+              const fieldId = String(field.SN || field.NAME || "field");
               const isSelected =
                 selectedFieldId === fieldId ||
-                selectedFieldId === field.NAME ||
-                selectedFieldId === field.SN;
+                selectedFieldId === field.SN ||
+                selectedFieldId === field.NAME;
 
               return (
                 <DesignerFieldCard

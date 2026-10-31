@@ -40,7 +40,6 @@ export interface FieldPaletteProps {
 
 function modelPropToFormElement(prop: ModelProperty): FormElement {
   return {
-    id: `f_${prop.NAME}`,
     SN: prop.SN || "1",
     NAME: prop.NAME,
     LABEL: prop.LABEL || prop.NAME,
@@ -60,12 +59,6 @@ function modelPropToFormElement(prop: ModelProperty): FormElement {
       reference: "",
     },
     ENRICHTEXT: "",
-    VALUE: "",
-    FIXEDVALUE: "",
-    ISOPEN: false,
-    ISLOADING: false,
-    PROP: [],
-    DATASOURCE: [],
     DEFAULTVALUE: "",
   };
 }

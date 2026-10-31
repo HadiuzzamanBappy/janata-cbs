@@ -5,15 +5,9 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import {
-  type InquiryConfigRecord,
-  inquiryConfigRecordSchema,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction, CbsRequestType, type CbsScreenMode } from "@/types";
-import {
-  type InquiryValidationErrorItem,
-  mapZodIssuesToInquiryValidationErrors,
-} from "./ic-validation";
+import { type InquiryValidationErrorItem, validateInquiryConfig } from "./ic-validation";
 import { useIcActionOps } from "./use-ic-action-ops";
 import { useIcCatalog } from "./use-ic-catalog";
 import { useIcColumnOps } from "./use-ic-column-ops";
@@ -28,6 +22,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     setMode,
     formData,
     setFormData,
+    baseline,
     hydrate,
     rebaseline,
     reset,
@@ -110,21 +105,40 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     }
   }, [resolvedInitialId, resolvedInitialMode, loadRecord]);
 
-  // 5. Submit handler (PUT for Maker, AUT for Checker, DEL for Delete)
+  // 5. Validate against canonical schema and CBS domain rules (F7 action)
+  const handleValidate = React.useCallback((): boolean => {
+    const issues = validateInquiryConfig(formData);
+    if (issues.length > 0) {
+      setValidationErrors(issues);
+      toast.add({
+        title: "Validation Issues Found",
+        description: `${issues.length} issue${issues.length > 1 ? "s" : ""} require your attention.`,
+        type: "warning",
+      });
+      return false;
+    }
+    setValidationErrors([]);
+    toast.add({
+      title: "Validation Successful",
+      description: "All inquiry specifications, criteria, and column definitions verified (✓).",
+      type: "success",
+    });
+    return true;
+  }, [formData]);
+
+  // Clear validation errors when switching away from edit mode
+  React.useEffect(() => {
+    if (mode !== "I") {
+      setValidationErrors([]);
+    }
+  }, [mode]);
+
+  // 6. Submit handler (PUT for Maker, AUT for Checker, DEL for Delete)
   const handleSubmit = React.useCallback(
     async (funcCode: string = CbsRecordFunction.INPUT) => {
       // Validate with canonical schema before dispatch
-      const parseResult = inquiryConfigRecordSchema.safeParse(formData);
-      if (!parseResult.success) {
-        const errors = mapZodIssuesToInquiryValidationErrors(parseResult.error);
-        setValidationErrors(errors);
-        toast.add({
-          title: "Validation Failed",
-          description: `Found ${errors.length} validation issue(s). Please review your settings.`,
-          type: "error",
-        });
-        return false;
-      }
+      const isValid = handleValidate();
+      if (!isValid) return false;
 
       setSubmitting(true);
       try {
@@ -173,7 +187,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
         setSubmitting(false);
       }
     },
-    [formData, recordId, rebaseline, upsertCatalogItem],
+    [formData, recordId, rebaseline, upsertCatalogItem, handleValidate],
   );
 
   return {
@@ -183,16 +197,19 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     setMode,
     formData,
     setFormData,
+    baseline,
     loading,
     submitting,
     isDirty,
     dirtyKeys,
     validationErrors,
+    clearValidationErrors: () => setValidationErrors([]),
     inquiriesPool,
     refreshCatalog,
     resetToIdle,
     initDraft,
     loadRecord,
+    handleValidate,
     handleSubmit,
 
     // Sub-domain operation handlers

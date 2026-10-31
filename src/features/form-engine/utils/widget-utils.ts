@@ -2,7 +2,15 @@ import type { CSSProperties } from "react";
 import type { FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
 import type { PropertyWidth } from "@/lib/data-schemas/model-config-schema";
 
-export function resolveWidgetType(type?: string, param?: FormFieldParameter): string {
+export function resolveWidgetType(
+  type?: string,
+  param?: FormFieldParameter,
+  explicitWidget?: string,
+): string {
+  if (explicitWidget) {
+    const w = explicitWidget.toLowerCase().trim();
+    if (w) return w;
+  }
   const typeLower = (type || "text").toLowerCase();
   if (typeLower === "textarea") return "textarea";
   if (typeLower === "date") return "date";

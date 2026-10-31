@@ -10,6 +10,37 @@ export interface CellFormatterProps {
   format?: CellFormatType;
   currencyCode?: string;
   isMono?: boolean;
+  routine?: string;
+}
+
+function applyRoutineTransformation(val: string, routine?: string): string {
+  if (!routine) return val;
+  const upper = routine.trim().toUpperCase();
+
+  // 1. SUBSTRING,start,length (CBS 1-indexed) e.g. SUBSTRING,1,4
+  if (upper.startsWith("SUBSTRING") || upper.startsWith("SUBSTR")) {
+    const parts = upper.split(",");
+    const start = Math.max(0, (Number.parseInt(parts[1]?.trim() || "1", 10) || 1) - 1);
+    const len = Number.parseInt(parts[2]?.trim() || "0", 10);
+    return len > 0 ? val.substring(start, start + len) : val.substring(start);
+  }
+
+  // 2. MASK / MASK.ACCOUNT e.g. ****1234
+  if (upper.includes("MASK")) {
+    return val.length > 4 ? `****${val.slice(-4)}` : val;
+  }
+
+  // 3. UPPER / UPPERCASE
+  if (upper === "UPPER" || upper === "UPPERCASE") {
+    return val.toUpperCase();
+  }
+
+  // 4. LOWER / LOWERCASE
+  if (upper === "LOWER" || upper === "LOWERCASE") {
+    return val.toLowerCase();
+  }
+
+  return val;
 }
 
 export function CellFormatter({
@@ -17,12 +48,14 @@ export function CellFormatter({
   format = "text",
   currencyCode,
   isMono,
+  routine,
 }: CellFormatterProps) {
   if (value === undefined || value === null || value === "") {
     return <span className="text-muted-foreground/40 font-mono text-[11px]">-</span>;
   }
 
-  const strVal = String(value);
+  const rawStr = String(value);
+  const strVal = routine ? applyRoutineTransformation(rawStr, routine) : rawStr;
 
   switch (format) {
     case "currency": {

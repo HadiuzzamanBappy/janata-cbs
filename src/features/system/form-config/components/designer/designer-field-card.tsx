@@ -28,7 +28,7 @@ export function DesignerFieldCard({
   className,
   disabled,
 }: DesignerFieldCardProps) {
-  const fieldId = field.id || field.NAME || String(field.SN || "field");
+  const fieldId = String(field.SN || field.NAME || "field");
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: fieldId,

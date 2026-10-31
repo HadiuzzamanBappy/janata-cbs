@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { INQCmd, INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { ActionInspector } from "./table/action-inspector";
 import { ActionItem } from "./table/action-item";
 import { ColumnInspector } from "./table/column-inspector";
@@ -41,6 +42,7 @@ export interface IcTableTabProps {
   onRemoveAction: (index: number) => void;
   onReorderActions: (fromIndex: number, toIndex: number) => void;
   disabled?: boolean;
+  validationErrors?: InquiryValidationErrorItem[];
 }
 
 export function IcTableTab({
@@ -56,6 +58,7 @@ export function IcTableTab({
   onRemoveAction,
   onReorderActions,
   disabled = false,
+  validationErrors = [],
 }: IcTableTabProps) {
   const [activeSegment, setActiveSegment] = React.useState<"columns" | "actions">("columns");
   const [selectedColIdx, setSelectedColIdx] = React.useState<number>(0);
@@ -93,6 +96,16 @@ export function IcTableTab({
   const configuredFieldNames = React.useMemo(
     () => new Set(columns.map((c) => c.fieldName.toLowerCase())),
     [columns],
+  );
+
+  const columnsErrors = React.useMemo(
+    () => validationErrors.filter((e) => e.tab === "table" && e.subSegment !== "actions"),
+    [validationErrors],
+  );
+
+  const actionsErrors = React.useMemo(
+    () => validationErrors.filter((e) => e.tab === "table" && e.subSegment === "actions"),
+    [validationErrors],
   );
 
   const handleDragEndColumns = (event: DragEndEvent) => {
@@ -176,10 +189,15 @@ export function IcTableTab({
             )}
           >
             <Columns className="size-3.5" />
-            <span>Columns (INQDef)</span>
+            <span>Columns</span>
             <Badge variant="secondary" className="text-[10px] h-4 px-1 font-mono">
               {columns.length}
             </Badge>
+            {columnsErrors.length > 0 && (
+              <Badge variant="destructive" className="text-[9px] h-3.5 px-1 font-mono rounded">
+                {columnsErrors.length}
+              </Badge>
+            )}
           </button>
 
           <button
@@ -193,10 +211,15 @@ export function IcTableTab({
             )}
           >
             <MousePointerClick className="size-3.5" />
-            <span>Actions (INQCmds)</span>
+            <span>Actions</span>
             <Badge variant="secondary" className="text-[10px] h-4 px-1 font-mono">
               {actions.length}
             </Badge>
+            {actionsErrors.length > 0 && (
+              <Badge variant="destructive" className="text-[9px] h-3.5 px-1 font-mono rounded">
+                {actionsErrors.length}
+              </Badge>
+            )}
           </button>
         </div>
 
@@ -253,12 +276,12 @@ export function IcTableTab({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-1.5 space-y-1 min-h-0">
+              <div className="flex-1 overflow-y-auto min-h-0">
                 {columns.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
                     <Columns className="size-8 text-muted-foreground/30 mb-2" />
                     <p className="text-xs font-medium">No Columns Defined</p>
-                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-[200px]">
+                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
                       Import properties from {targetModel || "the model"} or add a custom column.
                     </p>
                   </div>
@@ -269,18 +292,28 @@ export function IcTableTab({
                     onDragEnd={handleDragEndColumns}
                   >
                     <SortableContext items={columnKeys} strategy={verticalListSortingStrategy}>
-                      <div className="space-y-1">
-                        {columns.map((col, idx) => (
-                          <ColumnItem
-                            key={columnKeys[idx]}
-                            col={col}
-                            index={idx}
-                            isSelected={selectedColIdx === idx}
-                            disabled={disabled}
-                            onSelect={() => setSelectedColIdx(idx)}
-                            onRemove={() => onRemoveColumn(idx)}
-                          />
-                        ))}
+                      <div className="divide-y divide-border/30">
+                        {columns.map((col, idx) => {
+                          const colErrors = validationErrors.filter(
+                            (e) =>
+                              e.tab === "table" &&
+                              e.itemIndex === idx &&
+                              e.subSegment !== "actions",
+                          );
+                          return (
+                            <ColumnItem
+                              key={columnKeys[idx]}
+                              col={col}
+                              index={idx}
+                              isSelected={selectedColIdx === idx}
+                              disabled={disabled}
+                              hasError={colErrors.length > 0}
+                              errorCount={colErrors.length}
+                              onSelect={() => setSelectedColIdx(idx)}
+                              onRemove={() => onRemoveColumn(idx)}
+                            />
+                          );
+                        })}
                       </div>
                     </SortableContext>
                   </DndContext>
@@ -293,6 +326,7 @@ export function IcTableTab({
               activeCol={columns[selectedColIdx]}
               selectedColIdx={selectedColIdx}
               disabled={disabled}
+              validationErrors={validationErrors}
               onUpdateColumn={onUpdateColumn}
               onRemoveColumn={onRemoveColumn}
             />
@@ -310,12 +344,12 @@ export function IcTableTab({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-1.5 space-y-1 min-h-0">
+              <div className="flex-1 overflow-y-auto min-h-0">
                 {actions.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
                     <MousePointerClick className="size-8 text-muted-foreground/30 mb-2" />
                     <p className="text-xs font-medium">No Actions Defined</p>
-                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-[200px]">
+                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
                       Add row command buttons (e.g. View, Edit, Auth).
                     </p>
                   </div>
@@ -326,18 +360,28 @@ export function IcTableTab({
                     onDragEnd={handleDragEndActions}
                   >
                     <SortableContext items={actionKeys} strategy={verticalListSortingStrategy}>
-                      <div className="space-y-1">
-                        {actions.map((action, idx) => (
-                          <ActionItem
-                            key={actionKeys[idx]}
-                            action={action}
-                            index={idx}
-                            isSelected={selectedActionIdx === idx}
-                            disabled={disabled}
-                            onSelect={() => setSelectedActionIdx(idx)}
-                            onRemove={() => onRemoveAction(idx)}
-                          />
-                        ))}
+                      <div className="divide-y divide-border/30">
+                        {actions.map((action, idx) => {
+                          const actErrors = validationErrors.filter(
+                            (e) =>
+                              e.tab === "table" &&
+                              e.itemIndex === idx &&
+                              e.subSegment === "actions",
+                          );
+                          return (
+                            <ActionItem
+                              key={actionKeys[idx]}
+                              action={action}
+                              index={idx}
+                              isSelected={selectedActionIdx === idx}
+                              disabled={disabled}
+                              hasError={actErrors.length > 0}
+                              errorCount={actErrors.length}
+                              onSelect={() => setSelectedActionIdx(idx)}
+                              onRemove={() => onRemoveAction(idx)}
+                            />
+                          );
+                        })}
                       </div>
                     </SortableContext>
                   </DndContext>
@@ -350,6 +394,7 @@ export function IcTableTab({
               activeAction={actions[selectedActionIdx]}
               selectedActionIdx={selectedActionIdx}
               disabled={disabled}
+              validationErrors={validationErrors}
               onUpdateAction={onUpdateAction}
               onRemoveAction={onRemoveAction}
             />

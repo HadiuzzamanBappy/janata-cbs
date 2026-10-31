@@ -1,16 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
 import { cn } from "@/lib/core-utils";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 import {
@@ -85,85 +79,135 @@ export function IcGeneralTab({
                     const boolId = `inq-bool-${field.path}`;
                     const isChecked = Boolean(rawVal);
                     return (
-                      <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        <Label className="w-40 shrink-0 text-xs text-muted-foreground font-normal select-none">
-                          {field.label}
-                        </Label>
-                        <span className="text-muted-foreground/60 font-mono text-xs shrink-0">
-                          :
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={boolId}
-                            checked={isChecked}
-                            disabled={isReadOnly || field.disabled}
-                            onCheckedChange={(checked: boolean) =>
-                              handleBooleanChange(field, Boolean(checked))
-                            }
-                            className="rounded"
-                          />
-                          {field.helperText && (
-                            <Label
-                              htmlFor={boolId}
-                              className="text-xs text-muted-foreground font-normal cursor-pointer"
-                            >
-                              {field.helperText}
-                            </Label>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  // Select Field
-                  if (field.type === "select") {
-                    return (
-                      <div key={field.path} className="flex items-center gap-2">
-                        <Label className="w-40 shrink-0 text-xs text-muted-foreground font-normal select-none flex items-center">
-                          <span className="truncate">{field.label}</span>
-                          {field.required && !isReadOnly && (
-                            <span className="text-destructive font-bold ml-1 select-none">*</span>
-                          )}
-                        </Label>
-                        <span className="text-muted-foreground/60 font-mono text-xs shrink-0">
-                          :
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={displayVal}
-                            disabled={isReadOnly || field.disabled}
-                            onValueChange={(val: string | null) =>
-                              handleInputChange(field, val || "")
-                            }
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.helperText}
+                        error={fieldError?.message}
+                      >
+                        <div className="flex items-center gap-2 max-w-md flex-1">
+                          <label
+                            htmlFor={boolId}
+                            className={cn(
+                              "flex items-center gap-2 select-none",
+                              isReadOnly || field.disabled
+                                ? "cursor-default opacity-85"
+                                : "cursor-pointer",
+                            )}
                           >
-                            <SelectTrigger
+                            <Checkbox
+                              id={boolId}
+                              checked={isChecked}
+                              disabled={isReadOnly || field.disabled}
+                              onCheckedChange={(checked: boolean) =>
+                                handleBooleanChange(field, Boolean(checked))
+                              }
                               className={cn(
-                                "h-7 text-xs bg-background rounded border-border/80",
-                                field.width === "compact" ? "w-52" : "w-64",
-                                fieldError && "border-destructive",
+                                "rounded",
+                                (isReadOnly || field.disabled) &&
+                                  "disabled:opacity-90 disabled:cursor-default",
+                              )}
+                            />
+                            <span
+                              className={cn(
+                                "text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold",
+                                isChecked
+                                  ? "bg-primary/10 text-primary border-primary/25"
+                                  : "bg-muted text-muted-foreground border-border/40",
                               )}
                             >
-                              <SelectValue placeholder="Select..." />
-                            </SelectTrigger>
-                            <SelectContent className="text-xs">
-                              {(field.options || []).map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {fieldError && (
-                            <span className="text-[11px] text-destructive font-mono">
-                              {fieldError.message}
+                              {isChecked ? "Yes" : "No"}
                             </span>
-                          )}
+                          </label>
                         </div>
-                      </div>
+                      </FieldRow>
                     );
                   }
 
-                  // Text & Number Fields
+                  // Toggle Group for Select Options (Inquiry Type, Page Orientation)
+                  if (field.type === "select") {
+                    return (
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.helperText}
+                        error={fieldError?.message}
+                      >
+                        <div className="flex items-center gap-1.5 max-w-md flex-1">
+                          {(field.options || []).map((opt) => {
+                            const isSelected = displayVal === opt.value;
+                            return (
+                              <Button
+                                key={opt.value}
+                                type="button"
+                                variant={isSelected ? "default" : "outline"}
+                                size="sm"
+                                disabled={isReadOnly || field.disabled}
+                                onClick={() => handleInputChange(field, opt.value)}
+                                className={cn(
+                                  "h-7 px-3 text-xs rounded flex-1 transition-all",
+                                  isSelected
+                                    ? "font-semibold shadow-2xs"
+                                    : "text-muted-foreground hover:text-foreground",
+                                )}
+                              >
+                                {opt.label}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </FieldRow>
+                    );
+                  }
+
+                  // Number field with quick presets (e.g. perpageItem)
+                  if (field.path === "INQInfo.perpageItem") {
+                    const presetValues = ["10", "20", "30", "50", "100"];
+                    return (
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.helperText}
+                        error={fieldError?.message}
+                      >
+                        <div className="flex items-center gap-2 max-w-md flex-1">
+                          <Input
+                            type="number"
+                            value={displayVal}
+                            disabled={isReadOnly || field.disabled}
+                            onChange={(e) => handleInputChange(field, e.target.value)}
+                            placeholder={field.placeholder || "30"}
+                            className={cn(
+                              "h-7 text-xs font-mono bg-background rounded border-border/80 w-24",
+                              fieldError && "border-destructive focus-visible:ring-destructive/30",
+                            )}
+                            min={1}
+                            max={500}
+                          />
+                          <div className="flex items-center gap-1">
+                            {presetValues.map((val) => (
+                              <Button
+                                key={val}
+                                type="button"
+                                variant={displayVal === val ? "default" : "outline"}
+                                size="sm"
+                                disabled={isReadOnly || field.disabled}
+                                onClick={() => handleInputChange(field, val)}
+                                className="h-7 px-2 text-xs rounded font-mono"
+                              >
+                                {val}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </FieldRow>
+                    );
+                  }
+
+                  // Standard Text & Number Fields
                   const inputWidthClass =
                     field.width === "compact"
                       ? "w-36"
@@ -172,15 +216,14 @@ export function IcGeneralTab({
                         : "w-full max-w-md";
 
                   return (
-                    <div key={field.path} className="flex items-center gap-2">
-                      <Label className="w-40 shrink-0 text-xs text-muted-foreground font-normal select-none flex items-center">
-                        <span className="truncate">{field.label}</span>
-                        {field.required && !isReadOnly && (
-                          <span className="text-destructive font-bold ml-1 select-none">*</span>
-                        )}
-                      </Label>
-                      <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-                      <div className="flex-1 flex items-center gap-2">
+                    <FieldRow
+                      key={field.path}
+                      label={field.label}
+                      required={field.required}
+                      enrichText={field.helperText}
+                      error={fieldError?.message}
+                    >
+                      <div className="flex-1 max-w-md flex items-center gap-2">
                         <Input
                           type={field.type === "number" ? "number" : "text"}
                           value={displayVal}
@@ -194,18 +237,8 @@ export function IcGeneralTab({
                             fieldError && "border-destructive",
                           )}
                         />
-                        {field.helperText && (
-                          <span className="text-[11px] text-muted-foreground hidden sm:inline truncate">
-                            {field.helperText}
-                          </span>
-                        )}
-                        {fieldError && (
-                          <span className="text-[11px] text-destructive font-mono shrink-0">
-                            {fieldError.message}
-                          </span>
-                        )}
                       </div>
-                    </div>
+                    </FieldRow>
                   );
                 })}
               </div>

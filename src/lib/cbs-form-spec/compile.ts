@@ -64,12 +64,6 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
         reference: "",
       },
       ENRICHTEXT: "",
-      VALUE: "",
-      FIXEDVALUE: "",
-      ISOPEN: false,
-      ISLOADING: false,
-      PROP: [],
-      DATASOURCE: [],
       DEFAULTVALUE: "",
     };
   });

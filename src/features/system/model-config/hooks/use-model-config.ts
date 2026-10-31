@@ -5,6 +5,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import type { CbsWirePayload } from "@/lib/data-schemas";
+import { sanitizeModelConfigRecord } from "@/lib/data-schemas/clean-record";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
@@ -191,8 +192,9 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
     setValidationErrors([]);
     const targetId = recordId || formData.TABLENAME || validation.data.TABLENAME || "";
+    const cleanData = sanitizeModelConfigRecord(validation.data) || validation.data;
     await executeMutation(
-      cbs.modelConfig.save(validation.data as unknown as Record<string, unknown>, {
+      cbs.modelConfig.save(cleanData as unknown as Record<string, unknown>, {
         recordId: targetId,
       }),
       {

@@ -85,6 +85,7 @@ export const formSectionSchema = z.object({
   tabTitle: z.string().optional(),
   bindKey: z.string().optional(),
   columns: z.number().min(1).max(4).default(1),
+  structure: z.enum(["S", "M"]).optional(),
   collapsible: z.boolean().default(false),
   isCollapsed: z.boolean().default(false),
   layoutStyle: z.enum(["card", "plain"]).optional().default("card"),

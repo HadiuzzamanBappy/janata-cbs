@@ -39,7 +39,14 @@ export function mapZodIssuesToFcValidationErrors(
 /**
  * Performs business-level validation on the FormConfig record.
  */
-export function validateFormConfig(formData: { title?: string }): FormConfigValidationError[] {
+export function validateFormConfig(formData: {
+  title?: string;
+  frmRoutine?: {
+    rtnValidate?: Array<{ routineName?: string }>;
+    rtnBeforeAuth?: Array<{ routineName?: string }>;
+    rtnAfterAuth?: Array<{ routineName?: string }>;
+  };
+}): FormConfigValidationError[] {
   const issues: FormConfigValidationError[] = [];
   const title = typeof formData.title === "string" ? formData.title.trim() : "";
   if (!title) {
@@ -50,5 +57,28 @@ export function validateFormConfig(formData: { title?: string }): FormConfigVali
       message: "Form title is required",
     });
   }
+
+  // Validate that any configured routines have a Routine Name
+  const routineGroups = [
+    { key: "rtnValidate" as const, label: "Validation Routine" },
+    { key: "rtnBeforeAuth" as const, label: "Before-Auth Routine" },
+    { key: "rtnAfterAuth" as const, label: "After-Auth Routine" },
+  ];
+
+  for (const group of routineGroups) {
+    const list = formData.frmRoutine?.[group.key] || [];
+    list.forEach((item, idx) => {
+      const name = (item.routineName || "").trim();
+      if (!name) {
+        issues.push({
+          id: `err_routine_${group.key}_${idx}_name`,
+          tab: "formRoutine",
+          fieldKey: `${group.key}.${idx}.routineName`,
+          message: `${group.label} #${idx + 1}: Routine Name is required`,
+        });
+      }
+    });
+  }
+
   return issues;
 }

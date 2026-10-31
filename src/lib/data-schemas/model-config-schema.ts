@@ -5,7 +5,7 @@ import { auditDataSchema } from "./common-schema";
 /* 1. DATA TYPES (Physical Database Column Types)                             */
 /* ========================================================================== */
 
-export const propertyTypeSchema = z.enum(["Text", "Number", "Date"]);
+export const propertyTypeSchema = z.enum(["Text", "Number", "Date", "Object", "Dropdown"]);
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
 export const PROPERTY_TYPES = propertyTypeSchema.options;
 

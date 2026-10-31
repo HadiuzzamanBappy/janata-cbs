@@ -25,6 +25,8 @@ export interface FcDesignerTabProps {
     tabTitle?: string,
     insertIndex?: number,
     columns?: number,
+    bindKey?: string,
+    structure?: "S" | "M",
   ) => void;
   onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection: (id: string) => void;
@@ -45,6 +47,7 @@ export interface FcDesignerTabProps {
     targetZone: "standard" | "tab",
     opts?: { tabGroupId?: string; tabTitle?: string },
   ) => void;
+  onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   disabled?: boolean;
 }
 
@@ -66,6 +69,7 @@ export function FcDesignerTab({
   onMoveFieldAcrossSections,
   onReorderSections,
   onConvertSectionZone,
+  onMergeTabGroup,
   disabled,
 }: FcDesignerTabProps) {
   const activeSection =
@@ -114,9 +118,9 @@ export function FcDesignerTab({
       TYPE: template.TYPE || "Text",
       LENGTH: template.LENGTH ?? 35,
       STRUCTURE: template.STRUCTURE || "S",
-      REQUIRED: template.REQUIRED ?? false,
+      REQUIRED: Boolean(template.REQUIRED),
       DISABLED: template.DISABLED ?? false,
-      WIDTH: template.WIDTH ?? 200,
+      WIDTH: template.WIDTH ?? "md",
       POSITION: template.POSITION || "",
       PARAMETER: template.PARAMETER || {
         type: "O",
@@ -136,6 +140,7 @@ export function FcDesignerTab({
       DEFAULTVALUE: template.DEFAULTVALUE || "",
     };
 
+    // If no section exists, add it to a plain root section (no card border)
     onAddSection(
       "standard",
       "standard",
@@ -167,6 +172,19 @@ export function FcDesignerTab({
     onSelectField(fieldId);
   };
 
+  /** Click on bare canvas background → select the root canvas section, deselect any field */
+  const handleCanvasBackgroundClick = () => {
+    // Root section = the plain/no-title section, or first non-tab section, or first overall
+    const rootSection =
+      sections.find((s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root") ||
+      sections.find((s) => s.zone !== "tab") ||
+      sections[0];
+    if (rootSection) {
+      onSelectSection(rootSection.id);
+      onSelectField(null);
+    }
+  };
+
   const handleDropPaletteItem = (
     payload: unknown,
     targetSectionId?: string,
@@ -176,6 +194,7 @@ export function FcDesignerTab({
     const data = payload as {
       type?: string;
       element?: FormElement;
+      initialFields?: FormElement[];
       containerType?: "standard" | "object-group" | "array-table";
       zone?: "header" | "tab" | "standard";
       layoutStyle?: "card" | "plain";
@@ -183,6 +202,8 @@ export function FcDesignerTab({
       tabGroupId?: string;
       tabTitle?: string;
       columns?: number;
+      bindKey?: string;
+      structure?: "S" | "M";
     };
 
     if (data.type === "palette-variable" && data.element) {
@@ -204,16 +225,41 @@ export function FcDesignerTab({
         handlePaletteAddField(data.element);
       }
     } else if (data.type === "palette-container" && data.containerType) {
+      // 1. If dropped inside an existing section/tab body and contains fields, add fields inside that section!
+      const targetSec = targetSectionId ? sections.find((s) => s.id === targetSectionId) : null;
+      if (
+        targetSec &&
+        targetSectionId !== "new-tab-in-group" &&
+        data.initialFields &&
+        data.initialFields.length > 0
+      ) {
+        for (const field of data.initialFields) {
+          onAddFieldToSection(targetSec.id, field);
+        }
+        return;
+      }
+
+      // 2. If dropped on tab header or into a tab group, make this container a new tab page in that tab group!
+      const isTargetTabGroup =
+        targetSectionId === "new-tab-in-group" || (targetSec && targetSec.zone === "tab");
+      const targetGroupId = isTargetTabGroup ? data.tabGroupId || targetSec?.tabGroupId : undefined;
+      const effectiveZone = isTargetTabGroup ? "tab" : data.zone || "standard";
+      const effectiveTabTitle = isTargetTabGroup
+        ? data.title || data.tabTitle || "New Tab"
+        : data.tabTitle;
+
       onAddSection(
         data.containerType,
-        data.zone || "standard",
-        [],
+        effectiveZone,
+        data.initialFields || [],
         data.layoutStyle || "card",
         data.title,
-        data.tabGroupId,
-        data.tabTitle,
+        targetGroupId,
+        effectiveTabTitle,
         insertIndex,
         data.columns,
+        data.bindKey,
+        data.structure,
       );
     }
   };
@@ -251,6 +297,8 @@ export function FcDesignerTab({
           onReorderSections={onReorderSections}
           onConvertSectionZone={onConvertSectionZone}
           onDropPaletteItem={handleDropPaletteItem}
+          onClickBackground={handleCanvasBackgroundClick}
+          onMergeTabGroup={onMergeTabGroup}
           disabled={disabled}
         />
 

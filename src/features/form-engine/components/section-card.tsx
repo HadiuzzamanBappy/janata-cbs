@@ -32,8 +32,8 @@ export function SectionCard({
   const hasKernel = Boolean(useContext(FormKernelContext));
   const [collapsed, setCollapsed] = useState<boolean>(section.isCollapsed ?? false);
 
-  const isPlain = section.layoutStyle === "plain";
   const isObjectGroup = section.type === "object-group";
+  const isPlain = section.layoutStyle === "plain" || isObjectGroup;
   const numCols = section.columns || 1;
 
   return (
@@ -43,11 +43,10 @@ export function SectionCard({
         isPlain || hideHeader
           ? "py-1 space-y-2"
           : "rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5",
-        isObjectGroup && "bg-muted/10 border-dashed",
       )}
     >
-      {/* Section Header */}
-      {!hideHeader && (section.title || section.collapsible || !isPlain) && (
+      {/* Section Header (not shown for object-group since each set has its own header) */}
+      {!hideHeader && !isObjectGroup && (section.title || section.collapsible || !isPlain) && (
         <div className="flex items-center justify-between pb-1 border-b border-border/40">
           <div className="flex items-center gap-1.5">
             {section.collapsible && (

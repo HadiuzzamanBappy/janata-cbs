@@ -1,21 +1,28 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
 import { cn } from "@/lib/core-utils";
 import type { FormConfigRecord, RoutineItem } from "@/lib/data-schemas/form-config-schema";
 import { FORM_ROUTINE_GROUPS, type RoutineGroupDef, type RoutineKey } from "../fields";
+import type { FormConfigValidationError } from "../hooks/fc-validation";
 
 export interface FcRoutineTabProps {
   formData: FormConfigRecord;
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>;
   isReadOnly?: boolean;
+  validationErrors?: FormConfigValidationError[];
 }
 
-export function FcRoutineTab({ formData, setFormData, isReadOnly = false }: FcRoutineTabProps) {
+export function FcRoutineTab({
+  formData,
+  setFormData,
+  isReadOnly = false,
+  validationErrors = [],
+}: FcRoutineTabProps) {
   const handleAddRoutine = React.useCallback(
     (key: RoutineKey) => {
       if (isReadOnly) return;
@@ -121,85 +128,115 @@ export function FcRoutineTab({ formData, setFormData, isReadOnly = false }: FcRo
                 )}
               </div>
 
-              {/* Multi-Field Rows */}
-              <div className="space-y-2.5 text-xs">
+              {/* Multi-Field Rows / Grouping Blocks */}
+              <div className="space-y-3 text-xs">
                 {routines.length === 0 ? (
-                  <div className="flex items-center gap-2">
-                    <Label className="w-36 shrink-0 text-xs text-muted-foreground select-none flex items-center">
-                      <span className="truncate">{group.fieldLabel}</span>
-                    </Label>
-                    <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+                  <FieldRow label={group.fieldLabel} enrichText={group.description}>
                     <span className="text-[11px] text-muted-foreground/70 italic truncate">
                       No routine hooks configured
                     </span>
-                  </div>
+                  </FieldRow>
                 ) : (
-                  routines.map((routine, idx) => (
-                    <div
-                      key={routine.id || `${group.key}_${idx}`}
-                      className="flex items-center gap-2"
-                    >
-                      <Label className="w-36 shrink-0 text-xs text-muted-foreground select-none flex items-center">
-                        <span className="truncate" title={`${group.fieldLabel} ${idx + 1}`}>
-                          {group.fieldLabel} {routines.length > 1 ? `.${idx + 1}` : ""}
-                        </span>
-                      </Label>
-                      <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+                  routines.map((routine, idx) => {
+                    const fieldError = validationErrors.find(
+                      (e) =>
+                        e.tab === "formRoutine" && e.fieldKey === `${group.key}.${idx}.routineName`,
+                    );
 
-                      <div className="w-56 shrink-0">
-                        <Input
-                          disabled={isReadOnly}
-                          placeholder={group.placeholder}
-                          value={routine.routineName}
-                          onChange={(e) =>
-                            handleUpdateRoutine(
-                              group.key,
-                              idx,
-                              "routineName",
-                              e.target.value.toUpperCase(),
-                            )
-                          }
-                          className={cn(
-                            "h-7 text-xs font-mono uppercase bg-background rounded border-border/80",
-                            isReadOnly && "disabled:opacity-90 disabled:cursor-default",
+                    return (
+                      <div
+                        key={routine.id || `${group.key}_${idx}`}
+                        className="rounded border border-border/70 bg-muted/20 p-2.5 space-y-2 shadow-2xs"
+                      >
+                        {/* Group Header: Title with item index and icon action buttons */}
+                        <div className="flex items-center justify-between pb-1.5 border-b border-border/50">
+                          <span className="text-xs font-semibold text-foreground tracking-tight select-none">
+                            {group.fieldLabel} #{idx + 1}
+                          </span>
+
+                          {!isReadOnly && (
+                            <div className="flex items-center gap-0.5">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveRoutine(group.key, idx)}
+                                className="size-5 p-0 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+                                title={`Remove ${group.fieldLabel} #${idx + 1}`}
+                              >
+                                <Minus className="size-3.5 stroke-[2.5]" />
+                              </Button>
+                              {idx === routines.length - 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleAddRoutine(group.key)}
+                                  className="size-5 p-0 text-primary hover:bg-primary/10 rounded cursor-pointer"
+                                  title={`Add another ${group.fieldLabel}`}
+                                >
+                                  <Plus className="size-3.5 stroke-[2.5]" />
+                                </Button>
+                              )}
+                            </div>
                           )}
-                        />
-                      </div>
+                        </div>
 
-                      <div className="flex-1">
-                        <Input
-                          disabled={isReadOnly}
-                          placeholder="Functional summary or execution conditions..."
-                          value={routine.routineDescription}
-                          onChange={(e) =>
-                            handleUpdateRoutine(
-                              group.key,
-                              idx,
-                              "routineDescription",
-                              e.target.value,
-                            )
-                          }
-                          className={cn(
-                            "h-7 text-xs bg-background rounded border-border/80",
-                            isReadOnly && "disabled:opacity-90 disabled:cursor-default",
-                          )}
-                        />
-                      </div>
-
-                      {!isReadOnly && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveRoutine(group.key, idx)}
-                          className="h-7 w-7 p-0 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
-                          title="Remove routine"
+                        {/* Field 1: Routine Name in its own single row (Required) */}
+                        <FieldRow
+                          label="Routine Name"
+                          required={!isReadOnly}
+                          enrichText={group.description}
                         >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      )}
-                    </div>
-                  ))
+                          <div className="max-w-xs flex-1">
+                            <Input
+                              disabled={isReadOnly}
+                              value={routine.routineName}
+                              onChange={(e) =>
+                                handleUpdateRoutine(
+                                  group.key,
+                                  idx,
+                                  "routineName",
+                                  e.target.value.toUpperCase(),
+                                )
+                              }
+                              className={cn(
+                                "h-7 text-xs font-mono uppercase bg-background rounded border-border/80",
+                                fieldError &&
+                                  "border-destructive focus-visible:ring-destructive/30",
+                                isReadOnly && "disabled:opacity-90 disabled:cursor-default",
+                              )}
+                            />
+                          </div>
+                        </FieldRow>
+
+                        {/* Field 2: Description in its own single row */}
+                        <FieldRow
+                          label="Description"
+                          enrichText="Summary notes or execution conditions for this routine"
+                        >
+                          <div className="max-w-md flex-1">
+                            <Input
+                              disabled={isReadOnly}
+                              value={routine.routineDescription}
+                              onChange={(e) =>
+                                handleUpdateRoutine(
+                                  group.key,
+                                  idx,
+                                  "routineDescription",
+                                  e.target.value,
+                                )
+                              }
+                              className={cn(
+                                "h-7 text-xs bg-background rounded border-border/80",
+                                isReadOnly && "disabled:opacity-90 disabled:cursor-default",
+                              )}
+                            />
+                          </div>
+                        </FieldRow>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>

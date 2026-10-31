@@ -29,31 +29,49 @@ export function useFormSchema(command: string): UseFormSchemaResult {
       if (cleanCmd.includes(",")) {
         const [app, version] = cleanCmd.split(",");
         if (version?.trim()) {
-          const formRes = await cbs.send<FormConfigRecord>(cbs.formConfig.get(cleanCmd), {
+          const formRes = await cbs.send<Record<string, unknown>>(cbs.formConfig.get(cleanCmd), {
             silent: true,
           });
 
-          if (formRes.status === "SUCCESS" && formRes.data && "frmElements" in formRes.data) {
-            const formConfig = formRes.data;
+          if (formRes.status === "SUCCESS" && formRes.data) {
+            const rawData = formRes.data;
             const targetModelName = String(app || cleanCmd)
               .trim()
               .toUpperCase();
 
-            let model: ModelConfigRecord | null = null;
-            try {
-              const modelRes = await cbs.send<ModelConfigRecord>(
-                cbs.modelConfig.get(targetModelName),
-                { silent: true },
-              );
-              if (modelRes.status === "SUCCESS" && modelRes.data) {
-                model = modelRes.data;
-              }
-            } catch {
-              // Model is optional when form layout is standalone
-            }
+            // Check if returned data is a combined GFC envelope ({ FORMCONTROL: ... })
+            // or a standalone FormConfigRecord ({ frmElements: ... })
+            const formConfig: FormConfigRecord | null =
+              "FORMCONTROL" in rawData &&
+              rawData.FORMCONTROL &&
+              typeof rawData.FORMCONTROL === "object"
+                ? (rawData.FORMCONTROL as FormConfigRecord)
+                : "frmElements" in rawData
+                  ? (rawData as unknown as FormConfigRecord)
+                  : null;
 
-            const compiled = resolveFormRecord(formConfig, model);
-            return { schema: compiled, modelRecord: model };
+            if (formConfig?.frmElements) {
+              let model: ModelConfigRecord | null = null;
+              // Extract model directly from envelope if present
+              if (Array.isArray(rawData.PROPERTIES)) {
+                model = rawData as unknown as ModelConfigRecord;
+              } else {
+                try {
+                  const modelRes = await cbs.send<ModelConfigRecord>(
+                    cbs.modelConfig.get(targetModelName),
+                    { silent: true },
+                  );
+                  if (modelRes.status === "SUCCESS" && modelRes.data) {
+                    model = modelRes.data;
+                  }
+                } catch {
+                  // Model is optional when form layout is standalone
+                }
+              }
+
+              const compiled = resolveFormRecord(formConfig, model);
+              return { schema: compiled, modelRecord: model };
+            }
           }
 
           throw new Error(

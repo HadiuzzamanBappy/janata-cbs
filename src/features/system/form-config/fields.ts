@@ -1,78 +1,78 @@
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
 
-export type MetaFieldGroup = "IDENTITY" | "AUTHORIZATION";
-
-export interface MetaFieldDef {
-  path: string;
-  label: string;
-  group: MetaFieldGroup;
-  type: "text" | "number" | "boolean" | "select";
-  placeholder?: string;
-  required?: boolean;
-  uppercase?: boolean;
-  width?: "full" | "half" | "compact";
-  options?: Array<{ value: string; label: string }>;
-  helperText?: string;
-}
-
-export const META_FIELD_GROUPS: Array<{
-  id: MetaFieldGroup;
-  title: string;
-}> = [
+/**
+ * Standard Form Sections definition for FORM.CONFIG General tab.
+ * Centralized via the platform's form-engine and SectionCard.
+ */
+export const FORM_CONFIG_SECTIONS: FormSection[] = [
   {
-    id: "IDENTITY",
+    id: "sec_fc_identity",
     title: "Form Identification",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "title",
+        LABEL: "Form Title",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 80,
+        REQUIRED: true,
+        WIDTH: "full",
+        ENRICHTEXT: "Primary title of the form layout displayed across core workbench.",
+      },
+      {
+        SN: "2",
+        NAME: "description",
+        LABEL: "Description",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 200,
+        WIDTH: "full",
+        ENRICHTEXT: "Summary notes or functional purpose of this form configuration.",
+      },
+    ],
   },
   {
-    id: "AUTHORIZATION",
+    id: "sec_fc_auth",
     title: "Authorization & Security Settings",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "3",
+        NAME: "authNumber",
+        LABEL: "Authorization Level",
+        TYPE: "Number",
+        STRUCTURE: "S",
+        LENGTH: 2,
+        REQUIRED: true,
+        WIDTH: "sm",
+        ENRICHTEXT: "Minimum required authorization level before committing transactions.",
+      },
+    ],
   },
 ];
 
-export const FORM_META_FIELDS: MetaFieldDef[] = [
-  {
-    path: "title",
-    label: "Form Title",
-    group: "IDENTITY",
-    type: "text",
-    placeholder: "e.g. Retail Account Opening Form",
-    required: true,
-    width: "full",
-    helperText: "Primary title of the form layout",
-  },
-  {
-    path: "description",
-    label: "Description",
-    group: "IDENTITY",
-    type: "text",
-    placeholder: "e.g. Modular canvas demonstration with root variables, card containers...",
-    width: "full",
-    helperText: "Summary notes or functional purpose of this form configuration",
-  },
-  {
-    path: "authNumber",
-    label: "Authorization Level",
-    group: "AUTHORIZATION",
-    type: "number",
-    placeholder: "1",
-    required: true,
-    width: "compact",
-    helperText: "Minimum required authorization level before committing",
-  },
-];
-
-export function getFieldValue(record: FormConfigRecord, path: string): unknown {
-  return (record as Record<string, unknown>)[path];
-}
-
+/**
+ * Clean field updater for FormConfigRecord
+ */
 export function setFieldValue(
   record: FormConfigRecord,
   path: string,
   value: unknown,
 ): FormConfigRecord {
+  let finalVal: unknown = value;
+  if (path === "authNumber") {
+    finalVal = value !== "" && value !== undefined && value !== null ? Number(value) : 1;
+  }
+
   return {
     ...record,
-    [path]: value,
+    [path]: finalVal,
   };
 }
 

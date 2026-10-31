@@ -1,97 +1,67 @@
 "use client";
 
-import { Shield } from "lucide-react";
 import * as React from "react";
-import { Input } from "@/components/ui/input";
-import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
-import { cn } from "@/lib/core-utils";
+import { SectionCard } from "@/features/form-engine/components/section-card";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
-import {
-  FORM_META_FIELDS,
-  getFieldValue,
-  META_FIELD_GROUPS,
-  type MetaFieldDef,
-  setFieldValue,
-} from "../fields";
+import { CbsRecordFunction } from "@/types";
+import { FORM_CONFIG_SECTIONS, setFieldValue } from "../fields";
+import type { FormConfigValidationError } from "../hooks/fc-validation";
 
 export interface FcGeneralTabProps {
   formData: FormConfigRecord;
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>;
   isReadOnly?: boolean;
+  validationErrors?: FormConfigValidationError[];
 }
 
-export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGeneralTabProps) {
-  const handleInputChange = React.useCallback(
-    (def: MetaFieldDef, rawValue: string) => {
-      let finalVal: unknown = rawValue;
-      if (def.type === "number") {
-        finalVal = rawValue ? Number(rawValue) : 1;
-      } else if (def.uppercase) {
-        finalVal = rawValue.toUpperCase();
+export function FcGeneralTab({
+  formData,
+  setFormData,
+  isReadOnly = false,
+  validationErrors = [],
+}: FcGeneralTabProps) {
+  // 1. Build values record matching form fields
+  const formValues = React.useMemo(() => {
+    return {
+      title: formData.title ?? "",
+      description: formData.description ?? "",
+      authNumber: formData.authNumber ?? 1,
+    };
+  }, [formData]);
+
+  // 2. Map validation errors
+  const errorMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const err of validationErrors) {
+      if (err.tab === "general" && err.fieldKey) {
+        map[err.fieldKey] = err.message;
       }
-      setFormData((prev) => setFieldValue(prev, def.path, finalVal));
+    }
+    return map;
+  }, [validationErrors]);
+
+  // 3. Centralized field change dispatcher
+  const handleFieldChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      setFormData((prev) => setFieldValue(prev, fieldKey, value));
     },
     [setFormData],
   );
 
   return (
-    <div className="h-full overflow-y-auto select-none pr-1">
-      <div className="max-w-3xl space-y-3 pb-8">
-        {/* Core Field Groups */}
-        {META_FIELD_GROUPS.map((group) => {
-          const groupFields = FORM_META_FIELDS.filter((f) => f.group === group.id);
-
-          return (
-            <div
-              key={group.id}
-              className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
-            >
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
-                <span>{group.title}</span>
-                {group.id === "AUTHORIZATION" && <Shield className="size-3 text-primary" />}
-              </div>
-
-              <div className="space-y-2.5 text-xs">
-                {groupFields.map((field) => {
-                  const rawVal = getFieldValue(formData, field.path);
-                  const displayVal = rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
-
-                  return (
-                    <FieldRow
-                      key={field.path}
-                      label={field.label}
-                      required={field.required && !isReadOnly}
-                      enrichText={field.helperText}
-                    >
-                      <div
-                        className={cn(
-                          "flex-1",
-                          field.width === "compact"
-                            ? "max-w-30"
-                            : field.width === "half"
-                              ? "max-w-xs"
-                              : "max-w-md",
-                        )}
-                      >
-                        <Input
-                          type={field.type === "number" ? "number" : "text"}
-                          disabled={isReadOnly}
-                          value={displayVal}
-                          onChange={(e) => handleInputChange(field, e.target.value)}
-                          className={cn(
-                            "h-7 text-xs bg-background rounded border-border/80",
-                            field.uppercase && "font-mono uppercase",
-                            field.type === "number" && "font-mono",
-                          )}
-                        />
-                      </div>
-                    </FieldRow>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-4xl space-y-3 pb-8">
+        {FORM_CONFIG_SECTIONS.map((section) => (
+          <SectionCard
+            key={section.id}
+            section={section}
+            values={formValues}
+            onChange={handleFieldChange}
+            errors={errorMap}
+            disabled={isReadOnly}
+            mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          />
+        ))}
       </div>
     </div>
   );

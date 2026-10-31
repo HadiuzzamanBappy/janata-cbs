@@ -3,8 +3,9 @@
 import { Code, Eye, FileText, Layers, Palette, ShieldCheck, Workflow } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
+import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
-import { CbsControlTable } from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { FcAuditTab } from "./components/fc-audit-tab";
 import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
@@ -17,8 +18,7 @@ type FormConfigTabKey = "general" | "formRoutine" | "formDesigner" | "audit" | "
 
 export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
-    const parts = (command || "").trim().split(/\s+/);
-    return parts.length > 1 ? parts[1] : undefined;
+    return cbsCommand.parse(command || "").recordId;
   }, [command]);
 
   const {
@@ -181,18 +181,24 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       isDirty={isDirty}
       auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => fetchRecord(searchedId.toUpperCase(), "I")}
-      onCreateNew={(newId?: string) => newId && fetchRecord(newId.toUpperCase(), "I")}
+      onRecordSearch={(searchedId: string) =>
+        fetchRecord(searchedId.toUpperCase(), CbsRecordFunction.INPUT)
+      }
+      onCreateNew={(newId?: string) =>
+        newId && fetchRecord(newId.toUpperCase(), CbsRecordFunction.INPUT)
+      }
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" ? () => recordId && fetchRecord(recordId, mode) : undefined}
-      onAmend={() => recordId && fetchRecord(recordId, "I")}
-      onView={() => recordId && fetchRecord(recordId, "S")}
+      onAmend={() => recordId && fetchRecord(recordId, CbsRecordFunction.INPUT)}
+      onView={() => recordId && fetchRecord(recordId, CbsRecordFunction.SEE)}
       onValidate={handleValidate}
       onSubmit={handleSubmit}
       onHold={handleHold}
       onDelete={handleDelete}
       onAuthorizeReverse={
-        formData.auditData?.recStatus === "AU" || mode === "R" ? handleReverse : handleAuthorize
+        formData.auditData?.recStatus === CbsRecordStatus.AU || mode === CbsRecordFunction.REVERSE
+          ? handleReverse
+          : handleAuthorize
       }
       submitting={submitting || loading}
       availableItems={availableItems}

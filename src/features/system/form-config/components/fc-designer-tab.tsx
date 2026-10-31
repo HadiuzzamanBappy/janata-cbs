@@ -128,7 +128,6 @@ export function FcDesignerTab({
       DEFAULTVALUE: template.DEFAULTVALUE || "",
     };
 
-    // If no section exists, add it to a plain root section (no card border)
     onAddSection(
       "standard",
       "standard",
@@ -140,35 +139,6 @@ export function FcDesignerTab({
       undefined,
       1,
     );
-  };
-
-  const handleHighlightField = (fieldName: string) => {
-    for (const sec of sections) {
-      const match = (sec.fields || []).find((f) => f.NAME === fieldName || f.SN === fieldName);
-      if (match) {
-        onSelectSection(sec.id);
-        onSelectField(match.SN || match.NAME);
-        break;
-      }
-    }
-  };
-
-  const handleCanvasSelectField = (sectionId: string | null, fieldId: string | null) => {
-    if (sectionId) onSelectSection(sectionId);
-    onSelectField(fieldId);
-  };
-
-  /** Click on bare canvas background → select the root canvas section, deselect any field */
-  const handleCanvasBackgroundClick = () => {
-    // Root section = the plain/no-title section, or first non-tab section, or first overall
-    const rootSection =
-      sections.find((s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root") ||
-      sections.find((s) => s.zone !== "tab") ||
-      sections[0];
-    if (rootSection) {
-      onSelectSection(rootSection.id);
-      onSelectField(null);
-    }
   };
 
   const handleDropPaletteItem = (
@@ -210,8 +180,10 @@ export function FcDesignerTab({
       } else {
         handlePaletteAddField(data.element);
       }
-    } else if (data.type === "palette-container" && data.containerType) {
-      // 1. If dropped inside an existing section/tab body and contains fields, add fields inside that section!
+      return;
+    }
+
+    if (data.type === "palette-container" && data.containerType) {
       const targetSec = targetSectionId ? sections.find((s) => s.id === targetSectionId) : null;
       if (
         targetSec &&
@@ -225,7 +197,6 @@ export function FcDesignerTab({
         return;
       }
 
-      // 2. If dropped on tab header or into a tab group, make this container a new tab page in that tab group!
       const isTargetTabGroup =
         targetSectionId === "new-tab-in-group" || (targetSec && targetSec.zone === "tab");
       const targetGroupId = isTargetTabGroup ? data.tabGroupId || targetSec?.tabGroupId : undefined;
@@ -247,6 +218,33 @@ export function FcDesignerTab({
         data.bindKey,
         data.structure,
       );
+    }
+  };
+
+  const handleHighlightField = (fieldName: string) => {
+    for (const sec of sections) {
+      const match = (sec.fields || []).find((f) => f.NAME === fieldName || f.SN === fieldName);
+      if (match) {
+        onSelectSection(sec.id);
+        onSelectField(match.SN || match.NAME);
+        break;
+      }
+    }
+  };
+
+  const handleCanvasSelectField = (sectionId: string | null, fieldId: string | null) => {
+    if (sectionId) onSelectSection(sectionId);
+    onSelectField(fieldId);
+  };
+
+  const handleCanvasBackgroundClick = () => {
+    const rootSection =
+      sections.find((s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root") ||
+      sections.find((s) => s.zone !== "tab") ||
+      sections[0];
+    if (rootSection) {
+      onSelectSection(rootSection.id);
+      onSelectField(null);
     }
   };
 

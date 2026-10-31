@@ -76,19 +76,14 @@ export function FcDesignerTab({
     sections.find((s) => s.id === selectedSectionId) ||
     (selectedFieldId
       ? sections.find((s) =>
-          (s.fields || []).some(
-            (f) =>
-              f.id === selectedFieldId || f.NAME === selectedFieldId || f.SN === selectedFieldId,
-          ),
+          (s.fields || []).some((f) => f.SN === selectedFieldId || f.NAME === selectedFieldId),
         ) || null
       : sections[0] || null);
 
   const activeField =
     sections
       .flatMap((s) => s.fields || [])
-      .find(
-        (f) => f.id === selectedFieldId || f.NAME === selectedFieldId || f.SN === selectedFieldId,
-      ) || null;
+      .find((f) => f.SN === selectedFieldId || f.NAME === selectedFieldId) || null;
 
   const usedFieldNames = React.useMemo(() => {
     return new Set(sections.flatMap((s) => (s.fields || []).map((f) => f.NAME)));
@@ -111,7 +106,6 @@ export function FcDesignerTab({
 
     const fieldName = template.NAME || `field_${(sections.length + 1).toString()}`;
     const newField: FormElement = {
-      id: template.id || fieldName,
       SN: template.SN || String(sections.length + 1),
       NAME: fieldName,
       LABEL: template.LABEL || "New Field",
@@ -131,12 +125,6 @@ export function FcDesignerTab({
         reference: "",
       },
       ENRICHTEXT: template.ENRICHTEXT || "",
-      VALUE: template.VALUE || "",
-      FIXEDVALUE: template.FIXEDVALUE || "",
-      ISOPEN: template.ISOPEN ?? false,
-      ISLOADING: template.ISLOADING ?? false,
-      PROP: template.PROP || [],
-      DATASOURCE: template.DATASOURCE || [],
       DEFAULTVALUE: template.DEFAULTVALUE || "",
     };
 
@@ -156,12 +144,10 @@ export function FcDesignerTab({
 
   const handleHighlightField = (fieldName: string) => {
     for (const sec of sections) {
-      const match = (sec.fields || []).find(
-        (f) => f.NAME === fieldName || f.id === fieldName || f.SN === fieldName,
-      );
+      const match = (sec.fields || []).find((f) => f.NAME === fieldName || f.SN === fieldName);
       if (match) {
         onSelectSection(sec.id);
-        onSelectField(match.id || match.NAME || match.SN);
+        onSelectField(match.SN || match.NAME);
         break;
       }
     }
@@ -306,9 +292,10 @@ export function FcDesignerTab({
         <PropertyInspector
           selectedSection={activeSection}
           selectedField={activeField}
+          modelProperties={modelProperties}
           onUpdateSection={(patch) => activeSection && onUpdateSection(activeSection.id, patch)}
           onUpdateField={(patch) => {
-            const targetId = activeField?.id || activeField?.NAME || activeField?.SN;
+            const targetId = activeField?.SN || activeField?.NAME;
             if (targetId) onUpdateField(targetId, patch);
           }}
           onClose={() => {

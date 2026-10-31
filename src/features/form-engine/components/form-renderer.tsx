@@ -149,8 +149,8 @@ export function FormRenderer({
               key={block.groupId}
               className="rounded border border-border/80 bg-card/60 shadow-2xs overflow-hidden"
             >
-              {/* Tab Header Bar */}
-              <div className="flex border-b border-border/80 gap-1 bg-muted/25 px-2.5 pt-2">
+              {/* Tab Header Bar (Workbench TabBar Square Density with Active Top Border) */}
+              <div className="flex border-b border-border/80 bg-muted/40 p-0 gap-0 items-end select-none">
                 {block.tabSections.map((tab) => {
                   const isActive = tab.id === currentActiveId;
                   return (
@@ -161,10 +161,10 @@ export function FormRenderer({
                         setActiveTabs((prev) => ({ ...prev, [block.groupId]: tab.id }))
                       }
                       className={cn(
-                        "px-3.5 py-1.5 text-xs font-medium border-b-2 transition-all cursor-pointer",
+                        "relative flex items-center h-8 px-3 text-xs font-medium transition-all duration-150 cursor-pointer whitespace-nowrap rounded-none",
                         isActive
-                          ? "border-primary text-primary font-semibold bg-background rounded-t -mb-px"
-                          : "border-transparent text-muted-foreground hover:text-foreground",
+                          ? "bg-background text-foreground font-semibold border-t border-l border-r border-border/80 border-b-0 shadow-2xs z-10 -mb-px after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
+                          : "text-muted-foreground hover:bg-background/50 hover:text-foreground border-transparent",
                       )}
                     >
                       {tab.tabTitle || tab.title || "Tab"}

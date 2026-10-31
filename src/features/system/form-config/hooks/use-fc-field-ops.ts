@@ -9,8 +9,8 @@ import type {
 
 function isMatchingField(field: FormElement, identifier: string): boolean {
   return (
-    field.NAME === identifier ||
     field.SN === identifier ||
+    field.NAME === identifier ||
     (field as unknown as Record<string, unknown>).id === identifier
   );
 }
@@ -32,7 +32,6 @@ export function useFcFieldOps(
         const fieldLabel = fieldTemplate?.LABEL || `Field ${existingCount}`;
 
         const newField: FormElement = {
-          id: fieldTemplate?.id || fieldName,
           SN: fieldSn,
           NAME: fieldName,
           LABEL: fieldLabel,
@@ -52,12 +51,6 @@ export function useFcFieldOps(
             reference: "",
           },
           ENRICHTEXT: fieldTemplate?.ENRICHTEXT || "",
-          VALUE: fieldTemplate?.VALUE || "",
-          FIXEDVALUE: fieldTemplate?.FIXEDVALUE || "",
-          ISOPEN: fieldTemplate?.ISOPEN ?? false,
-          ISLOADING: fieldTemplate?.ISLOADING ?? false,
-          PROP: fieldTemplate?.PROP || [],
-          DATASOURCE: fieldTemplate?.DATASOURCE || [],
           DEFAULTVALUE: fieldTemplate?.DEFAULTVALUE || "",
         };
 

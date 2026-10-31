@@ -76,7 +76,7 @@ export function FilterModelPopover({
             variant="ghost"
             size="sm"
             disabled={disabled || !targetModel}
-            className="h-7 text-xs px-2 gap-1 text-primary hover:text-primary/80"
+            className="h-7 text-xs px-2 gap-1 text-primary hover:text-primary/80 cursor-pointer"
             title={targetModel ? `Import filter fields from ${targetModel}` : "No Target Model set"}
           >
             <Sparkles className="size-3" />
@@ -129,7 +129,7 @@ export function FilterModelPopover({
                       : "hover:bg-primary/10",
                   )}
                 >
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 pr-2">
                     <span className="font-mono text-xs font-medium block truncate group-hover:text-primary">
                       {prop.NAME}
                     </span>
@@ -137,11 +137,12 @@ export function FilterModelPopover({
                       {prop.LABEL || prop.NAME}
                     </span>
                   </div>
+
                   {isConfigured ? (
-                    <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0 ml-1" />
+                    <CheckCircle2 className="size-3.5 text-primary shrink-0 ml-1" />
                   ) : (
-                    <span className="text-[9px] font-mono text-muted-foreground/60 shrink-0 uppercase">
-                      {prop.TYPE || "text"}
+                    <span className="text-[9px] font-mono text-muted-foreground/80 px-1 py-0.5 rounded bg-muted/60 shrink-0 uppercase">
+                      {prop.TYPE || "Text"}
                     </span>
                   )}
                 </button>

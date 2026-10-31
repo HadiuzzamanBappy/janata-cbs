@@ -19,6 +19,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { FilterInspector } from "./selection/filter-inspector";
 import { FilterItem } from "./selection/filter-item";
 import { FilterModelPopover } from "./selection/filter-model-popover";
@@ -31,6 +32,7 @@ export interface IcSelectionTabProps {
   onRemoveFilter: (index: number) => void;
   onReorderFilters: (fromIndex: number, toIndex: number) => void;
   disabled?: boolean;
+  validationErrors?: InquiryValidationErrorItem[];
 }
 
 export function IcSelectionTab({
@@ -41,6 +43,7 @@ export function IcSelectionTab({
   onRemoveFilter,
   onReorderFilters,
   disabled = false,
+  validationErrors = [],
 }: IcSelectionTabProps) {
   const [selectedIdx, setSelectedIdx] = React.useState<number>(0);
 
@@ -164,12 +167,12 @@ export function IcSelectionTab({
         </div>
 
         {/* Scrollable Criteria Items */}
-        <div className="flex-1 overflow-y-auto p-1.5 space-y-1 min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0">
           {filters.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
               <Filter className="size-8 text-muted-foreground/30 mb-2" />
               <p className="text-xs font-medium">No Criteria Defined</p>
-              <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-[200px]">
+              <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
                 Import properties from {targetModel || "the model"} or add a custom filter.
               </p>
             </div>
@@ -180,18 +183,25 @@ export function IcSelectionTab({
               onDragEnd={handleDragEnd}
             >
               <SortableContext items={filterKeys} strategy={verticalListSortingStrategy}>
-                <div className="space-y-1">
-                  {filters.map((filter, index) => (
-                    <FilterItem
-                      key={filterKeys[index]}
-                      index={index}
-                      field={filter}
-                      isSelected={index === selectedIdx}
-                      disabled={disabled}
-                      onSelect={() => setSelectedIdx(index)}
-                      onRemove={() => onRemoveFilter(index)}
-                    />
-                  ))}
+                <div className="divide-y divide-border/30">
+                  {filters.map((filter, index) => {
+                    const filterErrors = validationErrors.filter(
+                      (err) => err.tab === "selection" && err.itemIndex === index,
+                    );
+                    return (
+                      <FilterItem
+                        key={filterKeys[index]}
+                        index={index}
+                        field={filter}
+                        isSelected={index === selectedIdx}
+                        disabled={disabled}
+                        hasError={filterErrors.length > 0}
+                        errorCount={filterErrors.length}
+                        onSelect={() => setSelectedIdx(index)}
+                        onRemove={() => onRemoveFilter(index)}
+                      />
+                    );
+                  })}
                 </div>
               </SortableContext>
             </DndContext>
@@ -201,24 +211,14 @@ export function IcSelectionTab({
 
       {/* 2. Right Panel: Criteria Details Inspector (Expands to Full Width) */}
       <div className="flex-1 flex flex-col min-h-0 bg-background/50">
-        <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Criterion Inspector:
-            </span>
-            {activeFilter && (
-              <span className="text-xs font-bold text-foreground">
-                {activeFilter.selectFieldDisplay || activeFilter.selectFieldName}
-              </span>
-            )}
-          </div>
-        </div>
-
         {activeFilter ? (
           <FilterInspector
             field={activeFilter}
+            selectedIdx={selectedIdx}
             disabled={disabled}
+            validationErrors={validationErrors}
             onUpdate={(patch) => onUpdateFilter(selectedIdx, patch)}
+            onRemove={() => onRemoveFilter(selectedIdx)}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">

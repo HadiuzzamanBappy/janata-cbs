@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
 import { cn } from "@/lib/core-utils";
 import {
   type ModelProperty,
@@ -42,47 +41,9 @@ function InspectorRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-7 flex items-center gap-2">
-      <div className="w-28 shrink-0 flex items-center text-xs select-none font-normal">
-        {description ? (
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <span className="inline-flex items-center">
-                  <span
-                    className={cn(
-                      "cursor-help underline decoration-dotted decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground hover:text-foreground transition-colors",
-                      error ? "text-destructive font-semibold" : "text-muted-foreground",
-                    )}
-                  >
-                    {label}
-                  </span>
-                  {required && (
-                    <span className="text-destructive font-semibold ml-0.5 no-underline select-none">
-                      *
-                    </span>
-                  )}
-                </span>
-              }
-            />
-            <TooltipContent side="right" className="text-xs max-w-xs z-50">
-              {description}
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <Label
-            className={cn(
-              "text-xs select-none font-normal",
-              error ? "text-destructive font-semibold" : "text-muted-foreground",
-            )}
-          >
-            {label} {required && <span className="text-destructive font-semibold ml-0.5">*</span>}
-          </Label>
-        )}
-      </div>
-      <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+    <FieldRow label={label} required={required} error={error} enrichText={description}>
       <div className="max-w-md flex-1">{children}</div>
-    </div>
+    </FieldRow>
   );
 }
 

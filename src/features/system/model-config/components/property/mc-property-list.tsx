@@ -144,12 +144,12 @@ export function McPropertyList({
               <div
                 key={prop.SN}
                 className={cn(
-                  "relative flex items-center justify-between w-full py-1 px-2.5 transition-colors group select-none",
+                  "relative flex items-center justify-between w-full py-1.5 px-2.5 transition-colors group select-none",
                   hasError && !isSelected && "bg-destructive/5 hover:bg-destructive/10",
                   isSelected
                     ? hasError
                       ? "bg-destructive/15 text-destructive border-l-3 border-l-destructive"
-                      : "bg-primary text-primary-foreground font-semibold"
+                      : "bg-primary/10 text-foreground font-semibold border-l-3 border-l-primary"
                     : hasError
                       ? "border-l-3 border-l-destructive/80 text-foreground"
                       : "hover:bg-muted/40 text-foreground border-l-3 border-l-transparent",
@@ -166,7 +166,7 @@ export function McPropertyList({
                     className={cn(
                       "font-mono text-[10px] px-1 py-0.5 rounded shrink-0",
                       isSelected
-                        ? "bg-primary-foreground/20 text-primary-foreground font-bold"
+                        ? "bg-primary/15 text-primary font-bold border border-primary/25"
                         : "bg-muted text-muted-foreground font-medium",
                     )}
                   >
@@ -179,17 +179,14 @@ export function McPropertyList({
                       <span
                         className={cn(
                           "text-xs truncate font-medium",
-                          isSelected ? "text-primary-foreground font-semibold" : "text-foreground",
+                          isSelected ? "text-foreground font-semibold" : "text-foreground",
                         )}
                       >
                         {prop.LABEL || prop.NAME || "<Unnamed>"}
                       </span>
                       {prop.REQUIRED && (
                         <span
-                          className={cn(
-                            "text-[10px] font-bold leading-none",
-                            isSelected ? "text-primary-foreground" : "text-destructive",
-                          )}
+                          className="text-destructive font-bold text-[10px] leading-none"
                           title="Mandatory Column"
                         >
                           *
@@ -197,12 +194,7 @@ export function McPropertyList({
                       )}
                     </div>
                     {prop.NAME && prop.LABEL && prop.NAME !== prop.LABEL && (
-                      <div
-                        className={cn(
-                          "text-[10px] truncate leading-tight font-mono",
-                          isSelected ? "text-primary-foreground/80" : "text-muted-foreground",
-                        )}
-                      >
+                      <div className="text-[10px] truncate leading-tight font-mono text-muted-foreground">
                         {prop.NAME}
                       </div>
                     )}
@@ -216,7 +208,7 @@ export function McPropertyList({
                     className={cn(
                       "font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider",
                       isSelected
-                        ? "border-primary-foreground/40 bg-primary-foreground/15 text-primary-foreground"
+                        ? "border-primary/30 bg-primary/10 text-primary font-medium"
                         : "text-muted-foreground border-border/70",
                     )}
                   >
@@ -234,12 +226,7 @@ export function McPropertyList({
                         e.stopPropagation();
                         onDeleteField(prop.SN, true);
                       }}
-                      className={cn(
-                        "size-5 p-0 rounded transition-opacity",
-                        isSelected
-                          ? "text-primary-foreground hover:bg-destructive hover:text-destructive-foreground"
-                          : "text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 opacity-70 group-hover:opacity-100",
-                      )}
+                      className="size-5 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
                     >
                       <Trash2 className="size-3" />
                     </Button>

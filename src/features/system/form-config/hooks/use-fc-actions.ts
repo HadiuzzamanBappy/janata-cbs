@@ -4,6 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
+import { sanitizeFormConfigRecord } from "@/lib/data-schemas/clean-record";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 
 export interface UseFcActionsParams {
@@ -30,8 +31,11 @@ export function useFcActions({
     const targetId = recordId || (formData.recordId as string) || "";
     setSubmitting(true);
     try {
+      // Clean internal canvas field ids & strip empty fields before sending to backend
+      const cleanFormData = sanitizeFormConfigRecord(formData) || formData;
+
       const res = await cbs.send<FormConfigRecord>(
-        cbs.formConfig.save(formData, { recordId: targetId }),
+        cbs.formConfig.save(cleanFormData, { recordId: targetId }),
       );
       if (res.status === "SUCCESS") {
         rebaseline();

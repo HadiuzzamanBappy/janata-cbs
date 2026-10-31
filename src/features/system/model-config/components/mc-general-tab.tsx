@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
 import { cn } from "@/lib/core-utils";
 import type {
   ModelConfigRecord,
@@ -52,56 +52,6 @@ export function McGeneralTab({
     [setFormData],
   );
 
-  const renderLabel = (
-    field: MetaFieldDef,
-    fieldError?: { message?: string },
-    labelWidthClass = "w-32 shrink-0",
-  ) => {
-    const labelContent = (
-      <span className="inline-flex items-center">
-        <span
-          className={cn(
-            field.description
-              ? "cursor-help underline decoration-dotted decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground hover:text-foreground transition-colors"
-              : "",
-            fieldError ? "text-destructive font-semibold" : "text-muted-foreground",
-          )}
-        >
-          {field.label}
-        </span>
-        {field.required && (
-          <span className="text-destructive font-semibold ml-0.5 select-none no-underline">*</span>
-        )}
-      </span>
-    );
-
-    if (field.description) {
-      return (
-        <div className={cn(labelWidthClass, "flex items-center text-xs select-none font-normal")}>
-          <Tooltip>
-            <TooltipTrigger render={labelContent} />
-            <TooltipContent side="right" className="text-xs max-w-xs z-50">
-              {field.description}
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      );
-    }
-
-    return (
-      <Label
-        className={cn(
-          labelWidthClass,
-          "text-xs select-none font-normal",
-          fieldError ? "text-destructive font-semibold" : "text-muted-foreground",
-        )}
-      >
-        {field.label}
-        {field.required && <span className="text-destructive font-semibold ml-0.5">*</span>}
-      </Label>
-    );
-  };
-
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-3xl space-y-3">
@@ -139,9 +89,13 @@ export function McGeneralTab({
                     const boolFieldId = `mc-bool-${field.path}`;
                     const isChecked = Boolean(rawVal);
                     return (
-                      <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        {renderLabel(field, fieldError)}
-                        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.description}
+                        error={fieldError?.message}
+                      >
                         <div className="flex items-center gap-2 max-w-md flex-1">
                           <label
                             htmlFor={boolFieldId}
@@ -174,16 +128,20 @@ export function McGeneralTab({
                             </span>
                           </label>
                         </div>
-                      </div>
+                      </FieldRow>
                     );
                   }
 
                   // Radio Group (e.g. Table Type - Global / Branch)
                   if (field.type === "radio-group") {
                     return (
-                      <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        {renderLabel(field, fieldError)}
-                        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.description}
+                        error={fieldError?.message}
+                      >
                         <div className="flex items-center gap-5 max-w-md flex-1">
                           <RadioGroup
                             value={rawVal ? String(rawVal) : ""}
@@ -224,7 +182,7 @@ export function McGeneralTab({
                             })}
                           </RadioGroup>
                         </div>
-                      </div>
+                      </FieldRow>
                     );
                   }
 
@@ -232,9 +190,13 @@ export function McGeneralTab({
                   if (field.type === "id-pattern-select") {
                     const selectedValues = Array.isArray(rawVal) ? (rawVal as string[]) : [];
                     return (
-                      <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        {renderLabel(field, fieldError)}
-                        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.description}
+                        error={fieldError?.message}
+                      >
                         <div className="flex items-center gap-4 flex-wrap max-w-xl flex-1">
                           {field.options?.map((opt) => {
                             const isChecked = selectedValues.includes(opt.value);
@@ -270,16 +232,20 @@ export function McGeneralTab({
                             );
                           })}
                         </div>
-                      </div>
+                      </FieldRow>
                     );
                   }
 
                   // Date Picker (e.g. Developement Date)
                   if (field.type === "date") {
                     return (
-                      <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        {renderLabel(field, fieldError)}
-                        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.description}
+                        error={fieldError?.message}
+                      >
                         <div className="flex items-center gap-1.5 max-w-xs flex-1">
                           <Input
                             type="date"
@@ -307,7 +273,7 @@ export function McGeneralTab({
                             </Button>
                           )}
                         </div>
-                      </div>
+                      </FieldRow>
                     );
                   }
 
@@ -315,9 +281,13 @@ export function McGeneralTab({
                   if (field.type === "checkbox-group") {
                     const selectedValues = Array.isArray(rawVal) ? (rawVal as string[]) : [];
                     return (
-                      <div key={field.path} className="min-h-7 flex items-center gap-2">
-                        {renderLabel(field, fieldError)}
-                        <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+                      <FieldRow
+                        key={field.path}
+                        label={field.label}
+                        required={field.required}
+                        enrichText={field.description}
+                        error={fieldError?.message}
+                      >
                         <div className="flex items-center gap-4 max-w-md flex-1">
                           {field.options?.map((opt) => {
                             const isChecked = selectedValues.includes(opt.value);
@@ -353,7 +323,7 @@ export function McGeneralTab({
                             );
                           })}
                         </div>
-                      </div>
+                      </FieldRow>
                     );
                   }
 
@@ -370,9 +340,13 @@ export function McGeneralTab({
                   const isFieldDisabled = isReadOnly || field.disabled;
 
                   return (
-                    <div key={field.path} className="min-h-7 flex items-center gap-2">
-                      {renderLabel(field, fieldError)}
-                      <span className="text-muted-foreground/60 font-mono text-xs">:</span>
+                    <FieldRow
+                      key={field.path}
+                      label={field.label}
+                      required={field.required}
+                      enrichText={field.description}
+                      error={fieldError?.message}
+                    >
                       <Input
                         type={field.type === "number" ? "number" : "text"}
                         value={displayVal}
@@ -389,7 +363,7 @@ export function McGeneralTab({
                           inputWidth,
                         )}
                       />
-                    </div>
+                    </FieldRow>
                   );
                 })}
               </div>

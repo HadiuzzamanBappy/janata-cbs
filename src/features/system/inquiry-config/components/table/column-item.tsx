@@ -12,6 +12,8 @@ export interface ColumnItemProps {
   index: number;
   isSelected: boolean;
   disabled?: boolean;
+  hasError?: boolean;
+  errorCount?: number;
   onSelect: () => void;
   onRemove: () => void;
 }
@@ -21,6 +23,8 @@ export function ColumnItem({
   index,
   isSelected,
   disabled = false,
+  hasError = false,
+  errorCount,
   onSelect,
   onRemove,
 }: ColumnItemProps) {
@@ -43,11 +47,16 @@ export function ColumnItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group p-1.5 rounded border transition-all flex items-center gap-1.5 text-xs select-none",
+        "group py-1.5 px-2.5 transition-colors flex items-center gap-1.5 text-xs select-none w-full",
+        hasError && !isSelected && "bg-destructive/5 hover:bg-destructive/10",
         isSelected
-          ? "bg-primary/10 border-primary text-foreground shadow-2xs font-medium"
-          : "bg-background/90 hover:bg-muted/30 border-border/70 text-foreground/90",
-        isDragging && "ring-1 ring-primary shadow-md bg-accent/30",
+          ? hasError
+            ? "bg-destructive/15 text-destructive border-l-3 border-l-destructive"
+            : "bg-primary/10 text-foreground font-semibold border-l-3 border-l-primary"
+          : hasError
+            ? "border-l-3 border-l-destructive/80 text-foreground"
+            : "hover:bg-muted/40 text-foreground border-l-3 border-l-transparent",
+        isDragging && "ring-1 ring-primary shadow-md bg-accent/30 z-40",
       )}
     >
       {!disabled && (
@@ -66,21 +75,35 @@ export function ColumnItem({
         onClick={onSelect}
         className="flex items-center gap-2 flex-1 min-w-0 text-left outline-none cursor-pointer"
       >
-        <span className="text-[10px] font-mono text-muted-foreground w-4 shrink-0">
+        <span
+          className={cn(
+            "text-[10px] font-mono px-1 py-0.5 rounded shrink-0",
+            isSelected
+              ? "bg-primary/15 text-primary font-bold border border-primary/25"
+              : "bg-muted text-muted-foreground font-medium",
+          )}
+        >
           {index + 1}.
         </span>
 
         <div className="flex-1 min-w-0">
           <span className="font-medium truncate block">{col.fieldDisplay || col.fieldName}</span>
-          <span className="text-[10px] font-mono text-muted-foreground/70 truncate block">
-            {col.fieldName}
-          </span>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          {hasError && (
+            <span className="text-destructive font-mono text-[9px] font-bold px-1 py-0.5 rounded bg-destructive/10 shrink-0">
+              {errorCount ? `${errorCount} ERR` : "ERR"}
+            </span>
+          )}
           <Badge
             variant="outline"
-            className="text-[9px] font-mono px-1 py-0 h-4 border-border/60 text-muted-foreground uppercase"
+            className={cn(
+              "text-[9px] font-mono px-1 py-0 h-4 uppercase",
+              isSelected
+                ? "border-primary/30 bg-primary/10 text-primary font-medium"
+                : "border-border/60 text-muted-foreground",
+            )}
           >
             {col.fieldType}
           </Badge>
@@ -97,7 +120,7 @@ export function ColumnItem({
             e.stopPropagation();
             onRemove();
           }}
-          className="opacity-0 group-hover:opacity-100 hover:text-destructive text-muted-foreground/50 transition-opacity p-1 cursor-pointer"
+          className="text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 rounded p-1 transition-colors cursor-pointer shrink-0"
           title="Remove column"
         >
           <Trash2 className="size-3.5" />

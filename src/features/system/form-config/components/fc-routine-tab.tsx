@@ -109,10 +109,18 @@ export function FcRoutineTab({
           return (
             <div
               key={group.key}
-              className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
+              className={cn(
+                "rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5",
+                routines.length === 0 && "space-y-0",
+              )}
             >
               {/* Field Group Header */}
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
+              <div
+                className={cn(
+                  "text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center justify-between",
+                  routines.length > 0 && "pb-1.5 border-b border-border/60",
+                )}
+              >
                 <span>{group.title}</span>
                 {!isReadOnly && (
                   <Button
@@ -120,7 +128,7 @@ export function FcRoutineTab({
                     variant="outline"
                     size="xs"
                     onClick={() => handleAddRoutine(group.key)}
-                    className="h-5 w-5 p-0 rounded font-normal text-muted-foreground hover:text-foreground border-border/80"
+                    className="h-5 w-5 p-0 rounded font-normal text-muted-foreground hover:text-foreground border-border/80 cursor-pointer"
                     title={`Add new ${group.fieldLabel}`}
                   >
                     <Plus className="size-3" />
@@ -129,15 +137,9 @@ export function FcRoutineTab({
               </div>
 
               {/* Multi-Field Rows / Grouping Blocks */}
-              <div className="space-y-3 text-xs">
-                {routines.length === 0 ? (
-                  <FieldRow label={group.fieldLabel} enrichText={group.description}>
-                    <span className="text-[11px] text-muted-foreground/70 italic truncate">
-                      No routine hooks configured
-                    </span>
-                  </FieldRow>
-                ) : (
-                  routines.map((routine, idx) => {
+              {routines.length > 0 && (
+                <div className="space-y-3 text-xs">
+                  {routines.map((routine, idx) => {
                     const fieldError = validationErrors.find(
                       (e) =>
                         e.tab === "formRoutine" && e.fieldKey === `${group.key}.${idx}.routineName`,
@@ -236,9 +238,9 @@ export function FcRoutineTab({
                         </FieldRow>
                       </div>
                     );
-                  })
-                )}
-              </div>
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

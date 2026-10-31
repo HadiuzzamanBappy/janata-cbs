@@ -10,6 +10,7 @@ export interface DerivedColumnMeta {
   row: number;
   order: number;
   canPass: boolean;
+  routine?: string;
 }
 
 /**
@@ -60,5 +61,6 @@ export function deriveInquiryColumnMeta(col: INQDef): DerivedColumnMeta {
     row,
     order,
     canPass: Boolean(col.dataPassable),
+    routine: col.fieldFunc?.trim() || undefined,
   };
 }

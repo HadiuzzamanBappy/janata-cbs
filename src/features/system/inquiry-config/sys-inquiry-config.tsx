@@ -26,13 +26,16 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     mode,
     formData,
     setFormData,
+    baseline,
     isDirty,
     loading,
     submitting,
     inquiriesPool,
+    validationErrors,
     resetToIdle,
     initDraft,
     loadRecord,
+    handleValidate,
     handleSubmit,
     filterOps,
     columnOps,
@@ -58,14 +61,21 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         id: "general",
         label: "General",
         icon: <FileText className="size-3 text-muted-foreground" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "general").length || undefined,
         content: (
-          <IcGeneralTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
+          <IcGeneralTab
+            formData={formData}
+            setFormData={setFormData}
+            isReadOnly={isReadOnly}
+            validationErrors={validationErrors}
+          />
         ),
       },
       {
         id: "selection",
         label: "Selection Criteria",
         icon: <Filter className="size-3 text-sky-500" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "selection").length || undefined,
         content: (
           <IcSelectionTab
             filters={formData.INQSelectField || []}
@@ -75,6 +85,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
             onRemoveFilter={filterOps.removeFilter}
             onReorderFilters={filterOps.reorderFilters}
             disabled={isReadOnly}
+            validationErrors={validationErrors}
           />
         ),
       },
@@ -82,6 +93,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         id: "table",
         label: "Table Design",
         icon: <Columns className="size-3 text-primary" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "table").length || undefined,
         content: (
           <IcTableTab
             columns={formData.INQDef || []}
@@ -96,6 +108,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
             onRemoveAction={actionOps.removeAction}
             onReorderActions={actionOps.reorderActions}
             disabled={isReadOnly}
+            validationErrors={validationErrors}
           />
         ),
       },
@@ -109,10 +122,19 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         id: "json",
         label: "JSON Spec",
         icon: <Code className="size-3 text-amber-500" />,
-        content: <IcJsonTab formData={formData} />,
+        content: <IcJsonTab formData={formData} baseline={baseline} />,
       },
     ],
-    [formData, isReadOnly, setFormData, filterOps, columnOps, actionOps],
+    [
+      formData,
+      baseline,
+      isReadOnly,
+      setFormData,
+      filterOps,
+      columnOps,
+      actionOps,
+      validationErrors,
+    ],
   );
 
   return (
@@ -130,6 +152,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       onReset={mode !== "IDLE" && recordId ? () => loadRecord(recordId, mode) : undefined}
       onAmend={() => recordId && loadRecord(recordId, "I")}
       onView={() => recordId && loadRecord(recordId, "S")}
+      onValidate={handleValidate}
       onSubmit={() => handleSubmit(CbsRecordFunction.INPUT)}
       onHold={() => handleSubmit(CbsRecordFunction.HOLD)}
       onDelete={() => handleSubmit(CbsRecordFunction.DELETE)}
@@ -146,6 +169,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       tabs={tabs}
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
+      validationErrors={validationErrors}
       rightTabContent={
         <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
           <Layers className="size-3" />

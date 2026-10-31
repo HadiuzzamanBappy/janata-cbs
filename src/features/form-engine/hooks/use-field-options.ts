@@ -23,17 +23,8 @@ export function useFieldOptions(field: FormFieldItem) {
         };
       });
     }
-    if (Array.isArray(field.PROP) && field.PROP.length > 0) {
-      return field.PROP.map((p: unknown) => {
-        if (typeof p === "string") return { code: p, label: p };
-        const pObj = p as Record<string, unknown>;
-        const code = pObj.code ?? pObj.value ?? pObj.itemCode ?? "";
-        const label = pObj.label ?? pObj.display ?? pObj.itemLabel ?? code;
-        return { code: String(code), label: String(label || code) };
-      });
-    }
     return [];
-  }, [param, modelOptions, field.PROP]);
+  }, [param, modelOptions]);
 
   return {
     param,

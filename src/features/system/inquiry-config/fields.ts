@@ -21,7 +21,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 120,
         REQUIRED: true,
-        WIDTH: "full",
+        WIDTH: "md",
         ENRICHTEXT: "Descriptive title of this inquiry definition.",
       },
       {

@@ -20,7 +20,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
-        WIDTH: "full",
+        WIDTH: "md",
         ENRICHTEXT: "Primary title of the form layout displayed across core workbench.",
       },
       {
@@ -30,7 +30,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 200,
-        WIDTH: "full",
+        WIDTH: "xl",
         ENRICHTEXT: "Summary notes or functional purpose of this form configuration.",
       },
     ],

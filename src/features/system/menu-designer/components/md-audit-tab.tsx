@@ -3,10 +3,10 @@
 import { CbsAuditTab } from "@/components/cbs-screen";
 import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
-interface DesignerAuditTabProps {
+interface MdAuditTabProps {
   formData: MenuTreeRecord;
 }
 
-export function DesignerAuditTab({ formData }: DesignerAuditTabProps) {
+export function MdAuditTab({ formData }: MdAuditTabProps) {
   return <CbsAuditTab formData={formData} />;
 }

@@ -5,7 +5,11 @@ import type {
   FormSection,
   RoutineItem,
 } from "@/lib/data-schemas/form-config-schema";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type {
+  ModelConfigRecord,
+  ModelProperty,
+  PropertyWidth,
+} from "@/lib/data-schemas/model-config-schema";
 
 export type CompiledFormSpec = FormConfigRecord;
 
@@ -14,13 +18,20 @@ export type CompiledFormSpec = FormConfigRecord;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Computes optimal column width (in px or standard col units) from length.
+ * Computes optimal semantic width token from length or semantic token.
  */
-export function defaultWidthForLength(prop: ModelProperty): number {
-  if (typeof prop.WIDTH === "number" && prop.WIDTH > 0) return prop.WIDTH;
-  if (prop.LENGTH && prop.LENGTH > 60) return 400;
-  if (prop.LENGTH && prop.LENGTH <= 15) return 150;
-  return 200;
+export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
+  if (
+    typeof prop.WIDTH === "string" &&
+    ["xs", "sm", "md", "lg", "xl", "xxl", "full"].includes(prop.WIDTH)
+  ) {
+    return prop.WIDTH as PropertyWidth;
+  }
+  if (prop.LENGTH && prop.LENGTH > 100) return "full";
+  if (prop.LENGTH && prop.LENGTH > 40) return "lg";
+  if (prop.LENGTH && prop.LENGTH <= 5) return "xs";
+  if (prop.LENGTH && prop.LENGTH <= 15) return "sm";
+  return "md";
 }
 
 /**

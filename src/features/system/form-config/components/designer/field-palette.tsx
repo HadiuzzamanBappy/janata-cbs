@@ -47,7 +47,7 @@ function modelPropToFormElement(prop: ModelProperty): FormElement {
     STRUCTURE: prop.STRUCTURE || "S",
     REQUIRED: prop.REQUIRED ?? false,
     DISABLED: false,
-    WIDTH: prop.WIDTH ?? 200,
+    WIDTH: 200,
     POSITION: "",
     PARAMETER: {
       type: "O",

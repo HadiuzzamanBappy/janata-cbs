@@ -79,12 +79,15 @@ function SectionDropBody({
     }
   };
 
-  const getFieldColSpanClass = (cols: number, width?: number) => {
+  const getFieldColSpanClass = (cols: number, width?: unknown) => {
     if (cols <= 1) {
       return "w-full";
     }
-    if (width && width >= 400) {
-      return cols === 2 ? "col-span-2 w-full" : "col-span-2 w-full";
+    const token = typeof width === "string" ? width.toLowerCase().trim() : "";
+    if (token === "full") return "col-span-full w-full";
+    if (token === "lg" && cols >= 3) return "col-span-2 w-full";
+    if (typeof width === "number" && width >= 400) {
+      return "col-span-2 w-full";
     }
     return "col-span-1 w-full";
   };

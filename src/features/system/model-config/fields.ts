@@ -21,6 +21,7 @@ export interface MetaFieldDef {
   label: string;
   group: MetaFieldGroup;
   type: MetaFieldType;
+  description?: string;
   placeholder?: string;
   required?: boolean;
   uppercase?: boolean;
@@ -65,6 +66,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Table Name",
     group: "IDENTITY",
     type: "text",
+    description: "Physical database table name storing the model records.",
     placeholder: "e.g. MODEL_DEFINITION",
     required: true,
     uppercase: true,
@@ -75,6 +77,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Table Prefix",
     group: "IDENTITY",
     type: "text",
+    description: "Two-letter CBS module prefix (e.g. SC, AC, CU).",
     placeholder: "e.g. SC",
     uppercase: true,
     width: "compact",
@@ -84,6 +87,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Description",
     group: "IDENTITY",
     type: "text",
+    description: "Human-readable functional summary of this model.",
     placeholder: "e.g. Model Definition",
     required: true,
     width: "full",
@@ -93,6 +97,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Service Path",
     group: "IDENTITY",
     type: "text",
+    description: "Backend microservice path or endpoint routing key.",
     placeholder: "e.g. default",
     required: true,
     width: "full",
@@ -102,6 +107,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Table Type",
     group: "IDENTITY",
     type: "radio-group",
+    description: "Defines whether records are shared globally or scoped by branch.",
     required: true,
     options: [
       { value: "G", label: "Global" },
@@ -113,6 +119,8 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Other Tables",
     group: "IDENTITY",
     type: "checkbox-group",
+    description:
+      "Associated auxiliary audit tables: HIS (History), UNA (Unauthorized), DEL (Deleted).",
     options: [
       { value: "HIS", label: "HIS" },
       { value: "UNA", label: "UNA" },
@@ -124,6 +132,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Developed By",
     group: "IDENTITY",
     type: "text",
+    description: "Developer username who authored or modified this schema.",
     placeholder: "e.g. Bappy",
     width: "half",
   },
@@ -132,6 +141,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Developement Date",
     group: "IDENTITY",
     type: "date",
+    description: "Date when this schema configuration was created or revised.",
     placeholder: "YYYY-MM-DD",
     width: "compact",
   },
@@ -142,12 +152,14 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "User Define Id",
     group: "ID_RULES",
     type: "boolean",
+    description: "Allows operators to manually provide custom record IDs during creation.",
   },
   {
     path: "IDROUTINE",
     label: "ID Routine",
     group: "ID_RULES",
     type: "text",
+    description: "Custom server routine hook executed to generate record IDs.",
     placeholder: "e.g. RT.GEN.CUST.ID",
     uppercase: true,
     width: "half",
@@ -157,6 +169,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "ID Prefix",
     group: "ID_RULES",
     type: "text",
+    description: "Constant prefix prepended to all generated IDs.",
     placeholder: "Optional prefix",
     uppercase: true,
     width: "compact",
@@ -166,6 +179,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Select Id Pattern",
     group: "ID_RULES",
     type: "id-pattern-select",
+    description: "Select token patterns (Prefix, Julian Date, Sequence) to construct IDs.",
     options: ID_PATTERN_OPTIONS,
   },
   {
@@ -173,6 +187,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Id Pattern",
     group: "ID_RULES",
     type: "text",
+    description: "Compiled composite format pattern string for ID generation.",
     disabled: true,
     width: "half",
   },
@@ -181,6 +196,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Id Length",
     group: "ID_RULES",
     type: "number",
+    description: "Fixed digit length for sequence numbering.",
     placeholder: "Auto",
     width: "compact",
   },
@@ -189,6 +205,7 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Reset Sequence",
     group: "ID_RULES",
     type: "boolean",
+    description: "Resets the serial sequence counter back to 1 at start of each business cycle.",
   },
 
   // --- Group 3: FLAGS ---
@@ -197,24 +214,28 @@ export const MODEL_META_FIELDS: MetaFieldDef[] = [
     label: "Authorization",
     group: "FLAGS",
     type: "boolean",
+    description: "Enforces Four-Eyes Maker-Checker authorization workflow for records.",
   },
   {
     path: "READONLY",
     label: "Read Only",
     group: "FLAGS",
     type: "boolean",
+    description: "Locks records from editing or amending after initial entry.",
   },
   {
     path: "SEARCHABLE",
     label: "Searchable",
     group: "FLAGS",
     type: "boolean",
+    description: "Enables indexing for global search and inquiry screens.",
   },
   {
     path: "FIELDBASED",
     label: "Field Based Auth",
     group: "FLAGS",
     type: "boolean",
+    description: "Applies authorization rights at individual field level instead of entire record.",
   },
 ];
 

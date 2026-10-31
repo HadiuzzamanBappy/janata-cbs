@@ -62,9 +62,6 @@ export function CbsAuditTab({ formData, className = "" }: CbsAuditTabProps) {
                 <span className="font-medium text-foreground text-xs whitespace-nowrap">
                   Record Status
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-muted/70 text-muted-foreground border border-border/50">
-                  recStatus
-                </span>
               </div>
               <div className="font-mono text-xs font-semibold shrink-0 pl-3 text-foreground">
                 {statusStr || "LIVE"}
@@ -78,9 +75,6 @@ export function CbsAuditTab({ formData, className = "" }: CbsAuditTabProps) {
                 <span className="font-medium text-foreground text-xs whitespace-nowrap">
                   Current Sequence / Revision
                 </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-muted/70 text-muted-foreground border border-border/50">
-                  recCurrNumber
-                </span>
               </div>
               <div className="font-mono text-xs font-semibold shrink-0 pl-3 text-primary">
                 {revisionStr}
@@ -93,9 +87,6 @@ export function CbsAuditTab({ formData, className = "" }: CbsAuditTabProps) {
                 <ShieldCheck className="size-3 text-muted-foreground/70" />
                 <span className="font-medium text-foreground text-xs whitespace-nowrap">
                   Operating Company Code
-                </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-muted/70 text-muted-foreground border border-border/50">
-                  recBranchCode
                 </span>
               </div>
               <div className="font-mono text-xs font-semibold shrink-0 pl-3 text-foreground">
@@ -122,9 +113,6 @@ export function CbsAuditTab({ formData, className = "" }: CbsAuditTabProps) {
                   <div className="flex items-center gap-1.5">
                     <span className="font-medium text-foreground text-xs whitespace-nowrap">
                       Input Operator
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-muted/70 text-muted-foreground border border-border/50">
-                      recInputter
                     </span>
                   </div>
                   <div className="text-[10px] text-muted-foreground truncate">
@@ -160,9 +148,6 @@ export function CbsAuditTab({ formData, className = "" }: CbsAuditTabProps) {
                   <div className="flex items-center gap-1.5">
                     <span className="font-medium text-foreground text-xs whitespace-nowrap">
                       Authorizing Supervisor
-                    </span>
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-xs bg-muted/70 text-muted-foreground border border-border/50">
-                      recAuthorizer
                     </span>
                   </div>
                   <div className="text-[10px] text-muted-foreground truncate">

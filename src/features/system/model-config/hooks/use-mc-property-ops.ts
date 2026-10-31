@@ -30,7 +30,7 @@ export function useMcPropertyOps(
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: false,
-        WIDTH: 200,
+        WIDTH: "md",
       };
       return {
         ...prev,

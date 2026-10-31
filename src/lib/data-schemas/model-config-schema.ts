@@ -9,6 +9,25 @@ export const propertyTypeSchema = z.enum(["Text", "Number", "Date"]);
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
 export const PROPERTY_TYPES = propertyTypeSchema.options;
 
+export const PROPERTY_WIDTHS = ["xs", "sm", "md", "lg", "xl", "xxl", "full"] as const;
+export type PropertyWidth = (typeof PROPERTY_WIDTHS)[number];
+
+export const propertyWidthSchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    const lower = val.toLowerCase().trim();
+    if (PROPERTY_WIDTHS.includes(lower as PropertyWidth)) return lower;
+  }
+  if (typeof val === "number" || (typeof val === "string" && /^\d+$/.test(val))) {
+    const num = Number(val);
+    if (num >= 450) return "full";
+    if (num >= 300) return "lg";
+    if (num >= 220) return "md";
+    if (num >= 180) return "sm";
+    return "xs";
+  }
+  return "md";
+}, z.enum(PROPERTY_WIDTHS));
+
 /* ========================================================================== */
 /* 2. FIELD PROPERTY (Physical Database Column - Single Source of Truth)       */
 /* ========================================================================== */
@@ -25,7 +44,7 @@ export const modelPropertySchema = z.object({
   STRUCTURE: z.enum(["S", "M"]).default("S"),
   LENGTH: z.coerce.number().default(50),
   REQUIRED: z.boolean().default(false),
-  WIDTH: z.coerce.number().optional(),
+  WIDTH: propertyWidthSchema.default("md").optional(),
 });
 
 export type ModelProperty = z.infer<typeof modelPropertySchema>;

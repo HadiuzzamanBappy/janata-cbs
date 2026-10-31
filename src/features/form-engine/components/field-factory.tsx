@@ -105,6 +105,7 @@ export function UnifiedFieldFactory({
               required={field.REQUIRED && isFirst}
               error={isFirst ? error : undefined}
               indexSuffix={itemIdx + 1}
+              enrichText={isFirst ? field.ENRICHTEXT : undefined}
               actionBeforeColon={actionControls}
             >
               {renderSingleWidget(
@@ -138,6 +139,7 @@ export function UnifiedFieldFactory({
       viewDisplayValue={viewDisplay}
       labelSuffix={labelSuffix}
       actionBeforeColon={actionBeforeColon}
+      enrichText={field.ENRICHTEXT}
       style={inputStyle}
     >
       {renderSingleWidget(value, (newVal) => onChange(fieldKey, newVal), elementId)}

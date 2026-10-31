@@ -29,6 +29,9 @@ export interface UseCbsPersistenceReturn<TRecord> {
   rebaseline: () => void;
   reset: () => void;
 
+  // Baseline Snapshot
+  baseline: TRecord;
+
   // Delta Engine Dirty State
   isDirty: boolean;
   dirtyKeys: string[];
@@ -186,6 +189,7 @@ export function useCbsPersistence<TRecord extends Record<string, unknown>>({
     hydrate,
     rebaseline,
     reset,
+    baseline: baselineRef.current,
     isDirty,
     dirtyKeys,
     resolvedInitialId,

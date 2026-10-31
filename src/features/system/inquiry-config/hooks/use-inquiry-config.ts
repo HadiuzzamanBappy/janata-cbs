@@ -60,7 +60,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       };
       hydrate(draft);
       setRecordId(cleanId);
-      setMode("I");
+      setMode(CbsRecordFunction.INPUT);
       setValidationErrors([]);
     },
     [hydrate, setRecordId, setMode],
@@ -68,7 +68,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
 
   // 3. Load record from backend or fixtures
   const loadRecord = React.useCallback(
-    async (idToLoad: string, targetMode: CbsScreenMode = "S") => {
+    async (idToLoad: string, targetMode: CbsScreenMode = CbsRecordFunction.SEE) => {
       if (!idToLoad) return;
       setLoading(true);
       try {
@@ -101,11 +101,11 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   // 4. Initial auto-load
   React.useEffect(() => {
     if (resolvedInitialId) {
-      loadRecord(resolvedInitialId, resolvedInitialMode || "S");
+      loadRecord(resolvedInitialId, resolvedInitialMode || CbsRecordFunction.SEE);
     }
   }, [resolvedInitialId, resolvedInitialMode, loadRecord]);
 
-  // 5. Validate against canonical schema and CBS domain rules (F7 action)
+  // 5. Validate against canonical schema and CBS domain rules
   const handleValidate = React.useCallback((): boolean => {
     const issues = validateInquiryConfig(formData);
     if (issues.length > 0) {
@@ -128,15 +128,14 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
 
   // Clear validation errors when switching away from edit mode
   React.useEffect(() => {
-    if (mode !== "I") {
+    if (mode !== CbsRecordFunction.INPUT) {
       setValidationErrors([]);
     }
   }, [mode]);
 
-  // 6. Submit handler (PUT for Maker, AUT for Checker, DEL for Delete)
+  // 6. Submit handler
   const handleSubmit = React.useCallback(
     async (funcCode: string = CbsRecordFunction.INPUT) => {
-      // Validate with canonical schema before dispatch
       const isValid = handleValidate();
       if (!isValid) return false;
 
@@ -211,8 +210,6 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     loadRecord,
     handleValidate,
     handleSubmit,
-
-    // Sub-domain operation handlers
     filterOps,
     columnOps,
     actionOps,

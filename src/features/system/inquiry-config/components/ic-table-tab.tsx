@@ -1,19 +1,13 @@
 "use client";
 
 import {
-  closestCenter,
-  DndContext,
   type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Columns, MousePointerClick, Plus } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -23,10 +17,10 @@ import type { INQCmd, INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { ActionInspector } from "./table/action-inspector";
-import { ActionItem } from "./table/action-item";
 import { ColumnInspector } from "./table/column-inspector";
-import { ColumnItem } from "./table/column-item";
 import { ColumnModelPopover } from "./table/column-model-popover";
+import { TableActionsPanel } from "./table/table-actions-panel";
+import { TableColumnsPanel } from "./table/table-columns-panel";
 import { inferInqDefFromModelProperty } from "./table/table-constants";
 
 export interface IcTableTabProps {
@@ -69,7 +63,6 @@ export function IcTableTab({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  // Keep selection indices within bounds
   React.useEffect(() => {
     if (columns.length === 0) {
       setSelectedColIdx(0);
@@ -87,7 +80,6 @@ export function IcTableTab({
   }, [actions.length, selectedActionIdx]);
 
   const columnKeys = React.useMemo(() => columns.map((c) => `col-${c.fieldName}`), [columns]);
-
   const actionKeys = React.useMemo(
     () => actions.map((a) => `action-${a.cmdButton}-${a.cmdFor}`),
     [actions],
@@ -265,63 +257,18 @@ export function IcTableTab({
       <div className="flex-1 w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0">
         {activeSegment === "columns" ? (
           <>
-            {/* Left Panel: Columns Navigator */}
-            <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
-              <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <Columns className="size-3.5 text-primary" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
-                    Columns ({columns.length})
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto min-h-0">
-                {columns.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-                    <Columns className="size-8 text-muted-foreground/30 mb-2" />
-                    <p className="text-xs font-medium">No Columns Defined</p>
-                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
-                      Import properties from {targetModel || "the model"} or add a custom column.
-                    </p>
-                  </div>
-                ) : (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEndColumns}
-                  >
-                    <SortableContext items={columnKeys} strategy={verticalListSortingStrategy}>
-                      <div className="divide-y divide-border/30">
-                        {columns.map((col, idx) => {
-                          const colErrors = validationErrors.filter(
-                            (e) =>
-                              e.tab === "table" &&
-                              e.itemIndex === idx &&
-                              e.subSegment !== "actions",
-                          );
-                          return (
-                            <ColumnItem
-                              key={columnKeys[idx]}
-                              col={col}
-                              index={idx}
-                              isSelected={selectedColIdx === idx}
-                              disabled={disabled}
-                              hasError={colErrors.length > 0}
-                              errorCount={colErrors.length}
-                              onSelect={() => setSelectedColIdx(idx)}
-                              onRemove={() => onRemoveColumn(idx)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
-                )}
-              </div>
-            </div>
-
-            {/* Right Panel: Column Inspector */}
+            <TableColumnsPanel
+              columns={columns}
+              columnKeys={columnKeys}
+              selectedColIdx={selectedColIdx}
+              disabled={disabled}
+              targetModel={targetModel}
+              sensors={sensors}
+              validationErrors={validationErrors}
+              onSelectColumn={setSelectedColIdx}
+              onRemoveColumn={onRemoveColumn}
+              onDragEnd={handleDragEndColumns}
+            />
             <ColumnInspector
               activeCol={columns[selectedColIdx]}
               selectedColIdx={selectedColIdx}
@@ -333,63 +280,17 @@ export function IcTableTab({
           </>
         ) : (
           <>
-            {/* Left Panel: Actions Navigator */}
-            <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
-              <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <MousePointerClick className="size-3.5 text-primary" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
-                    Actions ({actions.length})
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto min-h-0">
-                {actions.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-                    <MousePointerClick className="size-8 text-muted-foreground/30 mb-2" />
-                    <p className="text-xs font-medium">No Actions Defined</p>
-                    <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
-                      Add row command buttons (e.g. View, Edit, Auth).
-                    </p>
-                  </div>
-                ) : (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEndActions}
-                  >
-                    <SortableContext items={actionKeys} strategy={verticalListSortingStrategy}>
-                      <div className="divide-y divide-border/30">
-                        {actions.map((action, idx) => {
-                          const actErrors = validationErrors.filter(
-                            (e) =>
-                              e.tab === "table" &&
-                              e.itemIndex === idx &&
-                              e.subSegment === "actions",
-                          );
-                          return (
-                            <ActionItem
-                              key={actionKeys[idx]}
-                              action={action}
-                              index={idx}
-                              isSelected={selectedActionIdx === idx}
-                              disabled={disabled}
-                              hasError={actErrors.length > 0}
-                              errorCount={actErrors.length}
-                              onSelect={() => setSelectedActionIdx(idx)}
-                              onRemove={() => onRemoveAction(idx)}
-                            />
-                          );
-                        })}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
-                )}
-              </div>
-            </div>
-
-            {/* Right Panel: Action Inspector */}
+            <TableActionsPanel
+              actions={actions}
+              actionKeys={actionKeys}
+              selectedActionIdx={selectedActionIdx}
+              disabled={disabled}
+              sensors={sensors}
+              validationErrors={validationErrors}
+              onSelectAction={setSelectedActionIdx}
+              onRemoveAction={onRemoveAction}
+              onDragEnd={handleDragEndActions}
+            />
             <ActionInspector
               activeAction={actions[selectedActionIdx]}
               selectedActionIdx={selectedActionIdx}

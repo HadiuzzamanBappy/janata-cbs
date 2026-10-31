@@ -3,8 +3,9 @@
 import { Code, Columns, Eye, FileText, Filter, Layers } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
+import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
-import { CbsControlTable, CbsRecordFunction } from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { IcGeneralTab } from "./components/ic-general-tab";
 import { IcJsonTab } from "./components/ic-json-tab";
 import { IcPreviewTab } from "./components/ic-preview-tab";
@@ -16,8 +17,9 @@ type InquiryConfigTabKey = "general" | "selection" | "table" | "preview" | "json
 
 export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
-    const parts = (command || "").trim().split(/\s+/);
-    return parts.length > 1 ? parts[1] : undefined;
+    if (!command) return undefined;
+    const parsed = cbsCommand.parse(command);
+    return parsed.recordId || undefined;
   }, [command]);
 
   const {
@@ -43,7 +45,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
   } = useInquiryConfig(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<InquiryConfigTabKey>("general");
-  const isReadOnly = mode !== "I";
+  const isReadOnly = mode !== CbsRecordFunction.INPUT;
 
   const availableItems = React.useMemo(
     () =>
@@ -146,19 +148,21 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       isDirty={isDirty}
       auditContext={formData.auditData}
       onRecordIdChange={(newId: string) => setRecordId(newId.toUpperCase())}
-      onRecordSearch={(searchedId: string) => loadRecord(searchedId.toUpperCase(), "I")}
+      onRecordSearch={(searchedId: string) =>
+        loadRecord(searchedId.toUpperCase(), CbsRecordFunction.INPUT)
+      }
       onCreateNew={(newId?: string) => newId && initDraft(newId.toUpperCase())}
       onReturnToSearch={resetToIdle}
       onReset={mode !== "IDLE" && recordId ? () => loadRecord(recordId, mode) : undefined}
-      onAmend={() => recordId && loadRecord(recordId, "I")}
-      onView={() => recordId && loadRecord(recordId, "S")}
+      onAmend={() => recordId && loadRecord(recordId, CbsRecordFunction.INPUT)}
+      onView={() => recordId && loadRecord(recordId, CbsRecordFunction.SEE)}
       onValidate={handleValidate}
       onSubmit={() => handleSubmit(CbsRecordFunction.INPUT)}
       onHold={() => handleSubmit(CbsRecordFunction.HOLD)}
       onDelete={() => handleSubmit(CbsRecordFunction.DELETE)}
       onAuthorizeReverse={() =>
         handleSubmit(
-          formData.auditData?.recStatus === "AU" || mode === "R"
+          formData.auditData?.recStatus === CbsRecordStatus.AU || mode === CbsRecordFunction.REVERSE
             ? CbsRecordFunction.REVERSE
             : CbsRecordFunction.AUTHORIZE,
         )

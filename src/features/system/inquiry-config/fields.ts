@@ -1,169 +1,184 @@
-export type MetaFieldGroup = "IDENTITY" | "LAYOUT_PAGING" | "ROUTING";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 
-export type MetaFieldType = "text" | "number" | "boolean" | "select";
-
-export interface MetaFieldDef {
-  path: string;
-  label: string;
-  group: MetaFieldGroup;
-  type: MetaFieldType;
-  placeholder?: string;
-  required?: boolean;
-  uppercase?: boolean;
-  disabled?: boolean;
-  width?: "full" | "half" | "compact";
-  options?: Array<{ value: string; label: string }>;
-  helperText?: string;
-}
-
-export const META_FIELD_GROUPS: Array<{
-  id: MetaFieldGroup;
-  title: string;
-}> = [
+/**
+ * Standard Form Sections definition for INQUIRY.CONFIG General tab.
+ * Rendered using the CBS platform's form-engine SectionCard.
+ */
+export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
   {
-    id: "IDENTITY",
+    id: "sec_inq_identity",
     title: "Inquiry Identification & Target Controller",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "description",
+        LABEL: "Description",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 120,
+        REQUIRED: true,
+        WIDTH: "full",
+        ENRICHTEXT: "Descriptive title of this inquiry definition.",
+      },
+      {
+        SN: "2",
+        NAME: "controllerName",
+        LABEL: "Controller / Model",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 50,
+        REQUIRED: true,
+        WIDTH: "md",
+        ENRICHTEXT: "Target CBS entity or primary controller table (e.g. ACCOUNT or USER).",
+      },
+      {
+        SN: "3",
+        NAME: "inqType",
+        LABEL: "Inquiry Type",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 10,
+        REQUIRED: true,
+        WIDGET: "select",
+        WIDTH: "sm",
+        PARAMETER: {
+          type: "O",
+          data: [
+            { code: "DFT", label: "Default Table (DFT)" },
+            { code: "RPT", label: "Report View (RPT)" },
+            { code: "CUST", label: "Custom Drill (CUST)" },
+          ],
+        },
+      },
+    ],
   },
   {
-    id: "LAYOUT_PAGING",
+    id: "sec_inq_layout",
     title: "Display & Pagination Settings",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "4",
+        NAME: "pageOrientation",
+        LABEL: "Page Orientation",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 10,
+        WIDGET: "segmented",
+        WIDTH: "sm",
+        PARAMETER: {
+          type: "O",
+          data: [
+            { code: "Portrait", label: "Portrait" },
+            { code: "Landscape", label: "Landscape" },
+          ],
+        },
+      },
+      {
+        SN: "5",
+        NAME: "perpageItem",
+        LABEL: "Records Per Page",
+        TYPE: "Number",
+        STRUCTURE: "S",
+        LENGTH: 4,
+        WIDTH: "xs",
+        ENRICHTEXT: "Default page size limit for pagination.",
+      },
+      {
+        SN: "6",
+        NAME: "showSerial",
+        LABEL: "Show Serial Numbers",
+        TYPE: "Boolean",
+        STRUCTURE: "S",
+        LENGTH: 1,
+        WIDGET: "checkbox",
+        WIDTH: "full",
+        ENRICHTEXT: "Render row serial number (1, 2, 3...) in table results.",
+      },
+      {
+        SN: "7",
+        NAME: "showPagination",
+        LABEL: "Enable Pagination",
+        TYPE: "Boolean",
+        STRUCTURE: "S",
+        LENGTH: 1,
+        WIDGET: "checkbox",
+        WIDTH: "full",
+        ENRICHTEXT: "Show footer paging controls and page navigation.",
+      },
+      {
+        SN: "8",
+        NAME: "showBranchWise",
+        LABEL: "Branch-Wise Segregation",
+        TYPE: "Boolean",
+        STRUCTURE: "S",
+        LENGTH: 1,
+        WIDGET: "checkbox",
+        WIDTH: "full",
+        ENRICHTEXT: "Filter results to current operator's branch automatically.",
+      },
+    ],
   },
   {
-    id: "ROUTING",
+    id: "sec_inq_routing",
     title: "Service Routing & Reporting",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "9",
+        NAME: "rptControllerName",
+        LABEL: "Report Controller",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 50,
+        WIDTH: "md",
+        ENRICHTEXT:
+          "Optional report controller identifier for PDF/print generation (e.g. RPT.ACC.LIST).",
+      },
+      {
+        SN: "10",
+        NAME: "inqServicePath",
+        LABEL: "Inquiry Service Path",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 100,
+        REQUIRED: true,
+        WIDTH: "md",
+        ENRICHTEXT: "Backend service routing endpoint path.",
+      },
+    ],
   },
 ];
 
 /**
- * Extensible declarative registry of all metadata fields on the Inquiry General tab.
- * Uses exact canonical wire paths under INQInfo.
+ * Immutable field updater for InquiryConfigRecord's INQInfo
  */
-export const INQUIRY_META_FIELDS: MetaFieldDef[] = [
-  // --- Group 1: IDENTITY ---
-  {
-    path: "INQInfo.description",
-    label: "Description",
-    group: "IDENTITY",
-    type: "text",
-    placeholder: "e.g. Account enquiry with customer balances and status",
-    required: true,
-    width: "full",
-    helperText: "Descriptive title of this inquiry definition",
-  },
-  {
-    path: "INQInfo.controllerName",
-    label: "Controller / Model",
-    group: "IDENTITY",
-    type: "text",
-    placeholder: "e.g. ACCOUNT or USER",
-    required: true,
-    uppercase: true,
-    width: "half",
-    helperText: "Target CBS entity or primary controller table",
-  },
-  {
-    path: "INQInfo.inqType",
-    label: "Inquiry Type",
-    group: "IDENTITY",
-    type: "select",
-    required: true,
-    width: "compact",
-    options: [
-      { value: "DFT", label: "Default Table (DFT)" },
-      { value: "RPT", label: "Report View (RPT)" },
-      { value: "CUST", label: "Custom Drill (CUST)" },
-    ],
-  },
+export function setInquiryFieldValue(
+  record: InquiryConfigRecord,
+  fieldKey: string,
+  value: unknown,
+): InquiryConfigRecord {
+  const inqInfo = { ...record.INQInfo };
+  let finalVal = value;
 
-  // --- Group 2: LAYOUT_PAGING ---
-  {
-    path: "INQInfo.pageOrientation",
-    label: "Page Orientation",
-    group: "LAYOUT_PAGING",
-    type: "select",
-    width: "compact",
-    options: [
-      { value: "Portrait", label: "Portrait" },
-      { value: "Landscape", label: "Landscape" },
-    ],
-  },
-  {
-    path: "INQInfo.perpageItem",
-    label: "Records Per Page",
-    group: "LAYOUT_PAGING",
-    type: "number",
-    placeholder: "30",
-    width: "compact",
-  },
-  {
-    path: "INQInfo.showSerial",
-    label: "Show Serial Numbers",
-    group: "LAYOUT_PAGING",
-    type: "boolean",
-    helperText: "Render row serial number (1, 2, 3...) in table results",
-  },
-  {
-    path: "INQInfo.showPagination",
-    label: "Enable Pagination",
-    group: "LAYOUT_PAGING",
-    type: "boolean",
-    helperText: "Show footer paging controls and page navigation",
-  },
-  {
-    path: "INQInfo.showBranchWise",
-    label: "Branch-Wise Segregation",
-    group: "LAYOUT_PAGING",
-    type: "boolean",
-    helperText: "Filter results to current operator's branch automatically",
-  },
-
-  // --- Group 3: ROUTING ---
-  {
-    path: "INQInfo.rptControllerName",
-    label: "Report Controller",
-    group: "ROUTING",
-    type: "text",
-    placeholder: "e.g. RPT.ACC.LIST",
-    uppercase: true,
-    width: "half",
-    helperText: "Optional report controller identifier for PDF/print generation",
-  },
-  {
-    path: "INQInfo.inqServicePath",
-    label: "Inq Service Path",
-    group: "ROUTING",
-    type: "text",
-    placeholder: "e.g. default",
-    required: true,
-    width: "half",
-    helperText: "Service routing endpoint path",
-  },
-];
-
-export function getFieldValue(obj: unknown, path: string): unknown {
-  if (!obj || typeof obj !== "object") return "";
-  const parts = path.split(".");
-  let current: unknown = obj;
-  for (const part of parts) {
-    if (current === undefined || current === null || typeof current !== "object") {
-      return "";
-    }
-    current = (current as Record<string, unknown>)[part];
+  if (fieldKey === "perpageItem") {
+    finalVal = value !== "" && value !== undefined && value !== null ? Number(value) : 30;
+  } else if (fieldKey === "controllerName" || fieldKey === "rptControllerName") {
+    finalVal = typeof value === "string" ? value.toUpperCase() : value;
   }
-  return current;
-}
 
-export function setFieldValue<T extends object>(obj: T, path: string, val: unknown): T {
-  const clone = JSON.parse(JSON.stringify(obj)) as Record<string, unknown>;
-  const parts = path.split(".");
-  let current: Record<string, unknown> = clone;
-  for (let i = 0; i < parts.length - 1; i++) {
-    const part = parts[i];
-    if (!current[part] || typeof current[part] !== "object") {
-      current[part] = {};
-    }
-    current = current[part] as Record<string, unknown>;
-  }
-  current[parts[parts.length - 1]] = val;
-  return clone as T;
+  (inqInfo as Record<string, unknown>)[fieldKey] = finalVal;
+
+  return {
+    ...record,
+    INQInfo: inqInfo,
+  };
 }

@@ -2,9 +2,10 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Minus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-config-schema";
 
@@ -89,8 +90,8 @@ export function DesignerFieldCard({
               {field.TYPE}
             </Badge>
             {field.WIDTH && (
-              <Badge variant="secondary" className="text-[8px] h-3.5 px-1 font-mono">
-                {field.WIDTH}px
+              <Badge variant="secondary" className="text-[8px] h-3.5 px-1 font-mono uppercase">
+                {String(field.WIDTH)}
               </Badge>
             )}
             {field.STRUCTURE === "M" && (
@@ -114,17 +115,19 @@ export function DesignerFieldCard({
       </div>
 
       {!disabled && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
           }}
-          className="text-muted-foreground/40 hover:text-destructive p-1 rounded transition-colors cursor-pointer"
-          aria-label={`Remove field ${field.LABEL}`}
+          className="size-5 p-0 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+          title={`Remove field ${field.LABEL}`}
         >
-          <Trash2 className="size-3" />
-        </button>
+          <Minus className="size-3.5 stroke-[2.5]" />
+        </Button>
       )}
     </div>
   );

@@ -11,6 +11,8 @@ export type AddSectionFn = (
   tabTitle?: string,
   insertIndex?: number,
   columns?: number,
+  bindKey?: string,
+  structure?: "S" | "M",
 ) => void;
 
 export interface DesignerCanvasProps {
@@ -45,5 +47,8 @@ export interface DesignerCanvasProps {
     opts?: { tabGroupId?: string; tabTitle?: string },
   ) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
+  /** Called when user clicks the bare canvas background — not on any card. */
+  onClickBackground?: () => void;
   disabled?: boolean;
 }

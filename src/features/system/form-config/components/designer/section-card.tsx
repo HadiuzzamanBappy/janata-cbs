@@ -256,7 +256,7 @@ export function SortableSectionCard({
               </button>
             )}
 
-            {section.collapsible && (
+            {!isGroup && section.collapsible && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -353,7 +353,7 @@ export function SortableSectionCard({
       )}
 
       {/* Body */}
-      {!section.isCollapsed && (
+      {(!section.isCollapsed || isGroup) && (
         <div className={cn(isPlainRoot ? "p-0" : "p-2")}>
           <SectionDropBody
             section={section}

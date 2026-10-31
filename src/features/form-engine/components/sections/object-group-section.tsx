@@ -48,8 +48,9 @@ export function ObjectGroupSection({
     return maxIdx + 1;
   })();
 
-  const currentCount = groupCounts[groupKey] ?? derivedFromValues;
-  const setCount = Math.max(currentCount, 1);
+  const isMulti = section.structure === "M";
+  const currentCount = isMulti ? (groupCounts[groupKey] ?? derivedFromValues) : 1;
+  const setCount = isMulti ? Math.max(currentCount, 1) : 1;
 
   const groupSets = Array.from({ length: setCount }, (_, setIdx) => {
     const setIdentityKey =
@@ -114,47 +115,40 @@ export function ObjectGroupSection({
           className="rounded border border-border/80 bg-muted/15 p-2.5 shadow-2xs space-y-2.5 transition-colors"
         >
           <div className="flex items-center justify-between pb-1.5 border-b border-border/50">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] font-semibold text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded">
-                #{groupKey}
-              </span>
-              <span className="text-xs font-semibold text-foreground tracking-tight">
-                {groupTitle} #{setIdx + 1}
-              </span>
-            </div>
+            <span className="text-xs font-semibold text-foreground tracking-tight select-none">
+              {groupTitle} {setCount > 1 ? `#${setIdx + 1}` : ""}
+            </span>
 
-            {!disabled && mode === "I" && (
-              <div className="flex items-center gap-1.5">
+            {!disabled && mode === "I" && isMulti && (
+              <div className="flex items-center gap-0.5">
                 {setCount > 1 && (
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={(e) => {
                       e.preventDefault();
                       handleRemoveGroupSet(setIdx);
                     }}
-                    className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer gap-1"
-                    title="Remove this group set"
+                    className="size-5 p-0 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+                    title={`Remove ${groupTitle} #${setIdx + 1}`}
                   >
-                    <Minus className="size-3 stroke-[2.5]" />
-                    <span>Remove</span>
+                    <Minus className="size-3.5 stroke-[2.5]" />
                   </Button>
                 )}
                 {isLastSet && (
                   <Button
                     type="button"
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
+                    size="icon"
                     onClick={(e) => {
                       e.preventDefault();
                       handleAddGroupSet();
                     }}
-                    className="h-6 px-2 text-[11px] text-primary border-primary/30 hover:bg-primary/10 rounded cursor-pointer gap-1"
+                    className="size-5 p-0 text-primary hover:bg-primary/10 rounded cursor-pointer"
                     title={`Add another ${groupTitle}`}
                   >
-                    <Plus className="size-3 stroke-[2.5]" />
-                    <span>Add {groupTitle}</span>
+                    <Plus className="size-3.5 stroke-[2.5]" />
                   </Button>
                 )}
               </div>

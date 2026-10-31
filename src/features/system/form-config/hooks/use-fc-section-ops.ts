@@ -23,6 +23,8 @@ export function useFcSectionOps(
       tabTitle?: string,
       insertIndex?: number,
       columns?: number,
+      bindKey?: string,
+      structure?: "S" | "M",
     ) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
@@ -48,7 +50,8 @@ export function useFcSectionOps(
           zone,
           tabGroupId: zone === "tab" ? tabGroupId || `tabgrp_${nextIndex}` : undefined,
           tabTitle: zone === "tab" ? tabTitle || defaultTitle || `Tab ${nextIndex}` : undefined,
-          bindKey: type !== "standard" ? `group_${nextIndex}` : undefined,
+          bindKey: bindKey || (type !== "standard" ? `group_${nextIndex}` : undefined),
+          structure: structure || "S",
           columns: columns ?? 1,
           collapsible: type !== "standard",
           isCollapsed: false,
@@ -145,18 +148,45 @@ export function useFcSectionOps(
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
 
-        const oldIndex = sections.findIndex((s) => s.id === activeId);
-        if (oldIndex === -1) return prev;
+        const activeSec = sections.find((s) => s.id === activeId);
+        if (!activeSec) return prev;
 
-        let newIndex = sections.findIndex((s) => s.id === overId);
+        // If the active section is part of a tab group, we want to move all tabs in this group as a unit
+        const isTabGroup = activeSec.zone === "tab" && Boolean(activeSec.tabGroupId);
+        const movingSections = isTabGroup
+          ? sections.filter((s) => s.tabGroupId === activeSec.tabGroupId)
+          : [activeSec];
+
+        // Find reference target section
+        let targetIndex: number;
         if (insertIndex !== undefined) {
-          newIndex = insertIndex;
+          targetIndex = insertIndex;
+        } else {
+          const overSecIndex = sections.findIndex((s) => s.id === overId);
+          if (overSecIndex === -1) return prev;
+          targetIndex = overSecIndex;
         }
-        if (newIndex === -1 || oldIndex === newIndex) return prev;
 
-        const newSections = [...sections];
-        const [moved] = newSections.splice(oldIndex, 1);
-        newSections.splice(newIndex, 0, moved);
+        const movingIds = new Set(movingSections.map((s) => s.id));
+        // Target section before removal
+        const targetRefSec = sections[targetIndex];
+
+        // Filter out moving sections
+        const remaining = sections.filter((s) => !movingIds.has(s.id));
+
+        // Find insertion point in the remaining list
+        let finalInsertIndex: number;
+        if (targetRefSec && !movingIds.has(targetRefSec.id)) {
+          finalInsertIndex = remaining.findIndex((s) => s.id === targetRefSec.id);
+          if (finalInsertIndex === -1) finalInsertIndex = remaining.length;
+        } else if (targetIndex >= sections.length) {
+          finalInsertIndex = remaining.length;
+        } else {
+          finalInsertIndex = Math.min(Math.max(0, targetIndex), remaining.length);
+        }
+
+        const newSections = [...remaining];
+        newSections.splice(finalInsertIndex, 0, ...movingSections);
 
         return {
           ...prev,
@@ -212,11 +242,37 @@ export function useFcSectionOps(
     [setFormData],
   );
 
+  const mergeTabGroups = React.useCallback(
+    (sourceGroupId: string, targetGroupId: string) => {
+      if (!sourceGroupId || !targetGroupId || sourceGroupId === targetGroupId) return;
+      setFormData((prev) => {
+        const sections = prev.frmElements?.sections || [];
+        return {
+          ...prev,
+          frmElements: {
+            steps: prev.frmElements?.steps || [],
+            sections: sections.map((sec) => {
+              if (sec.zone === "tab" && sec.tabGroupId === sourceGroupId) {
+                return {
+                  ...sec,
+                  tabGroupId: targetGroupId,
+                };
+              }
+              return sec;
+            }),
+          },
+        };
+      });
+    },
+    [setFormData],
+  );
+
   return {
     addSection,
     updateSection,
     removeSection,
     reorderSections,
     convertSectionZone,
+    mergeTabGroups,
   };
 }

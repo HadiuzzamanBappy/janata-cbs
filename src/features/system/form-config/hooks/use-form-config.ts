@@ -156,12 +156,13 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   }, [reset]);
 
   const hasLoadedInitialRef = React.useRef(false);
+  const targetIdToLoad = initialId || recordId;
   React.useEffect(() => {
-    if (!hasLoadedInitialRef.current && initialId) {
+    if (!hasLoadedInitialRef.current && targetIdToLoad) {
       hasLoadedInitialRef.current = true;
-      fetchRecord(initialId, "I");
+      fetchRecord(targetIdToLoad, "I");
     }
-  }, [fetchRecord, initialId]);
+  }, [fetchRecord, targetIdToLoad]);
 
   return {
     recordId,

@@ -4,6 +4,7 @@ import { Shield } from "lucide-react";
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import {
@@ -34,6 +35,50 @@ export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGe
     [setFormData],
   );
 
+  const renderLabel = (field: MetaFieldDef, labelWidthClass = "w-36 shrink-0") => {
+    const labelContent = (
+      <span className="inline-flex items-center">
+        <span
+          className={cn(
+            field.helperText
+              ? "cursor-help underline decoration-dotted decoration-muted-foreground/50 underline-offset-4 hover:decoration-foreground hover:text-foreground transition-colors"
+              : "",
+            "text-muted-foreground",
+          )}
+        >
+          {field.label}
+        </span>
+        {field.required && !isReadOnly && (
+          <span className="text-destructive font-semibold ml-0.5 select-none no-underline">*</span>
+        )}
+      </span>
+    );
+
+    if (field.helperText) {
+      return (
+        <div className={cn(labelWidthClass, "flex items-center text-xs select-none font-normal")}>
+          <Tooltip>
+            <TooltipTrigger render={labelContent} />
+            <TooltipContent side="right" className="text-xs max-w-xs z-50">
+              {field.helperText}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      );
+    }
+
+    return (
+      <Label
+        className={cn(labelWidthClass, "text-xs select-none font-normal text-muted-foreground")}
+      >
+        {field.label}
+        {field.required && !isReadOnly && (
+          <span className="text-destructive font-semibold ml-0.5">*</span>
+        )}
+      </Label>
+    );
+  };
+
   return (
     <div className="h-full overflow-y-auto select-none pr-1">
       <div className="max-w-3xl space-y-3 pb-8">
@@ -58,12 +103,7 @@ export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGe
 
                   return (
                     <div key={field.path} className="flex items-center gap-2">
-                      <Label className="w-36 shrink-0 text-xs text-muted-foreground select-none flex items-center">
-                        <span className="truncate">{field.label}</span>
-                        {field.required && !isReadOnly && (
-                          <span className="text-destructive font-bold ml-1 select-none">*</span>
-                        )}
-                      </Label>
+                      {renderLabel(field)}
 
                       <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
 
@@ -80,7 +120,6 @@ export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGe
                         <Input
                           type={field.type === "number" ? "number" : "text"}
                           disabled={isReadOnly}
-                          placeholder={field.placeholder}
                           value={displayVal}
                           onChange={(e) => handleInputChange(field, e.target.value)}
                           className={cn(
@@ -90,12 +129,6 @@ export function FcGeneralTab({ formData, setFormData, isReadOnly = false }: FcGe
                           )}
                         />
                       </div>
-
-                      {field.helperText && (
-                        <span className="text-[11px] text-muted-foreground/70 hidden sm:inline truncate">
-                          {field.helperText}
-                        </span>
-                      )}
                     </div>
                   );
                 })}

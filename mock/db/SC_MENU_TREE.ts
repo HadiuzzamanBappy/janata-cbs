@@ -49,7 +49,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                 id: "n_1786859119420_9",
                 menuId: 1,
                 label: "Account Maintenance",
-                command: "ACCOUNT",
+                command: "ACCOUNT,1.0.0",
                 isVisible: true,
                 orderIndex: 1,
                 children: [],

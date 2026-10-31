@@ -2,11 +2,11 @@ import {
   Boxes,
   ChevronDown,
   ChevronRight,
-  Columns,
   Database,
   Layers,
-  LayoutGrid,
+  LayoutList,
   Plus,
+  Table2,
 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +32,8 @@ export interface FieldPaletteProps {
     tabTitle?: string,
     insertIndex?: number,
     columns?: number,
+    bindKey?: string,
+    structure?: "S" | "M",
   ) => void;
   disabled?: boolean;
 }
@@ -45,9 +47,9 @@ function modelPropToFormElement(prop: ModelProperty): FormElement {
     TYPE: prop.TYPE || "Text",
     LENGTH: prop.LENGTH ?? 35,
     STRUCTURE: prop.STRUCTURE || "S",
-    REQUIRED: prop.REQUIRED ?? false,
+    REQUIRED: Boolean(prop.REQUIRED),
     DISABLED: false,
-    WIDTH: 200,
+    WIDTH: prop.WIDTH || "md",
     POSITION: "",
     PARAMETER: {
       type: "O",
@@ -192,6 +194,8 @@ export function FieldPalette({
       undefined,
       undefined,
       1,
+      parent.NAME,
+      parent.STRUCTURE === "M" ? "M" : "S",
     );
   };
 
@@ -376,12 +380,42 @@ export function FieldPalette({
                         </button>
 
                         <div className="flex items-center gap-1 shrink-0">
-                          <Badge
-                            variant="outline"
-                            className="text-[8px] h-3.5 px-1 font-mono uppercase text-primary border-primary/40 bg-primary/10"
+                          <button
+                            type="button"
+                            draggable={!disabled && !allPlaced}
+                            onDragStart={(e) => {
+                              if (disabled || allPlaced) {
+                                e.preventDefault();
+                                return;
+                              }
+                              const initialFields: FormElement[] = children.map((child, idx) => ({
+                                ...modelPropToFormElement(child),
+                                SN: child.SN || `${parent.SN || "1"}_${idx + 1}`,
+                              }));
+                              const payload = {
+                                type: "palette-container",
+                                containerType: "object-group",
+                                zone: "standard",
+                                initialFields,
+                                layoutStyle: "card",
+                                title: parent.LABEL || parent.NAME,
+                                bindKey: parent.NAME,
+                                structure: parent.STRUCTURE === "M" ? "M" : "S",
+                                columns: 1,
+                              };
+                              e.dataTransfer.setData("application/json", JSON.stringify(payload));
+                              e.dataTransfer.effectAllowed = "copy";
+                            }}
+                            className={cn(
+                              "border rounded text-[8px] h-3.5 px-1 font-mono uppercase transition-colors cursor-grab active:cursor-grabbing",
+                              parent.STRUCTURE === "M"
+                                ? "text-primary border-primary/40 bg-primary/10 hover:bg-primary/20"
+                                : "text-primary border-primary/40 bg-primary/10 hover:bg-primary/20",
+                            )}
+                            title="Drag to place complete Object Group on Canvas or into any Tab"
                           >
                             {parent.STRUCTURE === "M" ? "OBJECT.M" : "OBJECT"}
-                          </Badge>
+                          </button>
                           <span className="text-[9px] font-mono text-muted-foreground">
                             ({placedChildrenCount}/{children.length})
                           </span>
@@ -493,7 +527,7 @@ export function FieldPalette({
         {/* TAB 2: CONTAINERS */}
         {activePaletteTab === "containers" && (
           <div className="p-2 space-y-1.5">
-            {/* 2-Column Row Container */}
+            {/* Standard Container */}
             <Button
               variant="outline"
               size="sm"
@@ -506,93 +540,7 @@ export function FieldPalette({
                   containerType: "standard",
                   zone: "standard",
                   layoutStyle: "card",
-                  title: "2-Column Row",
-                  columns: 2,
-                };
-                e.dataTransfer.setData("application/json", JSON.stringify(payload));
-                e.dataTransfer.effectAllowed = "copy";
-              }}
-              onClick={() =>
-                onAddSection(
-                  "standard",
-                  "standard",
-                  [],
-                  "card",
-                  "2-Column Row",
-                  undefined,
-                  undefined,
-                  undefined,
-                  2,
-                )
-              }
-              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
-            >
-              <Columns className="size-3.5 text-blue-500" />
-              <div className="flex flex-col text-left">
-                <span className="font-semibold">+ 2-Column Row</span>
-                <span className="text-[9px] text-muted-foreground">
-                  2 columns layout (50% / 50%)
-                </span>
-              </div>
-            </Button>
-
-            {/* 3-Column Row Container */}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={disabled}
-              draggable={!disabled}
-              onDragStart={(e) => {
-                if (disabled) return;
-                const payload = {
-                  type: "palette-container",
-                  containerType: "standard",
-                  zone: "standard",
-                  layoutStyle: "card",
-                  title: "3-Column Row",
-                  columns: 3,
-                };
-                e.dataTransfer.setData("application/json", JSON.stringify(payload));
-                e.dataTransfer.effectAllowed = "copy";
-              }}
-              onClick={() =>
-                onAddSection(
-                  "standard",
-                  "standard",
-                  [],
-                  "card",
-                  "3-Column Row",
-                  undefined,
-                  undefined,
-                  undefined,
-                  3,
-                )
-              }
-              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
-            >
-              <LayoutGrid className="size-3.5 text-emerald-500" />
-              <div className="flex flex-col text-left">
-                <span className="font-semibold">+ 3-Column Row</span>
-                <span className="text-[9px] text-muted-foreground">
-                  3 columns layout (33% each / free columns)
-                </span>
-              </div>
-            </Button>
-
-            {/* Standard 1-Col Card Container */}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={disabled}
-              draggable={!disabled}
-              onDragStart={(e) => {
-                if (disabled) return;
-                const payload = {
-                  type: "palette-container",
-                  containerType: "standard",
-                  zone: "standard",
-                  layoutStyle: "card",
-                  title: "Card Container",
+                  title: "Standard Container",
                   columns: 1,
                 };
                 e.dataTransfer.setData("application/json", JSON.stringify(payload));
@@ -604,7 +552,7 @@ export function FieldPalette({
                   "standard",
                   [],
                   "card",
-                  "Card Container",
+                  "Standard Container",
                   undefined,
                   undefined,
                   undefined,
@@ -613,12 +561,10 @@ export function FieldPalette({
               }
               className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
             >
-              <Layers className="size-3.5 text-amber-500" />
+              <LayoutList className="size-3.5 text-blue-500" />
               <div className="flex flex-col text-left">
-                <span className="font-semibold">+ Card Container</span>
-                <span className="text-[9px] text-muted-foreground">
-                  Standard 1-column visual section card
-                </span>
+                <span className="font-semibold">+ Standard</span>
+                <span className="text-[9px] text-muted-foreground">General section container</span>
               </div>
             </Button>
 
@@ -660,6 +606,47 @@ export function FieldPalette({
               <div className="flex flex-col text-left">
                 <span className="font-semibold">+ Object Group</span>
                 <span className="text-[9px] text-muted-foreground">Nested sub-model binding</span>
+              </div>
+            </Button>
+
+            {/* Array Table */}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={disabled}
+              draggable={!disabled}
+              onDragStart={(e) => {
+                if (disabled) return;
+                const payload = {
+                  type: "palette-container",
+                  containerType: "array-table",
+                  zone: "standard",
+                  layoutStyle: "card",
+                  title: "Array Table",
+                  columns: 1,
+                };
+                e.dataTransfer.setData("application/json", JSON.stringify(payload));
+                e.dataTransfer.effectAllowed = "copy";
+              }}
+              onClick={() =>
+                onAddSection(
+                  "array-table",
+                  "standard",
+                  [],
+                  "card",
+                  "Array Table",
+                  undefined,
+                  undefined,
+                  undefined,
+                  1,
+                )
+              }
+              className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
+            >
+              <Table2 className="size-3.5 text-emerald-500" />
+              <div className="flex flex-col text-left">
+                <span className="font-semibold">+ Array Table</span>
+                <span className="text-[9px] text-muted-foreground">Repeating tabular records</span>
               </div>
             </Button>
 

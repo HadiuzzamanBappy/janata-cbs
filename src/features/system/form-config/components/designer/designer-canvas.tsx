@@ -67,6 +67,11 @@ interface BetweenBlockDropZoneProps {
   gapIndex: number;
   isActive: boolean;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  onConvertSectionZone?: (
+    sectionId: string,
+    targetZone: "standard" | "tab",
+    opts?: { tabGroupId?: string; tabTitle?: string },
+  ) => void;
   disabled?: boolean;
 }
 
@@ -75,6 +80,7 @@ function BetweenBlockDropZone({
   gapIndex,
   isActive,
   onDropPaletteItem,
+  onConvertSectionZone,
   disabled,
 }: BetweenBlockDropZoneProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -84,6 +90,18 @@ function BetweenBlockDropZone({
   });
 
   const [isNativeOver, setIsNativeOver] = React.useState(false);
+
+  // Reset native drag state whenever dragging stops or window cancels drag
+  React.useEffect(() => {
+    const handleDragReset = () => setIsNativeOver(false);
+    window.addEventListener("dragend", handleDragReset);
+    window.addEventListener("drop", handleDragReset);
+    return () => {
+      window.removeEventListener("dragend", handleDragReset);
+      window.removeEventListener("drop", handleDragReset);
+    };
+  }, []);
+
   const isHighlighted = isOver || isNativeOver;
   const showIndicator = isActive || isNativeOver;
 
@@ -105,11 +123,19 @@ function BetweenBlockDropZone({
         e.preventDefault();
         e.stopPropagation();
         setIsNativeOver(false);
-        if (disabled || !onDropPaletteItem) return;
+        if (disabled) return;
         try {
           const dataStr = e.dataTransfer.getData("application/json");
           if (dataStr) {
-            onDropPaletteItem(JSON.parse(dataStr), undefined, gapIndex);
+            const parsed = JSON.parse(dataStr);
+            // If dragging a tab to the gap outside, detach it to card
+            if (parsed.type === "canvas-tab" && parsed.sectionId && onConvertSectionZone) {
+              onConvertSectionZone(parsed.sectionId, "standard");
+              return;
+            }
+            if (onDropPaletteItem) {
+              onDropPaletteItem(parsed, undefined, gapIndex);
+            }
           }
         } catch {
           /* ignore */
@@ -138,9 +164,15 @@ function BetweenBlockDropZone({
 // ---------------------------------------------------------------------------
 function CanvasRootDropzone({
   onDropPaletteItem,
+  onConvertSectionZone,
   disabled,
 }: {
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
+  onConvertSectionZone?: (
+    sectionId: string,
+    targetZone: "standard" | "tab",
+    opts?: { tabGroupId?: string; tabTitle?: string },
+  ) => void;
   disabled?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -170,11 +202,18 @@ function CanvasRootDropzone({
         e.preventDefault();
         e.stopPropagation();
         setIsNativeOver(false);
-        if (disabled || !onDropPaletteItem) return;
+        if (disabled) return;
         try {
           const dataStr = e.dataTransfer.getData("application/json");
           if (dataStr) {
-            onDropPaletteItem(JSON.parse(dataStr));
+            const parsed = JSON.parse(dataStr);
+            if (parsed.type === "canvas-tab" && parsed.sectionId && onConvertSectionZone) {
+              onConvertSectionZone(parsed.sectionId, "standard");
+              return;
+            }
+            if (onDropPaletteItem) {
+              onDropPaletteItem(parsed);
+            }
           }
         } catch {
           /* ignore */
@@ -286,6 +325,8 @@ export function DesignerCanvas({
   onReorderSections,
   onConvertSectionZone,
   onDropPaletteItem,
+  onClickBackground,
+  onMergeTabGroup,
   disabled,
 }: DesignerCanvasProps) {
   const [activeDragItem, setActiveDragItem] = React.useState<{
@@ -368,7 +409,19 @@ export function DesignerCanvas({
         targetSecId = "canvas-root";
       } else if (overData?.type === "between-block-gap") {
         targetSecId = "canvas-root";
-        insertAtIndex = overData.gapIndex as number;
+        const gapIdx = overData.gapIndex as number;
+        // Translate block gapIndex into actual sections array index
+        if (gapIdx <= 0) {
+          insertAtIndex = 0;
+        } else if (gapIdx >= blocks.length) {
+          insertAtIndex = sections.length;
+        } else {
+          const targetBlock = blocks[gapIdx];
+          const targetSec =
+            targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
+          const rawIdx = targetSec ? sections.findIndex((s) => s.id === targetSec.id) : -1;
+          insertAtIndex = rawIdx >= 0 ? rawIdx : undefined;
+        }
       }
 
       if (sourceSecId && targetSecId) {
@@ -391,22 +444,65 @@ export function DesignerCanvas({
 
     // ── Section drag ────────────────────────────────────────────────────────
     if (activeData?.type === "section") {
-      // Check if dropped onto a tab-group to convert zone
-      if (overData?.type === "section-dropzone" && onConvertSectionZone) {
-        const targetSec = sections.find((s) => s.id === overData.sectionId);
-        if (targetSec && targetSec.zone === "tab" && activeId !== String(targetSec.id)) {
-          onConvertSectionZone(activeId, "tab", {
-            tabGroupId: targetSec.tabGroupId,
-            tabTitle: sections.find((s) => s.id === activeId)?.title || "New Tab",
-          });
-          return;
+      const activeSec =
+        (activeData.section as FormSection) || sections.find((s) => s.id === activeId);
+
+      // Check if dropped onto a tab-group dropzone or card to merge or convert zone
+      if (overData?.type === "section-dropzone" || overData?.type === "section") {
+        const targetSecId =
+          overData.type === "section-dropzone" ? (overData.sectionId as string) : overId;
+        const targetSec = sections.find((s) => s.id === targetSecId);
+
+        if (targetSec && targetSec.zone === "tab") {
+          // If active is a tab in a DIFFERENT tab group -> merge entire tab group or move tab!
+          if (
+            activeSec &&
+            activeSec.zone === "tab" &&
+            activeSec.tabGroupId &&
+            targetSec.tabGroupId &&
+            activeSec.tabGroupId !== targetSec.tabGroupId
+          ) {
+            onMergeTabGroup?.(activeSec.tabGroupId, targetSec.tabGroupId);
+            return;
+          }
+
+          if (onConvertSectionZone && activeId !== String(targetSec.id)) {
+            onConvertSectionZone(activeId, "tab", {
+              tabGroupId: targetSec.tabGroupId,
+              tabTitle: activeSec?.title || "New Tab",
+            });
+            return;
+          }
         }
       }
 
       // Check if dropped onto a between-block-gap
       if (overData?.type === "between-block-gap" && onReorderSections) {
         const gapIndex = overData.gapIndex as number;
-        onReorderSections(activeId, "", gapIndex);
+        // Translate block gapIndex to the corresponding section in the raw sections array
+        if (gapIndex <= 0) {
+          // Put before the very first section
+          const firstSecId = sections[0]?.id;
+          if (firstSecId) {
+            onReorderSections(activeId, firstSecId, 0);
+          }
+        } else if (gapIndex >= blocks.length) {
+          // Put at the very end of the sections array
+          onReorderSections(activeId, "", sections.length);
+        } else {
+          // Put before the first section of block `gapIndex`
+          const targetBlock = blocks[gapIndex];
+          const targetSec =
+            targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
+          if (targetSec) {
+            const rawTargetIndex = sections.findIndex((s) => s.id === targetSec.id);
+            onReorderSections(
+              activeId,
+              targetSec.id,
+              rawTargetIndex >= 0 ? rawTargetIndex : undefined,
+            );
+          }
+        }
         return;
       }
 
@@ -425,10 +521,17 @@ export function DesignerCanvas({
   const handleNativeCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsCanvasDragOver(false);
-    if (disabled || !onDropPaletteItem) return;
+    if (disabled) return;
     try {
       const dataStr = e.dataTransfer.getData("application/json");
-      if (dataStr) onDropPaletteItem(JSON.parse(dataStr));
+      if (dataStr) {
+        const parsed = JSON.parse(dataStr);
+        if (parsed.type === "canvas-tab" && parsed.sectionId && onConvertSectionZone) {
+          onConvertSectionZone(parsed.sectionId, "standard");
+          return;
+        }
+        if (onDropPaletteItem) onDropPaletteItem(parsed);
+      }
     } catch {
       /* ignore */
     }
@@ -473,6 +576,13 @@ export function DesignerCanvas({
       onDragOver={handleNativeCanvasDragOver}
       onDragLeave={handleNativeCanvasDragLeave}
       onDrop={handleNativeCanvasDrop}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClickBackground?.();
+      }}
+      onKeyDown={(e) => {
+        if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget)
+          onClickBackground?.();
+      }}
     >
       <DndContext
         sensors={dndSensors}
@@ -480,6 +590,7 @@ export function DesignerCanvas({
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        onDragCancel={() => setActiveDragItem(null)}
       >
         <SortableContext items={sortableCardIds} strategy={verticalListSortingStrategy}>
           {/* Top gap */}
@@ -488,6 +599,7 @@ export function DesignerCanvas({
             gapIndex={0}
             isActive={isDragging}
             onDropPaletteItem={onDropPaletteItem}
+            onConvertSectionZone={onConvertSectionZone}
             disabled={disabled}
           />
 
@@ -520,7 +632,11 @@ export function DesignerCanvas({
                   onRemoveSection={onRemoveSection}
                   onRemoveField={onRemoveField}
                   onConvertSectionZone={onConvertSectionZone}
+                  onReorderSections={onReorderSections}
+                  onMoveFieldAcrossSections={onMoveFieldAcrossSections}
                   onDropPaletteItem={onDropPaletteItem}
+                  onMergeTabGroup={onMergeTabGroup}
+                  isCanvasDragging={isDragging}
                   disabled={disabled}
                 />
               )}
@@ -531,6 +647,7 @@ export function DesignerCanvas({
                 gapIndex={i + 1}
                 isActive={isDragging}
                 onDropPaletteItem={onDropPaletteItem}
+                onConvertSectionZone={onConvertSectionZone}
                 disabled={disabled}
               />
             </React.Fragment>
@@ -538,7 +655,11 @@ export function DesignerCanvas({
         </SortableContext>
 
         {/* Root drop target at end */}
-        <CanvasRootDropzone onDropPaletteItem={onDropPaletteItem} disabled={disabled} />
+        <CanvasRootDropzone
+          onDropPaletteItem={onDropPaletteItem}
+          onConvertSectionZone={onConvertSectionZone}
+          disabled={disabled}
+        />
 
         {/* Drag Overlay Preview */}
         <DragOverlay>
@@ -558,38 +679,6 @@ export function DesignerCanvas({
           ) : null}
         </DragOverlay>
       </DndContext>
-
-      {/* Bottom add-block prompt */}
-      {!disabled && onAddSection && (
-        <div className="mt-3 pt-2 border-t border-dashed border-border/60 flex items-center justify-between text-xs text-muted-foreground px-1">
-          <span className="text-[11px]">Add to canvas:</span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => onAddSection("standard", "standard", [], "card", "Card Section")}
-              className="px-2.5 py-1 rounded border border-border/80 bg-background text-[11px] hover:border-emerald-500/50 text-foreground cursor-pointer transition-colors"
-            >
-              + Card
-            </button>
-            <button
-              type="button"
-              onClick={() => onAddSection("object-group", "standard", [], "card", "Object Group")}
-              className="px-2.5 py-1 rounded border border-border/80 bg-background text-[11px] hover:border-purple-500/50 text-foreground cursor-pointer transition-colors"
-            >
-              + Group
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                onAddSection("standard", "tab", [], "card", "Tab 1", undefined, "Tab 1")
-              }
-              className="px-2.5 py-1 rounded border border-border/80 bg-background text-[11px] hover:border-sky-500/50 text-foreground cursor-pointer transition-colors"
-            >
-              + Tab Group
-            </button>
-          </div>
-        </div>
-      )}
     </section>
   );
 }

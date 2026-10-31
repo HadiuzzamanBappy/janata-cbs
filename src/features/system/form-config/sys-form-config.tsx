@@ -47,6 +47,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     moveFieldAcrossSections,
     reorderSections,
     convertSectionZone,
+    mergeTabGroups,
     handleValidate,
     handleSubmit,
     handleAuthorize,
@@ -84,8 +85,14 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         id: "formRoutine",
         label: "Form Routine",
         icon: <Workflow className="size-3 text-cyan-500" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "formRoutine").length || undefined,
         content: (
-          <FcRoutineTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
+          <FcRoutineTab
+            formData={formData}
+            setFormData={setFormData}
+            isReadOnly={isReadOnly}
+            validationErrors={validationErrors}
+          />
         ),
       },
       {
@@ -115,6 +122,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             onMoveFieldAcrossSections={moveFieldAcrossSections}
             onReorderSections={reorderSections}
             onConvertSectionZone={convertSectionZone}
+            onMergeTabGroup={mergeTabGroups}
             disabled={isReadOnly}
           />
         ),
@@ -154,9 +162,11 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       moveFieldAcrossSections,
       reorderSections,
       convertSectionZone,
+      mergeTabGroups,
       setFormData,
       setSelectedSectionId,
       setSelectedFieldId,
+      validationErrors,
     ],
   );
 

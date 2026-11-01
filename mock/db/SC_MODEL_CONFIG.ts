@@ -1416,7 +1416,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       recBranchCode: "JB9999",
     },
   },
-  "INQUIRY.CONFIG": {
+  INQUIRY: {
     _DEVBY: "System",
     _DEVDATE: "2026-10-17",
     DESCRIPTION: "Dynamic Inquiry & Query Definition Designer",

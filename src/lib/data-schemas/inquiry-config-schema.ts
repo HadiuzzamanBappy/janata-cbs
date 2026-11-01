@@ -7,12 +7,27 @@ import { auditDataSchema } from "./common-schema";
 
 export const inqSelectFieldSchema = z.object({
   selectFieldName: z.string().min(1, "Field name is required"),
-  selectFieldType: z.string().default("text"),
-  selectFieldOperator: z.string().default(""),
-  selectFieldOperatorFixed: z.string().default(""),
+  selectFieldType: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? "text"),
+  selectFieldOperator: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  selectFieldOperatorFixed: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
   selectFieldDisplay: z.string().min(1, "Display label is required"),
-  selectFieldValue: z.string().default(""),
-  selectFieldRequired: z.boolean().default(false),
+  selectFieldValue: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  selectFieldRequired: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
 });
 
 export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
@@ -23,10 +38,22 @@ export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
 
 export const inqDefSchema = z.object({
   fieldName: z.string().min(1, "Field name is required"),
-  fieldType: z.string().default("CH"),
-  fieldFunc: z.string().default(""),
-  fieldRowCol: z.string().default("1,1"),
-  fieldLength: z.string().default("20,L"),
+  fieldType: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? "CH"),
+  fieldFunc: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  fieldRowCol: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? "1,1"),
+  fieldLength: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? "20,L"),
   fieldDisplay: z.string().min(1, "Display header is required"),
   dataPassable: z.union([z.string(), z.boolean()]).nullish().default(null),
 });
@@ -50,18 +77,45 @@ export type INQCmd = z.infer<typeof inqCmdSchema>;
 
 export const inqInfoSchema = z.object({
   description: z.string().min(1, "Description is required"),
-  pageOrientation: z.string().default(""),
-  perpageItem: z.union([z.string(), z.number()]).transform(String).default("30"),
-  showSerial: z.boolean().default(true),
-  showPagination: z.boolean().default(true),
-  showBranchWise: z.boolean().default(false),
-  inqType: z.string().default("DFT"),
+  pageOrientation: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  perpageItem: z
+    .union([z.string(), z.number()])
+    .nullish()
+    .transform((val) => (val != null ? String(val) : "30")),
+  showSerial: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? true),
+  showPagination: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? true),
+  showBranchWise: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
+  inqType: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? "DFT"),
   controllerName: z.string().min(1, "Target controller/table is required"),
-  rptControllerName: z.string().default(""),
-  fixedSelection: z.string().default(""),
-  inqServicePath: z.string().default("default"),
-  cmdFromInternal: z.string().nullable().optional().default(null),
-  cmdFieldName: z.string().nullable().optional().default(null),
+  rptControllerName: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  fixedSelection: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  inqServicePath: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? "default"),
+  cmdFromInternal: z.string().nullish().default(null),
+  cmdFieldName: z.string().nullish().default(null),
 });
 
 export type INQInfo = z.infer<typeof inqInfoSchema>;
@@ -74,10 +128,20 @@ export type INQInfo = z.infer<typeof inqInfoSchema>;
  * 1:1 Canonical CBS Wire Data Schema matching actual backend response payloads.
  */
 export const inquiryConfigRecordSchema = z.object({
+  recordId: z.string().optional(),
   INQInfo: inqInfoSchema,
-  INQSelectField: z.array(inqSelectFieldSchema).default([]),
-  INQDef: z.array(inqDefSchema).default([]),
-  INQCmds: z.array(inqCmdSchema).default([]),
+  INQSelectField: z
+    .array(inqSelectFieldSchema)
+    .nullish()
+    .transform((v) => v ?? []),
+  INQDef: z
+    .array(inqDefSchema)
+    .nullish()
+    .transform((v) => v ?? []),
+  INQCmds: z
+    .array(inqCmdSchema)
+    .nullish()
+    .transform((v) => v ?? []),
   auditData: auditDataSchema.optional(),
 });
 

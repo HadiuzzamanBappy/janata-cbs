@@ -12,6 +12,7 @@ import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
 export interface ActionInspectorProps {
   activeAction?: INQCmd;
   selectedActionIdx: number;
+  targetModel?: string;
   disabled?: boolean;
   validationErrors?: InquiryValidationErrorItem[];
   onUpdateAction: (index: number, patch: Partial<INQCmd>) => void;
@@ -19,16 +20,18 @@ export interface ActionInspectorProps {
 }
 
 const ACTION_PRESETS = [
-  { label: "View", commandSuffix: "S recordId" },
-  { label: "Edit", commandSuffix: "E recordId" },
-  { label: "Auth", commandSuffix: "A recordId" },
-  { label: "History", commandSuffix: "H recordId" },
-  { label: "Print", commandSuffix: "P recordId" },
+  { label: "View", mode: "S", commandSuffix: "S recordId" },
+  { label: "Edit", mode: "I", commandSuffix: "I recordId" },
+  { label: "Auth", mode: "A", commandSuffix: "A recordId" },
+  { label: "Delete", mode: "D", commandSuffix: "D recordId" },
+  { label: "Reverse", mode: "R", commandSuffix: "R recordId" },
+  { label: "History", mode: "H", commandSuffix: "H recordId" },
 ];
 
 export function ActionInspector({
   activeAction,
   selectedActionIdx,
+  targetModel,
   disabled = false,
   validationErrors = [],
   onUpdateAction,
@@ -48,6 +51,7 @@ export function ActionInspector({
       e.itemIndex === selectedActionIdx &&
       e.fieldKey.endsWith("cmdFor"),
   );
+
   if (!activeAction) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">
@@ -59,9 +63,9 @@ export function ActionInspector({
   }
 
   const handleApplyPreset = (preset: (typeof ACTION_PRESETS)[number]) => {
-    // Preserve existing target prefix if available
-    const existingParts = (activeAction.cmdFor || "").split(" ");
-    const prefix = existingParts[0] || "ACCOUNT,1.0.0";
+    const existingParts = (activeAction.cmdFor || "").trim().split(/\s+/);
+    const prefix =
+      existingParts[0] && existingParts[0].length > 0 ? existingParts[0] : targetModel || "ACCOUNT";
     onUpdateAction(selectedActionIdx, {
       cmdButton: preset.label,
       cmdFor: `${prefix} ${preset.commandSuffix}`,
@@ -80,7 +84,7 @@ export function ActionInspector({
             Action #{selectedActionIdx + 1}
           </Badge>
           <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-            {activeAction.cmdButton || "<UNNAMED_ACTION>"}
+            {activeAction.cmdButton || "<Empty Action>"}
           </span>
         </div>
 
@@ -101,17 +105,45 @@ export function ActionInspector({
       {/* 2. Inspector Panels */}
       <div className="flex-1 overflow-y-auto p-3">
         <div className="max-w-3xl space-y-3">
-          {/* Panel 1: Action Identity */}
+          {/* Panel 1: Action Identity & Quick Presets */}
           <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Play className="size-3.5 text-primary" />
-                <span>Action Identity</span>
+                <span>Action Preset & Button Label</span>
               </div>
-              <span className="text-[10px] text-muted-foreground">Button Specification</span>
+              <span className="text-[10px] text-muted-foreground">
+                Select Preset or Type Custom
+              </span>
             </div>
 
-            <div className="space-y-2 text-xs">
+            <div className="space-y-3 text-xs">
+              {/* Quick Type Selection */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-medium text-muted-foreground block">
+                  Action Type Presets:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {ACTION_PRESETS.map((p) => {
+                    const isSelected = activeAction.cmdButton === p.label;
+                    return (
+                      <Button
+                        key={p.label}
+                        type="button"
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        disabled={disabled}
+                        onClick={() => handleApplyPreset(p)}
+                        className="h-7 px-2.5 text-xs rounded gap-1 cursor-pointer"
+                      >
+                        <span className="font-semibold">{p.label}</span>
+                        <span className="text-[10px] opacity-70 font-mono">({p.mode})</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Button Display Label */}
               <FieldRow
                 label="Button Label"
@@ -119,35 +151,16 @@ export function ActionInspector({
                 error={btnError?.message}
                 enrichText="Label text rendered on the row action button or context menu (e.g. View, Edit, Auth)."
               >
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={activeAction.cmdButton}
-                    disabled={disabled}
-                    onChange={(e) =>
-                      onUpdateAction(selectedActionIdx, { cmdButton: e.target.value })
-                    }
-                    className={cn(
-                      "h-7 text-xs bg-background rounded border-border/80 flex-1",
-                      btnError && "border-destructive focus-visible:ring-destructive/30",
-                    )}
-                    placeholder="e.g. View, Edit, Auth"
-                  />
-                  <div className="flex items-center gap-1 shrink-0">
-                    {ACTION_PRESETS.map((p) => (
-                      <Button
-                        key={p.label}
-                        type="button"
-                        variant={activeAction.cmdButton === p.label ? "default" : "outline"}
-                        size="sm"
-                        disabled={disabled}
-                        onClick={() => handleApplyPreset(p)}
-                        className="h-7 px-2 text-xs rounded"
-                      >
-                        {p.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                <Input
+                  value={activeAction.cmdButton}
+                  disabled={disabled}
+                  onChange={(e) => onUpdateAction(selectedActionIdx, { cmdButton: e.target.value })}
+                  className={cn(
+                    "h-7 text-xs bg-background rounded border-border/80 flex-1",
+                    btnError && "border-destructive focus-visible:ring-destructive/30",
+                  )}
+                  placeholder="e.g. View, Edit, Auth"
+                />
               </FieldRow>
             </div>
           </div>
@@ -168,7 +181,7 @@ export function ActionInspector({
                 label="Command Target"
                 required
                 error={forError?.message}
-                enrichText="Command string template executed when clicked, with field placeholder tokens (e.g. ACCOUNT,1.0.0 S recordId)."
+                enrichText="Command string template executed when clicked, with field placeholder tokens (e.g. ACCOUNT S recordId)."
               >
                 <Input
                   value={activeAction.cmdFor}
@@ -178,7 +191,7 @@ export function ActionInspector({
                     "h-7 text-xs font-mono bg-background rounded border-border/80 flex-1",
                     forError && "border-destructive focus-visible:ring-destructive/30",
                   )}
-                  placeholder="e.g. ACCOUNT,1.0.0 S recordId"
+                  placeholder={`e.g. ${targetModel || "ACCOUNT"} S recordId`}
                 />
               </FieldRow>
 
@@ -188,10 +201,10 @@ export function ActionInspector({
                 <p>
                   Use row field names in the template string (e.g.{" "}
                   <code className="font-mono bg-muted/60 px-1 py-0.5 rounded text-primary border border-primary/20">
-                    ACCOUNT,1.0.0 S recordId
+                    {targetModel || "ACCOUNT"} S recordId
                   </code>
-                  ). When clicked, the runtime engine replaces each placeholder with the active
-                  row's value.
+                  ). When clicked, the runtime replaces each placeholder with the active row's
+                  value.
                 </p>
               </div>
             </div>

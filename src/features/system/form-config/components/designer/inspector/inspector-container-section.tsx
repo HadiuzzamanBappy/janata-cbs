@@ -18,18 +18,37 @@ export function InspectorContainerSection({
   onUpdateSection,
   disabled,
 }: InspectorContainerSectionProps) {
+  const isTab = selectedSection.zone === "tab";
+
   return (
     <>
-      {/* Container Title */}
+      {/* Container / Tab Title */}
       <InspectorRow
-        label="Container Title"
-        description="Header banner title displayed above this group. Leave empty for root canvas without card borders."
+        label={isTab ? "Tab Name" : "Container Title"}
+        description={
+          isTab
+            ? "Label displayed on this tab's header button."
+            : "Header banner title displayed above this group. Leave empty for root canvas without card borders."
+        }
       >
         <Input
           disabled={disabled}
-          value={selectedSection.title || ""}
-          placeholder="Leave empty for plain root fields..."
-          onChange={(e) => onUpdateSection({ title: e.target.value })}
+          value={
+            isTab
+              ? (selectedSection.tabTitle ?? selectedSection.title ?? "")
+              : (selectedSection.title ?? "")
+          }
+          placeholder={
+            isTab ? "e.g. Personal Details, Nominee..." : "Leave empty for plain root fields..."
+          }
+          onChange={(e) => {
+            const val = e.target.value;
+            if (isTab) {
+              onUpdateSection({ tabTitle: val, title: val });
+            } else {
+              onUpdateSection({ title: val });
+            }
+          }}
           className="h-7 text-xs bg-background"
         />
       </InspectorRow>

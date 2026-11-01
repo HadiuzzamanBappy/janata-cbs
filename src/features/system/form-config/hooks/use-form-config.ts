@@ -33,6 +33,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     hydrate,
     rebaseline,
     reset,
+    resolvedInitialId,
+    resolvedInitialMode,
   } = useFormConfigPersistence(initialId, tabId);
 
   const { availableForms, availableModels, refreshForms } = useFcCatalog();
@@ -138,16 +140,6 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     return true;
   }, [formData]);
 
-  const actions = useFcActions({
-    formData,
-    recordId,
-    handleValidate,
-    rebaseline,
-    reset,
-    refreshForms,
-    setSubmitting,
-  });
-
   const resetToIdle = React.useCallback(() => {
     setSelectedSectionId(null);
     setSelectedFieldId(null);
@@ -156,14 +148,25 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     reset();
   }, [reset]);
 
+  const actions = useFcActions({
+    formData,
+    recordId,
+    handleValidate,
+    rebaseline,
+    reset,
+    resetToIdle,
+    refreshForms,
+    setSubmitting,
+  });
+
+  // Only auto-fetch when an explicit initial ID was supplied via navigation command / deep-link
   const hasLoadedInitialRef = React.useRef(false);
-  const targetIdToLoad = initialId || recordId;
   React.useEffect(() => {
-    if (!hasLoadedInitialRef.current && targetIdToLoad) {
+    if (!hasLoadedInitialRef.current && resolvedInitialId) {
       hasLoadedInitialRef.current = true;
-      fetchRecord(targetIdToLoad, "I");
+      fetchRecord(resolvedInitialId, resolvedInitialMode || "I");
     }
-  }, [fetchRecord, targetIdToLoad]);
+  }, [fetchRecord, resolvedInitialId, resolvedInitialMode]);
 
   return {
     recordId,

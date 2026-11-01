@@ -12,13 +12,15 @@ import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-
 export interface ColumnModelPopoverProps {
   targetModel?: string;
   configuredFieldNames: Set<string>;
-  onImportProperty: (prop: ModelProperty) => void;
+  onImportField?: (prop: ModelProperty) => void;
+  onImportProperty?: (prop: ModelProperty) => void;
   disabled?: boolean;
 }
 
 export function ColumnModelPopover({
   targetModel,
   configuredFieldNames,
+  onImportField,
   onImportProperty,
   disabled = false,
 }: ColumnModelPopoverProps) {
@@ -26,20 +28,39 @@ export function ColumnModelPopover({
   const [search, setSearch] = React.useState("");
   const [modelProps, setModelProps] = React.useState<ModelProperty[]>([]);
 
+  const handleImport = onImportField || onImportProperty;
+
   React.useEffect(() => {
     let mounted = true;
-    if (!targetModel) {
+    const cleanTarget = (targetModel || "").trim();
+    if (!cleanTarget) {
       setModelProps([]);
       return;
     }
 
+    // Strip version suffixes (e.g. "USER.MGT$NAU" or "USER.MGT,NEW" -> "USER.MGT")
+    const lookupId = cleanTarget.split("$")[0].split(",")[0].trim().toUpperCase();
+
     async function loadModel() {
       try {
-        const res = await cbs.send<ModelConfigRecord>(cbs.modelConfig.get(targetModel as string), {
-          silent: true,
-        });
-        if (mounted && res.status === "SUCCESS" && res.data?.PROPERTIES) {
-          setModelProps(res.data.PROPERTIES);
+        const res = await cbs.send<{ record?: ModelConfigRecord } | ModelConfigRecord>(
+          cbs.modelConfig.get(lookupId),
+          { silent: true },
+        );
+        if (!mounted || res.status !== "SUCCESS" || !res.data) {
+          if (mounted) setModelProps([]);
+          return;
+        }
+
+        const rawData = res.data;
+        const rec =
+          (rawData as { record?: ModelConfigRecord }).record ?? (rawData as ModelConfigRecord);
+
+        // Normalize PROPERTIES from either direct property list or nested fields
+        const props =
+          rec?.PROPERTIES || (rec as unknown as { properties?: ModelProperty[] })?.properties || [];
+        if (mounted) {
+          setModelProps(Array.isArray(props) ? props : []);
         }
       } catch {
         if (mounted) setModelProps([]);
@@ -77,7 +98,7 @@ export function ColumnModelPopover({
             size="sm"
             disabled={disabled || !targetModel}
             className="h-7 text-xs px-2 gap-1 text-primary hover:text-primary/80 cursor-pointer"
-            title={targetModel ? `Import columns from ${targetModel}` : "No Target Model set"}
+            title={targetModel ? `Import column fields from ${targetModel}` : "No Target Model set"}
           >
             <Sparkles className="size-3" />
             <span>Import</span>
@@ -119,7 +140,7 @@ export function ColumnModelPopover({
                   key={prop.NAME}
                   disabled={isConfigured}
                   onClick={() => {
-                    onImportProperty(prop);
+                    handleImport?.(prop);
                     setOpen(false);
                   }}
                   className={cn(
@@ -137,11 +158,12 @@ export function ColumnModelPopover({
                       {prop.LABEL || prop.NAME}
                     </span>
                   </div>
+
                   {isConfigured ? (
-                    <CheckCircle2 className="size-3.5 text-primary shrink-0 ml-1" />
+                    <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
                   ) : (
-                    <span className="text-[9px] font-mono text-muted-foreground/80 px-1 py-0.5 rounded bg-muted/60 shrink-0 uppercase">
-                      {prop.TYPE || "Text"}
+                    <span className="text-[10px] font-mono text-muted-foreground/80 shrink-0 uppercase">
+                      {prop.TYPE}
                     </span>
                   )}
                 </button>

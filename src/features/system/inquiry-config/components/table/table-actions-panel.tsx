@@ -65,6 +65,7 @@ export function TableActionsPanel({
                   return (
                     <ActionItem
                       key={actionKeys[idx]}
+                      id={actionKeys[idx]}
                       action={action}
                       index={idx}
                       isSelected={selectedActionIdx === idx}

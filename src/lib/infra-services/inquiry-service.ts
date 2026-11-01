@@ -35,6 +35,10 @@ async function fetchInquiryWirePayload(cleanCmd: string, tokenParam?: string): P
     token: ctx.token,
   });
 
+  log.info(
+    `fetchInquiryWirePayload "${cleanCmd}" responded: ${res.statusCode} status: ${res.status}`,
+  );
+
   if (res.statusCode !== 200 || !res.data) {
     log.error(
       `Inquiry wire fetch failed for "${cleanCmd}" (${res.statusCode}): ${res.message || "No data"}`,

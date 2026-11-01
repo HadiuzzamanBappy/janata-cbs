@@ -31,14 +31,13 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     }
   };
 
-  // 1. ZOD SCHEMA VALIDATION
+  // 1. Zod Schema Validation
   const parseResult = inquiryConfigRecordSchema.safeParse(formData);
   if (!parseResult.success) {
     for (let idx = 0; idx < parseResult.error.issues.length; idx++) {
       const issue = parseResult.error.issues[idx];
-      const path = issue.path;
-      const pathStr = path.join(".");
-      const firstSegment = String(path[0] || "");
+      const pathStr = issue.path.join(".");
+      const firstSegment = String(issue.path[0] || "");
 
       let tab: InquiryConfigTabKey = "general";
       let itemIndex: number | undefined;
@@ -47,35 +46,28 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
 
       if (firstSegment === "INQSelectField") {
         tab = "selection";
-        if (typeof path[1] === "number") {
-          itemIndex = path[1];
+        if (typeof issue.path[1] === "number") {
+          itemIndex = issue.path[1];
           const filter = formData.INQSelectField?.[itemIndex];
           const name = filter?.selectFieldDisplay || filter?.selectFieldName;
           labelPrefix = `Filter #${itemIndex + 1}${name ? ` (${name})` : ""}`;
-        } else {
-          labelPrefix = "Selection Criteria";
         }
       } else if (firstSegment === "INQDef") {
         tab = "table";
         subSegment = "columns";
-        if (typeof path[1] === "number") {
-          itemIndex = path[1];
+        if (typeof issue.path[1] === "number") {
+          itemIndex = issue.path[1];
           const col = formData.INQDef?.[itemIndex];
           const name = col?.fieldDisplay || col?.fieldName;
           labelPrefix = `Column #${itemIndex + 1}${name ? ` (${name})` : ""}`;
-        } else {
-          labelPrefix = "Columns";
         }
       } else if (firstSegment === "INQCmds") {
         tab = "table";
         subSegment = "actions";
-        if (typeof path[1] === "number") {
-          itemIndex = path[1];
+        if (typeof issue.path[1] === "number") {
+          itemIndex = issue.path[1];
           const action = formData.INQCmds?.[itemIndex];
-          const name = action?.cmdButton;
-          labelPrefix = `Action #${itemIndex + 1}${name ? ` (${name})` : ""}`;
-        } else {
-          labelPrefix = "Actions";
+          labelPrefix = `Action #${itemIndex + 1}${action?.cmdButton ? ` (${action.cmdButton})` : ""}`;
         }
       }
 
@@ -90,9 +82,8 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     }
   }
 
-  // 2. DOMAIN BUSINESS RULES: GENERAL TAB
-  const controller = (formData.INQInfo?.controllerName || "").trim();
-  if (!controller) {
+  // 2. Domain Business Rules: General Tab
+  if (!formData.INQInfo?.controllerName?.trim()) {
     addIssue({
       id: "err-gen-controller",
       tab: "general",
@@ -101,8 +92,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     });
   }
 
-  const description = (formData.INQInfo?.description || "").trim();
-  if (!description) {
+  if (!formData.INQInfo?.description?.trim()) {
     addIssue({
       id: "err-gen-description",
       tab: "general",
@@ -111,14 +101,12 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     });
   }
 
-  // 3. DOMAIN BUSINESS RULES: SELECTION TAB
+  // 3. Domain Business Rules: Selection Tab
   const filters = formData.INQSelectField || [];
-  const seenFilterNames = new Map<string, number>();
+  const seenFilterNames = new Set<string>();
 
   filters.forEach((filter, idx) => {
-    const fName = (filter.selectFieldName || "").trim();
-    const fDisplay = (filter.selectFieldDisplay || "").trim();
-
+    const fName = filter.selectFieldName?.trim();
     if (!fName) {
       addIssue({
         id: `err-sel-${idx}-name`,
@@ -138,11 +126,11 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
           itemIndex: idx,
         });
       } else {
-        seenFilterNames.set(lower, idx);
+        seenFilterNames.add(lower);
       }
     }
 
-    if (!fDisplay) {
+    if (!filter.selectFieldDisplay?.trim()) {
       addIssue({
         id: `err-sel-${idx}-display`,
         tab: "selection",
@@ -153,7 +141,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     }
   });
 
-  // 4. DOMAIN BUSINESS RULES: TABLE DESIGN TAB
+  // 4. Domain Business Rules: Table Design Tab
   const columns = formData.INQDef || [];
   if (columns.length === 0) {
     addIssue({
@@ -165,11 +153,9 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     });
   }
 
-  const seenColNames = new Map<string, number>();
+  const seenColNames = new Set<string>();
   columns.forEach((col, idx) => {
-    const cName = (col.fieldName || "").trim();
-    const cDisplay = (col.fieldDisplay || "").trim();
-
+    const cName = col.fieldName?.trim();
     if (!cName) {
       addIssue({
         id: `err-col-${idx}-name`,
@@ -191,11 +177,11 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
           subSegment: "columns",
         });
       } else {
-        seenColNames.set(lower, idx);
+        seenColNames.add(lower);
       }
     }
 
-    if (!cDisplay) {
+    if (!col.fieldDisplay?.trim()) {
       addIssue({
         id: `err-col-${idx}-display`,
         tab: "table",
@@ -209,10 +195,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
 
   const actions = formData.INQCmds || [];
   actions.forEach((act, idx) => {
-    const btn = (act.cmdButton || "").trim();
-    const cmdFor = (act.cmdFor || "").trim();
-
-    if (!btn) {
+    if (!act.cmdButton?.trim()) {
       addIssue({
         id: `err-act-${idx}-btn`,
         tab: "table",
@@ -223,7 +206,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
       });
     }
 
-    if (!cmdFor) {
+    if (!act.cmdFor?.trim()) {
       addIssue({
         id: `err-act-${idx}-for`,
         tab: "table",

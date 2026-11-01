@@ -1,19 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
-import { cn } from "@/lib/core-utils";
+import { SectionCard } from "@/features/form-engine/components/section-card";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
-import {
-  getFieldValue,
-  INQUIRY_META_FIELDS,
-  META_FIELD_GROUPS,
-  type MetaFieldDef,
-  setFieldValue,
-} from "../fields";
+import { CbsRecordFunction } from "@/types";
+import { INQUIRY_CONFIG_SECTIONS, setInquiryFieldValue } from "../fields";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 
 export interface IcGeneralTabProps {
@@ -29,222 +20,58 @@ export function IcGeneralTab({
   isReadOnly = false,
   validationErrors = [],
 }: IcGeneralTabProps) {
-  const handleInputChange = React.useCallback(
-    (def: MetaFieldDef, rawValue: string) => {
-      let finalVal: unknown = rawValue;
-      if (def.type === "number") {
-        finalVal = rawValue ? Number(rawValue) : 0;
-      } else if (def.uppercase) {
-        finalVal = rawValue.toUpperCase();
-      }
-      setFormData((prev) => setFieldValue(prev, def.path, finalVal));
-    },
-    [setFormData],
-  );
+  // 1. Build values record matching form fields
+  const formValues = React.useMemo(() => {
+    const info = formData.INQInfo || ({} as InquiryConfigRecord["INQInfo"]);
+    return {
+      description: info.description ?? "",
+      controllerName: info.controllerName ?? "",
+      inqType: info.inqType ?? "DFT",
+      pageOrientation: info.pageOrientation ?? "Portrait",
+      perpageItem: info.perpageItem ?? 30,
+      showSerial: Boolean(info.showSerial),
+      showPagination: Boolean(info.showPagination),
+      showBranchWise: Boolean(info.showBranchWise),
+      rptControllerName: info.rptControllerName ?? "",
+      inqServicePath: info.inqServicePath ?? "default",
+    };
+  }, [formData]);
 
-  const handleBooleanChange = React.useCallback(
-    (def: MetaFieldDef, checked: boolean) => {
-      setFormData((prev) => setFieldValue(prev, def.path, checked));
+  // 2. Map validation errors
+  const errorMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const err of validationErrors) {
+      if (err.tab === "general" && err.fieldKey) {
+        // Strip "INQInfo." prefix if present
+        const cleanKey = err.fieldKey.replace(/^INQInfo\./, "");
+        map[cleanKey] = err.message;
+      }
+    }
+    return map;
+  }, [validationErrors]);
+
+  // 3. Centralized field change dispatcher
+  const handleFieldChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      setFormData((prev) => setInquiryFieldValue(prev, fieldKey, value));
     },
     [setFormData],
   );
 
   return (
-    <div className="h-full overflow-y-auto select-none pr-1">
-      <div className="max-w-3xl space-y-3">
-        {META_FIELD_GROUPS.map((group) => {
-          const groupFields = INQUIRY_META_FIELDS.filter((f) => f.group === group.id);
-
-          return (
-            <div
-              key={group.id}
-              className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5"
-            >
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60">
-                {group.title}
-              </div>
-
-              {/* Data Fields: Aligned scanline controls */}
-              <div className="space-y-2 text-xs">
-                {groupFields.map((field) => {
-                  const rawVal = getFieldValue(formData, field.path);
-                  const displayVal = rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
-
-                  const fieldError = validationErrors.find(
-                    (e) => e.tab === "general" && e.fieldKey === field.path,
-                  );
-
-                  // Boolean Field
-                  if (field.type === "boolean") {
-                    const boolId = `inq-bool-${field.path}`;
-                    const isChecked = Boolean(rawVal);
-                    return (
-                      <FieldRow
-                        key={field.path}
-                        label={field.label}
-                        required={field.required}
-                        enrichText={field.helperText}
-                        error={fieldError?.message}
-                      >
-                        <div className="flex items-center gap-2 max-w-md flex-1">
-                          <label
-                            htmlFor={boolId}
-                            className={cn(
-                              "flex items-center gap-2 select-none",
-                              isReadOnly || field.disabled
-                                ? "cursor-default opacity-85"
-                                : "cursor-pointer",
-                            )}
-                          >
-                            <Checkbox
-                              id={boolId}
-                              checked={isChecked}
-                              disabled={isReadOnly || field.disabled}
-                              onCheckedChange={(checked: boolean) =>
-                                handleBooleanChange(field, Boolean(checked))
-                              }
-                              className={cn(
-                                "rounded",
-                                (isReadOnly || field.disabled) &&
-                                  "disabled:opacity-90 disabled:cursor-default",
-                              )}
-                            />
-                            <span
-                              className={cn(
-                                "text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold",
-                                isChecked
-                                  ? "bg-primary/10 text-primary border-primary/25"
-                                  : "bg-muted text-muted-foreground border-border/40",
-                              )}
-                            >
-                              {isChecked ? "Yes" : "No"}
-                            </span>
-                          </label>
-                        </div>
-                      </FieldRow>
-                    );
-                  }
-
-                  // Toggle Group for Select Options (Inquiry Type, Page Orientation)
-                  if (field.type === "select") {
-                    return (
-                      <FieldRow
-                        key={field.path}
-                        label={field.label}
-                        required={field.required}
-                        enrichText={field.helperText}
-                        error={fieldError?.message}
-                      >
-                        <div className="flex items-center gap-1.5 max-w-md flex-1">
-                          {(field.options || []).map((opt) => {
-                            const isSelected = displayVal === opt.value;
-                            return (
-                              <Button
-                                key={opt.value}
-                                type="button"
-                                variant={isSelected ? "default" : "outline"}
-                                size="sm"
-                                disabled={isReadOnly || field.disabled}
-                                onClick={() => handleInputChange(field, opt.value)}
-                                className={cn(
-                                  "h-7 px-3 text-xs rounded flex-1 transition-all",
-                                  isSelected
-                                    ? "font-semibold shadow-2xs"
-                                    : "text-muted-foreground hover:text-foreground",
-                                )}
-                              >
-                                {opt.label}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      </FieldRow>
-                    );
-                  }
-
-                  // Number field with quick presets (e.g. perpageItem)
-                  if (field.path === "INQInfo.perpageItem") {
-                    const presetValues = ["10", "20", "30", "50", "100"];
-                    return (
-                      <FieldRow
-                        key={field.path}
-                        label={field.label}
-                        required={field.required}
-                        enrichText={field.helperText}
-                        error={fieldError?.message}
-                      >
-                        <div className="flex items-center gap-2 max-w-md flex-1">
-                          <Input
-                            type="number"
-                            value={displayVal}
-                            disabled={isReadOnly || field.disabled}
-                            onChange={(e) => handleInputChange(field, e.target.value)}
-                            placeholder={field.placeholder || "30"}
-                            className={cn(
-                              "h-7 text-xs font-mono bg-background rounded border-border/80 w-24",
-                              fieldError && "border-destructive focus-visible:ring-destructive/30",
-                            )}
-                            min={1}
-                            max={500}
-                          />
-                          <div className="flex items-center gap-1">
-                            {presetValues.map((val) => (
-                              <Button
-                                key={val}
-                                type="button"
-                                variant={displayVal === val ? "default" : "outline"}
-                                size="sm"
-                                disabled={isReadOnly || field.disabled}
-                                onClick={() => handleInputChange(field, val)}
-                                className="h-7 px-2 text-xs rounded font-mono"
-                              >
-                                {val}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      </FieldRow>
-                    );
-                  }
-
-                  // Standard Text & Number Fields
-                  const inputWidthClass =
-                    field.width === "compact"
-                      ? "w-36"
-                      : field.width === "half"
-                        ? "w-64"
-                        : "w-full max-w-md";
-
-                  return (
-                    <FieldRow
-                      key={field.path}
-                      label={field.label}
-                      required={field.required}
-                      enrichText={field.helperText}
-                      error={fieldError?.message}
-                    >
-                      <div className="flex-1 max-w-md flex items-center gap-2">
-                        <Input
-                          type={field.type === "number" ? "number" : "text"}
-                          value={displayVal}
-                          disabled={isReadOnly || field.disabled}
-                          placeholder={field.placeholder}
-                          onChange={(e) => handleInputChange(field, e.target.value)}
-                          className={cn(
-                            "h-7 text-xs bg-background rounded border-border/80",
-                            inputWidthClass,
-                            field.uppercase && "font-mono uppercase",
-                            fieldError && "border-destructive",
-                          )}
-                        />
-                      </div>
-                    </FieldRow>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-4xl space-y-3 pb-8">
+        {INQUIRY_CONFIG_SECTIONS.map((section) => (
+          <SectionCard
+            key={section.id}
+            section={section}
+            values={formValues}
+            onChange={handleFieldChange}
+            errors={errorMap}
+            disabled={isReadOnly}
+            mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          />
+        ))}
       </div>
     </div>
   );

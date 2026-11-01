@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { MenuTreeNode, MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
-export interface DesignerPreviewTabProps {
+export interface MdPreviewTabProps {
   formData: MenuTreeRecord;
 }
 
-export function DesignerPreviewTab({ formData }: DesignerPreviewTabProps) {
+export function MdPreviewTab({ formData }: MdPreviewTabProps) {
   const nodes = React.useMemo(
     () => (formData.menuTree || []).filter((n) => n.isVisible !== false),
     [formData.menuTree],

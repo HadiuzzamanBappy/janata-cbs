@@ -6,6 +6,7 @@ export * from "./SC_BRANCH";
 export * from "./SC_CONTROL";
 export * from "./SC_FORM_CONFIG";
 export * from "./SC_INQUIRY_CONFIG";
+export * from "./SC_MENU";
 export * from "./SC_MENU_TREE";
 export * from "./SC_MODEL_CONFIG";
 export * from "./SC_USER";
@@ -17,6 +18,7 @@ import { SC_BRANCH_TABLE } from "./SC_BRANCH";
 import { SC_CONTROL_TABLE } from "./SC_CONTROL";
 import { SC_FORM_CONFIG_TABLE } from "./SC_FORM_CONFIG";
 import { SC_INQUIRY_CONFIG_TABLE } from "./SC_INQUIRY_CONFIG";
+import { SC_MENU_TABLE } from "./SC_MENU";
 import { SC_MENU_TREE_TABLE } from "./SC_MENU_TREE";
 import { SC_MODEL_CONFIG, SC_MODEL_CONFIG_TABLE } from "./SC_MODEL_CONFIG";
 import { SC_USER_TABLE } from "./SC_USER";
@@ -33,6 +35,7 @@ export const CBS_PHYSICAL_TABLES = {
   SC_CONTROL: SC_CONTROL_TABLE,
   SC_FORM_CONFIG: SC_FORM_CONFIG_TABLE,
   SC_INQUIRY_CONFIG: SC_INQUIRY_CONFIG_TABLE,
+  SC_MENU: SC_MENU_TABLE,
   SC_MENU_TREE: SC_MENU_TREE_TABLE,
   SC_MODEL_CONFIG: SC_MODEL_CONFIG_TABLE,
   SC_USER: SC_USER_TABLE,

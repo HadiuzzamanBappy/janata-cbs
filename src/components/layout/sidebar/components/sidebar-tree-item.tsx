@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { cbsCommand } from "@/lib/cbs-command";
 import { cn } from "@/lib/core-utils";
 import { useWorkbenchStore } from "@/store";
-import { hasActiveChild, type TreeNode } from "../types";
+import { hasActiveChild, isCommandMatch, type TreeNode } from "../types";
 
 export interface TreeItemProps {
   node: TreeNode;
@@ -39,10 +39,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
     }
   }, [isChildActive]);
 
-  const isActive =
-    isLeaf &&
-    (activeCommand === (node.command ?? node.id) ||
-      activeCommand?.toUpperCase() === (node.command ?? node.id).toUpperCase());
+  const isActive = isLeaf && isCommandMatch(node.command ?? node.id, activeCommand);
 
   const handleClick = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();

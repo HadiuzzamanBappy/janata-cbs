@@ -18,12 +18,14 @@ import { FolderPlus, Network, Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
-import { TreeDropZone } from "./tree/tree-drop-zone";
-import { TreeNodeItem } from "./tree/tree-node-item";
+import { TreeDropZone } from "./tree-drop-zone";
+import { TreeNodeItem } from "./tree-node-item";
 
 interface MenuTreeCanvasProps {
   nodes: MenuTreeNode[];
   collapsedNodeIds: Set<string>;
+  selectedNodeId?: string | null;
+  onSelectNode?: (id: string) => void;
   onToggleCollapse: (id: string) => void;
   onExpandAll?: () => void;
   onCollapseAll?: () => void;
@@ -43,6 +45,8 @@ interface MenuTreeCanvasProps {
 export function MenuTreeCanvas({
   nodes,
   collapsedNodeIds,
+  selectedNodeId,
+  onSelectNode,
   onToggleCollapse,
   onExpandAll,
   onCollapseAll,
@@ -157,8 +161,10 @@ export function MenuTreeCanvas({
             node={node}
             level={level}
             isCollapsed={isCollapsed}
+            isSelected={selectedNodeId === node.id}
             canIndent={canIndent}
             canOutdent={canOutdent}
+            onSelect={onSelectNode}
             onToggleCollapse={onToggleCollapse}
             onUpdate={onUpdateNode}
             onDelete={onDeleteNode}
@@ -205,8 +211,15 @@ export function MenuTreeCanvas({
         {/* Canvas Top Bar */}
         <div className="p-2 border-b border-border/80 flex items-center justify-between bg-card/60 gap-2 flex-wrap">
           <div className="flex items-center gap-2">
-            <Network className="size-4 text-primary" />
-            <span className="text-xs font-semibold text-foreground">Hierarchy Canvas</span>
+            <button
+              type="button"
+              onClick={() => onSelectNode?.("")}
+              className="flex items-center gap-2 hover:text-primary transition-colors text-left"
+              title="Click to view root tree container properties"
+            >
+              <Network className="size-4 text-primary" />
+              <span className="text-xs font-semibold text-foreground">Hierarchy Canvas</span>
+            </button>
             <span className="text-[11px] text-muted-foreground font-mono">
               ({nodes.length} root branches)
             </span>
@@ -253,7 +266,20 @@ export function MenuTreeCanvas({
         </div>
 
         {/* Canvas Content */}
-        <div className="flex-1 overflow-y-auto p-3">
+        <section
+          aria-label="Tree Nodes Workspace"
+          className="flex-1 overflow-y-auto p-3 outline-none"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              onSelectNode?.("");
+            }
+          }}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
+              onSelectNode?.("");
+            }
+          }}
+        >
           {nodes.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-lg p-6 text-center text-muted-foreground">
               <Network className="size-8 mb-2 opacity-50" />
@@ -289,7 +315,7 @@ export function MenuTreeCanvas({
               </div>
             </SortableContext>
           )}
-        </div>
+        </section>
       </section>
     </DndContext>
   );

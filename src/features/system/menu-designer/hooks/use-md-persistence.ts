@@ -11,7 +11,7 @@ export const INITIAL_MENU_TREE: MenuTreeRecord = {
   menuTree: [],
 };
 
-export function useMenuDesignerPersistence(initialId?: string, tabId?: string) {
+export function useMdPersistence(initialId?: string, tabId?: string) {
   return useCbsPersistence<MenuTreeRecord>({
     initialId,
     tabId,

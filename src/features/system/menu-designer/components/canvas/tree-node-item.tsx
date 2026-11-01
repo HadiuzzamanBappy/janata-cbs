@@ -9,6 +9,8 @@ import {
   ArrowUp,
   ChevronDown,
   ChevronRight,
+  Eye,
+  EyeOff,
   Folder,
   FolderMinus,
   FolderPlus,
@@ -27,8 +29,10 @@ interface TreeNodeItemProps {
   node: MenuTreeNode;
   level: number;
   isCollapsed: boolean;
+  isSelected?: boolean;
   canIndent?: boolean;
   canOutdent?: boolean;
+  onSelect?: (id: string) => void;
   onToggleCollapse: (id: string) => void;
   onUpdate: (id: string, patch: Partial<MenuTreeNode>) => void;
   onDelete: (id: string) => void;
@@ -44,8 +48,10 @@ export function TreeNodeItem({
   node,
   level,
   isCollapsed,
+  isSelected = false,
   canIndent = false,
   canOutdent = false,
+  onSelect,
   onToggleCollapse,
   onUpdate,
   onDelete,
@@ -70,6 +76,7 @@ export function TreeNodeItem({
   const [localLabel, setLocalLabel] = React.useState(node.label);
   const isFolder = node.children && node.children.length > 0;
   const isCustomGroup = node.menuId === 0 || !node.command;
+  const isVisible = node.isVisible !== false;
 
   const handleLabelBlur = () => {
     setIsEditingLabel(false);
@@ -85,7 +92,9 @@ export function TreeNodeItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group flex items-center justify-between gap-2 p-2 rounded-md border border-border/70 bg-card hover:border-primary/40 hover:shadow-2xs transition-all text-xs select-none",
+        "group flex items-center justify-between gap-2 p-1.5 px-2 rounded-md border border-border/70 bg-card hover:border-primary/40 hover:shadow-2xs transition-all text-xs select-none",
+        isSelected && "ring-1.5 ring-primary border-primary bg-primary/5",
+        !isVisible && "opacity-50 grayscale-20 bg-muted/20 border-dashed",
         isDragging && "opacity-50 border-primary ring-1 ring-primary bg-primary/5",
         isCustomGroup && "border-l-4 border-l-primary/70",
       )}
@@ -146,9 +155,10 @@ export function TreeNodeItem({
         ) : (
           <button
             type="button"
-            onClick={() => !isReadOnly && setIsEditingLabel(true)}
-            className="font-medium text-foreground hover:text-primary transition-colors truncate max-w-xs text-left"
-            title="Click to rename"
+            onClick={() => onSelect?.(node.id)}
+            onDoubleClick={() => !isReadOnly && setIsEditingLabel(true)}
+            className="flex-1 min-w-0 font-medium text-foreground hover:text-primary transition-colors truncate text-left cursor-pointer"
+            title="Click to inspect properties • Double-click to rename"
           >
             {node.label}
           </button>
@@ -164,7 +174,7 @@ export function TreeNodeItem({
         )}
 
         {isFolder && (
-          <span className="text-[10px] font-mono text-muted-foreground">
+          <span className="text-[10px] font-mono text-muted-foreground shrink-0">
             ({node.children.length})
           </span>
         )}
@@ -172,6 +182,28 @@ export function TreeNodeItem({
 
       {/* Right: Functional Hierarchy Actions */}
       <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+        {/* Visibility Toggle Button */}
+        {!isReadOnly && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdate(node.id, { isVisible: !isVisible });
+            }}
+            className={cn(
+              "h-6 w-6 transition-colors",
+              isVisible
+                ? "text-emerald-500 hover:text-emerald-600"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+            title={isVisible ? "Visible (Click to hide)" : "Hidden (Click to show)"}
+          >
+            {isVisible ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+          </Button>
+        )}
+
         {!isReadOnly && isCustomGroup && (
           <>
             <Button

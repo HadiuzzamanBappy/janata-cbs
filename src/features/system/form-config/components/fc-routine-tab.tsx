@@ -27,7 +27,7 @@ export function FcRoutineTab({
     (key: RoutineKey) => {
       if (isReadOnly) return;
       const newRoutine: RoutineItem = {
-        id: `rtn_${Math.floor(Math.random() * 10000)}_${Math.random().toString(36).slice(2, 7)}`,
+        id: `rtn_${crypto.randomUUID().slice(0, 8)}`,
         routineName: "",
         routineDescription: "",
       };
@@ -102,7 +102,7 @@ export function FcRoutineTab({
 
   return (
     <div className="h-full overflow-y-auto select-none pr-1">
-      <div className="max-w-3xl space-y-3 pb-8">
+      <div className="max-w-4xl space-y-3 pb-8">
         {FORM_ROUTINE_GROUPS.map((group: RoutineGroupDef) => {
           const routines: RoutineItem[] = routineData[group.key] || [];
 

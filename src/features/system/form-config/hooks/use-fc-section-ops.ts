@@ -6,12 +6,17 @@ import type {
   FormElement,
   FormSection,
 } from "@/lib/data-schemas/form-config-schema";
+import { useFcSectionReorder } from "./use-fc-section-reorder";
+import { useFcSectionZones } from "./use-fc-section-zones";
 
 export function useFcSectionOps(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
   setSelectedSectionId: (id: string | null) => void,
   setSelectedFieldId: (id: string | null) => void,
 ) {
+  const zones = useFcSectionZones(setFormData);
+  const reorder = useFcSectionReorder(setFormData);
+
   const addSection = React.useCallback(
     (
       type: "standard" | "object-group" | "array-table" = "standard",
@@ -61,7 +66,6 @@ export function useFcSectionOps(
           fields: initialFields,
         };
 
-        // If initialFields contains fields already placed on canvas, remove them from existing sections
         const newFieldKeys = new Set(
           initialFields.map((f) => f.NAME || f.SN || (f as unknown as { id?: string }).id),
         );
@@ -81,14 +85,22 @@ export function useFcSectionOps(
               !sec.title ||
               sec.title === "Canvas Root" ||
               (sec.type === "standard" && sec.zone === "standard" && !sec.title);
-            return !isPlainRoot || (sec.fields && sec.fields.length > 0);
+            if (isPlainRoot && (!sec.fields || sec.fields.length === 0)) {
+              return false;
+            }
+            return true;
           });
 
-        const nextSections = [...cleanedExistingSections];
-        if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= nextSections.length) {
-          nextSections.splice(insertIndex, 0, newSection);
+        let updatedSections: FormSection[];
+        if (
+          insertIndex !== undefined &&
+          insertIndex >= 0 &&
+          insertIndex <= cleanedExistingSections.length
+        ) {
+          updatedSections = [...cleanedExistingSections];
+          updatedSections.splice(insertIndex, 0, newSection);
         } else {
-          nextSections.push(newSection);
+          updatedSections = [...cleanedExistingSections, newSection];
         }
 
         setSelectedSectionId(newId);
@@ -100,24 +112,40 @@ export function useFcSectionOps(
           ...prev,
           frmElements: {
             steps: prev.frmElements?.steps || [],
-            sections: nextSections,
+            sections: updatedSections,
           },
         };
       });
     },
-    [setFormData, setSelectedFieldId, setSelectedSectionId],
+    [setFormData, setSelectedSectionId, setSelectedFieldId],
   );
 
   const updateSection = React.useCallback(
-    (sectionId: string, patch: Partial<FormSection>) => {
+    (id: string, patch: Partial<FormSection>) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
+        const targetSec = sections.find((s) => s.id === id);
+
+        const updatedSections = sections.map((sec) => {
+          if (sec.id === id) {
+            return { ...sec, ...patch };
+          }
+          if (
+            patch.tabGroupId &&
+            targetSec?.zone === "tab" &&
+            sec.zone === "tab" &&
+            sec.tabGroupId === targetSec.tabGroupId
+          ) {
+            return { ...sec, tabGroupId: patch.tabGroupId };
+          }
+          return sec;
+        });
 
         return {
           ...prev,
           frmElements: {
             steps: prev.frmElements?.steps || [],
-            sections: sections.map((sec) => (sec.id === sectionId ? { ...sec, ...patch } : sec)),
+            sections: updatedSections,
           },
         };
       });
@@ -126,153 +154,57 @@ export function useFcSectionOps(
   );
 
   const removeSection = React.useCallback(
-    (sectionId: string) => {
+    (id: string) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
+        const secToRemove = sections.find((s) => s.id === id);
+        if (!secToRemove) return prev;
 
-        return {
-          ...prev,
-          frmElements: {
-            steps: prev.frmElements?.steps || [],
-            sections: sections.filter((sec) => sec.id !== sectionId),
-          },
-        };
-      });
-      setSelectedSectionId(null);
-    },
-    [setFormData, setSelectedSectionId],
-  );
+        const isTabSection = secToRemove.zone === "tab";
+        const tabGroupId = secToRemove.tabGroupId;
 
-  const reorderSections = React.useCallback(
-    (activeId: string, overId: string, insertIndex?: number) => {
-      setFormData((prev) => {
-        const sections = prev.frmElements?.sections || [];
+        const updatedSections = sections.filter((sec) => sec.id !== id);
 
-        const activeSec = sections.find((s) => s.id === activeId);
-        if (!activeSec) return prev;
-
-        // If the active section is part of a tab group, we want to move all tabs in this group as a unit
-        const isTabGroup = activeSec.zone === "tab" && Boolean(activeSec.tabGroupId);
-        const movingSections = isTabGroup
-          ? sections.filter((s) => s.tabGroupId === activeSec.tabGroupId)
-          : [activeSec];
-
-        // Find reference target section
-        let targetIndex: number;
-        if (insertIndex !== undefined) {
-          targetIndex = insertIndex;
-        } else {
-          const overSecIndex = sections.findIndex((s) => s.id === overId);
-          if (overSecIndex === -1) return prev;
-          targetIndex = overSecIndex;
-        }
-
-        const movingIds = new Set(movingSections.map((s) => s.id));
-        // Target section before removal
-        const targetRefSec = sections[targetIndex];
-
-        // Filter out moving sections
-        const remaining = sections.filter((s) => !movingIds.has(s.id));
-
-        // Find insertion point in the remaining list
-        let finalInsertIndex: number;
-        if (targetRefSec && !movingIds.has(targetRefSec.id)) {
-          finalInsertIndex = remaining.findIndex((s) => s.id === targetRefSec.id);
-          if (finalInsertIndex === -1) finalInsertIndex = remaining.length;
-        } else if (targetIndex >= sections.length) {
-          finalInsertIndex = remaining.length;
-        } else {
-          finalInsertIndex = Math.min(Math.max(0, targetIndex), remaining.length);
-        }
-
-        const newSections = [...remaining];
-        newSections.splice(finalInsertIndex, 0, ...movingSections);
-
-        return {
-          ...prev,
-          frmElements: {
-            steps: prev.frmElements?.steps || [],
-            sections: newSections,
-          },
-        };
-      });
-    },
-    [setFormData],
-  );
-
-  const convertSectionZone = React.useCallback(
-    (
-      sectionId: string,
-      targetZone: "standard" | "tab",
-      opts?: { tabGroupId?: string; tabTitle?: string },
-    ) => {
-      setFormData((prev) => {
-        const sections = prev.frmElements?.sections || [];
-
-        return {
-          ...prev,
-          frmElements: {
-            steps: prev.frmElements?.steps || [],
-            sections: sections.map((sec, idx) => {
-              if (sec.id !== sectionId) return sec;
-              if (targetZone === "tab") {
-                const grpId = opts?.tabGroupId || `tabgrp_${idx + 1}`;
-                const title = opts?.tabTitle || sec.title || `Tab ${idx + 1}`;
-                return {
-                  ...sec,
-                  zone: "tab" as const,
-                  tabGroupId: grpId,
-                  tabTitle: title,
-                  title,
-                  layoutStyle: "card" as const,
-                };
-              }
-              return {
-                ...sec,
-                zone: "standard" as const,
+        if (isTabSection && tabGroupId) {
+          const remainingTabsInGroup = updatedSections.filter(
+            (s) => s.zone === "tab" && s.tabGroupId === tabGroupId,
+          );
+          if (remainingTabsInGroup.length === 1) {
+            const singleTab = remainingTabsInGroup[0];
+            const idx = updatedSections.findIndex((s) => s.id === singleTab.id);
+            if (idx !== -1) {
+              updatedSections[idx] = {
+                ...singleTab,
+                zone: "standard",
                 tabGroupId: undefined,
                 tabTitle: undefined,
-                layoutStyle: "card" as const,
+                layoutStyle: "card",
               };
-            }),
-          },
-        };
-      });
-    },
-    [setFormData],
-  );
+            }
+          }
+        }
 
-  const mergeTabGroups = React.useCallback(
-    (sourceGroupId: string, targetGroupId: string) => {
-      if (!sourceGroupId || !targetGroupId || sourceGroupId === targetGroupId) return;
-      setFormData((prev) => {
-        const sections = prev.frmElements?.sections || [];
         return {
           ...prev,
           frmElements: {
             steps: prev.frmElements?.steps || [],
-            sections: sections.map((sec) => {
-              if (sec.zone === "tab" && sec.tabGroupId === sourceGroupId) {
-                return {
-                  ...sec,
-                  tabGroupId: targetGroupId,
-                };
-              }
-              return sec;
-            }),
+            sections: updatedSections,
           },
         };
       });
+
+      setSelectedSectionId(null);
+      setSelectedFieldId(null);
     },
-    [setFormData],
+    [setFormData, setSelectedSectionId, setSelectedFieldId],
   );
 
   return {
     addSection,
     updateSection,
     removeSection,
-    reorderSections,
-    convertSectionZone,
-    mergeTabGroups,
+    reorderSections: reorder.reorderSections,
+    convertSectionZone: zones.convertSectionZone,
+    mergeTabGroups: zones.mergeTabGroups,
   };
 }

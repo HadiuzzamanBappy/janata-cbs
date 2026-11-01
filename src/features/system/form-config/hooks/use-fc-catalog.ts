@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
 import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import { CbsRecordStatus } from "@/types";
 
 export interface FormCatalogItem {
   id: string;
@@ -57,7 +58,7 @@ export function useFcCatalog() {
         return res.data.map((item) => {
           const rec = item.record;
           const tableName = rec?.TABLENAME || item.id;
-          const isAuthorized = rec?.auditData?.recStatus === "AU";
+          const isAuthorized = rec?.auditData?.recStatus === CbsRecordStatus.AU;
           return {
             id: item.id,
             tableName,

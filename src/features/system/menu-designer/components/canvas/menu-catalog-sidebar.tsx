@@ -1,6 +1,5 @@
 "use client";
 
-import { useDraggable } from "@dnd-kit/core";
 import { Pin, Plus, Search, Terminal } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
@@ -18,34 +17,25 @@ interface DraggableCatalogCardProps {
 function DraggableCatalogCard({ item, isAdded, disabled, onAddItem }: DraggableCatalogCardProps) {
   const isDragDisabled = disabled || isAdded;
 
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `catalog-${item.id}`,
-    data: { item },
-    disabled: isDragDisabled,
-  });
+  const handleDragStart = (e: React.DragEvent) => {
+    if (isDragDisabled) {
+      e.preventDefault();
+      return;
+    }
+    e.dataTransfer.setData("application/json", JSON.stringify(item));
+    e.dataTransfer.effectAllowed = "copy";
+  };
 
   return (
     <li
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
       draggable={!isDragDisabled}
-      onDragStart={(e) => {
-        if (isDragDisabled) {
-          e.preventDefault();
-          return;
-        }
-        // Native fallback drag transfer
-        e.dataTransfer.setData("application/json", JSON.stringify(item));
-        e.dataTransfer.effectAllowed = "copy";
-      }}
+      onDragStart={handleDragStart}
       className={cn(
         "group relative p-2 rounded-md border transition-all flex items-start justify-between gap-2 select-none",
         isAdded
           ? "border-emerald-500/30 bg-emerald-500/5 opacity-80 cursor-default"
           : "border-border/70 bg-card hover:border-primary/50 hover:bg-accent/40",
         !isDragDisabled && "cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-40 border-primary ring-1 ring-primary",
       )}
     >
       <div className="min-w-0 flex-1">

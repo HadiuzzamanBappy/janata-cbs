@@ -1,25 +1,30 @@
 "use client";
 
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { FolderPlus, Network, Plus } from "lucide-react";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { ChevronsDownUp, ChevronsUpDown, FolderPlus, Network, Plus } from "lucide-react";
 import * as React from "react";
+import { SidebarMenuTree } from "@/components/layout/sidebar/components/sidebar-menu-tree";
+import type { TreeNode } from "@/components/layout/sidebar/types";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
-import { TreeDropZone } from "./tree-drop-zone";
 import { TreeNodeItem } from "./tree-node-item";
+
+function convertToSidebarTreeNodes(list: MenuTreeNode[]): TreeNode[] {
+  return list
+    .filter((node) => node.isVisible !== false)
+    .map((node) => ({
+      id: node.id,
+      title: node.label,
+      command: node.command || undefined,
+      componentName: node.command ? node.command.replace(/\./g, "_") : undefined,
+      menuType: node.menuType,
+      children:
+        node.children && node.children.length > 0
+          ? convertToSidebarTreeNodes(node.children)
+          : undefined,
+    }));
+}
 
 interface MenuTreeCanvasProps {
   nodes: MenuTreeNode[];
@@ -35,10 +40,12 @@ interface MenuTreeCanvasProps {
   onIndentNode?: (id: string) => void;
   onOutdentNode?: (id: string) => void;
   onMoveOrder: (id: string, direction: -1 | 1) => void;
-  onMoveParent: (draggedId: string, targetParentId: string | null) => void;
-  onMoveNode?: (activeId: string, overId: string) => void;
   onAddSubgroup: (parentId: string | null) => void;
-  onDropCatalogItem: (item: MenuCatalogActionItem, parentId?: string | null) => void;
+  onDropCatalogItem: (
+    item: MenuCatalogActionItem,
+    parentId?: string | null,
+    targetIndex?: number,
+  ) => void;
   isReadOnly?: boolean;
 }
 
@@ -56,25 +63,14 @@ export function MenuTreeCanvas({
   onIndentNode,
   onOutdentNode,
   onMoveOrder,
-  onMoveParent,
-  onMoveNode,
   onAddSubgroup,
   onDropCatalogItem,
   isReadOnly,
 }: MenuTreeCanvasProps) {
   const [isDragOver, setIsDragOver] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState<"designer" | "preview">("designer");
 
-  // Configure Dnd sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 4,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
+  const previewTreeNodes = React.useMemo(() => convertToSidebarTreeNodes(nodes), [nodes]);
 
   // Extract flat list of node IDs for SortableContext
   const allNodeIds = React.useMemo(() => {
@@ -90,37 +86,6 @@ export function MenuTreeCanvas({
     collect(nodes);
     return ids;
   }, [nodes]);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id || isReadOnly) return;
-
-    const activeId = String(active.id);
-    const overId = String(over.id);
-
-    // If dragged from action catalog
-    if (activeId.startsWith("catalog-")) {
-      const itemData = active.data.current?.item as MenuCatalogActionItem | undefined;
-      if (itemData) {
-        if (overId.startsWith("dropzone-")) {
-          const rawParent = over.data.current?.parentId as string | null | undefined;
-          onDropCatalogItem(itemData, rawParent || null);
-        } else {
-          onDropCatalogItem(itemData, null);
-        }
-      }
-      return;
-    }
-
-    // Dropped onto a dropzone
-    if (overId.startsWith("dropzone-")) {
-      const rawParent = over.data.current?.parentId as string | null | undefined;
-      onMoveParent(activeId, rawParent || null);
-    } else if (onMoveNode) {
-      // Dropped onto another node
-      onMoveNode(activeId, overId);
-    }
-  };
 
   // Native drag & drop event fallback handlers for HTML5 transfer
   const handleNativeDragOver = (e: React.DragEvent) => {
@@ -147,7 +112,11 @@ export function MenuTreeCanvas({
     }
   };
 
-  const renderRecursive = (items: MenuTreeNode[], level = 0): React.ReactNode => {
+  const renderRecursive = (
+    items: MenuTreeNode[],
+    level = 0,
+    parentId: string | null = null,
+  ): React.ReactNode => {
     return items.map((node, index) => {
       const isCollapsed = collapsedNodeIds.has(node.id);
       // Can indent if there is a previous sibling in the same array
@@ -171,26 +140,15 @@ export function MenuTreeCanvas({
             onUngroup={onUngroupNode}
             onIndent={onIndentNode}
             onOutdent={onOutdentNode}
-            onAddSubgroup={(parentId) => onAddSubgroup(parentId)}
+            onAddSubgroup={(pid) => onAddSubgroup(pid)}
             onMoveOrder={onMoveOrder}
+            onDropCatalogItem={onDropCatalogItem}
+            parentId={parentId}
+            siblingIndex={index}
             isReadOnly={isReadOnly}
           />
-          {!isCollapsed && node.children && (
-            <div className="space-y-1">
-              {node.children.length > 0 && renderRecursive(node.children, level + 1)}
-              {!isReadOnly && (node.menuId === 0 || !node.command) && (
-                <div
-                  style={{ marginLeft: `${Math.min((level + 1) * 22, 176)}px` }}
-                  className="pt-0.5"
-                >
-                  <TreeDropZone
-                    parentId={node.id}
-                    label={`Drop action inside "${node.label}"`}
-                    isReadOnly={isReadOnly}
-                  />
-                </div>
-              )}
-            </div>
+          {!isCollapsed && node.children && node.children.length > 0 && (
+            <div className="space-y-1">{renderRecursive(node.children, level + 1, node.id)}</div>
           )}
         </div>
       );
@@ -198,125 +156,174 @@ export function MenuTreeCanvas({
   };
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <section
-        aria-label="Menu Tree Canvas"
-        onDragOver={handleNativeDragOver}
-        onDragLeave={handleNativeDragLeave}
-        onDrop={handleNativeDrop}
-        className={`flex-1 flex flex-col h-full bg-background border rounded-lg overflow-hidden transition-colors ${
-          isDragOver ? "border-primary bg-primary/5" : "border-border/80"
-        }`}
-      >
-        {/* Canvas Top Bar */}
-        <div className="p-2 border-b border-border/80 flex items-center justify-between bg-card/60 gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
+    <section
+      aria-label="Menu Tree Canvas"
+      onDragOver={handleNativeDragOver}
+      onDragLeave={handleNativeDragLeave}
+      onDrop={handleNativeDrop}
+      className={`flex-1 flex flex-col h-full bg-background border rounded-lg overflow-hidden transition-colors ${
+        isDragOver ? "border-primary bg-primary/5" : "border-border/80"
+      }`}
+    >
+      {/* Canvas Top Bar */}
+      <div className="p-2 border-b border-border/80 flex items-center justify-between bg-card/60 gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onSelectNode?.("")}
+            className="flex items-center gap-2 hover:text-primary transition-colors text-left"
+            title="Click to view root tree container properties"
+          >
+            <Network className="size-4 text-primary" />
+            <span className="text-xs font-semibold text-foreground">Hierarchy Canvas</span>
+          </button>
+          <span className="text-[11px] text-muted-foreground font-mono">
+            ({nodes.length} root branches)
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {/* Mode Segmented Toggle: Designer vs Preview */}
+          <div className="flex items-center bg-muted/60 p-0.5 rounded border border-border/60 mr-1">
             <button
               type="button"
-              onClick={() => onSelectNode?.("")}
-              className="flex items-center gap-2 hover:text-primary transition-colors text-left"
-              title="Click to view root tree container properties"
+              onClick={() => setViewMode("designer")}
+              className={`h-5 px-2 text-[10px] font-medium rounded transition-all cursor-pointer ${
+                viewMode === "designer"
+                  ? "bg-background text-foreground shadow-2xs font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <Network className="size-4 text-primary" />
-              <span className="text-xs font-semibold text-foreground">Hierarchy Canvas</span>
+              Designer
             </button>
-            <span className="text-[11px] text-muted-foreground font-mono">
-              ({nodes.length} root branches)
-            </span>
+            <button
+              type="button"
+              onClick={() => setViewMode("preview")}
+              className={`h-5 px-2 text-[10px] font-medium rounded transition-all cursor-pointer ${
+                viewMode === "preview"
+                  ? "bg-background text-primary shadow-2xs font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Live Preview
+            </button>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          {/* Icon Button Group for Expand / Collapse */}
+          <div className="flex items-center bg-muted/40 p-0.5 rounded border border-border/50">
             {onExpandAll && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onExpandAll}
-                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                title="Expand all groups"
-              >
-                Expand All
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={onExpandAll}
+                      className="size-5.5 text-muted-foreground hover:text-foreground rounded"
+                    >
+                      <ChevronsUpDown className="size-3.5" />
+                    </Button>
+                  }
+                />
+                <TooltipContent side="bottom" className="text-xs">
+                  Expand All Folders
+                </TooltipContent>
+              </Tooltip>
             )}
             {onCollapseAll && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onCollapseAll}
-                className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                title="Collapse all groups"
-              >
-                Collapse All
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      onClick={onCollapseAll}
+                      className="size-5.5 text-muted-foreground hover:text-foreground rounded"
+                    >
+                      <ChevronsDownUp className="size-3.5" />
+                    </Button>
+                  }
+                />
+                <TooltipContent side="bottom" className="text-xs">
+                  Collapse All Folders
+                </TooltipContent>
+              </Tooltip>
             )}
+          </div>
+
+          {!isReadOnly && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onAddSubgroup(null)}
+              className="h-6 text-xs gap-1.5 px-2.5"
+            >
+              <FolderPlus className="size-3.5" />
+              Add Root Group
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Canvas Content */}
+      <section
+        aria-label="Tree Nodes Workspace"
+        className="flex-1 overflow-y-auto p-3 outline-none"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onSelectNode?.("");
+          }
+        }}
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
+            onSelectNode?.("");
+          }
+        }}
+      >
+        {viewMode === "preview" ? (
+          <div className="max-w-md mx-auto py-2">
+            <div className="p-2 mb-2 rounded bg-muted/20 border border-border/50 text-[11px] text-muted-foreground flex items-center justify-between">
+              <span>Workbench Sidebar Layout Preview</span>
+              <span className="font-mono text-[10px] text-primary">Live Readout</span>
+            </div>
+            <div className="rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-xs">
+              <SidebarMenuTree
+                treeNodes={previewTreeNodes}
+                loading={false}
+                openSettingsTab={() => {}}
+                onLogout={() => {}}
+              />
+            </div>
+          </div>
+        ) : nodes.length === 0 ? (
+          <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-lg p-6 text-center text-muted-foreground">
+            <Network className="size-8 mb-2 opacity-50" />
+            <p className="text-xs font-medium text-foreground">Tree is currently empty</p>
+            <p className="text-[11px] max-w-xs mt-1">
+              Drag actions from the left catalog, or click below to create your first root group
+              folder.
+            </p>
             {!isReadOnly && (
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => onAddSubgroup(null)}
-                className="h-6 text-xs gap-1.5 px-2.5"
+                className="mt-3 text-xs gap-1.5"
               >
-                <FolderPlus className="size-3.5" />
-                Add Root Group
+                <Plus className="size-3.5" /> Create Root Group
               </Button>
             )}
           </div>
-        </div>
-
-        {/* Canvas Content */}
-        <section
-          aria-label="Tree Nodes Workspace"
-          className="flex-1 overflow-y-auto p-3 outline-none"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              onSelectNode?.("");
-            }
-          }}
-          onKeyDown={(e) => {
-            if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget) {
-              onSelectNode?.("");
-            }
-          }}
-        >
-          {nodes.length === 0 ? (
-            <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-lg p-6 text-center text-muted-foreground">
-              <Network className="size-8 mb-2 opacity-50" />
-              <p className="text-xs font-medium text-foreground">Tree is currently empty</p>
-              <p className="text-[11px] max-w-xs mt-1">
-                Drag actions from the left catalog, or click below to create your first root group
-                folder.
-              </p>
-              {!isReadOnly && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => onAddSubgroup(null)}
-                  className="mt-3 text-xs gap-1.5"
-                >
-                  <Plus className="size-3.5" /> Create Root Group
-                </Button>
-              )}
-            </div>
-          ) : (
-            <SortableContext items={allNodeIds} strategy={verticalListSortingStrategy}>
-              <div className="space-y-1.5 max-w-4xl mx-auto">
-                {renderRecursive(nodes)}
-                {!isReadOnly && (
-                  <div className="pt-2">
-                    <TreeDropZone
-                      parentId={null}
-                      label="Drop catalog action here to append to root"
-                    />
-                  </div>
-                )}
-              </div>
-            </SortableContext>
-          )}
-        </section>
+        ) : (
+          <SortableContext items={allNodeIds} strategy={verticalListSortingStrategy}>
+            <div className="space-y-1.5 max-w-4xl mx-auto">{renderRecursive(nodes)}</div>
+          </SortableContext>
+        )}
       </section>
-    </DndContext>
+    </section>
   );
 }

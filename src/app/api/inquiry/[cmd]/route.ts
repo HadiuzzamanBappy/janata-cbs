@@ -29,6 +29,9 @@ export async function GET(
     }
 
     const session = await getSession();
+    inqLogger.info(
+      `GET /api/inquiry/${cmd} requested. HasSession: ${Boolean(session)}, Token: ${Boolean(session?.token)}`,
+    );
     if (!session?.token) {
       return NextResponse.json(
         {
@@ -42,7 +45,7 @@ export async function GET(
       );
     }
 
-    const schema = await getInquiryData(cmd);
+    const schema = await getInquiryData(cmd, session.token);
 
     if (!schema) {
       return NextResponse.json(

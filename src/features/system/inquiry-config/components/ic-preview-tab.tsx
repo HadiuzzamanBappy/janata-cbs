@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Table } from "lucide-react";
 import * as React from "react";
+import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import {
@@ -20,6 +21,9 @@ export interface IcPreviewTabProps {
 
 export function IcPreviewTab({ formData }: IcPreviewTabProps) {
   const hasFilters = Boolean(formData.INQSelectField && formData.INQSelectField.length > 0);
+  const hasColumns = Boolean(formData.INQDef && formData.INQDef.length > 0);
+  const hasConfiguration = hasFilters || hasColumns;
+
   const [step, setStep] = React.useState<"SELECTION" | "RESULTS">(
     hasFilters ? "SELECTION" : "RESULTS",
   );
@@ -83,12 +87,12 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
     ],
   );
 
-  // Auto-fetch if no selection filters exist and on RESULTS step
+  // Auto-fetch if columns exist, no selection filters exist, and on RESULTS step
   React.useEffect(() => {
-    if (!hasFilters && step === "RESULTS") {
+    if (hasColumns && !hasFilters && step === "RESULTS") {
       executeQuery({});
     }
-  }, [hasFilters, step, executeQuery]);
+  }, [hasColumns, hasFilters, step, executeQuery]);
 
   const handleFilterSearch = (searchCrit: FilterCriteriaMap) => {
     setCriteria(searchCrit);
@@ -106,6 +110,18 @@ export function IcPreviewTab({ formData }: IcPreviewTabProps) {
     setCriteria(cleared);
     setRows([]);
   };
+
+  if (!hasConfiguration) {
+    return (
+      <div className="h-full w-full flex-1">
+        <EmptyState
+          icon={Table}
+          title="No Columns or Criteria Defined"
+          description="This inquiry has no display columns or filter criteria configured yet. Switch to the Selection Criteria or Columns & Actions tab to add fields."
+        />
+      </div>
+    );
+  }
 
   const pageSize = Number(formData.INQInfo?.perpageItem || 30) || 30;
 

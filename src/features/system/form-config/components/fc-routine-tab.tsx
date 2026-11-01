@@ -5,7 +5,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
-import { cn } from "@/lib/core-utils";
+import { cn, generateClientToken } from "@/lib/core-utils";
 import type { FormConfigRecord, RoutineItem } from "@/lib/data-schemas/form-config-schema";
 import { FORM_ROUTINE_GROUPS, type RoutineGroupDef, type RoutineKey } from "../fields";
 import type { FormConfigValidationError } from "../hooks/fc-validation";
@@ -27,7 +27,7 @@ export function FcRoutineTab({
     (key: RoutineKey) => {
       if (isReadOnly) return;
       const newRoutine: RoutineItem = {
-        id: `rtn_${crypto.randomUUID().slice(0, 8)}`,
+        id: generateClientToken("rtn"),
         routineName: "",
         routineDescription: "",
       };

@@ -9,7 +9,7 @@ import type { DesignerCanvasProps } from "./canvas-types";
 export interface EmptyCanvasSplashProps {
   isOver: boolean;
   onAddSection?: DesignerCanvasProps["onAddSection"];
-  onClickBackground: () => void;
+  onClickBackground?: () => void;
   onDragOver: React.DragEventHandler;
   onDragLeave: React.DragEventHandler;
   onDrop: React.DragEventHandler;
@@ -19,22 +19,20 @@ export interface EmptyCanvasSplashProps {
 export function EmptyCanvasSplash({
   isOver,
   onAddSection,
-  onClickBackground,
   onDragOver,
   onDragLeave,
   onDrop,
   disabled,
 }: EmptyCanvasSplashProps) {
   return (
-    <button
-      type="button"
+    <section
+      aria-label="Empty canvas workspace"
       className={cn(
-        "flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl m-4 transition-all cursor-pointer bg-transparent",
+        "flex-1 flex flex-col items-center justify-center p-8 text-center border-2 border-dashed rounded-xl m-4 transition-all bg-transparent",
         isOver
           ? "border-primary bg-primary/10 text-primary scale-[1.01]"
           : "border-border/60 bg-muted/5",
       )}
-      onClick={onClickBackground}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -75,6 +73,6 @@ export function EmptyCanvasSplash({
           </Button>
         </div>
       )}
-    </button>
+    </section>
   );
 }

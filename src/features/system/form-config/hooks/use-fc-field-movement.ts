@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { generateClientToken } from "@/lib/core-utils";
 import type {
   FormConfigRecord,
   FormElement,
@@ -24,33 +25,34 @@ export function useFcFieldMovement(
     (sectionId: string, activeId: string, overId: string) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
-        const section = sections.find((s) => s.id === sectionId);
-        if (!section?.fields) return prev;
+        const secIndex = sections.findIndex((s) => s.id === sectionId);
+        if (secIndex === -1) return prev;
 
-        const oldIndex = section.fields.findIndex((f) => isMatchingField(f, activeId));
-        const newIndex = section.fields.findIndex((f) => isMatchingField(f, overId));
-        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
-          return prev;
-        }
+        const sec = sections[secIndex];
+        const fields = [...(sec.fields || [])];
 
-        const newFields = [...section.fields];
-        const [moved] = newFields.splice(oldIndex, 1);
-        newFields.splice(newIndex, 0, moved);
+        const oldIdx = fields.findIndex((f) => isMatchingField(f, activeId));
+        const newIdx = fields.findIndex((f) => isMatchingField(f, overId));
 
-        const updatedSections = sections.map((s) =>
-          s.id === sectionId ? { ...s, fields: newFields } : s,
-        );
+        if (oldIdx === -1 || newIdx === -1 || oldIdx === newIdx) return prev;
+
+        const [movedField] = fields.splice(oldIdx, 1);
+        fields.splice(newIdx, 0, movedField);
+
+        const updatedSections = [...sections];
+        updatedSections[secIndex] = { ...sec, fields };
 
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };
       });
+      setSelectedFieldId(activeId);
     },
-    [setFormData],
+    [setFormData, setSelectedFieldId],
   );
 
   const moveFieldAcrossSections = React.useCallback(
@@ -73,7 +75,7 @@ export function useFcFieldMovement(
 
         if (targetSecId === "canvas-root" || targetSecId.startsWith("gap-")) {
           const newRootSec: FormSection = {
-            id: `sec_root_${crypto.randomUUID().slice(0, 8)}`,
+            id: generateClientToken("sec_root"),
             title: "",
             type: "standard",
             zone: "standard",
@@ -93,38 +95,20 @@ export function useFcFieldMovement(
                   }
                 : s,
             )
-            .filter(
-              (s) =>
-                !(s.layoutStyle === "plain" && !s.title && (!s.fields || s.fields.length === 0)),
-            );
+            .filter((s) => s.fields.length > 0 || Boolean(s.title));
 
-          if (
-            insertAtIndex !== undefined &&
-            insertAtIndex >= 0 &&
-            insertAtIndex <= newSections.length
-          ) {
-            newSections.splice(insertAtIndex, 0, newRootSec);
-          } else {
-            const existingRoot = newSections.find(
-              (s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root",
-            );
-            if (existingRoot) {
-              existingRoot.fields = [...(existingRoot.fields || []), fieldToMove];
-              return {
-                ...prev,
-                frmElements: {
-                  steps: prev.frmElements?.steps || [],
-                  sections: newSections,
-                },
-              };
-            }
-            newSections.push(newRootSec);
+          let insertAt = newSections.length;
+          if (targetSecId.startsWith("gap-")) {
+            const rawIdx = parseInt(targetSecId.replace("gap-", ""), 10);
+            if (!Number.isNaN(rawIdx)) insertAt = Math.min(rawIdx, newSections.length);
           }
+
+          newSections.splice(insertAt, 0, newRootSec);
 
           return {
             ...prev,
             frmElements: {
-              steps: prev.frmElements?.steps || [],
+              ...prev.frmElements,
               sections: newSections,
             },
           };
@@ -133,70 +117,38 @@ export function useFcFieldMovement(
         const targetSec = sections.find((s) => s.id === targetSecId);
         if (!targetSec) return prev;
 
-        if (sourceSecId === targetSecId) {
-          if (!targetFieldId || targetFieldId === fieldId) return prev;
-          const targetIndex = (targetSec.fields || []).findIndex((f) =>
-            isMatchingField(f, targetFieldId),
-          );
-          if (targetIndex === -1) return prev;
-          const newFields = [...(sourceSec.fields || [])];
-          newFields.splice(fieldIndex, 1);
-          newFields.splice(targetIndex, 0, fieldToMove);
+        const updatedSourceFields = sourceSec.fields.filter((f) => !isMatchingField(f, fieldId));
+        const updatedTargetFields = [...(targetSec.fields || [])];
 
-          const updatedSections = sections.map((s) =>
-            s.id === sourceSecId ? { ...s, fields: newFields } : s,
-          );
-
-          return {
-            ...prev,
-            frmElements: {
-              steps: prev.frmElements?.steps || [],
-              sections: updatedSections,
-            },
-          };
-        }
-
-        const newSourceFields = (sourceSec.fields || []).filter(
-          (f) => !isMatchingField(f, fieldId),
-        );
-        const newTargetFields = [...(targetSec.fields || [])];
-
+        let targetIdx = updatedTargetFields.length;
         if (targetFieldId) {
-          const targetIndex = newTargetFields.findIndex((f) => isMatchingField(f, targetFieldId));
-          if (targetIndex !== -1) {
-            newTargetFields.splice(targetIndex, 0, fieldToMove);
-          } else {
-            newTargetFields.push(fieldToMove);
-          }
-        } else {
-          newTargetFields.push(fieldToMove);
+          const foundIdx = updatedTargetFields.findIndex((f) => isMatchingField(f, targetFieldId));
+          if (foundIdx !== -1) targetIdx = foundIdx;
+        } else if (typeof insertAtIndex === "number") {
+          targetIdx = Math.max(0, Math.min(insertAtIndex, updatedTargetFields.length));
         }
 
-        const updatedSections = sections
+        updatedTargetFields.splice(targetIdx, 0, fieldToMove);
+
+        const newSections = sections
           .map((s) => {
-            if (s.id === sourceSecId) return { ...s, fields: newSourceFields };
-            if (s.id === targetSecId) return { ...s, fields: newTargetFields };
+            if (s.id === sourceSecId) return { ...s, fields: updatedSourceFields };
+            if (s.id === targetSecId) return { ...s, fields: updatedTargetFields };
             return s;
           })
-          .filter(
-            (s) => !(s.layoutStyle === "plain" && !s.title && (!s.fields || s.fields.length === 0)),
-          );
+          .filter((s) => s.fields.length > 0 || Boolean(s.title));
 
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
-            sections: updatedSections,
+            ...prev.frmElements,
+            sections: newSections,
           },
         };
       });
 
       setSelectedFieldId(fieldId);
-      if (
-        setSelectedSectionId &&
-        targetSecId !== "canvas-root" &&
-        !targetSecId.startsWith("gap-")
-      ) {
+      if (setSelectedSectionId) {
         setSelectedSectionId(targetSecId);
       }
     },

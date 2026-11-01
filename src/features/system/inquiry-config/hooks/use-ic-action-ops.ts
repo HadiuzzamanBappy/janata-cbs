@@ -11,8 +11,8 @@ export function useIcActionOps(
       setFormData((prev) => {
         const currentCmds = prev.INQCmds || [];
         const newCmd: INQCmd = {
-          cmdButton: action?.cmdButton || "View",
-          cmdFor: action?.cmdFor || `${prev.INQInfo?.controllerName || "RECORD"} S recordId`,
+          cmdButton: action?.cmdButton ?? "",
+          cmdFor: action?.cmdFor ?? "",
         };
         return {
           ...prev,

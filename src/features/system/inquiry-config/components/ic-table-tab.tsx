@@ -8,7 +8,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { Columns, MousePointerClick, Plus } from "lucide-react";
+import { Columns3, MousePointerClick, Plus } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ import { ColumnInspector } from "./table/column-inspector";
 import { ColumnModelPopover } from "./table/column-model-popover";
 import { TableActionsPanel } from "./table/table-actions-panel";
 import { TableColumnsPanel } from "./table/table-columns-panel";
-import { inferInqDefFromModelProperty } from "./table/table-constants";
 
 export interface IcTableTabProps {
   columns: INQDef[];
@@ -40,9 +39,9 @@ export interface IcTableTabProps {
 }
 
 export function IcTableTab({
-  columns = [],
-  actions = [],
-  targetModel = "ACCOUNT",
+  columns,
+  actions,
+  targetModel,
   onAddColumn,
   onUpdateColumn,
   onRemoveColumn,
@@ -63,6 +62,7 @@ export function IcTableTab({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  // Keep index within bounds
   React.useEffect(() => {
     if (columns.length === 0) {
       setSelectedColIdx(0);
@@ -79,11 +79,11 @@ export function IcTableTab({
     }
   }, [actions.length, selectedActionIdx]);
 
-  const columnKeys = React.useMemo(() => columns.map((c) => `col-${c.fieldName}`), [columns]);
-  const actionKeys = React.useMemo(
-    () => actions.map((a) => `action-${a.cmdButton}-${a.cmdFor}`),
-    [actions],
+  const columnKeys = React.useMemo(
+    () => columns.map((c, i) => `col-${c.fieldName || i}-${i}`),
+    [columns],
   );
+  const actionKeys = React.useMemo(() => actions.map((_, i) => `action-${i}`), [actions]);
 
   const configuredFieldNames = React.useMemo(
     () => new Set(columns.map((c) => c.fieldName.toLowerCase())),
@@ -139,14 +139,30 @@ export function IcTableTab({
   };
 
   const handleImportProperty = (prop: ModelProperty) => {
-    const newCol = inferInqDefFromModelProperty(prop, columns.length + 1);
-    onAddColumn(newCol);
+    const typeUpper = (prop.TYPE || "CHAR").toUpperCase();
+    let colType = "CH";
+
+    if (typeUpper === "AMOUNT" || typeUpper === "INTEGER" || typeUpper === "NUMBER") {
+      colType = "NM";
+    } else if (typeUpper === "DATE") {
+      colType = "DT";
+    }
+
+    onAddColumn({
+      fieldName: prop.NAME,
+      fieldDisplay: prop.LABEL || prop.NAME,
+      fieldType: colType,
+      fieldFunc: "",
+      fieldRowCol: `1,${columns.length + 1}`,
+      fieldLength: `${prop.LENGTH || 20},L`,
+      dataPassable: null,
+    });
     setSelectedColIdx(columns.length);
   };
 
   const handleAddCustomColumn = () => {
     onAddColumn({
-      fieldName: `column_${columns.length + 1}`,
+      fieldName: `field_${columns.length + 1}`,
       fieldDisplay: `Column ${columns.length + 1}`,
       fieldType: "CH",
       fieldFunc: "",
@@ -159,8 +175,8 @@ export function IcTableTab({
 
   const handleAddCustomAction = () => {
     onAddAction({
-      cmdButton: "View",
-      cmdFor: `${targetModel || "ACCOUNT"},1.0.0 S recordId`,
+      cmdButton: "",
+      cmdFor: "",
     });
     setSelectedActionIdx(actions.length);
   };
@@ -174,13 +190,13 @@ export function IcTableTab({
             type="button"
             onClick={() => setActiveSegment("columns")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-all cursor-pointer",
+              "px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border-0",
               activeSegment === "columns"
-                ? "bg-background text-foreground shadow-2xs font-semibold"
-                : "text-muted-foreground hover:text-foreground",
+                ? "bg-background text-foreground shadow-2xs font-bold"
+                : "text-muted-foreground hover:text-foreground bg-transparent",
             )}
           >
-            <Columns className="size-3.5" />
+            <Columns3 className="size-3.5" />
             <span>Columns</span>
             <Badge variant="secondary" className="text-[10px] h-4 px-1 font-mono">
               {columns.length}
@@ -196,10 +212,10 @@ export function IcTableTab({
             type="button"
             onClick={() => setActiveSegment("actions")}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded transition-all cursor-pointer",
+              "px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border-0",
               activeSegment === "actions"
-                ? "bg-background text-foreground shadow-2xs font-semibold"
-                : "text-muted-foreground hover:text-foreground",
+                ? "bg-background text-foreground shadow-2xs font-bold"
+                : "text-muted-foreground hover:text-foreground bg-transparent",
             )}
           >
             <MousePointerClick className="size-3.5" />
@@ -245,7 +261,7 @@ export function IcTableTab({
             size="sm"
             onClick={handleAddCustomAction}
             className="h-7 text-xs px-2 gap-1 rounded"
-            title="Add a command action button"
+            title="Add a row command button"
           >
             <Plus className="size-3" />
             <span>Add Action</span>
@@ -253,8 +269,8 @@ export function IcTableTab({
         )}
       </div>
 
-      {/* 2. Main Studio: Master-Detail Panels */}
-      <div className="flex-1 w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0">
+      {/* 2. Workspace Layout */}
+      <div className="flex-1 rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0">
         {activeSegment === "columns" ? (
           <>
             <TableColumnsPanel
@@ -262,7 +278,6 @@ export function IcTableTab({
               columnKeys={columnKeys}
               selectedColIdx={selectedColIdx}
               disabled={disabled}
-              targetModel={targetModel}
               sensors={sensors}
               validationErrors={validationErrors}
               onSelectColumn={setSelectedColIdx}
@@ -294,6 +309,7 @@ export function IcTableTab({
             <ActionInspector
               activeAction={actions[selectedActionIdx]}
               selectedActionIdx={selectedActionIdx}
+              targetModel={targetModel}
               disabled={disabled}
               validationErrors={validationErrors}
               onUpdateAction={onUpdateAction}

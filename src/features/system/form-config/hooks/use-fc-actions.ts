@@ -13,6 +13,7 @@ export interface UseFcActionsParams {
   handleValidate: () => boolean;
   rebaseline: () => void;
   reset: () => void;
+  resetToIdle?: () => void;
   refreshForms: () => Promise<void>;
   setSubmitting: (val: boolean) => void;
 }
@@ -23,6 +24,7 @@ export function useFcActions({
   handleValidate,
   rebaseline,
   reset,
+  resetToIdle,
   refreshForms,
   setSubmitting,
 }: UseFcActionsParams) {
@@ -40,17 +42,31 @@ export function useFcActions({
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation("FORM.CONFIG", targetId);
-        refreshForms();
+        await refreshForms();
         toast.add({
           title: "Form Saved",
           description: `Form ${targetId || "configuration"} successfully saved`,
           type: "success",
         });
+        if (resetToIdle) {
+          resetToIdle();
+        } else {
+          reset();
+        }
       }
     } finally {
       setSubmitting(false);
     }
-  }, [formData, handleValidate, rebaseline, refreshForms, recordId, setSubmitting]);
+  }, [
+    formData,
+    handleValidate,
+    rebaseline,
+    refreshForms,
+    recordId,
+    reset,
+    resetToIdle,
+    setSubmitting,
+  ]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;
@@ -60,17 +76,22 @@ export function useFcActions({
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation("FORM.CONFIG", recordId);
-        refreshForms();
+        await refreshForms();
         toast.add({
           title: "Form Authorized",
           description: `Record ${recordId} approved`,
           type: "success",
         });
+        if (resetToIdle) {
+          resetToIdle();
+        } else {
+          reset();
+        }
       }
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, rebaseline, refreshForms, setSubmitting]);
+  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, setSubmitting]);
 
   const handleHold = React.useCallback(async () => {
     if (!recordId) return;
@@ -98,14 +119,18 @@ export function useFcActions({
       const res = await cbs.send(cbs.formConfig.delete(recordId));
       if (res.status === "SUCCESS") {
         broadcastRecordMutation("FORM.CONFIG", recordId);
-        refreshForms();
-        reset();
+        await refreshForms();
+        if (resetToIdle) {
+          resetToIdle();
+        } else {
+          reset();
+        }
         toast.add({ title: "Form Deleted", description: `${recordId} deleted`, type: "default" });
       }
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, refreshForms, reset, setSubmitting]);
+  }, [recordId, refreshForms, reset, resetToIdle, setSubmitting]);
 
   const handleReverse = React.useCallback(async () => {
     if (!recordId) return;
@@ -115,17 +140,22 @@ export function useFcActions({
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation("FORM.CONFIG", recordId);
-        refreshForms();
+        await refreshForms();
         toast.add({
           title: "Record Reversed",
           description: `${recordId} reversed`,
           type: "default",
         });
+        if (resetToIdle) {
+          resetToIdle();
+        } else {
+          reset();
+        }
       }
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, rebaseline, refreshForms, setSubmitting]);
+  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, setSubmitting]);
 
   return {
     handleSubmit,

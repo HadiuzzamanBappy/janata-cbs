@@ -8,6 +8,7 @@ import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface ActionItemProps {
   action: INQCmd;
+  id: string;
   index: number;
   isSelected: boolean;
   disabled?: boolean;
@@ -19,6 +20,7 @@ export interface ActionItemProps {
 
 export function ActionItem({
   action,
+  id,
   index,
   isSelected,
   disabled = false,
@@ -28,7 +30,7 @@ export function ActionItem({
   onRemove,
 }: ActionItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `action-${action.cmdButton}-${action.cmdFor}`,
+    id,
     disabled,
   });
 
@@ -86,9 +88,9 @@ export function ActionItem({
         <Play className="size-3 text-primary shrink-0" />
 
         <div className="flex-1 min-w-0">
-          <span className="font-medium truncate block">{action.cmdButton}</span>
+          <span className="font-medium truncate block">{action.cmdButton || "<Empty Action>"}</span>
           <span className="text-[10px] font-mono text-muted-foreground/70 truncate block">
-            {action.cmdFor}
+            {action.cmdFor || "Not configured"}
           </span>
         </div>
 
@@ -106,10 +108,11 @@ export function ActionItem({
             e.stopPropagation();
             onRemove();
           }}
-          className="text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 rounded p-1 transition-colors cursor-pointer shrink-0"
-          title="Remove action"
+          className="text-muted-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer shrink-0"
+          title="Delete action"
+          aria-label="Delete action"
         >
-          <Trash2 className="size-3.5" />
+          <Trash2 className="size-3" />
         </button>
       )}
     </div>

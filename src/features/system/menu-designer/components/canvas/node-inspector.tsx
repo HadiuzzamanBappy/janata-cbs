@@ -168,11 +168,6 @@ export function NodeInspector({
               <span className="font-semibold text-foreground font-mono">{totalCount}</span>
             </div>
           </div>
-
-          <p className="text-[10px] text-muted-foreground/70 leading-relaxed px-1">
-            Click any group or item on the canvas to inspect its specific properties. Click on the
-            canvas background anytime to return here.
-          </p>
         </div>
       </aside>
     );

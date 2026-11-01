@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, FileCode, FileText, History, Layers, Network } from "lucide-react";
+import { FileCode, FileText, History, Layers, Network } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
@@ -10,10 +10,9 @@ import { MdAuditTab } from "./components/md-audit-tab";
 import { MdCanvasTab } from "./components/md-canvas-tab";
 import { MdGeneralTab } from "./components/md-general-tab";
 import { MdJsonTab } from "./components/md-json-tab";
-import { MdPreviewTab } from "./components/md-preview-tab";
 import { useMenuDesigner } from "./hooks/use-menu-designer";
 
-type MenuDesignerTabKey = "general" | "canvas" | "preview" | "audit" | "json";
+type MenuDesignerTabKey = "general" | "canvas" | "audit" | "json";
 
 export function SysMenuDesigner({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
@@ -92,7 +91,6 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
             onIndentNode={treeOps.indentNode}
             onOutdentNode={treeOps.outdentNode}
             onMoveOrder={treeOps.moveNodeOrder}
-            onMoveParent={treeOps.moveNodeParent}
             onMoveNode={treeOps.moveNode}
             onAddSubgroup={(parentId: string | null) =>
               treeOps.addCustomGroup("New Group", parentId)
@@ -101,12 +99,6 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
             isReadOnly={isReadOnly}
           />
         ),
-      },
-      {
-        id: "preview",
-        label: "Interactive Preview",
-        icon: <Eye className="size-3 text-emerald-500" />,
-        content: <MdPreviewTab formData={formData} />,
       },
       {
         id: "audit",

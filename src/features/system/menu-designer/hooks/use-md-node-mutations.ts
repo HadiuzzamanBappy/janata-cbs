@@ -5,7 +5,7 @@ export function useMdNodeMutations(
   setNodes: (updater: (prev: MenuTreeNode[]) => MenuTreeNode[]) => void,
 ) {
   const addCatalogItem = React.useCallback(
-    (item: MenuCatalogActionItem, parentId: string | null = null) => {
+    (item: MenuCatalogActionItem, parentId: string | null = null, targetIndex?: number) => {
       const numericMenuId = parseInt(item.id, 10) || 0;
       const targetCmd = item.command?.trim().toUpperCase();
 
@@ -36,25 +36,34 @@ export function useMdNodeMutations(
         };
 
         if (!parentId) {
-          return [
-            { ...newNode, orderIndex: 1 },
-            ...prevNodes.map((n) => ({ ...n, orderIndex: n.orderIndex + 1 })),
-          ];
+          const updated = [...prevNodes];
+          const insertAt =
+            typeof targetIndex === "number" && targetIndex >= 0 && targetIndex <= updated.length
+              ? targetIndex
+              : updated.length;
+          updated.splice(insertAt, 0, newNode);
+          return updated.map((n, idx) => ({ ...n, orderIndex: idx + 1 }));
         }
 
         function insertIntoParent(list: MenuTreeNode[]): MenuTreeNode[] {
           return list.map((node) => {
             if (node.id === parentId) {
-              // Rule: Only group folders can accept children
-              if (node.command || node.menuId !== 0) {
+              // Rule: Group folders can accept children (non-command nodes or nodes with children)
+              if (node.command && (!node.children || node.children.length === 0)) {
                 return node;
               }
+              const updatedChildren = [...node.children];
+              const insertAt =
+                typeof targetIndex === "number" &&
+                targetIndex >= 0 &&
+                targetIndex <= updatedChildren.length
+                  ? targetIndex
+                  : updatedChildren.length;
+              updatedChildren.splice(insertAt, 0, newNode);
+
               return {
                 ...node,
-                children: [
-                  { ...newNode, orderIndex: 1 },
-                  ...node.children.map((c) => ({ ...c, orderIndex: c.orderIndex + 1 })),
-                ],
+                children: updatedChildren.map((c, idx) => ({ ...c, orderIndex: idx + 1 })),
               };
             }
             if (node.children.length > 0) {

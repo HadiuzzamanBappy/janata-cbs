@@ -33,6 +33,7 @@ export const formWidgetTypeSchema = z.enum([
   "radio-group",
   "switch",
   "checkbox",
+  "segmented",
 ]);
 export type FormWidgetType = z.infer<typeof formWidgetTypeSchema>;
 

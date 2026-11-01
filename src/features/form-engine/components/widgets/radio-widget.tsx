@@ -1,3 +1,7 @@
+"use client";
+
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps, WidgetOption } from "../../types";
 
@@ -48,21 +52,36 @@ export function RadioWidget({
   }
 
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      {options.map((opt) => (
-        <label key={opt.code} className="inline-flex items-center gap-1.5 cursor-pointer text-xs">
-          <input
-            type="radio"
-            name={id}
-            value={opt.code}
-            disabled={disabled}
-            checked={String(value) === opt.code}
-            onChange={() => onChange(opt.code)}
-            className="size-3.5 text-primary focus:ring-primary/40 border-border disabled:opacity-60 disabled:cursor-default"
-          />
-          <span className="text-foreground">{opt.label}</span>
-        </label>
-      ))}
-    </div>
+    <RadioGroup
+      value={value ? String(value) : ""}
+      onValueChange={(val: string) => onChange(val)}
+      disabled={disabled}
+      className={cn("flex items-center gap-5", className)}
+    >
+      {options.map((opt) => {
+        const radioId = `${id}-${opt.code}`;
+        const isSelected = String(value || "").toUpperCase() === opt.code.toUpperCase();
+        return (
+          <div key={opt.code} className="flex items-center gap-1.5">
+            <RadioGroupItem
+              id={radioId}
+              value={opt.code}
+              disabled={disabled}
+              className="size-3.5"
+            />
+            <Label
+              htmlFor={radioId}
+              className={cn(
+                "text-xs font-medium cursor-pointer select-none",
+                isSelected ? "text-foreground font-semibold" : "text-muted-foreground",
+                disabled && "cursor-default opacity-85",
+              )}
+            >
+              {opt.label}
+            </Label>
+          </div>
+        );
+      })}
+    </RadioGroup>
   );
 }

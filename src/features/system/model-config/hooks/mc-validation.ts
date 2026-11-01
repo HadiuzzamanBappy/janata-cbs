@@ -15,11 +15,11 @@ export function mapZodIssuesToValidationErrors(
     let sn: string | undefined;
     const fieldKey = String(path[path.length - 1] || "unknown");
 
-    if ((path[0] === "PROPERTIES" || path[0] === "properties") && typeof path[1] === "number") {
+    if (path[0] === "PROPERTIES" && typeof path[1] === "number") {
       tab = "properties";
       const targetProp = properties[path[1] as number];
       sn = targetProp?.SN;
-    } else if (path[0] === "auditData" || path[0] === "AUDITDATA") {
+    } else if (path[0] === "auditData") {
       tab = "audit";
     }
 

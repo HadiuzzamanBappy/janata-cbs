@@ -25,21 +25,20 @@ export function UnifiedFieldFactory({
   const effectiveLabel = labelOverride ?? field.LABEL ?? field.NAME;
   const fieldKey = field.NAME;
   const elementId = `elem_${field.SN}_${field.NAME}`;
-  const isMulti = field.STRUCTURE === "M";
-
   // Resolve options & widget configuration
   const { param, resolvedOptions, modelLoading } = useFieldOptions(field);
   const widget = useMemo(
     () => resolveWidgetType(field.TYPE, param, field.WIDGET),
     [field.TYPE, param, field.WIDGET],
   );
+  const isMulti = field.STRUCTURE === "M" && widget !== "checkbox" && widget !== "checkbox-group";
   const inputStyle = useMemo(
     () => getFieldWidthStyle(field.LENGTH, widget, field.WIDTH),
     [field.LENGTH, widget, field.WIDTH],
   );
   const effectiveEnrichText =
     field.ENRICHTEXT || ((field as Record<string, unknown>).enrichText as string) || undefined;
-  const placeholder = effectiveEnrichText || field.DEFAULTVALUE || undefined;
+  const placeholder = field.DEFAULTVALUE || undefined;
 
   // Manage multi-value array states
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =

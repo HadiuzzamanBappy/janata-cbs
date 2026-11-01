@@ -2,6 +2,7 @@ import type { FormFieldItem } from "@/lib/data-schemas/form-config-schema";
 import type { WidgetOption } from "../types";
 import { AmountWidget } from "./widgets/amount-widget";
 import { CheckboxGroupWidget } from "./widgets/checkbox-group-widget";
+import { CheckboxWidget } from "./widgets/checkbox-widget";
 import { DateWidget } from "./widgets/date-widget";
 import { RadioWidget } from "./widgets/radio-widget";
 import { SelectWidget } from "./widgets/select-widget";
@@ -94,17 +95,6 @@ export function renderFieldWidget({
         />
       );
     case "radio":
-      return (
-        <RadioWidget
-          id={rowId}
-          fieldKey={fieldKey}
-          value={value}
-          onChange={onChange}
-          disabled={isReadOnly}
-          options={resolvedOptions}
-          variant="standard"
-        />
-      );
     case "radio-group":
       return (
         <RadioWidget
@@ -114,7 +104,41 @@ export function renderFieldWidget({
           onChange={onChange}
           disabled={isReadOnly}
           options={resolvedOptions}
+          variant={field.WIDGET === "segmented" ? "group" : "standard"}
+        />
+      );
+    case "segmented":
+      return (
+        <RadioWidget
+          id={rowId}
+          fieldKey={fieldKey}
+          value={value}
+          onChange={onChange}
+          disabled={isReadOnly}
+          options={resolvedOptions}
           variant="group"
+        />
+      );
+    case "checkbox":
+      if (resolvedOptions && resolvedOptions.length > 0) {
+        return (
+          <CheckboxGroupWidget
+            id={rowId}
+            fieldKey={fieldKey}
+            value={value}
+            onChange={onChange}
+            disabled={isReadOnly}
+            options={resolvedOptions}
+          />
+        );
+      }
+      return (
+        <CheckboxWidget
+          id={rowId}
+          fieldKey={fieldKey}
+          value={value}
+          onChange={onChange}
+          disabled={isReadOnly}
         />
       );
     case "checkbox-group":

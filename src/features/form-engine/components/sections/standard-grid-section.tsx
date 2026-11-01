@@ -1,9 +1,9 @@
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
+import { getFieldColSpanClass, getGridColsClass } from "../../utils/section-utils";
 import { FieldAtom } from "../field-atom";
 import { UnifiedFieldFactory } from "../field-factory";
-import { getFieldColSpanClass, getGridColsClass } from "./section-utils";
 
 export interface StandardGridSectionProps {
   section: FormSection;

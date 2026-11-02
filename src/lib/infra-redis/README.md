@@ -11,8 +11,8 @@ It accelerates repetitive core banking metadata lookups (compiled form specifica
 ```text
 src/lib/infra-redis/
 ├── client.ts       # ioredis connection pool, circuit breaker (open/closed/cooldown), and atomic key operations
-├── cache.ts        # Read-through cache API (getOrSet), single-flight request collapse, and wildcard cache invalidation
-├── session.ts      # Server-side session lifecycle (create, read, patch, destroy) with inactivity timeout guard
+├── cache.ts        # Read-through cache API (getOrSet), single-flight request collapse, descriptor resolver, and auto-invalidation
+├── session.ts      # Server-side session lifecycle (create, read, patch, branch update, initLogin reset, destroy) with inactivity guard
 ├── rate-limit.ts   # Fixed-window Redis pipeline rate limiter for login brute-force prevention
 └── index.ts        # Server-only barrel exports ('server-only')
 ```
@@ -40,15 +40,15 @@ Prevents **cache stampedes ("thundering herd")** when 50+ tellers open the same 
 
 Invalidations never run the blocking `KEYS *` command. Instead, `cacheDelete()` runs cursor-based `SCAN ... COUNT 200` to delete keys in safe micro-batches.
 
-### 4. Wildcard Form Specification Invalidation (`spec:form:*`)
+### 4. Specification & Catalog Auto-Invalidation (`autoInvalidateOnMutation`)
 
-When a developer saves or authorizes changes in **Model Config** (`SC.MODEL.CONFIG`) or **Form Config** (`SC.FORM.CONFIG`):
-- `/api/proxy` automatically calls `invalidateCache(targetModel)`.
+When a developer or supervisor saves or authorizes changes in **Model Config** (`SC.MODEL.CONFIG`), **Form Config** (`SC.FORM.CONFIG`), or **Menu Designer** (`SC.MENU.TREE`):
+- `/api/proxy` automatically executes `autoInvalidateOnMutation(envelope)`.
 - It deletes wildcard pattern matches:
-  - Form specifications: `cbs:spec:form:${MODEL}*`
-  - Inquiry specifications: `cbs:spec:inq:${MODEL}*`
+  - Form specifications: `cbs:spec:${MODEL}*`
+  - Inquiry specifications: `cbs:spec:enq:${MODEL}*`
   - Menu catalog items: `cbs:menu:${MODEL}`
-- Tellers and operators receive the freshly compiled form immediately without server restarts or manual cache purges.
+- Tellers and operators receive the freshly updated layout or catalog immediately without server restarts or manual cache purges.
 
 ---
 
@@ -64,8 +64,8 @@ When a developer saves or authorizes changes in **Model Config** (`SC.MODEL.CONF
 ┌────────────────────────────────────────────────────────┐
 │                 /api/proxy Route Handler               │
 │                                                        │
-│   Detects mutation on MODEL.CONFIG or FORM.CONFIG      │
-│   targetModel = payload.targetModel || payload.tableName│
+│   Detects mutation (PUT, AUT, I, A) on CONFIG tables   │
+│   autoInvalidateOnMutation() resolves targetModel      │
 └───────────────────────────┬────────────────────────────┘
                             │
                             ▼
@@ -73,9 +73,9 @@ When a developer saves or authorizes changes in **Model Config** (`SC.MODEL.CONF
 │             invalidateCache(targetModel)               │
 │                                                        │
 │   Scans and purges:                                    │
-│   • cbs:spec:form:COLLATERAL*                          │
-│   • cbs:spec:inq:COLLATERAL*                           │
-│   • cbs:menu:COLLATERAL                                │
+│   • cbs:spec:ACCOUNT*                                  │
+│   • cbs:spec:enq:ACCOUNT*                              │
+│   • cbs:menu:ACCOUNT                                   │
 └───────────────────────────┬────────────────────────────┘
                             │
                             ▼
@@ -83,7 +83,7 @@ When a developer saves or authorizes changes in **Model Config** (`SC.MODEL.CONF
 │               Operator Opens Runtime Form              │
 │                                                        │
 │   getOrSet() experiences clean cache-miss              │
-│   compileFormSpec() compiles the fresh active model     │
+│   Backend retrieves fresh schema from CBS core         │
 │   and re-caches with TTL                               │
 └────────────────────────────────────────────────────────┘
 ```
@@ -94,35 +94,49 @@ When a developer saves or authorizes changes in **Model Config** (`SC.MODEL.CONF
 
 ### 1. Read-Through Caching (`getOrSet`)
 
-Used in backend services and API routes to cache compiled form specifications and inquiries:
+Used in backend services and API routes to cache compiled form specifications, menus, and inquiries:
 
 ```typescript
 import { getOrSet } from "@/lib/infra-redis";
-import { compileFormSpec } from "@/lib/cbs-form-spec";
 
-// Fetches from Redis cache if available; otherwise compiles and caches result
+// Fetches from Redis cache if available; otherwise executes fetcher and caches result
 const compiledSpec = await getOrSet(
-  `spec:form:${commandCode}`,
-  async () => {
-    const [model, formLayout] = await Promise.all([
-      fetchModelFromBackend(commandCode),
-      fetchLayoutFromBackend(commandCode),
-    ]);
-    return compileFormSpec(model, formLayout);
-  },
+  "spec:ACCOUNT",
+  async () => fetchModelFromBackend("ACCOUNT"),
   3600, // TTL in seconds (1 hour)
 );
 ```
 
 ---
 
-### 2. Wildcard Cache Invalidation (`invalidateCache`)
+### 2. Resolving Cache Descriptors (`resolveCacheDescriptor`)
+
+Transparently detects read operations on cacheable metadata entities and maps them to canonical Redis keys and TTLs:
+
+```typescript
+import { resolveCacheDescriptor } from "@/lib/infra-redis";
+
+const desc = resolveCacheDescriptor({
+  requestType: "GFC",
+  controlName: "CONFIG.FORM",
+  recordId: "ACCOUNT",
+});
+
+if (desc) {
+  console.log(desc.key); // "spec:ACCOUNT"
+  console.log(desc.ttl); // 3600
+}
+```
+
+---
+
+### 3. Wildcard Cache Invalidation (`invalidateCache`)
 
 ```typescript
 import { invalidateCache } from "@/lib/infra-redis";
 
 // 1. Invalidate all form specs, inquiries, and menus for a specific model:
-await invalidateCache("COLLATERAL");
+await invalidateCache("ACCOUNT");
 
 // 2. Invalidate all CBS namespaced cache keys (cbs:*):
 await invalidateCache();
@@ -130,40 +144,58 @@ await invalidateCache();
 
 ---
 
-### 3. Managing Server Sessions (`session.ts`)
+### 4. Managing Server Sessions (`session.ts`)
 
 Encapsulates user session state behind secure, HTTP-only cookie IDs (`sid`):
 
 ```typescript
-import { createSession, getSession, destroySession } from "@/lib/infra-redis";
+import {
+  createSession,
+  getSession,
+  updateBranchCodeAndName,
+  clearInitialLoginRequirement,
+  destroySession,
+} from "@/lib/infra-redis";
 
-// On Login:
+// 1. On Login:
 const sessionId = await createSession({
   userId: "AD028459",
   token: "jwt-token-string",
   currUser: {
     userId: "AD028459",
-    userName: "Senior Officer",
+    fullName: "Senior Officer",
     branchCode: "JB0001",
     branchName: "Corporate Branch",
+    txnDate: "2026-11-02",
+    userRole: ["USER"],
     accessibility: "RIDASHL",
+    isLoggedIn: true,
+    commandLine: true,
+    initLogin: false,
+    userStatus: 1,
   },
 });
 
-// In API Route / Server Action:
+// 2. In API Route / Server Action:
 const session = await getSession();
 if (!session) {
   throw new Error("UNAUTHORIZED");
 }
-console.log(session.currUser.userName);
+console.log(session.currUser.fullName);
 
-// On Logout:
+// 3. On Branch Roaming:
+await updateBranchCodeAndName("JB0101", "Principal Branch");
+
+// 4. On First-Time Password Reset:
+await clearInitialLoginRequirement();
+
+// 5. On Logout:
 await destroySession();
 ```
 
 ---
 
-### 4. Login Rate Limiting (`rateLimit`)
+### 5. Login Rate Limiting (`rateLimit`)
 
 Fixed-window rate limiter protecting login endpoints:
 
@@ -171,7 +203,7 @@ Fixed-window rate limiter protecting login endpoints:
 import { rateLimit } from "@/lib/infra-redis";
 
 const clientIp = "192.168.1.100";
-const result = await rateLimit(`login:${clientIp}`, 3, 60);
+const result = await rateLimit(`login:${clientIp}:USER01`, 5, 60);
 
 if (!result.allowed) {
   throw new Error(`Too many login attempts. Try again in ${result.resetSec}s`);
@@ -207,8 +239,9 @@ pnpm cache:clear
 
 ## 🧪 Verification
 
-Run the infrastructure verification suite:
+Run the infrastructure verification suites:
 
 ```bash
 pnpm verify:services
+pnpm verify:config
 ```

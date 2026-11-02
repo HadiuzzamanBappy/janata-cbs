@@ -1,10 +1,8 @@
-import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
-import { appConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import type { ApiResponse } from "@/lib/data-schemas";
 import { changePasswordSchema } from "@/lib/data-schemas";
-import { getSession, updateSession } from "@/lib/infra-redis";
+import { clearInitialLoginRequirement, getSession } from "@/lib/infra-redis";
 import { apiError, apiFail, apiSuccess } from "../_lib/response";
 
 export const runtime = "nodejs";
@@ -30,17 +28,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
     }
 
-    // Update active Redis session to set initLogin = false
-    await updateSession({
-      currUser: {
-        ...session.currUser,
-        initLogin: false,
-      },
-    });
-
-    // Remove the initLogin HTTP cookie restriction
-    const store = await cookies();
-    store.delete(appConfig.auth.initLoginCookie);
+    // Clear initial login requirement in active Redis session and delete restriction cookie
+    await clearInitialLoginRequirement();
 
     pwdLogger.info(`Password successfully changed for user ${session.userId}`);
     return apiSuccess(undefined, "Password updated successfully.");

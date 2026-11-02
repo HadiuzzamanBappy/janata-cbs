@@ -1,4 +1,4 @@
-import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
+import { CBS_FUNCTION_CODES, CbsRecordFunction } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* Accessibility Profile Parser                                               */
@@ -51,4 +51,49 @@ export function hasAccessibilityRight(
   required: CbsRecordFunction,
 ): boolean {
   return granted.includes(required);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Server-Side Capability Gate (Maker-Checker & RIDASHL Verification)         */
+/* -------------------------------------------------------------------------- */
+
+export interface UserAccessProfile {
+  userId?: string;
+  accessibility?: string | null;
+  functionRights?: readonly string[] | null;
+}
+
+const CONTROLLED_FUNCTIONS = new Set<CbsRecordFunction>([
+  CbsRecordFunction.AUTHORIZE,
+  CbsRecordFunction.DELETE,
+  CbsRecordFunction.REVERSE,
+  CbsRecordFunction.HOLD,
+  CbsRecordFunction.INPUT,
+]);
+
+/**
+ * Validates whether a user holds the necessary RIDASHL capability to execute a function code.
+ * Returns null if allowed, or an error message string if denied.
+ */
+export function verifyUserRecordAccess(
+  user: UserAccessProfile,
+  recordFunction?: string | null,
+): { message: string; funcCode: CbsRecordFunction } | null {
+  if (!recordFunction) return null;
+
+  const funcCode = recordFunction.toUpperCase().trim() as CbsRecordFunction;
+  if (!CONTROLLED_FUNCTIONS.has(funcCode)) return null;
+
+  const rights = parseAccessibilityRights(
+    user.functionRights?.length ? user.functionRights : user.accessibility,
+  );
+
+  if (!rights.includes(funcCode)) {
+    return {
+      message: `Access Denied: Missing '${funcCode}' capability in user profile.`,
+      funcCode,
+    };
+  }
+
+  return null;
 }

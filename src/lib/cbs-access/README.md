@@ -2,17 +2,18 @@
 
 A deterministic, banking-grade entitlement and compliance evaluation library for the **Janata Core Banking Workbench**.
 
-It enforces standard Core Banking **RIDASHL** function entitlements, record lifecycle integrity, and the **Four-Eyes Principle (Maker-Checker)** across all screens and actions.
+It enforces standard Core Banking **RIDASHL** function entitlements, record lifecycle integrity, and the **Four-Eyes Principle (Maker-Checker)** across all screens, actions, and API boundaries.
 
 ---
 
 ## 📦 What It Contains
 
-The library consists of three core components:
+The library consists of four core components:
 
 1. **`parseAccessibilityRights`**: Normalizes and parses raw user accessibility tokens (e.g. `"RIDASHL"`, `"FULL"`, or `["R", "I", "D", "A", "S", "H", "L"]`).
-2. **`evaluateCbsAccess`**: Pure, deterministic evaluator combining user rights, record lifecycle status (`INA`, `AU`, `NEW`), and Four-Eyes checks to compute UI capabilities.
-3. **`useCbsAccess`**: Reactive React hook that bridges session state to the access evaluator.
+2. **`verifyUserRecordAccess`**: Server-side capability gate for API route handlers and microservices. Rejects unauthorized mutation/approval attempts before transport dispatch.
+3. **`evaluateCbsAccess`**: Pure, deterministic evaluator combining user rights, record lifecycle status (`INA`, `AU`, `NEW`), and Four-Eyes checks to compute UI capabilities.
+4. **`useCbsAccess`**: Reactive React hook that bridges session state to the access evaluator.
 
 ---
 
@@ -77,9 +78,28 @@ export function CustomerScreen({ customerRecord }) {
 
 ---
 
-### 2. Pure Evaluation in Services or Tests (`evaluateCbsAccess`)
+### 2. Server-Side Route Guard (`verifyUserRecordAccess`)
 
-For offline evaluation, unit tests, or server-side checks:
+Used at server boundaries (e.g. `/api/proxy`) to verify whether an incoming action code (`I`, `A`, `D`, `R`, `H`) is permitted by the caller's active session profile:
+
+```typescript
+import { verifyUserRecordAccess } from "@/lib/cbs-access";
+
+// Inside an API Route or Server Action:
+const accessViolation = verifyUserRecordAccess(session.currUser, body.recordFunction);
+
+if (accessViolation) {
+  return apiFail(accessViolation.message, 403, [
+    `User lacks capability '${accessViolation.funcCode}'`,
+  ]);
+}
+```
+
+---
+
+### 3. Pure Evaluation in Services or Tests (`evaluateCbsAccess`)
+
+For offline evaluation, unit tests, or backend rule enforcement:
 
 ```typescript
 import { evaluateCbsAccess, parseAccessibilityRights } from "@/lib/cbs-access";

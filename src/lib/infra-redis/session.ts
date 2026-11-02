@@ -152,12 +152,14 @@ export async function getFromSession<K extends keyof SessionData>(
   return session ? session[key] : null;
 }
 
+export type SessionPatch = Partial<Omit<SessionData, "createdAt" | "currUser">> & {
+  currUser?: Partial<CurrentUser>;
+};
+
 /**
  * Patches the existing active session while preserving remaining TTL.
  */
-export async function updateSession(
-  patch: Partial<Omit<SessionData, "createdAt">>,
-): Promise<SessionData | null> {
+export async function updateSession(patch: SessionPatch): Promise<SessionData | null> {
   const id = await currentSessionId();
   if (!id) return null;
 
@@ -177,7 +179,7 @@ export async function updateSession(
 }
 
 /**
- * Updates active user's branch code and branch name seamlessly.
+ * Updates active user's branch code and branch name seamlessly and updates the branch cookie.
  */
 export async function updateBranchCodeAndName(
   branchCode: string,
@@ -189,7 +191,31 @@ export async function updateBranchCodeAndName(
   const next = await updateSession({
     currUser: { ...session.currUser, branchCode, branchName },
   });
+
+  if (next?.currUser) {
+    const store = await cookies();
+    const isSecure = !appConfig.isDev && appConfig.useHttps;
+    store.set(appConfig.auth.branchCookie, branchCode, {
+      httpOnly: false,
+      secure: isSecure,
+      sameSite: "lax",
+      path: "/",
+      maxAge: TTL_SECONDS,
+    });
+  }
+
   return next?.currUser ?? null;
+}
+
+/**
+ * Completes the first-time login lifecycle by clearing the initLogin requirement.
+ */
+export async function clearInitialLoginRequirement(): Promise<void> {
+  await updateSession({
+    currUser: { initLogin: false },
+  });
+  const store = await cookies();
+  store.delete(appConfig.auth.initLoginCookie);
 }
 
 /**

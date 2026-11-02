@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
+import { cbs } from "@/lib/cbs-client";
 import { appConfig } from "@/lib/core-config";
 import { cn, toTitleCase } from "@/lib/core-utils";
 import { useSessionStore } from "@/store";
@@ -47,16 +48,28 @@ export function BranchSwitcher({
   } = useQuery<BranchItem[]>({
     queryKey: ["app", "branches"],
     queryFn: async () => {
-      const res = await fetch(appConfig.routes.api.branches);
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        return json.data.map((b: { recordId: string; branchTitle: string }) => ({
-          code: b.recordId,
-          name: b.branchTitle,
-          type: b.recordId === appConfig.centralBranch ? "Head Office" : "General",
+      const res = await cbs.send<Array<{ recordId?: string; id?: string; branchTitle?: string }>>(
+        {
+          requestType: "GRL",
+          controlName: "BRANCH",
+        },
+        { silent: true },
+      );
+
+      if (res.status === "SUCCESS" && Array.isArray(res.data)) {
+        return res.data.map((b) => ({
+          code: String(b.recordId || b.id || ""),
+          name: String(b.branchTitle || b.recordId || ""),
+          type: (b.recordId || b.id) === appConfig.centralBranch ? "Head Office" : "General",
         }));
       }
-      throw new Error(json.error || "Failed to load branch list");
+      return [
+        {
+          code: appConfig.centralBranch,
+          name: "Central Head Office",
+          type: "Head Office",
+        },
+      ];
     },
   });
 

@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/core-logger";
 import { loginSchema } from "@/lib/data-schemas";
+import { loginUser } from "@/lib/infra-grpc";
 import { rateLimit } from "@/lib/infra-redis";
-import { loginUser } from "@/lib/infra-services";
 import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";

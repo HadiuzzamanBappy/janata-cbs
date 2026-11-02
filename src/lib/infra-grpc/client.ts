@@ -157,6 +157,13 @@ export function grpcStatusToHttp(err: unknown): {
     [grpcStatus.PERMISSION_DENIED]: 403,
     [grpcStatus.NOT_FOUND]: 404,
     [grpcStatus.ALREADY_EXISTS]: 409,
+    [grpcStatus.RESOURCE_EXHAUSTED]: 429,
+    [grpcStatus.FAILED_PRECONDITION]: 412,
+    [grpcStatus.ABORTED]: 409,
+    [grpcStatus.OUT_OF_RANGE]: 400,
+    [grpcStatus.UNIMPLEMENTED]: 501,
+    [grpcStatus.INTERNAL]: 500,
+    [grpcStatus.DATA_LOSS]: 500,
     [grpcStatus.DEADLINE_EXCEEDED]: 504,
     [grpcStatus.UNAVAILABLE]: 503,
   };

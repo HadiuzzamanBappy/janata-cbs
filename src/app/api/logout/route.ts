@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/core-logger";
-import { logoutUser } from "@/lib/infra-services";
+import { logoutUser } from "@/lib/infra-grpc";
 import type { ApiResponse } from "@/types";
 
 export const runtime = "nodejs";

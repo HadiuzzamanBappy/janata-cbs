@@ -2,9 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
+import { cbs } from "@/lib/cbs-client";
 import { extractMenuCommands, getAllRegisteredCommands } from "@/lib/cbs-command";
-import { appConfig } from "@/lib/core-config";
-import type { SystemCommandItem } from "@/lib/data-schemas";
+import type { MenuItem, SystemCommandItem } from "@/lib/data-schemas";
 
 interface UseSearchCommandsOptions {
   open: boolean;
@@ -18,10 +18,9 @@ export function useSearchCommands({ open, userHasCommandLine }: UseSearchCommand
     enabled: open,
     queryFn: async () => {
       try {
-        const res = await fetch(appConfig.routes.api.menu);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          return extractMenuCommands(json.data);
+        const res = await cbs.send<MenuItem[]>(cbs.menu.getNavigationTree(), { silent: true });
+        if (res.status === "SUCCESS" && Array.isArray(res.data)) {
+          return extractMenuCommands(res.data);
         }
       } catch {
         // Fallback
@@ -29,34 +28,12 @@ export function useSearchCommands({ open, userHasCommandLine }: UseSearchCommand
       return [];
     },
   });
-
-  // 2. Fetch controls commands only if user has commandLine permission
-  const { data: controlCmds = [] } = useQuery<SystemCommandItem[]>({
-    queryKey: ["app", "commands", "controls"],
-    enabled: open && userHasCommandLine,
-    queryFn: async () => {
-      try {
-        const res = await fetch(appConfig.routes.api.controls);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          return json.data;
-        }
-      } catch {
-        // Fallback
-      }
-      return [];
-    },
-  });
-
-  const apiMenuItems = React.useMemo(() => {
-    return [...menuCmds, ...(userHasCommandLine ? controlCmds : [])];
-  }, [menuCmds, controlCmds, userHasCommandLine]);
 
   // Merge static registry commands + dynamic API menu commands (deduplicated by command string)
   const allCommands = React.useMemo(() => {
     const staticCmds = getAllRegisteredCommands();
     const map = new Map<string, SystemCommandItem>();
-    for (const cmd of apiMenuItems) {
+    for (const cmd of menuCmds) {
       if (!map.has(cmd.command.toUpperCase())) {
         map.set(cmd.command.toUpperCase(), cmd);
       }
@@ -69,7 +46,7 @@ export function useSearchCommands({ open, userHasCommandLine }: UseSearchCommand
       map.set(cmd.command.toUpperCase(), cmd);
     }
     return Array.from(map.values());
-  }, [apiMenuItems, userHasCommandLine]);
+  }, [menuCmds, userHasCommandLine]);
 
   return {
     allCommands,

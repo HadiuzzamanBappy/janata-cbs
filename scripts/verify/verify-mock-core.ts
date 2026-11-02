@@ -16,7 +16,7 @@
  * 12. Full Unary gRPC Wire Envelope Dispatch (mockProcess)
  *
  * Usage:
- *   pnpm tsx scripts/verify-mock-core.ts
+ *   pnpm tsx scripts/verify/verify-mock-core.ts
  */
 
 // Pre-empt server-only in require.cache for standalone Node / tsx execution
@@ -38,9 +38,7 @@ try {
 export {};
 
 async function runSuite() {
-  const { appConfig } = await import("@/lib/core-config/server");
-  const { isStaticMode, loginProcess } = await import("@/lib/infra-grpc");
-  const { getMockProxyResponse, mockProcess } = await import("@mock/core");
+  const { getMockProxyResponse, mockLogin, mockProcess } = await import("@mock/core");
   const { resolveTable } = await import("@mock/core/database-router");
 
   interface TestCase {
@@ -53,6 +51,13 @@ async function runSuite() {
 
   const testCases: TestCase[] = [];
 
+  console.log("\n================================================================================");
+  console.log("             CBS MOCK CORE ENGINE & FIXTURE DATABASE VERIFICATION               ");
+  console.log("================================================================================");
+  console.log(" Target Environment : Pure In-Memory Mock Core Simulator (@mock/core & @mock/db)");
+  console.log(" Pattern            : Single Unique Test per Mock Core Function (0 Infra Coupling)");
+  console.log("================================================================================");
+
   function recordTest(
     title: string,
     input: unknown,
@@ -61,7 +66,7 @@ async function runSuite() {
     error?: string,
   ) {
     testCases.push({ title, input, output, passed: condition, error });
-    const statusTag = condition ? "[PASS]" : "[FAIL]";
+    const statusTag = condition ? "\x1b[32m✔ [PASS]\x1b[0m" : "\x1b[31m✖ [FAIL]\x1b[0m";
     console.log(`\n${statusTag} ${title}`);
     console.log(`       Input  : ${typeof input === "string" ? input : JSON.stringify(input)}`);
     console.log(`       Output : ${typeof output === "string" ? output : JSON.stringify(output)}`);
@@ -70,28 +75,8 @@ async function runSuite() {
     }
   }
 
-  const originalDataSource = appConfig.dataSource;
-
-  console.log("\n================================================================================");
-  console.log("             CBS MOCK CORE ENGINE & FIXTURE DATABASE VERIFICATION               ");
-  console.log("================================================================================");
-  console.log(" Target Environment : In-Memory Database & Core Simulator (0 Sockets)");
-  console.log(" Pattern            : Single Unique Test per Core Banking Lifecycle Function");
-  console.log("================================================================================");
-
   try {
-    (appConfig as { dataSource: string }).dataSource = "static";
-
-    // 1. Gateway Runtime Mode Switch
-    const staticCheck = isStaticMode();
-    recordTest(
-      "1. Gateway Runtime Mode Switch",
-      { dataSource: appConfig.dataSource },
-      { isStaticMode: staticCheck },
-      staticCheck === true,
-    );
-
-    // 2. Database Router Table Resolution
+    // 1. Database Router Table Resolution
     const inputTable = "ACCOUNT";
     const resolvedTable = resolveTable(inputTable);
     const tableOut = {
@@ -100,24 +85,24 @@ async function runSuite() {
       totalRecords: resolvedTable?.getList().length,
     };
     recordTest(
-      "2. Database Router Table Resolution",
+      "1. Database Router Table Resolution",
       { controlName: inputTable },
       tableOut,
       resolvedTable?.physicalName === "AC_ACCOUNT",
     );
 
-    // 3. Operator Authentication & Session Minting (Strict username + password)
+    // 2. Operator Authentication & Session Minting (Strict username + password)
     const loginInput = { clientId: "WEB-CLIENT", username: "ZZ028459", password: "password123" };
-    const authRes = await loginProcess(loginInput);
+    const authRes = await mockLogin(loginInput);
     const authData = authRes.data as Record<string, unknown> | undefined;
 
     // Negative tests: wrong password and missing password must fail with 401
-    const wrongPassRes = await loginProcess({
+    const wrongPassRes = await mockLogin({
       clientId: "WEB-CLIENT",
       username: "ZZ028459",
       password: "wrong_password",
     });
-    const noPassRes = await loginProcess({
+    const noPassRes = await mockLogin({
       clientId: "WEB-CLIENT",
       username: "ZZ028459",
       password: "",
@@ -134,7 +119,7 @@ async function runSuite() {
       rejectsEmptyPass: noPassRes.statusCode === 401,
     };
     recordTest(
-      "3. Operator Authentication & Session Minting",
+      "2. Operator Authentication & Session Minting",
       { username: loginInput.username, password: "***" },
       authOut,
       authRes.statusCode === 200 &&
@@ -181,20 +166,20 @@ async function runSuite() {
         Boolean(formControl?.frmElements || gfcFormData?.frmElements),
     );
 
-    // 5. Navigation Menu Tree Hierarchy (GUM)
-    const gumInput = { requestType: "GUM" };
-    const gumRes = getMockProxyResponse("GUM");
-    const gumData = gumRes.data as Array<Record<string, unknown>> | undefined;
-    const gumOut = {
-      status: gumRes.status,
-      rootNodesCount: gumData?.length,
-      sampleRootNode: gumData?.[0]?.label || gumData?.[0]?.name,
+    // 5. Navigation Menu Tree Hierarchy (MENU.TREE in S mode)
+    const menuTreeInput = { requestType: "S", controlName: "MENU.TREE", recordId: "MENU.MAIN" };
+    const menuTreeRes = getMockProxyResponse("S", "MENU.TREE", "MENU.MAIN");
+    const menuTreeData = menuTreeRes.data as { menuTree?: unknown[] } | undefined;
+    const menuOut = {
+      status: menuTreeRes.status,
+      rootNodesCount: menuTreeData?.menuTree?.length,
+      sampleRootNode: (menuTreeData?.menuTree?.[0] as { label?: string; name?: string })?.label,
     };
     recordTest(
-      "5. Navigation Menu Tree Hierarchy (GUM)",
-      gumInput,
-      gumOut,
-      gumRes.status === "SUCCESS" && Boolean(gumData && gumData.length > 0),
+      "5. Navigation Menu Tree Hierarchy (MENU.TREE in S mode)",
+      menuTreeInput,
+      menuOut,
+      menuTreeRes.status === "SUCCESS" && Boolean(menuTreeData?.menuTree?.length),
     );
 
     // 6. Versioned Presentation Configuration (CONFIG.FORM S Mode)
@@ -343,25 +328,21 @@ async function runSuite() {
       rpcRes.status === "SUCCESS" && rpcRes.statusCode === 200,
     );
   } finally {
-    (appConfig as { dataSource: string }).dataSource = originalDataSource;
+    // Teardown
   }
 
+  // Consolidated Summary
+  const passedTests = testCases.filter((t) => t.passed).length;
+  const failedTests = testCases.filter((t) => !t.passed).length;
+
   console.log("\n================================================================================");
-  const allPassed = testCases.every((t) => t.passed);
-  if (allPassed) {
-    console.log(`>>> ALL ${testCases.length} UNIQUE CORE TESTS PASSED WITH 100% SUCCESS! <<<`);
-    console.log(
-      "================================================================================\n",
-    );
-    process.exit(0);
+  if (failedTests === 0) {
+    console.log(`>>> SUCCESS: ALL ${passedTests} MOCK CORE CAPABILITIES VALIDATED 100% CLEAN! <<<`);
   } else {
-    const failedCount = testCases.filter((t) => !t.passed).length;
-    console.error(`>>> FAILED: ${failedCount} OF ${testCases.length} TESTS FAILED! <<<`);
-    console.log(
-      "================================================================================\n",
-    );
+    console.error(`>>> FAILURE: ${failedTests} TESTS FAILED! <<<`);
     process.exit(1);
   }
+  console.log("================================================================================\n");
 }
 
 runSuite().catch((err: unknown) => {

@@ -152,7 +152,9 @@ pnpm verify:access      # Tests RIDASHL rights, Four-Eyes principle, and role cl
 pnpm verify:command     # Tests CBS command gateway syntax, aliases, and RBAC execution
 pnpm verify:client      # Tests wire request factories (GET, PUT, AUT, INQ, GRL)
 pnpm verify:record      # Tests CBS record status transitions (INA, AU, Hold, Reverse)
-pnpm verify:matrix      # Tests environment matrix, mock fixtures, and wire parsers
+pnpm verify:schemas     # Tests Zod domain schemas and validation contracts
+pnpm verify:config      # Tests environment matrix and runtime configuration
+pnpm verify:logger      # Tests banking-grade logger and PII redaction engine
 pnpm verify:utils       # Tests currency formatting (BDT), account masks, and value dates
 pnpm verify:services    # Tests infrastructure services and gRPC protocol mapping
 pnpm verify:mock        # Tests in-memory mock engine & simulated database fixtures

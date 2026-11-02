@@ -1,4 +1,4 @@
-﻿---
+---
 
 name: cbs-verification-suite
 description: Use this skill when validating code changes, diagnosing regressions, running banking rule tests, or checking layer dependencies and contracts before finalizing a task.
@@ -45,7 +45,9 @@ When working on a specific feature, run the targeted test to quickly verify your
 | `pnpm verify:command`   | Command Gateway   | Syntax parsing, comma auto-auth (`USER,`), aliases (`MD`, `UG`) |
 | `pnpm verify:client`    | Wire Protocol     | Payload factories (`GET`, `PUT`, `AUT`, `INQ`, `GRL`)           |
 | `pnpm verify:utils`     | Core Utils        | Currency formatting (`BDT`), masking (`****`), value dates      |
-| `pnpm verify:matrix`    | Env & Matrix      | Wire fixtures, mock parsers, PII redaction                      |
+| `pnpm verify:schemas`   | Domain Schemas    | Zod domain validation contracts and auth rules                  |
+| `pnpm verify:config`    | Core Config       | Environment matrix permutations, runtime configs, services      |
+| `pnpm verify:logger`    | Core Logger       | Account number masking, sensitive keys, deep PII redaction      |
 | `pnpm verify:services`  | Infra Services    | Mock responses, fallback dispatcher, GRL catalog items          |
 | `pnpm verify:mock`      | Mock Database     | In-memory core dispatch, login, and process paths               |
 

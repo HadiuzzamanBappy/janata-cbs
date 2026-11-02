@@ -119,5 +119,5 @@ When the banking backend introduces a new table or screen model (e.g. `loan-sche
 
 Run the schema and environment verification suite:
 ```bash
-pnpm verify:matrix
+pnpm verify:schemas
 ```

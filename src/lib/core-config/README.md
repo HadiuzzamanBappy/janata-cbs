@@ -93,5 +93,5 @@ export const SERVICES: Record<string, ServiceDef> = {
 
 Run the environment matrix and schema verification:
 ```bash
-pnpm verify:matrix
+pnpm verify:config
 ```

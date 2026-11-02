@@ -97,5 +97,5 @@ If new sensitive fields or account prefixes are introduced by the banking system
 
 Run the test suite verifying redaction and formatting:
 ```bash
-pnpm verify:matrix
+pnpm verify:logger
 ```

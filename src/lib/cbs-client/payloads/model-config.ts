@@ -1,5 +1,5 @@
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 import { createModelPayloads, type ModelOptions } from "./base-model";
 
 /* -------------------------------------------------------------------------- */
@@ -22,9 +22,8 @@ export const modelConfigPayloads = {
    * Dedicated metamodel verb replacing generic 'GET'.
    */
   get: (recordId: string, options?: ModelOptions): CbsWirePayload => {
-    const servicePath = options?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
     return {
-      servicePath,
+      servicePath: options?.servicePath?.trim(),
       requestType: CbsRequestType.GMC,
       controlName: CbsControlTable.MODEL_CONFIG,
       recordFunction: CbsRecordFunction.SEE,
@@ -44,14 +43,13 @@ export const modelConfigPayloads = {
       idempotencyKey?: string;
     },
   ): CbsWirePayload => {
-    const servicePath = options?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
     const targetId = (options?.recordId || data?.recordId || data?.TABLENAME || "")
       .toString()
       .trim()
       .toUpperCase();
 
     return {
-      servicePath,
+      servicePath: options?.servicePath?.trim(),
       requestType: CbsRequestType.SMC,
       controlName: CbsControlTable.MODEL_CONFIG,
       recordFunction: options?.recordFunction || CbsRecordFunction.INPUT,
@@ -66,9 +64,8 @@ export const modelConfigPayloads = {
    * Dedicated metamodel verb replacing generic 'AUT'.
    */
   authorize: (recordId: string, options?: ModelOptions): CbsWirePayload => {
-    const servicePath = options?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
     return {
-      servicePath,
+      servicePath: options?.servicePath?.trim(),
       requestType: CbsRequestType.AMC,
       controlName: CbsControlTable.MODEL_CONFIG,
       recordFunction: CbsRecordFunction.AUTHORIZE,

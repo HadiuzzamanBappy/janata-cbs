@@ -1,5 +1,6 @@
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
+import { CbsRequestType } from "@/types";
+
 export const userSecurityPayloads = {
   changeSignOnName: (params: {
     oldUserName: string;
@@ -7,7 +8,7 @@ export const userSecurityPayloads = {
     password: string;
     servicePath?: string;
   }): CbsWirePayload => ({
-    servicePath: params.servicePath || DEFAULT_SERVICE_PATH,
+    servicePath: params.servicePath,
     requestType: CbsRequestType.CUN,
     controlName: "",
     data: params,
@@ -18,7 +19,7 @@ export const userSecurityPayloads = {
     newPass: string;
     servicePath?: string;
   }): CbsWirePayload => ({
-    servicePath: params.servicePath || DEFAULT_SERVICE_PATH,
+    servicePath: params.servicePath,
     requestType: CbsRequestType.CPW,
     controlName: "",
     data: params,

@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { appConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
+import type { ApiResponse } from "@/lib/data-schemas";
 import { type CurrentUser, type LoginInput, loginSchema } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
-import type { ApiResponse } from "@/types";
 
 export function useLogin() {
   const router = useRouter();

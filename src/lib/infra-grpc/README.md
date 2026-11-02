@@ -192,5 +192,5 @@ When integrating new microservices or special command codes:
 
 Run the infrastructure verification suite:
 ```bash
-pnpm verify:services
+pnpm verify:grpc
 ```

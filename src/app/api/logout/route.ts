@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { logger } from "@/lib/core-logger";
+import type { ApiResponse } from "@/lib/data-schemas";
 import { logoutUser } from "@/lib/infra-grpc";
-import type { ApiResponse } from "@/types";
+import { apiError, apiSuccess } from "../_lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,28 +13,9 @@ export async function POST(): Promise<NextResponse<ApiResponse>> {
   try {
     await logoutUser();
     logoutLogger.info("User logged out successfully");
-    return NextResponse.json(
-      {
-        success: true,
-        status: "SUCCESS",
-        statusCode: 200,
-        message: "Logged out successfully",
-        timestamp: new Date().toISOString(),
-      },
-      { status: 200 },
-    );
+    return apiSuccess(undefined, "Logged out successfully");
   } catch (err: unknown) {
     logoutLogger.error("POST /api/logout failed", err);
-    const message = err instanceof Error ? err.message : "Failed to logout";
-    return NextResponse.json(
-      {
-        success: false,
-        status: "ERROR",
-        statusCode: 500,
-        message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    );
+    return apiError(err, "Failed to logout");
   }
 }

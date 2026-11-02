@@ -13,6 +13,8 @@
  */
 
 import {
+  apiResponseSchema,
+  cbsWirePayloadSchema,
   changePasswordSchema,
   currentUserSchema,
   formConfigRecordSchema,
@@ -188,6 +190,32 @@ async function runSuite() {
     { rootNodesCount: sampleMenuTree.menuTree.length },
     { conforms: menuSchemaResult.success },
     menuSchemaResult.success === true,
+  );
+
+  // 7. Universal Wire & API Response Contracts
+  const sampleWirePayload = {
+    requestType: "PUT",
+    controlName: "ACCOUNT",
+    recordId: "10001",
+    data: { title: "Savings" },
+  };
+  const wireResult = cbsWirePayloadSchema.safeParse(sampleWirePayload);
+
+  const sampleApiResponse = {
+    status: "SUCCESS",
+    statusCode: 200,
+    message: "Record saved",
+    data: { id: "10001" },
+    timestamp: "2026-11-03T00:58:00.000Z",
+    success: true,
+  };
+  const responseResult = apiResponseSchema.safeParse(sampleApiResponse);
+
+  recordTest(
+    "7. Wire & Response Schemas: Validates cbsWirePayload and apiResponse wire contracts",
+    { wireType: sampleWirePayload.requestType, resStatus: sampleApiResponse.status },
+    { wireSuccess: wireResult.success, resSuccess: responseResult.success },
+    wireResult.success === true && responseResult.success === true,
   );
 
   // Final Summary

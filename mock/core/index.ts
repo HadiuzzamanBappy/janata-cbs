@@ -1,8 +1,8 @@
 import "server-only";
 
-import type { CbsWirePayload, GrpcEnvelope } from "@/lib/data-schemas";
+import type { ApiResponse, CbsWirePayload, GrpcEnvelope } from "@/lib/data-schemas";
 import type { GrpcRequest, GrpcResponse } from "@/lib/infra-grpc/generated/service";
-import { type ApiResponse, CbsRecordFunction, CbsRequestType } from "@/types";
+import { CbsRecordFunction, CbsRequestType } from "@/types";
 import { buildMockUserAuthResponse, getMockUserResponse, mockLogin } from "./auth-simulator";
 import {
   getMockFormPayload,

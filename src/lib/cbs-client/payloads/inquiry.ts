@@ -1,5 +1,5 @@
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
+import { CbsRecordFunction, CbsRequestType } from "@/types";
 
 export interface InquiryCriteriaParam {
   readonly selectFieldName: string;
@@ -24,7 +24,7 @@ export const inquiryPayloads = {
    * Execute tabular runtime enquiry query ('INQ').
    */
   executeQuery: (controlName: string, options: InquiryExecuteOptions = {}): CbsWirePayload => ({
-    servicePath: options.servicePath || DEFAULT_SERVICE_PATH,
+    servicePath: options.servicePath,
     requestType: CbsRequestType.INQ,
     controlName: controlName.trim().toUpperCase(),
     recordFunction: CbsRecordFunction.SEE,

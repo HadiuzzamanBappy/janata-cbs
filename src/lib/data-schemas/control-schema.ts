@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Command / Control Action Types                            */
@@ -29,17 +28,3 @@ export const systemCommandItemSchema = z.object({
 });
 
 export type SystemCommandItem = z.infer<typeof systemCommandItemSchema>;
-
-/* -------------------------------------------------------------------------- */
-/* CBS Control Table Record Schema (Database Persistence)                     */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Validates persistent control table records stored in database / gRPC (SC_CONTROL).
- * Extends the canonical command contract with CBS maker-checker auditData.
- */
-export const rawControlRecordSchema = systemCommandItemSchema.extend({
-  auditData: auditDataSchema,
-});
-
-export type RawControlRecord = z.infer<typeof rawControlRecordSchema>;

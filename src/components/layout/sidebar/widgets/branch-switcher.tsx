@@ -49,10 +49,7 @@ export function BranchSwitcher({
     queryKey: ["app", "branches"],
     queryFn: async () => {
       const res = await cbs.send<Array<{ recordId?: string; id?: string; branchTitle?: string }>>(
-        {
-          requestType: "GRL",
-          controlName: "BRANCH",
-        },
+        cbs.branch.list(),
         { silent: true },
       );
 

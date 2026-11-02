@@ -22,6 +22,8 @@ import { sendCbsRequest } from "./transport/proxy-client";
 export const cbs = {
   send: sendCbsRequest,
   model: createModelPayloads,
+  branch: createModelPayloads(CbsControlTable.BRANCH),
+  control: createModelPayloads(CbsControlTable.CONTROL),
   formConfig: formConfigPayloads,
   inquiryConfig: createModelPayloads(CbsControlTable.INQUIRY_CONFIG),
   modelConfig: modelConfigPayloads,

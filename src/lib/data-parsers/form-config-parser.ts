@@ -1,6 +1,8 @@
 import { z } from "zod";
 import {
   type FormConfigRecord,
+  type FormElement,
+  type FormSection,
   formConfigRecordSchema,
   gfcResponseSchema,
 } from "@/lib/data-schemas/form-config-schema";
@@ -177,4 +179,184 @@ export function parseFormConfigList(
     success: true,
     data: parseResult.data,
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Sanitizers & Wire Serializers                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Sanitizes a FormElement for database persistence and wire JSON output:
+ * - Removes client-only identifiers (`id: "f_..."`)
+ * - Omits default falsy flags (`REQUIRED: false`, `DISABLED: false`)
+ * - Omits empty text overrides (`DEFAULTVALUE: ""`, `ENRICHTEXT: ""`, `POSITION: ""`, `HELPTEXT: ""`, `FIXEDVALUE: ""`, `VALUE: ""`)
+ * - Omits empty/default PARAMETER blocks if no options or model table are configured
+ * - Omits type configuration blocks that are empty or inapplicable
+ */
+export function sanitizeFormElement(field: FormElement): FormElement {
+  const { id: _clientId, ...cleanField } = field as FormElement & { id?: string };
+
+  const sanitized: Partial<FormElement> = {
+    SN: String(cleanField.SN || "1"),
+    NAME: cleanField.NAME,
+    LABEL: cleanField.LABEL || cleanField.NAME,
+    TYPE: cleanField.TYPE || "Text",
+    STRUCTURE: cleanField.STRUCTURE || "S",
+    LENGTH: cleanField.LENGTH ?? 35,
+  };
+
+  // Only keep presentation overrides if non-default
+  if (cleanField.REQUIRED) sanitized.REQUIRED = true;
+  if (cleanField.DISABLED) sanitized.DISABLED = true;
+  if (cleanField.WIDTH && cleanField.WIDTH !== "md") sanitized.WIDTH = cleanField.WIDTH;
+  if (cleanField.POSITION?.trim()) sanitized.POSITION = cleanField.POSITION.trim();
+  if (cleanField.ENRICHTEXT?.trim()) sanitized.ENRICHTEXT = cleanField.ENRICHTEXT.trim();
+  if (
+    cleanField.DEFAULTVALUE !== undefined &&
+    cleanField.DEFAULTVALUE !== null &&
+    String(cleanField.DEFAULTVALUE).trim() !== ""
+  ) {
+    sanitized.DEFAULTVALUE = String(cleanField.DEFAULTVALUE).trim();
+  }
+  if (cleanField.HELPTEXT?.trim()) sanitized.HELPTEXT = cleanField.HELPTEXT.trim();
+  if (cleanField.FIXEDVALUE?.trim()) sanitized.FIXEDVALUE = cleanField.FIXEDVALUE.trim();
+
+  // Widget
+  if (cleanField.WIDGET) sanitized.WIDGET = cleanField.WIDGET;
+
+  // Parameter / Lookup
+  const p = cleanField.PARAMETER;
+  if (p) {
+    if (p.type === "M" && p.modelName?.trim()) {
+      const paramM: Record<string, unknown> = {
+        type: "M",
+        modelName: p.modelName.trim(),
+      };
+      if (p.reference?.trim()) paramM.reference = p.reference.trim();
+      if (p.displayField?.trim()) paramM.displayField = p.displayField.trim();
+      if (p.condition?.trim()) paramM.condition = p.condition.trim();
+      if (p.codeField?.trim()) paramM.codeField = p.codeField.trim();
+      sanitized.PARAMETER = paramM as typeof cleanField.PARAMETER;
+    } else if ((p.type === "O" || !p.type) && Array.isArray(p.data) && p.data.length > 0) {
+      sanitized.PARAMETER = {
+        type: "O",
+        data: p.data,
+      } as typeof cleanField.PARAMETER;
+    }
+  }
+
+  // Type configuration blocks (only if configured)
+  if (
+    cleanField.TEXT_CONFIG &&
+    (cleanField.TEXT_CONFIG.maskPattern ||
+      cleanField.TEXT_CONFIG.textTransform !== "uppercase" ||
+      !cleanField.TEXT_CONFIG.autoTrim)
+  ) {
+    sanitized.TEXT_CONFIG = cleanField.TEXT_CONFIG;
+  }
+  if (
+    cleanField.NUMBER_CONFIG &&
+    (cleanField.NUMBER_CONFIG.isCurrency ||
+      cleanField.NUMBER_CONFIG.currencyCode ||
+      cleanField.NUMBER_CONFIG.decimals !== 2 ||
+      cleanField.NUMBER_CONFIG.allowNegative)
+  ) {
+    sanitized.NUMBER_CONFIG = cleanField.NUMBER_CONFIG;
+  }
+  if (
+    cleanField.DATE_CONFIG &&
+    (cleanField.DATE_CONFIG.datePattern !== "YYYY-MM-DD" ||
+      cleanField.DATE_CONFIG.minDateOffset ||
+      cleanField.DATE_CONFIG.maxDateOffset ||
+      cleanField.DATE_CONFIG.disableHolidays)
+  ) {
+    sanitized.DATE_CONFIG = cleanField.DATE_CONFIG;
+  }
+  if (
+    cleanField.BOOLEAN_CONFIG &&
+    (cleanField.BOOLEAN_CONFIG.widgetStyle !== "switch" ||
+      cleanField.BOOLEAN_CONFIG.trueValue !== "Y" ||
+      cleanField.BOOLEAN_CONFIG.falseValue !== "N")
+  ) {
+    sanitized.BOOLEAN_CONFIG = cleanField.BOOLEAN_CONFIG;
+  }
+
+  return sanitized as FormElement;
+}
+
+/**
+ * Sanitizes a FormSection for sparse database persistence:
+ * - Omits empty titles, descriptions, tabGroupIds
+ * - Omits default false flags (collapsible: false, isCollapsed: false)
+ * - Sanitizes all inner child fields
+ */
+export function sanitizeFormSection(section: FormSection): FormSection {
+  const sanitized: Partial<FormSection> = {
+    id: section.id,
+    type: section.type || "standard",
+    zone: section.zone || "standard",
+    columns: section.columns || 1,
+    layoutStyle: section.layoutStyle || "card",
+  };
+
+  if (section.title?.trim()) sanitized.title = section.title.trim();
+  if (section.description?.trim()) sanitized.description = section.description.trim();
+  if (section.tabGroupId?.trim()) sanitized.tabGroupId = section.tabGroupId.trim();
+  if (section.tabTitle?.trim()) sanitized.tabTitle = section.tabTitle.trim();
+  if (section.bindKey?.trim()) sanitized.bindKey = section.bindKey.trim();
+  if (section.structure) sanitized.structure = section.structure;
+  if (section.collapsible) sanitized.collapsible = true;
+  if (section.isCollapsed) sanitized.isCollapsed = true;
+
+  sanitized.fields = (section.fields || []).map(sanitizeFormElement);
+
+  return sanitized as FormSection;
+}
+
+/**
+ * Produces a clean, sparse FormConfigRecord ready for database wire persistence and JSON audit diffing.
+ */
+export function sanitizeFormConfigRecord(record?: FormConfigRecord): FormConfigRecord | undefined {
+  if (!record) return undefined;
+
+  const result: Partial<FormConfigRecord> = {};
+
+  if (record.title?.trim()) result.title = record.title.trim();
+  if (record.description?.trim()) result.description = record.description.trim();
+  if (record.authNumber !== undefined && record.authNumber !== null)
+    result.authNumber = record.authNumber;
+  if (record.targetModel) result.targetModel = record.targetModel;
+  if (record.auditData) result.auditData = record.auditData;
+
+  // Routines: only keep if routines actually exist
+  if (record.frmRoutine) {
+    const rtnValidate = (record.frmRoutine.rtnValidate || []).filter((r) => r.routineName?.trim());
+    const rtnBeforeAuth = (record.frmRoutine.rtnBeforeAuth || []).filter((r) =>
+      r.routineName?.trim(),
+    );
+    const rtnAfterAuth = (record.frmRoutine.rtnAfterAuth || []).filter((r) =>
+      r.routineName?.trim(),
+    );
+
+    if (rtnValidate.length > 0 || rtnBeforeAuth.length > 0 || rtnAfterAuth.length > 0) {
+      result.frmRoutine = {
+        rtnValidate,
+        rtnBeforeAuth,
+        rtnAfterAuth,
+      };
+    }
+  }
+
+  // Layout Elements
+  if (record.frmElements) {
+    const steps = (record.frmElements.steps || []).filter((s) => s.id && s.title);
+    const sections = (record.frmElements.sections || []).map(sanitizeFormSection);
+
+    result.frmElements = {
+      ...(steps.length > 0 ? { steps } : { steps: [] }),
+      sections,
+    };
+  }
+
+  return result as FormConfigRecord;
 }

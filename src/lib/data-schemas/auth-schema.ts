@@ -75,3 +75,15 @@ export const currentUserSchema = z.object({
 });
 
 export type CurrentUser = z.infer<typeof currentUserSchema>;
+
+/* -------------------------------------------------------------------------- */
+/* Session Branch Update Contract                                             */
+/* -------------------------------------------------------------------------- */
+
+/** Validates POST /api/session branch change payload */
+export const updateBranchSessionSchema = z.object({
+  branchCode: z.string().min(1, "Branch code is required"),
+  branchName: z.string().min(1, "Branch name is required"),
+});
+
+export type UpdateBranchSessionInput = z.infer<typeof updateBranchSessionSchema>;

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { CbsJsonViewerTab } from "@/components/cbs-screen";
-import { sanitizeInquiryConfigRecord } from "@/lib/data-schemas/clean-record";
+import { sanitizeInquiryConfigRecord } from "@/lib/data-parsers";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface IcJsonTabProps {

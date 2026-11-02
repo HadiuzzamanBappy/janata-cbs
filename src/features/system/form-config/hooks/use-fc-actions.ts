@@ -4,7 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
-import { sanitizeFormConfigRecord } from "@/lib/data-schemas/clean-record";
+import { sanitizeFormConfigRecord } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 
 export interface UseFcActionsParams {

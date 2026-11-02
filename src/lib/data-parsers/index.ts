@@ -10,8 +10,6 @@
  */
 
 export * from "./auth-parser";
-export * from "./branch-parser";
-export * from "./control-parser";
 export * from "./form-config-parser";
 export * from "./inquiry-config-parser";
 export * from "./menu-designer-parser";

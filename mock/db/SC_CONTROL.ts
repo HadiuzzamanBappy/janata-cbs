@@ -1,5 +1,9 @@
-import type { RawControlRecord } from "@/lib/data-schemas/control-schema";
+import type { AuditData, SystemCommandItem } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
+
+export type RawControlRecord = SystemCommandItem & {
+  auditData: AuditData;
+};
 
 /* -------------------------------------------------------------------------- */
 /* SC_CONTROL (Authorized Production Control Master)                          */

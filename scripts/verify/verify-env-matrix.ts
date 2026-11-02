@@ -35,8 +35,6 @@ async function runSuite() {
     CUST_CUSTOMER,
     SC_CONTROL,
     SC_MENU_TREE,
-    SC_BRANCH_LIST,
-    SC_CONTROL_LIST,
     SC_FORM_CONFIG,
     SC_INQUIRY_CONFIG,
     SC_MODEL_CONFIG,
@@ -52,7 +50,6 @@ async function runSuite() {
     "@/lib/core-logger"
   );
   const {
-    branchRecordSchema,
     changePasswordSchema,
     currentUserSchema,
     envSchema,
@@ -65,7 +62,6 @@ async function runSuite() {
     menuTreeRecordSchema,
     MIN_PASSWORD_LENGTH,
     modelConfigRecordSchema,
-    rawControlRecordSchema,
     systemCommandItemSchema,
     updateBranchSessionSchema,
   } = await import("@/lib/data-schemas");
@@ -303,21 +299,6 @@ async function runSuite() {
   assert("Data Schemas: currentUserSchema validates complete session profile", validUser.success);
 
   // 2.2 Branch Schemas
-  const sampleBranch = {
-    recordId: "JB0001",
-    branchTitle: "PRINCIPAL BRANCH",
-    branchType: "CORPORATE",
-    isActive: true,
-    routingNumber: "135260123",
-    swiftCode: "JANBBDDH001",
-    branchContact: [{ email: "principal@janatabank.com.bd", phone: "+88029555000" }],
-  };
-  const validBranch = branchRecordSchema.safeParse(sampleBranch);
-  assert(
-    "Data Schemas: branchRecordSchema validates canonical branch profiles",
-    validBranch.success,
-  );
-
   const branchSessionChange = updateBranchSessionSchema.safeParse({
     branchCode: "JB1001",
     branchName: "DILKUSHA CORPORATE BRANCH",
@@ -529,19 +510,6 @@ async function runSuite() {
   );
 
   // 3.2 Branch Profile Conformance
-  const branchFixture = SC_BRANCH_LIST[0];
-  assert(
-    "Fixture Conformance: Primary branch (JB0001) satisfies branchRecordSchema contract",
-    Boolean(branchFixture && branchRecordSchema.safeParse(branchFixture).success),
-  );
-
-  // 3.3 Control Record Conformance
-  const controlFixture = SC_CONTROL_LIST[0];
-  assert(
-    "Fixture Conformance: System control record satisfies rawControlRecordSchema contract",
-    Boolean(controlFixture && rawControlRecordSchema.safeParse(controlFixture).success),
-  );
-
   // 3.4 Model Config Metamodel Conformance
   const modelConfigFixture = SC_MODEL_CONFIG.ACCOUNT || SC_MODEL_CONFIG["MENU.TREE"];
   assert(

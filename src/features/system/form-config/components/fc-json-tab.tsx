@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { CbsJsonViewerTab } from "@/components/cbs-screen";
-import { sanitizeFormConfigRecord } from "@/lib/data-schemas/clean-record";
+import { sanitizeFormConfigRecord } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 
 interface FcJsonTabProps {

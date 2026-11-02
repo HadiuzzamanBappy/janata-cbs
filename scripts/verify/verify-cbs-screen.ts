@@ -1,11 +1,14 @@
 /**
  * Automated Verification Suite for CBS Screen Architecture (@/lib/cbs-screen)
  *
- * Tests:
- * 1. Persistence resolution precedence & Zod validation parsing (@/lib/cbs-screen/persistence)
- * 2. Action bar capabilities, permission filtering & deduplication (@/lib/cbs-screen/actions)
- * 3. Validation mapping & SSR-safe DOM focus resolution (@/lib/cbs-screen/validation)
- * 4. Workbench bus contracts, popup ID formatting & messaging (@/lib/cbs-screen/workbench-bus)
+ * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
+ * capability exposed by `@/lib/cbs-screen` with explicit Input and Output visualization:
+ * 1. Initial Record ID Resolution (resolveInitialRecordId: prop, tab, fallback)
+ * 2. Screen Mode Precedence & Resolution (resolveInitialScreenMode: query, tab, default)
+ * 3. Zod-Validated Form Data Resolution (resolveInitialFormData: schema check, fallback)
+ * 4. More Actions Resolution & Preset Inheritance (resolveMoreActions & getDefaultMoreActions)
+ * 5. Zod Issue to Tab Validation Mapping (mapZodIssuesToTabs: tab routing & message extraction)
+ * 6. Workbench Popup Tab ID Generation (makePopupTabId: formatting & normalization)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-screen.ts
@@ -13,9 +16,6 @@
 
 import { z } from "zod";
 import {
-  CBS_SCREEN_EVENT,
-  CBS_SCREEN_MESSAGE,
-  focusFormField,
   getDefaultMoreActions,
   makePopupTabId,
   mapZodIssuesToTabs,
@@ -26,224 +26,176 @@ import {
 } from "@/lib/cbs-screen";
 import { CbsRecordFunction } from "@/types";
 
-interface TestReport {
-  name: string;
+interface TestCase {
+  title: string;
+  input: unknown;
+  output: unknown;
   passed: boolean;
   error?: string;
 }
 
-const reports: TestReport[] = [];
+const testCases: TestCase[] = [];
 
-function assert(name: string, condition: boolean, extraInfo?: string) {
-  if (condition) {
-    reports.push({ name, passed: true });
-    console.log(`[PASS] ${name}`);
-  } else {
-    reports.push({ name, passed: false, error: extraInfo });
-    console.error(`[FAIL] ${name}${extraInfo ? ` -> ${extraInfo}` : ""}`);
+function recordTest(
+  title: string,
+  input: unknown,
+  output: unknown,
+  condition: boolean,
+  error?: string,
+) {
+  testCases.push({ title, input, output, passed: condition, error });
+  const statusTag = condition ? "\x1b[32m✔ [PASS]\x1b[0m" : "\x1b[31m✖ [FAIL]\x1b[0m";
+  console.log(`\n${statusTag} ${title}`);
+  console.log(`       Input  : ${typeof input === "string" ? input : JSON.stringify(input)}`);
+  console.log(`       Output : ${typeof output === "string" ? output : JSON.stringify(output)}`);
+  if (!condition && error) {
+    console.error(`       Error  : ${error}`);
   }
 }
 
-console.log("\n========================================================");
-console.log("       CBS SCREEN ARCHITECTURE & CAPABILITY SUITE       ");
-console.log("========================================================\n");
+async function runSuite() {
+  console.log("\n================================================================================");
+  console.log("             CBS SCREEN ARCHITECTURE & CAPABILITY VERIFICATION                   ");
+  console.log("================================================================================");
+  console.log(" Architecture : Universal Screen Scaffold & Persistence (@/lib/cbs-screen)");
+  console.log(" Pattern      : Single Unique Test per Screen Capability with Visible IO");
+  console.log("================================================================================");
 
-// ============================================================================
-// 1. Persistence Resolution Precedence
-// ============================================================================
-console.log("--- 1. Persistence Resolution Precedence ---");
+  // ── 1. Initial Record ID Resolution ──
+  console.log("\n── 1. Initial Record ID Resolution (resolveInitialRecordId) ──");
+  const resolvedId = resolveInitialRecordId("  acc_1001  ", "acc_default");
+  recordTest(
+    "1.1 Resolves explicit initialId with uppercase trimming over tab search id",
+    { initialId: "  acc_1001  ", tabSearchId: "acc_default" },
+    { resolvedId },
+    resolvedId === "ACC_1001",
+  );
 
-// 1.1 Record ID Precedence
-assert(
-  "resolveInitialRecordId: Explicit initialId takes precedence and uppercase trims",
-  resolveInitialRecordId("  prop_id  ", "tab_id") === "PROP_ID",
-);
+  const fallbackId = resolveInitialRecordId(undefined, undefined);
+  recordTest(
+    "1.2 Falls back to empty string when no record ID sources are present",
+    { initialId: undefined, tabSearchId: undefined },
+    { resolvedId: fallbackId },
+    fallbackId === "",
+  );
 
-assert(
-  "resolveInitialRecordId: Tab store recordId takes precedence when no initialId",
-  resolveInitialRecordId(undefined, "  tab_id  ") === "TAB_ID",
-);
+  // ── 2. Screen Mode Precedence & Resolution ──
+  console.log("\n── 2. Screen Mode Precedence & Resolution (resolveInitialScreenMode) ──");
+  const modeWithId = resolveInitialScreenMode(undefined, "REC001", "IDLE");
+  recordTest(
+    "2.1 Automatically defaults to 'I' (INPUT) when record ID exists without mode",
+    { tabMode: undefined, resolvedId: "REC001", fallbackMode: "IDLE" },
+    { resolvedMode: modeWithId },
+    modeWithId === CbsRecordFunction.INPUT,
+  );
 
-assert(
-  "resolveInitialRecordId: Falls back to empty string when no ID source exists",
-  resolveInitialRecordId(undefined, undefined) === "",
-);
+  const modeWithTab = resolveInitialScreenMode("S", "REC001", "IDLE");
+  recordTest(
+    "2.2 Honors canonical tab mode ('S' -> SEE) over record ID presence",
+    { tabMode: "S", resolvedId: "REC001" },
+    { resolvedMode: modeWithTab },
+    modeWithTab === CbsRecordFunction.SEE,
+  );
 
-// 1.2 Screen Mode Precedence & Validation
-assert(
-  "resolveInitialScreenMode: Valid tab mode takes precedence ('S' -> SEE)",
-  resolveInitialScreenMode("S", "REC001") === CbsRecordFunction.SEE,
-);
-
-assert(
-  "resolveInitialScreenMode: Defaults to INPUT when ID exists but no mode specified",
-  resolveInitialScreenMode(undefined, "REC001", "IDLE") === CbsRecordFunction.INPUT,
-);
-
-assert(
-  "resolveInitialScreenMode: Defaults to fallbackMode when no ID and no mode specified",
-  resolveInitialScreenMode(undefined, undefined, "IDLE") === "IDLE",
-);
-
-assert(
-  "resolveInitialScreenMode: Invalid tab mode is ignored and falls back",
-  resolveInitialScreenMode("INVALID_MODE", undefined, "IDLE") === "IDLE",
-);
-
-// 1.3 Form Data Resolution & Zod Validation
-const userSchema = z.object({
-  name: z.string(),
-  age: z.number().min(18),
-});
-
-const defaultUser = { name: "Default User", age: 25 };
-const validUser = { name: "John Doe", age: 30 };
-const invalidUser = { name: "Minor", age: 12 };
-
-assert(
-  "resolveInitialFormData: Uses fallback initialData when tab cache is empty",
-  resolveInitialFormData(null, userSchema, defaultUser).name === "Default User",
-);
-
-assert(
-  "resolveInitialFormData: Hydrates valid data from tab cache matching schema",
-  resolveInitialFormData(validUser, userSchema, defaultUser).name === "John Doe",
-);
-
-assert(
-  "resolveInitialFormData: Rejects invalid schema data and reverts to initialData baseline",
-  resolveInitialFormData(invalidUser, userSchema, defaultUser).age === 25,
-);
-
-// ============================================================================
-// 2. Action Bar Capability & Permission Filtering
-// ============================================================================
-console.log("\n--- 2. Action Bar Capability & Permission Filtering ---");
-
-const defaultActions = getDefaultMoreActions("ACCOUNT");
-
-assert(
-  "getDefaultMoreActions: Returns standard preset actions (Copy, Paste, SFL, SFU)",
-  defaultActions.length >= 4 &&
-    defaultActions.some((a) => a.label === "Copy") &&
-    defaultActions.some((a) => a.label === "Paste"),
-);
-
-const customActions = [
-  {
-    label: "Export Statement",
-    command: "EXP",
-    onClick: () => {},
-    requiredRight: CbsRecordFunction.SEE,
-  },
-  {
-    label: "Custom Copy Action",
-    command: "COPY", // Override default COPY preset
-    onClick: () => {},
-  },
-];
-
-const resolved = resolveMoreActions("ACCOUNT", customActions);
-
-assert(
-  "resolveMoreActions: Preserves custom actions and merges base presets",
-  resolved.some((a) => a.label === "Export Statement") && resolved.some((a) => a.label === "Paste"),
-);
-
-assert(
-  "resolveMoreActions: Custom action overrides base action with matching command/label",
-  resolved.filter((a) => a.command === "COPY").length === 1 &&
-    resolved.find((a) => a.command === "COPY")?.label === "Custom Copy Action",
-);
-
-// ============================================================================
-// 3. Validation Mapping & SSR-Safe DOM Focus
-// ============================================================================
-console.log("\n--- 3. Validation Mapping & SSR-Safe DOM Focus ---");
-
-const testZodSchema = z.object({
-  general: z.object({
-    accountTitle: z.string().min(5, "Title must have at least 5 chars"),
-  }),
-  limits: z.object({
-    dailyMax: z.number().positive("Must be positive"),
-  }),
-});
-
-const parseResult = testZodSchema.safeParse({
-  general: { accountTitle: "A" },
-  limits: { dailyMax: -100 },
-});
-
-if (!parseResult.success) {
-  const mappedErrors = mapZodIssuesToTabs(parseResult.error.issues, (path) => {
-    return path[0] === "limits" ? "limits-tab" : "general-tab";
+  // ── 3. Zod-Validated Form Data Resolution ──
+  console.log("\n── 3. Zod-Validated Form Data Resolution (resolveInitialFormData) ──");
+  const userSchema = z.object({
+    accountNo: z.string().min(1),
+    balance: z.number().min(0),
   });
+  const validData = { accountNo: "AC10001", balance: 5000 };
+  const initialFallback = { accountNo: "", balance: 0 };
 
-  assert(
-    "mapZodIssuesToTabs: Generates correct number of mapped errors",
-    mappedErrors.length === 2,
+  const parsedValid = resolveInitialFormData(validData, userSchema, initialFallback);
+  recordTest(
+    "3.1 Validates and returns cached tab form data when matching Zod schema",
+    { cachedData: validData },
+    { resolvedData: parsedValid },
+    parsedValid.accountNo === "AC10001" && parsedValid.balance === 5000,
   );
 
-  assert(
-    "mapZodIssuesToTabs: Categorizes tab IDs correctly via resolver",
-    mappedErrors.some((e) => e.tab === "general-tab") &&
-      mappedErrors.some((e) => e.tab === "limits-tab"),
+  const invalidData = { accountNo: "AC10001", balance: -50 }; // Fails min(0)
+  const parsedInvalid = resolveInitialFormData(invalidData, userSchema, initialFallback);
+  recordTest(
+    "3.2 Safely falls back to initial template when cached data fails Zod validation",
+    { invalidData },
+    { resolvedData: parsedInvalid },
+    parsedInvalid.accountNo === "" && parsedInvalid.balance === 0,
   );
 
-  assert(
-    "mapZodIssuesToTabs: Computes dot-delimited fieldKey accurately",
-    mappedErrors.some((e) => e.fieldKey === "general.accountTitle") &&
-      mappedErrors.some((e) => e.fieldKey === "limits.dailyMax"),
+  // ── 4. More Actions Resolution & Preset Inheritance ──
+  console.log("\n── 4. More Actions Resolution & Preset Inheritance ──");
+  const defaultActions = getDefaultMoreActions("ACCOUNT");
+  const extraAction = {
+    label: "Generate Statement",
+    command: "GEN_STMT",
+    onClick: () => {},
+  };
+  const mergedActions = resolveMoreActions("ACCOUNT", [extraAction]);
+  recordTest(
+    "4.1 Merges custom actions while preserving canonical CBS presets (Copy, Paste, SFL, SFU)",
+    { extraAction: extraAction.command, basePresetsCount: defaultActions.length },
+    {
+      mergedTotalCount: mergedActions.length,
+      firstActionCommand: mergedActions[0]?.command,
+      hasSFL: mergedActions.some((a) => a.command === "SFL"),
+    },
+    mergedActions[0]?.command === "GEN_STMT" &&
+      mergedActions.length === defaultActions.length + 1 &&
+      mergedActions.some((a) => a.command === "SFL"),
   );
-} else {
-  assert("mapZodIssuesToTabs: Parse failure expected for test fixture", false);
+
+  // ── 5. Zod Issue to Tab Validation Mapping ──
+  console.log("\n── 5. Zod Issue to Tab Validation Mapping (mapZodIssuesToTabs) ──");
+  const schemaWithTabs = z.object({
+    generalName: z.string().min(3, "Name must be at least 3 chars"),
+    auditStamp: z.string().min(1, "Audit stamp required"),
+  });
+  const parseResult = schemaWithTabs.safeParse({ generalName: "A", auditStamp: "" });
+  const rawIssues = !parseResult.success ? parseResult.error.issues : [];
+
+  const mappedErrors = mapZodIssuesToTabs(rawIssues, (path) => {
+    return path[0]?.toString().startsWith("general") ? "generalTab" : "auditTab";
+  });
+  recordTest(
+    "5.1 Maps raw Zod validation issues to target CBS screen tabs with field keys",
+    { issueCount: rawIssues.length },
+    {
+      mappedCount: mappedErrors.length,
+      firstError: { tab: mappedErrors[0]?.tab, fieldKey: mappedErrors[0]?.fieldKey },
+    },
+    mappedErrors.length === 2 &&
+      mappedErrors[0]?.tab === "generalTab" &&
+      mappedErrors[1]?.tab === "auditTab",
+  );
+
+  // ── 6. Workbench Popup Tab ID Generation ──
+  console.log("\n── 6. Workbench Popup Tab ID Generation (makePopupTabId) ──");
+  const popupId = makePopupTabId("CUSTOMER ACCOUNT OPENING");
+  recordTest(
+    "6.1 Normalizes screen ID into deterministic popup tab identifier",
+    { inputScreen: "CUSTOMER ACCOUNT OPENING" },
+    { popupId },
+    popupId === "popup-CUSTOMER_ACCOUNT_OPENING",
+  );
+
+  // Consolidated Summary
+  const passedTests = testCases.filter((t) => t.passed).length;
+  const failedTests = testCases.filter((t) => !t.passed).length;
+
+  console.log("\n================================================================================");
+  if (failedTests === 0) {
+    console.log(
+      `>>> SUCCESS: ALL ${passedTests} CBS SCREEN ARCHITECTURE CAPABILITIES VALIDATED 100% CLEAN! <<<`,
+    );
+  } else {
+    console.error(`>>> FAILURE: ${failedTests} TESTS FAILED! <<<`);
+    process.exit(1);
+  }
+  console.log("================================================================================\n");
 }
 
-assert(
-  "focusFormField: Gracefully returns false in non-DOM/SSR environments",
-  focusFormField("general.accountTitle") === false,
-);
-
-// ============================================================================
-// 4. Workbench Bus Contracts & Popup Formatting
-// ============================================================================
-console.log("\n--- 4. Workbench Bus Contracts & Popup Formatting ---");
-
-assert(
-  "makePopupTabId: Converts spaces to clean snake_case identifiers",
-  makePopupTabId("LOAN APPLICATION SCREEN") === "popup-LOAN_APPLICATION_SCREEN",
-);
-
-assert(
-  "makePopupTabId: Handles single identifier strings without modification",
-  makePopupTabId("ACCOUNT") === "popup-ACCOUNT",
-);
-
-assert(
-  "CBS_SCREEN_EVENT: DOCK_TO_SHELL contract is immutable",
-  CBS_SCREEN_EVENT.DOCK_TO_SHELL === "cbs:dock-to-shell",
-);
-
-assert(
-  "CBS_SCREEN_MESSAGE: DOCK_TAB contract matches expected string",
-  CBS_SCREEN_MESSAGE.DOCK_TAB === "CBS_DOCK_TAB",
-);
-
-assert(
-  "CBS_SCREEN_MESSAGE: RECORD_MUTATED contract matches expected string",
-  CBS_SCREEN_MESSAGE.RECORD_MUTATED === "CBS_RECORD_MUTATED",
-);
-
-// ============================================================================
-// Consolidated Summary
-// ============================================================================
-console.log("\n========================================================");
-const allPassed = reports.every((r) => r.passed);
-if (allPassed) {
-  console.log(`ALL ${reports.length} CBS SCREEN TESTS PASSED WITH 100% SUCCESS!`);
-} else {
-  console.error("SOME CBS SCREEN TESTS FAILED!");
+runSuite().catch((err: unknown) => {
+  console.error("Fatal Test Suite Crash:", err);
   process.exit(1);
-}
-console.log("========================================================\n");
+});

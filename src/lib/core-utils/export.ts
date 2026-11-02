@@ -7,8 +7,6 @@ export interface ExportColumn<T = Record<string, unknown>> {
   header: string;
 }
 
-export type ExportCsvColumn<T> = ExportColumn<T>;
-
 function triggerBrowserDownload(blob: Blob, filename: string): void {
   if (typeof window === "undefined") return;
   const url = URL.createObjectURL(blob);
@@ -107,53 +105,4 @@ export function exportToXml<T extends Record<string, unknown>>(
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<${rootTag}${codeAttr}${titleAttr}>\n${xmlRows}\n</${rootTag}>`;
   const blob = new Blob([xml], { type: "application/xml;charset=utf-8;" });
   triggerBrowserDownload(blob, filename.endsWith(".xml") ? filename : `${filename}.xml`);
-}
-
-/**
- * Compatibility wrapper for operations enquiry schema
- */
-export function exportToCSV(
-  rows: Record<string, unknown>[],
-  columns: Array<{ id: string; label: string }>,
-  code: string,
-): void {
-  exportToCsv(
-    code.replace(/\s+/g, "_"),
-    columns.map((c) => ({ key: c.id, header: c.label })),
-    rows,
-  );
-}
-
-/**
- * Compatibility wrapper for operations enquiry schema
- */
-export function exportToHTML(
-  rows: Record<string, unknown>[],
-  columns: Array<{ id: string; label: string }>,
-  code: string,
-  title: string,
-): void {
-  exportToHtmlReport(
-    code.replace(/\s+/g, "_"),
-    columns.map((c) => ({ key: c.id, header: c.label })),
-    rows,
-    { title, subtitle: code },
-  );
-}
-
-/**
- * Compatibility wrapper for operations enquiry schema
- */
-export function exportToXML(
-  rows: Record<string, unknown>[],
-  columns: Array<{ id: string; label: string }>,
-  code: string,
-  title: string,
-): void {
-  exportToXml(
-    code.replace(/\s+/g, "_"),
-    columns.map((c) => ({ key: c.id, header: c.label })),
-    rows,
-    { rootTag: "enquiry", recordTag: "record", code, title },
-  );
 }

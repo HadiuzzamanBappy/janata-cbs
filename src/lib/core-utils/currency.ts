@@ -1,13 +1,13 @@
 import { appConfig } from "@/lib/core-config";
 
 /**
- * Core Banking Currency & Number Formatting Utilities
+ * Core Banking Currency Formatting Utilities
  */
 
 export interface CurrencyFormatOptions {
   currency?: string;
   decimals?: number;
-  accountingNegative?: boolean; // Formats -100 as (100.00)
+  accountingNegative?: boolean; // Formats -100 as (100.00 BDT)
 }
 
 /**
@@ -42,21 +42,4 @@ export function formatCurrency(
 
   const sign = isNegative ? "-" : "";
   return `${sign}${formattedAbs} ${currency}`;
-}
-
-/**
- * Formats a raw number string with thousands separators without currency symbol.
- */
-export function formatNumber(
-  value: number | string | null | undefined,
-  decimals: number = 2,
-): string {
-  if (value === null || value === undefined || value === "") return "";
-  const num = typeof value === "string" ? Number.parseFloat(value.replace(/,/g, "")) : value;
-  if (Number.isNaN(num)) return String(value);
-
-  return new Intl.NumberFormat(appConfig.format.locale, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(num);
 }

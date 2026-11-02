@@ -25,17 +25,13 @@ export interface CbsScreenValidationError<TTab extends string = string> {
   readonly nodeId?: string;
 }
 
-export type CbsAuditRawData = AuditData & {
-  readonly [key: string]: unknown;
-};
-
 export interface CbsPersistenceOptions<TRecord> {
   initialId?: string;
   tabId?: string;
   initialData: TRecord;
   schema?: z.ZodType<TRecord>;
   fallbackMode?: CbsScreenMode;
-  ignoredKeys?: readonly string[] | string[];
+  ignoredKeys?: readonly string[];
 }
 
 export type CbsScreenLayoutVariant = "system" | "form" | "inquiry" | "custom";
@@ -61,7 +57,7 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   recordId?: string;
   mode?: CbsScreenMode;
   isDirty?: boolean;
-  auditContext?: AuditData | CbsAuditRawData;
+  auditContext?: AuditData;
   onRecordIdChange?: (id: string) => void;
   onRecordSearch?: (id: string) => void;
   onCreateNew?: (newId?: string) => void;
@@ -98,8 +94,8 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   tabs?: CbsScreenTab<TTab>[];
   activeTab?: TTab;
   onActiveTabChange?: (tab: TTab) => void;
-  validationErrors?: CbsScreenValidationError<TTab>[];
   rightTabContent?: React.ReactNode;
+  validationErrors?: CbsScreenValidationError<TTab>[];
 
   // 4. Children for "form", "inquiry" or "custom" variants
   children?: React.ReactNode;
@@ -111,6 +107,8 @@ export interface CbsScreenProps {
   command: string;
   tabId?: string;
   className?: string;
+  initialId?: string;
+  initialMode?: CbsScreenMode;
 }
 
 export type CbsScreenComponent = React.ComponentType<CbsScreenProps>;

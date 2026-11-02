@@ -4,8 +4,8 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
+import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { sanitizeModelConfigRecord } from "@/lib/data-schemas/clean-record";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,

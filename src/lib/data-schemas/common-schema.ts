@@ -22,26 +22,6 @@ export const auditDataSchema = z.object({
 export type AuditData = z.infer<typeof auditDataSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Standard Enquiry & Dynamic Table Column Definition                         */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Universal column configuration for dynamic tabular data grids in CBS.
- * Shared across Generic Model Config (GMC) sub-tables and dynamic inquiry views.
- */
-export const enquiryColumnSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  align: z.enum(["left", "center", "right"]).optional(),
-  width: z.string().optional(),
-  isMono: z.boolean().optional(),
-  isDrilldown: z.boolean().optional(),
-  drilldownTargetCommand: z.string().optional(),
-});
-
-export type EnquiryColumn = z.infer<typeof enquiryColumnSchema>;
-
-/* -------------------------------------------------------------------------- */
 /* Universal Wire Payload Validation Schema                                   */
 /* -------------------------------------------------------------------------- */
 

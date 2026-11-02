@@ -1,5 +1,30 @@
-import type { BranchRecord } from "@/lib/data-schemas/branch-schema";
+import type { AuditData } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
+
+export interface BranchRecord {
+  recordId?: string;
+  branchTitle: string;
+  branchType?: string;
+  branchContact?: Array<{
+    addressLine?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  }>;
+  openDate?: string;
+  branchOpenDate?: string;
+  branchAddress?: string;
+  currTxnDate?: string;
+  isActive?: boolean;
+  bbCode?: string;
+  divCode?: string;
+  areaCode?: string;
+  gradeCode?: string;
+  countryCode?: string;
+  routingNumber?: string;
+  swiftCode?: string;
+  parentBranch?: string;
+  auditData?: AuditData;
+}
 
 /**
  * SC_BRANCH Database Table (PREFIX: SC, TABLE: BRANCH)

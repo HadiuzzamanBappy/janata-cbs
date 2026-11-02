@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { CbsJsonViewerTab } from "@/components/cbs-screen";
-import { sanitizeModelConfigRecord } from "@/lib/data-schemas/clean-record";
+import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 interface McJsonTabProps {

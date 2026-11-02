@@ -16,9 +16,10 @@ export function parseAccessibilityRights(
   }
 
   if (Array.isArray(rawAccessibility)) {
-    return rawAccessibility
+    const valid = rawAccessibility
       .map((r) => String(r).toUpperCase().trim() as CbsRecordFunction)
       .filter((r) => CBS_FUNCTION_CODES.includes(r));
+    return Array.from(new Set(valid));
   }
 
   const str = String(rawAccessibility).toUpperCase().trim();

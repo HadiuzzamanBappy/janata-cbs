@@ -60,7 +60,7 @@ export function useFormMutations({
         const targetId = (searchRecordId || (values.id as string) || "").trim();
 
         const json = await cbs.send(
-          cbs.form.commitRecord(modelCode, commitData, {
+          cbs.model(modelCode).save(commitData, {
             recordId: targetId,
           }),
           {
@@ -100,7 +100,7 @@ export function useFormMutations({
       const id = searchRecordId.trim() || (values.id as string) || "";
       setSubmitting(true);
       try {
-        const json = await cbs.send(cbs.form.holdRecord(modelCode, id, values), {
+        const json = await cbs.send(cbs.model(modelCode).hold(id, values), {
           successTitle: "Transaction Held",
           successMessage: `Record draft for ${schema.title} placed on Hold.`,
         });
@@ -129,7 +129,7 @@ export function useFormMutations({
       }
       setSubmitting(true);
       try {
-        const json = await cbs.send(cbs.form.deleteRecord(modelCode, id), {
+        const json = await cbs.send(cbs.model(modelCode).delete(id), {
           successTitle: "Record Deleted",
           successMessage: `Record #${id} marked for deletion in ${schema.title}.`,
         });
@@ -172,8 +172,8 @@ export function useFormMutations({
       try {
         const isLive = values.RECORD_STATUS === "AU" || values.status === "AU";
         const payload = isLive
-          ? cbs.form.reverseRecord(modelCode, id)
-          : cbs.form.authorizeRecord(modelCode, id);
+          ? cbs.model(modelCode).reverse(id)
+          : cbs.model(modelCode).authorize(id);
 
         const actionName = isLive ? "Reversal" : "Authorization";
         const json = await cbs.send(payload, {

@@ -22,7 +22,7 @@ export function useMdCatalog() {
     queryFn: async () => {
       // 1. Fetch official registered Menu Items from MENU table via BFF proxy (Temenos HELPTEXT.MENU)
       try {
-        const json = await cbs.send<unknown>(cbs.menu.getCatalogList(), { silent: true });
+        const json = await cbs.send<unknown>(cbs.menu.list(), { silent: true });
         if (json.status === "SUCCESS" && json.data) {
           const rawList = Array.isArray(json.data)
             ? json.data
@@ -66,7 +66,7 @@ export function useMdCatalog() {
     queryKey: ["cbs", "menu-designer", "available-trees"],
     queryFn: async () => {
       try {
-        const json = await cbs.send<unknown>(cbs.menu.getTreeList(), { silent: true });
+        const json = await cbs.send<unknown>(cbs.menuTree.list(), { silent: true });
         if (json.status === "SUCCESS" && json.data) {
           const res = parseMenuTreeList(json.data);
           if (res.success && res.data.length > 0) {

@@ -9,51 +9,70 @@ It acts as the single boundary between the React presentation layer and the serv
 ## 📦 What It Contains
 
 1. **`sendCbsRequest`** (`transport/proxy-client.ts`):
-   - Type-safe HTTP fetch client dispatching payloads through `/api/proxy`.
+   - Type-safe HTTP fetch client dispatching payloads through `/api/proxy` (aliased as `cbs.send`).
    - Pre-flight validation against `cbsWirePayloadSchema` (fails fast on malformed requests before network calls).
    - Automatic UI toast notifications for Success, Warning, Error, and Session Expiry (401).
    - Supports `AbortSignal` for request cancellation and runtime Zod `responseSchema` validation.
 
 2. **Payload Factories** (`payloads/`):
-   - **`cbs.model(controlName)`**: Universal factory providing standard banking operations (`get`, `list`, `save`, `authorize`, `delete`, `hold`, `reverse`).
-   - **`cbs.form`**: Dynamic form record actions (`fetchRecord`, `commitRecord`, `authorizeRecord`, `deleteRecord`, `holdRecord`, `reverseRecord`).
-   - **`cbs.formConfig`**: Dedicated form configuration builder (`getConfig`, `saveConfig`) via `CONFIG.FORM`.
-   - **`cbs.inquiry`**: Dynamic enquiry runtime execution (`executeQuery`).
-   - **`cbs.userSecurity`**: Password change (`CPW`), sign-on username change (`CUN`), and reset requests.
+   - **`cbs.model(controlName)`**: Universal factory providing standard banking operations (`get`, `list`, `searchIds`, `getNewId`, `save`, `authorize`, `delete`, `hold`, `reverse`).
+   - **`cbs.branch`**: Pre-bound model for the branch catalog (`BRANCH`).
+   - **`cbs.menu` & `cbs.menuTree`**: Pre-bound models for menu definitions (`MENU`) and visual navigation trees (`MENU.TREE`).
+   - **`cbs.modelConfig`**: Dedicated metamodel builder (`GMC`, `SMC`, `AMC`) via `MODEL.CONFIG`.
+   - **`cbs.formConfig`**: Dedicated form layout presentation builder (`GFC`, `SFC`) via `CONFIG.FORM`.
+   - **`cbs.inquiryConfig`**: Dedicated enquiry table schema builder (`INQUIRY`).
+   - **`cbs.inquiry`**: Dynamic tabular enquiry runtime query execution (`INQ`).
+   - **`cbs.userSecurity`**: Password change (`CPW`) and sign-on username change (`CUN`).
 
 ---
 
 ## 🚀 How to Use
 
-### 1. Unified Dispatch via `cbs.send`
+### 1. Unified Model Operations via `cbs.model`
 
-Combine a payload factory with `cbs.send()` to execute operations:
+Any dynamic operational table (`CUSTOMER`, `ACCOUNT`, `TELLER`, `LOAN`, etc.) uses the universal model factory:
 
 ```typescript
 import { cbs } from "@/lib/cbs-client";
 
-// Read an Account record
-const response = await cbs.send(cbs.form.fetchRecord("ACCOUNT", "10000001"), {
+// Read an Account record ('GET')
+const response = await cbs.send(cbs.model("ACCOUNT").get("10000001"), {
   successTitle: "Account Loaded",
 });
 
 if (response.status === "SUCCESS") {
   console.log("Account data:", response.data);
 }
+
+// Search IDs for lookups ('SBI')
+const searchRes = await cbs.send(cbs.model("CUSTOMER").searchIds({ recordId: "90" }), {
+  silent: true,
+});
+
+// Allocate next sequence ID ('GNI')
+const newIdRes = await cbs.send(cbs.model("ACCOUNT").getNewId());
 ```
 
-### 2. Authorize or Reverse Under Maker-Checker
+### 2. Save, Authorize, or Reverse Under Maker-Checker
 
 ```typescript
 import { cbs } from "@/lib/cbs-client";
 
-// Authorize pending record
-await cbs.send(cbs.form.authorizeRecord("CUSTOMER", "CUST-9901"), {
+// Save / Commit Record ('PUT')
+await cbs.send(
+  cbs.model("CUSTOMER").save({ name: "John Doe", sector: "RETAIL" }, { recordId: "CUST-9901" }),
+  {
+    successMessage: "Customer record saved successfully",
+  },
+);
+
+// Authorize pending record ('AUT')
+await cbs.send(cbs.model("CUSTOMER").authorize("CUST-9901"), {
   successMessage: "Customer record authorized successfully",
 });
 
-// Reverse live record
-await cbs.send(cbs.form.reverseRecord("CUSTOMER", "CUST-9901"), {
+// Reverse live record ('REV')
+await cbs.send(cbs.model("CUSTOMER").reverse("CUST-9901"), {
   successMessage: "Transaction reversed",
 });
 ```
@@ -78,6 +97,20 @@ const response = await cbs.send(
 );
 ```
 
+### 4. Well-Known System Tables (Zero Hardcoding)
+
+Use pre-bound instances for fixed core tables without hardcoding strings:
+
+```typescript
+import { cbs } from "@/lib/cbs-client";
+
+// Fetch branch directory for switcher
+const branches = await cbs.send(cbs.branch.list(), { silent: true });
+
+// Fetch main navigation tree
+const menuTree = await cbs.send(cbs.menuTree.get("MENU.MAIN"), { silent: true });
+```
+
 ---
 
 ## 🔒 Architectural State: Scalable or Sealed?
@@ -88,7 +121,7 @@ The transport mechanics are complete and finalized:
 - Client-to-proxy wire routing (`/api/proxy`).
 - Pre-flight Zod validation.
 - Standard HTTP status code and error toast handling.
-- `AbortSignal` and session expiration handling.
+- `AbortSignal` and session expiration handling (401).
   **You do not need to modify or touch this transport layer.**
 
 ---
@@ -97,10 +130,15 @@ The transport mechanics are complete and finalized:
 
 When your core banking system introduces a new banking table or model, you **never** write new HTTP endpoints, fetch wrappers, or custom CRUD functions.
 
-You register it in `index.ts` with a single line:
-
+You simply call:
 ```typescript
-// Example: Adding Loan Product table
+cbs.model("YOUR_NEW_TABLE").get(id);
+cbs.model("YOUR_NEW_TABLE").save(data);
+cbs.model("YOUR_NEW_TABLE").authorize(id);
+```
+
+Or if it's a permanent core system table, register it in `index.ts` with `CbsControlTable`:
+```typescript
 import { CbsControlTable } from "@/types";
 import { createModelPayloads } from "./payloads/base-model";
 
@@ -108,13 +146,6 @@ export const cbs = {
   // ...existing models
   loanProduct: createModelPayloads(CbsControlTable.LOAN_PRODUCT),
 } as const;
-```
-
-Once registered, all 7 operations (`get`, `list`, `save`, `authorize`, `delete`, `hold`, `reverse`) are immediately available with full TypeScript autocompletion:
-```typescript
-cbs.send(cbs.loanProduct.get("LOAN-1001"));
-cbs.send(cbs.loanProduct.authorize("LOAN-1001"));
-cbs.send(cbs.loanProduct.list());
 ```
 
 ---

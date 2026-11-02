@@ -1,4 +1,4 @@
-import type { CbsRecordFunction, CbsRecordLifecycleStatus } from "@/types";
+import type { CbsRecordFunction, CbsRecordLifecycleStatus, CbsScreenMode } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* Access Evaluation Context & Parameter Contracts                           */
@@ -19,8 +19,8 @@ export interface CbsAccessContext {
   readonly recordStatus?: CbsRecordLifecycleStatus | string;
   /** Inputter/Maker user ID of the current record */
   readonly recordInputter?: string;
-  /** Active screen display mode (IDLE, I, S, A, D, R, H) */
-  readonly mode?: "IDLE" | CbsRecordFunction;
+  /** Active screen display mode (IDLE, I, S, A, D, R, H, L) */
+  readonly mode?: CbsScreenMode;
 }
 
 /* -------------------------------------------------------------------------- */

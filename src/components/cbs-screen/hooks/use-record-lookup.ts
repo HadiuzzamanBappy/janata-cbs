@@ -42,7 +42,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
       setLoading(true);
 
       try {
-        const payload = cbs.form.searchRecordIds(cleanControl, query?.trim());
+        const payload = cbs.model(cleanControl).searchIds({ recordId: query?.trim() });
         const res = await cbs.send<unknown>(payload, { silent: true });
 
         if (res.status === "SUCCESS" && res.data) {
@@ -93,7 +93,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
 
       setGeneratingId(true);
       try {
-        const payload = cbs.form.getNewRecordId(cleanControl, cleanCandidate || undefined);
+        const payload = cbs.model(cleanControl).getNewId({ recordId: cleanCandidate || undefined });
         const res = await cbs.send<{ recordId?: string; id?: string }>(payload, { silent: true });
 
         if (res.status === "SUCCESS" && res.data) {

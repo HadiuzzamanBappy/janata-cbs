@@ -55,7 +55,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
       if (!idToFetch) return;
       setLoading(true);
       try {
-        const json = await cbs.send<unknown>(cbs.menu.getMenuTree(idToFetch), {
+        const json = await cbs.send<unknown>(cbs.menuTree.get(idToFetch), {
           silent: true,
         });
         if (json.status === "SUCCESS" && json.data) {
@@ -121,7 +121,9 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     try {
       const wireData = serializeMenuTreeToWireJson(formData);
       const json = await cbs.send(
-        cbs.menu.saveMenuTree(formData.recordId || recordId, wireData as unknown as unknown[]),
+        cbs.menuTree.save(wireData as unknown as Record<string, unknown>, {
+          recordId: formData.recordId || recordId,
+        }),
         {
           successTitle: "Navigation Tree Committed",
           successMessage: `Saved hierarchy ${formData.recordId || recordId} to MENU.TREE`,
@@ -152,7 +154,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     if (!recordId.trim()) return false;
     setSubmitting(true);
     try {
-      const json = await cbs.send(cbs.menu.authorizeMenuTree(recordId.trim().toUpperCase()), {
+      const json = await cbs.send(cbs.menuTree.authorize(recordId.trim().toUpperCase()), {
         successTitle: "Navigation Tree Authorized",
         successMessage: `Authorized live menu tree #${recordId}`,
       });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { appConfig } from "@/lib/core-config";
+import { cbs } from "@/lib/cbs-client";
 import type { InquiryConfigRecord } from "@/lib/data-schemas";
 
 export function useInquirySchema(command: string) {
@@ -19,16 +19,15 @@ export function useInquirySchema(command: string) {
     queryKey: ["cbs", "inquiry-schema", cleanCmd],
     enabled: Boolean(cleanCmd),
     queryFn: async () => {
-      const res = await fetch(`${appConfig.routes.api.inquiry}/${encodeURIComponent(cleanCmd)}`);
-      const json = await res.json();
+      const res = await cbs.send<InquiryConfigRecord>(cbs.inquiryConfig.get(cleanCmd), {
+        silent: true,
+      });
 
-      if ((json.status === "SUCCESS" || json.success) && json.data) {
-        return json.data;
+      if (res.status === "SUCCESS" && res.data) {
+        return res.data;
       }
 
-      throw new Error(
-        json.message || json.error || `Failed to fetch inquiry schema for ${cleanCmd}`,
-      );
+      throw new Error(res.message || `Failed to fetch inquiry schema for "${cleanCmd}" via proxy`);
     },
   });
 

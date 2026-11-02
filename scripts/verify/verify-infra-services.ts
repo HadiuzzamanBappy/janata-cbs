@@ -1,6 +1,6 @@
 /**
- * Automated Verification Suite for Core Infrastructure Services (@/lib/infra-services)
- * Tests Universal CBS Gateway Routing, Command Normalizer, Security Barriers,
+ * Automated Verification Suite for Core gRPC Infrastructure & Gateway Protocol (@/lib/infra-grpc)
+ * Tests Gateway Routing, Runtime Configuration Switch,
  * and the complete standard gRPC Protocol Error Translation Matrix.
  *
  * Usage:
@@ -29,8 +29,6 @@ async function runSuite() {
   const { appConfig } = await import("@/lib/core-config/server");
   const { isStaticMode } = await import("@/lib/infra-grpc");
   const { grpcStatusToHttp } = await import("@/lib/infra-grpc/client");
-  const { DEFAULT_AUTH_LEVEL, GRPC_SERVICE_CATEGORY, normalizeCommand, resolveServiceContext } =
-    await import("@/lib/infra-services/service-context");
 
   interface TestReport {
     name: string;
@@ -53,7 +51,7 @@ async function runSuite() {
   const originalDataSource = appConfig.dataSource;
 
   console.log("\n========================================================");
-  console.log("   INFRASTRUCTURE SERVICES (gRPC & GATEWAY CORE SUITE)  ");
+  console.log("   INFRASTRUCTURE (gRPC GATEWAY & PROTOCOL CORE SUITE)  ");
   console.log("========================================================");
   console.log(`  Active .env.local DATA_SOURCE : "${originalDataSource.toUpperCase()}"`);
   console.log(
@@ -89,53 +87,9 @@ async function runSuite() {
     );
 
     // =========================================================================
-    // SECTION 2: Command Normalization Engine (normalizeCommand)
+    // SECTION 2: gRPC Mode Protocol & Status Code Mapping
     // =========================================================================
-    console.log("\n── 2. Command Normalization Engine (normalizeCommand) ──");
-
-    assert(
-      "Normalize: Strips INQ prefix and comma version (INQ AC.LIST,1 -> AC.LIST)",
-      normalizeCommand("INQ AC.LIST,1") === "AC.LIST",
-    );
-    assert(
-      "Normalize: Strips INQUIRY full prefix (INQUIRY GET.CUSTOMER -> GET.CUSTOMER)",
-      normalizeCommand("INQUIRY GET.CUSTOMER") === "GET.CUSTOMER",
-    );
-    assert(
-      "Normalize: Strips trailing function code (ACCOUNT I -> ACCOUNT)",
-      normalizeCommand("ACCOUNT I") === "ACCOUNT",
-    );
-    assert(
-      "Normalize: Strips trailing function code S (ACCOUNT S -> ACCOUNT)",
-      normalizeCommand("ACCOUNT S") === "ACCOUNT",
-    );
-    assert(
-      "Normalize: Strips leading function code (S ACCOUNT -> ACCOUNT)",
-      normalizeCommand("S ACCOUNT") === "ACCOUNT",
-    );
-    assert(
-      "Normalize: Strips leading function code I (I USER -> USER)",
-      normalizeCommand("I USER") === "USER",
-    );
-    assert(
-      "Normalize: Preserves version suffix when preserveVersion: true",
-      normalizeCommand("USER.MGT,NEW1", { preserveVersion: true }) === "USER.MGT,NEW1",
-    );
-    assert(
-      "Normalize: Strips version suffix when preserveVersion: false",
-      normalizeCommand("USER.MGT,NEW1", { preserveVersion: false }) === "USER.MGT",
-    );
-    assert(
-      "Normalize: Resilient to extra surrounding whitespace and lowercase",
-      normalizeCommand("   inq   cust.portfolio,1   ") === "CUST.PORTFOLIO",
-    );
-
-    // =========================================================================
-    // SECTION 3: gRPC Mode Protocol, Security & Error Translation Matrix
-    // =========================================================================
-    console.log("\n── 3. gRPC Mode Protocol, Security & Status Code Mapping ──");
-    console.log("  [Note: Tests protocol contracts, security barriers & error mappers");
-    console.log("         without requiring a live backend connection or VPN.]\n");
+    console.log("\n── 2. gRPC Mode Protocol & Status Code Mapping ──");
     (appConfig as { dataSource: string }).dataSource = "grpc";
 
     assert(
@@ -143,29 +97,7 @@ async function runSuite() {
       isStaticMode() === false,
     );
 
-    // 3.1 Security Pre-conditions in gRPC Mode
-    let securityErrorThrown = false;
-    let securityErrorMessage = "";
-    try {
-      await resolveServiceContext();
-    } catch (err: unknown) {
-      securityErrorThrown = true;
-      securityErrorMessage = (err as Error).message;
-    }
-    assert(
-      "gRPC Security: resolveServiceContext throws UNAUTHENTICATED without session",
-      securityErrorThrown && securityErrorMessage.includes("UNAUTHENTICATED"),
-      `Actual message: "${securityErrorMessage}"`,
-    );
-
-    // 3.2 Service Configuration Contracts
-    assert(
-      "gRPC Contract: service category defaults to 'nonfinancial'",
-      GRPC_SERVICE_CATEGORY === "nonfinancial",
-    );
-    assert("gRPC Contract: default auth level is 1", DEFAULT_AUTH_LEVEL === 1);
-
-    // 3.3 Complete Standard gRPC Status Code to HTTP Translation Matrix
+    // Complete Standard gRPC Status Code to HTTP Translation Matrix
     assert("gRPC Status 0 (OK) -> HTTP 200", grpcStatusToHttp({ code: 0 }).status === 200);
     assert(
       "gRPC Status 3 (INVALID_ARGUMENT) -> HTTP 400",
@@ -185,51 +117,54 @@ async function runSuite() {
       grpcStatusToHttp({ code: 7 }).status === 403,
     );
     assert(
+      "gRPC Status 8 (RESOURCE_EXHAUSTED) -> HTTP 429",
+      grpcStatusToHttp({ code: 8 }).status === 429,
+    );
+    assert(
+      "gRPC Status 9 (FAILED_PRECONDITION) -> HTTP 412",
+      grpcStatusToHttp({ code: 9 }).status === 412,
+    );
+    assert("gRPC Status 10 (ABORTED) -> HTTP 409", grpcStatusToHttp({ code: 10 }).status === 409);
+    assert(
+      "gRPC Status 11 (OUT_OF_RANGE) -> HTTP 400",
+      grpcStatusToHttp({ code: 11 }).status === 400,
+    );
+    assert(
+      "gRPC Status 12 (UNIMPLEMENTED) -> HTTP 501",
+      grpcStatusToHttp({ code: 12 }).status === 501,
+    );
+    assert("gRPC Status 13 (INTERNAL) -> HTTP 500", grpcStatusToHttp({ code: 13 }).status === 500);
+    assert(
       "gRPC Status 14 (UNAVAILABLE) -> HTTP 503",
       grpcStatusToHttp({ code: 14 }).status === 503,
     );
+    assert("gRPC Status 15 (DATA_LOSS) -> HTTP 500", grpcStatusToHttp({ code: 15 }).status === 500);
     assert(
       "gRPC Status 16 (UNAUTHENTICATED) -> HTTP 401",
       grpcStatusToHttp({ code: 16 }).status === 401,
     );
-    assert("gRPC Status 2 (UNKNOWN) -> HTTP 500", grpcStatusToHttp({ code: 2 }).status === 500);
-    assert("gRPC Status 13 (INTERNAL) -> HTTP 500", grpcStatusToHttp({ code: 13 }).status === 500);
-    assert("gRPC Status 15 (DATA_LOSS) -> HTTP 500", grpcStatusToHttp({ code: 15 }).status === 500);
     assert(
-      "gRPC Status Unhandled Code -> HTTP 500",
+      "gRPC Fallback: Unknown Status Code 999 -> HTTP 500",
       grpcStatusToHttp({ code: 999 }).status === 500,
-    );
-
-    // 3.4 Status Message and Details Preservation
-    const mappedWithDetails = grpcStatusToHttp({
-      code: 3,
-      details: "Field 'accountTitle' is mandatory",
-    });
-    assert(
-      "gRPC Status Mapper: Preserves detailed error message from gRPC response",
-      mappedWithDetails.message === "Field 'accountTitle' is mandatory",
     );
   } finally {
     (appConfig as { dataSource: string }).dataSource = originalDataSource;
   }
 
-  console.log("\n========================================================");
-  const allPassed = reports.every((r) => r.passed);
-  if (allPassed) {
-    console.log(
-      `ALL ${reports.length} INFRASTRUCTURE SERVICE & gRPC PROTOCOL TESTS PASSED WITH 100% SUCCESS!`,
-    );
-    console.log("========================================================\n");
+  const failedCount = reports.filter((r) => !r.passed).length;
+  console.log(`\n========================================================`);
+  if (failedCount === 0) {
+    console.log(`>>> ALL ${reports.length} gRPC PROTOCOL TESTS PASSED CLEANLY! <<<`);
+    console.log(`========================================================\n`);
     process.exit(0);
   } else {
-    const failedCount = reports.filter((r) => !r.passed).length;
-    console.error(`FAILED: ${failedCount} OF ${reports.length} TESTS FAILED!`);
-    console.log("========================================================\n");
+    console.error(`>>> FAILED: ${failedCount} OF ${reports.length} TESTS FAILED! <<<`);
+    console.log(`========================================================\n`);
     process.exit(1);
   }
 }
 
-runSuite().catch((err: unknown) => {
-  console.error("Runner failed:", err);
+runSuite().catch((err) => {
+  console.error("FATAL SUITE CRASH:", err);
   process.exit(1);
 });

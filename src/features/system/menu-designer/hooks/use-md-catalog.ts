@@ -3,9 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
 import { cbsCommand } from "@/lib/cbs-command";
-import { appConfig } from "@/lib/core-config";
 import { parseMenuTreeList } from "@/lib/data-parsers";
-import type { SystemCommandItem } from "@/lib/data-schemas";
 import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-schema";
 
 export const DEMO_AVAILABLE_TREES = [
@@ -44,7 +42,7 @@ export function useMdCatalog() {
         // Fallback to static system definitions if table query fails
       }
 
-      // 2. Fallback: derive catalog from registered system commands & controls
+      // 2. Fallback: derive catalog from registered system commands
       const itemsMap = new Map<string, MenuCatalogActionItem>();
       const staticCommands = cbsCommand.getCommands();
       for (const cmd of staticCommands) {
@@ -56,26 +54,6 @@ export function useMdCatalog() {
             description: `System Screen: ${cmd.title}`,
           });
         }
-      }
-
-      try {
-        const res = await fetch(appConfig.routes.api.controls);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          for (const ctrl of json.data as SystemCommandItem[]) {
-            const cmdKey = ctrl.command.toUpperCase();
-            if (!itemsMap.has(cmdKey)) {
-              itemsMap.set(cmdKey, {
-                id: ctrl.command,
-                label: ctrl.title || ctrl.command,
-                command: ctrl.command,
-                description: `Application Control: ${ctrl.title || ctrl.command}`,
-              });
-            }
-          }
-        }
-      } catch {
-        // Ignore fallback errors
       }
 
       return Array.from(itemsMap.values());

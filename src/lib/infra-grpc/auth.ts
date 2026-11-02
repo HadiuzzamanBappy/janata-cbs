@@ -4,9 +4,9 @@ import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { parseAuthWirePayload } from "@/lib/data-parsers";
 import type { LoginInput } from "@/lib/data-schemas";
-import { grpcStatusToHttp, loginProcess } from "@/lib/infra-grpc";
-import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 import { type CurrentUser, createSession, destroySession } from "@/lib/infra-redis";
+import { grpcStatusToHttp, loginProcess } from "./client";
+import type { GrpcResponse } from "./generated/service";
 
 const log = logger.withContext("AUTH_SERVICE");
 

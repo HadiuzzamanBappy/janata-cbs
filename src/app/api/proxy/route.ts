@@ -121,7 +121,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           envelope.recordFunction === "I" ||
           envelope.recordFunction === "A";
 
-        if (isMutationOrAuth && (ctrl === "MODEL.CONFIG" || ctrl === "FORM.CONFIG")) {
+        if (
+          isMutationOrAuth &&
+          (ctrl === "MODEL.CONFIG" ||
+            ctrl === "FORM.CONFIG" ||
+            ctrl === "CONFIG.FORM" ||
+            ctrl === "INQUIRY.CONFIG" ||
+            ctrl === "SC_INQUIRY_CONFIG" ||
+            ctrl === "MENU" ||
+            ctrl === "MENU.TREE")
+        ) {
           const payloadData = envelope.data as Record<string, unknown> | undefined;
           const targetModel =
             (payloadData?.targetModel as string) ||

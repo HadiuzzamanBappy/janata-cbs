@@ -23,6 +23,11 @@ export const menuPayloads = {
   deleteMenuItem: menuCatalog.delete,
 
   // --- Hierarchical Menu Tree (MENU.TREE) ---
+  getNavigationTree: () => ({
+    requestType: "GUM",
+    controlName: "MENU.MAIN",
+    recordFunction: "L",
+  }),
   getTreeList: () => menuTree.list(),
   getMenuTree: (treeId = "MAIN_MENU") => menuTree.get(treeId),
   saveMenuTree: (

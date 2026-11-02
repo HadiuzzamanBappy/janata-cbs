@@ -1,4 +1,4 @@
-import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-catalog-schema";
+import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-designer-schema";
 import type { CbsVersionedTable } from "./types";
 
 /**

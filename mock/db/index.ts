@@ -59,10 +59,16 @@ export function getVersionedTable<T = Record<string, unknown>>(
   }
 
   // 2. Strict lookup in SC_MODEL_CONFIG by model key or TABLENAME
+  const normalizedKey = clean.replace(".", "_");
   const model =
     SC_MODEL_CONFIG[clean] ||
+    SC_MODEL_CONFIG[normalizedKey] ||
     Object.values(SC_MODEL_CONFIG).find(
-      (m) => m.TABLENAME === clean || `${m.PREFIX}_${m.TABLENAME}` === clean,
+      (m) =>
+        m.TABLENAME === clean ||
+        m.TABLENAME === normalizedKey ||
+        `${m.PREFIX}_${m.TABLENAME}` === clean ||
+        `${m.PREFIX}_${m.TABLENAME}` === normalizedKey,
     );
 
   if (model) {

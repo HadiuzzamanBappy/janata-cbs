@@ -2,12 +2,54 @@ import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
-/* Canonical Domain Schemas & Contracts for Menu Tree Designer                */
-/* Table: MENU_TREE (MODEL.CONFIG properties):                                */
-/*   1. treeDescription (SN: 1, Type: Text, Length: 300, Required: true)      */
-/*   2. isActive (SN: 2, Type: Boolean, Length: 1, Required: false)           */
-/*   3. menuTree (SN: 3, Type: Text, Length: 50, Structure: M, Required: true)*/
+/* Canonical Domain Schemas & Contracts for Menu Designer                     */
+/* Features Covered:                                                          */
+/*   1. Flat Menu Action Items (Table: SC_MENU / Catalog)                     */
+/*   2. Hierarchical Navigation Tree (Table: SC_MENU_TREE / Designer Canvas)  */
 /* -------------------------------------------------------------------------- */
+
+/* ========================================================================== */
+/* 1. MENU CATALOG CONTRACT (Table: SC_MENU)                                  */
+/* ========================================================================== */
+
+/**
+ * Action target for user-configurable menu catalog items.
+ * Strictly limited to how the interactive screen/inquiry opens:
+ * - "SCREEN": opens inside an integrated Workspace Tab
+ * - "POPUP": opens inside a multi-monitor detached popup window
+ */
+export const menuTypeSchema = z.enum(["SCREEN", "POPUP"]);
+export type MenuType = z.infer<typeof menuTypeSchema>;
+export const MENU_TYPES = menuTypeSchema.options;
+
+export const menuCatalogRecordSchema = z.object({
+  recordId: z.string().optional(),
+  label: z.string().min(1, "Menu Label is required").max(250, "Max 250 characters"),
+  command: z
+    .string()
+    .min(1, "Target command code is required")
+    .max(250, "Max 250 characters")
+    .regex(/^[A-Z0-9_. ,]+$/, "Must be uppercase alphanumeric command format"),
+  menuType: menuTypeSchema.default("SCREEN"),
+  actionType: menuTypeSchema.optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional(),
+  auditData: auditDataSchema.optional(),
+});
+
+export type MenuCatalogRecord = z.infer<typeof menuCatalogRecordSchema>;
+
+/** Screen-level validation error item mapped to UI tab headers. */
+export interface MenuValidationErrorItem {
+  id: string;
+  tab: "general" | "audit";
+  fieldKey: string;
+  message: string;
+}
+
+/* ========================================================================== */
+/* 2. MENU TREE & CANVAS CONTRACT (Table: SC_MENU_TREE)                       */
+/* ========================================================================== */
 
 /** Hierarchical tree node representing navigation items in the Menu Designer canvas. */
 export type MenuTreeNode = {
@@ -34,6 +76,30 @@ export const menuTreeNodeSchema: z.ZodType<MenuTreeNode> = z.lazy(() =>
   }),
 );
 
+/**
+ * Standard Navigation Menu Item Contract.
+ * Unifies sidebar tree navigation with the Menu Designer canvas nodes.
+ */
+export type MenuItem = {
+  id: string;
+  menuId?: number | string;
+  label: string;
+  command?: string;
+  menuType?: "SCREEN" | "POPUP";
+  children?: MenuItem[];
+};
+
+export const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
+  z.object({
+    id: z.string(),
+    menuId: z.union([z.number(), z.string()]).optional(),
+    label: z.string(),
+    command: z.string().optional(),
+    menuType: z.enum(["SCREEN", "POPUP"]).optional(),
+    children: z.array(menuItemSchema).optional(),
+  }),
+);
+
 /** Menu tree definition record persisted in the `MENU_TREE` control table. */
 export const menuTreeRecordSchema = z.object({
   recordId: z.string().min(1, "Tree ID is required"),
@@ -45,10 +111,6 @@ export const menuTreeRecordSchema = z.object({
 
 export type MenuTreeRecord = z.infer<typeof menuTreeRecordSchema>;
 
-/* -------------------------------------------------------------------------- */
-/* Menu Designer Catalog Action Items & Canvas Contracts                      */
-/* -------------------------------------------------------------------------- */
-
 /** Palette item draggable from the menu catalog drawer into the designer canvas. */
 export interface MenuCatalogActionItem {
   id: string;
@@ -58,10 +120,6 @@ export interface MenuCatalogActionItem {
   menuType?: string;
   description?: string;
 }
-
-/* -------------------------------------------------------------------------- */
-/* Menu Designer Screen Validation Errors                                     */
-/* -------------------------------------------------------------------------- */
 
 /** Designer screen validation error mapped to tab headers or canvas nodes. */
 export interface MenuDesignerValidationError {

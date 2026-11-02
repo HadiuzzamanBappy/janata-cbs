@@ -15,9 +15,10 @@ import { Sidebar, SidebarRail } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AppSearch } from "@/features/command";
 import { AppSettings } from "@/features/settings";
+import { cbs } from "@/lib/cbs-client";
 import { useHotkeys } from "@/lib/cbs-hotkeys";
-import { appConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
+import type { MenuItem } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
@@ -43,13 +44,12 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
     queryKey: ["app", "sidebar", "menu-tree"],
     queryFn: async () => {
       try {
-        const res = await fetch(appConfig.routes.api.menu);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          return json.data.map(mapMenuItemToTreeNode);
+        const res = await cbs.send<MenuItem[]>(cbs.menu.getNavigationTree(), { silent: true });
+        if (res.status === "SUCCESS" && Array.isArray(res.data)) {
+          return res.data.map(mapMenuItemToTreeNode);
         }
       } catch (err) {
-        logger.error("Failed to load sidebar menu API", err, "SIDEBAR");
+        logger.error("Failed to load sidebar menu from proxy", err, "SIDEBAR");
       }
       return [];
     },

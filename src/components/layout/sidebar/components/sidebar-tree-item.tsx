@@ -21,8 +21,9 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
 
   const activeCommand = activeTab?.screenId || activeTab?.id;
 
+  const isFolder = !node.command;
   const hasChildren = Boolean(node.children && node.children.length > 0);
-  const isLeaf = !hasChildren;
+  const isLeaf = !isFolder;
 
   // Check if this node or any child node is currently active
   const isChildActive = React.useMemo(
@@ -43,10 +44,10 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
 
   const handleClick = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();
-    if (hasChildren) {
+    if (isFolder) {
       setIsOpen((prev) => !prev);
-    } else {
-      cbsCommand.execute(node.command ?? node.id, {
+    } else if (node.command) {
+      cbsCommand.execute(node.command, {
         title: node.title,
         target: node.menuType === "POPUP" ? "popup" : "workspace",
       });
@@ -111,9 +112,17 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
               : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
         )}
       >
-        {hasChildren ? (
+        {isFolder ? (
           <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground shrink-0 transition-colors duration-200">
-            {isOpen ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+            {hasChildren ? (
+              isOpen ? (
+                <ChevronDown className="size-3.5" />
+              ) : (
+                <ChevronRight className="size-3.5" />
+              )
+            ) : (
+              <ChevronRight className="size-3.5 opacity-40" />
+            )}
           </span>
         ) : (
           <span className="size-3.5 flex items-center justify-center text-muted-foreground/50 group-hover:text-foreground shrink-0 transition-colors duration-200">

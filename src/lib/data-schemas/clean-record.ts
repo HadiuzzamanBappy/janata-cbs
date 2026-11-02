@@ -322,7 +322,7 @@ export function sanitizeInquiryConfigRecord(
   if (record.INQInfo?.rptControllerName?.trim()) {
     inqInfo.rptControllerName = record.INQInfo.rptControllerName.trim();
   }
-  if (record.INQInfo?.cmdFromInternal) inqInfo.cmdFromInternal = record.INQInfo.cmdFromInternal;
+  if (record.INQInfo?.cmdFromInternal) inqInfo.cmdFromInternal = true;
   if (record.INQInfo?.cmdFieldName?.trim()) {
     inqInfo.cmdFieldName = record.INQInfo.cmdFieldName.trim();
   }

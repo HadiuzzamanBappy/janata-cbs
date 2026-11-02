@@ -6,28 +6,34 @@ import { auditDataSchema } from "./common-schema";
 /* ========================================================================== */
 
 export const inqSelectFieldSchema = z.object({
-  selectFieldName: z.string().min(1, "Field name is required"),
-  selectFieldType: z
-    .string()
-    .nullish()
-    .transform((v) => v ?? "text"),
-  selectFieldOperator: z
+  selectFieldName: z
     .string()
     .nullish()
     .transform((v) => v ?? ""),
+  selectFieldType: z
+    .string()
+    .nullish()
+    .transform((v) => (v?.trim() ? v : "text")),
+  selectFieldOperator: z
+    .string()
+    .nullish()
+    .transform((v) => (v?.trim() ? v : "EQ")),
   selectFieldOperatorFixed: z
     .string()
     .nullish()
     .transform((v) => v ?? ""),
-  selectFieldDisplay: z.string().min(1, "Display label is required"),
+  selectFieldDisplay: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
   selectFieldValue: z
     .string()
     .nullish()
     .transform((v) => v ?? ""),
   selectFieldRequired: z
-    .boolean()
+    .union([z.boolean(), z.string()])
     .nullish()
-    .transform((v) => v ?? false),
+    .transform((v) => v === true || v === "true" || v === "Y"),
 });
 
 export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
@@ -37,11 +43,14 @@ export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
 /* ========================================================================== */
 
 export const inqDefSchema = z.object({
-  fieldName: z.string().min(1, "Field name is required"),
+  fieldName: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
   fieldType: z
     .string()
     .nullish()
-    .transform((v) => v ?? "CH"),
+    .transform((v) => (v?.trim() ? v : "CH")),
   fieldFunc: z
     .string()
     .nullish()
@@ -49,13 +58,19 @@ export const inqDefSchema = z.object({
   fieldRowCol: z
     .string()
     .nullish()
-    .transform((v) => v ?? "1,1"),
+    .transform((v) => (v?.trim() ? v : "1,1")),
   fieldLength: z
     .string()
     .nullish()
-    .transform((v) => v ?? "20,L"),
-  fieldDisplay: z.string().min(1, "Display header is required"),
-  dataPassable: z.union([z.string(), z.boolean()]).nullish().default(null),
+    .transform((v) => (v?.trim() ? v : "20,L")),
+  fieldDisplay: z
+    .string()
+    .nullish()
+    .transform((v) => (v?.trim() ? v : "")),
+  dataPassable: z
+    .union([z.string(), z.boolean()])
+    .nullish()
+    .transform((v) => (v == null ? null : v === true || v === "true" || v === "Y")),
 });
 
 export type INQDef = z.infer<typeof inqDefSchema>;
@@ -65,8 +80,14 @@ export type INQDef = z.infer<typeof inqDefSchema>;
 /* ========================================================================== */
 
 export const inqCmdSchema = z.object({
-  cmdFor: z.string().min(1, "Command target is required"),
-  cmdButton: z.string().min(1, "Button label is required"),
+  cmdFor: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
+  cmdButton: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
 });
 
 export type INQCmd = z.infer<typeof inqCmdSchema>;
@@ -76,32 +97,38 @@ export type INQCmd = z.infer<typeof inqCmdSchema>;
 /* ========================================================================== */
 
 export const inqInfoSchema = z.object({
-  description: z.string().min(1, "Description is required"),
-  pageOrientation: z
+  description: z
     .string()
     .nullish()
     .transform((v) => v ?? ""),
+  pageOrientation: z
+    .string()
+    .nullish()
+    .transform((v) => (v?.trim() ? v : "Portrait")),
   perpageItem: z
     .union([z.string(), z.number()])
     .nullish()
-    .transform((val) => (val != null ? String(val) : "30")),
+    .transform((val) => (val != null && String(val).trim() !== "" ? String(val) : "30")),
   showSerial: z
-    .boolean()
+    .union([z.boolean(), z.string()])
     .nullish()
-    .transform((v) => v ?? true),
+    .transform((v) => v === true || v === "true" || v === "Y"),
   showPagination: z
-    .boolean()
+    .union([z.boolean(), z.string()])
     .nullish()
-    .transform((v) => v ?? true),
+    .transform((v) => v === true || v === "true" || v === "Y"),
   showBranchWise: z
-    .boolean()
+    .union([z.boolean(), z.string()])
     .nullish()
-    .transform((v) => v ?? false),
+    .transform((v) => v === true || v === "true" || v === "Y"),
   inqType: z
     .string()
     .nullish()
-    .transform((v) => v ?? "DFT"),
-  controllerName: z.string().min(1, "Target controller/table is required"),
+    .transform((v) => (v?.trim() ? v : "DFT")),
+  controllerName: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
   rptControllerName: z
     .string()
     .nullish()
@@ -113,9 +140,15 @@ export const inqInfoSchema = z.object({
   inqServicePath: z
     .string()
     .nullish()
-    .transform((v) => v ?? "default"),
-  cmdFromInternal: z.string().nullish().default(null),
-  cmdFieldName: z.string().nullish().default(null),
+    .transform((v) => (v?.trim() ? v : "default")),
+  cmdFromInternal: z
+    .union([z.boolean(), z.string()])
+    .nullish()
+    .transform((v) => v === true || v === "true" || v === "Y"),
+  cmdFieldName: z
+    .string()
+    .nullish()
+    .transform((v) => v ?? ""),
 });
 
 export type INQInfo = z.infer<typeof inqInfoSchema>;
@@ -125,25 +158,51 @@ export type INQInfo = z.infer<typeof inqInfoSchema>;
 /* ========================================================================== */
 
 /**
- * 1:1 Canonical CBS Wire Data Schema matching actual backend response payloads.
+ * 1:1 Canonical CBS Wire Data Schema matching actual backend inquiry table records.
  */
-export const inquiryConfigRecordSchema = z.object({
-  recordId: z.string().optional(),
-  INQInfo: inqInfoSchema,
-  INQSelectField: z
-    .array(inqSelectFieldSchema)
-    .nullish()
-    .transform((v) => v ?? []),
-  INQDef: z
-    .array(inqDefSchema)
-    .nullish()
-    .transform((v) => v ?? []),
-  INQCmds: z
-    .array(inqCmdSchema)
-    .nullish()
-    .transform((v) => v ?? []),
-  auditData: auditDataSchema.optional(),
-});
+export const inquiryConfigRecordSchema = z
+  .object({
+    INQInfo: inqInfoSchema.default(() => ({
+      description: "",
+      pageOrientation: "Portrait",
+      perpageItem: "30",
+      showSerial: false,
+      showPagination: false,
+      showBranchWise: false,
+      inqType: "DFT",
+      controllerName: "",
+      rptControllerName: "",
+      fixedSelection: "",
+      inqServicePath: "default",
+      cmdFromInternal: false,
+      cmdFieldName: "",
+    })),
+    INQSelectField: z
+      .array(inqSelectFieldSchema)
+      .nullish()
+      .transform((v) => v ?? []),
+    INQDef: z
+      .array(inqDefSchema)
+      .nullish()
+      .transform((v) => v ?? []),
+    INQCmds: z
+      .array(inqCmdSchema)
+      .nullish()
+      .transform((v) => v ?? []),
+    auditData: auditDataSchema.optional(),
+    auditFields: auditDataSchema.optional(),
+  })
+  .transform((data) => {
+    // Normalize auditFields into auditData if auditData is absent
+    const audit = data.auditData ?? data.auditFields;
+    return {
+      INQInfo: data.INQInfo,
+      INQSelectField: data.INQSelectField,
+      INQDef: data.INQDef,
+      INQCmds: data.INQCmds,
+      ...(audit ? { auditData: audit } : {}),
+    };
+  });
 
 export type InquiryConfigRecord = z.infer<typeof inquiryConfigRecordSchema>;
 

@@ -1,30 +1,30 @@
 # 📋 CBS Form Spec & Compiler Engine (`@/lib/cbs-form-spec`)
 
-A pure, deterministic compiler, layout validator, and runtime rules engine for the **Janata Core Banking Workbench**.
+A pure, deterministic compiler, layout fallback generator, and headless runtime rules engine for the **Janata Core Banking Workbench**.
 
-It bridges backend data schemas defined in **Model Config** (`SC.MODEL.CONFIG`) and visual presentation layouts created in **Form Config Designer** (`SC.FORM.CONFIG`), compiling them into a normalized, headless `CompiledFormSpec` consumed directly by `OpsForm`, `FormGrid`, and the `/api/form/[cmd]` endpoint.
+It bridges backend data schemas defined in **Model Config** (`SC.MODEL.CONFIG`) and visual presentation layouts created in **Form Config Designer** (`SC.FORM.CONFIG`), compiling them into a canonical `CompiledFormSpec` (`FormConfigRecord`) consumed by `OpsForm`, `FormRenderer`, and form state hooks.
 
 ---
 
 ## 📦 What It Contains
 
-The library provides three core pure modules with zero React UI dependencies:
+The library has **zero React UI dependencies**, zero legacy shims, and provides three focused functions:
 
 1. **`compileFormSpec(model, layout?)`**:
-   Pure compiler that merges a `ModelConfigRecord` and an optional `FormConfigRecord` into a canonical `CompiledFormSpec`.
-   - When an authorized layout is provided: compiles custom sections, visual widgets, and column spans (`layoutSource: "custom"`).
-   - When no layout is provided: generates an automatic, responsive 12-column fallback grid (`layoutSource: "fallback"`).
-   - Omit rule: strictly excludes properties flagged as `ARCHIVED`.
+   Pure compiler that merges a physical `ModelConfigRecord` (sole data schema authority) and an optional `FormConfigRecord` layout into a canonical `FormConfigRecord`.
+   - **With Custom Layout**: Enriches layout fields with physical model properties (required flag, data type, physical length, and labels).
+   - **Without Layout (Fallback)**: Automatically builds a canonical responsive 12-column card section (`sec_default`) with appropriate semantic width tokens (`xs`, `sm`, `md`, `lg`, `full`).
 
 2. **`validateValues(spec, values)`**:
    Pure headless validator evaluating runtime draft values against the compiled specification:
-   - Mandatory required checks (detects empty strings, `null`, `undefined`, empty arrays).
-   - Numeric & amount validation (numeric strings, digit length boundaries).
-   - ISO date formatting (`YYYY-MM-DD` and calendar validity).
+   - Mandatory required checks (detects empty strings, `null`, `undefined`, and empty arrays).
+   - Numeric & amount validation (numeric strings, digit boundaries).
+   - ISO date formatting and calendar validity.
+   - Text length limits (character boundary checks).
    - Returns a clean `Record<string, string>` error map (`{}` when pristine).
 
-3. **`colSpanForLength(prop)`**:
-   Responsive grid utility calculating optimal 12-column span based on model property type and length constraints (e.g. 12 for `Textarea` or long text, 4 for short IDs, 6 for standard fields).
+3. **`defaultWidthForLength(prop)`**:
+   Responsive grid utility calculating optimal CBS semantic width tokens (`xs`, `sm`, `md`, `lg`, `full`) based on property length and width attributes.
 
 ---
 
@@ -45,18 +45,18 @@ The library provides three core pure modules with zero React UI dependencies:
                  ▼
 ┌─────────────────────────────────┐
 │       compileFormSpec()         │  <── Pure Engine (@/lib/cbs-form-spec)
-│     Produces: FormSpec          │      (Client, Server & Script Safe)
+│    Produces: FormConfigRecord   │      (Client, Server & Script Safe)
 └────────────────┬────────────────┘
                  │
                  ▼
 ┌─────────────────────────────────┐
-│    Runtime OpsForm / FormGrid   │  <── Consumes CompiledFormSpec
-│   (Pure Dynamic Execution)      │      (Zero @fixtures, Zero Hardcoded Screens)
+│     OpsForm / FormRenderer      │  <── Consumes Compiled Form Config
+│   (Pure Dynamic Execution)      │      (Zero Hardcoded Field JSX)
 └─────────────────────────────────┘
 ```
 
 - **Invariant 1:** Model Config is the sole authority for data schemas. Form Config only specifies visual arrangement and presentation widgets.
-- **Invariant 2:** If a model has no custom form layout, `compileFormSpec(model, null)` guarantees the operator receives an immediately usable 12-column responsive form.
+- **Invariant 2:** If a model has no custom form layout, `compileFormSpec(model)` guarantees the operator receives an immediately usable 12-column responsive form.
 - **Invariant 3:** All functions are pure, side-effect-free, and execute identically on Node.js server routes, web browser clients, and test harnesses.
 
 ---
@@ -70,13 +70,12 @@ import { compileFormSpec } from "@/lib/cbs-form-spec";
 import type { ModelConfigRecord, FormConfigRecord } from "@/lib/data-schemas";
 
 // Fallback compilation (No custom layout)
-const fallbackSpec = compileFormSpec(modelRecord, null);
-console.log(fallbackSpec.layoutSource); // "fallback"
-console.log(fallbackSpec.presentation.sections.length); // 1 or more responsive sections
+const fallbackSpec = compileFormSpec(modelRecord);
+console.log(fallbackSpec.frmElements.sections.length); // 1 responsive default section
 
 // Custom layout compilation
 const customSpec = compileFormSpec(modelRecord, formConfigRecord);
-console.log(customSpec.layoutSource); // "custom"
+console.log(customSpec.title); // Layout title
 ```
 
 ---
@@ -90,8 +89,8 @@ import { validateValues } from "@/lib/cbs-form-spec";
 
 const draftValues = {
   accountNo: "AC10001",
-  balance: "invalid-amount", // will fail numeric check
-  openDate: "", // will fail if required
+  balance: "invalid-amount", // fails numeric check
+  openDate: "", // fails if required
 };
 
 const errors = validateValues(compiledSpec, draftValues);
@@ -104,30 +103,14 @@ if (Object.keys(errors).length > 0) {
 
 ---
 
-## 🛡️ Edge Cases Handled
-
-1. **ARCHIVED Field Exclusion:**
-   Model properties with `status === "ARCHIVED"` are automatically stripped from compiled specifications and flagged if present in designer layouts.
-2. **Type-to-Widget Compatibility:**
-   Validates that visual widgets (e.g. `amount`, `select`, `date`, `switch`) match underlying property storage types (e.g. `Number`, `Dropdown`, `Date`, `Boolean`).
-3. **Empty & Null Draft Safety:**
-   `validateValues(spec, null)` and `validateValues(spec, {})` safely check mandatory constraints without throwing runtime `TypeError` exceptions.
-4. **Digit-Limit Constraints:**
-   Checks numeric digit lengths against property `length` specifications (excluding negative signs and decimals).
-
----
-
 ## 🧪 Verification
 
-Run the dedicated test suites:
+Run the dedicated test suite:
 
 ```bash
-# 1. Run isolated Form Spec Compiler & Validator unit tests (34 tests)
+# Run isolated Form Spec Compiler & Validator unit tests
 pnpm verify:form-spec
 
-# 2. Run master end-to-end architecture verification (Phases 0-5)
-pnpm verify:form-flow
-
-# 3. Run all CBS master verification suites
+# Run all CBS master verification suites
 pnpm verify:all
 ```

@@ -1,9 +1,7 @@
 import type {
   FormConfigRecord,
   FormElement,
-  FormElementsContainer,
   FormSection,
-  RoutineItem,
 } from "@/lib/data-schemas/form-config-schema";
 import type {
   ModelConfigRecord,
@@ -18,7 +16,8 @@ export type CompiledFormSpec = FormConfigRecord;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Computes optimal semantic width token from length or semantic token.
+ * Computes optimal semantic width token from model property attributes.
+ * Aligns with the 7 canonical CBS responsive tokens: xs, sm, md, lg, xl, xxl, full.
  */
 export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
   if (
@@ -35,9 +34,10 @@ export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
 }
 
 /**
- * Generates canonical fallback sections from a model dictionary.
+ * Generates canonical responsive fallback layout sections from a physical ModelConfigRecord.
+ * Used when a model has no custom FormConfigRecord layout defined.
  */
-function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
+export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const allProps = model.PROPERTIES || [];
 
   const rootFields: FormElement[] = allProps.map((p, idx) => {
@@ -68,10 +68,12 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
     };
   });
 
-  const sections: FormSection[] = [];
+  if (rootFields.length === 0) {
+    return [];
+  }
 
-  if (rootFields.length > 0) {
-    sections.push({
+  return [
+    {
       id: "sec_default",
       title: model.DESCRIPTION || model.TABLENAME || "General Attributes",
       description: "Physical Data Dictionary Fields",
@@ -82,10 +84,8 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
       collapsible: false,
       isCollapsed: false,
       fields: rootFields,
-    });
-  }
-
-  return sections;
+    },
+  ];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -93,20 +93,19 @@ function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Single authoritative form compiler for the CBS presentation layer.
- * Merges a ModelConfigRecord with an authorized FormConfigRecord layout
- * (or generates canonical fallback sections when layout is null or empty).
+ * Pure, authoritative compiler for the CBS presentation layer.
+ * Merges a ModelConfigRecord (the single authority on data schema) with an optional
+ * FormConfigRecord layout (visual arrangement). If no custom layout is supplied,
+ * generates a 12-column responsive fallback grid.
  */
 export function compileFormSpec(
   model: ModelConfigRecord,
-  layout: FormConfigRecord | null,
+  layout?: FormConfigRecord | null,
 ): FormConfigRecord {
   const modelCode = (model.TABLENAME || "FORM").toUpperCase();
 
-  // Case A: Uncustomized / Fallback Layout
+  // Case A: Fallback Layout (No custom sections provided)
   if (!layout?.frmElements?.sections || layout.frmElements.sections.length === 0) {
-    const sections = buildFallbackSections(model);
-
     return {
       title: model.DESCRIPTION || modelCode,
       description: `Default specification for ${modelCode}`,
@@ -118,19 +117,19 @@ export function compileFormSpec(
       },
       frmElements: {
         steps: [],
-        sections,
+        sections: buildFallbackSections(model),
       },
       auditData: model.auditData,
     };
   }
 
   // Case B: Custom Layout Composition
-  // Layouts are composed directly against physical model properties
-  const allProps = model.PROPERTIES || [];
-  const propertyMap = new Map(allProps.map((p) => [p.NAME.toLowerCase(), p]));
+  // Physical model property constraints (REQUIRED, LENGTH, TYPE) are authoritative
+  const propertyMap = new Map((model.PROPERTIES || []).map((p) => [p.NAME.toLowerCase(), p]));
 
-  const cleanSections: FormSection[] = (layout.frmElements.sections || []).map((section) => {
-    const cleanFields: FormElement[] = (section.fields || []).map((field) => {
+  const cleanSections: FormSection[] = layout.frmElements.sections.map((section) => ({
+    ...section,
+    fields: (section.fields || []).map((field) => {
       const modelProp = propertyMap.get(field.NAME.toLowerCase());
       if (!modelProp) {
         return field;
@@ -142,16 +141,12 @@ export function compileFormSpec(
         TYPE: field.TYPE || modelProp.TYPE || "Text",
         LENGTH: field.LENGTH || modelProp.LENGTH || 35,
         STRUCTURE: field.STRUCTURE || modelProp.STRUCTURE || "S",
-        REQUIRED: field.REQUIRED !== undefined ? field.REQUIRED : Boolean(modelProp.REQUIRED),
+        // Invariant: ModelConfig is physical database authority.
+        REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
         WIDTH: field.WIDTH || defaultWidthForLength(modelProp),
       };
-    });
-
-    return {
-      ...section,
-      fields: cleanFields,
-    };
-  });
+    }),
+  }));
 
   return {
     ...layout,
@@ -163,77 +158,4 @@ export function compileFormSpec(
     },
     auditData: layout.auditData || model.auditData,
   };
-}
-
-/**
- * Structural / Duck-Typing Form Resolver:
- * Introspects the raw record returned from Core:
- * - If it has `frmElements` -> compiles as Custom Form Layout
- * - If it has `PROPERTIES` -> compiles as Model Schema with responsive fallback
- */
-export function resolveFormRecord(
-  record: unknown,
-  fallbackModel?: ModelConfigRecord | null,
-): FormConfigRecord {
-  if (!record || typeof record !== "object") {
-    throw new Error("Invalid schema payload received from core backend");
-  }
-
-  const rec = record as Record<string, unknown>;
-
-  // 0. Is it a Combined GFC Payload? (Has `FORMCONTROL`)
-  if ("FORMCONTROL" in rec && rec.FORMCONTROL && typeof rec.FORMCONTROL === "object") {
-    const fc = rec.FORMCONTROL as Record<string, unknown>;
-    const model = Array.isArray(rec.PROPERTIES)
-      ? (rec as unknown as ModelConfigRecord)
-      : fallbackModel;
-
-    const hasLayout = Object.keys(fc).length > 0 && ("frmElements" in fc || "title" in fc);
-
-    if (hasLayout) {
-      return resolveFormRecord(fc, model);
-    }
-    if (model) {
-      return compileFormSpec(model, null);
-    }
-  }
-
-  // 1. Is it a Form Config? (Has `frmElements`)
-  if ("frmElements" in rec) {
-    const rawContainer = rec.frmElements as FormElementsContainer;
-    const formConfig: FormConfigRecord = {
-      title: String(rec.title || rec.description || ""),
-      description: String(rec.description || rec.title || ""),
-      authNumber: Number(rec.authNumber || 1),
-      frmRoutine: {
-        rtnValidate: Array.isArray((rec.frmRoutine as Record<string, unknown>)?.rtnValidate)
-          ? ((rec.frmRoutine as Record<string, unknown>).rtnValidate as RoutineItem[])
-          : [],
-        rtnBeforeAuth: Array.isArray((rec.frmRoutine as Record<string, unknown>)?.rtnBeforeAuth)
-          ? ((rec.frmRoutine as Record<string, unknown>).rtnBeforeAuth as RoutineItem[])
-          : [],
-        rtnAfterAuth: Array.isArray((rec.frmRoutine as Record<string, unknown>)?.rtnAfterAuth)
-          ? ((rec.frmRoutine as Record<string, unknown>).rtnAfterAuth as RoutineItem[])
-          : [],
-      },
-      auditData: rec.auditData as FormConfigRecord["auditData"],
-      frmElements: {
-        steps: rawContainer?.steps || [],
-        sections: rawContainer?.sections || [],
-      },
-    };
-
-    if (fallbackModel) {
-      return compileFormSpec(fallbackModel, formConfig);
-    }
-    return formConfig;
-  }
-
-  // 2. Is it a Model Config? (Has `PROPERTIES`)
-  if (Array.isArray(rec.PROPERTIES)) {
-    const modelConfig = rec as unknown as ModelConfigRecord;
-    return compileFormSpec(modelConfig, null);
-  }
-
-  throw new Error("Unknown schema format: payload has neither 'PROPERTIES' nor 'frmElements'");
 }

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
-import { resolveFormRecord } from "@/lib/cbs-form-spec";
+import { compileFormSpec } from "@/lib/cbs-form-spec";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 
 export interface UseFormSchemaResult {
@@ -25,7 +25,7 @@ export function useFormSchema(command: string): UseFormSchemaResult {
     queryKey: ["cbs", "form-schema", cleanCmd],
     enabled: Boolean(cleanCmd),
     queryFn: async () => {
-      // Case 1: Command has explicit layout version (e.g., ACCOUNT,1.0.0)
+      // Case 1: Command has explicit layout version (e.g. ACCOUNT,1.0.0)
       if (cleanCmd.includes(",")) {
         const [app, version] = cleanCmd.split(",");
         if (version?.trim()) {
@@ -39,8 +39,7 @@ export function useFormSchema(command: string): UseFormSchemaResult {
               .trim()
               .toUpperCase();
 
-            // Check if returned data is a combined GFC envelope ({ FORMCONTROL: ... })
-            // or a standalone FormConfigRecord ({ frmElements: ... })
+            // Extract layout payload (FORMCONTROL or frmElements)
             const formConfig: FormConfigRecord | null =
               "FORMCONTROL" in rawData &&
               rawData.FORMCONTROL &&
@@ -52,7 +51,6 @@ export function useFormSchema(command: string): UseFormSchemaResult {
 
             if (formConfig?.frmElements) {
               let model: ModelConfigRecord | null = null;
-              // Extract model directly from envelope if present
               if (Array.isArray(rawData.PROPERTIES)) {
                 model = rawData as unknown as ModelConfigRecord;
               } else {
@@ -69,7 +67,7 @@ export function useFormSchema(command: string): UseFormSchemaResult {
                 }
               }
 
-              const compiled = resolveFormRecord(formConfig, model);
+              const compiled = model ? compileFormSpec(model, formConfig) : formConfig;
               return { schema: compiled, modelRecord: model };
             }
           }
@@ -88,7 +86,7 @@ export function useFormSchema(command: string): UseFormSchemaResult {
 
       if (modelRes.status === "SUCCESS" && modelRes.data && "PROPERTIES" in modelRes.data) {
         const model = modelRes.data;
-        const compiled = resolveFormRecord(model, null);
+        const compiled = compileFormSpec(model, null);
         return { schema: compiled, modelRecord: model };
       }
 

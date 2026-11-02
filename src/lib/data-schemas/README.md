@@ -10,19 +10,14 @@ It serves as the **Single Source of Truth** for all data entering or leaving the
 
 ```text
 src/lib/data-schemas/
-├── common-schema.ts        # Universal wire request envelope (cbsWirePayloadSchema), audit models, and responses
+├── auth-schema.ts          # Login credentials, session token contracts, CurrentUser profile & branch update
+├── common-schema.ts        # Universal wire request envelope (cbsWirePayloadSchema), audit models, and API response envelope
+├── control-schema.ts       # System commands, alias mappings, and control table catalog models (SC_CONTROL)
 ├── env-schema.ts           # Runtime environment and secrets validation (envSchema)
-├── auth-schema.ts          # Login credentials, session token contracts, and CurrentUser profile
-├── form-schema.ts          # Raw gRPC GMC wire records and parser output models
-├── form-config-schema.ts   # Form Designer Canvas layout, widget compatibility & CompiledFormSpec contracts
-├── inquiry-schema.ts       # Enquiry query parameters, filter operators, and high-density column specs
-├── inquiry-config-schema.ts# Visual inquiry designer configurations (columns, filters, actions)
-├── branch-schema.ts        # Core banking branch directory record schema (BranchRecord)
-├── control-schema.ts       # System commands, alias mappings, and control table catalog models
-├── menu-schema.ts          # Navigation menu item schema (MenuItem & raw gRPC menu records)
-├── menu-catalog-schema.ts  # Flat menu item definition schema (SC.MENU)
-├── menu-designer-schema.ts # Hierarchical visual menu tree schema (SC.MENU.TREE)
-├── model-config-schema.ts  # Dynamic Model Builder & schema configuration models (SC.MODEL.CONFIG)
+├── form-config-schema.ts   # Form Designer Canvas layout, widget compatibility & FormConfigRecord contracts (CONFIG.FORM)
+├── inquiry-config-schema.ts# Visual inquiry designer configurations (columns, filters, actions) & runtime row types (INQUIRY)
+├── menu-designer-schema.ts # Consolidated menu definitions: flat catalog (SC_MENU) & visual navigation tree (SC_MENU_TREE)
+├── model-config-schema.ts  # Dynamic Model Builder & schema configuration models (MODEL.CONFIG)
 └── index.ts                # Public barrel export
 ```
 
@@ -66,11 +61,19 @@ if (!result.success) {
 Always import types directly from `@/lib/data-schemas`:
 
 ```typescript
-import type { FormSchema, FormField, BranchRecord, CurrentUser } from "@/lib/data-schemas";
+import type {
+  CurrentUser,
+  FormConfigRecord,
+  FormElement,
+  InquiryConfigRecord,
+  MenuItem,
+  MenuTreeRecord,
+  ModelConfigRecord,
+} from "@/lib/data-schemas";
 
-interface BranchDropdownProps {
-  branches: BranchRecord[];
-  onSelect: (branch: BranchRecord) => void;
+interface MenuTreeViewerProps {
+  tree: MenuTreeRecord;
+  onSelectNode: (node: MenuItem) => void;
 }
 ```
 
@@ -81,7 +84,7 @@ interface BranchDropdownProps {
 ```typescript
 import { envSchema } from "@/lib/data-schemas";
 
-// Automatically parsed at server startup in src/lib/core-config/env.ts
+// Automatically parsed at server startup in src/lib/core-config/server.ts
 const validEnv = envSchema.parse(process.env);
 ```
 

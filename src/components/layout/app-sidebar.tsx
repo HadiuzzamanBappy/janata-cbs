@@ -44,9 +44,17 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
     queryKey: ["app", "sidebar", "menu-tree"],
     queryFn: async () => {
       try {
-        const res = await cbs.send<MenuItem[]>(cbs.menu.getNavigationTree(), { silent: true });
-        if (res.status === "SUCCESS" && Array.isArray(res.data)) {
-          return res.data.map(mapMenuItemToTreeNode);
+        const res = await cbs.send<{ menuTree?: MenuItem[] } | MenuItem[]>(
+          cbs.menuTree.get("MENU.MAIN"),
+          { silent: true },
+        );
+        if (res.status === "SUCCESS" && res.data) {
+          const rawNodes = Array.isArray(res.data)
+            ? res.data
+            : Array.isArray(res.data.menuTree)
+              ? res.data.menuTree
+              : [];
+          return rawNodes.map(mapMenuItemToTreeNode);
         }
       } catch (err) {
         logger.error("Failed to load sidebar menu from proxy", err, "SIDEBAR");

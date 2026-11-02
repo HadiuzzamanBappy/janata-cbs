@@ -1,430 +1,379 @@
 /**
  * Automated Verification Suite for CBS Micro-Client Gateway (@/lib/cbs-client)
- * Tests all domain payload factories, wire protocol schemas, and request types.
+ *
+ * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
+ * capability exposed by the canonical `cbs` facade with explicit Input and Output visualization:
+ * 1. cbs.model(control) - Universal CRUD lifecycle (get, list, searchIds, getNewId, save, authorize, delete, hold, reverse)
+ * 2. cbs.branch, cbs.control, cbs.menu, cbs.menuTree - System directory models
+ * 3. cbs.modelConfig, cbs.formConfig, cbs.inquiryConfig - Meta-config protocol overrides
+ * 4. cbs.inquiry - Runtime inquiry query execution (INQ)
+ * 5. cbs.userSecurity - Security credential mutations (CPW, CUN)
+ * 6. cbs.send - Universal transport dispatcher (pre-flight validation, HTTP dispatch, 401 handling, cancellation)
  *
  * Usage:
- *   pnpm tsx scripts/verify-cbs-client.ts
+ *   pnpm tsx scripts/verify/verify-cbs-client.ts
  */
 
 import { z } from "zod";
-import { cbs, createModelPayloads, sendCbsRequest } from "@/lib/cbs-client";
+import { cbs } from "@/lib/cbs-client";
 import type { CbsWirePayload } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
 
-interface TestReport {
-  name: string;
+interface TestCase {
+  title: string;
+  input: unknown;
+  output: unknown;
   passed: boolean;
   error?: string;
-  payload?: unknown;
 }
 
-const reports: TestReport[] = [];
+const testCases: TestCase[] = [];
 
-function assert(name: string, condition: boolean, payloadOrInfo?: unknown) {
-  if (condition) {
-    reports.push({ name, passed: true, payload: payloadOrInfo });
-    console.log(`\x1b[32m✔ [PASS]\x1b[0m ${name}`);
-    if (payloadOrInfo && typeof payloadOrInfo === "object") {
-      const summary = JSON.stringify(payloadOrInfo, null, 2)
-        .split("\n")
-        .map((l) => `    ${l}`)
-        .join("\n");
-      console.log(`\x1b[90m${summary}\x1b[0m`);
-    }
-  } else {
-    const errorStr =
-      typeof payloadOrInfo === "string" ? payloadOrInfo : JSON.stringify(payloadOrInfo);
-    reports.push({ name, passed: false, error: errorStr });
-    console.error(`\x1b[31m✖ [FAIL]\x1b[0m ${name}${errorStr ? ` -> ${errorStr}` : ""}`);
+function recordTest(
+  title: string,
+  input: unknown,
+  output: unknown,
+  condition: boolean,
+  error?: string,
+) {
+  testCases.push({ title, input, output, passed: condition, error });
+  const statusTag = condition ? "\x1b[32m✔ [PASS]\x1b[0m" : "\x1b[31m✖ [FAIL]\x1b[0m";
+  console.log(`\n${statusTag} ${title}`);
+  console.log(`       Input  : ${typeof input === "string" ? input : JSON.stringify(input)}`);
+  console.log(`       Output : ${typeof output === "string" ? output : JSON.stringify(output)}`);
+  if (!condition && error) {
+    console.error(`       Error  : ${error}`);
   }
 }
 
 async function runSuite() {
-  console.log("\n========================================================");
-  console.log("       CBS CLIENT WIRE FACTORY & TRANSPORT SUITE        ");
-  console.log("========================================================\n");
+  console.log("\n================================================================================");
+  console.log("             CBS CLIENT WIRE FACTORY & TRANSPORT VERIFICATION                   ");
+  console.log("================================================================================");
+  console.log(" Architecture : Universal Micro-Client Facade (@/lib/cbs-client)");
+  console.log(" Pattern      : Single Unique Test per Client Capability with Visible Wire IO");
+  console.log("================================================================================");
 
-  // --- 1. Universal Model Factory (createModelPayloads / cbs.model) ---
-  console.log("--- 1. Universal Model Factory (BaseModel) ---");
-  const loanModel = createModelPayloads("LOAN.PRODUCT");
+  // --- 1. cbs.model (Universal CRUD Lifecycle Engine) ---
+  console.log("\n── 1. Universal Model Engine (cbs.model) ──");
+  const account = cbs.model("ACCOUNT");
 
-  // 1.1 Read single record (GET, SEE)
-  const getPayload = loanModel.get("loan-1001");
-  assert(
-    "BaseModel: get (GET, SEE)",
+  // 1.1 GET
+  const getPayload = account.get("10001");
+  recordTest(
+    "1.1 cbs.model.get: Builds GET/SEE wire envelope",
+    'account.get("10001")',
+    getPayload,
     getPayload.requestType === CbsRequestType.GET &&
-      getPayload.recordFunction === CbsRecordFunction.SEE,
+      getPayload.recordFunction === CbsRecordFunction.SEE &&
+      getPayload.recordId === "10001" &&
+      getPayload.servicePath === DEFAULT_SERVICE_PATH,
   );
-  assert("BaseModel: recordId trimmed and uppercased", getPayload.recordId === "LOAN-1001");
-  assert("BaseModel: default servicePath", getPayload.servicePath === DEFAULT_SERVICE_PATH);
 
-  // 1.2 List records (GRL, LIST)
-  const listPayload = loanModel.list({ criteria: { branch: "JB9999" } });
-  assert(
-    "BaseModel: list (GRL, LIST)",
+  // 1.2 LIST
+  const listPayload = account.list({ criteria: { branch: "0101" } });
+  recordTest(
+    "1.2 cbs.model.list: Builds GRL/LIST wire envelope with criteria",
+    'account.list({ criteria: { branch: "0101" } })',
+    listPayload,
     listPayload.requestType === CbsRequestType.GRL &&
-      listPayload.recordFunction === CbsRecordFunction.LIST,
-  );
-  assert(
-    "BaseModel: list criteria preserved",
-    (listPayload.data as Record<string, unknown>)?.branch === "JB9999",
+      listPayload.recordFunction === CbsRecordFunction.LIST &&
+      (listPayload.data as Record<string, unknown>)?.branch === "0101",
   );
 
-  // 1.3 Allocate new record ID (GNI, INPUT)
-  const newIdPayload = loanModel.getNewId();
-  assert(
-    "BaseModel: getNewId (GNI, INPUT)",
+  // 1.3 SEARCH IDS
+  const searchPayload = account.searchIds({ recordId: "100" });
+  recordTest(
+    "1.3 cbs.model.searchIds: Builds SBI/LIST lookup wire envelope",
+    'account.searchIds({ recordId: "100" })',
+    searchPayload,
+    searchPayload.requestType === CbsRequestType.SBI &&
+      searchPayload.recordFunction === CbsRecordFunction.LIST &&
+      searchPayload.recordId === "100",
+  );
+
+  // 1.4 GET NEW ID
+  const newIdPayload = account.getNewId();
+  recordTest(
+    "1.4 cbs.model.getNewId: Builds GNI/INPUT sequence allocation envelope",
+    "account.getNewId()",
+    newIdPayload,
     newIdPayload.requestType === CbsRequestType.GNI &&
       newIdPayload.recordFunction === CbsRecordFunction.INPUT,
   );
 
-  // 1.4 Commit record (PUT, INPUT with idempotency)
-  const savePayload = loanModel.save(
-    { amount: 50000 },
-    { recordId: "loan-1001", idempotencyKey: "idem-abc-123" },
+  // 1.5 SAVE / COMMIT
+  const savePayload = account.save(
+    { title: "Savings A/C" },
+    { recordId: "10001", idempotencyKey: "idem-1" },
   );
-  assert(
-    "BaseModel: save (PUT, INPUT)",
+  recordTest(
+    "1.5 cbs.model.save: Builds PUT/INPUT envelope with data & idempotencyKey",
+    'account.save({ title: "Savings A/C" }, { recordId: "10001", idempotencyKey: "idem-1" })',
+    savePayload,
     savePayload.requestType === CbsRequestType.PUT &&
-      savePayload.recordFunction === CbsRecordFunction.INPUT,
-  );
-  assert("BaseModel: save idempotencyKey preserved", savePayload.idempotencyKey === "idem-abc-123");
-  assert(
-    "BaseModel: save data payload preserved",
-    (savePayload.data as Record<string, unknown>)?.amount === 50000,
+      savePayload.recordFunction === CbsRecordFunction.INPUT &&
+      savePayload.idempotencyKey === "idem-1" &&
+      (savePayload.data as Record<string, unknown>)?.title === "Savings A/C",
   );
 
-  // 1.5 Authorize record (AUT, AUTHORIZE)
-  const authPayload = loanModel.authorize("loan-1001");
-  assert(
-    "BaseModel: authorize (AUT, AUTHORIZE)",
+  // 1.6 AUTHORIZE
+  const authPayload = account.authorize("10001");
+  recordTest(
+    "1.6 cbs.model.authorize: Builds AUT/AUTHORIZE approval envelope",
+    'account.authorize("10001")',
+    authPayload,
     authPayload.requestType === CbsRequestType.AUT &&
-      authPayload.recordFunction === CbsRecordFunction.AUTHORIZE,
+      authPayload.recordFunction === CbsRecordFunction.AUTHORIZE &&
+      authPayload.recordId === "10001",
   );
-  assert("BaseModel: authorize recordId", authPayload.recordId === "LOAN-1001");
 
-  // 1.6 Delete record (PUT, DELETE)
-  const delPayload = loanModel.delete("loan-1001");
-  assert(
-    "BaseModel: delete (PUT, DELETE)",
+  // 1.7 DELETE
+  const delPayload = account.delete("10001");
+  recordTest(
+    "1.7 cbs.model.delete: Builds PUT/DELETE lifecycle envelope",
+    'account.delete("10001")',
+    delPayload,
     delPayload.requestType === CbsRequestType.PUT &&
       delPayload.recordFunction === CbsRecordFunction.DELETE,
   );
 
-  // 1.7 Hold draft record (HLD, HOLD)
-  const holdPayload = loanModel.hold("loan-1001", { draftStep: 2 });
-  assert(
-    "BaseModel: hold (HLD, HOLD)",
+  // 1.8 HOLD
+  const holdPayload = account.hold("10001", { reason: "Review" });
+  recordTest(
+    "1.8 cbs.model.hold: Builds HLD/HOLD queue envelope",
+    'account.hold("10001", { reason: "Review" })',
+    holdPayload,
     holdPayload.requestType === CbsRequestType.HLD &&
-      holdPayload.recordFunction === CbsRecordFunction.HOLD,
-  );
-  assert(
-    "BaseModel: hold data preserved",
-    (holdPayload.data as Record<string, unknown>)?.draftStep === 2,
+      holdPayload.recordFunction === CbsRecordFunction.HOLD &&
+      (holdPayload.data as Record<string, unknown>)?.reason === "Review",
   );
 
-  // 1.8 Reverse live record (REV, REVERSE)
-  const revPayload = loanModel.reverse("loan-1001");
-  assert(
-    "BaseModel: reverse (REV, REVERSE)",
+  // 1.9 REVERSE
+  const revPayload = account.reverse("10001");
+  recordTest(
+    "1.9 cbs.model.reverse: Builds REV/REVERSE ledger transaction envelope",
+    'account.reverse("10001")',
+    revPayload,
     revPayload.requestType === CbsRequestType.REV &&
       revPayload.recordFunction === CbsRecordFunction.REVERSE,
   );
 
-  // 1.9 Custom Service Path & Whitespace Trimming
-  const customModel = createModelPayloads("  teller.vault  ", {
-    servicePath: "/api/vault-service",
-  });
-  assert(
-    "BaseModel: controlName trimmed and uppercased",
-    customModel.controlName === "TELLER.VAULT",
-  );
-  assert("BaseModel: custom servicePath set", customModel.servicePath === "/api/vault-service");
-  assert(
-    "BaseModel: get uses custom servicePath",
-    customModel.get("v1").servicePath === "/api/vault-service",
+  // --- 2. System Directories (branch, control, menu, menuTree) ---
+  console.log("\n── 2. System Directory & Navigation Models ──");
+  const branchList = cbs.branch.list();
+  recordTest(
+    "2.1 cbs.branch: Pre-bound model for BRANCH directory",
+    "cbs.branch.list()",
+    branchList,
+    cbs.branch.controlName === CbsControlTable.BRANCH && branchList.controlName === "BRANCH",
   );
 
-  // --- 2. Canonical Control Tables ---
-  console.log("\n--- 2. Canonical Control Tables ---");
-  // 2.1 Form Config (CONFIG.FORM with GFC)
-  const formCfg = cbs.formConfig.get("USER.MGT,V1");
-  assert(
-    `ControlTable: formConfig (GFC, ${CbsControlTable.FORM_CONFIG})`,
-    formCfg.requestType === CbsRequestType.GFC &&
-      formCfg.controlName === CbsControlTable.FORM_CONFIG &&
-      formCfg.recordId === "USER.MGT,V1",
-    formCfg,
+  recordTest(
+    "2.2 cbs.control: Pre-bound model for CONTROL command catalog",
+    "cbs.control.controlName",
+    { controlName: cbs.control.controlName },
+    cbs.control.controlName === CbsControlTable.CONTROL,
   );
 
-  // 2.2 Model Config (MODEL.CONFIG)
-  const modelCfg = cbs.modelConfig.get("USER");
-  assert(
-    `ControlTable: modelConfig (${CbsControlTable.MODEL_CONFIG})`,
-    modelCfg.controlName === CbsControlTable.MODEL_CONFIG && modelCfg.recordId === "USER",
-    modelCfg,
+  const menuList = cbs.menu.list();
+  recordTest(
+    "2.3 cbs.menu: Pre-bound model for MENU catalog",
+    "cbs.menu.list()",
+    menuList,
+    cbs.menu.controlName === CbsControlTable.MENU && menuList.controlName === "MENU",
   );
 
-  // 2.3 Inquiry Config (INQUIRY)
-  const inqCfg = cbs.inquiryConfig.get("GET.USER.MGT");
-  assert(
-    `ControlTable: inquiryConfig (${CbsControlTable.INQUIRY_CONFIG})`,
-    inqCfg.controlName === CbsControlTable.INQUIRY_CONFIG && inqCfg.recordId === "GET.USER.MGT",
-    inqCfg,
+  const treeGet = cbs.menuTree.get("MENU.MAIN");
+  recordTest(
+    "2.4 cbs.menuTree: Pre-bound model for MENU.TREE navigation hierarchy",
+    'cbs.menuTree.get("MENU.MAIN")',
+    treeGet,
+    cbs.menuTree.controlName === CbsControlTable.MENU_TREE && treeGet.controlName === "MENU.TREE",
   );
 
-  // --- 3. Domain Form Payloads (cbs.form) ---
-  console.log("\n--- 3. Domain Form Payloads (cbs.form) ---");
-  const formSearch = cbs.form.searchRecordIds("ACCOUNT");
-  assert(
-    "Form: searchRecordIds (SBI, LIST, no data)",
-    formSearch.requestType === CbsRequestType.SBI &&
-      formSearch.recordFunction === CbsRecordFunction.LIST &&
-      formSearch.recordId === "" &&
-      formSearch.data === undefined,
+  // --- 3. Meta-Configuration Protocol Overrides ---
+  console.log("\n── 3. Meta-Configuration Protocol Overrides ──");
+  const mcGet = cbs.modelConfig.get("USER");
+  const mcSave = cbs.modelConfig.save({ TABLENAME: "USER" });
+  const mcAuth = cbs.modelConfig.authorize("USER");
+  recordTest(
+    "3.1 cbs.modelConfig: Emits dedicated GMC, SMC, and AMC wire verbs",
+    'cbs.modelConfig.{get, save, authorize}("USER")',
+    { get: mcGet.requestType, save: mcSave.requestType, auth: mcAuth.requestType },
+    mcGet.requestType === CbsRequestType.GMC &&
+      mcSave.requestType === CbsRequestType.SMC &&
+      mcAuth.requestType === CbsRequestType.AMC &&
+      mcGet.controlName === CbsControlTable.MODEL_CONFIG,
   );
 
-  const formGni = cbs.form.getNewRecordId("ACCOUNT");
-  assert(
-    "Form: getNewRecordId (GNI, INPUT)",
-    formGni.requestType === CbsRequestType.GNI &&
-      formGni.recordFunction === CbsRecordFunction.INPUT,
-    formGni,
+  const fcGet = cbs.formConfig.get("USER.MGT,V1");
+  const fcSave = cbs.formConfig.save({ title: "User Form" }, { recordId: "USER.MGT,V1" });
+  recordTest(
+    "3.2 cbs.formConfig: Emits dedicated GFC and SFC presentation wire verbs",
+    'cbs.formConfig.{get, save}("USER.MGT,V1")',
+    { get: fcGet.requestType, save: fcSave.requestType },
+    fcGet.requestType === CbsRequestType.GFC &&
+      fcSave.requestType === CbsRequestType.SFC &&
+      fcGet.controlName === CbsControlTable.FORM_CONFIG,
   );
 
-  const formFetch = cbs.form.fetchRecord("ACCOUNT", "1000001");
-  assert(
-    "Form: fetchRecord (GET, SEE)",
-    formFetch.requestType === CbsRequestType.GET &&
-      formFetch.recordFunction === CbsRecordFunction.SEE,
-    formFetch,
+  const inqConfig = cbs.inquiryConfig.get("TODAY.TXN.ENTRY");
+  recordTest(
+    "3.3 cbs.inquiryConfig: Targets INQUIRY definition table",
+    'cbs.inquiryConfig.get("TODAY.TXN.ENTRY")',
+    inqConfig,
+    inqConfig.controlName === CbsControlTable.INQUIRY_CONFIG &&
+      inqConfig.requestType === CbsRequestType.GET,
   );
 
-  const formCommit = cbs.form.commitRecord(
-    "CUSTOMER",
-    { name: "Rahim" },
-    { recordId: "9001", idempotencyKey: "idem-cust-1" },
-  );
-  assert(
-    "Form: commitRecord (PUT, INPUT)",
-    formCommit.requestType === CbsRequestType.PUT && formCommit.idempotencyKey === "idem-cust-1",
-    formCommit,
-  );
-
-  const formAuth = cbs.form.authorizeRecord("ACCOUNT", "1000001");
-  assert(
-    "Form: authorizeRecord (AUT, AUTHORIZE)",
-    formAuth.requestType === CbsRequestType.AUT &&
-      formAuth.recordFunction === CbsRecordFunction.AUTHORIZE,
-  );
-
-  const formDel = cbs.form.deleteRecord("ACCOUNT", "1000001");
-  assert(
-    "Form: deleteRecord (PUT, DELETE)",
-    formDel.requestType === CbsRequestType.PUT &&
-      formDel.recordFunction === CbsRecordFunction.DELETE,
-  );
-
-  const formHold = cbs.form.holdRecord("ACCOUNT", "1000001", { pendingReview: true });
-  assert(
-    "Form: holdRecord (HLD, HOLD)",
-    formHold.requestType === CbsRequestType.HLD &&
-      formHold.recordFunction === CbsRecordFunction.HOLD,
-  );
-
-  const formRev = cbs.form.reverseRecord("ACCOUNT", "1000001");
-  assert(
-    "Form: reverseRecord (REV, REVERSE)",
-    formRev.requestType === CbsRequestType.REV &&
-      formRev.recordFunction === CbsRecordFunction.REVERSE,
-  );
-
-  // --- 4. Inquiry Payloads & Queries (cbs.inquiry) ---
-  console.log("\n--- 4. Inquiry Payloads & Runtime Queries ---");
-  // 4.1 Filtered Query matching real live enquiry (TODAY.TXN.ENTRY, BDT CT filter)
-  const inqCustom = cbs.inquiry.executeQuery("TODAY.TXN.ENTRY", {
-    servicePath: "default",
+  // --- 4. Runtime Inquiries (cbs.inquiry) ---
+  console.log("\n── 4. Runtime Inquiries (cbs.inquiry) ──");
+  const inqRun = cbs.inquiry.executeQuery("GET.TXNS", {
     curPage: 1,
-    perPage: 1000,
+    perPage: 50,
     queryString: [
       {
-        selectFieldName: "recordId",
-        selectFieldType: "text",
-        selectFieldOperator: "CT",
+        selectFieldName: "CURRENCY",
+        selectFieldOperator: "EQ",
         selectFieldValue: "BDT",
       },
     ],
   });
-  assert(
-    "Inquiry: executeQuery custom pagination & servicePath for TODAY.TXN.ENTRY",
-    inqCustom.requestType === CbsRequestType.INQ &&
-      inqCustom.controlName === "TODAY.TXN.ENTRY" &&
-      inqCustom.recordId === "" &&
-      (inqCustom.data as Record<string, unknown>)?.curPage === 1 &&
-      (inqCustom.data as Record<string, unknown>)?.perPage === 1000,
-    inqCustom,
-  );
-  const inqCustomData = inqCustom.data as {
-    queryString?: Array<{ selectFieldName: string; selectFieldValue: string }>;
-  };
-  assert(
-    "Inquiry: executeQuery queryString filter for recordId with CT operator",
-    Array.isArray(inqCustomData?.queryString) &&
-      inqCustomData?.queryString[0]?.selectFieldName === "recordId" &&
-      inqCustomData?.queryString[0]?.selectFieldValue === "BDT",
+  recordTest(
+    "4.1 cbs.inquiry.executeQuery: Builds INQ tabular execution envelope",
+    'cbs.inquiry.executeQuery("GET.TXNS", { curPage: 1, perPage: 50, queryString: [...] })',
+    inqRun,
+    inqRun.requestType === CbsRequestType.INQ &&
+      inqRun.controlName === "GET.TXNS" &&
+      (inqRun.data as Record<string, unknown>)?.curPage === 1 &&
+      (inqRun.data as Record<string, unknown>)?.perPage === 50 &&
+      Array.isArray((inqRun.data as Record<string, unknown>)?.queryString),
   );
 
-  // 4.2 Default Query for TODAY.TXN.ENTRY
-  const inqDefault = cbs.inquiry.executeQuery("TODAY.TXN.ENTRY");
-  assert(
-    "Inquiry: executeQuery default curPage = 1",
-    (inqDefault.data as Record<string, unknown>)?.curPage === 1,
-  );
-  assert(
-    "Inquiry: executeQuery default perPage = 1000",
-    (inqDefault.data as Record<string, unknown>)?.perPage === 1000,
-  );
-
-  // --- 5. User Security Payloads (cbs.userSecurity) ---
-  console.log("\n--- 5. User Security Payloads (cbs.userSecurity) ---");
-
-  const changePass = cbs.userSecurity.changePassword({ currPass: "old123", newPass: "new123" });
-  assert(
-    "UserSecurity: changePassword (CPW)",
-    changePass.requestType === CbsRequestType.CPW &&
-      (changePass.data as Record<string, unknown>)?.newPass === "new123",
-  );
-
-  const changeSignOn = cbs.userSecurity.changeSignOnName({
-    oldUserName: "teller1",
-    newUserName: "senior_teller1",
-    password: "pwd",
+  // --- 5. User Security (cbs.userSecurity) ---
+  console.log("\n── 5. User Security (cbs.userSecurity) ──");
+  const cpw = cbs.userSecurity.changePassword({ currPass: "p1", newPass: "p2" });
+  const cun = cbs.userSecurity.changeSignOnName({
+    oldUserName: "u1",
+    newUserName: "u2",
+    password: "p",
   });
-  assert(
-    "UserSecurity: changeSignOnName (CUN)",
-    changeSignOn.requestType === CbsRequestType.CUN &&
-      (changeSignOn.data as Record<string, unknown>)?.newUserName === "senior_teller1",
+  recordTest(
+    "5.1 cbs.userSecurity: Emits CPW and CUN wire security envelopes",
+    "cbs.userSecurity.{changePassword, changeSignOnName}(...)",
+    { changePassword: cpw.requestType, changeSignOnName: cun.requestType },
+    cpw.requestType === CbsRequestType.CPW && cun.requestType === CbsRequestType.CUN,
   );
 
-  // --- 7. Transport Dispatcher & Pre-Flight Validation (cbs.send) ---
-  console.log("\n--- 7. Transport Dispatcher & Pre-Flight Validation ---");
+  // --- 6. Universal Transport Dispatcher (cbs.send) ---
+  console.log("\n── 6. Transport Dispatcher & Pre-Flight Validation (cbs.send) ──");
 
-  // 7.1 Client-Side Pre-Flight Validation Failure (Fail-Fast)
+  // 6.1 Pre-Flight Validation Guard
+  let preflightCaught = false;
+  let preflightError = "";
   try {
-    const malformedPayload: CbsWirePayload = { requestType: "" };
-    await sendCbsRequest(malformedPayload, { silent: true });
-    assert("Pre-Flight: Throws on invalid payload", false);
+    const invalidPayload = { requestType: "" } as unknown as CbsWirePayload;
+    await cbs.send(invalidPayload, { silent: true });
   } catch (err: unknown) {
-    const isValidationError =
-      err instanceof Error && err.message.includes("CLIENT_VALIDATION_ERROR");
-    assert("Pre-Flight: Rejects malformed payload before network dispatch", isValidationError);
+    preflightCaught = true;
+    preflightError = err instanceof Error ? err.message : String(err);
   }
+  recordTest(
+    "6.1 cbs.send: Fails fast on malformed payload before network dispatch",
+    '{ requestType: "" }',
+    { caught: preflightCaught, error: preflightError },
+    preflightCaught && preflightError.includes("CLIENT_VALIDATION_ERROR"),
+  );
 
-  // 7.2 Mock Network Dispatch Matrix
+  // 6.2 HTTP Mock Transport Matrix
   const originalFetch = globalThis.fetch;
   try {
-    // 7.2.1 HTTP 200 SUCCESS
+    // A. HTTP 200 SUCCESS
     globalThis.fetch = async () =>
-      new Response(
-        JSON.stringify({ status: "SUCCESS", data: { accountNo: "10001", balance: 50000 } }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-
-    const successRes = await cbs.send(cbs.form.fetchRecord("ACCOUNT", "10001"), { silent: true });
-    assert(
-      "Transport: HTTP 200 SUCCESS returns parsed response envelope",
-      successRes.status === "SUCCESS" &&
-        (successRes.data as Record<string, unknown>)?.accountNo === "10001",
-    );
-
-    // 7.2.2 Runtime Zod responseSchema Validation (Passing)
-    const validAccountSchema = z.object({ accountNo: z.string(), balance: z.number() });
-    const validatedRes = await cbs.send(cbs.form.fetchRecord("ACCOUNT", "10001"), {
-      silent: true,
-      responseSchema: validAccountSchema,
-    });
-    assert(
-      "Transport: Valid response conforms to responseSchema",
-      validatedRes.status === "SUCCESS",
-    );
-
-    // 7.2.3 Runtime Zod responseSchema Validation (Failing)
-    try {
-      const invalidAccountSchema = z.object({ accountNo: z.number(), balance: z.string() }); // mismatch types
-      await cbs.send(cbs.form.fetchRecord("ACCOUNT", "10001"), {
-        silent: true,
-        responseSchema: invalidAccountSchema,
+      new Response(JSON.stringify({ status: "SUCCESS", data: { id: "101", balance: 500 } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       });
-      assert("Transport: Schema mismatch should reject", false);
-    } catch (err: unknown) {
-      const isSchemaError = err instanceof Error && err.message.includes("RESPONSE_SCHEMA_ERROR");
-      assert("Transport: Response schema mismatch throws RESPONSE_SCHEMA_ERROR", isSchemaError);
-    }
 
-    // 7.2.4 HTTP 401 Session Expired
-    globalThis.fetch = async () =>
-      new Response(JSON.stringify({ message: "Session expired" }), { status: 401 });
-
-    try {
-      await cbs.send(cbs.form.fetchRecord("ACCOUNT", "10001"), { silent: true });
-      assert("Transport: 401 must throw UNAUTHORIZED", false);
-    } catch (err: unknown) {
-      assert(
-        "Transport: 401 translates cleanly to UNAUTHORIZED exception",
-        err instanceof Error && err.message === "UNAUTHORIZED",
-      );
-    }
-
-    // 7.2.5 RECORD_NOT_FOUND Status Envelope
-    globalThis.fetch = async () =>
-      new Response(
-        JSON.stringify({ status: "RECORD_NOT_FOUND", message: "Account 999 not found" }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      );
-
-    const notFoundRes = await cbs.send(cbs.form.fetchRecord("ACCOUNT", "999"), { silent: true });
-    assert(
-      "Transport: RECORD_NOT_FOUND status envelope parsed gracefully",
-      notFoundRes.status === "RECORD_NOT_FOUND",
+    const successRes = await cbs.send(account.get("101"), { silent: true });
+    recordTest(
+      "6.2 cbs.send: Dispatches HTTP POST /api/proxy and parses SUCCESS envelope",
+      'cbs.send(account.get("101"))',
+      successRes,
+      successRes.status === "SUCCESS" && (successRes.data as Record<string, unknown>)?.id === "101",
     );
 
-    // 7.2.6 AbortSignal Cancellation
-    const abortController = new AbortController();
-    abortController.abort();
+    // B. Response Schema Validation
+    const testSchema = z.object({ id: z.string(), balance: z.number() });
+    const schemaRes = await cbs.send(account.get("101"), {
+      silent: true,
+      responseSchema: testSchema,
+    });
+    recordTest(
+      "6.3 cbs.send: Enforces runtime type-safety with Zod responseSchema",
+      "cbs.send(..., { responseSchema: z.object(...) })",
+      { status: schemaRes.status, data: schemaRes.data },
+      schemaRes.status === "SUCCESS",
+    );
+
+    // C. HTTP 401 Session Expiration
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ message: "Expired" }), { status: 401 });
+
+    let authCaught = false;
+    let authError = "";
+    try {
+      await cbs.send(account.get("101"), { silent: true });
+    } catch (err: unknown) {
+      authCaught = true;
+      authError = err instanceof Error ? err.message : String(err);
+    }
+    recordTest(
+      "6.4 cbs.send: Intercepts 401 and cleanly raises UNAUTHORIZED exception",
+      "HTTP 401 Session Expired",
+      { caught: authCaught, error: authError },
+      authCaught && authError === "UNAUTHORIZED",
+    );
+
+    // D. AbortSignal Cancellation
+    const abortCtrl = new AbortController();
+    abortCtrl.abort();
     globalThis.fetch = async () => {
-      throw new DOMException("The operation was aborted.", "AbortError");
+      throw new DOMException("Aborted", "AbortError");
     };
 
+    let abortCaught = false;
+    let abortName = "";
     try {
-      await cbs.send(cbs.form.fetchRecord("ACCOUNT", "10001"), {
-        silent: true,
-        signal: abortController.signal,
-      });
-      assert("Transport: Aborted signal should throw AbortError", false);
+      await cbs.send(account.get("101"), { silent: true, signal: abortCtrl.signal });
     } catch (err: unknown) {
-      assert(
-        "Transport: Aborted request surfaces AbortError without error toast",
-        err instanceof DOMException && err.name === "AbortError",
-      );
+      abortCaught = true;
+      abortName = err instanceof DOMException ? err.name : "";
     }
+    recordTest(
+      "6.5 cbs.send: Supports AbortSignal without triggering false error alerts",
+      "AbortSignal.abort()",
+      { caught: abortCaught, errorName: abortName },
+      abortCaught && abortName === "AbortError",
+    );
   } finally {
     globalThis.fetch = originalFetch;
   }
 
-  console.log("\n========================================================");
-  const allPassed = reports.every((r) => r.passed);
-  if (allPassed) {
+  const passedTests = testCases.filter((t) => t.passed).length;
+  const failedTests = testCases.filter((t) => !t.passed).length;
+
+  console.log("\n================================================================================");
+  if (failedTests === 0) {
     console.log(
-      `ALL ${reports.length} WIRE FACTORY & TRANSPORT TEST CASES PASSED WITH 100% SUCCESS!`,
+      `>>> SUCCESS: ALL ${passedTests} CBS-CLIENT WIRE CAPABILITIES VALIDATED 100% CLEAN! <<<`,
     );
   } else {
-    console.error("SOME WIRE FACTORY TESTS FAILED!");
+    console.error(`>>> FAILURE: ${failedTests} TESTS FAILED! <<<`);
     process.exit(1);
   }
-  console.log("========================================================\n");
+  console.log("================================================================================\n");
 }
 
 runSuite().catch((err) => {

@@ -41,10 +41,9 @@ export function useFormActions({
       const cleanId = recordIdToLoad.trim();
 
       try {
-        const res = await cbs.send<Record<string, unknown>>(
-          cbs.form.fetchRecord(modelCode, cleanId),
-          { silent: true },
-        );
+        const res = await cbs.send<Record<string, unknown>>(cbs.model(modelCode).get(cleanId), {
+          silent: true,
+        });
 
         if (res.status === "SUCCESS" && res.data) {
           setValues(res.data);
@@ -75,7 +74,7 @@ export function useFormActions({
       let nextId = allocatedId;
       if (!nextId) {
         try {
-          const gni = await cbs.send<{ recordId?: string }>(cbs.form.getNewRecordId(modelCode));
+          const gni = await cbs.send<{ recordId?: string }>(cbs.model(modelCode).getNewId());
           if (gni.status === "SUCCESS" && gni.data?.recordId) {
             nextId = gni.data.recordId;
           }

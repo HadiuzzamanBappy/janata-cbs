@@ -12,13 +12,13 @@ export interface RecordBaseline<T extends Record<string, unknown> = Record<strin
 
 /**
  * Creates an immutable baseline snapshot of a record.
- * Clones the record data to isolate from subsequent in-memory mutations.
+ * Uses native structuredClone to isolate from subsequent in-memory mutations.
  */
 export function createBaseline<T extends Record<string, unknown>>(
   record: T | null | undefined,
-  ignoredKeys: string[] = [],
+  ignoredKeys: readonly string[] = [],
 ): RecordBaseline<T> {
-  const clone = record ? (JSON.parse(JSON.stringify(record)) as T) : ({} as T);
+  const clone = record ? (structuredClone(record) as T) : ({} as T);
   return {
     baseline: Object.freeze(clone),
     ignoredKeys: Object.freeze([...ignoredKeys]),
@@ -27,28 +27,20 @@ export function createBaseline<T extends Record<string, unknown>>(
 
 /**
  * Evaluates whether working draft values are dirty relative to the established baseline.
- * Handles both a RecordBaseline container or direct baseline object.
+ * Handles both a RecordBaseline container or direct baseline record.
  */
 export function evaluateDirty<T extends Record<string, unknown>>(
   baselineHolder: RecordBaseline<T> | T | null | undefined,
   current: T | null | undefined,
-  additionalIgnoredKeys: string[] = [],
+  additionalIgnoredKeys: readonly string[] = [],
 ): CbsDeltaPatch {
-  let base: T;
-  let ignored: string[];
-
   if (baselineHolder && typeof baselineHolder === "object" && "baseline" in baselineHolder) {
-    base = (baselineHolder as RecordBaseline<T>).baseline;
-    ignored = [
-      ...((baselineHolder as RecordBaseline<T>).ignoredKeys || []),
-      ...additionalIgnoredKeys,
-    ];
-  } else {
-    base = (baselineHolder || {}) as T;
-    ignored = additionalIgnoredKeys;
+    const holder = baselineHolder as RecordBaseline<T>;
+    const ignored = [...holder.ignoredKeys, ...additionalIgnoredKeys];
+    return computeDelta(holder.baseline, current, ignored);
   }
 
-  return computeDelta(base, current, ignored);
+  return computeDelta(baselineHolder, current, additionalIgnoredKeys);
 }
 
 /**
@@ -57,7 +49,7 @@ export function evaluateDirty<T extends Record<string, unknown>>(
  */
 export function rebaseline<T extends Record<string, unknown>>(
   current: T | null | undefined,
-  ignoredKeys: string[] = [],
+  ignoredKeys: readonly string[] = [],
 ): RecordBaseline<T> {
   return createBaseline(current, ignoredKeys);
 }

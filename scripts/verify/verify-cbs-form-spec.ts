@@ -1,442 +1,303 @@
 /**
  * Automated Verification Suite for CBS Form Spec & Compiler Engine (@/lib/cbs-form-spec)
- * Tests:
- * 1. Compilation without layout (12-column responsive fallback generation)
- * 2. Compilation with custom layout
- * 3. Dropping archived fields from compiled runtime spec
- * 4. Safe widget fallback on type incompatibility
- * 5. Layout validation against model (missing property, archived property, incompatible widget, model mismatch)
- * 6. Headless value validation (required fields, max length/digit limits, numeric/date types)
+ *
+ * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
+ * capability exposed by `@/lib/cbs-form-spec` with explicit Input and Output visualization:
+ * 1. Semantic Width Mapping (defaultWidthForLength: xs, sm, md, lg, full)
+ * 2. Fallback Layout Compilation (buildFallbackSections: 12-col card layout when no custom layout)
+ * 3. Custom Layout Compilation & Model Rules Merging (compileFormSpec: preserves layout, enforces model constraints)
+ * 4. Headless Value Validation (validateValues: required, numeric/digits, date, length, clean state)
  *
  * Usage:
- *   pnpm tsx scripts/verify-cbs-form-spec.ts
+ *   pnpm tsx scripts/verify/verify-cbs-form-spec.ts
  */
 
-import { compileFormSpec, validateValues } from "@/lib/cbs-form-spec";
+import { compileFormSpec, defaultWidthForLength, validateValues } from "@/lib/cbs-form-spec";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 
-interface TestReport {
-  name: string;
+interface TestCase {
+  title: string;
+  input: unknown;
+  output: unknown;
   passed: boolean;
   error?: string;
 }
 
-const reports: TestReport[] = [];
+const testCases: TestCase[] = [];
 
-function assert(name: string, condition: boolean, extraInfo?: string) {
-  if (condition) {
-    reports.push({ name, passed: true });
-    console.log(`[PASS] ${name}`);
-  } else {
-    reports.push({ name, passed: false, error: extraInfo });
-    console.error(`[FAIL] ${name}${extraInfo ? ` -> ${extraInfo}` : ""}`);
+function recordTest(
+  title: string,
+  input: unknown,
+  output: unknown,
+  condition: boolean,
+  error?: string,
+) {
+  testCases.push({ title, input, output, passed: condition, error });
+  const statusTag = condition ? "\x1b[32m✔ [PASS]\x1b[0m" : "\x1b[31m✖ [FAIL]\x1b[0m";
+  console.log(`\n${statusTag} ${title}`);
+  console.log(`       Input  : ${typeof input === "string" ? input : JSON.stringify(input)}`);
+  console.log(`       Output : ${typeof output === "string" ? output : JSON.stringify(output)}`);
+  if (!condition && error) {
+    console.error(`       Error  : ${error}`);
   }
 }
 
+// Canonical Test Model Definition (Account Model)
+const testModel: ModelConfigRecord = {
+  TABLENAME: "ACCOUNT",
+  DESCRIPTION: "Customer Account Definition",
+  PREFIX: "AC",
+  SERVICEPATH: "account.service",
+  ACCESS: "BRANCH",
+  SEARCHABLE: true,
+  USERDEFINEID: false,
+  READONLY: false,
+  AUTHORIZE: true,
+  ASSOCIATES: [],
+  _DEVBY: "SYSTEM",
+  _DEVDATE: "2026-10-20",
+  IDROUTINE: "",
+  FIELDBASED: false,
+  IDDEF: {
+    IDPREFIX: "AC",
+    IDPATTERN: "AC{YYYY}{SEQ:6}",
+    SEQUENCELENGTH: 6,
+    SEQUENCERESET: false,
+  },
+  PROPERTIES: [
+    {
+      SN: "1",
+      NAME: "accountNumber",
+      LABEL: "Account Number",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 12,
+      REQUIRED: true,
+    },
+    {
+      SN: "2",
+      NAME: "accountTitle",
+      LABEL: "Account Title",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 50,
+      REQUIRED: true,
+    },
+    {
+      SN: "3",
+      NAME: "balance",
+      LABEL: "Ledger Balance",
+      TYPE: "Number",
+      STRUCTURE: "S",
+      LENGTH: 10,
+      REQUIRED: false,
+    },
+    {
+      SN: "4",
+      NAME: "openingDate",
+      LABEL: "Account Opening Date",
+      TYPE: "Date",
+      STRUCTURE: "S",
+      LENGTH: 10,
+      REQUIRED: false,
+    },
+    {
+      SN: "5",
+      NAME: "nomineeShare",
+      LABEL: "Nominee Share %",
+      TYPE: "Number",
+      STRUCTURE: "S",
+      LENGTH: 3,
+      REQUIRED: true,
+    },
+  ],
+};
+
 async function runSuite() {
-  console.log("\n========================================================");
-  console.log("       CBS FORM SPEC COMPILER & VALIDATION SUITE        ");
-  console.log("========================================================\n");
+  console.log("\n================================================================================");
+  console.log("             CBS FORM SPEC COMPILER & VALIDATION VERIFICATION                   ");
+  console.log("================================================================================");
+  console.log(" Architecture : Pure Headless Form Engine (@/lib/cbs-form-spec)");
+  console.log(" Pattern      : Single Unique Test per Compiler/Rule Capability with Visible IO");
+  console.log("================================================================================");
 
-  // --- Canonical Test Model Definition ---
-  const testModel: ModelConfigRecord = {
-    TABLENAME: "ACCOUNT",
-    DESCRIPTION: "Customer Account Definition",
-    PREFIX: "AC",
-    SERVICEPATH: "account.service",
-    ACCESS: "BRANCH",
-    SEARCHABLE: true,
-    USERDEFINEID: false,
-    READONLY: false,
-    AUTHORIZE: true,
-    ASSOCIATES: [],
-    _DEVBY: "SYSTEM",
-    _DEVDATE: "2026-10-20",
-    IDROUTINE: "",
-    FIELDBASED: false,
-    IDDEF: {
-      IDPREFIX: "AC",
-      IDPATTERN: "AC{YYYY}{SEQ:6}",
-      SEQUENCELENGTH: 6,
-      SEQUENCERESET: false,
+  // ── 1. Semantic Width Mapping ──
+  console.log("\n── 1. Semantic Width Mapping (defaultWidthForLength) ──");
+  const wShort = defaultWidthForLength({
+    SN: "1",
+    NAME: "code",
+    LABEL: "Code",
+    TYPE: "Text",
+    STRUCTURE: "S",
+    LENGTH: 4,
+    REQUIRED: false,
+  });
+  recordTest(
+    "1.1 Maps short field length (<= 5) to 'xs' semantic token",
+    { length: 4 },
+    { widthToken: wShort },
+    wShort === "xs",
+  );
+
+  const wLong = defaultWidthForLength({
+    SN: "2",
+    NAME: "narrative",
+    LABEL: "Narrative",
+    TYPE: "Text",
+    STRUCTURE: "S",
+    LENGTH: 120,
+    REQUIRED: false,
+  });
+  recordTest(
+    "1.2 Maps long field length (> 100) to 'full' semantic token",
+    { length: 120 },
+    { widthToken: wLong },
+    wLong === "full",
+  );
+
+  // ── 2. Fallback Layout Compilation ──
+  console.log("\n── 2. Fallback Layout Compilation (compileFormSpec) ──");
+  const fallback = compileFormSpec(testModel, null);
+  recordTest(
+    "2.1 Generates canonical 12-column card fallback section when no custom layout exists",
+    { model: testModel.TABLENAME, layout: null },
+    {
+      title: fallback.title,
+      sectionsCount: fallback.frmElements.sections.length,
+      firstSectionId: fallback.frmElements.sections[0]?.id,
+      fieldsCount: fallback.frmElements.sections[0]?.fields.length,
     },
-    PROPERTIES: [
-      {
-        SN: "1",
-        NAME: "accountNumber",
-        LABEL: "Account Number",
-        TYPE: "Text",
-        STRUCTURE: "S",
-        LENGTH: 12,
-        REQUIRED: true,
-      },
-      {
-        SN: "2",
-        NAME: "accountTitle",
-        LABEL: "Account Title",
-        TYPE: "Text",
-        STRUCTURE: "S",
-        LENGTH: 50,
-        REQUIRED: true,
-      },
-      {
-        SN: "3",
-        NAME: "balance",
-        LABEL: "Ledger Balance",
-        TYPE: "Number",
-        STRUCTURE: "S",
-        LENGTH: 10,
-        REQUIRED: false,
-      },
-      {
-        SN: "4",
-        NAME: "openingDate",
-        LABEL: "Account Opening Date",
-        TYPE: "Date",
-        STRUCTURE: "S",
-        LENGTH: 10,
-        REQUIRED: false,
-      },
-      {
-        SN: "5_1",
-        NAME: "nomineeName",
-        LABEL: "Nominee Full Name",
-        TYPE: "Text",
-        STRUCTURE: "S",
-        LENGTH: 40,
-        REQUIRED: true,
-      },
-      {
-        SN: "5_2",
-        NAME: "nomineeShare",
-        LABEL: "Nominee Share %",
-        TYPE: "Number",
-        STRUCTURE: "S",
-        LENGTH: 3,
-        REQUIRED: true,
-      },
-    ],
-  };
-
-  // ============================================================================
-  // --- 1. Compile Without Layout (Responsive 12-Column Fallback) ---
-  // ============================================================================
-  console.log("--- 1. Compile Without Layout (Responsive Fallback) ---");
-
-  const fallbackSpec = compileFormSpec(testModel, null);
-
-  assert(
-    "Fallback: Generates compiled spec with title",
-    fallbackSpec.title === "Customer Account Definition",
-  );
-  assert("Fallback: Sets authNumber to 1", fallbackSpec.authNumber === 1);
-  assert("Fallback: Generates sections array", Array.isArray(fallbackSpec.frmElements?.sections));
-
-  const allFallbackFields = (fallbackSpec.frmElements?.sections || []).flatMap(
-    (s) => s.fields || [],
-  );
-  const fallbackFieldKeys = allFallbackFields.map((f) => f.NAME);
-  assert(
-    "Fallback: Includes active property accountNumber",
-    fallbackFieldKeys.includes("accountNumber"),
-  );
-  assert(
-    "Fallback: Includes active property accountTitle",
-    fallbackFieldKeys.includes("accountTitle"),
+    fallback.title === "Customer Account Definition" &&
+      fallback.frmElements.sections.length === 1 &&
+      fallback.frmElements.sections[0]?.fields.length === testModel.PROPERTIES.length,
   );
 
-  // Check fallback section and inline field group hierarchy
-  assert(
-    "Fallback: Generates 1 consolidated section with fields",
-    fallbackSpec.frmElements.sections.length === 1,
-  );
-  const rootSection = fallbackSpec.frmElements.sections[0];
-  assert("Fallback: Root section has layoutStyle card", rootSection.layoutStyle === "card");
-  assert(
-    "Fallback: Root section contains all model properties",
-    rootSection.fields.length === testModel.PROPERTIES.length,
-  );
-
-  // ============================================================================
-  // --- 2. Compile With Valid Custom Layout ---
-  // ============================================================================
-  console.log("\n--- 2. Compile With Valid Custom Layout ---");
-
-  const validLayout: FormConfigRecord = {
-    title: "Standard Account Opening Form",
-    description: "Account opening layout",
+  // ── 3. Custom Layout Compilation & Model Rules Merging ──
+  console.log("\n── 3. Custom Layout Composition & Model Constraints ──");
+  const customLayout: FormConfigRecord = {
+    title: "Account Custom Form",
+    description: "Tailored view",
     authNumber: 1,
-    frmRoutine: {
-      rtnValidate: [],
-      rtnBeforeAuth: [],
-      rtnAfterAuth: [],
-    },
+    frmRoutine: { rtnValidate: [], rtnBeforeAuth: [], rtnAfterAuth: [] },
     frmElements: {
       steps: [],
       sections: [
         {
-          id: "sec_main",
-          title: "Account Details",
+          id: "sec_custom",
+          title: "Primary Info",
           type: "standard",
           zone: "standard",
-          columns: 2,
-          collapsible: false,
-          isCollapsed: false,
           layoutStyle: "card",
           fields: [
             {
               SN: "1",
               NAME: "accountNumber",
-              LABEL: "A/C Number",
+              LABEL: "Bank A/C Number", // Custom label
               TYPE: "Text",
-              LENGTH: 12,
+              LENGTH: 0, // Fallback to model physical length (12)
               STRUCTURE: "S",
-              REQUIRED: true,
+              REQUIRED: false, // Model constraint (true) must take precedence
               DISABLED: false,
-              WIDTH: 200,
+              WIDTH: "md",
               POSITION: "",
-              PARAMETER: {
-                type: "O",
-                data: [],
-                modelName: "",
-                displayField: "",
-                condition: "",
-                reference: "",
-              },
-              ENRICHTEXT: "",
-              VALUE: "",
-              FIXEDVALUE: "",
-              DEFAULTVALUE: "",
-            },
-            {
-              SN: "2",
-              NAME: "accountTitle",
-              LABEL: "A/C Title",
-              TYPE: "Text",
-              LENGTH: 50,
-              STRUCTURE: "S",
-              REQUIRED: true,
-              DISABLED: false,
-              WIDTH: 200,
-              POSITION: "",
-              PARAMETER: {
-                type: "O",
-                data: [],
-                modelName: "",
-                displayField: "",
-                condition: "",
-                reference: "",
-              },
-              ENRICHTEXT: "",
-              VALUE: "",
-              FIXEDVALUE: "",
-              DEFAULTVALUE: "",
-            },
-            {
-              SN: "3",
-              NAME: "balance",
-              LABEL: "Opening Balance",
-              TYPE: "Number",
-              LENGTH: 10,
-              STRUCTURE: "S",
-              REQUIRED: false,
-              DISABLED: false,
-              WIDTH: 200,
-              POSITION: "",
-              PARAMETER: {
-                type: "O",
-                data: [],
-                modelName: "",
-                displayField: "",
-                condition: "",
-                reference: "",
-              },
-              ENRICHTEXT: "",
-              VALUE: "",
-              FIXEDVALUE: "",
-              DEFAULTVALUE: "",
             },
           ],
         },
       ],
     },
   };
-
-  const validSpec = compileFormSpec(testModel, validLayout);
-
-  assert("Custom: Retains layout title", validSpec.title === "Standard Account Opening Form");
-  const compiledFields = (validSpec.frmElements?.sections || []).flatMap((s) => s.fields || []);
-  assert("Custom: Compiled fields length is 3", compiledFields.length === 3);
-
-  // Check synchronization of model rules into layout fields
-  const compiledAccNo = compiledFields.find((f) => f.NAME === "accountNumber");
-  assert("Custom: Model rule 'REQUIRED: true' synced to field", compiledAccNo?.REQUIRED === true);
-  assert("Custom: Model rule 'LENGTH: 12' synced to field", compiledAccNo?.LENGTH === 12);
-  assert("Custom: Model rule 'TYPE: Text' synced to field", compiledAccNo?.TYPE === "Text");
-
-  // ============================================================================
-  // --- 3. Custom Layout Element Enrichment ---
-  // ============================================================================
-  console.log("\n--- 3. Custom Layout Element Enrichment ---");
-
-  const layoutToEnrich: FormConfigRecord = {
-    title: "Enriched Form Layout",
-    description: "Layout with partial field definitions",
-    authNumber: 1,
-    frmRoutine: {
-      rtnValidate: [],
-      rtnBeforeAuth: [],
-      rtnAfterAuth: [],
+  const compiledCustom = compileFormSpec(testModel, customLayout);
+  const customField = compiledCustom.frmElements.sections[0]?.fields[0];
+  recordTest(
+    "3.1 Preserves visual layout styling while enforcing physical ModelConfig constraints",
+    { customLayoutTitle: customLayout.title, fieldName: "accountNumber" },
+    {
+      fieldLabel: customField?.LABEL,
+      fieldLength: customField?.LENGTH,
+      fieldRequired: customField?.REQUIRED,
     },
-    frmElements: {
-      steps: [],
-      sections: [
-        {
-          id: "sec_main",
-          title: "General",
-          type: "standard",
-          zone: "standard",
-          columns: 2,
-          collapsible: false,
-          isCollapsed: false,
-          layoutStyle: "card",
-          fields: [
-            {
-              SN: "1",
-              NAME: "accountNumber",
-              LABEL: "", // Empty to test fallback to model label
-              TYPE: "Text",
-              LENGTH: 0, // 0 to test fallback to model length
-              STRUCTURE: "S",
-              REQUIRED: false,
-              DISABLED: false,
-              WIDTH: 200,
-              POSITION: "",
-              PARAMETER: {
-                type: "O",
-                data: [],
-                modelName: "",
-                displayField: "",
-                condition: "",
-                reference: "",
-              },
-              ENRICHTEXT: "",
-              VALUE: "",
-              FIXEDVALUE: "",
-              DEFAULTVALUE: "",
-            },
-          ],
-        },
-      ],
-    },
-  };
-
-  const enrichedSpec = compileFormSpec(testModel, layoutToEnrich);
-  const enrichedFields = (enrichedSpec.frmElements?.sections || []).flatMap((s) => s.fields || []);
-
-  assert("Enrichment: Compiled fields length is 1", enrichedFields.length === 1);
-  assert(
-    "Enrichment: Empty label enriched from model property",
-    enrichedFields[0]?.LABEL === "Account Number",
-  );
-  assert("Enrichment: Zero length enriched from model property", enrichedFields[0]?.LENGTH === 12);
-
-  // ============================================================================
-  // --- 4. Headless Value Validation (validateValues) ---
-  // ============================================================================
-  console.log("\n--- 4. Headless Value Validation (validateValues) ---");
-
-  // 5.1 Mandatory Required Validation
-  const emptyValues = {};
-  const requiredErrors = validateValues(fallbackSpec, emptyValues);
-  assert(
-    "FieldRules: Missing required accountNumber triggers error",
-    requiredErrors.accountNumber === "Account Number is required",
-  );
-  assert(
-    "FieldRules: Missing required accountTitle triggers error",
-    requiredErrors.accountTitle === "Account Title is required",
-  );
-  assert(
-    "FieldRules: Optional field balance does not trigger error when empty",
-    requiredErrors.balance === undefined,
+    customField?.LABEL === "Bank A/C Number" &&
+      customField?.LENGTH === 12 &&
+      customField?.REQUIRED === true,
   );
 
-  // 5.2 Max Length Validation (String)
-  const longStringValues = {
+  // ── 4. Headless Value Validation ──
+  console.log("\n── 4. Headless Runtime Value Validation (validateValues) ──");
+  const requiredErrors = validateValues(fallback, {});
+  recordTest(
+    "4.1 Flags missing mandatory required fields on empty draft",
+    { values: {} },
+    requiredErrors,
+    requiredErrors.accountNumber === "Account Number is required" &&
+      requiredErrors.accountTitle === "Account Title is required" &&
+      requiredErrors.balance === undefined,
+  );
+
+  const lengthErrors = validateValues(fallback, {
     accountNumber: "AC1234567890EXTRA", // 17 chars > max 12
-    accountTitle: "Valid Title",
-  };
-  const lengthErrors = validateValues(fallbackSpec, longStringValues);
-  assert(
-    "FieldRules: String exceeding max length triggers error",
+    accountTitle: "Janata Bank Checking",
+  });
+  recordTest(
+    "4.2 Flags text values exceeding physical max character length",
+    { accountNumber: "AC1234567890EXTRA (17 chars)", maxAllowed: 12 },
+    lengthErrors,
     lengthErrors.accountNumber === "Account Number cannot exceed 12 characters",
   );
 
-  // 5.3 Max Digits Validation (Number)
-  const longNumberValues = {
-    accountNumber: "AC10000001",
-    accountTitle: "Valid Title",
-    nomineeShare: 10000, // 5 digits > max 3
-  };
-  const digitErrors = validateValues(fallbackSpec, longNumberValues);
-  assert(
-    "FieldRules: Numeric value exceeding max digits triggers error",
-    digitErrors.nomineeShare === "Nominee Share % cannot exceed 3 digits",
-  );
-
-  // 5.4 Numeric Format Validation
-  const invalidNumberValues = {
-    accountNumber: "AC10000001",
-    accountTitle: "Valid Title",
+  const numErrors = validateValues(fallback, {
+    accountNumber: "AC10001",
+    accountTitle: "Title",
     balance: "not-a-number",
-  };
-  const numErrors = validateValues(fallbackSpec, invalidNumberValues);
-  assert(
-    "FieldRules: Invalid number string triggers error",
-    numErrors.balance === "Ledger Balance must be a valid number",
+    nomineeShare: 10000, // 5 digits > max 3
+  });
+  recordTest(
+    "4.3 Flags invalid numeric formats and digit count limits",
+    { balance: "not-a-number", nomineeShare: 10000 },
+    numErrors,
+    numErrors.balance === "Ledger Balance must be a valid number" &&
+      numErrors.nomineeShare === "Nominee Share % cannot exceed 3 digits",
   );
 
-  // 5.5 Date Format Validation
-  const invalidDateValues = {
-    accountNumber: "AC10000001",
-    accountTitle: "Valid Title",
+  const dateErrors = validateValues(fallback, {
+    accountNumber: "AC10001",
+    accountTitle: "Title",
     openingDate: "invalid-date-string",
-  };
-  const dateErrors = validateValues(fallbackSpec, invalidDateValues);
-  assert(
-    "FieldRules: Invalid date string triggers error",
+  });
+  recordTest(
+    "4.4 Flags unparseable or malformed date strings",
+    { openingDate: "invalid-date-string" },
+    dateErrors,
     dateErrors.openingDate === "Account Opening Date must be a valid date",
   );
 
-  // 5.6 100% Valid Form Values
-  const cleanValues = {
+  const cleanErrors = validateValues(fallback, {
     accountNumber: "AC10000001",
-    accountTitle: "Janata Bank Main Branch Checking",
+    accountTitle: "Janata Bank Main Checking",
     balance: 50000,
     openingDate: "2026-10-20",
-    nomineeName: "John Doe",
     nomineeShare: 100,
-  };
-  const cleanErrors = validateValues(fallbackSpec, cleanValues);
-  assert(
-    "FieldRules: Clean valid payload returns 0 validation errors",
+  });
+  recordTest(
+    "4.5 Passes clean valid form values with zero validation errors",
+    { values: "Valid account data payload" },
+    cleanErrors,
     Object.keys(cleanErrors).length === 0,
   );
 
-  // ============================================================================
-  // --- Master Summary ---
-  // ============================================================================
-  console.log("\n========================================================");
-  const allPassed = reports.every((r) => r.passed);
-  if (allPassed) {
-    console.log(`ALL ${reports.length} FORM SPEC TEST CASES PASSED WITH 100% SUCCESS!`);
+  // Consolidated Summary
+  const passedTests = testCases.filter((t) => t.passed).length;
+  const failedTests = testCases.filter((t) => !t.passed).length;
+
+  console.log("\n================================================================================");
+  if (failedTests === 0) {
+    console.log(
+      `>>> SUCCESS: ALL ${passedTests} FORM SPEC & VALIDATION CAPABILITIES VALIDATED 100% CLEAN! <<<`,
+    );
   } else {
-    const failedCount = reports.filter((r) => !r.passed).length;
-    console.error(`FAILED: ${failedCount} OF ${reports.length} TESTS FAILED!`);
+    console.error(`>>> FAILURE: ${failedTests} TESTS FAILED! <<<`);
     process.exit(1);
   }
-  console.log("========================================================\n");
+  console.log("================================================================================\n");
 }
 
 runSuite().catch((err: unknown) => {

@@ -36,18 +36,19 @@ export function validateValues(
       continue;
     }
 
-    // Skip validation for empty optional fields
+    // Skip further validation for empty optional fields
     if (isMissingOrEmpty) {
       continue;
     }
 
+    const fieldType = (field.TYPE || "").toLowerCase();
     const isNumeric =
-      field.TYPE === "Number" ||
-      field.TYPE === "Amount" ||
-      field.TYPE === "Integer" ||
-      field.TYPE === "Decimal";
+      fieldType === "number" ||
+      fieldType === "amount" ||
+      fieldType === "integer" ||
+      fieldType === "decimal";
 
-    const isDate = field.TYPE === "Date" || field.TYPE === "DateTime";
+    const isDate = fieldType === "date" || fieldType === "datetime";
 
     // 2. Numeric Type & Digit Validation
     if (isNumeric) {

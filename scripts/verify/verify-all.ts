@@ -60,7 +60,7 @@ const SUITES = [
 ];
 
 console.log("\n================================================================================");
-console.log("       FINX CBS MASTER VERIFICATION RUNNER                                      ");
+console.log("       JANATA CBS MASTER VERIFICATION RUNNER                                      ");
 console.log("================================================================================\n");
 
 const results: SuiteResult[] = [];

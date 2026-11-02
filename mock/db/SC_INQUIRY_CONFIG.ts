@@ -28,8 +28,8 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       rptControllerName: "RPT.ACC.LIST",
       fixedSelection: "",
       inqServicePath: "default",
-      cmdFromInternal: null,
-      cmdFieldName: null,
+      cmdFromInternal: false,
+      cmdFieldName: "",
     },
     INQSelectField: [
       {
@@ -186,8 +186,8 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       rptControllerName: "RPT.EMP.DIR",
       fixedSelection: "",
       inqServicePath: "default",
-      cmdFromInternal: null,
-      cmdFieldName: null,
+      cmdFromInternal: false,
+      cmdFieldName: "",
     },
     INQSelectField: [
       {
@@ -317,8 +317,8 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       rptControllerName: "RPT.CUST.LIST",
       fixedSelection: "",
       inqServicePath: "default",
-      cmdFromInternal: null,
-      cmdFieldName: null,
+      cmdFromInternal: false,
+      cmdFieldName: "",
     },
     INQSelectField: [
       {
@@ -466,8 +466,8 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       rptControllerName: "RPT.BRANCH.DIR",
       fixedSelection: "",
       inqServicePath: "default",
-      cmdFromInternal: null,
-      cmdFieldName: null,
+      cmdFromInternal: false,
+      cmdFieldName: "",
     },
     INQSelectField: [
       {

@@ -14,6 +14,8 @@ import type {
 } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
 import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields";
+import { McLookupConfig } from "./mc-lookup-config";
+import { McObjectPropsCard } from "./mc-object-props-card";
 
 interface McPropertyInspectorProps {
   property?: ModelProperty;
@@ -22,6 +24,8 @@ interface McPropertyInspectorProps {
   validationErrors?: ValidationErrorItem[];
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
   onDelete: (sn: string, forceHardDelete?: boolean) => void;
+  onSelectSubField?: (sn: string) => void;
+  onAddSubField?: (parentSn: string) => string;
 }
 
 export function McPropertyInspector({
@@ -31,6 +35,8 @@ export function McPropertyInspector({
   validationErrors = [],
   onUpdate,
   onDelete,
+  onSelectSubField,
+  onAddSubField,
 }: McPropertyInspectorProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
@@ -55,7 +61,7 @@ export function McPropertyInspector({
       TYPE: property.TYPE,
       STRUCTURE: property.STRUCTURE,
       LENGTH: property.LENGTH ?? (property.TYPE === "Date" ? 10 : 50),
-      WIDTH: property.WIDTH || "md",
+      WIDTH: property.WIDTH || 280,
       REQUIRED: property.REQUIRED ?? false,
     };
   }, [property]);
@@ -79,6 +85,12 @@ export function McPropertyInspector({
           patch.LENGTH = 15;
         } else if (nextType === "Text") {
           patch.LENGTH = 50;
+        } else if (nextType === "Boolean") {
+          patch.LENGTH = 1;
+        } else if (nextType === "Dropdown" && !property.PARAMETER) {
+          patch.PARAMETER = { type: "O", data: [] };
+        } else if (nextType === "Object" && !property.PROP) {
+          patch.PROP = [];
         }
       } else if (fieldKey === "STRUCTURE") {
         patch.STRUCTURE = (value as "S" | "M") || "S";
@@ -165,6 +177,22 @@ export function McPropertyInspector({
               mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
             />
           ))}
+
+          {/* 3. Dropdown Options & Model Lookup Configuration Panel */}
+          {property.TYPE === "Dropdown" && (
+            <McLookupConfig property={property} onUpdate={onUpdate} disabled={isReadOnly} />
+          )}
+
+          {/* 4. Object Group Sub-Properties (PROP) Definition Panel */}
+          {property.TYPE === "Object" && (
+            <McObjectPropsCard
+              property={property}
+              onSelectSubField={onSelectSubField}
+              onAddSubField={onAddSubField}
+              onDeleteSubField={onDelete}
+              disabled={isReadOnly}
+            />
+          )}
         </div>
       </div>
 

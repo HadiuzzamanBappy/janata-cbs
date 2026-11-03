@@ -9,7 +9,14 @@ export function useMcPropertyOps(
   const [committedSnSet, setCommittedSnSet] = React.useState<Set<string>>(new Set());
 
   const markAsCommitted = React.useCallback((props: ModelProperty[]) => {
-    setCommittedSnSet(new Set(props.map((p) => p.SN)));
+    const set = new Set<string>();
+    props.forEach((p) => {
+      set.add(p.SN);
+      p.PROP?.forEach((sub) => {
+        set.add(sub.SN);
+      });
+    });
+    setCommittedSnSet(set);
   }, []);
 
   const addField = React.useCallback((): string => {
@@ -30,7 +37,7 @@ export function useMcPropertyOps(
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       };
       return {
         ...prev,
@@ -40,12 +47,56 @@ export function useMcPropertyOps(
     return createdSn;
   }, [setFormData]);
 
+  const addSubField = React.useCallback(
+    (parentSn: string): string => {
+      let createdSn = "";
+      setFormData((prev) => {
+        const props = (prev.PROPERTIES || []).map((p) => {
+          if (p.SN !== parentSn) return p;
+          const currentChildren = p.PROP || [];
+          const nextSubIndex = currentChildren.length + 1;
+          const nextSn = `${parentSn}_${nextSubIndex}`;
+          createdSn = nextSn;
+          const newSubField: ModelProperty = {
+            SN: nextSn,
+            NAME: "",
+            LABEL: "",
+            TYPE: "Text",
+            STRUCTURE: "S",
+            LENGTH: 35,
+            REQUIRED: false,
+            WIDTH: 280,
+          };
+          return {
+            ...p,
+            TYPE: "Object" as const,
+            PROP: [...currentChildren, newSubField],
+          };
+        });
+        return { ...prev, PROPERTIES: props };
+      });
+      return createdSn;
+    },
+    [setFormData],
+  );
+
   const updateField = React.useCallback(
     (sn: string, patch: Partial<ModelProperty>) => {
-      setFormData((prev) => ({
-        ...prev,
-        PROPERTIES: (prev.PROPERTIES || []).map((p) => (p.SN === sn ? { ...p, ...patch } : p)),
-      }));
+      setFormData((prev) => {
+        const updated = (prev.PROPERTIES || []).map((p) => {
+          if (p.SN === sn) {
+            return { ...p, ...patch };
+          }
+          if (p.PROP?.some((sub) => sub.SN === sn)) {
+            return {
+              ...p,
+              PROP: p.PROP.map((sub) => (sub.SN === sn ? { ...sub, ...patch } : sub)),
+            };
+          }
+          return p;
+        });
+        return { ...prev, PROPERTIES: updated };
+      });
     },
     [setFormData],
   );
@@ -63,9 +114,21 @@ export function useMcPropertyOps(
           return prev;
         }
 
+        const filtered = (prev.PROPERTIES || [])
+          .filter((p) => p.SN !== sn)
+          .map((p) => {
+            if (p.PROP?.some((sub) => sub.SN === sn)) {
+              return {
+                ...p,
+                PROP: p.PROP.filter((sub) => sub.SN !== sn),
+              };
+            }
+            return p;
+          });
+
         return {
           ...prev,
-          PROPERTIES: (prev.PROPERTIES || []).filter((p) => p.SN !== sn),
+          PROPERTIES: filtered,
         };
       });
     },
@@ -96,6 +159,7 @@ export function useMcPropertyOps(
 
   return {
     addField,
+    addSubField,
     updateField,
     moveField,
     removeField: removeDraftField,

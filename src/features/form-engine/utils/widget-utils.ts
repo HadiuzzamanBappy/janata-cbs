@@ -53,35 +53,22 @@ export function getFieldWidthStyle(
     return { width: "160px", maxWidth: "100%" };
   }
 
-  // Handle semantic tokens
-  const token = typeof width === "string" ? width.toLowerCase().trim() : undefined;
-  if (token === "full") {
-    return { width: "100%", flex: 1 };
+  // Handle direct numeric pixel widths (from DB / metamodel)
+  const num =
+    typeof width === "number"
+      ? width
+      : typeof width === "string" && /^\d+(\.\d+)?$/.test(width.trim())
+        ? Number(width.trim())
+        : undefined;
+
+  if (num !== undefined && num > 0) {
+    if (num >= 1000) {
+      return { width: "100%", flex: 1 };
+    }
+    return { width: `${num}px`, maxWidth: "100%" };
   }
-  if (token === "xs") {
-    return { width: "120px", maxWidth: "100%" };
-  }
-  if (token === "sm") {
-    return { width: "180px", maxWidth: "100%" };
-  }
-  if (token === "md") {
-    return { width: "280px", maxWidth: "100%" };
-  }
-  if (token === "lg") {
-    return { width: "450px", maxWidth: "100%" };
-  }
-  if (token === "xl") {
-    return {
-      width: "600px",
-      maxWidth: "100%",
-    };
-  }
-  if (token === "xxl")
-    return {
-      width: "700px",
-      maxWidth: "100%",
-    };
-  // Fallback to length ch or standard md width
+
+  // Fallback to length ch or standard 280px width
   if (typeof length === "number" && length > 0) {
     const ch = Math.max(length + 4, 10);
     return { width: `${ch}ch`, maxWidth: "100%" };

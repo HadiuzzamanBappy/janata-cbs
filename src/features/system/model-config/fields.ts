@@ -21,7 +21,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Physical database table name storing the model records.",
       },
       {
@@ -31,7 +31,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 4,
-        WIDTH: "sm",
+        WIDTH: 180,
         ENRICHTEXT: "Two-letter CBS module prefix (e.g. SC, AC, CU).",
       },
       {
@@ -42,7 +42,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Human-readable functional summary of this model.",
       },
       {
@@ -53,7 +53,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
         ENRICHTEXT: "Backend microservice path or endpoint routing key.",
       },
       {
@@ -100,7 +100,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 35,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Developer username who authored or modified this schema.",
       },
       {
@@ -110,7 +110,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
-        WIDTH: "sm",
+        WIDTH: 180,
         ENRICHTEXT: "Date when this schema configuration was created or revised.",
       },
     ],
@@ -139,7 +139,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 50,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Custom server routine hook executed to generate record IDs.",
       },
       {
@@ -149,7 +149,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 10,
-        WIDTH: "sm",
+        WIDTH: 180,
         ENRICHTEXT: "Constant prefix prepended to all generated IDs.",
       },
       {
@@ -159,7 +159,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 35,
-        WIDTH: "full",
+        WIDTH: 1000,
         WIDGET: "checkbox",
         PARAMETER: {
           type: "O",
@@ -181,7 +181,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 50,
         DISABLED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Compiled composite format pattern string for ID generation.",
       },
       {
@@ -191,7 +191,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 5,
-        WIDTH: "sm",
+        WIDTH: 180,
         ENRICHTEXT: "Fixed digit length for sequence numbering.",
       },
       {
@@ -322,7 +322,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT:
           "Database column identifier (snake_case or camelCase) mapped to backend tables.",
       },
@@ -334,7 +334,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
         ENRICHTEXT: "Human-readable label displayed across user interface screens.",
       },
       {
@@ -345,16 +345,20 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 20,
         WIDGET: "segmented",
-        WIDTH: "full",
+        WIDTH: 1000,
         PARAMETER: {
           type: "O",
           data: [
             { code: "Text", label: "Text" },
             { code: "Number", label: "Number" },
             { code: "Date", label: "Date" },
+            { code: "Boolean", label: "Boolean" },
+            { code: "Dropdown", label: "Dropdown" },
+            { code: "Object", label: "Object" },
           ],
         },
-        ENRICHTEXT: "Physical database column data type: Text, Number, or ISO-8601 Date.",
+        ENRICHTEXT:
+          "Physical database column data type: Text, Number, Date, Boolean, Dropdown, or Object.",
       },
       {
         SN: "4",
@@ -364,7 +368,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 5,
         WIDGET: "segmented",
-        WIDTH: "full",
+        WIDTH: 1000,
         PARAMETER: {
           type: "O",
           data: [
@@ -390,32 +394,20 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 4,
-        WIDTH: "sm",
+        WIDTH: 180,
         ENRICHTEXT: "Maximum character storage limit or numerical precision allowed.",
       },
       {
         SN: "6",
         NAME: "WIDTH",
-        LABEL: "Display Width",
-        TYPE: "Text",
+        LABEL: "Display Width (px)",
+        TYPE: "Number",
         STRUCTURE: "S",
-        LENGTH: 10,
-        WIDGET: "segmented",
-        WIDTH: "full",
-        PARAMETER: {
-          type: "O",
-          data: [
-            { code: "xs", label: "XS" },
-            { code: "sm", label: "SM" },
-            { code: "md", label: "MD" },
-            { code: "lg", label: "LG" },
-            { code: "xl", label: "XL" },
-            { code: "xxl", label: "XXL" },
-            { code: "full", label: "FULL" },
-          ],
-        },
+        LENGTH: 4,
+        WIDTH: 180,
+        DEFAULTVALUE: "280",
         ENRICHTEXT:
-          "Semantic layout width token: XS (120px), SM (180px), MD (280px), LG (450px), XL (600px), XXL (700px), FULL (row-wide).",
+          "Field display width in pixels (e.g. 120, 180, 280, 450, 600, or 1000 for row-wide).",
       },
       {
         SN: "7",

@@ -121,8 +121,8 @@ async function runSuite() {
   console.log(" Pattern      : Single Unique Test per Compiler/Rule Capability with Visible IO");
   console.log("================================================================================");
 
-  // ── 1. Semantic Width Mapping ──
-  console.log("\n── 1. Semantic Width Mapping (defaultWidthForLength) ──");
+  // ── 1. Responsive Numerical Width Mapping ──
+  console.log("\n── 1. Responsive Numerical Width Mapping (defaultWidthForLength) ──");
   const wShort = defaultWidthForLength({
     SN: "1",
     NAME: "code",
@@ -133,10 +133,10 @@ async function runSuite() {
     REQUIRED: false,
   });
   recordTest(
-    "1.1 Maps short field length (<= 5) to 'xs' semantic token",
+    "1.1 Maps short field length (<= 5) to 120px numerical width",
     { length: 4 },
-    { widthToken: wShort },
-    wShort === "xs",
+    { width: wShort },
+    wShort === 120,
   );
 
   const wLong = defaultWidthForLength({
@@ -149,10 +149,27 @@ async function runSuite() {
     REQUIRED: false,
   });
   recordTest(
-    "1.2 Maps long field length (> 100) to 'full' semantic token",
+    "1.2 Maps long field length (> 100) to 1000px (full row) numerical width",
     { length: 120 },
-    { widthToken: wLong },
-    wLong === "full",
+    { width: wLong },
+    wLong === 1000,
+  );
+
+  const wNumeric = defaultWidthForLength({
+    SN: "3",
+    NAME: "branchTitle",
+    LABEL: "Branch Title",
+    TYPE: "Text",
+    STRUCTURE: "S",
+    LENGTH: 0,
+    REQUIRED: true,
+    WIDTH: 120,
+  });
+  recordTest(
+    "1.3 Preserves explicit numeric width (120) from database model definition",
+    { width: 120 },
+    { width: wNumeric },
+    wNumeric === 120,
   );
 
   // ── 2. Fallback Layout Compilation ──
@@ -198,7 +215,7 @@ async function runSuite() {
               STRUCTURE: "S",
               REQUIRED: false, // Model constraint (true) must take precedence
               DISABLED: false,
-              WIDTH: "md",
+              WIDTH: 280,
               POSITION: "",
             },
           ],

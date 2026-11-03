@@ -208,7 +208,7 @@ export function sanitizeFormElement(field: FormElement): FormElement {
   // Only keep presentation overrides if non-default
   if (cleanField.REQUIRED) sanitized.REQUIRED = true;
   if (cleanField.DISABLED) sanitized.DISABLED = true;
-  if (cleanField.WIDTH && cleanField.WIDTH !== "md") sanitized.WIDTH = cleanField.WIDTH;
+  if (cleanField.WIDTH && cleanField.WIDTH !== 280) sanitized.WIDTH = cleanField.WIDTH;
   if (cleanField.POSITION?.trim()) sanitized.POSITION = cleanField.POSITION.trim();
   if (cleanField.ENRICHTEXT?.trim()) sanitized.ENRICHTEXT = cleanField.ENRICHTEXT.trim();
   if (

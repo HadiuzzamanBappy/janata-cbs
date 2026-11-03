@@ -14,6 +14,7 @@ interface McPropertiesTabProps {
   onSelectSN?: (sn: string) => void;
   validationErrors?: ValidationErrorItem[];
   onAddField: () => string;
+  onAddSubField?: (parentSn: string) => string;
   onUpdateField: (sn: string, patch: Partial<ModelProperty>) => void;
   onRemoveField: (sn: string, forceHardDelete?: boolean) => void;
 }
@@ -26,6 +27,7 @@ export function McPropertiesTab({
   onSelectSN: onControlledSelectSN,
   validationErrors = [],
   onAddField,
+  onAddSubField,
   onUpdateField,
   onRemoveField,
 }: McPropertiesTabProps) {
@@ -45,7 +47,9 @@ export function McPropertiesTab({
       return;
     }
 
-    const currentExists = selectedSN ? properties.some((p) => p.SN === selectedSN) : false;
+    const currentExists = selectedSN
+      ? properties.some((p) => p.SN === selectedSN || p.PROP?.some((sub) => sub.SN === selectedSN))
+      : false;
     if (!currentExists && properties.length > 0) {
       const fallbackSN = properties[0].SN;
       if (onControlledSelectSN) onControlledSelectSN(fallbackSN);
@@ -55,7 +59,14 @@ export function McPropertiesTab({
 
   const selectedProperty = React.useMemo(() => {
     if (!selectedSN) return undefined;
-    return properties.find((p) => p.SN === selectedSN);
+    for (const p of properties) {
+      if (p.SN === selectedSN) return p;
+      if (p.PROP) {
+        const sub = p.PROP.find((s) => s.SN === selectedSN);
+        if (sub) return sub;
+      }
+    }
+    return undefined;
   }, [properties, selectedSN]);
 
   return (
@@ -69,6 +80,7 @@ export function McPropertiesTab({
         isFieldCommitted={isFieldCommitted}
         validationErrors={validationErrors}
         onAddField={onAddField}
+        onAddSubField={onAddSubField}
         onDeleteField={onRemoveField}
       />
 
@@ -82,6 +94,8 @@ export function McPropertiesTab({
             validationErrors={validationErrors}
             onUpdate={onUpdateField}
             onDelete={onRemoveField}
+            onSelectSubField={handleSelectSN}
+            onAddSubField={onAddSubField}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">

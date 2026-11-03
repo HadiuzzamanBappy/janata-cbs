@@ -88,7 +88,7 @@ export function sanitizeModelProperty(prop: ModelProperty): ModelProperty {
   };
 
   if (prop.REQUIRED) sanitized.REQUIRED = true;
-  if (prop.WIDTH && prop.WIDTH !== "md") sanitized.WIDTH = prop.WIDTH;
+  if (prop.WIDTH && prop.WIDTH !== 280) sanitized.WIDTH = prop.WIDTH;
 
   return sanitized as ModelProperty;
 }

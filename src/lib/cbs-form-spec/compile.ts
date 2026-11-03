@@ -20,17 +20,68 @@ export type CompiledFormSpec = FormConfigRecord;
  * Aligns with the 7 canonical CBS responsive tokens: xs, sm, md, lg, xl, xxl, full.
  */
 export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
-  if (
-    typeof prop.WIDTH === "string" &&
-    ["xs", "sm", "md", "lg", "xl", "xxl", "full"].includes(prop.WIDTH)
-  ) {
-    return prop.WIDTH as PropertyWidth;
+  if (typeof prop.WIDTH === "number" && prop.WIDTH > 0) {
+    return prop.WIDTH;
   }
-  if (prop.LENGTH && prop.LENGTH > 100) return "full";
-  if (prop.LENGTH && prop.LENGTH > 40) return "lg";
-  if (prop.LENGTH && prop.LENGTH <= 5) return "xs";
-  if (prop.LENGTH && prop.LENGTH <= 15) return "sm";
-  return "md";
+  if (prop.LENGTH && prop.LENGTH > 100) return 1000;
+  if (prop.LENGTH && prop.LENGTH > 40) return 450;
+  if (prop.LENGTH && prop.LENGTH <= 5) return 120;
+  if (prop.LENGTH && prop.LENGTH <= 15) return 180;
+  return 280;
+}
+
+function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["PARAMETER"] {
+  if (!raw) {
+    return {
+      type: "O",
+      data: [],
+      modelName: "",
+      displayField: "",
+      condition: "",
+      reference: "",
+    };
+  }
+  const rawData = Array.isArray(raw.data) ? raw.data : [];
+  const normalizedData = rawData.map((item) => {
+    const d = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    return {
+      code: String(d.code || d.itemCode || d.value || ""),
+      label: String(d.label || d.itemLabel || d.name || d.code || d.itemCode || ""),
+      ...d,
+    };
+  });
+  return {
+    type: String(raw.type || "O"),
+    data: normalizedData,
+    modelName: String(raw.modelName || ""),
+    codeField: String(raw.codeField || raw.valueField || ""),
+    displayField: String(raw.displayField || ""),
+    condition: String(raw.condition || ""),
+    reference: String(raw.reference || ""),
+  };
+}
+
+function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
+  const snStr = String(p.SN || idx + 1);
+  const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
+  const widget = p.TYPE === "Dropdown" ? "select" : p.TYPE === "Boolean" ? "checkbox" : undefined;
+
+  return {
+    SN: snStr,
+    NAME: p.NAME || `field_${snStr}`,
+    LABEL: baseLabel,
+    TYPE: p.TYPE || "Text",
+    LENGTH: p.LENGTH ?? 35,
+    STRUCTURE: p.STRUCTURE || "S",
+    REQUIRED: Boolean(p.REQUIRED),
+    DISABLED: false,
+    WIDTH: defaultWidthForLength(p),
+    WIDGET: widget,
+    PARAMETER: normalizeParameter(p.PARAMETER),
+    POSITION: "",
+    ENRICHTEXT: "",
+    DEFAULTVALUE: "",
+  };
 }
 
 /**
@@ -39,41 +90,35 @@ export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
  */
 export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const allProps = model.PROPERTIES || [];
+  if (allProps.length === 0) return [];
 
-  const rootFields: FormElement[] = allProps.map((p, idx) => {
-    const snStr = String(p.SN || idx + 1);
-    const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
+  const standardFields: FormElement[] = [];
+  const objectSections: FormSection[] = [];
 
-    return {
-      SN: snStr,
-      NAME: p.NAME || `field_${snStr}`,
-      LABEL: baseLabel,
-      TYPE: p.TYPE || "Text",
-      LENGTH: p.LENGTH ?? 35,
-      STRUCTURE: p.STRUCTURE || "S",
-      REQUIRED: Boolean(p.REQUIRED),
-      DISABLED: false,
-      WIDTH: defaultWidthForLength(p),
-      POSITION: "",
-      PARAMETER: {
-        type: "O",
-        data: [],
-        modelName: "",
-        displayField: "",
-        condition: "",
-        reference: "",
-      },
-      ENRICHTEXT: "",
-      DEFAULTVALUE: "",
-    };
+  allProps.forEach((p, idx) => {
+    if (p.TYPE === "Object" && p.PROP && p.PROP.length > 0) {
+      objectSections.push({
+        id: `sec_${p.NAME.toLowerCase()}`,
+        title: p.LABEL || p.NAME,
+        description: `Nested group for ${p.LABEL || p.NAME}`,
+        type: "object-group",
+        zone: "standard",
+        layoutStyle: "card",
+        columns: 1,
+        structure: p.STRUCTURE || "S",
+        bindKey: p.NAME,
+        collapsible: true,
+        isCollapsed: false,
+        fields: p.PROP.map((sub, sIdx) => modelPropToFormElement(sub, sIdx)),
+      });
+    } else {
+      standardFields.push(modelPropToFormElement(p, idx));
+    }
   });
 
-  if (rootFields.length === 0) {
-    return [];
-  }
-
-  return [
-    {
+  const sections: FormSection[] = [];
+  if (standardFields.length > 0) {
+    sections.push({
       id: "sec_default",
       title: model.DESCRIPTION || model.TABLENAME || "General Attributes",
       description: "Physical Data Dictionary Fields",
@@ -83,9 +128,11 @@ export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
       columns: 1,
       collapsible: false,
       isCollapsed: false,
-      fields: rootFields,
-    },
-  ];
+      fields: standardFields,
+    });
+  }
+
+  return [...sections, ...objectSections];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -143,7 +190,20 @@ export function compileFormSpec(
         STRUCTURE: field.STRUCTURE || modelProp.STRUCTURE || "S",
         // Invariant: ModelConfig is physical database authority.
         REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
-        WIDTH: field.WIDTH || defaultWidthForLength(modelProp),
+        WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
+        WIDGET:
+          field.WIDGET ||
+          (modelProp.TYPE === "Dropdown"
+            ? "select"
+            : modelProp.TYPE === "Boolean"
+              ? "checkbox"
+              : undefined),
+        PARAMETER:
+          field.PARAMETER?.data && field.PARAMETER.data.length > 0
+            ? field.PARAMETER
+            : modelProp.PARAMETER
+              ? normalizeParameter(modelProp.PARAMETER)
+              : field.PARAMETER,
       };
     }),
   }));

@@ -34,8 +34,15 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   } = useModelConfigPersistence(initialId, tabId);
 
   const { modelsPool, refreshCatalog, upsertCatalogItem } = useMcCatalog();
-  const { addField, updateField, removeField, isFieldCommitted, markAsCommitted, clearCommitted } =
-    useMcPropertyOps(setFormData);
+  const {
+    addField,
+    addSubField,
+    updateField,
+    removeField,
+    isFieldCommitted,
+    markAsCommitted,
+    clearCommitted,
+  } = useMcPropertyOps(setFormData);
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
@@ -202,6 +209,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     handleReverse,
     validationErrors,
     addField,
+    addSubField,
     updateField,
     removeField,
     isFieldCommitted,

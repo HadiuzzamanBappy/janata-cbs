@@ -18,10 +18,9 @@ export function useSearchCommands({ open, userHasCommandLine }: UseSearchCommand
     enabled: open,
     queryFn: async () => {
       try {
-        const res = await cbs.send<{ menuTree?: MenuItem[] } | MenuItem[]>(
-          cbs.menuTree.get("MENU.ONE"),
-          { silent: true },
-        );
+        const res = await cbs.send<{ menuTree?: MenuItem[] } | MenuItem[]>(cbs.menuTree.get(), {
+          silent: true,
+        });
         if (res.status === "SUCCESS" && res.data) {
           const rawNodes = Array.isArray(res.data)
             ? res.data

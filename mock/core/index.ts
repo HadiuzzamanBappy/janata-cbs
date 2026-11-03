@@ -7,7 +7,9 @@ import { buildMockUserAuthResponse, getMockUserResponse, mockLogin } from "./aut
 import {
   getMockFormPayload,
   getMockInquiryPayload,
+  getMockMenuPayload,
   handleGetFormConfig,
+  handleGetMenu,
   handleGetModelConfig,
   handleInquiry,
   handleMutation,
@@ -22,7 +24,9 @@ export {
   buildMockUserAuthResponse,
   getMockFormPayload,
   getMockInquiryPayload,
+  getMockMenuPayload,
   getMockUserResponse,
+  handleGetMenu,
   handleSearchById,
   mockLogin,
 };
@@ -58,6 +62,11 @@ export function getMockProxyResponse(
     controlName: cleanCmd,
     recordId: recId,
   };
+
+  // 0. GUM / GCM (Get User Navigation Menu Tree)
+  if (reqType === CbsRequestType.GUM || reqType === CbsRequestType.GCM) {
+    return handleGetMenu();
+  }
 
   // 1. GMC (Get Model Configuration Schema)
   if (reqType === CbsRequestType.GMC) {

@@ -170,7 +170,7 @@ async function runSuite() {
 
   // 6. Navigation Menu Hierarchy Schema Contract
   const sampleMenuTree = {
-    recordId: "MENU.MAIN",
+    recordId: "MENU.ONE",
     treeDescription: "Main Navigation Hierarchy",
     menuTree: [
       {

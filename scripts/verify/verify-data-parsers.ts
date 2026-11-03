@@ -290,7 +290,7 @@ async function runSuite() {
   // 8. Navigation Menu Hierarchy Tree Serializer
   // ----------------------------------------------------------------------------
   const sampleTreeRecord = {
-    recordId: "MENU.MAIN",
+    recordId: "MENU.ONE",
     treeDescription: "Main Navigation Menu",
     menuTree: [
       {
@@ -324,7 +324,7 @@ async function runSuite() {
       rootNodesCount: serializedTree.menuTree.length,
       firstLabel: serializedTree.menuTree[0]?.label,
     },
-    serializedTree.recordId === "MENU.MAIN" &&
+    serializedTree.recordId === "MENU.ONE" &&
       serializedTree.menuTree.length === 1 &&
       serializedTree.menuTree[0]?.label === "Banking Operations",
   );

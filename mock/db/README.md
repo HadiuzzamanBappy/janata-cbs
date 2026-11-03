@@ -24,7 +24,7 @@ Every table implements `CbsVersionedTable<T>` (defined in `types.ts`) partitione
 | **`CUSTOMER`**                          | `CUST_CUSTOMER`                     | `CUST_CUSTOMER.ts`     | Customer ID: `"CUST1001"`                            |
 | **`CONFIG.FORM`**                       | `SC_FORM_CONFIG`                    | `SC_FORM_CONFIG.ts`    | Composite: `"<MODEL>,<VERSION>"` (`"ACCOUNT,1.0.0"`) |
 | **`INQUIRY.CONFIG`**                    | `SC_INQUIRY_CONFIG`                 | `SC_INQUIRY_CONFIG.ts` | Inquiry Verb: `"GET.ACCOUNT"`                        |
-| **`MENU.TREE`**                         | `SC_MENU_TREE`                      | `SC_MENU_TREE.ts`      | Menu ID: `"MENU.MAIN"`                               |
+| **`MENU.TREE`**                         | `SC_MENU_TREE`                      | `SC_MENU_TREE.ts`      | Menu ID: `"MENU.ONE"`                                |
 | **`MODEL.CONFIG`**                      | `SC_MODEL_CONFIG`                   | `SC_MODEL_CONFIG.ts`   | Model Identifier: `"ACCOUNT"`, `"CONFIG.FORM"`       |
 | **`USER`**                              | `SC_USER`                           | `SC_USER.ts`           | Sign-on ID: `"ZZ028459"`                             |
 

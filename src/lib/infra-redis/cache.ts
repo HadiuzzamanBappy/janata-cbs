@@ -20,68 +20,72 @@ export interface CacheDescriptorTarget {
 /**
  * Resolves cache key and TTL for read-only specification/catalog requests.
  * Returns null for transactional mutations or runtime query data.
+ *
+ * CACHING PRINCIPLE:
+ * - Dynamic operations, searches, and record lists (GRL, SBI, INQ, LIST) are NEVER cached.
+ *   They represent operational database state and must always be a fresh fetch.
+ * - Only immutable/semi-static specifications with a specific recordId (Model Configs,
+ *   Form Layouts, Inquiry column definitions, and active Navigation Menu Trees) are cached.
  */
 export function resolveCacheDescriptor(
   target: CacheDescriptorTarget,
 ): { key: string; ttl: number } | null {
+  // 1. Dynamic lists, inquiries, and searches are NEVER cached — always fresh fetch
+  if (
+    target.requestType === CbsRequestType.SBI ||
+    target.requestType === CbsRequestType.GRL ||
+    target.requestType === CbsRequestType.INQ ||
+    target.recordFunction === CbsRecordFunction.LIST
+  ) {
+    return null;
+  }
+
   const isReadOperation =
     target.requestType === CbsRequestType.GET ||
     target.requestType === CbsRequestType.GFC ||
     target.requestType === CbsRequestType.GMC ||
-    target.requestType === CbsRequestType.GRL ||
     target.requestType === CbsRequestType.GUM ||
-    target.recordFunction === CbsRecordFunction.SEE ||
-    target.recordFunction === CbsRecordFunction.LIST;
+    target.recordFunction === CbsRecordFunction.SEE;
 
   if (!isReadOperation) return null;
 
   const ctrl = (target.controlName || "").toUpperCase().trim();
   const recordId = (target.recordId || "").trim();
 
+  // Dynamic collections without an explicit recordId are NEVER cached
+  if (!recordId && target.requestType !== CbsRequestType.GUM) {
+    return null;
+  }
+
   // 1. Dynamic Form Layout Spec: cbs:spec:<RECORD_ID>
   if (ctrl === CbsControlTable.FORM_CONFIG || target.requestType === CbsRequestType.GFC) {
-    const specTarget = recordId || ctrl;
     return {
-      key: appConfig.redis.cacheKeys.formSpec(specTarget),
+      key: appConfig.redis.cacheKeys.formSpec(recordId),
       ttl: appConfig.redis.specTtlSeconds,
     };
   }
 
   // 2. Data Model Config Spec: cbs:spec:model:<RECORD_ID>
   if (ctrl === CbsControlTable.MODEL_CONFIG || target.requestType === CbsRequestType.GMC) {
-    const modelTarget = recordId || ctrl;
     return {
-      key: `spec:model:${modelTarget}`,
+      key: `spec:model:${recordId}`,
       ttl: appConfig.redis.specTtlSeconds,
     };
   }
 
-  // 3. Navigation Menu Trees & Catalogs: cbs:menu:<NAME>
-  if (
-    ctrl === CbsControlTable.MENU ||
-    ctrl === CbsControlTable.MENU_TREE ||
-    target.requestType === CbsRequestType.GUM
-  ) {
-    const menuTarget = recordId || "MAIN";
+  // 3. Navigation Menu Trees: cbs:menu:<NAME> (MENU item catalog is not cached, only MENU.TREE)
+  if (ctrl === CbsControlTable.MENU_TREE || target.requestType === CbsRequestType.GUM) {
+    const treeTarget = recordId || "MAIN";
     return {
-      key: appConfig.redis.cacheKeys.menu(menuTarget),
+      key: appConfig.redis.cacheKeys.menu(treeTarget),
       ttl: appConfig.redis.menuTtlSeconds,
     };
   }
 
-  // 4. Branch Directory: cbs:branches:directory
-  if (ctrl === CbsControlTable.BRANCH) {
+  // 4. Inquiry Table Configuration Definition: cbs:spec:enq:<RECORD_ID>
+  if (ctrl === CbsControlTable.INQUIRY_CONFIG) {
     return {
-      key: appConfig.redis.cacheKeys.branches,
-      ttl: appConfig.redis.specTtlSeconds,
-    };
-  }
-
-  // 5. Inquiry Table Configuration Definition: cbs:spec:enq:<RECORD_ID>
-  if (ctrl === CbsControlTable.INQUIRY_CONFIG && target.requestType !== CbsRequestType.INQ) {
-    const inqTarget = recordId || ctrl;
-    return {
-      key: appConfig.redis.cacheKeys.inquirySpec(inqTarget),
+      key: appConfig.redis.cacheKeys.inquirySpec(recordId),
       ttl: appConfig.redis.specTtlSeconds,
     };
   }
@@ -111,7 +115,6 @@ export async function autoInvalidateOnMutation(target: {
     (ctrl === CbsControlTable.MODEL_CONFIG ||
       ctrl === CbsControlTable.FORM_CONFIG ||
       ctrl === CbsControlTable.INQUIRY_CONFIG ||
-      ctrl === CbsControlTable.MENU ||
       ctrl === CbsControlTable.MENU_TREE)
   ) {
     const payloadData = target.data as Record<string, unknown> | undefined;

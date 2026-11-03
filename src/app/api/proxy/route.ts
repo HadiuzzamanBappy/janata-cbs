@@ -76,7 +76,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
             cacheDesc.key,
             async () => {
               const res = await dispatch(envelope, token);
-              return res.status === "SUCCESS" ? res : null;
+              if (res.status !== "SUCCESS") return null;
+              // Decode raw Protobuf Struct into clean JSON BEFORE saving to Redis
+              return {
+                ...res,
+                data: res.data ? decodeProtobufValue(res.data) : res.data,
+              };
             },
             cacheDesc.ttl,
           )) || (await dispatch(envelope, token))

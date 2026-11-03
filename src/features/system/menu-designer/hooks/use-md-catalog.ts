@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
 import { cbsCommand } from "@/lib/cbs-command";
-import { parseMenuTreeList } from "@/lib/data-parsers";
+import { parseMenuTreeList, unwrapRecordsPayload } from "@/lib/data-parsers";
 import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-schema";
 
 export const DEMO_AVAILABLE_TREES = [
@@ -24,9 +24,7 @@ export function useMdCatalog() {
       try {
         const json = await cbs.send<unknown>(cbs.menu.list(), { silent: true });
         if (json.status === "SUCCESS" && json.data) {
-          const rawList = Array.isArray(json.data)
-            ? json.data
-            : (json.data as { records?: unknown[] }).records || [];
+          const rawList = unwrapRecordsPayload(json.data);
 
           if (rawList.length > 0) {
             return (rawList as Record<string, unknown>[]).map((r) => ({

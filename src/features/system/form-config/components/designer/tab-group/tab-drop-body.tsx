@@ -3,6 +3,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import * as React from "react";
+import { getFieldColSpanClass, getGridColsClass } from "@/features/form-engine/utils/section-utils";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import { DesignerFieldCard } from "../designer-field-card";
@@ -60,28 +61,6 @@ export function TabDropBody({
     } catch {
       /* ignore */
     }
-  };
-
-  const getGridColsClass = (cols: number) => {
-    switch (cols) {
-      case 2:
-        return "grid-cols-2";
-      case 3:
-        return "grid-cols-3";
-      case 4:
-        return "grid-cols-4";
-      default:
-        return "grid-cols-1";
-    }
-  };
-
-  const getFieldColSpanClass = (cols: number, width?: unknown) => {
-    if (cols <= 1) return "w-full";
-    const token = typeof width === "string" ? width.toLowerCase().trim() : "";
-    if (token === "full") return "col-span-full w-full";
-    if (token === "lg" && cols >= 3) return "col-span-2 w-full";
-    if (typeof width === "number" && width >= 400) return "col-span-2 w-full";
-    return "col-span-1 w-full";
   };
 
   const fieldKeys = section.fields.map((f) => String(f.SN || f.NAME || "field"));

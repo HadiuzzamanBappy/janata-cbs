@@ -41,6 +41,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
     handleDelete,
     handleReverse,
     addField,
+    addSubField,
     updateField,
     removeField,
     handleCreateNew,
@@ -96,6 +97,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
             onSelectSN={setSelectedPropertySN}
             validationErrors={validationErrors}
             onAddField={addField}
+            onAddSubField={addSubField}
             onUpdateField={updateField}
             onRemoveField={removeField}
           />
@@ -122,6 +124,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
     ],
     [
       addField,
+      addSubField,
       baseline,
       formData,
       isFieldCommitted,

@@ -1,4 +1,4 @@
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+﻿import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type { CbsVersionedTable } from "./types";
 
 /**
@@ -37,7 +37,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 20,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "md",
+              WIDTH: 280,
               DEFAULTVALUE: "SAVINGS",
               ENRICHTEXT: "Select category of account (e.g. Savings, Current, Term Deposit)",
               PARAMETER: {
@@ -54,7 +54,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 20,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "md",
+              WIDTH: 280,
               ENRICHTEXT: "Unique 9-digit Core Banking Customer Information File (CIF)",
               TEXT_CONFIG: {
                 textTransform: "uppercase",
@@ -71,7 +71,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 3,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "sm",
+              WIDTH: 180,
               DEFAULTVALUE: "BDT",
               ENRICHTEXT: "ISO currency denominator for account ledger balances",
               PARAMETER: {
@@ -101,7 +101,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 100,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "lg",
+              WIDTH: 450,
             },
             {
               SN: "17_2",
@@ -112,7 +112,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 50,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "md",
+              WIDTH: 280,
               DEFAULTVALUE: "Dhaka",
             },
             {
@@ -123,7 +123,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 10,
               STRUCTURE: "S",
-              WIDTH: "sm",
+              WIDTH: 180,
               DEFAULTVALUE: "1212",
             },
           ],
@@ -148,7 +148,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 10,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "sm",
+              WIDTH: 180,
               ENRICHTEXT: "Value date on which the account contract becomes operational",
             },
             {
@@ -160,7 +160,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 18,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "md",
+              WIDTH: 280,
               DEFAULTVALUE: "25000",
               ENRICHTEXT: "Minimum mandatory initial deposit credited at account opening",
               NUMBER_CONFIG: {
@@ -191,7 +191,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "switch",
               LENGTH: 1,
               STRUCTURE: "S",
-              WIDTH: "sm",
+              WIDTH: 180,
               DEFAULTVALUE: "Y",
               BOOLEAN_CONFIG: {
                 widgetStyle: "switch",
@@ -209,7 +209,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "switch",
               LENGTH: 1,
               STRUCTURE: "S",
-              WIDTH: "sm",
+              WIDTH: 180,
               DEFAULTVALUE: "Y",
               BOOLEAN_CONFIG: {
                 widgetStyle: "switch",
@@ -257,7 +257,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 20,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "md",
+              WIDTH: 280,
               TEXT_CONFIG: {
                 textTransform: "uppercase",
                 maskPattern: "",
@@ -273,7 +273,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 100,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: "lg",
+              WIDTH: 450,
             },
           ],
         },

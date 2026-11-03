@@ -1,4 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+﻿import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 
 /**
@@ -21,7 +21,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 120,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Descriptive title of this inquiry definition.",
       },
       {
@@ -32,7 +32,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Target CBS entity or primary controller table (e.g. ACCOUNT or USER).",
       },
       {
@@ -44,7 +44,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 10,
         REQUIRED: true,
         WIDGET: "select",
-        WIDTH: "sm",
+        WIDTH: 180,
         PARAMETER: {
           type: "O",
           data: [
@@ -71,7 +71,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 10,
         WIDGET: "segmented",
-        WIDTH: "sm",
+        WIDTH: 180,
         PARAMETER: {
           type: "O",
           data: [
@@ -87,7 +87,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 4,
-        WIDTH: "xs",
+        WIDTH: 120,
         ENRICHTEXT: "Default page size limit for pagination.",
       },
       {
@@ -98,7 +98,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 1,
         WIDGET: "checkbox",
-        WIDTH: "full",
+        WIDTH: 1000,
         ENRICHTEXT: "Render row serial number (1, 2, 3...) in table results.",
       },
       {
@@ -109,7 +109,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 1,
         WIDGET: "checkbox",
-        WIDTH: "full",
+        WIDTH: 1000,
         ENRICHTEXT: "Show footer paging controls and page navigation.",
       },
       {
@@ -120,7 +120,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 1,
         WIDGET: "checkbox",
-        WIDTH: "full",
+        WIDTH: 1000,
         ENRICHTEXT: "Filter results to current operator's branch automatically.",
       },
     ],
@@ -139,7 +139,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 50,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT:
           "Optional report controller identifier for PDF/print generation (e.g. RPT.ACC.LIST).",
       },
@@ -151,7 +151,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Backend service routing endpoint path.",
       },
     ],

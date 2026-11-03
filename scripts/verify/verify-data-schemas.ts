@@ -113,6 +113,15 @@ async function runSuite() {
         TYPE: "Text",
         LENGTH: 35,
         REQUIRED: true,
+        WIDTH: 120,
+      },
+      {
+        NAME: "isActive",
+        LABEL: "Active Status",
+        TYPE: "Boolean",
+        LENGTH: 1,
+        REQUIRED: false,
+        WIDTH: 120,
       },
     ],
   };

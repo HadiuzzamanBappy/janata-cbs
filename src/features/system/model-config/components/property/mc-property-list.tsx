@@ -24,6 +24,7 @@ interface McPropertyListProps {
   isFieldCommitted?: (sn: string) => boolean;
   validationErrors?: ValidationErrorItem[];
   onAddField: () => string;
+  onAddSubField?: (parentSn: string) => string;
   onDeleteField?: (sn: string, forceHardDelete?: boolean) => void;
 }
 
@@ -35,6 +36,7 @@ export function McPropertyList({
   isFieldCommitted,
   validationErrors = [],
   onAddField,
+  onAddSubField,
   onDeleteField,
 }: McPropertyListProps) {
   const [searchFilter, setSearchFilter] = React.useState("");
@@ -141,97 +143,179 @@ export function McPropertyList({
             const badgeLabel = prop.STRUCTURE === "M" ? `${prop.TYPE} (M)` : prop.TYPE;
 
             return (
-              <div
-                key={prop.SN}
-                className={cn(
-                  "relative flex items-center justify-between w-full py-1.5 px-2.5 transition-colors group select-none",
-                  hasError && !isSelected && "bg-destructive/5 hover:bg-destructive/10",
-                  isSelected
-                    ? hasError
-                      ? "bg-destructive/15 text-destructive border-l-3 border-l-destructive"
-                      : "bg-primary/10 text-foreground font-semibold border-l-3 border-l-primary"
-                    : hasError
-                      ? "border-l-3 border-l-destructive/80 text-foreground"
-                      : "hover:bg-muted/40 text-foreground border-l-3 border-l-transparent",
-                )}
-              >
-                {/* Semantic accessible selection button */}
-                <button
-                  type="button"
-                  onClick={() => onSelectSN(prop.SN)}
-                  className="flex items-center gap-2 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
+              <div key={prop.SN} className="flex flex-col">
+                <div
+                  className={cn(
+                    "relative flex items-center justify-between w-full py-1.5 px-2.5 transition-colors group select-none",
+                    hasError && !isSelected && "bg-destructive/5 hover:bg-destructive/10",
+                    isSelected
+                      ? hasError
+                        ? "bg-destructive/15 text-destructive border-l-3 border-l-destructive"
+                        : "bg-primary/10 text-foreground font-semibold border-l-3 border-l-primary"
+                      : hasError
+                        ? "border-l-3 border-l-destructive/80 text-foreground"
+                        : "hover:bg-muted/40 text-foreground border-l-3 border-l-transparent",
+                  )}
                 >
-                  {/* Sequence Number Badge */}
-                  <span
-                    className={cn(
-                      "font-mono text-[10px] px-1 py-0.5 rounded shrink-0",
-                      isSelected
-                        ? "bg-primary/15 text-primary font-bold border border-primary/25"
-                        : "bg-muted text-muted-foreground font-medium",
-                    )}
+                  {/* Semantic accessible selection button */}
+                  <button
+                    type="button"
+                    onClick={() => onSelectSN(prop.SN)}
+                    className="flex items-center gap-2 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
                   >
-                    #{prop.SN}
-                  </span>
+                    {/* Sequence Number Badge */}
+                    <span
+                      className={cn(
+                        "font-mono text-[10px] px-1 py-0.5 rounded shrink-0",
+                        isSelected
+                          ? "bg-primary/15 text-primary font-bold border border-primary/25"
+                          : "bg-muted text-muted-foreground font-medium",
+                      )}
+                    >
+                      #{prop.SN}
+                    </span>
 
-                  {/* Name & Label */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={cn(
-                          "text-xs truncate font-medium",
-                          isSelected ? "text-foreground font-semibold" : "text-foreground",
-                        )}
-                      >
-                        {prop.LABEL || prop.NAME || "<Unnamed>"}
-                      </span>
-                      {prop.REQUIRED && (
+                    {/* Name & Label */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
                         <span
-                          className="text-destructive font-bold text-[10px] leading-none"
-                          title="Mandatory Column"
+                          className={cn(
+                            "text-xs truncate font-medium",
+                            isSelected ? "text-foreground font-semibold" : "text-foreground",
+                          )}
                         >
-                          *
+                          {prop.LABEL || prop.NAME || "<Unnamed>"}
                         </span>
+                        {prop.REQUIRED && (
+                          <span
+                            className="text-destructive font-bold text-[10px] leading-none"
+                            title="Mandatory Column"
+                          >
+                            *
+                          </span>
+                        )}
+                      </div>
+                      {prop.NAME && prop.LABEL && prop.NAME !== prop.LABEL && (
+                        <div className="text-[10px] truncate leading-tight font-mono text-muted-foreground">
+                          {prop.NAME}
+                        </div>
                       )}
                     </div>
-                    {prop.NAME && prop.LABEL && prop.NAME !== prop.LABEL && (
-                      <div className="text-[10px] truncate leading-tight font-mono text-muted-foreground">
-                        {prop.NAME}
+                  </button>
+
+                  {/* Right Side Badges & Delete Button */}
+                  <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider",
+                        isSelected
+                          ? "border-primary/30 bg-primary/10 text-primary font-medium"
+                          : "text-muted-foreground border-border/70",
+                      )}
+                    >
+                      {badgeLabel}
+                    </Badge>
+
+                    {/* Delete button (only uncommitted/draft columns can be removed) */}
+                    {!isReadOnly && onDeleteField && !isCommitted && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        title="Delete draft column"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          onDeleteField(prop.SN, true);
+                        }}
+                        className="size-5 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sub-properties container when TYPE is Object */}
+                {prop.TYPE === "Object" && (
+                  <div className="bg-muted/15 border-l-2 border-primary/30 ml-3.5 my-0.5 space-y-0.5">
+                    {(prop.PROP || []).map((sub) => {
+                      const isSubSelected = sub.SN === selectedSN;
+                      const isSubCommitted = isFieldCommitted ? isFieldCommitted(sub.SN) : true;
+                      const subErrors = validationErrors.filter(
+                        (err: ValidationErrorItem) => err.sn === sub.SN,
+                      );
+                      const hasSubError = subErrors.length > 0;
+                      const subBadge = sub.STRUCTURE === "M" ? `${sub.TYPE} (M)` : sub.TYPE;
+
+                      return (
+                        <div
+                          key={sub.SN}
+                          className={cn(
+                            "relative flex items-center justify-between w-full py-1 px-2 transition-colors select-none",
+                            hasSubError && !isSubSelected && "bg-destructive/5",
+                            isSubSelected
+                              ? "bg-primary/15 text-foreground font-semibold border-l-2 border-l-primary"
+                              : "hover:bg-muted/40 text-foreground border-l-2 border-l-transparent",
+                          )}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => onSelectSN(sub.SN)}
+                            className="flex items-center gap-1.5 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
+                          >
+                            <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-muted text-muted-foreground shrink-0">
+                              #{sub.SN}
+                            </span>
+                            <span className="text-[11px] truncate font-medium">
+                              {sub.LABEL || sub.NAME || "<Unnamed Subfield>"}
+                            </span>
+                          </button>
+                          <div className="flex items-center gap-1 shrink-0 ml-1">
+                            <Badge
+                              variant="outline"
+                              className="font-mono text-[9px] h-4 px-1 rounded uppercase tracking-wider text-muted-foreground"
+                            >
+                              {subBadge}
+                            </Badge>
+                            {!isReadOnly && onDeleteField && !isSubCommitted && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                title="Delete subfield"
+                                onClick={(e: React.MouseEvent) => {
+                                  e.stopPropagation();
+                                  onDeleteField(sub.SN, true);
+                                }}
+                                className="size-4 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <Trash2 className="size-2.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {!isReadOnly && onAddSubField && (
+                      <div className="px-2 py-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newSn = onAddSubField(prop.SN);
+                            if (newSn) onSelectSN(newSn);
+                          }}
+                          className="h-5 text-[10px] text-primary hover:text-primary hover:bg-primary/10 gap-1 px-1.5 w-full justify-start cursor-pointer font-medium"
+                        >
+                          <Plus className="size-3" />
+                          <span>Add Sub-Property</span>
+                        </Button>
                       </div>
                     )}
                   </div>
-                </button>
-
-                {/* Right Side Badges & Delete Button */}
-                <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider",
-                      isSelected
-                        ? "border-primary/30 bg-primary/10 text-primary font-medium"
-                        : "text-muted-foreground border-border/70",
-                    )}
-                  >
-                    {badgeLabel}
-                  </Badge>
-
-                  {/* Delete button (only uncommitted/draft columns can be removed) */}
-                  {!isReadOnly && onDeleteField && !isCommitted && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      title="Delete draft column"
-                      onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        onDeleteField(prop.SN, true);
-                      }}
-                      className="size-5 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    >
-                      <Trash2 className="size-3" />
-                    </Button>
-                  )}
-                </div>
+                )}
               </div>
             );
           })

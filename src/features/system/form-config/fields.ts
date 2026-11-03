@@ -1,4 +1,4 @@
-import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+﻿import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
 
 /**
  * Standard Form Sections definition for FORM.CONFIG General tab.
@@ -20,7 +20,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
         ENRICHTEXT: "Primary title of the form layout displayed across core workbench.",
       },
       {
@@ -30,7 +30,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 200,
-        WIDTH: "xl",
+        WIDTH: 600,
         ENRICHTEXT: "Summary notes or functional purpose of this form configuration.",
       },
     ],
@@ -50,7 +50,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
         ENRICHTEXT: "Minimum required authorization level before committing transactions.",
       },
     ],

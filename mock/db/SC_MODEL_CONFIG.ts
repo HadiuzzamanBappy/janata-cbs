@@ -1,4 +1,4 @@
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+﻿import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import type { CbsVersionedTable } from "./types";
 
 export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
@@ -30,7 +30,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 250,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "2",
@@ -40,7 +40,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 250,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "3",
@@ -50,7 +50,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "4",
@@ -60,7 +60,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 300,
         REQUIRED: false,
-        WIDTH: "xl",
+        WIDTH: 600,
       },
       {
         SN: "5",
@@ -70,7 +70,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
     ],
     IDROUTINE: "",
@@ -113,7 +113,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 300,
         REQUIRED: true,
-        WIDTH: "full",
+        WIDTH: 1000,
       },
       {
         SN: "2",
@@ -123,7 +123,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "3",
@@ -133,7 +133,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 50,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
     ],
     IDROUTINE: "",
@@ -176,7 +176,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "2",
@@ -186,7 +186,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "3",
@@ -196,7 +196,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 150,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "4",
@@ -206,7 +206,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 30,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
     ],
     IDROUTINE: "",
@@ -226,7 +226,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     _DEVDATE: "2025-06-18",
     DESCRIPTION: "Company or Branch ",
     PREFIX: "SC",
-    TABLENAME: "Branch",
+    TABLENAME: "BRANCH",
     USERDEFINEID: true,
     ACCESS: "G",
     READONLY: false,
@@ -249,7 +249,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 0,
         REQUIRED: true,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "2",
@@ -300,7 +300,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 0,
         REQUIRED: true,
-        CTLWIDTH: 120,
+        WIDTH: 120,
         PROP: [
           {
             SN: "3_1",
@@ -309,7 +309,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
             TYPE: "Text",
             STRUCTURE: "M",
             LENGTH: 0,
-            CTLWIDTH: 120,
+            WIDTH: 120,
           },
           {
             SN: "3_2",
@@ -318,7 +318,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 0,
-            CTLWIDTH: 120,
+            WIDTH: 120,
           },
           {
             SN: "3_3",
@@ -327,7 +327,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
             TYPE: "Text",
             STRUCTURE: "M",
             LENGTH: 0,
-            CTLWIDTH: 120,
+            WIDTH: 120,
           },
         ],
       },
@@ -338,7 +338,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "5",
@@ -347,7 +347,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "6",
@@ -356,7 +356,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "7",
@@ -365,7 +365,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "8",
@@ -374,7 +374,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "9",
@@ -383,7 +383,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "10",
@@ -392,7 +392,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Dropdown",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
         PARAMETER: {
           type: "M",
           data: [],
@@ -411,7 +411,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "12",
@@ -420,7 +420,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
       {
         SN: "13",
@@ -429,10 +429,9 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 0,
-        CTLWIDTH: 120,
+        WIDTH: 120,
       },
     ],
-    USERDIFINEID: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 15,
@@ -471,7 +470,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "2",
@@ -481,7 +480,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "3",
@@ -491,7 +490,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "4",
@@ -501,7 +500,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "5",
@@ -511,7 +510,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
     ],
     IDROUTINE: "",
@@ -556,7 +555,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 65,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "2",
@@ -566,7 +565,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 16,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "3",
@@ -576,7 +575,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 8,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "4",
@@ -586,7 +585,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "5",
@@ -596,7 +595,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "6",
@@ -606,7 +605,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 4,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "7",
@@ -616,7 +615,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 17,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "8",
@@ -626,7 +625,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "9",
@@ -636,7 +635,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "10",
@@ -646,7 +645,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "11",
@@ -656,7 +655,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "12",
@@ -666,7 +665,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "13",
@@ -676,7 +675,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "14",
@@ -686,7 +685,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 42,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "15",
@@ -696,7 +695,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 10,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "16",
@@ -706,7 +705,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 16,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "17",
@@ -716,7 +715,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "18",
@@ -726,7 +725,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 40,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "19",
@@ -736,7 +735,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 50,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "20",
@@ -746,7 +745,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 31,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "21",
@@ -756,7 +755,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 55,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "22",
@@ -766,7 +765,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 7,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "23",
@@ -776,7 +775,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 55,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "24",
@@ -786,7 +785,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 55,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "25",
@@ -796,7 +795,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "26",
@@ -806,7 +805,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "27",
@@ -816,7 +815,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "28",
@@ -826,7 +825,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "29",
@@ -836,7 +835,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 4,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "30",
@@ -846,7 +845,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "31",
@@ -856,7 +855,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "32",
@@ -866,7 +865,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 8,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "33",
@@ -876,7 +875,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 16,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "34",
@@ -886,7 +885,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "35",
@@ -896,7 +895,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "36",
@@ -906,7 +905,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "37",
@@ -916,7 +915,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "38",
@@ -926,7 +925,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "39",
@@ -936,7 +935,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 4,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "40",
@@ -946,7 +945,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "41",
@@ -956,7 +955,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 30,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "42",
@@ -966,7 +965,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 30,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "43",
@@ -976,7 +975,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 22,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "44",
@@ -986,7 +985,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 30,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "45",
@@ -996,7 +995,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "46",
@@ -1006,7 +1005,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "47",
@@ -1016,7 +1015,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "48",
@@ -1026,7 +1025,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "49",
@@ -1036,7 +1035,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "50",
@@ -1046,7 +1045,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 20,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "51",
@@ -1056,7 +1055,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 4,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "52",
@@ -1066,7 +1065,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "53",
@@ -1076,7 +1075,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "54",
@@ -1086,7 +1085,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 3,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "55",
@@ -1096,7 +1095,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 4,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "56",
@@ -1106,7 +1105,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "57",
@@ -1116,7 +1115,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "58",
@@ -1126,7 +1125,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 4,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "59",
@@ -1136,7 +1135,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "60",
@@ -1146,7 +1145,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "61",
@@ -1156,7 +1155,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "62",
@@ -1166,7 +1165,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "63",
@@ -1176,7 +1175,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 65,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "64",
@@ -1186,7 +1185,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "65",
@@ -1196,7 +1195,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "66",
@@ -1206,7 +1205,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "67",
@@ -1216,7 +1215,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "68",
@@ -1226,7 +1225,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 6,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "69",
@@ -1236,7 +1235,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "70",
@@ -1246,7 +1245,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "71",
@@ -1256,7 +1255,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 8,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "72",
@@ -1266,7 +1265,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
     ],
     auditData: {
@@ -1307,7 +1306,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "2",
@@ -1317,7 +1316,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "3",
@@ -1327,7 +1326,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "4",
@@ -1337,7 +1336,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "5",
@@ -1347,7 +1346,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 18,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "6",
@@ -1357,7 +1356,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "7",
@@ -1367,7 +1366,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "8",
@@ -1377,7 +1376,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 100,
         REQUIRED: false,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "9",
@@ -1387,7 +1386,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 30,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "10",
@@ -1397,7 +1396,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 5,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "11",
@@ -1407,7 +1406,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "M",
         LENGTH: 30,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "12",
@@ -1417,7 +1416,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "13",
@@ -1427,7 +1426,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "14",
@@ -1437,7 +1436,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "15",
@@ -1447,7 +1446,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "17",
@@ -1457,7 +1456,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "18",
@@ -1467,7 +1466,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "19",
@@ -1477,7 +1476,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
     ],
     IDROUTINE: "",
@@ -1520,7 +1519,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "2",
@@ -1530,7 +1529,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "3",
@@ -1540,7 +1539,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
       {
         SN: "4",
@@ -1550,7 +1549,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
     ],
     IDROUTINE: "",
@@ -1593,7 +1592,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 250,
         REQUIRED: true,
-        WIDTH: "full",
+        WIDTH: 1000,
       },
       {
         SN: "2",
@@ -1603,7 +1602,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "3",
@@ -1613,7 +1612,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "4",
@@ -1623,7 +1622,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 30,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "5",
@@ -1633,7 +1632,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "6",
@@ -1643,7 +1642,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: false,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "7",
@@ -1653,7 +1652,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 150,
         REQUIRED: true,
-        WIDTH: "lg",
+        WIDTH: 450,
       },
     ],
     IDROUTINE: "",
@@ -1696,7 +1695,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: 280,
       },
       {
         SN: "2",
@@ -1706,7 +1705,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 250,
         REQUIRED: true,
-        WIDTH: "full",
+        WIDTH: 1000,
       },
       {
         SN: "3",
@@ -1716,7 +1715,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "4",
@@ -1726,7 +1725,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: true,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "5",
@@ -1736,7 +1735,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
       {
         SN: "6",
@@ -1746,7 +1745,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
-        WIDTH: "sm",
+        WIDTH: 180,
       },
     ],
     IDROUTINE: "",

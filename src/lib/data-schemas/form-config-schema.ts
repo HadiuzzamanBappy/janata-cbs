@@ -100,7 +100,7 @@ export const formElementSchema = z.object({
   LABEL: z.string().min(1, "Label is required"),
   REQUIRED: z.boolean().default(false).optional(),
   DISABLED: z.boolean().default(false).optional(),
-  WIDTH: z.union([propertyWidthSchema, z.number()]).default("md").optional(),
+  WIDTH: propertyWidthSchema.default(280).optional(),
   POSITION: z.string().default("").optional(),
   ENRICHTEXT: z.string().default("").optional(),
   DEFAULTVALUE: z.string().default("").optional(),

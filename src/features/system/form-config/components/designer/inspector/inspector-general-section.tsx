@@ -5,8 +5,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-config-schema";
-import { PROPERTY_WIDTHS, type PropertyWidth } from "@/lib/data-schemas/model-config-schema";
 import { InspectorRow } from "./inspector-row";
+
+const WIDTH_PRESETS = [
+  { label: "120", value: 120, title: "XS (120px)" },
+  { label: "180", value: 180, title: "SM (180px)" },
+  { label: "280", value: 280, title: "MD (280px)" },
+  { label: "450", value: 450, title: "LG (450px)" },
+  { label: "600", value: 600, title: "XL (600px)" },
+  { label: "FULL", value: 1000, title: "Full Row (1000px)" },
+] as const;
 
 export interface InspectorGeneralSectionProps {
   selectedField: FormElement;
@@ -36,27 +44,42 @@ export function InspectorGeneralSection({
         />
       </InspectorRow>
 
-      {/* Display Width Semantic Tokens (XS to FULL) */}
+      {/* Display Width: Numerical Presets or Custom Pixels */}
       <InspectorRow
         label="Display Width"
-        description="Semantic field width token scale: XS, SM, MD, LG, XL, XXL, or FULL."
+        description="Field display width in pixels (120, 180, 280, 450, 600, 1000) or custom px."
       >
-        <div className="flex items-center gap-1 flex-wrap">
-          {PROPERTY_WIDTHS.map((w) => (
-            <Button
-              key={w}
-              type="button"
-              variant={
-                String(selectedField.WIDTH || "md").toLowerCase() === w ? "default" : "outline"
-              }
-              size="sm"
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 flex-1 flex-wrap">
+            {WIDTH_PRESETS.map((preset) => (
+              <Button
+                key={preset.value}
+                type="button"
+                title={preset.title}
+                variant={selectedField.WIDTH === preset.value ? "default" : "outline"}
+                size="sm"
+                disabled={disabled || selectedField.TYPE === "Date"}
+                onClick={() => onUpdateField({ WIDTH: preset.value })}
+                className="h-6 px-1.5 text-[10px] rounded flex-1 uppercase font-mono"
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 w-20 shrink-0">
+            <Input
+              type="number"
+              placeholder="px"
               disabled={disabled || selectedField.TYPE === "Date"}
-              onClick={() => onUpdateField({ WIDTH: w as PropertyWidth })}
-              className="h-6 px-1.5 text-[10px] rounded flex-1 uppercase font-mono"
-            >
-              {w}
-            </Button>
-          ))}
+              value={typeof selectedField.WIDTH === "number" ? selectedField.WIDTH : ""}
+              onChange={(e) => {
+                const val = e.target.value ? Number(e.target.value) : undefined;
+                onUpdateField({ WIDTH: val });
+              }}
+              className="h-6 text-[10px] font-mono px-1.5 bg-background text-right"
+            />
+            <span className="text-[10px] text-muted-foreground font-mono">px</span>
+          </div>
         </div>
       </InspectorRow>
 

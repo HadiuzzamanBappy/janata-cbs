@@ -1,4 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+﻿import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
 /**
@@ -21,7 +21,7 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: "full",
+        WIDTH: 1000,
         ENRICHTEXT: "Human-readable descriptive label for this navigation hierarchy.",
       },
     ],
@@ -41,7 +41,7 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 1,
         WIDGET: "checkbox",
-        WIDTH: "full",
+        WIDTH: 1000,
         ENRICHTEXT:
           "Controls whether this navigation hierarchy is live and published across user workbenches.",
       },

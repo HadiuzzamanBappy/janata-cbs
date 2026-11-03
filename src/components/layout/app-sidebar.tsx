@@ -45,7 +45,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
     queryFn: async () => {
       try {
         const res = await cbs.send<{ menuTree?: MenuItem[] } | MenuItem[]>(
-          cbs.menuTree.get("MENU.MAIN"),
+          cbs.menuTree.get("MENU.ONE"),
           { silent: true },
         );
         if (res.status === "SUCCESS" && res.data) {

@@ -27,6 +27,7 @@
     "verify:grpc": "tsx scripts/verify/verify-infra-grpc.ts",
     "verify:mock": "tsx scripts/verify/verify-mock-core.ts",
     "verify:screen": "tsx scripts/verify/verify-cbs-screen.ts",
+    "verify:api": "tsx scripts/verify/verify-api-live.ts",
     "cache:clear": "tsx scripts/cache/cache-clear.ts",
     "cache:inspect": "tsx scripts/cache/cache-inspect.ts",
     "fixture:clean": "tsx scripts/tools/fixture-normalize.ts"

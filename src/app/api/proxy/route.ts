@@ -3,10 +3,11 @@ import { parseAccessibilityRights } from "@/lib/cbs-access";
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
-import { cbsWirePayloadSchema, type GrpcEnvelope } from "@/lib/data-schemas";
+import { type ApiResponse, cbsWirePayloadSchema, type GrpcEnvelope } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
 import { getSession, invalidateCache } from "@/lib/infra-redis";
-import { type ApiResponse, CbsRecordFunction, DEFAULT_SERVICE_PATH } from "@/types";
+import { CbsControlTable, CbsRecordFunction } from "@/types";
+import { apiError, apiFail } from "../_lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,16 +19,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     const session = await getSession();
 
     if (!session?.currUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          status: "FAIL",
-          statusCode: 401,
-          message: "User session expired or unauthorized",
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 },
-      );
+      return apiFail("User session expired or unauthorized", 401);
     }
 
     const { token, userId, currUser } = session;
@@ -35,16 +27,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     const parsed = cbsWirePayloadSchema.safeParse(rawBody);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          status: "FAIL",
-          statusCode: 400,
-          message: parsed.error.issues[0]?.message || "Invalid proxy request payload",
-          errors: parsed.error.issues.map((i) => i.message),
-          timestamp: new Date().toISOString(),
-        },
-        { status: 400 },
+      return apiFail(
+        parsed.error.issues[0]?.message || "Invalid proxy request payload",
+        400,
+        parsed.error.issues.map((i) => i.message),
       );
     }
 
@@ -59,7 +45,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
       const funcCode = body.recordFunction.toUpperCase().trim() as CbsRecordFunction;
 
-      // Restrict mutations/approvals if user does not have the required right
+      // Restrict mutations/approvals if user lacks the capability
       if (
         (funcCode === CbsRecordFunction.AUTHORIZE ||
           funcCode === CbsRecordFunction.DELETE ||
@@ -72,31 +58,18 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           controlName: body.controlName,
           recordId: body.recordId,
         });
-        return NextResponse.json(
-          {
-            success: false,
-            status: "FAIL",
-            statusCode: 403,
-            message: `Access Denied: Missing '${funcCode}' capability in user profile.`,
-            errors: [`User ${currUser.userId} lacks capability '${funcCode}'`],
-            timestamp: new Date().toISOString(),
-          },
-          { status: 403 },
-        );
+        return apiFail(`Access Denied: Missing '${funcCode}' capability in user profile.`, 403, [
+          `User ${currUser.userId} lacks capability '${funcCode}'`,
+        ]);
       }
     }
 
-    // Resilient Hierarchical Branch Code Resolution:
-    // 1. Explicit request override in wire payload
-    // 2. Client-synced HTTP cookie (survives Redis restarts/offline)
-    // 3. Authenticated session user branch from Redis/memory
-    // 4. Canonical central branch fallback
-    const cookieBranch = req.cookies.get(appConfig.auth.branchCookie)?.value;
+    // Direct, canonical branch code resolution
     const resolvedBranchCode =
-      parsed.data.branchCode || cookieBranch || currUser.branchCode || appConfig.centralBranch;
+      parsed.data.branchCode || currUser.branchCode || appConfig.centralBranch;
 
     const envelope: GrpcEnvelope = {
-      servicePath: body.servicePath || DEFAULT_SERVICE_PATH,
+      servicePath: body.servicePath || "default",
       requestType: body.requestType,
       controlName: body.controlName ?? "",
       branchCode: resolvedBranchCode,
@@ -113,7 +86,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       const response = await dispatch(envelope, token);
 
       if (response.status === "SUCCESS") {
-        // Evict cached specs so model and layout mutations take immediate effect without manual purge
+        // Evict cached specs on mutation or authorization
         const ctrl = (envelope.controlName || "").toUpperCase();
         const isMutationOrAuth =
           envelope.requestType === "PUT" ||
@@ -123,13 +96,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
         if (
           isMutationOrAuth &&
-          (ctrl === "MODEL.CONFIG" ||
-            ctrl === "FORM.CONFIG" ||
-            ctrl === "CONFIG.FORM" ||
-            ctrl === "INQUIRY.CONFIG" ||
-            ctrl === "SC_INQUIRY_CONFIG" ||
-            ctrl === "MENU" ||
-            ctrl === "MENU.TREE")
+          (ctrl === CbsControlTable.MODEL_CONFIG ||
+            ctrl === CbsControlTable.FORM_CONFIG ||
+            ctrl === CbsControlTable.INQUIRY_CONFIG ||
+            ctrl === CbsControlTable.MENU ||
+            ctrl === CbsControlTable.MENU_TREE)
         ) {
           const payloadData = envelope.data as Record<string, unknown> | undefined;
           const targetModel =
@@ -153,6 +124,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
             { status: 200 },
           );
         }
+
         // Normalize dynamic Protobuf struct values into clean plain JS objects
         const cleanData = response.data ? decodeProtobufValue(response.data) : response.data;
         return NextResponse.json(
@@ -165,14 +137,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         );
       }
 
-      // Backend may reply ERROR with an empty message (unhandled host exception);
-      // give the client something actionable instead of a blank toast.
+      // Actionable failure notification from downstream core
       const fallbackMessage = `CBS host returned ${response.status} (${response.statusCode}) for ${envelope.requestType} on ${envelope.controlName || "default"}`;
       proxyLogger.warn(`Proxy downstream returned non-success (${response.statusCode})`, {
         controlName: envelope.controlName,
         requestType: envelope.requestType,
         message: response.message || fallbackMessage,
       });
+
       return NextResponse.json(
         {
           ...response,
@@ -180,39 +152,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           errors: response.errors?.length ? response.errors : [fallbackMessage],
           success: false,
         },
-        {
-          status: response.statusCode || 400,
-        },
+        { status: response.statusCode || 400 },
       );
     } catch (dispatchErr: unknown) {
       proxyLogger.error("CBS Host communication failed", dispatchErr);
-      const errMsg =
-        dispatchErr instanceof Error ? dispatchErr.message : "CBS Host communication failed";
-      return NextResponse.json(
-        {
-          success: false,
-          status: "ERROR",
-          statusCode: 502,
-          message: errMsg,
-          data: null,
-          timestamp: new Date().toISOString(),
-        },
-        { status: 502 },
-      );
+      return apiError(dispatchErr, "CBS Host communication failed", 502);
     }
   } catch (err: unknown) {
     proxyLogger.error("Internal Proxy Dispatch Error", err);
-    const message = err instanceof Error ? err.message : "Internal Proxy Dispatch Error";
-    return NextResponse.json(
-      {
-        success: false,
-        status: "ERROR",
-        statusCode: 500,
-        message,
-        data: null,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    );
+    return apiError(err, "Internal Proxy Dispatch Error");
   }
 }

@@ -12,10 +12,9 @@ mock/core/
 ├── database-router.ts    # Resolves controlName to physical tables via SC_MODEL_CONFIG
 ├── response-factory.ts   # Standardized envelopes (200, 404, 401, GrpcResponse)
 ├── handlers/             # Domain protocol handlers partitioned by CBS verb
-│   ├── menu-handlers.ts      # GUM, GCM (Navigation tree)
 │   ├── model-handlers.ts     # GMC, GFC (Metamodels & form specs)
 │   ├── inquiry-handlers.ts   # INQ (Dynamic tabular inquiry executions)
-│   ├── query-handlers.ts     # GET, S, GRL, SBI, RIL (Read, list & search)
+│   ├── query-handlers.ts     # GET, S, GRL, SBI, RIL (Read, list, search, and MENU.TREE)
 │   └── mutation-handlers.ts  # PUT, AUT, DEL, HLD, REV, GNI (Mutations & IDs)
 └── index.ts              # Public entry: mockLogin, mockProcess, mockDispatch, getMockProxyResponse
 ```
@@ -28,11 +27,10 @@ Requests dispatch dynamically by `requestType` to modular domain handlers:
 
 | Verb(s)                         | Category            | Handler File           | Implementation           | Target Source                      |
 | :------------------------------ | :------------------ | :--------------------- | :----------------------- | :--------------------------------- |
-| **`GUM`**, **`GCM`**            | Navigation Menu     | `menu-handlers.ts`     | `handleGetMenu()`        | `SC_MENU_TREE`                     |
 | **`GMC`**                       | Model Spec          | `model-handlers.ts`    | `handleGetModelConfig()` | `SC_MODEL_CONFIG`                  |
 | **`GFC`**                       | Form Layout         | `model-handlers.ts`    | `handleGetFormConfig()`  | `SC_FORM_CONFIG`                   |
 | **`INQ`**                       | Dynamic Inquiry     | `inquiry-handlers.ts`  | `handleInquiry()`        | `SC_INQUIRY_CONFIG` + Target Table |
-| **`GET`**, **`S`**, **`GRV`**   | Read Record         | `query-handlers.ts`    | `handleSeeRecord()`      | Target Table `LIVE`                |
+| **`GET`**, **`S`**, **`GRV`**   | Read Record / Tree  | `query-handlers.ts`    | `handleSeeRecord()`      | Target Table `LIVE` / `MENU.TREE`  |
 | **`GRL`**, **`GCQ`**, **`GMV`** | List Records        | `query-handlers.ts`    | `handleRecordList()`     | Target Table `getList()`           |
 | **`SBI`**, **`RIL`**            | Search / ID List    | `query-handlers.ts`    | `handleSearchById()`     | Target Table `getIdList()`         |
 | **`GNI`**                       | Sequence / Draft ID | `mutation-handlers.ts` | `handleNextId()`         | Model `IDDEF` or user ID           |
@@ -83,7 +81,6 @@ Used by `/api/proxy` to service UI requests:
 ```typescript
 import { getMockProxyResponse } from "@mock/core";
 
-const menu = getMockProxyResponse("GUM");
 const model = getMockProxyResponse("GMC", "ACCOUNT");
 const form = getMockProxyResponse("GFC", "CONFIG.FORM", "ACCOUNT,1.0.0");
 const record = getMockProxyResponse("GET", "ACCOUNT", "AC1001");
@@ -101,9 +98,9 @@ const record = getMockProxyResponse("GET", "ACCOUNT", "AC1001");
 ## 🧪 Verification
 
 ```bash
-# Run mock services test suite
-pnpm tsx scripts/verify/verify-mock-core.ts
+# Run in-memory mock core verification suite
+pnpm verify:mock
 
-# Run all 10 CBS verification suites
-pnpm run verify:all
+# Run all 13 CBS domain verification suites
+pnpm verify:all
 ```

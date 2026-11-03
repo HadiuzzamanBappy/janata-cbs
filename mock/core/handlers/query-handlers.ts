@@ -1,7 +1,6 @@
 import "server-only";
 
-import type { CbsWirePayload } from "@/lib/data-schemas";
-import type { ApiResponse } from "@/types";
+import type { ApiResponse, CbsWirePayload } from "@/lib/data-schemas";
 import { resolveTable } from "../database-router";
 import { notFoundResult, successResult } from "../response-factory";
 

@@ -1,7 +1,7 @@
 import "server-only";
 
-import type { CbsWirePayload } from "@/lib/data-schemas";
-import { type ApiResponse, CbsControlTable } from "@/types";
+import type { ApiResponse, CbsWirePayload } from "@/lib/data-schemas";
+import { CbsControlTable } from "@/types";
 import { resolveTable } from "../database-router";
 import { notFoundResult, successResult } from "../response-factory";
 

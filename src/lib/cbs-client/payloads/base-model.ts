@@ -1,10 +1,5 @@
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import {
-  type CbsControlTable,
-  CbsRecordFunction,
-  CbsRequestType,
-  DEFAULT_SERVICE_PATH,
-} from "@/types";
+import { type CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 
 export interface ModelOptions {
   servicePath?: string;
@@ -12,7 +7,7 @@ export interface ModelOptions {
 
 export interface CbsModelPayloadFactory<TData = Record<string, unknown>> {
   readonly controlName: string;
-  readonly servicePath: string;
+  readonly servicePath?: string;
 
   /** S: See / Read single record */
   get: (recordId: string, options?: ModelOptions) => CbsWirePayload;
@@ -57,7 +52,7 @@ export function createModelPayloads<TData = Record<string, unknown>>(
   defaultOptions?: ModelOptions,
 ): CbsModelPayloadFactory<TData> {
   const control = (controlName || "").trim().toUpperCase();
-  const servicePath = defaultOptions?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
+  const servicePath = defaultOptions?.servicePath?.trim() || undefined;
 
   const toPayload = (
     requestType: string,

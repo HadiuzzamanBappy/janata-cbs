@@ -1,5 +1,5 @@
+import type { ApiResponse } from "@/lib/data-schemas";
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
-import type { ApiResponse } from "@/types";
 
 /**
  * Creates standard 200 SUCCESS response payload.

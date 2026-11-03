@@ -17,7 +17,7 @@
 import { z } from "zod";
 import { cbs } from "@/lib/cbs-client";
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 
 interface TestCase {
   title: string;
@@ -66,8 +66,7 @@ async function runSuite() {
     getPayload,
     getPayload.requestType === CbsRequestType.GET &&
       getPayload.recordFunction === CbsRecordFunction.SEE &&
-      getPayload.recordId === "10001" &&
-      getPayload.servicePath === DEFAULT_SERVICE_PATH,
+      getPayload.recordId === "10001",
   );
 
   // 1.2 LIST

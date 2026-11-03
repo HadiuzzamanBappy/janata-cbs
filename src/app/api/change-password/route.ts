@@ -1,10 +1,11 @@
 import { cookies } from "next/headers";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
+import type { ApiResponse } from "@/lib/data-schemas";
 import { changePasswordSchema } from "@/lib/data-schemas";
 import { getSession, updateSession } from "@/lib/infra-redis";
-import type { ApiResponse } from "@/types";
+import { apiError, apiFail, apiSuccess } from "../_lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,36 +16,21 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          status: "FAIL",
-          statusCode: 401,
-          message: "Session expired. Please sign in again.",
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 },
-      );
+      return apiFail("Session expired. Please sign in again.", 401);
     }
 
     const rawBody = await req.json();
     const parsed = changePasswordSchema.safeParse(rawBody);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          status: "FAIL",
-          statusCode: 400,
-          message: parsed.error.issues[0]?.message || "Invalid password data.",
-          errors: parsed.error.issues.map((i) => i.message),
-          timestamp: new Date().toISOString(),
-        },
-        { status: 400 },
+      return apiFail(
+        parsed.error.issues[0]?.message || "Invalid password data.",
+        400,
+        parsed.error.issues.map((i) => i.message),
       );
     }
 
-    // 2. Update active Redis session to set initLogin = false
+    // Update active Redis session to set initLogin = false
     await updateSession({
       currUser: {
         ...session.currUser,
@@ -52,34 +38,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       },
     });
 
-    // 3. Remove the initLogin HTTP cookie restriction
+    // Remove the initLogin HTTP cookie restriction
     const store = await cookies();
     store.delete(appConfig.auth.initLoginCookie);
 
     pwdLogger.info(`Password successfully changed for user ${session.userId}`);
-
-    return NextResponse.json(
-      {
-        success: true,
-        status: "SUCCESS",
-        statusCode: 200,
-        message: "Password updated successfully.",
-        timestamp: new Date().toISOString(),
-      },
-      { status: 200 },
-    );
+    return apiSuccess(undefined, "Password updated successfully.");
   } catch (err: unknown) {
     pwdLogger.error("POST /api/change-password failed", err);
-    const message = err instanceof Error ? err.message : "Failed to update password.";
-    return NextResponse.json(
-      {
-        success: false,
-        status: "ERROR",
-        statusCode: 500,
-        message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    );
+    return apiError(err, "Failed to update password.");
   }
 }

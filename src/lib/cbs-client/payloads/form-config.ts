@@ -1,5 +1,5 @@
 import type { CbsWirePayload } from "@/lib/data-schemas";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType, DEFAULT_SERVICE_PATH } from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 import { createModelPayloads, type ModelOptions } from "./base-model";
 
 /* -------------------------------------------------------------------------- */
@@ -22,9 +22,8 @@ export const formConfigPayloads = {
    * Dedicated CBS form verb replacing generic 'GET'.
    */
   get: (recordId: string, options?: ModelOptions): CbsWirePayload => {
-    const servicePath = options?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
     return {
-      servicePath,
+      servicePath: options?.servicePath?.trim(),
       requestType: CbsRequestType.GFC,
       controlName: CbsControlTable.FORM_CONFIG,
       recordFunction: CbsRecordFunction.SEE,
@@ -44,14 +43,13 @@ export const formConfigPayloads = {
       idempotencyKey?: string;
     },
   ): CbsWirePayload => {
-    const servicePath = options?.servicePath?.trim() || DEFAULT_SERVICE_PATH;
     const targetId = (options?.recordId || data?.recordId || data?.formId || "")
       .toString()
       .trim()
       .toUpperCase();
 
     return {
-      servicePath,
+      servicePath: options?.servicePath?.trim(),
       requestType: CbsRequestType.SFC,
       controlName: CbsControlTable.FORM_CONFIG,
       recordFunction: options?.recordFunction || CbsRecordFunction.INPUT,

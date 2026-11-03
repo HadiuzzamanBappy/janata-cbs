@@ -1,8 +1,8 @@
 import type { z } from "zod";
 import { toast } from "@/components/ui/toast";
 import { clientConfig } from "@/lib/core-config";
+import type { ApiResponse } from "@/lib/data-schemas";
 import { type CbsWirePayload, cbsWirePayloadSchema } from "@/lib/data-schemas";
-import type { ApiResponse } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* Client Request Options Contract                                            */

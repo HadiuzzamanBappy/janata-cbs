@@ -41,12 +41,12 @@ Used in the HTTP client (`proxy-client.ts`) and API routes to ensure requests ma
 import { cbsWirePayloadSchema } from "@/lib/data-schemas";
 
 const result = cbsWirePayloadSchema.safeParse({
-  servicePath: "default",
   requestType: "PUT",
   controlName: "ACCOUNT",
   recordFunction: "I",
   recordId: "10000001",
   data: { accountTitle: "Corporate Account" },
+  // servicePath defaults automatically to "default" (primary gRPC core)
 });
 
 if (!result.success) {
@@ -58,10 +58,11 @@ if (!result.success) {
 
 ### 2. Consuming Inferred Types in UI Components
 
-Always import types directly from `@/lib/data-schemas`:
+Always import domain and wire contracts directly from `@/lib/data-schemas`:
 
 ```typescript
 import type {
+  ApiResponse,
   CurrentUser,
   FormConfigRecord,
   FormElement,

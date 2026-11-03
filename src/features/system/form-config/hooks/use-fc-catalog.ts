@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
 import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
-import { CbsRecordStatus } from "@/types";
+import { CbsControlTable, CbsRecordStatus } from "@/types";
 
 export interface FormCatalogItem {
   id: string;
@@ -71,13 +71,13 @@ export function useFcCatalog() {
     },
   });
 
-  // Subscribe to cross-tab updates for FORM.CONFIG and MODEL.CONFIG
+  // Subscribe to cross-tab updates for CONFIG.FORM and MODEL.CONFIG
   useRecordMutationSubscriber(() => {
     refreshForms();
-  }, "FORM.CONFIG");
+  }, CbsControlTable.FORM_CONFIG);
   useRecordMutationSubscriber(() => {
     refreshModels();
-  }, "MODEL.CONFIG");
+  }, CbsControlTable.MODEL_CONFIG);
 
   return {
     availableForms,

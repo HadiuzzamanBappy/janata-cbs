@@ -37,7 +37,7 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
         sessionFetchPromise = fetch(appConfig.routes.api.session)
           .then((res) => res.json())
           .then((json) => {
-            const user = json.data || json.currUser;
+            const user = json.data;
             if (json.success && user) {
               store.getState().setSession(user);
               if (user.branchCode && !store.getState().currentBranch) {

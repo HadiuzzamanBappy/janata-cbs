@@ -1,6 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest, NextResponse } from "next/server";
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
+import type { ApiResponse } from "@/lib/data-schemas";
 import { updateBranchSessionSchema } from "@/lib/data-schemas";
 import {
   destroySession,
@@ -8,7 +9,7 @@ import {
   getSession,
   updateBranchCodeAndName,
 } from "@/lib/infra-redis";
-import type { ApiResponse } from "@/types";
+import { apiError, apiFail, apiSuccess } from "../_lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,42 +21,13 @@ export async function GET(): Promise<NextResponse<ApiResponse>> {
     const currUser = await getFromSession("currUser");
 
     if (!currUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          status: "FAIL",
-          statusCode: 401,
-          message: "No active session",
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 },
-      );
+      return apiFail("No active session", 401);
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        status: "SUCCESS",
-        statusCode: 200,
-        data: currUser,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 200 },
-    );
+    return apiSuccess(currUser);
   } catch (error: unknown) {
     sessionLogger.error("GET /api/session failed", error);
-    const message =
-      error instanceof Error ? error.message : "Internal server error retrieving session";
-    return NextResponse.json(
-      {
-        success: false,
-        status: "ERROR",
-        statusCode: 500,
-        message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    );
+    return apiError(error, "Internal server error retrieving session");
   }
 }
 
@@ -63,16 +35,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
   try {
     const session = await getSession();
     if (!session) {
-      return NextResponse.json(
-        {
-          success: false,
-          status: "FAIL",
-          statusCode: 401,
-          message: "Unauthorized",
-          timestamp: new Date().toISOString(),
-        },
-        { status: 401 },
-      );
+      return apiFail("Unauthorized", 401);
     }
 
     const body = await req.json();
@@ -84,29 +47,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         parsed.data.branchName,
       );
       if (!updatedUser) {
-        return NextResponse.json(
-          {
-            success: false,
-            status: "FAIL",
-            statusCode: 500,
-            message: "Failed to update session branch",
-            timestamp: new Date().toISOString(),
-          },
-          { status: 500 },
-        );
+        return apiFail("Failed to update session branch", 500);
       }
 
-      const res = NextResponse.json(
-        {
-          success: true,
-          status: "SUCCESS",
-          statusCode: 200,
-          data: updatedUser,
-          currUser: updatedUser,
-          timestamp: new Date().toISOString(),
-        },
-        { status: 200 },
-      );
+      const res = apiSuccess(updatedUser);
 
       // Keep cookie aligned with updated branch
       res.cookies.set(appConfig.auth.branchCookie, parsed.data.branchCode, {
@@ -120,45 +64,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       return res;
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        status: "SUCCESS",
-        statusCode: 200,
-        data: session.currUser,
-        currUser: session.currUser,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 200 },
-    );
+    return apiSuccess(session.currUser);
   } catch (error: unknown) {
     sessionLogger.error("POST /api/session failed", error);
-    const message =
-      error instanceof Error ? error.message : "Internal server error updating session";
-    return NextResponse.json(
-      {
-        success: false,
-        status: "ERROR",
-        statusCode: 500,
-        message,
-        timestamp: new Date().toISOString(),
-      },
-      { status: 500 },
-    );
+    return apiError(error, "Internal server error updating session");
   }
 }
 
 export async function DELETE(): Promise<NextResponse<ApiResponse>> {
   sessionLogger.info("Destroying session via DELETE /api/session");
   await destroySession();
-  return NextResponse.json(
-    {
-      success: true,
-      status: "SUCCESS",
-      statusCode: 200,
-      message: "Session destroyed",
-      timestamp: new Date().toISOString(),
-    },
-    { status: 200 },
-  );
+  return apiSuccess(undefined, "Session destroyed");
 }

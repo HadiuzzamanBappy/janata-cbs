@@ -6,6 +6,7 @@ import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeFormConfigRecord } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import { CbsControlTable } from "@/types";
 
 export interface UseFcActionsParams {
   formData: FormConfigRecord;
@@ -41,7 +42,7 @@ export function useFcActions({
       );
       if (res.status === "SUCCESS") {
         rebaseline();
-        broadcastRecordMutation("FORM.CONFIG", targetId);
+        broadcastRecordMutation(CbsControlTable.FORM_CONFIG, targetId);
         await refreshForms();
         toast.add({
           title: "Form Saved",
@@ -75,7 +76,7 @@ export function useFcActions({
       const res = await cbs.send<FormConfigRecord>(cbs.formConfig.authorize(recordId));
       if (res.status === "SUCCESS") {
         rebaseline();
-        broadcastRecordMutation("FORM.CONFIG", recordId);
+        broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
         await refreshForms();
         toast.add({
           title: "Form Authorized",
@@ -100,7 +101,7 @@ export function useFcActions({
       const res = await cbs.send(cbs.formConfig.hold(recordId));
       if (res.status === "SUCCESS") {
         rebaseline();
-        broadcastRecordMutation("FORM.CONFIG", recordId);
+        broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
         toast.add({
           title: "Record Held",
           description: `${recordId} placed on hold`,
@@ -118,7 +119,7 @@ export function useFcActions({
     try {
       const res = await cbs.send(cbs.formConfig.delete(recordId));
       if (res.status === "SUCCESS") {
-        broadcastRecordMutation("FORM.CONFIG", recordId);
+        broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
         await refreshForms();
         if (resetToIdle) {
           resetToIdle();
@@ -139,7 +140,7 @@ export function useFcActions({
       const res = await cbs.send(cbs.formConfig.reverse(recordId));
       if (res.status === "SUCCESS") {
         rebaseline();
-        broadcastRecordMutation("FORM.CONFIG", recordId);
+        broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
         await refreshForms();
         toast.add({
           title: "Record Reversed",

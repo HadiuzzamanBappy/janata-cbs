@@ -11,9 +11,14 @@ import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
 export interface UseInquiryActionsProps {
   schema: InquiryConfigRecord | null;
   filteredRows: EnquiryRow[];
+  onRefreshQuery?: () => Promise<void> | void;
 }
 
-export function useInquiryActions({ schema, filteredRows }: UseInquiryActionsProps) {
+export function useInquiryActions({
+  schema,
+  filteredRows,
+  onRefreshQuery,
+}: UseInquiryActionsProps) {
   const getExportColumns = React.useCallback((): ExportColumn<EnquiryRow>[] => {
     if (!schema?.INQDef) return [];
     return schema.INQDef.map((col) => ({
@@ -63,14 +68,18 @@ export function useInquiryActions({ schema, filteredRows }: UseInquiryActionsPro
     });
   }, [schema, filteredRows, getExportColumns]);
 
-  const handleRefresh = React.useCallback(() => {
+  const handleRefresh = React.useCallback(async () => {
     if (!schema) return;
+    if (onRefreshQuery) {
+      await onRefreshQuery();
+      return;
+    }
     toast.add({
       title: "Refreshed",
       description: `Inquiry records refreshed for ${schema.INQInfo?.description || schema.INQInfo?.controllerName || "inquiry"}`,
       type: "info",
     });
-  }, [schema]);
+  }, [schema, onRefreshQuery]);
 
   return {
     handleExportCSV,

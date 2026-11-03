@@ -5,6 +5,7 @@ export { CellFormatter } from "./components/cell-formatter";
 export { ColumnHeader } from "./components/column-header";
 export { InquiryFilterBar } from "./components/inquiry-filter-bar";
 export { InquiryPagination } from "./components/inquiry-pagination";
+export { InquiryPreview } from "./components/inquiry-preview";
 export { InquiryRowActions } from "./components/inquiry-row-actions";
 export { InquiryTable } from "./components/inquiry-table";
 // Constants

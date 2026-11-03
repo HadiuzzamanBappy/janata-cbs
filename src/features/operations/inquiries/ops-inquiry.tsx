@@ -33,11 +33,6 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
     setCurrentCriteria,
   } = useInquiryState({ schema, tabId });
 
-  const { handleExportCSV, handleExportHTML, handleExportXML, handleRefresh } = useInquiryActions({
-    schema,
-    filteredRows,
-  });
-
   const commandCode = schema?.INQInfo?.controllerName || command;
   const title = schema?.INQInfo?.description || commandCode;
 
@@ -79,6 +74,12 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
       });
     }
   };
+
+  const { handleExportCSV, handleExportHTML, handleExportXML, handleRefresh } = useInquiryActions({
+    schema,
+    filteredRows,
+    onRefreshQuery: () => handleFilterSearch(currentCriteria),
+  });
 
   const handleResetFilters = () => {
     if (!schema) return;

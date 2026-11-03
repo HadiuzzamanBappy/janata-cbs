@@ -11,7 +11,7 @@ import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
 import { ActionItem } from "./action-item";
 
-export interface TableActionsPanelProps {
+export interface ActionsPanelProps {
   actions: INQCmd[];
   actionKeys: string[];
   selectedActionIdx: number;
@@ -23,7 +23,7 @@ export interface TableActionsPanelProps {
   onDragEnd: (event: DragEndEvent) => void;
 }
 
-export function TableActionsPanel({
+export function ActionsPanel({
   actions,
   actionKeys,
   selectedActionIdx,
@@ -33,7 +33,7 @@ export function TableActionsPanel({
   onSelectAction,
   onRemoveAction,
   onDragEnd,
-}: TableActionsPanelProps) {
+}: ActionsPanelProps) {
   return (
     <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
       <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
@@ -60,7 +60,7 @@ export function TableActionsPanel({
               <div className="divide-y divide-border/30">
                 {actions.map((action, idx) => {
                   const actErrors = validationErrors.filter(
-                    (e) => e.tab === "table" && e.itemIndex === idx && e.subSegment === "actions",
+                    (e) => e.tab === "actions" && e.itemIndex === idx,
                   );
                   return (
                     <ActionItem

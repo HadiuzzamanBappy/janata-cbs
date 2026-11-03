@@ -1,9 +1,8 @@
-﻿import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 
 /**
  * Standard Form Sections definition for INQUIRY.CONFIG General tab.
- * Rendered using the CBS platform's form-engine SectionCard.
+ * Rendered using the CBS platform's FormRenderer.
  */
 export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
   {
@@ -43,8 +42,8 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: true,
-        WIDGET: "select",
-        WIDTH: 180,
+        WIDGET: "segmented",
+        WIDTH: 320,
         PARAMETER: {
           type: "O",
           data: [
@@ -159,26 +158,321 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
 ];
 
 /**
- * Immutable field updater for InquiryConfigRecord's INQInfo
+ * Standard Form Sections definition for INQUIRY.CONFIG Selection Criteria Inspector.
+ * Rendered using the CBS platform's FormRenderer.
  */
-export function setInquiryFieldValue(
-  record: InquiryConfigRecord,
-  fieldKey: string,
-  value: unknown,
-): InquiryConfigRecord {
-  const inqInfo = { ...record.INQInfo };
-  let finalVal = value;
+export const FILTER_INSPECTOR_SECTIONS: FormSection[] = [
+  {
+    id: "sec_filter_identity",
+    title: "Criteria Identity",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "selectFieldName",
+        LABEL: "Field Key",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 50,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT:
+          "Database column or model property key used to query records (e.g. recordId, branchCode).",
+      },
+      {
+        SN: "2",
+        NAME: "selectFieldDisplay",
+        LABEL: "Display Label",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 80,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT: "Human-readable label displayed in the inquiry selection filter scanline.",
+      },
+      {
+        SN: "3",
+        NAME: "selectFieldType",
+        LABEL: "Field Type",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 20,
+        WIDGET: "segmented",
+        WIDTH: 320,
+        PARAMETER: {
+          type: "O",
+          data: [
+            { code: "text", label: "Text" },
+            { code: "number", label: "Number" },
+            { code: "date", label: "Date" },
+            { code: "select", label: "Dropdown" },
+          ],
+        },
+        ENRICHTEXT: "Input widget type rendered in the inquiry selection bar.",
+      },
+    ],
+  },
+  {
+    id: "sec_filter_constraints",
+    title: "Logic & Operator Constraints",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "4",
+        NAME: "selectFieldOperator",
+        LABEL: "Default Operand",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 10,
+        WIDGET: "segmented",
+        WIDTH: 420,
+        PARAMETER: {
+          type: "O",
+          data: [
+            { code: "EQ", label: "Equals (=)" },
+            { code: "LK", label: "Contains (LK)" },
+            { code: "GT", label: "Greater (>)" },
+            { code: "LT", label: "Less (<)" },
+            { code: "RG", label: "Range (..)" },
+          ],
+        },
+        ENRICHTEXT:
+          "Default comparison operator (EQ = Equals, LK = Like / Contains, GT = Greater Than, etc.).",
+      },
+      {
+        SN: "5",
+        NAME: "selectFieldValue",
+        LABEL: "Pre-fill Value",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 100,
+        WIDTH: 280,
+        ENRICHTEXT: "Optional initial default filter value populated when the inquiry is launched.",
+      },
+      {
+        SN: "6",
+        NAME: "selectFieldRequired",
+        LABEL: "Mandatory",
+        TYPE: "Boolean",
+        STRUCTURE: "S",
+        LENGTH: 1,
+        WIDGET: "checkbox",
+        WIDTH: 1000,
+        ENRICHTEXT:
+          "When enabled, requires the operator to provide this search criterion before executing the query.",
+      },
+      {
+        SN: "7",
+        NAME: "selectFieldOperatorFixed",
+        LABEL: "Lock Operator",
+        TYPE: "Boolean",
+        STRUCTURE: "S",
+        LENGTH: 1,
+        WIDGET: "checkbox",
+        WIDTH: 1000,
+        ENRICHTEXT:
+          "Locks the comparison operator so operators cannot switch operands during inquiry.",
+      },
+    ],
+  },
+];
 
-  if (fieldKey === "perpageItem") {
-    finalVal = value !== "" && value !== undefined && value !== null ? Number(value) : 30;
-  } else if (fieldKey === "controllerName" || fieldKey === "rptControllerName") {
-    finalVal = typeof value === "string" ? value.toUpperCase() : value;
-  }
+/**
+ * Standard Form Sections definition for INQUIRY.CONFIG Column Inspector.
+ * Rendered using the CBS platform's FormRenderer.
+ */
+export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
+  {
+    id: "sec_col_identity",
+    title: "Column Identity",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "fieldName",
+        LABEL: "Field Key",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 50,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT:
+          "Underlying database column or model property key returned in query result tuples.",
+      },
+      {
+        SN: "2",
+        NAME: "fieldDisplay",
+        LABEL: "Header Label",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 80,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT: "Column title displayed in the inquiry table header scanline.",
+      },
+      {
+        SN: "3",
+        NAME: "fieldType",
+        LABEL: "Data Type",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 10,
+        WIDGET: "segmented",
+        WIDTH: 420,
+        PARAMETER: {
+          type: "O",
+          data: [
+            { code: "CH", label: "Character (CH)" },
+            { code: "AMT", label: "Amount (AMT)" },
+            { code: "NUM", label: "Numeric (NUM)" },
+            { code: "D", label: "Date (D)" },
+            { code: "T", label: "Time (T)" },
+          ],
+        },
+        ENRICHTEXT:
+          "Core banking data format: Character (CH), Amount (AMT), Numeric (NUM), Date (D), or Time (T).",
+      },
+      {
+        SN: "4",
+        NAME: "alignment",
+        LABEL: "Alignment",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 2,
+        WIDGET: "segmented",
+        WIDTH: 280,
+        PARAMETER: {
+          type: "O",
+          data: [
+            { code: "L", label: "Left (L)" },
+            { code: "C", label: "Center (C)" },
+            { code: "R", label: "Right (R)" },
+          ],
+        },
+        ENRICHTEXT:
+          "Cell content alignment: Left (L) for text, Right (R) for numbers/amounts, Center (C) for codes/dates.",
+      },
+    ],
+  },
+  {
+    id: "sec_col_constraints",
+    title: "Storage & Display Constraints",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "5",
+        NAME: "columnWidth",
+        LABEL: "Column Width",
+        TYPE: "Number",
+        STRUCTURE: "S",
+        LENGTH: 4,
+        WIDTH: 180,
+        DEFAULTVALUE: "20",
+        ENRICHTEXT:
+          "Display character width allocation (e.g. 20 characters for account numbers, 35 for titles).",
+      },
+      {
+        SN: "6",
+        NAME: "gridRow",
+        LABEL: "Grid Row",
+        TYPE: "Number",
+        STRUCTURE: "S",
+        LENGTH: 2,
+        WIDTH: 120,
+        DEFAULTVALUE: "1",
+        ENRICHTEXT: "Multi-line ledger row index (1 for top line, 2 for second line).",
+      },
+      {
+        SN: "7",
+        NAME: "gridCol",
+        LABEL: "Grid Column",
+        TYPE: "Number",
+        STRUCTURE: "S",
+        LENGTH: 2,
+        WIDTH: 120,
+        DEFAULTVALUE: "1",
+        ENRICHTEXT: "Column placement order index within the assigned grid row.",
+      },
+      {
+        SN: "8",
+        NAME: "fieldFunc",
+        LABEL: "Conversion Routine",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 60,
+        WIDTH: 280,
+        ENRICHTEXT:
+          "Optional CBS core formatting routine (e.g. SUBSTRING, DATE.CONVERT, MASK.ACCOUNT).",
+      },
+      {
+        SN: "9",
+        NAME: "dataPassable",
+        LABEL: "Passable",
+        TYPE: "Boolean",
+        STRUCTURE: "S",
+        LENGTH: 1,
+        WIDGET: "checkbox",
+        WIDTH: 1000,
+        ENRICHTEXT:
+          "Permits passing this column's value into drilldown transactions or action commands.",
+      },
+    ],
+  },
+];
 
-  (inqInfo as Record<string, unknown>)[fieldKey] = finalVal;
-
-  return {
-    ...record,
-    INQInfo: inqInfo,
-  };
-}
+/**
+ * Standard Form Sections definition for INQUIRY.CONFIG Row Action Inspector.
+ * Rendered using the CBS platform's FormRenderer.
+ */
+export const ACTION_INSPECTOR_SECTIONS: FormSection[] = [
+  {
+    id: "sec_act_identity",
+    title: "Action Preset & Button Label",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "cmdButton",
+        LABEL: "Button Label",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 50,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT:
+          "Label text rendered on the row action button or context menu (e.g. View, Edit, Auth).",
+      },
+    ],
+  },
+  {
+    id: "sec_act_command",
+    title: "Target & Parameter Configuration",
+    type: "standard",
+    layoutStyle: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "2",
+        NAME: "cmdFor",
+        LABEL: "Command Target",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 120,
+        REQUIRED: true,
+        WIDTH: 420,
+        ENRICHTEXT:
+          "Command template executed when clicked, with field placeholder tokens (e.g. ACCOUNT S recordId).",
+      },
+    ],
+  },
+];

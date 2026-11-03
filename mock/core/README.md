@@ -102,7 +102,7 @@ const record = getMockProxyResponse("GET", "ACCOUNT", "AC1001");
 
 ```bash
 # Run mock services test suite
-pnpm tsx scripts/verify/verify-mock-services.ts
+pnpm tsx scripts/verify/verify-mock-core.ts
 
 # Run all 10 CBS verification suites
 pnpm run verify:all

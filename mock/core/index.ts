@@ -7,9 +7,7 @@ import { buildMockUserAuthResponse, getMockUserResponse, mockLogin } from "./aut
 import {
   getMockFormPayload,
   getMockInquiryPayload,
-  getMockMenuPayload,
   handleGetFormConfig,
-  handleGetMenu,
   handleGetModelConfig,
   handleInquiry,
   handleMutation,
@@ -24,7 +22,6 @@ export {
   buildMockUserAuthResponse,
   getMockFormPayload,
   getMockInquiryPayload,
-  getMockMenuPayload,
   getMockUserResponse,
   handleSearchById,
   mockLogin,
@@ -62,37 +59,32 @@ export function getMockProxyResponse(
     recordId: recId,
   };
 
-  // 1. GUM / GCM (Navigation Menu Tree Hierarchy)
-  if (reqType === CbsRequestType.GUM || reqType === CbsRequestType.GCM) {
-    return handleGetMenu();
-  }
-
-  // 2. GMC (Get Model Configuration Schema)
+  // 1. GMC (Get Model Configuration Schema)
   if (reqType === CbsRequestType.GMC) {
     return handleGetModelConfig(normalizedPayload);
   }
 
-  // 3. GFC (Get Form Configuration Layout Presentation)
+  // 2. GFC (Get Form Configuration Layout Presentation)
   if (reqType === CbsRequestType.GFC) {
     return handleGetFormConfig(normalizedPayload);
   }
 
-  // 4. INQ (Dynamic Inquiry Execution)
+  // 3. INQ (Dynamic Inquiry Execution)
   if (reqType === CbsRequestType.INQ) {
     return handleInquiry(normalizedPayload);
   }
 
-  // 5. GNI (Get Next Sequence ID)
+  // 4. GNI (Get Next Sequence ID)
   if (reqType === CbsRequestType.GNI) {
     return handleNextId(normalizedPayload);
   }
 
-  // 6. SBI / RIL (Search by Record ID / Wildcard or Key List)
+  // 5. SBI / RIL (Search by Record ID / Wildcard or Key List)
   if (reqType === CbsRequestType.SBI || reqType === CbsRequestType.RIL) {
     return handleSearchById(normalizedPayload);
   }
 
-  // 7. GRL / GCQ / GMV / GGL (Generic Record Collection Queries)
+  // 6. GRL / GCQ / GMV / GGL (Generic Record Collection Queries)
   if (
     reqType === CbsRequestType.GRL ||
     reqType === CbsRequestType.GCQ ||
@@ -102,7 +94,7 @@ export function getMockProxyResponse(
     return handleRecordList(normalizedPayload);
   }
 
-  // 8. S / SEE / GET / GRV (Read / View Single Record in View Mode)
+  // 7. S / SEE / GET / GRV (Read / View Single Record in View Mode)
   if (
     reqType === CbsRequestType.GET ||
     reqType === CbsRequestType.GRV ||
@@ -113,7 +105,7 @@ export function getMockProxyResponse(
     return handleSeeRecord(normalizedPayload);
   }
 
-  // 9. Transactional Mutations (PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, SMR, DTR, ATT, CTT, AFT)
+  // 8. Transactional Mutations (PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, SMR, DTR, ATT, CTT, AFT)
   const isMutation =
     reqType === CbsRequestType.PUT ||
     reqType === CbsRequestType.AUT ||
@@ -158,31 +150,11 @@ export async function mockProcess(req: GrpcRequest): Promise<GrpcResponse> {
 }
 
 /**
- * Simulates CBS Dispatcher envelope processing from local database fixtures.
+ * Handles raw wire payload from HTTP Proxy (/api/proxy).
  */
-export async function mockDispatch(envelope: GrpcEnvelope): Promise<ApiResponse> {
-  const req: GrpcRequest = {
-    idempotencyKey: envelope.idempotencyKey || "",
-    clientId: envelope.clientId,
-    requestType: envelope.requestType,
-    controlName: envelope.controlName ?? "",
-    recordFunction: envelope.recordFunction,
-    recordId: envelope.recordId,
-    branchCode: envelope.branchCode,
-    authLevel: envelope.authLevel,
-    userId: envelope.userId,
-    data: envelope.data,
-  };
-
-  const res = await mockProcess(req);
-  return {
-    success: res.statusCode === 200,
-    status: res.status,
-    statusCode: res.statusCode,
-    message: res.message,
-    idempotencyKey: res.idempotencyKey,
-    errors: res.errors,
-    timestamp: res.timestamp,
-    data: res.data ?? null,
-  };
+export async function mockDispatch(
+  payload: CbsWirePayload | GrpcEnvelope,
+  _token?: string,
+): Promise<ApiResponse> {
+  return getMockProxyResponse(payload as CbsWirePayload);
 }

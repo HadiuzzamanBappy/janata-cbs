@@ -37,24 +37,35 @@ const SUITES = [
     command: "pnpm exec tsx scripts/verify/verify-cbs-client.ts",
   },
   {
-    title:
-      "6. Environment Matrix, Schemas & PII Redaction (@/lib/data-schemas & @/lib/core-logger)",
-    command: "pnpm exec tsx scripts/verify/verify-env-matrix.ts",
+    title: "6. CBS Wire Data Parsers & Serializers (@/lib/data-parsers)",
+    command: "pnpm exec tsx scripts/verify/verify-data-parsers.ts",
   },
   {
-    title: "7. Core Banking Utilities & Localization (@/lib/core-utils)",
+    title: "7. CBS Domain Schemas (@/lib/data-schemas)",
+    command: "pnpm exec tsx scripts/verify/verify-data-schemas.ts",
+  },
+  {
+    title: "8. CBS Core Configuration & Environments (@/lib/core-config)",
+    command: "pnpm exec tsx scripts/verify/verify-core-config.ts",
+  },
+  {
+    title: "9. CBS Core Logger & PII Redaction (@/lib/core-logger)",
+    command: "pnpm exec tsx scripts/verify/verify-core-logger.ts",
+  },
+  {
+    title: "10. Core Banking Utilities & Localization (@/lib/core-utils)",
     command: "pnpm exec tsx scripts/verify/verify-core-utils.ts",
   },
   {
-    title: "8. Infra Services, Gateway & gRPC Protocol (@/lib/infra-services)",
-    command: "pnpm exec tsx scripts/verify/verify-infra-services.ts",
+    title: "11. Infra gRPC Protocol & Gateway (@/lib/infra-grpc)",
+    command: "pnpm exec tsx scripts/verify/verify-infra-grpc.ts",
   },
   {
-    title: "9. In-Memory Mock Core Engine & Database (@mock/db & @mock/core)",
-    command: "pnpm exec tsx scripts/verify/verify-mock-services.ts",
+    title: "12. In-Memory Mock Core Engine & Database (@mock/db & @mock/core)",
+    command: "pnpm exec tsx scripts/verify/verify-mock-core.ts",
   },
   {
-    title: "10. CBS Screen Architecture & Capabilities (@/lib/cbs-screen)",
+    title: "13. CBS Screen Architecture & Capabilities (@/lib/cbs-screen)",
     command: "pnpm exec tsx scripts/verify/verify-cbs-screen.ts",
   },
 ];

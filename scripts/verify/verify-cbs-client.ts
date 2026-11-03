@@ -183,12 +183,15 @@ async function runSuite() {
     cbs.menu.controlName === CbsControlTable.MENU && menuList.controlName === "MENU",
   );
 
-  const treeGet = cbs.menuTree.get("MENU.MAIN");
+  const treeGet = cbs.menuTree.get();
   recordTest(
-    "2.4 cbs.menuTree: Pre-bound model for MENU.TREE navigation hierarchy",
-    'cbs.menuTree.get("MENU.MAIN")',
+    "2.4 cbs.menuTree: Pre-bound model for MENU.TREE navigation hierarchy via GUM",
+    "cbs.menuTree.get()",
     treeGet,
-    cbs.menuTree.controlName === CbsControlTable.MENU_TREE && treeGet.controlName === "MENU.TREE",
+    cbs.menuTree.controlName === CbsControlTable.MENU_TREE &&
+      treeGet.requestType === CbsRequestType.GUM &&
+      treeGet.controlName === "MENU.TREE" &&
+      treeGet.recordId === "",
   );
 
   // --- 3. Meta-Configuration Protocol Overrides ---

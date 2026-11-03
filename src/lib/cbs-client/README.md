@@ -107,8 +107,8 @@ import { cbs } from "@/lib/cbs-client";
 // Fetch branch directory for switcher
 const branches = await cbs.send(cbs.branch.list(), { silent: true });
 
-// Fetch main navigation tree
-const menuTree = await cbs.send(cbs.menuTree.get("MENU.MAIN"), { silent: true });
+// Fetch main user navigation tree (via GUM requestType)
+const menuTree = await cbs.send(cbs.menuTree.get(), { silent: true });
 ```
 
 ---

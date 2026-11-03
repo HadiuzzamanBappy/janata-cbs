@@ -5,8 +5,8 @@ import type { CbsVersionedTable } from "./types";
  * SC_MENU_TREE Table Master (PREFIX: SC, TABLE: MENU_TREE)
  */
 export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
-  "MENU.MAIN": {
-    recordId: "MENU.MAIN",
+  "MENU.ONE": {
+    recordId: "MENU.ONE",
     treeDescription: "Primary Core Banking Navigation Tree",
     isActive: true,
     menuTree: [
@@ -183,7 +183,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
   },
 };
 
-export const CBS_MAIN_NAV_TREE: MenuTreeNode[] = SC_MENU_TREE["MENU.MAIN"].menuTree;
+export const CBS_MAIN_NAV_TREE: MenuTreeNode[] = SC_MENU_TREE["MENU.ONE"].menuTree;
 
 /* -------------------------------------------------------------------------- */
 /* Versioned CBS Table Associates (INAU, HIS, DEL)                            */

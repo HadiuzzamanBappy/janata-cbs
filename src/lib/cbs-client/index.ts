@@ -2,6 +2,7 @@ import { CbsControlTable } from "@/types";
 import { createModelPayloads } from "./payloads/base-model";
 import { formConfigPayloads } from "./payloads/form-config";
 import { inquiryPayloads } from "./payloads/inquiry";
+import { menuTreePayloads } from "./payloads/menu-tree";
 import { modelConfigPayloads } from "./payloads/model-config";
 import { userSecurityPayloads } from "./payloads/user-security";
 import { type SendCbsOptions, sendCbsRequest } from "./transport/proxy-client";
@@ -35,8 +36,8 @@ export const cbs = {
   control: createModelPayloads(CbsControlTable.CONTROL),
   /** Menu catalog items (`SC_MENU`) */
   menu: createModelPayloads(CbsControlTable.MENU),
-  /** Hierarchical navigation menu trees (`SC_MENU_TREE`) */
-  menuTree: createModelPayloads(CbsControlTable.MENU_TREE),
+  /** Hierarchical navigation menu trees (`SC_MENU_TREE`) via GUM */
+  menuTree: menuTreePayloads,
 
   // --- Meta-Configuration Designers (Dedicated Wire Protocol Verbs) ---
   /** Model Config Designer (`MODEL.CONFIG` via `GMC`, `SMC`, `AMC`) */

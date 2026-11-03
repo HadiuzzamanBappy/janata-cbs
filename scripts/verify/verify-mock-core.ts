@@ -166,9 +166,9 @@ async function runSuite() {
         Boolean(formControl?.frmElements || gfcFormData?.frmElements),
     );
 
-    // 5. Navigation Menu Tree Hierarchy (MENU.TREE in S mode)
-    const menuTreeInput = { requestType: "S", controlName: "MENU.TREE", recordId: "MENU.MAIN" };
-    const menuTreeRes = getMockProxyResponse("S", "MENU.TREE", "MENU.MAIN");
+    // 5. Navigation Menu Tree Hierarchy (GUM Request Type)
+    const menuTreeInput = { requestType: "GUM", controlName: "MENU.TREE" };
+    const menuTreeRes = getMockProxyResponse("GUM", "MENU.TREE");
     const menuTreeData = menuTreeRes.data as { menuTree?: unknown[] } | undefined;
     const menuOut = {
       status: menuTreeRes.status,
@@ -176,7 +176,7 @@ async function runSuite() {
       sampleRootNode: (menuTreeData?.menuTree?.[0] as { label?: string; name?: string })?.label,
     };
     recordTest(
-      "5. Navigation Menu Tree Hierarchy (MENU.TREE in S mode)",
+      "5. Navigation Menu Tree Hierarchy (GUM)",
       menuTreeInput,
       menuOut,
       menuTreeRes.status === "SUCCESS" && Boolean(menuTreeData?.menuTree?.length),

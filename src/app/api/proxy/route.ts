@@ -1,12 +1,17 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { parseAccessibilityRights } from "@/lib/cbs-access";
+import { verifyUserRecordAccess } from "@/lib/cbs-access";
 import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { type ApiResponse, cbsWirePayloadSchema, type GrpcEnvelope } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
-import { getSession, invalidateCache } from "@/lib/infra-redis";
-import { CbsControlTable, CbsRecordFunction } from "@/types";
+import {
+  autoInvalidateOnMutation,
+  getOrSet,
+  getSession,
+  resolveCacheDescriptor,
+} from "@/lib/infra-redis";
+import { CbsRequestType } from "@/types";
 import { apiError, apiFail } from "../_lib/response";
 
 export const runtime = "nodejs";
@@ -17,15 +22,12 @@ const proxyLogger = logger.withContext("PROXY_API");
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const session = await getSession();
-
     if (!session?.currUser) {
       return apiFail("User session expired or unauthorized", 401);
     }
 
-    const { token, userId, currUser } = session;
     const rawBody = await req.json();
     const parsed = cbsWirePayloadSchema.safeParse(rawBody);
-
     if (!parsed.success) {
       return apiFail(
         parsed.error.issues[0]?.message || "Invalid proxy request payload",
@@ -34,45 +36,28 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
     }
 
+    const { token, userId, currUser } = session;
     const body = parsed.data;
 
-    // =========================================================================
-    // 0. SERVER-SIDE CAPABILITY GATE (Maker-Checker & RIDASHL Verification)
-    // =========================================================================
-    if (body.recordFunction) {
-      const userGrantedRights = parseAccessibilityRights(
-        currUser.functionRights?.length ? currUser.functionRights : currUser.accessibility,
-      );
-      const funcCode = body.recordFunction.toUpperCase().trim() as CbsRecordFunction;
-
-      // Restrict mutations/approvals if user lacks the capability
-      if (
-        (funcCode === CbsRecordFunction.AUTHORIZE ||
-          funcCode === CbsRecordFunction.DELETE ||
-          funcCode === CbsRecordFunction.REVERSE ||
-          funcCode === CbsRecordFunction.HOLD ||
-          funcCode === CbsRecordFunction.INPUT) &&
-        !userGrantedRights.includes(funcCode)
-      ) {
-        proxyLogger.warn(`Access Denied: Missing '${funcCode}' for user ${currUser.userId}`, {
-          controlName: body.controlName,
-          recordId: body.recordId,
-        });
-        return apiFail(`Access Denied: Missing '${funcCode}' capability in user profile.`, 403, [
-          `User ${currUser.userId} lacks capability '${funcCode}'`,
-        ]);
-      }
+    // 1. Domain Access Verification Gate (Maker-Checker & RIDASHL)
+    const accessViolation = verifyUserRecordAccess(currUser, body.recordFunction);
+    if (accessViolation) {
+      proxyLogger.warn(`Access Denied: ${accessViolation.message}`, {
+        controlName: body.controlName,
+        recordId: body.recordId,
+        userId: currUser.userId,
+      });
+      return apiFail(accessViolation.message, 403, [
+        `User ${currUser.userId} lacks capability '${accessViolation.funcCode}'`,
+      ]);
     }
 
-    // Direct, canonical branch code resolution
-    const resolvedBranchCode =
-      parsed.data.branchCode || currUser.branchCode || appConfig.centralBranch;
-
+    // 2. Canonical GrpcEnvelope Assembly
     const envelope: GrpcEnvelope = {
       servicePath: body.servicePath || "default",
       requestType: body.requestType,
       controlName: body.controlName ?? "",
-      branchCode: resolvedBranchCode,
+      branchCode: body.branchCode || currUser.branchCode || appConfig.centralBranch,
       recordFunction: body.recordFunction ?? "",
       recordId: body.recordId ?? "",
       authLevel: body.authLevel ?? 1,
@@ -82,62 +67,38 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       data: body.data ?? {},
     };
 
+    // 3. Dispatch with Read-Through Redis Caching
     try {
-      const response = await dispatch(envelope, token);
+      const cacheDesc = resolveCacheDescriptor(envelope);
+
+      const response = cacheDesc
+        ? (await getOrSet(
+            cacheDesc.key,
+            async () => {
+              const res = await dispatch(envelope, token);
+              return res.status === "SUCCESS" ? res : null;
+            },
+            cacheDesc.ttl,
+          )) || (await dispatch(envelope, token))
+        : await dispatch(envelope, token);
 
       if (response.status === "SUCCESS") {
-        // Evict cached specs on mutation or authorization
-        const ctrl = (envelope.controlName || "").toUpperCase();
-        const isMutationOrAuth =
-          envelope.requestType === "PUT" ||
-          envelope.requestType === "AUT" ||
-          envelope.recordFunction === "I" ||
-          envelope.recordFunction === "A";
+        // Evict cached specs/menus if this was a mutation or authorization
+        await autoInvalidateOnMutation(envelope);
 
-        if (
-          isMutationOrAuth &&
-          (ctrl === CbsControlTable.MODEL_CONFIG ||
-            ctrl === CbsControlTable.FORM_CONFIG ||
-            ctrl === CbsControlTable.INQUIRY_CONFIG ||
-            ctrl === CbsControlTable.MENU ||
-            ctrl === CbsControlTable.MENU_TREE)
-        ) {
-          const payloadData = envelope.data as Record<string, unknown> | undefined;
-          const targetModel =
-            (payloadData?.targetModel as string) ||
-            (payloadData?.tableName as string) ||
-            envelope.recordId ||
-            "";
-          if (targetModel.trim()) {
-            await invalidateCache(targetModel.trim());
-          }
-        }
-
-        if (body.requestType === "INQ" && response.data) {
+        if (body.requestType === CbsRequestType.INQ && response.data) {
           const parsedRows = parseInquiryRecords(response);
           return NextResponse.json(
-            {
-              ...response,
-              success: true,
-              data: parsedRows,
-            },
+            { ...response, success: true, data: parsedRows },
             { status: 200 },
           );
         }
 
-        // Normalize dynamic Protobuf struct values into clean plain JS objects
         const cleanData = response.data ? decodeProtobufValue(response.data) : response.data;
-        return NextResponse.json(
-          {
-            ...response,
-            success: true,
-            data: cleanData,
-          },
-          { status: 200 },
-        );
+        return NextResponse.json({ ...response, success: true, data: cleanData }, { status: 200 });
       }
 
-      // Actionable failure notification from downstream core
+      // Handle Downstream Core Failures
       const fallbackMessage = `CBS host returned ${response.status} (${response.statusCode}) for ${envelope.requestType} on ${envelope.controlName || "default"}`;
       proxyLogger.warn(`Proxy downstream returned non-success (${response.statusCode})`, {
         controlName: envelope.controlName,

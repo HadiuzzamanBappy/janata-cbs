@@ -13,6 +13,7 @@ export * from "./common-schema";
 export * from "./control-schema";
 export * from "./env-schema";
 export * from "./form-config-schema";
+export * from "./form-engine-schema";
 export * from "./inquiry-config-schema";
 export * from "./menu-designer-schema";
 export * from "./model-config-schema";

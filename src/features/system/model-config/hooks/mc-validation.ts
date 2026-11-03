@@ -1,17 +1,24 @@
 import type { ZodError } from "zod";
-import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
+import type { CbsScreenValidationError } from "@/lib/cbs-screen";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+
+export type ModelConfigTabKey = "general" | "properties" | "audit";
+
+export interface ModelValidationErrorItem extends CbsScreenValidationError<ModelConfigTabKey> {
+  readonly sn?: string;
+}
 
 /**
- * Transforms raw Zod validation issues into user-navigable ValidationErrorItems
+ * Transforms raw Zod validation issues into user-navigable ModelValidationErrorItems
  * with tab location and field SN metadata.
  */
 export function mapZodIssuesToValidationErrors(
   issues: ZodError["issues"],
   properties: ModelProperty[],
-): ValidationErrorItem[] {
+): ModelValidationErrorItem[] {
   return issues.map((issue, idx) => {
     const path = issue.path;
-    let tab: "general" | "properties" | "audit" = "general";
+    let tab: ModelConfigTabKey = "general";
     let sn: string | undefined;
     const fieldKey = String(path[path.length - 1] || "unknown");
 
@@ -28,6 +35,7 @@ export function mapZodIssuesToValidationErrors(
       id: `${tab}-${sn || "root"}-${fieldKey}-${idx}`,
       tab,
       sn,
+      nodeId: sn,
       fieldKey,
       message: `${labelPrefix}: ${issue.message}`,
     };

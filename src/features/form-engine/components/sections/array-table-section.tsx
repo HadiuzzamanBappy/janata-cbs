@@ -1,5 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useCallback, useRef } from "react";
+import { generateClientToken } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
 import { UnifiedFieldFactory } from "../field-factory";
@@ -34,14 +35,14 @@ export function ArrayTableSection({
     if (typeof row.key === "string" && row.key) return row.key;
     let cached = rowKeyMapRef.current.get(row);
     if (!cached) {
-      cached = `row_${Math.random().toString(36).slice(2, 9)}`;
+      cached = generateClientToken("row");
       rowKeyMapRef.current.set(row, cached);
     }
     return cached;
   }, []);
 
   const addRow = () => {
-    const newRowId = `row_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const newRowId = generateClientToken("row");
     onChange(bindKey, [...rows, { _rowId: newRowId }]);
   };
 

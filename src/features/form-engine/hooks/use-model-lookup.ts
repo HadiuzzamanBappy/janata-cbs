@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { cbs } from "@/lib/cbs-client";
-import type { FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
+import type { FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { WidgetOption } from "../types";
 

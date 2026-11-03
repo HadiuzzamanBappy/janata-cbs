@@ -2,7 +2,8 @@
 
 import { Layers } from "lucide-react";
 import * as React from "react";
-import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelValidationErrorItem } from "../hooks/mc-validation";
 import { McPropertyInspector } from "./property/mc-property-inspector";
 import { McPropertyList } from "./property/mc-property-list";
 
@@ -12,7 +13,7 @@ interface McPropertiesTabProps {
   isFieldCommitted: (sn: string) => boolean;
   selectedSN?: string | null;
   onSelectSN?: (sn: string) => void;
-  validationErrors?: ValidationErrorItem[];
+  validationErrors?: ModelValidationErrorItem[];
   onAddField: () => string;
   onAddSubField?: (parentSn: string) => string;
   onUpdateField: (sn: string, patch: Partial<ModelProperty>) => void;

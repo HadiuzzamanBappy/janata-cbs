@@ -3,7 +3,8 @@
 import { ArrowLeft, Database, Settings, Table, Type } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { InspectorAnchorSection } from "./inspector/inspector-anchor-section";
 import { InspectorContainerSection } from "./inspector/inspector-container-section";

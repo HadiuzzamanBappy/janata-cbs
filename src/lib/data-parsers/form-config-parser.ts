@@ -1,11 +1,11 @@
 import { z } from "zod";
 import {
   type FormConfigRecord,
-  type FormElement,
   type FormSection,
   formConfigRecordSchema,
   gfcResponseSchema,
 } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
@@ -223,6 +223,23 @@ export function sanitizeFormElement(field: FormElement): FormElement {
 
   // Widget
   if (cleanField.WIDGET) sanitized.WIDGET = cleanField.WIDGET;
+
+  // Reactive ON_CHANGE rule
+  if (cleanField.ON_CHANGE?.target?.trim()) {
+    sanitized.ON_CHANGE = {
+      target: cleanField.ON_CHANGE.target.trim(),
+      action: cleanField.ON_CHANGE.action || "copy",
+      ...(cleanField.ON_CHANGE.delimiter ? { delimiter: cleanField.ON_CHANGE.delimiter } : {}),
+    };
+  }
+
+  // Cross-field VALIDATION rule
+  if (cleanField.VALIDATION?.matches?.trim()) {
+    sanitized.VALIDATION = {
+      matches: cleanField.VALIDATION.matches.trim(),
+      ...(cleanField.VALIDATION.message ? { message: cleanField.VALIDATION.message.trim() } : {}),
+    };
+  }
 
   // Parameter / Lookup
   const p = cleanField.PARAMETER;

@@ -2,7 +2,7 @@ import type { ZodError } from "zod";
 
 export interface FormConfigValidationError {
   id: string;
-  tab: "general" | "formRoutine" | "formDesigner" | "preview" | "audit" | "json";
+  tab: "general" | "formDesigner" | "preview" | "audit" | "json";
   fieldKey: string;
   message: string;
 }
@@ -20,7 +20,7 @@ export function mapZodIssuesToFcValidationErrors(
     const fieldKey = String(path[path.length - 1] || "unknown");
 
     if (path[0] === "frmRoutine") {
-      tab = "formRoutine";
+      tab = "general";
     } else if (path[0] === "frmElements") {
       tab = "formDesigner";
     } else if (path[0] === "auditData") {
@@ -72,8 +72,8 @@ export function validateFormConfig(formData: {
       if (!name) {
         issues.push({
           id: `err_routine_${group.key}_${idx}_name`,
-          tab: "formRoutine",
-          fieldKey: `${group.key}.${idx}.routineName`,
+          tab: "general",
+          fieldKey: `frmRoutine.${group.key}.${idx}.routineName`,
           message: `${group.label} #${idx + 1}: Routine Name is required`,
         });
       }

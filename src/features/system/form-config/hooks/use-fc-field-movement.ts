@@ -2,11 +2,8 @@
 
 import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
-import type {
-  FormConfigRecord,
-  FormElement,
-  FormSection,
-} from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 
 export function isMatchingField(field: FormElement, identifier: string): boolean {
   return (

@@ -1,4 +1,4 @@
-import type { FormFieldItem } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { WidgetOption } from "../types";
 import { AmountWidget } from "./widgets/amount-widget";
 import { CheckboxGroupWidget } from "./widgets/checkbox-group-widget";
@@ -12,7 +12,7 @@ import { TextareaWidget } from "./widgets/textarea-widget";
 
 export interface WidgetRendererProps {
   widget: string;
-  field: FormFieldItem;
+  field: FormElement;
   fieldKey: string;
   rowId: string;
   value: unknown;

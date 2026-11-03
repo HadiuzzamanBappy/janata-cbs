@@ -13,8 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
-import type { ModelProperty, ValidationErrorItem } from "@/lib/data-schemas/model-config-schema";
-import { PROPERTY_TYPES } from "@/lib/data-schemas/model-config-schema";
+import { PROPERTY_TYPES } from "@/lib/data-schemas/form-engine-schema";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
+import { McSubPropertyItem } from "./mc-sub-property-item";
 
 interface McPropertyListProps {
   properties: ModelProperty[];
@@ -22,7 +24,7 @@ interface McPropertyListProps {
   onSelectSN: (sn: string) => void;
   isReadOnly: boolean;
   isFieldCommitted?: (sn: string) => boolean;
-  validationErrors?: ValidationErrorItem[];
+  validationErrors?: ModelValidationErrorItem[];
   onAddField: () => string;
   onAddSubField?: (parentSn: string) => string;
   onDeleteField?: (sn: string, forceHardDelete?: boolean) => void;
@@ -137,7 +139,7 @@ export function McPropertyList({
             const isSelected = prop.SN === selectedSN;
             const isCommitted = isFieldCommitted ? isFieldCommitted(prop.SN) : true;
             const propErrors = validationErrors.filter(
-              (err: ValidationErrorItem) => err.sn === prop.SN,
+              (err: ModelValidationErrorItem) => err.sn === prop.SN,
             );
             const hasError = propErrors.length > 0;
             const badgeLabel = prop.STRUCTURE === "M" ? `${prop.TYPE} (M)` : prop.TYPE;
@@ -239,64 +241,18 @@ export function McPropertyList({
                 {/* Sub-properties container when TYPE is Object */}
                 {prop.TYPE === "Object" && (
                   <div className="bg-muted/15 border-l-2 border-primary/30 ml-3.5 my-0.5 space-y-0.5">
-                    {(prop.PROP || []).map((sub) => {
-                      const isSubSelected = sub.SN === selectedSN;
-                      const isSubCommitted = isFieldCommitted ? isFieldCommitted(sub.SN) : true;
-                      const subErrors = validationErrors.filter(
-                        (err: ValidationErrorItem) => err.sn === sub.SN,
-                      );
-                      const hasSubError = subErrors.length > 0;
-                      const subBadge = sub.STRUCTURE === "M" ? `${sub.TYPE} (M)` : sub.TYPE;
-
-                      return (
-                        <div
-                          key={sub.SN}
-                          className={cn(
-                            "relative flex items-center justify-between w-full py-1 px-2 transition-colors select-none",
-                            hasSubError && !isSubSelected && "bg-destructive/5",
-                            isSubSelected
-                              ? "bg-primary/15 text-foreground font-semibold border-l-2 border-l-primary"
-                              : "hover:bg-muted/40 text-foreground border-l-2 border-l-transparent",
-                          )}
-                        >
-                          <button
-                            type="button"
-                            onClick={() => onSelectSN(sub.SN)}
-                            className="flex items-center gap-1.5 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
-                          >
-                            <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-muted text-muted-foreground shrink-0">
-                              #{sub.SN}
-                            </span>
-                            <span className="text-[11px] truncate font-medium">
-                              {sub.LABEL || sub.NAME || "<Unnamed Subfield>"}
-                            </span>
-                          </button>
-                          <div className="flex items-center gap-1 shrink-0 ml-1">
-                            <Badge
-                              variant="outline"
-                              className="font-mono text-[9px] h-4 px-1 rounded uppercase tracking-wider text-muted-foreground"
-                            >
-                              {subBadge}
-                            </Badge>
-                            {!isReadOnly && onDeleteField && !isSubCommitted && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                title="Delete subfield"
-                                onClick={(e: React.MouseEvent) => {
-                                  e.stopPropagation();
-                                  onDeleteField(sub.SN, true);
-                                }}
-                                className="size-4 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <Trash2 className="size-2.5" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {(prop.PROP || []).map((sub) => (
+                      <McSubPropertyItem
+                        key={sub.SN}
+                        sub={sub}
+                        isSelected={sub.SN === selectedSN}
+                        isReadOnly={isReadOnly}
+                        isCommitted={isFieldCommitted ? isFieldCommitted(sub.SN) : true}
+                        validationErrors={validationErrors}
+                        onSelect={onSelectSN}
+                        onDelete={onDeleteField}
+                      />
+                    ))}
                     {!isReadOnly && onAddSubField && (
                       <div className="px-2 py-1">
                         <Button

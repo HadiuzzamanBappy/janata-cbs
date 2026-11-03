@@ -1,8 +1,9 @@
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
 import * as React from "react";
-import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { RenderBlock } from "@/features/form-engine/utils/section-utils";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { DesignerCanvasProps } from "./canvas-types";
-import type { RenderBlock } from "./render-blocks";
 
 export interface UseCanvasDragProps {
   sections: FormSection[];

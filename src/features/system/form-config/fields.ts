@@ -1,13 +1,14 @@
-﻿import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 
 /**
  * Standard Form Sections definition for FORM.CONFIG General tab.
- * Centralized via the platform's form-engine and SectionCard.
+ * Includes Form Identification & Security in a single card,
+ * and 3 dedicated cards for Form Routines.
  */
 export const FORM_CONFIG_SECTIONS: FormSection[] = [
   {
     id: "sec_fc_identity",
-    title: "Form Identification",
+    title: "Form Identification & Security",
     type: "standard",
     layoutStyle: "card",
     columns: 1,
@@ -33,15 +34,6 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
         WIDTH: 600,
         ENRICHTEXT: "Summary notes or functional purpose of this form configuration.",
       },
-    ],
-  },
-  {
-    id: "sec_fc_auth",
-    title: "Authorization & Security Settings",
-    type: "standard",
-    layoutStyle: "card",
-    columns: 1,
-    fields: [
       {
         SN: "3",
         NAME: "authNumber",
@@ -55,63 +47,103 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
       },
     ],
   },
-];
-
-/**
- * Clean field updater for FormConfigRecord
- */
-export function setFieldValue(
-  record: FormConfigRecord,
-  path: string,
-  value: unknown,
-): FormConfigRecord {
-  let finalVal: unknown = value;
-  if (path === "authNumber") {
-    finalVal = value !== "" && value !== undefined && value !== null ? Number(value) : 1;
-  }
-
-  return {
-    ...record,
-    [path]: finalVal,
-  };
-}
-
-/* ========================================================================== */
-/* ROUTINE FIELD GROUPS & DEFINITIONS                                         */
-/* ========================================================================== */
-
-export type RoutineKey = "rtnValidate" | "rtnBeforeAuth" | "rtnAfterAuth";
-
-export interface RoutineGroupDef {
-  key: RoutineKey;
-  title: string;
-  fieldLabel: string;
-  description: string;
-  placeholder: string;
-}
-
-export const FORM_ROUTINE_GROUPS: RoutineGroupDef[] = [
   {
-    key: "rtnValidate",
-    title: "Validation Routines (rtnValidate)",
-    fieldLabel: "Validation Routine",
-    description: "Executed during input validation before transaction packaging and ledger staging",
-    placeholder: "e.g. V.ACC.TITLE.CHECK",
+    id: "sec_rtn_validate",
+    title: "Validation Routine",
+    type: "object-group",
+    structure: "M",
+    layoutStyle: "card",
+    bindKey: "frmRoutine.rtnValidate",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "routineName",
+        LABEL: "Routine Hook",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 60,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT:
+          "Backend routine executed during input validation before transaction packaging.",
+      },
+      {
+        SN: "2",
+        NAME: "routineDescription",
+        LABEL: "Description",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 120,
+        WIDTH: 450,
+        ENRICHTEXT: "Functional purpose and ledger staging rules of this validation hook.",
+      },
+    ],
   },
   {
-    key: "rtnBeforeAuth",
-    title: "Before-Authorization Routines (rtnBeforeAuth)",
-    fieldLabel: "Before-Auth Routine",
-    description:
-      "Executed when supervisor triggers authorization, before committing records to core",
-    placeholder: "e.g. AUTH.PRE.LIMIT.VERIFY",
+    id: "sec_rtn_before_auth",
+    title: "Before-Auth Routine",
+    type: "object-group",
+    structure: "M",
+    layoutStyle: "card",
+    bindKey: "frmRoutine.rtnBeforeAuth",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "routineName",
+        LABEL: "Routine Hook",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 60,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT:
+          "Executed when supervisor triggers authorization, before committing records to core.",
+      },
+      {
+        SN: "2",
+        NAME: "routineDescription",
+        LABEL: "Description",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 120,
+        WIDTH: 450,
+        ENRICHTEXT: "Pre-authorization limit verification or credit check hook details.",
+      },
+    ],
   },
   {
-    key: "rtnAfterAuth",
-    title: "After-Authorization Routines (rtnAfterAuth)",
-    fieldLabel: "After-Auth Routine",
-    description:
-      "Executed post-commit to generate downstream accounting vouchers, notices, or logs",
-    placeholder: "e.g. AUTH.POST.NOTIFY.DISPATCH",
+    id: "sec_rtn_after_auth",
+    title: "After-Auth Routine",
+    type: "object-group",
+    structure: "M",
+    layoutStyle: "card",
+    bindKey: "frmRoutine.rtnAfterAuth",
+    columns: 1,
+    fields: [
+      {
+        SN: "1",
+        NAME: "routineName",
+        LABEL: "Routine Hook",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 60,
+        REQUIRED: true,
+        WIDTH: 280,
+        ENRICHTEXT:
+          "Executed post-commit to generate downstream accounting vouchers, notices, or logs.",
+      },
+      {
+        SN: "2",
+        NAME: "routineDescription",
+        LABEL: "Description",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 120,
+        WIDTH: 450,
+        ENRICHTEXT: "Post-commit voucher dispatch and core event notification details.",
+      },
+    ],
   },
 ];

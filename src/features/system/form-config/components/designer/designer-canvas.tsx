@@ -16,15 +16,16 @@ import {
 } from "@dnd-kit/sortable";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { buildRenderBlocks } from "@/features/form-engine/utils/section-utils";
 import { cn } from "@/lib/core-utils";
-import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { BetweenBlockDropZone } from "./canvas/between-block-drop-zone";
 import { CanvasRootDropzone } from "./canvas/canvas-root-dropzone";
 import type { DesignerCanvasProps } from "./canvas/canvas-types";
 import { EmptyCanvasSplash } from "./canvas/empty-canvas-splash";
-import { buildRenderBlocks } from "./canvas/render-blocks";
 import { useCanvasDrag } from "./canvas/use-canvas-drag";
-import { SortableSectionCard } from "./section-card";
+import { SortableSectionCard } from "./sortable-section-card";
 import { SortableTabGroupCard } from "./tab-group-card";
 
 export type { AddSectionFn, DesignerCanvasProps } from "./canvas/canvas-types";

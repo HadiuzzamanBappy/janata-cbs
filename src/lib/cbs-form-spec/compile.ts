@@ -1,13 +1,7 @@
-import type {
-  FormConfigRecord,
-  FormElement,
-  FormSection,
-} from "@/lib/data-schemas/form-config-schema";
-import type {
-  ModelConfigRecord,
-  ModelProperty,
-  PropertyWidth,
-} from "@/lib/data-schemas/model-config-schema";
+import { getDefaultWidgetForType, isWidgetCompatibleWithType } from "@/lib/data-schemas";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement, PropertyWidth } from "@/lib/data-schemas/form-engine-schema";
+import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 export type CompiledFormSpec = FormConfigRecord;
 
@@ -64,7 +58,12 @@ function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["
 function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
   const snStr = String(p.SN || idx + 1);
   const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
-  const widget = p.TYPE === "Dropdown" ? "select" : p.TYPE === "Boolean" ? "checkbox" : undefined;
+  const defaultWidget = getDefaultWidgetForType(p.TYPE);
+  const explicitWidget = (p as Record<string, unknown>).WIDGET as string | undefined;
+  const effectiveWidget =
+    explicitWidget && isWidgetCompatibleWithType(p.TYPE, explicitWidget)
+      ? (explicitWidget as FormElement["WIDGET"])
+      : defaultWidget;
 
   return {
     SN: snStr,
@@ -76,7 +75,7 @@ function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
     REQUIRED: Boolean(p.REQUIRED),
     DISABLED: false,
     WIDTH: defaultWidthForLength(p),
-    WIDGET: widget,
+    WIDGET: effectiveWidget,
     PARAMETER: normalizeParameter(p.PARAMETER),
     POSITION: "",
     ENRICHTEXT: "",
@@ -86,53 +85,59 @@ function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
 
 /**
  * Generates canonical responsive fallback layout sections from a physical ModelConfigRecord.
- * Used when a model has no custom FormConfigRecord layout defined.
+ * Preserves strict creation order of properties. Object types are compiled as inline
+ * "object-group" sections with their nested child fields.
  */
 export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const allProps = model.PROPERTIES || [];
   if (allProps.length === 0) return [];
 
-  const standardFields: FormElement[] = [];
-  const objectSections: FormSection[] = [];
+  const sections: FormSection[] = [];
+  let currentStandardFields: FormElement[] = [];
+
+  const flushStandardFields = (index: number) => {
+    if (currentStandardFields.length > 0) {
+      sections.push({
+        id: `sec_std_${index}`,
+        title: index === 0 ? model.DESCRIPTION || model.TABLENAME || "General Attributes" : "",
+        description: "",
+        type: "standard",
+        zone: "standard",
+        layoutStyle: "plain",
+        columns: 1,
+        collapsible: false,
+        isCollapsed: false,
+        fields: [...currentStandardFields],
+      });
+      currentStandardFields = [];
+    }
+  };
 
   allProps.forEach((p, idx) => {
     if (p.TYPE === "Object" && p.PROP && p.PROP.length > 0) {
-      objectSections.push({
-        id: `sec_${p.NAME.toLowerCase()}`,
+      flushStandardFields(idx);
+      sections.push({
+        id: `sec_${p.NAME.toLowerCase() || idx}`,
         title: p.LABEL || p.NAME,
         description: `Nested group for ${p.LABEL || p.NAME}`,
         type: "object-group",
         zone: "standard",
-        layoutStyle: "card",
+        layoutStyle: "plain",
         columns: 1,
         structure: p.STRUCTURE || "S",
         bindKey: p.NAME,
-        collapsible: true,
+        collapsible: false,
         isCollapsed: false,
         fields: p.PROP.map((sub, sIdx) => modelPropToFormElement(sub, sIdx)),
       });
     } else {
-      standardFields.push(modelPropToFormElement(p, idx));
+      currentStandardFields.push(modelPropToFormElement(p, idx));
     }
   });
 
-  const sections: FormSection[] = [];
-  if (standardFields.length > 0) {
-    sections.push({
-      id: "sec_default",
-      title: model.DESCRIPTION || model.TABLENAME || "General Attributes",
-      description: "Physical Data Dictionary Fields",
-      type: "standard",
-      zone: "standard",
-      layoutStyle: "card",
-      columns: 1,
-      collapsible: false,
-      isCollapsed: false,
-      fields: standardFields,
-    });
-  }
+  flushStandardFields(allProps.length);
 
-  return [...sections, ...objectSections];
+  return sections;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -192,12 +197,9 @@ export function compileFormSpec(
         REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
         WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
         WIDGET:
-          field.WIDGET ||
-          (modelProp.TYPE === "Dropdown"
-            ? "select"
-            : modelProp.TYPE === "Boolean"
-              ? "checkbox"
-              : undefined),
+          field.WIDGET && isWidgetCompatibleWithType(modelProp.TYPE, field.WIDGET)
+            ? field.WIDGET
+            : getDefaultWidgetForType(modelProp.TYPE),
         PARAMETER:
           field.PARAMETER?.data && field.PARAMETER.data.length > 0
             ? field.PARAMETER

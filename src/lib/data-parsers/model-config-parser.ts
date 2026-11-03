@@ -74,8 +74,10 @@ export function parseModelConfigList(
 
 /**
  * Sanitizes a ModelProperty in MODEL.CONFIG:
+ * - Recursively preserves nested sub-properties (PROP) for Object types
+ * - Preserves lookup parameters (PARAMETER) for Dropdown types
  * - Omits default false flags (REQUIRED: false)
- * - Omits default WIDTH ("md")
+ * - Omits default WIDTH (280)
  */
 export function sanitizeModelProperty(prop: ModelProperty): ModelProperty {
   const sanitized: Partial<ModelProperty> = {
@@ -89,6 +91,16 @@ export function sanitizeModelProperty(prop: ModelProperty): ModelProperty {
 
   if (prop.REQUIRED) sanitized.REQUIRED = true;
   if (prop.WIDTH && prop.WIDTH !== 280) sanitized.WIDTH = prop.WIDTH;
+
+  // Dropdown parameters (options list or model reference)
+  if (prop.PARAMETER && (prop.PARAMETER.data?.length || prop.PARAMETER.modelName)) {
+    sanitized.PARAMETER = prop.PARAMETER;
+  }
+
+  // Nested Object sub-properties (PROP)
+  if (prop.TYPE === "Object" && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
+    sanitized.PROP = prop.PROP.map(sanitizeModelProperty);
+  }
 
   return sanitized as ModelProperty;
 }

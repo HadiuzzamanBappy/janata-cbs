@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import type { FormFieldItem } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 import { useFormKernel } from "../store/form-kernel-provider";
 import { UnifiedFieldFactory } from "./field-factory";
 
 export interface FieldAtomProps {
-  field: FormFieldItem;
+  field: FormElement;
   mode?: CbsScreenMode;
   disabled?: boolean;
   labelOverride?: string;

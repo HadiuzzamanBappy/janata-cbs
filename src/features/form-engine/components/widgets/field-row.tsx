@@ -107,7 +107,7 @@ export function FieldRow({
           )}
         </div>
       ) : (
-        <div style={style} className="min-w-0 flex items-center max-w-full flex-1">
+        <div style={style} className="min-w-0 flex items-center max-w-full flex-1 relative">
           {children}
         </div>
       )}

@@ -4,47 +4,22 @@ import * as React from "react";
 import { cn, evaluateFormula } from "@/lib/core-utils";
 import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
+import { getFieldValue } from "../utils/path-utils";
+import { buildRenderBlocks } from "../utils/section-utils";
 import { SectionCard } from "./section-card";
 
 export interface FormRendererProps {
-  presentation?: FormConfigRecord["frmElements"];
-  frmElements?: FormConfigRecord["frmElements"];
+  presentation?:
+    | FormConfigRecord["frmElements"]
+    | { sections: FormSection[]; steps?: FormConfigRecord["frmElements"]["steps"] };
+  frmElements?:
+    | FormConfigRecord["frmElements"]
+    | { sections: FormSection[]; steps?: FormConfigRecord["frmElements"]["steps"] };
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
   errors?: Record<string, string>;
   disabled?: boolean;
   mode?: CbsScreenMode;
-}
-
-type RendererBlock =
-  | { type: "single"; section: FormSection }
-  | { type: "tab-group"; groupId: string; tabSections: FormSection[] };
-
-/**
- * Cluster sections preserving their layout order on the canvas.
- * Tab sections sharing a tabGroupId are clustered into an inline tab group at
- * the exact position where the first tab section appears.
- */
-function buildRendererBlocks(sections: FormSection[]): RendererBlock[] {
-  const blocks: RendererBlock[] = [];
-  const seenTabGroups = new Map<string, FormSection[]>();
-
-  for (const sec of sections) {
-    if (sec.zone === "tab") {
-      const grpId = sec.tabGroupId?.trim() || "default_tab_group";
-      if (!seenTabGroups.has(grpId)) {
-        const grpList: FormSection[] = [sec];
-        seenTabGroups.set(grpId, grpList);
-        blocks.push({ type: "tab-group", groupId: grpId, tabSections: grpList });
-      } else {
-        seenTabGroups.get(grpId)?.push(sec);
-      }
-    } else {
-      blocks.push({ type: "single", section: sec });
-    }
-  }
-
-  return blocks;
 }
 
 export function FormRenderer({
@@ -64,7 +39,7 @@ export function FormRenderer({
 
   // Cluster sections preserving designer order
   const blocks = React.useMemo(() => {
-    return buildRendererBlocks(sections);
+    return buildRenderBlocks(sections);
   }, [sections]);
 
   // Extract all tab groups from blocks
@@ -96,12 +71,39 @@ export function FormRenderer({
     });
   }, [tabGroups]);
 
-  // Handle formula evaluation on input change
+  // Handle formula evaluation and ON_CHANGE rules on input change
   const handleFieldChange = (key: string, val: unknown) => {
     onChange(key, val);
 
-    // Evaluate derived formulas across all sections
-    const nextValues = { ...values, [key]: val };
+    let nextValues = { ...values, [key]: val };
+
+    // 1. Process reactive ON_CHANGE rules
+    sections.forEach((sec) => {
+      (sec.fields || []).forEach((f) => {
+        if (f.NAME === key && f.ON_CHANGE?.target) {
+          const rule = f.ON_CHANGE;
+          let targetVal: unknown = val;
+
+          if (rule.action === "join") {
+            const delim = rule.delimiter ?? "#";
+            targetVal = Array.isArray(val) ? val.filter(Boolean).join(delim) : String(val ?? "");
+          } else if (rule.action === "uppercase") {
+            targetVal = typeof val === "string" ? val.toUpperCase() : val;
+          } else if (rule.action === "lowercase") {
+            targetVal = typeof val === "string" ? val.toLowerCase() : val;
+          } else if (rule.action === "clear") {
+            targetVal = "";
+          }
+
+          if (targetVal !== nextValues[rule.target]) {
+            nextValues = { ...nextValues, [rule.target]: targetVal };
+            onChange(rule.target, targetVal);
+          }
+        }
+      });
+    });
+
+    // 2. Evaluate derived formulas across all sections
     sections.forEach((sec) => {
       (sec.fields || []).forEach((f) => {
         const fieldKey = f.NAME;
@@ -122,9 +124,51 @@ export function FormRenderer({
     });
   };
 
+  // Merge external errors with dynamic cross-field validation errors
+  const dynamicErrors = React.useMemo(() => {
+    const errs: Record<string, string> = { ...errors };
+
+    sections.forEach((sec) => {
+      (sec.fields || []).forEach((f) => {
+        const val = getFieldValue(values, f.NAME);
+
+        // 1. Check matching rule (e.g. New Pass === Confirm Pass)
+        if (f.VALIDATION?.matches) {
+          const matchTarget = f.VALIDATION.matches;
+          const targetVal = getFieldValue(values, matchTarget);
+          if (val !== undefined && val !== "" && targetVal !== undefined && targetVal !== "") {
+            if (val !== targetVal) {
+              errs[f.NAME] = f.VALIDATION.message || `Must match ${matchTarget}`;
+            }
+          }
+        }
+
+        // 2. Minimum length/value
+        if (f.VALIDATION?.min !== undefined && val !== undefined && val !== "") {
+          if (typeof val === "string" && val.length < f.VALIDATION.min) {
+            errs[f.NAME] = f.VALIDATION.message || `Minimum length is ${f.VALIDATION.min}`;
+          } else if (typeof val === "number" && val < f.VALIDATION.min) {
+            errs[f.NAME] = f.VALIDATION.message || `Minimum value is ${f.VALIDATION.min}`;
+          }
+        }
+
+        // 3. Maximum length/value
+        if (f.VALIDATION?.max !== undefined && val !== undefined && val !== "") {
+          if (typeof val === "string" && val.length > f.VALIDATION.max) {
+            errs[f.NAME] = f.VALIDATION.message || `Maximum length is ${f.VALIDATION.max}`;
+          } else if (typeof val === "number" && val > f.VALIDATION.max) {
+            errs[f.NAME] = f.VALIDATION.message || `Maximum value is ${f.VALIDATION.max}`;
+          }
+        }
+      });
+    });
+
+    return errs;
+  }, [errors, sections, values]);
+
   return (
     <div className="h-full w-full overflow-y-auto pr-1">
-      <div className="w-full space-y-3.5 pb-8">
+      <div className="w-full space-y-2">
         {blocks.map((block) => {
           if (block.type === "single") {
             return (
@@ -133,7 +177,7 @@ export function FormRenderer({
                 section={block.section}
                 values={values}
                 onChange={handleFieldChange}
-                errors={errors}
+                errors={dynamicErrors}
                 disabled={disabled}
                 mode={mode}
               />
@@ -181,7 +225,7 @@ export function FormRenderer({
                     section={activeSection}
                     values={values}
                     onChange={handleFieldChange}
-                    errors={errors}
+                    errors={dynamicErrors}
                     disabled={disabled}
                     mode={mode}
                     hideHeader

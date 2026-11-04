@@ -1,20 +1,31 @@
 import type { CSSProperties } from "react";
-import type { FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
-import type { PropertyWidth } from "@/lib/data-schemas/model-config-schema";
+import {
+  type FormFieldParameter,
+  getDefaultWidgetForType,
+  isWidgetCompatibleWithType,
+  type PropertyType,
+  type PropertyWidth,
+} from "@/lib/data-schemas";
 
 export function resolveWidgetType(
   type?: string,
   param?: FormFieldParameter,
   explicitWidget?: string,
 ): string {
+  const normType = (type || "Text").trim();
+
+  // If explicitWidget is supplied, verify it is compatible with physical type
   if (explicitWidget) {
     const w = explicitWidget.toLowerCase().trim();
-    if (w) return w;
+    if (w && isWidgetCompatibleWithType(normType as PropertyType, w)) {
+      return w;
+    }
   }
-  const typeLower = (type || "text").toLowerCase();
+
+  const typeLower = normType.toLowerCase();
   if (typeLower === "textarea") return "textarea";
   if (typeLower === "date") return "date";
-  if (typeLower === "select") return "select";
+  if (typeLower === "select" || typeLower === "dropdown") return "select";
   if (typeLower === "switch") return "switch";
   if (typeLower === "boolean" || typeLower === "checkbox") return "checkbox";
   if (typeLower === "radio") return "radio";
@@ -25,7 +36,8 @@ export function resolveWidgetType(
   if (param?.type === "M" || (param?.type === "O" && param.data && param.data.length > 0)) {
     return "select";
   }
-  return "text";
+
+  return getDefaultWidgetForType(normType as PropertyType);
 }
 
 /**
@@ -35,7 +47,7 @@ export function resolveWidgetType(
 export function getFieldWidthStyle(
   length?: number,
   widget?: string,
-  width?: PropertyWidth | string | number,
+  width?: PropertyWidth | number,
 ): CSSProperties | undefined {
   if (
     widget === "switch" ||
@@ -54,18 +66,11 @@ export function getFieldWidthStyle(
   }
 
   // Handle direct numeric pixel widths (from DB / metamodel)
-  const num =
-    typeof width === "number"
-      ? width
-      : typeof width === "string" && /^\d+(\.\d+)?$/.test(width.trim())
-        ? Number(width.trim())
-        : undefined;
-
-  if (num !== undefined && num > 0) {
-    if (num >= 1000) {
+  if (typeof width === "number" && width > 0) {
+    if (width >= 1000) {
       return { width: "100%", flex: 1 };
     }
-    return { width: `${num}px`, maxWidth: "100%" };
+    return { width: `${width}px`, maxWidth: "100%" };
   }
 
   // Fallback to length ch or standard 280px width

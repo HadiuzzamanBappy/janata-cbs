@@ -1,5 +1,4 @@
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 /**
  * Standard Form Sections definition for MODEL.CONFIG General tab.
@@ -161,6 +160,11 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 35,
         WIDTH: 1000,
         WIDGET: "checkbox",
+        ON_CHANGE: {
+          target: "IDDEF.IDPATTERN",
+          action: "join",
+          delimiter: "#",
+        },
         PARAMETER: {
           type: "O",
           data: [
@@ -257,50 +261,6 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
     ],
   },
 ];
-
-/**
- * Utility to set value into ModelConfigRecord via dot path immutably
- */
-export function setFieldValue(
-  record: ModelConfigRecord,
-  path: string,
-  value: unknown,
-): ModelConfigRecord {
-  // 1. Nested IDDEF fields
-  if (path.startsWith("IDDEF.")) {
-    const key = path.replace("IDDEF.", "");
-
-    let finalVal: unknown = value;
-    if (key === "idPatternSelect") {
-      finalVal = Array.isArray(value) ? value.join("#") : "";
-    } else if (key === "SEQUENCELENGTH") {
-      finalVal = value !== "" && value !== undefined && value !== null ? Number(value) : undefined;
-    } else if (key === "IDPREFIX" && typeof value === "string") {
-      finalVal = value.toUpperCase().replace(/\s+/g, "");
-    }
-
-    const targetKey = key === "idPatternSelect" ? "IDPATTERN" : key;
-
-    return {
-      ...record,
-      IDDEF: {
-        ...record.IDDEF,
-        [targetKey]: finalVal,
-      },
-    };
-  }
-
-  // 2. Top-level fields
-  const formattedVal =
-    typeof value === "string" && ["TABLENAME", "PREFIX", "IDROUTINE"].includes(path)
-      ? value.toUpperCase().replace(/\s+/g, "")
-      : value;
-
-  return {
-    ...record,
-    [path]: formattedVal,
-  };
-}
 
 /**
  * Standard Form Sections definition for the selected Model Property inspector.
@@ -422,3 +382,157 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
     ],
   },
 ];
+
+/**
+ * Standard Form Section definition for Dropdown Options (Mode O).
+ * Defines the repeating multi-value options schema as pure JSON.
+ */
+export const DROPDOWN_OPTIONS_SECTION: FormSection = {
+  id: "sec_dropdown_options",
+  title: "Option",
+  type: "object-group",
+  structure: "M",
+  layoutStyle: "plain",
+  bindKey: "PARAMETER.data",
+  columns: 1,
+  fields: [
+    {
+      SN: "1",
+      NAME: "code",
+      LABEL: "Item Code",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 20,
+      REQUIRED: true,
+      WIDTH: 180,
+      ENRICHTEXT: "Physical enum code stored in the database column (e.g. HO, BR).",
+    },
+    {
+      SN: "2",
+      NAME: "label",
+      LABEL: "Display Label",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 80,
+      REQUIRED: true,
+      WIDTH: 350,
+      ENRICHTEXT: "Human-readable label shown to users in dropdown selectors.",
+    },
+  ],
+};
+
+/**
+ * Standard Form Section definition for Dropdown Model Lookup (Mode M).
+ * Defines dynamic entity lookup fields as pure JSON.
+ */
+export const DROPDOWN_LOOKUP_SECTION: FormSection = {
+  id: "sec_dropdown_lookup",
+  title: "",
+  type: "standard",
+  layoutStyle: "plain",
+  columns: 1,
+  fields: [
+    {
+      SN: "1",
+      NAME: "PARAMETER.modelName",
+      LABEL: "Target Model",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 35,
+      REQUIRED: true,
+      WIDTH: 220,
+      ENRICHTEXT: "Target CBS database model to query (e.g. CUSTOMER, BRANCH).",
+    },
+    {
+      SN: "2",
+      NAME: "PARAMETER.codeField",
+      LABEL: "Code / Value Field",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 35,
+      REQUIRED: true,
+      WIDTH: 220,
+      ENRICHTEXT: "Field name in the target model to use as the stored code (e.g. branchCode, id).",
+    },
+    {
+      SN: "3",
+      NAME: "PARAMETER.displayField",
+      LABEL: "Display Field",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 50,
+      WIDTH: 220,
+      ENRICHTEXT: "Field name in the target model to use as display text (e.g. branchTitle, name).",
+    },
+    {
+      SN: "4",
+      NAME: "PARAMETER.condition",
+      LABEL: "Filter Condition",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 100,
+      WIDTH: 350,
+      ENRICHTEXT: "Optional filter expression to limit records (e.g. status == 'ACTIVE').",
+    },
+  ],
+};
+
+/**
+ * Standard Form Section definition for Object Sub-Properties (PROP).
+ * Defines nested object children as a pure JSON Form Engine schema.
+ */
+export const OBJECT_SUBPROPERTIES_SECTION: FormSection = {
+  id: "sec_object_subproperties",
+  title: "Sub-Property",
+  type: "object-group",
+  structure: "M",
+  layoutStyle: "plain",
+  bindKey: "PROP",
+  columns: 1,
+  fields: [
+    {
+      SN: "1",
+      NAME: "NAME",
+      LABEL: "Field Name",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 35,
+      REQUIRED: true,
+      WIDTH: 180,
+      ENRICHTEXT: "Physical database column or JSON attribute name.",
+    },
+    {
+      SN: "2",
+      NAME: "LABEL",
+      LABEL: "Display Label",
+      TYPE: "Text",
+      STRUCTURE: "S",
+      LENGTH: 80,
+      REQUIRED: true,
+      WIDTH: 280,
+      ENRICHTEXT: "Human-readable label presented on screens and reports.",
+    },
+    {
+      SN: "3",
+      NAME: "TYPE",
+      LABEL: "Data Type",
+      TYPE: "Dropdown",
+      STRUCTURE: "S",
+      LENGTH: 20,
+      REQUIRED: true,
+      WIDTH: 160,
+      ENRICHTEXT: "Physical data type for this nested sub-property.",
+      PARAMETER: {
+        type: "O",
+        data: [
+          { code: "Text", label: "Text (String)" },
+          { code: "Numeric", label: "Numeric" },
+          { code: "Amount", label: "Financial Amount" },
+          { code: "Date", label: "Date" },
+          { code: "Dropdown", label: "Dropdown (Lookup / Static)" },
+          { code: "Boolean", label: "Boolean (Flag)" },
+        ],
+      },
+    },
+  ],
+};

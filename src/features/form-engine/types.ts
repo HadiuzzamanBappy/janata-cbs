@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
-import type { FormFieldItem, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 
 export interface WidgetOption {
@@ -46,7 +47,7 @@ export interface SectionCardProps {
 }
 
 export interface UnifiedFieldFactoryProps {
-  field: FormFieldItem;
+  field: FormElement;
   value: unknown;
   onChange: (key: string, value: unknown) => void;
   error?: string;

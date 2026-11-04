@@ -1,11 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type {
-  FormConfigRecord,
-  FormElement,
-  FormSection,
-} from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { useFcSectionReorder } from "./use-fc-section-reorder";
 import { useFcSectionZones } from "./use-fc-section-zones";
 

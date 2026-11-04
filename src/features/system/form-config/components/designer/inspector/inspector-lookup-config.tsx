@@ -1,12 +1,17 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Database, ListOrdered } from "lucide-react";
 import * as React from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas/form-config-schema";
-import { InspectorRow } from "./inspector-row";
+import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { setFieldValue } from "@/features/form-engine/utils/path-utils";
+import {
+  DROPDOWN_LOOKUP_SECTION,
+  DROPDOWN_OPTIONS_SECTION,
+} from "@/features/system/model-config/fields";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import { CbsRecordFunction } from "@/types";
 
 export interface InspectorLookupConfigProps {
   selectedField: FormElement;
@@ -19,241 +24,82 @@ export function InspectorLookupConfig({
   onUpdateField,
   disabled,
 }: InspectorLookupConfigProps) {
-  const [newOptionCode, setNewOptionCode] = React.useState("");
-  const [newOptionLabel, setNewOptionLabel] = React.useState("");
+  const param = (selectedField.PARAMETER || {}) as Record<string, unknown>;
+  const paramType = (param.type as string) || "O";
 
-  const handleAddStaticOption = () => {
-    if (!newOptionCode.trim()) return;
-    const curData = (selectedField.PARAMETER?.data || []) as unknown[];
-    const nextData = [
-      ...curData,
-      { code: newOptionCode.trim(), label: newOptionLabel.trim() || newOptionCode.trim() },
-    ];
+  const handleSetType = (t: "O" | "M") => {
     onUpdateField({
       PARAMETER: {
-        type: "O",
-        data: nextData,
-        modelName: "",
-        displayField: "",
-        condition: "",
-        reference: "",
-      },
-    });
-    setNewOptionCode("");
-    setNewOptionLabel("");
-  };
-
-  const handleRemoveStaticOption = (indexToRemove: number) => {
-    const curData = (selectedField.PARAMETER?.data || []) as unknown[];
-    const nextData = curData.filter((_, idx) => idx !== indexToRemove);
-    onUpdateField({
-      PARAMETER: {
-        type: "O",
-        data: nextData,
-        modelName: "",
-        displayField: "",
-        condition: "",
-        reference: "",
+        ...param,
+        type: t,
+        data: t === "O" ? (Array.isArray(param.data) ? param.data : []) : [],
       },
     });
   };
+
+  const handleFieldChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      const updated = setFieldValue(selectedField as Record<string, unknown>, fieldKey, value);
+      onUpdateField({
+        PARAMETER: updated.PARAMETER as FormElement["PARAMETER"],
+      });
+    },
+    [selectedField, onUpdateField],
+  );
+
+  const activeSection = paramType === "O" ? DROPDOWN_OPTIONS_SECTION : DROPDOWN_LOOKUP_SECTION;
 
   return (
-    <div className="space-y-2 pt-1 border-t border-border/50">
-      <div className="grid grid-cols-2 gap-1 p-0.5 rounded border border-border/70 bg-background">
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => {
-            const cur = selectedField.PARAMETER || {
-              type: "O",
-              data: [],
-              modelName: "",
-              displayField: "",
-              condition: "",
-              reference: "",
-            };
-            onUpdateField({ PARAMETER: { ...cur, type: "O" } });
-          }}
-          className={cn(
-            "py-1 text-[10px] font-semibold text-center rounded transition-all cursor-pointer border-0",
-            (selectedField.PARAMETER?.type || "O") === "O"
-              ? "bg-cyan-500 text-white font-bold shadow-2xs"
-              : "text-muted-foreground hover:text-foreground bg-transparent",
-          )}
-        >
-          Static Options (O)
-        </button>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => {
-            const cur = selectedField.PARAMETER || {
-              type: "M",
-              data: [],
-              modelName: "",
-              displayField: "",
-              condition: "",
-              reference: "",
-            };
-            onUpdateField({ PARAMETER: { ...cur, type: "M" } });
-          }}
-          className={cn(
-            "py-1 text-[10px] font-semibold text-center rounded transition-all cursor-pointer border-0",
-            selectedField.PARAMETER?.type === "M"
-              ? "bg-cyan-500 text-white font-bold shadow-2xs"
-              : "text-muted-foreground hover:text-foreground bg-transparent",
-          )}
-        >
-          Model Lookup (M)
-        </button>
+    <div className="rounded border border-border/80 bg-card overflow-hidden shadow-2xs">
+      {/* Header with Type Selector */}
+      <div className="px-3 py-2 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Badge
+            variant="outline"
+            className="font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider text-primary border-primary/30 bg-primary/10"
+          >
+            Dropdown Source
+          </Badge>
+          <span className="text-xs font-semibold text-foreground truncate">
+            Options & Lookup Configuration
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={paramType === "O" ? "default" : "outline"}
+            disabled={disabled}
+            onClick={() => handleSetType("O")}
+            className="h-6 px-2 text-[10px] font-mono gap-1 rounded"
+          >
+            <ListOrdered className="size-3" />
+            <span>Options List (O)</span>
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={paramType === "M" ? "default" : "outline"}
+            disabled={disabled}
+            onClick={() => handleSetType("M")}
+            className="h-6 px-2 text-[10px] font-mono gap-1 rounded"
+          >
+            <Database className="size-3" />
+            <span>Model Lookup (M)</span>
+          </Button>
+        </div>
       </div>
 
-      {selectedField.PARAMETER?.type === "M" ? (
-        <div className="space-y-2">
-          <InspectorRow
-            label="Target Model Table"
-            description="CBS Database Model to lookup records from."
-          >
-            <Input
-              disabled={disabled}
-              placeholder="e.g. ACCOUNT, CUSTOMER"
-              value={selectedField.PARAMETER?.modelName || ""}
-              onChange={(e) => {
-                const cur = selectedField.PARAMETER || {
-                  type: "M",
-                  data: [],
-                  modelName: "",
-                  displayField: "",
-                  condition: "",
-                  reference: "",
-                };
-                onUpdateField({
-                  PARAMETER: { ...cur, modelName: e.target.value.toUpperCase() },
-                });
-              }}
-              className="h-7 text-xs bg-background font-mono uppercase"
-            />
-          </InspectorRow>
-
-          <div className="grid grid-cols-2 gap-1.5">
-            <InspectorRow label="Code Field" description="Value code property (e.g. ID, code).">
-              <Input
-                disabled={disabled}
-                placeholder="e.g. ID"
-                value={selectedField.PARAMETER?.reference || ""}
-                onChange={(e) => {
-                  const cur = selectedField.PARAMETER || {
-                    type: "M",
-                    data: [],
-                    modelName: "",
-                    displayField: "",
-                    condition: "",
-                    reference: "",
-                  };
-                  onUpdateField({
-                    PARAMETER: { ...cur, reference: e.target.value },
-                  });
-                }}
-                className="h-7 text-xs bg-background font-mono"
-              />
-            </InspectorRow>
-
-            <InspectorRow
-              label="Display Field"
-              description="Display title property (e.g. NAME, title)."
-            >
-              <Input
-                disabled={disabled}
-                placeholder="e.g. NAME"
-                value={selectedField.PARAMETER?.displayField || ""}
-                onChange={(e) => {
-                  const cur = selectedField.PARAMETER || {
-                    type: "M",
-                    data: [],
-                    modelName: "",
-                    displayField: "",
-                    condition: "",
-                    reference: "",
-                  };
-                  onUpdateField({
-                    PARAMETER: { ...cur, displayField: e.target.value },
-                  });
-                }}
-                className="h-7 text-xs bg-background font-mono"
-              />
-            </InspectorRow>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-1.5">
-          <div className="max-h-36 overflow-y-auto space-y-1 rounded border border-border/60 bg-background/50 p-1">
-            {!selectedField.PARAMETER?.data || selectedField.PARAMETER.data.length === 0 ? (
-              <div className="text-[10px] text-muted-foreground/60 text-center py-2 italic font-mono">
-                No options defined
-              </div>
-            ) : (
-              selectedField.PARAMETER.data.map((opt: unknown, idx: number) => {
-                const optCode =
-                  typeof opt === "string" ? opt : (opt as Record<string, string>)?.code || "";
-                const optLabel =
-                  typeof opt === "string" ? opt : (opt as Record<string, string>)?.label || optCode;
-                return (
-                  <div
-                    key={`opt_${optCode || ""}_${optLabel || ""}`}
-                    className="flex items-center justify-between gap-1 text-[11px] px-1.5 py-0.5 rounded bg-muted/40 font-mono"
-                  >
-                    <span className="font-semibold text-foreground truncate">{optCode}</span>
-                    <span className="text-muted-foreground truncate max-w-28 text-[10px]">
-                      {optLabel}
-                    </span>
-                    {!disabled && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveStaticOption(idx)}
-                        className="text-muted-foreground/50 hover:text-destructive p-0.5 rounded cursor-pointer shrink-0"
-                        title="Remove option"
-                      >
-                        <Trash2 className="size-2.5" />
-                      </button>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {!disabled && (
-            <div className="space-y-1 pt-1">
-              <div className="grid grid-cols-2 gap-1">
-                <Input
-                  placeholder="Code (e.g. BDT)"
-                  value={newOptionCode}
-                  onChange={(e) => setNewOptionCode(e.target.value)}
-                  className="h-6 text-[10px] bg-background font-mono uppercase"
-                />
-                <Input
-                  placeholder="Label (optional)"
-                  value={newOptionLabel}
-                  onChange={(e) => setNewOptionLabel(e.target.value)}
-                  className="h-6 text-[10px] bg-background"
-                />
-              </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={handleAddStaticOption}
-                disabled={!newOptionCode.trim()}
-                className="w-full h-6 text-[10px] gap-1 cursor-pointer"
-              >
-                <Plus className="size-3" />
-                <span>Add Option</span>
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
+      <div className="p-3">
+        <FormRenderer
+          frmElements={{ sections: [activeSection] }}
+          values={selectedField as Record<string, unknown>}
+          onChange={handleFieldChange}
+          disabled={disabled}
+          mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+        />
+      </div>
     </div>
   );
 }

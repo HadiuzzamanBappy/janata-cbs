@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { FormElement, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { DesignerCanvas } from "./designer/designer-canvas";
 import { FieldPalette } from "./designer/field-palette";

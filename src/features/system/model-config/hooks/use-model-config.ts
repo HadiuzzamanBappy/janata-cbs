@@ -6,10 +6,9 @@ import { cbs } from "@/lib/cbs-client";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
-  type ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { mapZodIssuesToValidationErrors } from "./mc-validation";
+import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
 import { useMcActions } from "./use-mc-actions";
 import { useMcCatalog } from "./use-mc-catalog";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
@@ -46,7 +45,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
-  const [validationErrors, setValidationErrors] = React.useState<ValidationErrorItem[]>([]);
+  const [validationErrors, setValidationErrors] = React.useState<ModelValidationErrorItem[]>([]);
 
   // 1. Reset screen and commit set to idle
   const resetToIdle = React.useCallback(() => {

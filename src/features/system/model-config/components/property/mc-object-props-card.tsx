@@ -24,6 +24,7 @@ export function McObjectPropsCard({
 
   return (
     <div className="rounded border border-border/80 bg-card overflow-hidden shadow-2xs">
+      {/* Advanced Header matching mc-lookup-config */}
       <div className="px-3 py-2 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20">
         <div className="flex items-center gap-1.5 min-w-0">
           <Badge
@@ -35,7 +36,7 @@ export function McObjectPropsCard({
           <span className="text-xs font-semibold text-foreground truncate">
             Nested Sub-Properties (PROP)
           </span>
-          <span className="font-mono text-[10px] px-1 py-0.2 rounded bg-muted text-muted-foreground font-bold">
+          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">
             {children.length}
           </span>
         </div>
@@ -48,7 +49,7 @@ export function McObjectPropsCard({
               const newSn = onAddSubField(property.SN);
               if (newSn && onSelectSubField) onSelectSubField(newSn);
             }}
-            className="h-6 px-2 text-[10px] gap-1 rounded"
+            className="h-6 px-2 text-[10px] font-mono gap-1 rounded"
           >
             <Plus className="size-3" />
             <span>Add Sub-Property</span>
@@ -56,6 +57,7 @@ export function McObjectPropsCard({
         )}
       </div>
 
+      {/* Sub-item Table UI */}
       <div className="p-3">
         {children.length === 0 ? (
           <div className="p-4 text-center text-xs text-muted-foreground italic border border-dashed border-border/60 rounded">
@@ -103,7 +105,7 @@ export function McObjectPropsCard({
                       type="button"
                       title="Delete subfield"
                       onClick={() => onDeleteSubField(sub.SN, true)}
-                      className="size-4.5 inline-flex items-center justify-center rounded text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                      className="size-4.5 inline-flex items-center justify-center rounded text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                     >
                       <Trash2 className="size-2.5" />
                     </button>

@@ -1,7 +1,6 @@
 "use client";
 
 import { Type } from "lucide-react";
-import * as React from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,8 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/core-utils";
-import type { FormElement, FormWidgetType } from "@/lib/data-schemas/form-config-schema";
+import {
+  COMPATIBLE_WIDGETS_FOR_TYPE,
+  type FormElement,
+  type FormWidgetType,
+  isWidgetCompatibleWithType,
+} from "@/lib/data-schemas/form-engine-schema";
 import { InspectorLookupConfig } from "./inspector-lookup-config";
 import { InspectorRow } from "./inspector-row";
 
@@ -22,77 +25,70 @@ export interface InspectorWidgetSectionProps {
   disabled?: boolean;
 }
 
+const WIDGET_METADATA: Record<FormWidgetType, { label: string; description: string }> = {
+  text: {
+    label: "Text (Standard Input)",
+    description: "Single-line alphanumeric input with casing/masking.",
+  },
+  textarea: {
+    label: "Textarea (Multi-line)",
+    description: "Multi-line narrative text box.",
+  },
+  number: {
+    label: "Number (Standard Numeric)",
+    description: "Integer or standard numeric counter/input.",
+  },
+  amount: {
+    label: "Amount (Financial Currency)",
+    description: "Monetary amount with currency prefix & decimals.",
+  },
+  date: {
+    label: "Date Picker (CBS Calendar)",
+    description: "CBS calendar date selector.",
+  },
+  select: {
+    label: "Select / Dropdown (Lookup)",
+    description: "Model lookup or static key-value options.",
+  },
+  "radio-group": {
+    label: "Radio Group (Option Pills)",
+    description: "Inline radio options.",
+  },
+  segmented: {
+    label: "Segmented Control",
+    description: "Horizontal segment toggle selector.",
+  },
+  checkbox: {
+    label: "Checkbox (Checkmark / Yes-No)",
+    description: "CBS standard checkbox with status indicator.",
+  },
+  "checkbox-group": {
+    label: "Checkbox Group",
+    description: "Multiple selectable checkboxes.",
+  },
+  switch: {
+    label: "Switch (Boolean Toggle)",
+    description: "On/Off boolean switcher.",
+  },
+};
+
 export function InspectorWidgetSection({
   selectedField,
   baseType,
   onUpdateField,
   disabled,
 }: InspectorWidgetSectionProps) {
-  const ALL_SYSTEM_WIDGETS: Array<{
-    value: FormWidgetType;
-    label: string;
-    description: string;
-    supportedBases: Array<"TEXT" | "NUMBER" | "DATE">;
-  }> = React.useMemo(
-    () => [
-      {
-        value: "text",
-        label: "Text (Standard Input)",
-        description: "Single-line alphanumeric input with casing/masking.",
-        supportedBases: ["TEXT"],
-      },
-      {
-        value: "number",
-        label: "Number (Standard Numeric)",
-        description: "Integer or standard numeric counter/input.",
-        supportedBases: ["NUMBER"],
-      },
-      {
-        value: "amount",
-        label: "Amount (Financial Currency)",
-        description: "Monetary amount with currency prefix & decimals.",
-        supportedBases: ["NUMBER"],
-      },
-      {
-        value: "date",
-        label: "Date Picker (CBS Calendar)",
-        description: "CBS calendar date selector.",
-        supportedBases: ["DATE"],
-      },
-      {
-        value: "select",
-        label: "Select / Dropdown (Lookup)",
-        description: "Model lookup or static key-value options.",
-        supportedBases: ["TEXT", "NUMBER"],
-      },
-      {
-        value: "radio-group",
-        label: "Radio Group (Option Pills)",
-        description: "Inline radio options.",
-        supportedBases: ["TEXT", "NUMBER"],
-      },
-      {
-        value: "switch",
-        label: "Switch (Boolean Toggle)",
-        description: "On/Off boolean switcher.",
-        supportedBases: ["TEXT", "NUMBER"],
-      },
-      {
-        value: "checkbox",
-        label: "Checkbox (Checkmark)",
-        description: "Single or multi-select checkbox item.",
-        supportedBases: ["TEXT", "NUMBER"],
-      },
-    ],
-    [],
-  );
+  // Physical Property Type from model config, fallback based on baseType
+  const physicalType =
+    selectedField.TYPE ||
+    (baseType === "NUMBER" ? "Number" : baseType === "DATE" ? "Date" : "Text");
 
-  const widgetSelectItems = React.useMemo(() => {
-    return ALL_SYSTEM_WIDGETS.map((w) => ({
-      ...w,
-      isEligible: w.supportedBases.includes(baseType),
-    }));
-  }, [ALL_SYSTEM_WIDGETS, baseType]);
+  // Authorized widgets from the canonical platform constraint matrix
+  const allowedWidgets = COMPATIBLE_WIDGETS_FOR_TYPE[physicalType] || ["text"];
+
+  const currentWidget = isWidgetCompatibleWithType(physicalType, selectedField.WIDGET || "text")
+    ? selectedField.WIDGET || "text"
+    : allowedWidgets[0] || "text";
 
   return (
     <div className="p-2.5 rounded-md border border-primary/20 bg-primary/5 space-y-3 pt-2">
@@ -101,70 +97,44 @@ export function InspectorWidgetSection({
           <Type className="size-3" />
           <span>UI Presentation Widget</span>
         </span>
-        <span className="text-[10px] text-muted-foreground font-mono">Eligible for {baseType}</span>
+        <span className="text-[10px] text-muted-foreground font-mono">
+          Physical: {physicalType}
+        </span>
       </div>
 
       <InspectorRow
         label="Selected Widget"
-        description={`Presentation widget on the banking form. Types incompatible with physical ${baseType} are disabled.`}
+        description={`Presentation widget on the banking form constrained by physical ${physicalType} schema.`}
       >
         <Select
           disabled={disabled}
-          value={
-            widgetSelectItems.some((w) => w.isEligible && w.value === selectedField.WIDGET)
-              ? selectedField.WIDGET
-              : widgetSelectItems.find((w) => w.isEligible)?.value || "text"
-          }
+          value={currentWidget}
           onValueChange={(val: string | null) => {
-            const chosen = widgetSelectItems.find((w) => w.value === val);
-            if (!chosen?.isEligible) return;
-
-            const widget = chosen.value;
-            let type = selectedField.TYPE;
-            if (widget === "amount" || widget === "number") type = "Number";
-            else if (widget === "date") type = "Date";
-            else if (widget === "select" || widget === "radio-group") type = "Select";
-            else if (widget === "switch" || widget === "checkbox") type = "Boolean";
-            else type = "Text";
-
-            onUpdateField({
-              WIDGET: widget,
-              TYPE: type,
-            });
+            if (!val || !isWidgetCompatibleWithType(physicalType, val)) return;
+            onUpdateField({ WIDGET: val as FormWidgetType });
           }}
         >
           <SelectTrigger className="w-full h-7 text-xs bg-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="text-xs">
-            {widgetSelectItems.map((item) => (
-              <SelectItem
-                key={item.value}
-                value={item.value}
-                disabled={!item.isEligible}
-                className={cn(
-                  "flex items-center justify-between text-xs",
-                  !item.isEligible && "opacity-45 cursor-not-allowed text-muted-foreground",
-                )}
-              >
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className={cn(item.isEligible ? "font-medium" : "line-through")}>
-                    {item.label}
-                  </span>
-                </div>
-                {!item.isEligible && (
-                  <span className="text-[9px] font-mono text-muted-foreground/70 uppercase shrink-0">
-                    (Req {item.supportedBases.join("/")})
-                  </span>
-                )}
-              </SelectItem>
-            ))}
+            {allowedWidgets.map((widgetKey) => {
+              const meta = WIDGET_METADATA[widgetKey] || {
+                label: widgetKey,
+                description: "",
+              };
+              return (
+                <SelectItem key={widgetKey} value={widgetKey} className="text-xs font-medium">
+                  {meta.label}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </InspectorRow>
 
       {/* Dynamic Type Config: Text / Masking */}
-      {baseType === "TEXT" && (selectedField.WIDGET === "text" || !selectedField.WIDGET) && (
+      {(currentWidget === "text" || currentWidget === "textarea") && (
         <div className="space-y-2 pt-1 border-t border-border/50">
           <InspectorRow label="Text Transform" description="Enforce casing on user input">
             <Select
@@ -212,8 +182,8 @@ export function InspectorWidgetSection({
         </div>
       )}
 
-      {/* Dynamic Type Config: Boolean & Switch */}
-      {(selectedField.WIDGET === "switch" || selectedField.WIDGET === "checkbox") && (
+      {/* Dynamic Type Config: Boolean & Checkbox */}
+      {(currentWidget === "checkbox" || currentWidget === "switch") && (
         <div className="space-y-2 pt-1 border-t border-border/50">
           <div className="grid grid-cols-2 gap-1.5">
             <InspectorRow label="True Value" description="Value stored in DB when active">
@@ -224,11 +194,11 @@ export function InspectorWidgetSection({
                   onUpdateField({
                     BOOLEAN_CONFIG: {
                       ...selectedField.BOOLEAN_CONFIG,
-                      widgetStyle: (selectedField.WIDGET as "switch" | "checkbox") || "switch",
+                      widgetStyle: (currentWidget as "switch" | "checkbox") || "checkbox",
                       trueValue: e.target.value,
                       falseValue: selectedField.BOOLEAN_CONFIG?.falseValue ?? "N",
-                      activeLabel: selectedField.BOOLEAN_CONFIG?.activeLabel ?? "Enabled",
-                      inactiveLabel: selectedField.BOOLEAN_CONFIG?.inactiveLabel ?? "Disabled",
+                      activeLabel: selectedField.BOOLEAN_CONFIG?.activeLabel ?? "Yes",
+                      inactiveLabel: selectedField.BOOLEAN_CONFIG?.inactiveLabel ?? "No",
                     },
                   })
                 }
@@ -243,11 +213,11 @@ export function InspectorWidgetSection({
                   onUpdateField({
                     BOOLEAN_CONFIG: {
                       ...selectedField.BOOLEAN_CONFIG,
-                      widgetStyle: (selectedField.WIDGET as "switch" | "checkbox") || "switch",
+                      widgetStyle: (currentWidget as "switch" | "checkbox") || "checkbox",
                       trueValue: selectedField.BOOLEAN_CONFIG?.trueValue ?? "Y",
                       falseValue: e.target.value,
-                      activeLabel: selectedField.BOOLEAN_CONFIG?.activeLabel ?? "Enabled",
-                      inactiveLabel: selectedField.BOOLEAN_CONFIG?.inactiveLabel ?? "Disabled",
+                      activeLabel: selectedField.BOOLEAN_CONFIG?.activeLabel ?? "Yes",
+                      inactiveLabel: selectedField.BOOLEAN_CONFIG?.inactiveLabel ?? "No",
                     },
                   })
                 }
@@ -259,8 +229,7 @@ export function InspectorWidgetSection({
       )}
 
       {/* Dynamic Type Config: Amount & Currency */}
-      {(selectedField.WIDGET === "amount" ||
-        (baseType === "NUMBER" && selectedField.WIDGET === "number")) && (
+      {(currentWidget === "amount" || currentWidget === "number") && (
         <div className="space-y-2 pt-1 border-t border-border/50">
           <div className="grid grid-cols-2 gap-1.5">
             <InspectorRow label="Decimals" description="Decimal precision">
@@ -268,14 +237,13 @@ export function InspectorWidgetSection({
                 type="number"
                 disabled={disabled}
                 value={
-                  selectedField.NUMBER_CONFIG?.decimals ??
-                  (selectedField.WIDGET === "amount" ? 2 : 0)
+                  selectedField.NUMBER_CONFIG?.decimals ?? (currentWidget === "amount" ? 2 : 0)
                 }
                 onChange={(e) =>
                   onUpdateField({
                     NUMBER_CONFIG: {
                       ...selectedField.NUMBER_CONFIG,
-                      isCurrency: selectedField.WIDGET === "amount",
+                      isCurrency: currentWidget === "amount",
                       currencyCode: selectedField.NUMBER_CONFIG?.currencyCode ?? "",
                       allowNegative: selectedField.NUMBER_CONFIG?.allowNegative ?? false,
                       decimals: Number(e.target.value) || 0,
@@ -309,7 +277,10 @@ export function InspectorWidgetSection({
       )}
 
       {/* Dynamic Type Config: Lookup / Options */}
-      {(selectedField.WIDGET === "select" || selectedField.WIDGET === "radio-group") && (
+      {(currentWidget === "select" ||
+        currentWidget === "radio-group" ||
+        currentWidget === "segmented" ||
+        currentWidget === "checkbox-group") && (
         <InspectorLookupConfig
           selectedField={selectedField}
           onUpdateField={onUpdateField}

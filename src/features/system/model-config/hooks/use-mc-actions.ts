@@ -9,16 +9,15 @@ import type { CbsWirePayload } from "@/lib/data-schemas";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
-  type ValidationErrorItem,
 } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { mapZodIssuesToValidationErrors } from "./mc-validation";
+import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
 
 export interface UseMcActionsParams {
   formData: ModelConfigRecord;
   recordId: string;
   setSubmitting: (val: boolean) => void;
-  setValidationErrors: (errors: ValidationErrorItem[]) => void;
+  setValidationErrors: (errors: ModelValidationErrorItem[]) => void;
   rebaseline: () => void;
   resetToIdle: () => void;
   markAsCommitted: (properties: ModelConfigRecord["PROPERTIES"]) => void;

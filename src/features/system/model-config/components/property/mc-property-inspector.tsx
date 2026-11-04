@@ -5,15 +5,14 @@ import * as React from "react";
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SectionCard } from "@/features/form-engine/components/section-card";
+import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { setFieldValue } from "@/features/form-engine/utils/path-utils";
 import { cn } from "@/lib/core-utils";
-import type {
-  ModelProperty,
-  PropertyType,
-  ValidationErrorItem,
-} from "@/lib/data-schemas/model-config-schema";
+import type { PropertyType } from "@/lib/data-schemas/form-engine-schema";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
 import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields";
+import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
 import { McLookupConfig } from "./mc-lookup-config";
 import { McObjectPropsCard } from "./mc-object-props-card";
 
@@ -21,7 +20,7 @@ interface McPropertyInspectorProps {
   property?: ModelProperty;
   isReadOnly: boolean;
   isCommitted?: boolean;
-  validationErrors?: ValidationErrorItem[];
+  validationErrors?: ModelValidationErrorItem[];
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
   onDelete: (sn: string, forceHardDelete?: boolean) => void;
   onSelectSubField?: (sn: string) => void;
@@ -52,57 +51,31 @@ export function McPropertyInspector({
     return map;
   }, [validationErrors, property]);
 
-  // Form values record for the inspector
-  const formValues = React.useMemo(() => {
-    if (!property) return {};
-    return {
-      NAME: property.NAME,
-      LABEL: property.LABEL,
-      TYPE: property.TYPE,
-      STRUCTURE: property.STRUCTURE,
-      LENGTH: property.LENGTH ?? (property.TYPE === "Date" ? 10 : 50),
-      WIDTH: property.WIDTH || 280,
-      REQUIRED: property.REQUIRED ?? false,
-    };
-  }, [property]);
-
-  // Centralized field change dispatcher
+  // Centralized field change dispatcher with setFieldValue
   const handleFieldChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
       if (!property) return;
-      const patch: Partial<ModelProperty> = {};
+      let nextVal = value;
+      if (fieldKey === "NAME" && typeof value === "string") {
+        nextVal = value.replace(/\s+/g, "");
+      }
+      const updated = setFieldValue(property as Record<string, unknown>, fieldKey, nextVal);
 
-      if (fieldKey === "NAME") {
-        patch.NAME = typeof value === "string" ? value.replace(/\s+/g, "") : "";
-      } else if (fieldKey === "LABEL") {
-        patch.LABEL = String(value ?? "");
-      } else if (fieldKey === "TYPE") {
+      // Type change side-effects
+      if (fieldKey === "TYPE") {
         const nextType = value as PropertyType;
-        patch.TYPE = nextType;
-        if (nextType === "Date") {
-          patch.LENGTH = 10;
-        } else if (nextType === "Number") {
-          patch.LENGTH = 15;
-        } else if (nextType === "Text") {
-          patch.LENGTH = 50;
-        } else if (nextType === "Boolean") {
-          patch.LENGTH = 1;
-        } else if (nextType === "Dropdown" && !property.PARAMETER) {
-          patch.PARAMETER = { type: "O", data: [] };
-        } else if (nextType === "Object" && !property.PROP) {
-          patch.PROP = [];
+        if (nextType === "Date") updated.LENGTH = 10;
+        else if (nextType === "Number") updated.LENGTH = 15;
+        else if (nextType === "Text") updated.LENGTH = 50;
+        else if (nextType === "Boolean") updated.LENGTH = 1;
+        else if (nextType === "Dropdown" && !updated.PARAMETER) {
+          updated.PARAMETER = { type: "O", data: [] };
+        } else if (nextType === "Object" && !updated.PROP) {
+          updated.PROP = [];
         }
-      } else if (fieldKey === "STRUCTURE") {
-        patch.STRUCTURE = (value as "S" | "M") || "S";
-      } else if (fieldKey === "LENGTH") {
-        patch.LENGTH = value !== "" && value !== undefined ? Number(value) : undefined;
-      } else if (fieldKey === "WIDTH") {
-        patch.WIDTH = value as ModelProperty["WIDTH"];
-      } else if (fieldKey === "REQUIRED") {
-        patch.REQUIRED = Boolean(value);
       }
 
-      onUpdate(property.SN, patch);
+      onUpdate(property.SN, updated as ModelProperty);
     },
     [property, onUpdate],
   );
@@ -166,17 +139,14 @@ export function McPropertyInspector({
       {/* 2. Form Engine Rendered Property Sections */}
       <div className="flex-1 overflow-y-auto p-3">
         <div className="max-w-3xl space-y-3">
-          {PROPERTY_INSPECTOR_SECTIONS.map((section) => (
-            <SectionCard
-              key={section.id}
-              section={section}
-              values={formValues}
-              onChange={handleFieldChange}
-              errors={errorMap}
-              disabled={isReadOnly}
-              mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-            />
-          ))}
+          <FormRenderer
+            frmElements={{ sections: PROPERTY_INSPECTOR_SECTIONS }}
+            values={property}
+            onChange={handleFieldChange}
+            errors={errorMap}
+            disabled={isReadOnly}
+            mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          />
 
           {/* 3. Dropdown Options & Model Lookup Configuration Panel */}
           {property.TYPE === "Dropdown" && (

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { InspectorRow } from "./inspector-row";
 
 const WIDTH_PRESETS = [
@@ -145,6 +145,125 @@ export function InspectorGeneralSection({
           onChange={(e) => onUpdateField({ DEFAULTVALUE: e.target.value })}
           className="h-7 text-xs bg-background font-mono"
         />
+      </InspectorRow>
+
+      {/* Reactive ON_CHANGE Rule */}
+      <InspectorRow
+        label="On Change Rule"
+        description="Sync or transform another field when this field value changes."
+      >
+        <div className="space-y-1.5 pt-0.5">
+          <div className="grid grid-cols-2 gap-1.5">
+            <Input
+              disabled={disabled}
+              placeholder="Target field (e.g. IDPATTERN)"
+              value={selectedField.ON_CHANGE?.target || ""}
+              onChange={(e) => {
+                const target = e.target.value.trim();
+                onUpdateField({
+                  ON_CHANGE: target
+                    ? {
+                        target,
+                        action: selectedField.ON_CHANGE?.action || "copy",
+                        delimiter: selectedField.ON_CHANGE?.delimiter || "#",
+                      }
+                    : undefined,
+                });
+              }}
+              className="h-6 text-[11px] bg-background font-mono px-1.5"
+            />
+            <select
+              disabled={disabled || !selectedField.ON_CHANGE?.target}
+              value={selectedField.ON_CHANGE?.action || "copy"}
+              onChange={(e) => {
+                if (selectedField.ON_CHANGE?.target) {
+                  onUpdateField({
+                    ON_CHANGE: {
+                      ...selectedField.ON_CHANGE,
+                      action: e.target.value as
+                        | "join"
+                        | "copy"
+                        | "clear"
+                        | "uppercase"
+                        | "lowercase",
+                    },
+                  });
+                }
+              }}
+              className="h-6 text-[11px] bg-background border border-input rounded px-1 text-foreground"
+            >
+              <option value="copy">Copy Value</option>
+              <option value="join">Join Array (#)</option>
+              <option value="uppercase">Uppercase</option>
+              <option value="lowercase">Lowercase</option>
+              <option value="clear">Clear Target</option>
+            </select>
+          </div>
+          {selectedField.ON_CHANGE?.action === "join" && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-muted-foreground font-mono">Delimiter:</span>
+              <Input
+                disabled={disabled}
+                placeholder="#"
+                value={selectedField.ON_CHANGE?.delimiter || "#"}
+                onChange={(e) => {
+                  if (selectedField.ON_CHANGE?.target) {
+                    onUpdateField({
+                      ON_CHANGE: {
+                        ...selectedField.ON_CHANGE,
+                        delimiter: e.target.value || "#",
+                      },
+                    });
+                  }
+                }}
+                className="h-5 w-14 text-[10px] font-mono px-1 bg-background text-center"
+              />
+            </div>
+          )}
+        </div>
+      </InspectorRow>
+
+      {/* Cross-Field Validation Rule (e.g. Password Confirmation) */}
+      <InspectorRow
+        label="Validation Match"
+        description="Verify this field equals another field (e.g. Confirm Password)."
+      >
+        <div className="space-y-1.5 pt-0.5">
+          <Input
+            disabled={disabled}
+            placeholder="Field to match (e.g. NEW_PASSWORD)"
+            value={selectedField.VALIDATION?.matches || ""}
+            onChange={(e) => {
+              const matches = e.target.value.trim();
+              onUpdateField({
+                VALIDATION: matches
+                  ? {
+                      ...selectedField.VALIDATION,
+                      matches,
+                      message: selectedField.VALIDATION?.message || "Fields do not match",
+                    }
+                  : undefined,
+              });
+            }}
+            className="h-6 text-[11px] bg-background font-mono px-1.5"
+          />
+          {selectedField.VALIDATION?.matches && (
+            <Input
+              disabled={disabled}
+              placeholder="Custom error message"
+              value={selectedField.VALIDATION?.message || ""}
+              onChange={(e) => {
+                onUpdateField({
+                  VALIDATION: {
+                    ...selectedField.VALIDATION,
+                    message: e.target.value,
+                  },
+                });
+              }}
+              className="h-6 text-[11px] bg-background px-1.5"
+            />
+          )}
+        </div>
       </InspectorRow>
     </div>
   );

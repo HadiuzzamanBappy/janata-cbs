@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { generateClientToken } from "@/lib/core-utils";
 
 export function useMultiValue(
   value: unknown,
@@ -9,11 +10,7 @@ export function useMultiValue(
   // Support for Multi-Value (M) primitive arrays with stable keys
   const [itemIds, setItemIds] = useState<string[]>(() => {
     const count = Array.isArray(value) ? Math.max(value.length, 1) : 1;
-    return Array.from({ length: count }, () =>
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `mv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    );
+    return Array.from({ length: count }, () => generateClientToken("mv"));
   });
 
   const arrayValues: unknown[] = useMemo(() => {
@@ -28,11 +25,7 @@ export function useMultiValue(
       if (prev.length === arrayValues.length) return prev;
       if (prev.length < arrayValues.length) {
         const addedCount = arrayValues.length - prev.length;
-        const newIds = Array.from({ length: addedCount }, () =>
-          typeof crypto !== "undefined" && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `mv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        );
+        const newIds = Array.from({ length: addedCount }, () => generateClientToken("mv"));
         return [...prev, ...newIds];
       }
       return prev.slice(0, arrayValues.length);
@@ -46,10 +39,7 @@ export function useMultiValue(
   };
 
   const handleAddArrayItem = (afterIdx?: number) => {
-    const newId =
-      typeof crypto !== "undefined" && crypto.randomUUID
-        ? crypto.randomUUID()
-        : `mv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const newId = generateClientToken("mv");
 
     if (afterIdx !== undefined && afterIdx >= 0) {
       const nextIds = [...itemIds];

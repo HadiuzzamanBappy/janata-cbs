@@ -1,7 +1,7 @@
 import { Layers, LayoutList, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import type { FormElement } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 
 export interface PaletteContainersListProps {
   disabled?: boolean;

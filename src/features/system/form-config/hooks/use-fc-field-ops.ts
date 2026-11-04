@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { FormConfigRecord, FormElement } from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { isMatchingField, useFcFieldMovement } from "./use-fc-field-movement";
 
 export function useFcFieldOps(

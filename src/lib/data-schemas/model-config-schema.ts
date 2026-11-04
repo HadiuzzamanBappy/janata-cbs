@@ -1,63 +1,12 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
+import { baseFieldSchema } from "./form-engine-schema";
 
 /* ========================================================================== */
-/* 1. DATA TYPES (Physical Database Column Types)                             */
+/* 1. FIELD PROPERTY (Physical Database Column)                               */
 /* ========================================================================== */
 
-export const propertyTypeSchema = z.enum([
-  "Text",
-  "Number",
-  "Date",
-  "Boolean",
-  "Object",
-  "Dropdown",
-]);
-export type PropertyType = z.infer<typeof propertyTypeSchema>;
-export const PROPERTY_TYPES = propertyTypeSchema.options;
-
-export const propertyWidthSchema = z.preprocess((val) => {
-  if (val === undefined || val === null || val === "") return undefined;
-  if (typeof val === "number") return val;
-  if (typeof val === "string") {
-    const trimmed = val.trim();
-    if (/^\d+(\.\d+)?$/.test(trimmed)) {
-      return Number(trimmed);
-    }
-    const lower = trimmed.toLowerCase();
-    if (lower === "xs") return 120;
-    if (lower === "sm") return 180;
-    if (lower === "md") return 280;
-    if (lower === "lg") return 450;
-    if (lower === "xl") return 600;
-    if (lower === "xxl") return 700;
-    if (lower === "full") return 1000;
-  }
-  return val;
-}, z.number());
-
-export type PropertyWidth = z.infer<typeof propertyWidthSchema>;
-
-/* ========================================================================== */
-/* 2. FIELD PROPERTY (Physical Database Column - Single Source of Truth)       */
-/* ========================================================================== */
-
-/**
- * Canonical physical column property in MODEL.CONFIG.
- * Exactly what exists in the database table: SN, NAME, LABEL, TYPE, STRUCTURE, LENGTH, REQUIRED, WIDTH.
- */
-export const baseModelPropertySchema = z.object({
-  SN: z.coerce.string().default(""),
-  NAME: z.string().min(1, "Field name is required"),
-  LABEL: z.string().min(1, "Field label is required"),
-  TYPE: propertyTypeSchema.default("Text"),
-  STRUCTURE: z.enum(["S", "M"]).default("S"),
-  LENGTH: z.coerce.number().default(50),
-  REQUIRED: z.boolean().default(false).optional(),
-  WIDTH: propertyWidthSchema.default(280).optional(),
-  PARAMETER: z.record(z.string(), z.unknown()).optional(),
-  DATASOURCE: z.array(z.unknown()).optional(),
-});
+export const baseModelPropertySchema = baseFieldSchema;
 
 export type ModelProperty = z.infer<typeof baseModelPropertySchema> & {
   PROP?: ModelProperty[];
@@ -68,7 +17,7 @@ export const modelPropertySchema: z.ZodType<ModelProperty> = baseModelPropertySc
 });
 
 /* ========================================================================== */
-/* 3. TABLE RECORD: MODEL CONFIG RECORD (MODEL.CONFIG)                        */
+/* 2. TABLE RECORD: MODEL CONFIG RECORD (MODEL.CONFIG)                        */
 /* ========================================================================== */
 
 export const idDefSchema = z.object({
@@ -80,7 +29,7 @@ export const idDefSchema = z.object({
 
 export type IdDef = z.infer<typeof idDefSchema>;
 
-export const modelConfigRecordSchema = z.object({
+export const modelConfigRecordSchema = z.looseObject({
   _DEVBY: z.string().default(""),
   _DEVDATE: z.string().default(""),
   DESCRIPTION: z.string().min(1, "Description is required"),
@@ -106,15 +55,3 @@ export const modelConfigRecordSchema = z.object({
 });
 
 export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
-
-/* ========================================================================== */
-/* 4. VALIDATION ERRORS                                                       */
-/* ========================================================================== */
-
-export interface ValidationErrorItem {
-  id: string;
-  tab: "general" | "properties" | "audit";
-  sn?: string;
-  fieldKey: string;
-  message: string;
-}

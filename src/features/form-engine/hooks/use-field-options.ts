@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import type { FormFieldItem, FormFieldParameter } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement, FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
 import type { WidgetOption } from "../types";
 import { useModelLookup } from "./use-model-lookup";
 
-export function useFieldOptions(field: FormFieldItem) {
+export function useFieldOptions(field: FormElement) {
   const param = field.PARAMETER as FormFieldParameter | undefined;
   const { modelOptions, loading: modelLoading } = useModelLookup(param);
 

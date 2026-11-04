@@ -1,6 +1,6 @@
 "use client";
 
-import { Code, Eye, FileText, Layers, Palette, ShieldCheck, Workflow } from "lucide-react";
+import { Code, Eye, FileText, Layers, Palette, ShieldCheck } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
@@ -11,10 +11,9 @@ import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
 import { FcPreviewTab } from "./components/fc-preview-tab";
-import { FcRoutineTab } from "./components/fc-routine-tab";
 import { useFormConfig } from "./hooks/use-form-config";
 
-type FormConfigTabKey = "general" | "formRoutine" | "formDesigner" | "audit" | "preview" | "json";
+type FormConfigTabKey = "general" | "formDesigner" | "audit" | "preview" | "json";
 
 export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -78,17 +77,9 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         id: "general",
         label: "General",
         icon: <FileText className="size-3 text-muted-foreground" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "general").length || undefined,
         content: (
-          <FcGeneralTab formData={formData} setFormData={setFormData} isReadOnly={isReadOnly} />
-        ),
-      },
-      {
-        id: "formRoutine",
-        label: "Form Routine",
-        icon: <Workflow className="size-3 text-cyan-500" />,
-        badgeCount: validationErrors.filter((e) => e.tab === "formRoutine").length || undefined,
-        content: (
-          <FcRoutineTab
+          <FcGeneralTab
             formData={formData}
             setFormData={setFormData}
             isReadOnly={isReadOnly}

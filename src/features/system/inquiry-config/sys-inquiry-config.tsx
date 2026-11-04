@@ -1,19 +1,20 @@
 "use client";
 
-import { Code, Columns, Eye, FileText, Filter, Layers } from "lucide-react";
+import { Code, Columns, Eye, FileText, Filter, Layers, MousePointerClick } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
+import { IcActionsTab } from "./components/ic-actions-tab";
+import { IcColumnsTab } from "./components/ic-columns-tab";
 import { IcGeneralTab } from "./components/ic-general-tab";
 import { IcJsonTab } from "./components/ic-json-tab";
 import { IcPreviewTab } from "./components/ic-preview-tab";
 import { IcSelectionTab } from "./components/ic-selection-tab";
-import { IcTableTab } from "./components/ic-table-tab";
 import { useInquiryConfig } from "./hooks/use-inquiry-config";
 
-type InquiryConfigTabKey = "general" | "selection" | "table" | "preview" | "json";
+type InquiryConfigTabKey = "general" | "selection" | "columns" | "actions" | "preview" | "json";
 
 export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -92,19 +93,32 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         ),
       },
       {
-        id: "table",
-        label: "Table Design",
+        id: "columns",
+        label: "Columns",
         icon: <Columns className="size-3 text-primary" />,
-        badgeCount: validationErrors.filter((e) => e.tab === "table").length || undefined,
+        badgeCount: validationErrors.filter((e) => e.tab === "columns").length || undefined,
         content: (
-          <IcTableTab
+          <IcColumnsTab
             columns={formData.INQDef || []}
-            actions={formData.INQCmds || []}
             targetModel={formData.INQInfo?.controllerName}
             onAddColumn={columnOps.addColumn}
             onUpdateColumn={columnOps.updateColumn}
             onRemoveColumn={columnOps.removeColumn}
             onReorderColumns={columnOps.reorderColumns}
+            disabled={isReadOnly}
+            validationErrors={validationErrors}
+          />
+        ),
+      },
+      {
+        id: "actions",
+        label: "Row Actions",
+        icon: <MousePointerClick className="size-3 text-violet-500" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "actions").length || undefined,
+        content: (
+          <IcActionsTab
+            actions={formData.INQCmds || []}
+            targetModel={formData.INQInfo?.controllerName}
             onAddAction={actionOps.addAction}
             onUpdateAction={actionOps.updateAction}
             onRemoveAction={actionOps.removeAction}

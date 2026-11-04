@@ -11,7 +11,7 @@ import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
 import { ColumnItem } from "./column-item";
 
-export interface TableColumnsPanelProps {
+export interface ColumnsPanelProps {
   columns: INQDef[];
   columnKeys: string[];
   selectedColIdx: number;
@@ -24,7 +24,7 @@ export interface TableColumnsPanelProps {
   onDragEnd: (event: DragEndEvent) => void;
 }
 
-export function TableColumnsPanel({
+export function ColumnsPanel({
   columns,
   columnKeys,
   selectedColIdx,
@@ -35,7 +35,7 @@ export function TableColumnsPanel({
   onSelectColumn,
   onRemoveColumn,
   onDragEnd,
-}: TableColumnsPanelProps) {
+}: ColumnsPanelProps) {
   return (
     <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
       <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
@@ -62,7 +62,7 @@ export function TableColumnsPanel({
               <div className="divide-y divide-border/30">
                 {columns.map((col, idx) => {
                   const colErrors = validationErrors.filter(
-                    (e) => e.tab === "table" && e.itemIndex === idx && e.subSegment !== "actions",
+                    (e) => e.tab === "columns" && e.itemIndex === idx,
                   );
                   return (
                     <ColumnItem

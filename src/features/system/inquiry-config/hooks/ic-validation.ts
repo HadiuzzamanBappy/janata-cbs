@@ -4,7 +4,13 @@ import {
   inquiryConfigRecordSchema,
 } from "@/lib/data-schemas/inquiry-config-schema";
 
-export type InquiryConfigTabKey = "general" | "selection" | "table" | "preview" | "json";
+export type InquiryConfigTabKey =
+  | "general"
+  | "selection"
+  | "columns"
+  | "actions"
+  | "preview"
+  | "json";
 
 export interface InquiryValidationErrorItem extends CbsScreenValidationError<InquiryConfigTabKey> {
   readonly id: string;
@@ -53,8 +59,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
           labelPrefix = `Filter #${itemIndex + 1}${name ? ` (${name})` : ""}`;
         }
       } else if (firstSegment === "INQDef") {
-        tab = "table";
-        subSegment = "columns";
+        tab = "columns";
         if (typeof issue.path[1] === "number") {
           itemIndex = issue.path[1];
           const col = formData.INQDef?.[itemIndex];
@@ -62,8 +67,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
           labelPrefix = `Column #${itemIndex + 1}${name ? ` (${name})` : ""}`;
         }
       } else if (firstSegment === "INQCmds") {
-        tab = "table";
-        subSegment = "actions";
+        tab = "actions";
         if (typeof issue.path[1] === "number") {
           itemIndex = issue.path[1];
           const action = formData.INQCmds?.[itemIndex];
@@ -141,15 +145,14 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     }
   });
 
-  // 4. Domain Business Rules: Table Design Tab
+  // 4. Domain Business Rules: Columns Tab
   const columns = formData.INQDef || [];
   if (columns.length === 0) {
     addIssue({
       id: "err-table-no-columns",
-      tab: "table",
+      tab: "columns",
       fieldKey: "INQDef",
-      message: "Table Design: At least one column must be configured",
-      subSegment: "columns",
+      message: "Columns: At least one column must be configured",
     });
   }
 
@@ -159,22 +162,20 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     if (!cName) {
       addIssue({
         id: `err-col-${idx}-name`,
-        tab: "table",
+        tab: "columns",
         fieldKey: `INQDef.${idx}.fieldName`,
         message: `Column #${idx + 1}: Field Name is required`,
         itemIndex: idx,
-        subSegment: "columns",
       });
     } else {
       const lower = cName.toLowerCase();
       if (seenColNames.has(lower)) {
         addIssue({
           id: `err-col-dup-${idx}`,
-          tab: "table",
+          tab: "columns",
           fieldKey: `INQDef.${idx}.fieldName`,
           message: `Column #${idx + 1}: Duplicate column field name "${cName}"`,
           itemIndex: idx,
-          subSegment: "columns",
         });
       } else {
         seenColNames.add(lower);
@@ -184,11 +185,10 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     if (!col.fieldDisplay?.trim()) {
       addIssue({
         id: `err-col-${idx}-display`,
-        tab: "table",
+        tab: "columns",
         fieldKey: `INQDef.${idx}.fieldDisplay`,
         message: `Column #${idx + 1}: Display Header is required`,
         itemIndex: idx,
-        subSegment: "columns",
       });
     }
   });
@@ -198,22 +198,20 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     if (!act.cmdButton?.trim()) {
       addIssue({
         id: `err-act-${idx}-btn`,
-        tab: "table",
+        tab: "actions",
         fieldKey: `INQCmds.${idx}.cmdButton`,
         message: `Action #${idx + 1}: Button label is required`,
         itemIndex: idx,
-        subSegment: "actions",
       });
     }
 
     if (!act.cmdFor?.trim()) {
       addIssue({
         id: `err-act-${idx}-for`,
-        tab: "table",
+        tab: "actions",
         fieldKey: `INQCmds.${idx}.cmdFor`,
         message: `Action #${idx + 1}: Command target is required`,
         itemIndex: idx,
-        subSegment: "actions",
       });
     }
   });

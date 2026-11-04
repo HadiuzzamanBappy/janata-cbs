@@ -1,14 +1,15 @@
 "use client";
 
-import { FileText, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
-import { cn } from "@/lib/core-utils";
+import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { setFieldValue } from "@/features/form-engine/utils/path-utils";
 import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
+import { CbsRecordFunction } from "@/types";
+import { FILTER_INSPECTOR_SECTIONS } from "../../fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
-import { FilterConstraintsSection } from "./filter-constraints-section";
 
 export interface FilterInspectorProps {
   field: INQSelectField;
@@ -19,13 +20,6 @@ export interface FilterInspectorProps {
   onRemove?: () => void;
 }
 
-const FILTER_TYPES = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "date", label: "Date" },
-  { value: "select", label: "Dropdown" },
-];
-
 export function FilterInspector({
   field,
   selectedIdx,
@@ -34,17 +28,35 @@ export function FilterInspector({
   onUpdate,
   onRemove,
 }: FilterInspectorProps) {
-  const nameError = validationErrors.find(
-    (e) =>
-      e.tab === "selection" &&
-      e.itemIndex === selectedIdx &&
-      e.fieldKey.endsWith("selectFieldName"),
-  );
-  const displayError = validationErrors.find(
-    (e) =>
-      e.tab === "selection" &&
-      e.itemIndex === selectedIdx &&
-      e.fieldKey.endsWith("selectFieldDisplay"),
+  // Map validation errors for this criterion
+  const errorMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const err of validationErrors) {
+      if (err.tab === "selection" && err.itemIndex === selectedIdx) {
+        const cleanKey = err.fieldKey.split(".").pop() || err.fieldKey;
+        map[cleanKey] = err.message;
+      }
+    }
+    return map;
+  }, [validationErrors, selectedIdx]);
+
+  // Centralized field change dispatcher
+  const handleFieldChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      let finalVal = value;
+      if (fieldKey === "selectFieldName" && typeof value === "string") {
+        finalVal = value.replace(/\s+/g, "");
+      } else if (fieldKey === "selectFieldOperatorFixed") {
+        finalVal = value ? field.selectFieldOperator || "EQ" : "";
+      }
+      const updated = setFieldValue(
+        field as unknown as Record<string, unknown>,
+        fieldKey,
+        finalVal,
+      );
+      onUpdate(updated as unknown as Partial<INQSelectField>);
+    },
+    [field, onUpdate],
   );
 
   return (
@@ -88,88 +100,22 @@ export function FilterInspector({
         </div>
       </div>
 
-      {/* 2. Inspector Panels */}
+      {/* 2. Form Engine Rendered Filter Properties */}
       <div className="flex-1 overflow-y-auto p-3">
         <div className="max-w-3xl space-y-3">
-          {/* Panel 1: Criteria Identity */}
-          <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <FileText className="size-3.5 text-primary" />
-                <span>Criteria Identity</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground">Search Specification</span>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              {/* Field Key */}
-              <FieldRow
-                label="Field Key"
-                required
-                error={nameError?.message}
-                enrichText="Database column or model property key used to query records (e.g. recordId, branchCode)."
-              >
-                <Input
-                  value={field.selectFieldName}
-                  disabled={disabled}
-                  onChange={(e) =>
-                    onUpdate({ selectFieldName: e.target.value.replace(/\s+/g, "") })
-                  }
-                  placeholder="e.g. recordId, branchCode"
-                  className={cn(
-                    "h-7 text-xs font-mono bg-background rounded border-border/80 flex-1",
-                    nameError && "border-destructive focus-visible:ring-destructive/30",
-                  )}
-                />
-              </FieldRow>
-
-              {/* Display Header */}
-              <FieldRow
-                label="Display Label"
-                required
-                error={displayError?.message}
-                enrichText="Human-readable label displayed in the inquiry selection filter scanline."
-              >
-                <Input
-                  value={field.selectFieldDisplay}
-                  disabled={disabled}
-                  onChange={(e) => onUpdate({ selectFieldDisplay: e.target.value })}
-                  placeholder="e.g. Account Number, Branch Title"
-                  className={cn(
-                    "h-7 text-xs bg-background rounded border-border/80 flex-1",
-                    displayError && "border-destructive focus-visible:ring-destructive/30",
-                  )}
-                />
-              </FieldRow>
-
-              {/* Field Type Buttons */}
-              <FieldRow
-                label="Field Type"
-                enrichText="Input widget type rendered in the inquiry selection bar."
-              >
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {FILTER_TYPES.map((t) => (
-                    <Button
-                      key={t.value}
-                      type="button"
-                      variant={
-                        (field.selectFieldType || "text") === t.value ? "default" : "outline"
-                      }
-                      size="sm"
-                      disabled={disabled}
-                      onClick={() => onUpdate({ selectFieldType: t.value })}
-                      className="h-7 px-3 text-xs rounded flex-1"
-                    >
-                      {t.label}
-                    </Button>
-                  ))}
-                </div>
-              </FieldRow>
-            </div>
-          </div>
-
-          {/* Panel 2: Logic & Operator Constraints */}
-          <FilterConstraintsSection field={field} disabled={disabled} onUpdate={onUpdate} />
+          <FormRenderer
+            frmElements={{ sections: FILTER_INSPECTOR_SECTIONS }}
+            values={
+              {
+                ...field,
+                selectFieldOperatorFixed: Boolean(field.selectFieldOperatorFixed),
+              } as Record<string, unknown>
+            }
+            onChange={handleFieldChange}
+            errors={errorMap}
+            disabled={disabled}
+            mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          />
         </div>
       </div>
     </div>

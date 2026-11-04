@@ -18,6 +18,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { appConfig } from "@/lib/core-config";
 import { cn, toTitleCase } from "@/lib/core-utils";
+import { unwrapRecordsPayload } from "@/lib/data-parsers";
 import { useSessionStore } from "@/store";
 
 interface BranchSwitcherProps {
@@ -38,7 +39,7 @@ export function BranchSwitcher({
   align = "end",
 }: BranchSwitcherProps = {}) {
   const [branchSearch, setBranchSearch] = React.useState("");
-  const { currentBranch, setBranch } = useSessionStore();
+  const { currentBranch, setBranch, user } = useSessionStore();
 
   const {
     data: branches = [],
@@ -48,25 +49,47 @@ export function BranchSwitcher({
   } = useQuery<BranchItem[]>({
     queryKey: ["app", "branches"],
     queryFn: async () => {
-      const res = await cbs.send<Array<{ recordId?: string; id?: string; branchTitle?: string }>>(
-        cbs.branch.list(),
-        { silent: true },
-      );
+      const res = await cbs.send<unknown>(cbs.branch.list(), { silent: true });
 
-      if (res.status === "SUCCESS" && Array.isArray(res.data)) {
-        return res.data.map((b) => ({
-          code: String(b.recordId || b.id || ""),
-          name: String(b.branchTitle || b.recordId || ""),
-          type: (b.recordId || b.id) === appConfig.centralBranch ? "Head Office" : "General",
-        }));
+      if (res.status !== "SUCCESS") {
+        throw new Error(res.message || "Failed to load branch directory");
       }
-      return [
-        {
-          code: appConfig.centralBranch,
-          name: "Central Head Office",
-          type: "Head Office",
-        },
-      ];
+
+      const rawRecords = unwrapRecordsPayload<Record<string, unknown>>(res.data);
+      const list =
+        Array.isArray(rawRecords) && rawRecords.length > 0
+          ? rawRecords
+          : Array.isArray(res.data)
+            ? (res.data as Record<string, unknown>[])
+            : [];
+
+      if (!list || list.length === 0) {
+        throw new Error("No branch records found from core banking service");
+      }
+
+      const mapped = list
+        .map((b) => {
+          const code = String(b.recordId || b.id || b.branchCode || b.code || "").trim();
+          const rawTitle = String(
+            b.branchTitle || b.branchName || b.title || b.name || code,
+          ).trim();
+          const name = rawTitle || code;
+          const isCentral =
+            code === appConfig.centralBranch ||
+            code.replace(/\D/g, "") === appConfig.centralBranch.replace(/\D/g, "");
+          const type = isCentral
+            ? "Head Office"
+            : String(b.branchType || b.type || "General").trim();
+
+          return { code, name, type };
+        })
+        .filter((b) => Boolean(b.code));
+
+      if (mapped.length === 0) {
+        throw new Error("Failed to parse branch directory records");
+      }
+
+      return mapped;
     },
   });
 
@@ -76,9 +99,13 @@ export function BranchSwitcher({
     refetch();
   }, [refetch]);
 
-  const activeBranchCode = currentBranch ?? appConfig.centralBranch;
+  const activeBranchCode = currentBranch ?? user?.branchCode ?? appConfig.centralBranch;
   const activeBranchObj =
-    branches.find((b) => b.code === activeBranchCode) ?? (branches.length > 0 ? branches[0] : null);
+    branches.find(
+      (b) =>
+        b.code === activeBranchCode ||
+        (activeBranchCode && b.code.replace(/\D/g, "") === activeBranchCode.replace(/\D/g, "")),
+    ) ?? (branches.length > 0 ? branches[0] : null);
 
   const filteredBranches = React.useMemo(() => {
     if (!branchSearch.trim()) return branches;
@@ -197,7 +224,7 @@ export function BranchSwitcher({
                     </span>
                     <span className="truncate text-xs font-normal">{toTitleCase(b.name)}</span>
                   </div>
-                  {activeBranchCode === b.code && (
+                  {activeBranchObj?.code === b.code && (
                     <Check className="size-3 shrink-0 text-primary" />
                   )}
                 </DropdownMenuItem>

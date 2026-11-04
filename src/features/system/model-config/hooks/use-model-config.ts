@@ -60,7 +60,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       const draft: ModelConfigRecord = {
         ...INITIAL_MODEL,
         TABLENAME: cleanId.replace(/[.-]/g, "_"),
-        DESCRIPTION: cleanId.replace(/[_.-]/g, " "),
+        DESCRIPTION: "",
       };
       hydrate(draft);
       clearCommitted();

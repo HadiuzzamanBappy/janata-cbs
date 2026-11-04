@@ -1,0 +1,109 @@
+[
+  {
+    "servicePath": "default",
+    "requestType": "GET",
+    "controlName": "INQUIRY",
+    "recordFunction": "S",
+    "recordId": "USERS.DEMO"
+  },
+  {
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "message": "record successfully processed!",
+    "idempotencyKey": "",
+    "errors": [],
+    "timestamp": "2026-11-04T09:30:42.008888568Z",
+    "data": {
+      "recordId": "USERS.DEMO",
+      "auditData": {
+        "recStatus": "",
+        "recCurrNumber": 1,
+        "recInputter": "ZZ0284590",
+        "recInputTime": "2026-11-04 09:27:54",
+        "recAuthorizer": "",
+        "recAuthTime": "",
+        "recBranchCode": "JB9999"
+      },
+      "INQInfo": {
+        "description": "test inq",
+        "pageOrientation": "Portrait",
+        "perpageItem": 25,
+        "showSerial": null,
+        "showPagination": true,
+        "showBranchWise": null,
+        "inqType": "DFT",
+        "controllerName": "USERS",
+        "rptControllerName": null,
+        "fixedSelection": null,
+        "inqServicePath": null,
+        "cmdFromInternal": null,
+        "cmdFieldName": null
+      },
+      "INQSelectField": [
+        {
+          "selectFieldName": "userName",
+          "selectFieldType": "text",
+          "selectFieldOperator": "LK",
+          "selectFieldOperatorFixed": "",
+          "selectFieldDisplay": "User Name",
+          "selectFieldValue": "",
+          "selectFieldRequired": false
+        },
+        {
+          "selectFieldName": "signOnName",
+          "selectFieldType": "text",
+          "selectFieldOperator": "LK",
+          "selectFieldOperatorFixed": "",
+          "selectFieldDisplay": "Sign On Name",
+          "selectFieldValue": "",
+          "selectFieldRequired": false
+        }
+      ],
+      "INQDef": [
+        {
+          "fieldName": "userName",
+          "fieldType": "CH",
+          "fieldFunc": "",
+          "fieldRowCol": "1,1",
+          "fieldLength": "65,L",
+          "fieldDisplay": "User Name",
+          "dataPassable": true
+        },
+        {
+          "fieldName": "signOnName",
+          "fieldType": "CH",
+          "fieldFunc": "",
+          "fieldRowCol": "1,1",
+          "fieldLength": "16,L",
+          "fieldDisplay": "Sign On Name",
+          "dataPassable": true
+        },
+        {
+          "fieldName": "language",
+          "fieldType": "NUM",
+          "fieldFunc": "",
+          "fieldRowCol": "1,1",
+          "fieldLength": "10,R",
+          "fieldDisplay": "Language",
+          "dataPassable": true
+        },
+        {
+          "fieldName": "companyCode",
+          "fieldType": "CH",
+          "fieldFunc": "",
+          "fieldRowCol": "1,1",
+          "fieldLength": "11,L",
+          "fieldDisplay": "Company Code",
+          "dataPassable": true
+        }
+      ],
+      "INQCmds": [
+        {
+          "cmdFor": "USERS S recordId",
+          "cmdButton": "View"
+        }
+      ]
+    },
+    "success": true
+  }
+]

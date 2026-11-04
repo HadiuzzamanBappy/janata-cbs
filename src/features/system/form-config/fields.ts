@@ -43,6 +43,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 2,
         REQUIRED: true,
         WIDTH: 180,
+        DEFAULTVALUE: "1",
         ENRICHTEXT: "Minimum required authorization level before committing transactions.",
       },
     ],

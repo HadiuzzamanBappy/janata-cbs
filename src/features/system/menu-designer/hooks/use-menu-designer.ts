@@ -131,10 +131,10 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
       );
 
       if (json.status === "SUCCESS") {
-        setMode(CbsRecordFunction.INPUT);
         rebaseline();
         refetchTrees();
         setValidationErrors([]);
+        reset();
         return true;
       }
       return false;
@@ -148,7 +148,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     } finally {
       setSubmitting(false);
     }
-  }, [formData, recordId, setMode, rebaseline, refetchTrees, handleValidate]);
+  }, [formData, recordId, reset, rebaseline, refetchTrees, handleValidate]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId.trim()) return false;
@@ -159,9 +159,9 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
         successMessage: `Authorized live menu tree #${recordId}`,
       });
       if (json.status === "SUCCESS") {
-        setMode(CbsRecordFunction.SEE);
         rebaseline();
         refetchTrees();
+        reset();
         return true;
       }
       return false;
@@ -175,7 +175,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, setMode, rebaseline, refetchTrees]);
+  }, [recordId, reset, rebaseline, refetchTrees]);
 
   const handleCreateNew = React.useCallback(
     (customId?: string) => {

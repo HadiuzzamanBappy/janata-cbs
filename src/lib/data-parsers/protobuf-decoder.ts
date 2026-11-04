@@ -76,12 +76,16 @@ export function unwrapRecordsPayload<T = unknown>(data: unknown): T[] {
     if (Array.isArray(decoded.data)) {
       return decoded.data as T[];
     }
+    if (Array.isArray(decoded.menuTree)) {
+      return decoded.menuTree as T[];
+    }
     const inner = decoded.data || decoded.record || decoded.fields;
     if (inner && typeof inner === "object" && !Array.isArray(inner)) {
       const innerRec = inner as Record<string, unknown>;
       if (Array.isArray(innerRec.records)) return innerRec.records as T[];
       if (Array.isArray(innerRec.list)) return innerRec.list as T[];
       if (Array.isArray(innerRec.items)) return innerRec.items as T[];
+      if (Array.isArray(innerRec.menuTree)) return innerRec.menuTree as T[];
     }
   }
 

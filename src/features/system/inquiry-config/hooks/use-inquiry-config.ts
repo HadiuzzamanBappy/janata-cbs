@@ -54,7 +54,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
         ...INITIAL_INQUIRY_CONFIG,
         INQInfo: {
           ...INITIAL_INQUIRY_CONFIG.INQInfo,
-          description: cleanId.replace(/[_.-]/g, " "),
+          description: "",
           controllerName: cleanId.replace(/[.-]/g, "_").toUpperCase(),
         },
       };
@@ -166,6 +166,12 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
           rebaseline();
           broadcastRecordMutation("INQUIRY", recordId);
           setValidationErrors([]);
+
+          if (funcCode === CbsRecordFunction.HOLD) {
+            setMode(CbsRecordFunction.HOLD);
+          } else {
+            resetToIdle();
+          }
           return true;
         }
 
@@ -186,7 +192,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
         setSubmitting(false);
       }
     },
-    [formData, recordId, rebaseline, upsertCatalogItem, handleValidate],
+    [formData, recordId, rebaseline, upsertCatalogItem, handleValidate, resetToIdle, setMode],
   );
 
   return {

@@ -27,6 +27,10 @@ export function SidebarMenuTree({
           <Skeleton className="h-5 w-3/4 rounded-sm ml-2" />
           <Skeleton className="h-5 w-1/2 rounded-sm" />
         </div>
+      ) : treeNodes.length === 0 ? (
+        <div className="py-4 text-center text-xs text-muted-foreground">
+          No navigation menus available
+        </div>
       ) : (
         <div role="tree" className="flex flex-col space-y-0.5">
           {treeNodes.map((node) => (

@@ -44,6 +44,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         REQUIRED: true,
         WIDGET: "segmented",
         WIDTH: 320,
+        DEFAULTVALUE: "DFT",
         PARAMETER: {
           type: "O",
           data: [
@@ -71,6 +72,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 10,
         WIDGET: "segmented",
         WIDTH: 180,
+        DEFAULTVALUE: "Portrait",
         PARAMETER: {
           type: "O",
           data: [
@@ -87,6 +89,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 4,
         WIDTH: 120,
+        DEFAULTVALUE: "30",
         ENRICHTEXT: "Default page size limit for pagination.",
       },
       {
@@ -98,6 +101,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 1,
         WIDGET: "checkbox",
         WIDTH: 1000,
+        DEFAULTVALUE: "true",
         ENRICHTEXT: "Render row serial number (1, 2, 3...) in table results.",
       },
       {
@@ -109,6 +113,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 1,
         WIDGET: "checkbox",
         WIDTH: 1000,
+        DEFAULTVALUE: "true",
         ENRICHTEXT: "Show footer paging controls and page navigation.",
       },
       {
@@ -151,6 +156,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 100,
         REQUIRED: true,
         WIDTH: 280,
+        DEFAULTVALUE: "default",
         ENRICHTEXT: "Backend service routing endpoint path.",
       },
     ],
@@ -201,6 +207,7 @@ export const FILTER_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 20,
         WIDGET: "segmented",
         WIDTH: 320,
+        DEFAULTVALUE: "text",
         PARAMETER: {
           type: "O",
           data: [
@@ -230,6 +237,7 @@ export const FILTER_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 10,
         WIDGET: "segmented",
         WIDTH: 420,
+        DEFAULTVALUE: "EQ",
         PARAMETER: {
           type: "O",
           data: [
@@ -325,6 +333,7 @@ export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 10,
         WIDGET: "segmented",
         WIDTH: 420,
+        DEFAULTVALUE: "CH",
         PARAMETER: {
           type: "O",
           data: [
@@ -347,6 +356,7 @@ export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 2,
         WIDGET: "segmented",
         WIDTH: 280,
+        DEFAULTVALUE: "L",
         PARAMETER: {
           type: "O",
           data: [

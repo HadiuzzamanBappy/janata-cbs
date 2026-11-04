@@ -1,5 +1,5 @@
 import { Minus, Plus } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useFieldOptions } from "../hooks/use-field-options";
 import { useMultiValue } from "../hooks/use-multi-value";
@@ -38,11 +38,52 @@ export function UnifiedFieldFactory({
   );
   const effectiveEnrichText =
     field.ENRICHTEXT || ((field as Record<string, unknown>).enrichText as string) || undefined;
-  const placeholder = field.DEFAULTVALUE || undefined;
+
+  // Resolve default value from field configuration if no value is set
+  const rawDefault = field.DEFAULTVALUE ?? field.FIXEDVALUE;
+  const effectiveDefault = useMemo(() => {
+    if (rawDefault === undefined || rawDefault === null || rawDefault === "") {
+      return undefined;
+    }
+    const normType = (field.TYPE || "").toLowerCase();
+    if (normType === "number") {
+      const n = Number(rawDefault);
+      return Number.isNaN(n) ? rawDefault : n;
+    }
+    if (normType === "boolean") {
+      const lower = String(rawDefault).toLowerCase().trim();
+      return lower === "true" || lower === "1" || lower === "y";
+    }
+    return rawDefault;
+  }, [rawDefault, field.TYPE]);
+
+  // Use DEFAULTVALUE when current value is not provided
+  const effectiveValue =
+    value !== undefined && value !== null && value !== ""
+      ? value
+      : isInputMode && effectiveDefault !== undefined
+        ? effectiveDefault
+        : value;
+
+  const placeholder = typeof rawDefault === "string" ? rawDefault : undefined;
+
+  // Auto-populate form kernel state with default value on creation when no value was provided
+  const hasAppliedDefault = useRef(false);
+  useEffect(() => {
+    if (
+      isInputMode &&
+      !hasAppliedDefault.current &&
+      (value === undefined || value === null || value === "") &&
+      effectiveDefault !== undefined
+    ) {
+      hasAppliedDefault.current = true;
+      onChange(fieldKey, effectiveDefault);
+    }
+  }, [isInputMode, value, effectiveDefault, fieldKey, onChange]);
 
   // Manage multi-value array states
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =
-    useMultiValue(value, isMulti, onChange, fieldKey);
+    useMultiValue(effectiveValue, isMulti, onChange, fieldKey);
 
   const renderSingleWidget = (
     val: unknown,
@@ -146,7 +187,7 @@ export function UnifiedFieldFactory({
       enrichText={effectiveEnrichText}
       style={inputStyle}
     >
-      {renderSingleWidget(value, (newVal) => onChange(fieldKey, newVal), elementId)}
+      {renderSingleWidget(effectiveValue, (newVal) => onChange(fieldKey, newVal), elementId)}
     </FieldRow>
   );
 }

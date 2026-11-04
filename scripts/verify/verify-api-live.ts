@@ -257,6 +257,21 @@ async function runSuite() {
     },
   );
 
+  await testDispatch(
+    "3.3 GUM on MENU.TREE: Returns active user navigation menu tree",
+    {
+      requestType: CbsRequestType.GUM,
+      controlName: "MENU.TREE",
+      recordFunction: CbsRecordFunction.SEE,
+      recordId: "",
+    },
+    (res) => {
+      const { parseMNU } = require("@/lib/data-parsers");
+      const parsed = parseMNU(res.cleanData);
+      return parsed.success && parsed.data.length > 0;
+    },
+  );
+
   // ── 4. Metamodel Form Schema (MODEL.CONFIG / GMC) ──
   console.log("\n── 4. Metamodel Spec Introspection (MODEL.CONFIG / GMC) ──");
   await testDispatch(

@@ -72,9 +72,18 @@ export function ColumnInspector({
 
   const handleFieldChange = (fieldKey: string, value: unknown) => {
     if (fieldKey === "fieldName" && typeof value === "string") {
-      onUpdateColumn(selectedColIdx, {
-        fieldName: value.replace(/\s+/g, ""),
-      });
+      const cleanName = value.replace(/\s+/g, "");
+      const patch: Partial<INQDef> = { fieldName: cleanName };
+      const currentDisplay = (activeCol.fieldDisplay || "").trim();
+      const prevDerived = (activeCol.fieldName || "")
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+      if (!currentDisplay || currentDisplay === prevDerived) {
+        patch.fieldDisplay = cleanName
+          .replace(/[_-]/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+      }
+      onUpdateColumn(selectedColIdx, patch);
     } else if (fieldKey === "fieldDisplay") {
       onUpdateColumn(selectedColIdx, { fieldDisplay: String(value ?? "") });
     } else if (fieldKey === "fieldType") {

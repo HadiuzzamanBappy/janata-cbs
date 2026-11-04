@@ -18,7 +18,7 @@ import { AppSettings } from "@/features/settings";
 import { cbs } from "@/lib/cbs-client";
 import { useHotkeys } from "@/lib/cbs-hotkeys";
 import { logger } from "@/lib/core-logger";
-import type { MenuItem } from "@/lib/data-schemas";
+import { parseMNU } from "@/lib/data-parsers";
 import { useSessionStore } from "@/store";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
@@ -44,16 +44,14 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
     queryKey: ["app", "sidebar", "menu-tree"],
     queryFn: async () => {
       try {
-        const res = await cbs.send<{ menuTree?: MenuItem[] } | MenuItem[]>(cbs.menuTree.get(), {
+        const res = await cbs.send<unknown>(cbs.menuTree.get(), {
           silent: true,
         });
         if (res.status === "SUCCESS" && res.data) {
-          const rawNodes = Array.isArray(res.data)
-            ? res.data
-            : Array.isArray(res.data.menuTree)
-              ? res.data.menuTree
-              : [];
-          return rawNodes.map(mapMenuItemToTreeNode);
+          const parsed = parseMNU(res.data);
+          if (parsed.success && parsed.data.length > 0) {
+            return parsed.data.map(mapMenuItemToTreeNode);
+          }
         }
       } catch (err) {
         logger.error("Failed to load sidebar menu from proxy", err, "SIDEBAR");

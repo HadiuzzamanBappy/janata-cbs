@@ -52,9 +52,19 @@ export function parseMNU(
   try {
     const decoded = decodeProtobufValue<unknown>(rawPayload);
     const list = unwrapRecordsPayload(decoded);
-    const nodes = (Array.isArray(list) ? list : [list]) as RawMenuNode[];
+    const nodes = (
+      Array.isArray(list) && list.length > 0
+        ? list
+        : Array.isArray(decoded)
+          ? decoded
+          : typeof decoded === "object" && decoded
+            ? [decoded]
+            : []
+    ) as RawMenuNode[];
 
-    const result = nodes.map((node, i) => normalizeNode(node, i));
+    const result = nodes
+      .filter((node) => node && typeof node === "object" && node.isVisible !== false)
+      .map((node, i) => normalizeNode(node, i));
     return { success: true, data: result };
   } catch (err) {
     return {

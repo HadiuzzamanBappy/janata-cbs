@@ -53,6 +53,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 100,
         REQUIRED: true,
         WIDTH: 180,
+        DEFAULTVALUE: "default",
         ENRICHTEXT: "Backend microservice path or endpoint routing key.",
       },
       {
@@ -64,6 +65,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 1,
         REQUIRED: true,
         WIDGET: "radio-group",
+        DEFAULTVALUE: "G",
         PARAMETER: {
           type: "O",
           data: [
@@ -306,6 +308,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 20,
         WIDGET: "segmented",
         WIDTH: 1000,
+        DEFAULTVALUE: "Text",
         PARAMETER: {
           type: "O",
           data: [
@@ -329,6 +332,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 5,
         WIDGET: "segmented",
         WIDTH: 1000,
+        DEFAULTVALUE: "S",
         PARAMETER: {
           type: "O",
           data: [
@@ -355,6 +359,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 4,
         WIDTH: 180,
+        DEFAULTVALUE: "50",
         ENRICHTEXT: "Maximum character storage limit or numerical precision allowed.",
       },
       {

@@ -58,6 +58,11 @@ export function parseGfcResponse(
     const formParsed = formConfigRecordSchema.safeParse(rawFc);
     if (formParsed.success) {
       form = formParsed.data;
+    } else {
+      console.warn(
+        "[parseGfcResponse] Failed to parse FORMCONTROL layout against schema:",
+        formParsed.error.issues,
+      );
     }
   }
 

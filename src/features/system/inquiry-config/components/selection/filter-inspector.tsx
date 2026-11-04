@@ -54,6 +54,20 @@ export function FilterInspector({
         fieldKey,
         finalVal,
       );
+
+      // Auto-suggest display label if pristine
+      if (fieldKey === "selectFieldName" && typeof value === "string") {
+        const cleanName = finalVal as string;
+        const currentDisplay = (field.selectFieldDisplay || "").trim();
+        const prevDerived = (field.selectFieldName || "")
+          .replace(/[_-]/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
+        if (!currentDisplay || currentDisplay === prevDerived) {
+          (updated as Record<string, unknown>).selectFieldDisplay = cleanName
+            .replace(/[_-]/g, " ")
+            .replace(/\b\w/g, (c) => c.toUpperCase());
+        }
+      }
       onUpdate(updated as unknown as Partial<INQSelectField>);
     },
     [field, onUpdate],

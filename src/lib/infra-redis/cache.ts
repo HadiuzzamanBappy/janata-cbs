@@ -15,6 +15,7 @@ export interface CacheDescriptorTarget {
   controlName?: string | null;
   recordFunction?: string | null;
   recordId?: string | null;
+  userId?: string | null;
 }
 
 /**
@@ -73,9 +74,9 @@ export function resolveCacheDescriptor(
     };
   }
 
-  // 3. User Navigation Menu Tree (GUM): cbs:menu:user
+  // 3. User Navigation Menu Tree (GUM): cbs:menu:user:<USER_ID> or specific tree
   if (target.requestType === CbsRequestType.GUM || ctrl === CbsControlTable.MENU_TREE) {
-    const treeTarget = recordId || "user";
+    const treeTarget = recordId || (target.userId ? `user:${target.userId}` : "user");
     return {
       key: appConfig.redis.cacheKeys.menu(treeTarget),
       ttl: appConfig.redis.menuTtlSeconds,
@@ -188,13 +189,13 @@ export async function invalidateCache(controlName?: string): Promise<number> {
     const specPattern = cacheKey(appConfig.redis.cacheKeys.formSpec(`${cleanCmd}*`));
     const enqPattern = cacheKey(appConfig.redis.cacheKeys.inquirySpec(`${cleanCmd}*`));
     const menuKey = cacheKey(appConfig.redis.cacheKeys.menu(`${cleanCmd}*`));
-    const [specDel, enqDel, menuDel] = await Promise.all([
+    const [specDel, enqDel, menuDel, userDel] = await Promise.all([
       cacheDelete(specPattern),
       cacheDelete(enqPattern),
       cacheDelete(menuKey),
-      cacheDelete(cacheKey(appConfig.redis.cacheKeys.menu("user"))),
+      cacheDelete(cacheKey(appConfig.redis.cacheKeys.menu("user*"))),
     ]);
-    return specDel + enqDel + menuDel;
+    return specDel + enqDel + menuDel + userDel;
   }
 
   // Delete all keys matching key prefix pattern (cbs:*)

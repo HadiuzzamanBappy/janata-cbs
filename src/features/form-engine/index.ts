@@ -6,4 +6,5 @@ export * from "./components/section-card";
 export * from "./hooks/use-model-lookup";
 export * from "./store/form-kernel-provider";
 export * from "./store/form-kernel-store";
+export * from "./utils/path-utils";
 export * from "./validation/field-validator";

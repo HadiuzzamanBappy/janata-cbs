@@ -44,6 +44,7 @@ export function InquiryRowActions({ commands, row }: InquiryRowActionsProps) {
                   type="button"
                   onClick={() => executeInquiryCommand(cmd, row)}
                   data-cbs-command={executable}
+                  data-cbs-link-handled="true"
                   className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                 >
                   {icon}

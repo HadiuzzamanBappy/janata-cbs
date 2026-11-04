@@ -37,7 +37,6 @@ interface MdCanvasTabProps {
   onOutdentNode?: (id: string) => void;
   onMoveOrder: (id: string, direction: -1 | 1) => void;
   onMoveNode?: (activeId: string, overId: string) => void;
-  onAddSubgroup: (parentId: string | null) => void;
   onDropCatalogItem: (
     item: MenuCatalogActionItem,
     parentId?: string | null,
@@ -63,7 +62,6 @@ export function MdCanvasTab({
   onOutdentNode,
   onMoveOrder,
   onMoveNode,
-  onAddSubgroup,
   onDropCatalogItem,
   isReadOnly,
 }: MdCanvasTabProps) {
@@ -233,7 +231,6 @@ export function MdCanvasTab({
             onIndentNode={onIndentNode}
             onOutdentNode={onOutdentNode}
             onMoveOrder={onMoveOrder}
-            onAddSubgroup={onAddSubgroup}
             onDropCatalogItem={onDropCatalogItem}
             isReadOnly={isReadOnly}
           />

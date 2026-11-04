@@ -9,6 +9,7 @@ export interface ActionBtnProps {
   enabled?: boolean;
   reason?: string;
   defaultTooltip: string;
+  commandPreview?: string;
   variant?: "default" | "destructive" | "ghost";
   className?: string;
   children: React.ReactNode;
@@ -17,12 +18,14 @@ export interface ActionBtnProps {
 /**
  * Universal atomic action button for CBS screen headers.
  * Standardizes button sizing (h-7 w-9), accessible tooltips, and disabled states.
+ * Connects to AppTargetPreview via data-cbs-preview and flags data-cbs-link-handled to avoid hijacking onClick.
  */
 export function ActionBtn({
   onClick,
   enabled = true,
   reason,
   defaultTooltip,
+  commandPreview,
   variant = "default",
   className,
   children,
@@ -37,6 +40,8 @@ export function ActionBtn({
             size="icon-sm"
             onClick={onClick}
             disabled={!enabled}
+            data-cbs-preview={enabled && commandPreview ? commandPreview : undefined}
+            data-cbs-link-handled="true"
             className={`h-7 w-9 shadow-xs shrink-0 disabled:opacity-40 ${className || ""}`.trim()}
           >
             {children}

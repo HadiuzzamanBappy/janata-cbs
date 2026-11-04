@@ -10,6 +10,7 @@ export interface ActiveActionsProps {
   recordStatus?: string;
   recordInputter?: string;
   command?: string;
+  recordId?: string;
   submitting?: boolean;
   onSubmit?: () => void;
   onValidate?: () => void;
@@ -28,6 +29,7 @@ export function ActiveActions({
   recordStatus,
   recordInputter,
   command,
+  recordId = "",
   submitting = false,
   onSubmit,
   onValidate,
@@ -52,6 +54,9 @@ export function ActiveActions({
     onReturnToSearch,
   });
 
+  const baseCmd = (command || "").trim().toUpperCase();
+  const cleanId = recordId.trim().toUpperCase();
+
   return (
     <div className="flex items-center gap-1 shrink-0">
       {/* 1. Commit / Save Record (✓) */}
@@ -59,6 +64,7 @@ export function ActiveActions({
         onClick={onSubmit}
         enabled={actions.commit.enabled}
         reason={actions.commit.reason}
+        commandPreview={baseCmd ? `${baseCmd} I ${cleanId}`.trim() : undefined}
         defaultTooltip="Save / Commit Record (✓)"
       >
         <Check className="size-3 stroke-[2.5]" />
@@ -69,6 +75,7 @@ export function ActiveActions({
         onClick={onValidate}
         enabled={actions.validate.enabled}
         reason={actions.validate.reason}
+        commandPreview={baseCmd ? `${baseCmd} V ${cleanId}`.trim() : undefined}
         defaultTooltip="Validate Rules & Integrity (?✓)"
       >
         <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -81,6 +88,7 @@ export function ActiveActions({
         onClick={onHold}
         enabled={actions.hold.enabled}
         reason={actions.hold.reason}
+        commandPreview={baseCmd ? `${baseCmd} H ${cleanId}`.trim() : undefined}
         defaultTooltip="Hold Draft (❚❚)"
       >
         <Pause className="size-3 fill-current" />
@@ -91,6 +99,7 @@ export function ActiveActions({
         onClick={onDelete}
         enabled={actions.delete.enabled}
         reason={actions.delete.reason}
+        commandPreview={baseCmd ? `${baseCmd} D ${cleanId}`.trim() : undefined}
         defaultTooltip="Delete / Reverse Record (✕)"
         variant="destructive"
       >
@@ -102,6 +111,7 @@ export function ActiveActions({
         onClick={onAuthorizeReverse}
         enabled={actions.authorize.enabled}
         reason={actions.authorize.reason}
+        commandPreview={baseCmd && cleanId ? `${baseCmd} A ${cleanId}` : undefined}
         defaultTooltip="Authorize Record (✓✓)"
       >
         <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -114,6 +124,7 @@ export function ActiveActions({
         onClick={onAuthorizeReverse}
         enabled={actions.reverse.enabled}
         reason={actions.reverse.reason}
+        commandPreview={baseCmd && cleanId ? `${baseCmd} R ${cleanId}` : undefined}
         defaultTooltip="Authorize Reversal (✕✓)"
       >
         <span className="text-[10px] font-mono leading-none tracking-tighter select-none font-bold">
@@ -126,6 +137,7 @@ export function ActiveActions({
         onClick={onProcessAction}
         enabled={actions.process.enabled}
         reason={actions.process.reason}
+        commandPreview={baseCmd && cleanId ? `${baseCmd} P ${cleanId}` : undefined}
         defaultTooltip="Process / Verify (▶)"
       >
         <Play className="size-3 fill-current" />
@@ -136,6 +148,7 @@ export function ActiveActions({
         onClick={onReturnToSearch}
         enabled={actions.returnToSearch.enabled}
         reason={actions.returnToSearch.reason}
+        commandPreview={baseCmd || undefined}
         defaultTooltip="Return to App Screen (⬆)"
       >
         <ArrowUp className="size-3 stroke-[2.5]" />

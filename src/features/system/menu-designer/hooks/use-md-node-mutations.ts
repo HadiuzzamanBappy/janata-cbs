@@ -30,12 +30,14 @@ export function useMdNodeMutations(
 
         if (isAlreadyInTree(prevNodes)) return prevNodes;
 
+        const isGroupItem = item.menuType === "GROUP" || !item.command;
+
         const newNode: MenuTreeNode = {
           id: `node_${crypto.randomUUID().slice(0, 8)}`,
           menuId: numericMenuId,
           label: item.label,
           command: item.command || "",
-          menuType: (item.menuType as MenuType) || "FORM",
+          menuType: (item.menuType as MenuType) || (isGroupItem ? "GROUP" : "FORM"),
           menuAction: (item.menuAction as MenuAction) || "SCREEN",
           isVisible: true,
           orderIndex: 0,
@@ -81,50 +83,6 @@ export function useMdNodeMutations(
         }
 
         return insertIntoParent(prevNodes);
-      });
-    },
-    [setNodes],
-  );
-
-  const addFolder = React.useCallback(
-    (label: string = "New Group", parentId: string | null = null) => {
-      const newFolder: MenuTreeNode = {
-        id: `node_${crypto.randomUUID().slice(0, 8)}`,
-        menuId: 0,
-        label,
-        command: "",
-        isVisible: true,
-        orderIndex: 0,
-        children: [],
-      };
-
-      setNodes((prevNodes) => {
-        if (!parentId) {
-          return [
-            ...prevNodes.map((n) => ({ ...n, orderIndex: n.orderIndex + 1 })),
-            { ...newFolder, orderIndex: prevNodes.length + 1 },
-          ];
-        }
-
-        function insertFolder(list: MenuTreeNode[]): MenuTreeNode[] {
-          return list.map((node) => {
-            if (node.id === parentId) {
-              return {
-                ...node,
-                children: [
-                  ...node.children,
-                  { ...newFolder, orderIndex: node.children.length + 1 },
-                ],
-              };
-            }
-            if (node.children.length > 0) {
-              return { ...node, children: insertFolder(node.children) };
-            }
-            return node;
-          });
-        }
-
-        return insertFolder(prevNodes);
       });
     },
     [setNodes],
@@ -206,7 +164,6 @@ export function useMdNodeMutations(
 
   return {
     addCatalogItem,
-    addFolder,
     updateNode,
     deleteNode,
     ungroupNode,

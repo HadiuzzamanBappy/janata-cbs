@@ -55,7 +55,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
       if (!idToFetch) return;
       setLoading(true);
       try {
-        const json = await cbs.send<unknown>(cbs.menuTree.get(), {
+        const json = await cbs.send<unknown>(cbs.menuTree.get(idToFetch), {
           silent: true,
         });
         if (json.status === "SUCCESS" && json.data) {

@@ -8,8 +8,8 @@ import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-sch
 
 export const DEMO_AVAILABLE_TREES = [
   {
-    id: "MAIN.MENU",
-    label: "Core Enterprise Main Navigation",
+    id: "MENU.ONE",
+    label: "Primary Core Banking Navigation Tree",
     details: "Active Core Navigation",
   },
   { id: "ADMIN.NAV", label: "System Administration & Ops", details: "Superuser Tree" },

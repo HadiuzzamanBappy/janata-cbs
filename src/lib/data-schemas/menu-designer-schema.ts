@@ -38,9 +38,10 @@ export const menuCatalogRecordSchema = z.object({
   label: z.string().min(1, "Menu Label is required").max(250, "Max 250 characters"),
   command: z
     .string()
-    .min(1, "Target command code is required")
     .max(250, "Max 250 characters")
-    .regex(/^[A-Z0-9_. ,]+$/, "Must be uppercase alphanumeric command format"),
+    .regex(/^([A-Z0-9_. ,]+)?$/, "Must be uppercase alphanumeric command format")
+    .optional()
+    .default(""),
   menuType: menuTypeSchema.default("FORM"),
   menuAction: menuActionSchema.default("SCREEN"),
   actionType: menuActionSchema.optional(),

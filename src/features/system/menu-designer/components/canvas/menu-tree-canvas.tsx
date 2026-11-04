@@ -1,7 +1,7 @@
 "use client";
 
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { ChevronsDownUp, ChevronsUpDown, FolderPlus, Network, Plus } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, Network } from "lucide-react";
 import * as React from "react";
 import { SidebarMenuTree } from "@/components/layout/sidebar/components/sidebar-menu-tree";
 import type { TreeNode } from "@/components/layout/sidebar/types";
@@ -41,7 +41,6 @@ interface MenuTreeCanvasProps {
   onIndentNode?: (id: string) => void;
   onOutdentNode?: (id: string) => void;
   onMoveOrder: (id: string, direction: -1 | 1) => void;
-  onAddSubgroup: (parentId: string | null) => void;
   onDropCatalogItem: (
     item: MenuCatalogActionItem,
     parentId?: string | null,
@@ -64,7 +63,6 @@ export function MenuTreeCanvas({
   onIndentNode,
   onOutdentNode,
   onMoveOrder,
-  onAddSubgroup,
   onDropCatalogItem,
   isReadOnly,
 }: MenuTreeCanvasProps) {
@@ -141,7 +139,6 @@ export function MenuTreeCanvas({
             onUngroup={onUngroupNode}
             onIndent={onIndentNode}
             onOutdent={onOutdentNode}
-            onAddSubgroup={(pid) => onAddSubgroup(pid)}
             onMoveOrder={onMoveOrder}
             onDropCatalogItem={onDropCatalogItem}
             parentId={parentId}
@@ -253,19 +250,6 @@ export function MenuTreeCanvas({
               </Tooltip>
             )}
           </div>
-
-          {!isReadOnly && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onAddSubgroup(null)}
-              className="h-6 text-xs gap-1.5 px-2.5"
-            >
-              <FolderPlus className="size-3.5" />
-              Add Root Group
-            </Button>
-          )}
         </div>
       </div>
 
@@ -304,20 +288,9 @@ export function MenuTreeCanvas({
             <Network className="size-8 mb-2 opacity-50" />
             <p className="text-xs font-medium text-foreground">Tree is currently empty</p>
             <p className="text-[11px] max-w-xs mt-1">
-              Drag actions from the left catalog, or click below to create your first root group
-              folder.
+              Drag menu items or groups from the left catalog palette to organize your navigation
+              hierarchy.
             </p>
-            {!isReadOnly && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => onAddSubgroup(null)}
-                className="mt-3 text-xs gap-1.5"
-              >
-                <Plus className="size-3.5" /> Create Root Group
-              </Button>
-            )}
           </div>
         ) : (
           <SortableContext items={allNodeIds} strategy={verticalListSortingStrategy}>

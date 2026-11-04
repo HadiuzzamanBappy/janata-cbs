@@ -6,6 +6,7 @@ import { ActionBtn } from "./action-btn";
 
 export interface IdleActionsProps {
   searchVal: string;
+  command?: string;
   submitting?: boolean;
   onAmend?: () => void;
   onView?: () => void;
@@ -17,6 +18,7 @@ export interface IdleActionsProps {
  */
 export function IdleActions({
   searchVal,
+  command = "",
   submitting = false,
   onAmend,
   onView,
@@ -25,11 +27,15 @@ export function IdleActions({
   const actions = useCbsActionBar({
     mode: "IDLE",
     searchVal,
+    command,
     submitting,
     onAmend,
     onView,
     onPerformAction,
   });
+
+  const baseCmd = command.trim().toUpperCase();
+  const cleanId = searchVal.trim().toUpperCase();
 
   return (
     <div className="flex items-center gap-1 shrink-0">
@@ -37,6 +43,7 @@ export function IdleActions({
         onClick={onAmend}
         enabled={actions.amend.enabled}
         reason={actions.amend.reason}
+        commandPreview={baseCmd && cleanId ? `${baseCmd} I ${cleanId}` : undefined}
         defaultTooltip="Edit Record"
       >
         <Pencil className="size-3" />
@@ -46,6 +53,7 @@ export function IdleActions({
         onClick={onView}
         enabled={actions.view.enabled}
         reason={actions.view.reason}
+        commandPreview={baseCmd && cleanId ? `${baseCmd} S ${cleanId}` : undefined}
         defaultTooltip="View Details"
       >
         <Search className="size-3" />
@@ -55,6 +63,7 @@ export function IdleActions({
         onClick={onPerformAction}
         enabled={actions.performAction.enabled}
         reason={actions.performAction.reason}
+        commandPreview={baseCmd && cleanId ? `${baseCmd} P ${cleanId}` : undefined}
         defaultTooltip="Perform Action on Record"
       >
         <Wrench className="size-3" />

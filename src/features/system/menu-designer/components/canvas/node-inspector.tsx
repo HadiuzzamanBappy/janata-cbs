@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Folder, Info, Network, Terminal, Trash2, X } from "lucide-react";
+import { Eye, EyeOff, Folder, Info, Lock, Network, Terminal, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import type { MenuTreeNode, MenuTreeRecord } from "@/lib/data-schemas/menu-desig
 export interface NodeInspectorProps {
   selectedNode: MenuTreeNode | null;
   formData: MenuTreeRecord;
-  onUpdateFormData: React.Dispatch<React.SetStateAction<MenuTreeRecord>>;
+  onUpdateFormData?: React.Dispatch<React.SetStateAction<MenuTreeRecord>>;
   onUpdateNode: (id: string, patch: Partial<MenuTreeNode>) => void;
   onDeleteNode: (id: string) => void;
   onClose: () => void;
@@ -62,7 +62,6 @@ function InspectorFieldRow({ label, tooltip, children }: InspectorFieldRowProps)
 export function NodeInspector({
   selectedNode,
   formData,
-  onUpdateFormData,
   onUpdateNode,
   onDeleteNode,
   onClose,
@@ -105,61 +104,25 @@ export function NodeInspector({
 
         {/* Container Properties Body */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs">
-          {/* Active Navigation State */}
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded border border-border/60 bg-muted/5">
-            <Label
-              htmlFor="tree-active"
-              className="text-[11px] font-medium cursor-pointer flex items-center gap-1.5 text-foreground"
-            >
-              <Eye className="size-3.5 text-emerald-500" />
-              Published Active State
-            </Label>
-            <div className="flex items-center gap-1.5">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <span className="inline-flex items-center text-muted-foreground/60 hover:text-foreground cursor-help p-0.5">
-                      <Info className="size-3" />
-                    </span>
-                  }
-                />
-                <TooltipContent side="left" className="text-xs max-w-52 z-50">
-                  Controls whether this entire navigation hierarchy is live and visible across
-                  banking workbenches.
-                </TooltipContent>
-              </Tooltip>
-              <SwitchWidget
-                id="tree-active"
-                fieldKey="isActive"
-                value={formData.isActive !== false}
-                disabled={disabled}
-                onChange={(checked) =>
-                  onUpdateFormData((prev) => ({ ...prev, isActive: Boolean(checked) }))
-                }
-              />
-            </div>
-          </div>
-
-          {/* Tree Description */}
-          <InspectorFieldRow
-            label="Tree Description"
-            tooltip="Descriptive name of this navigation tree (e.g. Primary Core Navigation)."
-          >
-            <Input
-              id="tree-desc"
-              value={formData.treeDescription || ""}
-              disabled={disabled}
-              onChange={(e) =>
-                onUpdateFormData((prev) => ({ ...prev, treeDescription: e.target.value }))
-              }
-              className="h-7.5 text-xs font-medium"
-              placeholder="e.g. Primary Banking Navigation"
-            />
-          </InspectorFieldRow>
-
           {/* Container Metrics Card */}
           <div className="p-2.5 rounded border border-border/50 bg-muted/15 space-y-1.5 text-[11px]">
             <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Tree Title:</span>
+              <span className="font-medium text-foreground truncate max-w-36 text-right">
+                {formData.treeDescription || "Untitled Tree"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Lifecycle State:</span>
+              <span className="font-mono text-xs">
+                {formData.isActive !== false ? (
+                  <span className="text-emerald-500 font-semibold">ACTIVE</span>
+                ) : (
+                  <span className="text-muted-foreground font-semibold">INACTIVE</span>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center justify-between pt-1 border-t border-border/40">
               <span className="text-muted-foreground">Root Categories:</span>
               <span className="font-semibold text-foreground font-mono">{rootGroupsCount}</span>
             </div>
@@ -216,15 +179,103 @@ export function NodeInspector({
         {/* Element Kind Pill */}
         <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-border/50 bg-muted/15">
           <span className="text-[11px] text-muted-foreground font-medium">Kind:</span>
-          <Badge
-            variant={isFolder ? "secondary" : "outline"}
-            className="text-[10px] font-mono h-4.5 px-1.5"
-          >
-            {isFolder ? "FOLDER GROUP" : `MENU #${selectedNode.menuId || "N/A"}`}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Badge
+              variant={isFolder ? "secondary" : "outline"}
+              className="text-[10px] font-mono h-4.5 px-1.5"
+            >
+              {isFolder ? "FOLDER GROUP" : `MENU #${selectedNode.menuId || "N/A"}`}
+            </Badge>
+            <span
+              title="Catalog Definition Linked"
+              className="inline-flex items-center text-muted-foreground/60"
+            >
+              <Lock className="size-2.5" />
+            </span>
+          </div>
         </div>
 
-        {/* Visibility Switch */}
+        {/* Target Command Code (Leaf Items Only) - FIXED / INHERITED */}
+        {!isFolder && (
+          <InspectorFieldRow
+            label="Target Command Code"
+            tooltip="Fixed by SC_MENU catalog definition. The execution target cannot be changed directly in the navigation tree."
+          >
+            <div className="relative">
+              <Input
+                id="node-cmd"
+                value={selectedNode.command || ""}
+                disabled
+                className="h-7.5 text-xs font-mono font-medium uppercase bg-muted/30 text-muted-foreground/80 cursor-not-allowed pr-6"
+                placeholder="N/A"
+              />
+              <Lock className="size-3 text-muted-foreground/50 absolute right-2 top-2.5 pointer-events-none" />
+            </div>
+          </InspectorFieldRow>
+        )}
+
+        {/* Menu Item Type - FIXED / INHERITED */}
+        <InspectorFieldRow
+          label="Functional Menu Type"
+          tooltip="Fixed by SC_MENU catalog definition: GROUP, INQUIRY, FORM, or REPORT."
+        >
+          <div className="relative">
+            <Input
+              id="node-menu-type"
+              value={isFolder ? "GROUP (Folder)" : selectedNode.menuType || "FORM"}
+              disabled
+              className="h-7.5 text-xs font-medium uppercase bg-muted/30 text-muted-foreground/80 cursor-not-allowed pr-6"
+            />
+            <Lock className="size-3 text-muted-foreground/50 absolute right-2 top-2.5 pointer-events-none" />
+          </div>
+        </InspectorFieldRow>
+
+        {/* Display Label - EDITABLE OVERRIDE */}
+        <InspectorFieldRow
+          label="Display Label"
+          tooltip="Contextual persona override. You can customize this label specifically for this menu tree layout."
+        >
+          <Input
+            id="node-label"
+            value={selectedNode.label}
+            disabled={disabled}
+            onChange={(e) => onUpdateNode(selectedNode.id, { label: e.target.value })}
+            className="h-7.5 text-xs font-medium"
+            placeholder="e.g. Account Maintenance"
+          />
+        </InspectorFieldRow>
+
+        {/* Target Window Action Mode (Leaf Items Only) - EDITABLE OVERRIDE */}
+        {!isFolder && (
+          <InspectorFieldRow
+            label="Display Window Action"
+            tooltip="Contextual window override: opens as an integrated Workspace Tab (SCREEN) or detached multi-monitor window (POPUP)."
+          >
+            <Select
+              value={selectedNode.menuAction || "SCREEN"}
+              disabled={disabled}
+              onValueChange={(val) => {
+                if (val === "SCREEN" || val === "POPUP") {
+                  onUpdateNode(selectedNode.id, { menuAction: val });
+                }
+              }}
+            >
+              <SelectTrigger id="node-menu-action" className="w-full h-7.5 text-xs">
+                <SelectValue placeholder="Select target mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SCREEN" className="text-xs">
+                  SCREEN (Tab)
+                </SelectItem>
+                <SelectItem value="POPUP" className="text-xs">
+                  POPUP (Detached)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </InspectorFieldRow>
+        )}
+
+        {/* Visibility Switch - EDITABLE OVERRIDE */}
         <div className="flex items-center justify-between px-2.5 py-1.5 rounded border border-border/60 bg-muted/5">
           <Label
             htmlFor="node-visible"
@@ -261,104 +312,6 @@ export function NodeInspector({
             />
           </div>
         </div>
-
-        {/* Display Label */}
-        <InspectorFieldRow
-          label="Display Label"
-          tooltip="Label rendered in the navigation drawer for operators."
-        >
-          <Input
-            id="node-label"
-            value={selectedNode.label}
-            disabled={disabled}
-            onChange={(e) => onUpdateNode(selectedNode.id, { label: e.target.value })}
-            className="h-7.5 text-xs font-medium"
-            placeholder="e.g. Account Maintenance"
-          />
-        </InspectorFieldRow>
-
-        {/* Target Command Code (Leaf Items Only) */}
-        {!isFolder && (
-          <InspectorFieldRow
-            label="Target Command Code"
-            tooltip="CBS command executed when clicked (e.g. ACCOUNT, CUSTOMER, INQ GET.ACCOUNT)."
-          >
-            <Input
-              id="node-cmd"
-              value={selectedNode.command || ""}
-              disabled={disabled}
-              onChange={(e) =>
-                onUpdateNode(selectedNode.id, { command: e.target.value.toUpperCase() })
-              }
-              className="h-7.5 text-xs font-mono font-medium uppercase"
-              placeholder="e.g. ACCOUNT,1.0.0"
-            />
-          </InspectorFieldRow>
-        )}
-
-        {/* Menu Item Type */}
-        <InspectorFieldRow
-          label="Menu Type"
-          tooltip="Functional nature of the item: GROUP (folder), INQUIRY (read-only enquiry), FORM (interactive GMC input screen), REPORT (ledger/analytical report)."
-        >
-          <Select
-            value={isFolder ? "GROUP" : selectedNode.menuType || "FORM"}
-            disabled={disabled || isFolder}
-            onValueChange={(val) => {
-              if (val === "GROUP" || val === "INQUIRY" || val === "FORM" || val === "REPORT") {
-                onUpdateNode(selectedNode.id, { menuType: val });
-              }
-            }}
-          >
-            <SelectTrigger id="node-menu-type" className="w-full h-7.5 text-xs">
-              <SelectValue placeholder="Select menu type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="GROUP" className="text-xs">
-                GROUP (Folder)
-              </SelectItem>
-              <SelectItem value="FORM" className="text-xs">
-                FORM (Input Screen)
-              </SelectItem>
-              <SelectItem value="INQUIRY" className="text-xs">
-                INQUIRY (Query Screen)
-              </SelectItem>
-              <SelectItem value="REPORT" className="text-xs">
-                REPORT (Report Screen)
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </InspectorFieldRow>
-
-        {/* Target Window Action Mode (Leaf Items Only) */}
-        {!isFolder && (
-          <InspectorFieldRow
-            label="Display Window Action"
-            tooltip="Opens as a standard Workbench Tab (SCREEN) or a detached multi-monitor window (POPUP)."
-          >
-            <Select
-              value={selectedNode.menuAction || "SCREEN"}
-              disabled={disabled}
-              onValueChange={(val) => {
-                if (val === "SCREEN" || val === "POPUP") {
-                  onUpdateNode(selectedNode.id, { menuAction: val });
-                }
-              }}
-            >
-              <SelectTrigger id="node-menu-action" className="w-full h-7.5 text-xs">
-                <SelectValue placeholder="Select target mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SCREEN" className="text-xs">
-                  SCREEN (Tab)
-                </SelectItem>
-                <SelectItem value="POPUP" className="text-xs">
-                  POPUP (Detached)
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </InspectorFieldRow>
-        )}
 
         {/* Nesting Entitlement Hint */}
         <div className="flex items-center justify-between text-[11px] px-2 py-1.5 rounded bg-muted/20 text-muted-foreground border border-border/40">

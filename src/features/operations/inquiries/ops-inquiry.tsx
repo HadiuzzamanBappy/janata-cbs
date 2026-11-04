@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import {
@@ -12,6 +13,7 @@ import {
 import { cbs } from "@/lib/cbs-client";
 import type { CbsScreenProps } from "@/lib/cbs-screen";
 import { parseInquiryRecords } from "@/lib/data-parsers";
+import { useSessionStore } from "@/store/session/session-provider";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
 import { useInquiryActions } from "./hooks/use-inquiry-actions";
 import { useInquirySchema } from "./hooks/use-inquiry-schema";
@@ -19,6 +21,7 @@ import { useInquiryState } from "./hooks/use-inquiry-state";
 
 export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
   const { schema, loading, error, refetch } = useInquirySchema(command);
+  const currentBranch = useSessionStore((s) => s.currentBranch || s.user?.branchCode);
 
   const {
     step,
@@ -36,50 +39,80 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
   const commandCode = schema?.INQInfo?.controllerName || command;
   const title = schema?.INQInfo?.description || commandCode;
 
-  const handleFilterSearch = async (criteria: FilterCriteriaMap) => {
-    if (!schema) return;
+  const handleFilterSearch = React.useCallback(
+    async (criteria: FilterCriteriaMap) => {
+      if (!schema) return;
 
-    const queryString = serializeCriteriaToWire(criteria, schema.INQSelectField);
-    const targetControl = schema.INQInfo?.controllerName?.trim() || commandCode;
-
-    try {
-      const queryRes = await cbs.send<unknown>(
-        cbs.inquiry.executeQuery(targetControl, {
-          servicePath: schema.INQInfo?.inqServicePath,
-          perPage: pageSize || 1000,
-          curPage: 1,
-          queryString,
-        }),
-        { silent: true },
+      const branchCodeToFilter = schema.INQInfo?.showBranchWise ? currentBranch : null;
+      const queryString = serializeCriteriaToWire(
+        criteria,
+        schema.INQSelectField,
+        schema.INQInfo?.fixedSelection,
+        branchCodeToFilter,
       );
+      const targetControl = schema.INQInfo?.controllerName?.trim() || commandCode;
+      const isPaginationEnabled = schema.INQInfo?.showPagination !== false;
+      const queryPerPage = isPaginationEnabled ? pageSize || 30 : 1000;
 
-      const dataset = parseInquiryRecords(queryRes.data);
+      try {
+        const queryRes = await cbs.send<unknown>(
+          cbs.inquiry.executeQuery(targetControl, {
+            servicePath: schema.INQInfo?.inqServicePath,
+            perPage: queryPerPage,
+            curPage: 1,
+            queryString,
+          }),
+          { silent: true },
+        );
 
-      setCurrentCriteria(criteria);
-      setFilteredRows(dataset);
-      setCurrentPage(1);
-      setStep("RESULTS");
+        const dataset = parseInquiryRecords(queryRes.data);
 
-      toast.add({
-        title: "Query Executed",
-        description: `Matched ${dataset.length} record(s)`,
-        type: "info",
-      });
-    } catch (err) {
-      console.warn("Dynamic inquiry query failed", err);
-      toast.add({
-        title: "Query Failed",
-        description: err instanceof Error ? err.message : "Backend query failed",
-        type: "destructive",
-      });
-    }
-  };
+        setCurrentCriteria(criteria);
+        setFilteredRows(dataset);
+        setCurrentPage(1);
+        setStep("RESULTS");
+
+        toast.add({
+          title: "Query Executed",
+          description: `Matched ${dataset.length} record(s)`,
+          type: "info",
+        });
+      } catch (err) {
+        console.warn("Dynamic inquiry query failed", err);
+        toast.add({
+          title: "Query Failed",
+          description: err instanceof Error ? err.message : "Backend query failed",
+          type: "destructive",
+        });
+      }
+    },
+    [
+      schema,
+      currentBranch,
+      commandCode,
+      pageSize,
+      setCurrentCriteria,
+      setFilteredRows,
+      setCurrentPage,
+      setStep,
+    ],
+  );
 
   const { handleExportCSV, handleExportHTML, handleExportXML, handleRefresh } = useInquiryActions({
     schema,
     filteredRows,
     onRefreshQuery: () => handleFilterSearch(currentCriteria),
   });
+
+  // Re-fetch dataset automatically if step was restored as "RESULTS" (e.g. after page refresh or popup open)
+  const isAutoRestoredRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!schema || isAutoRestoredRef.current) return;
+    if (step === "RESULTS" && filteredRows.length === 0) {
+      isAutoRestoredRef.current = true;
+      handleFilterSearch(currentCriteria);
+    }
+  }, [schema, step, filteredRows.length, currentCriteria, handleFilterSearch]);
 
   const handleResetFilters = () => {
     if (!schema) return;
@@ -151,6 +184,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
             currentPage={currentPage}
             onPageChange={setCurrentPage}
             showSerial={schema.INQInfo.showSerial}
+            showPagination={schema.INQInfo.showPagination}
           />
         )}
       </div>

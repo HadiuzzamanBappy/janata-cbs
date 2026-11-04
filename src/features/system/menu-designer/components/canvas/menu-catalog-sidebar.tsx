@@ -1,11 +1,24 @@
 "use client";
 
-import { Pin, Plus, Search, Terminal } from "lucide-react";
+import { BarChart3, FileSpreadsheet, FileText, Pin, Plus, Search, Terminal } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-schema";
+
+function getMenuTypeIcon(menuType?: string) {
+  switch (menuType) {
+    case "INQUIRY":
+      return <Search className="size-3 text-muted-foreground/70 shrink-0" />;
+    case "REPORT":
+      return <BarChart3 className="size-3 text-muted-foreground/70 shrink-0" />;
+    case "FORM":
+      return <FileSpreadsheet className="size-3 text-muted-foreground/70 shrink-0" />;
+    default:
+      return <FileText className="size-3 text-muted-foreground/70 shrink-0" />;
+  }
+}
 
 interface DraggableCatalogCardProps {
   item: MenuCatalogActionItem;
@@ -40,6 +53,7 @@ function DraggableCatalogCard({ item, isAdded, disabled, onAddItem }: DraggableC
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
+          {item.menuType !== "GROUP" && getMenuTypeIcon(item.menuType)}
           <span
             className={cn(
               "text-xs font-medium truncate",
@@ -51,6 +65,11 @@ function DraggableCatalogCard({ item, isAdded, disabled, onAddItem }: DraggableC
           {item.menuType && (
             <span className="text-[9px] px-1 py-0.5 rounded font-mono text-muted-foreground/80 bg-muted/50 border border-border/40 leading-none">
               {item.menuType}
+            </span>
+          )}
+          {item.menuAction === "POPUP" && (
+            <span className="text-[9px] px-1 py-0.5 rounded font-mono text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 leading-none">
+              POPUP
             </span>
           )}
         </div>

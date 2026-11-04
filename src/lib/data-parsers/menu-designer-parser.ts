@@ -1,8 +1,10 @@
 import { z } from "zod";
 import {
+  type MenuAction,
   type MenuCatalogRecord,
   type MenuItem,
   type MenuTreeRecord,
+  type MenuType,
   menuCatalogRecordSchema,
   menuTreeRecordSchema,
 } from "@/lib/data-schemas/menu-designer-schema";
@@ -17,7 +19,8 @@ interface RawMenuNode {
   menuId?: string | number;
   label?: string;
   command?: string;
-  menuType?: "SCREEN" | "POPUP";
+  menuType?: MenuType;
+  menuAction?: MenuAction;
   children?: RawMenuNode[];
   items?: RawMenuNode[];
   [key: string]: unknown;
@@ -31,12 +34,33 @@ function normalizeNode(raw: RawMenuNode, idx: number, parentKey = "m"): MenuItem
       ? rawChildren.map((c, i) => normalizeNode(c, i, id))
       : undefined;
 
+  const rawMenuType = (raw.menuType ? String(raw.menuType).toUpperCase() : undefined) as
+    | MenuType
+    | undefined;
+  const validMenuTypes: MenuType[] = ["GROUP", "INQUIRY", "FORM", "REPORT"];
+  const trimmedCmd = raw.command ? String(raw.command).trim().toUpperCase() : "";
+  const inferredType: MenuType | undefined = trimmedCmd.startsWith("INQ")
+    ? "INQUIRY"
+    : children && children.length > 0
+      ? "GROUP"
+      : trimmedCmd
+        ? "FORM"
+        : undefined;
+
+  const menuType = rawMenuType && validMenuTypes.includes(rawMenuType) ? rawMenuType : inferredType;
+
+  const rawMenuAction = (raw.menuAction ? String(raw.menuAction).toUpperCase() : undefined) as
+    | MenuAction
+    | undefined;
+  const menuAction = rawMenuAction === "POPUP" ? "POPUP" : "SCREEN";
+
   return {
     id,
     menuId: raw.menuId,
     label: String(raw.label ?? id),
     command: raw.command ? String(raw.command).trim().toUpperCase() : undefined,
-    menuType: raw.menuType === "POPUP" ? "POPUP" : "SCREEN",
+    menuType,
+    menuAction,
     children,
   };
 }

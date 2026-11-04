@@ -296,22 +296,56 @@ export function NodeInspector({
           </InspectorFieldRow>
         )}
 
-        {/* Target Window Mode (Leaf Items Only) */}
+        {/* Menu Item Type */}
+        <InspectorFieldRow
+          label="Menu Type"
+          tooltip="Functional nature of the item: GROUP (folder), INQUIRY (read-only enquiry), FORM (interactive GMC input screen), REPORT (ledger/analytical report)."
+        >
+          <Select
+            value={isFolder ? "GROUP" : selectedNode.menuType || "FORM"}
+            disabled={disabled || isFolder}
+            onValueChange={(val) => {
+              if (val === "GROUP" || val === "INQUIRY" || val === "FORM" || val === "REPORT") {
+                onUpdateNode(selectedNode.id, { menuType: val });
+              }
+            }}
+          >
+            <SelectTrigger id="node-menu-type" className="w-full h-7.5 text-xs">
+              <SelectValue placeholder="Select menu type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="GROUP" className="text-xs">
+                GROUP (Folder)
+              </SelectItem>
+              <SelectItem value="FORM" className="text-xs">
+                FORM (Input Screen)
+              </SelectItem>
+              <SelectItem value="INQUIRY" className="text-xs">
+                INQUIRY (Query Screen)
+              </SelectItem>
+              <SelectItem value="REPORT" className="text-xs">
+                REPORT (Report Screen)
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </InspectorFieldRow>
+
+        {/* Target Window Action Mode (Leaf Items Only) */}
         {!isFolder && (
           <InspectorFieldRow
-            label="Display Window Mode"
+            label="Display Window Action"
             tooltip="Opens as a standard Workbench Tab (SCREEN) or a detached multi-monitor window (POPUP)."
           >
             <Select
-              value={selectedNode.menuType || "SCREEN"}
+              value={selectedNode.menuAction || "SCREEN"}
               disabled={disabled}
               onValueChange={(val) => {
                 if (val === "SCREEN" || val === "POPUP") {
-                  onUpdateNode(selectedNode.id, { menuType: val });
+                  onUpdateNode(selectedNode.id, { menuAction: val });
                 }
               }}
             >
-              <SelectTrigger id="node-type" className="w-full h-7.5 text-xs">
+              <SelectTrigger id="node-menu-action" className="w-full h-7.5 text-xs">
                 <SelectValue placeholder="Select target mode" />
               </SelectTrigger>
               <SelectContent>

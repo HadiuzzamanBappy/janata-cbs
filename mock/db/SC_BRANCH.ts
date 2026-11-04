@@ -2,7 +2,6 @@ import type { AuditData } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
 
 export interface BranchRecord {
-  recordId?: string;
   branchTitle: string;
   branchType?: string;
   branchContact?: Array<{

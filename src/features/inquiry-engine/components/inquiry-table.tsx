@@ -23,6 +23,7 @@ export function InquiryTable({
   onPageChange,
   totalRows,
   showSerial = true,
+  showPagination = true,
   className = "",
 }: InquiryTableProps) {
   // 1. Derive rich metadata from canonical INQDef wire spec
@@ -73,6 +74,8 @@ export function InquiryTable({
     onPageChange,
     totalRows,
   });
+
+  const displayRows = showPagination ? paginatedRows : sortedRows;
 
   const showActionsColumn = commands.length > 0;
 
@@ -197,8 +200,10 @@ export function InquiryTable({
                 </thead>
 
                 <tbody className="[&_tr:last-child]:border-0">
-                  {paginatedRows.map((row, rowIdx) => {
-                    const serialNum = (currentPage - 1) * pageSize + rowIdx + 1;
+                  {displayRows.map((row, rowIdx) => {
+                    const serialNum = showPagination
+                      ? (currentPage - 1) * pageSize + rowIdx + 1
+                      : rowIdx + 1;
                     const rowKey =
                       typeof row.id === "string" && row.id.length > 0
                         ? row.id
@@ -343,14 +348,16 @@ export function InquiryTable({
         </div>
 
         {/* Pagination Bar */}
-        <InquiryPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        />
+        {showPagination && (
+          <InquiryPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+        )}
       </div>
     </TooltipProvider>
   );

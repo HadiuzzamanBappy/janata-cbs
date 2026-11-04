@@ -19,6 +19,7 @@ function convertToSidebarTreeNodes(list: MenuTreeNode[]): TreeNode[] {
       command: node.command || undefined,
       componentName: node.command ? node.command.replace(/\./g, "_") : undefined,
       menuType: node.menuType,
+      menuAction: node.menuAction,
       children:
         node.children && node.children.length > 0
           ? convertToSidebarTreeNodes(node.children)

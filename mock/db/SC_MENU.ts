@@ -9,10 +9,10 @@ import type { CbsVersionedTable } from "./types";
 export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
   // --- Operational Dynamic GMC Forms ---
   "1": {
-    recordId: "1",
     label: "Account Maintenance",
     command: "ACCOUNT",
-    menuType: "SCREEN",
+    menuType: "FORM",
+    menuAction: "SCREEN",
     description: "Customer savings and current account management",
     isActive: true,
     auditData: {
@@ -26,10 +26,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "2": {
-    recordId: "2",
     label: "Customer Master",
     command: "CUSTOMER",
-    menuType: "SCREEN",
+    menuType: "FORM",
+    menuAction: "SCREEN",
     description: "Customer onboarding, KYC, and profile maintenance",
     isActive: true,
     auditData: {
@@ -43,10 +43,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "3": {
-    recordId: "3",
     label: "User Profile Setup",
     command: "USER",
-    menuType: "SCREEN",
+    menuType: "FORM",
+    menuAction: "SCREEN",
     description: "User operator profile provisioning and maintenance",
     isActive: true,
     auditData: {
@@ -59,13 +59,30 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
       recBranchCode: "JB9999",
     },
   },
+  "12": {
+    label: "Enterprise User Master",
+    command: "USERS,1.0.0",
+    menuType: "FORM",
+    menuAction: "SCREEN",
+    description: "Enterprise bank user management, role profiles, and security parameters",
+    isActive: true,
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSADMIN",
+      recInputTime: "2026-03-01 10:00:00",
+      recAuthorizer: "SUPV01",
+      recAuthTime: "2026-03-01 10:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
 
   // --- Valid CBS Inquiries (Executed via INQ command) ---
   "4": {
-    recordId: "4",
     label: "Account Directory Inquiry",
     command: "INQ S GET.ACCOUNT",
-    menuType: "SCREEN",
+    menuType: "INQUIRY",
+    menuAction: "SCREEN",
     description: "Account enquiry with customer balances and status",
     isActive: true,
     auditData: {
@@ -79,10 +96,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "5": {
-    recordId: "5",
     label: "Customer Directory Inquiry",
     command: "INQ S GET.CUSTOMER",
-    menuType: "POPUP",
+    menuType: "INQUIRY",
+    menuAction: "POPUP",
     description: "Customer directory inquiry (Detached Multi-Monitor Popup Window)",
     isActive: true,
     auditData: {
@@ -96,10 +113,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "6": {
-    recordId: "6",
     label: "Employee Directory Inquiry",
     command: "INQ S GET.EMP.INFO",
-    menuType: "SCREEN",
+    menuType: "INQUIRY",
+    menuAction: "SCREEN",
     description: "Employee information and profile inquiry",
     isActive: true,
     auditData: {
@@ -113,10 +130,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "7": {
-    recordId: "7",
     label: "Branch Directory Inquiry",
     command: "INQ S GET.BRANCH",
-    menuType: "SCREEN",
+    menuType: "INQUIRY",
+    menuAction: "SCREEN",
     description: "Branch master list and organizational units inquiry",
     isActive: true,
     auditData: {
@@ -132,10 +149,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
 
   // --- Development & Administrative Utilities ---
   "8": {
-    recordId: "8",
     label: "Model Builder",
     command: "SC.MODEL.BUILDER",
-    menuType: "SCREEN",
+    menuType: "FORM",
+    menuAction: "SCREEN",
     description: "CBS Data Dictionary and Schema Designer",
     isActive: true,
     auditData: {
@@ -149,10 +166,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "9": {
-    recordId: "9",
     label: "Form Builder",
     command: "SC.FORM.BUILDER",
-    menuType: "SCREEN",
+    menuType: "FORM",
+    menuAction: "SCREEN",
     description: "Dynamic Form Designer and Layout Studio",
     isActive: true,
     auditData: {
@@ -166,10 +183,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "10": {
-    recordId: "10",
     label: "Inquiry Designer",
     command: "SC.INQUIRY",
-    menuType: "SCREEN",
+    menuType: "FORM",
+    menuAction: "SCREEN",
     description: "Inquiry and Query Definition Designer",
     isActive: true,
     auditData: {
@@ -183,10 +200,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "11": {
-    recordId: "11",
     label: "Menu Designer",
     command: "SC.MENU.DESIGN",
-    menuType: "SCREEN",
+    menuType: "FORM",
+    menuAction: "SCREEN",
     description: "Interactive Navigation Tree Builder",
     isActive: true,
     auditData: {

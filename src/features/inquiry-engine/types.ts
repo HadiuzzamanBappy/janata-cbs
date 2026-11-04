@@ -24,6 +24,7 @@ export interface InquiryTableProps {
   onPageChange?: (page: number) => void;
   totalRows?: number;
   showSerial?: boolean;
+  showPagination?: boolean;
   className?: string;
   onViewRecord?: (recordId: string, row: EnquiryRow) => void;
   onEditRecord?: (recordId: string, row: EnquiryRow) => void;

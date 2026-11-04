@@ -1,6 +1,13 @@
 "use client";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  BarChart3,
+  ChevronDown,
+  ChevronRight,
+  FileSpreadsheet,
+  FileText,
+  Search,
+} from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { cbsCommand } from "@/lib/cbs-command";
@@ -49,7 +56,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
     } else if (node.command) {
       cbsCommand.execute(node.command, {
         title: node.title,
-        target: node.menuType === "POPUP" ? "popup" : "workspace",
+        target: node.menuAction === "POPUP" ? "popup" : "workspace",
       });
     }
   };
@@ -125,8 +132,16 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
             )}
           </span>
         ) : (
-          <span className="size-3.5 flex items-center justify-center text-muted-foreground/50 group-hover:text-foreground shrink-0 transition-colors duration-200">
-            <span className="size-1 rounded-full bg-current opacity-70" />
+          <span className="size-3.5 flex items-center justify-center shrink-0 transition-colors duration-200">
+            {node.menuType === "INQUIRY" ? (
+              <Search className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+            ) : node.menuType === "REPORT" ? (
+              <BarChart3 className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+            ) : node.menuType === "FORM" ? (
+              <FileSpreadsheet className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+            ) : (
+              <FileText className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+            )}
           </span>
         )}
 

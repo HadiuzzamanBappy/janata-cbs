@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useRef } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import {
   createFormKernelStore,
@@ -22,6 +22,7 @@ export function FormKernelProvider({
   onFieldChange,
 }: FormKernelProviderProps) {
   const storeRef = useRef<FormKernelStore | null>(null);
+  const prevSyncValuesRef = useRef<Record<string, unknown>>(initialValues);
 
   if (!storeRef.current) {
     storeRef.current = createFormKernelStore(initialValues);
@@ -41,6 +42,22 @@ export function FormKernelProvider({
       });
     }
   }
+
+  // Reactively synchronize kernel store when initialValues arrive asynchronously (e.g. from CBS API fetch)
+  useEffect(() => {
+    if (!storeRef.current) return;
+    if (initialValues && initialValues !== prevSyncValuesRef.current) {
+      prevSyncValuesRef.current = initialValues;
+      const currentKernelValues = storeRef.current.getState().values;
+      // If initialValues arrived with data that differs from empty or previous seed, update kernel store
+      if (Object.keys(initialValues).length > 0) {
+        storeRef.current.getState().setValues({
+          ...currentKernelValues,
+          ...initialValues,
+        });
+      }
+    }
+  }, [initialValues]);
 
   return (
     <FormKernelContext.Provider value={storeRef.current}>{children}</FormKernelContext.Provider>

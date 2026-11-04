@@ -2,13 +2,6 @@
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export interface InquiryPaginationProps {
   currentPage: number;
@@ -16,7 +9,7 @@ export interface InquiryPaginationProps {
   pageSize: number;
   totalCount: number;
   onPageChange: (page: number) => void;
-  onPageSizeChange: (pageSize: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
   className?: string;
 }
 
@@ -26,7 +19,6 @@ export function InquiryPagination({
   pageSize,
   totalCount,
   onPageChange,
-  onPageSizeChange,
   className = "",
 }: InquiryPaginationProps) {
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -48,39 +40,7 @@ export function InquiryPagination({
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex items-center gap-2">
-        {/* Page Size Selector */}
-        <div className="flex items-center gap-1.5 pl-2 border-l border-border/60">
-          <span className="text-muted-foreground text-[11px]">Rows:</span>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(val: string | null) => {
-              if (val) onPageSizeChange(Number(val));
-            }}
-          >
-            <SelectTrigger
-              size="sm"
-              className="h-6 w-auto min-w-11.5 text-xs font-mono px-1.5 py-0 gap-1 bg-background text-foreground border-border/80 rounded shadow-none [&_svg]:size-3 [&_svg]:text-muted-foreground"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="rounded min-w-14">
-              <SelectItem value="10" className="text-xs rounded font-mono">
-                10
-              </SelectItem>
-              <SelectItem value="25" className="text-xs rounded font-mono">
-                25
-              </SelectItem>
-              <SelectItem value="50" className="text-xs rounded font-mono">
-                50
-              </SelectItem>
-              <SelectItem value="100" className="text-xs rounded font-mono">
-                100
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
+      <div className="flex items-center gap-1.5">
         {/* Page Buttons */}
         <div className="flex items-center gap-1">
           <Button

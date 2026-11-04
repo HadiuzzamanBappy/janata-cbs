@@ -57,7 +57,7 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
     return 1;
   }, [currentTab]);
 
-  // 4. Restore pageSize from tab state or URL query params
+  // 4. Restore pageSize from tab state, URL query params, or schema.INQInfo.perpageItem
   const initialPageSize = React.useMemo(() => {
     if (currentTab?.enquiryState?.pageSize) return currentTab.enquiryState.pageSize;
     if (typeof window !== "undefined") {
@@ -65,8 +65,12 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
       const ps = Number(p.get("pageSize"));
       if (ps > 0) return ps;
     }
-    return 10;
-  }, [currentTab]);
+    const schemaPerPage = Number(schema?.INQInfo?.perpageItem);
+    if (!Number.isNaN(schemaPerPage) && schemaPerPage > 0) {
+      return schemaPerPage;
+    }
+    return 30;
+  }, [currentTab, schema?.INQInfo?.perpageItem]);
 
   const [step, setStepState] = React.useState<"SELECTION" | "RESULTS">(initialStep);
   const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>([]);
@@ -156,7 +160,15 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
 
     setCurrentCriteriaState(initial);
     setStepState(initialStep);
-  }, [schema, initialStep, initialCriteria]);
+
+    // Sync default page size if not persisted in tab state
+    if (!currentTab?.enquiryState?.pageSize && schema.INQInfo?.perpageItem) {
+      const parsedSize = Number(schema.INQInfo.perpageItem);
+      if (!Number.isNaN(parsedSize) && parsedSize > 0) {
+        setPageSizeState(parsedSize);
+      }
+    }
+  }, [schema, initialStep, initialCriteria, currentTab?.enquiryState?.pageSize]);
 
   return {
     step,

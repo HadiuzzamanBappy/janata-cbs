@@ -31,7 +31,7 @@ export function SectionCard({
 }: SectionCardProps) {
   const hasKernel = Boolean(useContext(FormKernelContext));
   const isGroup = section.type === "object-group";
-  const isPlain = isGroup || section.layoutStyle === "plain";
+  const isPlain = section.layoutStyle === "plain";
   const isCollapsible = !isGroup && Boolean(section.collapsible);
   const [collapsed, setCollapsed] = useState<boolean>(
     isCollapsible ? (section.isCollapsed ?? false) : false,

@@ -41,6 +41,15 @@ export function SelectWidget({
   const [isOpen, setIsOpen] = React.useState(false);
   const strVal = String(value ?? "");
 
+  const matchedOption = React.useMemo(() => {
+    if (!strVal) return undefined;
+    return options.find(
+      (o) =>
+        o.code.toLowerCase() === strVal.toLowerCase() ||
+        o.label.toLowerCase() === strVal.toLowerCase(),
+    );
+  }, [options, strVal]);
+
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
     if (isNumeric) {
@@ -66,7 +75,7 @@ export function SelectWidget({
   };
 
   return (
-    <div style={style} className={cn("flex items-center gap-1 min-w-36 max-w-md", className)}>
+    <div style={style} className={cn("flex items-center gap-1.5 min-w-36 max-w-md", className)}>
       {/* 1. Direct Text / Value Input */}
       <div className="relative flex-1 min-w-0">
         <Input
@@ -84,6 +93,16 @@ export function SelectWidget({
           )}
         />
       </div>
+
+      {/* Matched option label indicator */}
+      {matchedOption && matchedOption.label !== strVal && (
+        <span
+          className="text-[11px] text-muted-foreground truncate shrink-0 max-w-28 font-sans"
+          title={matchedOption.label}
+        >
+          {matchedOption.label}
+        </span>
+      )}
 
       {/* 2. Dropdown Action Button beside it */}
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -134,13 +153,18 @@ export function SelectWidget({
               return (
                 <DropdownMenuItem
                   key={opt.code}
-                  onClick={() => handleSelectOption(displayVal)}
+                  onClick={() => handleSelectOption(opt.code || displayVal)}
                   className={cn(
                     "text-xs py-1.5 px-2 cursor-pointer font-mono flex items-center justify-between",
                     isSelected && "bg-primary/10 text-primary font-semibold",
                   )}
                 >
-                  <span>{displayVal}</span>
+                  <span className="truncate">{displayVal}</span>
+                  {opt.label && opt.code !== opt.label && (
+                    <span className="text-[10px] text-muted-foreground font-mono ml-2 shrink-0">
+                      ({opt.code})
+                    </span>
+                  )}
                 </DropdownMenuItem>
               );
             })

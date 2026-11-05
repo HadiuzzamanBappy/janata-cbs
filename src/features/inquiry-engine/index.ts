@@ -15,6 +15,15 @@ export { useInquiryPagination } from "./hooks/use-inquiry-pagination";
 export { useInquirySort } from "./hooks/use-inquiry-sort";
 export * from "./types";
 // Utils
-export { type DerivedColumnMeta, deriveInquiryColumnMeta } from "./utils/column-compiler";
-export { executeInquiryCommand, resolveCommandTemplate } from "./utils/command-resolver";
-export { serializeCriteriaToWire } from "./utils/criteria-mapper";
+export {
+  type DerivedColumnMeta,
+  deriveInquiryColumnMeta,
+} from "./utils/column-compiler";
+export {
+  executeInquiryCommand,
+  resolveCommandTemplate,
+} from "./utils/command-resolver";
+export {
+  parseFixedSelectionToWire,
+  serializeCriteriaToWire,
+} from "./utils/criteria-mapper";

@@ -1,12 +1,13 @@
 import { getCanonicalScreenKey, resolveCommandAlias } from "@/lib/cbs-command";
-import type { MenuItem } from "@/lib/data-schemas";
+import type { MenuAction, MenuItem, MenuType } from "@/lib/data-schemas";
 
 export interface TreeNode {
   id: string;
   title: string;
   command?: string;
   componentName?: string;
-  menuType?: "SCREEN" | "POPUP";
+  menuType?: MenuType;
+  menuAction?: MenuAction;
   children?: TreeNode[];
 }
 
@@ -17,6 +18,7 @@ export function mapMenuItemToTreeNode(item: MenuItem): TreeNode {
     command: item.command,
     componentName: item.command ? item.command.replace(/\./g, "_") : undefined,
     menuType: item.menuType,
+    menuAction: item.menuAction,
     children: item.children?.map(mapMenuItemToTreeNode),
   };
 }

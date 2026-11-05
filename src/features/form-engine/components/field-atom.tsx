@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 import { useFormKernel } from "../store/form-kernel-provider";
+import { getFieldValue } from "../utils/path-utils";
 import { UnifiedFieldFactory } from "./field-factory";
 
 export interface FieldAtomProps {
@@ -31,8 +32,8 @@ export function FieldAtom({
 }: FieldAtomProps) {
   const fieldKey = field.NAME;
 
-  // Selective subscriptions
-  const value = useFormKernel(useCallback((s) => s.values[fieldKey], [fieldKey]));
+  // Selective subscriptions with support for nested/dot-path keys
+  const value = useFormKernel(useCallback((s) => getFieldValue(s.values, fieldKey), [fieldKey]));
   const error = useFormKernel(useCallback((s) => s.errors[fieldKey], [fieldKey]));
   const isVisible = useFormKernel(useCallback((s) => s.visibility[fieldKey] ?? true, [fieldKey]));
   const isReadOnly = useFormKernel(useCallback((s) => s.readOnly[fieldKey] ?? false, [fieldKey]));

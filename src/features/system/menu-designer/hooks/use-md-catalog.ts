@@ -31,7 +31,8 @@ export function useMdCatalog() {
               id: String(r.recordId || r.id || ""),
               label: String(r.label || "Action"),
               command: String(r.command || ""),
-              menuType: r.menuType ? String(r.menuType) : "SCREEN",
+              menuType: r.menuType ? String(r.menuType) : "FORM",
+              menuAction: r.menuAction ? String(r.menuAction) : "SCREEN",
               description: r.description ? String(r.description) : undefined,
             }));
           }
@@ -49,6 +50,8 @@ export function useMdCatalog() {
             id: cmd.command,
             label: cmd.title,
             command: cmd.command,
+            menuType: "FORM",
+            menuAction: "SCREEN",
             description: `System Screen: ${cmd.title}`,
           });
         }
@@ -69,8 +72,8 @@ export function useMdCatalog() {
           const res = parseMenuTreeList(json.data);
           if (res.success && res.data.length > 0) {
             return res.data.map((t) => ({
-              id: t.recordId,
-              label: t.treeDescription || t.recordId,
+              id: t.recordId || "MENU.ONE",
+              label: t.treeDescription || t.recordId || "Navigation Tree",
               details: `${t.menuTree.length} items • ${t.isActive ? "Active" : "Inactive"}`,
             }));
           }

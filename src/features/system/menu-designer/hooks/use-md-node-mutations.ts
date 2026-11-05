@@ -1,5 +1,10 @@
 import * as React from "react";
-import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
+import type {
+  MenuAction,
+  MenuCatalogActionItem,
+  MenuTreeNode,
+  MenuType,
+} from "@/lib/data-schemas/menu-designer-schema";
 
 export function useMdNodeMutations(
   setNodes: (updater: (prev: MenuTreeNode[]) => MenuTreeNode[]) => void,
@@ -30,6 +35,8 @@ export function useMdNodeMutations(
           menuId: numericMenuId,
           label: item.label,
           command: item.command || "",
+          menuType: (item.menuType as MenuType) || "FORM",
+          menuAction: (item.menuAction as MenuAction) || "SCREEN",
           isVisible: true,
           orderIndex: 0,
           children: [],

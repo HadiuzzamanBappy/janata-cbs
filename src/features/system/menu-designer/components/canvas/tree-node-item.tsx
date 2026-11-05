@@ -7,15 +7,18 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  BarChart3,
   ChevronDown,
   ChevronRight,
   Eye,
   EyeOff,
+  FileSpreadsheet,
+  FileText,
   Folder,
   FolderMinus,
   FolderPlus,
   GripVertical,
-  Terminal,
+  Search,
   Trash2,
 } from "lucide-react";
 import * as React from "react";
@@ -229,9 +232,15 @@ export function TreeNodeItem({
 
         <div className="flex items-center gap-1.5 shrink-0">
           {isFolderNode ? (
-            <Folder className="size-3.5 text-amber-500 fill-amber-500/10" />
+            <Folder className="size-3.5 text-muted-foreground/80 fill-muted/20" />
+          ) : node.menuType === "INQUIRY" ? (
+            <Search className="size-3.5 text-muted-foreground/70" />
+          ) : node.menuType === "REPORT" ? (
+            <BarChart3 className="size-3.5 text-muted-foreground/70" />
+          ) : node.menuType === "FORM" ? (
+            <FileSpreadsheet className="size-3.5 text-muted-foreground/70" />
           ) : (
-            <Terminal className="size-3.5 text-primary" />
+            <FileText className="size-3.5 text-muted-foreground/70" />
           )}
         </div>
 

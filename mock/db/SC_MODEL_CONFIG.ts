@@ -1,4 +1,4 @@
-﻿import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import type { CbsVersionedTable } from "./types";
 
 export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
@@ -54,6 +54,16 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "4",
+        NAME: "menuAction",
+        LABEL: "Menu Action",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: 20,
+        REQUIRED: false,
+        WIDTH: 180,
+      },
+      {
+        SN: "5",
         NAME: "description",
         LABEL: "Description",
         TYPE: "Text",
@@ -63,7 +73,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         WIDTH: 600,
       },
       {
-        SN: "5",
+        SN: "6",
         NAME: "isActive",
         LABEL: "Is Active",
         TYPE: "Text",

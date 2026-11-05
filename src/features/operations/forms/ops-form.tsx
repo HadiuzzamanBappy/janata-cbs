@@ -86,6 +86,19 @@ export function OpsForm({
     onReturn,
   });
 
+  // Auto-fetch record data on initial mount when opened with a recordId and active mode (e.g. from Inquiry drill-down or Command Bar)
+  const lastLoadedKeyRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!schema) return;
+    const cleanId = searchRecordId?.trim();
+    if (cleanId && screenMode !== "IDLE") {
+      const loadKey = `${modelCode}:${cleanId}:${screenMode}`;
+      if (lastLoadedKeyRef.current === loadKey) return;
+      lastLoadedKeyRef.current = loadKey;
+      actions.loadRecordData(cleanId, screenMode);
+    }
+  }, [schema, searchRecordId, screenMode, modelCode, actions]);
+
   // Real-time record mutation subscriber
   useRecordMutationSubscriber((mutation) => {
     if (searchRecordId && mutation.recordId === searchRecordId.trim().toUpperCase()) {

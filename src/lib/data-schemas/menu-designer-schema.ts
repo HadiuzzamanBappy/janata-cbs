@@ -13,14 +13,25 @@ import { auditDataSchema } from "./common-schema";
 /* ========================================================================== */
 
 /**
+ * Visual/functional category for menu catalog and tree items:
+ * - "GROUP": Folder/container grouping other items
+ * - "INQUIRY": Read-only query / inquiry screen
+ * - "FORM": Interactive input/maintenance form (GMC screen)
+ * - "REPORT": Analytical or ledger report screen
+ */
+export const menuTypeSchema = z.enum(["GROUP", "INQUIRY", "FORM", "REPORT"]);
+export type MenuType = z.infer<typeof menuTypeSchema>;
+export const MENU_TYPES = menuTypeSchema.options;
+
+/**
  * Action target for user-configurable menu catalog items.
  * Strictly limited to how the interactive screen/inquiry opens:
  * - "SCREEN": opens inside an integrated Workspace Tab
  * - "POPUP": opens inside a multi-monitor detached popup window
  */
-export const menuTypeSchema = z.enum(["SCREEN", "POPUP"]);
-export type MenuType = z.infer<typeof menuTypeSchema>;
-export const MENU_TYPES = menuTypeSchema.options;
+export const menuActionSchema = z.enum(["SCREEN", "POPUP"]);
+export type MenuAction = z.infer<typeof menuActionSchema>;
+export const MENU_ACTIONS = menuActionSchema.options;
 
 export const menuCatalogRecordSchema = z.object({
   recordId: z.string().optional(),
@@ -30,8 +41,9 @@ export const menuCatalogRecordSchema = z.object({
     .min(1, "Target command code is required")
     .max(250, "Max 250 characters")
     .regex(/^[A-Z0-9_. ,]+$/, "Must be uppercase alphanumeric command format"),
-  menuType: menuTypeSchema.default("SCREEN"),
-  actionType: menuTypeSchema.optional(),
+  menuType: menuTypeSchema.default("FORM"),
+  menuAction: menuActionSchema.default("SCREEN"),
+  actionType: menuActionSchema.optional(),
   description: z.string().optional(),
   isActive: z.boolean().optional(),
   auditData: auditDataSchema.optional(),
@@ -57,7 +69,8 @@ export type MenuTreeNode = {
   menuId: number | string;
   label: string;
   command?: string;
-  menuType?: "SCREEN" | "POPUP";
+  menuType?: MenuType;
+  menuAction?: MenuAction;
   isVisible: boolean;
   orderIndex: number;
   children: MenuTreeNode[];
@@ -69,7 +82,8 @@ export const menuTreeNodeSchema: z.ZodType<MenuTreeNode> = z.lazy(() =>
     menuId: z.union([z.number(), z.string()]),
     label: z.string().min(1, "Node label is required"),
     command: z.string().optional(),
-    menuType: z.enum(["SCREEN", "POPUP"]).optional(),
+    menuType: menuTypeSchema.optional(),
+    menuAction: menuActionSchema.optional(),
     isVisible: z.boolean().default(true),
     orderIndex: z.number().default(0),
     children: z.array(menuTreeNodeSchema).default([]),
@@ -85,7 +99,8 @@ export type MenuItem = {
   menuId?: number | string;
   label: string;
   command?: string;
-  menuType?: "SCREEN" | "POPUP";
+  menuType?: MenuType;
+  menuAction?: MenuAction;
   children?: MenuItem[];
 };
 
@@ -95,14 +110,15 @@ export const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
     menuId: z.union([z.number(), z.string()]).optional(),
     label: z.string(),
     command: z.string().optional(),
-    menuType: z.enum(["SCREEN", "POPUP"]).optional(),
+    menuType: menuTypeSchema.optional(),
+    menuAction: menuActionSchema.optional(),
     children: z.array(menuItemSchema).optional(),
   }),
 );
 
 /** Menu tree definition record persisted in the `MENU_TREE` control table. */
 export const menuTreeRecordSchema = z.object({
-  recordId: z.string().min(1, "Tree ID is required"),
+  recordId: z.string().optional(),
   treeDescription: z.string().min(1, "Tree Description is required"),
   isActive: z.boolean().optional(),
   menuTree: z.array(menuTreeNodeSchema).default([]),
@@ -117,7 +133,8 @@ export interface MenuCatalogActionItem {
   code?: string;
   label: string;
   command: string;
-  menuType?: string;
+  menuType?: MenuType | string;
+  menuAction?: MenuAction | string;
   description?: string;
 }
 

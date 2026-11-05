@@ -11,6 +11,8 @@ export * from "./SC_MENU_TREE";
 export * from "./SC_MODEL_CONFIG";
 export * from "./SC_USER";
 export * from "./types";
+export * from "./UM_USERS";
+export * from "./UM_USERS";
 
 import { AC_ACCOUNT_TABLE } from "./AC_ACCOUNT";
 import { CUST_CUSTOMER_TABLE } from "./CUST_CUSTOMER";
@@ -23,6 +25,7 @@ import { SC_MENU_TREE_TABLE } from "./SC_MENU_TREE";
 import { SC_MODEL_CONFIG, SC_MODEL_CONFIG_TABLE } from "./SC_MODEL_CONFIG";
 import { SC_USER_TABLE } from "./SC_USER";
 import { type CbsTableVersion, type CbsVersionedTable, queryVersionedRecord } from "./types";
+import { UM_USERS_TABLE } from "./UM_USERS";
 
 /**
  * Physical Database Tables (Strictly PREFIX_TABLENAME matching DB Schemas).
@@ -39,6 +42,7 @@ export const CBS_PHYSICAL_TABLES = {
   SC_MENU_TREE: SC_MENU_TREE_TABLE,
   SC_MODEL_CONFIG: SC_MODEL_CONFIG_TABLE,
   SC_USER: SC_USER_TABLE,
+  UM_USERS: UM_USERS_TABLE,
 } as const;
 
 export type CbsPhysicalTableName = keyof typeof CBS_PHYSICAL_TABLES;

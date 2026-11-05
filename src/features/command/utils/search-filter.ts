@@ -25,7 +25,7 @@ export function groupCommandsByCategory(commands: ControlCommand[]): [string, Co
   const map = new Map<string, ControlCommand[]>();
   for (const cmd of commands) {
     const category =
-      cmd.actionType === "SETTINGS"
+      cmd.controlAction === "SETTINGS" || cmd.controlType === "SETTINGS"
         ? "Preferences"
         : cmd.command.startsWith("SC.")
           ? "System Administration"

@@ -1,16 +1,20 @@
-import { Compass, Layers, Settings, Sliders } from "lucide-react";
+import { BarChart3, FileSpreadsheet, FileText, Search, Settings, Sliders } from "lucide-react";
 import { CommandItem } from "@/components/ui/command";
 import type { CommandItemRowProps } from "../types";
 
 export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps) {
-  // Resolve icon
-  let IconComp = Layers;
-  if (cmd.actionType === "SETTINGS") {
+  // Resolve icon dynamically based on controlType & controlAction
+  let IconComp = FileText;
+  if (cmd.controlAction === "SETTINGS" || cmd.controlType === "SETTINGS") {
     IconComp = Settings;
+  } else if (cmd.controlType === "INQUIRY") {
+    IconComp = Search;
+  } else if (cmd.controlType === "REPORT") {
+    IconComp = BarChart3;
   } else if (category.includes("System") || cmd.command.startsWith("SC.")) {
     IconComp = Sliders;
-  } else {
-    IconComp = Compass;
+  } else if (cmd.controlType === "FORM") {
+    IconComp = FileSpreadsheet;
   }
 
   // Search value indexing: includes title, all aliases, and canonical command

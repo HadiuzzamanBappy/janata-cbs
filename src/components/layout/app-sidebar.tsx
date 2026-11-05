@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { AppSearch } from "@/features/command";
 import { AppSettings } from "@/features/settings";
 import { cbs } from "@/lib/cbs-client";
+import { CBS_SETTINGS_EVENT } from "@/lib/cbs-command";
 import { useHotkeys } from "@/lib/cbs-hotkeys";
 import { logger } from "@/lib/core-logger";
 import { parseMNU } from "@/lib/data-parsers";
@@ -49,9 +50,9 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       setSettingsOpen(true);
     };
 
-    window.addEventListener("cbs:open-settings", handleOpenSettings);
+    window.addEventListener(CBS_SETTINGS_EVENT, handleOpenSettings);
     return () => {
-      window.removeEventListener("cbs:open-settings", handleOpenSettings);
+      window.removeEventListener(CBS_SETTINGS_EVENT, handleOpenSettings);
     };
   }, []);
 

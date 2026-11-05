@@ -26,12 +26,11 @@ import {
   registerCommandAdapter,
   resolveCommandAlias,
   resolveCommandTitle,
-  type UserSecurityProfile,
   validateSecurityPermissions,
 } from "@/lib/cbs-command";
 import { clientConfig } from "@/lib/core-config";
 import type { MenuItem } from "@/lib/data-schemas";
-import { CbsRecordFunction } from "@/types";
+import { CbsRecordFunction, type CbsUserSecurityContext } from "@/types";
 
 interface TestCase {
   title: string;
@@ -117,12 +116,12 @@ async function runSuite() {
     {
       app: commaAst.application,
       authLevel: commaAst.authLevel,
-      isCommaVersion: commaAst.isCommaVersion,
+      version: commaAst.version,
       recordId: commaAst.recordId,
     },
     commaAst.application === "USER" &&
       commaAst.authLevel === 0 &&
-      commaAst.isCommaVersion === true &&
+      commaAst.version === "" &&
       commaAst.recordId === "20002",
   );
 
@@ -156,13 +155,13 @@ async function runSuite() {
     "5. Settings Navigation: Direct tab selection & configuration routing",
     { settings: settingsInput, appearance: "SETTINGS:APPEARANCE" },
     {
-      settingsTab: settingsAst.settingsTabId,
-      appearanceTab: themeSettings.settingsTabId,
+      settingsTarget: settingsAst.target,
+      appearanceTarget: themeSettings.target,
     },
     settingsAst.type === "SETTINGS" &&
-      settingsAst.settingsTabId === "profile" &&
+      settingsAst.target === "profile" &&
       themeSettings.type === "SETTINGS" &&
-      themeSettings.settingsTabId === "appearance",
+      themeSettings.target === "appearance",
   );
 
   // ----------------------------------------------------------------------------
@@ -217,12 +216,12 @@ async function runSuite() {
   // 8. RBAC Security Clearance: RIDASH enforcement & role restrictions
   // ----------------------------------------------------------------------------
   const deleteCmd = cbsCommand.parse("ACCOUNT D 99001");
-  const readOnlyUser: UserSecurityProfile = {
+  const readOnlyUser: CbsUserSecurityContext = {
     userId: "AUDITOR_01",
     commandLine: true,
     accessibility: "RS",
   };
-  const adminUser: UserSecurityProfile = {
+  const adminUser: CbsUserSecurityContext = {
     userId: "OFFICER_01",
     commandLine: true,
     accessibility: "RIDASH",

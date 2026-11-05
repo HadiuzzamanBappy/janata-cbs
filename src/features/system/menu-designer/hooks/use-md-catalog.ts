@@ -4,7 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
 import { cbsCommand } from "@/lib/cbs-command";
 import { parseMenuTreeList, unwrapRecordsPayload } from "@/lib/data-parsers";
-import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-schema";
+import type {
+  MenuAction,
+  MenuCatalogActionItem,
+  MenuType,
+} from "@/lib/data-schemas/menu-designer-schema";
 
 export const DEMO_AVAILABLE_TREES = [
   {
@@ -31,8 +35,8 @@ export function useMdCatalog() {
               id: String(r.recordId || r.id || ""),
               label: String(r.label || "Action"),
               command: String(r.command || ""),
-              menuType: r.menuType ? String(r.menuType) : "FORM",
-              menuAction: r.menuAction ? String(r.menuAction) : "SCREEN",
+              menuType: (r.menuType ? String(r.menuType) : "FORM") as MenuType,
+              menuAction: (r.menuAction ? String(r.menuAction) : "SCREEN") as MenuAction,
               description: r.description ? String(r.description) : undefined,
             }));
           }
@@ -45,7 +49,7 @@ export function useMdCatalog() {
       const itemsMap = new Map<string, MenuCatalogActionItem>();
       const staticCommands = cbsCommand.getCommands();
       for (const cmd of staticCommands) {
-        if (cmd.actionType === "SCREEN") {
+        if (cmd.controlAction === "SCREEN") {
           itemsMap.set(cmd.command.toUpperCase(), {
             id: cmd.command,
             label: cmd.title,

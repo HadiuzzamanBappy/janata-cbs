@@ -20,7 +20,7 @@ export type CbsRecordStatusCode = CbsRecordLifecycleStatus;
  * Resilient: Safely extracts standard audit stamps even if DB carries extra attributes.
  */
 export const auditDataSchema = z.object({
-  recStatus: cbsRecordStatusSchema.optional(),
+  recStatus: z.union([cbsRecordStatusSchema, z.literal("")]).optional(),
   recCurrNumber: z.number().int().nonnegative().optional(),
   recInputter: z.string().optional(),
   recInputTime: z.string().optional(),

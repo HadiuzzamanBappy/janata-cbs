@@ -1,15 +1,8 @@
-// ============================================================================
-// Terminal Command Executor: The Heart of the Command Gateway
-// Handles Parse -> Validate -> Target Routing -> Tab / Popup Spawning
-// ============================================================================
-
 import { toast } from "@/components/ui/toast";
-import { parseCbsCommand } from "../engine/grammar";
+import { findCommandHandler, parseCbsCommand } from "../engine/grammar";
 import { validateSecurityPermissions } from "../engine/validator";
 import { resolveCommandTitle } from "../registry/alias";
-import type { ParsedCommand } from "../types/command";
-import type { ExecutionOptions } from "../types/execution";
-import { dispatchSystemAction } from "./action";
+import type { ExecutionOptions, ParsedCommand } from "../types";
 import { getCommandAdapter } from "./adapter";
 import { spawnDetachedPopupWindow } from "./popup";
 
@@ -52,10 +45,10 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
     return { ...parsed, isValid: false, error: security.reason };
   }
 
-  // 3. Settings Modal Dispatch
-  if (parsed.type === "SETTINGS") {
-    const handled = dispatchSystemAction(parsed);
-    if (handled) return parsed;
+  // 3. Delegate to protocol handler's custom execution hook if implemented
+  const handler = findCommandHandler(parsed.raw);
+  if (handler.execute?.(parsed, options)) {
+    return parsed;
   }
 
   // 4. Detached Multi-Monitor Popup Target
@@ -69,7 +62,7 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
     resolveCommandTitle(parsed.application) || resolveCommandTitle(rawInput.trim().split(/\s+/)[0]);
   const screenTitle = options?.title || catalogTitle || parsed.title;
   const targetMode = options?.screenMode || parsed.screenMode;
-  const targetRecordId = options?.searchRecordId || parsed.recordId;
+  const targetRecordId = options?.recordId || options?.searchRecordId || parsed.recordId;
 
   if (adapter.openTab) {
     const fullFormId = parsed.version
@@ -77,35 +70,26 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
       : parsed.application;
     const screenId = parsed.type === "INQUIRY" ? `INQ ${parsed.application}` : fullFormId;
 
+    const enquiryState =
+      parsed.type === "INQUIRY"
+        ? options?.inquiryState || {
+            step: options?.step,
+            criteria: options?.criteria,
+            currentPage: options?.currentPage,
+            pageSize: options?.pageSize,
+          }
+        : undefined;
+
     adapter.openTab({
       screenId,
       title: screenTitle,
       componentName: parsed.type === "INQUIRY" ? "INQUIRY_SCREEN" : "DYNAMIC_FORM",
       screenMode: targetMode,
       searchRecordId: targetRecordId,
-      enquiryState:
-        parsed.type === "INQUIRY"
-          ? {
-              step: options?.step,
-              criteria: options?.criteria,
-              currentPage: options?.currentPage,
-              pageSize: options?.pageSize,
-            }
-          : undefined,
+      enquiryState,
       formData: options?.formData,
     });
-  } else if (typeof window !== "undefined") {
-    // Fallback: Dispatch a decoupled custom event if no direct adapter function is mounted
-    window.dispatchEvent(
-      new CustomEvent("cbs:open-command-tab", {
-        detail: {
-          command: parsed,
-          options,
-        },
-      }),
-    );
   }
 
-  options?.onSuccess?.(parsed);
   return parsed;
 }

@@ -1,79 +1,81 @@
-// ============================================================================
-// Master Static Command Definitions
-// Lean MVP: clean canonical command names without legacy prefixes + 1 short alias.
-// ============================================================================
+import type { ControlCommand, ControlType, MenuItem } from "@/lib/data-schemas";
 
-import type { ControlCommand, MenuItem } from "@/lib/data-schemas";
-
-export const MASTER_COMMAND_DEFINITIONS: ControlCommand[] = [
-  // 1. System Administrative Canvases
+export const MASTER_COMMAND_DEFINITIONS: readonly ControlCommand[] = [
   {
     command: "SC.MENU.DESIGN",
     title: "Menu Hierarchy",
     aliases: ["MD"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
   },
   {
     command: "SC.MODEL.CONFIG",
     title: "Model Config",
     aliases: ["MC"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
   },
   {
     command: "SC.FORM.CONFIG",
     title: "Form Design",
     aliases: ["FC"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
   },
   {
     command: "SC.INQUIRY.CONFIG",
     title: "Inquiry Design",
-    aliases: ["INQ"],
-    actionType: "SCREEN",
+    aliases: ["IC"],
+    controlAction: "SCREEN",
+    controlType: "FORM",
   },
-
-  // 2. Settings Dialog Commands
   {
     command: "SETTINGS:PROFILE",
     title: "User Profile Settings",
     aliases: ["PROFILE"],
-    actionType: "SETTINGS",
+    controlAction: "SETTINGS",
+    controlType: "SETTINGS",
   },
   {
     command: "SETTINGS:APPEARANCE",
     title: "Appearance & Theme",
     aliases: ["THEME"],
-    actionType: "SETTINGS",
+    controlAction: "SETTINGS",
+    controlType: "SETTINGS",
   },
   {
     command: "SETTINGS:SECURITY",
     title: "Security & Credentials",
     aliases: ["SECURITY"],
-    actionType: "SETTINGS",
+    controlAction: "SETTINGS",
+    controlType: "SETTINGS",
   },
-];
+] as const;
 
 export function getAllRegisteredCommands(): ControlCommand[] {
-  return MASTER_COMMAND_DEFINITIONS;
+  return [...MASTER_COMMAND_DEFINITIONS];
 }
 
 export function extractMenuCommands(items: MenuItem[]): ControlCommand[] {
   const result: ControlCommand[] = [];
-  function traverse(list: MenuItem[]) {
+
+  function traverse(list: MenuItem[]): void {
     for (const item of list) {
       if (item.command) {
         result.push({
           command: item.command,
           title: item.label,
           aliases: [],
-          actionType: "SCREEN",
+          controlAction: item.menuAction ?? "SCREEN",
+          controlType: (item.menuType as ControlType) ?? "FORM",
         });
       }
-      if (item.children && item.children.length > 0) {
+      if (item.children?.length) {
         traverse(item.children);
       }
     }
   }
+
   traverse(items);
   return result;
 }

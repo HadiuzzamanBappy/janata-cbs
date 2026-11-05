@@ -1,16 +1,13 @@
-// ============================================================================
-// Pre-Execution RBAC Security & Syntax Validator
-// ============================================================================
-
-import { CBS_FUNCTION_METADATA, type ParsedCommand } from "../types/command";
-import type { CommandValidationResult, UserSecurityProfile } from "../types/validation";
+import { parseAccessibilityRights } from "@/lib/cbs-access";
+import { CBS_FUNCTION_DEFINITIONS, type CbsUserSecurityContext } from "@/types";
+import type { CommandValidationResult, ParsedCommand } from "../types";
 
 /**
  * Validates whether the active user has permissions to execute the command.
  */
 export function validateSecurityPermissions(
   command: ParsedCommand,
-  user: UserSecurityProfile | null | undefined,
+  user: CbsUserSecurityContext | null | undefined,
 ): CommandValidationResult {
   // 1. Syntax check
   if (!command.isValid) {
@@ -43,12 +40,14 @@ export function validateSecurityPermissions(
 
   // 5. Function rights (RIDASH) check
   if (command.functionCode) {
-    const userRights =
-      user.functionRights ?? (user.accessibility ? user.accessibility.split("") : []);
+    const userRights = parseAccessibilityRights(
+      user.functionRights?.length ? user.functionRights : user.accessibility,
+    );
 
     const hasRight = userRights.includes(command.functionCode);
     if (!hasRight) {
-      const funcName = CBS_FUNCTION_METADATA[command.functionCode]?.label || command.functionCode;
+      const funcName =
+        CBS_FUNCTION_DEFINITIONS[command.functionCode]?.label || command.functionCode;
       return {
         allowed: false,
         reason: `Permission Denied: User lacks ${funcName} rights for application ${command.application}.`,

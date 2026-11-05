@@ -1,18 +1,16 @@
-// ============================================================================
-// Detached Popup Window Dispatcher with Query State Preservation
-// ============================================================================
-
 import { clientConfig } from "@/lib/core-config";
-import type { ParsedCommand } from "../types/command";
-import type { ExecutionOptions } from "../types/execution";
+import type { ExecutionOptions, ParsedCommand } from "../types";
 
+/**
+ * Spawns a detached browser popup window for dual-monitor banking operations.
+ */
 export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: ExecutionOptions): void {
   if (typeof window === "undefined") return;
 
   const params = new URLSearchParams();
   const title = options?.title || parsed.title;
   const mode = options?.screenMode || parsed.screenMode;
-  const recordId = options?.searchRecordId || parsed.recordId;
+  const recordId = options?.recordId || options?.searchRecordId || parsed.recordId;
 
   params.set("title", title);
   const component = parsed.type === "INQUIRY" ? "INQUIRY_SCREEN" : "DYNAMIC_FORM";
@@ -20,15 +18,22 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
   if (mode) params.set("mode", mode);
   if (recordId) params.set("recordId", recordId);
   if (parsed.authLevel !== undefined) params.set("authLevel", String(parsed.authLevel));
-  if (options?.step) params.set("step", options.step);
-  if (options?.currentPage && options.currentPage > 1) {
-    params.set("page", String(options.currentPage));
+
+  const inquiryState = options?.inquiryState;
+  const step = options?.step || inquiryState?.step;
+  const currentPage = options?.currentPage || inquiryState?.currentPage;
+  const pageSize = options?.pageSize || inquiryState?.pageSize;
+  const criteria = options?.criteria || inquiryState?.criteria;
+
+  if (step) params.set("step", step);
+  if (currentPage && currentPage > 1) {
+    params.set("page", String(currentPage));
   }
-  if (options?.pageSize && options.pageSize !== 10) {
-    params.set("pageSize", String(options.pageSize));
+  if (pageSize && pageSize !== 10) {
+    params.set("pageSize", String(pageSize));
   }
   const cleanApp = parsed.application.replace(/[^a-zA-Z0-9]/g, "_");
-  const tabId = options?.tabId || `popup_${cleanApp}_${Date.now()}`;
+  const tabId = options?.tabId || `popup_${cleanApp}_${crypto.randomUUID()}`;
   params.set("tabId", tabId);
 
   // Store large payloads (150 - 1,000 fields) safely in session storage instead of fragile URLs
@@ -38,11 +43,8 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
       JSON.stringify(options.formData),
     );
   }
-  if (options?.criteria && Object.keys(options.criteria).length > 0) {
-    sessionStorage.setItem(
-      clientConfig.storage.session.criteria(tabId),
-      JSON.stringify(options.criteria),
-    );
+  if (criteria && Object.keys(criteria).length > 0) {
+    sessionStorage.setItem(clientConfig.storage.session.criteria(tabId), JSON.stringify(criteria));
   }
   const fullFormKey = parsed.version
     ? `${parsed.application},${parsed.version}`
@@ -61,7 +63,7 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
     "scrollbars=yes",
   ].join(",");
 
-  const windowName = `screen_${parsed.application.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
+  const windowName = `screen_${parsed.application.replace(/[^a-zA-Z0-9]/g, "_")}_${crypto.randomUUID()}`;
   const win = window.open(screenUrl, windowName, popupFeatures);
   if (win) win.focus();
 }

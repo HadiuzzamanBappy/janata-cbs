@@ -1,14 +1,16 @@
-import type { CbsRecordFunction, CbsRecordLifecycleStatus, CbsScreenMode } from "@/types";
+import type {
+  CbsRecordFunction,
+  CbsRecordLifecycleStatus,
+  CbsScreenMode,
+  CbsUserSecurityContext,
+} from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* Access Evaluation Context & Parameter Contracts                           */
 /* -------------------------------------------------------------------------- */
 
-export interface CbsAccessUser {
-  readonly userId?: string;
-  readonly accessibility?: string | readonly string[];
-  readonly functionRights?: readonly string[];
-}
+/** Canonical alias for user context within cbs-access */
+export type CbsAccessUser = CbsUserSecurityContext;
 
 export interface CbsAccessContext {
   /** Optional user override to evaluate access without reading from adapter */

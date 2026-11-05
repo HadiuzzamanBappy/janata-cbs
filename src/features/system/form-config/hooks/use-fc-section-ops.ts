@@ -45,6 +45,7 @@ export function useFcSectionOps(
                     ? "New Object Group"
                     : "Form Fields";
 
+        const isObjGroup = type === "object-group";
         const newSection: FormSection = {
           id: newId,
           title: defaultTitle,
@@ -55,11 +56,13 @@ export function useFcSectionOps(
           bindKey: bindKey || (type !== "standard" ? `group_${nextIndex}` : undefined),
           structure: structure || "S",
           columns: columns ?? 1,
-          collapsible: type !== "standard",
+          collapsible: false,
           isCollapsed: false,
           layoutStyle:
             layoutStyle ??
-            (type === "standard" && zone === "standard" && !customTitle ? "plain" : "card"),
+            (isObjGroup || (type === "standard" && zone === "standard" && !customTitle)
+              ? "plain"
+              : "card"),
           fields: initialFields,
         };
 

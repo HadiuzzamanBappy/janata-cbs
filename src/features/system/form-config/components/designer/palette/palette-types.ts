@@ -37,7 +37,7 @@ export function modelPropToFormElement(prop: ModelProperty): FormElement {
     STRUCTURE: prop.STRUCTURE || "S",
     REQUIRED: Boolean(prop.REQUIRED),
     DISABLED: false,
-    WIDTH: prop.WIDTH || 280,
+    WIDTH: 280,
     POSITION: "",
     PARAMETER: {
       type: "O",

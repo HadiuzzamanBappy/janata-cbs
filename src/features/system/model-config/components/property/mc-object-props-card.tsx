@@ -23,20 +23,14 @@ export function McObjectPropsCard({
   const children = property.PROP || [];
 
   return (
-    <div className="rounded border border-border/80 bg-card overflow-hidden shadow-2xs">
-      {/* Advanced Header matching mc-lookup-config */}
-      <div className="px-3 py-2 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Badge
-            variant="outline"
-            className="font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider text-primary border-primary/30 bg-primary/10"
-          >
-            Object Definition
-          </Badge>
-          <span className="text-xs font-semibold text-foreground truncate">
+    <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
+      {/* Section Header matching Column Definition */}
+      <div className="flex items-center justify-between pb-1 border-b border-border/40">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Nested Sub-Properties (PROP)
           </span>
-          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">
+          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-semibold">
             {children.length}
           </span>
         </div>
@@ -44,12 +38,12 @@ export function McObjectPropsCard({
         {!disabled && onAddSubField && (
           <Button
             type="button"
-            size="sm"
+            size="xs"
             onClick={() => {
               const newSn = onAddSubField(property.SN);
               if (newSn && onSelectSubField) onSelectSubField(newSn);
             }}
-            className="h-6 px-2 text-[10px] font-mono gap-1 rounded"
+            className="h-6 px-2 text-xs font-mono gap-1 rounded"
           >
             <Plus className="size-3" />
             <span>Add Sub-Property</span>
@@ -58,7 +52,7 @@ export function McObjectPropsCard({
       </div>
 
       {/* Sub-item Table UI */}
-      <div className="p-3">
+      <div>
         {children.length === 0 ? (
           <div className="p-4 text-center text-xs text-muted-foreground italic border border-dashed border-border/60 rounded">
             No sub-properties defined for this Object yet. Click "Add Sub-Property" above to add

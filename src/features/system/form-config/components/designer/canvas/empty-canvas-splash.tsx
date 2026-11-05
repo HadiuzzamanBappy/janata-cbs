@@ -58,14 +58,6 @@ export function EmptyCanvasSplash({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onAddSection("object-group", "standard", [], "card", "Object Group")}
-            className="h-8 text-xs bg-background shadow-xs hover:border-purple-500/50"
-          >
-            + Object Group
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
             onClick={() => onAddSection("standard", "tab", [], "card", "Tab 1", undefined, "Tab 1")}
             className="h-8 text-xs bg-background shadow-xs hover:border-sky-500/50"
           >

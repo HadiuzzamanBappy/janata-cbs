@@ -121,39 +121,26 @@ export function InspectorContainerSection({
         </div>
       </InspectorRow>
 
-      {/* Object Group Multi vs Single Toggle */}
+      {/* Object Group Cardinality (Authoritative from Model Config) */}
       {selectedSection.type === "object-group" && (
         <InspectorRow
-          label="Group Cardinality"
-          description="Single (1 occurrence) or Multi (allow adding multiple repeating instances with +/- buttons)."
+          label="Model Cardinality"
+          description="Authoritative structure defined in MODEL.CONFIG (Single or Multi-Value array)."
         >
-          <div className="grid grid-cols-2 gap-1 p-0.5 rounded border border-border/70 bg-background">
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() => onUpdateSection({ structure: "S" })}
+          <div className="flex items-center gap-2 h-7 px-2.5 rounded border border-border/70 bg-muted/20 text-xs">
+            <Badge
+              variant="outline"
               className={cn(
-                "py-1 text-[11px] font-semibold text-center rounded transition-all cursor-pointer border-0",
-                (selectedSection.structure || "S") === "S"
-                  ? "bg-primary text-primary-foreground shadow-2xs font-bold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50 bg-transparent",
-              )}
-            >
-              Single (S)
-            </button>
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() => onUpdateSection({ structure: "M" })}
-              className={cn(
-                "py-1 text-[11px] font-semibold text-center rounded transition-all cursor-pointer border-0",
+                "text-[10px] h-4 px-1.5 font-mono uppercase font-semibold",
                 selectedSection.structure === "M"
-                  ? "bg-primary text-primary-foreground shadow-2xs font-bold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50 bg-transparent",
+                  ? "border-purple-500/40 text-purple-400 bg-purple-500/10"
+                  : "border-blue-500/40 text-blue-400 bg-blue-500/10",
               )}
             >
-              Multi (M)
-            </button>
+              {selectedSection.structure === "M"
+                ? "Multi (M) Repeating Array"
+                : "Single (S) Scalar Object"}
+            </Badge>
           </div>
         </InspectorRow>
       )}
@@ -161,13 +148,14 @@ export function InspectorContainerSection({
       {/* Target Object Bind Key (for object-group / array-table) */}
       {selectedSection.type !== "standard" && (
         <div className="space-y-1 p-2 rounded border border-purple-500/30 bg-purple-500/5">
-          <Label className="text-[11px] font-semibold text-purple-400">Target Model Bind Key</Label>
+          <Label className="text-[11px] font-semibold text-purple-400">
+            Target Model Column (Bind Key)
+          </Label>
           <Input
-            disabled={disabled}
+            disabled={true}
             value={selectedSection.bindKey || ""}
-            placeholder="e.g. presentAddress, nominees"
-            onChange={(e) => onUpdateSection({ bindKey: e.target.value })}
-            className="h-7 text-xs bg-background font-mono"
+            placeholder="Bound to Model Property..."
+            className="h-7 text-xs bg-muted/30 font-mono text-muted-foreground cursor-not-allowed"
           />
         </div>
       )}

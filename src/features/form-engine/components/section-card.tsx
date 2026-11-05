@@ -30,9 +30,13 @@ export function SectionCard({
   hideHeader = false,
 }: SectionCardProps) {
   const hasKernel = Boolean(useContext(FormKernelContext));
-  const [collapsed, setCollapsed] = useState<boolean>(section.isCollapsed ?? false);
+  const isGroup = section.type === "object-group";
+  const isPlain = isGroup || section.layoutStyle === "plain";
+  const isCollapsible = !isGroup && Boolean(section.collapsible);
+  const [collapsed, setCollapsed] = useState<boolean>(
+    isCollapsible ? (section.isCollapsed ?? false) : false,
+  );
 
-  const isPlain = section.layoutStyle === "plain";
   const numCols = section.columns || 1;
 
   return (
@@ -45,10 +49,10 @@ export function SectionCard({
       )}
     >
       {/* Section Header (shown whenever layoutStyle === 'card' or title is present, unless hideHeader is set or object-group with plain style) */}
-      {!hideHeader && !isPlain && (section.title || section.collapsible) && (
+      {!hideHeader && !isPlain && (section.title || isCollapsible) && (
         <div className="flex items-center justify-between pb-1 border-b border-border/40">
           <div className="flex items-center gap-1.5">
-            {section.collapsible && (
+            {isCollapsible && (
               <button
                 type="button"
                 onClick={() => setCollapsed(!collapsed)}
@@ -76,7 +80,7 @@ export function SectionCard({
       )}
 
       {/* Body: Array Table vs Object Group vs Standard Grid */}
-      {!collapsed &&
+      {(!collapsed || isGroup) &&
         (section.type === "array-table" ? (
           <ArrayTableSection
             section={section}

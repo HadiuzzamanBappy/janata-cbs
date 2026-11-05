@@ -1,6 +1,7 @@
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@/lib/core-utils";
 import { useFieldOptions } from "../hooks/use-field-options";
 import { useMultiValue } from "../hooks/use-multi-value";
 import type { UnifiedFieldFactoryProps } from "../types";
@@ -46,7 +47,7 @@ export function UnifiedFieldFactory({
       return undefined;
     }
     const normType = (field.TYPE || "").toLowerCase();
-    if (normType === "number") {
+    if (normType === "number" || normType === "amount" || normType === "rate") {
       const n = Number(rawDefault);
       return Number.isNaN(n) ? rawDefault : n;
     }
@@ -84,6 +85,45 @@ export function UnifiedFieldFactory({
   // Manage multi-value array states
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =
     useMultiValue(effectiveValue, isMulti, onChange, fieldKey);
+
+  // View Mode display text (computed unconditionally at top level for React Rule of Hooks)
+  const viewDisplay = useMemo(() => {
+    if (value === undefined || value === null || value === "") return undefined;
+    if (Array.isArray(value)) return value.join(", ");
+
+    const matchedOption = resolvedOptions.find((o) => o.code === String(value));
+    if (matchedOption) return matchedOption.label;
+
+    const normType = (field.TYPE || "").toLowerCase();
+    if (normType === "amount") {
+      return formatCurrency(value as number | string, {
+        currency: field.NUMBER_CONFIG?.currencyCode || "BDT",
+        decimals: field.NUMBER_CONFIG?.decimals ?? 2,
+      });
+    }
+    if (normType === "rate") {
+      const num = Number(value);
+      const dec = field.RATE_CONFIG?.decimals ?? 4;
+      const suf = field.RATE_CONFIG?.suffix ?? "%";
+      return Number.isNaN(num) ? `${String(value)}${suf}` : `${num.toFixed(dec)}${suf}`;
+    }
+    if (normType === "boolean") {
+      const lower = String(value).toLowerCase().trim();
+      const isTrue = lower === "true" || lower === "y" || lower === "1";
+      return isTrue
+        ? field.BOOLEAN_CONFIG?.activeLabel || "Yes"
+        : field.BOOLEAN_CONFIG?.inactiveLabel || "No";
+    }
+
+    return String(value);
+  }, [
+    value,
+    resolvedOptions,
+    field.TYPE,
+    field.NUMBER_CONFIG,
+    field.RATE_CONFIG,
+    field.BOOLEAN_CONFIG,
+  ]);
 
   const renderSingleWidget = (
     val: unknown,
@@ -147,7 +187,7 @@ export function UnifiedFieldFactory({
               key={stableKey}
               id={isFirst ? elementId : undefined}
               label={effectiveLabel}
-              required={field.REQUIRED && isFirst}
+              required={Boolean(field.REQUIRED)}
               error={isFirst ? error : undefined}
               indexSuffix={itemIdx + 1}
               enrichText={isFirst ? effectiveEnrichText : undefined}
@@ -164,14 +204,6 @@ export function UnifiedFieldFactory({
       </div>
     );
   }
-
-  // View Mode display text
-  const viewDisplay =
-    value !== undefined && value !== null && value !== ""
-      ? Array.isArray(value)
-        ? value.join(", ")
-        : (resolvedOptions.find((o) => o.code === String(value))?.label ?? String(value))
-      : undefined;
 
   // Single-Value Mode
   return (

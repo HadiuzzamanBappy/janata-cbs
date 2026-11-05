@@ -245,6 +245,24 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
+        WIDTH: 280, // Presentation noise: should be purged
+        WIDGET: "text", // Presentation noise: should be purged
+      },
+      {
+        SN: "2",
+        NAME: "IS_ACTIVE",
+        LABEL: "Is Active",
+        TYPE: "Boolean",
+        STRUCTURE: "M", // Invalid for boolean: should normalize to 'S'
+        LENGTH: 50, // Invalid for boolean: should normalize to 1
+      },
+      {
+        SN: "3",
+        NAME: "TXN_DATE",
+        LABEL: "Transaction Date",
+        TYPE: "Date",
+        STRUCTURE: "S",
+        LENGTH: 35, // Should normalize to 10
       },
     ],
   };
@@ -252,6 +270,9 @@ async function runSuite() {
   const sanitizedModel = parsedModel.success
     ? sanitizeModelConfigRecord(parsedModel.data)
     : undefined;
+  const p1 = sanitizedModel?.PROPERTIES[0] as unknown as Record<string, unknown>;
+  const p2 = sanitizedModel?.PROPERTIES[1];
+  const p3 = sanitizedModel?.PROPERTIES[2];
 
   recordTest(
     "6. Model Config Spec Parser & Sanitizer: Standardizes physical metadata & column properties",
@@ -259,11 +280,22 @@ async function runSuite() {
     {
       parsed: parsedModel.success,
       sanitizedTable: sanitizedModel?.TABLENAME,
+      sanitizedAccess: sanitizedModel?.ACCESS,
       propCount: sanitizedModel?.PROPERTIES.length,
+      p1HasWidth: "WIDTH" in (p1 || {}),
+      p2Structure: p2?.STRUCTURE,
+      p2Length: p2?.LENGTH,
+      p3Length: p3?.LENGTH,
     },
     parsedModel.success === true &&
       sanitizedModel?.TABLENAME === "CUSTOM_TABLE" &&
-      sanitizedModel?.PROPERTIES.length === 1,
+      sanitizedModel?.ACCESS === "G" &&
+      sanitizedModel?.PROPERTIES.length === 3 &&
+      !("WIDTH" in (p1 || {})) &&
+      !("WIDGET" in (p1 || {})) &&
+      p2?.STRUCTURE === "S" &&
+      p2?.LENGTH === 1 &&
+      p3?.LENGTH === 10,
   );
 
   // ----------------------------------------------------------------------------

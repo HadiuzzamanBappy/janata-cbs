@@ -5,6 +5,7 @@ import { CheckboxGroupWidget } from "./widgets/checkbox-group-widget";
 import { CheckboxWidget } from "./widgets/checkbox-widget";
 import { DateWidget } from "./widgets/date-widget";
 import { RadioWidget } from "./widgets/radio-widget";
+import { RateWidget } from "./widgets/rate-widget";
 import { SelectWidget } from "./widgets/select-widget";
 import { SwitchWidget } from "./widgets/switch-widget";
 import { TextWidget } from "./widgets/text-widget";
@@ -60,6 +61,7 @@ export function renderFieldWidget({
         />
       );
     case "date":
+    case "datetime":
       return (
         <DateWidget
           id={rowId}
@@ -69,6 +71,7 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           style={inputStyle}
+          type={widget === "datetime" ? "datetime-local" : "date"}
         />
       );
     case "textarea":
@@ -163,6 +166,21 @@ export function renderFieldWidget({
           error={error}
           placeholder={placeholder}
           style={inputStyle}
+          currencyPrefix={field.NUMBER_CONFIG?.currencyCode || "BDT"}
+        />
+      );
+    case "rate":
+      return (
+        <RateWidget
+          id={rowId}
+          fieldKey={fieldKey}
+          value={value}
+          onChange={onChange}
+          disabled={isReadOnly}
+          error={error}
+          placeholder={placeholder || "0.0000"}
+          style={inputStyle}
+          suffix={field.RATE_CONFIG?.suffix || "%"}
         />
       );
     case "number":

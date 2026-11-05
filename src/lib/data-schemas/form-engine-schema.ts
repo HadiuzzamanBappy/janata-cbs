@@ -7,10 +7,12 @@ import { z } from "zod";
 export const propertyTypeSchema = z.enum([
   "Text",
   "Number",
+  "Amount",
+  "Rate",
   "Date",
+  "DateTime",
   "Boolean",
   "Object",
-  "Dropdown",
 ]);
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
 export const PROPERTY_TYPES = propertyTypeSchema.options;
@@ -24,7 +26,9 @@ export const formWidgetTypeSchema = z.enum([
   "textarea",
   "number",
   "amount",
+  "rate",
   "date",
+  "datetime",
   "select",
   "radio-group",
   "switch",
@@ -45,10 +49,12 @@ export const FORM_WIDGET_TYPES = formWidgetTypeSchema.options;
  */
 export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidgetType[]> = {
   Text: ["text", "textarea", "select", "radio-group", "segmented", "checkbox", "checkbox-group"],
-  Number: ["number", "amount", "select", "radio-group", "segmented"],
-  Date: ["date"],
+  Number: ["number", "amount", "rate", "select", "radio-group", "segmented"],
+  Amount: ["amount", "number", "text"],
+  Rate: ["rate", "number", "text"],
+  Date: ["date", "datetime", "text"],
+  DateTime: ["datetime", "date", "text"],
   Boolean: ["switch", "checkbox", "radio-group", "segmented"],
-  Dropdown: ["select", "radio-group", "segmented", "checkbox-group"],
   Object: [],
 } as const;
 
@@ -60,12 +66,16 @@ export function getDefaultWidgetForType(type: PropertyType | string): FormWidget
   switch (normalized) {
     case "Number":
       return "number";
+    case "Amount":
+      return "amount";
+    case "Rate":
+      return "rate";
     case "Date":
       return "date";
+    case "DateTime":
+      return "datetime";
     case "Boolean":
       return "checkbox";
-    case "Dropdown":
-      return "select";
     default:
       return "text";
   }
@@ -143,6 +153,15 @@ export const numberWidgetConfigSchema = z.object({
 });
 export type NumberWidgetConfig = z.infer<typeof numberWidgetConfigSchema>;
 
+export const rateWidgetConfigSchema = z.object({
+  decimals: z.number().default(4),
+  allowNegative: z.boolean().default(false),
+  minValue: z.number().optional(),
+  maxValue: z.number().optional(),
+  suffix: z.string().default("%"),
+});
+export type RateWidgetConfig = z.infer<typeof rateWidgetConfigSchema>;
+
 export const dateWidgetConfigSchema = z.object({
   datePattern: z.enum(["YYYY-MM-DD", "DD/MM/YYYY", "DD-MMM-YYYY"]).default("YYYY-MM-DD"),
   minDateOffset: z.string().default(""),
@@ -166,15 +185,20 @@ export type BooleanWidgetConfig = z.infer<typeof booleanWidgetConfigSchema>;
 
 export const baseFieldSchema = z.looseObject({
   SN: z.coerce.string().default(""),
-  NAME: z.string().min(1, "Field name is required"),
-  LABEL: z.string().min(1, "Field label is required"),
+  NAME: z
+    .string()
+    .trim()
+    .min(1, "Field name is required")
+    .regex(
+      /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+      "Field name must begin with a letter or underscore and contain only alphanumeric characters or underscores",
+    ),
+  LABEL: z.string().trim().min(1, "Field label is required"),
   TYPE: propertyTypeSchema.default("Text"),
   STRUCTURE: z.enum(["S", "M"]).default("S"),
   LENGTH: z.coerce.number().default(50),
   REQUIRED: z.boolean().default(false).optional(),
-  WIDTH: z.coerce.number().int().positive().default(280).optional(),
   PARAMETER: formFieldParameterSchema.optional(),
-  DATASOURCE: z.array(z.unknown()).optional(),
 });
 
 export type PropertyWidth = number;
@@ -185,21 +209,18 @@ export type PropertyWidth = number;
 
 export const formElementSchema = baseFieldSchema.extend({
   // Presentation Controls
+  WIDTH: z.coerce.number().int().positive().default(280).optional(),
   DISABLED: z.boolean().default(false).optional(),
   POSITION: z.string().default("").optional(),
   ENRICHTEXT: z.string().default("").optional(),
   DEFAULTVALUE: z.string().default("").optional(),
-  HELPTEXT: z.string().default("").optional(),
   FIXEDVALUE: z.string().default("").optional(),
-  VALUE: z
-    .union([z.string(), z.array(z.string())])
-    .default("")
-    .optional(),
 
   // UI Widget Selection & Widget-Specific Configs
   WIDGET: formWidgetTypeSchema.optional(),
   TEXT_CONFIG: textWidgetConfigSchema.optional(),
   NUMBER_CONFIG: numberWidgetConfigSchema.optional(),
+  RATE_CONFIG: rateWidgetConfigSchema.optional(),
   DATE_CONFIG: dateWidgetConfigSchema.optional(),
   BOOLEAN_CONFIG: booleanWidgetConfigSchema.optional(),
 

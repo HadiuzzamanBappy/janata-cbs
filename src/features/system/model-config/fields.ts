@@ -270,8 +270,8 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
  */
 export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
   {
-    id: "sec_prop_identity",
-    title: "Column Identity",
+    id: "sec_prop_definition",
+    title: "Column Definition",
     type: "standard",
     layoutStyle: "card",
     columns: 1,
@@ -314,14 +314,16 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
           data: [
             { code: "Text", label: "Text" },
             { code: "Number", label: "Number" },
+            { code: "Amount", label: "Amount" },
+            { code: "Rate", label: "Rate" },
             { code: "Date", label: "Date" },
+            { code: "DateTime", label: "DateTime" },
             { code: "Boolean", label: "Boolean" },
-            { code: "Dropdown", label: "Dropdown" },
             { code: "Object", label: "Object" },
           ],
         },
         ENRICHTEXT:
-          "Physical database column data type: Text, Number, Date, Boolean, Dropdown, or Object.",
+          "Physical database column data type: Text, Number, Amount, Rate, Date, DateTime, Boolean, or Object.",
       },
       {
         SN: "4",
@@ -342,40 +344,19 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         },
         ENRICHTEXT: "Single (S) scalar value or Multi-Value (M) repeating primitive array.",
       },
-    ],
-  },
-  {
-    id: "sec_prop_constraints",
-    title: "Storage & Display Constraints",
-    type: "standard",
-    layoutStyle: "card",
-    columns: 1,
-    fields: [
       {
         SN: "5",
         NAME: "LENGTH",
-        LABEL: "Length / Size",
+        LABEL: "Length",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 4,
         WIDTH: 180,
         DEFAULTVALUE: "50",
-        ENRICHTEXT: "Maximum character storage limit or numerical precision allowed.",
+        ENRICHTEXT: "Maximum character storage limit or numerical precision allowed in database.",
       },
       {
         SN: "6",
-        NAME: "WIDTH",
-        LABEL: "Display Width (px)",
-        TYPE: "Number",
-        STRUCTURE: "S",
-        LENGTH: 4,
-        WIDTH: 180,
-        DEFAULTVALUE: "280",
-        ENRICHTEXT:
-          "Field display width in pixels (e.g. 120, 180, 280, 450, 600, or 1000 for row-wide).",
-      },
-      {
-        SN: "7",
         NAME: "REQUIRED",
         LABEL: "Required",
         TYPE: "Boolean",
@@ -410,7 +391,7 @@ export const DROPDOWN_OPTIONS_SECTION: FormSection = {
       LENGTH: 20,
       REQUIRED: true,
       WIDTH: 180,
-      ENRICHTEXT: "Physical enum code stored in the database column (e.g. HO, BR).",
+      ENRICHTEXT: "Physical code stored in database column (e.g. S, M, HO, BR).",
     },
     {
       SN: "2",
@@ -455,9 +436,8 @@ export const DROPDOWN_LOOKUP_SECTION: FormSection = {
       TYPE: "Text",
       STRUCTURE: "S",
       LENGTH: 35,
-      REQUIRED: true,
       WIDTH: 220,
-      ENRICHTEXT: "Field name in the target model to use as the stored code (e.g. branchCode, id).",
+      ENRICHTEXT: "Optional. Field in target model to store. Defaults to target model's key/id.",
     },
     {
       SN: "3",
@@ -478,66 +458,6 @@ export const DROPDOWN_LOOKUP_SECTION: FormSection = {
       LENGTH: 100,
       WIDTH: 350,
       ENRICHTEXT: "Optional filter expression to limit records (e.g. status == 'ACTIVE').",
-    },
-  ],
-};
-
-/**
- * Standard Form Section definition for Object Sub-Properties (PROP).
- * Defines nested object children as a pure JSON Form Engine schema.
- */
-export const OBJECT_SUBPROPERTIES_SECTION: FormSection = {
-  id: "sec_object_subproperties",
-  title: "Sub-Property",
-  type: "object-group",
-  structure: "M",
-  layoutStyle: "plain",
-  bindKey: "PROP",
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "NAME",
-      LABEL: "Field Name",
-      TYPE: "Text",
-      STRUCTURE: "S",
-      LENGTH: 35,
-      REQUIRED: true,
-      WIDTH: 180,
-      ENRICHTEXT: "Physical database column or JSON attribute name.",
-    },
-    {
-      SN: "2",
-      NAME: "LABEL",
-      LABEL: "Display Label",
-      TYPE: "Text",
-      STRUCTURE: "S",
-      LENGTH: 80,
-      REQUIRED: true,
-      WIDTH: 280,
-      ENRICHTEXT: "Human-readable label presented on screens and reports.",
-    },
-    {
-      SN: "3",
-      NAME: "TYPE",
-      LABEL: "Data Type",
-      TYPE: "Dropdown",
-      STRUCTURE: "S",
-      LENGTH: 20,
-      REQUIRED: true,
-      WIDTH: 160,
-      ENRICHTEXT: "Physical data type for this nested sub-property.",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "Text", label: "Text (String)" },
-          { code: "Numeric", label: "Numeric" },
-          { code: "Amount", label: "Financial Amount" },
-          { code: "Date", label: "Date" },
-          { code: "Dropdown", label: "Dropdown (Lookup / Static)" },
-          { code: "Boolean", label: "Boolean (Flag)" },
-        ],
-      },
     },
   ],
 };

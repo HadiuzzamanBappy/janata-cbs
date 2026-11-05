@@ -15,7 +15,9 @@ export function useMultiValue(
 
   const arrayValues: unknown[] = useMemo(() => {
     if (!isMulti) return [];
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) {
+      return value.length > 0 ? value : [""];
+    }
     return value !== undefined && value !== null && value !== "" ? [value] : [""];
   }, [isMulti, value]);
 

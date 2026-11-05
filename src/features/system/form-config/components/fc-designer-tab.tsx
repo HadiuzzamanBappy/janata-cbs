@@ -210,7 +210,7 @@ export function FcDesignerTab({
         data.containerType,
         effectiveZone,
         data.initialFields || [],
-        data.layoutStyle || "card",
+        data.layoutStyle || (data.containerType === "object-group" ? "plain" : "card"),
         data.title,
         targetGroupId,
         effectiveTabTitle,

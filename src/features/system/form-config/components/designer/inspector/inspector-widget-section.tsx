@@ -42,9 +42,17 @@ const WIDGET_METADATA: Record<FormWidgetType, { label: string; description: stri
     label: "Amount (Financial Currency)",
     description: "Monetary amount with currency prefix & decimals.",
   },
+  rate: {
+    label: "Rate (Interest / Exchange)",
+    description: "Financial rate or percentage with precision decimals.",
+  },
   date: {
     label: "Date Picker (CBS Calendar)",
     description: "CBS calendar date selector.",
+  },
+  datetime: {
+    label: "Date & Time Picker (CBS Timestamp)",
+    description: "CBS calendar date and time timestamp selector.",
   },
   select: {
     label: "Select / Dropdown (Lookup)",

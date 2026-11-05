@@ -1,0 +1,254 @@
+[
+  {
+    "servicePath": "default",
+    "requestType": "GMC",
+    "controlName": "MODEL.CONFIG",
+    "recordFunction": "S",
+    "recordId": "BRANCH"
+  },
+  {
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "message": "record successfully processed!",
+    "idempotencyKey": "",
+    "errors": [],
+    "timestamp": "2026-11-05T04:34:57.992624312Z",
+    "data": {
+      "record": {
+        "_DEVBY": "MD. IMRAN HASAN",
+        "_DEVDATE": "2025-06-18",
+        "DESCRIPTION": "Company or Branch ",
+        "PREFIX": "SC",
+        "TABLENAME": "Branch",
+        "USERDEFINEID": true,
+        "ACCESS": "G",
+        "READONLY": false,
+        "SEARCHABLE": true,
+        "ASSOCIATES": ["HIS", "UNA", "DEL"],
+        "AUTHORIZE": true,
+        "SERVICEPATH": "default",
+        "IDDEF": {
+          "IDPREFIX": "",
+          "SEQUENCELENGTH": "",
+          "SEQUENCERESET": false,
+          "IDPATTERN": ""
+        },
+        "PROPERTIES": [
+          {
+            "SN": "1",
+            "NAME": "branchTitle",
+            "LABEL": "Branch Title",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 120
+          },
+          {
+            "SN": "2",
+            "NAME": "branchType",
+            "LABEL": "Branch Type",
+            "TYPE": "Dropdown",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 120,
+            "PARAMETER": {
+              "type": "O",
+              "data": [
+                {
+                  "itemCode": "HO",
+                  "itemLabel": "Head Office"
+                },
+                {
+                  "itemCode": "DV",
+                  "itemLabel": "Division"
+                },
+                {
+                  "itemCode": "AR",
+                  "itemLabel": "Area"
+                },
+                {
+                  "itemCode": "BR",
+                  "itemLabel": "Branch"
+                },
+                {
+                  "itemCode": "SB",
+                  "itemLabel": "Sub Branch"
+                }
+              ],
+              "modelName": "",
+              "displayField": "",
+              "valueField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": []
+          },
+          {
+            "SN": "3",
+            "NAME": "branchContact",
+            "LABEL": "Branch Contact",
+            "TYPE": "Object",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 120,
+            "PROP": [
+              {
+                "SN": "3_1",
+                "NAME": "addressLine",
+                "LABEL": "Address Line",
+                "TYPE": "Text",
+                "STRUCTURE": "M",
+                "LENGTH": 0,
+                "REQUIRED": false,
+                "WIDTH": 120
+              },
+              {
+                "SN": "3_2",
+                "NAME": "email",
+                "LABEL": "Email",
+                "TYPE": "Text",
+                "STRUCTURE": "S",
+                "LENGTH": 0,
+                "REQUIRED": false,
+                "WIDTH": 120
+              },
+              {
+                "SN": "3_3",
+                "NAME": "phone",
+                "LABEL": "Phone",
+                "TYPE": "Text",
+                "STRUCTURE": "M",
+                "LENGTH": 0,
+                "REQUIRED": false,
+                "WIDTH": 120
+              }
+            ]
+          },
+          {
+            "SN": "4",
+            "NAME": "openDate",
+            "LABEL": "Open Date",
+            "TYPE": "Date",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 120
+          },
+          {
+            "SN": "5",
+            "NAME": "isActive",
+            "LABEL": "Branch Active",
+            "TYPE": "Boolean",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 120
+          },
+          {
+            "SN": "6",
+            "NAME": "bbCode",
+            "LABEL": "BB Code",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 120
+          },
+          {
+            "SN": "7",
+            "NAME": "divCode",
+            "LABEL": "Division Code",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 120
+          },
+          {
+            "SN": "8",
+            "NAME": "areaCode",
+            "LABEL": "Area  Code",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 120
+          },
+          {
+            "SN": "9",
+            "NAME": "gradeCode",
+            "LABEL": "GradeCode",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 120
+          },
+          {
+            "SN": "10",
+            "NAME": "countryCode",
+            "LABEL": "Country Code",
+            "TYPE": "Dropdown",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 120,
+            "PARAMETER": {
+              "type": "M",
+              "data": [],
+              "modelName": "COUNTRY",
+              "displayField": "countryName",
+              "valueField": "",
+              "condition": "",
+              "reference": ""
+            },
+            "DATASOURCE": []
+          },
+          {
+            "SN": "11",
+            "NAME": "routingNumber",
+            "LABEL": "Routing Number",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 120
+          },
+          {
+            "SN": "12",
+            "NAME": "swiftCode",
+            "LABEL": "Swift Code",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": true,
+            "WIDTH": 120
+          },
+          {
+            "SN": "13",
+            "NAME": "parentBranch",
+            "LABEL": "Parent Branch",
+            "TYPE": "Text",
+            "STRUCTURE": "S",
+            "LENGTH": 0,
+            "REQUIRED": false,
+            "WIDTH": 120
+          }
+        ],
+        "auditData": {
+          "recStatus": "AU",
+          "recCurrNumber": 16,
+          "recInputter": "SYSUSER",
+          "recInputTime": "2026-11-04 05:43:26",
+          "recAuthorizer": "SYSUSER",
+          "recAuthTime": "2026-11-04 05:43:55",
+          "recBranchCode": "JB9999"
+        }
+      }
+    },
+    "success": true
+  }
+]

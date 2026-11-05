@@ -100,12 +100,12 @@ export function useMcActions({
         successMessage: `Saved schema #${targetId} to MODEL.CONFIG`,
         onSuccess: () => {
           rebaseline();
-          markAsCommitted(validation.data.PROPERTIES || []);
+          markAsCommitted(cleanData.PROPERTIES || []);
           upsertCatalogItem({
             id: targetId,
-            label: validation.data.DESCRIPTION,
-            details: `${validation.data.PROPERTIES.length} properties`,
-            record: validation.data,
+            label: cleanData.DESCRIPTION,
+            details: `${cleanData.PROPERTIES.length} properties`,
+            record: cleanData,
           });
           resetToIdle();
         },

@@ -2,10 +2,11 @@
 
 import { Database, ListOrdered } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
 import { setFieldValue } from "@/features/form-engine/utils/path-utils";
+import { cn } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
 import { DROPDOWN_LOOKUP_SECTION, DROPDOWN_OPTIONS_SECTION } from "../../fields";
@@ -14,85 +15,171 @@ export interface McLookupConfigProps {
   property: ModelProperty;
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
   disabled?: boolean;
+  errors?: Record<string, string>;
 }
 
-export function McLookupConfig({ property, onUpdate, disabled }: McLookupConfigProps) {
-  const param = (property.PARAMETER || {}) as Record<string, unknown>;
-  const paramType = (param.type as string) || "O";
+export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: McLookupConfigProps) {
+  const param = property.PARAMETER as Record<string, unknown> | undefined;
+  const paramType = param ? (param.type as string) || "O" : "NONE";
 
-  const handleSetType = (t: "O" | "M") => {
+  // Normalize data items so each item has { code, label } and has at least one initial item
+  const normalizedProperty = React.useMemo(() => {
+    if (param?.type === "O") {
+      const rawData = Array.isArray(param.data) ? param.data : [];
+      const data =
+        rawData.length > 0
+          ? rawData.map((it: unknown) => {
+              if (typeof it === "object" && it !== null) {
+                const rec = it as Record<string, unknown>;
+                const code = String(rec.code ?? rec.value ?? rec.itemCode ?? rec.name ?? "");
+                const label = String(rec.label ?? rec.itemLabel ?? rec.name ?? rec.value ?? code);
+                return { code, label: label || code };
+              }
+              const str = String(it ?? "");
+              return { code: str, label: str };
+            })
+          : [{ code: "", label: "" }];
+
+      return {
+        ...property,
+        PARAMETER: {
+          ...(param || {}),
+          type: "O",
+          data,
+        },
+      };
+    }
+    return property;
+  }, [property, param]);
+
+  const handleSetType = (t: "NONE" | "O" | "M") => {
+    if (t === "NONE") {
+      onUpdate(property.SN, {
+        PARAMETER: undefined,
+      });
+      return;
+    }
+
     onUpdate(property.SN, {
       PARAMETER: {
-        ...param,
+        ...(param || {}),
         type: t,
-        data: t === "O" ? (Array.isArray(param.data) ? param.data : []) : [],
+        data:
+          t === "O"
+            ? Array.isArray(param?.data) && param.data.length > 0
+              ? param.data
+              : [{ code: "", label: "" }]
+            : [],
       },
     });
   };
 
   const handleFieldChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
-      const updated = setFieldValue(property as Record<string, unknown>, fieldKey, value);
+      const updated = setFieldValue(normalizedProperty as Record<string, unknown>, fieldKey, value);
+      const nextParam = updated.PARAMETER as Record<string, unknown> | undefined;
+
+      // Ensure data items are clean { code, label } objects with auto-fallback
+      if (nextParam?.type === "O" && Array.isArray(nextParam.data)) {
+        nextParam.data = nextParam.data.map((it: unknown) => {
+          if (typeof it === "object" && it !== null) {
+            const rec = it as Record<string, unknown>;
+            const code = String(rec.code ?? rec.value ?? rec.itemCode ?? rec.name ?? "");
+            const label = String(rec.label ?? rec.itemLabel ?? rec.name ?? rec.value ?? code);
+            return {
+              code,
+              label: label || code,
+            };
+          }
+          const str = String(it ?? "");
+          return { code: str, label: str };
+        });
+      }
+
       onUpdate(property.SN, {
-        PARAMETER: updated.PARAMETER as ModelProperty["PARAMETER"],
+        PARAMETER: nextParam as ModelProperty["PARAMETER"],
       });
     },
-    [property, onUpdate],
+    [normalizedProperty, property.SN, onUpdate],
   );
 
-  const activeSection = paramType === "O" ? DROPDOWN_OPTIONS_SECTION : DROPDOWN_LOOKUP_SECTION;
+  const activeSection = paramType === "M" ? DROPDOWN_LOOKUP_SECTION : DROPDOWN_OPTIONS_SECTION;
 
   return (
-    <div className="rounded border border-border/80 bg-card overflow-hidden shadow-2xs">
-      {/* Header with Type Selector */}
-      <div className="px-3 py-2 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <Badge
-            variant="outline"
-            className="font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider text-primary border-primary/30 bg-primary/10"
-          >
-            Dropdown Source
-          </Badge>
-          <span className="text-xs font-semibold text-foreground truncate">
-            Options & Lookup Configuration
-          </span>
-        </div>
+    <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
+      {/* Section Header exactly matching Column Definition card */}
+      <div className="flex items-center justify-between pb-1 border-b border-border/40">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Options & Model Lookup
+        </span>
+      </div>
 
-        <div className="flex items-center gap-1">
+      {/* Input Source as standard FieldRow with segmented controls */}
+      <FieldRow label="Input Source">
+        <div className="inline-flex items-center rounded border border-border/80 bg-muted/40 p-0.5">
           <Button
             type="button"
-            size="sm"
-            variant={paramType === "O" ? "default" : "outline"}
+            size="xs"
+            variant={paramType === "NONE" ? "default" : "ghost"}
+            disabled={disabled}
+            onClick={() => handleSetType("NONE")}
+            className={cn(
+              "h-6 px-2.5 text-xs font-mono rounded transition-all",
+              paramType === "NONE"
+                ? "shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <span>Plain Text</span>
+          </Button>
+          <Button
+            type="button"
+            size="xs"
+            variant={paramType === "O" ? "default" : "ghost"}
             disabled={disabled}
             onClick={() => handleSetType("O")}
-            className="h-6 px-2 text-[10px] font-mono gap-1 rounded"
+            className={cn(
+              "h-6 px-2.5 text-xs font-mono gap-1 rounded transition-all",
+              paramType === "O"
+                ? "shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground",
+            )}
           >
             <ListOrdered className="size-3" />
             <span>Options List (O)</span>
           </Button>
           <Button
             type="button"
-            size="sm"
-            variant={paramType === "M" ? "default" : "outline"}
+            size="xs"
+            variant={paramType === "M" ? "default" : "ghost"}
             disabled={disabled}
             onClick={() => handleSetType("M")}
-            className="h-6 px-2 text-[10px] font-mono gap-1 rounded"
+            className={cn(
+              "h-6 px-2.5 text-xs font-mono gap-1 rounded transition-all",
+              paramType === "M"
+                ? "shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground",
+            )}
           >
             <Database className="size-3" />
             <span>Model Lookup (M)</span>
           </Button>
         </div>
-      </div>
+      </FieldRow>
 
-      <div className="p-3">
-        <FormRenderer
-          frmElements={{ sections: [activeSection] }}
-          values={property as Record<string, unknown>}
-          onChange={handleFieldChange}
-          disabled={disabled}
-          mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-        />
-      </div>
+      {/* Dynamic Sub-Form (Options List or Model Lookup fields) */}
+      {paramType !== "NONE" && (
+        <div className="pt-2 border-t border-border/30">
+          <FormRenderer
+            frmElements={{ sections: [activeSection] }}
+            values={normalizedProperty as Record<string, unknown>}
+            onChange={handleFieldChange}
+            errors={errors}
+            disabled={disabled}
+            mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          />
+        </div>
+      )}
     </div>
   );
 }

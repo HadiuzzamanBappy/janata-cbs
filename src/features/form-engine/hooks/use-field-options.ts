@@ -14,12 +14,12 @@ export function useFieldOptions(field: FormElement) {
     if (param?.type === "O" && Array.isArray(param.data) && param.data.length > 0) {
       return param.data.map((d: unknown) => {
         if (typeof d === "string") return { code: d, label: d };
-        const dObj = d as Record<string, unknown>;
-        const code = dObj.itemCode ?? dObj.code ?? dObj.value ?? dObj.CODE ?? dObj.VALUE ?? "";
-        const label = dObj.itemLabel ?? dObj.label ?? dObj.display ?? dObj.LABEL ?? code;
+        const dObj = (d && typeof d === "object" ? d : {}) as Record<string, unknown>;
+        const code = String(dObj.code ?? dObj.value ?? dObj.itemCode ?? dObj.name ?? "");
+        const label = String(dObj.label ?? dObj.itemLabel ?? dObj.name ?? dObj.value ?? code);
         return {
-          code: String(code),
-          label: String(label || code),
+          code,
+          label: label || code,
         };
       });
     }

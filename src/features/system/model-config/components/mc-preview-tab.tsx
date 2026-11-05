@@ -3,6 +3,7 @@
 import * as React from "react";
 import { FormPreview } from "@/features/form-engine";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
+import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 
 export interface McPreviewTabProps {
@@ -10,7 +11,11 @@ export interface McPreviewTabProps {
 }
 
 export function McPreviewTab({ formData }: McPreviewTabProps) {
-  const spec = React.useMemo(() => compileFormSpec(formData, null), [formData]);
+  const cleanData = React.useMemo(
+    () => sanitizeModelConfigRecord(formData) ?? formData,
+    [formData],
+  );
+  const spec = React.useMemo(() => compileFormSpec(cleanData, null), [cleanData]);
 
   return (
     <FormPreview

@@ -160,6 +160,18 @@ export function FormRenderer({
             errs[f.NAME] = f.VALIDATION.message || `Maximum value is ${f.VALIDATION.max}`;
           }
         }
+
+        // 4. Regex pattern matching
+        if (f.VALIDATION?.pattern && val !== undefined && val !== "") {
+          try {
+            const reg = new RegExp(f.VALIDATION.pattern);
+            if (!reg.test(String(val))) {
+              errs[f.NAME] = f.VALIDATION.message || "Invalid format";
+            }
+          } catch {
+            // Ignore invalid regex in user definition
+          }
+        }
       });
     });
 

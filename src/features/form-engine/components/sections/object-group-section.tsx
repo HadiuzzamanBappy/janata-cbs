@@ -185,31 +185,37 @@ export function ObjectGroupSection({
 
           {/* Child Fields within Group Set */}
           <div className="space-y-2">
-            {section.fields.map((field) => {
-              const key = resolveFieldKey(field, setIdx);
-              const setField: FormElement = {
-                ...field,
-                SN: `${field.SN}_set_${setIdx}`,
-                NAME: key,
-              };
+            {section.fields.length === 0 ? (
+              <div className="text-[11px] font-mono text-muted-foreground/60 italic py-1">
+                No sub-properties defined for this group.
+              </div>
+            ) : (
+              section.fields.map((field) => {
+                const key = resolveFieldKey(field, setIdx);
+                const setField: FormElement = {
+                  ...field,
+                  SN: `${field.SN}_set_${setIdx}`,
+                  NAME: key,
+                };
 
-              return (
-                <div key={setField.SN} className={getFieldColSpanClass(numCols, setField.WIDTH)}>
-                  {hasKernel ? (
-                    <FieldAtom field={setField} disabled={disabled} mode={mode} />
-                  ) : (
-                    <UnifiedFieldFactory
-                      field={setField}
-                      value={getFieldValue(values, key)}
-                      onChange={onChange}
-                      error={errors[key]}
-                      disabled={disabled}
-                      mode={mode}
-                    />
-                  )}
-                </div>
-              );
-            })}
+                return (
+                  <div key={setField.SN} className={getFieldColSpanClass(numCols, setField.WIDTH)}>
+                    {hasKernel ? (
+                      <FieldAtom field={setField} disabled={disabled} mode={mode} />
+                    ) : (
+                      <UnifiedFieldFactory
+                        field={setField}
+                        value={getFieldValue(values, key)}
+                        onChange={onChange}
+                        error={errors[key]}
+                        disabled={disabled}
+                        mode={mode}
+                      />
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       ))}

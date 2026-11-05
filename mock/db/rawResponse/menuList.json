@@ -1,0 +1,742 @@
+[
+  {
+    "servicePath": "default",
+    "requestType": "GRL",
+    "controlName": "MENU",
+    "recordFunction": "L",
+    "recordId": ""
+  },
+  {
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "message": "record successfully processed!",
+    "idempotencyKey": "",
+    "errors": [],
+    "timestamp": "2026-11-05T07:04:22.606340061Z",
+    "data": {
+      "records": [
+        {
+          "recordId": "1",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Operational",
+          "command": "",
+          "menuType": ""
+        },
+        {
+          "recordId": "10",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Daily Inquiry",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "11",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Today FT List",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "12",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Test",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "13",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "User Management",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "14",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "User Request",
+          "command": "",
+          "menuType": ""
+        },
+        {
+          "recordId": "15",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Create User Request",
+          "command": "USER.MGT,NEW1",
+          "menuType": "3"
+        },
+        {
+          "recordId": "16",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Unauthrized User Request List",
+          "command": "INQ S GET.USER.MGT",
+          "menuType": "2"
+        },
+        {
+          "recordId": "17",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Today Txn Report",
+          "command": "INQ S GET.TO.TXN",
+          "menuType": "4"
+        },
+        {
+          "recordId": "18",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Dev Menu",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "19",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Today Txn Entry",
+          "command": "INQ S GET.TODAY.ENTRY",
+          "menuType": "4"
+        },
+        {
+          "recordId": "2",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Inquiry",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "20",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "User Creation from New Request",
+          "command": "INQ S GET.USER.MGT.AUTH2",
+          "menuType": "4"
+        },
+        {
+          "recordId": "21",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Authorize/Delete New Users",
+          "command": "INQ S NEW.USER.AUTH",
+          "menuType": "2"
+        },
+        {
+          "recordId": "22",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Change Password",
+          "command": "CPASS",
+          "menuType": "3"
+        },
+        {
+          "recordId": "23",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-07 06:31:11",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Unauthorize User List",
+          "command": "INQ S USER.MGT.NAU.LIST",
+          "menuType": "1"
+        },
+        {
+          "recordId": "24",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-07 06:31:11",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Open / Edit General Customer ",
+          "command": "CUSTOMER,GENERAL",
+          "menuType": "1"
+        },
+        {
+          "recordId": "26",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Loan & Advance",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "27",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Loan Disbursement",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "28",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Loan Approval",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "29",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "ADMIN02",
+            "recInputTime": "2026-07-30 06:40:05",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "User Request",
+          "command": "INQ S GET.EMP.INFO",
+          "menuType": "2"
+        },
+        {
+          "recordId": "3",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Customer Manage",
+          "command": "",
+          "menuType": ""
+        },
+        {
+          "recordId": "31",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-07 06:31:11",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Development Utility",
+          "command": null,
+          "menuType": "1"
+        },
+        {
+          "recordId": "32",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 2,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-07 08:12:20",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Model Builder",
+          "command": "SC.MODEL.BUILDER",
+          "menuType": "1"
+        },
+        {
+          "recordId": "33",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-07 08:12:07",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Form Builder",
+          "command": "SC.FORM.BUILDER",
+          "menuType": "3"
+        },
+        {
+          "recordId": "34",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-07 08:13:40",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Inquiry Designer",
+          "command": "SC.INQUIRY",
+          "menuType": "2"
+        },
+        {
+          "recordId": "35",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-11 06:15:33",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Menu Designer",
+          "command": "SC.MENU.DESIGN",
+          "menuType": "5"
+        },
+        {
+          "recordId": "36",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-11 06:18:52",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Report Line Setup",
+          "command": "SC.REPORT.LINE",
+          "menuType": "5"
+        },
+        {
+          "recordId": "37",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-11 06:20:01",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "User Group Setup",
+          "command": "SC.USER.GROUP",
+          "menuType": "5"
+        },
+        {
+          "recordId": "38",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-11 06:20:53",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "User Reset",
+          "command": "SC.USER.PASS.RESET",
+          "menuType": "3"
+        },
+        {
+          "recordId": "39",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-11 06:24:07",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Report Builder",
+          "command": "SC.REPORT.BUILDER",
+          "menuType": "4"
+        },
+        {
+          "recordId": "4",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Account Manage",
+          "command": "",
+          "menuType": "3"
+        },
+        {
+          "recordId": "40",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "SYSUSER",
+            "recInputTime": "2026-10-11 06:25:22",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Account Group Id",
+          "command": "AC.GROUP.ID",
+          "menuType": "3"
+        },
+        {
+          "recordId": "41",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 2,
+            "recInputter": "SYSADMIN",
+            "recInputTime": "2026-10-11 08:39:21",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Create / Edit Govt.  Customer",
+          "command": "CUSTOMER,GOVERNMENT",
+          "menuType": "3"
+        },
+        {
+          "recordId": "42",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "USR000R",
+            "recInputTime": "2026-10-11 10:17:33",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Open / Edit Staff Customer",
+          "command": "CUSTOMER,STAFF",
+          "menuType": "3"
+        },
+        {
+          "recordId": "43",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-10-12 08:04:25",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Create User",
+          "command": "INQ S GET.USER.MGT.AUTH",
+          "menuType": "2"
+        },
+        {
+          "recordId": "44",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-10-15 04:57:55",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "User Creation",
+          "command": null,
+          "menuType": "1"
+        },
+        {
+          "recordId": "45",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 2,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-10-15 05:15:11",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Authorise/Delete User Unauth List",
+          "command": "INQ S GET.USER.UNAU.LIST",
+          "menuType": "2"
+        },
+        {
+          "recordId": "46",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 2,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-10-15 05:15:20",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "List of User",
+          "command": "INQ S GET.USER.LIST",
+          "menuType": "2"
+        },
+        {
+          "recordId": "47",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-10-15 05:12:14",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Report",
+          "command": "",
+          "menuType": "1"
+        },
+        {
+          "recordId": "48",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 2,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-11-03 09:53:42",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Password Reset",
+          "command": "PASSWORD.RESET,NEW N",
+          "menuType": "3"
+        },
+        {
+          "recordId": "49",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-11-03 09:51:51",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "User Password Reset",
+          "command": null,
+          "menuType": "1"
+        },
+        {
+          "recordId": "5",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Funds Manage",
+          "command": "",
+          "menuType": "3"
+        },
+        {
+          "recordId": "50",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 1,
+            "recInputter": "IA0245820",
+            "recInputTime": "2026-11-03 10:22:20",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": "JB9999"
+          },
+          "label": "Authorise/Delete Password Reset Unauth List",
+          "command": "INQ S GET.USR.PASS.RST.UN.LIST",
+          "menuType": "2"
+        },
+        {
+          "recordId": "6",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Open / Edit Corporate Customer",
+          "command": "CUSTOMER,CORPORATE",
+          "menuType": "3"
+        },
+        {
+          "recordId": "7",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Create Accouont",
+          "command": "ACCOUNT",
+          "menuType": "4"
+        },
+        {
+          "recordId": "8",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Funds Transfer",
+          "command": "FUNDS.TRANSFER",
+          "menuType": ""
+        },
+        {
+          "recordId": "9",
+          "auditData": {
+            "recStatus": "",
+            "recCurrNumber": 0,
+            "recInputter": "",
+            "recInputTime": "",
+            "recAuthorizer": "",
+            "recAuthTime": "",
+            "recBranchCode": ""
+          },
+          "label": "Yearend Report",
+          "command": "",
+          "menuType": "1"
+        }
+      ]
+    },
+    "success": true
+  }
+]

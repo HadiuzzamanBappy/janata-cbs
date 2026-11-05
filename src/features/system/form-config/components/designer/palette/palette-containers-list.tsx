@@ -59,49 +59,8 @@ export function PaletteContainersList({ disabled, onAddSection }: PaletteContain
       >
         <LayoutList className="size-3.5 text-blue-500" />
         <div className="flex flex-col text-left">
-          <span className="font-semibold">+ Standard</span>
-          <span className="text-[9px] text-muted-foreground">General section container</span>
-        </div>
-      </Button>
-
-      {/* Object Group */}
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={disabled}
-        draggable={!disabled}
-        onDragStart={(e) => {
-          if (disabled) return;
-          const payload = {
-            type: "palette-container",
-            containerType: "object-group",
-            zone: "standard",
-            layoutStyle: "card",
-            title: "Object Group",
-            columns: 1,
-          };
-          e.dataTransfer.setData("application/json", JSON.stringify(payload));
-          e.dataTransfer.effectAllowed = "copy";
-        }}
-        onClick={() =>
-          onAddSection(
-            "object-group",
-            "standard",
-            [],
-            "card",
-            "Object Group",
-            undefined,
-            undefined,
-            undefined,
-            1,
-          )
-        }
-        className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
-      >
-        <Layers className="size-3.5 text-purple-500" />
-        <div className="flex flex-col text-left">
-          <span className="font-semibold">+ Object Group</span>
-          <span className="text-[9px] text-muted-foreground">Nested sub-model binding</span>
+          <span className="font-semibold">+ Card Container</span>
+          <span className="text-[9px] text-muted-foreground">Titled visual section for fields</span>
         </div>
       </Button>
 

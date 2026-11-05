@@ -28,11 +28,22 @@ export function validateValues(
       rawVal === undefined ||
       rawVal === null ||
       rawVal === "" ||
-      (Array.isArray(rawVal) && rawVal.length === 0);
+      (Array.isArray(rawVal) &&
+        (rawVal.length === 0 ||
+          rawVal.every((v) => v === undefined || v === null || String(v).trim() === "")));
 
     // 1. Mandatory Required Check
     if (field.REQUIRED && isMissingOrEmpty) {
       errors[fieldKey] = `${field.LABEL || fieldKey} is required`;
+      continue;
+    }
+
+    if (
+      field.REQUIRED &&
+      Array.isArray(rawVal) &&
+      rawVal.some((v) => v === undefined || v === null || String(v).trim() === "")
+    ) {
+      errors[fieldKey] = `Each ${field.LABEL || fieldKey} item is required`;
       continue;
     }
 

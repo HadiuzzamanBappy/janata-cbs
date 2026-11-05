@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
@@ -95,8 +96,9 @@ export function useModelConfig(initialId?: string, tabId?: string) {
             : undefined;
 
         if (record) {
-          hydrate(record);
-          markAsCommitted(record.PROPERTIES || []);
+          const clean = sanitizeModelConfigRecord(record) ?? record;
+          hydrate(clean);
+          markAsCommitted(clean.PROPERTIES || []);
           setValidationErrors([]);
           setMode(targetMode);
           toast.add({

@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import { setFieldValue } from "@/features/form-engine/utils/path-utils";
-import { cn } from "@/lib/core-utils";
 import type { PropertyType } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
@@ -77,13 +76,26 @@ export function McPropertyInspector({
       if (fieldKey === "TYPE") {
         const nextType = value as PropertyType;
         if (nextType === "Date") updated.LENGTH = 10;
+        else if (nextType === "DateTime") updated.LENGTH = 19;
+        else if (nextType === "Amount") updated.LENGTH = 19;
+        else if (nextType === "Rate") updated.LENGTH = 11;
         else if (nextType === "Number") updated.LENGTH = 15;
         else if (nextType === "Text") updated.LENGTH = 50;
-        else if (nextType === "Boolean") updated.LENGTH = 1;
-        else if (nextType === "Dropdown" && !updated.PARAMETER) {
-          updated.PARAMETER = { type: "O", data: [] };
-        } else if (nextType === "Object" && !updated.PROP) {
-          updated.PROP = [];
+        else if (nextType === "Boolean") {
+          updated.LENGTH = 1;
+          updated.STRUCTURE = "S";
+        } else if (nextType === "Object") {
+          updated.LENGTH = 0;
+          if (!updated.PROP) updated.PROP = [];
+        }
+
+        // Clean up parameters when switching away from Text
+        if (nextType !== "Text") {
+          updated.PARAMETER = undefined;
+        }
+        // Clean up sub-properties when switching away from Object
+        if (nextType !== "Object") {
+          updated.PROP = undefined;
         }
       }
 
@@ -91,6 +103,52 @@ export function McPropertyInspector({
     },
     [property, onUpdate],
   );
+
+  // Dynamically adapt inspector section fields to property type (disable instead of hide)
+  const inspectorSections = React.useMemo(() => {
+    if (!property) return PROPERTY_INSPECTOR_SECTIONS;
+    return PROPERTY_INSPECTOR_SECTIONS.map((sec) => {
+      if (sec.id === "sec_prop_definition") {
+        return {
+          ...sec,
+          fields: sec.fields.map((f) => {
+            // Composite Object types don't have scalar storage Length -> disable Length
+            if (f.NAME === "LENGTH" && property.TYPE === "Object") {
+              return {
+                ...f,
+                DISABLED: true,
+                ENRICHTEXT:
+                  "Not applicable for Object (nested child properties define their own storage lengths).",
+              };
+            }
+            // Date, DateTime, and Boolean have fixed physical database lengths -> disable Length
+            if (
+              f.NAME === "LENGTH" &&
+              (property.TYPE === "Date" ||
+                property.TYPE === "DateTime" ||
+                property.TYPE === "Boolean")
+            ) {
+              return {
+                ...f,
+                DISABLED: true,
+                ENRICHTEXT: `Fixed length (${property.LENGTH} chars) enforced by ${property.TYPE} database type.`,
+              };
+            }
+            // Boolean is strictly scalar Single (S) -> disable Structure
+            if (f.NAME === "STRUCTURE" && property.TYPE === "Boolean") {
+              return {
+                ...f,
+                DISABLED: true,
+                ENRICHTEXT: "Boolean is strictly a single (S) true/false flag.",
+              };
+            }
+            return f;
+          }),
+        };
+      }
+      return sec;
+    });
+  }, [property]);
 
   if (!property) return null;
 
@@ -114,17 +172,14 @@ export function McPropertyInspector({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <Badge
-            variant="outline"
-            className={cn(
-              "font-mono text-[10px] h-5 rounded uppercase tracking-wider",
-              !isCommitted
-                ? "text-amber-500 border-amber-500/30 bg-amber-500/10"
-                : "text-emerald-600 border-emerald-600/30 bg-emerald-600/10 dark:text-emerald-400",
-            )}
-          >
-            {!isCommitted ? "Draft (New)" : "Active"}
-          </Badge>
+          {!isCommitted && (
+            <Badge
+              variant="outline"
+              className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-amber-500 border-amber-500/30 bg-amber-500/10"
+            >
+              New
+            </Badge>
+          )}
 
           <Badge
             variant="outline"
@@ -152,7 +207,7 @@ export function McPropertyInspector({
       <div className="flex-1 overflow-y-auto p-3">
         <div className="max-w-3xl space-y-3">
           <FormRenderer
-            frmElements={{ sections: PROPERTY_INSPECTOR_SECTIONS }}
+            frmElements={{ sections: inspectorSections }}
             values={property}
             onChange={handleFieldChange}
             errors={errorMap}
@@ -160,9 +215,14 @@ export function McPropertyInspector({
             mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
           />
 
-          {/* 3. Dropdown Options & Model Lookup Configuration Panel */}
-          {property.TYPE === "Dropdown" && (
-            <McLookupConfig property={property} onUpdate={onUpdate} disabled={isReadOnly} />
+          {/* 3. Text Options & Model Lookup Configuration Panel */}
+          {(property.TYPE === "Text" || !property.TYPE) && (
+            <McLookupConfig
+              property={property}
+              onUpdate={onUpdate}
+              errors={errorMap}
+              disabled={isReadOnly}
+            />
           )}
 
           {/* 4. Object Group Sub-Properties (PROP) Definition Panel */}

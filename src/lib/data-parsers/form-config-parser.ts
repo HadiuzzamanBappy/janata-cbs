@@ -194,7 +194,7 @@ export function parseFormConfigList(
  * Sanitizes a FormElement for database persistence and wire JSON output:
  * - Removes client-only identifiers (`id: "f_..."`)
  * - Omits default falsy flags (`REQUIRED: false`, `DISABLED: false`)
- * - Omits empty text overrides (`DEFAULTVALUE: ""`, `ENRICHTEXT: ""`, `POSITION: ""`, `HELPTEXT: ""`, `FIXEDVALUE: ""`, `VALUE: ""`)
+ * - Omits empty text overrides (`DEFAULTVALUE: ""`, `ENRICHTEXT: ""`, `POSITION: ""`, `FIXEDVALUE: ""`)
  * - Omits empty/default PARAMETER blocks if no options or model table are configured
  * - Omits type configuration blocks that are empty or inapplicable
  */
@@ -223,7 +223,6 @@ export function sanitizeFormElement(field: FormElement): FormElement {
   ) {
     sanitized.DEFAULTVALUE = String(cleanField.DEFAULTVALUE).trim();
   }
-  if (cleanField.HELPTEXT?.trim()) sanitized.HELPTEXT = cleanField.HELPTEXT.trim();
   if (cleanField.FIXEDVALUE?.trim()) sanitized.FIXEDVALUE = cleanField.FIXEDVALUE.trim();
 
   // Widget

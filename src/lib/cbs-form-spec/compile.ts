@@ -14,8 +14,9 @@ export type CompiledFormSpec = FormConfigRecord;
  * Aligns with the 7 canonical CBS responsive tokens: xs, sm, md, lg, xl, xxl, full.
  */
 export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
-  if (typeof prop.WIDTH === "number" && prop.WIDTH > 0) {
-    return prop.WIDTH;
+  const explicitWidth = (prop as unknown as { WIDTH?: PropertyWidth }).WIDTH;
+  if (explicitWidth && [120, 180, 220, 280, 320, 450, 1000].includes(explicitWidth as number)) {
+    return explicitWidth;
   }
   if (prop.LENGTH && prop.LENGTH > 100) return 1000;
   if (prop.LENGTH && prop.LENGTH > 40) return 450;
@@ -37,10 +38,16 @@ function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["
   }
   const rawData = Array.isArray(raw.data) ? raw.data : [];
   const normalizedData = rawData.map((item) => {
+    if (typeof item === "string") {
+      return { code: item, label: item, value: item };
+    }
     const d = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    const code = String(d.code ?? d.value ?? d.itemCode ?? d.name ?? "");
+    const label = String(d.label ?? d.itemLabel ?? d.name ?? d.value ?? code);
     return {
-      code: String(d.code || d.itemCode || d.value || ""),
-      label: String(d.label || d.itemLabel || d.name || d.code || d.itemCode || ""),
+      code,
+      label: label || code,
+      value: code,
       ...d,
     };
   });
@@ -58,7 +65,11 @@ function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["
 function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
   const snStr = String(p.SN || idx + 1);
   const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
-  const defaultWidget = getDefaultWidgetForType(p.TYPE);
+  const param = normalizeParameter(p.PARAMETER);
+  const hasLookup = Boolean(
+    param?.type === "M" || (param?.type === "O" && param.data && param.data.length > 0),
+  );
+  const defaultWidget = hasLookup ? "select" : getDefaultWidgetForType(p.TYPE);
   const explicitWidget = (p as Record<string, unknown>).WIDGET as string | undefined;
   const effectiveWidget =
     explicitWidget && isWidgetCompatibleWithType(p.TYPE, explicitWidget)
@@ -76,7 +87,7 @@ function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
     DISABLED: false,
     WIDTH: defaultWidthForLength(p),
     WIDGET: effectiveWidget,
-    PARAMETER: normalizeParameter(p.PARAMETER),
+    PARAMETER: param,
     POSITION: "",
     ENRICHTEXT: "",
     DEFAULTVALUE: "",
@@ -114,8 +125,11 @@ export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   };
 
   allProps.forEach((p, idx) => {
-    if (p.TYPE === "Object" && p.PROP && p.PROP.length > 0) {
+    if (p.TYPE === "Object") {
       flushStandardFields(idx);
+      const subFields = Array.isArray(p.PROP)
+        ? p.PROP.map((sub, sIdx) => modelPropToFormElement(sub, sIdx))
+        : [];
       sections.push({
         id: `sec_${p.NAME.toLowerCase() || idx}`,
         title: p.LABEL || p.NAME,
@@ -128,7 +142,7 @@ export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
         bindKey: p.NAME,
         collapsible: false,
         isCollapsed: false,
-        fields: p.PROP.map((sub, sIdx) => modelPropToFormElement(sub, sIdx)),
+        fields: subFields,
       });
     } else {
       currentStandardFields.push(modelPropToFormElement(p, idx));
@@ -206,6 +220,7 @@ export function compileFormSpec(
             : modelProp.PARAMETER
               ? normalizeParameter(modelProp.PARAMETER)
               : field.PARAMETER,
+        VALIDATION: field.VALIDATION,
       };
     }),
   }));

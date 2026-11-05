@@ -38,8 +38,7 @@ export function useMdTreeOps(
     setCollapsedNodeIds(allParentIds);
   }, [nodes]);
 
-  const { addCatalogItem, addFolder, updateNode, deleteNode, ungroupNode } =
-    useMdNodeMutations(setNodes);
+  const { addCatalogItem, updateNode, deleteNode, ungroupNode } = useMdNodeMutations(setNodes);
   const { moveNode, moveNodeOrder, moveNodeParent, indentNode, outdentNode } =
     useMdDragReorder(setNodes);
 
@@ -50,7 +49,6 @@ export function useMdTreeOps(
     expandAll,
     collapseAll,
     addCatalogItem,
-    addCustomGroup: addFolder,
     updateNode,
     deleteNode,
     ungroupNode,

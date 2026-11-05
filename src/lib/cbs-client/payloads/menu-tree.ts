@@ -17,14 +17,23 @@ export const menuTreePayloads = {
   ...baseMenuTree,
 
   /**
-   * Get User Menu Navigation Tree via dedicated CBS `GUM` requestType.
-   * Does NOT provide recordId; core responds with the user's active menu hierarchy (`MENU.ONE`).
+   * Get User Menu Navigation Tree via dedicated CBS `GUM` requestType (if no recordId given)
+   * or standard `GET` requestType for specific menu tree records in Menu Designer.
    */
-  get: (options?: ModelOptions): CbsWirePayload => ({
-    servicePath: options?.servicePath?.trim() || undefined,
-    requestType: CbsRequestType.GUM,
-    controlName: CbsControlTable.MENU_TREE,
-    recordFunction: CbsRecordFunction.SEE,
-    recordId: "",
-  }),
+  get: (recordId?: string | ModelOptions, options?: ModelOptions): CbsWirePayload => {
+    const id = typeof recordId === "string" ? recordId.trim() : "";
+    const opts = typeof recordId === "object" ? recordId : options;
+
+    if (id) {
+      return baseMenuTree.get(id, opts);
+    }
+
+    return {
+      servicePath: opts?.servicePath?.trim() || undefined,
+      requestType: CbsRequestType.GUM,
+      controlName: CbsControlTable.MENU_TREE,
+      recordFunction: CbsRecordFunction.SEE,
+      recordId: "",
+    };
+  },
 };

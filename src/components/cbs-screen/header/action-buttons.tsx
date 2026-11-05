@@ -22,6 +22,7 @@ export interface ActionButtonsProps
 export function ActionButtons({
   mode,
   searchVal = "",
+  recordId,
   recordStatus,
   recordInputter,
   command,
@@ -43,6 +44,7 @@ export function ActionButtons({
     return (
       <IdleActions
         searchVal={searchVal}
+        command={command}
         submitting={submitting}
         onAmend={onAmend}
         onView={onView}
@@ -57,6 +59,7 @@ export function ActionButtons({
       recordStatus={recordStatus}
       recordInputter={recordInputter}
       command={command}
+      recordId={recordId || searchVal}
       submitting={submitting}
       onSubmit={onSubmit}
       onValidate={onValidate}

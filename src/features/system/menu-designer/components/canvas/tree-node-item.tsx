@@ -16,7 +16,6 @@ import {
   FileText,
   Folder,
   FolderMinus,
-  FolderPlus,
   GripVertical,
   Search,
   Trash2,
@@ -42,7 +41,6 @@ interface TreeNodeItemProps {
   onUngroup?: (id: string) => void;
   onIndent?: (id: string) => void;
   onOutdent?: (id: string) => void;
-  onAddSubgroup: (parentId: string) => void;
   onMoveOrder: (id: string, direction: -1 | 1) => void;
   onDropCatalogItem?: (
     item: MenuCatalogActionItem,
@@ -68,7 +66,6 @@ export function TreeNodeItem({
   onUngroup,
   onIndent,
   onOutdent,
-  onAddSubgroup,
   onMoveOrder,
   onDropCatalogItem,
   parentId = null,
@@ -311,31 +308,17 @@ export function TreeNodeItem({
           </Button>
         )}
 
-        {!isReadOnly && isFolderNode && (
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onAddSubgroup(node.id)}
-              className="h-6 w-6 text-muted-foreground hover:text-primary"
-              title="Add nested subgroup inside this folder"
-            >
-              <FolderPlus className="size-3.5" />
-            </Button>
-            {isFolder && onUngroup && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => onUngroup(node.id)}
-                className="h-6 w-6 text-muted-foreground hover:text-amber-500"
-                title="Ungroup folder (promote all children up)"
-              >
-                <FolderMinus className="size-3.5" />
-              </Button>
-            )}
-          </>
+        {!isReadOnly && isFolderNode && isFolder && onUngroup && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => onUngroup(node.id)}
+            className="h-6 w-6 text-muted-foreground hover:text-amber-500"
+            title="Ungroup folder (promote all children up)"
+          >
+            <FolderMinus className="size-3.5" />
+          </Button>
         )}
 
         {!isReadOnly && (

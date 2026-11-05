@@ -1,6 +1,15 @@
 "use client";
 
-import { BarChart3, FileSpreadsheet, FileText, Pin, Plus, Search, Terminal } from "lucide-react";
+import {
+  BarChart3,
+  FileSpreadsheet,
+  FileText,
+  Folder,
+  Pin,
+  Plus,
+  Search,
+  Terminal,
+} from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +18,8 @@ import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-sch
 
 function getMenuTypeIcon(menuType?: string) {
   switch (menuType) {
+    case "GROUP":
+      return <Folder className="size-3 text-muted-foreground/80 shrink-0" />;
     case "INQUIRY":
       return <Search className="size-3 text-muted-foreground/70 shrink-0" />;
     case "REPORT":
@@ -53,7 +64,7 @@ function DraggableCatalogCard({ item, isAdded, disabled, onAddItem }: DraggableC
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
-          {item.menuType !== "GROUP" && getMenuTypeIcon(item.menuType)}
+          {getMenuTypeIcon(item.menuType)}
           <span
             className={cn(
               "text-xs font-medium truncate",

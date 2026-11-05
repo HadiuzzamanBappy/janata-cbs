@@ -44,7 +44,14 @@ export function WorkbenchShell({
   }, []);
   return (
     <CbsAppStoreProvider>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider
+        defaultOpen={defaultOpen}
+        style={
+          {
+            "--sidebar-width": "15rem",
+          } as React.CSSProperties
+        }
+      >
         <AppSidebar />
         <SidebarInset className="flex flex-col min-w-0 h-screen overflow-hidden">
           {/* TabBar Header Strip */}

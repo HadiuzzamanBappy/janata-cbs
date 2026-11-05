@@ -92,9 +92,6 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
             onOutdentNode={treeOps.outdentNode}
             onMoveOrder={treeOps.moveNodeOrder}
             onMoveNode={treeOps.moveNode}
-            onAddSubgroup={(parentId: string | null) =>
-              treeOps.addCustomGroup("New Group", parentId)
-            }
             onDropCatalogItem={treeOps.addCatalogItem}
             isReadOnly={isReadOnly}
           />

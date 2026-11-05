@@ -179,8 +179,17 @@ export function parseMenuTreeRecord(
   }
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  const list = unwrapRecordsPayload(decoded);
-  const target = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+  // If the object already contains the MenuTreeRecord fields, parse it directly
+  let target: unknown = decoded;
+  if (decoded && typeof decoded === "object") {
+    const rec = decoded as Record<string, unknown>;
+    if ("treeDescription" in rec || "menuTree" in rec) {
+      target = rec;
+    } else {
+      const list = unwrapRecordsPayload(decoded);
+      target = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+    }
+  }
 
   const parseResult = menuTreeRecordSchema.safeParse(target);
   if (!parseResult.success) {

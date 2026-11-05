@@ -111,7 +111,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
         data-cbs-label={node.title}
         data-cbs-link-handled="true"
         className={cn(
-          "flex items-center gap-1 px-1.5 py-1.5 rounded-sm text-xs font-normal cursor-pointer transition-all duration-150 ease-out group w-full text-left border-0 bg-transparent relative leading-snug",
+          "flex items-center gap-1.5 px-2 py-1.5 rounded-sm text-[13px] font-normal cursor-pointer transition-all duration-150 ease-out group/item w-full text-left border-0 bg-transparent relative leading-snug",
           isActive
             ? "bg-accent/80 text-foreground font-medium shadow-2xs"
             : isChildActive
@@ -120,27 +120,27 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
         )}
       >
         {isFolder ? (
-          <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 group-hover:text-foreground shrink-0 transition-colors duration-200">
+          <span className="size-4 flex items-center justify-center text-muted-foreground/80 group-hover/item:text-foreground shrink-0 transition-colors duration-150">
             {hasChildren ? (
               isOpen ? (
-                <ChevronDown className="size-3.5" />
+                <ChevronDown className="size-4" />
               ) : (
-                <ChevronRight className="size-3.5" />
+                <ChevronRight className="size-4" />
               )
             ) : (
-              <ChevronRight className="size-3.5 opacity-40" />
+              <ChevronRight className="size-4 opacity-40" />
             )}
           </span>
         ) : (
-          <span className="size-3.5 flex items-center justify-center shrink-0 transition-colors duration-200">
+          <span className="size-4 flex items-center justify-center shrink-0 transition-colors duration-150 text-muted-foreground/70 group-hover/item:text-foreground">
             {node.menuType === "INQUIRY" ? (
-              <Search className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+              <Search className="size-3.5" />
             ) : node.menuType === "REPORT" ? (
-              <BarChart3 className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+              <BarChart3 className="size-3.5" />
             ) : node.menuType === "FORM" ? (
-              <FileSpreadsheet className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+              <FileSpreadsheet className="size-3.5" />
             ) : (
-              <FileText className="size-3 text-muted-foreground/70 group-hover:text-foreground" />
+              <FileText className="size-3.5" />
             )}
           </span>
         )}
@@ -168,19 +168,31 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
             data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
             data-cbs-label={node.title}
             data-cbs-link-handled="true"
-            className="z-5000 flex items-center gap-1 px-2 py-1.5 rounded-sm text-xs font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100 border-0 text-left"
+            className="z-5000 flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[13px] font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100 border-0 text-left"
           >
-            {hasChildren ? (
-              <span className="size-3.5 flex items-center justify-center text-muted-foreground/80 shrink-0">
-                {isOpen ? (
-                  <ChevronDown className="size-3.5" />
+            {isFolder ? (
+              <span className="size-4 flex items-center justify-center text-muted-foreground/80 shrink-0">
+                {hasChildren ? (
+                  isOpen ? (
+                    <ChevronDown className="size-4" />
+                  ) : (
+                    <ChevronRight className="size-4" />
+                  )
                 ) : (
-                  <ChevronRight className="size-3.5" />
+                  <ChevronRight className="size-4 opacity-40" />
                 )}
               </span>
             ) : (
-              <span className="size-3.5 flex items-center justify-center text-muted-foreground/50 shrink-0">
-                <span className="size-1 rounded-full bg-current opacity-70" />
+              <span className="size-4 flex items-center justify-center shrink-0 text-foreground">
+                {node.menuType === "INQUIRY" ? (
+                  <Search className="size-3.5" />
+                ) : node.menuType === "REPORT" ? (
+                  <BarChart3 className="size-3.5" />
+                ) : node.menuType === "FORM" ? (
+                  <FileSpreadsheet className="size-3.5" />
+                ) : (
+                  <FileText className="size-3.5" />
+                )}
               </span>
             )}
             <span>{node.title}</span>

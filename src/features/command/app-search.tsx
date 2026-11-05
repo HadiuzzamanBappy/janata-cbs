@@ -30,7 +30,6 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
   // Hook 1: Fetch and merge all system commands
   const { allCommands, authorizedCommands } = useSearchCommands({
     open,
-    userHasCommandLine,
   });
 
   // Hook 2: CBS Command Gateway Execution

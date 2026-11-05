@@ -23,6 +23,7 @@ export function buildMockUserAuthResponse(user: UserRecord): GrpcResponse {
       accessibility: user.accessibility,
       userRole: user.userRole,
       commandLine: user.commandLine,
+      initLogin: Boolean(user.initLogin),
       branchName: user.branchName,
       branchCode: user.branchCode,
       txnDate: today,
@@ -63,7 +64,7 @@ export async function mockLogin(
   const authResponse = getMockUserResponse(username, password);
   if (!authResponse) {
     return {
-      status: "FAILED",
+      status: "FAIL",
       statusCode: 401,
       idempotencyKey: "",
       message: "Invalid credentials",

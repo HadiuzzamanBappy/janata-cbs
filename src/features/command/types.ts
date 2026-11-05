@@ -1,4 +1,4 @@
-import type { SystemCommandItem } from "@/lib/data-schemas";
+import type { ControlCommand } from "@/lib/data-schemas";
 
 export interface GlobalSearchProps {
   open: boolean;
@@ -18,7 +18,7 @@ export interface RidashOption {
 }
 
 export interface CommandItemRowProps {
-  cmd: SystemCommandItem;
+  cmd: ControlCommand;
   category: string;
-  onSelect: (cmd: SystemCommandItem) => void;
+  onSelect: (cmd: ControlCommand) => void;
 }

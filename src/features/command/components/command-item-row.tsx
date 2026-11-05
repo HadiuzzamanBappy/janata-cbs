@@ -1,4 +1,4 @@
-import { Compass, Layers, Settings, Sliders, Terminal } from "lucide-react";
+import { Compass, Layers, Settings, Sliders } from "lucide-react";
 import { CommandItem } from "@/components/ui/command";
 import type { CommandItemRowProps } from "../types";
 
@@ -7,8 +7,6 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
   let IconComp = Layers;
   if (cmd.actionType === "SETTINGS") {
     IconComp = Settings;
-  } else if (cmd.actionType === "THEME" || cmd.actionType === "LOGOUT") {
-    IconComp = Terminal;
   } else if (category.includes("System") || cmd.command.startsWith("SC.")) {
     IconComp = Sliders;
   } else {

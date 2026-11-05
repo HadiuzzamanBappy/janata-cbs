@@ -1,7 +1,7 @@
-import type { AuditData, SystemCommandItem } from "@/lib/data-schemas";
+import type { AuditData, ControlCommand } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
 
-export type RawControlRecord = SystemCommandItem & {
+export type RawControlRecord = ControlCommand & {
   auditData: AuditData;
 };
 

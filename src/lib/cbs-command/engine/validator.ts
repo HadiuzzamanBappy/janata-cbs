@@ -20,8 +20,8 @@ export function validateSecurityPermissions(
     };
   }
 
-  // 2. Settings & UI actions are accessible to all authenticated users
-  if (command.type === "SETTINGS" || command.type === "ACTION") {
+  // 2. Settings dialog is accessible to all authenticated users
+  if (command.type === "SETTINGS") {
     return { allowed: true };
   }
 

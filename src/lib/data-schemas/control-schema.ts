@@ -1,30 +1,34 @@
 import { z } from "zod";
 
 /* -------------------------------------------------------------------------- */
-/* Canonical Domain Command / Control Action Types                            */
+/* 1. Canonical Domain Command / Control Action Types                         */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Canonical Action Type classification for CBS Commands and Menu Items.
- * Decides whether the item opens in a standard Workspace Tab ("SCREEN")
- * or in a multi-monitor Detached Window ("POPUP"), or executes a system action.
+ * Canonical Action Type classification for CBS Commands and Controls:
+ * - SCREEN: Standard Workspace Tab
+ * - POPUP: Multi-monitor Detached Window
+ * - SETTINGS: Application Settings Dialog
  */
-export const commandActionTypeSchema = z.enum(["SCREEN", "POPUP", "SETTINGS", "THEME", "LOGOUT"]);
+export const commandActionTypeSchema = z.enum(["SCREEN", "POPUP", "SETTINGS"]);
 export type CommandActionType = z.infer<typeof commandActionTypeSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Lean CBS Command Item & Navigation Contract (Runtime & UI)                 */
+/* 2. Unified Control & System Command Schema                                 */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Runtime command definition for CBS Command Bar and Terminal Launcher.
- * Clean, lean UI contract without database persistence fields.
+ * Universal runtime command & control schema.
+ * Sanitizes both static UI catalog items and commands retrieved from SC_CONTROL.
+ * Pure navigation/command contract containing strictly what the search bar &
+ * terminal router need (command, title, aliases, actionType).
+ * Form engines handle their own audit data when the actual form opens.
  */
-export const systemCommandItemSchema = z.object({
-  command: z.string(),
-  title: z.string(),
-  aliases: z.array(z.string()),
-  actionType: commandActionTypeSchema,
+export const controlCommandSchema = z.object({
+  command: z.string().trim().min(1, "Command identifier is required"),
+  title: z.string().trim().min(1, "Command title is required"),
+  aliases: z.array(z.string()).default([]),
+  actionType: commandActionTypeSchema.default("SCREEN"),
 });
 
-export type SystemCommandItem = z.infer<typeof systemCommandItemSchema>;
+export type ControlCommand = z.infer<typeof controlCommandSchema>;

@@ -8,7 +8,6 @@ import {
   SidebarFooterNav,
   SidebarHeaderNav,
   SidebarMenuTree,
-  type TreeNode,
 } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarRail } from "@/components/ui/sidebar";
@@ -19,6 +18,7 @@ import { cbs } from "@/lib/cbs-client";
 import { useHotkeys } from "@/lib/cbs-hotkeys";
 import { logger } from "@/lib/core-logger";
 import { parseMNU } from "@/lib/data-parsers";
+import type { MenuItem } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
@@ -35,12 +35,27 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
     enableOnFormTags: true,
   });
 
-  const openSettingsTab = (tabId: string) => {
+  const openSettingsTab = React.useCallback((tabId: string) => {
     setSettingsTab(tabId);
     setSettingsOpen(true);
-  };
+  }, []);
 
-  const { data: treeNodes = [], isLoading: loading } = useQuery<TreeNode[]>({
+  React.useEffect(() => {
+    const handleOpenSettings = (e: Event) => {
+      const customEvent = e as CustomEvent<{ tab?: string }>;
+      if (customEvent.detail?.tab) {
+        setSettingsTab(customEvent.detail.tab);
+      }
+      setSettingsOpen(true);
+    };
+
+    window.addEventListener("cbs:open-settings", handleOpenSettings);
+    return () => {
+      window.removeEventListener("cbs:open-settings", handleOpenSettings);
+    };
+  }, []);
+
+  const { data: menuItems = [], isLoading: loading } = useQuery<MenuItem[]>({
     queryKey: ["app", "sidebar", "menu-tree"],
     queryFn: async () => {
       try {
@@ -50,7 +65,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
         if (res.status === "SUCCESS" && res.data) {
           const parsed = parseMNU(res.data);
           if (parsed.success && parsed.data.length > 0) {
-            return parsed.data.map(mapMenuItemToTreeNode);
+            return parsed.data;
           }
         }
       } catch (err) {
@@ -59,6 +74,10 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       return [];
     },
   });
+
+  const treeNodes = React.useMemo(() => {
+    return menuItems.map(mapMenuItemToTreeNode);
+  }, [menuItems]);
 
   return (
     <>

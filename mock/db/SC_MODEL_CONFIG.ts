@@ -288,6 +288,15 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: false,
       },
     ],
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2025-09-04 00:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2025-09-04 00:05:00",
+      recBranchCode: "JB9999",
+    },
   },
   BRANCH: {
     _DEVBY: "MD. IMRAN HASAN",

@@ -53,7 +53,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
     title: "Validation Routine",
     type: "object-group",
     structure: "M",
-    layoutStyle: "plain",
+    layoutStyle: "card",
     bindKey: "frmRoutine.rtnValidate",
     columns: 1,
     fields: [
@@ -86,7 +86,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
     title: "Before-Auth Routine",
     type: "object-group",
     structure: "M",
-    layoutStyle: "plain",
+    layoutStyle: "card",
     bindKey: "frmRoutine.rtnBeforeAuth",
     columns: 1,
     fields: [
@@ -119,7 +119,7 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
     title: "After-Auth Routine",
     type: "object-group",
     structure: "M",
-    layoutStyle: "plain",
+    layoutStyle: "card",
     bindKey: "frmRoutine.rtnAfterAuth",
     columns: 1,
     fields: [

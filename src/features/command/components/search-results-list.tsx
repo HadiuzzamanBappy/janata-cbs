@@ -1,10 +1,10 @@
 import { CommandEmpty, CommandGroup, CommandList } from "@/components/ui/command";
-import type { SystemCommandItem } from "@/lib/data-schemas";
+import type { ControlCommand } from "@/lib/data-schemas";
 import { CommandItemRow } from "./command-item-row";
 
 interface SearchResultsListProps {
-  categories: [string, SystemCommandItem[]][];
-  onSelectCommand: (cmd: SystemCommandItem) => void;
+  categories: [string, ControlCommand[]][];
+  onSelectCommand: (cmd: ControlCommand) => void;
 }
 
 export function SearchResultsList({ categories, onSelectCommand }: SearchResultsListProps) {

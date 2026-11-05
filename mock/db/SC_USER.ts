@@ -12,6 +12,7 @@ export interface UserRecord {
   branchCode: string;
   branchName: string;
   commandLine: boolean;
+  initLogin?: boolean;
   userStatus: number;
   password?: string;
   auditData?: AuditData;
@@ -19,7 +20,7 @@ export interface UserRecord {
 
 /**
  * SC_USER Table Master (PREFIX: SC, TABLE: USER)
- * Holds pure static database table records for operators/users.
+ * Holds static database table records for operators/users.
  * Key is the canonical username / operator ID (entry ID).
  */
 export const SC_USER: Record<string, UserRecord> = {
@@ -27,9 +28,31 @@ export const SC_USER: Record<string, UserRecord> = {
     userId: "ZZ0284590",
     fullName: "MD. HADIUZZAMAN BAPPY",
     accessibility: "RIDASHL",
+    userRole: ["ADMIN"],
+    commandLine: true,
+    initLogin: false,
+    branchName: "CENTRAL OFFICE, HO, DHAKA",
+    branchCode: "JB9999",
+    userStatus: 1,
+    password: "password123",
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2026-01-01 00:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2026-01-01 00:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
+  CK028459: {
+    userId: "CK0284590",
+    fullName: "Branch Supervisor (Checker)",
+    accessibility: "RASL",
     userRole: ["USER"],
     commandLine: true,
-    branchName: "CENTRAL OFFICE, HO, DHAKA   ",
+    initLogin: false,
+    branchName: "CENTRAL OFFICE, HO, DHAKA",
     branchCode: "JB9999",
     userStatus: 1,
     password: "password123",
@@ -49,7 +72,8 @@ export const SC_USER: Record<string, UserRecord> = {
     accessibility: "RIDASHL",
     userRole: ["ADMIN"],
     commandLine: true,
-    branchName: "CENTRAL OFFICE, HO, DHAKA   ",
+    initLogin: false,
+    branchName: "CENTRAL OFFICE, HO, DHAKA",
     branchCode: "JB9999",
     userStatus: 1,
     password: "password123",
@@ -65,10 +89,11 @@ export const SC_USER: Record<string, UserRecord> = {
   },
   ST028459: {
     userId: "ST0284590",
-    fullName: "New Staff Member",
+    fullName: "New Staff Member (Requires Password Reset)",
     accessibility: "RS",
     userRole: ["USER"],
     commandLine: false,
+    initLogin: true,
     branchName: "Gulshan Branch",
     branchCode: "JB1002",
     userStatus: 1,
@@ -99,5 +124,3 @@ export const SC_USER_TABLE: CbsVersionedTable<UserRecord> = {
   HIS: SC_USER_HIS,
   DEL: SC_USER_DEL,
 };
-
-export const SC_USER_LIST: UserRecord[] = Object.values(SC_USER);

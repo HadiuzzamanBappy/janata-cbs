@@ -25,7 +25,7 @@ export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): Pars
   const rawAccessibility = typeof f.accessibility === "string" ? f.accessibility.trim() : "";
 
   const functionRights = rawAccessibility
-    ? rawAccessibility === "FULL" || rawAccessibility === "ALL"
+    ? rawAccessibility === "ALL"
       ? [...CBS_FUNCTION_CODES]
       : rawAccessibility
           .toUpperCase()
@@ -39,8 +39,6 @@ export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): Pars
     branchCode: String(f.branchCode || ""),
     branchName: String(f.branchName || ""),
     txnDate: String(f.txnDate || ""),
-    lastTxnDate: f.lastTxnDate ? String(f.lastTxnDate) : undefined,
-    nextDate: f.nextDate ? String(f.nextDate) : undefined,
     userRole: Array.isArray(f.userRole)
       ? f.userRole.map(String)
       : f.userRole
@@ -50,7 +48,6 @@ export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): Pars
     functionRights,
     commandLine: Boolean(f.commandLine),
     initLogin: Boolean(f.initLogin),
-    isLoggedIn: true,
     userStatus: typeof f.userStatus === "number" ? f.userStatus : 0,
   };
 

@@ -52,8 +52,8 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
     return { ...parsed, isValid: false, error: security.reason };
   }
 
-  // 3. System Actions / Settings Modal Dispatch
-  if (parsed.type === "SETTINGS" || parsed.type === "ACTION") {
+  // 3. Settings Modal Dispatch
+  if (parsed.type === "SETTINGS") {
     const handled = dispatchSystemAction(parsed);
     if (handled) return parsed;
   }

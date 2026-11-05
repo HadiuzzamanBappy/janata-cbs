@@ -1,20 +1,27 @@
 import { z } from "zod";
+import { CBS_RECORD_STATUSES, type CbsRecordLifecycleStatus } from "@/types";
 
 /* -------------------------------------------------------------------------- */
-/* Standard CBS Constants & Audit Trail Contract                             */
+/* 1. Protocol & Banking Enums (Zero Fallbacks, Strict Whitelist)             */
 /* -------------------------------------------------------------------------- */
 
-export const API_STATUSES = ["SUCCESS", "FAIL", "ERROR", "RECORD_NOT_FOUND"] as const;
+export const API_STATUSES = ["SUCCESS", "FAIL", "ERROR", "RECORD_NOT_FOUND", "RETRY"] as const;
 export type ApiStatus = (typeof API_STATUSES)[number];
 
+export const cbsRecordStatusSchema = z.enum(CBS_RECORD_STATUSES);
+export type CbsRecordStatusCode = CbsRecordLifecycleStatus;
+
+/* -------------------------------------------------------------------------- */
+/* 2. Maker-Checker Audit Trail Contract                                      */
+/* -------------------------------------------------------------------------- */
+
 /**
- * Standard CBS Maker-Checker Audit Trail Contract.
- * Tracks lifecycle status ("AU" Live, "INA" Pending, "HLD" Held, "DEL" Deleted)
- * and dual-control operator stamps across all maintainable records.
+ * Audit trail directly from DB ledger.
+ * Resilient: Safely extracts standard audit stamps even if DB carries extra attributes.
  */
 export const auditDataSchema = z.object({
-  recStatus: z.string().optional(),
-  recCurrNumber: z.number().optional(),
+  recStatus: cbsRecordStatusSchema.optional(),
+  recCurrNumber: z.number().int().nonnegative().optional(),
   recInputter: z.string().optional(),
   recInputTime: z.string().optional(),
   recAuthorizer: z.string().optional(),
@@ -25,59 +32,48 @@ export const auditDataSchema = z.object({
 export type AuditData = z.infer<typeof auditDataSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Universal Wire Payload Validation Schema (Client -> BFF Proxy)             */
+/* 3. Client -> BFF Wire Request (Zero Tolerance: STRICT)                     */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Zod schema validating wire payloads dispatched to `/api/proxy`.
- * Maps directly to GrpcRequest fields sent from browser client.
- */
-export const cbsWirePayloadSchema = z.object({
-  idempotencyKey: z.string().optional(),
-  requestType: z.string().min(1, "Request type is required"),
-  controlName: z.string().optional(),
-  recordFunction: z.string().optional(),
-  recordId: z.string().optional(),
-  branchCode: z.string().optional(),
-  authLevel: z.number().int().min(0).max(9).optional(),
-  servicePath: z.string().default("default").optional(),
-  data: z.record(z.string(), z.unknown()).optional(),
-});
+export const cbsWirePayloadSchema = z
+  .object({
+    idempotencyKey: z.string().optional(),
+    requestType: z.string().min(1, "Request type is required"),
+    controlName: z.string().optional(),
+    recordFunction: z.string().optional(),
+    recordId: z.string().optional(),
+    branchCode: z.string().optional(),
+    authLevel: z.number().int().min(0).max(9).optional(),
+    servicePath: z.string().optional(),
+    data: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
 
 export type CbsWirePayload = z.infer<typeof cbsWirePayloadSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Full Server Envelope Contract (BFF Proxy -> gRPC / Mock Dispatcher)        */
+/* 5. Server Envelope Contract (BFF Proxy -> gRPC / Core Dispatcher)          */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Zod schema validating the enriched server envelope dispatched to Core CBS.
- * Exactly matches `proto/service.proto` GrpcRequest fields.
- */
 export const grpcEnvelopeSchema = z.object({
   idempotencyKey: z.string().optional(),
-  clientId: z.string(),
-  requestType: z.string(),
-  controlName: z.string().optional(),
-  recordFunction: z.string(),
-  recordId: z.string(),
-  branchCode: z.string(),
-  authLevel: z.number().int(),
-  userId: z.string(),
+  clientId: z.string().min(1),
+  requestType: z.string().min(1),
+  controlName: z.string().default(""),
+  recordFunction: z.string().default(""),
+  recordId: z.string().default(""),
+  branchCode: z.string().min(1),
+  authLevel: z.number().int().min(0).max(9),
+  userId: z.string().min(1),
   servicePath: z.string().default("default"),
-  data: z.record(z.string(), z.unknown()),
+  data: z.record(z.string(), z.unknown()).default({}),
 });
-
 export type GrpcEnvelope = z.infer<typeof grpcEnvelopeSchema>;
 
 /* -------------------------------------------------------------------------- */
-/* Universal Response Schema & Inferred Type (Core -> BFF -> Client)         */
+/* 6. Universal Core -> BFF -> Client API Response Envelope                  */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Canonical Zod schema validating API response contracts.
- * Matches `proto/service.proto` GrpcResponse specification.
- */
 export const apiResponseSchema = z.object({
   status: z.enum(API_STATUSES).or(z.string()),
   statusCode: z.number().int(),
@@ -92,10 +88,6 @@ export const apiResponseSchema = z.object({
 
 type InferredApiResponse = z.infer<typeof apiResponseSchema>;
 
-/**
- * Canonical typed API response envelope for CBS application layers.
- * 100% derived from `apiResponseSchema` with generic `<T>` support for `data`.
- */
 export type ApiResponse<T = unknown> = Omit<InferredApiResponse, "data"> & {
   readonly data?: T;
 };

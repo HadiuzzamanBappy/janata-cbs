@@ -11,16 +11,13 @@
 //                               USER A 1001            -> Function: A, Mode: A, AuthLevel: 1
 // 6. Inquiry:                   INQ USER.LIST          -> Type: INQUIRY, Mode: S, AuthLevel: 1
 // 7. Settings Modal:            SETTINGS:PROFILE       -> Type: SETTINGS, Tab: profile
-// 8. System Action:             ACTION:LOGOUT          -> Type: ACTION, Action: logout
 // ============================================================================
 
 import type { CbsRecordFunction } from "@/types";
 import { resolveCommandAlias, resolveCommandTitle } from "../registry/alias";
 import {
   CBS_SETTINGS_TABS,
-  CBS_SYSTEM_ACTIONS,
   type CbsSettingsTabId,
-  type CbsSystemActionId,
   type ParsedCommand,
   VALID_FUNCTION_CODES_SET,
 } from "../types/command";
@@ -74,35 +71,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // 2. Action Command: ACTION:<ACT> or direct alias DARK/LOGOUT/EXIT
-  const rawAction =
-    upperTrimmed === "DARK"
-      ? "toggle_theme"
-      : upperTrimmed === "LOGOUT" || upperTrimmed === "EXIT"
-        ? "logout"
-        : trimmed
-            .match(/^action:(.+)$/i)?.[1]
-            ?.trim()
-            .toLowerCase();
-
-  const actionId = CBS_SYSTEM_ACTIONS.includes(rawAction as CbsSystemActionId)
-    ? (rawAction as CbsSystemActionId)
-    : undefined;
-
-  if (actionId) {
-    return {
-      raw: trimmed,
-      type: "ACTION",
-      application: "ACTION",
-      title: `Action: ${actionId}`,
-      authLevel: 1,
-      actionId,
-      screenMode: "IDLE",
-      isValid: true,
-    };
-  }
-
-  // 3. Inquiry: INQ [FUNCTION] <QUERY> or INQUIRY [FUNCTION] <QUERY>
+  // 2. Inquiry: INQ [FUNCTION] <QUERY> or INQUIRY [FUNCTION] <QUERY>
   const inqMatch = trimmed.match(/^(?:inq|inquiry)\s+(.+)$/i);
   if (inqMatch) {
     const rawRest = inqMatch[1].trim();

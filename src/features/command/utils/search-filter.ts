@@ -1,13 +1,13 @@
-import type { SystemCommandItem } from "@/lib/data-schemas";
+import type { ControlCommand } from "@/lib/data-schemas";
 
 /**
  * Filter commands strictly on visible UI fields:
  * Title, Command, Alias ID, and Control Name.
  */
 export function filterVisibleCommands(
-  commands: SystemCommandItem[],
+  commands: ControlCommand[],
   searchQuery: string,
-): SystemCommandItem[] {
+): ControlCommand[] {
   const q = searchQuery.trim().toLowerCase();
   if (!q) return commands;
   return commands.filter((c) => {
@@ -21,19 +21,15 @@ export function filterVisibleCommands(
 /**
  * Group search results by category for <CommandGroup /> sections.
  */
-export function groupCommandsByCategory(
-  commands: SystemCommandItem[],
-): [string, SystemCommandItem[]][] {
-  const map = new Map<string, SystemCommandItem[]>();
+export function groupCommandsByCategory(commands: ControlCommand[]): [string, ControlCommand[]][] {
+  const map = new Map<string, ControlCommand[]>();
   for (const cmd of commands) {
     const category =
       cmd.actionType === "SETTINGS"
         ? "Preferences"
-        : cmd.actionType === "THEME" || cmd.actionType === "LOGOUT"
-          ? "Quick Actions"
-          : cmd.command.startsWith("SC.")
-            ? "System Administration"
-            : "Applications & Screens";
+        : cmd.command.startsWith("SC.")
+          ? "System Administration"
+          : "Applications & Screens";
 
     const list = map.get(category) ?? [];
     list.push(cmd);

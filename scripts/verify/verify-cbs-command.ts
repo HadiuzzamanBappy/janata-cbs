@@ -146,24 +146,23 @@ async function runSuite() {
   );
 
   // ----------------------------------------------------------------------------
-  // 5. System Quick Actions & Settings Navigation
+  // 5. Settings Modal Navigation & Tab Selection
   // ----------------------------------------------------------------------------
   const settingsInput = "SETTINGS:PROFILE";
   const settingsAst = cbsCommand.parse(settingsInput);
-  const actionInput = "EXIT";
-  const actionAst = cbsCommand.parse(actionInput);
+  const themeSettings = cbsCommand.parse("SETTINGS:APPEARANCE");
 
   recordTest(
-    "5. System Quick Actions & Settings: Direct tab selection & logout alias",
-    { settings: settingsInput, action: actionInput },
+    "5. Settings Navigation: Direct tab selection & configuration routing",
+    { settings: settingsInput, appearance: "SETTINGS:APPEARANCE" },
     {
       settingsTab: settingsAst.settingsTabId,
-      actionId: actionAst.actionId,
+      appearanceTab: themeSettings.settingsTabId,
     },
     settingsAst.type === "SETTINGS" &&
       settingsAst.settingsTabId === "profile" &&
-      actionAst.type === "ACTION" &&
-      actionAst.actionId === "logout",
+      themeSettings.type === "SETTINGS" &&
+      themeSettings.settingsTabId === "appearance",
   );
 
   // ----------------------------------------------------------------------------
@@ -208,7 +207,7 @@ async function runSuite() {
       extractedCount: extractedCommands.length,
       commands: extractedCommands.map((c) => c.command),
     },
-    masterCommands.length >= 8 &&
+    masterCommands.length >= 7 &&
       extractedCommands.length === 2 &&
       extractedCommands.some((c) => c.command === "CUSTOMER I") &&
       extractedCommands.some((c) => c.command === "INQ GET.CUST"),

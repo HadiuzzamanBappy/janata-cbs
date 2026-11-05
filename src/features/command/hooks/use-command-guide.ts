@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { cbsCommand } from "@/lib/cbs-command";
-import type { SystemCommandItem } from "@/lib/data-schemas";
+import type { ControlCommand } from "@/lib/data-schemas";
 import type { CommandGuideInfo } from "../types";
 
 interface UseCommandGuideOptions {
   searchQuery: string;
-  allCommands: SystemCommandItem[];
+  allCommands: ControlCommand[];
 }
 
 /**
@@ -25,8 +25,8 @@ export function useCommandGuide({
     // Delegate parsing to CBS Command Gateway
     const parsed = cbsCommand.parse(trimmed);
 
-    // Filter out commands that do not provide RIDASH guidance (settings, inquiries, system actions)
-    if (parsed.type === "SETTINGS" || parsed.type === "ACTION" || parsed.type === "INQUIRY") {
+    // Filter out commands that do not provide RIDASH guidance (settings, inquiries)
+    if (parsed.type === "SETTINGS" || parsed.type === "INQUIRY") {
       return null;
     }
 

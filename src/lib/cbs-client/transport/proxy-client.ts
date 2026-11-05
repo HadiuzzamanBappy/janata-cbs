@@ -3,6 +3,7 @@ import { toast } from "@/components/ui/toast";
 import { clientConfig } from "@/lib/core-config";
 import type { ApiResponse } from "@/lib/data-schemas";
 import { type CbsWirePayload, cbsWirePayloadSchema } from "@/lib/data-schemas";
+import { handleCbsResponseSemantics } from "./response-handler";
 
 /* -------------------------------------------------------------------------- */
 /* Client Request Options Contract                                            */
@@ -34,7 +35,7 @@ export interface SendCbsOptions<T = unknown> {
  * Universal type-safe fetch client for CBS backend communication.
  *
  * Automatically routes through `/api/proxy`, handles session expiration (401),
- * validates wire parameters pre-flight, and renders UI toast alerts when not silenced.
+ * validates wire parameters pre-flight, and renders UI toast alerts via response-handler.
  *
  * @param rawPayload - Standard wire payload describing the target operation.
  * @param options - Toast behavior, abort signal, and response validation options.
@@ -78,48 +79,30 @@ export async function sendCbsRequest<T = unknown>(
     }
 
     const json = (await res.json()) as ApiResponse<T>;
+    const statusCode = json.statusCode || res.status;
 
-    if (res.ok && json.status === "SUCCESS") {
-      if (options?.responseSchema && json.data !== undefined) {
-        const validated = options.responseSchema.safeParse(json.data);
-        if (!validated.success) {
-          const schemaErrorMsg =
-            validated.error.issues[0]?.message || "Invalid server response structure";
-          if (!options.silent) {
-            toast.add({
-              title: "Response Validation Failed",
-              description: schemaErrorMsg,
-              type: "error",
-            });
-          }
-          throw new Error(`RESPONSE_SCHEMA_ERROR: ${schemaErrorMsg}`);
+    // 2. Client-Side Runtime Schema Validation (optional)
+    if (res.ok && json.status === "SUCCESS" && options?.responseSchema && json.data !== undefined) {
+      const validated = options.responseSchema.safeParse(json.data);
+      if (!validated.success) {
+        const schemaErrorMsg =
+          validated.error.issues[0]?.message || "Invalid server response structure";
+        if (!options.silent) {
+          toast.add({
+            title: "Response Validation Failed",
+            description: schemaErrorMsg,
+            type: "error",
+          });
         }
+        throw new Error(`RESPONSE_SCHEMA_ERROR: ${schemaErrorMsg}`);
       }
+    }
 
-      if (options?.successMessage && !options.silent) {
-        toast.add({
-          title: options.successTitle || "Success",
-          description: options.successMessage,
-          type: "success",
-        });
-      }
-    } else if (json.status === "RECORD_NOT_FOUND") {
-      if (!options?.silent) {
-        toast.add({
-          title: "Record Not Found",
-          description: json.message || `Record #${payload.recordId || ""} not found.`,
-          type: "warning",
-        });
-      }
-    } else if (!options?.silent) {
-      toast.add({
-        title: "CBS Error",
-        description:
-          options?.errorMessage ||
-          json.message ||
-          (json.errors && json.errors.length > 0 ? json.errors.join(", ") : "Request failed"),
-        type: "error",
-      });
+    // 3. Status Semantics & Toast Alerts (Section 6.6)
+    handleCbsResponseSemantics(json, res.status, options, payload.recordId);
+
+    if (statusCode === 401) {
+      throw new Error("UNAUTHORIZED");
     }
 
     return json;

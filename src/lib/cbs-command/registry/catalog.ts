@@ -3,32 +3,32 @@
 // Lean MVP: clean canonical command names without legacy prefixes + 1 short alias.
 // ============================================================================
 
-import type { MenuItem, SystemCommandItem } from "@/lib/data-schemas";
+import type { ControlCommand, MenuItem } from "@/lib/data-schemas";
 
-export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
+export const MASTER_COMMAND_DEFINITIONS: ControlCommand[] = [
   // 1. System Administrative Canvases
   {
     command: "SC.MENU.DESIGN",
     title: "Menu Hierarchy",
-    aliases: ["MD", "SC.MENU.TREE"],
+    aliases: ["MD"],
     actionType: "SCREEN",
   },
   {
     command: "SC.MODEL.CONFIG",
     title: "Model Config",
-    aliases: ["MC", "MODEL.CONFIG", "SC.MODEL.BUILDER"],
+    aliases: ["MC"],
     actionType: "SCREEN",
   },
   {
     command: "SC.FORM.CONFIG",
     title: "Form Design",
-    aliases: ["FC", "SC.FORM.BUILDER"],
+    aliases: ["FC"],
     actionType: "SCREEN",
   },
   {
     command: "SC.INQUIRY.CONFIG",
     title: "Inquiry Design",
-    aliases: ["IC", "SC.INQUIRY"],
+    aliases: ["INQ"],
     actionType: "SCREEN",
   },
 
@@ -51,28 +51,14 @@ export const MASTER_COMMAND_DEFINITIONS: SystemCommandItem[] = [
     aliases: ["SECURITY"],
     actionType: "SETTINGS",
   },
-
-  // 3. Quick Actions
-  {
-    command: "ACTION:TOGGLE_THEME",
-    title: "Toggle Dark / Light Theme",
-    aliases: ["DARK"],
-    actionType: "THEME",
-  },
-  {
-    command: "ACTION:LOGOUT",
-    title: "Sign Out Session",
-    aliases: ["LOGOUT"],
-    actionType: "LOGOUT",
-  },
 ];
 
-export function getAllRegisteredCommands(): SystemCommandItem[] {
+export function getAllRegisteredCommands(): ControlCommand[] {
   return MASTER_COMMAND_DEFINITIONS;
 }
 
-export function extractMenuCommands(items: MenuItem[]): SystemCommandItem[] {
-  const result: SystemCommandItem[] = [];
+export function extractMenuCommands(items: MenuItem[]): ControlCommand[] {
+  const result: ControlCommand[] = [];
   function traverse(list: MenuItem[]) {
     for (const item of list) {
       if (item.command) {

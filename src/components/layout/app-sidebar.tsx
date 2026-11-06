@@ -1,25 +1,20 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import * as React from "react";
 import {
-  mapMenuItemToTreeNode,
   SidebarFooterNav,
   SidebarHeaderNav,
   SidebarMenuTree,
+  useSidebarMenu,
 } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarRail } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AppSearch } from "@/features/command";
 import { AppSettings } from "@/features/settings";
-import { cbs } from "@/lib/cbs-client";
 import { CBS_SETTINGS_EVENT } from "@/lib/cbs-command";
 import { useHotkeys } from "@/lib/cbs-hotkeys";
-import { logger } from "@/lib/core-logger";
-import { parseMNU } from "@/lib/data-parsers";
-import type { MenuItem } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {}
@@ -31,6 +26,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
 
   const { user, logout } = useSessionStore();
   const userLoading = !user;
+  const { treeNodes, loading } = useSidebarMenu();
 
   useHotkeys("ctrl+k", () => setSearchOpen((prev) => !prev), {
     enableOnFormTags: true,
@@ -55,30 +51,6 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
       window.removeEventListener(CBS_SETTINGS_EVENT, handleOpenSettings);
     };
   }, []);
-
-  const { data: menuItems = [], isLoading: loading } = useQuery<MenuItem[]>({
-    queryKey: ["app", "sidebar", "menu-tree"],
-    queryFn: async () => {
-      try {
-        const res = await cbs.send<unknown>(cbs.menuTree.get(), {
-          silent: true,
-        });
-        if (res.status === "SUCCESS" && res.data) {
-          const parsed = parseMNU(res.data);
-          if (parsed.success && parsed.data.length > 0) {
-            return parsed.data;
-          }
-        }
-      } catch (err) {
-        logger.error("Failed to load sidebar menu from proxy", err, "SIDEBAR");
-      }
-      return [];
-    },
-  });
-
-  const treeNodes = React.useMemo(() => {
-    return menuItems.map(mapMenuItemToTreeNode);
-  }, [menuItems]);
 
   return (
     <>

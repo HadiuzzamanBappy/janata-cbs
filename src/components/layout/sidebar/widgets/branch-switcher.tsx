@@ -55,13 +55,12 @@ export function BranchSwitcher({
         throw new Error(res.message || "Failed to load branch directory");
       }
 
-      const rawRecords = unwrapRecordsPayload<Record<string, unknown>>(res.data);
-      const list =
-        Array.isArray(rawRecords) && rawRecords.length > 0
-          ? rawRecords
-          : Array.isArray(res.data)
-            ? (res.data as Record<string, unknown>[])
-            : [];
+      const rawRecords = unwrapRecordsPayload<{
+        recordId?: string;
+        branchTitle?: string;
+        branchType?: string;
+      }>(res.data);
+      const list = Array.isArray(rawRecords) ? rawRecords : [];
 
       if (!list || list.length === 0) {
         throw new Error("No branch records found from core banking service");
@@ -69,17 +68,12 @@ export function BranchSwitcher({
 
       const mapped = list
         .map((b) => {
-          const code = String(b.recordId || b.id || b.branchCode || b.code || "").trim();
-          const rawTitle = String(
-            b.branchTitle || b.branchName || b.title || b.name || code,
-          ).trim();
-          const name = rawTitle || code;
+          const code = String(b.recordId ?? "").trim();
+          const name = String(b.branchTitle ?? code).trim() || code;
           const isCentral =
             code === appConfig.centralBranch ||
             code.replace(/\D/g, "") === appConfig.centralBranch.replace(/\D/g, "");
-          const type = isCentral
-            ? "Head Office"
-            : String(b.branchType || b.type || "General").trim();
+          const type = isCentral ? "Head Office" : String(b.branchType ?? "General").trim();
 
           return { code, name, type };
         })

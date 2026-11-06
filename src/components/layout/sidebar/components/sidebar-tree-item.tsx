@@ -13,7 +13,8 @@ import { createPortal } from "react-dom";
 import { cbsCommand } from "@/lib/cbs-command";
 import { cn } from "@/lib/core-utils";
 import { useWorkbenchStore } from "@/store";
-import { hasActiveChild, isCommandMatch, type TreeNode } from "../types";
+import type { TreeNode } from "../types";
+import { hasActiveChild, isCommandMatch } from "../utils";
 
 export interface TreeItemProps {
   node: TreeNode;

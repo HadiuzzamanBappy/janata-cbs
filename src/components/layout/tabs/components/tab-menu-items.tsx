@@ -1,20 +1,13 @@
 "use client";
 
 import { Copy, ExternalLink, X, XCircle, XSquare } from "lucide-react";
-import type * as React from "react";
 import { Fragment } from "react";
 import { cbsCommand } from "@/lib/cbs-command";
-import type { WorkbenchTab } from "@/store";
 import { useAlertStore, useWorkbenchStore } from "@/store";
+import type { TabMenuActionProps } from "../types";
+import { isTabDirty, promptCloseTab } from "../utils";
 
-export interface TabMenuActionProps {
-  tab: WorkbenchTab;
-  GroupComponent?: React.ElementType;
-  ItemComponent: React.ElementType;
-  LabelComponent: React.ElementType;
-  SeparatorComponent: React.ElementType;
-  ShortcutComponent: React.ElementType;
-}
+export type { TabMenuActionProps };
 
 export function TabMenuItems({
   tab,
@@ -30,33 +23,19 @@ export function TabMenuItems({
   const isLastTab = tabs.length <= 1;
   const isRightmost = tabs[tabs.length - 1]?.id === tab.id;
 
-  const hasDirtyData = (t: WorkbenchTab) => {
-    return t.isDirty === true;
-  };
-
   const handleCloseTab = () => {
-    if (hasDirtyData(tab)) {
-      confirm({
-        title: `Close "${tab.title}"?`,
-        message: "You have unsaved typed inputs in this tab. Closing it will discard your changes.",
-        variant: "destructive",
-        confirmText: "Discard & Close",
-        onConfirm: () => removeTab(tab.id),
-      });
-    } else {
-      removeTab(tab.id);
-    }
+    promptCloseTab(tab, () => removeTab(tab.id), confirm);
   };
 
   const handleCloseOthers = () => {
     const otherTabs = tabs.filter((t) => t.id !== tab.id);
-    const dirtyOthers = otherTabs.filter(hasDirtyData);
+    const dirtyOthers = otherTabs.filter(isTabDirty);
 
     if (dirtyOthers.length > 0) {
       const titles = dirtyOthers.map((t) => `"${t.title}"`).join(", ");
       confirm({
         title: "Close other tabs?",
-        message: `You have unsaved typed inputs in ${titles}. Closing them will discard your changes.`,
+        message: `You have unsaved changes in ${titles}. Closing them will discard your changes.`,
         variant: "destructive",
         confirmText: "Discard & Close Others",
         onConfirm: () => closeOthers(tab.id),
@@ -70,13 +49,13 @@ export function TabMenuItems({
     const idx = tabs.findIndex((t) => t.id === tab.id);
     if (idx === -1) return;
     const rightTabs = tabs.slice(idx + 1);
-    const dirtyRight = rightTabs.filter(hasDirtyData);
+    const dirtyRight = rightTabs.filter(isTabDirty);
 
     if (dirtyRight.length > 0) {
       const titles = dirtyRight.map((t) => `"${t.title}"`).join(", ");
       confirm({
         title: "Close tabs to the right?",
-        message: `You have unsaved typed inputs in ${titles}. Closing them will discard your changes.`,
+        message: `You have unsaved changes in ${titles}. Closing them will discard your changes.`,
         variant: "destructive",
         confirmText: "Discard & Close",
         onConfirm: () => closeToRight(tab.id),

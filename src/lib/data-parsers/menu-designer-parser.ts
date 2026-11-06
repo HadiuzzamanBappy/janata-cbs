@@ -1,11 +1,10 @@
+import type { MenuRecord } from "@mock/db/SC_MENU";
 import { z } from "zod";
 import {
   type MenuAction,
-  type MenuCatalogRecord,
   type MenuItem,
   type MenuTreeRecord,
   type MenuType,
-  menuCatalogRecordSchema,
   menuTreeRecordSchema,
 } from "@/lib/data-schemas/menu-designer-schema";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
@@ -29,10 +28,10 @@ interface RawMenuNode {
 function normalizeNode(raw: RawMenuNode, idx: number, parentKey = "m"): MenuItem {
   const id = String(raw.id ?? raw.menuId ?? `${parentKey}-${idx}`);
   const rawChildren = raw.children ?? raw.items;
-  const children =
+  const children: MenuItem[] =
     Array.isArray(rawChildren) && rawChildren.length > 0
       ? rawChildren.map((c, i) => normalizeNode(c, i, id))
-      : undefined;
+      : [];
 
   const rawMenuType = (raw.menuType ? String(raw.menuType).toUpperCase() : undefined) as
     | MenuType
@@ -61,6 +60,8 @@ function normalizeNode(raw: RawMenuNode, idx: number, parentKey = "m"): MenuItem
     command: raw.command ? String(raw.command).trim().toUpperCase() : undefined,
     menuType,
     menuAction,
+    isVisible: raw.isVisible !== false,
+    orderIndex: typeof raw.orderIndex === "number" ? raw.orderIndex : idx,
     children,
   };
 }
@@ -103,30 +104,35 @@ export function parseMNU(
 /* ========================================================================== */
 
 /**
- * Parses inbound JSON payload into a strictly validated MenuCatalogRecord.
+ * Parses inbound JSON payload into a validated MenuRecord.
  */
 export function parseMenuCatalogRecord(
   rawPayload: unknown,
-): { success: true; data: MenuCatalogRecord } | { success: false; error: string } {
+): { success: true; data: MenuRecord } | { success: false; error: string } {
   if (!rawPayload || typeof rawPayload !== "object") {
     return { success: false, error: "Menu catalog record payload is invalid" };
   }
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
   const list = unwrapRecordsPayload(decoded);
-  const target = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+  const target = (list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded)) as Record<
+    string,
+    unknown
+  >;
 
-  const parseResult = menuCatalogRecordSchema.safeParse(target);
-  if (!parseResult.success) {
-    return {
-      success: false,
-      error: `MenuCatalog validation failed: ${parseResult.error.message}`,
-    };
+  if (!target || typeof target !== "object") {
+    return { success: false, error: "Empty or invalid record payload" };
   }
 
   return {
     success: true,
-    data: parseResult.data,
+    data: {
+      label: String(target.label ?? ""),
+      command: String(target.command ?? ""),
+      menuType: String(target.menuType ?? "FORM"),
+      menuAction: target.menuAction ? String(target.menuAction) : "SCREEN",
+      auditData: target.auditData as MenuRecord["auditData"],
+    },
   };
 }
 
@@ -135,33 +141,38 @@ export function parseMenuCatalogRecord(
  */
 export function parseMenuCatalogList(
   rawPayload: unknown,
-): { success: true; data: MenuCatalogRecord[] } | { success: false; error: string } {
+): { success: true; data: MenuRecord[] } | { success: false; error: string } {
   if (!rawPayload) {
     return { success: true, data: [] };
   }
 
   const rawList = unwrapRecordsPayload(rawPayload);
-  const parseResult = z.array(menuCatalogRecordSchema).safeParse(rawList);
-
-  if (!parseResult.success) {
-    return {
-      success: false,
-      error: `Menu catalog list validation failed: ${parseResult.error.message}`,
-    };
+  if (!Array.isArray(rawList)) {
+    return { success: false, error: "Expected an array of menu records" };
   }
+
+  const data: MenuRecord[] = rawList.map((item) => {
+    const rec = (item ?? {}) as Record<string, unknown>;
+    return {
+      label: String(rec.label ?? ""),
+      command: String(rec.command ?? ""),
+      menuType: String(rec.menuType ?? "FORM"),
+      menuAction: rec.menuAction ? String(rec.menuAction) : "SCREEN",
+      auditData: rec.auditData as MenuRecord["auditData"],
+    };
+  });
 
   return {
     success: true,
-    data: parseResult.data,
+    data,
   };
 }
 
 /**
- * Serializes internal MenuCatalogRecord for database storage or JSON preview.
+ * Serializes internal MenuRecord for database storage or JSON preview.
  */
-export function serializeMenuCatalogToWireJson(record: MenuCatalogRecord): MenuCatalogRecord {
-  const result = menuCatalogRecordSchema.safeParse(record);
-  return result.success ? result.data : record;
+export function serializeMenuCatalogToWireJson(record: MenuRecord): MenuRecord {
+  return { ...record };
 }
 
 /* ========================================================================== */

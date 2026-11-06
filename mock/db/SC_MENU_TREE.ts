@@ -156,8 +156,8 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
           {
             id: "n_1791699737289_3",
             menuId: 8,
-            label: "Model Builder",
-            command: "SC.MODEL.BUILDER",
+            label: "Model Config",
+            command: "SC.MODEL.CONFIG",
             isVisible: true,
             orderIndex: 1,
             children: [],
@@ -165,8 +165,8 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
           {
             id: "n_1791699755769_4",
             menuId: 9,
-            label: "Form Builder",
-            command: "SC.FORM.BUILDER",
+            label: "Form Config",
+            command: "SC.FORM.CONFIG",
             isVisible: true,
             orderIndex: 2,
             children: [],
@@ -174,8 +174,8 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
           {
             id: "n_1791699756201_5",
             menuId: 10,
-            label: "Inquiry Designer",
-            command: "SC.INQUIRY",
+            label: "Inquiry Config",
+            command: "SC.INQUIRY.CONFIG",
             isVisible: true,
             orderIndex: 3,
             children: [],

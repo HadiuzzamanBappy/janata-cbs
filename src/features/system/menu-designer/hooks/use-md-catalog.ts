@@ -37,7 +37,6 @@ export function useMdCatalog() {
               command: String(r.command || ""),
               menuType: (r.menuType ? String(r.menuType) : "FORM") as MenuType,
               menuAction: (r.menuAction ? String(r.menuAction) : "SCREEN") as MenuAction,
-              description: r.description ? String(r.description) : undefined,
             }));
           }
         }
@@ -56,7 +55,6 @@ export function useMdCatalog() {
             command: cmd.command,
             menuType: "FORM",
             menuAction: "SCREEN",
-            description: `System Screen: ${cmd.title}`,
           });
         }
       }

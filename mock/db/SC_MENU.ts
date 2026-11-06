@@ -1,20 +1,29 @@
-import type { MenuCatalogRecord } from "@/lib/data-schemas/menu-designer-schema";
+import type { AuditData } from "@/lib/data-schemas/common-schema";
 import type { CbsVersionedTable } from "./types";
+
+/**
+ * MenuRecord: The canonical database table schema for SC_MENU (matching SC_MODEL_CONFIG MENU).
+ */
+export interface MenuRecord {
+  label: string;
+  command: string;
+  menuType: string;
+  menuAction?: string;
+  auditData?: AuditData;
+}
 
 /**
  * SC_MENU Table Master (PREFIX: SC, TABLE: MENU)
  * Stores individual registered menu catalog action items and commands.
  * Corresponds to Temenos HELPTEXT.MENU / leaf item definitions.
  */
-export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
+export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   // --- Operational Dynamic GMC Forms ---
   "1": {
     label: "Account Maintenance",
     command: "ACCOUNT",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "Customer savings and current account management",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -30,8 +39,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "CUSTOMER",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "Customer onboarding, KYC, and profile maintenance",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -47,8 +54,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "USER",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "User operator profile provisioning and maintenance",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -64,8 +69,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "USERS,1.0.0",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "Enterprise bank user management, role profiles, and security parameters",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -83,8 +86,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "INQ S GET.ACCOUNT",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
-    description: "Account enquiry with customer balances and status",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -97,11 +98,9 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
   },
   "5": {
     label: "Customer Directory Inquiry",
-    command: "INQ S GET.CUSTOMER",
+    command: "INQ GET.CUSTOMER",
     menuType: "INQUIRY",
     menuAction: "POPUP",
-    description: "Customer directory inquiry (Detached Multi-Monitor Popup Window)",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -114,11 +113,9 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
   },
   "6": {
     label: "Employee Directory Inquiry",
-    command: "INQ S GET.EMP.INFO",
+    command: "INQ GET.EMP.INFO",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
-    description: "Employee information and profile inquiry",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -131,11 +128,9 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
   },
   "7": {
     label: "Branch Directory Inquiry",
-    command: "INQ S GET.BRANCH",
+    command: "INQ GET.BRANCH",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
-    description: "Branch master list and organizational units inquiry",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -149,12 +144,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
 
   // --- Development & Administrative Utilities ---
   "8": {
-    label: "Model Builder",
-    command: "SC.MODEL.BUILDER",
+    label: "Model Config",
+    command: "SC.MODEL.CONFIG",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "CBS Data Dictionary and Schema Designer",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -166,12 +159,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "9": {
-    label: "Form Builder",
-    command: "SC.FORM.BUILDER",
+    label: "Form Config",
+    command: "SC.FORM.CONFIG",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "Dynamic Form Designer and Layout Studio",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -183,12 +174,10 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     },
   },
   "10": {
-    label: "Inquiry Designer",
-    command: "SC.INQUIRY",
+    label: "Inquiry Config",
+    command: "SC.INQUIRY.CONFIG",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "Inquiry and Query Definition Designer",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -204,8 +193,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "SC.MENU.DESIGN",
     menuType: "FORM",
     menuAction: "SCREEN",
-    description: "Interactive Navigation Tree Builder",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -223,8 +210,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "",
     menuType: "GROUP",
     menuAction: "SCREEN",
-    description: "Frontline banking operations, accounts, and customers",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -240,8 +225,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "",
     menuType: "GROUP",
     menuAction: "SCREEN",
-    description: "Customer relationship, onboarding, and KYC profiles",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -257,8 +240,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "",
     menuType: "GROUP",
     menuAction: "SCREEN",
-    description: "Deposit, savings, and loan account operations",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -274,8 +255,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "",
     menuType: "GROUP",
     menuAction: "SCREEN",
-    description: "Bank operators, officers, and security administration",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -291,8 +270,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "",
     menuType: "GROUP",
     menuAction: "SCREEN",
-    description: "Branch daily inquiries and audit lookups",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -308,8 +285,6 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
     command: "",
     menuType: "GROUP",
     menuAction: "SCREEN",
-    description: "Developer studios, schema builder, and layout designers",
-    isActive: true,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -326,15 +301,15 @@ export const SC_MENU_LIVE: Record<string, MenuCatalogRecord> = {
 /* Versioned CBS Table Associates (INAU, HIS, DEL)                            */
 /* -------------------------------------------------------------------------- */
 
-export const SC_MENU_INAU: Record<string, MenuCatalogRecord> = {};
-export const SC_MENU_HIS: Record<string, MenuCatalogRecord[]> = {};
-export const SC_MENU_DEL: Record<string, MenuCatalogRecord> = {};
+export const SC_MENU_INAU: Record<string, MenuRecord> = {};
+export const SC_MENU_HIS: Record<string, MenuRecord[]> = {};
+export const SC_MENU_DEL: Record<string, MenuRecord> = {};
 
-export const SC_MENU_TABLE: CbsVersionedTable<MenuCatalogRecord> = {
+export const SC_MENU_TABLE: CbsVersionedTable<MenuRecord> = {
   LIVE: SC_MENU_LIVE,
   INAU: SC_MENU_INAU,
   HIS: SC_MENU_HIS,
   DEL: SC_MENU_DEL,
 };
 
-export const SC_MENU_LIST: MenuCatalogRecord[] = Object.values(SC_MENU_LIVE);
+export const SC_MENU_LIST: MenuRecord[] = Object.values(SC_MENU_LIVE);

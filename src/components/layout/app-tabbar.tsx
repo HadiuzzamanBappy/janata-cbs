@@ -5,8 +5,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAlertStore, useWorkbenchStore } from "@/store";
-import { TabItem } from "./tabs/tab-item";
-import { TabWindowMenu } from "./tabs/tab-window-menu";
+import { TabItem, TabWindowMenu } from "./tabs";
 
 export function AppTabBar() {
   const { tabs, activeTabId, closeAllTabs, reorderTabs } = useWorkbenchStore();

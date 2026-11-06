@@ -24,22 +24,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/core-utils";
-import type { WorkbenchTab } from "@/store";
 import { useAlertStore, useWorkbenchStore } from "@/store";
+import type { TabItemProps } from "../types";
+import { promptCloseTab } from "../utils";
 import { TabMenuItems } from "./tab-menu-items";
 
-interface TabItemProps {
-  tab: WorkbenchTab;
-  index: number;
-  isActive: boolean;
-  showSeparator?: boolean;
-  isDraggingThis?: boolean;
-  isDragOver?: boolean;
-  onDragStart?: () => void;
-  onDragOver?: (e: React.DragEvent) => void;
-  onDrop?: () => void;
-  onDragEnd?: () => void;
-}
+export type { TabItemProps };
 
 export function TabItem({
   tab,
@@ -60,27 +50,7 @@ export function TabItem({
 
   const handleCloseTab = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-
-    // Non-input modes (See, Authorize, Reverse, Delete, History, Idle) NEVER show a confirmation dialog
-    if (tab.screenMode !== "I") {
-      removeTab(tab.id);
-      return;
-    }
-
-    // Only confirm if the user has actually modified/typed changes (tab.isDirty)
-    const isDirty = tab.isDirty === true;
-
-    if (isDirty) {
-      confirm({
-        title: `Close "${tab.title}"?`,
-        message: "You have unsaved changes in this tab. Closing it will discard your edits.",
-        variant: "destructive",
-        confirmText: "Discard & Close",
-        onConfirm: () => removeTab(tab.id),
-      });
-    } else {
-      removeTab(tab.id);
-    }
+    promptCloseTab(tab, () => removeTab(tab.id), confirm);
   };
 
   return (

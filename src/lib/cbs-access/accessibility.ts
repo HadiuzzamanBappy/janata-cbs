@@ -1,4 +1,9 @@
-import { CBS_FUNCTION_CODES, CbsRecordFunction } from "@/types";
+import {
+  CBS_FUNCTION_CODE_SET,
+  CBS_FUNCTION_CODES,
+  CbsRecordFunction,
+  type CbsUserSecurityContext,
+} from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* Accessibility Profile Parser                                               */
@@ -27,7 +32,7 @@ export function parseAccessibilityRights(
     return [...CBS_FUNCTION_CODES];
   }
 
-  const validSet = new Set<string>(CBS_FUNCTION_CODES);
+  const validSet = CBS_FUNCTION_CODE_SET;
   const matched: CbsRecordFunction[] = [];
 
   for (const char of str) {
@@ -57,11 +62,7 @@ export function hasAccessibilityRight(
 /* Server-Side Capability Gate (Maker-Checker & RIDASHL Verification)         */
 /* -------------------------------------------------------------------------- */
 
-export interface UserAccessProfile {
-  userId?: string;
-  accessibility?: string | null;
-  functionRights?: readonly string[] | null;
-}
+export type UserAccessProfile = CbsUserSecurityContext;
 
 const CONTROLLED_FUNCTIONS = new Set<CbsRecordFunction>([
   CbsRecordFunction.AUTHORIZE,

@@ -17,7 +17,8 @@ export const SC_CONTROL: Record<string, RawControlRecord> = {
     command: "ACCOUNT",
     title: "Account Master",
     aliases: ["AC"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -32,7 +33,8 @@ export const SC_CONTROL: Record<string, RawControlRecord> = {
     command: "BRANCH",
     title: "Branch Management",
     aliases: ["BR"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -47,7 +49,8 @@ export const SC_CONTROL: Record<string, RawControlRecord> = {
     command: "CONTROL",
     title: "Control Table Master",
     aliases: ["CMD"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -62,7 +65,8 @@ export const SC_CONTROL: Record<string, RawControlRecord> = {
     command: "CUSTOMER",
     title: "Customer Master",
     aliases: ["CUST"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -77,7 +81,8 @@ export const SC_CONTROL: Record<string, RawControlRecord> = {
     command: "USER",
     title: "User Management",
     aliases: ["USR"],
-    actionType: "SCREEN",
+    controlAction: "SCREEN",
+    controlType: "FORM",
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,

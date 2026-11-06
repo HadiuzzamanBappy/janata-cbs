@@ -54,7 +54,6 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
 
     return registerCommandAdapter({
       getCurrentUser: () => store.getState().user,
-      logout: () => store.getState().logout(),
     });
   }, []);
 

@@ -1,20 +1,35 @@
 // ============================================================================
 // CBS Command Gateway Public Facade
-//
-// Parallel to `cbs-client`, `cbsCommand` is the single front door for:
-// - Parsing CBS formulas (including Comma Versions & authLevel 0)
-// - Pre-execution RBAC security checks
-// - Executing commands across tabs, multi-monitor popups, and modal dialogs
-// - Master alias mapping
+// Pluggable, extensible micro-kernel command executor & parser.
 // ============================================================================
 
-import { parseCbsCommand } from "./engine/grammar";
+import { parseCbsCommand, registerCommandHandler } from "./engine/grammar";
 import { validateSecurityPermissions } from "./engine/validator";
+import {
+  type CommandAdapter,
+  type CommandTabPayload,
+  getCommandAdapter,
+  registerCommandAdapter,
+} from "./executor/adapter";
 import { executeCbsCommand } from "./executor/terminal";
-import { getCanonicalScreenKey, resolveCommandAlias } from "./registry/alias";
-import { MASTER_COMMAND_DEFINITIONS } from "./registry/catalog";
-import type { ParsedCommand } from "./types/command";
-import type { ExecutionOptions } from "./types/execution";
+import {
+  getCanonicalScreenKey,
+  registerDynamicAliases,
+  resolveCommandAlias,
+  resolveCommandTitle,
+} from "./registry/alias";
+import {
+  extractMenuCommands,
+  getAllRegisteredCommands,
+  MASTER_COMMAND_DEFINITIONS,
+} from "./registry/catalog";
+import type {
+  CommandHandler,
+  CommandValidationResult,
+  ExecutionOptions,
+  ParsedCommand,
+} from "./types";
+import { CBS_SETTINGS_EVENT, CBS_SETTINGS_TABS } from "./types";
 
 export const cbsCommand = {
   /**
@@ -37,34 +52,58 @@ export const cbsCommand = {
   validate: validateSecurityPermissions,
 
   /**
-   * Resolve shorthand aliases (e.g. "MD" -> "MENU.DESIGN", "MNU" -> "MENU").
+   * Register a new custom protocol handler (e.g. REPORT, WORKFLOW, BATCH).
+   */
+  registerHandler: (handler: CommandHandler, prepend = true): (() => void) => {
+    return registerCommandHandler(handler, prepend);
+  },
+
+  /**
+   * Ingest dynamic control commands from SC_CONTROL and register aliases at runtime.
+   */
+  registerAliases: registerDynamicAliases,
+
+  /**
+   * Resolve shorthand aliases (e.g. "MD" -> "SC.MENU.DESIGN").
    */
   resolveAlias: resolveCommandAlias,
 
   /**
-   * Master registry of all statically registered system commands.
+   * Resolve human-readable screen title.
+   */
+  resolveTitle: resolveCommandTitle,
+
+  /**
+   * Master registry of bootstrap system commands.
    */
   getCommands: () => MASTER_COMMAND_DEFINITIONS,
 
   /**
-   * Canonical bespoke screen key resolver (used by React screen registry).
+   * Canonical screen key resolver.
    */
-  getScreenKey: getCanonicalScreenKey,
+  getCanonicalScreenKey,
 };
 
-export default cbsCommand;
-
-// Re-export core functions
-export { parseCbsCommand } from "./engine/grammar";
-export { validateSecurityPermissions } from "./engine/validator";
-export * from "./executor/adapter";
-export { getCanonicalScreenKey, resolveCommandAlias, resolveCommandTitle } from "./registry/alias";
+export type {
+  CommandAdapter,
+  CommandHandler,
+  CommandTabPayload,
+  CommandValidationResult,
+  ExecutionOptions,
+  ParsedCommand,
+};
+// Exports
 export {
+  CBS_SETTINGS_EVENT,
+  CBS_SETTINGS_TABS,
   extractMenuCommands,
   getAllRegisteredCommands,
-  MASTER_COMMAND_DEFINITIONS,
-} from "./registry/catalog";
-// Re-export contracts
-export * from "./types/command";
-export * from "./types/execution";
-export * from "./types/validation";
+  getCanonicalScreenKey,
+  getCommandAdapter,
+  registerCommandAdapter,
+  registerCommandHandler,
+  registerDynamicAliases,
+  resolveCommandAlias,
+  resolveCommandTitle,
+  validateSecurityPermissions,
+};

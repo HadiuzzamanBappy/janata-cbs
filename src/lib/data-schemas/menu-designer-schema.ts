@@ -3,9 +3,6 @@ import { auditDataSchema } from "./common-schema";
 
 /* -------------------------------------------------------------------------- */
 /* Canonical Domain Schemas & Contracts for Menu Designer                     */
-/* Features Covered:                                                          */
-/*   1. Flat Menu Action Items (Table: SC_MENU / Catalog)                     */
-/*   2. Hierarchical Navigation Tree (Table: SC_MENU_TREE / Designer Canvas)  */
 /* -------------------------------------------------------------------------- */
 
 /* ========================================================================== */
@@ -35,30 +32,22 @@ export const MENU_ACTIONS = menuActionSchema.options;
 
 export const menuCatalogRecordSchema = z.object({
   recordId: z.string().optional(),
-  label: z.string().min(1, "Menu Label is required").max(250, "Max 250 characters"),
+  label: z.string().trim().min(1, "Menu Label is required").max(250, "Max 250 characters"),
   command: z
     .string()
+    .trim()
     .max(250, "Max 250 characters")
-    .regex(/^([A-Z0-9_. ,]+)?$/, "Must be uppercase alphanumeric command format")
+    .regex(/^([A-Z0-9_., ]+)?$/, "Must be uppercase alphanumeric command format")
     .optional()
     .default(""),
   menuType: menuTypeSchema.default("FORM"),
   menuAction: menuActionSchema.default("SCREEN"),
-  actionType: menuActionSchema.optional(),
-  description: z.string().optional(),
+  description: z.string().trim().optional(),
   isActive: z.boolean().optional(),
   auditData: auditDataSchema.optional(),
 });
 
 export type MenuCatalogRecord = z.infer<typeof menuCatalogRecordSchema>;
-
-/** Screen-level validation error item mapped to UI tab headers. */
-export interface MenuValidationErrorItem {
-  id: string;
-  tab: "general" | "audit";
-  fieldKey: string;
-  message: string;
-}
 
 /* ========================================================================== */
 /* 2. MENU TREE & CANVAS CONTRACT (Table: SC_MENU_TREE)                       */
@@ -134,8 +123,8 @@ export interface MenuCatalogActionItem {
   code?: string;
   label: string;
   command: string;
-  menuType?: MenuType | string;
-  menuAction?: MenuAction | string;
+  menuType?: MenuType;
+  menuAction?: MenuAction;
   description?: string;
 }
 

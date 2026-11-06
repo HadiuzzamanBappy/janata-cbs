@@ -12,6 +12,7 @@ export function useCommandExecutor({ onClose }: UseCommandExecutorOptions) {
     onClose();
     cbsCommand.execute(cmd.command, {
       title: cmd.title,
+      target: cmd.controlAction === "POPUP" ? "popup" : "workspace",
     });
   };
 

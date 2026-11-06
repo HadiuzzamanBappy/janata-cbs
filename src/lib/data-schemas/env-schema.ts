@@ -1,6 +1,25 @@
 import { z } from "zod";
 
 /**
+ * Reusable environment boolean coercion helper.
+ * Handles strings ("true", "1", "false", "0") and booleans safely.
+ */
+const booleanEnv = (defaultValue: boolean) =>
+  z
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((val) => {
+      if (val === undefined || val === null) return defaultValue;
+      if (typeof val === "boolean") return val;
+      const normalized = val.trim().toLowerCase();
+      if (defaultValue) {
+        return normalized !== "false" && normalized !== "0";
+      }
+      return normalized === "true" || normalized === "1";
+    })
+    .default(defaultValue);
+
+/**
  * Zod schema validating server environment variables and runtime secrets.
  * Enforced on server initialization. Guarantees fail-fast configuration validation.
  */
@@ -12,45 +31,33 @@ export const envSchema = z
     DATA_SOURCE: z.enum(["grpc", "static"]).default("grpc"),
 
     // 2. Security & Authentication
-    LOGIN_LIMIT: z.coerce.number().default(3),
-    USE_HTTPS: z
-      .union([z.boolean(), z.string()])
-      .optional()
-      .transform((val) => val === true || val === "true")
-      .default(false),
+    LOGIN_LIMIT: z.coerce.number().int().positive().default(3),
+    USE_HTTPS: booleanEnv(false),
 
     // 3. Core Banking Engine (gRPC)
-    GRPC_HOST: z.string().default("localhost:9090"),
-    GRPC_USE_TLS: z
-      .union([z.boolean(), z.string()])
-      .optional()
-      .transform((val) => val === true || val === "true")
-      .default(false),
-    GRPC_TIMEOUT_MS: z.coerce.number().default(8000),
-    GRPC_FINANCIAL_TRANSACTION_TYPES: z.string().default("AFT,ACT"),
-    CLIENT_ID: z.string().default("WEB-CLIENT"),
+    GRPC_HOST: z.string().trim().default("localhost:9090"),
+    GRPC_USE_TLS: booleanEnv(false),
+    GRPC_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
+    GRPC_FINANCIAL_TRANSACTION_TYPES: z.string().trim().default("AFT,ACT"),
+    CLIENT_ID: z.string().trim().default("WEB-CLIENT"),
 
     // 4. Downstream Microservices (HTTP / REST)
-    SERVICE_CUSTOMER_BASE_URL: z.string().default("http://localhost:8383"),
-    SERVICE_URM_BASE_URL: z.string().default("http://localhost:8282"),
+    SERVICE_CUSTOMER_BASE_URL: z.string().trim().default("http://localhost:8383"),
+    SERVICE_URM_BASE_URL: z.string().trim().default("http://localhost:8282"),
 
     // 5. Caching Layer (Redis)
-    REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
-    REDIS_KEY_PREFIX: z.string().default("cbs"),
-    CACHE_ENABLED: z
-      .union([z.boolean(), z.string()])
-      .optional()
-      .transform((val) => val !== false && val !== "false")
-      .default(true),
-    CACHE_COOLDOWN_MS: z.coerce.number().default(5000),
-    CACHE_INVALIDATE_TOKEN: z.string().default("super-secret-cache-token"),
-    MENU_TTL_SECONDS: z.coerce.number().default(600),
-    SPEC_TTL_SECONDS: z.coerce.number().default(3600),
+    REDIS_URL: z.string().trim().default("redis://127.0.0.1:6379"),
+    REDIS_KEY_PREFIX: z.string().trim().default("cbs"),
+    CACHE_ENABLED: booleanEnv(true),
+    CACHE_COOLDOWN_MS: z.coerce.number().int().nonnegative().default(5000),
+    CACHE_INVALIDATE_TOKEN: z.string().trim().default("super-secret-cache-token"),
+    MENU_TTL_SECONDS: z.coerce.number().int().positive().default(600),
+    SPEC_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 
     // 6. Client-exposed Config (Next.js Public Bundle)
-    NEXT_PUBLIC_APP_KEY: z.string().default("cbs"),
-    NEXT_PUBLIC_CENTRAL_BRANCH: z.string().default("JB9999"),
-    NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().default(10),
+    NEXT_PUBLIC_APP_KEY: z.string().trim().default("cbs"),
+    NEXT_PUBLIC_CENTRAL_BRANCH: z.string().trim().default("JB9999"),
+    NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().int().positive().default(10),
   })
   .superRefine((data, ctx) => {
     if (data.DATA_SOURCE === "grpc") {

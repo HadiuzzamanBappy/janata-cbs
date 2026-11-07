@@ -104,7 +104,11 @@ export function useCanvasDrag({
         } else {
           const targetBlock = blocks[gapIdx];
           const targetSec =
-            targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
+            targetBlock.type === "single"
+              ? targetBlock.section
+              : targetBlock.type === "tab-group"
+                ? targetBlock.tabSections[0]
+                : targetBlock.stepSections[0];
           const rawIdx = targetSec ? sections.findIndex((s) => s.id === targetSec.id) : -1;
           insertAtIndex = rawIdx >= 0 ? rawIdx : undefined;
         }
@@ -139,22 +143,22 @@ export function useCanvasDrag({
           overData.type === "section-dropzone" ? (overData.sectionId as string) : overId;
         const targetSec = sections.find((s) => s.id === targetSecId);
 
-        if (targetSec && targetSec.zone === "tab") {
+        if (targetSec && targetSec.containerType === "tab") {
           if (
             activeSec &&
-            activeSec.zone === "tab" &&
-            activeSec.tabGroupId &&
-            targetSec.tabGroupId &&
-            activeSec.tabGroupId !== targetSec.tabGroupId
+            activeSec.containerType === "tab" &&
+            activeSec.groupId &&
+            targetSec.groupId &&
+            activeSec.groupId !== targetSec.groupId
           ) {
-            onMergeTabGroup?.(activeSec.tabGroupId, targetSec.tabGroupId);
+            onMergeTabGroup?.(activeSec.groupId, targetSec.groupId);
             return;
           }
 
           if (onConvertSectionZone && activeId !== String(targetSec.id)) {
             onConvertSectionZone(activeId, "tab", {
-              tabGroupId: targetSec.tabGroupId,
-              tabTitle: activeSec?.title || "New Tab",
+              groupId: targetSec.groupId,
+              groupTitle: activeSec?.title || "New Tab",
             });
             return;
           }
@@ -172,7 +176,11 @@ export function useCanvasDrag({
         } else {
           const targetBlock = blocks[gapIndex];
           const targetSec =
-            targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
+            targetBlock.type === "single"
+              ? targetBlock.section
+              : targetBlock.type === "tab-group"
+                ? targetBlock.tabSections[0]
+                : targetBlock.stepSections[0];
           if (targetSec) {
             const rawTargetIndex = sections.findIndex((s) => s.id === targetSec.id);
             onReorderSections(

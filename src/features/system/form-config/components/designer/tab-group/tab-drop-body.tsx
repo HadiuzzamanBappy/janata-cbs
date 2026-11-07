@@ -3,7 +3,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import * as React from "react";
-import { getFieldColSpanClass, getGridColsClass } from "@/features/form-engine/utils/section-utils";
+import { getFieldColSpanClass, getGridColsClass } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import { DesignerFieldCard } from "../designer-field-card";
@@ -68,7 +68,7 @@ export function TabDropBody({
   return (
     <SortableContext items={fieldKeys} strategy={rectSortingStrategy}>
       <section
-        aria-label={`Fields in tab ${section.tabTitle || section.title}`}
+        aria-label={`Fields in tab ${section.groupTitle || section.title}`}
         ref={setDropRef}
         onDragOver={handleNativeDragOver}
         onDragLeave={handleNativeDragLeave}

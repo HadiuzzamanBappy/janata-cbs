@@ -2,7 +2,7 @@
 
 import { useDroppable } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
-import { getFieldColSpanClass, getGridColsClass } from "@/features/form-engine/utils/section-utils";
+import { getFieldColSpanClass, getGridColsClass } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import { DesignerFieldCard } from "./designer-field-card";

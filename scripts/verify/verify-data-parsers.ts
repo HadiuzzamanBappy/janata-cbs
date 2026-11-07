@@ -197,14 +197,12 @@ async function runSuite() {
   // ----------------------------------------------------------------------------
   const dirtyForm: FormConfigRecord = {
     title: "  Account Form  ",
-    version: "1.0.0",
     frmElements: {
-      steps: [],
       sections: [
         {
           id: "sec_main",
           title: "  Main Section  ",
-          layoutStyle: "card",
+          containerType: "card",
           fields: [
             {
               SN: "1",

@@ -46,6 +46,9 @@ export function FieldAtom({
     [setValue, fieldKey],
   );
 
+  const allValues = useFormKernel((s) => s.values);
+  const allErrors = useFormKernel((s) => s.errors);
+
   if (!isVisible) {
     return null;
   }
@@ -61,6 +64,9 @@ export function FieldAtom({
       labelOverride={labelOverride}
       labelSuffix={labelSuffix}
       actionBeforeColon={actionBeforeColon}
+      allValues={allValues}
+      errors={allErrors}
+      hasKernel={true}
     />
   );
 }

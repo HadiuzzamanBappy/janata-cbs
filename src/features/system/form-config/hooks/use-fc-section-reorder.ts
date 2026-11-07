@@ -14,9 +14,9 @@ export function useFcSectionReorder(
         if (!activeSection) return prev;
 
         let movingSections: FormSection[] = [activeSection];
-        if (activeSection.zone === "tab" && activeSection.tabGroupId) {
+        if (activeSection.containerType === "tab" && activeSection.groupId) {
           movingSections = sections.filter(
-            (s) => s.zone === "tab" && s.tabGroupId === activeSection.tabGroupId,
+            (s) => s.containerType === "tab" && s.groupId === activeSection.groupId,
           );
         }
 
@@ -52,7 +52,6 @@ export function useFcSectionReorder(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: newSections,
           },
         };

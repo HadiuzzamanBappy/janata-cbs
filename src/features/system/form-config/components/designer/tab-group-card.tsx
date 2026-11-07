@@ -109,7 +109,7 @@ export function SortableTabGroupCard({
 
       {activeSection && (
         <section
-          aria-label={`Tab content for ${activeSection.tabTitle || activeSection.title}`}
+          aria-label={`Tab content for ${activeSection.groupTitle || activeSection.title}`}
           onDragOver={handleBodyDragOver}
           onDragLeave={handleBodyDragLeave}
           onDrop={handleBodyDrop}

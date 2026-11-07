@@ -2,14 +2,18 @@
 
 import { cn } from "@/lib/core-utils";
 import type { AuditData } from "@/lib/data-schemas";
-import { FieldRow } from "../widgets/field-row";
+import { FieldRow } from "../field-row";
 
-export interface FormAuditSectionProps {
+export interface AuditContainerProps {
   auditData?: AuditData | null;
   className?: string;
 }
 
-export function FormAuditSection({ auditData, className }: FormAuditSectionProps) {
+/**
+ * AuditContainer: Fixed banking audit trailer container.
+ * Displays maker-checker, authorization, timestamps, and revision details.
+ */
+export function AuditContainer({ auditData, className }: AuditContainerProps) {
   const audit = auditData ?? {};
   const statusStr = String(audit.recStatus || "AU");
   const revisionStr = audit.recCurrNumber !== undefined ? String(audit.recCurrNumber) : "1";

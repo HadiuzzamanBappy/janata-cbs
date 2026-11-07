@@ -12,7 +12,13 @@
  *   pnpm tsx scripts/verify/verify-cbs-form-spec.ts
  */
 
-import { compileFormSpec, defaultWidthForLength, validateValues } from "@/lib/cbs-form-spec";
+import {
+  compileFormSpec,
+  defaultWidthForLength,
+  deriveSemanticWidth,
+  resolveWidgetType,
+  validateValues,
+} from "@/lib/cbs-form-spec";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 
 interface TestCase {
@@ -171,6 +177,18 @@ async function runSuite() {
     wDate === "sm",
   );
 
+  const wExplicitPreserved = deriveSemanticWidth("lg", 4, "Text");
+  const resolvedSelect = resolveWidgetType("Text", {
+    type: "O",
+    data: [{ itemCode: "A", itemLabel: "Active" }],
+  });
+  recordTest(
+    "1.4 Canonical Formulas: deriveSemanticWidth preserves explicit token & resolveWidgetType infers lookup 'select'",
+    { explicitInput: "lg", paramType: "O" },
+    { derivedWidth: wExplicitPreserved, resolvedWidget: resolvedSelect },
+    wExplicitPreserved === "lg" && resolvedSelect === "select",
+  );
+
   // ── 2. Fallback Layout Compilation ──
   console.log("\n── 2. Fallback Layout Compilation (compileFormSpec) ──");
   const fallback = compileFormSpec(testModel, null);
@@ -196,14 +214,11 @@ async function runSuite() {
     authNumber: 1,
     frmRoutine: { rtnValidate: [], rtnBeforeAuth: [], rtnAfterAuth: [] },
     frmElements: {
-      steps: [],
       sections: [
         {
           id: "sec_custom",
           title: "Primary Info",
-          type: "standard",
-          zone: "standard",
-          layoutStyle: "card",
+          containerType: "card",
           fields: [
             {
               SN: "1",

@@ -74,12 +74,10 @@ export function useFcFieldMovement(
           const newRootSec: FormSection = {
             id: generateClientToken("sec_root"),
             title: "",
-            type: "standard",
-            zone: "standard",
+            containerType: "plain",
             columns: 1,
             collapsible: false,
             isCollapsed: false,
-            layoutStyle: "plain",
             fields: [fieldToMove],
           };
 

@@ -31,7 +31,7 @@ export function useFcActions({
 }: UseFcActionsParams) {
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
-    const targetId = recordId || (formData.recordId as string) || "";
+    const targetId = recordId || "";
     setSubmitting(true);
     try {
       // Clean internal canvas field ids & strip empty fields before sending to backend

@@ -8,17 +8,13 @@ export interface FieldPaletteProps {
   onHighlightField?: (fieldName: string) => void;
   onAddField: (template: Partial<FormElement>) => void;
   onAddSection: (
-    type: "standard" | "object-group" | "array-table",
-    zone?: "header" | "tab" | "standard",
+    containerType?: "card" | "plain" | "tab" | "step" | "accordion",
     initialFields?: FormElement[],
-    layoutStyle?: "card" | "plain",
     customTitle?: string,
-    tabGroupId?: string,
-    tabTitle?: string,
+    groupId?: string,
+    groupTitle?: string,
     insertIndex?: number,
     columns?: number,
-    bindKey?: string,
-    structure?: "S" | "M",
   ) => void;
   disabled?: boolean;
   className?: string;

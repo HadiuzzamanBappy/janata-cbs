@@ -67,7 +67,11 @@ export function DesignerCanvas({
   const blocks = React.useMemo(() => buildRenderBlocks(sections), [sections]);
   const sortableCardIds = React.useMemo(
     () =>
-      blocks.map((b) => (b.type === "single" ? b.section.id : b.tabSections[0]?.id || b.groupId)),
+      blocks.map((b) => {
+        if (b.type === "single") return b.section.id;
+        if (b.type === "tab-group") return b.tabSections[0]?.id || b.groupId;
+        return b.stepSections[0]?.id || b.groupId;
+      }),
     [blocks],
   );
 
@@ -105,7 +109,7 @@ export function DesignerCanvas({
       if (dataStr) {
         const parsed = JSON.parse(dataStr);
         if (parsed.type === "canvas-tab" && parsed.sectionId && onConvertSectionZone) {
-          onConvertSectionZone(parsed.sectionId, "standard");
+          onConvertSectionZone(parsed.sectionId, "card");
           return;
         }
         if (onDropPaletteItem) onDropPaletteItem(parsed);
@@ -118,7 +122,7 @@ export function DesignerCanvas({
   const totalFieldsCount = sections.reduce((acc, s) => acc + (s.fields?.length || 0), 0);
   const hasContainersOrFields =
     sections.length > 0 &&
-    (totalFieldsCount > 0 || sections.some((s) => s.layoutStyle !== "plain" && Boolean(s.title)));
+    (totalFieldsCount > 0 || sections.some((s) => s.containerType !== "plain" && Boolean(s.title)));
 
   if (!hasContainersOrFields) {
     return (
@@ -254,7 +258,7 @@ export function DesignerCanvas({
                     onDropPaletteItem={onDropPaletteItem}
                     disabled={disabled}
                   />
-                ) : (
+                ) : block.type === "tab-group" ? (
                   <SortableTabGroupCard
                     groupId={block.groupId}
                     tabSections={block.tabSections}
@@ -274,7 +278,7 @@ export function DesignerCanvas({
                     isCanvasDragging={isDragging}
                     disabled={disabled}
                   />
-                )}
+                ) : null}
 
                 <BetweenBlockDropZone
                   id={`gap-${i}`}

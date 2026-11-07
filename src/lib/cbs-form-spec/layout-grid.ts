@@ -1,7 +1,5 @@
 import type { PropertyWidth, SemanticWidthToken } from "@/lib/data-schemas/form-engine-schema";
-
-// Re-export RenderBlock and buildRenderBlocks from headless library for backward-compatibility if needed
-export { buildRenderBlocks, type RenderBlock } from "@/lib/cbs-form-spec";
+import { deriveSemanticWidth } from "./field-normalizer";
 
 /**
  * Maps semantic width tokens or fallback physical lengths to Tailwind 12-column span classes.
@@ -13,7 +11,7 @@ export { buildRenderBlocks, type RenderBlock } from "@/lib/cbs-form-spec";
  * - xxl: 10 cols (col-span-12 md:col-span-10)
  * - full: 12 cols (col-span-12)
  */
-const TOKEN_TO_COL_SPAN: Record<SemanticWidthToken, string> = {
+export const TOKEN_TO_COL_SPAN: Record<SemanticWidthToken, string> = {
   xs: "col-span-12 md:col-span-2",
   sm: "col-span-12 md:col-span-3",
   md: "col-span-12 md:col-span-4",
@@ -43,41 +41,6 @@ export const SEMANTIC_INPUT_WIDTH_CLASSES: Record<SemanticWidthToken, string> = 
   xxl: "w-full sm:max-w-2xl",
   full: "w-full",
 };
-
-/**
- * Fallback mapping from physical DB LENGTH or type to semantic token.
- * Ignores any legacy DB numbers in Model Config and calculates purely from physical length and type.
- */
-export function deriveSemanticWidth(
-  width?: PropertyWidth,
-  length?: number,
-  type?: string,
-): SemanticWidthToken {
-  // 1. If explicit semantic token string, use directly
-  if (typeof width === "string" && width in TOKEN_TO_COL_SPAN) {
-    return width as SemanticWidthToken;
-  }
-
-  // 2. Derive width from physical model LENGTH (single diversion rule)
-  if (typeof length === "number" && length > 0) {
-    if (length <= 6) return "xs";
-    if (length <= 16) return "sm";
-    if (length <= 40) return "md";
-    if (length <= 80) return "lg";
-    if (length <= 150) return "xl";
-    return "xxl";
-  }
-
-  // 3. Type-based default hints
-  const normType = (type || "").toLowerCase();
-  if (normType === "textarea") return "full";
-  if (normType === "boolean" || normType === "switch" || normType === "checkbox") return "xs";
-  if (normType === "date" || normType === "datetime") return "sm";
-  if (normType === "amount" || normType === "rate" || normType === "number") return "sm";
-
-  // 4. Default fallback to md
-  return "md";
-}
 
 /**
  * Returns the CSS class for an input element based on its semantic width token.
@@ -136,18 +99,15 @@ export function getFieldColSpanClass(
   length?: number,
   type?: string,
 ): string {
-  // Single row layout default: Every field factory blocks its own full row!
   if (cols <= 1) {
     return "w-full col-span-1";
   }
 
-  // Explicit 12-column grid mode
   if (cols === 12) {
     const token = deriveSemanticWidth(width, length, type);
     return TOKEN_TO_COL_SPAN[token];
   }
 
-  // Multi-column sections (2, 3, 4 columns)
   const token = deriveSemanticWidth(width, length, type);
   if (token === "full") {
     return "col-span-full w-full";

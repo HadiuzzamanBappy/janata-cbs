@@ -90,6 +90,8 @@ export function renderFieldWidget({
           value={value}
           onChange={onChange}
           disabled={isReadOnly}
+          activeLabel={field.BOOLEAN_CONFIG?.activeLabel}
+          inactiveLabel={field.BOOLEAN_CONFIG?.inactiveLabel}
         />
       );
     case "radio":
@@ -137,6 +139,8 @@ export function renderFieldWidget({
           value={value}
           onChange={onChange}
           disabled={isReadOnly}
+          activeLabel={field.BOOLEAN_CONFIG?.activeLabel}
+          inactiveLabel={field.BOOLEAN_CONFIG?.inactiveLabel}
         />
       );
     case "checkbox-group":
@@ -200,6 +204,7 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder}
+          config={field.TEXT_CONFIG}
         />
       );
   }

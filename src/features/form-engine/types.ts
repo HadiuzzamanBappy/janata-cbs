@@ -29,6 +29,9 @@ export interface UnifiedFieldFactoryProps {
   labelOverride?: string;
   labelSuffix?: React.ReactNode;
   actionBeforeColon?: React.ReactNode;
+  allValues?: Record<string, unknown>;
+  errors?: Record<string, string>;
+  hasKernel?: boolean;
 }
 
 export interface SectionCardProps {

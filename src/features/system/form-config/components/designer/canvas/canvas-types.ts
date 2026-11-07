@@ -3,17 +3,13 @@ import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 
 /** Callback signature for adding a new section/container to the canvas */
 export type AddSectionFn = (
-  type: "standard" | "object-group" | "array-table",
-  zone?: "header" | "tab" | "standard",
+  containerType?: "card" | "plain" | "tab" | "step" | "accordion",
   initialFields?: FormElement[],
-  layoutStyle?: "card" | "plain",
   customTitle?: string,
-  tabGroupId?: string,
-  tabTitle?: string,
+  groupId?: string,
+  groupTitle?: string,
   insertIndex?: number,
   columns?: number,
-  bindKey?: string,
-  structure?: "S" | "M",
 ) => void;
 
 export interface DesignerCanvasProps {
@@ -44,8 +40,8 @@ export interface DesignerCanvasProps {
    */
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;

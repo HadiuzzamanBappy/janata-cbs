@@ -8,8 +8,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
   {
     id: "sec_inq_identity",
     title: "Inquiry Identification & Target Controller",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -59,8 +58,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
   {
     id: "sec_inq_layout",
     title: "Display & Pagination Settings",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -132,8 +130,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
   {
     id: "sec_inq_routing",
     title: "Service Routing & Reporting",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -171,8 +168,7 @@ export const FILTER_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_filter_identity",
     title: "Criteria Identity",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -224,8 +220,7 @@ export const FILTER_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_filter_constraints",
     title: "Logic & Operator Constraints",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -297,8 +292,7 @@ export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_col_identity",
     title: "Column Identity",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -373,8 +367,7 @@ export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_col_constraints",
     title: "Storage & Display Constraints",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -446,8 +439,7 @@ export const ACTION_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_act_identity",
     title: "Action Preset & Button Label",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -467,8 +459,7 @@ export const ACTION_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_act_command",
     title: "Target & Parameter Configuration",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {

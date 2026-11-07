@@ -307,25 +307,21 @@ export function sanitizeFormElement(field: FormElement): FormElement {
 
 /**
  * Sanitizes a FormSection for sparse database persistence:
- * - Omits empty titles, descriptions, tabGroupIds
+ * - Omits empty titles, descriptions, groupIds
  * - Omits default false flags (collapsible: false, isCollapsed: false)
  * - Sanitizes all inner child fields
  */
 export function sanitizeFormSection(section: FormSection): FormSection {
   const sanitized: Partial<FormSection> = {
     id: section.id,
-    type: section.type || "standard",
-    zone: section.zone || "standard",
+    containerType: section.containerType || "card",
     columns: section.columns || 1,
-    layoutStyle: section.layoutStyle || "card",
   };
 
   if (section.title?.trim()) sanitized.title = section.title.trim();
   if (section.description?.trim()) sanitized.description = section.description.trim();
-  if (section.tabGroupId?.trim()) sanitized.tabGroupId = section.tabGroupId.trim();
-  if (section.tabTitle?.trim()) sanitized.tabTitle = section.tabTitle.trim();
-  if (section.bindKey?.trim()) sanitized.bindKey = section.bindKey.trim();
-  if (section.structure) sanitized.structure = section.structure;
+  if (section.groupId?.trim()) sanitized.groupId = section.groupId.trim();
+  if (section.groupTitle?.trim()) sanitized.groupTitle = section.groupTitle.trim();
   if (section.collapsible) sanitized.collapsible = true;
   if (section.isCollapsed) sanitized.isCollapsed = true;
 
@@ -346,7 +342,6 @@ export function sanitizeFormConfigRecord(record?: FormConfigRecord): FormConfigR
   if (record.description?.trim()) result.description = record.description.trim();
   if (record.authNumber !== undefined && record.authNumber !== null)
     result.authNumber = record.authNumber;
-  if (record.targetModel) result.targetModel = record.targetModel;
   if (record.auditData) result.auditData = record.auditData;
 
   // Routines: only keep if routines actually exist
@@ -370,13 +365,8 @@ export function sanitizeFormConfigRecord(record?: FormConfigRecord): FormConfigR
 
   // Layout Elements
   if (record.frmElements) {
-    const steps = (record.frmElements.steps || []).filter((s) => s.id && s.title);
     const sections = (record.frmElements.sections || []).map(sanitizeFormSection);
-
-    result.frmElements = {
-      ...(steps.length > 0 ? { steps } : { steps: [] }),
-      sections,
-    };
+    result.frmElements = { sections };
   }
 
   return result as FormConfigRecord;

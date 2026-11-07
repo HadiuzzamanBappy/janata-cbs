@@ -4,7 +4,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
 
-export interface CheckboxWidgetProps extends BaseWidgetProps {}
+export interface CheckboxWidgetProps extends BaseWidgetProps {
+  activeLabel?: string;
+  inactiveLabel?: string;
+}
 
 export function CheckboxWidget({
   id,
@@ -12,6 +15,8 @@ export function CheckboxWidget({
   onChange,
   disabled = false,
   className,
+  activeLabel = "Yes",
+  inactiveLabel = "No",
 }: CheckboxWidgetProps) {
   const isChecked = Boolean(value);
 
@@ -39,7 +44,7 @@ export function CheckboxWidget({
               : "bg-muted text-muted-foreground border-border/40",
           )}
         >
-          {isChecked ? "Yes" : "No"}
+          {isChecked ? activeLabel : inactiveLabel}
         </span>
       </label>
     </div>

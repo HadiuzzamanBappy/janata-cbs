@@ -16,17 +16,13 @@ export function useFcSectionOps(
 
   const addSection = React.useCallback(
     (
-      type: "standard" | "object-group" | "array-table" = "standard",
-      zone: "header" | "tab" | "standard" = "standard",
+      containerType: "card" | "plain" | "tab" | "step" | "accordion" = "card",
       initialFields: FormElement[] = [],
-      layoutStyle?: "card" | "plain",
       customTitle?: string,
-      tabGroupId?: string,
-      tabTitle?: string,
+      groupId?: string,
+      groupTitle?: string,
       insertIndex?: number,
       columns?: number,
-      bindKey?: string,
-      structure?: "S" | "M",
     ) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
@@ -35,34 +31,22 @@ export function useFcSectionOps(
         const defaultTitle =
           customTitle !== undefined
             ? customTitle
-            : layoutStyle === "plain"
+            : containerType === "plain"
               ? ""
-              : zone === "header"
-                ? "Master Header Card"
-                : zone === "tab"
-                  ? tabTitle || `Tab ${nextIndex}`
-                  : type === "object-group"
-                    ? "New Object Group"
-                    : "Form Fields";
+              : containerType === "tab"
+                ? groupTitle || `Tab ${nextIndex}`
+                : "Form Fields";
 
-        const isObjGroup = type === "object-group";
         const newSection: FormSection = {
           id: newId,
           title: defaultTitle,
-          type,
-          zone,
-          tabGroupId: zone === "tab" ? tabGroupId || `tabgrp_${nextIndex}` : undefined,
-          tabTitle: zone === "tab" ? tabTitle || defaultTitle || `Tab ${nextIndex}` : undefined,
-          bindKey: bindKey || (type !== "standard" ? `group_${nextIndex}` : undefined),
-          structure: structure || "S",
+          containerType,
+          groupId: containerType === "tab" ? groupId || `tabgrp_${nextIndex}` : groupId,
+          groupTitle:
+            containerType === "tab" ? groupTitle || defaultTitle || `Tab ${nextIndex}` : groupTitle,
           columns: columns ?? 1,
           collapsible: false,
           isCollapsed: false,
-          layoutStyle:
-            layoutStyle ??
-            (isObjGroup || (type === "standard" && zone === "standard" && !customTitle)
-              ? "plain"
-              : "card"),
           fields: initialFields,
         };
 
@@ -81,10 +65,7 @@ export function useFcSectionOps(
           }))
           .filter((sec) => {
             const isPlainRoot =
-              sec.layoutStyle === "plain" ||
-              !sec.title ||
-              sec.title === "Canvas Root" ||
-              (sec.type === "standard" && sec.zone === "standard" && !sec.title);
+              sec.containerType === "plain" || !sec.title || sec.title === "Canvas Root";
             if (isPlainRoot && (!sec.fields || sec.fields.length === 0)) {
               return false;
             }
@@ -111,7 +92,6 @@ export function useFcSectionOps(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };
@@ -131,12 +111,12 @@ export function useFcSectionOps(
             return { ...sec, ...patch };
           }
           if (
-            patch.tabGroupId &&
-            targetSec?.zone === "tab" &&
-            sec.zone === "tab" &&
-            sec.tabGroupId === targetSec.tabGroupId
+            patch.groupId &&
+            targetSec?.containerType === "tab" &&
+            sec.containerType === "tab" &&
+            sec.groupId === targetSec.groupId
           ) {
-            return { ...sec, tabGroupId: patch.tabGroupId };
+            return { ...sec, groupId: patch.groupId };
           }
           return sec;
         });
@@ -144,7 +124,6 @@ export function useFcSectionOps(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };
@@ -160,14 +139,14 @@ export function useFcSectionOps(
         const secToRemove = sections.find((s) => s.id === id);
         if (!secToRemove) return prev;
 
-        const isTabSection = secToRemove.zone === "tab";
-        const tabGroupId = secToRemove.tabGroupId;
+        const isTabSection = secToRemove.containerType === "tab";
+        const groupId = secToRemove.groupId;
 
         const updatedSections = sections.filter((sec) => sec.id !== id);
 
-        if (isTabSection && tabGroupId) {
+        if (isTabSection && groupId) {
           const remainingTabsInGroup = updatedSections.filter(
-            (s) => s.zone === "tab" && s.tabGroupId === tabGroupId,
+            (s) => s.containerType === "tab" && s.groupId === groupId,
           );
           if (remainingTabsInGroup.length === 1) {
             const singleTab = remainingTabsInGroup[0];
@@ -175,10 +154,9 @@ export function useFcSectionOps(
             if (idx !== -1) {
               updatedSections[idx] = {
                 ...singleTab,
-                zone: "standard",
-                tabGroupId: undefined,
-                tabTitle: undefined,
-                layoutStyle: "card",
+                containerType: "card",
+                groupId: undefined,
+                groupTitle: undefined,
               };
             }
           }
@@ -187,7 +165,6 @@ export function useFcSectionOps(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };

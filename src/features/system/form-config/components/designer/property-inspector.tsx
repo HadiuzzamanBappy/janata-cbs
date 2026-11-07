@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Database, Settings, Table, Type, X } from "lucide-react";
+import { ArrowLeft, Settings, Type, X } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,18 +62,11 @@ export function PropertyInspector({
     }
     if (selectedSection) {
       return {
-        icon:
-          selectedSection.type === "array-table" ? (
-            <Table className="size-3.5 text-emerald-400 shrink-0" />
-          ) : selectedSection.type === "object-group" ? (
-            <Database className="size-3.5 text-purple-400 shrink-0" />
-          ) : (
-            <Settings className="size-3.5 text-primary shrink-0" />
-          ),
+        icon: <Settings className="size-3.5 text-primary shrink-0" />,
         title:
-          selectedSection.tabTitle ||
+          selectedSection.groupTitle ||
           selectedSection.title ||
-          (selectedSection.zone === "tab" ? "Tab Item" : "Section Container"),
+          (selectedSection.containerType === "tab" ? "Tab Item" : "Section Container"),
       };
     }
     return {
@@ -131,7 +124,7 @@ export function PropertyInspector({
               className="p-1 -ml-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
               title={
                 selectedSection
-                  ? `Back to ${selectedSection.tabTitle || selectedSection.title || "Container"}`
+                  ? `Back to ${selectedSection.groupTitle || selectedSection.title || "Container"}`
                   : "Back to container"
               }
             >
@@ -160,15 +153,7 @@ export function PropertyInspector({
               variant="outline"
               className="text-[9px] font-mono h-4 px-1.5 uppercase tracking-wider text-primary border-primary/30 bg-primary/10 font-bold"
             >
-              {selectedSection.zone === "tab"
-                ? "TAB"
-                : selectedSection.type === "object-group"
-                  ? "OBJECT-GROUP"
-                  : selectedSection.type === "array-table"
-                    ? "ARRAY-TABLE"
-                    : selectedSection.layoutStyle === "plain"
-                      ? "CANVAS"
-                      : "CARD"}
+              {selectedSection.containerType || "CARD"}
             </Badge>
           ) : null}
 

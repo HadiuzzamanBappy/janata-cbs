@@ -158,7 +158,6 @@ export function FieldPalette({
                       onToggleCollapse={toggleGroupCollapse}
                       onAddField={onAddField}
                       onHighlightField={onHighlightField}
-                      onAddSection={onAddSection}
                     />
                   );
                 })}

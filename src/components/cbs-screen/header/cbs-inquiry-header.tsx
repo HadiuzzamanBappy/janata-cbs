@@ -38,8 +38,8 @@ export function CbsInquiryHeader({
   return (
     <TooltipProvider delay={150}>
       <header className="sticky top-0 z-20 bg-muted/40 border-b border-border/80 select-none">
-        {/* ROW 1: Minimalist CBS Action Toolbar */}
-        <div className="flex items-center gap-1 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
+        {/* ROW 1: Minimalist CBS Action Toolbar (Breaks naturally on small viewports) */}
+        <div className="flex flex-wrap items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
           {/* Universal Inquiry Action Toolbar */}
           <InquiryActions
             onBackToSelection={onBackToSelection}
@@ -54,7 +54,7 @@ export function CbsInquiryHeader({
           {/* Validation Checklist Indicator & Drawer (Visible when issues exist) */}
           {validationErrors.length > 0 && (
             <>
-              <span className="h-4 w-px bg-border/60 mx-1" />
+              <span className="h-4 w-px bg-border/60 mx-1 hidden sm:inline-block" />
               <CbsValidationChecklist
                 errors={validationErrors}
                 onSelectTab={(tab) => onSelectValidationTab?.(tab)}
@@ -77,7 +77,7 @@ export function CbsInquiryHeader({
                           window.dispatchEvent(new CustomEvent(CBS_SCREEN_EVENT.DOCK_TO_SHELL));
                         }
                       }}
-                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                      className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                       aria-label="Back to tab bar"
                     >
                       <ArrowDownToLine className="size-3.5" />
@@ -93,7 +93,7 @@ export function CbsInquiryHeader({
         </div>
 
         {/* ROW 2: Ultra-compact CBS Record Title */}
-        <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
+        <div className="flex flex-wrap items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
             {title || "Enquiry Screen"}
           </span>

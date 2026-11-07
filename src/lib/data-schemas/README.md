@@ -26,6 +26,7 @@ src/lib/data-schemas/
 ## 🏛️ Schema Architecture: Wire vs. Domain
 
 Every banking entity has two layers defined within its schema file:
+
 1. **Zod Runtime Schema (Validation)**: Executes runtime `.parse()` or `.safeParse()` to reject malformed wire payloads immediately.
 2. **TypeScript Static Type (Compile-Time)**: Inferred automatically via `z.infer<typeof schema>` to guarantee complete end-to-end type safety without redundant type declarations.
 
@@ -100,6 +101,7 @@ const validEnv = envSchema.parse(process.env);
 ### 2. Domain Entity Schemas: **SCALABLE**
 
 When the banking backend introduces a new table or screen model (e.g. `loan-schema.ts`):
+
 1. Define the Zod schema:
 
    ```typescript
@@ -119,6 +121,7 @@ When the banking backend introduces a new table or screen model (e.g. `loan-sche
 ## 🧪 Verification
 
 Run the schema and environment verification suite:
+
 ```bash
 pnpm verify:schemas
 ```

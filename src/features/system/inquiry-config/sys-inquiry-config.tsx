@@ -1,6 +1,6 @@
 "use client";
 
-import { Code, Columns, Eye, FileText, Filter, Layers, MousePointerClick } from "lucide-react";
+import { Code, Columns, Eye, FileText, Filter, MousePointerClick } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
@@ -188,12 +188,6 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
       validationErrors={validationErrors}
-      rightTabContent={
-        <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
-          <Layers className="size-3" />
-          <span>INQUIRY_DESIGNER</span>
-        </div>
-      }
     />
   );
 }

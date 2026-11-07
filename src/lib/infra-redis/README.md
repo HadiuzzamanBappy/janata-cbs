@@ -24,6 +24,7 @@ src/lib/infra-redis/
 ### 1. Circuit Breaker ("Fail-Open" Resilience)
 
 If Redis crashes or is not running during local development:
+
 - The connection failure trips the circuit breaker (`tripCircuit()`).
 - During the cooldown window (`appConfig.redis.cooldownMs` = 5,000ms), all cache operations **fail open** without throwing errors or halting the banking operator.
 - Sessions automatically fall back to a server-side in-memory `Map` (`__memorySessionStore`).
@@ -32,6 +33,7 @@ If Redis crashes or is not running during local development:
 ### 2. Single-Flight Concurrency Deduplication (`singleFlight`)
 
 Prevents **cache stampedes ("thundering herd")** when 50+ tellers open the same form simultaneously on a cold morning:
+
 - The first request triggers the database/gRPC fetch or compiler.
 - All subsequent concurrent requests for the same key are attached to the **same in-flight Promise**.
 - Only 1 compilation or query hits the backend, resolving simultaneously for all callers.
@@ -43,6 +45,7 @@ Invalidations never run the blocking `KEYS *` command. Instead, `cacheDelete()` 
 ### 4. Specification & Catalog Auto-Invalidation (`autoInvalidateOnMutation`)
 
 When a developer or supervisor saves or authorizes changes in **Model Config** (`SC.MODEL.CONFIG`), **Form Config** (`SC.FORM.CONFIG`), or **Menu Designer** (`SC.MENU.TREE`):
+
 - `/api/proxy` automatically executes `autoInvalidateOnMutation(envelope)`.
 - It deletes wildcard pattern matches:
   - Form specifications: `cbs:spec:${MODEL}*`

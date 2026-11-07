@@ -97,7 +97,7 @@ export function FilterModelPopover({
             title={targetModel ? `Import filter fields from ${targetModel}` : "No Target Model set"}
           >
             <Sparkles className="size-3" />
-            <span>Import</span>
+            <span className="hidden sm:inline">Import</span>
           </Button>
         }
       />

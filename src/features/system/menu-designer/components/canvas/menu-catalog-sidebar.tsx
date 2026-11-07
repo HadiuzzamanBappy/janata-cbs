@@ -128,6 +128,7 @@ interface MenuCatalogSidebarProps {
   addedCommands?: Set<string>;
   onAddItem: (item: MenuCatalogActionItem) => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export function MenuCatalogSidebar({
@@ -137,6 +138,7 @@ export function MenuCatalogSidebar({
   addedCommands,
   onAddItem,
   disabled,
+  className,
 }: MenuCatalogSidebarProps) {
   const [search, setSearch] = React.useState("");
 
@@ -161,7 +163,12 @@ export function MenuCatalogSidebar({
   }, [items, addedMenuIds, addedCommands]);
 
   return (
-    <aside className="w-72 border-r border-border bg-card/40 flex flex-col h-full shrink-0 select-none">
+    <aside
+      className={cn(
+        "w-72 border-r border-border bg-card/40 flex flex-col h-full shrink-0 select-none",
+        className,
+      )}
+    >
       <div className="p-2.5 border-b border-border/80 space-y-2">
         <div className="flex items-center justify-between gap-2">
           <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider truncate">

@@ -13,12 +13,11 @@ export function TextareaWidget({
   disabled = false,
   error,
   placeholder,
-  style,
   className,
   rows = 2,
 }: TextareaWidgetProps) {
   return (
-    <div style={style} className={className}>
+    <div className={cn("w-full flex-1", className)}>
       <Textarea
         rows={rows}
         id={id}

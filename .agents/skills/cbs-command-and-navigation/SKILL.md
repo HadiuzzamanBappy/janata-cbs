@@ -65,6 +65,7 @@ The Command Gateway supports standard core-banking shorthand and canonical alias
 ## 3. Registering New Screens (`src/features/workbench/registry.tsx`)
 
 When adding a custom screen component:
+
 1. Register its canonical command key in `BESPOKE_SCREENS` inside `src/features/workbench/registry.tsx`:
 
    ```tsx

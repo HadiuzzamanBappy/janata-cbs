@@ -1,4 +1,3 @@
-import { ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import logo from "@/app/icon.png";
 import { ThemeToggle } from "@/components/layout";
@@ -76,18 +75,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <section className="col-span-12 lg:col-span-7 p-6 sm:p-8 lg:p-12 flex flex-col justify-between bg-card relative">
             {/* Form Content */}
             <div className="my-auto py-6 space-y-6">{children}</div>
-
-            {/* Bottom Confidentiality & Security Disclaimer */}
-            <div className="pt-4 border-t border-border/60 flex flex-col items-center text-center gap-1.5 text-[11px] text-muted-foreground">
-              <div className="flex items-center gap-1.5 font-medium text-foreground text-xs">
-                <ShieldCheck className="size-4 text-emerald-500 shrink-0" />
-                <span>Restricted System & Confidentiality Notice</span>
-              </div>
-              <p className="leading-relaxed text-[11px] max-w-sm opacity-85">
-                Access is limited strictly to authorised staff. Every sign-on attempt is recorded
-                and audited against your terminal and office IP.
-              </p>
-            </div>
           </section>
         </div>
       </div>

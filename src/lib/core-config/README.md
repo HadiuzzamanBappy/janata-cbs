@@ -78,6 +78,7 @@ To keep the security boundary intact when adding new configurations, follow thes
 ### Rule 3: Adding a Microservice Endpoint
 
 Add the endpoint entry to the `SERVICES` registry in `src/lib/core-config/server.ts`:
+
 ```typescript
 export const SERVICES: Record<string, ServiceDef> = {
   default: { url: env.GRPC_HOST, protocol: "grpc" },
@@ -92,6 +93,7 @@ export const SERVICES: Record<string, ServiceDef> = {
 ## 🧪 Verification
 
 Run the environment matrix and schema verification:
+
 ```bash
 pnpm verify:config
 ```

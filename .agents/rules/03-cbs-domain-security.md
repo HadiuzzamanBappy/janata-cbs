@@ -16,6 +16,7 @@
 ## 2. Banking Entitlement Engine (`RIDASHL`)
 
 User capabilities strictly adhere to the 7-character capability profile:
+
 - **`R`**: Reverse authorized live record (`AU`)
 - **`I`**: Input new record or modify draft (Maker)
 - **`D`**: Delete pending unauthorized record (`INA`)

@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { PanelLeft, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ export interface ActionInspectorProps {
   validationErrors?: InquiryValidationErrorItem[];
   onUpdateAction: (index: number, patch: Partial<INQCmd>) => void;
   onRemoveAction: (index: number) => void;
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
+  showSidebarToggle?: boolean;
 }
 
 const ACTION_PRESETS = [
@@ -37,6 +40,9 @@ export function ActionInspector({
   validationErrors = [],
   onUpdateAction,
   onRemoveAction,
+  onToggleSidebar,
+  isSidebarOpen = false,
+  showSidebarToggle = false,
 }: ActionInspectorProps) {
   const errorMap = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -80,29 +86,58 @@ export function ActionInspector({
       {/* 1. Header Bar */}
       <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Badge
-            variant="outline"
-            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs"
-          >
-            Action #{selectedActionIdx + 1}
-          </Badge>
-          <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-            {activeAction.cmdButton || "<Empty Action>"}
-          </span>
+          {showSidebarToggle && onToggleSidebar && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onToggleSidebar}
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
+              title={isSidebarOpen ? "Hide Actions" : "Show Actions"}
+            >
+              <PanelLeft className="size-3.5" />
+            </Button>
+          )}
+
+          {activeAction.cmdButton &&
+          activeAction.cmdFor &&
+          activeAction.cmdButton !== activeAction.cmdFor ? (
+            <>
+              <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
+                {activeAction.cmdButton}
+              </span>
+              <span className="text-xs text-muted-foreground truncate font-mono">
+                — {activeAction.cmdFor}
+              </span>
+            </>
+          ) : (
+            <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
+              {activeAction.cmdButton || activeAction.cmdFor || "<UNNAMED_ACTION>"}
+            </span>
+          )}
         </div>
 
-        {!disabled && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemoveAction(selectedActionIdx)}
-            className="h-6 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded cursor-pointer"
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Badge
+            variant="outline"
+            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs shrink-0"
           >
-            <Trash2 className="size-3.5" />
-            <span>Delete Action</span>
-          </Button>
-        )}
+            #{selectedActionIdx + 1}
+          </Badge>
+
+          {!disabled && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => onRemoveAction(selectedActionIdx)}
+              className="size-7 text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+              title="Delete Action"
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 2. Inspector Panels */}

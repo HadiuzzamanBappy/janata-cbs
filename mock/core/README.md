@@ -63,6 +63,7 @@ if (table) {
 ### 1. Transport Interception (`@/lib/infra-grpc`)
 
 Intercepts gRPC calls during static/mock execution:
+
 ```typescript
 import { isStaticMode } from "./client";
 import { mockLogin, mockProcess } from "@mock/core";
@@ -78,6 +79,7 @@ export async function grpcProcess(req: GrpcRequest): Promise<GrpcResponse> {
 ### 2. Direct Server Dispatch (`getMockProxyResponse`)
 
 Used by `/api/proxy` to service UI requests:
+
 ```typescript
 import { getMockProxyResponse } from "@mock/core";
 

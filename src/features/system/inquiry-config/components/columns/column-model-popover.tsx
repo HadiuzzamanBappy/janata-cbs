@@ -101,7 +101,7 @@ export function ColumnModelPopover({
             title={targetModel ? `Import column fields from ${targetModel}` : "No Target Model set"}
           >
             <Sparkles className="size-3" />
-            <span>Import</span>
+            <span className="hidden sm:inline">Import</span>
           </Button>
         }
       />

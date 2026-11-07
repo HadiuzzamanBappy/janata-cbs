@@ -52,4 +52,10 @@ export interface DesignerCanvasProps {
   /** Called when user clicks the bare canvas background — not on any card. */
   onClickBackground?: () => void;
   disabled?: boolean;
+  isCompact?: boolean;
+  isPaletteOpen?: boolean;
+  isInspectorOpen?: boolean;
+  hasSelection?: boolean;
+  onTogglePalette?: () => void;
+  onToggleInspector?: () => void;
 }

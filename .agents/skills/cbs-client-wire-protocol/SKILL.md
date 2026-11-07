@@ -58,6 +58,7 @@ const inqPayload = buildInquiryRequest({
 ## 2. Server Boundary Rules (`import "server-only"`)
 
 The backend dispatchers and gRPC clients live exclusively on the server side:
+
 - **Server-Only Modules:** Any file inside `src/lib/infra-grpc/`, `src/lib/infra-redis/`, or `src/proxy.ts` must declare:
 
   ```ts
@@ -75,6 +76,7 @@ The backend dispatchers and gRPC clients live exclusively on the server side:
 ## 3. Zod Boundary Validation
 
 Never pass raw client payloads to backend dispatchers without validating them first:
+
 - All incoming requests must be parsed against Zod schemas in `src/lib/data-schemas/`.
 - Use `safeParse()` and handle validation failures before invoking the gRPC dispatcher:
 

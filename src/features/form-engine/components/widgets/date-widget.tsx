@@ -14,7 +14,6 @@ export function DateWidget({
   onChange,
   disabled = false,
   error,
-  style,
   className,
   type = "date",
 }: DateWidgetProps) {
@@ -22,14 +21,7 @@ export function DateWidget({
   const isDateTime = type === "datetime-local";
 
   return (
-    <div
-      style={style}
-      className={cn(
-        "flex items-center gap-1.5 flex-1",
-        isDateTime ? "max-w-sm" : "max-w-xs",
-        className,
-      )}
-    >
+    <div className={cn("flex items-center gap-1.5 flex-1 w-full min-w-0 max-w-full", className)}>
       <Input
         type={type}
         id={id}
@@ -37,8 +29,7 @@ export function DateWidget({
         value={strVal}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-7 w-full rounded text-xs bg-background border-border/80 font-mono [color-scheme:light] dark:[color-scheme:dark]",
-          isDateTime ? "min-w-[210px] max-w-[240px]" : "min-w-[155px] max-w-[190px]",
+          "h-7 w-full rounded text-xs bg-background border-border/80 font-mono scheme-light dark:scheme-dark",
           error && "border-destructive",
           disabled &&
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",

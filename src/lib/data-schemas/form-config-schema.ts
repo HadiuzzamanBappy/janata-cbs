@@ -51,7 +51,7 @@ export const formWizardStepSchema = z.object({
 export type FormWizardStep = z.infer<typeof formWizardStepSchema>;
 
 export const formElementsContainerSchema = z.looseObject({
-  steps: z.array(formWizardStepSchema).default([]),
+  steps: z.array(formWizardStepSchema).default([]).optional(),
   sections: z.array(formSectionSchema).default([]),
 });
 export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;

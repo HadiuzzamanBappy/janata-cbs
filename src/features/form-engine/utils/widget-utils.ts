@@ -1,10 +1,8 @@
-import type { CSSProperties } from "react";
 import {
   type FormFieldParameter,
   getDefaultWidgetForType,
   isWidgetCompatibleWithType,
   type PropertyType,
-  type PropertyWidth,
 } from "@/lib/data-schemas";
 
 export function resolveWidgetType(
@@ -49,48 +47,4 @@ export function resolveWidgetType(
   if (typeLower === "number") return "number";
 
   return getDefaultWidgetForType(normType as PropertyType);
-}
-
-/**
- * Standard semantic token width mapping aligned with banking density guidelines.
- * 'full' stretches across the entire available row.
- */
-export function getFieldWidthStyle(
-  length?: number,
-  widget?: string,
-  width?: PropertyWidth | number,
-): CSSProperties | undefined {
-  if (
-    widget === "switch" ||
-    widget === "checkbox" ||
-    widget === "radio" ||
-    widget === "radio-group" ||
-    widget === "checkbox-group"
-  ) {
-    return undefined;
-  }
-  if (widget === "textarea") {
-    return { width: "100%", flex: 1 };
-  }
-  if (widget === "date") {
-    return { width: "160px", maxWidth: "100%" };
-  }
-  if (widget === "datetime") {
-    return { width: "220px", maxWidth: "100%" };
-  }
-
-  // Handle direct numeric pixel widths (from DB / metamodel)
-  if (typeof width === "number" && width > 0) {
-    if (width >= 1000) {
-      return { width: "100%", flex: 1 };
-    }
-    return { width: `${width}px`, maxWidth: "100%" };
-  }
-
-  // Fallback to length ch or standard 280px width
-  if (typeof length === "number" && length > 0) {
-    const ch = Math.max(length + 4, 10);
-    return { width: `${ch}ch`, maxWidth: "100%" };
-  }
-  return { width: "280px", maxWidth: "100%" };
 }

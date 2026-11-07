@@ -37,7 +37,6 @@ export function useMcPropertyOps(
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: false,
-        WIDTH: 280,
       };
       return {
         ...prev,
@@ -65,7 +64,6 @@ export function useMcPropertyOps(
             STRUCTURE: "S",
             LENGTH: 35,
             REQUIRED: false,
-            WIDTH: 280,
           };
           return {
             ...p,

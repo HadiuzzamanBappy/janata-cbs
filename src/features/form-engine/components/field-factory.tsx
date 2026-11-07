@@ -5,7 +5,8 @@ import { formatCurrency } from "@/lib/core-utils";
 import { useFieldOptions } from "../hooks/use-field-options";
 import { useMultiValue } from "../hooks/use-multi-value";
 import type { UnifiedFieldFactoryProps } from "../types";
-import { getFieldWidthStyle, resolveWidgetType } from "../utils/widget-utils";
+import { getInputWidthClass } from "../utils/section-utils";
+import { resolveWidgetType } from "../utils/widget-utils";
 import { renderFieldWidget } from "./widget-renderer";
 import { FieldRow } from "./widgets/field-row";
 
@@ -33,9 +34,9 @@ export function UnifiedFieldFactory({
     [field.TYPE, param, field.WIDGET],
   );
   const isMulti = field.STRUCTURE === "M" && widget !== "checkbox" && widget !== "checkbox-group";
-  const inputStyle = useMemo(
-    () => getFieldWidthStyle(field.LENGTH, widget, field.WIDTH),
-    [field.LENGTH, widget, field.WIDTH],
+  const inputWidthClass = useMemo(
+    () => getInputWidthClass(field.WIDTH, field.LENGTH, field.TYPE, widget),
+    [field.WIDTH, field.LENGTH, field.TYPE, widget],
   );
   const effectiveEnrichText =
     field.ENRICHTEXT || ((field as Record<string, unknown>).enrichText as string) || undefined;
@@ -140,7 +141,6 @@ export function UnifiedFieldFactory({
       isReadOnly,
       error,
       placeholder,
-      inputStyle,
       resolvedOptions,
       modelLoading,
       effectiveLabel,
@@ -192,6 +192,7 @@ export function UnifiedFieldFactory({
               indexSuffix={itemIdx + 1}
               enrichText={isFirst ? effectiveEnrichText : undefined}
               actionBeforeColon={actionControls}
+              inputClassName={inputWidthClass}
             >
               {renderSingleWidget(
                 itemVal,
@@ -217,7 +218,7 @@ export function UnifiedFieldFactory({
       labelSuffix={labelSuffix}
       actionBeforeColon={actionBeforeColon}
       enrichText={effectiveEnrichText}
-      style={inputStyle}
+      inputClassName={inputWidthClass}
     >
       {renderSingleWidget(effectiveValue, (newVal) => onChange(fieldKey, newVal), elementId)}
     </FieldRow>

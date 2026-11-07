@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useContainerWidth } from "@/hooks";
+import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
@@ -73,6 +75,10 @@ export function FcDesignerTab({
   onMergeTabGroup,
   disabled,
 }: FcDesignerTabProps) {
+  const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(960);
+  const [isPaletteOpen, setIsPaletteOpen] = React.useState(false);
+  const [isInspectorOpen, setIsInspectorOpen] = React.useState(false);
+
   const activeSection =
     sections.find((s) => s.id === selectedSectionId) ||
     (selectedFieldId
@@ -91,6 +97,10 @@ export function FcDesignerTab({
   }, [sections]);
 
   const handlePaletteAddField = (template: Partial<FormElement>) => {
+    if (isCompact) {
+      setIsPaletteOpen(false);
+    }
+
     if (selectedSectionId) {
       onAddFieldToSection(selectedSectionId, template);
       return;
@@ -228,6 +238,10 @@ export function FcDesignerTab({
       if (match) {
         onSelectSection(sec.id);
         onSelectField(match.SN || match.NAME);
+        if (isCompact) {
+          setIsPaletteOpen(false);
+          setIsInspectorOpen(true);
+        }
         break;
       }
     }
@@ -236,6 +250,10 @@ export function FcDesignerTab({
   const handleCanvasSelectField = (sectionId: string | null, fieldId: string | null) => {
     if (sectionId) onSelectSection(sectionId);
     onSelectField(fieldId);
+    if (isCompact && (fieldId || sectionId)) {
+      setIsInspectorOpen(true);
+      setIsPaletteOpen(false);
+    }
   };
 
   const handleCanvasBackgroundClick = () => {
@@ -249,21 +267,68 @@ export function FcDesignerTab({
     }
   };
 
-  return (
-    <div className="flex flex-col h-full w-full bg-background overflow-hidden">
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Left: Palette */}
-        <FieldPalette
-          targetModel={targetModel}
-          modelProperties={modelProperties}
-          usedFieldNames={usedFieldNames}
-          onHighlightField={handleHighlightField}
-          onAddField={handlePaletteAddField}
-          onAddSection={onAddSection}
-          disabled={disabled}
-        />
+  const hasSelection = Boolean(selectedFieldId || selectedSectionId);
 
-        {/* Center: Canvas */}
+  return (
+    <div
+      ref={containerRef}
+      className="relative flex flex-col h-full w-full bg-background overflow-hidden"
+    >
+      {/* Backdrop for Left Palette Drawer on compact screens */}
+      {isCompact && isPaletteOpen && (
+        <div
+          className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
+          onClick={() => setIsPaletteOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Backdrop for Right Inspector Drawer on compact screens */}
+      {isCompact && isInspectorOpen && (
+        <div
+          className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
+          onClick={() => setIsInspectorOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <div className="flex-1 flex min-h-0 overflow-hidden relative">
+        {/* 1. Left: Palette (Side-panel on desktop, Drawer on compact) */}
+        {isCompact ? (
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 z-40 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out bg-card",
+              isPaletteOpen ? "translate-x-0" : "-translate-x-full pointer-events-none",
+            )}
+          >
+            <FieldPalette
+              targetModel={targetModel}
+              modelProperties={modelProperties}
+              usedFieldNames={usedFieldNames}
+              onHighlightField={handleHighlightField}
+              onAddField={handlePaletteAddField}
+              onAddSection={(...args) => {
+                onAddSection(...args);
+                if (isCompact) setIsPaletteOpen(false);
+              }}
+              onClose={() => setIsPaletteOpen(false)}
+              disabled={disabled}
+              className="w-full h-full border-r border-border"
+            />
+          </div>
+        ) : (
+          <FieldPalette
+            targetModel={targetModel}
+            modelProperties={modelProperties}
+            usedFieldNames={usedFieldNames}
+            onHighlightField={handleHighlightField}
+            onAddField={handlePaletteAddField}
+            onAddSection={onAddSection}
+            disabled={disabled}
+          />
+        )}
+
+        {/* 2. Center: Canvas */}
         <DesignerCanvas
           sections={sections}
           selectedSectionId={selectedSectionId}
@@ -271,6 +336,10 @@ export function FcDesignerTab({
           onSelectSection={(id) => {
             onSelectSection(id);
             onSelectField(null);
+            if (isCompact && id) {
+              setIsInspectorOpen(true);
+              setIsPaletteOpen(false);
+            }
           }}
           onSelectField={handleCanvasSelectField}
           onAddSection={onAddSection}
@@ -285,25 +354,63 @@ export function FcDesignerTab({
           onClickBackground={handleCanvasBackgroundClick}
           onMergeTabGroup={onMergeTabGroup}
           disabled={disabled}
+          isCompact={isCompact}
+          isPaletteOpen={isPaletteOpen}
+          isInspectorOpen={isInspectorOpen}
+          hasSelection={hasSelection}
+          onTogglePalette={() => {
+            setIsPaletteOpen((prev) => !prev);
+            setIsInspectorOpen(false);
+          }}
+          onToggleInspector={() => {
+            setIsInspectorOpen((prev) => !prev);
+            setIsPaletteOpen(false);
+          }}
         />
 
-        {/* Right: Property Inspector */}
-        <PropertyInspector
-          selectedSection={activeSection}
-          selectedField={activeField}
-          modelProperties={modelProperties}
-          onUpdateSection={(patch) => activeSection && onUpdateSection(activeSection.id, patch)}
-          onUpdateField={(patch) => {
-            const targetId = activeField?.SN || activeField?.NAME;
-            if (targetId) onUpdateField(targetId, patch);
-          }}
-          onClose={() => {
-            onSelectSection(null);
-            onSelectField(null);
-          }}
-          onDeselectField={() => onSelectField(null)}
-          disabled={disabled}
-        />
+        {/* 3. Right: Property Inspector (Side-panel on desktop, Drawer on compact) */}
+        {isCompact ? (
+          <div
+            className={cn(
+              "absolute inset-y-0 right-0 z-40 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out bg-card",
+              isInspectorOpen ? "translate-x-0" : "translate-x-full pointer-events-none",
+            )}
+          >
+            <PropertyInspector
+              selectedSection={activeSection}
+              selectedField={activeField}
+              modelProperties={modelProperties}
+              onUpdateSection={(patch) => activeSection && onUpdateSection(activeSection.id, patch)}
+              onUpdateField={(patch) => {
+                const targetId = activeField?.SN || activeField?.NAME;
+                if (targetId) onUpdateField(targetId, patch);
+              }}
+              onClose={() => {
+                setIsInspectorOpen(false);
+              }}
+              onDeselectField={() => onSelectField(null)}
+              disabled={disabled}
+              className="w-full h-full border-l border-border"
+            />
+          </div>
+        ) : (
+          <PropertyInspector
+            selectedSection={activeSection}
+            selectedField={activeField}
+            modelProperties={modelProperties}
+            onUpdateSection={(patch) => activeSection && onUpdateSection(activeSection.id, patch)}
+            onUpdateField={(patch) => {
+              const targetId = activeField?.SN || activeField?.NAME;
+              if (targetId) onUpdateField(targetId, patch);
+            }}
+            onClose={() => {
+              onSelectSection(null);
+              onSelectField(null);
+            }}
+            onDeselectField={() => onSelectField(null)}
+            disabled={disabled}
+          />
+        )}
       </div>
     </div>
   );

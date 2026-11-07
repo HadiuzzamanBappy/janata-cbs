@@ -156,6 +156,7 @@ Protobuf `Value`, `ListValue`, and `Struct` unwrapping mechanics are complete an
 ### 2. Domain Parsers & Sanitizers: **SCALABLE**
 
 When creating a new domain schema (e.g. `loan-schema.ts`), pair it with a parser and sanitizer:
+
 1. Create `src/lib/data-parsers/loan-parser.ts`.
 2. Use `unwrapRecordsPayload` or `decodeProtobufValue`.
 3. Implement `parseLoanRecord` and `sanitizeLoanRecord`.
@@ -166,6 +167,7 @@ When creating a new domain schema (e.g. `loan-schema.ts`), pair it with a parser
 ## 🧪 Verification
 
 Run the verification suite confirming wire parsers and mock fixtures:
+
 ```bash
 pnpm verify:all
 ```

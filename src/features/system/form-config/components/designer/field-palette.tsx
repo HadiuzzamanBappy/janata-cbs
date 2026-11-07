@@ -1,5 +1,6 @@
-import { Database, Layers } from "lucide-react";
+import { Database, Layers, X } from "lucide-react";
 import * as React from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import { PaletteContainersList } from "./palette/palette-containers-list";
 import { PaletteObjectGroup } from "./palette/palette-object-group";
@@ -15,6 +16,8 @@ export function FieldPalette({
   onAddField,
   onAddSection,
   disabled,
+  className,
+  onClose,
 }: FieldPaletteProps) {
   const [activePaletteTab, setActivePaletteTab] = React.useState<"variables" | "containers">(
     "variables",
@@ -36,7 +39,12 @@ export function FieldPalette({
   });
 
   return (
-    <div className="w-60 border-r border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0">
+    <div
+      className={cn(
+        "w-60 border-r border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0",
+        className,
+      )}
+    >
       {/* Palette Navigation Tabs */}
       <div className="border-b border-border/70 bg-muted/20 flex items-center p-1 gap-1">
         <button
@@ -71,6 +79,19 @@ export function FieldPalette({
           <Layers className="size-3 text-emerald-500" />
           <span>Containers</span>
         </button>
+
+        {onClose && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="size-7 text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+            title="Close Palette"
+          >
+            <X className="size-3.5" />
+          </Button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">

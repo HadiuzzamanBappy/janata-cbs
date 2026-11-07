@@ -14,9 +14,11 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { LayoutGrid, PanelLeft, SlidersHorizontal } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import { buildRenderBlocks } from "@/features/form-engine/utils/section-utils";
+import { Button } from "@/components/ui/button";
+import { buildRenderBlocks } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
@@ -48,6 +50,12 @@ export function DesignerCanvas({
   onClickBackground,
   onMergeTabGroup,
   disabled,
+  isCompact = false,
+  isPaletteOpen = false,
+  isInspectorOpen = false,
+  hasSelection = false,
+  onTogglePalette,
+  onToggleInspector,
 }: DesignerCanvasProps) {
   const [isCanvasDragOver, setIsCanvasDragOver] = React.useState(false);
 
@@ -114,130 +122,196 @@ export function DesignerCanvas({
 
   if (!hasContainersOrFields) {
     return (
-      <EmptyCanvasSplash
-        isOver={isCanvasDragOver}
-        onAddSection={onAddSection}
-        onClickBackground={() => {
-          onSelectSection(null);
-          onSelectField(null, null);
-        }}
-        onDragOver={handleNativeCanvasDragOver}
-        onDragLeave={handleNativeCanvasDragLeave}
-        onDrop={handleNativeCanvasDrop}
-        disabled={disabled}
-      />
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Compact Toolbar if needed */}
+        {isCompact && (
+          <div className="px-3 py-1.5 border-b border-border/70 bg-card/60 flex items-center justify-between shrink-0">
+            <Button
+              type="button"
+              variant={isPaletteOpen ? "secondary" : "outline"}
+              size="sm"
+              onClick={onTogglePalette}
+              className="h-7 text-xs px-2 gap-1.5 cursor-pointer font-medium"
+            >
+              <PanelLeft className="size-3.5" />
+              <span>Palette</span>
+            </Button>
+            <span className="text-[11px] font-mono text-muted-foreground">Empty Canvas</span>
+          </div>
+        )}
+        <EmptyCanvasSplash
+          isOver={isCanvasDragOver}
+          onAddSection={onAddSection}
+          onClickBackground={() => {
+            onSelectSection(null);
+            onSelectField(null, null);
+          }}
+          onDragOver={handleNativeCanvasDragOver}
+          onDragLeave={handleNativeCanvasDragLeave}
+          onDrop={handleNativeCanvasDrop}
+          disabled={disabled}
+        />
+      </div>
     );
   }
 
   return (
-    <section
-      aria-label="Form designer canvas workspace"
-      className={cn(
-        "flex-1 overflow-y-auto p-3 select-none transition-colors",
-        isCanvasDragOver && "bg-primary/5 ring-1 ring-primary/40",
+    <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
+      {/* ── Compact Top Bar: Allows toggling Left Palette and Right Inspector on tablet/mobile ── */}
+      {isCompact && (
+        <div className="px-3 py-1.5 border-b border-border/70 bg-card/60 flex items-center justify-between shrink-0 gap-2 z-10">
+          <Button
+            type="button"
+            variant={isPaletteOpen ? "secondary" : "outline"}
+            size="sm"
+            onClick={onTogglePalette}
+            className={cn(
+              "h-7 text-xs px-2.5 gap-1.5 cursor-pointer font-medium",
+              isPaletteOpen && "bg-primary/15 text-primary border-primary/40",
+            )}
+            title="Toggle Palette (Variables & Containers)"
+          >
+            <PanelLeft className="size-3.5 text-primary" />
+            <span className="hidden xs:inline">Palette</span>
+          </Button>
+
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground select-none">
+            <LayoutGrid className="size-3.5 text-muted-foreground/70" />
+            <span className="font-semibold text-foreground text-xs">Canvas</span>
+            <span className="text-[11px] font-mono opacity-80">
+              ({sections.length} {sections.length === 1 ? "sec" : "secs"}, {totalFieldsCount}{" "}
+              {totalFieldsCount === 1 ? "field" : "fields"})
+            </span>
+          </div>
+
+          <Button
+            type="button"
+            variant={isInspectorOpen ? "secondary" : "outline"}
+            size="sm"
+            onClick={onToggleInspector}
+            className={cn(
+              "h-7 text-xs px-2.5 gap-1.5 cursor-pointer font-medium",
+              hasSelection && "border-cyan-500/50 text-cyan-400",
+              isInspectorOpen && "bg-primary/15 text-primary border-primary/40",
+            )}
+            title="Toggle Property Inspector"
+          >
+            <SlidersHorizontal className="size-3.5" />
+            <span className="hidden xs:inline">Inspector</span>
+            {hasSelection && <span className="size-1.5 rounded-full bg-cyan-400 animate-pulse" />}
+          </Button>
+        </div>
       )}
-      onDragOver={handleNativeCanvasDragOver}
-      onDragLeave={handleNativeCanvasDragLeave}
-      onDrop={handleNativeCanvasDrop}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClickBackground?.();
-      }}
-      onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget)
-          onClickBackground?.();
-      }}
-    >
-      <DndContext
-        sensors={dndSensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-        onDragCancel={() => setActiveDragItem(null)}
+
+      <section
+        aria-label="Form designer canvas workspace"
+        className={cn(
+          "flex-1 overflow-y-auto p-2 sm:p-3 select-none transition-colors",
+          isCanvasDragOver && "bg-primary/5 ring-1 ring-primary/40",
+        )}
+        onDragOver={handleNativeCanvasDragOver}
+        onDragLeave={handleNativeCanvasDragLeave}
+        onDrop={handleNativeCanvasDrop}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClickBackground?.();
+        }}
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && e.target === e.currentTarget)
+            onClickBackground?.();
+        }}
       >
-        <SortableContext items={sortableCardIds} strategy={verticalListSortingStrategy}>
-          <BetweenBlockDropZone
-            id="gap-top"
-            gapIndex={0}
-            isActive={isDragging}
+        <DndContext
+          sensors={dndSensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveDragItem(null)}
+        >
+          <SortableContext items={sortableCardIds} strategy={verticalListSortingStrategy}>
+            <BetweenBlockDropZone
+              id="gap-top"
+              gapIndex={0}
+              isActive={isDragging}
+              onDropPaletteItem={onDropPaletteItem}
+              onConvertSectionZone={onConvertSectionZone}
+              disabled={disabled}
+            />
+
+            {blocks.map((block, i) => (
+              <React.Fragment key={block.type === "single" ? block.section.id : block.groupId}>
+                {block.type === "single" ? (
+                  <SortableSectionCard
+                    section={block.section}
+                    isSecSelected={selectedSectionId === block.section.id}
+                    selectedFieldId={selectedFieldId}
+                    onSelectSection={onSelectSection}
+                    onSelectField={onSelectField}
+                    onUpdateSection={onUpdateSection}
+                    onRemoveSection={onRemoveSection}
+                    onRemoveField={onRemoveField}
+                    onConvertSectionZone={onConvertSectionZone}
+                    onDropPaletteItem={onDropPaletteItem}
+                    disabled={disabled}
+                  />
+                ) : (
+                  <SortableTabGroupCard
+                    groupId={block.groupId}
+                    tabSections={block.tabSections}
+                    selectedSectionId={selectedSectionId}
+                    selectedFieldId={selectedFieldId}
+                    onSelectSection={onSelectSection}
+                    onSelectField={onSelectField}
+                    onAddSection={onAddSection}
+                    onUpdateSection={onUpdateSection}
+                    onRemoveSection={onRemoveSection}
+                    onRemoveField={onRemoveField}
+                    onConvertSectionZone={onConvertSectionZone}
+                    onReorderSections={onReorderSections}
+                    onMoveFieldAcrossSections={onMoveFieldAcrossSections}
+                    onDropPaletteItem={onDropPaletteItem}
+                    onMergeTabGroup={onMergeTabGroup}
+                    isCanvasDragging={isDragging}
+                    disabled={disabled}
+                  />
+                )}
+
+                <BetweenBlockDropZone
+                  id={`gap-${i}`}
+                  gapIndex={i + 1}
+                  isActive={isDragging}
+                  onDropPaletteItem={onDropPaletteItem}
+                  onConvertSectionZone={onConvertSectionZone}
+                  disabled={disabled}
+                />
+              </React.Fragment>
+            ))}
+          </SortableContext>
+
+          <CanvasRootDropzone
             onDropPaletteItem={onDropPaletteItem}
             onConvertSectionZone={onConvertSectionZone}
             disabled={disabled}
           />
 
-          {blocks.map((block, i) => (
-            <React.Fragment key={block.type === "single" ? block.section.id : block.groupId}>
-              {block.type === "single" ? (
-                <SortableSectionCard
-                  section={block.section}
-                  isSecSelected={selectedSectionId === block.section.id}
-                  selectedFieldId={selectedFieldId}
-                  onSelectSection={onSelectSection}
-                  onSelectField={onSelectField}
-                  onUpdateSection={onUpdateSection}
-                  onRemoveSection={onRemoveSection}
-                  onRemoveField={onRemoveField}
-                  onConvertSectionZone={onConvertSectionZone}
-                  onDropPaletteItem={onDropPaletteItem}
-                  disabled={disabled}
-                />
-              ) : (
-                <SortableTabGroupCard
-                  groupId={block.groupId}
-                  tabSections={block.tabSections}
-                  selectedSectionId={selectedSectionId}
-                  selectedFieldId={selectedFieldId}
-                  onSelectSection={onSelectSection}
-                  onSelectField={onSelectField}
-                  onAddSection={onAddSection}
-                  onUpdateSection={onUpdateSection}
-                  onRemoveSection={onRemoveSection}
-                  onRemoveField={onRemoveField}
-                  onConvertSectionZone={onConvertSectionZone}
-                  onReorderSections={onReorderSections}
-                  onMoveFieldAcrossSections={onMoveFieldAcrossSections}
-                  onDropPaletteItem={onDropPaletteItem}
-                  onMergeTabGroup={onMergeTabGroup}
-                  isCanvasDragging={isDragging}
-                  disabled={disabled}
-                />
-              )}
-
-              <BetweenBlockDropZone
-                id={`gap-${i}`}
-                gapIndex={i + 1}
-                isActive={isDragging}
-                onDropPaletteItem={onDropPaletteItem}
-                onConvertSectionZone={onConvertSectionZone}
-                disabled={disabled}
-              />
-            </React.Fragment>
-          ))}
-        </SortableContext>
-
-        <CanvasRootDropzone
-          onDropPaletteItem={onDropPaletteItem}
-          onConvertSectionZone={onConvertSectionZone}
-          disabled={disabled}
-        />
-
-        <DragOverlay>
-          {activeDragItem?.type === "field" ? (
-            <div className="rounded border px-2 py-1.5 flex items-center justify-between text-xs bg-card shadow-xl ring-2 ring-primary border-primary">
-              <span className="font-semibold text-foreground truncate">
-                {(activeDragItem.data as FormElement).LABEL}
-              </span>
-              <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase ml-2">
-                {(activeDragItem.data as FormElement).TYPE}
-              </Badge>
-            </div>
-          ) : activeDragItem?.type === "section" ? (
-            <div className="rounded border p-3 bg-card shadow-2xl ring-2 ring-primary border-primary text-xs font-semibold uppercase">
-              {(activeDragItem.data as FormSection).title || "Section"}
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-    </section>
+          <DragOverlay>
+            {activeDragItem?.type === "field" ? (
+              <div className="rounded border px-2 py-1.5 flex items-center justify-between text-xs bg-card shadow-xl ring-2 ring-primary border-primary">
+                <span className="font-semibold text-foreground truncate">
+                  {(activeDragItem.data as FormElement).LABEL}
+                </span>
+                <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase ml-2">
+                  {(activeDragItem.data as FormElement).TYPE}
+                </Badge>
+              </div>
+            ) : activeDragItem?.type === "section" ? (
+              <div className="rounded border p-3 bg-card shadow-2xl ring-2 ring-primary border-primary text-xs font-semibold uppercase">
+                {(activeDragItem.data as FormSection).title || "Section"}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </section>
+    </div>
   );
 }

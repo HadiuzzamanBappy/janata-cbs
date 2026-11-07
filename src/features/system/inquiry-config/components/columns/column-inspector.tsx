@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { PanelLeft, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,9 @@ export interface ColumnInspectorProps {
   validationErrors?: InquiryValidationErrorItem[];
   onUpdateColumn: (index: number, patch: Partial<INQDef>) => void;
   onRemoveColumn: (index: number) => void;
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
+  showSidebarToggle?: boolean;
 }
 
 export function ColumnInspector({
@@ -26,6 +29,9 @@ export function ColumnInspector({
   validationErrors = [],
   onUpdateColumn,
   onRemoveColumn,
+  onToggleSidebar,
+  isSidebarOpen = false,
+  showSidebarToggle = false,
 }: ColumnInspectorProps) {
   const errorMap = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -119,29 +125,58 @@ export function ColumnInspector({
       {/* 1. Header Bar */}
       <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Badge
-            variant="outline"
-            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs"
-          >
-            Col #{selectedColIdx + 1}
-          </Badge>
-          <span className="text-xs font-bold text-foreground tracking-wide truncate">
-            {activeCol.fieldDisplay || activeCol.fieldName || "<UNNAMED_COLUMN>"}
-          </span>
+          {showSidebarToggle && onToggleSidebar && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onToggleSidebar}
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
+              title={isSidebarOpen ? "Hide Columns" : "Show Columns"}
+            >
+              <PanelLeft className="size-3.5" />
+            </Button>
+          )}
+
+          {activeCol.fieldName &&
+          activeCol.fieldDisplay &&
+          activeCol.fieldName !== activeCol.fieldDisplay ? (
+            <>
+              <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
+                {activeCol.fieldName}
+              </span>
+              <span className="text-xs text-muted-foreground truncate">
+                — {activeCol.fieldDisplay}
+              </span>
+            </>
+          ) : (
+            <span className="text-xs font-bold text-foreground tracking-wide truncate">
+              {activeCol.fieldDisplay || activeCol.fieldName || "<UNNAMED_COLUMN>"}
+            </span>
+          )}
         </div>
 
-        {!disabled && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onRemoveColumn(selectedColIdx)}
-            className="h-6 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded cursor-pointer"
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Badge
+            variant="outline"
+            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs shrink-0"
           >
-            <Trash2 className="size-3.5" />
-            <span>Delete Column</span>
-          </Button>
-        )}
+            #{selectedColIdx + 1}
+          </Badge>
+
+          {!disabled && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => onRemoveColumn(selectedColIdx)}
+              className="size-7 text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+              title="Delete Column"
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* 2. Form Engine Rendered Column Properties */}

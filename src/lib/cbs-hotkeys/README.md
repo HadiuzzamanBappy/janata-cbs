@@ -98,6 +98,7 @@ export function HeaderSearch() {
 ## 🛠️ Adding a New Screen Function Key
 
 To bind an additional function key across all banking screens:
+
 1. Add the handler signature to `CbsHotkeysHandlers` in `types.ts`.
 2. Map the key to the action in `CBS_FKEY_ACTION_MAP` inside `use-cbs-hotkeys.ts`.
 3. Pass the handler prop in `CbsScreenScaffold`.

@@ -1,5 +1,4 @@
-import type { CSSProperties } from "react";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElementsContainer, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 
@@ -16,34 +15,7 @@ export interface BaseWidgetProps {
   disabled?: boolean;
   error?: string;
   placeholder?: string;
-  style?: CSSProperties;
   className?: string;
-}
-
-export interface FormRendererProps {
-  frmElements?: {
-    steps?: unknown[];
-    sections: FormSection[];
-  };
-  presentation?: {
-    steps?: unknown[];
-    sections: FormSection[];
-  };
-  values: Record<string, unknown>;
-  onChange: (key: string, value: unknown) => void;
-  errors?: Record<string, string>;
-  disabled?: boolean;
-  mode?: CbsScreenMode;
-}
-
-export interface SectionCardProps {
-  section: FormSection;
-  values: Record<string, unknown>;
-  onChange: (key: string, value: unknown) => void;
-  errors?: Record<string, string>;
-  disabled?: boolean;
-  mode?: CbsScreenMode;
-  hideHeader?: boolean;
 }
 
 export interface UnifiedFieldFactoryProps {
@@ -56,4 +28,23 @@ export interface UnifiedFieldFactoryProps {
   labelOverride?: string;
   labelSuffix?: React.ReactNode;
   actionBeforeColon?: React.ReactNode;
+}
+
+export interface SectionCardProps {
+  section: FormSection;
+  values: Record<string, unknown>;
+  onChange: (key: string, value: unknown) => void;
+  errors?: Record<string, string>;
+  disabled?: boolean;
+  mode?: CbsScreenMode;
+  hideHeader?: boolean;
+}
+
+export interface FormRendererProps {
+  frmElements?: FormElementsContainer;
+  values: Record<string, unknown>;
+  onChange: (key: string, value: unknown) => void;
+  errors?: Record<string, string>;
+  disabled?: boolean;
+  mode?: CbsScreenMode;
 }

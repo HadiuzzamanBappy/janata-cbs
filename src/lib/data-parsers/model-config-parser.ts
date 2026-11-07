@@ -132,21 +132,19 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
         .map((item: unknown) => {
           if (typeof item === "object" && item !== null) {
             const rec = item as Record<string, unknown>;
-            const code = String(rec.code ?? rec.value ?? rec.name ?? rec.itemCode ?? "").trim();
-            const label = String(
-              rec.label ?? rec.itemLabel ?? rec.name ?? rec.value ?? code,
-            ).trim();
-            if (!code && !label) return null;
+            const itemCode = String(rec.itemCode ?? rec.code ?? "").trim();
+            const itemLabel = String(rec.itemLabel ?? rec.label ?? itemCode).trim();
+            if (!itemCode && !itemLabel) return null;
             return {
-              code: code || label,
-              label: label || code,
+              itemCode: itemCode || itemLabel,
+              itemLabel: itemLabel || itemCode,
             };
           }
           const str = String(item ?? "").trim();
           if (!str) return null;
-          return { code: str, label: str };
+          return { itemCode: str, itemLabel: str };
         })
-        .filter((item): item is { code: string; label: string } => item !== null);
+        .filter((item): item is { itemCode: string; itemLabel: string } => item !== null);
 
       if (cleanData.length > 0) {
         sanitized.PARAMETER = {

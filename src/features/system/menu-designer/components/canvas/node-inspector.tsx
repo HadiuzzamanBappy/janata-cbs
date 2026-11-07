@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SwitchWidget } from "@/features/form-engine/components/widgets/switch-widget";
+import { cn } from "@/lib/core-utils";
 import type { MenuTreeNode, MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
 export interface NodeInspectorProps {
@@ -24,6 +25,7 @@ export interface NodeInspectorProps {
   onDeleteNode: (id: string) => void;
   onClose: () => void;
   disabled?: boolean;
+  className?: string;
 }
 
 interface InspectorFieldRowProps {
@@ -66,6 +68,7 @@ export function NodeInspector({
   onDeleteNode,
   onClose,
   disabled = false,
+  className,
 }: NodeInspectorProps) {
   // If NO node is selected, show the Hierarchy Tree Container Properties!
   if (!selectedNode) {
@@ -84,7 +87,10 @@ export function NodeInspector({
     return (
       <aside
         aria-label="Tree Container Properties"
-        className="w-68 shrink-0 border-l border-border/70 bg-card flex flex-col h-full overflow-hidden"
+        className={cn(
+          "w-68 shrink-0 border-l border-border/70 bg-card flex flex-col h-full overflow-hidden",
+          className,
+        )}
       >
         {/* Container Header */}
         <header className="px-3 py-2 border-b border-border/70 flex items-center justify-between gap-2 shrink-0 bg-muted/20">
@@ -143,7 +149,10 @@ export function NodeInspector({
   return (
     <aside
       aria-label="Tree Node Properties"
-      className="w-68 shrink-0 border-l border-border/70 bg-card flex flex-col h-full overflow-hidden"
+      className={cn(
+        "w-68 shrink-0 border-l border-border/70 bg-card flex flex-col h-full overflow-hidden",
+        className,
+      )}
     >
       {/* Compact Header */}
       <header className="px-3 py-2 border-b border-border/70 flex items-center justify-between gap-2 shrink-0 bg-muted/20">

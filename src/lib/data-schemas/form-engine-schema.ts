@@ -101,9 +101,28 @@ export function isWidgetCompatibleWithType(
 /* 4. PARAMETER / LOOKUP CONTRACT                                             */
 /* ========================================================================== */
 
+/**
+ * Standard fixed option item contract for dropdowns and radios (type: "O").
+ * The canonical CBS format is { itemCode, itemLabel }.
+ * Also supports { code, label } for code-defined form presets.
+ */
+export const parameterOptionItemSchema = z.union([
+  z.object({
+    itemCode: z.string().min(1, "itemCode is required"),
+    itemLabel: z.string().min(1, "itemLabel is required"),
+  }),
+  z.object({
+    code: z.string().min(1, "code is required"),
+    label: z.string().min(1, "label is required"),
+  }),
+]);
+export type ParameterOptionItem =
+  | { itemCode: string; itemLabel: string; code?: string; label?: string }
+  | { code: string; label: string; itemCode?: string; itemLabel?: string };
+
 export const formFieldParameterSchema = z.looseObject({
   type: z.string().default("O"),
-  data: z.array(z.any()).default([]).optional(),
+  data: z.array(parameterOptionItemSchema).default([]).optional(),
   modelName: z.string().default("").optional(),
   codeField: z.string().default("").optional(),
   displayField: z.string().default("").optional(),
@@ -131,6 +150,51 @@ export const fieldValidationRuleSchema = z.looseObject({
   pattern: z.string().optional(),
 });
 export type FieldValidationRule = z.infer<typeof fieldValidationRuleSchema>;
+
+export const fieldConditionOperatorSchema = z.enum([
+  "eq",
+  "neq",
+  "in",
+  "notIn",
+  "gt",
+  "lt",
+  "gte",
+  "lte",
+  "truthy",
+  "falsy",
+]);
+export type FieldConditionOperator = z.infer<typeof fieldConditionOperatorSchema>;
+
+export const singleFieldConditionSchema = z.looseObject({
+  field: z.string().min(1, "Target dependency field is required"),
+  operator: fieldConditionOperatorSchema.default("eq"),
+  value: z.any().optional(),
+});
+export type SingleFieldCondition = z.infer<typeof singleFieldConditionSchema>;
+
+/**
+ * Composite Visibility / Disabled Condition Tree.
+ * Supports:
+ *  1. Single field evaluation: { field: "accountType", operator: "eq", value: "SAVINGS" }
+ *  2. Composite AND evaluation: { and: [...] }
+ *  3. Composite OR evaluation:  { or: [...] }
+ */
+export type FieldVisibilityCondition =
+  | SingleFieldCondition
+  | { and: FieldVisibilityCondition[] }
+  | { or: FieldVisibilityCondition[] };
+
+export const fieldVisibilityConditionSchema: z.ZodType<FieldVisibilityCondition> = z.lazy(() =>
+  z.union([
+    singleFieldConditionSchema,
+    z.looseObject({
+      and: z.array(fieldVisibilityConditionSchema).min(1),
+    }),
+    z.looseObject({
+      or: z.array(fieldVisibilityConditionSchema).min(1),
+    }),
+  ]),
+);
 
 /* ========================================================================== */
 /* 6. WIDGET-SPECIFIC CONFIGURATION SCHEMAS                                   */
@@ -201,7 +265,17 @@ export const baseFieldSchema = z.looseObject({
   PARAMETER: formFieldParameterSchema.optional(),
 });
 
-export type PropertyWidth = number;
+export const semanticWidthTokenSchema = z.enum(["xs", "sm", "md", "lg", "xl", "xxl", "full"]);
+export type SemanticWidthToken = z.infer<typeof semanticWidthTokenSchema>;
+
+/**
+ * Modern semantic width schema.
+ * Pure semantic tokens ("xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "full").
+ * If any numeric width arrives (from legacy models or DB numbers),
+ * it is safely normalized/ignored to default "md".
+ */
+export const propertyWidthSchema = z.union([semanticWidthTokenSchema, z.number()]);
+export type PropertyWidth = z.infer<typeof propertyWidthSchema>;
 
 /* ========================================================================== */
 /* 8. FORM ELEMENT SCHEMA (Form Engine Presentation Element)                  */
@@ -209,12 +283,16 @@ export type PropertyWidth = number;
 
 export const formElementSchema = baseFieldSchema.extend({
   // Presentation Controls
-  WIDTH: z.coerce.number().int().positive().default(280).optional(),
+  WIDTH: propertyWidthSchema.default("md").optional(),
   DISABLED: z.boolean().default(false).optional(),
   POSITION: z.string().default("").optional(),
   ENRICHTEXT: z.string().default("").optional(),
   DEFAULTVALUE: z.string().default("").optional(),
   FIXEDVALUE: z.string().default("").optional(),
+
+  // Declarative UI Conditions (Dynamic form engine capabilities)
+  VISIBLE_WHEN: fieldVisibilityConditionSchema.optional(),
+  DISABLED_WHEN: fieldVisibilityConditionSchema.optional(),
 
   // UI Widget Selection & Widget-Specific Configs
   WIDGET: formWidgetTypeSchema.optional(),

@@ -3,6 +3,7 @@
 import { XCircle } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAlertStore, useWorkbenchStore } from "@/store";
 import { TabItem, TabWindowMenu } from "./tabs";
@@ -10,6 +11,7 @@ import { TabItem, TabWindowMenu } from "./tabs";
 export function AppTabBar() {
   const { tabs, activeTabId, closeAllTabs, reorderTabs } = useWorkbenchStore();
   const { confirm } = useAlertStore();
+  const { isMobile } = useSidebar();
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
@@ -70,6 +72,13 @@ export function AppTabBar() {
 
   return (
     <div className="h-10 border-b border-border/60 bg-muted/40 flex items-end justify-between select-none relative w-full max-w-full min-w-0 shrink-0 overflow-hidden">
+      {/* Mobile/Narrow Screen Toggle: Shown on mobile to open drawer sidebar */}
+      {isMobile && (
+        <div className="shrink-0 flex items-center h-full px-1.5 border-r border-border/50 bg-background/50">
+          <SidebarTrigger className="size-7 text-muted-foreground hover:text-foreground" />
+        </div>
+      )}
+
       {/* Left Section: Scrollable Tabs Strip */}
       <section
         ref={scrollRef}

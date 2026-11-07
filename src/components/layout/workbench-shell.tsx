@@ -49,6 +49,7 @@ export function WorkbenchShell({
         style={
           {
             "--sidebar-width": "15rem",
+            "--sidebar-width-mobile": "15rem",
           } as React.CSSProperties
         }
       >

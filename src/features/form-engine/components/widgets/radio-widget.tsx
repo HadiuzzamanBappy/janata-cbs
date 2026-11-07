@@ -23,7 +23,7 @@ export function RadioWidget({
     return (
       <div
         className={cn(
-          "inline-flex rounded border border-border/80 p-0.5 bg-muted/30 gap-0.5",
+          "inline-flex flex-wrap rounded border border-border/80 p-0.5 bg-muted/30 gap-0.5 max-w-full",
           className,
         )}
       >

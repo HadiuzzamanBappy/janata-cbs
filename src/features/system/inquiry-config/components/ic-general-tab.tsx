@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import { setFieldValue } from "@/features/form-engine/utils/path-utils";
+import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction } from "@/types";
 import { INQUIRY_CONFIG_SECTIONS } from "../fields";

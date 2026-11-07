@@ -1,8 +1,10 @@
 "use client";
 
-import { ArrowLeft, Database, Settings, Table, Type } from "lucide-react";
+import { ArrowLeft, Database, Settings, Table, Type, X } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
@@ -20,6 +22,7 @@ export interface PropertyInspectorProps {
   onClose?: () => void;
   onDeselectField?: () => void;
   disabled?: boolean;
+  className?: string;
 }
 
 export function PropertyInspector({
@@ -28,9 +31,10 @@ export function PropertyInspector({
   modelProperties = [],
   onUpdateSection,
   onUpdateField,
-  onClose: _onClose,
+  onClose,
   onDeselectField,
   disabled,
+  className,
 }: PropertyInspectorProps) {
   // Resolve underlying physical database model property (if available)
   const matchedModelProp = React.useMemo(() => {
@@ -80,7 +84,24 @@ export function PropertyInspector({
 
   if (!selectedField && !selectedSection) {
     return (
-      <div className="w-96 border-l border-border/70 bg-card/25 p-4 flex flex-col items-center justify-center text-center text-muted-foreground text-xs select-none shrink-0">
+      <div
+        className={cn(
+          "w-96 border-l border-border/70 bg-card/25 p-4 flex flex-col items-center justify-center text-center text-muted-foreground text-xs select-none shrink-0 relative",
+          className,
+        )}
+      >
+        {onClose && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="absolute top-2 right-2 size-7 text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+            title="Close Inspector"
+          >
+            <X className="size-3.5" />
+          </Button>
+        )}
         <div className="size-10 rounded-full bg-muted/40 flex items-center justify-center mb-2">
           <Settings className="size-5 opacity-40 text-muted-foreground" />
         </div>
@@ -94,7 +115,12 @@ export function PropertyInspector({
   }
 
   return (
-    <div className="w-96 border-l border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0 overflow-hidden">
+    <div
+      className={cn(
+        "w-96 border-l border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0 overflow-hidden",
+        className,
+      )}
+    >
       {/* ── Single Unified Header ─────────────────────────────────────────── */}
       <div className="px-3 py-2 border-b border-border/60 bg-muted/25 flex items-center justify-between shrink-0 gap-2">
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
@@ -121,7 +147,7 @@ export function PropertyInspector({
         </div>
 
         {/* Type badge on right */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {selectedField ? (
             <Badge
               variant="outline"
@@ -145,6 +171,19 @@ export function PropertyInspector({
                       : "CARD"}
             </Badge>
           ) : null}
+
+          {onClose && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+              title="Close Inspector"
+            >
+              <X className="size-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 

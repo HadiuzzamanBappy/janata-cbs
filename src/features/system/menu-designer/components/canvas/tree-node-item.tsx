@@ -17,12 +17,20 @@ import {
   Folder,
   FolderMinus,
   GripVertical,
+  MoreHorizontal,
   Search,
   Trash2,
 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
@@ -84,7 +92,7 @@ export function TreeNodeItem({
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
-    marginLeft: `${Math.min(level * 22, 176)}px`,
+    marginLeft: `${Math.min(level * 14, 112)}px`,
   };
 
   const [isEditingLabel, setIsEditingLabel] = React.useState(false);
@@ -254,14 +262,14 @@ export function TreeNodeItem({
                 setIsEditingLabel(false);
               }
             }}
-            className="h-6 text-xs max-w-xs"
+            className="h-6 text-xs max-w-xs flex-1 min-w-0"
           />
         ) : (
           <button
             type="button"
             onClick={() => onSelect?.(node.id)}
             onDoubleClick={() => !isReadOnly && setIsEditingLabel(true)}
-            className="font-medium text-foreground hover:text-primary transition-colors truncate text-left cursor-pointer shrink-0 max-w-sm"
+            className="font-medium text-foreground hover:text-primary transition-colors truncate text-left cursor-pointer flex-1 min-w-0"
             title="Click to inspect properties • Double-click to rename"
           >
             {node.label}
@@ -277,117 +285,198 @@ export function TreeNodeItem({
         {node.command && (
           <Badge
             variant="outline"
-            className="h-4.5 px-1.5 text-[10px] font-mono uppercase bg-muted/30 text-muted-foreground border-border/60 shrink-0"
+            className="hidden sm:inline-flex h-4.5 px-1.5 text-[10px] font-mono uppercase bg-muted/30 text-muted-foreground border-border/60 shrink-0 max-w-35 truncate"
           >
             {node.command}
           </Badge>
         )}
       </div>
 
-      {/* Right: Functional Hierarchy Actions */}
-      <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-        {/* Visibility Toggle Button */}
+      {/* Right: Functional Hierarchy Actions (Responsive) */}
+      <div className="flex items-center gap-0.5 shrink-0">
+        {/* On Mobile (< sm): Clean 3-dots Overflow Menu */}
         {!isReadOnly && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              onUpdate(node.id, { isVisible: !isVisible });
-            }}
-            className={cn(
-              "h-6 w-6 transition-colors",
-              isVisible
-                ? "text-emerald-500 hover:text-emerald-600"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-            title={isVisible ? "Visible (Click to hide)" : "Hidden (Click to show)"}
-          >
-            {isVisible ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
-          </Button>
+          <div className="sm:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    className="size-6 text-muted-foreground hover:text-foreground cursor-pointer"
+                    title="Actions"
+                  >
+                    <MoreHorizontal className="size-3.5" />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" className="w-44 text-xs">
+                <DropdownMenuItem
+                  onClick={() => onUpdate(node.id, { isVisible: !isVisible })}
+                  className="gap-2"
+                >
+                  {isVisible ? (
+                    <EyeOff className="size-3.5 text-muted-foreground" />
+                  ) : (
+                    <Eye className="size-3.5 text-emerald-500" />
+                  )}
+                  <span>{isVisible ? "Hide Node" : "Show Node"}</span>
+                </DropdownMenuItem>
+
+                {canIndent && onIndent && (
+                  <DropdownMenuItem onClick={() => onIndent(node.id)} className="gap-2">
+                    <ArrowRight className="size-3.5" />
+                    <span>Indent (Nest)</span>
+                  </DropdownMenuItem>
+                )}
+
+                {canOutdent && onOutdent && (
+                  <DropdownMenuItem onClick={() => onOutdent(node.id)} className="gap-2">
+                    <ArrowLeft className="size-3.5" />
+                    <span>Outdent</span>
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuItem onClick={() => onMoveOrder(node.id, -1)} className="gap-2">
+                  <ArrowUp className="size-3.5" />
+                  <span>Move Up</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => onMoveOrder(node.id, 1)} className="gap-2">
+                  <ArrowDown className="size-3.5" />
+                  <span>Move Down</span>
+                </DropdownMenuItem>
+
+                {isFolderNode && isFolder && onUngroup && (
+                  <DropdownMenuItem
+                    onClick={() => onUngroup(node.id)}
+                    className="gap-2 text-amber-500"
+                  >
+                    <FolderMinus className="size-3.5" />
+                    <span>Ungroup</span>
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={() => onDelete(node.id)}
+                  className="gap-2 text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="size-3.5" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
 
-        {!isReadOnly && isFolderNode && isFolder && onUngroup && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => onUngroup(node.id)}
-            className="h-6 w-6 text-muted-foreground hover:text-amber-500"
-            title="Ungroup folder (promote all children up)"
-          >
-            <FolderMinus className="size-3.5" />
-          </Button>
-        )}
+        {/* On Desktop (>= sm): Full Inline Action Buttons */}
+        <div className="hidden sm:flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity">
+          {/* Visibility Toggle Button */}
+          {!isReadOnly && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdate(node.id, { isVisible: !isVisible });
+              }}
+              className={cn(
+                "h-6 w-6 transition-colors",
+                isVisible
+                  ? "text-emerald-500 hover:text-emerald-600"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+              title={isVisible ? "Visible (Click to hide)" : "Hidden (Click to show)"}
+            >
+              {isVisible ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+            </Button>
+          )}
 
-        {!isReadOnly && (
-          <>
-            {/* Outdent (Shift Left) */}
-            {canOutdent && onOutdent && (
+          {!isReadOnly && isFolderNode && isFolder && onUngroup && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => onUngroup(node.id)}
+              className="h-6 w-6 text-muted-foreground hover:text-amber-500"
+              title="Ungroup folder (promote all children up)"
+            >
+              <FolderMinus className="size-3.5" />
+            </Button>
+          )}
+
+          {!isReadOnly && (
+            <>
+              {/* Outdent (Shift Left) */}
+              {canOutdent && onOutdent && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => onOutdent(node.id)}
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  title="Outdent (Move out of current group)"
+                >
+                  <ArrowLeft className="size-3.5" />
+                </Button>
+              )}
+
+              {/* Indent (Shift Right) */}
+              {canIndent && onIndent && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => onIndent(node.id)}
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  title="Indent (Nest into previous sibling group)"
+                >
+                  <ArrowRight className="size-3.5" />
+                </Button>
+              )}
+
+              {/* Move Up */}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                onClick={() => onOutdent(node.id)}
+                onClick={() => onMoveOrder(node.id, -1)}
                 className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                title="Outdent (Move out of current group)"
+                title="Move Up"
               >
-                <ArrowLeft className="size-3.5" />
+                <ArrowUp className="size-3.5" />
               </Button>
-            )}
 
-            {/* Indent (Shift Right) */}
-            {canIndent && onIndent && (
+              {/* Move Down */}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                onClick={() => onIndent(node.id)}
+                onClick={() => onMoveOrder(node.id, 1)}
                 className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                title="Indent (Nest into previous sibling group)"
+                title="Move Down"
               >
-                <ArrowRight className="size-3.5" />
+                <ArrowDown className="size-3.5" />
               </Button>
-            )}
 
-            {/* Move Up */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onMoveOrder(node.id, -1)}
-              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-              title="Move Up"
-            >
-              <ArrowUp className="size-3.5" />
-            </Button>
-
-            {/* Move Down */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onMoveOrder(node.id, 1)}
-              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-              title="Move Down"
-            >
-              <ArrowDown className="size-3.5" />
-            </Button>
-
-            {/* Delete Node */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onDelete(node.id)}
-              className="h-6 w-6 text-muted-foreground hover:text-destructive"
-              title="Delete node from tree"
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          </>
-        )}
+              {/* Delete Node */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onDelete(node.id)}
+                className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                title="Delete node from tree"
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

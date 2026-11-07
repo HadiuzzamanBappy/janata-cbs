@@ -31,7 +31,6 @@ export function SelectWidget({
   disabled = false,
   error,
   placeholder,
-  style,
   className,
   options = [],
   loading = false,
@@ -40,15 +39,6 @@ export function SelectWidget({
 }: SelectWidgetProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const strVal = String(value ?? "");
-
-  const matchedOption = React.useMemo(() => {
-    if (!strVal) return undefined;
-    return options.find(
-      (o) =>
-        o.code.toLowerCase() === strVal.toLowerCase() ||
-        o.label.toLowerCase() === strVal.toLowerCase(),
-    );
-  }, [options, strVal]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
@@ -75,14 +65,14 @@ export function SelectWidget({
   };
 
   return (
-    <div style={style} className={cn("flex items-center gap-1.5 min-w-36 max-w-md", className)}>
+    <div className={cn("flex items-center gap-1.5 min-w-0 max-w-full w-full", className)}>
       {/* 1. Direct Text / Value Input */}
       <div className="relative flex-1 min-w-0">
         <Input
           type="text"
           id={id}
           disabled={disabled || loading}
-          placeholder={placeholder || "Type value or select..."}
+          placeholder={placeholder || "Type code or select..."}
           value={strVal}
           onChange={handleTextChange}
           className={cn(
@@ -93,16 +83,6 @@ export function SelectWidget({
           )}
         />
       </div>
-
-      {/* Matched option label indicator */}
-      {matchedOption && matchedOption.label !== strVal && (
-        <span
-          className="text-[11px] text-muted-foreground truncate shrink-0 max-w-28 font-sans"
-          title={matchedOption.label}
-        >
-          {matchedOption.label}
-        </span>
-      )}
 
       {/* 2. Dropdown Action Button beside it */}
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -133,7 +113,7 @@ export function SelectWidget({
           side="bottom"
           align="end"
           sideOffset={4}
-          className="w-56 max-h-56 overflow-y-auto text-xs p-1 shadow-lg border border-border/80 bg-popover z-50 font-sans"
+          className="min-w-44 max-w-72 w-auto max-h-56 overflow-y-auto text-xs p-1 shadow-lg border border-border/80 bg-popover z-50 font-sans"
         >
           {loading ? (
             <div className="p-3 text-center text-xs text-muted-foreground font-mono flex items-center justify-center gap-1.5">
@@ -146,25 +126,20 @@ export function SelectWidget({
             </div>
           ) : (
             options.map((opt) => {
-              const displayVal = opt.label || opt.code;
+              const displayLabel = opt.label || opt.code;
               const isSelected =
                 opt.code.toLowerCase() === strVal.toLowerCase() ||
                 opt.label.toLowerCase() === strVal.toLowerCase();
               return (
                 <DropdownMenuItem
                   key={opt.code}
-                  onClick={() => handleSelectOption(opt.code || displayVal)}
+                  onClick={() => handleSelectOption(opt.code)}
                   className={cn(
-                    "text-xs py-1.5 px-2 cursor-pointer font-mono flex items-center justify-between",
+                    "text-xs py-1.5 px-2 cursor-pointer flex items-center leading-snug whitespace-normal wrap-break-word",
                     isSelected && "bg-primary/10 text-primary font-semibold",
                   )}
                 >
-                  <span className="truncate">{displayVal}</span>
-                  {opt.label && opt.code !== opt.label && (
-                    <span className="text-[10px] text-muted-foreground font-mono ml-2 shrink-0">
-                      ({opt.code})
-                    </span>
-                  )}
+                  <span>{displayLabel}</span>
                 </DropdownMenuItem>
               );
             })

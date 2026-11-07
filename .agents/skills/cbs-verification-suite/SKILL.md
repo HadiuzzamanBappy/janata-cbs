@@ -21,6 +21,7 @@ pnpm verify:all
 ```
 
 This sequentially executes all 9 verification sub-suites:
+
 1. `CBS Access Control & RIDASHL Capabilities` (`@/lib/cbs-access`)
 2. `Form Delta Mutation Engine` (`@/lib/cbs-record`)
 3. `CBS Form Spec & Compiler Engine` (`@/lib/cbs-form-spec`)
@@ -82,6 +83,7 @@ Before concluding any development task:
 ## 4. Failure Triage Runbook
 
 If a verification test fails:
+
 1. Read the exact test failure output (the test files are in `scripts/verify/verify-*.ts`).
 2. Identify whether the regression is due to:
    - A broken layer boundary (e.g. importing a higher layer into `src/lib/`).

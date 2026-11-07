@@ -21,6 +21,8 @@ export interface FieldPaletteProps {
     structure?: "S" | "M",
   ) => void;
   disabled?: boolean;
+  className?: string;
+  onClose?: () => void;
 }
 
 export type PaletteItem =

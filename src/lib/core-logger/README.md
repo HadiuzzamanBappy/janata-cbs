@@ -64,6 +64,7 @@ logger.info("Processing user login", {
 ```
 
 **Logged Output:**
+
 ```json
 {
   "timestamp": "2026-10-17T01:50:00.000Z",
@@ -88,6 +89,7 @@ Log level priorities, streaming stdout handling, and browser-safe formatting are
 ### 2. Redaction Patterns (`redact.ts`): **SCALABLE**
 
 If new sensitive fields or account prefixes are introduced by the banking system:
+
 - **Adding Sensitive Keys:** Add regex pattern to `SENSITIVE_KEY_PATTERNS` in `redact.ts`.
 - **Adding Account Prefixes:** Update the prefix pattern (e.g. `AC|SB|CD|FD|LN`) in `redact.ts:59`.
 
@@ -96,6 +98,7 @@ If new sensitive fields or account prefixes are introduced by the banking system
 ## 🧪 Verification
 
 Run the test suite verifying redaction and formatting:
+
 ```bash
 pnpm verify:logger
 ```

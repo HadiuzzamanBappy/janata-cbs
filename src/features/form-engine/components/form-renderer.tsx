@@ -3,9 +3,11 @@
 import * as React from "react";
 import { buildRenderBlocks } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
+import type { AuditData } from "@/lib/data-schemas";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormRendererProps } from "../types";
 import { SectionCard } from "./section-card";
+import { FormAuditSection } from "./sections/form-audit-section";
 
 export type { FormRendererProps };
 
@@ -16,6 +18,8 @@ export function FormRenderer({
   errors = {},
   disabled = false,
   mode = "I",
+  auditData,
+  showAuditSection = false,
 }: FormRendererProps) {
   const sections = frmElements?.sections || [];
 
@@ -155,6 +159,11 @@ export function FormRenderer({
             </div>
           );
         })}
+
+        {/* Constant Read-Only Audit Section below all form sections */}
+        {showAuditSection && (
+          <FormAuditSection auditData={auditData ?? (values.auditData as AuditData)} />
+        )}
       </div>
     </div>
   );

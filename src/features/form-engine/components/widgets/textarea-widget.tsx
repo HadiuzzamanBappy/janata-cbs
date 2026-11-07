@@ -26,8 +26,8 @@ export function TextareaWidget({
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-1 focus-visible:ring-ring min-h-14 resize-y",
-          error && "border-destructive",
+          "w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-0 focus-visible:border-foreground/50 min-h-14 resize-y",
+          error && "border-destructive focus-visible:border-destructive",
           disabled &&
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
         )}

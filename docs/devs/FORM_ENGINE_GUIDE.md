@@ -1,26 +1,33 @@
-# Janata CBS — Unified Form Engine Developer Guide & Audit Reference
+# Janata CBS — Unified Form Engine & Form Designer Master Architecture Guide
 
-> **Authoritative Specification**: Architecture, Schema Hierarchy, 12-Column Grid Tokens, and Step-by-Step File Audit Dependency Ladder for the unified CBS Form Engine package.
-
----
-
-## 1. Core Architecture & Philosophy
-
-The Janata CBS Form Engine is a **headless metadata compiler and runtime UI engine** designed for high-density core banking screens.
-
-### Key Tenets:
-
-1. **Zero Legacy**: No backwards-compatibility shims, no magic strings, no ad-hoc pixel widths (`width: 280px`).
-2. **Strict Unidirectional Hierarchy**:
-   $$\text{MODEL.CONFIG (Database Columns)} \longrightarrow \text{FORM.CONFIG (Layout Overrides)} \longrightarrow \text{Form Engine Runtime (UI)}$$
-3. **Pure 12-Column Grid**: All form containers render on a 12-column track (`grid grid-cols-12 gap-x-3 gap-y-2`). Inputs take `w-full` within their cell.
-4. **Centralized & DRY**: A single unified field renderer (`FieldAtom`) handles both Kernel-managed isolated states and controlled form inputs.
+> **Authoritative Specification**: Metamodel Inheritance Hierarchy, Unified State Kernel, Responsive 12-Column Grid Tokens, and Step-by-Step Modular Audit Reference for Janata CBS Form Engine.
 
 ---
 
-## 2. Schema Inheritance & Metamodel Hierarchy
+## 1. Executive Summary & Core Pillars
 
-Both backend database tables and visual forms share a single physical core: `baseFieldSchema`.
+The Janata CBS Form Engine is a **headless, schema-driven metadata compiler and high-density runtime execution engine**. It eliminates scattered, duplicated definitions by strictly enforcing a single source of truth across the entire lifecycle:
+
+```mermaid
+flowchart LR
+    A["MODEL.CONFIG\n(Physical DB Columns & Types)"] --> B["FORM.CONFIG\n(Presentation & Layout Overrides)"]
+    B --> C["Form Engine Compiler\n(@/lib/cbs-form-spec)"]
+    C --> D["Headless Runtime\n(FormKernelStore)"]
+    D --> E["Modular Banking UI\n(Widgets & 12-Col Grid)"]
+```
+
+### Architectural Invariants:
+
+1. **Zero Redeclarations (DRY)**: Visual forms inherit from database models via `baseFieldSchema`. Visual layouts override _only_ presentation concerns (`WIDTH`, `WIDGET`, `TAB`, `SECTION`).
+2. **Strict Modular Boundaries**: Every component $\le 300$ lines, helpers $\le 200$ lines. Clear leaf-to-root dependency direction.
+3. **Single Dynamic Field Atom**: Controlled inputs and isolated Kernel-backed keystroke states resolve through the exact same field factory.
+4. **Fluid Multi-Resolution Consistency**: Compact desktop density (640px+) switches to full-width stacked touch inputs on mobile (<640px) without breaking 12-column grid integrity.
+
+---
+
+## 2. Metamodel Hierarchy & Schema Unification
+
+Both backend database tables and visual form designs share a single physical core: `baseFieldSchema`.
 
 ```mermaid
 classDiagram
@@ -29,7 +36,7 @@ classDiagram
         +String NAME
         +String LABEL
         +PropertyType TYPE (Text, Number, Amount, Rate, Date, DateTime, Boolean, Object)
-        +Structure STRUCTURE (S: Single, M: Multi)
+        +Structure STRUCTURE (S: Single, M: Multi-Value)
         +Number LENGTH (Database column character capacity)
         +Boolean REQUIRED
         +FormFieldParameter PARAMETER (Dynamic Dropdown / Model Lookups)
@@ -40,13 +47,13 @@ classDiagram
     }
 
     class FormElement {
-        +Width WIDTH (120, 180, 220, 280, 320, 450, 1000 or xs..full)
+        +PropertyWidth WIDTH (xs, sm, md, lg, xl, xxl, full or legacy numbers)
         +Boolean DISABLED
         +String POSITION
         +String ENRICHTEXT
         +String DEFAULTVALUE
         +String FIXEDVALUE
-        +FormWidgetType WIDGET (text, select, switch, amount, date...)
+        +FormWidgetType WIDGET (text, textarea, select, amount, rate, date...)
         +WidgetConfigs (TEXT_CONFIG, NUMBER_CONFIG, DATE_CONFIG, etc.)
         +FormOnChangeRule ON_CHANGE
         +FieldValidationRule VALIDATION
@@ -55,45 +62,209 @@ classDiagram
     }
 
     BaseFieldSchema <|-- ModelProperty : baseModelPropertySchema.extend({ PROP })
-    BaseFieldSchema <|-- FormElement : baseFieldSchema.extend({ UI Presentation Props })
+    BaseFieldSchema <|-- FormElement : baseFieldSchema.extend({ UI Presentation Overrides })
 ```
 
 ---
 
-## 3. The 12-Column Grid & Fallback Resolution Matrix
+## 3. The 12-Column Responsive Layout Formula
 
-### Semantic & Fixed Numerical Width Mapping
+`MODEL.CONFIG` stores **`LENGTH`** (physical DB character capacity). `FORM.CONFIG` stores **`WIDTH`** (12-column track width).
 
-`MODEL.CONFIG` stores **`LENGTH`** (physical DB size). `FORM.CONFIG` stores **`WIDTH`** (12-column layout width).
+When a field is rendered on screen:
+$$\text{Explicit Form Config WIDTH} \quad \xrightarrow{\text{fallback}} \quad \text{Infer 12-Col Span from Model Config LENGTH}$$
 
-When a field is rendered:
-$$\text{Explicit Form Config WIDTH} \quad \xrightarrow{\text{fallback}} \quad \text{Infer 12-col span from Model Config LENGTH}$$
+### Responsive Width Tokens & Mapping Matrix
 
-| Fixed Width (`WIDTH`) | Semantic Token | Inferred from Physical `LENGTH` |    12-Col Tailwind Class    | Grid Proportion | Primary Banking Use Case                           |
-| :-------------------: | :------------: | :-----------------------------: | :-------------------------: | :-------------: | -------------------------------------------------- |
-|       **`120`**       |      `xs`      |   `LENGTH <= 6` or `Boolean`    | `col-span-12 md:col-span-2` | 2 of 12 (16.6%) | Currency (`USD`), Branch Code (`JB0001`), Switches |
-|       **`180`**       |      `sm`      |    `LENGTH <= 16` or `Date`     | `col-span-12 md:col-span-3` | 3 of 12 (25.0%) | Account No., Routing No., Status tags              |
-|       **`220`**       |      `md`      |         `LENGTH <= 25`          | `col-span-12 md:col-span-4` | 4 of 12 (33.3%) | Date Pickers, Nominee Share %, Phone numbers       |
-|       **`280`**       |      `md`      | `LENGTH <= 40` or `Amount/Rate` | `col-span-12 md:col-span-4` | 4 of 12 (33.3%) | Standard Amounts, Dropdowns                        |
-|       **`320`**       |      `lg`      |         `LENGTH <= 70`          | `col-span-12 md:col-span-6` | 6 of 12 (50.0%) | Customer Name, Branch Title (Half row)             |
-|       **`450`**       |      `xl`      |         `LENGTH <= 120`         | `col-span-12 md:col-span-8` | 8 of 12 (66.6%) | Address Line 1, Organization Title                 |
-|      **`1000`**       |     `full`     |  `LENGTH > 120` or `textarea`   |        `col-span-12`        | 12 of 12 (100%) | Remarks, Narrative, Textarea, Sub-tables           |
+| Semantic Token |  Legacy Code  | Inferred from Physical `LENGTH` |       Desktop Grid Span (`>= 640px`)       | Mobile Layout (`< 640px`) | Primary Banking Domain Use Case               |
+| :------------: | :-----------: | :-----------------------------: | :----------------------------------------: | :-----------------------: | :-------------------------------------------- |
+|    **`xs`**    |     `120`     |   `LENGTH <= 6` or `Boolean`    |  `col-span-12 sm:col-span-2` (`max-w-28`)  |     `w-full` stacked      | Currency (`BDT`), Branch Code, Switches       |
+|    **`sm`**    |     `180`     |    `LENGTH <= 16` or `Date`     |  `col-span-12 sm:col-span-3` (`max-w-44`)  |     `w-full` stacked      | Account No, Routing No, Status Code           |
+|    **`md`**    | `220` / `280` | `LENGTH <= 40` or `Amount/Rate` |  `col-span-12 sm:col-span-4` (`max-w-72`)  |     `w-full` stacked      | Financial Amounts, Rates, Dropdown Codes      |
+|    **`lg`**    |     `320`     |         `LENGTH <= 70`          |  `col-span-12 sm:col-span-6` (`max-w-md`)  |     `w-full` stacked      | Customer Name, Branch Title (Half Row)        |
+|    **`xl`**    |     `450`     |         `LENGTH <= 120`         |  `col-span-12 sm:col-span-8` (`max-w-xl`)  |     `w-full` stacked      | Street Address, Organization Title            |
+|   **`xxl`**    |       —       |  `LENGTH > 120` (Single-line)   | `col-span-12 sm:col-span-10` (`max-w-2xl`) |     `w-full` stacked      | Long description, Email address               |
+|   **`full`**   |    `1000`     | Multi-line `Textarea` / Tables  |          `col-span-12` (`w-full`)          |     `w-full` stacked      | Remarks, Narratives, Audit Logs, Array Tables |
 
 > [!IMPORTANT]
-> **No Inline Pixel Widths**: Inputs inside grid cells always use `w-full`. This guarantees crisp, responsive alignments across laptop terminals (1366×768) and high-res monitors (1920×1080+).
+> **Mobile Edge Alignment**: On mobile devices (`< 640px`), every input spans `w-full` on Line 2 beneath its label. On desktop (`>= 640px`), inputs snap back to their compact financial widths adjacent to the fixed 144px (`w-36`) label.
 
 ---
 
-## 4. Easy Implementation & Usage Endpoints
+## 4. State Lifecycle & Two-Tier Keystroke Isolation
 
-Developers only interact with clean, high-level components:
+Janata CBS uses a **Two-Tier Form Kernel** to eliminate React re-render thrashing during rapid teller data entry:
 
-### Scenario A: Standard Screen or Dialog (Controlled Mode)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Operator as Branch Teller / User
+    participant LocalWidget as Input Widget (DOM)
+    participant KernelStore as FormKernelStore (Zustand Leaf)
+    participant FieldAtom as FieldAtom (Isolated Subscriber)
+    participant ScreenCommit as CBS Screen Commit (Delta Engine)
+
+    Operator->>LocalWidget: Keystrokes (e.g. 50,000,000.00)
+    LocalWidget->>KernelStore: setFieldValue(path, val) (Micro-tick update)
+    KernelStore-->>FieldAtom: Re-renders ONLY this specific field atom
+    Note over LocalWidget,FieldAtom: Entire screen, tab bar, and header remain completely static!
+    Operator->>ScreenCommit: Press Save / F10 / Enter
+    ScreenCommit->>KernelStore: getDeltaPayload()
+    KernelStore-->>ScreenCommit: Validated Zod delta patch
+```
+
+---
+
+## 5. Modular Directory Architecture & Audit Dependency Ladder
+
+Every file in the Form Engine belongs to an explicit architectural tier. Audits, refactorings, and reviews must progress **strictly bottom-up**:
+
+```mermaid
+flowchart BT
+    subgraph Tier1["Tier 1: Leaf Utilities & Pure Logic (Zero Internal Dependencies)"]
+        U1["utils/section-utils.ts\n(12-Col Spans & Width Tokens)"]
+        U2["utils/widget-utils.ts\n(Widget Type Resolution)"]
+        U3["lib/cbs-form-spec/compile.ts\n(Headless Spec Compiler)"]
+        U4["lib/cbs-form-spec/validation.ts\n(Headless Zod Validator)"]
+    end
+
+    subgraph Tier2["Tier 2: Data Schemas & Invariant Contracts"]
+        S1["lib/data-schemas/form-engine-schema.ts\n(FormElement, WidgetConfigs)"]
+        S2["lib/data-schemas/form-config-schema.ts\n(FormSection, FormConfigRecord)"]
+        S3["features/form-engine/types.ts\n(Widget Props & Option Contracts)"]
+    end
+
+    subgraph Tier3["Tier 3: State Kernel & Data Access Hooks"]
+        K1["store/form-kernel-store.ts\n(Two-Tier Form State)"]
+        K2["store/form-kernel-provider.tsx\n(Kernel React Context)"]
+        H1["hooks/use-field-options.ts\n(Dynamic Fixed & Model Lookup Options)"]
+        H2["hooks/use-multi-value.ts\n(Structure 'M' Multi-Value Arrays)"]
+    end
+
+    subgraph Tier4["Tier 4: Pure Banking Widgets (Presentation Only)"]
+        W1["components/widgets/field-row.tsx\n(Responsive Label, Popover Info, Error)"]
+        W2["components/widgets/text-widget.tsx"]
+        W3["components/widgets/textarea-widget.tsx\n(Resize-y, Respects Width)"]
+        W4["components/widgets/select-widget.tsx\n(Code Value, Label Display, Clean Wrap)"]
+        W5["components/widgets/amount-widget.tsx\n(Monospace Currency)"]
+        W6["components/widgets/rate-widget.tsx\n(Decimals & % Suffix)"]
+        W7["components/widgets/date-widget.tsx\n(CBS Calendar Popover)"]
+        W8["components/widgets/switch-widget.tsx & checkbox-widget.tsx"]
+    end
+
+    subgraph Tier5["Tier 5: Section Layouts & Field Factories"]
+        F1["components/widget-renderer.tsx\n(Widget Switch Dispatcher)"]
+        F2["components/field-factory.tsx\n(Multi-value + View Mode Resolver)"]
+        F3["components/field-atom.tsx\n(Kernel Subscription Wrapper)"]
+        F4["components/sections/standard-grid-section.tsx\n(12-Col Responsive Grid)"]
+        F5["components/sections/object-group-section.tsx\n(Nested Composite Objects)"]
+        F6["components/sections/array-table-section.tsx\n(High-Density Data Grid)"]
+        F7["components/section-card.tsx\n(Collapsible Container)"]
+    end
+
+    subgraph Tier6["Tier 6: Public Entry & Visual Designer"]
+        R1["components/form-renderer.tsx\n(Main Orchestrator)"]
+        R2["components/form-preview.tsx\n(Live Interactive Preview)"]
+        R3["features/system/form-config/\n(Drag-and-Drop Designer Workbench)"]
+    end
+
+    Tier1 --> Tier2
+    Tier2 --> Tier3
+    Tier3 --> Tier4
+    Tier4 --> Tier5
+    Tier5 --> Tier6
+```
+
+---
+
+## 6. Comprehensive File Audit Checklist & Modernization Status
+
+### Tier 1: Leaf Utilities & Pure Logic
+
+- [x] **`utils/section-utils.ts`**
+  - Enforces `SEMANTIC_INPUT_WIDTH_CLASSES` with mobile `w-full` and desktop `sm:max-w-*`.
+  - Maps physical DB `LENGTH` to canonical semantic tokens.
+  - Generates 12-column grid span classes (`col-span-12 sm:col-span-*`).
+- [x] **`utils/widget-utils.ts`**
+  - Resolves widget type from physical property type, lookup parameter (`M` / `O`), and explicit `WIDGET` override.
+- [x] **`lib/cbs-form-spec/compile.ts`**
+  - Headless fallback compiler generating standard 12-column sections when no layout exists.
+- [x] **`lib/cbs-form-spec/validation.ts`**
+  - Headless runtime validator validating mandatory required fields, max length, numeric limits, and dates.
+
+### Tier 2: Schemas & Invariant Contracts
+
+- [x] **`form-engine-schema.ts`**
+  - Defines `propertyWidthSchema` supporting fixed numerical codes and semantic strings (`xs` through `full`).
+  - Defines `FormWidgetType` and widget configuration sub-schemas.
+- [x] **`form-config-schema.ts`**
+  - Defines `FormSection`, `FormBlock`, tab groups, zones (`header`, `standard`, `tab`), and container types.
+- [x] **`types.ts`**
+  - Exports `BaseWidgetProps`, `WidgetOption`, and `UnifiedFieldFactoryProps`.
+
+### Tier 3: State Kernel & Data Hooks
+
+- [x] **`store/form-kernel-store.ts`**
+  - Leaf subscription model preventing screen-level re-render thrashing.
+- [x] **`store/form-kernel-provider.tsx`**
+  - Dual-mode context provider for both isolated Kernel state and external controlled states.
+- [x] **`hooks/use-field-options.ts`**
+  - Fetches and resolves dynamic dropdown options (Fixed Option Lists and Model Lookups).
+- [x] **`hooks/use-multi-value.ts`**
+  - Handles multi-value arrays (Structure `M`) with add/remove/reorder operations.
+
+### Tier 4: Pure Banking Widgets
+
+- [x] **`widgets/field-row.tsx`**
+  - Desktop: Label on left (`w-36`), colon separator, dotted underline with right hover tooltip (`side="right"`).
+  - Mobile: Full-width top row label with touch `<Popover>` help icon (`side="top"`), hidden colon, input on Line 2.
+- [x] **`widgets/select-widget.tsx`**
+  - Stores strictly item `code` in value/state.
+  - Dropdown displays human-readable `label` (with natural text wrapping and `min-w-44 max-w-72`).
+  - No redundant inline right-side preview text.
+- [x] **`widgets/textarea-widget.tsx`**
+  - Vertical-only drag expansion (`resize-y`, `min-h-14`).
+  - Strict compliance with configured width parameter.
+- [x] **`widgets/amount-widget.tsx`** & **`widgets/rate-widget.tsx`**
+  - Financial monospace alignment with currency prefix / percentage suffix.
+- [x] **`widgets/date-widget.tsx`**
+  - Calendar picker popover with direct ISO keyboard entry.
+
+### Tier 5: Section Layouts & Field Factories
+
+- [x] **`components/widget-renderer.tsx`**
+  - Clean `switch (widget)` dispatcher routing to dedicated widget primitives.
+- [x] **`components/field-factory.tsx`**
+  - Bridges View Mode (`mode="V"`) badge rendering and Edit Mode (`mode="I"`).
+- [x] **`components/field-atom.tsx`**
+  - Subscribes individual DOM elements to their specific store path.
+- [x] **`components/sections/standard-grid-section.tsx`**
+  - 12-column grid container mapping fields to responsive spans.
+- [x] **`components/sections/array-table-section.tsx`** & **`object-group-section.tsx`**
+  - Composite multi-row tables and grouped nested objects.
+
+### Tier 6: Public Entry & Visual Designer
+
+- [x] **`components/form-renderer.tsx`**
+  - Top-level screen orchestrator compiling blocks, cards, and tab groups.
+- [x] **`features/system/form-config/components/fc-designer-tab.tsx`**
+  - Container-aware responsive workbench (`useContainerWidth(960)`).
+  - Left offcanvas drawer: Field Palette (Variables / Containers).
+  - Center: Drag-and-drop hierarchy canvas with top mobile toolbar.
+  - Right offcanvas drawer: Property Inspector (auto-opens on element tap).
+- [x] **`features/system/model-config/components/mc-json-tab.tsx`**
+  - 3-Way JSON Viewer: **`Raw (DB)`** | **`Changes (+X -Y)`** | **`Output`**.
+
+---
+
+## 7. Developer Usage Reference
+
+### Scenario A: Standard Controlled Form Screen
 
 ```tsx
 import { FormRenderer } from "@/features/form-engine";
 
-export function SimpleUserForm({ values, onChange, errors }) {
+export function BranchSetupScreen({ formConfig, values, onChange, errors }) {
   return (
     <FormRenderer
       frmElements={formConfig.frmElements}
@@ -105,12 +276,12 @@ export function SimpleUserForm({ values, onChange, errors }) {
 }
 ```
 
-### Scenario B: Full Banking Screen (Isolated Kernel State)
+### Scenario B: High-Throughput Core Banking Screen (Kernel State)
 
 ```tsx
 import { FormKernelProvider, FormRenderer } from "@/features/form-engine";
 
-export function CustomerScreen({ formConfig, initialData }) {
+export function CustomerAccountScreen({ formConfig, initialData }) {
   return (
     <FormKernelProvider initialValues={initialData}>
       <FormRenderer frmElements={formConfig.frmElements} />
@@ -121,125 +292,13 @@ export function CustomerScreen({ formConfig, initialData }) {
 
 ---
 
-## 5. File-by-File Audit Dependency Ladder
+## 8. Quality Verification & Regression Gate
 
-Audit and clean every file **one by one** strictly from the lowest leaf dependency upward:
+Every modification across the Form Engine hierarchy must pass the 3 mandatory gates:
 
-```mermaid
-flowchart BT
-    subgraph Level1["Level 1: Leaf Utilities & Validation (Zero Internal Dependencies)"]
-        F1["path-utils.ts"]
-        F2["field-validator.ts"]
-        F3["widget-utils.ts"]
-        F4["section-utils.ts"]
-    end
-
-    subgraph Level2["Level 2: Schemas & Types"]
-        F5["src/lib/data-schemas/form-engine-schema.ts"]
-        F6["types.ts"]
-    end
-
-    subgraph Level3["Level 3: State Kernel & Data Hooks"]
-        F7["store/form-kernel-store.ts"]
-        F8["store/form-kernel-provider.tsx"]
-        F9["hooks/use-field-options.ts"]
-        F10["hooks/use-model-lookup.ts"]
-        F11["hooks/use-multi-value.ts"]
-    end
-
-    subgraph Level4["Level 4: Typed Banking Widgets"]
-        F12["components/widgets/amount-widget.tsx"]
-        F13["components/widgets/date-widget.tsx"]
-        F14["components/widgets/rate-widget.tsx"]
-        F15["components/widgets/select-widget.tsx"]
-        F16["components/widgets/switch-widget.tsx"]
-        F17["components/widgets/text-widget.tsx"]
-        F18["components/widgets/textarea-widget.tsx"]
-        F19["components/widgets/checkbox-widget.tsx"]
-        F20["components/widgets/radio-widget.tsx"]
-        F21["components/widgets/checkbox-group-widget.tsx"]
-        F22["components/widgets/field-row.tsx"]
-    end
-
-    subgraph Level5["Level 5: Section Layouts & Field Atoms"]
-        F23["components/field-atom.tsx (Unified Field Component)"]
-        F24["components/sections/standard-grid-section.tsx (12-Col Container)"]
-        F25["components/sections/object-group-section.tsx"]
-        F26["components/sections/array-table-section.tsx"]
-        F27["components/section-card.tsx"]
-    end
-
-    subgraph Level6["Level 6: Public Entry & Previews"]
-        F28["components/form-renderer.tsx"]
-        F29["components/form-preview.tsx"]
-        F30["index.ts"]
-    end
-
-    Level1 --> Level2
-    Level2 --> Level3
-    Level3 --> Level4
-    Level4 --> Level5
-    Level5 --> Level6
+```bash
+pnpm lint:fix         # Biome check: 0 errors, 0 warnings
+pnpm typecheck        # Strict TypeScript: 0 errors (tsc --noEmit)
+pnpm verify:form-spec # CBS Headless Form Spec & Compiler Engine (10/10 tests clean)
+pnpm verify:all       # Master CBS domain test suite (13/13 suites clean)
 ```
-
----
-
-## 6. Audit Checklist by File
-
-### Phase 1: Leaf Utilities & Validation
-
-- [x] **File 1: `utils/path-utils.ts`** — Checked. Pure, safe, immutable nested getters/setters (`getFieldValue`, `setFieldValue`).
-- [x] **File 2: `validation/field-validator.ts`** — Checked. Pure regex, required, and length validation.
-- [ ] **File 3: `utils/widget-utils.ts`** — Remove `getFieldWidthStyle()` pixel widths (`280px`). Keep `resolveWidgetType()`.
-- [ ] **File 4: `utils/section-utils.ts`** — Implement 12-column grid spans & the Authoritative Length Fallback Resolver.
-
-### Phase 2: Schemas & Types
-
-- [ ] **File 5: `src/lib/data-schemas/form-engine-schema.ts`** — Update `propertyWidthSchema` with fixed numbers & semantic tokens.
-- [ ] **File 6: `types.ts`** — Consolidate clean public props and types.
-
-### Phase 3: State Kernel & Data Hooks
-
-- [ ] **File 7: `store/form-kernel-store.ts`** — Clean 2-tier keystroke isolation store.
-- [ ] **File 8: `store/form-kernel-provider.tsx`** — Context provider with lightweight fallback for controlled mode.
-- [ ] **File 9: `hooks/use-field-options.ts`** — Clean dynamic options selector.
-- [ ] **File 10: `hooks/use-model-lookup.ts`** — Foreign key lookup hook.
-- [ ] **File 11: `hooks/use-multi-value.ts`** — Multi-value (Structure M) array helper.
-
-### Phase 4: Typed Banking Widgets
-
-- [ ] **File 12: `widgets/amount-widget.tsx`** — Enforce right-aligned financial monospace, `w-full`.
-- [ ] **File 13: `widgets/date-widget.tsx`** — Calendar popover + keyboard input, `w-full`.
-- [ ] **File 14: `widgets/rate-widget.tsx`** — Right-aligned percentage input with suffix, `w-full`.
-- [ ] **File 15: `widgets/select-widget.tsx`** — Accessible search & select dropdown, `w-full`.
-- [ ] **File 16: `widgets/switch-widget.tsx`** — Compact switch toggle with semantic badges.
-- [ ] **File 17: `widgets/text-widget.tsx`** — Text with auto-uppercase/trim, `w-full`.
-- [ ] **File 18: `widgets/textarea-widget.tsx`** — Auto-growing banking remarks field, `w-full`.
-- [ ] **File 19: `widgets/checkbox-widget.tsx`** — Checkbox toggle.
-- [ ] **File 20: `widgets/radio-widget.tsx`** — Compact radio group.
-- [ ] **File 21: `widgets/checkbox-group-widget.tsx`** — Multi-checkbox selector.
-- [ ] **File 22: `widgets/field-row.tsx`** — Label + Input + Error + EnrichText row wrapper.
-
-### Phase 5: Section Layouts & Field Atoms
-
-- [ ] **File 23: `components/field-atom.tsx`** — Consolidated single field atom.
-- [ ] **File 24: `sections/standard-grid-section.tsx`** — Pure `grid grid-cols-12 gap-x-3 gap-y-2`.
-- [ ] **File 25: `sections/object-group-section.tsx`** — Nested sub-object 12-col container.
-- [ ] **File 26: `sections/array-table-section.tsx`** — High-density array table.
-- [ ] **File 27: `components/section-card.tsx`** — Card wrapper with collapsible header.
-
-### Phase 6: Public Entry & Previews
-
-- [ ] **File 28: `components/form-renderer.tsx`** — Orchestrator for tab groups & sections.
-- [ ] **File 29: `components/form-preview.tsx`** — Live interactive preview for Form Designer.
-- [ ] **File 30: `index.ts`** — Public export facade.
-
----
-
-## 7. Quality Gates
-
-Every file audit must preserve:
-
-1. `pnpm lint:fix` $\to$ **0 errors, 0 warnings**
-2. `pnpm typecheck` $\to$ **0 TypeScript compile errors**
-3. `pnpm verify:all` $\to$ **13/13 CBS domain test suites passing 100%**

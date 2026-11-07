@@ -32,7 +32,7 @@ export function useFcFieldOps(
           STRUCTURE: fieldTemplate?.STRUCTURE || "S",
           REQUIRED: fieldTemplate?.REQUIRED ?? false,
           DISABLED: fieldTemplate?.DISABLED ?? false,
-          WIDTH: fieldTemplate?.WIDTH ?? 280,
+          WIDTH: fieldTemplate?.WIDTH ?? "md",
           POSITION: fieldTemplate?.POSITION || "",
           PARAMETER: fieldTemplate?.PARAMETER || {
             type: "O",

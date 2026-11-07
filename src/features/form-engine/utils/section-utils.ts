@@ -49,7 +49,7 @@ export const SEMANTIC_INPUT_WIDTH_CLASSES: Record<SemanticWidthToken, string> = 
  * Ignores any legacy DB numbers in Model Config and calculates purely from physical length and type.
  */
 export function deriveSemanticWidth(
-  width?: PropertyWidth | number,
+  width?: PropertyWidth,
   length?: number,
   type?: string,
 ): SemanticWidthToken {
@@ -58,16 +58,7 @@ export function deriveSemanticWidth(
     return width as SemanticWidthToken;
   }
 
-  // 2. Type-based default hints
-  const normType = (type || "").toLowerCase();
-  if (normType === "textarea") return "full";
-  if (normType === "boolean" || normType === "switch" || normType === "checkbox") return "xs";
-  if (normType === "date" || normType === "datetime") return "sm";
-  if (normType === "amount" || normType === "rate" || normType === "number") return "sm";
-
-  // 3. Fallback derivation solely based on physical DB length
-  // Single-line inputs cap comfortably at xxl (max-w-2xl) instead of stretching
-  // across the full widescreen terminal. Only textareas take "full" (100% width).
+  // 2. Derive width from physical model LENGTH (single diversion rule)
   if (typeof length === "number" && length > 0) {
     if (length <= 6) return "xs";
     if (length <= 16) return "sm";
@@ -77,7 +68,14 @@ export function deriveSemanticWidth(
     return "xxl";
   }
 
-  // 4. Default to standard medium width
+  // 3. Type-based default hints
+  const normType = (type || "").toLowerCase();
+  if (normType === "textarea") return "full";
+  if (normType === "boolean" || normType === "switch" || normType === "checkbox") return "xs";
+  if (normType === "date" || normType === "datetime") return "sm";
+  if (normType === "amount" || normType === "rate" || normType === "number") return "sm";
+
+  // 4. Default fallback to md
   return "md";
 }
 
@@ -85,7 +83,7 @@ export function deriveSemanticWidth(
  * Returns the CSS class for an input element based on its semantic width token.
  */
 export function getInputWidthClass(
-  width?: PropertyWidth | number,
+  width?: PropertyWidth,
   length?: number,
   type?: string,
   widget?: string,
@@ -134,7 +132,7 @@ export function getGridColsClass(cols?: number): string {
  */
 export function getFieldColSpanClass(
   cols: number = 1,
-  width?: PropertyWidth | number,
+  width?: PropertyWidth,
   length?: number,
   type?: string,
 ): string {
@@ -151,34 +149,32 @@ export function getFieldColSpanClass(
 
   // Multi-column sections (2, 3, 4 columns)
   const token = deriveSemanticWidth(width, length, type);
-  if (token === "full" || (typeof width === "number" && width >= 1000)) {
+  if (token === "full") {
     return "col-span-full w-full";
   }
 
   if (cols === 2) {
-    return token === "xl" || token === "xxl" || (typeof width === "number" && width >= 400)
-      ? "col-span-2 w-full"
-      : "col-span-1 w-full";
+    return token === "xl" || token === "xxl" ? "col-span-2 w-full" : "col-span-1 w-full";
   }
 
   if (cols === 3) {
-    if (token === "xl" || token === "xxl" || (typeof width === "number" && width >= 600)) {
+    if (token === "xl" || token === "xxl") {
       return "col-span-3 w-full";
     }
-    if (token === "lg" || (typeof width === "number" && width >= 350)) {
+    if (token === "lg") {
       return "col-span-2 w-full";
     }
     return "col-span-1 w-full";
   }
 
   if (cols === 4) {
-    if (token === "xxl" || (typeof width === "number" && width >= 800)) {
+    if (token === "xxl") {
       return "col-span-4 w-full";
     }
-    if (token === "xl" || (typeof width === "number" && width >= 550)) {
+    if (token === "xl") {
       return "col-span-3 w-full";
     }
-    if (token === "lg" || (typeof width === "number" && width >= 350)) {
+    if (token === "lg") {
       return "col-span-2 w-full";
     }
     return "col-span-1 w-full";

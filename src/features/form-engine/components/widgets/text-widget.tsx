@@ -36,9 +36,9 @@ export function TextWidget({
         value={String(value ?? "")}
         onChange={handleChange}
         className={cn(
-          "h-7 text-xs bg-background rounded border-border/80 w-full",
+          "h-7 text-xs bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50",
           type === "number" && "font-mono",
-          error && "border-destructive",
+          error && "border-destructive focus-visible:border-destructive",
           disabled &&
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
         )}

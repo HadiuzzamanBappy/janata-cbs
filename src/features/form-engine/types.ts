@@ -1,3 +1,4 @@
+import type { AuditData } from "@/lib/data-schemas";
 import type { FormElementsContainer, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
@@ -47,4 +48,6 @@ export interface FormRendererProps {
   errors?: Record<string, string>;
   disabled?: boolean;
   mode?: CbsScreenMode;
+  auditData?: AuditData | null;
+  showAuditSection?: boolean;
 }

@@ -29,8 +29,8 @@ export function DateWidget({
         value={strVal}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-7 w-full rounded text-xs bg-background border-border/80 font-mono scheme-light dark:scheme-dark",
-          error && "border-destructive",
+          "h-7 w-full rounded text-xs bg-background border-border/80 font-mono scheme-light dark:scheme-dark focus-visible:ring-0 focus-visible:border-foreground/50",
+          error && "border-destructive focus-visible:border-destructive",
           disabled &&
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",
         )}

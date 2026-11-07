@@ -59,13 +59,13 @@ export function UnifiedFieldFactory({
     return rawDefault;
   }, [rawDefault, field.TYPE]);
 
-  // Use DEFAULTVALUE when current value is not provided
+  // Use DEFAULTVALUE only on initial mount when value is strictly undefined or null (never when user cleared to "")
   const effectiveValue =
-    value !== undefined && value !== null && value !== ""
+    value !== undefined && value !== null
       ? value
       : isInputMode && effectiveDefault !== undefined
         ? effectiveDefault
-        : value;
+        : (value ?? "");
 
   const placeholder = typeof rawDefault === "string" ? rawDefault : undefined;
 
@@ -75,7 +75,7 @@ export function UnifiedFieldFactory({
     if (
       isInputMode &&
       !hasAppliedDefault.current &&
-      (value === undefined || value === null || value === "") &&
+      (value === undefined || value === null) &&
       effectiveDefault !== undefined
     ) {
       hasAppliedDefault.current = true;

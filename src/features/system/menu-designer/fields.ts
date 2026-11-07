@@ -21,7 +21,7 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
-        WIDTH: 1000,
+        WIDTH: "full",
         ENRICHTEXT: "Human-readable descriptive label for this navigation hierarchy.",
       },
     ],
@@ -41,7 +41,7 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 1,
         WIDGET: "checkbox",
-        WIDTH: 1000,
+        WIDTH: "full",
         ENRICHTEXT:
           "Controls whether this navigation hierarchy is live and published across user workbenches.",
       },

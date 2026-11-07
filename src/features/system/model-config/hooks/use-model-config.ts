@@ -46,12 +46,14 @@ export function useModelConfig(initialId?: string, tabId?: string) {
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const [rawRecord, setRawRecord] = React.useState<ModelConfigRecord | undefined>(undefined);
   const [validationErrors, setValidationErrors] = React.useState<ModelValidationErrorItem[]>([]);
 
   // 1. Reset screen and commit set to idle
   const resetToIdle = React.useCallback(() => {
     reset();
     clearCommitted();
+    setRawRecord(undefined);
     setValidationErrors([]);
   }, [clearCommitted, reset]);
 
@@ -63,6 +65,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         TABLENAME: cleanId.replace(/[.-]/g, "_"),
         DESCRIPTION: "",
       };
+      setRawRecord(undefined);
       hydrate(draft);
       clearCommitted();
       setValidationErrors([]);
@@ -96,6 +99,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
             : undefined;
 
         if (record) {
+          setRawRecord(record);
           const clean = sanitizeModelConfigRecord(record) ?? record;
           hydrate(clean);
           markAsCommitted(clean.PROPERTIES || []);
@@ -195,6 +199,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     formData,
     setFormData,
     baseline,
+    rawRecord,
     isDirty,
     dirtyKeys,
     modelsPool,

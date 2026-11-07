@@ -48,6 +48,16 @@ export function FormPreview({
         values={formValues}
         onChange={handleInputChange}
         mode={CbsRecordFunction.INPUT}
+        auditData={{
+          recStatus: "AU",
+          recCurrNumber: 1,
+          recInputter: "DEV.USER_01",
+          recInputTime: "2602121545",
+          recAuthorizer: "AUTH.USER_01",
+          recAuthTime: "2602121546",
+          recBranchCode: "JB0001",
+        }}
+        showAuditSection
       />
     </div>
   );

@@ -165,6 +165,8 @@ export function OpsForm({
           errors={errors}
           disabled={mutations.submitting || screenMode === "S"}
           mode={screenMode}
+          auditData={values.auditData as AuditData}
+          showAuditSection
         />
       </FormKernelProvider>
     </CbsScreenScaffold>

@@ -139,11 +139,15 @@ export function useFormActions({
     const raw = searchRecordId;
     const id = (typeof raw === "string" ? raw : String(raw || "")).trim();
     if (!id) {
-      handleCreateNew();
+      toast.add({
+        title: "Input Required",
+        description: "Please enter or select a Record ID to authorize.",
+        type: "warning",
+      });
       return;
     }
-    loadRecordData(id, "I");
-  }, [searchRecordId, handleCreateNew, loadRecordData]);
+    loadRecordData(id, "A");
+  }, [searchRecordId, loadRecordData]);
 
   const handleReturnToSearch = React.useCallback(() => {
     if (onReturn) {

@@ -1,7 +1,7 @@
+import { getFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
-import { getFieldValue } from "../../utils/path-utils";
 import { getFieldColSpanClass, getGridColsClass } from "../../utils/section-utils";
 import { FieldAtom } from "../field-atom";
 import { UnifiedFieldFactory } from "../field-factory";
@@ -27,10 +27,15 @@ export function StandardGridSection({
   numCols,
   hasKernel,
 }: StandardGridSectionProps) {
+  const effectiveCols = numCols || section.columns || 1;
+
   return (
-    <div className={cn("grid gap-x-4 gap-y-2 text-xs", getGridColsClass(numCols))}>
+    <div className={cn("grid gap-x-3 gap-y-2 text-xs", getGridColsClass(effectiveCols))}>
       {section.fields.map((field) => (
-        <div key={field.SN} className={getFieldColSpanClass(numCols, field.WIDTH)}>
+        <div
+          key={field.SN}
+          className={getFieldColSpanClass(effectiveCols, field.WIDTH, field.LENGTH, field.TYPE)}
+        >
           {hasKernel ? (
             <FieldAtom field={field} disabled={disabled} mode={mode} />
           ) : (

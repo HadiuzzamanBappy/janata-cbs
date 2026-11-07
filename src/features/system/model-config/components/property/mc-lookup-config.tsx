@@ -5,7 +5,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
-import { setFieldValue } from "@/features/form-engine/utils/path-utils";
+import { setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
@@ -31,14 +31,14 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
           ? rawData.map((it: unknown) => {
               if (typeof it === "object" && it !== null) {
                 const rec = it as Record<string, unknown>;
-                const code = String(rec.code ?? rec.value ?? rec.itemCode ?? rec.name ?? "");
-                const label = String(rec.label ?? rec.itemLabel ?? rec.name ?? rec.value ?? code);
-                return { code, label: label || code };
+                const itemCode = String(rec.itemCode ?? rec.code ?? "");
+                const itemLabel = String(rec.itemLabel ?? rec.label ?? itemCode);
+                return { itemCode, itemLabel };
               }
               const str = String(it ?? "");
-              return { code: str, label: str };
+              return { itemCode: str, itemLabel: str };
             })
-          : [{ code: "", label: "" }];
+          : [{ itemCode: "", itemLabel: "" }];
 
       return {
         ...property,
@@ -68,7 +68,7 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
           t === "O"
             ? Array.isArray(param?.data) && param.data.length > 0
               ? param.data
-              : [{ code: "", label: "" }]
+              : [{ itemCode: "", itemLabel: "" }]
             : [],
       },
     });
@@ -79,20 +79,20 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
       const updated = setFieldValue(normalizedProperty as Record<string, unknown>, fieldKey, value);
       const nextParam = updated.PARAMETER as Record<string, unknown> | undefined;
 
-      // Ensure data items are clean { code, label } objects with auto-fallback
+      // Ensure data items are clean { itemCode, itemLabel } objects
       if (nextParam?.type === "O" && Array.isArray(nextParam.data)) {
         nextParam.data = nextParam.data.map((it: unknown) => {
           if (typeof it === "object" && it !== null) {
             const rec = it as Record<string, unknown>;
-            const code = String(rec.code ?? rec.value ?? rec.itemCode ?? rec.name ?? "");
-            const label = String(rec.label ?? rec.itemLabel ?? rec.name ?? rec.value ?? code);
+            const itemCode = String(rec.itemCode ?? rec.code ?? "");
+            const itemLabel = String(rec.itemLabel ?? rec.label ?? itemCode);
             return {
-              code,
-              label: label || code,
+              itemCode,
+              itemLabel: itemLabel || itemCode,
             };
           }
           const str = String(it ?? "");
-          return { code: str, label: str };
+          return { itemCode: str, itemLabel: str };
         });
       }
 
@@ -116,7 +116,7 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
 
       {/* Input Source as standard FieldRow with segmented controls */}
       <FieldRow label="Input Source">
-        <div className="inline-flex items-center rounded border border-border/80 bg-muted/40 p-0.5">
+        <div className="inline-flex flex-wrap items-center gap-0.5 rounded border border-border/80 bg-muted/40 p-0.5 max-w-full">
           <Button
             type="button"
             size="xs"
@@ -124,7 +124,7 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
             disabled={disabled}
             onClick={() => handleSetType("NONE")}
             className={cn(
-              "h-6 px-2.5 text-xs font-mono rounded transition-all",
+              "h-6 px-2 text-xs font-mono rounded transition-all shrink-0",
               paramType === "NONE"
                 ? "shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground",
@@ -139,7 +139,7 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
             disabled={disabled}
             onClick={() => handleSetType("O")}
             className={cn(
-              "h-6 px-2.5 text-xs font-mono gap-1 rounded transition-all",
+              "h-6 px-2 text-xs font-mono gap-1 rounded transition-all shrink-0",
               paramType === "O"
                 ? "shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground",
@@ -155,7 +155,7 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
             disabled={disabled}
             onClick={() => handleSetType("M")}
             className={cn(
-              "h-6 px-2.5 text-xs font-mono gap-1 rounded transition-all",
+              "h-6 px-2 text-xs font-mono gap-1 rounded transition-all shrink-0",
               paramType === "M"
                 ? "shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground",

@@ -62,6 +62,7 @@ if (delta.hasChanges) {
 ## 3. High-Density Form UI Guidelines
 
 Banking operators enter massive volumes of data daily. Standard web spacing slows them down.
+
 - **Input Heights:** All input controls (`Input`, `Select`, `Combobox`, `DatePicker`) must use compact `h-9` sizing with `text-xs`.
 - **12-Column Responsive Layout:** Always utilize the 12-column grid:
 

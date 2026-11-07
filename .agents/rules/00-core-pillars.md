@@ -5,6 +5,7 @@ All generated code in Janata CBS must conform strictly to these core engineering
 ## 1. Unidirectional Dependency Rule (No Layer Inversion)
 
 $$\text{Level 6 (App)} \longrightarrow \text{Level 5 (Features)} \longrightarrow \text{Level 4 (Components)} \longrightarrow \text{Level 3 (Store)} \longrightarrow \text{Level 2 (Client Lib)} \longrightarrow \text{Level 1 (Core/Infra)} \longrightarrow \text{Level 0 (Contracts)}$$
+
 - A lower level must **NEVER** import from a higher level.
 - Specifically: `src/lib` must **NEVER** import from `@/store`, `@/components`, `@/features`, or `@/app`.
 - Upward notifications from `src/lib` to application state MUST use the adapter bus (`registerCommandAdapter`).

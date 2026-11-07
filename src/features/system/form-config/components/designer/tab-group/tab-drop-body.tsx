@@ -109,7 +109,7 @@ export function TabDropBody({
                   field={field}
                   sectionId={section.id}
                   isSelected={Boolean(isSelected)}
-                  className={getFieldColSpanClass(numCols, field.WIDTH)}
+                  className={getFieldColSpanClass(numCols, field.WIDTH, field.LENGTH, field.TYPE)}
                   onSelect={() => {
                     onSelectSection(section.id);
                     onSelectField(section.id, fieldId);

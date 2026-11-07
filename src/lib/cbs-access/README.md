@@ -138,6 +138,7 @@ console.log(access.canReverse); // false (must be 'AU' to reverse)
 ## 🛠️ Adding a Function Right
 
 To add a new entitlement code (e.g. extending `RIDASHL`):
+
 1. Add the code to `CbsRecordFunction` in `src/types/cbs.ts`.
 2. Update `evaluateCbsAccess` in `record-guard.ts` to compute the capability flag (`canX`).
 3. Add the return flag to `CbsAccessResult` in `types.ts`.

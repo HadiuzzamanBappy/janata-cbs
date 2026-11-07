@@ -11,6 +11,8 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import * as React from "react";
+import { useContainerWidth } from "@/hooks";
+import { cn } from "@/lib/core-utils";
 import type {
   MenuCatalogActionItem,
   MenuTreeNode,
@@ -65,7 +67,19 @@ export function MdCanvasTab({
   onDropCatalogItem,
   isReadOnly,
 }: MdCanvasTabProps) {
+  const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(960);
   const [selectedNodeId, setSelectedNodeId] = React.useState<string | null>(null);
+  const [isCatalogOpen, setIsCatalogOpen] = React.useState(false);
+  const [isInspectorOpen, setIsInspectorOpen] = React.useState(false);
+
+  // When clicking any item on compact view, auto-open the right inspector drawer
+  const handleSelectNode = (id: string) => {
+    setSelectedNodeId(id);
+    if (isCompact && id) {
+      setIsInspectorOpen(true);
+      setIsCatalogOpen(false);
+    }
+  };
 
   // Configure Dnd sensors
   const sensors = useSensors(
@@ -196,32 +210,82 @@ export function MdCanvasTab({
 
   const handleDeleteWithSelection = React.useCallback(
     (id: string) => {
-      if (selectedNodeId === id) setSelectedNodeId(null);
+      if (selectedNodeId === id) {
+        setSelectedNodeId(null);
+        setIsInspectorOpen(false);
+      }
       onDeleteNode(id);
     },
     [selectedNodeId, onDeleteNode],
   );
 
+  const handleCatalogAdd = (item: MenuCatalogActionItem) => {
+    onDropCatalogItem(item, null);
+    if (isCompact) {
+      setIsCatalogOpen(false);
+    }
+  };
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <div className="flex h-full w-full gap-3 overflow-hidden">
-        {/* 30% Left Pane: Action Catalog (MENU) */}
-        <MenuCatalogSidebar
-          items={catalogItems}
-          loading={catalogLoading}
-          addedMenuIds={addedMenuIds}
-          addedCommands={addedCommands}
-          onAddItem={(item) => onDropCatalogItem(item, null)}
-          disabled={isReadOnly}
-        />
+      <div
+        ref={containerRef}
+        className="relative flex h-full w-full gap-2 sm:gap-3 overflow-hidden"
+      >
+        {/* Backdrop for Left Catalog Drawer on compact screens */}
+        {isCompact && isCatalogOpen && (
+          <div
+            className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsCatalogOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
-        {/* Center Pane: Interactive Menu Tree Canvas */}
+        {/* Backdrop for Right Inspector Drawer on compact screens */}
+        {isCompact && isInspectorOpen && (
+          <div
+            className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
+            onClick={() => setIsInspectorOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* 1. Left Pane: Action Catalog (MENU) - Side-panel on Desktop, Offcanvas Drawer on Mobile/Compact */}
+        {isCompact ? (
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 z-40 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out bg-card",
+              isCatalogOpen ? "translate-x-0" : "-translate-x-full pointer-events-none",
+            )}
+          >
+            <MenuCatalogSidebar
+              items={catalogItems}
+              loading={catalogLoading}
+              addedMenuIds={addedMenuIds}
+              addedCommands={addedCommands}
+              onAddItem={handleCatalogAdd}
+              disabled={isReadOnly}
+              className="w-full h-full border-r border-border"
+            />
+          </div>
+        ) : (
+          <MenuCatalogSidebar
+            items={catalogItems}
+            loading={catalogLoading}
+            addedMenuIds={addedMenuIds}
+            addedCommands={addedCommands}
+            onAddItem={handleCatalogAdd}
+            disabled={isReadOnly}
+          />
+        )}
+
+        {/* 2. Center Pane: Interactive Menu Tree Canvas */}
         <div className="flex-1 min-w-0 h-full overflow-hidden">
           <MenuTreeCanvas
             nodes={nodes}
             collapsedNodeIds={collapsedNodeIds}
             selectedNodeId={selectedNodeId}
-            onSelectNode={setSelectedNodeId}
+            onSelectNode={handleSelectNode}
             onToggleCollapse={onToggleCollapse}
             onExpandAll={onExpandAll}
             onCollapseAll={onCollapseAll}
@@ -233,19 +297,52 @@ export function MdCanvasTab({
             onMoveOrder={onMoveOrder}
             onDropCatalogItem={onDropCatalogItem}
             isReadOnly={isReadOnly}
+            showCatalogToggle={isCompact}
+            showInspectorToggle={isCompact}
+            onToggleCatalog={() => {
+              setIsCatalogOpen((prev) => !prev);
+              setIsInspectorOpen(false);
+            }}
+            onToggleInspector={() => {
+              setIsInspectorOpen((prev) => !prev);
+              setIsCatalogOpen(false);
+            }}
           />
         </div>
 
-        {/* Right Pane: Property & Override Inspector */}
-        <NodeInspector
-          selectedNode={selectedNode}
-          formData={formData}
-          onUpdateFormData={setFormData}
-          onUpdateNode={onUpdateNode}
-          onDeleteNode={handleDeleteWithSelection}
-          onClose={() => setSelectedNodeId(null)}
-          disabled={isReadOnly}
-        />
+        {/* 3. Right Pane: Property & Override Inspector - Side-panel on Desktop, Offcanvas Drawer on Mobile/Compact */}
+        {isCompact ? (
+          <div
+            className={cn(
+              "absolute inset-y-0 right-0 z-40 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out bg-card",
+              isInspectorOpen ? "translate-x-0" : "translate-x-full pointer-events-none",
+            )}
+          >
+            <NodeInspector
+              selectedNode={selectedNode}
+              formData={formData}
+              onUpdateFormData={setFormData}
+              onUpdateNode={onUpdateNode}
+              onDeleteNode={handleDeleteWithSelection}
+              onClose={() => {
+                setSelectedNodeId(null);
+                setIsInspectorOpen(false);
+              }}
+              disabled={isReadOnly}
+              className="w-full h-full border-l border-border"
+            />
+          </div>
+        ) : (
+          <NodeInspector
+            selectedNode={selectedNode}
+            formData={formData}
+            onUpdateFormData={setFormData}
+            onUpdateNode={onUpdateNode}
+            onDeleteNode={handleDeleteWithSelection}
+            onClose={() => setSelectedNodeId(null)}
+            disabled={isReadOnly}
+          />
+        )}
       </div>
     </DndContext>
   );

@@ -1,7 +1,13 @@
 "use client";
 
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { ChevronsDownUp, ChevronsUpDown, Network } from "lucide-react";
+import {
+  ChevronsDownUp,
+  ChevronsUpDown,
+  Network,
+  PanelLeft,
+  SlidersHorizontal,
+} from "lucide-react";
 import * as React from "react";
 import { SidebarMenuTree } from "@/components/layout/sidebar/components/sidebar-menu-tree";
 import type { TreeNode } from "@/components/layout/sidebar/types";
@@ -47,6 +53,10 @@ interface MenuTreeCanvasProps {
     targetIndex?: number,
   ) => void;
   isReadOnly?: boolean;
+  onToggleCatalog?: () => void;
+  onToggleInspector?: () => void;
+  showCatalogToggle?: boolean;
+  showInspectorToggle?: boolean;
 }
 
 export function MenuTreeCanvas({
@@ -65,6 +75,10 @@ export function MenuTreeCanvas({
   onMoveOrder,
   onDropCatalogItem,
   isReadOnly,
+  onToggleCatalog,
+  onToggleInspector,
+  showCatalogToggle = false,
+  showInspectorToggle = false,
 }: MenuTreeCanvasProps) {
   const [isDragOver, setIsDragOver] = React.useState(false);
   const [viewMode, setViewMode] = React.useState<"designer" | "preview">("designer");
@@ -164,29 +178,41 @@ export function MenuTreeCanvas({
       }`}
     >
       {/* Canvas Top Bar */}
-      <div className="p-2 border-b border-border/80 flex items-center justify-between bg-card/60 gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
+      <div className="px-3 py-1.5 border-b border-border/80 flex items-center justify-between bg-card/60 gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 min-w-0">
+          {showCatalogToggle && onToggleCatalog && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onToggleCatalog}
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+              title="Toggle Action Catalog"
+            >
+              <PanelLeft className="size-3.5" />
+            </Button>
+          )}
+
           <button
             type="button"
             onClick={() => onSelectNode?.("")}
-            className="flex items-center gap-2 hover:text-primary transition-colors text-left"
+            className="flex items-center gap-1.5 hover:text-primary transition-colors text-left min-w-0"
             title="Click to view root tree container properties"
           >
-            <Network className="size-4 text-primary" />
-            <span className="text-xs font-semibold text-foreground">Hierarchy Canvas</span>
+            <span className="text-xs font-semibold text-foreground truncate">Hierarchy Canvas</span>
           </button>
-          <span className="text-[11px] text-muted-foreground font-mono">
-            ({nodes.length} root branches)
+          <span className="text-[11px] text-muted-foreground font-mono shrink-0">
+            ({nodes.length})
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {/* Mode Segmented Toggle: Designer vs Preview */}
-          <div className="flex items-center bg-muted/60 p-0.5 rounded border border-border/60 mr-1">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Mode Segmented Toggle: Designer vs Preview (Height 7 matching other controls) */}
+          <div className="flex items-center bg-muted/60 p-0.5 rounded border border-border/60">
             <button
               type="button"
               onClick={() => setViewMode("designer")}
-              className={`h-5 px-2 text-[10px] font-medium rounded transition-all cursor-pointer ${
+              className={`h-6 px-2.5 text-xs font-medium rounded transition-all cursor-pointer ${
                 viewMode === "designer"
                   ? "bg-background text-foreground shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -197,7 +223,7 @@ export function MenuTreeCanvas({
             <button
               type="button"
               onClick={() => setViewMode("preview")}
-              className={`h-5 px-2 text-[10px] font-medium rounded transition-all cursor-pointer ${
+              className={`h-6 px-2.5 text-xs font-medium rounded transition-all cursor-pointer ${
                 viewMode === "preview"
                   ? "bg-background text-primary shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
@@ -208,7 +234,7 @@ export function MenuTreeCanvas({
           </div>
 
           {/* Icon Button Group for Expand / Collapse */}
-          <div className="flex items-center bg-muted/40 p-0.5 rounded border border-border/50">
+          <div className="flex items-center bg-muted/40 p-0.5 rounded border border-border/60">
             {onExpandAll && (
               <Tooltip>
                 <TooltipTrigger
@@ -218,7 +244,7 @@ export function MenuTreeCanvas({
                       variant="ghost"
                       size="icon-xs"
                       onClick={onExpandAll}
-                      className="size-5.5 text-muted-foreground hover:text-foreground rounded"
+                      className="size-6 text-muted-foreground hover:text-foreground rounded cursor-pointer"
                     >
                       <ChevronsUpDown className="size-3.5" />
                     </Button>
@@ -238,7 +264,7 @@ export function MenuTreeCanvas({
                       variant="ghost"
                       size="icon-xs"
                       onClick={onCollapseAll}
-                      className="size-5.5 text-muted-foreground hover:text-foreground rounded"
+                      className="size-6 text-muted-foreground hover:text-foreground rounded cursor-pointer"
                     >
                       <ChevronsDownUp className="size-3.5" />
                     </Button>
@@ -250,6 +276,19 @@ export function MenuTreeCanvas({
               </Tooltip>
             )}
           </div>
+
+          {showInspectorToggle && onToggleInspector && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onToggleInspector}
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 cursor-pointer rounded border border-border/60"
+              title="Toggle Properties Inspector"
+            >
+              <SlidersHorizontal className="size-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 

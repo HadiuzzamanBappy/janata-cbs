@@ -4,6 +4,7 @@ import { Check, Copy, Download, FileCode, GitCompare, Layers } from "lucide-reac
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { computeLineDiff } from "@/lib/cbs-record";
 import { cn } from "@/lib/core-utils";
 
@@ -122,7 +123,6 @@ function renderJsonLine(line: string, lineIndex: number): React.ReactNode {
 export function CbsJsonViewerTab({
   data,
   baseline,
-  wireTag,
   title = "Database Wire Output Payload",
   filename = "payload.json",
   className = "",
@@ -173,23 +173,48 @@ export function CbsJsonViewerTab({
   const linesCount = lines.length;
   const sizeBytes = React.useMemo(() => new TextEncoder().encode(jsonString).length, [jsonString]);
 
+  // Derive the active string to copy or download based on current viewMode:
+  // - In "formatted" mode: exports the active updated/working JSON payload
+  // - In "diff" mode: exports the Git-style unified diff patch
+  const activeExportContent = React.useMemo(() => {
+    if (viewMode === "diff" && diffSummary && hasDiff) {
+      return diffSummary.items
+        .map((it) => {
+          const prefix = it.type === "insert" ? "+ " : it.type === "delete" ? "- " : "  ";
+          return `${prefix}${it.text}`;
+        })
+        .join("\n");
+    }
+    return jsonString;
+  }, [viewMode, diffSummary, hasDiff, jsonString]);
+
+  const activeExportFilename = React.useMemo(() => {
+    if (viewMode === "diff" && hasDiff) {
+      return filename.replace(/\.json$/i, ".diff.txt");
+    }
+    return filename;
+  }, [viewMode, hasDiff, filename]);
+
   const handleCopy = React.useCallback(() => {
-    navigator.clipboard.writeText(jsonString);
+    navigator.clipboard.writeText(activeExportContent);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [jsonString]);
+  }, [activeExportContent]);
 
   const handleDownload = React.useCallback(() => {
-    const blob = new Blob([jsonString], { type: "application/json" });
+    const isDiff = viewMode === "diff" && hasDiff;
+    const blob = new Blob([activeExportContent], {
+      type: isDiff ? "text/plain" : "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = filename;
+    link.download = activeExportFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }, [filename, jsonString]);
+  }, [activeExportContent, activeExportFilename, viewMode, hasDiff]);
 
   return (
     <div
@@ -197,54 +222,61 @@ export function CbsJsonViewerTab({
     >
       <div className="flex-1 rounded-md border border-border/80 bg-card flex flex-col overflow-hidden shadow-2xs min-h-0">
         {/* Toolbar Header */}
-        <div className="p-2 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="size-5 rounded-sm bg-primary/10 text-primary flex items-center justify-center">
+        <div className="px-3 py-1.5 border-b border-border/70 flex flex-wrap items-center justify-between gap-2 bg-muted/20 shrink-0 min-w-0">
+          {/* Title & Wire Tag */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="size-5 rounded-xs bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <FileCode className="size-3" />
             </div>
-            <div>
-              <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
+            <div className="flex items-center gap-1.5 min-w-0 truncate">
+              <span className="text-xs font-semibold text-foreground uppercase tracking-wide truncate">
                 {title}
               </span>
-              {wireTag && (
-                <span className="text-[10px] text-muted-foreground font-mono ml-2">
-                  ({wireTag})
-                </span>
-              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Action Tools & Stats */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Metrics Badge */}
+            <Badge
+              variant="outline"
+              className="font-mono text-[10px] h-6 rounded-xs px-1.5 text-muted-foreground hidden sm:inline-flex"
+            >
+              {linesCount}L • {(sizeBytes / 1024).toFixed(1)}KB
+            </Badge>
+
             {/* View Mode Toggle when Diff Available */}
             {baselineJsonString !== null && (
-              <div className="flex items-center rounded border border-border/80 bg-muted/40 p-0.5 mr-1">
+              <div className="inline-flex items-center rounded border border-border/80 bg-muted/40 p-0.5">
                 <button
                   type="button"
                   onClick={() => setViewMode("formatted")}
                   className={cn(
-                    "flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-xs transition-colors",
+                    "flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-xs transition-colors cursor-pointer",
                     viewMode === "formatted"
-                      ? "bg-background text-foreground shadow-2xs"
+                      ? "bg-background text-foreground shadow-2xs font-semibold"
                       : "text-muted-foreground hover:text-foreground",
                   )}
+                  title="View payload"
                 >
                   <Layers className="size-3" />
-                  <span>Payload</span>
+                  <span className="hidden sm:inline">Payload</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setViewMode("diff")}
                   className={cn(
-                    "flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-xs transition-colors",
+                    "flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-xs transition-colors cursor-pointer",
                     viewMode === "diff"
-                      ? "bg-background text-foreground shadow-2xs"
+                      ? "bg-background text-foreground shadow-2xs font-semibold"
                       : "text-muted-foreground hover:text-foreground",
                   )}
+                  title="View differences"
                 >
                   <GitCompare className="size-3" />
-                  <span>Changes</span>
+                  <span className="hidden sm:inline">Changes</span>
                   {hasDiff && diffSummary && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-mono">
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-mono">
                       {diffSummary.additions > 0 && (
                         <span className="text-emerald-500 font-semibold">
                           +{diffSummary.additions}
@@ -261,43 +293,51 @@ export function CbsJsonViewerTab({
               </div>
             )}
 
-            <Badge
-              variant="outline"
-              className="font-mono text-[10px] h-5 rounded-xs px-1.5 text-muted-foreground"
-            >
-              {linesCount} lines • {(sizeBytes / 1024).toFixed(1)} KB
-            </Badge>
+            {/* Copy Button (Clean minimal icon button) */}
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-xs"
+                    onClick={handleCopy}
+                    className="size-6.5 border-border/80 text-muted-foreground hover:text-foreground"
+                    aria-label="Copy JSON"
+                  >
+                    {copied ? (
+                      <Check className="size-3.5 text-primary" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom" className="text-xs">
+                {copied ? "Copied to clipboard!" : "Copy JSON"}
+              </TooltipContent>
+            </Tooltip>
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCopy}
-              className="h-6.5 text-[11px] gap-1 px-2 border-border/80"
-            >
-              {copied ? (
-                <>
-                  <Check className="size-3 text-primary" />
-                  <span className="text-primary font-medium">Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="size-3" />
-                  <span>Copy JSON</span>
-                </>
-              )}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              className="h-6.5 text-[11px] gap-1 px-2 border-border/80"
-            >
-              <Download className="size-3" />
-              <span>Download</span>
-            </Button>
+            {/* Download Button (Clean minimal icon button) */}
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-xs"
+                    onClick={handleDownload}
+                    className="size-6.5 border-border/80 text-muted-foreground hover:text-foreground"
+                    aria-label="Download JSON"
+                  >
+                    <Download className="size-3.5" />
+                  </Button>
+                }
+              />
+              <TooltipContent side="bottom" className="text-xs">
+                Download JSON file
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

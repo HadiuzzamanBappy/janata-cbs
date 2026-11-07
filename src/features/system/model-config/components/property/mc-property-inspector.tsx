@@ -1,12 +1,12 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { PanelLeft, Trash2 } from "lucide-react";
 import * as React from "react";
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import { setFieldValue } from "@/features/form-engine/utils/path-utils";
+import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { PropertyType } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
@@ -24,6 +24,9 @@ interface McPropertyInspectorProps {
   onDelete: (sn: string, forceHardDelete?: boolean) => void;
   onSelectSubField?: (sn: string) => void;
   onAddSubField?: (parentSn: string) => string;
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
+  showSidebarToggle?: boolean;
 }
 
 export function McPropertyInspector({
@@ -35,6 +38,9 @@ export function McPropertyInspector({
   onDelete,
   onSelectSubField,
   onAddSubField,
+  onToggleSidebar,
+  isSidebarOpen = false,
+  showSidebarToggle = false,
 }: McPropertyInspectorProps) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
@@ -157,12 +163,19 @@ export function McPropertyInspector({
       {/* 1. Header Bar */}
       <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Badge
-            variant="outline"
-            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs"
-          >
-            SN #{property.SN}
-          </Badge>
+          {showSidebarToggle && onToggleSidebar && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onToggleSidebar}
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
+              title={isSidebarOpen ? "Hide Columns" : "Show Columns"}
+            >
+              <PanelLeft className="size-3.5" />
+            </Button>
+          )}
+
           <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
             {property.NAME || "<UNNAMED_FIELD>"}
           </span>
@@ -172,6 +185,13 @@ export function McPropertyInspector({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
+          <Badge
+            variant="outline"
+            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs shrink-0"
+          >
+            SN #{property.SN}
+          </Badge>
+
           {!isCommitted && (
             <Badge
               variant="outline"
@@ -180,13 +200,6 @@ export function McPropertyInspector({
               New
             </Badge>
           )}
-
-          <Badge
-            variant="outline"
-            className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-muted-foreground"
-          >
-            {property.TYPE} • {property.STRUCTURE === "M" ? "Multi" : "Single"}
-          </Badge>
 
           {!isReadOnly && !isCommitted && (
             <Button

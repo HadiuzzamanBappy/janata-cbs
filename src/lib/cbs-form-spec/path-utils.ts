@@ -68,3 +68,44 @@ export function setFieldValue<T extends Record<string, unknown>>(
   current[segments[segments.length - 1]] = value;
   return root;
 }
+
+/**
+ * Pure, immutable generic deleter for flat or dot-notated paths.
+ * Removes key or index without mutating the original input record.
+ */
+export function deleteFieldValue<T extends Record<string, unknown>>(record: T, path: string): T {
+  if (!record || !path) return record;
+
+  if (!path.includes(".")) {
+    const next = { ...record };
+    delete next[path];
+    return next;
+  }
+
+  const segments = path.split(".");
+  const root = { ...record };
+  let current: Record<string, unknown> = root;
+
+  for (let i = 0; i < segments.length - 1; i++) {
+    const seg = segments[i];
+    if (!current[seg] || typeof current[seg] !== "object") {
+      return root;
+    }
+    current[seg] = Array.isArray(current[seg])
+      ? [...(current[seg] as unknown[])]
+      : { ...(current[seg] as Record<string, unknown>) };
+    current = current[seg] as Record<string, unknown>;
+  }
+
+  const lastSeg = segments[segments.length - 1];
+  if (Array.isArray(current)) {
+    const idx = Number(lastSeg);
+    if (!Number.isNaN(idx)) {
+      current.splice(idx, 1);
+    }
+  } else {
+    delete current[lastSeg];
+  }
+
+  return root;
+}

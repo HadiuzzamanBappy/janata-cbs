@@ -1,99 +1,157 @@
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import { getFieldValue } from "./path-utils";
 
 /* -------------------------------------------------------------------------- */
-/* Headless Form Values Validator                                             */
+/* Single Field Validation Primitive                                          */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Pure, headless validation engine for CBS form runtime values against a FormConfigRecord.
- * Evaluates mandatory required status, numeric/date format types, and max length/digit constraints.
- *
- * @returns Map of field NAME -> error message. Returns empty object {} if clean.
- */
-export function validateValues(
-  spec: FormConfigRecord,
+export interface FieldValidationRule {
+  required?: boolean;
+  length?: number | string;
+  pattern?: string;
+  label?: string;
+  type?: string;
+}
+
+export function validateSingleField(rule: FieldValidationRule, value: unknown): string | null {
+  const isMissingOrEmpty =
+    value === undefined ||
+    value === null ||
+    value === "" ||
+    (Array.isArray(value) &&
+      (value.length === 0 ||
+        value.every((v) => v === undefined || v === null || String(v).trim() === "")));
+
+  const label = rule.label || "Field";
+
+  // 1. Mandatory Required Check
+  if (rule.required && isMissingOrEmpty) {
+    return `${label} is required`;
+  }
+
+  if (
+    rule.required &&
+    Array.isArray(value) &&
+    value.some((v) => v === undefined || v === null || String(v).trim() === "")
+  ) {
+    return `Each ${label} item is required`;
+  }
+
+  // Skip further validation on empty optional fields
+  if (isMissingOrEmpty) {
+    return null;
+  }
+
+  const fieldType = (rule.type || "").toLowerCase();
+  const isNumeric =
+    fieldType === "number" ||
+    fieldType === "amount" ||
+    fieldType === "rate" ||
+    fieldType === "integer" ||
+    fieldType === "decimal";
+  const isDate = fieldType === "date" || fieldType === "datetime";
+
+  // 2. Numeric Type & Digit Validation
+  if (isNumeric) {
+    const num = Number(value);
+    if (typeof value === "string" && (Number.isNaN(num) || value.trim() === "")) {
+      return `${label} must be a valid number`;
+    }
+    if (typeof rule.length === "number" && rule.length > 0) {
+      const digits = String(Math.abs(num)).replace(".", "");
+      if (digits.length > rule.length) {
+        return `${label} cannot exceed ${rule.length} digits`;
+      }
+    }
+    return null;
+  }
+
+  // 3. Date Type Validation
+  if (isDate) {
+    if (typeof value === "string" && Number.isNaN(Date.parse(value))) {
+      return `${label} must be a valid date`;
+    }
+    return null;
+  }
+
+  // 4. Pattern / Regex Check
+  if (rule.pattern && typeof value === "string") {
+    try {
+      const reg = new RegExp(rule.pattern);
+      if (!reg.test(value)) {
+        return `${label} format is invalid`;
+      }
+    } catch {
+      // Ignore invalid regex in user metadata
+    }
+  }
+
+  // 5. Standard Text Max Length Validation
+  if (typeof rule.length === "number" && rule.length > 0) {
+    const str = String(value);
+    if (str.length > rule.length) {
+      return `${label} cannot exceed ${rule.length} characters`;
+    }
+  }
+
+  return null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Multi-Field Array Validation                                               */
+/* -------------------------------------------------------------------------- */
+
+export function validateFormFields(
+  fields: FormElement[],
   values: Record<string, unknown> | null | undefined,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   const currentValues = values || {};
 
-  const allFields = (spec.frmElements?.sections || []).flatMap((s) => s.fields || []);
-
-  for (const field of allFields) {
+  for (const field of fields) {
     const fieldKey = field.NAME;
     if (!fieldKey) continue;
 
-    const rawVal = currentValues[fieldKey];
-    const isMissingOrEmpty =
-      rawVal === undefined ||
-      rawVal === null ||
-      rawVal === "" ||
-      (Array.isArray(rawVal) &&
-        (rawVal.length === 0 ||
-          rawVal.every((v) => v === undefined || v === null || String(v).trim() === "")));
+    // Use getFieldValue to accurately retrieve nested paths (e.g. "PARAMETER.modelName", "IDDEF.IDPREFIX")
+    const val = getFieldValue(currentValues, fieldKey);
 
-    // 1. Mandatory Required Check
-    if (field.REQUIRED && isMissingOrEmpty) {
-      errors[fieldKey] = `${field.LABEL || fieldKey} is required`;
-      continue;
-    }
+    const err = validateSingleField(
+      {
+        required: field.REQUIRED,
+        length: field.LENGTH,
+        label: field.LABEL || fieldKey,
+        type: field.TYPE,
+        pattern: field.VALIDATION?.pattern,
+      },
+      val,
+    );
 
-    if (
-      field.REQUIRED &&
-      Array.isArray(rawVal) &&
-      rawVal.some((v) => v === undefined || v === null || String(v).trim() === "")
-    ) {
-      errors[fieldKey] = `Each ${field.LABEL || fieldKey} item is required`;
-      continue;
-    }
-
-    // Skip further validation for empty optional fields
-    if (isMissingOrEmpty) {
-      continue;
-    }
-
-    const fieldType = (field.TYPE || "").toLowerCase();
-    const isNumeric =
-      fieldType === "number" ||
-      fieldType === "amount" ||
-      fieldType === "integer" ||
-      fieldType === "decimal";
-
-    const isDate = fieldType === "date" || fieldType === "datetime";
-
-    // 2. Numeric Type & Digit Validation
-    if (isNumeric) {
-      const num = Number(rawVal);
-      if (typeof rawVal === "string" && (Number.isNaN(num) || rawVal.trim() === "")) {
-        errors[fieldKey] = `${field.LABEL || fieldKey} must be a valid number`;
-        continue;
-      }
-      if (typeof field.LENGTH === "number" && field.LENGTH > 0) {
-        const digits = String(Math.abs(num)).replace(".", "");
-        if (digits.length > field.LENGTH) {
-          errors[fieldKey] = `${field.LABEL || fieldKey} cannot exceed ${field.LENGTH} digits`;
-          continue;
-        }
-      }
-      continue;
-    }
-
-    // 3. Date Type Validation
-    if (isDate) {
-      if (typeof rawVal === "string" && Number.isNaN(Date.parse(rawVal))) {
-        errors[fieldKey] = `${field.LABEL || fieldKey} must be a valid date`;
-        continue;
-      }
-      continue;
-    }
-
-    // 4. Standard Text / String Max Length Validation
-    if (typeof field.LENGTH === "number" && field.LENGTH > 0) {
-      if (typeof rawVal === "string" && rawVal.length > field.LENGTH) {
-        errors[fieldKey] = `${field.LABEL || fieldKey} cannot exceed ${field.LENGTH} characters`;
-      }
+    if (err) {
+      errors[fieldKey] = err;
     }
   }
 
   return errors;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Full Spec or Sections Validation                                           */
+/* -------------------------------------------------------------------------- */
+
+export function validateValues(
+  specOrSections: FormConfigRecord | { sections: FormSection[] } | FormSection[],
+  values: Record<string, unknown> | null | undefined,
+): Record<string, string> {
+  let sections: FormSection[] = [];
+  if (Array.isArray(specOrSections)) {
+    sections = specOrSections;
+  } else if ("frmElements" in specOrSections && specOrSections.frmElements?.sections) {
+    sections = specOrSections.frmElements.sections;
+  } else if ("sections" in specOrSections && Array.isArray(specOrSections.sections)) {
+    sections = specOrSections.sections;
+  }
+
+  const allFields = sections.flatMap((s) => s.fields || []);
+  return validateFormFields(allFields, values);
 }

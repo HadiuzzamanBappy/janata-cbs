@@ -7,6 +7,7 @@ In-memory persistence layer simulating Core Banking System storage when running 
 ## 🗄️ 1. Storage Buckets (`LIVE`, `INAU`, `HIS`, `DEL`)
 
 Every table implements `CbsVersionedTable<T>` (defined in `types.ts`) partitioned into 4 lifecycle rooms:
+
 - **`LIVE`**: Active production records with authorized status (`recStatus: "AU"`).
 - **`INAU`**: Input Unauthorized drafts awaiting checker authorization (`recStatus: "INA"`).
 - **`HIS`**: Historical audit trail (array `T[]` of past modified versions).
@@ -38,6 +39,7 @@ Every table implements `CbsVersionedTable<T>` (defined in `types.ts`) partitione
 Tables are physically registered in `CBS_PHYSICAL_TABLES` (in `index.ts`) by `PREFIX_TABLENAME`.
 
 Lookups through `getVersionedTable(controlName)` and the `CBS_DATABASE` proxy resolve dynamically:
+
 1. **Physical Match**: Checks `CBS_PHYSICAL_TABLES` (e.g. `"SC_FORM_CONFIG"`).
 2. **Model Match**: Resolves via `SC_MODEL_CONFIG[controlName]` using its `PREFIX` + `TABLENAME` (e.g. `"CONFIG.FORM"` -> `SC_FORM_CONFIG`).
 3. **No Guessing**: Unregistered tables return `null`.
@@ -69,6 +71,7 @@ const history = queryCbsDatabase("ACCOUNT", "AC1001", "HIS");
 ## ⚙️ 5. Maker-Checker Lifecycle Guide
 
 When processing mutations in `mutation-handlers.ts`:
+
 - **Maker Saves (`PUT` / `SMC` / `SFC`)**: Writes to `table.INAU[recordId]` with `recStatus: "INA"`. `table.LIVE` remains untouched.
 - **Checker Authorizes (`AUT` / `AMC`)**: Moves snapshot from `table.INAU` to `table.LIVE[recordId]` with `recStatus: "AU"`. If a previous live version existed, appends it to `table.HIS[recordId]` and increments `recCurrNumber`.
 - **Officer Reverses (`REV` / `DEL` / `TRV`)**: Moves live record to `table.DEL[recordId]` with `recStatus: "REV"` and appends previous snapshot to `table.HIS`.

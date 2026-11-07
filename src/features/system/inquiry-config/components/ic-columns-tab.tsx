@@ -8,7 +8,11 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { Plus } from "lucide-react";
 import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { useContainerWidth } from "@/hooks";
+import { cn } from "@/lib/core-utils";
 import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
@@ -37,7 +41,16 @@ export function IcColumnsTab({
   disabled = false,
   validationErrors = [],
 }: IcColumnsTabProps) {
+  const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(860);
   const [selectedColIdx, setSelectedColIdx] = React.useState<number>(0);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+  const handleSelectColumn = (idx: number) => {
+    setSelectedColIdx(idx);
+    if (isCompact) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -112,55 +125,95 @@ export function IcColumnsTab({
       dataPassable: true,
     });
     setSelectedColIdx(columns.length);
+    if (isCompact) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const activeCol = columns[selectedColIdx] || null;
 
-  return (
-    <div className="h-full flex min-h-0 overflow-hidden pr-1 gap-2">
-      <div className="w-80 shrink-0 flex flex-col min-h-0 rounded border border-border/80 bg-card/60 shadow-2xs overflow-hidden">
-        <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              Columns ({columns.length})
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <ColumnModelPopover
-              targetModel={targetModel}
-              disabled={disabled}
-              configuredFieldNames={configuredFieldNames}
-              onImportProperty={handleImportProperty}
-            />
-            {!disabled && (
-              <button
-                type="button"
-                onClick={() => {
-                  onAddColumn();
-                  setSelectedColIdx(columns.length);
-                }}
-                className="h-6 text-xs px-2 gap-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 flex items-center cursor-pointer"
-              >
-                <span>+ Custom</span>
-              </button>
-            )}
-          </div>
+  const renderColumnsPanel = () => (
+    <div className="w-full h-full flex flex-col min-h-0 bg-card overflow-hidden">
+      <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
+            Columns ({columns.length})
+          </span>
         </div>
 
-        <ColumnsPanel
-          columns={columns}
-          selectedColIdx={selectedColIdx}
-          onSelectColumn={setSelectedColIdx}
-          onRemoveColumn={onRemoveColumn}
-          disabled={disabled}
-          validationErrors={columnsErrors}
-          sensors={sensors}
-          columnKeys={columnKeys}
-          onDragEnd={handleDragEnd}
-        />
+        <div className="flex items-center gap-1 shrink-0">
+          <ColumnModelPopover
+            targetModel={targetModel}
+            disabled={disabled}
+            configuredFieldNames={configuredFieldNames}
+            onImportProperty={handleImportProperty}
+          />
+          {!disabled && (
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => {
+                onAddColumn();
+                setSelectedColIdx(columns.length);
+                if (isCompact) {
+                  setIsSidebarOpen(false);
+                }
+              }}
+              className="h-7 text-xs px-2 sm:px-2.5 gap-1 rounded cursor-pointer"
+              title="Add a custom column"
+            >
+              <Plus className="size-3.5" />
+              <span className="hidden sm:inline">Add</span>
+            </Button>
+          )}
+        </div>
       </div>
 
+      <ColumnsPanel
+        columns={columns}
+        selectedColIdx={selectedColIdx}
+        onSelectColumn={handleSelectColumn}
+        onRemoveColumn={onRemoveColumn}
+        disabled={disabled}
+        validationErrors={columnsErrors}
+        sensors={sensors}
+        columnKeys={columnKeys}
+        onDragEnd={handleDragEnd}
+      />
+    </div>
+  );
+
+  return (
+    <div ref={containerRef} className="relative h-full flex min-h-0 overflow-hidden pr-1 gap-2">
+      {/* 1. Left Columns List: Side Panel on Desktop, Offcanvas Drawer on Mobile/Compact */}
+      {isCompact ? (
+        <>
+          {/* Backdrop */}
+          {isSidebarOpen && (
+            <div
+              className="absolute inset-0 bg-black/40 z-20 backdrop-blur-xs transition-opacity"
+              onClick={() => setIsSidebarOpen(false)}
+              aria-hidden="true"
+            />
+          )}
+          {/* Offcanvas Drawer */}
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 z-30 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out border-r border-border rounded-r overflow-hidden",
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full pointer-events-none",
+            )}
+          >
+            {renderColumnsPanel()}
+          </div>
+        </>
+      ) : (
+        <div className="w-80 shrink-0 flex flex-col min-h-0 rounded border border-border/80 bg-card/60 shadow-2xs overflow-hidden">
+          {renderColumnsPanel()}
+        </div>
+      )}
+
+      {/* 2. Right Column Inspector */}
       <div className="flex-1 flex flex-col min-h-0 rounded border border-border/80 bg-card/60 shadow-2xs overflow-hidden">
         <ColumnInspector
           activeCol={activeCol || undefined}
@@ -169,6 +222,9 @@ export function IcColumnsTab({
           validationErrors={columnsErrors}
           onUpdateColumn={onUpdateColumn}
           onRemoveColumn={onRemoveColumn}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          isSidebarOpen={isSidebarOpen}
+          showSidebarToggle={isCompact}
         />
       </div>
     </div>

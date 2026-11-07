@@ -51,7 +51,7 @@ export const SC_USER: Record<string, UserRecord> = {
     accessibility: "RASL",
     userRole: ["USER"],
     commandLine: true,
-    initLogin: false,
+    initLogin: true,
     branchName: "CENTRAL OFFICE, HO, DHAKA",
     branchCode: "JB9999",
     userStatus: 1,

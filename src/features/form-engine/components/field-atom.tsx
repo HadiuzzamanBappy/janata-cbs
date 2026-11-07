@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback } from "react";
+import { getFieldValue } from "@/lib/cbs-form-spec";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 import { useFormKernel } from "../store/form-kernel-provider";
-import { getFieldValue } from "../utils/path-utils";
 import { UnifiedFieldFactory } from "./field-factory";
 
 export interface FieldAtomProps {

@@ -1,6 +1,6 @@
 "use client";
 
-import { FileCode, FileText, History, Layers, Network } from "lucide-react";
+import { FileCode, FileText, History, Network } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
@@ -115,7 +115,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
 
   return (
     <CbsScreenScaffold<MenuDesignerTabKey>
-      title="Menu Hierarchy Designer"
+      title="Menu Designer"
       commandCode={CbsControlTable.MENU_TREE}
       recordId={recordId || formData.recordId}
       mode={mode}
@@ -137,12 +137,6 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
       validationErrors={validationErrors}
-      rightTabContent={
-        <div className="text-[11px] font-mono text-muted-foreground hidden sm:flex items-center gap-1.5">
-          <Layers className="size-3" />
-          <span>TREE_STUDIO</span>
-        </div>
-      }
     />
   );
 }

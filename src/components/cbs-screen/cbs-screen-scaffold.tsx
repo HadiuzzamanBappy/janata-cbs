@@ -190,39 +190,41 @@ export function CbsScreenScaffold<TTab extends string = string>({
               onValueChange={(val) => onActiveTabChange?.(val as TTab)}
               className="flex-1 flex flex-col overflow-hidden min-h-0 gap-1.5"
             >
-              {/* TAB STRIP */}
-              <div className="border-b border-border/70 pb-1 flex items-center justify-between shrink-0">
-                <TabsList className="h-7 bg-muted/60 p-0.5 rounded-sm">
-                  {tabs.map((tab) => {
-                    const errorCount =
-                      tab.badgeCount !== undefined
-                        ? tab.badgeCount
-                        : validationErrors.filter((e) => e.tab === tab.id).length;
+              {/* TAB STRIP: Single-line fluid scroll on narrow viewports without multi-line layout jumping */}
+              <div className="border-b border-border/70 pb-1 flex items-center justify-between shrink-0 gap-2 overflow-hidden">
+                <div className="flex-1 min-w-0 overflow-x-auto no-scrollbar scroll-smooth flex items-center">
+                  <TabsList className="h-7 bg-muted/60 p-0.5 rounded-sm inline-flex w-max shrink-0">
+                    {tabs.map((tab) => {
+                      const errorCount =
+                        tab.badgeCount !== undefined
+                          ? tab.badgeCount
+                          : validationErrors.filter((e) => e.tab === tab.id).length;
 
-                    return (
-                      <TabsTrigger
-                        key={tab.id}
-                        value={tab.id}
-                        className="h-6 px-2.5 text-xs rounded-xs gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs font-medium cursor-pointer"
-                      >
-                        {tab.icon}
-                        <span>{tab.label}</span>
-                        {errorCount > 0 && (
-                          <Badge
-                            variant="destructive"
-                            className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-xs"
-                          >
-                            {errorCount}
-                          </Badge>
-                        )}
-                      </TabsTrigger>
-                    );
-                  })}
-                </TabsList>
+                      return (
+                        <TabsTrigger
+                          key={tab.id}
+                          value={tab.id}
+                          className="h-6 px-2.5 text-xs rounded-xs gap-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-2xs font-medium cursor-pointer shrink-0"
+                        >
+                          {tab.icon}
+                          <span className="whitespace-nowrap">{tab.label}</span>
+                          {errorCount > 0 && (
+                            <Badge
+                              variant="destructive"
+                              className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-xs shrink-0"
+                            >
+                              {errorCount}
+                            </Badge>
+                          )}
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
+                </div>
 
                 {/* Right Tab Extra Action (e.g. status tags) */}
                 {rightTabContent && (
-                  <div className="flex items-center gap-2 pr-1">{rightTabContent}</div>
+                  <div className="flex items-center gap-2 pr-1 shrink-0">{rightTabContent}</div>
                 )}
               </div>
 

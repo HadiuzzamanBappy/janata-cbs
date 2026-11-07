@@ -105,6 +105,7 @@ if (response.status === "SUCCESS") {
 ### 2. Microservice Routing via `servicePath`
 
 The dispatcher dynamically inspects `envelope.servicePath`:
+
 - `servicePath: "default"` → Dispatches via binary gRPC to `appConfig.grpc.host` (e.g., `localhost:9090`).
 - `servicePath: "customer"` → Routes to `SERVICE_CUSTOMER_BASE_URL`.
 - `servicePath: "urm"` → Routes to `SERVICE_URM_BASE_URL`.
@@ -138,6 +139,7 @@ await logoutUser();
 ### 4. Offline / Static Mock Core Engine Fallback
 
 When `appConfig.dataSource === "static"`, `isStaticMode()` returns `true`:
+
 - `grpcProcess()` redirects automatically to `mockProcess()` / `mockDispatch()`.
 - `loginProcess()` redirects automatically to `mockLogin()`.
 - Allows full development, UI testing, and verification suites to run independently without a running Java backend.
@@ -183,6 +185,7 @@ Connection pooling, TLS creation, metadata forwarding, session auth hooks, and s
 ### 2. Service Endpoints & Command Overlays: **SCALABLE**
 
 When integrating new microservices or special command codes:
+
 - **Adding Microservices:** Add endpoint to `SERVICES` in `src/lib/core-config/server.ts`.
 - **Custom Request Type Overlays:** Add special command mapping in `REQUEST_TYPE_OVERLAYS` (e.g. `FUNDS.TRANSFER -> AFT`).
 
@@ -191,6 +194,7 @@ When integrating new microservices or special command codes:
 ## 🧪 Verification
 
 Run the infrastructure verification suite:
+
 ```bash
 pnpm verify:grpc
 ```

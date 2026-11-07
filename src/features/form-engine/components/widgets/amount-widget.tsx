@@ -13,12 +13,11 @@ export function AmountWidget({
   disabled = false,
   error,
   placeholder,
-  style,
   className,
   currencyPrefix,
 }: AmountWidgetProps) {
   return (
-    <div style={style} className={cn("relative flex items-center min-w-32", className)}>
+    <div className={cn("relative flex items-center min-w-0 w-full", className)}>
       {currencyPrefix && (
         <span className="absolute left-2 text-[10px] font-mono text-muted-foreground select-none">
           {currencyPrefix}

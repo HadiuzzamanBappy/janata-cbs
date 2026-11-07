@@ -17,6 +17,7 @@ Janata CBS is an enterprise core banking frontend/BFF built with **Next.js 16 (A
 ## 1. Quality Gates (Mandatory Before Completing Tasks)
 
 Every code change must pass these checks with zero errors:
+
 ```bash
 pnpm lint:fix        # Biome formatting and lint fixes
 pnpm typecheck       # TypeScript strict compilation check (tsc --noEmit)
@@ -27,6 +28,7 @@ _Never commit code with type errors, linter warnings, or failing verification su
 ### 1.1 Pre-Edit File Checklist
 
 Before saving edits to any file, ensure:
+
 - [ ] **DRY Check**: No duplicate logic (e.g., `isReadOnly` delegates to `@/lib/cbs-access`).
 - [ ] **Zero Legacy**: No backward-compatibility shims, legacy query params (`?id=`), or deprecated aliases.
 - [ ] **Zero Magic Strings**: Mode strings and action codes use `CbsRecordFunction.*` and `CBS_SCREEN_MODES`.
@@ -51,6 +53,7 @@ pnpm ui:add <name>    # Add a base component primitive
 ### Domain Verification Harnesses (`scripts/verify/`)
 
 These are standalone `tsx` verification scripts (not Jest/Vitest). Run the suite matching the area you modified:
+
 ```bash
 pnpm verify:all       # Runs all 12 sub-suites sequentially
 pnpm verify:access    # RIDASHL rights + Four-Eyes maker-checker

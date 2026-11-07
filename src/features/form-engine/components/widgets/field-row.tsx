@@ -1,4 +1,6 @@
+import { Info } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
 
@@ -14,6 +16,7 @@ export interface FieldRowProps {
   indexSuffix?: number | string;
   enrichText?: string;
   labelClassName?: string;
+  inputClassName?: string;
   style?: CSSProperties;
   children: ReactNode;
 }
@@ -30,6 +33,7 @@ export function FieldRow({
   indexSuffix,
   enrichText,
   labelClassName,
+  inputClassName,
   style,
   children,
 }: FieldRowProps) {
@@ -41,8 +45,9 @@ export function FieldRow({
       <span
         className={cn(
           "truncate pb-0.5",
+          // Desktop: dotted underline indicating hover help. Mobile: underline hidden, Info icon displayed instead.
           showTooltip
-            ? "cursor-help underline decoration-dotted decoration-muted-foreground underline-offset-4"
+            ? "cursor-help sm:underline decoration-dotted decoration-muted-foreground underline-offset-4"
             : "",
           error ? "text-destructive font-semibold" : "text-muted-foreground font-normal",
         )}
@@ -58,11 +63,11 @@ export function FieldRow({
   );
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Label Column */}
+    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2">
+      {/* Label Column: Full-width top row on mobile, 144px (w-36) left column on desktop */}
       <div
         className={cn(
-          "w-36 shrink-0 flex items-center justify-between text-xs select-none font-normal",
+          "w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none font-normal min-h-6 sm:min-h-7 sm:pt-1",
           labelClassName,
         )}
       >
@@ -70,12 +75,40 @@ export function FieldRow({
           {showTooltip ? (
             <Tooltip>
               <TooltipTrigger render={labelContent} />
-              <TooltipContent side="right" className="text-xs max-w-xs z-50">
+              <TooltipContent
+                side="right"
+                align="center"
+                className="text-xs max-w-70 sm:max-w-xs z-50 shadow-md"
+              >
                 {String(enrichText)}
               </TooltipContent>
             </Tooltip>
           ) : (
             labelContent
+          )}
+
+          {/* Touch Info Popover: Triggers reliably on click/tap for tablet and mobile inspect mode */}
+          {showTooltip && (
+            <Popover>
+              <PopoverTrigger
+                render={
+                  <button
+                    type="button"
+                    aria-label={`Help info for ${label}`}
+                    className="sm:hidden text-muted-foreground/60 hover:text-foreground inline-flex items-center p-0.5 rounded shrink-0 cursor-pointer focus:outline-none"
+                  >
+                    <Info className="size-3 text-muted-foreground/70" />
+                  </button>
+                }
+              />
+              <PopoverContent
+                side="top"
+                align="start"
+                className="w-auto max-w-70 p-2 text-xs leading-relaxed z-50 shadow-lg bg-foreground text-background"
+              >
+                {String(enrichText)}
+              </PopoverContent>
+            </Popover>
           )}
 
           {indexSuffix !== undefined && (
@@ -89,14 +122,19 @@ export function FieldRow({
         {actionBeforeColon}
       </div>
 
-      {/* Colon separator */}
-      <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+      {/* Colon separator: hidden on mobile stacked layout, visible on desktop */}
+      <span className="hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 pt-1 select-none">
+        :
+      </span>
 
       {/* Input or View Badge */}
       {isViewMode ? (
         <div
           style={style}
-          className="h-7 flex items-center px-2 rounded text-xs bg-muted/15 border border-border/80 font-mono text-foreground font-medium select-text"
+          className={cn(
+            "min-h-7 flex items-center px-2 rounded text-xs bg-muted/15 border border-border/80 font-mono text-foreground font-medium select-text w-full sm:w-auto",
+            inputClassName,
+          )}
         >
           {viewDisplayValue !== undefined &&
           viewDisplayValue !== null &&
@@ -107,7 +145,10 @@ export function FieldRow({
           )}
         </div>
       ) : (
-        <div style={style} className="min-w-0 flex items-center max-w-full flex-1 relative">
+        <div
+          style={style}
+          className={cn("min-w-0 flex items-center w-full relative min-h-7", inputClassName)}
+        >
           {children}
         </div>
       )}

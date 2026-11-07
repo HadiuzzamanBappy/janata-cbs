@@ -17,6 +17,8 @@ import {
 import { Filter, Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { useContainerWidth } from "@/hooks";
+import { cn } from "@/lib/core-utils";
 import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
@@ -45,7 +47,16 @@ export function IcSelectionTab({
   disabled = false,
   validationErrors = [],
 }: IcSelectionTabProps) {
+  const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(860);
   const [selectedIdx, setSelectedIdx] = React.useState<number>(0);
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+  const handleSelectFilter = (idx: number) => {
+    setSelectedIdx(idx);
+    if (isCompact) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -115,6 +126,9 @@ export function IcSelectionTab({
       selectFieldOperatorFixed: "",
     });
     setSelectedIdx(filters.length);
+    if (isCompact) {
+      setIsSidebarOpen(false);
+    }
   };
 
   const handleAddCustomFilter = () => {
@@ -128,86 +142,119 @@ export function IcSelectionTab({
       selectFieldOperatorFixed: "",
     });
     setSelectedIdx(filters.length);
+    if (isCompact) {
+      setIsSidebarOpen(false);
+    }
   };
 
-  return (
-    <div className="h-full w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0 select-none">
-      {/* 1. Left Panel: Master Criteria Navigator (Fixed Compact Width) */}
-      <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
-        {/* Header with Title + Lookup Popover */}
-        <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <Filter className="size-3.5 text-primary" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
-              Criteria ({filters.length})
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <FilterModelPopover
-              targetModel={targetModel}
-              configuredFieldNames={configuredFieldNames}
-              onImportField={handleImportProperty}
-              disabled={disabled}
-            />
-
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              onClick={handleAddCustomFilter}
-              disabled={disabled}
-              className="h-7 text-xs px-2 gap-1 rounded"
-              title="Add a custom selection criterion"
-            >
-              <Plus className="size-3" />
-              <span>Add</span>
-            </Button>
-          </div>
+  const renderFilterPanel = () => (
+    <div className="w-full h-full flex flex-col min-h-0 bg-card overflow-hidden">
+      {/* Header with Title + Lookup Popover */}
+      <div className="h-10 px-3 border-b border-border/70 flex items-center justify-between shrink-0 bg-muted/20">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
+            Criteria ({filters.length})
+          </span>
         </div>
 
-        {/* Scrollable Criteria Items */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          {filters.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-              <Filter className="size-8 text-muted-foreground/30 mb-2" />
-              <p className="text-xs font-medium">No Criteria Defined</p>
-              <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
-                Import properties from {targetModel || "the model"} or add a custom filter.
-              </p>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext items={filterKeys} strategy={verticalListSortingStrategy}>
-                <div className="divide-y divide-border/30">
-                  {filters.map((filter, index) => {
-                    const filterErrors = validationErrors.filter(
-                      (err) => err.tab === "selection" && err.itemIndex === index,
-                    );
-                    return (
-                      <FilterItem
-                        key={filterKeys[index]}
-                        index={index}
-                        field={filter}
-                        isSelected={index === selectedIdx}
-                        disabled={disabled}
-                        hasError={filterErrors.length > 0}
-                        errorCount={filterErrors.length}
-                        onSelect={() => setSelectedIdx(index)}
-                        onRemove={() => onRemoveFilter(index)}
-                      />
-                    );
-                  })}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
+        <div className="flex items-center gap-1 shrink-0">
+          <FilterModelPopover
+            targetModel={targetModel}
+            configuredFieldNames={configuredFieldNames}
+            onImportField={handleImportProperty}
+            disabled={disabled}
+          />
+
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={handleAddCustomFilter}
+            disabled={disabled}
+            className="h-7 text-xs px-2 sm:px-2.5 gap-1 rounded cursor-pointer"
+            title="Add a custom selection criterion"
+          >
+            <Plus className="size-3.5" />
+            <span className="hidden sm:inline">Add</span>
+          </Button>
         </div>
       </div>
+
+      {/* Scrollable Criteria Items */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {filters.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
+            <Filter className="size-8 text-muted-foreground/30 mb-2" />
+            <p className="text-xs font-medium">No Criteria Defined</p>
+            <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
+              Import properties from {targetModel || "the model"} or add a custom filter.
+            </p>
+          </div>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={filterKeys} strategy={verticalListSortingStrategy}>
+              <div className="divide-y divide-border/30">
+                {filters.map((filter, index) => {
+                  const filterErrors = validationErrors.filter(
+                    (err) => err.tab === "selection" && err.itemIndex === index,
+                  );
+                  return (
+                    <FilterItem
+                      key={filterKeys[index]}
+                      index={index}
+                      field={filter}
+                      isSelected={index === selectedIdx}
+                      disabled={disabled}
+                      hasError={filterErrors.length > 0}
+                      errorCount={filterErrors.length}
+                      onSelect={() => handleSelectFilter(index)}
+                      onRemove={() => onRemoveFilter(index)}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative h-full w-full rounded border border-border/80 bg-card/60 flex overflow-hidden shadow-2xs min-h-0 select-none"
+    >
+      {/* 1. Left Panel / Offcanvas Drawer */}
+      {isCompact ? (
+        <>
+          {/* Backdrop */}
+          {isSidebarOpen && (
+            <div
+              className="absolute inset-0 bg-black/40 z-20 backdrop-blur-xs transition-opacity"
+              onClick={() => setIsSidebarOpen(false)}
+              aria-hidden="true"
+            />
+          )}
+          {/* Offcanvas Drawer */}
+          <div
+            className={cn(
+              "absolute inset-y-0 left-0 z-30 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out border-r border-border rounded-r overflow-hidden",
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full pointer-events-none",
+            )}
+          >
+            {renderFilterPanel()}
+          </div>
+        </>
+      ) : (
+        <div className="w-72 sm:w-80 shrink-0 border-r border-border/70 flex flex-col min-h-0 bg-muted/10">
+          {renderFilterPanel()}
+        </div>
+      )}
 
       {/* 2. Right Panel: Criteria Details Inspector (Expands to Full Width) */}
       <div className="flex-1 flex flex-col min-h-0 bg-background/50">
@@ -219,6 +266,9 @@ export function IcSelectionTab({
             validationErrors={validationErrors}
             onUpdate={(patch) => onUpdateFilter(selectedIdx, patch)}
             onRemove={() => onRemoveFilter(selectedIdx)}
+            onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+            isSidebarOpen={isSidebarOpen}
+            showSidebarToggle={isCompact}
           />
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">

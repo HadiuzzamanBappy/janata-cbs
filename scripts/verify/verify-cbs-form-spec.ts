@@ -121,8 +121,8 @@ async function runSuite() {
   console.log(" Pattern      : Single Unique Test per Compiler/Rule Capability with Visible IO");
   console.log("================================================================================");
 
-  // ── 1. Responsive Numerical Width Mapping ──
-  console.log("\n── 1. Responsive Numerical Width Mapping (defaultWidthForLength) ──");
+  // ── 1. Responsive Numerical & Semantic Width Mapping ──
+  console.log("\n── 1. Responsive Numerical & Semantic Width Mapping (defaultWidthForLength) ──");
   const wShort = defaultWidthForLength({
     SN: "1",
     NAME: "code",
@@ -133,10 +133,10 @@ async function runSuite() {
     REQUIRED: false,
   });
   recordTest(
-    "1.1 Maps short field length (<= 5) to 120px numerical width",
+    "1.1 Maps short field length (<= 6) to 'xs' semantic token",
     { length: 4 },
     { width: wShort },
-    wShort === 120,
+    wShort === "xs",
   );
 
   const wLong = defaultWidthForLength({
@@ -149,27 +149,26 @@ async function runSuite() {
     REQUIRED: false,
   });
   recordTest(
-    "1.2 Maps long field length (> 100) to 1000px (full row) numerical width",
+    "1.2 Maps long field length (120) to 'xl' semantic token",
     { length: 120 },
     { width: wLong },
-    wLong === 1000,
+    wLong === "xl",
   );
 
-  const wNumeric = defaultWidthForLength({
+  const wDate = defaultWidthForLength({
     SN: "3",
-    NAME: "branchTitle",
-    LABEL: "Branch Title",
-    TYPE: "Text",
+    NAME: "openingDate",
+    LABEL: "Opening Date",
+    TYPE: "Date",
     STRUCTURE: "S",
-    LENGTH: 0,
+    LENGTH: 10,
     REQUIRED: true,
-    WIDTH: 120,
   });
   recordTest(
-    "1.3 Preserves explicit numeric width (120) from database model definition",
-    { width: 120 },
-    { width: wNumeric },
-    wNumeric === 120,
+    "1.3 Maps Date type to 'sm' semantic token regardless of length",
+    { type: "Date", length: 10 },
+    { width: wDate },
+    wDate === "sm",
   );
 
   // ── 2. Fallback Layout Compilation ──

@@ -1,11 +1,11 @@
 import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getFieldValue } from "@/lib/cbs-form-spec";
 import { generateClientToken } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
-import { getFieldValue } from "../../utils/path-utils";
 import { getFieldColSpanClass } from "../../utils/section-utils";
 import { FieldAtom } from "../field-atom";
 import { UnifiedFieldFactory } from "../field-factory";
@@ -17,7 +17,7 @@ export interface ObjectGroupSectionProps {
   errors?: Record<string, string>;
   disabled?: boolean;
   mode?: CbsScreenMode;
-  numCols: number;
+  numCols?: number;
   hasKernel: boolean;
 }
 
@@ -28,7 +28,7 @@ export function ObjectGroupSection({
   errors = {},
   disabled = false,
   mode = "I",
-  numCols,
+  numCols: _numCols,
   hasKernel,
 }: ObjectGroupSectionProps) {
   const [groupCounts, setGroupCounts] = useState<Record<string, number>>({});
@@ -134,9 +134,9 @@ export function ObjectGroupSection({
     <div className="space-y-2">
       {groupSets.map(({ setIdx, setKey, isLastSet }) => (
         <div key={setKey} className="space-y-2">
-          {/* Object Group Header as a Standard Field Row (No input, controls before colon) */}
-          <div className="flex items-center gap-2">
-            <div className="w-36 shrink-0 flex items-center justify-between text-xs select-none">
+          {/* Object Group Header as a Responsive Field Row (Controls inline or on right, colon hidden on mobile) */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+            <div className="w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none">
               <div className="flex items-center gap-1 min-w-0 flex-1">
                 <span className="truncate font-semibold text-foreground text-xs">
                   {isMulti ? `${groupTitle} ${setIdx + 1}` : groupTitle}
@@ -144,7 +144,7 @@ export function ObjectGroupSection({
               </div>
 
               {!disabled && mode === "I" && isMulti && (
-                <div className="flex items-center gap-0.5 shrink-0">
+                <div className="flex items-center gap-0.5 shrink-0 ml-auto sm:ml-0">
                   {setCount > 1 && (
                     <Button
                       type="button"
@@ -179,8 +179,10 @@ export function ObjectGroupSection({
               )}
             </div>
 
-            {/* Aligned colon */}
-            <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
+            {/* Desktop aligned colon */}
+            <span className="hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none">
+              :
+            </span>
           </div>
 
           {/* Child Fields within Group Set */}
@@ -199,7 +201,15 @@ export function ObjectGroupSection({
                 };
 
                 return (
-                  <div key={setField.SN} className={getFieldColSpanClass(numCols, setField.WIDTH)}>
+                  <div
+                    key={setField.SN}
+                    className={getFieldColSpanClass(
+                      section.columns || 1,
+                      setField.WIDTH,
+                      setField.LENGTH,
+                      setField.TYPE,
+                    )}
+                  >
                     {hasKernel ? (
                       <FieldAtom field={setField} disabled={disabled} mode={mode} />
                     ) : (

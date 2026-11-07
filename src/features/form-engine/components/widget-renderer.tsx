@@ -21,7 +21,6 @@ export interface WidgetRendererProps {
   isReadOnly: boolean;
   error?: string;
   placeholder?: string;
-  inputStyle?: React.CSSProperties;
   resolvedOptions: WidgetOption[];
   modelLoading: boolean;
   effectiveLabel: string;
@@ -37,7 +36,6 @@ export function renderFieldWidget({
   isReadOnly,
   error,
   placeholder,
-  inputStyle,
   resolvedOptions,
   modelLoading,
   effectiveLabel,
@@ -53,7 +51,6 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder}
-          style={inputStyle}
           options={resolvedOptions}
           loading={modelLoading}
           isNumeric={field.TYPE.toLowerCase() === "number"}
@@ -70,7 +67,6 @@ export function renderFieldWidget({
           onChange={onChange}
           disabled={isReadOnly}
           error={error}
-          style={inputStyle}
           type={widget === "datetime" ? "datetime-local" : "date"}
         />
       );
@@ -84,7 +80,6 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder}
-          style={inputStyle}
         />
       );
     case "switch":
@@ -165,7 +160,6 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder}
-          style={inputStyle}
           currencyPrefix={field.NUMBER_CONFIG?.currencyCode || "BDT"}
         />
       );
@@ -179,7 +173,6 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder || "0.0000"}
-          style={inputStyle}
           suffix={field.RATE_CONFIG?.suffix || "%"}
         />
       );
@@ -194,7 +187,6 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder}
-          style={inputStyle}
         />
       );
     default:
@@ -208,7 +200,6 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder}
-          style={inputStyle}
         />
       );
   }

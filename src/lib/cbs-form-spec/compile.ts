@@ -10,52 +10,52 @@ export type CompiledFormSpec = FormConfigRecord;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Computes optimal semantic width token from model property attributes.
- * Aligns with the 7 canonical CBS responsive tokens: xs, sm, md, lg, xl, xxl, full.
+ * Computes optimal semantic width token from model property attributes (TYPE and physical LENGTH).
+ * Maps directly to the canonical 12-column responsive tokens: xs, sm, md, lg, xl, full.
  */
 export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
-  const explicitWidth = (prop as unknown as { WIDTH?: PropertyWidth }).WIDTH;
-  if (explicitWidth && [120, 180, 220, 280, 320, 450, 1000].includes(explicitWidth as number)) {
-    return explicitWidth;
+  // 1. Type-based semantic defaults
+  const normType = (prop.TYPE || "").toLowerCase();
+  if (normType === "textarea") return "full";
+  if (normType === "boolean" || normType === "switch" || normType === "checkbox") return "xs";
+  if (normType === "date" || normType === "datetime") return "sm";
+  if (normType === "amount" || normType === "rate") return "md";
+
+  // 2. Physical DB length fallback
+  // Single-line inputs cap comfortably at xxl (max-w-2xl) instead of stretching
+  // across the full widescreen terminal. Only textareas take "full" (100% width).
+  const len = prop.LENGTH;
+  if (typeof len === "number" && len > 0) {
+    if (len <= 6) return "xs";
+    if (len <= 16) return "sm";
+    if (len <= 40) return "md";
+    if (len <= 80) return "lg";
+    if (len <= 150) return "xl";
+    return "xxl";
   }
-  if (prop.LENGTH && prop.LENGTH > 100) return 1000;
-  if (prop.LENGTH && prop.LENGTH > 40) return 450;
-  if (prop.LENGTH && prop.LENGTH <= 5) return 120;
-  if (prop.LENGTH && prop.LENGTH <= 15) return 180;
-  return 280;
+
+  return "md";
 }
 
 function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["PARAMETER"] {
   if (!raw) {
-    return {
-      type: "O",
-      data: [],
-      modelName: "",
-      displayField: "",
-      condition: "",
-      reference: "",
-    };
+    return undefined;
   }
   const rawData = Array.isArray(raw.data) ? raw.data : [];
   const normalizedData = rawData.map((item) => {
-    if (typeof item === "string") {
-      return { code: item, label: item, value: item };
-    }
     const d = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
-    const code = String(d.code ?? d.value ?? d.itemCode ?? d.name ?? "");
-    const label = String(d.label ?? d.itemLabel ?? d.name ?? d.value ?? code);
+    const itemCode = String(d.itemCode ?? d.code ?? item ?? "").trim();
+    const itemLabel = String(d.itemLabel ?? d.label ?? d.itemCode ?? itemCode).trim();
     return {
-      code,
-      label: label || code,
-      value: code,
-      ...d,
+      itemCode,
+      itemLabel: itemLabel || itemCode,
     };
   });
   return {
     type: String(raw.type || "O"),
     data: normalizedData,
     modelName: String(raw.modelName || ""),
-    codeField: String(raw.codeField || raw.valueField || ""),
+    codeField: String(raw.codeField || ""),
     displayField: String(raw.displayField || ""),
     condition: String(raw.condition || ""),
     reference: String(raw.reference || ""),
@@ -88,9 +88,8 @@ function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
     WIDTH: defaultWidthForLength(p),
     WIDGET: effectiveWidget,
     PARAMETER: param,
-    POSITION: "",
-    ENRICHTEXT: "",
-    DEFAULTVALUE: "",
+    VISIBLE_WHEN: (p as Record<string, unknown>).VISIBLE_WHEN as FormElement["VISIBLE_WHEN"],
+    DISABLED_WHEN: (p as Record<string, unknown>).DISABLED_WHEN as FormElement["DISABLED_WHEN"],
   };
 }
 
@@ -195,6 +194,7 @@ export function compileFormSpec(
 
   const cleanSections: FormSection[] = layout.frmElements.sections.map((section) => ({
     ...section,
+    columns: section.columns ?? 1,
     fields: (section.fields || []).map((field) => {
       const modelProp = propertyMap.get(field.NAME.toLowerCase());
       if (!modelProp) {
@@ -221,6 +221,8 @@ export function compileFormSpec(
               ? normalizeParameter(modelProp.PARAMETER)
               : field.PARAMETER,
         VALIDATION: field.VALIDATION,
+        VISIBLE_WHEN: field.VISIBLE_WHEN,
+        DISABLED_WHEN: field.DISABLED_WHEN,
       };
     }),
   }));

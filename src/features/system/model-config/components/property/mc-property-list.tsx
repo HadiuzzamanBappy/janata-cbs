@@ -1,6 +1,6 @@
 "use client";
 
-import { Database, Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ interface McPropertyListProps {
   onAddField: () => string;
   onAddSubField?: (parentSn: string) => string;
   onDeleteField?: (sn: string, forceHardDelete?: boolean) => void;
+  className?: string;
 }
 
 export function McPropertyList({
@@ -40,6 +41,7 @@ export function McPropertyList({
   onAddField,
   onAddSubField,
   onDeleteField,
+  className,
 }: McPropertyListProps) {
   const [searchFilter, setSearchFilter] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("ALL");
@@ -65,19 +67,18 @@ export function McPropertyList({
   }, [properties, searchFilter, typeFilter]);
 
   return (
-    <div className="w-80 sm:w-96 border-r border-border/70 flex flex-col bg-muted/10 shrink-0 min-h-0">
+    <div
+      className={cn(
+        "w-80 sm:w-96 border-r border-border/70 flex flex-col bg-muted/10 shrink-0 min-h-0",
+        className,
+      )}
+    >
       {/* Top Search & Filter Bar */}
       <div className="p-2 border-b border-border/70 space-y-1.5 shrink-0 bg-muted/20">
         <div className="flex items-center justify-between gap-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
-            <div className="size-5 rounded bg-primary/10 text-primary flex items-center justify-center shrink-0">
-              <Database className="size-3" />
-            </div>
             <span className="text-xs font-semibold text-foreground uppercase tracking-wide truncate">
-              Columns
-            </span>
-            <span className="px-1.5 py-0.2 rounded bg-primary/10 text-primary font-mono text-[10px] font-bold border border-primary/20">
-              {properties.length}
+              Columns ({properties.length})
             </span>
           </div>
 
@@ -86,10 +87,11 @@ export function McPropertyList({
               type="button"
               size="sm"
               onClick={handleAddField}
-              className="h-7 text-xs gap-1 px-2.5 font-medium rounded shadow-xs shrink-0"
+              className="h-7 text-xs gap-1 px-2 sm:px-2.5 font-medium rounded shadow-xs shrink-0 cursor-pointer"
+              title="Add a column"
             >
               <Plus className="size-3.5" />
-              <span>Add Column</span>
+              <span className="hidden sm:inline">Add Column</span>
             </Button>
           )}
         </div>

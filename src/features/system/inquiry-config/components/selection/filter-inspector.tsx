@@ -1,11 +1,11 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { PanelLeft, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import { setFieldValue } from "@/features/form-engine/utils/path-utils";
+import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction } from "@/types";
 import { FILTER_INSPECTOR_SECTIONS } from "../../fields";
@@ -18,6 +18,9 @@ export interface FilterInspectorProps {
   validationErrors?: InquiryValidationErrorItem[];
   onUpdate: (patch: Partial<INQSelectField>) => void;
   onRemove?: () => void;
+  onToggleSidebar?: () => void;
+  isSidebarOpen?: boolean;
+  showSidebarToggle?: boolean;
 }
 
 export function FilterInspector({
@@ -27,6 +30,9 @@ export function FilterInspector({
   validationErrors = [],
   onUpdate,
   onRemove,
+  onToggleSidebar,
+  isSidebarOpen = false,
+  showSidebarToggle = false,
 }: FilterInspectorProps) {
   // Map validation errors for this criterion
   const errorMap = React.useMemo(() => {
@@ -78,37 +84,55 @@ export function FilterInspector({
       {/* 1. Header Bar */}
       <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <Badge
-            variant="outline"
-            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs"
-          >
-            {selectedIdx !== undefined ? `Filter #${selectedIdx + 1}` : "Filter"}
-          </Badge>
-          <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-            {field.selectFieldName || "<UNNAMED_FILTER>"}
-          </span>
-          {field.selectFieldDisplay && (
-            <span className="text-xs text-muted-foreground truncate">
-              — {field.selectFieldDisplay}
+          {showSidebarToggle && onToggleSidebar && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={onToggleSidebar}
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
+              title={isSidebarOpen ? "Hide Criteria" : "Show Criteria"}
+            >
+              <PanelLeft className="size-3.5" />
+            </Button>
+          )}
+
+          {field.selectFieldName &&
+          field.selectFieldDisplay &&
+          field.selectFieldName !== field.selectFieldDisplay ? (
+            <>
+              <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
+                {field.selectFieldName}
+              </span>
+              <span className="text-xs text-muted-foreground truncate">
+                — {field.selectFieldDisplay}
+              </span>
+            </>
+          ) : (
+            <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
+              {field.selectFieldDisplay || field.selectFieldName || "<UNNAMED_FILTER>"}
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0 uppercase">
-            {field.selectFieldOperator || "EQ"}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Badge
+            variant="outline"
+            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs shrink-0"
+          >
+            {selectedIdx !== undefined ? `#${selectedIdx + 1}` : "#"}
           </Badge>
 
           {!disabled && onRemove && (
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              size="icon-xs"
               onClick={onRemove}
-              className="h-6 text-xs text-destructive hover:bg-destructive/10 gap-1 rounded cursor-pointer"
+              className="size-7 text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+              title="Delete Criterion"
             >
               <Trash2 className="size-3.5" />
-              <span>Delete Criterion</span>
             </Button>
           )}
         </div>

@@ -43,10 +43,17 @@ export function ActionMoreMenu({ moreActions = [], submitting = false }: ActionM
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-2 text-xs gap-1.5 w-44 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0"
+              className="h-7 px-2 text-xs gap-1.5 w-auto sm:w-44 max-w-44 justify-between border-border bg-background hover:bg-muted/50 text-foreground shrink-0 cursor-pointer"
             >
               <span className="truncate">
-                {selectedAction ? selectedAction.label : "More operations"}
+                {selectedAction ? (
+                  selectedAction.label
+                ) : (
+                  <>
+                    <span className="sm:hidden">More</span>
+                    <span className="hidden sm:inline">More operations</span>
+                  </>
+                )}
               </span>
               <ChevronDown className="size-3 text-muted-foreground shrink-0" />
             </Button>

@@ -81,7 +81,7 @@ export const modelConfigRecordSchema = z
         }
       }
 
-      // Check Options List items have non-empty names
+      // Check Options List items have valid itemCode and itemLabel
       if (prop.PARAMETER?.type === "O") {
         const data = Array.isArray(prop.PARAMETER.data) ? prop.PARAMETER.data : [];
         if (data.length === 0) {
@@ -92,20 +92,21 @@ export const modelConfigRecordSchema = z
           });
         } else {
           data.forEach((item: unknown, itemIdx: number) => {
-            const itemVal =
-              typeof item === "object" && item !== null
-                ? String(
-                    (item as Record<string, unknown>).value ||
-                      (item as Record<string, unknown>).name ||
-                      (item as Record<string, unknown>).code ||
-                      (item as Record<string, unknown>).label ||
-                      "",
-                  ).trim()
-                : String(item ?? "").trim();
-            if (!itemVal) {
+            if (typeof item === "object" && item !== null) {
+              const rec = item as Record<string, unknown>;
+              const itemCode = String(rec.itemCode ?? "").trim();
+              const itemLabel = String(rec.itemLabel ?? "").trim();
+              if (!itemCode || !itemLabel) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: `Option #${itemIdx + 1} must have non-empty itemCode and itemLabel.`,
+                  path: ["PROPERTIES", idx, "PARAMETER", "data", itemIdx],
+                });
+              }
+            } else {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: `Option #${itemIdx + 1} cannot be empty. An option name must be provided.`,
+                message: `Option #${itemIdx + 1} must be an object with itemCode and itemLabel.`,
                 path: ["PROPERTIES", idx, "PARAMETER", "data", itemIdx],
               });
             }

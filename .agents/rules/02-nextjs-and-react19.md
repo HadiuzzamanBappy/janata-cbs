@@ -3,6 +3,7 @@
 ## 1. Asynchronous Dynamic APIs (Next.js 16)
 
 Next.js dynamically-evaluated parameters and request contexts are asynchronous Promises:
+
 - **Cookies & Headers:** ALWAYS `await` them:
 
   ```ts

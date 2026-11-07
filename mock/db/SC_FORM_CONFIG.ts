@@ -42,7 +42,11 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               ENRICHTEXT: "Select category of account (e.g. Savings, Current, Term Deposit)",
               PARAMETER: {
                 type: "O",
-                data: ["SAVINGS", "CURRENT", "FIXED_DEPOSIT"],
+                data: [
+                  { itemCode: "SAVINGS", itemLabel: "Savings Account" },
+                  { itemCode: "CURRENT", itemLabel: "Current Account" },
+                  { itemCode: "FIXED_DEPOSIT", itemLabel: "Fixed Deposit" },
+                ],
               },
             },
             {
@@ -76,7 +80,11 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               ENRICHTEXT: "ISO currency denominator for account ledger balances",
               PARAMETER: {
                 type: "O",
-                data: ["BDT", "USD", "EUR"],
+                data: [
+                  { itemCode: "BDT", itemLabel: "Bangladeshi Taka (BDT)" },
+                  { itemCode: "USD", itemLabel: "US Dollar (USD)" },
+                  { itemCode: "EUR", itemLabel: "Euro (EUR)" },
+                ],
               },
             },
           ],
@@ -343,7 +351,13 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDTH: 200,
               PARAMETER: {
                 type: "O",
-                data: ["OFFICER", "MANAGER", "ADMIN", "TELLER", "AUDITOR"],
+                data: [
+                  { itemCode: "OFFICER", itemLabel: "Officer" },
+                  { itemCode: "MANAGER", itemLabel: "Branch Manager" },
+                  { itemCode: "ADMIN", itemLabel: "System Administrator" },
+                  { itemCode: "TELLER", itemLabel: "Bank Teller" },
+                  { itemCode: "AUDITOR", itemLabel: "Internal Auditor" },
+                ],
               },
             },
             {

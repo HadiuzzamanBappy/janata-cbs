@@ -9,6 +9,7 @@ description: Use this skill when designing, authoring, or refactoring user inter
 ## Overview
 
 Janata CBS serves professional bank tellers, branch managers, and back-office operators. The user interface must be:
+
 - **Minimalist & Clean:** Fast, distraction-free, zero flashy animations, flat borders, subtle surface elevations.
 - **High-Density & Compact:** Financial operators process high volumes of data; padding, row heights, and font sizes must optimize screen real estate without clutter.
 - **Consistent Across Monitors:** Whether displayed on legacy branch screens (**1366×768** / **1280×720**) or modern high-res workstation displays (**1920×1080 (FHD)** / **1440p** / multi-window popouts), layout structure, alignment, and readability must remain rock-solid without unintended wrapping or horizontal overflow.
@@ -45,6 +46,7 @@ Branch workstations operate across a wide spectrum of monitor hardware and pop-u
 ### Invariant 1: Sticky Action Bar & Bounded Scroll Area
 
 Screen layouts must never allow the entire browser page to scroll away from the action header or status bar.
+
 - Use `h-full flex flex-col overflow-hidden` on the screen container.
 - Keep the `CbsFormHeader` or `CbsInquiryHeader` sticky/fixed at the top.
 - Wrap form bodies or data tables in an explicit `flex-1 overflow-y-auto` viewport.
@@ -53,6 +55,7 @@ Screen layouts must never allow the entire browser page to scroll away from the 
 ### Invariant 2: Predictable 12-Column Responsive Form Grids
 
 Every form must use the standard 12-column grid system (`grid grid-cols-12 gap-3`):
+
 - **Full-width fields (Descriptions, textareas, notes):**
   `col-span-12`
 - **Two-column field pairs (Debit/Credit, Account/Title):**
@@ -65,6 +68,7 @@ Every form must use the standard 12-column grid system (`grid grid-cols-12 gap-3
 ### Invariant 3: Prevent Ultra-Wide Distortion on FHD/4K
 
 On 1920px+ monitors, simple forms must not stretch single inputs across the entire screen.
+
 - Wrap form cards in responsive max-width containers (e.g. `max-w-6xl mx-auto` or structured tabs) to preserve natural visual balance and operator scanning speed.
 
 ---
@@ -149,6 +153,7 @@ export function TransactionScreen({ command, tabId }: ScreenProps) {
 ## 6. Pre-Commit UI Quality Checklist
 
 Before completing any UI change:
+
 - [ ] **Density Check:** Are inputs/buttons `h-8` with `text-xs` typography?
 - [ ] **Viewport Check (1366x768):** Does the primary screen card and action header fit without vertical cutoffs or awkward dual scrollbars?
 - [ ] **Monospace Financials:** Are currencies, amounts, account IDs, and dates set to `font-mono tabular-nums`?

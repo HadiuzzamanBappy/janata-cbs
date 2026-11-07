@@ -1,29 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { cn, evaluateFormula } from "@/lib/core-utils";
-import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { CbsScreenMode } from "@/types";
-import { getFieldValue } from "../utils/path-utils";
-import { buildRenderBlocks } from "../utils/section-utils";
+import { buildRenderBlocks } from "@/lib/cbs-form-spec";
+import { cn } from "@/lib/core-utils";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormRendererProps } from "../types";
 import { SectionCard } from "./section-card";
 
-export interface FormRendererProps {
-  presentation?:
-    | FormConfigRecord["frmElements"]
-    | { sections: FormSection[]; steps?: FormConfigRecord["frmElements"]["steps"] };
-  frmElements?:
-    | FormConfigRecord["frmElements"]
-    | { sections: FormSection[]; steps?: FormConfigRecord["frmElements"]["steps"] };
-  values: Record<string, unknown>;
-  onChange: (key: string, value: unknown) => void;
-  errors?: Record<string, string>;
-  disabled?: boolean;
-  mode?: CbsScreenMode;
-}
+export type { FormRendererProps };
 
 export function FormRenderer({
-  presentation,
   frmElements,
   values,
   onChange,
@@ -31,8 +17,7 @@ export function FormRenderer({
   disabled = false,
   mode = "I",
 }: FormRendererProps) {
-  const container = frmElements || presentation || { steps: [], sections: [] };
-  const sections = container.sections || [];
+  const sections = frmElements?.sections || [];
 
   // Map of active tab ID per tab group
   const [activeTabs, setActiveTabs] = React.useState<Record<string, string>>({});
@@ -71,13 +56,11 @@ export function FormRenderer({
     });
   }, [tabGroups]);
 
-  // Handle formula evaluation and ON_CHANGE rules on input change
+  // Handle reactive ON_CHANGE rules on input change
   const handleFieldChange = (key: string, val: unknown) => {
     onChange(key, val);
 
-    let nextValues = { ...values, [key]: val };
-
-    // 1. Process reactive ON_CHANGE rules
+    // Process reactive ON_CHANGE rules (simple copy, uppercase, lowercase, join)
     sections.forEach((sec) => {
       (sec.fields || []).forEach((f) => {
         if (f.NAME === key && f.ON_CHANGE?.target) {
@@ -95,88 +78,13 @@ export function FormRenderer({
             targetVal = "";
           }
 
-          if (targetVal !== nextValues[rule.target]) {
-            nextValues = { ...nextValues, [rule.target]: targetVal };
+          if (targetVal !== values[rule.target]) {
             onChange(rule.target, targetVal);
           }
         }
       });
     });
-
-    // 2. Evaluate derived formulas across all sections
-    sections.forEach((sec) => {
-      (sec.fields || []).forEach((f) => {
-        const fieldKey = f.NAME;
-        const rawFormula = f.FIXEDVALUE || f.DEFAULTVALUE;
-        const formula =
-          typeof rawFormula === "string" && rawFormula.startsWith("=")
-            ? rawFormula.slice(1)
-            : typeof rawFormula === "string" && /[+\-*/]/.test(rawFormula)
-              ? rawFormula
-              : undefined;
-        if (formula && fieldKey) {
-          const calculated = evaluateFormula(formula, nextValues);
-          if (calculated !== undefined && calculated !== nextValues[fieldKey]) {
-            onChange(fieldKey, calculated);
-          }
-        }
-      });
-    });
   };
-
-  // Merge external errors with dynamic cross-field validation errors
-  const dynamicErrors = React.useMemo(() => {
-    const errs: Record<string, string> = { ...errors };
-
-    sections.forEach((sec) => {
-      (sec.fields || []).forEach((f) => {
-        const val = getFieldValue(values, f.NAME);
-
-        // 1. Check matching rule (e.g. New Pass === Confirm Pass)
-        if (f.VALIDATION?.matches) {
-          const matchTarget = f.VALIDATION.matches;
-          const targetVal = getFieldValue(values, matchTarget);
-          if (val !== undefined && val !== "" && targetVal !== undefined && targetVal !== "") {
-            if (val !== targetVal) {
-              errs[f.NAME] = f.VALIDATION.message || `Must match ${matchTarget}`;
-            }
-          }
-        }
-
-        // 2. Minimum length/value
-        if (f.VALIDATION?.min !== undefined && val !== undefined && val !== "") {
-          if (typeof val === "string" && val.length < f.VALIDATION.min) {
-            errs[f.NAME] = f.VALIDATION.message || `Minimum length is ${f.VALIDATION.min}`;
-          } else if (typeof val === "number" && val < f.VALIDATION.min) {
-            errs[f.NAME] = f.VALIDATION.message || `Minimum value is ${f.VALIDATION.min}`;
-          }
-        }
-
-        // 3. Maximum length/value
-        if (f.VALIDATION?.max !== undefined && val !== undefined && val !== "") {
-          if (typeof val === "string" && val.length > f.VALIDATION.max) {
-            errs[f.NAME] = f.VALIDATION.message || `Maximum length is ${f.VALIDATION.max}`;
-          } else if (typeof val === "number" && val > f.VALIDATION.max) {
-            errs[f.NAME] = f.VALIDATION.message || `Maximum value is ${f.VALIDATION.max}`;
-          }
-        }
-
-        // 4. Regex pattern matching
-        if (f.VALIDATION?.pattern && val !== undefined && val !== "") {
-          try {
-            const reg = new RegExp(f.VALIDATION.pattern);
-            if (!reg.test(String(val))) {
-              errs[f.NAME] = f.VALIDATION.message || "Invalid format";
-            }
-          } catch {
-            // Ignore invalid regex in user definition
-          }
-        }
-      });
-    });
-
-    return errs;
-  }, [errors, sections, values]);
 
   return (
     <div className="h-full w-full overflow-y-auto pr-1">
@@ -189,7 +97,7 @@ export function FormRenderer({
                 section={block.section}
                 values={values}
                 onChange={handleFieldChange}
-                errors={dynamicErrors}
+                errors={errors}
                 disabled={disabled}
                 mode={mode}
               />
@@ -237,7 +145,7 @@ export function FormRenderer({
                     section={activeSection}
                     values={values}
                     onChange={handleFieldChange}
-                    errors={dynamicErrors}
+                    errors={errors}
                     disabled={disabled}
                     mode={mode}
                     hideHeader

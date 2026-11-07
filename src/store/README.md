@@ -157,6 +157,7 @@ The store system is deliberately partitioned into **sealed core operational stor
 ### How to Add a New Domain Store
 
 If a new cross-cutting concern is introduced (e.g., an Offline Sync Queue or Notification Feed):
+
 1. **Create the store factory** (`src/store/<domain>/<domain>-store.ts`) using vanilla `createStore<T>()`.
 2. **Create the React Context Provider** (`src/store/<domain>/<domain>-provider.tsx`) using `useRef` + `createContext` + `useStore`.
 3. **Register in `CbsAppStoreProvider`** (`src/store/root-provider.tsx`) within the master hierarchy.

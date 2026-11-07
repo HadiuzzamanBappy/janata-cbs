@@ -3,22 +3,13 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useContext, useState } from "react";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { CbsScreenMode } from "@/types";
 import { FormKernelContext } from "../store/form-kernel-provider";
+import type { SectionCardProps } from "../types";
 import { ArrayTableSection } from "./sections/array-table-section";
 import { ObjectGroupSection } from "./sections/object-group-section";
 import { StandardGridSection } from "./sections/standard-grid-section";
 
-export interface SectionCardProps {
-  section: FormSection;
-  values: Record<string, unknown>;
-  onChange: (key: string, value: unknown) => void;
-  errors?: Record<string, string>;
-  disabled?: boolean;
-  mode?: CbsScreenMode;
-  hideHeader?: boolean;
-}
+export type { SectionCardProps };
 
 export function SectionCard({
   section,

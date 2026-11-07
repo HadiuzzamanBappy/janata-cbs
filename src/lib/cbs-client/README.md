@@ -118,6 +118,7 @@ const menuTree = await cbs.send(cbs.menuTree.get(), { silent: true });
 ### 1. Transport Layer (`transport/proxy-client.ts`): **SEALED**
 
 The transport mechanics are complete and finalized:
+
 - Client-to-proxy wire routing (`/api/proxy`).
 - Pre-flight Zod validation.
 - Standard HTTP status code and error toast handling.
@@ -131,6 +132,7 @@ The transport mechanics are complete and finalized:
 When your core banking system introduces a new banking table or model, you **never** write new HTTP endpoints, fetch wrappers, or custom CRUD functions.
 
 You simply call:
+
 ```typescript
 cbs.model("YOUR_NEW_TABLE").get(id);
 cbs.model("YOUR_NEW_TABLE").save(data);
@@ -138,6 +140,7 @@ cbs.model("YOUR_NEW_TABLE").authorize(id);
 ```
 
 Or if it's a permanent core system table, register it in `index.ts` with `CbsControlTable`:
+
 ```typescript
 import { CbsControlTable } from "@/types";
 import { createModelPayloads } from "./payloads/base-model";
@@ -153,6 +156,7 @@ export const cbs = {
 ## 🧪 Verification
 
 Run the dedicated test suite:
+
 ```bash
 pnpm verify:client
 ```

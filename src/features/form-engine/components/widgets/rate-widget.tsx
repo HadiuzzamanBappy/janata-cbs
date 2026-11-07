@@ -13,12 +13,11 @@ export function RateWidget({
   disabled = false,
   error,
   placeholder = "0.0000",
-  style,
   className,
   suffix = "%",
 }: RateWidgetProps) {
   return (
-    <div style={style} className={cn("relative flex items-center w-32 min-w-28", className)}>
+    <div className={cn("relative flex items-center w-full min-w-0", className)}>
       <Input
         type="number"
         step="any"

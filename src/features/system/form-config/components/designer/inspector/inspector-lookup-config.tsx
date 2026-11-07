@@ -5,11 +5,11 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import { setFieldValue } from "@/features/form-engine/utils/path-utils";
 import {
   DROPDOWN_LOOKUP_SECTION,
   DROPDOWN_OPTIONS_SECTION,
 } from "@/features/system/model-config/fields";
+import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { CbsRecordFunction } from "@/types";
 

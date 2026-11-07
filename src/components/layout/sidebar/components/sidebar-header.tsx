@@ -18,6 +18,9 @@ export function SidebarHeaderNav({ onOpenSearch }: SidebarHeaderNavProps) {
         <Image
           src={logo}
           alt="Janata Bank PLC"
+          width={26}
+          height={26}
+          priority
           className="size-6.5 rounded object-contain shrink-0"
         />
         <div className="flex flex-col min-w-0">
@@ -50,6 +53,9 @@ export function SidebarHeaderNav({ onOpenSearch }: SidebarHeaderNavProps) {
         <Image
           src={logo}
           alt="Janata Bank PLC"
+          width={24}
+          height={24}
+          priority
           className="size-6 rounded-xs object-contain transition-opacity duration-150 group-hover/iconheader:opacity-0"
         />
         <SidebarTrigger className="size-7 absolute inset-0 m-auto opacity-0 group-hover/iconheader:opacity-100 transition-opacity duration-150 text-foreground hover:bg-accent" />

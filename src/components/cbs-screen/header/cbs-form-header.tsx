@@ -167,7 +167,8 @@ export function CbsFormHeader({
         className={`sticky top-0 z-20 bg-muted/40 border-b border-border/80 select-none ${className}`}
       >
         {/* ROW 1: Minimalist CBS Action Toolbar */}
-        <div className="flex items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
+        {/* ROW 1: Minimalist CBS Action Toolbar (Breaks naturally on small widths in exact order without scroll barriers) */}
+        <div className="flex flex-wrap items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
           <ActionButtons
             mode={mode}
             searchVal={inputVal}
@@ -187,7 +188,7 @@ export function CbsFormHeader({
             onReturnToSearch={onReturnToSearch}
           />
 
-          <span className="h-4 w-px bg-border/60 mx-1" />
+          <span className="h-4 w-px bg-border/60 mx-1 hidden sm:inline-block" />
 
           {/* More Actions Dropdown & Dedicated CTA (Automatic Base Inheritance + Extensions) */}
           <div className="flex items-center gap-1">
@@ -200,7 +201,7 @@ export function CbsFormHeader({
           {/* Validation Checklist Indicator & Drawer (visible only in active edit mode 'I') */}
           {mode === "I" && validationErrors.length > 0 && (
             <>
-              <span className="h-4 w-px bg-border/60 mx-1" />
+              <span className="h-4 w-px bg-border/60 mx-1 hidden sm:inline-block" />
               <CbsValidationChecklist
                 errors={validationErrors}
                 onSelectTab={onSelectValidationTab}
@@ -228,7 +229,7 @@ export function CbsFormHeader({
         </div>
 
         {/* ROW 2: CBS Record Header: Label + Record ID Field + Add Button */}
-        <div className="flex items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
+        <div className="flex flex-wrap items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
             {title}
           </span>
@@ -251,7 +252,7 @@ export function CbsFormHeader({
               canCreate={access.canInput}
             />
           ) : (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 shrink-0">
               <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
                 <Lock className="size-3 text-muted-foreground" />
                 {inputVal.trim() ||
@@ -268,7 +269,7 @@ export function CbsFormHeader({
           )}
 
           {commandCode && (
-            <span className="text-[10px] font-mono text-muted-foreground uppercase ml-auto">
+            <span className="text-[10px] font-mono text-muted-foreground uppercase ml-auto hidden sm:inline-block">
               {commandCode}
             </span>
           )}

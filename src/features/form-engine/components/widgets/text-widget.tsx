@@ -14,7 +14,6 @@ export function TextWidget({
   disabled = false,
   error,
   placeholder,
-  style,
   className,
   type = "text",
 }: TextWidgetProps) {
@@ -28,7 +27,7 @@ export function TextWidget({
   };
 
   return (
-    <div style={style} className={cn("w-full", className)}>
+    <div className={cn("w-full", className)}>
       <Input
         type={type}
         id={id}

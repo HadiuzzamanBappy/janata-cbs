@@ -1,146 +1,169 @@
 # Janata CBS — FORM.CONFIG & OpsForm Refactoring Master Plan
 
-> **Scope**: Lean, DRY, centralized refactoring for `src/features/system/form-config/` (Visual Form Designer Workbench) and `src/features/operations/forms/` (CBS Operational Form Shell), leveraging the modernized `@/features/form-engine` and `@/lib/cbs-form-spec`.
+> **Authoritative Hierarchy Roadmap**: Lean, DRY, Centralized Architecture for `src/features/system/form-config/` (Visual Form Designer Workbench) and `src/features/operations/forms/` (Operational Form Shell), building strictly on the sealed `@/features/form-engine` and `@/lib/cbs-form-spec`.
 
 ---
 
-## 1. Architectural Philosophy & DRY Core Invariants
+## 1. Architectural Philosophy & Dependency Hierarchy
 
-Following Janata CBS core invariants and unidirectional dependency layers:
+In Janata CBS, dependencies flow strictly one way (Leaf-to-Root):
 
-$$\text{app} \longrightarrow \text{features} \longrightarrow \text{components} \longrightarrow \text{store} \longrightarrow \text{lib/cbs-_} \longrightarrow \text{lib/infra-_} \longrightarrow \text{types \& data-schemas}$$
-
-1. **Zero Double-Coding / Zero Duplication**:
-   - Layout calculation, 12-column spans, and width conversions delegate strictly to `@/lib/cbs-form-spec` (`layout-grid.ts`, `compile.ts`).
-   - Container rendering delegates to `@/features/form-engine/components/containers/` (`card-container.tsx`, `tab-group-container.tsx`, `stepper-container.tsx`, `audit-container.tsx`).
-   - Field editing and scalar/object values delegate to `UnifiedFieldFactory` and `ObjectField`.
-
-2. **Strict Size Budget**:
-   - Every UI component $\le 300$ lines.
-   - Every hook and helper $\le 200$ lines.
-   - Exceeding files will be cleanly partitioned by responsibility.
-
-3. **Zero Magic Strings & Zero Legacy**:
-   - Container types: `"card" | "plain" | "tab" | "step" | "accordion"` from `formContainerTypeSchema`.
-   - Screen modes: `CbsScreenMode` (`"I" | "A" | "V" | "D" | "R" | "S"`).
-   - No legacy shims (`type`, `zone`, `tabGroupId`, `tabTitle`, `bindKey`, `layoutStyle`).
-
----
-
-## 2. Target Component Breakdown & Line Budget
-
-### Area A: Operational Form Shell (`src/features/operations/forms/`)
-
-| File                                                                                                                      | Current Lines | Target Lines | Optimization & Refactoring Focus                                                                            |
-| :------------------------------------------------------------------------------------------------------------------------ | :-----------: | :----------: | :---------------------------------------------------------------------------------------------------------- |
-| [`ops-form.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/features/operations/forms/ops-form.tsx)                         |      177      |  $\le 120$   | Pure shell orchestrator connecting `CbsScreenScaffold` with `FormKernelProvider` and `FormRenderer`.        |
-| [`use-form-mutations.ts`](file:///d:/Work/React/cbs/janata-cbs/src/features/operations/forms/hooks/use-form-mutations.ts) |      213      |  $\le 160$   | Centralized transaction commit (Save/Hold/Delete/Reverse) utilizing `computeDelta` from `@/lib/cbs-record`. |
-| [`use-form-actions.ts`](file:///d:/Work/React/cbs/janata-cbs/src/features/operations/forms/hooks/use-form-actions.ts)     |      191      |  $\le 150$   | Navigation, search, amend, and inquiry drill-down actions.                                                  |
-| [`use-form-state.ts`](file:///d:/Work/React/cbs/janata-cbs/src/features/operations/forms/hooks/use-form-state.ts)         |      168      |  $\le 130$   | Draft isolation, tab persistence debouncing, and dirty state synchronization.                               |
-| [`use-form-schema.ts`](file:///d:/Work/React/cbs/janata-cbs/src/features/operations/forms/hooks/use-form-schema.ts)       |      107      |   $\le 80$   | Cache-first schema resolution with fallback to `/api/proxy` via `cbs.model()`.                              |
-
----
-
-### Area B: Form Designer Workbench (`src/features/system/form-config/`)
-
-#### 1. Designer Core & Over-Budget Reductions:
-
-| File                                                                                                                                                              | Current Lines | Target Lines | Refactoring Action                                                                                                                                                       |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----------: | :----------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`fc-designer-tab.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config/components/fc-designer-tab.tsx)                                      |  **387** ⚠️   |  $\le 220$   | **Decompose**: Split top action bar (`DesignerHeaderActions`) and keyboard shortcuts hook (`useDesignerHotkeys`) into dedicated sub-components.                          |
-| [`designer-canvas.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config/components/designer/designer-canvas.tsx)                             |  **322** ⚠️   |  $\le 200$   | **Extract**: Extract block rendering dispatcher (`CanvasBlockDispatcher`) into sub-component. Delegate block clustering to `buildRenderBlocks` in `@/lib/cbs-form-spec`. |
-| [`inspector-widget-section.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config/components/designer/inspector/inspector-widget-section.tsx) |  **301** ⚠️   |  $\le 200$   | **Decompose**: Extract widget-specific sub-inspectors (NumberConfig, DateConfig, BooleanConfig) into modular child rows.                                                 |
-| [`tab-group-header.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config/components/designer/tab-group/tab-group-header.tsx)                 |      258      |  $\le 180$   | Streamline tab CRUD and drop operations.                                                                                                                                 |
-| [`tab-strip-item.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config/components/designer/tab-group/tab-strip-item.tsx)                     |      253      |  $\le 160$   | Simplify tab drag-drop and rename popover.                                                                                                                               |
-| [`sortable-section-card.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config/components/designer/sortable-section-card.tsx)                 |      222      |  $\le 160$   | Align with modern `CardContainer` presentation and `containerConfig`.                                                                                                    |
-
----
-
-## 3. Phased Implementation Roadmap
+$$\text{app} \longrightarrow \text{features (system / operations)} \longrightarrow \text{components} \longrightarrow \text{store} \longrightarrow \text{lib/cbs-_} \longrightarrow \text{lib/infra-_} \longrightarrow \text{types \& data-schemas}$$
 
 ```mermaid
 flowchart TD
-    subgraph PhaseA["Phase A: OpsForm Lean Refactoring"]
-        A1["1. ops-form.tsx Shell Streamline"] --> A2["2. use-form-mutations.ts & use-form-actions.ts Cleanup"]
-        A2 --> A3["3. Tab Persistence & Two-Tier Draft Sync"]
+    subgraph Layer0["Layer 0: Pure Schemas & Contracts (Sealed)"]
+        S1["@/lib/data-schemas/form-config-schema.ts\n(formSectionSchema, containerConfigSchema)"]
+        S2["@/lib/data-schemas/form-engine-schema.ts\n(formElementSchema, propertyWidthSchema)"]
     end
 
-    subgraph PhaseB["Phase B: Form Designer Canvas & Container Unification"]
-        B1["4. Decompose fc-designer-tab.tsx & designer-canvas.tsx"] --> B2["5. Wire Stepper & Modern Containers into Canvas"]
-        B2 --> B3["6. Palette Containers List & Drag Handlers Unification"]
+    subgraph Layer1["Layer 1: Headless Compilers & Layout Math (Sealed)"]
+        C1["@/lib/cbs-form-spec/layout-grid.ts\n(12-Col Responsive Grid Spans & Width Tokens)"]
+        C2["@/lib/cbs-form-spec/layout-blocks.ts\n(buildRenderBlocks: single, tab-group, step-group)"]
+        C3["@/lib/cbs-form-spec/compile.ts & validation.ts"]
     end
 
-    subgraph PhaseC["Phase C: Property Inspector Modularization"]
-        C1["7. Decompose inspector-widget-section.tsx"] --> C2["8. Full containerConfig Inspector Integration"]
-        C2 --> C3["9. Palette Variable Drop for Object Fields"]
+    subgraph Layer2["Layer 2: Atomic Form Engine UI Primitives (Sealed)"]
+        E1["@/features/form-engine/components/containers/\n(card-container, tab-group-container, stepper-container, audit-container)"]
+        E2["@/features/form-engine/components/object-field.tsx\n(First-Class Single 'S' and Multi-Value 'M' Objects)"]
+        E3["@/features/form-engine/components/field-row.tsx & field-factory.tsx"]
+        E4["@/features/form-engine/components/form-renderer.tsx\n(Composition Orchestrator)"]
+        E5["@/features/form-engine/store/form-kernel-store.ts & provider.tsx"]
     end
 
-    subgraph PhaseD["Phase D: Quality Gates & Verification"]
-        D1["10. pnpm lint:fix"] --> D2["11. pnpm typecheck"]
-        D2 --> D3["12. pnpm verify:all (13/13 Pass)"]
+    subgraph Layer3["Layer 3: Operational Screen Shell (Target 1)"]
+        O1["ops-form.tsx (Screen Scaffold & Kernel Integration)"]
+        O2["hooks/use-form-mutations.ts (Delta Commit, Maker-Checker)"]
+        O3["hooks/use-form-actions.ts (Navigation, Lookup, Reset)"]
+        O4["hooks/use-form-state.ts (Tab Persistence & Dirty Tracking)"]
+        O5["hooks/use-form-schema.ts (Schema Fetch & Cache)"]
     end
 
-    PhaseA --> PhaseB
-    PhaseB --> PhaseC
-    PhaseC --> PhaseD
+    subgraph Layer4["Layer 4: Visual Designer Workbench (Target 2)"]
+        D1["sys-form-config.tsx (Designer Master Scaffold)"]
+        D2["components/fc-designer-tab.tsx (Designer Canvas Host)"]
+        D3["components/designer/designer-canvas.tsx (Visual Drag Canvas)"]
+        D4["components/designer/property-inspector.tsx (Field & Container Inspector)"]
+        D5["components/designer/tab-group/ (Tab & Stepper Group Editors)"]
+        D6["components/designer/palette/ (Draggable Field & Container Palette)"]
+    end
+
+    Layer0 --> Layer1
+    Layer1 --> Layer2
+    Layer2 --> Layer3
+    Layer2 --> Layer4
 ```
 
 ---
 
-## 4. Detailed Task Specifications
+## 2. Core DRY Principles & Elimination of Duplication
 
-### Phase A: `OpsForm` Modernization
-
-1. **`ops-form.tsx`**:
-   - Ensure clean composition: `CbsScreenScaffold` wraps `FormKernelProvider` which wraps `FormRenderer`.
-   - Remove any direct DOM references or bespoke container logic (audit section uses `AuditContainer` directly via `FormRenderer`).
-2. **`use-form-mutations.ts`**:
-   - Refactor transaction payload builder:
-     - Pure diff via `computeDelta(initialValues, values).modifiedFields`.
-     - Maker-checker verification handling.
-3. **`use-form-state.ts`**:
-   - Debounce workbench tab draft persistence to avoid microtask starvation.
-
----
-
-### Phase B: Form Designer Canvas Modernization
-
-1. **Budget Compliance for `fc-designer-tab.tsx` (Current 387 lines $\to \le 220$)**:
-   - Extract `designer-toolbar.tsx` (Save, Preview, Reset, Zoom controls).
-   - Extract `use-designer-shortcuts.ts` for keyboard bindings (`Ctrl+S`, `Delete`, `Escape`).
-2. **Budget Compliance for `designer-canvas.tsx` (Current 322 lines $\to \le 200$)**:
-   - Use `buildRenderBlocks(sections)` from `@/lib/cbs-form-spec` instead of ad-hoc tab clustering loops.
-   - Extract `canvas-block-dispatcher.tsx` for single card, tab-group, and stepper containers.
-3. **Stepper Container Support in Designer**:
-   - Allow adding and editing sequential step containers (`containerType: "step"`) in the designer canvas, identical to tab groups.
+1. **Centralize Layout & Block Clustering**:
+   - `designer-canvas.tsx` previously ran custom grouping loops for tabs. **Rule**: It must delegate block clustering exclusively to `buildRenderBlocks(sections)` in `@/lib/cbs-form-spec`.
+2. **Centralize Responsive Width Classes**:
+   - Neither `OpsForm` nor `form-config` should calculate CSS col-spans. All 12-column spans come from `layout-grid.ts`.
+3. **First-Class Objects**:
+   - Form-level routines (`frmRoutine.rtnValidate`, `rtnBeforeAuth`, `rtnAfterAuth`) are standard `TYPE: "Object"`, `STRUCTURE: "M"` fields rendered by `ObjectField` and inspected via standard field properties.
+4. **Strict Size Budget**:
+   - Every component $\le 300$ lines.
+   - Every hook and helper $\le 200$ lines.
+   - Any file exceeding budget will be factored into clean, single-responsibility sub-modules.
 
 ---
 
-### Phase C: Property Inspector Modularization
+## 3. Step-by-Step Hierarchical Execution Plan
 
-1. **Budget Compliance for `inspector-widget-section.tsx` (Current 301 lines $\to \le 200$)**:
-   - Partition into sub-inspectors:
-     - `inspector-text-config.tsx`
-     - `inspector-number-config.tsx`
-     - `inspector-date-config.tsx`
-     - `inspector-boolean-config.tsx`
-2. **Container Inspector Polish**:
-   - Integrate `variant`, `density`, `badge`, and `collapsible` controls smoothly into `inspector-container-section.tsx`.
-
----
-
-### Phase D: Quality Gates & Verification Runbook
-
-At every checkpoint, execute:
-
-```bash
-pnpm lint:fix        # Biome formatting and lint check
-pnpm typecheck       # Strict TypeScript compiler verification
-pnpm verify:all      # 13/13 standalone CBS domain verification suites
+```mermaid
+flowchart LR
+    A["Step 1: OpsForm Shell Refactoring"] --> B["Step 2: Designer Over-Budget Reductions"]
+    B --> C["Step 3: Designer Canvas & Containers Alignment"]
+    C --> D["Step 4: Property Inspector Modularization"]
+    D --> E["Step 5: Quality Gates (Lint, Typecheck, Verify)"]
 ```
 
 ---
 
-## 5. Review & Approval
+### Step 1: `OpsForm` Lean Refactoring (`src/features/operations/forms/`)
 
-This plan completely honors the **size budget ($\le 300$ lines)**, **unidirectional dependency layers**, **zero double-coding**, and **high-density CBS banking UI**. Ready to execute upon your approval!
+> **Goal**: Ensure the runtime operational form shell is lean, robust, and delegates all rendering to `FormKernelProvider` + `FormRenderer`.
+
+- [x] **1.1 Refactor `hooks/use-form-mutations.ts`** (Current: 180 lines $\le 200$ budget)
+  - Extract delta computation logic; delegate directly to `computeDelta` in `@/lib/cbs-record`.
+  - Streamline `handleSubmit` (PUT/POST), `onHold`, `onDelete`, and `onAuthorizeReverse`.
+  - Ensure Four-Eyes (Maker-Checker) validations strictly adhere to `@/lib/cbs-access`.
+- [x] **1.2 Streamline `hooks/use-form-actions.ts`** (Current: 180 lines $\le 200$ budget)
+  - Consolidate screen action commands (`onCreateNew`, `onAmend`, `onView`, `onPerformAction`, `onReturnToSearch`).
+  - Wire record search queries via `cbs.model(modelCode).inquire()`.
+- [x] **1.3 Optimize `hooks/use-form-state.ts`** (Current: 97 lines $\le 200$ budget)
+  - Uses `useCbsPersistence` directly from `@/components/cbs-screen`.
+  - Guarantee two-tier form state: local state for high-frequency keystrokes, debounced push to workbench tab store.
+- [x] **1.4 Verify `ops-form.tsx`** (Current: 174 lines $\le 300$ budget)
+  - Ensure clean shell composition: `CbsScreenScaffold` wraps `FormKernelProvider` wraps `FormRenderer`.
+  - Confirm audit context uses `AuditContainer` directly via `FormRenderer`.
+
+---
+
+### Step 2: Form Designer Over-Budget Reductions (`src/features/system/form-config/`)
+
+> **Goal**: Bring all oversized designer components under the strict $\le 300$ line budget by extracting focused sub-modules.
+
+- [x] **2.1 Decompose `fc-designer-tab.tsx`** (Down to **276 lines** $\le 300$ budget)
+  - Extracted `palette-drop-dispatcher.ts` (120 lines).
+  - Keeps `fc-designer-tab.tsx` as a clean 3-pane layout coordinator.
+- [x] **2.2 Decompose `designer-canvas.tsx`** (Down to **218 lines** $\le 300$ budget)
+  - Uses `buildRenderBlocks(sections)` from `@/lib/cbs-form-spec`.
+  - Extracted `components/designer/canvas/canvas-block-dispatcher.tsx` (117 lines) & `canvas-compact-bar.tsx` (55 lines).
+- [x] **2.3 Decompose `inspector-widget-section.tsx`** (Down to **185 lines** $\le 300$ budget)
+  - Extracted widget sub-configuration rows into dedicated sub-inspectors:
+    - `inspector-text-config.tsx`
+    - `inspector-number-config.tsx`
+    - `inspector-boolean-config.tsx`
+
+---
+
+### Step 3: Designer Canvas & Modern Container Alignment
+
+> **Goal**: Wire modern container features (`containerConfig`, `StepperContainer`, `TabGroupContainer`) into the visual designer.
+
+- [x] **3.1 Stepper Wizard Container in Designer**:
+  - Added native `SortableStepperGroupCard` (206 lines) clustered via `step-group`.
+  - Wired into `canvas-block-dispatcher.tsx`.
+- [x] **3.2 Update `sortable-section-card.tsx`**:
+  - Aligned visual style with `CardContainer` (supports `containerConfig.variant`, `containerConfig.badge`, and density).
+- [x] **3.3 Update `palette-containers-list.tsx`**:
+  - Drag handles and click-to-add for:
+    - **Card Container** (`containerType: "card"`)
+    - **Plain Canvas** (`containerType: "plain"`)
+    - **Tab Group** (`containerType: "tab"`)
+    - **Stepper Wizard** (`containerType: "step"`)
+
+---
+
+### Step 4: Property Inspector Modularization & Polish
+
+> **Goal**: Provide visual controls for all container and field configuration properties without code bloat.
+
+- [x] **4.1 Verify `inspector-container-section.tsx`**:
+  - Visual variant selector (`default`, `subtle`, `bordered`, `elevated`), padding density (`compact`, `normal`, `spacious`), columns, and header badge controls mutate `selectedSection.containerConfig` cleanly (197 lines).
+- [x] **4.2 Verify `palette-object-group.tsx` & Object Field Palette**:
+  - Composite/Object drag-and-drop onto any container grid validated (141 lines).
+
+---
+
+### Step 5: Verification & Quality Gates
+
+> **Goal**: Ensure zero regressions across the CBS platform.
+
+- [x] Biome formatting and lint check (`pnpm lint:fix`): **Zero errors/warnings**
+- [x] TypeScript strict compiler check (`pnpm typecheck`): **Zero errors**
+- [x] Master test suite (`pnpm verify:all`): **13/13 suites passed (100% clean)**
+
+---
+
+## 4. Execution Readiness
+
+This plan establishes a clear, bottom-up progression:
+
+1. **Step 1 (`OpsForm`)** ensures the banking operational runtime runs cleanly against `@/features/form-engine`.
+2. **Steps 2–4 (`FORM.CONFIG`)** ensure the Visual Designer builds and mutates these exact structures cleanly within line budgets.
+3. **Step 5** seals the codebase with complete verification pass.

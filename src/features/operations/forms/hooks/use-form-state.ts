@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useCbsPersistence } from "@/components/cbs-screen";
 import { validateValues } from "@/lib/cbs-form-spec";
 import type { FormConfigRecord } from "@/lib/data-schemas";
-import { useWorkbenchStore } from "@/store";
 import type { CbsScreenMode } from "@/types";
 
 export interface UseFormStateOptions {
@@ -14,98 +14,48 @@ export interface UseFormStateOptions {
   initialValues?: Record<string, unknown>;
 }
 
+/**
+ * High-performance banking form state coordinator.
+ * Delegates tab persistence, baseline snapshots, and dirty tracking strictly
+ * to the centralized `useCbsPersistence` engine (@/components/cbs-screen).
+ */
 export function useFormState({
   schema,
   tabId,
   initialScreenMode,
-  initialRecordId: initialRecordIdProp,
+  initialRecordId,
   initialValues = {},
 }: UseFormStateOptions) {
-  const { tabs, updateFormData, updateTabState } = useWorkbenchStore();
-  const currentTab = tabs.find((t) => t.id === tabId);
+  const {
+    recordId: searchRecordId,
+    setRecordId: setSearchRecordId,
+    mode: screenMode,
+    setMode: setScreenMode,
+    formData: values,
+    setFormData: setValuesState,
+    baseline,
+    rebaseline,
+    reset,
+    isDirty,
+  } = useCbsPersistence<Record<string, unknown>>({
+    initialId: initialRecordId,
+    tabId,
+    initialData: initialValues,
+    fallbackMode: initialScreenMode || "IDLE",
+    ignoredKeys: ["auditData"],
+  });
 
-  // Tab-persisted or default mode & ID
-  const initialMode = initialScreenMode || currentTab?.screenMode || "IDLE";
-  const initialId = initialRecordIdProp || currentTab?.searchRecordId || "";
-
-  // Merged initial values (active tab draft overrides initial seed values)
-  const mergedDraft = React.useMemo(() => {
-    const draft = (currentTab?.formData as Record<string, unknown>) || {};
-    return { ...initialValues, ...draft };
-  }, [currentTab?.formData, initialValues]);
-
-  const [screenMode, setScreenModeState] = React.useState<CbsScreenMode>(initialMode);
-  const [searchRecordId, setSearchRecordIdState] = React.useState<string>(initialId);
-  const [values, setValuesState] = React.useState<Record<string, unknown>>(mergedDraft);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  const [isDirty, setIsDirty] = React.useState<boolean>(false);
 
-  // Synchronize when initial draft seed changes
-  React.useEffect(() => {
-    setValuesState(mergedDraft);
-    setIsDirty(false);
-  }, [mergedDraft]);
-
-  const setScreenMode = React.useCallback(
-    (mode: CbsScreenMode) => {
-      setScreenModeState(mode);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, { screenMode: mode });
-      }
-    },
-    [tabId, updateTabState],
-  );
-
-  const setSearchRecordId = React.useCallback(
-    (id: string) => {
-      setSearchRecordIdState(id);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, { searchRecordId: id });
-      }
-    },
-    [tabId, updateTabState],
-  );
-
-  const syncTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const pendingSyncDataRef = React.useRef<Record<string, unknown> | null>(null);
-
-  // Clean up any debounced sync timer on unmount
-  React.useEffect(() => {
-    return () => {
-      if (syncTimerRef.current) {
-        clearTimeout(syncTimerRef.current);
-      }
-    };
-  }, []);
-
-  // Flush tab persistence outside the React render/updater cycle
-  const scheduleTabSync = React.useCallback(
-    (nextData: Record<string, unknown>) => {
-      if (!tabId || typeof updateFormData !== "function") return;
-      pendingSyncDataRef.current = nextData;
-      if (syncTimerRef.current) {
-        clearTimeout(syncTimerRef.current);
-      }
-      syncTimerRef.current = setTimeout(() => {
-        if (pendingSyncDataRef.current && tabId && typeof updateFormData === "function") {
-          updateFormData(tabId, pendingSyncDataRef.current);
-          pendingSyncDataRef.current = null;
-        }
-      }, 150);
-    },
-    [tabId, updateFormData],
-  );
-
+  // Single field mutation (keystroke draft)
   const setValue = React.useCallback(
     (name: string, val: unknown) => {
-      setValuesState((prev) => {
-        const next = { ...prev, [name]: val };
-        scheduleTabSync(next);
-        return next;
-      });
-      setIsDirty(true);
+      setValuesState((prev) => ({
+        ...prev,
+        [name]: val,
+      }));
 
-      // Clear existing field error
+      // Clear field-level error upon user edit
       setErrors((prev) => {
         if (!prev[name]) return prev;
         const next = { ...prev };
@@ -113,37 +63,32 @@ export function useFormState({
         return next;
       });
     },
-    [scheduleTabSync],
+    [setValuesState],
   );
 
+  // Bulk values replace (e.g. record loaded from backend)
   const setValues = React.useCallback(
     (nextValues: Record<string, unknown>) => {
       setValuesState(nextValues);
-      setIsDirty(false);
       setErrors({});
-      if (tabId && typeof updateFormData === "function") {
-        queueMicrotask(() => {
-          updateFormData(tabId, nextValues);
-        });
-      }
     },
-    [tabId, updateFormData],
+    [setValuesState],
   );
 
+  // Reset form back to baseline or new values
   const resetForm = React.useCallback(
-    (resetValues: Record<string, unknown> = initialValues) => {
-      setValuesState(resetValues);
-      setErrors({});
-      setIsDirty(false);
-      if (tabId && typeof updateFormData === "function") {
-        queueMicrotask(() => {
-          updateFormData(tabId, resetValues);
-        });
+    (resetValues?: Record<string, unknown>) => {
+      if (resetValues) {
+        setValuesState(resetValues);
+      } else {
+        reset();
       }
+      setErrors({});
     },
-    [tabId, initialValues, updateFormData],
+    [reset, setValuesState],
   );
 
+  // Runtime headless validation via centralized @/lib/cbs-form-spec
   const validate = React.useCallback((): boolean => {
     if (!schema) return true;
     const validationErrors = validateValues(schema, values);
@@ -159,6 +104,8 @@ export function useFormState({
     values,
     setValue,
     setValues,
+    baseline,
+    rebaseline,
     errors,
     isDirty,
     validate,

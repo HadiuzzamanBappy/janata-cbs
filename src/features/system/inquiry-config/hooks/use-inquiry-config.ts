@@ -40,12 +40,14 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
 
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);
   const [validationErrors, setValidationErrors] = React.useState<InquiryValidationErrorItem[]>([]);
 
   // 1. Reset screen to idle state
   const resetToIdle = React.useCallback(() => {
     reset();
     setValidationErrors([]);
+    setRawRecord(undefined);
   }, [reset]);
 
   // 2. Initialize new inquiry draft
@@ -75,6 +77,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       try {
         const res = await cbs.send<unknown>(cbs.inquiryConfig.get(idToLoad));
         if (res.status === "SUCCESS" && res.data) {
+          setRawRecord(res.data);
           const parsed = parseInquiryConfig(res.data);
           const cleanData = parsed.success ? parsed.data : (res.data as InquiryConfigRecord);
           hydrate(cleanData);
@@ -208,6 +211,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     baseline,
     loading,
     submitting,
+    rawRecord,
     isDirty,
     dirtyKeys,
     validationErrors,

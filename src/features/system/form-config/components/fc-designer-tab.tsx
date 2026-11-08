@@ -6,7 +6,11 @@ import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
-import { DesignerCanvas } from "./designer/designer-canvas";
+import {
+  createNewFieldFromTemplate,
+  dispatchPaletteDrop,
+} from "./designer/canvas/palette-drop-dispatcher";
+import { type AddSectionFn, DesignerCanvas } from "./designer/designer-canvas";
 import { FieldPalette } from "./designer/field-palette";
 import { PropertyInspector } from "./designer/property-inspector";
 
@@ -18,15 +22,7 @@ export interface FcDesignerTabProps {
   selectedFieldId: string | null;
   onSelectSection: (id: string | null) => void;
   onSelectField: (id: string | null) => void;
-  onAddSection: (
-    containerType?: "card" | "plain" | "tab" | "step" | "accordion",
-    initialFields?: FormElement[],
-    customTitle?: string,
-    groupId?: string,
-    groupTitle?: string,
-    insertIndex?: number,
-    columns?: number,
-  ) => void;
+  onAddSection: AddSectionFn;
   onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection: (id: string) => void;
   onAddFieldToSection: (sectionId: string, template?: Partial<FormElement>) => void;
@@ -50,6 +46,10 @@ export interface FcDesignerTabProps {
   disabled?: boolean;
 }
 
+/**
+ * Visual Form Designer Tab.
+ * Clean, modular 3-pane workbench (Palette | Canvas | Inspector) adhering to the <=300 line budget.
+ */
 export function FcDesignerTab({
   targetModel,
   modelProperties,
@@ -111,30 +111,7 @@ export function FcDesignerTab({
       return;
     }
 
-    const fieldName = template.NAME || `field_${(sections.length + 1).toString()}`;
-    const newField: FormElement = {
-      SN: template.SN || String(sections.length + 1),
-      NAME: fieldName,
-      LABEL: template.LABEL || "New Field",
-      TYPE: template.TYPE || "Text",
-      LENGTH: template.LENGTH ?? 35,
-      STRUCTURE: template.STRUCTURE || "S",
-      REQUIRED: Boolean(template.REQUIRED),
-      DISABLED: template.DISABLED ?? false,
-      WIDTH: template.WIDTH ?? "md",
-      POSITION: template.POSITION || "",
-      PARAMETER: template.PARAMETER || {
-        type: "O",
-        data: [],
-        modelName: "",
-        displayField: "",
-        condition: "",
-        reference: "",
-      },
-      ENRICHTEXT: template.ENRICHTEXT || "",
-      DEFAULTVALUE: template.DEFAULTVALUE || "",
-    };
-
+    const newField = createNewFieldFromTemplate(sections, template);
     onAddSection("plain", [newField], "");
   };
 
@@ -143,62 +120,15 @@ export function FcDesignerTab({
     targetSectionId?: string,
     insertIndex?: number,
   ) => {
-    if (!payload || typeof payload !== "object") return;
-    const data = payload as {
-      type?: string;
-      element?: FormElement;
-      field?: FormElement;
-      initialFields?: FormElement[];
-      containerType?: "card" | "plain" | "tab" | "step" | "accordion";
-      title?: string;
-      groupId?: string;
-      groupTitle?: string;
-      columns?: number;
-    };
-
-    const droppedField = data.element || data.field;
-    if ((data.type === "palette-variable" || data.type === "palette-field") && droppedField) {
-      if (targetSectionId && targetSectionId !== "canvas-root") {
-        onAddFieldToSection(targetSectionId, droppedField);
-      } else if (insertIndex !== undefined) {
-        onAddSection("plain", [droppedField], "", undefined, undefined, insertIndex, 1);
-      } else {
-        handlePaletteAddField(droppedField);
-      }
-      return;
-    }
-
-    if (data.type === "palette-container" && data.containerType) {
-      const targetSec = targetSectionId ? sections.find((s) => s.id === targetSectionId) : null;
-      if (
-        targetSec &&
-        targetSectionId !== "new-tab-in-group" &&
-        data.initialFields &&
-        data.initialFields.length > 0
-      ) {
-        for (const field of data.initialFields) {
-          onAddFieldToSection(targetSec.id, field);
-        }
-        return;
-      }
-
-      const isTargetTabGroup =
-        targetSectionId === "new-tab-in-group" || (targetSec && targetSec.containerType === "tab");
-      const targetGroupId = isTargetTabGroup ? data.groupId || targetSec?.groupId : undefined;
-      const effectiveGroupTitle = isTargetTabGroup
-        ? data.title || data.groupTitle || "New Tab"
-        : data.groupTitle;
-
-      onAddSection(
-        isTargetTabGroup ? "tab" : data.containerType,
-        data.initialFields || [],
-        data.title,
-        targetGroupId,
-        effectiveGroupTitle,
-        insertIndex,
-        data.columns,
-      );
-    }
+    dispatchPaletteDrop({
+      payload,
+      sections,
+      targetSectionId,
+      insertIndex,
+      onAddFieldToSection,
+      onAddSection,
+      handlePaletteAddField,
+    });
   };
 
   const handleHighlightField = (fieldName: string) => {
@@ -354,9 +284,7 @@ export function FcDesignerTab({
                 const targetId = activeField?.SN || activeField?.NAME;
                 if (targetId) onUpdateField(targetId, patch);
               }}
-              onClose={() => {
-                setIsInspectorOpen(false);
-              }}
+              onClose={() => setIsInspectorOpen(false)}
               onDeselectField={() => onSelectField(null)}
               disabled={disabled}
               className="w-full h-full border-l border-border"

@@ -23,6 +23,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     setMode,
     formData,
     setFormData,
+    baseline,
     resolvedInitialId,
     resolvedInitialMode,
     hydrate,
@@ -34,6 +35,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
 
   const [loading, setLoading] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
+  const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);
   const [validationErrors, setValidationErrors] = React.useState<MenuDesignerValidationError[]>([]);
 
   const { catalogItems, catalogLoading, availableTrees, refetchTrees } = useMdCatalog();
@@ -59,6 +61,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
           silent: true,
         });
         if (json.status === "SUCCESS" && json.data) {
+          setRawRecord(json.data);
           const res = parseMenuTreeRecord(json.data);
           if (res.success) {
             hydrate(res.data);
@@ -199,6 +202,8 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     setMode,
     formData,
     setFormData,
+    baseline,
+    rawRecord,
     loading,
     submitting,
     isDirty,

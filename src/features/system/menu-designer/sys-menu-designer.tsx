@@ -27,6 +27,8 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
     mode,
     formData,
     setFormData,
+    baseline,
+    rawRecord,
     loading,
     submitting,
     catalogItems,
@@ -107,10 +109,20 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
         id: "json",
         label: "Spec Definition",
         icon: <FileCode className="size-3 text-amber-500" />,
-        content: <MdJsonTab formData={formData} />,
+        content: <MdJsonTab formData={formData} baseline={baseline} raw={rawRecord} />,
       },
     ],
-    [formData, isReadOnly, setFormData, catalogItems, catalogLoading, treeOps, validationErrors],
+    [
+      formData,
+      baseline,
+      rawRecord,
+      isReadOnly,
+      setFormData,
+      catalogItems,
+      catalogLoading,
+      treeOps,
+      validationErrors,
+    ],
   );
 
   return (

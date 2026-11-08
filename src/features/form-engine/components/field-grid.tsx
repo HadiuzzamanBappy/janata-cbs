@@ -1,12 +1,11 @@
-import { getFieldValue } from "@/lib/cbs-form-spec";
+import { getFieldColSpanClass, getFieldValue, getGridColsClass } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
-import { getFieldColSpanClass, getGridColsClass } from "../../utils/section-utils";
-import { FieldAtom } from "../field-atom";
-import { UnifiedFieldFactory } from "../field-factory";
+import { FieldAtom } from "./field-atom";
+import { UnifiedFieldFactory } from "./field-factory";
 
-export interface StandardGridSectionProps {
+export interface FieldGridProps {
   section: FormSection;
   values: Record<string, unknown>;
   onChange: (key: string, value: unknown) => void;
@@ -17,7 +16,7 @@ export interface StandardGridSectionProps {
   hasKernel: boolean;
 }
 
-export function StandardGridSection({
+export function FieldGrid({
   section,
   values,
   onChange,
@@ -26,9 +25,8 @@ export function StandardGridSection({
   mode = "I",
   numCols,
   hasKernel,
-}: StandardGridSectionProps) {
+}: FieldGridProps) {
   const effectiveCols = numCols || section.columns || 1;
-
   const isViewMode = mode !== "I";
 
   return (
@@ -54,6 +52,9 @@ export function StandardGridSection({
               error={errors[field.NAME]}
               disabled={disabled}
               mode={mode}
+              allValues={values}
+              errors={errors}
+              hasKernel={false}
             />
           )}
         </div>

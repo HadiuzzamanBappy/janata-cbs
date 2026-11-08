@@ -21,8 +21,8 @@ export interface SortableSectionCardProps {
   onRemoveField: (fieldId: string) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
   disabled?: boolean;
@@ -55,13 +55,8 @@ export function SortableSectionCard({
     opacity: isDragging ? 0.35 : 1,
   };
 
-  const isGroup = section.type === "object-group";
-  const isTable = section.type === "array-table";
   const isPlainRoot =
-    section.layoutStyle === "plain" ||
-    !section.title ||
-    section.title === "Canvas Root" ||
-    (section.type === "standard" && section.zone === "standard" && !section.title);
+    section.containerType === "plain" || !section.title || section.title === "Canvas Root";
 
   const handleNativeDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -127,7 +122,7 @@ export function SortableSectionCard({
               </button>
             )}
 
-            {!isGroup && section.collapsible && (
+            {section.collapsible && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -161,28 +156,15 @@ export function SortableSectionCard({
                 variant="outline"
                 className={cn(
                   "text-[9px] h-4 px-1.5 font-mono uppercase",
-                  section.zone === "tab"
+                  section.containerType === "tab"
                     ? "border-sky-500/40 text-sky-500 bg-sky-500/10"
                     : "border-border text-muted-foreground",
                 )}
               >
-                {section.zone === "tab" ? `TAB: ${section.tabTitle || section.title}` : "CARD"}
+                {section.containerType === "tab"
+                  ? `TAB: ${section.groupTitle || section.title}`
+                  : "CARD"}
               </Badge>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "text-[9px] h-4 px-1.5 font-mono uppercase",
-                  isGroup && "border-purple-500/40 text-purple-400 bg-purple-500/10",
-                  isTable && "border-emerald-500/40 text-emerald-400 bg-emerald-500/10",
-                )}
-              >
-                {section.type}
-              </Badge>
-              {section.bindKey && (
-                <span className="text-[10px] font-mono text-muted-foreground/70">
-                  &rarr; {section.bindKey}
-                </span>
-              )}
             </button>
           </div>
 
@@ -195,7 +177,7 @@ export function SortableSectionCard({
                   onClick={(e) => {
                     e.stopPropagation();
                     onConvertSectionZone(section.id, "tab", {
-                      tabTitle: section.title || "Tab",
+                      groupTitle: section.title || "Tab",
                     });
                   }}
                   className="h-6 px-1.5 text-[10px] text-sky-600 dark:text-sky-400 hover:bg-sky-500/10 cursor-pointer"
@@ -223,21 +205,17 @@ export function SortableSectionCard({
         </div>
       )}
 
-      {/* Body */}
-      {(!section.isCollapsed || isGroup) && (
-        <div className={cn(isPlainRoot ? "p-0" : "p-2")}>
-          <SectionDropBody
-            section={section}
-            selectedFieldId={selectedFieldId}
-            onSelectSection={onSelectSection}
-            onSelectField={onSelectField}
-            onRemoveField={onRemoveField}
-            disabled={disabled}
-            isPlainRoot={isPlainRoot}
-            isNativeOver={isNativeOver}
-          />
-        </div>
-      )}
+      {/* Body: 12-col dropzone container */}
+      <div className={cn(isPlainRoot ? "p-0" : "p-2.5")}>
+        <SectionDropBody
+          section={section}
+          selectedFieldId={selectedFieldId}
+          onSelectSection={onSelectSection}
+          onSelectField={onSelectField}
+          onRemoveField={onRemoveField}
+          disabled={disabled}
+        />
+      </div>
     </section>
   );
 }

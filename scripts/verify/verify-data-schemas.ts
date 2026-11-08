@@ -18,6 +18,8 @@ import {
   changePasswordSchema,
   currentUserSchema,
   formConfigRecordSchema,
+  formElementSchema,
+  isWidgetCompatibleWithType,
   loginSchema,
   menuTreeRecordSchema,
   modelConfigRecordSchema,
@@ -141,19 +143,18 @@ async function runSuite() {
       sections: [
         {
           id: "sec_main",
-          label: "Main Section",
-          rows: [
+          title: "Main Section",
+          type: "standard",
+          zone: "standard",
+          fields: [
             {
-              id: "row_1",
-              fields: [
-                {
-                  id: "fld_id",
-                  name: "ID",
-                  label: "Record ID",
-                  type: "TEXT",
-                  colSpan: 6,
-                },
-              ],
+              NAME: "ID",
+              LABEL: "Record ID",
+              TYPE: "Text",
+              LENGTH: 35,
+              WIDTH: "md",
+              WIDGET: "text",
+              REQUIRED: true,
             },
           ],
         },
@@ -225,6 +226,56 @@ async function runSuite() {
     { wireType: sampleWirePayload.requestType, resStatus: sampleApiResponse.status },
     { wireSuccess: wireResult.success, resSuccess: responseResult.success },
     wireResult.success === true && responseResult.success === true,
+  );
+
+  // 8. Metamodel Inheritance Defense: FormElement inherits baseFieldSchema + presentation overrides
+  const formElementSample = {
+    SN: "1",
+    NAME: "accountNumber",
+    LABEL: "Account Number",
+    TYPE: "Text",
+    STRUCTURE: "S",
+    LENGTH: 16,
+    REQUIRED: true,
+    WIDTH: "sm",
+    WIDGET: "text",
+    VISIBLE_WHEN: { field: "accountType", operator: "eq", value: "SAVINGS" },
+    ON_CHANGE: { target: "memo", action: "copy" },
+  };
+  const formElementResult = formElementSchema.safeParse(formElementSample);
+  recordTest(
+    "8. Metamodel Inheritance: FormElement strictly inherits baseFieldSchema with valid UI controls & conditions",
+    {
+      fieldName: formElementSample.NAME,
+      width: formElementResult.data?.WIDTH,
+      widget: formElementResult.data?.WIDGET,
+    },
+    { conforms: formElementResult.success },
+    formElementResult.success === true,
+  );
+
+  // 9. Semantic Width & Widget Constraints Defense
+  const fallbackWidthSample = {
+    NAME: "branchCode",
+    LABEL: "Branch Code",
+    WIDTH: "invalid_width_token", // Should normalize to default 'md'
+  };
+  const fallbackResult = formElementSchema.safeParse(fallbackWidthSample);
+  const isFallbackNormal = fallbackResult.success && fallbackResult.data.WIDTH === "md";
+  const isWidgetAllowed = isWidgetCompatibleWithType("Amount", "amount");
+  const isWidgetDisallowed = !isWidgetCompatibleWithType("Amount", "textarea");
+  recordTest(
+    "9. Schema Defense: propertyWidthSchema normalizes invalid widths to 'md' & compatibility matrix guards widgets",
+    {
+      parsedWidth: fallbackResult.data?.WIDTH,
+      amountCanBeAmount: isWidgetAllowed,
+      amountCannotBeTextarea: isWidgetDisallowed,
+    },
+    {
+      fallbackNormal: isFallbackNormal,
+      compatibilityMatrixValid: isWidgetAllowed && isWidgetDisallowed,
+    },
+    isFallbackNormal && isWidgetAllowed && isWidgetDisallowed,
   );
 
   // Final Summary

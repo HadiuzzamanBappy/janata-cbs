@@ -2,7 +2,7 @@
 
 A pure, deterministic compiler, layout fallback generator, and headless runtime rules engine for the **Janata Core Banking Workbench**.
 
-It bridges backend data schemas defined in **Model Config** (`SC.MODEL.CONFIG`) and visual presentation layouts created in **Form Config Designer** (`SC.FORM.CONFIG`), compiling them into a canonical `CompiledFormSpec` (`FormConfigRecord`) consumed by `OpsForm`, `FormRenderer`, and form state hooks.
+It bridges backend data schemas defined in **Model Config** (`SC.MODEL.CONFIG`) and visual presentation layouts created in **Form Config Designer** (`SC.FORM.CONFIG`), compiling them into a canonical `FormConfigRecord` consumed by `OpsForm`, `FormRenderer`, and form state hooks.
 
 ---
 

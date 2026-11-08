@@ -22,36 +22,62 @@ export const formRoutineSchema = z.object({
 export type FormRoutine = z.infer<typeof formRoutineSchema>;
 
 /* ========================================================================== */
-/* 2. FORM LAYOUT SECTIONS & STEPPERS (Visual UI Layout Containers)           */
+/* 2. FORM LAYOUT SECTIONS & CONTAINERS (Visual UI Layout Nodes)               */
 /* ========================================================================== */
 
-export const formSectionSchema = z.looseObject({
+/**
+ * Universal Container Type:
+ * - 'card': Standard elevated card box with title bar and optional collapse
+ * - 'plain': Borderless, title-less root canvas container
+ * - 'tab': Tab pane clustered inside a TabGroup header
+ * - 'step': Wizard step pane clustered inside a Stepper header
+ * - 'accordion': Collapsible panel clustered inside an Accordion group
+ */
+export const formContainerTypeSchema = z.enum(["card", "plain", "tab", "step", "accordion"]);
+export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
+
+/**
+ * Universal Container Visual & Behavioral Configuration:
+ * Allows configuring styling, borders, density, badges, icons, and behavior per container.
+ */
+export const containerConfigSchema = z.object({
+  variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
+  density: z.enum(["compact", "normal", "spacious"]).optional(),
+  badge: z.string().optional(),
+  badgeVariant: z.enum(["default", "secondary", "outline", "destructive"]).optional(),
+  icon: z.string().optional(),
+  bordered: z.boolean().optional(),
+  accentColor: z.string().optional(),
+  customClass: z.string().optional(),
+});
+export type ContainerConfig = z.infer<typeof containerConfigSchema>;
+
+export const formSectionSchema = z.object({
   id: z.string(),
   title: z.string().default("").optional(),
   description: z.string().optional(),
-  type: z.enum(["standard", "object-group", "array-table"]).default("standard").optional(),
-  zone: z.enum(["header", "tab", "standard"]).default("standard").optional(),
-  tabGroupId: z.string().optional(),
-  tabTitle: z.string().optional(),
-  bindKey: z.string().optional(),
+
+  // Container classification
+  containerType: formContainerTypeSchema.default("card"),
+
+  // Multi-pane grouping (tabs, steps, accordions)
+  groupId: z.string().optional(),
+  groupTitle: z.string().optional(),
+
+  // Grid layout inside this section
   columns: z.number().min(1).max(4).default(1).optional(),
-  structure: z.enum(["S", "M"]).optional(),
   collapsible: z.boolean().default(false).optional(),
   isCollapsed: z.boolean().default(false).optional(),
-  layoutStyle: z.enum(["card", "plain"]).optional().default("card"),
+
+  // Container visual & behavioral configuration
+  containerConfig: containerConfigSchema.optional(),
+
+  // Fields placed in this section (scalar or object fields)
   fields: z.array(formElementSchema).default([]),
 });
 export type FormSection = z.infer<typeof formSectionSchema>;
 
-export const formWizardStepSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  sectionIds: z.array(z.string()),
-});
-export type FormWizardStep = z.infer<typeof formWizardStepSchema>;
-
-export const formElementsContainerSchema = z.looseObject({
-  steps: z.array(formWizardStepSchema).default([]).optional(),
+export const formElementsContainerSchema = z.object({
   sections: z.array(formSectionSchema).default([]),
 });
 export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;
@@ -60,7 +86,7 @@ export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;
 /* 3. MASTER FORM CONFIG RECORD (SC_FORM_CONFIG)                              */
 /* ========================================================================== */
 
-export const formConfigRecordSchema = z.looseObject({
+export const formConfigRecordSchema = z.object({
   title: z.string().default(""),
   description: z.string().default("").optional(),
   authNumber: z.coerce.number().default(1).optional(),
@@ -71,7 +97,7 @@ export const formConfigRecordSchema = z.looseObject({
       rtnAfterAuth: [],
     })
     .optional(),
-  frmElements: formElementsContainerSchema.default({ steps: [], sections: [] }),
+  frmElements: formElementsContainerSchema.default({ sections: [] }),
   auditData: auditDataSchema.optional(),
 });
 export type FormConfigRecord = z.infer<typeof formConfigRecordSchema>;

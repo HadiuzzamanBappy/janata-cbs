@@ -50,7 +50,7 @@ export function EmptyCanvasSplash({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onAddSection("standard", "standard", [], "card", "Card Section")}
+            onClick={() => onAddSection("card", [], "Card Section")}
             className="h-8 text-xs bg-background shadow-xs hover:border-emerald-500/50"
           >
             + Card Container
@@ -58,7 +58,7 @@ export function EmptyCanvasSplash({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onAddSection("standard", "tab", [], "card", "Tab 1", undefined, "Tab 1")}
+            onClick={() => onAddSection("tab", [], "Tab 1", undefined, "Tab 1")}
             className="h-8 text-xs bg-background shadow-xs hover:border-sky-500/50"
           >
             + Tab Group

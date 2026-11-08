@@ -9,8 +9,7 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
   {
     id: "sec_menu_identity",
     title: "Hierarchy Tree Identification",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -29,8 +28,7 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
   {
     id: "sec_menu_status",
     title: "Operational Lifecycle State",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {

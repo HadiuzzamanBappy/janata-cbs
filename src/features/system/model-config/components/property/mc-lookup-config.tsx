@@ -3,8 +3,8 @@
 import { Database, ListOrdered } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { FieldRow } from "@/features/form-engine/components/field-row";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import { FieldRow } from "@/features/form-engine/components/widgets/field-row";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";

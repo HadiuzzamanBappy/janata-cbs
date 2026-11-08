@@ -8,8 +8,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
   {
     id: "sec_identity",
     title: "Model Identification & Attributes",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -119,8 +118,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
   {
     id: "sec_id_rules",
     title: "Record ID Generation Rules",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -214,8 +212,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
   {
     id: "sec_flags",
     title: "Operational & Governance Flags",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -271,8 +268,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_prop_definition",
     title: "Column Definition",
-    type: "standard",
-    layoutStyle: "card",
+    containerType: "card",
     columns: 1,
     fields: [
       {
@@ -372,34 +368,42 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
  */
 export const DROPDOWN_OPTIONS_SECTION: FormSection = {
   id: "sec_dropdown_options",
-  title: "Option",
-  type: "object-group",
-  structure: "M",
-  layoutStyle: "plain",
-  bindKey: "PARAMETER.data",
+  title: "",
+  containerType: "plain",
   columns: 1,
   fields: [
     {
       SN: "1",
-      NAME: "itemCode",
-      LABEL: "Item Code",
-      TYPE: "Text",
-      STRUCTURE: "S",
-      LENGTH: 20,
-      REQUIRED: true,
-      WIDTH: "sm",
-      ENRICHTEXT: "Physical code stored in database column (e.g. S, M, HO, BR).",
-    },
-    {
-      SN: "2",
-      NAME: "itemLabel",
-      LABEL: "Display Label",
-      TYPE: "Text",
-      STRUCTURE: "S",
-      LENGTH: 80,
-      REQUIRED: true,
-      WIDTH: "lg",
-      ENRICHTEXT: "Human-readable label shown to users in dropdown selectors.",
+      NAME: "PARAMETER.data",
+      LABEL: "Options List",
+      TYPE: "Object",
+      STRUCTURE: "M",
+      LENGTH: 0,
+      WIDTH: "full",
+      PROP: [
+        {
+          SN: "1_1",
+          NAME: "itemCode",
+          LABEL: "Item Code",
+          TYPE: "Text",
+          STRUCTURE: "S",
+          LENGTH: 20,
+          REQUIRED: true,
+          WIDTH: "sm",
+          ENRICHTEXT: "Physical code stored in database column (e.g. S, M, HO, BR).",
+        },
+        {
+          SN: "1_2",
+          NAME: "itemLabel",
+          LABEL: "Display Label",
+          TYPE: "Text",
+          STRUCTURE: "S",
+          LENGTH: 80,
+          REQUIRED: true,
+          WIDTH: "lg",
+          ENRICHTEXT: "Human-readable label shown to users in dropdown selectors.",
+        },
+      ],
     },
   ],
 };
@@ -411,8 +415,7 @@ export const DROPDOWN_OPTIONS_SECTION: FormSection = {
 export const DROPDOWN_LOOKUP_SECTION: FormSection = {
   id: "sec_dropdown_lookup",
   title: "",
-  type: "standard",
-  layoutStyle: "plain",
+  containerType: "plain",
   columns: 1,
   fields: [
     {

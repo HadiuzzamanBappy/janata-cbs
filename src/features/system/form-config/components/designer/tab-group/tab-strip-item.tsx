@@ -21,8 +21,8 @@ export interface TabStripItemProps {
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onMoveFieldAcrossSections?: (
     sourceSecId: string,
@@ -67,10 +67,9 @@ export function TabStripItem({
       JSON.stringify({
         type: "canvas-tab",
         sectionId: tab.id,
-        tabGroupId: groupId,
+        groupId: groupId,
         title: tab.title,
-        tabTitle: tab.tabTitle || tab.title,
-        sectionType: tab.type,
+        groupTitle: tab.groupTitle || tab.title,
       }),
     );
   };
@@ -111,16 +110,17 @@ export function TabStripItem({
 
       // Tab reordering within same group or moving across groups
       if (parsed.type === "canvas-tab" && typeof parsed.sectionId === "string") {
-        if (parsed.tabGroupId === groupId && parsed.sectionId !== tab.id) {
+        const itemGroupId = parsed.groupId || parsed.tabGroupId;
+        if (itemGroupId === groupId && parsed.sectionId !== tab.id) {
           onReorderSections?.(parsed.sectionId, tab.id);
           return;
         }
-        if (parsed.tabGroupId !== groupId) {
+        if (itemGroupId !== groupId) {
           onConvertSectionZone?.(parsed.sectionId, "tab", {
-            tabGroupId: groupId,
-            tabTitle:
-              typeof parsed.tabTitle === "string"
-                ? parsed.tabTitle
+            groupId: groupId,
+            groupTitle:
+              typeof parsed.groupTitle === "string"
+                ? parsed.groupTitle
                 : typeof parsed.title === "string"
                   ? parsed.title
                   : undefined,
@@ -132,10 +132,10 @@ export function TabStripItem({
       // Card dropped directly on tab button -> convert into tab
       if (parsed.type === "canvas-section" && typeof parsed.sectionId === "string") {
         onConvertSectionZone?.(parsed.sectionId, "tab", {
-          tabGroupId: groupId,
-          tabTitle:
-            typeof parsed.tabTitle === "string"
-              ? parsed.tabTitle
+          groupId: groupId,
+          groupTitle:
+            typeof parsed.groupTitle === "string"
+              ? parsed.groupTitle
               : typeof parsed.title === "string"
                 ? parsed.title
                 : undefined,
@@ -148,9 +148,9 @@ export function TabStripItem({
         onDropPaletteItem?.(
           {
             ...parsed,
-            zone: "tab",
-            tabGroupId: groupId,
-            tabTitle: parsed.title || `Tab ${totalTabs + 1}`,
+            containerType: "tab",
+            groupId: groupId,
+            groupTitle: parsed.title || `Tab ${totalTabs + 1}`,
           },
           "new-tab-in-group",
         );
@@ -205,7 +205,7 @@ export function TabStripItem({
           >
             {universalTabNumber}
           </Badge>
-          <span>{tab.tabTitle || tab.title || "Tab"}</span>
+          <span>{tab.groupTitle || tab.title || "Tab"}</span>
         </span>
       </div>
 
@@ -215,7 +215,7 @@ export function TabStripItem({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            onConvertSectionZone(tab.id, "standard");
+            onConvertSectionZone(tab.id, "card");
           }}
           className="absolute left-3 size-4 rounded-xs hidden group-hover:flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 cursor-pointer z-10"
           title="Detach this tab to an independent card on canvas"
@@ -240,8 +240,8 @@ export function TabStripItem({
                 ? "text-muted-foreground hover:text-foreground hover:bg-muted/80"
                 : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/80 group-hover:text-muted-foreground",
             )}
-            title={`Close tab ${tab.tabTitle || tab.title || "Tab"}`}
-            aria-label={`Close tab ${tab.tabTitle || tab.title || "Tab"}`}
+            title={`Close tab ${tab.groupTitle || tab.title || "Tab"}`}
+            aria-label={`Close tab ${tab.groupTitle || tab.title || "Tab"}`}
           >
             <X className="size-3.5" />
           </button>

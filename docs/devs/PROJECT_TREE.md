@@ -239,10 +239,19 @@ janata-cbs/
     |   +---form-engine/                       # Headless Atomized Form Engine (Zero-Lag at 1000 fields)
     |   |   |   index.ts                       # Feature barrel export
     |   |   +---components/
-    |   |   |       field-atom.tsx             # Self-subscribing atomic input wrapper
-    |   |   |       field-factory.tsx          # Scanline terminal input widgets
-    |   |   |       form-renderer.tsx          # Card & tab presentation canvas
-    |   |   |       section-card.tsx           # Multi-column grid & collapsible card
+    |   |   |   +---containers/                # Modular container layout primitives
+    |   |   |   |       audit-container.tsx    # Banking audit trailer container (status, maker-checker, timestamps)
+    |   |   |   |       card-container.tsx     # 'card' & 'plain' multi-column grid section container
+    |   |   |   |       stepper-container.tsx  # Sequential wizard container with step progress
+    |   |   |   |       tab-group-container.tsx # Clustered tab panels with workbench tabbar
+    |   |   |   field-atom.tsx                 # Self-subscribing atomic input wrapper
+    |   |   |   field-factory.tsx              # Scanline terminal input widgets
+    |   |   |   field-grid.tsx                 # 12-column responsive layout CSS grid
+    |   |   |   field-row.tsx                  # Banking field label, description tooltip & input row
+    |   |   |   form-preview.tsx               # Live interactive preview dialog
+    |   |   |   form-renderer.tsx              # Pure composition orchestrator
+    |   |   |   object-field.tsx               # First-class Single ('S') and Multi-Value ('M') object renderer
+    |   |   |   widget-renderer.tsx            # Leaf widget switch renderer
     |   |   +---store/
     |   |   |       form-kernel-store.ts       # Per-form isolated Zustand store factory
     |   |   |       form-kernel-provider.tsx   # React context provider & selective useFormKernel hook

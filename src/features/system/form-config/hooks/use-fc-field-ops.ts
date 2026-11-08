@@ -55,7 +55,6 @@ export function useFcFieldOps(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };
@@ -79,7 +78,6 @@ export function useFcFieldOps(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };
@@ -100,10 +98,7 @@ export function useFcFieldOps(
           }))
           .filter((sec) => {
             const isPlainRoot =
-              sec.layoutStyle === "plain" ||
-              !sec.title ||
-              sec.title === "Canvas Root" ||
-              (sec.type === "standard" && sec.zone === "standard" && !sec.title);
+              sec.containerType === "plain" || !sec.title || sec.title === "Canvas Root";
             if (isPlainRoot && (!sec.fields || sec.fields.length === 0)) {
               return false;
             }
@@ -113,7 +108,6 @@ export function useFcFieldOps(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: updatedSections,
           },
         };

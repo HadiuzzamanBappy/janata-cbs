@@ -17,15 +17,12 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
       "Modular canvas layout with root account selectors, address object group, and operational tab containers",
     authNumber: 1.0,
     frmElements: {
-      steps: [],
       sections: [
         {
           id: "sec_root_fields",
           title: "",
           description: "Root canvas fields without card box",
-          type: "standard",
-          zone: "standard",
-          layoutStyle: "plain",
+          containerType: "plain",
           columns: 1,
           fields: [
             {
@@ -93,11 +90,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_group_address",
           title: "Present Address",
           description: "Nested object group bound to presentAddress coordinates",
-          type: "object-group",
-          zone: "standard",
-          layoutStyle: "card",
-          bindKey: "presentAddress",
-          structure: "S",
+          containerType: "card",
           columns: 1,
           fields: [
             {
@@ -140,11 +133,9 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_tab_details",
           title: "Account Details",
           description: "Operational instructions and parameters",
-          type: "standard",
-          zone: "tab",
-          tabGroupId: "tabgrp_account",
-          tabTitle: "Account Details",
-          layoutStyle: "card",
+          containerType: "tab",
+          groupId: "tabgrp_account",
+          groupTitle: "Account Details",
           columns: 1,
           fields: [
             {
@@ -184,11 +175,9 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_tab_services",
           title: "Services & Flags",
           description: "Ancillary banking channels and delivery services",
-          type: "standard",
-          zone: "tab",
-          tabGroupId: "tabgrp_account",
-          tabTitle: "Services & Flags",
-          layoutStyle: "card",
+          containerType: "tab",
+          groupId: "tabgrp_account",
+          groupTitle: "Services & Flags",
           columns: 1,
           fields: [
             {
@@ -246,14 +235,11 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
     description: "Standard operator creation and credential provisioning form",
     authNumber: 1.0,
     frmElements: {
-      steps: [],
       sections: [
         {
           id: "sec_user_identity",
           title: "User Identity",
-          type: "standard",
-          zone: "standard",
-          layoutStyle: "card",
+          containerType: "card",
           columns: 2,
           fields: [
             {
@@ -302,15 +288,12 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
     description: "Enterprise user profile, role access, authorization limits, and sign-on security",
     authNumber: 1.0,
     frmElements: {
-      steps: [],
       sections: [
         {
           id: "sec_users_identity",
           title: "User Identity & Authentication",
           description: "Operator identification, classification, and organization codes",
-          type: "standard",
-          zone: "standard",
-          layoutStyle: "plain",
+          containerType: "plain",
           columns: 1,
           fields: [
             {
@@ -386,9 +369,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_users_validity",
           title: "Validity & Session Restrictions",
           description: "Access hours, validity periods, and session timeout parameters",
-          type: "standard",
-          zone: "standard",
-          layoutStyle: "plain",
+          containerType: "plain",
           columns: 1,
           fields: [
             {
@@ -461,9 +442,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_users_contact",
           title: "Contact & Notification",
           description: "Operator contact details and communication channels",
-          type: "standard",
-          zone: "standard",
-          layoutStyle: "plain",
+          containerType: "plain",
           columns: 1,
           fields: [
             {

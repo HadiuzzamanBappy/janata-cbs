@@ -2,15 +2,19 @@
 
 import * as React from "react";
 import { buildRenderBlocks } from "@/lib/cbs-form-spec";
-import { cn } from "@/lib/core-utils";
 import type { AuditData } from "@/lib/data-schemas";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormRendererProps } from "../types";
-import { SectionCard } from "./section-card";
-import { FormAuditSection } from "./sections/form-audit-section";
+import { AuditContainer } from "./containers/audit-container";
+import { CardContainer } from "./containers/card-container";
+import { StepperContainer } from "./containers/stepper-container";
+import { TabGroupContainer } from "./containers/tab-group-container";
 
 export type { FormRendererProps };
 
+/**
+ * FormRenderer: Pure composition orchestrator.
+ * Delegates rendering to CardContainer, TabGroupContainer, and StepperContainer.
+ */
 export function FormRenderer({
   frmElements,
   values,
@@ -23,48 +27,53 @@ export function FormRenderer({
 }: FormRendererProps) {
   const sections = frmElements?.sections || [];
 
-  // Map of active tab ID per tab group
+  // Active item tracking for multi-pane containers
   const [activeTabs, setActiveTabs] = React.useState<Record<string, string>>({});
+  const [activeSteps, setActiveSteps] = React.useState<Record<string, string>>({});
 
   // Cluster sections preserving designer order
   const blocks = React.useMemo(() => {
     return buildRenderBlocks(sections);
   }, [sections]);
 
-  // Extract all tab groups from blocks
-  const tabGroups = React.useMemo(() => {
-    const map: Record<string, FormSection[]> = {};
-    for (const b of blocks) {
-      if (b.type === "tab-group") {
-        map[b.groupId] = b.tabSections;
-      }
-    }
-    return map;
-  }, [blocks]);
-
   // Keep active tab state in sync
   React.useEffect(() => {
     setActiveTabs((prev) => {
       const next = { ...prev };
       let changed = false;
-      for (const [groupKey, groupSecs] of Object.entries(tabGroups)) {
-        if (
-          groupSecs.length > 0 &&
-          (!next[groupKey] || !groupSecs.some((s) => s.id === next[groupKey]))
-        ) {
-          next[groupKey] = groupSecs[0].id;
-          changed = true;
+      for (const b of blocks) {
+        if (b.type === "tab-group" && b.tabSections.length > 0) {
+          if (!next[b.groupId] || !b.tabSections.some((s) => s.id === next[b.groupId])) {
+            next[b.groupId] = b.tabSections[0].id;
+            changed = true;
+          }
         }
       }
       return changed ? next : prev;
     });
-  }, [tabGroups]);
+  }, [blocks]);
+
+  // Keep active step state in sync
+  React.useEffect(() => {
+    setActiveSteps((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const b of blocks) {
+        if (b.type === "step-group" && b.stepSections.length > 0) {
+          if (!next[b.groupId] || !b.stepSections.some((s) => s.id === next[b.groupId])) {
+            next[b.groupId] = b.stepSections[0].id;
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [blocks]);
 
   // Handle reactive ON_CHANGE rules on input change
   const handleFieldChange = (key: string, val: unknown) => {
     onChange(key, val);
 
-    // Process reactive ON_CHANGE rules (simple copy, uppercase, lowercase, join)
     sections.forEach((sec) => {
       (sec.fields || []).forEach((f) => {
         if (f.NAME === key && f.ON_CHANGE?.target) {
@@ -96,7 +105,7 @@ export function FormRenderer({
         {blocks.map((block) => {
           if (block.type === "single") {
             return (
-              <SectionCard
+              <CardContainer
                 key={block.section.id}
                 section={block.section}
                 values={values}
@@ -108,61 +117,45 @@ export function FormRenderer({
             );
           }
 
-          const currentActiveId = activeTabs[block.groupId] || block.tabSections[0]?.id;
-          const activeSection =
-            block.tabSections.find((t) => t.id === currentActiveId) || block.tabSections[0];
+          if (block.type === "step-group") {
+            return (
+              <StepperContainer
+                key={block.groupId}
+                groupId={block.groupId}
+                stepSections={block.stepSections}
+                activeStepId={activeSteps[block.groupId]}
+                onStepChange={(grpId, stepId) =>
+                  setActiveSteps((prev) => ({ ...prev, [grpId]: stepId }))
+                }
+                values={values}
+                onChange={handleFieldChange}
+                errors={errors}
+                disabled={disabled}
+                mode={mode}
+              />
+            );
+          }
 
+          // Tab Group
           return (
-            <div
+            <TabGroupContainer
               key={block.groupId}
-              className="rounded border border-border/80 bg-card/60 shadow-2xs overflow-hidden"
-            >
-              {/* Tab Header Bar (Workbench TabBar Square Density with Active Top Border) */}
-              <div className="flex border-b border-border/80 bg-muted/40 p-0 gap-0 items-end select-none">
-                {block.tabSections.map((tab) => {
-                  const isActive = tab.id === currentActiveId;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() =>
-                        setActiveTabs((prev) => ({ ...prev, [block.groupId]: tab.id }))
-                      }
-                      className={cn(
-                        "relative flex items-center h-8 px-3 text-xs font-medium transition-all duration-150 cursor-pointer whitespace-nowrap rounded-none",
-                        isActive
-                          ? "bg-background text-foreground font-semibold border-t border-l border-r border-border/80 border-b-0 shadow-2xs z-10 -mb-px after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                          : "text-muted-foreground hover:bg-background/50 hover:text-foreground border-transparent",
-                      )}
-                    >
-                      {tab.tabTitle || tab.title || "Tab"}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Active Tab Body without duplicate inner header */}
-              {activeSection && (
-                <div className="p-3">
-                  <SectionCard
-                    key={activeSection.id}
-                    section={activeSection}
-                    values={values}
-                    onChange={handleFieldChange}
-                    errors={errors}
-                    disabled={disabled}
-                    mode={mode}
-                    hideHeader
-                  />
-                </div>
-              )}
-            </div>
+              groupId={block.groupId}
+              tabSections={block.tabSections}
+              activeTabId={activeTabs[block.groupId]}
+              onTabChange={(grpId, tabId) => setActiveTabs((prev) => ({ ...prev, [grpId]: tabId }))}
+              values={values}
+              onChange={handleFieldChange}
+              errors={errors}
+              disabled={disabled}
+              mode={mode}
+            />
           );
         })}
 
         {/* Constant Read-Only Audit Section below all form sections */}
         {showAuditSection && (
-          <FormAuditSection auditData={auditData ?? (values.auditData as AuditData)} />
+          <AuditContainer auditData={auditData ?? (values.auditData as AuditData)} />
         )}
       </div>
     </div>

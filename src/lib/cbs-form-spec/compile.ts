@@ -1,97 +1,16 @@
-import { getDefaultWidgetForType, isWidgetCompatibleWithType } from "@/lib/data-schemas";
 import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement, PropertyWidth } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
-
-export type CompiledFormSpec = FormConfigRecord;
+import {
+  defaultWidthForLength,
+  modelPropToFormElement,
+  normalizeParameter,
+  resolveWidgetType,
+} from "./field-normalizer";
 
 /* -------------------------------------------------------------------------- */
-/* Layout Generation Utilities                                                */
+/* Fallback Layout Generator (Single Responsibility: Model -> Default Layout)  */
 /* -------------------------------------------------------------------------- */
-
-/**
- * Computes optimal semantic width token from model property attributes (TYPE and physical LENGTH).
- * Maps directly to the canonical 12-column responsive tokens: xs, sm, md, lg, xl, full.
- */
-export function defaultWidthForLength(prop: ModelProperty): PropertyWidth {
-  // 1. Type-based semantic defaults
-  const normType = (prop.TYPE || "").toLowerCase();
-  if (normType === "textarea") return "full";
-  if (normType === "boolean" || normType === "switch" || normType === "checkbox") return "xs";
-  if (normType === "date" || normType === "datetime") return "sm";
-  if (normType === "amount" || normType === "rate") return "md";
-
-  // 2. Physical DB length fallback
-  // Single-line inputs cap comfortably at xxl (max-w-2xl) instead of stretching
-  // across the full widescreen terminal. Only textareas take "full" (100% width).
-  const len = prop.LENGTH;
-  if (typeof len === "number" && len > 0) {
-    if (len <= 6) return "xs";
-    if (len <= 16) return "sm";
-    if (len <= 40) return "md";
-    if (len <= 80) return "lg";
-    if (len <= 150) return "xl";
-    return "xxl";
-  }
-
-  return "md";
-}
-
-function normalizeParameter(raw?: Record<string, unknown> | null): FormElement["PARAMETER"] {
-  if (!raw) {
-    return undefined;
-  }
-  const rawData = Array.isArray(raw.data) ? raw.data : [];
-  const normalizedData = rawData.map((item) => {
-    const d = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
-    const itemCode = String(d.itemCode ?? d.code ?? item ?? "").trim();
-    const itemLabel = String(d.itemLabel ?? d.label ?? d.itemCode ?? itemCode).trim();
-    return {
-      itemCode,
-      itemLabel: itemLabel || itemCode,
-    };
-  });
-  return {
-    type: String(raw.type || "O"),
-    data: normalizedData,
-    modelName: String(raw.modelName || ""),
-    codeField: String(raw.codeField || ""),
-    displayField: String(raw.displayField || ""),
-    condition: String(raw.condition || ""),
-    reference: String(raw.reference || ""),
-  };
-}
-
-function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
-  const snStr = String(p.SN || idx + 1);
-  const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
-  const param = normalizeParameter(p.PARAMETER);
-  const hasLookup = Boolean(
-    param?.type === "M" || (param?.type === "O" && param.data && param.data.length > 0),
-  );
-  const defaultWidget = hasLookup ? "select" : getDefaultWidgetForType(p.TYPE);
-  const explicitWidget = (p as Record<string, unknown>).WIDGET as string | undefined;
-  const effectiveWidget =
-    explicitWidget && isWidgetCompatibleWithType(p.TYPE, explicitWidget)
-      ? (explicitWidget as FormElement["WIDGET"])
-      : defaultWidget;
-
-  return {
-    SN: snStr,
-    NAME: p.NAME || `field_${snStr}`,
-    LABEL: baseLabel,
-    TYPE: p.TYPE || "Text",
-    LENGTH: p.LENGTH ?? 35,
-    STRUCTURE: p.STRUCTURE || "S",
-    REQUIRED: Boolean(p.REQUIRED),
-    DISABLED: false,
-    WIDTH: defaultWidthForLength(p),
-    WIDGET: effectiveWidget,
-    PARAMETER: param,
-    VISIBLE_WHEN: (p as Record<string, unknown>).VISIBLE_WHEN as FormElement["VISIBLE_WHEN"],
-    DISABLED_WHEN: (p as Record<string, unknown>).DISABLED_WHEN as FormElement["DISABLED_WHEN"],
-  };
-}
 
 /**
  * Generates canonical responsive fallback layout sections from a physical ModelConfigRecord.
@@ -102,64 +21,29 @@ export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const allProps = model.PROPERTIES || [];
   if (allProps.length === 0) return [];
 
-  const sections: FormSection[] = [];
-  let currentStandardFields: FormElement[] = [];
+  const fields: FormElement[] = allProps.map((p, idx) => modelPropToFormElement(p, idx));
 
-  const flushStandardFields = (index: number) => {
-    if (currentStandardFields.length > 0) {
-      sections.push({
-        id: `sec_std_${index}`,
-        title: index === 0 ? model.DESCRIPTION || model.TABLENAME || "General Attributes" : "",
-        description: "",
-        type: "standard",
-        zone: "standard",
-        layoutStyle: "plain",
-        columns: 1,
-        collapsible: false,
-        isCollapsed: false,
-        fields: [...currentStandardFields],
-      });
-      currentStandardFields = [];
-    }
-  };
-
-  allProps.forEach((p, idx) => {
-    if (p.TYPE === "Object") {
-      flushStandardFields(idx);
-      const subFields = Array.isArray(p.PROP)
-        ? p.PROP.map((sub, sIdx) => modelPropToFormElement(sub, sIdx))
-        : [];
-      sections.push({
-        id: `sec_${p.NAME.toLowerCase() || idx}`,
-        title: p.LABEL || p.NAME,
-        description: `Nested group for ${p.LABEL || p.NAME}`,
-        type: "object-group",
-        zone: "standard",
-        layoutStyle: "plain",
-        columns: 1,
-        structure: p.STRUCTURE || "S",
-        bindKey: p.NAME,
-        collapsible: false,
-        isCollapsed: false,
-        fields: subFields,
-      });
-    } else {
-      currentStandardFields.push(modelPropToFormElement(p, idx));
-    }
-  });
-
-  flushStandardFields(allProps.length);
-
-  return sections;
+  return [
+    {
+      id: "sec_std_1",
+      title: model.DESCRIPTION || model.TABLENAME || "General Attributes",
+      description: "",
+      containerType: "plain",
+      columns: 1,
+      collapsible: false,
+      isCollapsed: false,
+      fields,
+    },
+  ];
 }
 
 /* -------------------------------------------------------------------------- */
-/* Master Form Specification Compiler                                         */
+/* Master Form Specification Compiler (Single Responsibility: Merge Layout)    */
 /* -------------------------------------------------------------------------- */
 
 /**
  * Pure, authoritative compiler for the CBS presentation layer.
- * Merges a ModelConfigRecord (the single authority on data schema) with an optional
+ * Merges a ModelConfigRecord (physical DB authority) with an optional
  * FormConfigRecord layout (visual arrangement). If no custom layout is supplied,
  * generates a 12-column responsive fallback grid.
  */
@@ -181,7 +65,6 @@ export function compileFormSpec(
         rtnAfterAuth: [],
       },
       frmElements: {
-        steps: [],
         sections: buildFallbackSections(model),
       },
       auditData: model.auditData,
@@ -190,7 +73,9 @@ export function compileFormSpec(
 
   // Case B: Custom Layout Composition
   // Physical model property constraints (REQUIRED, LENGTH, TYPE) are authoritative
-  const propertyMap = new Map((model.PROPERTIES || []).map((p) => [p.NAME.toLowerCase(), p]));
+  const propertyMap = new Map(
+    (model.PROPERTIES || []).map((p: ModelProperty) => [p.NAME.toLowerCase(), p]),
+  );
 
   const cleanSections: FormSection[] = layout.frmElements.sections.map((section) => ({
     ...section,
@@ -210,10 +95,7 @@ export function compileFormSpec(
         // Invariant: ModelConfig is physical database authority.
         REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
         WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
-        WIDGET:
-          field.WIDGET && isWidgetCompatibleWithType(modelProp.TYPE, field.WIDGET)
-            ? field.WIDGET
-            : getDefaultWidgetForType(modelProp.TYPE),
+        WIDGET: resolveWidgetType(modelProp.TYPE, modelProp.PARAMETER, field.WIDGET),
         PARAMETER:
           field.PARAMETER?.data && field.PARAMETER.data.length > 0
             ? field.PARAMETER
@@ -232,7 +114,6 @@ export function compileFormSpec(
     title: layout.title || model.DESCRIPTION || modelCode,
     description: layout.description || model.DESCRIPTION || modelCode,
     frmElements: {
-      steps: layout.frmElements.steps || [],
       sections: cleanSections,
     },
     auditData: layout.auditData || model.auditData,

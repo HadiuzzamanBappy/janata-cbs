@@ -7,6 +7,7 @@
  */
 
 import { createStore } from "zustand/vanilla";
+import { getFieldValue, setFieldValue } from "@/lib/cbs-form-spec";
 
 export interface FormKernelState {
   values: Record<string, unknown>;
@@ -45,10 +46,11 @@ export function createFormKernelStore(initialValues: Record<string, unknown> = {
 
     setValue: (field: string, value: unknown) => {
       set((state) => {
-        // Fast-path: don't mutate if identical primitive
-        if (state.values[field] === value) return state;
+        // Fast-path: don't mutate if identical value
+        const currentVal = getFieldValue(state.values, field);
+        if (currentVal === value) return state;
 
-        const nextValues = { ...state.values, [field]: value };
+        const nextValues = setFieldValue(state.values, field, value);
         const nextErrors = { ...state.errors };
         if (nextErrors[field]) {
           delete nextErrors[field];

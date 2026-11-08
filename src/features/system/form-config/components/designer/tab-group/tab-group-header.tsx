@@ -26,8 +26,8 @@ export interface TabGroupHeaderProps {
   onRemoveSection: (id: string) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onMoveFieldAcrossSections?: (
@@ -119,7 +119,7 @@ export function TabGroupHeader({
     if (disabled || !onAddSection) return;
     const n = tabSections.length + 1;
     const title = `Tab ${n}`;
-    onAddSection("standard", "tab", [], "card", title, groupId, title);
+    onAddSection("tab", [], title, groupId, title);
   };
 
   return (

@@ -94,11 +94,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         content: (
           <FcDesignerTab
             modelProperties={targetModelRecord?.PROPERTIES}
-            targetModel={
-              typeof formData.targetModel === "string"
-                ? formData.targetModel
-                : targetModelRecord?.TABLENAME
-            }
+            targetModel={targetModelRecord?.TABLENAME}
             sections={formData.frmElements?.sections || []}
             selectedSectionId={selectedSectionId}
             selectedFieldId={selectedFieldId}

@@ -1,16 +1,16 @@
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { getInputWidthClass, resolveWidgetType } from "@/lib/cbs-form-spec";
 import { formatCurrency } from "@/lib/core-utils";
 import { useFieldOptions } from "../hooks/use-field-options";
 import { useMultiValue } from "../hooks/use-multi-value";
 import type { UnifiedFieldFactoryProps } from "../types";
-import { getInputWidthClass } from "../utils/section-utils";
-import { resolveWidgetType } from "../utils/widget-utils";
+import { FieldRow } from "./field-row";
+import { ObjectField } from "./object-field";
 import { renderFieldWidget } from "./widget-renderer";
-import { FieldRow } from "./widgets/field-row";
 
-export function UnifiedFieldFactory({
+function ScalarFieldFactory({
   field,
   value,
   onChange,
@@ -27,6 +27,7 @@ export function UnifiedFieldFactory({
   const effectiveLabel = labelOverride ?? field.LABEL ?? field.NAME;
   const fieldKey = field.NAME;
   const elementId = `elem_${field.SN}_${field.NAME}`;
+
   // Resolve options & widget configuration
   const { param, resolvedOptions, modelLoading } = useFieldOptions(field);
   const widget = useMemo(
@@ -38,8 +39,7 @@ export function UnifiedFieldFactory({
     () => getInputWidthClass(field.WIDTH, field.LENGTH, field.TYPE, widget),
     [field.WIDTH, field.LENGTH, field.TYPE, widget],
   );
-  const effectiveEnrichText =
-    field.ENRICHTEXT || ((field as Record<string, unknown>).enrichText as string) || undefined;
+  const effectiveEnrichText = field.ENRICHTEXT || undefined;
 
   // Resolve default value from field configuration if no value is set
   const rawDefault = field.DEFAULTVALUE ?? field.FIXEDVALUE;
@@ -87,7 +87,7 @@ export function UnifiedFieldFactory({
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =
     useMultiValue(effectiveValue, isMulti, onChange, fieldKey);
 
-  // View Mode display text (computed unconditionally at top level for React Rule of Hooks)
+  // View Mode display text
   const viewDisplay = useMemo(() => {
     if (value === undefined || value === null || value === "") return undefined;
     if (Array.isArray(value)) return value.join(", ");
@@ -223,4 +223,22 @@ export function UnifiedFieldFactory({
       {renderSingleWidget(effectiveValue, (newVal) => onChange(fieldKey, newVal), elementId)}
     </FieldRow>
   );
+}
+
+export function UnifiedFieldFactory(props: UnifiedFieldFactoryProps) {
+  if (props.field.TYPE === "Object") {
+    return (
+      <ObjectField
+        field={props.field}
+        values={props.allValues || {}}
+        onChange={props.onChange}
+        errors={props.errors}
+        disabled={props.disabled}
+        mode={props.mode}
+        hasKernel={props.hasKernel}
+      />
+    );
+  }
+
+  return <ScalarFieldFactory {...props} />;
 }

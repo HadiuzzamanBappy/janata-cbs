@@ -16,8 +16,8 @@ export interface SortableTabGroupCardProps {
   onRemoveField: (fieldId: string) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onMoveFieldAcrossSections?: (
@@ -36,14 +36,14 @@ export interface SortableTabGroupCardProps {
 export function isTabGroupPayload(p: DragPayload): boolean {
   return (
     p.type === "palette-tabgroup" ||
-    (p.type === "palette-container" && p.zone === "tab") ||
-    p.zone === "tab"
+    p.containerType === "tab" ||
+    (p.type === "palette-container" && p.containerType === "tab")
   );
 }
 
 export function isContainerPayload(p: DragPayload): boolean {
   return (
     p.type === "palette-container" ||
-    ["standard", "object-group", "array-table"].includes(String(p.containerType || ""))
+    ["card", "plain", "tab", "step", "accordion"].includes(String(p.containerType || ""))
   );
 }

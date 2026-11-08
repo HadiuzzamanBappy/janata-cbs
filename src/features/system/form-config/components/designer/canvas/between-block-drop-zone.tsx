@@ -11,8 +11,8 @@ export interface BetweenBlockDropZoneProps {
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   disabled?: boolean;
 }
@@ -70,7 +70,7 @@ export function BetweenBlockDropZone({
           if (dataStr) {
             const parsed = JSON.parse(dataStr);
             if (parsed.type === "canvas-tab" && parsed.sectionId && onConvertSectionZone) {
-              onConvertSectionZone(parsed.sectionId, "standard");
+              onConvertSectionZone(parsed.sectionId, "card");
               return;
             }
             if (onDropPaletteItem) {

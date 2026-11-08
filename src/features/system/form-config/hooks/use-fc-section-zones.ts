@@ -9,8 +9,8 @@ export function useFcSectionZones(
   const convertSectionZone = React.useCallback(
     (
       sectionId: string,
-      targetZone: "standard" | "tab",
-      opts?: { tabGroupId?: string; tabTitle?: string },
+      targetType: "card" | "plain" | "tab",
+      opts?: { groupId?: string; groupTitle?: string },
     ) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
@@ -18,27 +18,24 @@ export function useFcSectionZones(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: sections.map((sec, idx) => {
               if (sec.id !== sectionId) return sec;
-              if (targetZone === "tab") {
-                const grpId = opts?.tabGroupId || `tabgrp_${idx + 1}`;
-                const title = opts?.tabTitle || sec.title || `Tab ${idx + 1}`;
+              if (targetType === "tab") {
+                const grpId = opts?.groupId || `tabgrp_${idx + 1}`;
+                const title = opts?.groupTitle || sec.title || `Tab ${idx + 1}`;
                 return {
                   ...sec,
-                  zone: "tab" as const,
-                  tabGroupId: grpId,
-                  tabTitle: title,
+                  containerType: "tab" as const,
+                  groupId: grpId,
+                  groupTitle: title,
                   title,
-                  layoutStyle: "card" as const,
                 };
               }
               return {
                 ...sec,
-                zone: "standard" as const,
-                tabGroupId: undefined,
-                tabTitle: undefined,
-                layoutStyle: "card" as const,
+                containerType: targetType as "card" | "plain",
+                groupId: undefined,
+                groupTitle: undefined,
               };
             }),
           },
@@ -56,12 +53,11 @@ export function useFcSectionZones(
         return {
           ...prev,
           frmElements: {
-            steps: prev.frmElements?.steps || [],
             sections: sections.map((sec) => {
-              if (sec.zone === "tab" && sec.tabGroupId === sourceGroupId) {
+              if (sec.containerType === "tab" && sec.groupId === sourceGroupId) {
                 return {
                   ...sec,
-                  tabGroupId: targetGroupId,
+                  groupId: targetGroupId,
                 };
               }
               return sec;
@@ -73,8 +69,5 @@ export function useFcSectionZones(
     [setFormData],
   );
 
-  return {
-    convertSectionZone,
-    mergeTabGroups,
-  };
+  return { convertSectionZone, mergeTabGroups };
 }

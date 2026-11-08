@@ -11,8 +11,8 @@ export interface TabGroupDropParams {
   disabled?: boolean;
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
@@ -56,12 +56,13 @@ export function useTabGroupDrop({
         const parsed = JSON.parse(dataStr) as DragPayload;
 
         if (parsed.type === "canvas-tab" && typeof parsed.sectionId === "string") {
-          if (parsed.tabGroupId === groupId) return;
+          const itemGroupId = parsed.groupId || parsed.tabGroupId;
+          if (itemGroupId === groupId) return;
           onConvertSectionZone?.(parsed.sectionId, "tab", {
-            tabGroupId: groupId,
-            tabTitle:
-              typeof parsed.tabTitle === "string"
-                ? parsed.tabTitle
+            groupId: groupId,
+            groupTitle:
+              typeof parsed.groupTitle === "string"
+                ? parsed.groupTitle
                 : typeof parsed.title === "string"
                   ? parsed.title
                   : undefined,
@@ -71,10 +72,10 @@ export function useTabGroupDrop({
 
         if (parsed.type === "canvas-section" && typeof parsed.sectionId === "string") {
           onConvertSectionZone?.(parsed.sectionId, "tab", {
-            tabGroupId: groupId,
-            tabTitle:
-              typeof parsed.tabTitle === "string"
-                ? parsed.tabTitle
+            groupId: groupId,
+            groupTitle:
+              typeof parsed.groupTitle === "string"
+                ? parsed.groupTitle
                 : typeof parsed.title === "string"
                   ? parsed.title
                   : undefined,
@@ -82,18 +83,19 @@ export function useTabGroupDrop({
           return;
         }
 
-        if (isTabGroupPayload(parsed) && parsed.tabGroupId !== groupId) {
-          if (parsed.tabGroupId) {
-            onMergeTabGroup?.(String(parsed.tabGroupId), groupId);
+        const itemGroupId = parsed.groupId || parsed.tabGroupId;
+        if (isTabGroupPayload(parsed) && itemGroupId !== groupId) {
+          if (itemGroupId) {
+            onMergeTabGroup?.(String(itemGroupId), groupId);
             return;
           }
         }
 
         if (onDropPaletteItem) {
           const n = tabSections.length + 1;
-          const title = String(parsed.title || parsed.tabTitle || `Tab ${n}`);
+          const title = String(parsed.title || parsed.groupTitle || `Tab ${n}`);
           onDropPaletteItem(
-            { ...parsed, zone: "tab", tabGroupId: groupId, title, tabTitle: title },
+            { ...parsed, containerType: "tab", groupId, title, groupTitle: title },
             "new-tab-in-group",
           );
         }
@@ -137,9 +139,10 @@ export function useTabGroupDrop({
         if (!dataStr) return;
         const parsed = JSON.parse(dataStr) as DragPayload;
 
-        if (isTabGroupPayload(parsed) && parsed.tabGroupId !== groupId) {
-          if (parsed.tabGroupId) {
-            onMergeTabGroup?.(String(parsed.tabGroupId), groupId);
+        const itemGroupId = parsed.groupId || parsed.tabGroupId;
+        if (isTabGroupPayload(parsed) && itemGroupId !== groupId) {
+          if (itemGroupId) {
+            onMergeTabGroup?.(String(itemGroupId), groupId);
             return;
           }
         }
@@ -151,11 +154,10 @@ export function useTabGroupDrop({
             {
               ...parsed,
               type: "palette-container",
-              containerType: parsed.containerType || "standard",
-              zone: "tab",
-              tabGroupId: groupId,
+              containerType: "tab",
+              groupId: groupId,
               title,
-              tabTitle: title,
+              groupTitle: title,
             },
             "new-tab-in-group",
           );

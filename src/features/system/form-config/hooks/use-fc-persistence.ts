@@ -16,7 +16,6 @@ export const INITIAL_FORM_CONFIG: FormConfigRecord = {
     rtnAfterAuth: [],
   },
   frmElements: {
-    steps: [],
     sections: [],
   },
 };
@@ -37,7 +36,6 @@ export function createInitialDraft(_cleanId?: string, _description?: string): Fo
       rtnAfterAuth: [],
     },
     frmElements: {
-      steps: [],
       sections: [],
     },
   };

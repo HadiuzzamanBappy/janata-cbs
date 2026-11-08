@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { SectionCard } from "@/features/form-engine/components/section-card";
+import { CardContainer } from "@/features/form-engine/components/containers/card-container";
 import type {
   MenuDesignerValidationError,
   MenuTreeRecord,
@@ -53,7 +53,7 @@ export function MdGeneralTab({
     <div className="h-full overflow-y-auto">
       <div className="max-w-3xl space-y-3 pb-8">
         {MENU_DESIGNER_SECTIONS.map((section) => (
-          <SectionCard
+          <CardContainer
             key={section.id}
             section={section}
             values={formValues}

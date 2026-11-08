@@ -19,17 +19,13 @@ export interface FcDesignerTabProps {
   onSelectSection: (id: string | null) => void;
   onSelectField: (id: string | null) => void;
   onAddSection: (
-    type: "standard" | "object-group" | "array-table",
-    zone?: "header" | "tab" | "standard",
+    containerType?: "card" | "plain" | "tab" | "step" | "accordion",
     initialFields?: FormElement[],
-    layoutStyle?: "card" | "plain",
     customTitle?: string,
-    tabGroupId?: string,
-    tabTitle?: string,
+    groupId?: string,
+    groupTitle?: string,
     insertIndex?: number,
     columns?: number,
-    bindKey?: string,
-    structure?: "S" | "M",
   ) => void;
   onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection: (id: string) => void;
@@ -47,8 +43,8 @@ export interface FcDesignerTabProps {
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetZone: "standard" | "tab",
-    opts?: { tabGroupId?: string; tabTitle?: string },
+    targetType: "card" | "plain" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   disabled?: boolean;
@@ -107,7 +103,7 @@ export function FcDesignerTab({
     }
 
     const rootCanvasSection = sections.find(
-      (s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root",
+      (s) => s.containerType === "plain" || !s.title || s.title === "Canvas Root",
     );
 
     if (rootCanvasSection) {
@@ -139,17 +135,7 @@ export function FcDesignerTab({
       DEFAULTVALUE: template.DEFAULTVALUE || "",
     };
 
-    onAddSection(
-      "standard",
-      "standard",
-      [newField],
-      "plain",
-      "",
-      undefined,
-      undefined,
-      undefined,
-      1,
-    );
+    onAddSection("plain", [newField], "");
   };
 
   const handleDropPaletteItem = (
@@ -161,35 +147,23 @@ export function FcDesignerTab({
     const data = payload as {
       type?: string;
       element?: FormElement;
+      field?: FormElement;
       initialFields?: FormElement[];
-      containerType?: "standard" | "object-group" | "array-table";
-      zone?: "header" | "tab" | "standard";
-      layoutStyle?: "card" | "plain";
+      containerType?: "card" | "plain" | "tab" | "step" | "accordion";
       title?: string;
-      tabGroupId?: string;
-      tabTitle?: string;
+      groupId?: string;
+      groupTitle?: string;
       columns?: number;
-      bindKey?: string;
-      structure?: "S" | "M";
     };
 
-    if (data.type === "palette-variable" && data.element) {
+    const droppedField = data.element || data.field;
+    if ((data.type === "palette-variable" || data.type === "palette-field") && droppedField) {
       if (targetSectionId && targetSectionId !== "canvas-root") {
-        onAddFieldToSection(targetSectionId, data.element);
+        onAddFieldToSection(targetSectionId, droppedField);
       } else if (insertIndex !== undefined) {
-        onAddSection(
-          "standard",
-          "standard",
-          [data.element],
-          "plain",
-          "",
-          undefined,
-          undefined,
-          insertIndex,
-          1,
-        );
+        onAddSection("plain", [droppedField], "", undefined, undefined, insertIndex, 1);
       } else {
-        handlePaletteAddField(data.element);
+        handlePaletteAddField(droppedField);
       }
       return;
     }
@@ -209,25 +183,20 @@ export function FcDesignerTab({
       }
 
       const isTargetTabGroup =
-        targetSectionId === "new-tab-in-group" || (targetSec && targetSec.zone === "tab");
-      const targetGroupId = isTargetTabGroup ? data.tabGroupId || targetSec?.tabGroupId : undefined;
-      const effectiveZone = isTargetTabGroup ? "tab" : data.zone || "standard";
-      const effectiveTabTitle = isTargetTabGroup
-        ? data.title || data.tabTitle || "New Tab"
-        : data.tabTitle;
+        targetSectionId === "new-tab-in-group" || (targetSec && targetSec.containerType === "tab");
+      const targetGroupId = isTargetTabGroup ? data.groupId || targetSec?.groupId : undefined;
+      const effectiveGroupTitle = isTargetTabGroup
+        ? data.title || data.groupTitle || "New Tab"
+        : data.groupTitle;
 
       onAddSection(
-        data.containerType,
-        effectiveZone,
+        isTargetTabGroup ? "tab" : data.containerType,
         data.initialFields || [],
-        data.layoutStyle || (data.containerType === "object-group" ? "plain" : "card"),
         data.title,
         targetGroupId,
-        effectiveTabTitle,
+        effectiveGroupTitle,
         insertIndex,
         data.columns,
-        data.bindKey,
-        data.structure,
       );
     }
   };
@@ -258,8 +227,8 @@ export function FcDesignerTab({
 
   const handleCanvasBackgroundClick = () => {
     const rootSection =
-      sections.find((s) => s.layoutStyle === "plain" || !s.title || s.title === "Canvas Root") ||
-      sections.find((s) => s.zone !== "tab") ||
+      sections.find((s) => s.containerType === "plain" || !s.title || s.title === "Canvas Root") ||
+      sections.find((s) => s.containerType !== "tab") ||
       sections[0];
     if (rootSection) {
       onSelectSection(rootSection.id);

@@ -369,7 +369,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
 export const DROPDOWN_OPTIONS_SECTION: FormSection = {
   id: "sec_dropdown_options",
   title: "",
-  containerType: "plain",
+  containerType: "card",
   columns: 1,
   fields: [
     {
@@ -415,7 +415,7 @@ export const DROPDOWN_OPTIONS_SECTION: FormSection = {
 export const DROPDOWN_LOOKUP_SECTION: FormSection = {
   id: "sec_dropdown_lookup",
   title: "",
-  containerType: "plain",
+  containerType: "card",
   columns: 1,
   fields: [
     {

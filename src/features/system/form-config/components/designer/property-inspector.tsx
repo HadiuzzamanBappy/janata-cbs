@@ -1,17 +1,21 @@
 "use client";
 
-import { ArrowLeft, Settings, Type, X } from "lucide-react";
+import { ArrowLeft, Code2, Settings, Sliders, Type, X } from "lucide-react";
 import * as React from "react";
+import { CbsJsonViewerTab } from "@/components/cbs-screen";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import { CbsRecordFunction } from "@/types";
 import { InspectorAnchorSection } from "./inspector/inspector-anchor-section";
-import { InspectorContainerSection } from "./inspector/inspector-container-section";
-import { InspectorGeneralSection } from "./inspector/inspector-general-section";
 import { InspectorWidgetSection } from "./inspector/inspector-widget-section";
+import { CONTAINER_CONFIG_SECTION, FIELD_GENERAL_SECTION } from "./inspector/property-field-specs";
 
 export interface PropertyInspectorProps {
   selectedSection: FormSection | null;
@@ -36,6 +40,8 @@ export function PropertyInspector({
   disabled,
   className,
 }: PropertyInspectorProps) {
+  const [activeTab, setActiveTab] = React.useState<"form" | "json">("form");
+
   // Resolve underlying physical database model property (if available)
   const matchedModelProp = React.useMemo(() => {
     if (!selectedField) return null;
@@ -75,11 +81,29 @@ export function PropertyInspector({
     };
   }, [selectedField, selectedSection]);
 
+  const handleGeneralFieldChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      if (!selectedField) return;
+      const updated = setFieldValue(selectedField as Record<string, unknown>, fieldKey, value);
+      onUpdateField(updated as Partial<FormElement>);
+    },
+    [selectedField, onUpdateField],
+  );
+
+  const handleContainerSectionChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      if (!selectedSection) return;
+      const updated = setFieldValue(selectedSection as Record<string, unknown>, fieldKey, value);
+      onUpdateSection(updated as Partial<FormSection>);
+    },
+    [selectedSection, onUpdateSection],
+  );
+
   if (!selectedField && !selectedSection) {
     return (
       <div
         className={cn(
-          "w-96 border-l border-border/70 bg-card/25 p-4 flex flex-col items-center justify-center text-center text-muted-foreground text-xs select-none shrink-0 relative",
+          "w-110 border-l border-border/70 bg-card/25 p-4 flex flex-col items-center justify-center text-center text-muted-foreground text-xs select-none shrink-0 relative",
           className,
         )}
       >
@@ -107,10 +131,12 @@ export function PropertyInspector({
     );
   }
 
+  const activeRawSpec = selectedField || selectedSection;
+
   return (
     <div
       className={cn(
-        "w-96 border-l border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0 overflow-hidden",
+        "w-110 border-l border-border/70 bg-card/40 flex flex-col h-full select-none text-xs shrink-0 overflow-hidden",
         className,
       )}
     >
@@ -172,37 +198,82 @@ export function PropertyInspector({
         </div>
       </div>
 
-      {/* ── Form Body ─────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3.5">
-        {selectedField ? (
-          <>
-            <InspectorAnchorSection
-              selectedField={selectedField}
-              matchedModelProp={matchedModelProp}
-              baseType={baseType}
-            />
+      {/* ── Top Tabs Navigation: FormEngine UI vs JSON ────────────────────── */}
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as "form" | "json")}
+        className="flex flex-col flex-1 min-h-0"
+      >
+        <div className="px-3 py-1.5 border-b border-border/60 bg-muted/15 flex items-center justify-between shrink-0">
+          <TabsList className="h-6.5 p-0.5 bg-muted/40">
+            <TabsTrigger
+              value="form"
+              className="h-5.5 px-2.5 text-[11px] gap-1 data-[state=active]:bg-background"
+            >
+              <Sliders className="size-3" />
+              <span>Properties</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="json"
+              className="h-5.5 px-2.5 text-[11px] gap-1 data-[state=active]:bg-background"
+            >
+              <Code2 className="size-3" />
+              <span>JSON Spec</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-            <InspectorGeneralSection
-              selectedField={selectedField}
-              onUpdateField={onUpdateField}
-              disabled={disabled}
-            />
+        {/* ── Tab Content: FormEngine UI ──────────────────────────────────── */}
+        <TabsContent value="form" className="flex-1 overflow-y-auto p-3 space-y-3.5 m-0">
+          {selectedField ? (
+            <>
+              <InspectorAnchorSection
+                selectedField={selectedField}
+                matchedModelProp={matchedModelProp}
+                baseType={baseType}
+              />
 
-            <InspectorWidgetSection
-              selectedField={selectedField}
-              baseType={baseType}
-              onUpdateField={onUpdateField}
-              disabled={disabled}
-            />
-          </>
-        ) : selectedSection ? (
-          <InspectorContainerSection
-            selectedSection={selectedSection}
-            onUpdateSection={onUpdateSection}
-            disabled={disabled}
-          />
-        ) : null}
-      </div>
+              {/* General Field Properties rendered with FormEngine */}
+              <div className="rounded-md border border-border/80 bg-card/60 p-2.5 shadow-2xs">
+                <FormRenderer
+                  frmElements={{ sections: [FIELD_GENERAL_SECTION] }}
+                  values={selectedField as Record<string, unknown>}
+                  onChange={handleGeneralFieldChange}
+                  disabled={disabled}
+                  mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+                />
+              </div>
+
+              {/* Widget-Specific Presentation Section */}
+              <InspectorWidgetSection
+                selectedField={selectedField}
+                baseType={baseType}
+                onUpdateField={onUpdateField}
+                disabled={disabled}
+              />
+            </>
+          ) : selectedSection ? (
+            <div className="rounded-md border border-border/80 bg-card/60 p-2.5 shadow-2xs">
+              <FormRenderer
+                frmElements={{ sections: [CONTAINER_CONFIG_SECTION] }}
+                values={selectedSection as Record<string, unknown>}
+                onChange={handleContainerSectionChange}
+                disabled={disabled}
+                mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+              />
+            </div>
+          ) : null}
+        </TabsContent>
+
+        {/* ── Tab Content: JSON Contract ──────────────────────────────────── */}
+        <TabsContent value="json" className="flex-1 overflow-hidden m-0 p-2">
+          {activeRawSpec ? (
+            <CbsJsonViewerTab data={activeRawSpec} />
+          ) : (
+            <div className="p-4 text-center text-muted-foreground text-xs">No active spec.</div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -20,9 +20,9 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
       sections: [
         {
           id: "sec_root_fields",
-          title: "",
-          description: "Root canvas fields without card box",
-          containerType: "plain",
+          title: "Account Details",
+          description: "Primary account fields",
+          containerType: "card",
           columns: 1,
           fields: [
             {
@@ -293,7 +293,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_users_identity",
           title: "User Identity & Authentication",
           description: "Operator identification, classification, and organization codes",
-          containerType: "plain",
+          containerType: "card",
           columns: 1,
           fields: [
             {
@@ -369,7 +369,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_users_validity",
           title: "Validity & Session Restrictions",
           description: "Access hours, validity periods, and session timeout parameters",
-          containerType: "plain",
+          containerType: "card",
           columns: 1,
           fields: [
             {
@@ -442,7 +442,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
           id: "sec_users_contact",
           title: "Contact & Notification",
           description: "Operator contact details and communication channels",
-          containerType: "plain",
+          containerType: "card",
           columns: 1,
           fields: [
             {

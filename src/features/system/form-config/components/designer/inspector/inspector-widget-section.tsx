@@ -1,6 +1,7 @@
 "use client";
 
 import { Type } from "lucide-react";
+import * as React from "react";
 import {
   Select,
   SelectContent,
@@ -8,17 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { setFieldValue } from "@/lib/cbs-form-spec";
 import {
   COMPATIBLE_WIDGETS_FOR_TYPE,
   type FormElement,
   type FormWidgetType,
   isWidgetCompatibleWithType,
 } from "@/lib/data-schemas/form-engine-schema";
-import { InspectorBooleanConfig } from "./inspector-boolean-config";
+import { CbsRecordFunction } from "@/types";
 import { InspectorLookupConfig } from "./inspector-lookup-config";
-import { InspectorNumberConfig } from "./inspector-number-config";
 import { InspectorRow } from "./inspector-row";
-import { InspectorTextConfig } from "./inspector-text-config";
+import { getWidgetSubSection } from "./property-field-specs";
 
 export interface InspectorWidgetSectionProps {
   selectedField: FormElement;
@@ -84,8 +86,7 @@ const WIDGET_METADATA: Record<FormWidgetType, { label: string; description: stri
 
 /**
  * Modular Presentation Widget Inspector.
- * Coordinates widget selection and delegates sub-configuration
- * to dedicated sub-inspectors (Text, Boolean, Number, Lookup).
+ * Uses FormEngine specs for deep widget properties and handles dropdown lookup contracts.
  */
 export function InspectorWidgetSection({
   selectedField,
@@ -105,6 +106,16 @@ export function InspectorWidgetSection({
   )
     ? (selectedField.WIDGET as FormWidgetType) || "text"
     : (allowedWidgets[0] as FormWidgetType) || "text";
+
+  const subSection = React.useMemo(() => getWidgetSubSection(currentWidget), [currentWidget]);
+
+  const handleSubFieldChange = React.useCallback(
+    (fieldKey: string, value: unknown) => {
+      const updated = setFieldValue(selectedField as Record<string, unknown>, fieldKey, value);
+      onUpdateField(updated as Partial<FormElement>);
+    },
+    [selectedField, onUpdateField],
+  );
 
   return (
     <div className="p-2.5 rounded-md border border-primary/20 bg-primary/5 space-y-3 pt-2">
@@ -149,36 +160,20 @@ export function InspectorWidgetSection({
         </Select>
       </InspectorRow>
 
-      {/* Dynamic Type Config: Text / Masking */}
-      {(currentWidget === "text" || currentWidget === "textarea") && (
-        <InspectorTextConfig
-          selectedField={selectedField}
-          onUpdateField={onUpdateField}
-          disabled={disabled}
-        />
+      {/* Dynamic Sub-Config FormEngine Section */}
+      {subSection && (
+        <div className="pt-1 border-t border-border/60">
+          <FormRenderer
+            frmElements={{ sections: [subSection] }}
+            values={selectedField as Record<string, unknown>}
+            onChange={handleSubFieldChange}
+            disabled={disabled}
+            mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          />
+        </div>
       )}
 
-      {/* Dynamic Type Config: Boolean & Checkbox */}
-      {(currentWidget === "checkbox" || currentWidget === "switch") && (
-        <InspectorBooleanConfig
-          selectedField={selectedField}
-          currentWidget={currentWidget}
-          onUpdateField={onUpdateField}
-          disabled={disabled}
-        />
-      )}
-
-      {/* Dynamic Type Config: Amount & Currency */}
-      {(currentWidget === "amount" || currentWidget === "number" || currentWidget === "rate") && (
-        <InspectorNumberConfig
-          selectedField={selectedField}
-          currentWidget={currentWidget}
-          onUpdateField={onUpdateField}
-          disabled={disabled}
-        />
-      )}
-
-      {/* Dynamic Type Config: Lookup / Options */}
+      {/* Dynamic Type Config: Lookup / Options (O / M) */}
       {(currentWidget === "select" ||
         currentWidget === "radio-group" ||
         currentWidget === "segmented" ||

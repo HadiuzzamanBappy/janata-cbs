@@ -26,7 +26,7 @@ export interface TabGroupHeaderProps {
   onRemoveSection: (id: string) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;

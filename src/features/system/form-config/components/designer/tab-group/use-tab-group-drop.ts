@@ -11,7 +11,7 @@ export interface TabGroupDropParams {
   disabled?: boolean;
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;

@@ -109,7 +109,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           const draft = createInitialDraft(cleanId);
           hydrate(draft);
           setMode("I");
-          setSelectedSectionId("general_sec");
+          setSelectedSectionId(null);
+          setSelectedFieldId(null);
           toast.add({
             title: "New Form Config Draft",
             description: `Initialized layout draft for #${cleanId}.`,

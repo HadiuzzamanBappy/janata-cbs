@@ -21,7 +21,7 @@ export interface TabStripItemProps {
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onMoveFieldAcrossSections?: (

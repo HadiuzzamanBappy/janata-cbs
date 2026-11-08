@@ -40,32 +40,9 @@ export function useCanvasDrag({
     }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id || disabled) return;
-
-    const activeData = active.data.current;
-    const overData = over.data.current;
-
-    if (activeData?.type === "field" && onMoveFieldAcrossSections) {
-      const sourceSecId = activeData.sectionId as string;
-      let targetSecId: string | undefined;
-      let targetFieldId: string | undefined;
-
-      if (overData?.type === "field") {
-        targetSecId = overData.sectionId as string;
-        targetFieldId = String(over.id);
-      } else if (overData?.type === "section-dropzone") {
-        targetSecId = overData.sectionId as string;
-      } else if (overData?.type === "section") {
-        targetSecId = String(over.id);
-      }
-
-      if (sourceSecId && targetSecId && sourceSecId !== targetSecId) {
-        onMoveFieldAcrossSections(sourceSecId, targetSecId, String(active.id), targetFieldId);
-        activeData.sectionId = targetSecId;
-      }
-    }
+  const handleDragOver = (_event: DragOverEvent) => {
+    // Only reorder items on dragEnd, do not mutate sections in dragOver
+    // to prevent premature field deletion or disappearance when hovering outside
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -95,8 +72,8 @@ export function useCanvasDrag({
       } else if (overData?.type === "canvas-root") {
         targetSecId = "canvas-root";
       } else if (overData?.type === "between-block-gap") {
-        targetSecId = "canvas-root";
         const gapIdx = overData.gapIndex as number;
+        targetSecId = gapIdx <= 0 ? "gap-top" : `gap-${gapIdx}`;
         if (gapIdx <= 0) {
           insertAtIndex = 0;
         } else if (gapIdx >= blocks.length) {
@@ -104,14 +81,13 @@ export function useCanvasDrag({
         } else {
           const targetBlock = blocks[gapIdx];
           const targetSec =
-            targetBlock.type === "single"
-              ? targetBlock.section
-              : targetBlock.type === "tab-group"
-                ? targetBlock.tabSections[0]
-                : targetBlock.stepSections[0];
+            targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
           const rawIdx = targetSec ? sections.findIndex((s) => s.id === targetSec.id) : -1;
           insertAtIndex = rawIdx >= 0 ? rawIdx : undefined;
         }
+      } else {
+        // Dragged outside any known drop target: DO NOTHING, return safely
+        return;
       }
 
       if (sourceSecId && targetSecId) {
@@ -176,11 +152,7 @@ export function useCanvasDrag({
         } else {
           const targetBlock = blocks[gapIndex];
           const targetSec =
-            targetBlock.type === "single"
-              ? targetBlock.section
-              : targetBlock.type === "tab-group"
-                ? targetBlock.tabSections[0]
-                : targetBlock.stepSections[0];
+            targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
           if (targetSec) {
             const rawTargetIndex = sections.findIndex((s) => s.id === targetSec.id);
             onReorderSections(

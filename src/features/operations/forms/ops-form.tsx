@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
-import { FormKernelProvider, FormRenderer } from "@/features/form-engine";
-import { getDefaultMoreActions, useRecordMutationSubscriber } from "@/lib/cbs-screen";
+import { FormRenderer } from "@/features/form-engine";
+import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FormSkeleton } from "./components/form-skeleton";
@@ -91,26 +91,6 @@ export function OpsForm({
     onReturn,
   });
 
-  // Auto-fetch record data on initial mount when opened with recordId and active mode
-  const lastLoadedKeyRef = React.useRef<string | null>(null);
-  React.useEffect(() => {
-    if (!schema) return;
-    const cleanId = searchRecordId?.trim();
-    if (cleanId && screenMode !== "IDLE") {
-      const loadKey = `${modelCode}:${cleanId}:${screenMode}`;
-      if (lastLoadedKeyRef.current === loadKey) return;
-      lastLoadedKeyRef.current = loadKey;
-      actions.loadRecordData(cleanId, screenMode);
-    }
-  }, [schema, searchRecordId, screenMode, modelCode, actions]);
-
-  // Real-time record mutation subscriber
-  useRecordMutationSubscriber((mutation) => {
-    if (searchRecordId && mutation.recordId === searchRecordId.trim().toUpperCase()) {
-      actions.loadRecordData(searchRecordId, screenMode);
-    }
-  }, modelCode);
-
   const validationErrors = React.useMemo(() => {
     return Object.entries(errors).map(([fieldName, msg]) => ({
       id: fieldName,
@@ -143,35 +123,33 @@ export function OpsForm({
       isDirty={isDirty}
       auditContext={values.auditData as AuditData | undefined}
       onRecordIdChange={setSearchRecordId}
-      onRecordSearch={(query: string) => actions.onAmend(query)}
-      onCreateNew={actions.onCreateNew}
-      onAmend={actions.onAmend}
-      onView={actions.onView}
-      onPerformAction={actions.onPerformAction}
-      onHold={mutations.onHold}
-      onDelete={mutations.onDelete}
-      onAuthorizeReverse={mutations.onAuthorizeReverse}
-      onReturnToSearch={actions.onReturnToSearch}
+      onRecordSearch={(query: string) => actions.handleAmend(query)}
+      onCreateNew={actions.handleCreateNew}
+      onAmend={actions.handleAmend}
+      onView={actions.handleView}
+      onPerformAction={actions.handlePerformAction}
+      onHold={mutations.handleHold}
+      onDelete={mutations.handleDelete}
+      onAuthorizeReverse={mutations.handleAuthorizeReverse}
+      onReturnToSearch={actions.handleReturnToSearch}
       onReset={screenMode !== "IDLE" ? () => resetForm(initialValues) : undefined}
-      onSubmit={mutations.onSubmit}
-      onValidate={actions.onValidate}
+      onSubmit={mutations.handleSubmit}
+      onValidate={actions.handleValidate}
       submitting={mutations.submitting}
       validationErrors={validationErrors}
       availableItems={[]}
       moreActions={getDefaultMoreActions(modelCode)}
     >
-      <FormKernelProvider initialValues={values} onFieldChange={setValue}>
-        <FormRenderer
-          frmElements={schema.frmElements}
-          values={values}
-          onChange={setValue}
-          errors={errors}
-          disabled={mutations.submitting || screenMode === CbsRecordFunction.SEE}
-          mode={screenMode}
-          auditData={values.auditData as AuditData}
-          showAuditSection
-        />
-      </FormKernelProvider>
+      <FormRenderer
+        frmElements={schema.frmElements}
+        values={values}
+        onChange={setValue}
+        errors={errors}
+        disabled={mutations.submitting || screenMode === CbsRecordFunction.SEE}
+        mode={screenMode}
+        auditData={values.auditData as AuditData}
+        showAuditSection
+      />
     </CbsScreenScaffold>
   );
 }

@@ -3,7 +3,6 @@
 import {
   closestCenter,
   DndContext,
-  DragOverlay,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -16,16 +15,13 @@ import {
 } from "@dnd-kit/sortable";
 import { PanelLeft } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { buildRenderBlocks } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { BetweenBlockDropZone } from "./canvas/between-block-drop-zone";
 import { CanvasBlockDispatcher } from "./canvas/canvas-block-dispatcher";
 import { CanvasCompactBar } from "./canvas/canvas-compact-bar";
-import { CanvasRootDropzone } from "./canvas/canvas-root-dropzone";
+import { CanvasDragOverlay } from "./canvas/canvas-drag-overlay";
 import type { DesignerCanvasProps } from "./canvas/canvas-types";
 import { EmptyCanvasSplash } from "./canvas/empty-canvas-splash";
 import { useCanvasDrag } from "./canvas/use-canvas-drag";
@@ -34,7 +30,7 @@ export type { AddSectionFn, DesignerCanvasProps } from "./canvas/canvas-types";
 
 /**
  * DesignerCanvas: Core visual drag-and-drop workspace for CBS Form Designer.
- * Clean, modular orchestrator under 200 lines.
+ * Orchestrates layout blocks (Card, TabGroup) and Dnd-Kit sensors.
  */
 export function DesignerCanvas({
   sections,
@@ -73,8 +69,7 @@ export function DesignerCanvas({
     () =>
       blocks.map((b) => {
         if (b.type === "single") return b.section.id;
-        if (b.type === "tab-group") return b.tabSections[0]?.id || b.groupId;
-        return b.stepSections[0]?.id || b.groupId;
+        return b.tabSections[0]?.id || b.groupId;
       }),
     [blocks],
   );
@@ -125,8 +120,7 @@ export function DesignerCanvas({
 
   const totalFieldsCount = sections.reduce((acc, s) => acc + (s.fields?.length || 0), 0);
   const hasContainersOrFields =
-    sections.length > 0 &&
-    (totalFieldsCount > 0 || sections.some((s) => s.containerType !== "plain" && Boolean(s.title)));
+    sections.length > 0 && (totalFieldsCount > 0 || sections.some((s) => Boolean(s.title)));
 
   if (!hasContainersOrFields) {
     return (
@@ -244,28 +238,7 @@ export function DesignerCanvas({
             ))}
           </SortableContext>
 
-          <CanvasRootDropzone
-            onDropPaletteItem={onDropPaletteItem}
-            onConvertSectionZone={onConvertSectionZone}
-            disabled={disabled}
-          />
-
-          <DragOverlay>
-            {activeDragItem?.type === "field" ? (
-              <div className="rounded border px-2 py-1.5 flex items-center justify-between text-xs bg-card shadow-xl ring-2 ring-primary border-primary">
-                <span className="font-semibold text-foreground truncate">
-                  {(activeDragItem.data as FormElement).LABEL}
-                </span>
-                <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase ml-2">
-                  {(activeDragItem.data as FormElement).TYPE}
-                </Badge>
-              </div>
-            ) : activeDragItem?.type === "section" ? (
-              <div className="rounded border p-3 bg-card shadow-2xl ring-2 ring-primary border-primary text-xs font-semibold uppercase">
-                {(activeDragItem.data as FormSection).title || "Section"}
-              </div>
-            ) : null}
-          </DragOverlay>
+          <CanvasDragOverlay activeDragItem={activeDragItem} />
         </DndContext>
       </section>
     </div>

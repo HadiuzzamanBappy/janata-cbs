@@ -6,14 +6,13 @@ import type { AuditData } from "@/lib/data-schemas";
 import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
 import { CardContainer } from "./containers/card-container";
-import { StepperContainer } from "./containers/stepper-container";
 import { TabGroupContainer } from "./containers/tab-group-container";
 
 export type { FormRendererProps };
 
 /**
  * FormRenderer: Pure composition orchestrator.
- * Delegates rendering to CardContainer, TabGroupContainer, and StepperContainer.
+ * Delegates rendering to CardContainer and TabGroupContainer.
  */
 export function FormRenderer({
   frmElements,
@@ -29,7 +28,6 @@ export function FormRenderer({
 
   // Active item tracking for multi-pane containers
   const [activeTabs, setActiveTabs] = React.useState<Record<string, string>>({});
-  const [activeSteps, setActiveSteps] = React.useState<Record<string, string>>({});
 
   // Cluster sections preserving designer order
   const blocks = React.useMemo(() => {
@@ -45,23 +43,6 @@ export function FormRenderer({
         if (b.type === "tab-group" && b.tabSections.length > 0) {
           if (!next[b.groupId] || !b.tabSections.some((s) => s.id === next[b.groupId])) {
             next[b.groupId] = b.tabSections[0].id;
-            changed = true;
-          }
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [blocks]);
-
-  // Keep active step state in sync
-  React.useEffect(() => {
-    setActiveSteps((prev) => {
-      const next = { ...prev };
-      let changed = false;
-      for (const b of blocks) {
-        if (b.type === "step-group" && b.stepSections.length > 0) {
-          if (!next[b.groupId] || !b.stepSections.some((s) => s.id === next[b.groupId])) {
-            next[b.groupId] = b.stepSections[0].id;
             changed = true;
           }
         }
@@ -108,25 +89,6 @@ export function FormRenderer({
               <CardContainer
                 key={block.section.id}
                 section={block.section}
-                values={values}
-                onChange={handleFieldChange}
-                errors={errors}
-                disabled={disabled}
-                mode={mode}
-              />
-            );
-          }
-
-          if (block.type === "step-group") {
-            return (
-              <StepperContainer
-                key={block.groupId}
-                groupId={block.groupId}
-                stepSections={block.stepSections}
-                activeStepId={activeSteps[block.groupId]}
-                onStepChange={(grpId, stepId) =>
-                  setActiveSteps((prev) => ({ ...prev, [grpId]: stepId }))
-                }
                 values={values}
                 onChange={handleFieldChange}
                 errors={errors}

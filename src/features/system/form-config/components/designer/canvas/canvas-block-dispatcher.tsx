@@ -3,7 +3,6 @@
 import type { RenderBlock } from "@/lib/cbs-form-spec";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import { SortableSectionCard } from "../sortable-section-card";
-import { SortableStepperGroupCard } from "../stepper-group-card";
 import { SortableTabGroupCard } from "../tab-group-card";
 import type { AddSectionFn } from "./canvas-types";
 
@@ -19,7 +18,7 @@ export interface CanvasBlockDispatcherProps {
   onRemoveField: (fieldId: string) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
@@ -94,26 +93,6 @@ export function CanvasBlockDispatcher({
         onDropPaletteItem={onDropPaletteItem}
         onMergeTabGroup={onMergeTabGroup}
         isCanvasDragging={isCanvasDragging}
-        disabled={disabled}
-      />
-    );
-  }
-
-  if (block.type === "step-group") {
-    return (
-      <SortableStepperGroupCard
-        groupId={block.groupId}
-        stepSections={block.stepSections}
-        selectedSectionId={selectedSectionId}
-        selectedFieldId={selectedFieldId}
-        onSelectSection={onSelectSection}
-        onSelectField={onSelectField}
-        onAddSection={onAddSection}
-        onUpdateSection={onUpdateSection}
-        onRemoveSection={onRemoveSection}
-        onRemoveField={onRemoveField}
-        onConvertSectionZone={onConvertSectionZone}
-        onDropPaletteItem={onDropPaletteItem}
         disabled={disabled}
       />
     );

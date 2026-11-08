@@ -1,7 +1,6 @@
 "use client";
 
 import { Type } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,8 +14,11 @@ import {
   type FormWidgetType,
   isWidgetCompatibleWithType,
 } from "@/lib/data-schemas/form-engine-schema";
+import { InspectorBooleanConfig } from "./inspector-boolean-config";
 import { InspectorLookupConfig } from "./inspector-lookup-config";
+import { InspectorNumberConfig } from "./inspector-number-config";
 import { InspectorRow } from "./inspector-row";
+import { InspectorTextConfig } from "./inspector-text-config";
 
 export interface InspectorWidgetSectionProps {
   selectedField: FormElement;
@@ -80,23 +82,29 @@ const WIDGET_METADATA: Record<FormWidgetType, { label: string; description: stri
   },
 };
 
+/**
+ * Modular Presentation Widget Inspector.
+ * Coordinates widget selection and delegates sub-configuration
+ * to dedicated sub-inspectors (Text, Boolean, Number, Lookup).
+ */
 export function InspectorWidgetSection({
   selectedField,
   baseType,
   onUpdateField,
   disabled,
 }: InspectorWidgetSectionProps) {
-  // Physical Property Type from model config, fallback based on baseType
   const physicalType =
     selectedField.TYPE ||
     (baseType === "NUMBER" ? "Number" : baseType === "DATE" ? "Date" : "Text");
 
-  // Authorized widgets from the canonical platform constraint matrix
   const allowedWidgets = COMPATIBLE_WIDGETS_FOR_TYPE[physicalType] || ["text"];
 
-  const currentWidget = isWidgetCompatibleWithType(physicalType, selectedField.WIDGET || "text")
-    ? selectedField.WIDGET || "text"
-    : allowedWidgets[0] || "text";
+  const currentWidget: FormWidgetType = isWidgetCompatibleWithType(
+    physicalType,
+    selectedField.WIDGET || "text",
+  )
+    ? (selectedField.WIDGET as FormWidgetType) || "text"
+    : (allowedWidgets[0] as FormWidgetType) || "text";
 
   return (
     <div className="p-2.5 rounded-md border border-primary/20 bg-primary/5 space-y-3 pt-2">
@@ -143,145 +151,31 @@ export function InspectorWidgetSection({
 
       {/* Dynamic Type Config: Text / Masking */}
       {(currentWidget === "text" || currentWidget === "textarea") && (
-        <div className="space-y-2 pt-1 border-t border-border/50">
-          <InspectorRow label="Text Transform" description="Enforce casing on user input">
-            <Select
-              disabled={disabled}
-              value={selectedField.TEXT_CONFIG?.textTransform || "uppercase"}
-              onValueChange={(val: string | null) =>
-                onUpdateField({
-                  TEXT_CONFIG: {
-                    ...selectedField.TEXT_CONFIG,
-                    autoTrim: selectedField.TEXT_CONFIG?.autoTrim ?? true,
-                    maskPattern: selectedField.TEXT_CONFIG?.maskPattern || "",
-                    textTransform: (val || "uppercase") as "uppercase" | "lowercase" | "none",
-                  },
-                })
-              }
-            >
-              <SelectTrigger className="w-full h-7 text-xs bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="text-xs">
-                <SelectItem value="uppercase">UPPERCASE (CBS Standard)</SelectItem>
-                <SelectItem value="lowercase">lowercase</SelectItem>
-                <SelectItem value="none">None (Standard)</SelectItem>
-              </SelectContent>
-            </Select>
-          </InspectorRow>
-          <InspectorRow label="Input Mask Pattern" description="e.g. 9999-9999-9999, SWIFT">
-            <Input
-              disabled={disabled}
-              placeholder="e.g. 9999-9999-9999"
-              value={selectedField.TEXT_CONFIG?.maskPattern || ""}
-              onChange={(e) =>
-                onUpdateField({
-                  TEXT_CONFIG: {
-                    ...selectedField.TEXT_CONFIG,
-                    textTransform: selectedField.TEXT_CONFIG?.textTransform || "uppercase",
-                    autoTrim: selectedField.TEXT_CONFIG?.autoTrim ?? true,
-                    maskPattern: e.target.value,
-                  },
-                })
-              }
-              className="h-7 text-xs bg-background font-mono"
-            />
-          </InspectorRow>
-        </div>
+        <InspectorTextConfig
+          selectedField={selectedField}
+          onUpdateField={onUpdateField}
+          disabled={disabled}
+        />
       )}
 
       {/* Dynamic Type Config: Boolean & Checkbox */}
       {(currentWidget === "checkbox" || currentWidget === "switch") && (
-        <div className="space-y-2 pt-1 border-t border-border/50">
-          <div className="grid grid-cols-2 gap-1.5">
-            <InspectorRow label="True Value" description="Value stored in DB when active">
-              <Input
-                disabled={disabled}
-                value={selectedField.BOOLEAN_CONFIG?.trueValue ?? "Y"}
-                onChange={(e) =>
-                  onUpdateField({
-                    BOOLEAN_CONFIG: {
-                      ...selectedField.BOOLEAN_CONFIG,
-                      widgetStyle: (currentWidget as "switch" | "checkbox") || "checkbox",
-                      trueValue: e.target.value,
-                      falseValue: selectedField.BOOLEAN_CONFIG?.falseValue ?? "N",
-                      activeLabel: selectedField.BOOLEAN_CONFIG?.activeLabel ?? "Yes",
-                      inactiveLabel: selectedField.BOOLEAN_CONFIG?.inactiveLabel ?? "No",
-                    },
-                  })
-                }
-                className="h-6 text-[10px] bg-background font-mono"
-              />
-            </InspectorRow>
-            <InspectorRow label="False Value" description="Value stored in DB when inactive">
-              <Input
-                disabled={disabled}
-                value={selectedField.BOOLEAN_CONFIG?.falseValue ?? "N"}
-                onChange={(e) =>
-                  onUpdateField({
-                    BOOLEAN_CONFIG: {
-                      ...selectedField.BOOLEAN_CONFIG,
-                      widgetStyle: (currentWidget as "switch" | "checkbox") || "checkbox",
-                      trueValue: selectedField.BOOLEAN_CONFIG?.trueValue ?? "Y",
-                      falseValue: e.target.value,
-                      activeLabel: selectedField.BOOLEAN_CONFIG?.activeLabel ?? "Yes",
-                      inactiveLabel: selectedField.BOOLEAN_CONFIG?.inactiveLabel ?? "No",
-                    },
-                  })
-                }
-                className="h-6 text-[10px] bg-background font-mono"
-              />
-            </InspectorRow>
-          </div>
-        </div>
+        <InspectorBooleanConfig
+          selectedField={selectedField}
+          currentWidget={currentWidget}
+          onUpdateField={onUpdateField}
+          disabled={disabled}
+        />
       )}
 
       {/* Dynamic Type Config: Amount & Currency */}
-      {(currentWidget === "amount" || currentWidget === "number") && (
-        <div className="space-y-2 pt-1 border-t border-border/50">
-          <div className="grid grid-cols-2 gap-1.5">
-            <InspectorRow label="Decimals" description="Decimal precision">
-              <Input
-                type="number"
-                disabled={disabled}
-                value={
-                  selectedField.NUMBER_CONFIG?.decimals ?? (currentWidget === "amount" ? 2 : 0)
-                }
-                onChange={(e) =>
-                  onUpdateField({
-                    NUMBER_CONFIG: {
-                      ...selectedField.NUMBER_CONFIG,
-                      isCurrency: currentWidget === "amount",
-                      currencyCode: selectedField.NUMBER_CONFIG?.currencyCode ?? "",
-                      allowNegative: selectedField.NUMBER_CONFIG?.allowNegative ?? false,
-                      decimals: Number(e.target.value) || 0,
-                    },
-                  })
-                }
-                className="h-6 text-[10px] bg-background font-mono"
-              />
-            </InspectorRow>
-            <InspectorRow label="Currency Prefix" description="e.g. BDT, USD">
-              <Input
-                disabled={disabled}
-                placeholder="e.g. BDT"
-                value={selectedField.NUMBER_CONFIG?.currencyCode ?? ""}
-                onChange={(e) =>
-                  onUpdateField({
-                    NUMBER_CONFIG: {
-                      ...selectedField.NUMBER_CONFIG,
-                      isCurrency: true,
-                      decimals: selectedField.NUMBER_CONFIG?.decimals ?? 2,
-                      allowNegative: selectedField.NUMBER_CONFIG?.allowNegative ?? false,
-                      currencyCode: e.target.value.toUpperCase(),
-                    },
-                  })
-                }
-                className="h-6 text-[10px] bg-background font-mono uppercase"
-              />
-            </InspectorRow>
-          </div>
-        </div>
+      {(currentWidget === "amount" || currentWidget === "number" || currentWidget === "rate") && (
+        <InspectorNumberConfig
+          selectedField={selectedField}
+          currentWidget={currentWidget}
+          onUpdateField={onUpdateField}
+          disabled={disabled}
+        />
       )}
 
       {/* Dynamic Type Config: Lookup / Options */}

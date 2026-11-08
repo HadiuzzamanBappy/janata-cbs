@@ -57,6 +57,22 @@ export function SortableSectionCard({
 
   const isPlainRoot =
     section.containerType === "plain" || !section.title || section.title === "Canvas Root";
+  const config = section.containerConfig || {};
+
+  const variantClass = React.useMemo(() => {
+    switch (config.variant) {
+      case "subtle":
+        return "bg-muted/30 border-border/50";
+      case "bordered":
+        return "bg-card border-border/90 shadow-none";
+      case "elevated":
+        return "bg-card border-border/80 shadow-md";
+      case "ghost":
+        return "bg-transparent border-transparent shadow-none";
+      default:
+        return "bg-card/60 border-border/80 shadow-2xs";
+    }
+  }, [config.variant]);
 
   const handleNativeDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -95,7 +111,7 @@ export function SortableSectionCard({
         "rounded-lg transition-all relative",
         isPlainRoot
           ? "border border-transparent p-0 mb-2"
-          : "border border-border/80 bg-card/60 overflow-hidden shadow-2xs mb-3.5",
+          : cn("overflow-hidden mb-3.5", variantClass),
         !isPlainRoot && isSecSelected && "border-primary/80 ring-1 ring-primary/30",
         isNativeOver && "ring-2 ring-primary/60 border-primary bg-primary/5",
         isDragging && "shadow-lg ring-2 ring-primary/40",
@@ -152,6 +168,11 @@ export function SortableSectionCard({
               <span className="text-xs font-semibold text-foreground uppercase tracking-wider truncate">
                 {section.title}
               </span>
+              {config.badge && (
+                <span className="inline-flex items-center px-1 text-[9px] font-mono rounded bg-primary/10 text-primary border border-primary/20">
+                  {config.badge}
+                </span>
+              )}
               <Badge
                 variant="outline"
                 className={cn(

@@ -44,6 +44,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   const [selectedFieldId, setSelectedFieldId] = React.useState<string | null>(null);
   const [validationErrors, setValidationErrors] = React.useState<FormConfigValidationError[]>([]);
   const [targetModelRecord, setTargetModelRecord] = React.useState<ModelConfigRecord | null>(null);
+  const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);
 
   const sectionOps = useFcSectionOps(setFormData, setSelectedSectionId, setSelectedFieldId);
   const fieldOps = useFcFieldOps(setFormData, setSelectedFieldId, setSelectedSectionId);
@@ -57,6 +58,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       try {
         const res = await cbs.send<Record<string, unknown>>(cbs.formConfig.get(cleanId));
         if (res.status === "SUCCESS" && res.data) {
+          setRawRecord(res.data);
           const parsed = parseGfcResponse(res.data);
           if (parsed.success) {
             const { model, form, isNew } = parsed.data;
@@ -145,6 +147,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     setSelectedFieldId(null);
     setValidationErrors([]);
     setTargetModelRecord(null);
+    setRawRecord(undefined);
     reset();
   }, [reset]);
 
@@ -185,6 +188,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     setSelectedFieldId,
     validationErrors,
     targetModelRecord,
+    rawRecord,
     availableForms,
     availableModels,
     ...sectionOps,

@@ -8,9 +8,10 @@ import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-sche
 export interface IcJsonTabProps {
   formData: InquiryConfigRecord;
   baseline?: InquiryConfigRecord;
+  raw?: unknown;
 }
 
-export function IcJsonTab({ formData, baseline }: IcJsonTabProps) {
+export function IcJsonTab({ formData, baseline, raw }: IcJsonTabProps) {
   const name = formData.INQInfo?.controllerName || "inquiry";
   const cleanData = React.useMemo(() => sanitizeInquiryConfigRecord(formData), [formData]);
   const cleanBaseline = React.useMemo(() => sanitizeInquiryConfigRecord(baseline), [baseline]);
@@ -19,6 +20,7 @@ export function IcJsonTab({ formData, baseline }: IcJsonTabProps) {
     <CbsJsonViewerTab
       data={cleanData}
       baseline={cleanBaseline}
+      raw={raw}
       wireTag="SYS_INQUIRY_DEFINITION"
       title="Inquiry Configuration & Wire Spec (JSON)"
       filename={`${name}.inquiry.json`}

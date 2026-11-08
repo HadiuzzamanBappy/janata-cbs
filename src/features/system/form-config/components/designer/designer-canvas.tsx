@@ -14,7 +14,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { LayoutGrid, PanelLeft, SlidersHorizontal } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,15 +23,19 @@ import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { BetweenBlockDropZone } from "./canvas/between-block-drop-zone";
+import { CanvasBlockDispatcher } from "./canvas/canvas-block-dispatcher";
+import { CanvasCompactBar } from "./canvas/canvas-compact-bar";
 import { CanvasRootDropzone } from "./canvas/canvas-root-dropzone";
 import type { DesignerCanvasProps } from "./canvas/canvas-types";
 import { EmptyCanvasSplash } from "./canvas/empty-canvas-splash";
 import { useCanvasDrag } from "./canvas/use-canvas-drag";
-import { SortableSectionCard } from "./sortable-section-card";
-import { SortableTabGroupCard } from "./tab-group-card";
 
 export type { AddSectionFn, DesignerCanvasProps } from "./canvas/canvas-types";
 
+/**
+ * DesignerCanvas: Core visual drag-and-drop workspace for CBS Form Designer.
+ * Clean, modular orchestrator under 200 lines.
+ */
 export function DesignerCanvas({
   sections,
   selectedSectionId,
@@ -127,7 +131,6 @@ export function DesignerCanvas({
   if (!hasContainersOrFields) {
     return (
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        {/* Compact Toolbar if needed */}
         {isCompact && (
           <div className="px-3 py-1.5 border-b border-border/70 bg-card/60 flex items-center justify-between shrink-0">
             <Button
@@ -161,50 +164,16 @@ export function DesignerCanvas({
 
   return (
     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
-      {/* ── Compact Top Bar: Allows toggling Left Palette and Right Inspector on tablet/mobile ── */}
       {isCompact && (
-        <div className="px-3 py-1.5 border-b border-border/70 bg-card/60 flex items-center justify-between shrink-0 gap-2 z-10">
-          <Button
-            type="button"
-            variant={isPaletteOpen ? "secondary" : "outline"}
-            size="sm"
-            onClick={onTogglePalette}
-            className={cn(
-              "h-7 text-xs px-2.5 gap-1.5 cursor-pointer font-medium",
-              isPaletteOpen && "bg-primary/15 text-primary border-primary/40",
-            )}
-            title="Toggle Palette (Variables & Containers)"
-          >
-            <PanelLeft className="size-3.5 text-primary" />
-            <span className="hidden xs:inline">Palette</span>
-          </Button>
-
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground select-none">
-            <LayoutGrid className="size-3.5 text-muted-foreground/70" />
-            <span className="font-semibold text-foreground text-xs">Canvas</span>
-            <span className="text-[11px] font-mono opacity-80">
-              ({sections.length} {sections.length === 1 ? "sec" : "secs"}, {totalFieldsCount}{" "}
-              {totalFieldsCount === 1 ? "field" : "fields"})
-            </span>
-          </div>
-
-          <Button
-            type="button"
-            variant={isInspectorOpen ? "secondary" : "outline"}
-            size="sm"
-            onClick={onToggleInspector}
-            className={cn(
-              "h-7 text-xs px-2.5 gap-1.5 cursor-pointer font-medium",
-              hasSelection && "border-cyan-500/50 text-cyan-400",
-              isInspectorOpen && "bg-primary/15 text-primary border-primary/40",
-            )}
-            title="Toggle Property Inspector"
-          >
-            <SlidersHorizontal className="size-3.5" />
-            <span className="hidden xs:inline">Inspector</span>
-            {hasSelection && <span className="size-1.5 rounded-full bg-cyan-400 animate-pulse" />}
-          </Button>
-        </div>
+        <CanvasCompactBar
+          sectionsCount={sections.length}
+          totalFieldsCount={totalFieldsCount}
+          isPaletteOpen={isPaletteOpen}
+          isInspectorOpen={isInspectorOpen}
+          hasSelection={hasSelection}
+          onTogglePalette={onTogglePalette}
+          onToggleInspector={onToggleInspector}
+        />
       )}
 
       <section
@@ -244,41 +213,24 @@ export function DesignerCanvas({
 
             {blocks.map((block, i) => (
               <React.Fragment key={block.type === "single" ? block.section.id : block.groupId}>
-                {block.type === "single" ? (
-                  <SortableSectionCard
-                    section={block.section}
-                    isSecSelected={selectedSectionId === block.section.id}
-                    selectedFieldId={selectedFieldId}
-                    onSelectSection={onSelectSection}
-                    onSelectField={onSelectField}
-                    onUpdateSection={onUpdateSection}
-                    onRemoveSection={onRemoveSection}
-                    onRemoveField={onRemoveField}
-                    onConvertSectionZone={onConvertSectionZone}
-                    onDropPaletteItem={onDropPaletteItem}
-                    disabled={disabled}
-                  />
-                ) : block.type === "tab-group" ? (
-                  <SortableTabGroupCard
-                    groupId={block.groupId}
-                    tabSections={block.tabSections}
-                    selectedSectionId={selectedSectionId}
-                    selectedFieldId={selectedFieldId}
-                    onSelectSection={onSelectSection}
-                    onSelectField={onSelectField}
-                    onAddSection={onAddSection}
-                    onUpdateSection={onUpdateSection}
-                    onRemoveSection={onRemoveSection}
-                    onRemoveField={onRemoveField}
-                    onConvertSectionZone={onConvertSectionZone}
-                    onReorderSections={onReorderSections}
-                    onMoveFieldAcrossSections={onMoveFieldAcrossSections}
-                    onDropPaletteItem={onDropPaletteItem}
-                    onMergeTabGroup={onMergeTabGroup}
-                    isCanvasDragging={isDragging}
-                    disabled={disabled}
-                  />
-                ) : null}
+                <CanvasBlockDispatcher
+                  block={block}
+                  selectedSectionId={selectedSectionId}
+                  selectedFieldId={selectedFieldId}
+                  onSelectSection={onSelectSection}
+                  onSelectField={onSelectField}
+                  onAddSection={onAddSection}
+                  onUpdateSection={onUpdateSection}
+                  onRemoveSection={onRemoveSection}
+                  onRemoveField={onRemoveField}
+                  onConvertSectionZone={onConvertSectionZone}
+                  onReorderSections={onReorderSections}
+                  onMoveFieldAcrossSections={onMoveFieldAcrossSections}
+                  onDropPaletteItem={onDropPaletteItem}
+                  onMergeTabGroup={onMergeTabGroup}
+                  isCanvasDragging={isDragging}
+                  disabled={disabled}
+                />
 
                 <BetweenBlockDropZone
                   id={`gap-${i}`}

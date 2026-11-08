@@ -6,7 +6,7 @@ import { cbs } from "@/lib/cbs-client";
 import { computeDelta } from "@/lib/cbs-record";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import type { FormConfigRecord } from "@/lib/data-schemas";
-import type { CbsScreenMode } from "@/types";
+import { CbsRecordStatus, type CbsScreenMode } from "@/types";
 
 export interface UseFormMutationsOptions {
   modelCode: string;
@@ -21,6 +21,10 @@ export interface UseFormMutationsOptions {
   onSuccess?: (result: unknown) => void;
 }
 
+/**
+ * Streamlined, DRY Transactional Mutation Hook for Operational Forms.
+ * Handles Save (PUT/POST with pure computeDelta), Hold, Delete, and Authorize/Reverse.
+ */
 export function useFormMutations({
   modelCode,
   schema,
@@ -35,7 +39,34 @@ export function useFormMutations({
 }: UseFormMutationsOptions) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
-  // Commit / Save (PUT / POST)
+  // Common transactional mutation runner
+  const executeTransaction = React.useCallback(
+    async (
+      targetId: string,
+      operation: () => Promise<{ status?: string }>,
+      options: {
+        resetOnSuccess?: boolean;
+      } = { resetOnSuccess: true },
+    ) => {
+      setSubmitting(true);
+      try {
+        const json = await operation();
+        if (json?.status === "SUCCESS") {
+          broadcastRecordMutation(modelCode, targetId);
+          if (options.resetOnSuccess) {
+            resetForm(initialValues);
+            setScreenMode("IDLE");
+          }
+          if (onSuccess) onSuccess(json);
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [modelCode, initialValues, resetForm, setScreenMode, onSuccess],
+  );
+
+  // Commit / Save (PUT / POST with delta engine)
   const handleSubmit = React.useCallback(
     async (e?: React.SyntheticEvent) => {
       if (e) e.preventDefault();
@@ -49,17 +80,16 @@ export function useFormMutations({
       }
       if (!schema || !modelCode) return;
 
-      setSubmitting(true);
-      try {
-        const delta =
-          screenMode === "I" && Object.keys(initialValues).length > 0
-            ? computeDelta(initialValues, values).modifiedFields
-            : values;
+      const delta =
+        screenMode === "I" && Object.keys(initialValues).length > 0
+          ? computeDelta(initialValues, values).modifiedFields
+          : values;
 
-        const commitData = Object.keys(delta).length > 0 ? delta : values;
-        const targetId = (searchRecordId || (values.id as string) || "").trim();
+      const commitData = Object.keys(delta).length > 0 ? delta : values;
+      const targetId = (searchRecordId || (values.id as string) || "").trim();
 
-        const json = await cbs.send(
+      await executeTransaction(targetId, () =>
+        cbs.send(
           cbs.model(modelCode).save(commitData, {
             recordId: targetId,
           }),
@@ -67,17 +97,8 @@ export function useFormMutations({
             successTitle: "Transaction Saved",
             successMessage: `Record saved successfully for ${schema.title}`,
           },
-        );
-
-        if (json.status === "SUCCESS") {
-          broadcastRecordMutation(modelCode, targetId);
-          resetForm(initialValues);
-          setScreenMode("IDLE");
-          if (onSuccess) onSuccess(json);
-        }
-      } finally {
-        setSubmitting(false);
-      }
+        ),
+      );
     },
     [
       validate,
@@ -87,9 +108,7 @@ export function useFormMutations({
       initialValues,
       values,
       searchRecordId,
-      resetForm,
-      setScreenMode,
-      onSuccess,
+      executeTransaction,
     ],
   );
 
@@ -97,29 +116,25 @@ export function useFormMutations({
   const handleHold = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
-      const id = searchRecordId.trim() || (values.id as string) || "";
-      setSubmitting(true);
-      try {
-        const json = await cbs.send(cbs.model(modelCode).hold(id, values), {
-          successTitle: "Transaction Held",
-          successMessage: `Record draft for ${schema.title} placed on Hold.`,
-        });
-        if (json.status === "SUCCESS") {
-          broadcastRecordMutation(modelCode, id);
-          if (onSuccess) onSuccess(json);
-        }
-      } finally {
-        setSubmitting(false);
-      }
+      const targetId = (searchRecordId || (values.id as string) || "").trim();
+      await executeTransaction(
+        targetId,
+        () =>
+          cbs.send(cbs.model(modelCode).hold(targetId, values), {
+            successTitle: "Transaction Held",
+            successMessage: `Record draft for ${schema.title} placed on Hold.`,
+          }),
+        { resetOnSuccess: false },
+      );
     };
-  }, [screenMode, schema, modelCode, searchRecordId, values, onSuccess]);
+  }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction]);
 
   // Delete Record / Draft (DEL)
   const handleDelete = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
-      const id = searchRecordId.trim() || (values.id as string) || "";
-      if (!id) {
+      const targetId = (searchRecordId || (values.id as string) || "").trim();
+      if (!targetId) {
         toast.add({
           title: "Record ID Required",
           description: "Cannot delete without a Record ID.",
@@ -127,40 +142,22 @@ export function useFormMutations({
         });
         return;
       }
-      setSubmitting(true);
-      try {
-        const json = await cbs.send(cbs.model(modelCode).delete(id), {
+
+      await executeTransaction(targetId, () =>
+        cbs.send(cbs.model(modelCode).delete(targetId), {
           successTitle: "Record Deleted",
-          successMessage: `Record #${id} marked for deletion in ${schema.title}.`,
-        });
-        if (json.status === "SUCCESS") {
-          broadcastRecordMutation(modelCode, id);
-          resetForm(initialValues);
-          setScreenMode("IDLE");
-          if (onSuccess) onSuccess(json);
-        }
-      } finally {
-        setSubmitting(false);
-      }
+          successMessage: `Record #${targetId} marked for deletion in ${schema.title}.`,
+        }),
+      );
     };
-  }, [
-    screenMode,
-    schema,
-    modelCode,
-    searchRecordId,
-    values.id,
-    resetForm,
-    initialValues,
-    setScreenMode,
-    onSuccess,
-  ]);
+  }, [screenMode, schema, modelCode, searchRecordId, values.id, executeTransaction]);
 
   // Authorize or Reverse (AUT / REV)
   const handleAuthorizeReverse = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
-      const id = searchRecordId.trim() || (values.id as string) || "";
-      if (!id) {
+      const targetId = (searchRecordId || (values.id as string) || "").trim();
+      if (!targetId) {
         toast.add({
           title: "Record ID Required",
           description: "Cannot authorize or reverse without a Record ID.",
@@ -168,39 +165,23 @@ export function useFormMutations({
         });
         return;
       }
-      setSubmitting(true);
-      try {
-        const isLive = values.RECORD_STATUS === "AU" || values.status === "AU";
-        const payload = isLive
-          ? cbs.model(modelCode).reverse(id)
-          : cbs.model(modelCode).authorize(id);
 
-        const actionName = isLive ? "Reversal" : "Authorization";
-        const json = await cbs.send(payload, {
+      const isLive =
+        values.RECORD_STATUS === CbsRecordStatus.AU || values.status === CbsRecordStatus.AU;
+      const payload = isLive
+        ? cbs.model(modelCode).reverse(targetId)
+        : cbs.model(modelCode).authorize(targetId);
+
+      const actionName = isLive ? "Reversal" : "Authorization";
+
+      await executeTransaction(targetId, () =>
+        cbs.send(payload, {
           successTitle: `${actionName} Successful`,
-          successMessage: `Transaction ${actionName.toLowerCase()} completed for record #${id}.`,
-        });
-        if (json.status === "SUCCESS") {
-          broadcastRecordMutation(modelCode, id);
-          resetForm(initialValues);
-          setScreenMode("IDLE");
-          if (onSuccess) onSuccess(json);
-        }
-      } finally {
-        setSubmitting(false);
-      }
+          successMessage: `Transaction ${actionName.toLowerCase()} completed for record #${targetId}.`,
+        }),
+      );
     };
-  }, [
-    screenMode,
-    schema,
-    modelCode,
-    searchRecordId,
-    values,
-    resetForm,
-    initialValues,
-    setScreenMode,
-    onSuccess,
-  ]);
+  }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction]);
 
   return {
     submitting,

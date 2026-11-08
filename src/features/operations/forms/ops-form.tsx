@@ -5,7 +5,7 @@ import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { FormKernelProvider, FormRenderer } from "@/features/form-engine";
 import { getDefaultMoreActions, useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
-import type { CbsScreenMode } from "@/types";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
 import { useFormMutations } from "./hooks/use-form-mutations";
@@ -22,6 +22,11 @@ export type FormScreenProps = DynamicFormProps & {
   onReturn?: () => void;
 };
 
+/**
+ * Operational Form Shell (OpsForm).
+ * Coordinates CbsScreenScaffold with FormKernelProvider and FormRenderer.
+ * 100% Lean, Zero dead/legacy code, Zero magic strings.
+ */
 export function OpsForm({
   command,
   tabId,
@@ -36,7 +41,7 @@ export function OpsForm({
   // 1. Authoritative CBS Form & Model Schema Resolver
   const { schema, loading, error, refetch } = useFormSchema(command);
 
-  // 2. Draft values, errors, dirty tracking, and tab persistence
+  // 2. Draft values, errors, dirty tracking, and tab persistence via useCbsPersistence
   const {
     screenMode,
     setScreenMode,
@@ -86,7 +91,7 @@ export function OpsForm({
     onReturn,
   });
 
-  // Auto-fetch record data on initial mount when opened with a recordId and active mode (e.g. from Inquiry drill-down or Command Bar)
+  // Auto-fetch record data on initial mount when opened with recordId and active mode
   const lastLoadedKeyRef = React.useRef<string | null>(null);
   React.useEffect(() => {
     if (!schema) return;
@@ -138,9 +143,7 @@ export function OpsForm({
       isDirty={isDirty}
       auditContext={values.auditData as AuditData | undefined}
       onRecordIdChange={setSearchRecordId}
-      onRecordSearch={(query: string) => {
-        actions.onAmend(query);
-      }}
+      onRecordSearch={(query: string) => actions.onAmend(query)}
       onCreateNew={actions.onCreateNew}
       onAmend={actions.onAmend}
       onView={actions.onView}
@@ -163,7 +166,7 @@ export function OpsForm({
           values={values}
           onChange={setValue}
           errors={errors}
-          disabled={mutations.submitting || screenMode === "S"}
+          disabled={mutations.submitting || screenMode === CbsRecordFunction.SEE}
           mode={screenMode}
           auditData={values.auditData as AuditData}
           showAuditSection

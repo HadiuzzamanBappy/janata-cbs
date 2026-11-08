@@ -105,7 +105,7 @@ export function ColumnItem({
                 : "border-border/60 text-muted-foreground",
             )}
           >
-            {col.fieldType}
+            {col.fieldType || "DC"}
           </Badge>
           <span className="text-[9px] font-mono text-muted-foreground/60">
             {lenPart || "20"}:{alignPart || "L"}

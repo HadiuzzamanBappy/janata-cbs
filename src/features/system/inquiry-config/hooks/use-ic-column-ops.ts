@@ -14,7 +14,7 @@ export function useIcColumnOps(
         const newCol: INQDef = {
           fieldName: col?.fieldName || `col_${nextOrder}`,
           fieldDisplay: col?.fieldDisplay || `Column ${nextOrder}`,
-          fieldType: col?.fieldType || "CH",
+          fieldType: col?.fieldType || "DC",
           fieldLength: col?.fieldLength || "20,L",
           fieldRowCol: col?.fieldRowCol || `1,${nextOrder}`,
           fieldFunc: col?.fieldFunc || "",

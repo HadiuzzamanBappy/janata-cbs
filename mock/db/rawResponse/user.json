@@ -1,0 +1,26 @@
+[
+  {
+    "username": "MT028112",
+    "password": "sc1234567"
+  },
+  {
+    "success": true,
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "message": "Logged in successfully",
+    "data": {
+      "userId": "MT0281120",
+      "fullName": "MITHUN KUMER GHOSE",
+      "branchCode": "JB9999",
+      "branchName": "CENTRAL OFFICE, HO, DHAKA   ",
+      "txnDate": "2026-01-07",
+      "userRole": [],
+      "accessibility": "RIDASH",
+      "functionRights": ["R", "I", "D", "A", "S", "H"],
+      "commandLine": true,
+      "initLogin": false,
+      "userStatus": 1
+    },
+    "timestamp": "2026-11-08T10:28:44.058Z"
+  }
+]

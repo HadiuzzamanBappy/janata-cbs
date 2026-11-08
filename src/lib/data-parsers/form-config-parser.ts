@@ -201,13 +201,20 @@ export function parseFormConfigList(
 export function sanitizeFormElement(field: FormElement): FormElement {
   const { id: _clientId, ...cleanField } = field as FormElement & { id?: string };
 
+  const rawLength =
+    typeof cleanField.LENGTH === "string"
+      ? Number.parseInt(cleanField.LENGTH, 10)
+      : cleanField.LENGTH;
+  const normLength =
+    typeof rawLength === "number" && !Number.isNaN(rawLength) && rawLength > 0 ? rawLength : 35;
+
   const sanitized: Partial<FormElement> = {
     SN: String(cleanField.SN || "1"),
     NAME: cleanField.NAME,
     LABEL: cleanField.LABEL || cleanField.NAME,
     TYPE: cleanField.TYPE || "Text",
     STRUCTURE: cleanField.STRUCTURE || "S",
-    LENGTH: cleanField.LENGTH ?? 35,
+    LENGTH: normLength,
   };
 
   // Only keep presentation overrides if non-default

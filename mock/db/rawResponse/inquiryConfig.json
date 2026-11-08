@@ -62,7 +62,7 @@
       "INQDef": [
         {
           "fieldName": "userName",
-          "fieldType": "CH",
+          "fieldType": "DC",
           "fieldFunc": "",
           "fieldRowCol": "1,1",
           "fieldLength": "65,L",
@@ -71,7 +71,7 @@
         },
         {
           "fieldName": "signOnName",
-          "fieldType": "CH",
+          "fieldType": "DC",
           "fieldFunc": "",
           "fieldRowCol": "1,1",
           "fieldLength": "16,L",
@@ -80,7 +80,7 @@
         },
         {
           "fieldName": "language",
-          "fieldType": "NUM",
+          "fieldType": "DC",
           "fieldFunc": "",
           "fieldRowCol": "1,1",
           "fieldLength": "10,R",
@@ -89,7 +89,7 @@
         },
         {
           "fieldName": "companyCode",
-          "fieldType": "CH",
+          "fieldType": "DC",
           "fieldFunc": "",
           "fieldRowCol": "1,1",
           "fieldLength": "11,L",

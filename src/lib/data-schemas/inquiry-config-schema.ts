@@ -40,7 +40,7 @@ export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
 export const inqDefSchema = z.object({
   fieldName: cbsString(""),
   fieldDisplay: cbsString(""),
-  fieldType: cbsString("CH"),
+  fieldType: cbsString("DC"),
   fieldFunc: cbsString(""),
   fieldRowCol: cbsString("1,1"),
   fieldLength: cbsString("20,L"),

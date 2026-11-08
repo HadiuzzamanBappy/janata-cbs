@@ -103,23 +103,20 @@ export function IcColumnsTab({
 
   const handleImportProperty = (prop: ModelProperty) => {
     const typeUpper = (prop.TYPE || "CHAR").toUpperCase();
-    let fieldType = "CH";
-    let alignment = "L";
+    const alignment =
+      typeUpper === "AMOUNT" || typeUpper === "INTEGER" || typeUpper === "NUMBER"
+        ? "R"
+        : typeUpper === "DATE" || typeUpper === "DATETIME"
+          ? "C"
+          : "L";
 
-    if (typeUpper === "AMOUNT" || typeUpper === "INTEGER" || typeUpper === "NUMBER") {
-      fieldType = typeUpper === "AMOUNT" ? "AMT" : "NUM";
-      alignment = "R";
-    } else if (typeUpper === "DATE") {
-      fieldType = "D";
-      alignment = "C";
-    }
-
-    const defaultLength = Math.min(Math.max(prop.LENGTH || 20, 10), 100);
+    const rawLen = typeof prop.LENGTH === "string" ? Number.parseInt(prop.LENGTH, 10) : prop.LENGTH;
+    const defaultLength = Math.min(Math.max(rawLen || 20, 10), 100);
 
     onAddColumn({
       fieldName: prop.NAME,
       fieldDisplay: prop.LABEL || prop.NAME,
-      fieldType,
+      fieldType: "DC",
       fieldLength: `${defaultLength},${alignment}`,
       fieldRowCol: "1,1",
       dataPassable: true,

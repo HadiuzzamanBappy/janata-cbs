@@ -109,7 +109,8 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
   } else if (normType === "Object") {
     normLength = 0;
   } else {
-    normLength = typeof prop.LENGTH === "number" && prop.LENGTH > 0 ? prop.LENGTH : 50;
+    const rawLen = typeof prop.LENGTH === "string" ? Number.parseInt(prop.LENGTH, 10) : prop.LENGTH;
+    normLength = typeof rawLen === "number" && !Number.isNaN(rawLen) && rawLen > 0 ? rawLen : 50;
   }
 
   const sanitized: Partial<ModelProperty> = {

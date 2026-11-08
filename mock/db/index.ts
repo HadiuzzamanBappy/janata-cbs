@@ -12,7 +12,8 @@ export * from "./SC_MENU_TREE";
 export * from "./SC_MODEL_CONFIG";
 export * from "./SC_USER";
 export * from "./types";
-export * from "./UM_USERS";
+export * from "./UM_PASSWORD_RESET";
+export * from "./UM_USER_MGT";
 export * from "./UM_USERS";
 
 import { AC_ACCOUNT_TABLE } from "./AC_ACCOUNT";
@@ -27,6 +28,8 @@ import { SC_MENU_TREE_TABLE } from "./SC_MENU_TREE";
 import { SC_MODEL_CONFIG, SC_MODEL_CONFIG_TABLE } from "./SC_MODEL_CONFIG";
 import { SC_USER_TABLE } from "./SC_USER";
 import { type CbsTableVersion, type CbsVersionedTable, queryVersionedRecord } from "./types";
+import { UM_PASSWORD_RESET_TABLE } from "./UM_PASSWORD_RESET";
+import { UM_USER_MGT_TABLE } from "./UM_USER_MGT";
 import { UM_USERS_TABLE } from "./UM_USERS";
 
 /**
@@ -46,6 +49,8 @@ export const CBS_PHYSICAL_TABLES = {
   SC_MODEL_CONFIG: SC_MODEL_CONFIG_TABLE,
   SC_USER: SC_USER_TABLE,
   UM_USERS: UM_USERS_TABLE,
+  UM_USER_MGT: UM_USER_MGT_TABLE,
+  UM_PASSWORD_RESET: UM_PASSWORD_RESET_TABLE,
 } as const;
 
 export type CbsPhysicalTableName = keyof typeof CBS_PHYSICAL_TABLES;
@@ -58,7 +63,8 @@ export function getVersionedTable<T = Record<string, unknown>>(
   controlName: string,
 ): CbsVersionedTable<T> | null {
   if (!controlName) return null;
-  const clean = controlName.trim().toUpperCase();
+  const rawClean = controlName.trim().toUpperCase();
+  const clean = rawClean.includes("$") ? rawClean.split("$")[0] : rawClean;
 
   // 1. Direct physical table hit (e.g. AC_ACCOUNT, SC_FORM_CONFIG)
   if (clean in CBS_PHYSICAL_TABLES) {

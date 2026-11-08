@@ -37,7 +37,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 20,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 280,
+              WIDTH: "md",
               DEFAULTVALUE: "SAVINGS",
               ENRICHTEXT: "Select category of account (e.g. Savings, Current, Term Deposit)",
               PARAMETER: {
@@ -58,7 +58,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 20,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 280,
+              WIDTH: "md",
               ENRICHTEXT: "Unique 9-digit Core Banking Customer Information File (CIF)",
               TEXT_CONFIG: {
                 textTransform: "uppercase",
@@ -75,7 +75,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 3,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 180,
+              WIDTH: "sm",
               DEFAULTVALUE: "BDT",
               ENRICHTEXT: "ISO currency denominator for account ledger balances",
               PARAMETER: {
@@ -109,7 +109,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 100,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 450,
+              WIDTH: "xl",
             },
             {
               SN: "17_2",
@@ -120,7 +120,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 50,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 280,
+              WIDTH: "md",
               DEFAULTVALUE: "Dhaka",
             },
             {
@@ -131,7 +131,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 10,
               STRUCTURE: "S",
-              WIDTH: 180,
+              WIDTH: "sm",
               DEFAULTVALUE: "1212",
             },
           ],
@@ -156,7 +156,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 10,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 180,
+              WIDTH: "sm",
               ENRICHTEXT: "Value date on which the account contract becomes operational",
             },
             {
@@ -168,7 +168,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 18,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 280,
+              WIDTH: "md",
               DEFAULTVALUE: "25000",
               ENRICHTEXT: "Minimum mandatory initial deposit credited at account opening",
               NUMBER_CONFIG: {
@@ -199,7 +199,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "switch",
               LENGTH: 1,
               STRUCTURE: "S",
-              WIDTH: 180,
+              WIDTH: "sm",
               DEFAULTVALUE: "Y",
               BOOLEAN_CONFIG: {
                 widgetStyle: "switch",
@@ -217,7 +217,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "switch",
               LENGTH: 1,
               STRUCTURE: "S",
-              WIDTH: 180,
+              WIDTH: "sm",
               DEFAULTVALUE: "Y",
               BOOLEAN_CONFIG: {
                 widgetStyle: "switch",
@@ -265,7 +265,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 20,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 280,
+              WIDTH: "md",
               TEXT_CONFIG: {
                 textTransform: "uppercase",
                 maskPattern: "",
@@ -281,7 +281,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 100,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 450,
+              WIDTH: "xl",
             },
           ],
         },
@@ -322,7 +322,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 16,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 280,
+              WIDTH: "md",
               TEXT_CONFIG: {
                 textTransform: "uppercase",
                 maskPattern: "",
@@ -338,7 +338,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               LENGTH: 65,
               STRUCTURE: "S",
               REQUIRED: true,
-              WIDTH: 350,
+              WIDTH: "lg",
             },
             {
               SN: "3",
@@ -348,7 +348,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "select",
               LENGTH: 8,
               STRUCTURE: "S",
-              WIDTH: 200,
+              WIDTH: "sm",
               PARAMETER: {
                 type: "O",
                 data: [
@@ -368,7 +368,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "number",
               LENGTH: 4,
               STRUCTURE: "S",
-              WIDTH: 180,
+              WIDTH: "sm",
             },
             {
               SN: "5",
@@ -378,7 +378,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 11,
               STRUCTURE: "M",
-              WIDTH: 200,
+              WIDTH: "sm",
             },
           ],
         },
@@ -399,7 +399,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "date",
               LENGTH: 11,
               STRUCTURE: "S",
-              WIDTH: 200,
+              WIDTH: "sm",
             },
             {
               SN: "7",
@@ -409,7 +409,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "date",
               LENGTH: 11,
               STRUCTURE: "S",
-              WIDTH: 200,
+              WIDTH: "sm",
             },
             {
               SN: "8",
@@ -419,7 +419,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 5,
               STRUCTURE: "S",
-              WIDTH: 150,
+              WIDTH: "sm",
               DEFAULTVALUE: "09:00",
             },
             {
@@ -430,7 +430,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 5,
               STRUCTURE: "S",
-              WIDTH: 150,
+              WIDTH: "sm",
               DEFAULTVALUE: "18:00",
             },
             {
@@ -441,7 +441,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "number",
               LENGTH: 3,
               STRUCTURE: "S",
-              WIDTH: 150,
+              WIDTH: "sm",
               DEFAULTVALUE: "15",
             },
             {
@@ -452,7 +452,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "number",
               LENGTH: 1,
               STRUCTURE: "S",
-              WIDTH: 150,
+              WIDTH: "sm",
               DEFAULTVALUE: "0",
             },
           ],
@@ -474,7 +474,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 80,
               STRUCTURE: "S",
-              WIDTH: 350,
+              WIDTH: "lg",
             },
             {
               SN: "13",
@@ -484,7 +484,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 15,
               STRUCTURE: "S",
-              WIDTH: 250,
+              WIDTH: "md",
             },
             {
               SN: "14",
@@ -494,7 +494,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDGET: "text",
               LENGTH: 20,
               STRUCTURE: "S",
-              WIDTH: 250,
+              WIDTH: "md",
             },
           ],
         },

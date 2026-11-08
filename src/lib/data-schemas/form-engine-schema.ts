@@ -265,17 +265,25 @@ export const baseFieldSchema = z.looseObject({
   PARAMETER: formFieldParameterSchema.optional(),
 });
 
-export const semanticWidthTokenSchema = z.enum(["xs", "sm", "md", "lg", "xl", "xxl", "full"]);
+export const SEMANTIC_WIDTH_TOKENS = ["xs", "sm", "md", "lg", "xl", "xxl", "full"] as const;
+export const semanticWidthTokenSchema = z.enum(SEMANTIC_WIDTH_TOKENS);
 export type SemanticWidthToken = z.infer<typeof semanticWidthTokenSchema>;
 
 /**
- * Modern semantic width schema.
- * Pure semantic tokens ("xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "full").
- * If any numeric width arrives (from legacy models or DB numbers),
- * it is safely normalized/ignored to default "md".
+ * Pure semantic width schema ("xs" | "sm" | "md" | "lg" | "xl" | "xxl" | "full").
+ * If any non-semantic value (number, undefined, null, unknown string) arrives,
+ * it strictly defaults to "md".
  */
-export const propertyWidthSchema = z.union([semanticWidthTokenSchema, z.number()]);
-export type PropertyWidth = z.infer<typeof propertyWidthSchema>;
+export const propertyWidthSchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    const s = val.toLowerCase().trim();
+    if (SEMANTIC_WIDTH_TOKENS.includes(s as SemanticWidthToken)) {
+      return s;
+    }
+  }
+  return "md";
+}, semanticWidthTokenSchema.default("md"));
+export type PropertyWidth = SemanticWidthToken;
 
 /* ========================================================================== */
 /* 8. FORM ELEMENT SCHEMA (Form Engine Presentation Element)                  */

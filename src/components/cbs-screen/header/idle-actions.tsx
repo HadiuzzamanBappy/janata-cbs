@@ -63,8 +63,8 @@ export function IdleActions({
         onClick={onPerformAction}
         enabled={actions.performAction.enabled}
         reason={actions.performAction.reason}
-        commandPreview={baseCmd && cleanId ? `${baseCmd} P ${cleanId}` : undefined}
-        defaultTooltip="Perform Action on Record"
+        commandPreview={baseCmd && cleanId ? `${baseCmd} A ${cleanId}` : undefined}
+        defaultTooltip="Authorize / Action Record"
       >
         <Wrench className="size-3" />
       </ActionBtn>

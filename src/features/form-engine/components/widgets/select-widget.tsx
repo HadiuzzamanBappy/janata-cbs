@@ -76,8 +76,8 @@ export function SelectWidget({
           value={strVal}
           onChange={handleTextChange}
           className={cn(
-            "h-7 text-xs font-mono bg-background rounded border-border/80 w-full",
-            error && "border-destructive focus-visible:ring-destructive/30 bg-destructive/5",
+            "h-7 text-xs font-mono bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50",
+            error && "border-destructive focus-visible:border-destructive bg-destructive/5",
             disabled &&
               "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
           )}

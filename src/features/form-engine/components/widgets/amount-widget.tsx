@@ -31,9 +31,9 @@ export function AmountWidget({
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-7 text-xs font-mono bg-background rounded border-border/80 w-full",
+          "h-7 text-xs font-mono bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50",
           currencyPrefix && "pl-9",
-          error && "border-destructive",
+          error && "border-destructive focus-visible:border-destructive",
           disabled &&
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
         )}

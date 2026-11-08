@@ -4,17 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement, SemanticWidthToken } from "@/lib/data-schemas/form-engine-schema";
 import { InspectorRow } from "./inspector-row";
 
-const WIDTH_PRESETS = [
-  { label: "120", value: 120, title: "XS (120px)" },
-  { label: "180", value: 180, title: "SM (180px)" },
-  { label: "280", value: 280, title: "MD (280px)" },
-  { label: "450", value: 450, title: "LG (450px)" },
-  { label: "600", value: 600, title: "XL (600px)" },
-  { label: "FULL", value: 1000, title: "Full Row (1000px)" },
-] as const;
+const WIDTH_PRESETS: { label: string; value: SemanticWidthToken; title: string }[] = [
+  { label: "XS", value: "xs", title: "Extra Small (Currency, Short codes)" },
+  { label: "SM", value: "sm", title: "Small (Account No, Dates)" },
+  { label: "MD", value: "md", title: "Medium (Standard Amount, Dropdowns)" },
+  { label: "LG", value: "lg", title: "Large (Names, Titles)" },
+  { label: "XL", value: "xl", title: "Extra Large (Addresses)" },
+  { label: "XXL", value: "xxl", title: "2X Large (Long descriptions)" },
+  { label: "FULL", value: "full", title: "Full Row (100% Width)" },
+];
 
 export interface InspectorGeneralSectionProps {
   selectedField: FormElement;
@@ -44,42 +45,26 @@ export function InspectorGeneralSection({
         />
       </InspectorRow>
 
-      {/* Display Width: Numerical Presets or Custom Pixels */}
+      {/* Display Width: Pure Semantic Tokens (xs, sm, md, lg, xl, xxl, full) */}
       <InspectorRow
         label="Display Width"
-        description="Field display width in pixels (120, 180, 280, 450, 600, 1000) or custom px."
+        description="Responsive 12-column layout width token (defaults to md or derived from Model LENGTH)."
       >
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-1 flex-1 flex-wrap">
-            {WIDTH_PRESETS.map((preset) => (
-              <Button
-                key={preset.value}
-                type="button"
-                title={preset.title}
-                variant={selectedField.WIDTH === preset.value ? "default" : "outline"}
-                size="sm"
-                disabled={disabled || selectedField.TYPE === "Date"}
-                onClick={() => onUpdateField({ WIDTH: preset.value })}
-                className="h-6 px-1.5 text-[10px] rounded flex-1 uppercase font-mono"
-              >
-                {preset.label}
-              </Button>
-            ))}
-          </div>
-          <div className="flex items-center gap-1 w-20 shrink-0">
-            <Input
-              type="number"
-              placeholder="px"
-              disabled={disabled || selectedField.TYPE === "Date"}
-              value={typeof selectedField.WIDTH === "number" ? selectedField.WIDTH : ""}
-              onChange={(e) => {
-                const val = e.target.value ? Number(e.target.value) : undefined;
-                onUpdateField({ WIDTH: val });
-              }}
-              className="h-6 text-[10px] font-mono px-1.5 bg-background text-right"
-            />
-            <span className="text-[10px] text-muted-foreground font-mono">px</span>
-          </div>
+        <div className="flex items-center gap-1 flex-wrap">
+          {WIDTH_PRESETS.map((preset) => (
+            <Button
+              key={preset.value}
+              type="button"
+              title={preset.title}
+              variant={selectedField.WIDTH === preset.value ? "default" : "outline"}
+              size="sm"
+              disabled={disabled}
+              onClick={() => onUpdateField({ WIDTH: preset.value })}
+              className="h-6 px-2 text-[10px] rounded uppercase font-mono font-semibold"
+            >
+              {preset.label}
+            </Button>
+          ))}
         </div>
       </InspectorRow>
 

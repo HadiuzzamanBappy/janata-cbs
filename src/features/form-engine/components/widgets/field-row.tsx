@@ -63,11 +63,17 @@ export function FieldRow({
   );
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-2">
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row sm:items-start gap-1",
+        isViewMode ? "sm:gap-2 leading-none" : "sm:gap-2",
+      )}
+    >
       {/* Label Column: Full-width top row on mobile, 144px (w-36) left column on desktop */}
       <div
         className={cn(
-          "w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none font-normal min-h-6 sm:min-h-7 sm:pt-1",
+          "w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none font-normal",
+          isViewMode ? "min-h-5 sm:min-h-5.5 pt-0.5" : "min-h-6 sm:min-h-7 sm:pt-1",
           labelClassName,
         )}
       >
@@ -123,16 +129,21 @@ export function FieldRow({
       </div>
 
       {/* Colon separator: hidden on mobile stacked layout, visible on desktop */}
-      <span className="hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 pt-1 select-none">
+      <span
+        className={cn(
+          "hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none",
+          isViewMode ? "pt-0.5" : "pt-1",
+        )}
+      >
         :
       </span>
 
-      {/* Input or View Badge */}
+      {/* Input or Pure Text View */}
       {isViewMode ? (
         <div
           style={style}
           className={cn(
-            "min-h-7 flex items-center px-2 rounded text-xs bg-muted/15 border border-border/80 font-mono text-foreground font-medium select-text w-full sm:w-auto",
+            "min-h-5 sm:min-h-5.5 flex items-center text-xs font-mono text-foreground font-medium select-text pt-0.5",
             inputClassName,
           )}
         >
@@ -141,7 +152,7 @@ export function FieldRow({
           viewDisplayValue !== "" ? (
             <span className="truncate">{viewDisplayValue}</span>
           ) : (
-            <span className="text-muted-foreground/50 italic text-[11px]">Not specified</span>
+            <span className="text-muted-foreground/40 font-mono select-none">—</span>
           )}
         </div>
       ) : (

@@ -29,14 +29,19 @@ export function SectionCard({
   );
 
   const numCols = section.columns || 1;
+  const isViewMode = mode !== "I";
 
   return (
     <div
       className={cn(
         "transition-all duration-150",
         isPlain || hideHeader
-          ? "space-y-2"
-          : "rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5",
+          ? isViewMode
+            ? "space-y-1.5"
+            : "space-y-2"
+          : isViewMode
+            ? "rounded border border-border/80 bg-card/60 px-3 py-2.5 shadow-2xs space-y-1.5"
+            : "rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5",
       )}
     >
       {/* Section Header (shown whenever layoutStyle === 'card' or title is present, unless hideHeader is set or object-group with plain style) */}

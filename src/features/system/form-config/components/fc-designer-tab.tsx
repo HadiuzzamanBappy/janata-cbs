@@ -125,7 +125,7 @@ export function FcDesignerTab({
       STRUCTURE: template.STRUCTURE || "S",
       REQUIRED: Boolean(template.REQUIRED),
       DISABLED: template.DISABLED ?? false,
-      WIDTH: template.WIDTH ?? 280,
+      WIDTH: template.WIDTH ?? "md",
       POSITION: template.POSITION || "",
       PARAMETER: template.PARAMETER || {
         type: "O",

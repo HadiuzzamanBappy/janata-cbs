@@ -29,8 +29,16 @@ export function StandardGridSection({
 }: StandardGridSectionProps) {
   const effectiveCols = numCols || section.columns || 1;
 
+  const isViewMode = mode !== "I";
+
   return (
-    <div className={cn("grid gap-x-3 gap-y-2 text-xs", getGridColsClass(effectiveCols))}>
+    <div
+      className={cn(
+        "grid gap-x-3 text-xs",
+        isViewMode ? "gap-y-1" : "gap-y-2",
+        getGridColsClass(effectiveCols),
+      )}
+    >
       {section.fields.map((field) => (
         <div
           key={field.SN}

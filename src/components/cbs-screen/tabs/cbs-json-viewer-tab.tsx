@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Download, FileCode, GitCompare, Layers } from "lucide-react";
+import { Check, Copy, Database, Download, FileCode, GitCompare, Layers } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,12 @@ import { computeLineDiff } from "@/lib/cbs-record";
 import { cn } from "@/lib/core-utils";
 
 export interface CbsJsonViewerTabProps {
+  /** Output/Working sanitized JSON */
   data: unknown;
   /** Baseline or original uncommitted data to compare against */
   baseline?: unknown;
+  /** Untouched raw JSON directly received from the database/API */
+  raw?: unknown;
   wireTag?: string;
   title?: string;
   filename?: string;
@@ -123,13 +126,25 @@ function renderJsonLine(line: string, lineIndex: number): React.ReactNode {
 export function CbsJsonViewerTab({
   data,
   baseline,
+  raw,
   title = "Database Wire Output Payload",
   filename = "payload.json",
   className = "",
 }: CbsJsonViewerTabProps) {
   const [copied, setCopied] = React.useState(false);
 
-  const jsonString = React.useMemo(() => {
+  // Raw JSON String directly from DB
+  const rawJsonString = React.useMemo(() => {
+    if (raw === undefined || raw === null) return null;
+    try {
+      return JSON.stringify(raw, null, 2);
+    } catch {
+      return String(raw);
+    }
+  }, [raw]);
+
+  // Output/Working sanitized JSON String
+  const outputJsonString = React.useMemo(() => {
     try {
       return JSON.stringify(data, null, 2);
     } catch {
@@ -137,27 +152,30 @@ export function CbsJsonViewerTab({
     }
   }, [data]);
 
+  // Baseline JSON String (defaults to raw if baseline not provided)
   const baselineJsonString = React.useMemo(() => {
-    if (baseline === undefined || baseline === null) return null;
+    const base = raw ?? baseline;
+    if (base === undefined || base === null) return null;
     try {
-      return JSON.stringify(baseline, null, 2);
+      return JSON.stringify(base, null, 2);
     } catch {
-      return String(baseline);
+      return String(base);
     }
-  }, [baseline]);
+  }, [raw, baseline]);
 
-  // Compute diff if baseline is present
+  // Compute diff between baseline (or raw DB) and output
   const diffSummary = React.useMemo(() => {
     if (baselineJsonString === null) return null;
-    return computeLineDiff(baselineJsonString, jsonString);
-  }, [baselineJsonString, jsonString]);
+    return computeLineDiff(baselineJsonString, outputJsonString);
+  }, [baselineJsonString, outputJsonString]);
 
   const hasDiff = Boolean(diffSummary && (diffSummary.additions > 0 || diffSummary.deletions > 0));
 
-  // View mode: "formatted" (standard JSON view) or "diff" (GitHub style)
-  const [viewMode, setViewMode] = React.useState<"formatted" | "diff">(() =>
-    hasDiff ? "diff" : "formatted",
-  );
+  // View mode: "raw" (original DB) | "diff" (GitHub style differences) | "output" (sanitized wire payload)
+  const [viewMode, setViewMode] = React.useState<"raw" | "diff" | "output">(() => {
+    if (rawJsonString !== null && hasDiff) return "diff";
+    return "output";
+  });
 
   // Auto-switch to diff if user makes changes while on the screen
   React.useEffect(() => {
@@ -166,16 +184,24 @@ export function CbsJsonViewerTab({
     }
   }, [hasDiff]);
 
+  // The active JSON string to display in standard/formatted mode
+  const displayedJsonString =
+    viewMode === "raw" && rawJsonString !== null ? rawJsonString : outputJsonString;
+
   const lines = React.useMemo(
-    () => jsonString.split("\n").map((text, idx) => ({ id: `L${idx + 1}`, num: idx + 1, text })),
-    [jsonString],
+    () =>
+      displayedJsonString
+        .split("\n")
+        .map((text, idx) => ({ id: `L${idx + 1}`, num: idx + 1, text })),
+    [displayedJsonString],
   );
   const linesCount = lines.length;
-  const sizeBytes = React.useMemo(() => new TextEncoder().encode(jsonString).length, [jsonString]);
+  const sizeBytes = React.useMemo(
+    () => new TextEncoder().encode(displayedJsonString).length,
+    [displayedJsonString],
+  );
 
-  // Derive the active string to copy or download based on current viewMode:
-  // - In "formatted" mode: exports the active updated/working JSON payload
-  // - In "diff" mode: exports the Git-style unified diff patch
+  // Derive active content to copy or download
   const activeExportContent = React.useMemo(() => {
     if (viewMode === "diff" && diffSummary && hasDiff) {
       return diffSummary.items
@@ -185,12 +211,15 @@ export function CbsJsonViewerTab({
         })
         .join("\n");
     }
-    return jsonString;
-  }, [viewMode, diffSummary, hasDiff, jsonString]);
+    return displayedJsonString;
+  }, [viewMode, diffSummary, hasDiff, displayedJsonString]);
 
   const activeExportFilename = React.useMemo(() => {
     if (viewMode === "diff" && hasDiff) {
       return filename.replace(/\.json$/i, ".diff.txt");
+    }
+    if (viewMode === "raw") {
+      return filename.replace(/\.json$/i, ".raw.json");
     }
     return filename;
   }, [viewMode, hasDiff, filename]);
@@ -245,51 +274,95 @@ export function CbsJsonViewerTab({
               {linesCount}L • {(sizeBytes / 1024).toFixed(1)}KB
             </Badge>
 
-            {/* View Mode Toggle when Diff Available */}
+            {/* View Mode Toggle: Raw (DB) | Changes (Diff) | Output (Payload) - Icons Only */}
             {baselineJsonString !== null && (
-              <div className="inline-flex items-center rounded border border-border/80 bg-muted/40 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("formatted")}
-                  className={cn(
-                    "flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-xs transition-colors cursor-pointer",
-                    viewMode === "formatted"
-                      ? "bg-background text-foreground shadow-2xs font-semibold"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                  title="View payload"
-                >
-                  <Layers className="size-3" />
-                  <span className="hidden sm:inline">Payload</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("diff")}
-                  className={cn(
-                    "flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-xs transition-colors cursor-pointer",
-                    viewMode === "diff"
-                      ? "bg-background text-foreground shadow-2xs font-semibold"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                  title="View differences"
-                >
-                  <GitCompare className="size-3" />
-                  <span className="hidden sm:inline">Changes</span>
-                  {hasDiff && diffSummary && (
-                    <span className="inline-flex items-center gap-0.5 text-[10px] font-mono">
-                      {diffSummary.additions > 0 && (
-                        <span className="text-emerald-500 font-semibold">
-                          +{diffSummary.additions}
-                        </span>
-                      )}
-                      {diffSummary.deletions > 0 && (
-                        <span className="text-destructive font-semibold">
-                          -{diffSummary.deletions}
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </button>
+              <div className="inline-flex items-center rounded border border-border/80 bg-muted/40 p-0.5 gap-0.5">
+                {rawJsonString !== null && (
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("raw")}
+                          className={cn(
+                            "p-1 rounded-xs transition-colors cursor-pointer",
+                            viewMode === "raw"
+                              ? "bg-background text-foreground shadow-2xs font-semibold"
+                              : "text-muted-foreground hover:text-foreground",
+                          )}
+                          aria-label="View original database payload"
+                        >
+                          <Database className="size-3.5 text-cyan-400" />
+                        </button>
+                      }
+                    />
+                    <TooltipContent side="top" className="text-xs">
+                      Raw DB Payload
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        type="button"
+                        onClick={() => setViewMode("diff")}
+                        className={cn(
+                          "flex items-center gap-1 px-1.5 py-0.5 rounded-xs transition-colors cursor-pointer",
+                          viewMode === "diff"
+                            ? "bg-background text-foreground shadow-2xs font-semibold"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                        aria-label="View differences"
+                      >
+                        <GitCompare className="size-3.5 text-amber-400" />
+                        {hasDiff && diffSummary && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-mono leading-none">
+                            {diffSummary.additions > 0 && (
+                              <span className="text-emerald-500 font-semibold">
+                                +{diffSummary.additions}
+                              </span>
+                            )}
+                            {diffSummary.deletions > 0 && (
+                              <span className="text-destructive font-semibold">
+                                -{diffSummary.deletions}
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </button>
+                    }
+                  />
+                  <TooltipContent side="top" className="text-xs">
+                    {hasDiff && diffSummary
+                      ? `Changes (+${diffSummary.additions} / -${diffSummary.deletions})`
+                      : "Changes Diff"}
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        type="button"
+                        onClick={() => setViewMode("output")}
+                        className={cn(
+                          "p-1 rounded-xs transition-colors cursor-pointer",
+                          viewMode === "output"
+                            ? "bg-background text-foreground shadow-2xs font-semibold"
+                            : "text-muted-foreground hover:text-foreground",
+                        )}
+                        aria-label="View clean output wire payload"
+                      >
+                        <Layers className="size-3.5 text-primary" />
+                      </button>
+                    }
+                  />
+                  <TooltipContent side="top" className="text-xs">
+                    Clean Wire Output
+                  </TooltipContent>
+                </Tooltip>
               </div>
             )}
 

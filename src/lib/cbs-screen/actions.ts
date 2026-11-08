@@ -75,6 +75,8 @@ export function useCbsActionBar({
 }: UseCbsActionBarOptions): CbsActionBarCapabilities {
   const access = useCbsAccess({ mode, recordStatus, recordInputter, command });
   const hasTargetId = Boolean(searchVal.trim());
+  const rawStatus = (recordStatus || "").toUpperCase().trim();
+  const cleanStatus = rawStatus === "UA" ? "INA" : rawStatus;
   const isIdle = mode === "IDLE";
   const isSee = mode === CbsRecordFunction.SEE;
   const isAuth = mode === CbsRecordFunction.AUTHORIZE;
@@ -131,9 +133,9 @@ export function useCbsActionBar({
         "Requires Input ('I') permission to hold draft"
       : undefined;
 
-  // 7. Delete (✕)
-  const deleteEnabled = Boolean(isEdit && onDelete && !submitting && access.canDelete);
-  const deleteReason = isReadOnly
+  // 7. Delete (✕) - Allowed in Edit ('I') or Authorize ('A') mode to discard/reject unapproved draft
+  const deleteEnabled = Boolean((isEdit || isAuth) && onDelete && !submitting && access.canDelete);
+  const deleteReason = isSee
     ? "Disabled in View mode"
     : isCreate
       ? "Cannot delete an unsaved new record"
@@ -141,28 +143,38 @@ export function useCbsActionBar({
         ? access.getDisableReason(CbsRecordFunction.DELETE) || "Requires Delete ('D') permission"
         : undefined;
 
-  // 8. Authorize (✓✓)
+  // 8. Authorize (✓✓) - Only permitted in Authorize ('A') mode for unauthorized records (INA)
+  const isPendingAuth = !cleanStatus || cleanStatus === "INA" || cleanStatus === "NEW";
   const authorizeEnabled = Boolean(
-    isAuth && onAuthorizeReverse && !submitting && access.canAuthorize,
+    isAuth && onAuthorizeReverse && !submitting && access.canAuthorize && isPendingAuth,
   );
   const authorizeReason = isSee
     ? "Disabled in View mode"
     : isCreate
       ? "Cannot authorize an uncommitted record"
-      : !access.canAuthorize
-        ? access.getDisableReason(CbsRecordFunction.AUTHORIZE) ||
-          "Requires Authorize ('A') permission"
-        : undefined;
+      : cleanStatus === "AU"
+        ? "Record is already authorized. Use Reversal (✕✓) instead."
+        : !access.canAuthorize
+          ? access.getDisableReason(CbsRecordFunction.AUTHORIZE) ||
+            "Requires Authorize ('A') permission"
+          : undefined;
 
-  // 9. Reverse (✕✓)
-  const reverseEnabled = Boolean(isAuth && onAuthorizeReverse && !submitting && access.canReverse);
+  // 9. Reverse (✕✓) - Only permitted in Authorize ('A') or Reverse ('R') mode for live authorized records (AU)
+  const isLiveAU = cleanStatus === "AU";
+  const isRevOrAuth = isAuth || mode === CbsRecordFunction.REVERSE;
+  const reverseEnabled = Boolean(
+    isRevOrAuth && onAuthorizeReverse && !submitting && access.canReverse && isLiveAU,
+  );
   const reverseReason = isSee
     ? "Disabled in View mode"
     : isCreate
       ? "Cannot reverse an uncommitted record"
-      : !access.canReverse
-        ? access.getDisableReason(CbsRecordFunction.REVERSE) || "Requires Reverse ('R') permission"
-        : undefined;
+      : cleanStatus !== "AU"
+        ? `Cannot Reverse: Record status is '${cleanStatus || "NEW"}' (must be live 'AU').`
+        : !access.canReverse
+          ? access.getDisableReason(CbsRecordFunction.REVERSE) ||
+            "Requires Reverse ('R') permission"
+          : undefined;
 
   // 10. Process (▶)
   const processEnabled = Boolean(!submitting && onProcessAction);

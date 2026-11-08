@@ -145,14 +145,18 @@ export function InquiryFilterBar({
                       <SelectTrigger className="h-7 w-22 text-xs font-mono px-2 shrink-0 bg-background border-border/80 rounded">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="text-xs font-mono min-w-24">
-                        <SelectItem value="EQ">EQ (=)</SelectItem>
-                        <SelectItem value="LK">LK (Like)</SelectItem>
+                      <SelectContent className="text-xs font-mono min-w-28">
+                        <SelectItem value="EQ">EQ (Equal to)</SelectItem>
+                        <SelectItem value="GT">GT (Greater then)</SelectItem>
+                        <SelectItem value="LT">LT (Less then)</SelectItem>
+                        <SelectItem value="GE">GE (Greater/Eq)</SelectItem>
+                        <SelectItem value="LE">LE (Less/Eq)</SelectItem>
+                        <SelectItem value="RG">RG (Between)</SelectItem>
                         <SelectItem value="CT">CT (Contains)</SelectItem>
-                        <SelectItem value="NE">NE (!=)</SelectItem>
-                        <SelectItem value="GT">GT (&gt;)</SelectItem>
-                        <SelectItem value="LT">LT (&lt;)</SelectItem>
-                        <SelectItem value="RG">RG (Range)</SelectItem>
+                        <SelectItem value="SW">SW (Start with)</SelectItem>
+                        <SelectItem value="EW">EW (End with)</SelectItem>
+                        <SelectItem value="NE">NE (Not equal)</SelectItem>
+                        <SelectItem value="LK">LK (Like)</SelectItem>
                       </SelectContent>
                     </Select>
 

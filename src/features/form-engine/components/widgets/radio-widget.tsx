@@ -28,7 +28,17 @@ export function RadioWidget({
         )}
       >
         {options.map((opt) => {
-          const isSelected = String(value) === opt.code;
+          const valStr = String(value ?? "")
+            .trim()
+            .toUpperCase();
+          const optCode = opt.code.trim().toUpperCase();
+          const optLabel = opt.label.trim().toUpperCase();
+          const isSelected =
+            Boolean(valStr) &&
+            (valStr === optCode ||
+              valStr === optLabel ||
+              (valStr === "P" && optCode.startsWith("P")) ||
+              (valStr === "L" && optCode.startsWith("L")));
           return (
             <button
               key={opt.code}
@@ -60,7 +70,17 @@ export function RadioWidget({
     >
       {options.map((opt) => {
         const radioId = `${id}-${opt.code}`;
-        const isSelected = String(value || "").toUpperCase() === opt.code.toUpperCase();
+        const valStr = String(value ?? "")
+          .trim()
+          .toUpperCase();
+        const optCode = opt.code.trim().toUpperCase();
+        const optLabel = opt.label.trim().toUpperCase();
+        const isSelected =
+          Boolean(valStr) &&
+          (valStr === optCode ||
+            valStr === optLabel ||
+            (valStr === "P" && optCode.startsWith("P")) ||
+            (valStr === "L" && optCode.startsWith("L")));
         return (
           <div key={opt.code} className="flex items-center gap-1.5">
             <RadioGroupItem

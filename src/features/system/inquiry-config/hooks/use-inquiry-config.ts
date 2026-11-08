@@ -4,6 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
+import { parseInquiryConfig } from "@/lib/data-parsers";
 import type { CbsWirePayload } from "@/lib/data-schemas";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction, CbsRequestType, type CbsScreenMode } from "@/types";
@@ -72,9 +73,11 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       if (!idToLoad) return;
       setLoading(true);
       try {
-        const res = await cbs.send<InquiryConfigRecord>(cbs.inquiryConfig.get(idToLoad));
+        const res = await cbs.send<unknown>(cbs.inquiryConfig.get(idToLoad));
         if (res.status === "SUCCESS" && res.data) {
-          hydrate(res.data);
+          const parsed = parseInquiryConfig(res.data);
+          const cleanData = parsed.success ? parsed.data : (res.data as InquiryConfigRecord);
+          hydrate(cleanData);
           setRecordId(idToLoad);
           setMode(targetMode);
           setValidationErrors([]);

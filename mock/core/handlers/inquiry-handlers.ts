@@ -32,15 +32,22 @@ export function getMockInquiryPayload(command: string): unknown {
  */
 export function handleInquiry(payload: CbsWirePayload): ApiResponse {
   const cleanKey = (payload.controlName || payload.recordId || "").trim().toUpperCase();
-  const inqTable = resolveTable(CbsControlTable.INQUIRY_CONFIG);
+  const inqTable =
+    resolveTable(CbsControlTable.INQUIRY_CONFIG) ||
+    resolveTable("INQUIRY.CONFIG") ||
+    resolveTable("INQUIRY_CONFIG") ||
+    resolveTable("SC_INQUIRY_CONFIG");
   const inqSpec = inqTable?.LIVE[cleanKey] as
     | { INQInfo?: { controllerName?: string }; controllerName?: string }
     | undefined;
 
   // 1. Resolve target table either from INQInfo.controllerName or direct controlName
-  const targetModel = (inqSpec?.INQInfo?.controllerName || inqSpec?.controllerName || cleanKey)
+  const rawTarget = (inqSpec?.INQInfo?.controllerName || inqSpec?.controllerName || cleanKey)
     .trim()
     .toUpperCase();
+
+  const isUna = rawTarget.includes("$UNA") || rawTarget.includes("$NAU");
+  const targetModel = rawTarget.split("$")[0];
 
   const table = resolveTable(targetModel);
   if (!table) {
@@ -49,6 +56,6 @@ export function handleInquiry(payload: CbsWirePayload): ApiResponse {
     );
   }
 
-  const records = table.getList();
+  const records = isUna ? table.getList("INAU") : table.getList("LIVE");
   return successResult(records, `Inquiry executed successfully against ${targetModel}`);
 }

@@ -67,7 +67,7 @@ export function ColumnInspector({
   const formValues = {
     fieldName: activeCol.fieldName || "",
     fieldDisplay: activeCol.fieldDisplay || "",
-    fieldType: activeCol.fieldType || "CH",
+    fieldType: activeCol.fieldType || "DC",
     alignment: currentAlign,
     columnWidth: currentLen,
     gridRow: currentRow,
@@ -93,7 +93,7 @@ export function ColumnInspector({
     } else if (fieldKey === "fieldDisplay") {
       onUpdateColumn(selectedColIdx, { fieldDisplay: String(value ?? "") });
     } else if (fieldKey === "fieldType") {
-      onUpdateColumn(selectedColIdx, { fieldType: String(value ?? "CH") });
+      onUpdateColumn(selectedColIdx, { fieldType: String(value ?? "DC") });
     } else if (fieldKey === "alignment") {
       onUpdateColumn(selectedColIdx, {
         fieldLength: `${currentLen},${String(value || "L")}`,

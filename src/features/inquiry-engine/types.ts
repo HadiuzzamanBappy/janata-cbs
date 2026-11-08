@@ -5,7 +5,18 @@ import type {
   INQSelectField,
 } from "@/lib/data-schemas/inquiry-config-schema";
 
-export type SelectionOperand = "EQ" | "LK" | "RG" | "NE" | "GT" | "LT" | "CT";
+export type SelectionOperand =
+  | "EQ"
+  | "LK"
+  | "RG"
+  | "NE"
+  | "GT"
+  | "LT"
+  | "CT"
+  | "GE"
+  | "LE"
+  | "SW"
+  | "EW";
 
 export interface FilterCriterion {
   value: string;

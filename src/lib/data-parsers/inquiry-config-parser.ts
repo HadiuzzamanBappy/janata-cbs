@@ -65,8 +65,27 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
     };
   }
 
-  // 3. Handle Canonical Flat / Tabular record format
-  const inqInfo = rec.INQInfo ?? {};
+  // 3. Handle Canonical Flat / Tabular record format (supporting both nested INQInfo and flat root fields)
+  const rawInqInfo =
+    rec.INQInfo && typeof rec.INQInfo === "object"
+      ? (rec.INQInfo as Record<string, unknown>)
+      : null;
+  const inqInfo: Record<string, unknown> = {
+    controllerName: rawInqInfo?.controllerName ?? rec.controllerName ?? "",
+    description: rawInqInfo?.description ?? rec.description ?? "",
+    pageOrientation: rawInqInfo?.pageOrientation ?? rec.pageOrientation ?? "Portrait",
+    perpageItem: rawInqInfo?.perpageItem ?? rec.perpageItem ?? "30",
+    showSerial: rawInqInfo?.showSerial ?? rec.showSerial ?? false,
+    showPagination: rawInqInfo?.showPagination ?? rec.showPagination ?? false,
+    showBranchWise: rawInqInfo?.showBranchWise ?? rec.showBranchWise ?? false,
+    inqType: rawInqInfo?.inqType ?? rec.inqType ?? "DFT",
+    rptControllerName: rawInqInfo?.rptControllerName ?? rec.rptControllerName ?? "",
+    fixedSelection: rawInqInfo?.fixedSelection ?? rec.fixedSelection ?? "",
+    inqServicePath: rawInqInfo?.inqServicePath ?? rec.inqServicePath ?? "default",
+    cmdFromInternal: rawInqInfo?.cmdFromInternal ?? rec.cmdFromInternal ?? false,
+    cmdFieldName: rawInqInfo?.cmdFieldName ?? rec.cmdFieldName ?? "",
+    ...(rawInqInfo || {}),
+  };
   const inqSelect = Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [];
   const inqDef = Array.isArray(rec.INQDef) ? rec.INQDef : [];
   const inqCmds = Array.isArray(rec.INQCmds) ? rec.INQCmds : [];
@@ -205,7 +224,7 @@ export function sanitizeInqDef(col: INQDef): INQDef {
   const result: Partial<INQDef> = {
     fieldName: col.fieldName,
     fieldDisplay: col.fieldDisplay || col.fieldName,
-    fieldType: col.fieldType || "CH",
+    fieldType: col.fieldType || "DC",
     fieldLength: col.fieldLength || "20,L",
     fieldRowCol: col.fieldRowCol || "1,1",
   };

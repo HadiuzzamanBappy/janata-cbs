@@ -262,6 +262,14 @@ async function runSuite() {
         STRUCTURE: "S",
         LENGTH: 35, // Should normalize to 10
       },
+      {
+        SN: "4",
+        NAME: "USER_NAME",
+        LABEL: "User Name",
+        TYPE: "Text",
+        STRUCTURE: "S",
+        LENGTH: "65" as unknown as number, // Stringified number from DB wire: should coerce to 65
+      },
     ],
   };
   const parsedModel = parseModelConfig(rawModelPayload);
@@ -271,6 +279,7 @@ async function runSuite() {
   const p1 = sanitizedModel?.PROPERTIES[0] as unknown as Record<string, unknown>;
   const p2 = sanitizedModel?.PROPERTIES[1];
   const p3 = sanitizedModel?.PROPERTIES[2];
+  const p4 = sanitizedModel?.PROPERTIES[3];
 
   recordTest(
     "6. Model Config Spec Parser & Sanitizer: Standardizes physical metadata & column properties",
@@ -284,16 +293,18 @@ async function runSuite() {
       p2Structure: p2?.STRUCTURE,
       p2Length: p2?.LENGTH,
       p3Length: p3?.LENGTH,
+      p4Length: p4?.LENGTH,
     },
     parsedModel.success === true &&
       sanitizedModel?.TABLENAME === "CUSTOM_TABLE" &&
       sanitizedModel?.ACCESS === "G" &&
-      sanitizedModel?.PROPERTIES.length === 3 &&
+      sanitizedModel?.PROPERTIES.length === 4 &&
       !("WIDTH" in (p1 || {})) &&
       !("WIDGET" in (p1 || {})) &&
       p2?.STRUCTURE === "S" &&
       p2?.LENGTH === 1 &&
-      p3?.LENGTH === 10,
+      p3?.LENGTH === 10 &&
+      p4?.LENGTH === 65,
   );
 
   // ----------------------------------------------------------------------------

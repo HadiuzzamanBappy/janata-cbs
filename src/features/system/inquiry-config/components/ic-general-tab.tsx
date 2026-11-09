@@ -5,7 +5,7 @@ import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction } from "@/types";
-import { INQUIRY_CONFIG_SECTIONS } from "../fields";
+import { INQUIRY_CONFIG_SECTIONS } from "../fields/ic-general-fields";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 
 export interface IcGeneralTabProps {

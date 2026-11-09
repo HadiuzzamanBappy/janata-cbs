@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { FilterCriteriaMap, SelectionOperand } from "@/features/inquiry-engine";
+import { buildDefaultCriteria, type FilterCriteriaMap } from "@/features/inquiry-engine";
 import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
 
@@ -14,17 +14,10 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
   const { tabs, updateTabState } = useWorkbenchStore();
   const currentTab = tabs.find((t) => t.id === tabId);
 
-  // 1. Restore step from tab state or URL query params (for popups)
-  const initialStep = React.useMemo(() => {
-    if (currentTab?.enquiryState?.step) return currentTab.enquiryState.step;
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      if (p.get("step") === "RESULTS") return "RESULTS";
-    }
-    return "SELECTION";
-  }, [currentTab]);
+  // 1. Initial Step: Persisted tab state or "SELECTION"
+  const initialStep = currentTab?.enquiryState?.step || "SELECTION";
 
-  // 2. Restore criteria from tab state or URL query params
+  // 2. Initial Criteria: Persisted tab criteria or default from schema
   const initialCriteria = React.useMemo((): FilterCriteriaMap => {
     if (
       currentTab?.enquiryState?.criteria &&
@@ -32,45 +25,21 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
     ) {
       return currentTab.enquiryState.criteria as unknown as FilterCriteriaMap;
     }
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const raw = p.get("criteria");
-      if (raw) {
-        try {
-          return JSON.parse(raw) as FilterCriteriaMap;
-        } catch {
-          // Safe parse fallback
-        }
-      }
-    }
-    return {};
-  }, [currentTab]);
+    return buildDefaultCriteria(schema?.INQSelectField);
+  }, [currentTab?.enquiryState?.criteria, schema?.INQSelectField]);
 
-  // 3. Restore currentPage from tab state or URL query params
-  const initialPage = React.useMemo(() => {
-    if (currentTab?.enquiryState?.currentPage) return currentTab.enquiryState.currentPage;
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const pg = Number(p.get("page"));
-      if (pg > 0) return pg;
-    }
-    return 1;
-  }, [currentTab]);
+  // 3. Initial Current Page: Persisted tab page or 1
+  const initialPage = currentTab?.enquiryState?.currentPage || 1;
 
-  // 4. Restore pageSize from tab state, URL query params, or schema.INQInfo.perpageItem
+  // 4. Initial Page Size: Persisted tab size or schema perpageItem or 30
   const initialPageSize = React.useMemo(() => {
     if (currentTab?.enquiryState?.pageSize) return currentTab.enquiryState.pageSize;
-    if (typeof window !== "undefined") {
-      const p = new URLSearchParams(window.location.search);
-      const ps = Number(p.get("pageSize"));
-      if (ps > 0) return ps;
-    }
     const schemaPerPage = Number(schema?.INQInfo?.perpageItem);
     if (!Number.isNaN(schemaPerPage) && schemaPerPage > 0) {
       return schemaPerPage;
     }
     return 30;
-  }, [currentTab, schema?.INQInfo?.perpageItem]);
+  }, [currentTab?.enquiryState?.pageSize, schema?.INQInfo?.perpageItem]);
 
   const [step, setStepState] = React.useState<"SELECTION" | "RESULTS">(initialStep);
   const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>([]);
@@ -139,36 +108,21 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
     [tabId, updateTabState, currentTab?.enquiryState],
   );
 
-  // Track initialization once when schema finishes loading
+  // Sync criteria when schema loads if not already configured in tab
   const isInitializedRef = React.useRef(false);
-
   React.useEffect(() => {
     if (!schema || isInitializedRef.current) return;
     isInitializedRef.current = true;
 
-    const hasPersisted = Object.keys(initialCriteria).length > 0;
-    const initial: FilterCriteriaMap = hasPersisted ? initialCriteria : {};
+    const hasPersistedCriteria =
+      currentTab?.enquiryState?.criteria &&
+      Object.keys(currentTab.enquiryState.criteria).length > 0;
 
-    if (!hasPersisted) {
-      for (const f of schema.INQSelectField || []) {
-        initial[f.selectFieldName] = {
-          value: f.selectFieldValue || "",
-          operand: (f.selectFieldOperator || "EQ") as SelectionOperand,
-        };
-      }
+    if (!hasPersistedCriteria) {
+      const defaults = buildDefaultCriteria(schema.INQSelectField);
+      setCurrentCriteriaState(defaults);
     }
-
-    setCurrentCriteriaState(initial);
-    setStepState(initialStep);
-
-    // Sync default page size if not persisted in tab state
-    if (!currentTab?.enquiryState?.pageSize && schema.INQInfo?.perpageItem) {
-      const parsedSize = Number(schema.INQInfo.perpageItem);
-      if (!Number.isNaN(parsedSize) && parsedSize > 0) {
-        setPageSizeState(parsedSize);
-      }
-    }
-  }, [schema, initialStep, initialCriteria, currentTab?.enquiryState?.pageSize]);
+  }, [schema, currentTab?.enquiryState?.criteria]);
 
   return {
     step,

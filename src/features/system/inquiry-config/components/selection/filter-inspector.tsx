@@ -1,15 +1,13 @@
 "use client";
 
-import { PanelLeft, Trash2 } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction } from "@/types";
-import { FILTER_INSPECTOR_SECTIONS } from "../../fields";
+import { FILTER_INSPECTOR_SECTIONS } from "../../fields/ic-filter-fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
+import { InspectorHeader } from "../shared/inspector-header";
 
 export interface FilterInspectorProps {
   field: INQSelectField;
@@ -82,61 +80,19 @@ export function FilterInspector({
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background/50">
       {/* 1. Header Bar */}
-      <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
-        <div className="flex items-center gap-1.5 min-w-0">
-          {showSidebarToggle && onToggleSidebar && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={onToggleSidebar}
-              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
-              title={isSidebarOpen ? "Hide Criteria" : "Show Criteria"}
-            >
-              <PanelLeft className="size-3.5" />
-            </Button>
-          )}
-
-          {field.selectFieldName &&
-          field.selectFieldDisplay &&
-          field.selectFieldName !== field.selectFieldDisplay ? (
-            <>
-              <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-                {field.selectFieldName}
-              </span>
-              <span className="text-xs text-muted-foreground truncate">
-                — {field.selectFieldDisplay}
-              </span>
-            </>
-          ) : (
-            <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-              {field.selectFieldDisplay || field.selectFieldName || "<UNNAMED_FILTER>"}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Badge
-            variant="outline"
-            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs shrink-0"
-          >
-            {selectedIdx !== undefined ? `#${selectedIdx + 1}` : "#"}
-          </Badge>
-
-          {!disabled && onRemove && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={onRemove}
-              className="size-7 text-destructive hover:bg-destructive/10 rounded cursor-pointer"
-              title="Delete Criterion"
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          )}
-        </div>
-      </div>
+      <InspectorHeader
+        title={field.selectFieldName}
+        subtitle={field.selectFieldDisplay}
+        fallbackTitle="<UNNAMED_FILTER>"
+        indexBadge={selectedIdx !== undefined ? selectedIdx : "#"}
+        showSidebarToggle={showSidebarToggle}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={onToggleSidebar}
+        toggleTooltip={isSidebarOpen ? "Hide Criteria" : "Show Criteria"}
+        onDelete={onRemove}
+        deleteTooltip="Delete Criterion"
+        disabled={disabled}
+      />
 
       {/* 2. Form Engine Rendered Filter Properties */}
       <div className="flex-1 overflow-y-auto p-3">

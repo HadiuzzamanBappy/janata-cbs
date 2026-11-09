@@ -4,10 +4,10 @@ import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import {
+  buildDefaultCriteria,
   type FilterCriteriaMap,
   InquiryFilterBar,
   InquiryTable,
-  type SelectionOperand,
   serializeCriteriaToWire,
 } from "@/features/inquiry-engine";
 import { cbs } from "@/lib/cbs-client";
@@ -116,13 +116,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
 
   const handleResetFilters = () => {
     if (!schema) return;
-    const initialCriteria: FilterCriteriaMap = {};
-    for (const f of schema.INQSelectField || []) {
-      initialCriteria[f.selectFieldName] = {
-        value: f.selectFieldValue || "",
-        operand: (f.selectFieldOperator || "EQ") as SelectionOperand,
-      };
-    }
+    const initialCriteria = buildDefaultCriteria(schema.INQSelectField);
     setCurrentCriteria(initialCriteria);
     setFilteredRows([]);
     setCurrentPage(1);

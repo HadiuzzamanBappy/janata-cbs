@@ -40,38 +40,33 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
   // 1. Zod Schema Validation
   const parseResult = inquiryConfigRecordSchema.safeParse(formData);
   if (!parseResult.success) {
-    for (let idx = 0; idx < parseResult.error.issues.length; idx++) {
-      const issue = parseResult.error.issues[idx];
+    parseResult.error.issues.forEach((issue, idx) => {
       const pathStr = issue.path.join(".");
       const firstSegment = String(issue.path[0] || "");
+      const itemIndex = typeof issue.path[1] === "number" ? issue.path[1] : undefined;
 
       let tab: InquiryConfigTabKey = "general";
-      let itemIndex: number | undefined;
-      let subSegment: "columns" | "actions" | undefined;
       let labelPrefix = "General";
 
       if (firstSegment === "INQSelectField") {
         tab = "selection";
-        if (typeof issue.path[1] === "number") {
-          itemIndex = issue.path[1];
+        if (itemIndex !== undefined) {
           const filter = formData.INQSelectField?.[itemIndex];
           const name = filter?.selectFieldDisplay || filter?.selectFieldName;
           labelPrefix = `Filter #${itemIndex + 1}${name ? ` (${name})` : ""}`;
         }
       } else if (firstSegment === "INQDef") {
         tab = "columns";
-        if (typeof issue.path[1] === "number") {
-          itemIndex = issue.path[1];
+        if (itemIndex !== undefined) {
           const col = formData.INQDef?.[itemIndex];
           const name = col?.fieldDisplay || col?.fieldName;
           labelPrefix = `Column #${itemIndex + 1}${name ? ` (${name})` : ""}`;
         }
       } else if (firstSegment === "INQCmds") {
         tab = "actions";
-        if (typeof issue.path[1] === "number") {
-          itemIndex = issue.path[1];
-          const action = formData.INQCmds?.[itemIndex];
-          labelPrefix = `Action #${itemIndex + 1}${action?.cmdButton ? ` (${action.cmdButton})` : ""}`;
+        if (itemIndex !== undefined) {
+          const act = formData.INQCmds?.[itemIndex];
+          labelPrefix = `Action #${itemIndex + 1}${act?.cmdButton ? ` (${act.cmdButton})` : ""}`;
         }
       }
 
@@ -81,9 +76,8 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
         fieldKey: pathStr,
         message: `${labelPrefix}: ${issue.message}`,
         itemIndex,
-        subSegment,
       });
-    }
+    });
   }
 
   // 2. Domain Business Rules: General Tab
@@ -95,7 +89,6 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
       message: "General: Target Table / Controller is required",
     });
   }
-
   if (!formData.INQInfo?.description?.trim()) {
     addIssue({
       id: "err-gen-description",
@@ -106,10 +99,8 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
   }
 
   // 3. Domain Business Rules: Selection Tab
-  const filters = formData.INQSelectField || [];
   const seenFilterNames = new Set<string>();
-
-  filters.forEach((filter, idx) => {
+  (formData.INQSelectField || []).forEach((filter, idx) => {
     const fName = filter.selectFieldName?.trim();
     if (!fName) {
       addIssue({
@@ -119,19 +110,16 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
         message: `Filter #${idx + 1}: Field Key is required`,
         itemIndex: idx,
       });
+    } else if (seenFilterNames.has(fName.toLowerCase())) {
+      addIssue({
+        id: `err-sel-dup-${idx}`,
+        tab: "selection",
+        fieldKey: `INQSelectField.${idx}.selectFieldName`,
+        message: `Filter #${idx + 1}: Duplicate filter field key "${fName}"`,
+        itemIndex: idx,
+      });
     } else {
-      const lower = fName.toLowerCase();
-      if (seenFilterNames.has(lower)) {
-        addIssue({
-          id: `err-sel-dup-${idx}`,
-          tab: "selection",
-          fieldKey: `INQSelectField.${idx}.selectFieldName`,
-          message: `Filter #${idx + 1}: Duplicate filter field key "${fName}"`,
-          itemIndex: idx,
-        });
-      } else {
-        seenFilterNames.add(lower);
-      }
+      seenFilterNames.add(fName.toLowerCase());
     }
 
     if (!filter.selectFieldDisplay?.trim()) {
@@ -145,7 +133,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     }
   });
 
-  // 4. Domain Business Rules: Columns Tab
+  // 4. Domain Business Rules: Columns & Actions Tab
   const columns = formData.INQDef || [];
   if (columns.length === 0) {
     addIssue({
@@ -167,19 +155,16 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
         message: `Column #${idx + 1}: Field Name is required`,
         itemIndex: idx,
       });
+    } else if (seenColNames.has(cName.toLowerCase())) {
+      addIssue({
+        id: `err-col-dup-${idx}`,
+        tab: "columns",
+        fieldKey: `INQDef.${idx}.fieldName`,
+        message: `Column #${idx + 1}: Duplicate column field name "${cName}"`,
+        itemIndex: idx,
+      });
     } else {
-      const lower = cName.toLowerCase();
-      if (seenColNames.has(lower)) {
-        addIssue({
-          id: `err-col-dup-${idx}`,
-          tab: "columns",
-          fieldKey: `INQDef.${idx}.fieldName`,
-          message: `Column #${idx + 1}: Duplicate column field name "${cName}"`,
-          itemIndex: idx,
-        });
-      } else {
-        seenColNames.add(lower);
-      }
+      seenColNames.add(cName.toLowerCase());
     }
 
     if (!col.fieldDisplay?.trim()) {
@@ -193,8 +178,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     }
   });
 
-  const actions = formData.INQCmds || [];
-  actions.forEach((act, idx) => {
+  (formData.INQCmds || []).forEach((act, idx) => {
     if (!act.cmdButton?.trim()) {
       addIssue({
         id: `err-act-${idx}-btn`,
@@ -204,7 +188,6 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
         itemIndex: idx,
       });
     }
-
     if (!act.cmdFor?.trim()) {
       addIssue({
         id: `err-act-${idx}-for`,

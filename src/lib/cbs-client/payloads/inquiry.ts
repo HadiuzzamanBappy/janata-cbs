@@ -1,19 +1,11 @@
-import type { CbsWirePayload } from "@/lib/data-schemas";
+import type {
+  CbsWirePayload,
+  InquiryCriteriaParam,
+  InquiryExecuteOptions,
+} from "@/lib/data-schemas";
 import { CbsRecordFunction, CbsRequestType } from "@/types";
 
-export interface InquiryCriteriaParam {
-  readonly selectFieldName: string;
-  readonly selectFieldType?: string;
-  readonly selectFieldOperator: string;
-  readonly selectFieldValue: string;
-}
-
-export interface InquiryExecuteOptions {
-  readonly queryString?: readonly InquiryCriteriaParam[];
-  readonly curPage?: number;
-  readonly perPage?: number;
-  readonly servicePath?: string;
-}
+export type { InquiryCriteriaParam, InquiryExecuteOptions };
 
 /**
  * Pure runtime enquiry executor payload builder.

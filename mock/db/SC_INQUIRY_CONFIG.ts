@@ -267,17 +267,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       cmdFromInternal: false,
       cmdFieldName: "",
     },
-    INQSelectField: [
-      {
-        selectFieldName: "",
-        selectFieldType: "",
-        selectFieldOperator: "",
-        selectFieldOperatorFixed: "",
-        selectFieldDisplay: "",
-        selectFieldValue: "",
-        selectFieldRequired: false,
-      },
-    ],
+    INQSelectField: [],
     INQDef: [
       {
         fieldName: "recordId",
@@ -393,7 +383,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       {
         selectFieldName: "recordId",
         selectFieldType: "text",
-        selectFieldOperator: "",
+        selectFieldOperator: "EQ",
         selectFieldOperatorFixed: "",
         selectFieldDisplay: "Record Id",
         selectFieldValue: "",
@@ -511,7 +501,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       {
         selectFieldName: "recordId",
         selectFieldType: "text",
-        selectFieldOperator: "",
+        selectFieldOperator: "EQ",
         selectFieldOperatorFixed: "",
         selectFieldDisplay: "Record Id",
         selectFieldValue: "",
@@ -611,17 +601,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       cmdFromInternal: false,
       cmdFieldName: "",
     },
-    INQSelectField: [
-      {
-        selectFieldName: "",
-        selectFieldType: "",
-        selectFieldOperator: "",
-        selectFieldOperatorFixed: "",
-        selectFieldDisplay: "",
-        selectFieldValue: "",
-        selectFieldRequired: false,
-      },
-    ],
+    INQSelectField: [],
     INQDef: [
       {
         fieldName: "recordId",
@@ -683,7 +663,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       {
         selectFieldName: "recordId",
         selectFieldType: "text",
-        selectFieldOperator: "",
+        selectFieldOperator: "EQ",
         selectFieldOperatorFixed: "",
         selectFieldDisplay: "Record Id",
         selectFieldValue: "",
@@ -809,7 +789,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       {
         selectFieldName: "recordId",
         selectFieldType: "text",
-        selectFieldOperator: "",
+        selectFieldOperator: "EQ",
         selectFieldOperatorFixed: "",
         selectFieldDisplay: "Record Id",
         selectFieldValue: "",

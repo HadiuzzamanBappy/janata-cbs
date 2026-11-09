@@ -3,25 +3,9 @@
 import { Filter, Search } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
-import type { FilterCriteriaMap, SelectionOperand } from "../types";
-
-export interface InquiryFilterBarProps {
-  fields: INQSelectField[];
-  criteria?: FilterCriteriaMap;
-  onCriteriaChange?: (criteria: FilterCriteriaMap) => void;
-  onSearch: (criteria: FilterCriteriaMap) => void;
-  onReset: () => void;
-  loading?: boolean;
-}
+import type { SelectionOperand } from "@/lib/data-schemas";
+import type { FilterCriteriaMap, InquiryFilterBarProps } from "../types";
+import { FilterCriterionRow } from "./filter-criterion-row";
 
 export function InquiryFilterBar({
   fields,
@@ -54,17 +38,17 @@ export function InquiryFilterBar({
     }
   };
 
-  const handleValueChange = (id: string, val: string) => {
+  const handleValueChange = (fieldName: string, val: string) => {
     updateCriteria((prev) => ({
       ...prev,
-      [id]: { ...(prev[id] || { operand: "EQ" }), value: val },
+      [fieldName]: { ...(prev[fieldName] || { operand: "EQ" }), value: val },
     }));
   };
 
-  const handleOperandChange = (id: string, op: SelectionOperand) => {
+  const handleOperandChange = (fieldName: string, op: SelectionOperand) => {
     updateCriteria((prev) => ({
       ...prev,
-      [id]: { ...(prev[id] || { value: "" }), operand: op },
+      [fieldName]: { ...(prev[fieldName] || { value: "" }), operand: op },
     }));
   };
 
@@ -116,61 +100,13 @@ export function InquiryFilterBar({
               };
 
               return (
-                <div key={field.selectFieldName} className="flex items-center gap-2">
-                  {/* Left Label (w-40) + fieldName */}
-                  <label
-                    htmlFor={`inq-filter-${field.selectFieldName}`}
-                    className="w-40 shrink-0 text-xs font-medium text-muted-foreground flex items-center justify-between pr-1 select-none"
-                  >
-                    <span className="truncate">{field.selectFieldDisplay}</span>
-                    <span className="text-[9px] font-mono text-muted-foreground/60 hidden sm:inline">
-                      {field.selectFieldName}
-                    </span>
-                  </label>
-
-                  <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
-
-                  <div className="flex-1 flex items-center gap-1.5 min-w-0">
-                    {/* Operand Selector: Compact h-7 font-mono */}
-                    <Select
-                      value={current.operand}
-                      disabled={Boolean(field.selectFieldOperatorFixed)}
-                      onValueChange={(val: string | null) =>
-                        handleOperandChange(
-                          field.selectFieldName,
-                          (val ?? "EQ") as SelectionOperand,
-                        )
-                      }
-                    >
-                      <SelectTrigger className="h-7 w-22 text-xs font-mono px-2 shrink-0 bg-background border-border/80 rounded">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="text-xs font-mono min-w-28">
-                        <SelectItem value="EQ">EQ (Equal to)</SelectItem>
-                        <SelectItem value="GT">GT (Greater then)</SelectItem>
-                        <SelectItem value="LT">LT (Less then)</SelectItem>
-                        <SelectItem value="GE">GE (Greater/Eq)</SelectItem>
-                        <SelectItem value="LE">LE (Less/Eq)</SelectItem>
-                        <SelectItem value="RG">RG (Between)</SelectItem>
-                        <SelectItem value="CT">CT (Contains)</SelectItem>
-                        <SelectItem value="SW">SW (Start with)</SelectItem>
-                        <SelectItem value="EW">EW (End with)</SelectItem>
-                        <SelectItem value="NE">NE (Not equal)</SelectItem>
-                        <SelectItem value="LK">LK (Like)</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {/* Value Input: Compact h-7 font-mono */}
-                    <Input
-                      id={`inq-filter-${field.selectFieldName}`}
-                      type={field.selectFieldType === "number" ? "number" : "text"}
-                      placeholder={`e.g. ${field.selectFieldDisplay}...`}
-                      value={current.value}
-                      onChange={(e) => handleValueChange(field.selectFieldName, e.target.value)}
-                      className="h-7 text-xs font-mono bg-background border-border/80 rounded flex-1"
-                    />
-                  </div>
-                </div>
+                <FilterCriterionRow
+                  key={field.selectFieldName}
+                  field={field}
+                  criterion={current}
+                  onValueChange={handleValueChange}
+                  onOperandChange={handleOperandChange}
+                />
               );
             })}
 

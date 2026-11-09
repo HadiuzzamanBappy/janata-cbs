@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Search, Sparkles } from "lucide-react";
+import { CheckCircle2, Plus, Search, Sparkles } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,26 +9,26 @@ import { cbs } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
-export interface ColumnModelPopoverProps {
+export interface InquiryModelPopoverProps {
   targetModel?: string;
   configuredFieldNames: Set<string>;
-  onImportField?: (prop: ModelProperty) => void;
-  onImportProperty?: (prop: ModelProperty) => void;
+  onImport: (prop: ModelProperty) => void;
+  title?: string;
+  buttonLabel?: string;
   disabled?: boolean;
 }
 
-export function ColumnModelPopover({
+export function InquiryModelPopover({
   targetModel,
   configuredFieldNames,
-  onImportField,
-  onImportProperty,
+  onImport,
+  title,
+  buttonLabel = "Import",
   disabled = false,
-}: ColumnModelPopoverProps) {
+}: InquiryModelPopoverProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [modelProps, setModelProps] = React.useState<ModelProperty[]>([]);
-
-  const handleImport = onImportField || onImportProperty;
 
   React.useEffect(() => {
     let mounted = true;
@@ -88,6 +88,9 @@ export function ColumnModelPopover({
     );
   }, [availableProps, search]);
 
+  const tooltipTitle =
+    title ?? (targetModel ? `Import fields from ${targetModel}` : "No Target Model set");
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
@@ -98,10 +101,10 @@ export function ColumnModelPopover({
             size="sm"
             disabled={disabled || !targetModel}
             className="h-7 text-xs px-2 gap-1 text-primary hover:text-primary/80 cursor-pointer"
-            title={targetModel ? `Import column fields from ${targetModel}` : "No Target Model set"}
+            title={tooltipTitle}
           >
             <Sparkles className="size-3" />
-            <span className="hidden sm:inline">Import</span>
+            <span className="hidden sm:inline">{buttonLabel}</span>
           </Button>
         }
       />
@@ -140,7 +143,7 @@ export function ColumnModelPopover({
                   key={prop.NAME}
                   disabled={isConfigured}
                   onClick={() => {
-                    handleImport?.(prop);
+                    onImport(prop);
                     setOpen(false);
                   }}
                   className={cn(
@@ -162,9 +165,7 @@ export function ColumnModelPopover({
                   {isConfigured ? (
                     <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
                   ) : (
-                    <span className="text-[10px] font-mono text-muted-foreground/80 shrink-0 uppercase">
-                      {prop.TYPE}
-                    </span>
+                    <Plus className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
                   )}
                 </button>
               );

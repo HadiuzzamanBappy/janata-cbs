@@ -17,8 +17,8 @@ import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { ColumnInspector } from "./columns/column-inspector";
-import { ColumnModelPopover } from "./columns/column-model-popover";
 import { ColumnsPanel } from "./columns/columns-panel";
+import { InquiryModelPopover } from "./shared/inquiry-model-popover";
 
 export interface IcColumnsTabProps {
   columns: INQDef[];
@@ -139,11 +139,12 @@ export function IcColumnsTab({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          <ColumnModelPopover
+          <InquiryModelPopover
             targetModel={targetModel}
             disabled={disabled}
             configuredFieldNames={configuredFieldNames}
-            onImportProperty={handleImportProperty}
+            onImport={handleImportProperty}
+            title={targetModel ? `Import column fields from ${targetModel}` : "No Target Model set"}
           />
           {!disabled && (
             <Button

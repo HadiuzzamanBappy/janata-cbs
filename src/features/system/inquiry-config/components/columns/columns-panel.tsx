@@ -9,6 +9,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Columns } from "lucide-react";
 import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
+import { DesignerEmptyList } from "../shared/designer-empty-list";
 import { ColumnItem } from "./column-item";
 
 export interface ColumnsPanelProps {
@@ -40,13 +41,11 @@ export function ColumnsPanel({
     <div className="w-full flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto min-h-0">
         {columns.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-            <Columns className="size-8 text-muted-foreground/30 mb-2" />
-            <p className="text-xs font-medium">No Columns Defined</p>
-            <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
-              Import properties from {targetModel || "the model"} or add a custom column.
-            </p>
-          </div>
+          <DesignerEmptyList
+            icon={Columns}
+            title="No Columns Defined"
+            description={`Import properties from ${targetModel || "the model"} or add a custom column.`}
+          />
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
             <SortableContext items={columnKeys} strategy={verticalListSortingStrategy}>

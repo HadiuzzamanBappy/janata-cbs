@@ -1,30 +1,29 @@
 "use client";
 
 import {
-  closestCenter,
-  DndContext,
   type DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { Filter, Plus } from "lucide-react";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useContainerWidth } from "@/hooks";
 import { cn } from "@/lib/core-utils";
-import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
+import type {
+  INQSelectField,
+  InquiryFieldType,
+  SelectionOperand,
+} from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { FilterInspector } from "./selection/filter-inspector";
-import { FilterItem } from "./selection/filter-item";
-import { FilterModelPopover } from "./selection/filter-model-popover";
+import { SelectionPanel } from "./selection/selection-panel";
+import { InquiryModelPopover } from "./shared/inquiry-model-popover";
+import { InspectorEmptyState } from "./shared/inspector-empty-state";
 
 export interface IcSelectionTabProps {
   filters: INQSelectField[];
@@ -60,7 +59,9 @@ export function IcSelectionTab({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const filterKeys = React.useMemo(
@@ -105,8 +106,8 @@ export function IcSelectionTab({
 
   const handleImportProperty = (prop: ModelProperty) => {
     const typeUpper = (prop.TYPE || "CHAR").toUpperCase();
-    let selectFieldType = "text";
-    let defaultOperand = "EQ";
+    let selectFieldType: InquiryFieldType = "text";
+    let defaultOperand: SelectionOperand = "EQ";
 
     if (typeUpper === "AMOUNT" || typeUpper === "INTEGER" || typeUpper === "NUMBER") {
       selectFieldType = "number";
@@ -158,10 +159,11 @@ export function IcSelectionTab({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          <FilterModelPopover
+          <InquiryModelPopover
             targetModel={targetModel}
             configuredFieldNames={configuredFieldNames}
-            onImportField={handleImportProperty}
+            onImport={handleImportProperty}
+            title={targetModel ? `Import filter fields from ${targetModel}` : "No Target Model set"}
             disabled={disabled}
           />
 
@@ -180,47 +182,19 @@ export function IcSelectionTab({
         </div>
       </div>
 
-      {/* Scrollable Criteria Items */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        {filters.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-            <Filter className="size-8 text-muted-foreground/30 mb-2" />
-            <p className="text-xs font-medium">No Criteria Defined</p>
-            <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
-              Import properties from {targetModel || "the model"} or add a custom filter.
-            </p>
-          </div>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={filterKeys} strategy={verticalListSortingStrategy}>
-              <div className="divide-y divide-border/30">
-                {filters.map((filter, index) => {
-                  const filterErrors = validationErrors.filter(
-                    (err) => err.tab === "selection" && err.itemIndex === index,
-                  );
-                  return (
-                    <FilterItem
-                      key={filterKeys[index]}
-                      index={index}
-                      field={filter}
-                      isSelected={index === selectedIdx}
-                      disabled={disabled}
-                      hasError={filterErrors.length > 0}
-                      errorCount={filterErrors.length}
-                      onSelect={() => handleSelectFilter(index)}
-                      onRemove={() => onRemoveFilter(index)}
-                    />
-                  );
-                })}
-              </div>
-            </SortableContext>
-          </DndContext>
-        )}
-      </div>
+      {/* Reusable Selection List Panel */}
+      <SelectionPanel
+        filters={filters}
+        filterKeys={filterKeys}
+        selectedIdx={selectedIdx}
+        disabled={disabled}
+        targetModel={targetModel}
+        sensors={sensors}
+        validationErrors={validationErrors}
+        onSelectFilter={handleSelectFilter}
+        onRemoveFilter={onRemoveFilter}
+        onDragEnd={handleDragEnd}
+      />
     </div>
   );
 
@@ -271,12 +245,7 @@ export function IcSelectionTab({
             showSidebarToggle={isCompact}
           />
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">
-            <Filter className="size-7 text-muted-foreground/35 mb-2" />
-            <p className="text-xs text-muted-foreground/80">
-              Select a criterion on the left to inspect or edit details
-            </p>
-          </div>
+          <InspectorEmptyState message="Select a criterion on the left to inspect or edit details" />
         )}
       </div>
     </div>

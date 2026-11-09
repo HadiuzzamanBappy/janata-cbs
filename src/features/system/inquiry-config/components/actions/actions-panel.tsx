@@ -9,6 +9,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { MousePointerClick } from "lucide-react";
 import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
+import { DesignerEmptyList } from "../shared/designer-empty-list";
 import { ActionItem } from "./action-item";
 
 export interface ActionsPanelProps {
@@ -38,13 +39,11 @@ export function ActionsPanel({
     <div className="w-full flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto min-h-0">
         {actions.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center p-6 text-center text-muted-foreground">
-            <MousePointerClick className="size-8 text-muted-foreground/30 mb-2" />
-            <p className="text-xs font-medium">No Actions Defined</p>
-            <p className="text-[11px] text-muted-foreground/70 mt-1 max-w-50">
-              Add row command buttons (e.g. View, Edit, Auth).
-            </p>
-          </div>
+          <DesignerEmptyList
+            icon={MousePointerClick}
+            title="No Actions Defined"
+            description="Add row command buttons (e.g. View, Edit, Auth)."
+          />
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
             <SortableContext items={actionKeys} strategy={verticalListSortingStrategy}>

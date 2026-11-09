@@ -3,20 +3,10 @@ import type {
   INQCmd,
   INQDef,
   INQSelectField,
+  SelectionOperand,
 } from "@/lib/data-schemas/inquiry-config-schema";
 
-export type SelectionOperand =
-  | "EQ"
-  | "LK"
-  | "RG"
-  | "NE"
-  | "GT"
-  | "LT"
-  | "CT"
-  | "GE"
-  | "LE"
-  | "SW"
-  | "EW";
+export type { SelectionOperand };
 
 export interface FilterCriterion {
   value: string;

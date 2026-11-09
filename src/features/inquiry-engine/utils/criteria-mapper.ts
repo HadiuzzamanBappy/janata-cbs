@@ -1,18 +1,28 @@
-import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQSelectField, InquiryCriteriaParam, SelectionOperand } from "@/lib/data-schemas";
 import type { FilterCriteriaMap } from "../types";
 
-export interface CbsWireCriteriaParam {
-  selectFieldName: string;
-  selectFieldType: string;
-  selectFieldOperator: string;
-  selectFieldValue: string;
+export type CbsWireCriteriaParam = InquiryCriteriaParam;
+
+/**
+ * Builds a default criteria map from an array of INQSelectField definitions.
+ */
+export function buildDefaultCriteria(fields: readonly INQSelectField[] = []): FilterCriteriaMap {
+  const criteria: FilterCriteriaMap = {};
+  for (const f of fields) {
+    if (!f.selectFieldName?.trim()) continue;
+    criteria[f.selectFieldName] = {
+      value: f.selectFieldValue || "",
+      operand: (f.selectFieldOperator || "EQ") as SelectionOperand,
+    };
+  }
+  return criteria;
 }
 
 /**
  * Parses a CBS fixedSelection string (e.g. "STATUS EQ AU" or "RECORD.STATUS NE REVE, CATEGORY EQ 1001")
- * into CbsWireCriteriaParam items.
+ * into InquiryCriteriaParam items.
  */
-export function parseFixedSelectionToWire(fixedSelection?: string): CbsWireCriteriaParam[] {
+export function parseFixedSelectionToWire(fixedSelection?: string): InquiryCriteriaParam[] {
   if (!fixedSelection || fixedSelection.trim() === "") return [];
 
   const statements = fixedSelection
@@ -20,7 +30,7 @@ export function parseFixedSelectionToWire(fixedSelection?: string): CbsWireCrite
     .map((s) => s.trim())
     .filter(Boolean);
 
-  const result: CbsWireCriteriaParam[] = [];
+  const result: InquiryCriteriaParam[] = [];
 
   for (const stmt of statements) {
     // Expected syntax: FIELD_NAME OPERAND VALUE (e.g. "STATUS EQ 'AU'" or "ACCOUNT.STATUS EQ 1")
@@ -33,7 +43,7 @@ export function parseFixedSelectionToWire(fixedSelection?: string): CbsWireCrite
     result.push({
       selectFieldName: rawField?.trim() || "",
       selectFieldType: "text",
-      selectFieldOperator: (rawOp?.trim().toUpperCase() || "EQ") as string,
+      selectFieldOperator: (rawOp?.trim().toUpperCase() || "EQ") as SelectionOperand,
       selectFieldValue: cleanValue,
     });
   }
@@ -49,8 +59,8 @@ export function serializeCriteriaToWire(
   fields: INQSelectField[],
   fixedSelection?: string,
   branchCode?: string | null,
-): CbsWireCriteriaParam[] {
-  const result: CbsWireCriteriaParam[] = [];
+): InquiryCriteriaParam[] {
+  const result: InquiryCriteriaParam[] = [];
 
   // 1. Append branch-wise segregation filter if active
   if (branchCode?.trim()) {
@@ -75,7 +85,7 @@ export function serializeCriteriaToWire(
     result.push({
       selectFieldName: fieldName,
       selectFieldType: fieldDef?.selectFieldType || "text",
-      selectFieldOperator: crit.operand || "EQ",
+      selectFieldOperator: (crit.operand || "EQ") as SelectionOperand,
       selectFieldValue: crit.value.trim(),
     });
   }

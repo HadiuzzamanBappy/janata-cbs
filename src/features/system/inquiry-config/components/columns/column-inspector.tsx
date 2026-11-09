@@ -1,14 +1,19 @@
 "use client";
 
-import { PanelLeft, Trash2 } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import {
+  formatColumnCoordinates,
+  formatColumnLength,
+  parseColumnCoordinates,
+  parseColumnLength,
+} from "@/features/inquiry-engine";
 import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction } from "@/types";
-import { COLUMN_INSPECTOR_SECTIONS } from "../../fields";
+import { COLUMN_INSPECTOR_SECTIONS } from "../../fields/ic-column-fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
+import { InspectorEmptyState } from "../shared/inspector-empty-state";
+import { InspectorHeader } from "../shared/inspector-header";
 
 export interface ColumnInspectorProps {
   activeCol?: INQDef;
@@ -46,23 +51,15 @@ export function ColumnInspector({
 
   if (!activeCol) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">
-        <p className="text-xs font-mono">
-          Select a column from the left to inspect its definition.
-        </p>
-      </div>
+      <InspectorEmptyState message="Select a column from the left to inspect its definition." />
     );
   }
 
-  // Decompose length & alignment (e.g. "20,L")
-  const [lenPart, alignPart] = (activeCol.fieldLength || "20,L").split(",");
-  const currentLen = Number(lenPart?.trim()) || 20;
-  const currentAlign = alignPart?.trim().toUpperCase() || "L";
+  // Decompose length & alignment using centralized inquiry engine helper
+  const { length: currentLen, alignCode: currentAlign } = parseColumnLength(activeCol.fieldLength);
 
-  // Decompose grid row & col (e.g. "1,2")
-  const [rowPart, colPart] = (activeCol.fieldRowCol || "1,1").split(",");
-  const currentRow = Number(rowPart?.trim()) || 1;
-  const currentCol = Number(colPart?.trim()) || 1;
+  // Decompose grid row & col using centralized inquiry engine helper
+  const { row: currentRow, col: currentCol } = parseColumnCoordinates(activeCol.fieldRowCol);
 
   const formValues = {
     fieldName: activeCol.fieldName || "",
@@ -96,22 +93,22 @@ export function ColumnInspector({
       onUpdateColumn(selectedColIdx, { fieldType: String(value ?? "DC") });
     } else if (fieldKey === "alignment") {
       onUpdateColumn(selectedColIdx, {
-        fieldLength: `${currentLen},${String(value || "L")}`,
+        fieldLength: formatColumnLength(currentLen, (value || "L") as "L" | "R" | "C"),
       });
     } else if (fieldKey === "columnWidth") {
       const widthVal = Number(value) || 20;
       onUpdateColumn(selectedColIdx, {
-        fieldLength: `${widthVal},${currentAlign}`,
+        fieldLength: formatColumnLength(widthVal, currentAlign),
       });
     } else if (fieldKey === "gridRow") {
       const rowVal = Number(value) || 1;
       onUpdateColumn(selectedColIdx, {
-        fieldRowCol: `${rowVal},${currentCol}`,
+        fieldRowCol: formatColumnCoordinates(rowVal, currentCol),
       });
     } else if (fieldKey === "gridCol") {
       const colVal = Number(value) || 1;
       onUpdateColumn(selectedColIdx, {
-        fieldRowCol: `${currentRow},${colVal}`,
+        fieldRowCol: formatColumnCoordinates(currentRow, colVal),
       });
     } else if (fieldKey === "fieldFunc") {
       onUpdateColumn(selectedColIdx, { fieldFunc: String(value ?? "") });
@@ -123,61 +120,19 @@ export function ColumnInspector({
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background/50">
       {/* 1. Header Bar */}
-      <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
-        <div className="flex items-center gap-1.5 min-w-0">
-          {showSidebarToggle && onToggleSidebar && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={onToggleSidebar}
-              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
-              title={isSidebarOpen ? "Hide Columns" : "Show Columns"}
-            >
-              <PanelLeft className="size-3.5" />
-            </Button>
-          )}
-
-          {activeCol.fieldName &&
-          activeCol.fieldDisplay &&
-          activeCol.fieldName !== activeCol.fieldDisplay ? (
-            <>
-              <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-                {activeCol.fieldName}
-              </span>
-              <span className="text-xs text-muted-foreground truncate">
-                — {activeCol.fieldDisplay}
-              </span>
-            </>
-          ) : (
-            <span className="text-xs font-bold text-foreground tracking-wide truncate">
-              {activeCol.fieldDisplay || activeCol.fieldName || "<UNNAMED_COLUMN>"}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Badge
-            variant="outline"
-            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs shrink-0"
-          >
-            #{selectedColIdx + 1}
-          </Badge>
-
-          {!disabled && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onRemoveColumn(selectedColIdx)}
-              className="size-7 text-destructive hover:bg-destructive/10 rounded cursor-pointer"
-              title="Delete Column"
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          )}
-        </div>
-      </div>
+      <InspectorHeader
+        title={activeCol.fieldName}
+        subtitle={activeCol.fieldDisplay}
+        fallbackTitle="<UNNAMED_COLUMN>"
+        indexBadge={selectedColIdx}
+        showSidebarToggle={showSidebarToggle}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={onToggleSidebar}
+        toggleTooltip={isSidebarOpen ? "Hide Columns" : "Show Columns"}
+        onDelete={() => onRemoveColumn(selectedColIdx)}
+        deleteTooltip="Delete Column"
+        disabled={disabled}
+      />
 
       {/* 2. Form Engine Rendered Column Properties */}
       <div className="flex-1 overflow-y-auto p-3">

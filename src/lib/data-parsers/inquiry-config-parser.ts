@@ -10,19 +10,15 @@ import {
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
-/* Helper: Normalize Inbound Wire Envelope                                    */
+/* Inbound Wire Envelope Normalizer (Zero Legacy)                             */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Normalizes any CBS wire payload (wrapped envelope, GMC PROPERTIES format,
- * or canonical flat structure) into an inquiryConfigRecordSchema-compatible shape.
- */
 function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null {
   if (!target || typeof target !== "object") return null;
 
   let rec = target as Record<string, unknown>;
 
-  // 1. Unwrap common response envelopes (e.g. { data: { record: { ... } } })
+  // Unwrap standard response envelopes: { data: { record: ... } } or { data: ... }
   if (rec.data && typeof rec.data === "object" && !Array.isArray(rec.data)) {
     rec = rec.data as Record<string, unknown>;
   }
@@ -30,83 +26,37 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
     rec = rec.record as Record<string, unknown>;
   }
 
-  // 2. Handle GMC PROPERTIES array format (when loaded via MODEL.CONFIG / table meta)
-  if (Array.isArray(rec.PROPERTIES)) {
-    const props = rec.PROPERTIES as Array<{
-      NAME?: string;
-      VALUE?: unknown;
-    }>;
-
-    const findPropValue = (name: string): unknown => {
-      const match = props.find((p) => p.NAME?.toUpperCase() === name.toUpperCase());
-      return match?.VALUE;
-    };
-
-    const rawInqInfoVal = findPropValue("INQInfo");
-    const rawInqInfo = Array.isArray(rawInqInfoVal)
-      ? (rawInqInfoVal[0] ?? {})
-      : (rawInqInfoVal ?? {});
-
-    const rawSelectVal = findPropValue("INQSelectField");
-    const rawSelect = Array.isArray(rawSelectVal) ? rawSelectVal : [];
-
-    const rawDefVal = findPropValue("INQDef");
-    const rawDef = Array.isArray(rawDefVal) ? rawDefVal : [];
-
-    const rawCmdsVal = findPropValue("INQCmds");
-    const rawCmds = Array.isArray(rawCmdsVal) ? rawCmdsVal : [];
-
-    return {
-      INQInfo: rawInqInfo,
-      INQSelectField: rawSelect,
-      INQDef: rawDef,
-      INQCmds: rawCmds,
-      auditData: rec.auditData ?? rec.auditFields,
-    };
-  }
-
-  // 3. Handle Canonical Flat / Tabular record format (supporting both nested INQInfo and flat root fields)
   const rawInqInfo =
-    rec.INQInfo && typeof rec.INQInfo === "object"
-      ? (rec.INQInfo as Record<string, unknown>)
-      : null;
-  const inqInfo: Record<string, unknown> = {
-    controllerName: rawInqInfo?.controllerName ?? rec.controllerName ?? "",
-    description: rawInqInfo?.description ?? rec.description ?? "",
-    pageOrientation: rawInqInfo?.pageOrientation ?? rec.pageOrientation ?? "Portrait",
-    perpageItem: rawInqInfo?.perpageItem ?? rec.perpageItem ?? "30",
-    showSerial: rawInqInfo?.showSerial ?? rec.showSerial ?? false,
-    showPagination: rawInqInfo?.showPagination ?? rec.showPagination ?? false,
-    showBranchWise: rawInqInfo?.showBranchWise ?? rec.showBranchWise ?? false,
-    inqType: rawInqInfo?.inqType ?? rec.inqType ?? "DFT",
-    rptControllerName: rawInqInfo?.rptControllerName ?? rec.rptControllerName ?? "",
-    fixedSelection: rawInqInfo?.fixedSelection ?? rec.fixedSelection ?? "",
-    inqServicePath: rawInqInfo?.inqServicePath ?? rec.inqServicePath ?? "default",
-    cmdFromInternal: rawInqInfo?.cmdFromInternal ?? rec.cmdFromInternal ?? false,
-    cmdFieldName: rawInqInfo?.cmdFieldName ?? rec.cmdFieldName ?? "",
-    ...(rawInqInfo || {}),
-  };
-  const inqSelect = Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [];
-  const inqDef = Array.isArray(rec.INQDef) ? rec.INQDef : [];
-  const inqCmds = Array.isArray(rec.INQCmds) ? rec.INQCmds : [];
+    rec.INQInfo && typeof rec.INQInfo === "object" ? (rec.INQInfo as Record<string, unknown>) : {};
 
   return {
     ...rec,
-    INQInfo: inqInfo,
-    INQSelectField: inqSelect,
-    INQDef: inqDef,
-    INQCmds: inqCmds,
-    auditData: rec.auditData ?? rec.auditFields,
+    INQInfo: {
+      controllerName: rawInqInfo.controllerName ?? rec.controllerName ?? "",
+      description: rawInqInfo.description ?? rec.description ?? "",
+      pageOrientation: rawInqInfo.pageOrientation ?? rec.pageOrientation ?? "Portrait",
+      perpageItem: rawInqInfo.perpageItem ?? rec.perpageItem ?? "30",
+      showSerial: rawInqInfo.showSerial ?? rec.showSerial ?? false,
+      showPagination: rawInqInfo.showPagination ?? rec.showPagination ?? false,
+      showBranchWise: rawInqInfo.showBranchWise ?? rec.showBranchWise ?? false,
+      inqType: rawInqInfo.inqType ?? rec.inqType ?? "DFT",
+      rptControllerName: rawInqInfo.rptControllerName ?? rec.rptControllerName ?? "",
+      fixedSelection: rawInqInfo.fixedSelection ?? rec.fixedSelection ?? "",
+      inqServicePath: rawInqInfo.inqServicePath ?? rec.inqServicePath ?? "default",
+      cmdFromInternal: rawInqInfo.cmdFromInternal ?? rec.cmdFromInternal ?? false,
+      cmdFieldName: rawInqInfo.cmdFieldName ?? rec.cmdFieldName ?? "",
+    },
+    INQSelectField: Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [],
+    INQDef: Array.isArray(rec.INQDef) ? rec.INQDef : [],
+    INQCmds: Array.isArray(rec.INQCmds) ? rec.INQCmds : [],
+    auditData: rec.auditData ?? undefined,
   };
 }
 
 /* -------------------------------------------------------------------------- */
-/* Single Record Parser                                                       */
+/* Single Record & List Parsers                                               */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Parses inbound JSON / Protobuf payload into a strictly validated InquiryConfigRecord.
- */
 export function parseInquiryConfig(
   rawPayload: unknown,
 ): { success: true; data: InquiryConfigRecord } | { success: false; error: string } {
@@ -117,8 +67,8 @@ export function parseInquiryConfig(
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
   const list = unwrapRecordsPayload<Record<string, unknown>>(decoded);
   const rawTarget = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
-
   const target = normalizeInquiryTarget(rawTarget);
+
   if (!target) {
     return { success: false, error: "Inquiry config record is empty or invalid" };
   }
@@ -131,35 +81,21 @@ export function parseInquiryConfig(
     };
   }
 
-  return {
-    success: true,
-    data: parseResult.data,
-  };
+  return { success: true, data: parseResult.data };
 }
 
-/* -------------------------------------------------------------------------- */
-/* List Parser                                                                */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Parses a list of inquiry config records from CBS backend wire responses.
- */
 export function parseInquiryConfigList(
   rawPayload: unknown,
 ): { success: true; data: InquiryConfigRecord[] } | { success: false; error: string } {
-  if (!rawPayload) {
-    return { success: true, data: [] };
-  }
+  if (!rawPayload) return { success: true, data: [] };
 
   const rawList = unwrapRecordsPayload<unknown>(rawPayload);
   const candidates = rawList.length > 0 ? rawList : Array.isArray(rawPayload) ? rawPayload : [];
-
   const normalized = candidates
     .map(normalizeInquiryTarget)
     .filter((t): t is Record<string, unknown> => t !== null);
 
   const parseResult = z.array(inquiryConfigRecordSchema).safeParse(normalized);
-
   if (!parseResult.success) {
     return {
       success: false,
@@ -167,26 +103,32 @@ export function parseInquiryConfigList(
     };
   }
 
-  return {
-    success: true,
-    data: parseResult.data,
-  };
+  return { success: true, data: parseResult.data };
 }
 
 /* -------------------------------------------------------------------------- */
 /* Dataset Rows Parser                                                        */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Parses raw CBS Inquiry dataset wire response into typed flat EnquiryRow[] records.
- */
 export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
   if (!rawPayload) return [];
 
   const records = unwrapRecordsPayload<Record<string, unknown>>(rawPayload);
   return records.map((item, idx) => {
-    const id = String(item.id || item.recordId || item.txnReference || item.accountNumber || idx);
-    return { id, ...item };
+    const rawId = item.id ?? item.recordId ?? item.txnReference ?? item.accountNumber;
+    const cleanId =
+      rawId !== undefined && rawId !== null && String(rawId).trim() !== ""
+        ? String(rawId).trim()
+        : `row_${idx + 1}`;
+
+    return {
+      ...item,
+      id: cleanId,
+      recordId:
+        typeof item.recordId === "string" && item.recordId.trim() !== ""
+          ? item.recordId.trim()
+          : cleanId,
+    };
   });
 }
 
@@ -194,12 +136,6 @@ export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
 /* Sanitizers & Wire Serializers                                              */
 /* -------------------------------------------------------------------------- */
 
-/**
- * Sanitizes an INQSelectField for sparse persistence:
- * - Omits empty prefill values
- * - Omits default false flags (selectFieldRequired: false)
- * - Omits empty fixed operator locks
- */
 export function sanitizeInqSelectField(f: INQSelectField): INQSelectField {
   const result: Partial<INQSelectField> = {
     selectFieldName: f.selectFieldName,
@@ -215,11 +151,6 @@ export function sanitizeInqSelectField(f: INQSelectField): INQSelectField {
   return result as INQSelectField;
 }
 
-/**
- * Sanitizes an INQDef column definition:
- * - Omits empty routines
- * - Omits falsy/null passable flags
- */
 export function sanitizeInqDef(col: INQDef): INQDef {
   const result: Partial<INQDef> = {
     fieldName: col.fieldName,
@@ -233,12 +164,6 @@ export function sanitizeInqDef(col: INQDef): INQDef {
   return result as INQDef;
 }
 
-/**
- * Sanitizes an InquiryConfigRecord for database persistence & wire JSON:
- * - Strips empty string overrides from INQInfo
- * - Cleans selection criteria and table columns arrays
- * - Preserves audit context
- */
 export function sanitizeInquiryConfigRecord(
   record?: InquiryConfigRecord,
 ): InquiryConfigRecord | undefined {
@@ -278,6 +203,5 @@ export function sanitizeInquiryConfigRecord(
   };
 
   if (record.auditData) result.auditData = record.auditData;
-
   return result as InquiryConfigRecord;
 }

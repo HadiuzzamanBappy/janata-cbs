@@ -1,14 +1,14 @@
 "use client";
 
-import { PanelLeft, Trash2 } from "lucide-react";
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction } from "@/types";
-import { ACTION_INSPECTOR_SECTIONS } from "../../fields";
+import { ACTION_INSPECTOR_SECTIONS } from "../../fields/ic-action-fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
+import { InspectorEmptyState } from "../shared/inspector-empty-state";
+import { InspectorHeader } from "../shared/inspector-header";
 
 export interface ActionInspectorProps {
   activeAction?: INQCmd;
@@ -57,11 +57,7 @@ export function ActionInspector({
 
   if (!activeAction) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground select-none">
-        <p className="text-xs font-mono">
-          Select an action from the left to inspect its command definition.
-        </p>
-      </div>
+      <InspectorEmptyState message="Select an action from the left to inspect its command definition." />
     );
   }
 
@@ -84,61 +80,19 @@ export function ActionInspector({
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background/50">
       {/* 1. Header Bar */}
-      <div className="px-3 py-1.5 border-b border-border/70 flex items-center justify-between gap-2 bg-muted/20 shrink-0">
-        <div className="flex items-center gap-1.5 min-w-0">
-          {showSidebarToggle && onToggleSidebar && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={onToggleSidebar}
-              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
-              title={isSidebarOpen ? "Hide Actions" : "Show Actions"}
-            >
-              <PanelLeft className="size-3.5" />
-            </Button>
-          )}
-
-          {activeAction.cmdButton &&
-          activeAction.cmdFor &&
-          activeAction.cmdButton !== activeAction.cmdFor ? (
-            <>
-              <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-                {activeAction.cmdButton}
-              </span>
-              <span className="text-xs text-muted-foreground truncate font-mono">
-                — {activeAction.cmdFor}
-              </span>
-            </>
-          ) : (
-            <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
-              {activeAction.cmdButton || activeAction.cmdFor || "<UNNAMED_ACTION>"}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Badge
-            variant="outline"
-            className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-primary/10 text-primary border-primary/25 shadow-2xs shrink-0"
-          >
-            #{selectedActionIdx + 1}
-          </Badge>
-
-          {!disabled && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              onClick={() => onRemoveAction(selectedActionIdx)}
-              className="size-7 text-destructive hover:bg-destructive/10 rounded cursor-pointer"
-              title="Delete Action"
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
-          )}
-        </div>
-      </div>
+      <InspectorHeader
+        title={activeAction.cmdButton}
+        subtitle={activeAction.cmdFor}
+        fallbackTitle="<UNNAMED_ACTION>"
+        indexBadge={selectedActionIdx}
+        showSidebarToggle={showSidebarToggle}
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={onToggleSidebar}
+        toggleTooltip={isSidebarOpen ? "Hide Actions" : "Show Actions"}
+        onDelete={() => onRemoveAction(selectedActionIdx)}
+        deleteTooltip="Delete Action"
+        disabled={disabled}
+      />
 
       {/* 2. Inspector Panels */}
       <div className="flex-1 overflow-y-auto p-3">

@@ -1,5 +1,6 @@
 import "server-only";
 
+export * from "./auth-handlers";
 export * from "./inquiry-handlers";
 export * from "./menu-handlers";
 export * from "./model-handlers";

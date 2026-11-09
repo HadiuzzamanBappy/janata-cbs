@@ -4,6 +4,7 @@ import { appConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { parseAuthWirePayload } from "@/lib/data-parsers";
 import type { LoginInput } from "@/lib/data-schemas";
+import { currentUserSchema } from "@/lib/data-schemas/auth-schema";
 import { type CurrentUser, createSession, destroySession } from "@/lib/infra-redis";
 import { grpcStatusToHttp, loginProcess } from "./client";
 import type { GrpcResponse } from "./generated/service";
@@ -66,11 +67,29 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
     };
   }
 
-  const { currUser, token } = parseAuthWirePayload(res.data, input.username);
-  await createSession({ userId: currUser.userId, token, currUser });
-  log.info(`User "${currUser.userId}" authenticated successfully. Session created.`);
+  const { currUser, token } = parseAuthWirePayload(res.data);
 
-  return { success: true, user: currUser, statusCode: 200 };
+  // Strict Invariant: Validate parsed user against schema (requires non-empty userId & branchCode)
+  const validation = currentUserSchema.safeParse(currUser);
+  if (!validation.success) {
+    const errorDetails = validation.error.issues.map((issue) => issue.message);
+    log.error(`Login payload schema validation failed for "${input.username}"`, {
+      errors: errorDetails,
+      currUser,
+    });
+    return {
+      success: false,
+      error: errorDetails[0] || "Invalid user profile data returned from core",
+      errors: errorDetails,
+      statusCode: 502,
+    };
+  }
+
+  const validUser = validation.data;
+  await createSession({ userId: validUser.userId, token, currUser: validUser });
+  log.info(`User "${validUser.userId}" authenticated successfully. Session created.`);
+
+  return { success: true, user: validUser, statusCode: 200 };
 }
 
 /**

@@ -130,13 +130,13 @@ async function runSuite() {
     authPayload,
     {
       userId: authResult.currUser.userId,
-      functionRights: authResult.currUser.functionRights,
+      accessibility: authResult.currUser.accessibility,
       token: authResult.token,
     },
     authResult.currUser.userId === "OP100" &&
-      Boolean(authResult.currUser.functionRights?.includes("R")) &&
-      Boolean(authResult.currUser.functionRights?.includes("S")) &&
-      !authResult.currUser.functionRights?.includes("I") &&
+      Boolean(authResult.currUser.accessibility?.includes("R")) &&
+      Boolean(authResult.currUser.accessibility?.includes("S")) &&
+      !authResult.currUser.accessibility?.includes("I") &&
       authResult.token === "mock-jwt-session-token",
   );
 

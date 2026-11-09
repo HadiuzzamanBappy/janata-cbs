@@ -11,7 +11,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
     menuTree: [
       {
         id: "n_1786858616121_0",
-        menuId: 1,
+        menuId: 100,
         label: "Operational",
         command: "",
         isVisible: true,
@@ -19,7 +19,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
         children: [
           {
             id: "n_1786858624172_1",
-            menuId: 13,
+            menuId: 101,
             label: "User Management",
             command: "",
             isVisible: true,
@@ -27,7 +27,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
             children: [
               {
                 id: "n_1786858673775_5",
-                menuId: 14,
+                menuId: 102,
                 label: "User Request",
                 command: "",
                 isVisible: true,
@@ -35,7 +35,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                 children: [
                   {
                     id: "n_1787137168951_1",
-                    menuId: 29,
+                    menuId: 1,
                     label: "User Request",
                     command: "INQ S GET.EMP.INFO",
                     menuType: "INQUIRY",
@@ -46,7 +46,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                   },
                   {
                     id: "n_1791696187922_3",
-                    menuId: 23,
+                    menuId: 2,
                     label: "Unauthorize User List",
                     command: "INQ S USER.MGT.NAU.LIST",
                     menuType: "INQUIRY",
@@ -59,7 +59,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1792040223231_1",
-                menuId: 44,
+                menuId: 103,
                 label: "User Creation",
                 command: "",
                 isVisible: true,
@@ -67,7 +67,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                 children: [
                   {
                     id: "n_1791792195423_1",
-                    menuId: 43,
+                    menuId: 3,
                     label: "Create User",
                     command: "INQ S GET.USER.MGT.AUTH",
                     menuType: "INQUIRY",
@@ -78,7 +78,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                   },
                   {
                     id: "n_1792040842726_1",
-                    menuId: 45,
+                    menuId: 4,
                     label: "Authorise/Delete User Unauth List",
                     command: "INQ S GET.USER.UNAU.LIST",
                     menuType: "INQUIRY",
@@ -91,7 +91,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1793699467842_1",
-                menuId: 49,
+                menuId: 104,
                 label: "User Password Reset",
                 command: "",
                 isVisible: true,
@@ -99,7 +99,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                 children: [
                   {
                     id: "n_1793857791123_1",
-                    menuId: 48,
+                    menuId: 5,
                     label: "Password Reset",
                     command: "PASSWORD.RESET,NEW N",
                     menuType: "FORM",
@@ -110,7 +110,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                   },
                   {
                     id: "n_1793701257061_1",
-                    menuId: 50,
+                    menuId: 6,
                     label: "Authorise/Delete Password Reset Unauth List",
                     command: "INQ S GET.USR.PASS.RST.UN.LIST",
                     menuType: "INQUIRY",
@@ -123,7 +123,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1793874723146_1",
-                menuId: 52,
+                menuId: 105,
                 label: "User Amendment Request",
                 command: "",
                 isVisible: true,
@@ -131,7 +131,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                 children: [
                   {
                     id: "n_1793874735321_2",
-                    menuId: 51,
+                    menuId: 7,
                     label: "User Inactive Request",
                     command: "INQ S INQ.USER.MGT.AUTH.LIST",
                     menuType: "INQUIRY",
@@ -142,7 +142,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                   },
                   {
                     id: "n_1793878782542_1",
-                    menuId: 23,
+                    menuId: 2,
                     label: "Unauthorize User List",
                     command: "INQ S USER.MGT.NAU.LIST",
                     menuType: "INQUIRY",
@@ -155,7 +155,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1792041063461_1",
-                menuId: 47,
+                menuId: 106,
                 label: "Report",
                 command: "",
                 isVisible: true,
@@ -163,7 +163,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                 children: [
                   {
                     id: "n_1792041107109_2",
-                    menuId: 46,
+                    menuId: 8,
                     label: "List of User",
                     command: "INQ S GET.USER.LIST",
                     menuType: "INQUIRY",
@@ -178,7 +178,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
           },
           {
             id: "n_1786858625499_2",
-            menuId: 3,
+            menuId: 107,
             label: "Customer Manage",
             command: "",
             isVisible: true,
@@ -186,7 +186,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
             children: [
               {
                 id: "n_1786859112388_8",
-                menuId: 24,
+                menuId: 9,
                 label: "Open / Edit General Customer ",
                 command: "CUSTOMER,GENERAL",
                 menuType: "FORM",
@@ -197,7 +197,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1791358772946_1",
-                menuId: 6,
+                menuId: 10,
                 label: "Open / Edit Corporate Customer",
                 command: "CUSTOMER,CORPORATE",
                 menuType: "FORM",
@@ -208,7 +208,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1791707614652_1",
-                menuId: 41,
+                menuId: 11,
                 label: "Create / Edit Govt.  Customer",
                 command: "CUSTOMER,GOVERNMENT",
                 menuType: "FORM",
@@ -219,7 +219,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1791713757585_1",
-                menuId: 42,
+                menuId: 12,
                 label: "Open / Edit Staff Customer",
                 command: "CUSTOMER,STAFF",
                 menuType: "FORM",
@@ -232,7 +232,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
           },
           {
             id: "n_1786858625931_3",
-            menuId: 4,
+            menuId: 108,
             label: "Account Manage",
             command: "",
             isVisible: true,
@@ -240,7 +240,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
             children: [
               {
                 id: "n_1786859119420_9",
-                menuId: 7,
+                menuId: 13,
                 label: "Create Accouont",
                 command: "ACCOUNT",
                 menuType: "FORM",
@@ -253,7 +253,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
           },
           {
             id: "n_1786858648899_4",
-            menuId: 5,
+            menuId: 109,
             label: "Funds Manage",
             command: "",
             isVisible: true,
@@ -261,7 +261,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
             children: [
               {
                 id: "n_1786859124995_10",
-                menuId: 8,
+                menuId: 14,
                 label: "Funds Transfer",
                 command: "FUNDS.TRANSFER",
                 menuType: "FORM",
@@ -274,7 +274,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
           },
           {
             id: "n_1786862427083_1",
-            menuId: 10,
+            menuId: 110,
             label: "Daily Inquiry",
             command: "",
             isVisible: true,
@@ -282,7 +282,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
             children: [
               {
                 id: "n_1786862443210_2",
-                menuId: 17,
+                menuId: 15,
                 label: "Today Txn Report",
                 command: "INQ S GET.TO.TXN",
                 menuType: "INQUIRY",
@@ -293,7 +293,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
               },
               {
                 id: "n_1786862453089_3",
-                menuId: 19,
+                menuId: 16,
                 label: "Today Txn Entry",
                 command: "INQ S GET.TODAY.ENTRY",
                 menuType: "INQUIRY",
@@ -308,7 +308,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
       },
       {
         id: "n_1791699482794_1",
-        menuId: 105,
+        menuId: 111,
         label: "Development Utility",
         command: "",
         isVisible: true,
@@ -316,36 +316,44 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
         children: [
           {
             id: "n_1791699737289_3",
-            menuId: 8,
+            menuId: 17,
             label: "Model Config",
             command: "SC.MODEL.CONFIG",
+            menuType: "FORM",
+            menuAction: "SCREEN",
             isVisible: true,
             orderIndex: 1,
             children: [],
           },
           {
             id: "n_1791699755769_4",
-            menuId: 9,
+            menuId: 18,
             label: "Form Config",
             command: "SC.FORM.CONFIG",
+            menuType: "FORM",
+            menuAction: "SCREEN",
             isVisible: true,
             orderIndex: 2,
             children: [],
           },
           {
             id: "n_1791699756201_5",
-            menuId: 10,
+            menuId: 19,
             label: "Inquiry Config",
             command: "SC.INQUIRY.CONFIG",
+            menuType: "FORM",
+            menuAction: "SCREEN",
             isVisible: true,
             orderIndex: 3,
             children: [],
           },
           {
             id: "n_1791699756418_6",
-            menuId: 11,
+            menuId: 20,
             label: "Menu Designer",
             command: "SC.MENU.DESIGN",
+            menuType: "FORM",
+            menuAction: "SCREEN",
             isVisible: true,
             orderIndex: 4,
             children: [],

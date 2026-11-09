@@ -60,20 +60,24 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 /**
  * Universal authenticated CBS operator profile and session envelope.
  * Ingested from gRPC / Protobuf and persisted in Redis server session.
- * Pure representation of database session without artificial fallbacks.
+ * Pure representation of database session without duplicate entries.
  */
 export const currentUserSchema = z.object({
-  userId: z.string().min(1, "User ID is required"),
-  fullName: z.string(),
-  userRole: z.array(z.string()),
-  accessibility: z.string(),
-  functionRights: z.array(z.string()).optional(),
-  branchCode: z.string(),
-  branchName: z.string(),
-  txnDate: z.string(),
-  commandLine: z.boolean().optional(),
-  initLogin: z.boolean().optional(),
-  userStatus: z.number().int().optional(),
+  userId: z.string().trim().min(1, "User ID is required"),
+  branchCode: z.string().trim().min(1, "Branch Code is required"),
+  fullName: z.string().default(""),
+  userRole: z.array(z.string()).default([]),
+  accessibility: z
+    .union([z.array(z.string()), z.string()])
+    .transform((val) =>
+      Array.isArray(val) ? val : typeof val === "string" ? val.trim().toUpperCase().split("") : [],
+    )
+    .default([]),
+  branchName: z.string().default(""),
+  txnDate: z.string().default(""),
+  commandLine: z.boolean().default(false),
+  initLogin: z.boolean().default(false),
+  userStatus: z.number().int().default(1),
 });
 
 export type CurrentUser = z.infer<typeof currentUserSchema>;

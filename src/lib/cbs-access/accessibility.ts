@@ -85,9 +85,7 @@ export function verifyUserRecordAccess(
   const funcCode = recordFunction.toUpperCase().trim() as CbsRecordFunction;
   if (!CONTROLLED_FUNCTIONS.has(funcCode)) return null;
 
-  const rights = parseAccessibilityRights(
-    user.functionRights?.length ? user.functionRights : user.accessibility,
-  );
+  const rights = parseAccessibilityRights(user.accessibility);
 
   if (!rights.includes(funcCode)) {
     return {

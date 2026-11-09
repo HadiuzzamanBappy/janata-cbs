@@ -3,20 +3,23 @@ import "server-only";
 import type { ApiResponse, CbsWirePayload, GrpcEnvelope } from "@/lib/data-schemas";
 import type { GrpcRequest, GrpcResponse } from "@/lib/infra-grpc/generated/service";
 import { CbsRecordFunction, CbsRequestType } from "@/types";
-import { buildMockUserAuthResponse, getMockUserResponse, mockLogin } from "./auth-simulator";
 import {
+  buildMockUserAuthResponse,
   getMockFormPayload,
   getMockInquiryPayload,
   getMockMenuPayload,
+  getMockUserResponse,
   handleGetFormConfig,
   handleGetMenu,
   handleGetModelConfig,
   handleInquiry,
+  handleLogin,
   handleMutation,
   handleNextId,
   handleRecordList,
   handleSearchById,
   handleSeeRecord,
+  mockLogin,
 } from "./handlers";
 import { notFoundResult, toGrpcResponse } from "./response-factory";
 
@@ -27,6 +30,7 @@ export {
   getMockMenuPayload,
   getMockUserResponse,
   handleGetMenu,
+  handleLogin,
   handleSearchById,
   mockLogin,
 };

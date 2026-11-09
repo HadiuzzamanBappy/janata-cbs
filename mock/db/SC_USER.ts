@@ -3,12 +3,13 @@ import type { CbsVersionedTable } from "./types";
 
 /**
  * UserRecord: The canonical database table schema for SC_USER (matching SC_MODEL_CONFIG USER).
+ * accessibility is stored as a clean array of string capability codes.
  */
 export interface UserRecord {
   userId: string;
   fullName: string;
   userRole: string[];
-  accessibility: string;
+  accessibility: string[];
   branchCode: string;
   branchName: string;
   commandLine: boolean;
@@ -27,7 +28,7 @@ export const SC_USER: Record<string, UserRecord> = {
   ZZ028459: {
     userId: "ZZ0284590",
     fullName: "MD. HADIUZZAMAN BAPPY",
-    accessibility: "RIDASHL",
+    accessibility: ["R", "I", "D", "A", "S", "H", "L"],
     userRole: ["ADMIN"],
     commandLine: true,
     initLogin: false,
@@ -48,7 +49,7 @@ export const SC_USER: Record<string, UserRecord> = {
   CK028459: {
     userId: "CK0284590",
     fullName: "Branch Supervisor (Checker)",
-    accessibility: "RASL",
+    accessibility: ["R", "A", "S", "L"],
     userRole: ["USER"],
     commandLine: true,
     initLogin: true,
@@ -69,7 +70,7 @@ export const SC_USER: Record<string, UserRecord> = {
   AD028459: {
     userId: "AD0284590",
     fullName: "System Administrator",
-    accessibility: "RIDASHL",
+    accessibility: ["R", "I", "D", "A", "S", "H", "L"],
     userRole: ["ADMIN"],
     commandLine: true,
     initLogin: false,
@@ -90,7 +91,7 @@ export const SC_USER: Record<string, UserRecord> = {
   ST028459: {
     userId: "ST0284590",
     fullName: "New Staff Member (Requires Password Reset)",
-    accessibility: "RS",
+    accessibility: ["R", "S"],
     userRole: ["USER"],
     commandLine: false,
     initLogin: true,

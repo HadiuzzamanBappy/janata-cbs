@@ -28,12 +28,9 @@ export type FormRoutine = z.infer<typeof formRoutineSchema>;
 /**
  * Universal Container Type:
  * - 'card': Standard elevated card box with title bar and optional collapse
- * - 'plain': Borderless, title-less root canvas container
  * - 'tab': Tab pane clustered inside a TabGroup header
- * - 'step': Wizard step pane clustered inside a Stepper header
- * - 'accordion': Collapsible panel clustered inside an Accordion group
  */
-export const formContainerTypeSchema = z.enum(["card", "plain", "tab", "step", "accordion"]);
+export const formContainerTypeSchema = z.enum(["card", "tab"]);
 export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
 
 /**

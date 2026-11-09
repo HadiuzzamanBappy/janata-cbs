@@ -4,7 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
-import { TabDropBody } from "./tab-group/tab-drop-body";
+import { CanvasSectionGrid } from "./canvas-section-grid";
 import { TabGroupHeader } from "./tab-group/tab-group-header";
 import type { SortableTabGroupCardProps } from "./tab-group/tab-group-types";
 import { useTabGroupDrop } from "./tab-group/use-tab-group-drop";
@@ -124,7 +124,7 @@ export function SortableTabGroupCard({
             </div>
           )}
 
-          <TabDropBody
+          <CanvasSectionGrid
             section={activeSection}
             selectedFieldId={selectedFieldId}
             onSelectSection={onSelectSection}

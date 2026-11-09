@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { cbs } from "@/lib/cbs-client";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
+import { parseGfcResponse } from "@/lib/data-parsers";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 
 export interface UseFormSchemaResult {
@@ -34,39 +35,34 @@ export function useFormSchema(command: string): UseFormSchemaResult {
           });
 
           if (formRes.status === "SUCCESS" && formRes.data) {
+            const parsed = parseGfcResponse(formRes.data);
+            if (parsed.success) {
+              const { model, form } = parsed.data;
+              if (form?.frmElements) {
+                const compiled = model ? compileFormSpec(model, form) : form;
+                return { schema: compiled, modelRecord: model };
+              }
+            }
+
+            // Fallback: Check if standalone form returned directly
             const rawData = formRes.data;
             const targetModelName = String(app || cleanCmd)
               .trim()
               .toUpperCase();
-
-            // Extract layout payload (FORMCONTROL or frmElements)
-            const formConfig: FormConfigRecord | null =
-              "FORMCONTROL" in rawData &&
-              rawData.FORMCONTROL &&
-              typeof rawData.FORMCONTROL === "object"
-                ? (rawData.FORMCONTROL as FormConfigRecord)
-                : "frmElements" in rawData
-                  ? (rawData as unknown as FormConfigRecord)
-                  : null;
-
+            const formConfig = (rawData.frmElements ? rawData : null) as FormConfigRecord | null;
             if (formConfig?.frmElements) {
               let model: ModelConfigRecord | null = null;
-              if (Array.isArray(rawData.PROPERTIES)) {
-                model = rawData as unknown as ModelConfigRecord;
-              } else {
-                try {
-                  const modelRes = await cbs.send<ModelConfigRecord>(
-                    cbs.modelConfig.get(targetModelName),
-                    { silent: true },
-                  );
-                  if (modelRes.status === "SUCCESS" && modelRes.data) {
-                    model = modelRes.data;
-                  }
-                } catch {
-                  // Model is optional when form layout is standalone
+              try {
+                const modelRes = await cbs.send<ModelConfigRecord>(
+                  cbs.modelConfig.get(targetModelName),
+                  { silent: true },
+                );
+                if (modelRes.status === "SUCCESS" && modelRes.data) {
+                  model = modelRes.data;
                 }
+              } catch {
+                // Standalone form without model
               }
-
               const compiled = model ? compileFormSpec(model, formConfig) : formConfig;
               return { schema: compiled, modelRecord: model };
             }

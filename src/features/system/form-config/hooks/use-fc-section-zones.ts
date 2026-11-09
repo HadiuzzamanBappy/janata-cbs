@@ -9,7 +9,7 @@ export function useFcSectionZones(
   const convertSectionZone = React.useCallback(
     (
       sectionId: string,
-      targetType: "card" | "plain" | "tab",
+      targetType: "card" | "tab",
       opts?: { groupId?: string; groupTitle?: string },
     ) => {
       setFormData((prev) => {
@@ -33,7 +33,7 @@ export function useFcSectionZones(
               }
               return {
                 ...sec,
-                containerType: targetType as "card" | "plain",
+                containerType: "card" as const,
                 groupId: undefined,
                 groupTitle: undefined,
               };

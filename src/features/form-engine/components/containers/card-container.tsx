@@ -10,7 +10,7 @@ import { FieldGrid } from "../field-grid";
 export type CardContainerProps = SectionCardProps;
 
 /**
- * CardContainer renders 'card' and 'plain' container types.
+ * CardContainer renders 'card' container types.
  * Supports configurable variants (default, subtle, bordered, elevated, ghost),
  * density (compact, normal, spacious), badges, and collapsible state.
  */
@@ -24,7 +24,6 @@ export function CardContainer({
   hideHeader = false,
 }: CardContainerProps) {
   const hasKernel = Boolean(useContext(FormKernelContext));
-  const isPlain = section.containerType === "plain";
   const isCollapsible = Boolean(section.collapsible);
   const [collapsed, setCollapsed] = useState<boolean>(
     isCollapsible ? (section.isCollapsed ?? false) : false,
@@ -34,9 +33,11 @@ export function CardContainer({
   const isViewMode = mode !== "I";
   const config = section.containerConfig || {};
 
+  const hasHeader = Boolean(section.title || isCollapsible || config.badge);
+
   // Resolve container styling based on containerConfig
   const getContainerClasses = () => {
-    if (isPlain || hideHeader) {
+    if (hideHeader || !hasHeader) {
       return isViewMode ? "space-y-1.5" : "space-y-2";
     }
 
@@ -65,7 +66,7 @@ export function CardContainer({
   return (
     <div className={getContainerClasses()}>
       {/* Section Header */}
-      {!hideHeader && !isPlain && (section.title || isCollapsible || config.badge) && (
+      {!hideHeader && (section.title || isCollapsible || config.badge) && (
         <div className="flex items-center justify-between pb-1 border-b border-border/40">
           <div className="flex items-center gap-1.5">
             {isCollapsible && (

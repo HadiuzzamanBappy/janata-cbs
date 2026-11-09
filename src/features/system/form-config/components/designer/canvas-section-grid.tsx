@@ -6,9 +6,9 @@ import * as React from "react";
 import { getFieldColSpanClass, getGridColsClass } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import { DesignerFieldCard } from "../designer-field-card";
+import { DesignerFieldCard } from "./designer-field-card";
 
-export interface TabDropBodyProps {
+export interface CanvasSectionGridProps {
   section: FormSection;
   selectedFieldId: string | null;
   onSelectSection: (id: string | null) => void;
@@ -16,9 +16,15 @@ export interface TabDropBodyProps {
   onRemoveField: (fieldId: string) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
   disabled?: boolean;
+  isNativeOver?: boolean;
+  emptyLabel?: string;
 }
 
-export function TabDropBody({
+/**
+ * Universal 12-column sortable grid and droppable dropzone for form fields.
+ * Shared across CardContainer and TabGroup sections.
+ */
+export function CanvasSectionGrid({
   section,
   selectedFieldId,
   onSelectSection,
@@ -26,34 +32,36 @@ export function TabDropBody({
   onRemoveField,
   onDropPaletteItem,
   disabled,
-}: TabDropBodyProps) {
+  isNativeOver: externalNativeOver,
+  emptyLabel,
+}: CanvasSectionGridProps) {
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `sec-drop-${section.id}`,
     data: { type: "section-dropzone", sectionId: section.id },
     disabled,
   });
 
-  const [isNativeOver, setIsNativeOver] = React.useState(false);
-  const showHover = isOver || isNativeOver;
+  const [internalNativeOver, setInternalNativeOver] = React.useState(false);
+  const showHover = isOver || externalNativeOver || internalNativeOver;
   const isEmpty = section.fields.length === 0;
   const numCols = section.columns || 1;
 
   const handleNativeDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!disabled) setIsNativeOver(true);
+    if (!disabled) setInternalNativeOver(true);
   };
 
   const handleNativeDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsNativeOver(false);
+    setInternalNativeOver(false);
   };
 
   const handleNativeDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsNativeOver(false);
+    setInternalNativeOver(false);
     if (disabled || !onDropPaletteItem) return;
     try {
       const dataStr = e.dataTransfer.getData("application/json");
@@ -65,10 +73,15 @@ export function TabDropBody({
 
   const fieldKeys = section.fields.map((f) => String(f.SN || f.NAME || "field"));
 
+  const defaultEmptyText =
+    section.containerType === "tab"
+      ? "No fields placed in this tab yet — drag variables from the left palette"
+      : "No fields yet — drag variables here";
+
   return (
     <SortableContext items={fieldKeys} strategy={rectSortingStrategy}>
       <section
-        aria-label={`Fields in tab ${section.groupTitle || section.title}`}
+        aria-label={`Fields in ${section.groupTitle || section.title || "section"}`}
         ref={setDropRef}
         onDragOver={handleNativeDragOver}
         onDragLeave={handleNativeDragLeave}
@@ -76,23 +89,21 @@ export function TabDropBody({
         className={cn(
           "transition-all rounded",
           isEmpty && [
-            "min-h-13 flex items-center justify-center border border-dashed text-xs text-muted-foreground/60",
+            "min-h-12 flex items-center justify-center border border-dashed text-xs text-muted-foreground/60",
             showHover
-              ? "border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400 font-medium"
-              : "border-border/60 bg-muted/5",
+              ? "border-primary bg-primary/10 text-primary font-medium"
+              : "border-border/60",
           ],
-          !isEmpty && showHover && "bg-sky-500/5 ring-1 ring-sky-500/20",
+          !isEmpty && showHover && "bg-primary/5 ring-1 ring-primary/20 rounded",
         )}
       >
         {isEmpty ? (
           <button
             type="button"
             onClick={() => onSelectSection(section.id)}
-            className="w-full h-full py-4 bg-transparent border-0 text-xs text-muted-foreground/60 cursor-pointer"
+            className="w-full h-full py-3.5 bg-transparent border-0 text-xs text-muted-foreground/60 cursor-pointer"
           >
-            {showHover
-              ? "↓ Drop field here"
-              : "No fields placed in this tab yet — drag variables or click from the left palette."}
+            {showHover ? "↓ Drop field here" : emptyLabel || defaultEmptyText}
           </button>
         ) : (
           <div className={cn("grid gap-2", getGridColsClass(numCols))}>

@@ -3,10 +3,11 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { FormConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 
-export interface UseFormActionsOptions {
+export interface UseFormActionsProps {
   modelCode: string;
   schema: FormConfigRecord | null;
   searchRecordId: string;
@@ -21,8 +22,7 @@ export interface UseFormActionsOptions {
 }
 
 /**
- * Streamlined, DRY Action Hook for Operational CBS Form Screens.
- * Handles Record Fetching, ID Generation (GNI), Amendments, Views, and Navigations.
+ * Handles record lifecycle actions: Auto-fetch, GNI sequence, Amend, View, and Validate.
  */
 export function useFormActions({
   modelCode,
@@ -36,8 +36,8 @@ export function useFormActions({
   validate,
   initialValues,
   onReturn,
-}: UseFormActionsOptions) {
-  // Query record by ID via CBS Client wire protocol
+}: UseFormActionsProps) {
+  // Query record by ID
   const loadRecordData = React.useCallback(
     async (recordIdToLoad: string, modeToSet: CbsScreenMode) => {
       const cleanId = recordIdToLoad?.trim();
@@ -70,39 +70,26 @@ export function useFormActions({
     [schema, modelCode, setScreenMode, setValues],
   );
 
-  // Allocate new ID & open in Input mode (I)
-  const handleCreateNew = React.useCallback(
-    async (allocatedId?: string) => {
-      if (!schema || !modelCode) return;
-      let nextId = allocatedId;
-      if (!nextId) {
-        try {
-          const gni = await cbs.send<{ recordId?: string }>(cbs.model(modelCode).getNewId());
-          if (gni.status === "SUCCESS" && gni.data?.recordId) {
-            nextId = gni.data.recordId;
-          }
-        } catch {
-          // GNI failure fallback
-        }
-      }
-      const targetId = (nextId || searchRecordId).trim();
-      if (nextId) {
-        setSearchRecordId(nextId);
-      }
-      resetForm(initialValues);
-      setScreenMode(CbsRecordFunction.INPUT);
-      toast.add({
-        title: "New Record Entry",
-        description: targetId
-          ? `Draft initiated with ID #${targetId}`
-          : "Draft initiated for new record.",
-        type: "info",
-      });
-    },
-    [schema, resetForm, initialValues, setScreenMode, searchRecordId, modelCode, setSearchRecordId],
-  );
+  // Auto-fetch record data when opened with initial query/mode
+  const lastLoadedKeyRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!schema) return;
+    const cleanId = searchRecordId?.trim();
+    if (cleanId && screenMode !== "IDLE") {
+      const loadKey = `${modelCode}:${cleanId}:${screenMode}`;
+      if (lastLoadedKeyRef.current === loadKey) return;
+      lastLoadedKeyRef.current = loadKey;
+      loadRecordData(cleanId, screenMode);
+    }
+  }, [schema, searchRecordId, screenMode, modelCode, loadRecordData]);
 
-  // Target ID resolver helper
+  // Real-time record mutation subscriber
+  useRecordMutationSubscriber((mutation) => {
+    if (searchRecordId && mutation.recordId === searchRecordId.trim().toUpperCase()) {
+      loadRecordData(searchRecordId, screenMode);
+    }
+  }, modelCode);
+
   const resolveTargetId = React.useCallback(
     (targetId?: unknown, actionName = "edit"): string | null => {
       const raw = typeof targetId === "string" ? targetId : searchRecordId;
@@ -120,7 +107,35 @@ export function useFormActions({
     [searchRecordId],
   );
 
-  // Edit / Amend record
+  const handleCreateNew = React.useCallback(
+    async (allocatedId?: string) => {
+      if (!schema || !modelCode) return;
+      let nextId = allocatedId;
+      if (!nextId) {
+        try {
+          const gni = await cbs.send<{ recordId?: string }>(cbs.model(modelCode).getNewId());
+          if (gni.status === "SUCCESS" && gni.data?.recordId) {
+            nextId = gni.data.recordId;
+          }
+        } catch {
+          // GNI fallback
+        }
+      }
+      const targetId = (nextId || searchRecordId).trim();
+      if (nextId) setSearchRecordId(nextId);
+      resetForm(initialValues);
+      setScreenMode(CbsRecordFunction.INPUT);
+      toast.add({
+        title: "New Record Entry",
+        description: targetId
+          ? `Draft initiated with ID #${targetId}`
+          : "Draft initiated for new record.",
+        type: "info",
+      });
+    },
+    [schema, resetForm, initialValues, setScreenMode, searchRecordId, modelCode, setSearchRecordId],
+  );
+
   const handleAmend = React.useCallback(
     (targetId?: unknown) => {
       const id = resolveTargetId(targetId, "edit");
@@ -129,7 +144,6 @@ export function useFormActions({
     [resolveTargetId, loadRecordData],
   );
 
-  // View record
   const handleView = React.useCallback(
     (targetId?: unknown) => {
       const id = resolveTargetId(targetId, "view");
@@ -138,13 +152,11 @@ export function useFormActions({
     [resolveTargetId, loadRecordData],
   );
 
-  // Perform Action (e.g. Authorize)
   const handlePerformAction = React.useCallback(() => {
     const id = resolveTargetId(undefined, "authorize");
     if (id) loadRecordData(id, CbsRecordFunction.AUTHORIZE);
   }, [resolveTargetId, loadRecordData]);
 
-  // Return to Search
   const handleReturnToSearch = React.useCallback(() => {
     if (onReturn) {
       onReturn();
@@ -154,7 +166,6 @@ export function useFormActions({
     setScreenMode("IDLE");
   }, [onReturn, resetForm, initialValues, setScreenMode]);
 
-  // Validate current form state
   const handleValidate = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema) return undefined;
     return () => {
@@ -176,12 +187,12 @@ export function useFormActions({
   }, [screenMode, schema, validate]);
 
   return {
+    handleCreateNew,
+    handleAmend,
+    handleView,
+    handlePerformAction,
+    handleReturnToSearch,
+    handleValidate,
     loadRecordData,
-    onCreateNew: handleCreateNew,
-    onAmend: handleAmend,
-    onView: handleView,
-    onPerformAction: handlePerformAction,
-    onReturnToSearch: handleReturnToSearch,
-    onValidate: handleValidate,
   };
 }

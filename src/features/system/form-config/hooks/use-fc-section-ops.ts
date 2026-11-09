@@ -1,7 +1,11 @@
 "use client";
 
 import * as React from "react";
-import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type {
+  FormConfigRecord,
+  FormContainerType,
+  FormSection,
+} from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { useFcSectionReorder } from "./use-fc-section-reorder";
 import { useFcSectionZones } from "./use-fc-section-zones";
@@ -16,7 +20,7 @@ export function useFcSectionOps(
 
   const addSection = React.useCallback(
     (
-      containerType: "card" | "plain" | "tab" | "step" | "accordion" = "card",
+      containerType: FormContainerType = "card",
       initialFields: FormElement[] = [],
       customTitle?: string,
       groupId?: string,
@@ -31,11 +35,9 @@ export function useFcSectionOps(
         const defaultTitle =
           customTitle !== undefined
             ? customTitle
-            : containerType === "plain"
-              ? ""
-              : containerType === "tab"
-                ? groupTitle || `Tab ${nextIndex}`
-                : "Form Fields";
+            : containerType === "tab"
+              ? groupTitle || `Tab ${nextIndex}`
+              : "";
 
         const newSection: FormSection = {
           id: newId,
@@ -64,12 +66,8 @@ export function useFcSectionOps(
             ),
           }))
           .filter((sec) => {
-            const isPlainRoot =
-              sec.containerType === "plain" || !sec.title || sec.title === "Canvas Root";
-            if (isPlainRoot && (!sec.fields || sec.fields.length === 0)) {
-              return false;
-            }
-            return true;
+            const isEmptySection = !sec.title && (!sec.fields || sec.fields.length === 0);
+            return !isEmptySection;
           });
 
         let updatedSections: FormSection[];

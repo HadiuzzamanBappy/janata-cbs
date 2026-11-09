@@ -8,7 +8,7 @@ import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import type { FormConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordStatus, type CbsScreenMode } from "@/types";
 
-export interface UseFormMutationsOptions {
+export interface UseFormMutationsProps {
   modelCode: string;
   schema: FormConfigRecord | null;
   searchRecordId: string;
@@ -22,8 +22,7 @@ export interface UseFormMutationsOptions {
 }
 
 /**
- * Streamlined, DRY Transactional Mutation Hook for Operational Forms.
- * Handles Save (PUT/POST with pure computeDelta), Hold, Delete, and Authorize/Reverse.
+ * Handles transactional banking mutations (Commit, Hold, Delete, Authorize/Reverse).
  */
 export function useFormMutations({
   modelCode,
@@ -36,17 +35,14 @@ export function useFormMutations({
   validate,
   resetForm,
   onSuccess,
-}: UseFormMutationsOptions) {
+}: UseFormMutationsProps) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
 
-  // Common transactional mutation runner
   const executeTransaction = React.useCallback(
     async (
       targetId: string,
       operation: () => Promise<{ status?: string }>,
-      options: {
-        resetOnSuccess?: boolean;
-      } = { resetOnSuccess: true },
+      options: { resetOnSuccess?: boolean } = { resetOnSuccess: true },
     ) => {
       setSubmitting(true);
       try {
@@ -66,7 +62,6 @@ export function useFormMutations({
     [modelCode, initialValues, resetForm, setScreenMode, onSuccess],
   );
 
-  // Commit / Save (PUT / POST with delta engine)
   const handleSubmit = React.useCallback(
     async (e?: React.SyntheticEvent) => {
       if (e) e.preventDefault();
@@ -112,7 +107,6 @@ export function useFormMutations({
     ],
   );
 
-  // Hold Draft (HLD)
   const handleHold = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
@@ -129,7 +123,6 @@ export function useFormMutations({
     };
   }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction]);
 
-  // Delete Record / Draft (DEL)
   const handleDelete = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
@@ -152,7 +145,6 @@ export function useFormMutations({
     };
   }, [screenMode, schema, modelCode, searchRecordId, values.id, executeTransaction]);
 
-  // Authorize or Reverse (AUT / REV)
   const handleAuthorizeReverse = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
     return async () => {
@@ -177,7 +169,7 @@ export function useFormMutations({
       await executeTransaction(targetId, () =>
         cbs.send(payload, {
           successTitle: `${actionName} Successful`,
-          successMessage: `Transaction ${actionName.toLowerCase()} completed for record #${targetId}.`,
+          successMessage: `Record #${targetId} ${actionName.toLowerCase()} completed for ${schema.title}.`,
         }),
       );
     };
@@ -185,9 +177,9 @@ export function useFormMutations({
 
   return {
     submitting,
-    onSubmit: screenMode !== "IDLE" ? handleSubmit : undefined,
-    onHold: handleHold,
-    onDelete: handleDelete,
-    onAuthorizeReverse: handleAuthorizeReverse,
+    handleSubmit,
+    handleHold,
+    handleDelete,
+    handleAuthorizeReverse,
   };
 }

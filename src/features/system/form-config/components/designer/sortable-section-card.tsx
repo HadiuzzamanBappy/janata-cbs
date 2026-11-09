@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import { SectionDropBody } from "./section-drop-body";
+import { CanvasSectionGrid } from "./canvas-section-grid";
 
 export interface SortableSectionCardProps {
   section: FormSection;
@@ -21,7 +21,7 @@ export interface SortableSectionCardProps {
   onRemoveField: (fieldId: string) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
@@ -55,8 +55,6 @@ export function SortableSectionCard({
     opacity: isDragging ? 0.35 : 1,
   };
 
-  const isPlainRoot =
-    section.containerType === "plain" || !section.title || section.title === "Canvas Root";
   const config = section.containerConfig || {};
 
   const variantClass = React.useMemo(() => {
@@ -99,6 +97,10 @@ export function SortableSectionCard({
     }
   };
 
+  const hasTitle = Boolean(section.title && section.title.trim().length > 0);
+  const isTabSection = section.containerType === "tab";
+  const showHeader = isTabSection || hasTitle;
+
   return (
     <section
       aria-label={section.title || "Form Section"}
@@ -108,17 +110,14 @@ export function SortableSectionCard({
       onDragLeave={handleNativeDragLeave}
       onDrop={handleNativeDrop}
       className={cn(
-        "rounded-lg transition-all relative",
-        isPlainRoot
-          ? "border border-transparent p-0 mb-2"
-          : cn("overflow-hidden mb-3.5", variantClass),
-        !isPlainRoot && isSecSelected && "border-primary/80 ring-1 ring-primary/30",
-        isNativeOver && "ring-2 ring-primary/60 border-primary bg-primary/5",
-        isDragging && "shadow-lg ring-2 ring-primary/40",
+        "rounded-lg transition-all relative overflow-hidden mb-3.5",
+        showHeader ? variantClass : "border-0 bg-transparent shadow-none p-0",
+        isSecSelected && "ring-1 ring-primary/40",
+        isNativeOver && "ring-2 ring-primary/60 bg-primary/5",
+        isDragging && "opacity-50",
       )}
     >
-      {/* Header – skip for plain-root sections */}
-      {!isPlainRoot && (
+      {showHeader && (
         <div
           className={cn(
             "px-2.5 py-1.5 flex items-center justify-between text-xs bg-muted/20 border-b border-border/60",
@@ -227,13 +226,15 @@ export function SortableSectionCard({
       )}
 
       {/* Body: 12-col dropzone container */}
-      <div className={cn(isPlainRoot ? "p-0" : "p-2.5")}>
-        <SectionDropBody
+      <div className={cn(showHeader ? "p-2.5" : "p-0")}>
+        <CanvasSectionGrid
           section={section}
           selectedFieldId={selectedFieldId}
           onSelectSection={onSelectSection}
           onSelectField={onSelectField}
           onRemoveField={onRemoveField}
+          onDropPaletteItem={onDropPaletteItem}
+          isNativeOver={isNativeOver}
           disabled={disabled}
         />
       </div>

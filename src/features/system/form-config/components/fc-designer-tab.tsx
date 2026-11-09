@@ -39,7 +39,7 @@ export interface FcDesignerTabProps {
   onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
@@ -102,17 +102,9 @@ export function FcDesignerTab({
       return;
     }
 
-    const rootCanvasSection = sections.find(
-      (s) => s.containerType === "plain" || !s.title || s.title === "Canvas Root",
-    );
-
-    if (rootCanvasSection) {
-      onAddFieldToSection(rootCanvasSection.id, template);
-      return;
-    }
-
+    // When no section is selected, place directly on root as an independent item
     const newField = createNewFieldFromTemplate(sections, template);
-    onAddSection("plain", [newField], "");
+    onAddSection("card", [newField], "");
   };
 
   const handleDropPaletteItem = (
@@ -156,12 +148,12 @@ export function FcDesignerTab({
   };
 
   const handleCanvasBackgroundClick = () => {
-    const rootSection =
-      sections.find((s) => s.containerType === "plain" || !s.title || s.title === "Canvas Root") ||
+    const defaultSection =
+      sections.find((s) => s.containerType === "card") ||
       sections.find((s) => s.containerType !== "tab") ||
       sections[0];
-    if (rootSection) {
-      onSelectSection(rootSection.id);
+    if (defaultSection) {
+      onSelectSection(defaultSection.id);
       onSelectField(null);
     }
   };

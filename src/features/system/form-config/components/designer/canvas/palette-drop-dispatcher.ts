@@ -1,4 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormContainerType, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { AddSectionFn } from "./canvas-types";
 
@@ -67,7 +67,7 @@ export function dispatchPaletteDrop({
     element?: FormElement;
     field?: FormElement;
     initialFields?: FormElement[];
-    containerType?: "card" | "plain" | "tab" | "step" | "accordion";
+    containerType?: FormContainerType;
     title?: string;
     groupId?: string;
     groupTitle?: string;
@@ -79,8 +79,10 @@ export function dispatchPaletteDrop({
     if (targetSectionId && targetSectionId !== "canvas-root") {
       onAddFieldToSection(targetSectionId, droppedField);
     } else if (insertIndex !== undefined) {
-      onAddSection("plain", [droppedField], "", undefined, undefined, insertIndex, 1);
+      // Direct drop on between-block gap: create an independent root field at exact insertIndex
+      onAddSection("card", [droppedField], "", undefined, undefined, insertIndex);
     } else {
+      // Fallback: add to existing selected/target section or create independent root field
       handlePaletteAddField(droppedField);
     }
     return;

@@ -91,19 +91,10 @@ export function useFcFieldOps(
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
 
-        const updatedSections = sections
-          .map((sec) => ({
-            ...sec,
-            fields: (sec.fields || []).filter((f) => !isMatchingField(f, fieldId)),
-          }))
-          .filter((sec) => {
-            const isPlainRoot =
-              sec.containerType === "plain" || !sec.title || sec.title === "Canvas Root";
-            if (isPlainRoot && (!sec.fields || sec.fields.length === 0)) {
-              return false;
-            }
-            return true;
-          });
+        const updatedSections = sections.map((sec) => ({
+          ...sec,
+          fields: (sec.fields || []).filter((f) => !isMatchingField(f, fieldId)),
+        }));
 
         return {
           ...prev,

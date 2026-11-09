@@ -1,4 +1,4 @@
-import { Layers, LayoutList, LayoutTemplate, SplitSquareVertical } from "lucide-react";
+import { Layers, LayoutList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FormContainerType } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
@@ -46,33 +46,6 @@ export function PaletteContainersList({ disabled, onAddSection }: PaletteContain
         </div>
       </Button>
 
-      {/* Plain Canvas Root */}
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={disabled}
-        draggable={!disabled}
-        onDragStart={(e) => {
-          if (disabled) return;
-          const payload = {
-            type: "palette-container",
-            containerType: "plain",
-            title: "",
-            columns: 1,
-          };
-          e.dataTransfer.setData("application/json", JSON.stringify(payload));
-          e.dataTransfer.effectAllowed = "copy";
-        }}
-        onClick={() => onAddSection("plain", [], "", undefined, undefined, undefined, 1)}
-        className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
-      >
-        <LayoutTemplate className="size-3.5 text-zinc-500" />
-        <div className="flex flex-col text-left">
-          <span className="font-semibold">+ Plain Container</span>
-          <span className="text-[9px] text-muted-foreground">Borderless root canvas area</span>
-        </div>
-      </Button>
-
       {/* Tab Group */}
       <Button
         variant="outline"
@@ -98,36 +71,6 @@ export function PaletteContainersList({ disabled, onAddSection }: PaletteContain
         <div className="flex flex-col text-left">
           <span className="font-semibold">+ Tab Group</span>
           <span className="text-[9px] text-muted-foreground">Tab container with addable tabs</span>
-        </div>
-      </Button>
-
-      {/* Stepper / Wizard */}
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={disabled}
-        draggable={!disabled}
-        onDragStart={(e) => {
-          if (disabled) return;
-          const payload = {
-            type: "palette-container",
-            containerType: "step",
-            title: "Step 1",
-            groupTitle: "Step 1",
-            columns: 1,
-          };
-          e.dataTransfer.setData("application/json", JSON.stringify(payload));
-          e.dataTransfer.effectAllowed = "copy";
-        }}
-        onClick={() => onAddSection("step", [], "Step 1", undefined, "Step 1", undefined, 1)}
-        className="w-full h-8 text-xs justify-start gap-2 bg-background hover:bg-muted/30 shadow-2xs cursor-grab active:cursor-grabbing"
-      >
-        <SplitSquareVertical className="size-3.5 text-amber-500" />
-        <div className="flex flex-col text-left">
-          <span className="font-semibold">+ Step / Wizard</span>
-          <span className="text-[9px] text-muted-foreground">
-            Wizard flow with sequential steps
-          </span>
         </div>
       </Button>
     </div>

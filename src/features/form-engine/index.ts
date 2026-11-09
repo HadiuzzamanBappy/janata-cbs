@@ -1,6 +1,5 @@
 export * from "./components/containers/audit-container";
 export * from "./components/containers/card-container";
-export * from "./components/containers/stepper-container";
 export * from "./components/containers/tab-group-container";
 export * from "./components/field-atom";
 export * from "./components/field-factory";

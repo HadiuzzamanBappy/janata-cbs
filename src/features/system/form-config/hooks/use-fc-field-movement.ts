@@ -71,34 +71,35 @@ export function useFcFieldMovement(
         const fieldToMove = sourceSec.fields[fieldIndex];
 
         if (targetSecId === "canvas-root" || targetSecId.startsWith("gap-")) {
-          const newRootSec: FormSection = {
-            id: generateClientToken("sec_root"),
+          // Move field out of its current section directly to root canvas as an independent item
+          const newCardSec: FormSection = {
+            id: generateClientToken("sec_field"),
             title: "",
-            containerType: "plain",
+            containerType: "card",
             columns: 1,
             collapsible: false,
             isCollapsed: false,
             fields: [fieldToMove],
           };
 
-          const newSections = sections
-            .map((s) =>
-              s.id === sourceSecId
-                ? {
-                    ...s,
-                    fields: s.fields.filter((f) => !isMatchingField(f, fieldId)),
-                  }
-                : s,
-            )
-            .filter((s) => s.fields.length > 0 || Boolean(s.title));
+          const newSections = sections.map((s) =>
+            s.id === sourceSecId
+              ? {
+                  ...s,
+                  fields: s.fields.filter((f) => !isMatchingField(f, fieldId)),
+                }
+              : s,
+          );
 
           let insertAt = newSections.length;
-          if (targetSecId.startsWith("gap-")) {
+          if (targetSecId === "gap-top" || targetSecId === "gap-0") {
+            insertAt = 0;
+          } else if (targetSecId.startsWith("gap-")) {
             const rawIdx = parseInt(targetSecId.replace("gap-", ""), 10);
             if (!Number.isNaN(rawIdx)) insertAt = Math.min(rawIdx, newSections.length);
           }
 
-          newSections.splice(insertAt, 0, newRootSec);
+          newSections.splice(insertAt, 0, newCardSec);
 
           return {
             ...prev,
@@ -110,6 +111,7 @@ export function useFcFieldMovement(
         }
 
         const targetSec = sections.find((s) => s.id === targetSecId);
+        // CRITICAL INVARIANT: Never delete or drop a field if target section is not found!
         if (!targetSec) return prev;
 
         const updatedSourceFields = sourceSec.fields.filter((f) => !isMatchingField(f, fieldId));
@@ -125,13 +127,11 @@ export function useFcFieldMovement(
 
         updatedTargetFields.splice(targetIdx, 0, fieldToMove);
 
-        const newSections = sections
-          .map((s) => {
-            if (s.id === sourceSecId) return { ...s, fields: updatedSourceFields };
-            if (s.id === targetSecId) return { ...s, fields: updatedTargetFields };
-            return s;
-          })
-          .filter((s) => s.fields.length > 0 || Boolean(s.title));
+        const newSections = sections.map((s) => {
+          if (s.id === sourceSecId) return { ...s, fields: updatedSourceFields };
+          if (s.id === targetSecId) return { ...s, fields: updatedTargetFields };
+          return s;
+        });
 
         return {
           ...prev,

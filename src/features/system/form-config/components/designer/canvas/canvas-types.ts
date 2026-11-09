@@ -1,9 +1,9 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormContainerType, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 
 /** Callback signature for adding a new section/container to the canvas */
 export type AddSectionFn = (
-  containerType?: "card" | "plain" | "tab" | "step" | "accordion",
+  containerType?: FormContainerType,
   initialFields?: FormElement[],
   customTitle?: string,
   groupId?: string,
@@ -40,7 +40,7 @@ export interface DesignerCanvasProps {
    */
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;

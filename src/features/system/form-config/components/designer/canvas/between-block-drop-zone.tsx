@@ -11,7 +11,7 @@ export interface BetweenBlockDropZoneProps {
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
   onConvertSectionZone?: (
     sectionId: string,
-    targetType: "card" | "plain" | "tab",
+    targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
   disabled?: boolean;
@@ -44,16 +44,20 @@ export function BetweenBlockDropZone({
   }, []);
 
   const isHighlighted = isOver || isNativeOver;
-  const showIndicator = isActive || isNativeOver;
 
   return (
     <section
       aria-label={`Drop gap ${gapIndex}`}
       ref={setNodeRef}
-      onDragOver={(e) => {
+      onDragEnter={(e) => {
         e.preventDefault();
         e.stopPropagation();
         if (!disabled) setIsNativeOver(true);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!disabled && !isNativeOver) setIsNativeOver(true);
       }}
       onDragLeave={(e) => {
         e.preventDefault();
@@ -83,18 +87,18 @@ export function BetweenBlockDropZone({
       }}
       className={cn(
         "transition-all rounded mx-0.5 relative flex items-center justify-center",
-        showIndicator
-          ? isHighlighted
-            ? "h-8 mb-2 bg-primary/15 border-2 border-dashed border-primary"
-            : "h-3 mb-1.5 border border-dashed border-border/50 hover:border-primary/50"
-          : "h-0 my-0 border-0 opacity-0 overflow-hidden pointer-events-none",
+        isHighlighted
+          ? "min-h-9 mb-2 bg-primary/15 border-2 border-dashed border-primary ring-2 ring-primary/30"
+          : isActive
+            ? "min-h-4 mb-1 border border-dashed border-border/70 hover:border-primary/50"
+            : "h-0 my-0 border-0 opacity-0 overflow-hidden pointer-events-none",
       )}
     >
-      {isHighlighted && (
-        <span className="text-[10px] font-semibold text-primary select-none">
-          + Place item here
+      {isHighlighted ? (
+        <span className="text-[10px] font-semibold text-primary select-none flex items-center gap-1">
+          <span>+ Place container here</span>
         </span>
-      )}
+      ) : null}
     </section>
   );
 }

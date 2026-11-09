@@ -29,22 +29,33 @@ export function useIcCatalog() {
 
       if (res.status === "SUCCESS" && res.data) {
         const rawList: Array<[string, InquiryConfigRecord]> = Array.isArray(res.data)
-          ? res.data.map((item) => [item.INQInfo?.controllerName || "UNKNOWN", item])
+          ? res.data.map((item) => {
+              const rec = item as InquiryConfigRecord & { id?: string; recordId?: string };
+              const id = rec.id || rec.recordId || rec.INQInfo?.controllerName || "UNKNOWN";
+              return [id, item];
+            })
           : Object.entries(res.data);
 
-        return rawList.map(([key, record]) => {
-          const id = key;
-          const desc = record.INQInfo?.description || id;
+        const seen = new Set<string>();
+        const uniqueItems: AvailableInquiryItem[] = [];
+
+        for (const [key, record] of rawList) {
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+
+          const desc = record.INQInfo?.description || key;
           const ctrl = record.INQInfo?.controllerName || "N/A";
           const colCount = record.INQDef?.length || 0;
 
-          return {
-            id,
+          uniqueItems.push({
+            id: key,
             label: `${desc} (${ctrl})`,
             details: `${colCount} columns • ${ctrl}`,
             record,
-          };
-        });
+          });
+        }
+
+        return uniqueItems;
       }
       return [];
     },

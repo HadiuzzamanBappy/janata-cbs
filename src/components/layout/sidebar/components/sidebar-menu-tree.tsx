@@ -1,10 +1,10 @@
 import { SidebarContent } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { TreeNode } from "../types";
+import type { MenuItem } from "@/lib/data-schemas";
 import { SidebarTreeItem } from "./sidebar-tree-item";
 
 interface SidebarMenuTreeProps {
-  treeNodes: TreeNode[];
+  treeNodes: MenuItem[];
   loading: boolean;
   openSettingsTab: (tabId: string) => void;
   onLogout: () => void;

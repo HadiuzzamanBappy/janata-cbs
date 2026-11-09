@@ -3,16 +3,17 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { parseMenuTreeRecord, serializeMenuTreeToWireJson } from "@/lib/data-parsers";
+import { parseMenuTreeRecord } from "@/lib/data-parsers";
 import {
   type MenuDesignerValidationError,
-  type MenuTreeNode,
+  type MenuItem,
   menuTreeRecordSchema,
 } from "@/lib/data-schemas/menu-designer-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { mapMdZodIssues } from "./md-validation";
+import { mapMdZodIssues, validateMenuTreeDomain } from "./md-validation";
 import { useMdCatalog } from "./use-md-catalog";
 import { INITIAL_MENU_TREE, useMdPersistence } from "./use-md-persistence";
+import { useMdSubmit } from "./use-md-submit";
 import { useMdTreeOps } from "./use-md-tree-ops";
 
 export function useMenuDesigner(initialId?: string, tabId?: string) {
@@ -34,14 +35,13 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
   } = useMdPersistence(initialId, tabId);
 
   const [loading, setLoading] = React.useState(false);
-  const [submitting, setSubmitting] = React.useState(false);
   const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);
   const [validationErrors, setValidationErrors] = React.useState<MenuDesignerValidationError[]>([]);
 
   const { catalogItems, catalogLoading, availableTrees, refetchTrees } = useMdCatalog();
 
   const setTreeNodes = React.useCallback(
-    (updater: (prev: MenuTreeNode[]) => MenuTreeNode[]) => {
+    (updater: (prev: MenuItem[]) => MenuItem[]) => {
       setFormData((prev) => ({
         ...prev,
         menuTree: updater(prev.menuTree),
@@ -97,12 +97,15 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
 
   const handleValidate = React.useCallback((): boolean => {
     const result = menuTreeRecordSchema.safeParse(formData);
-    if (!result.success) {
-      const issues = mapMdZodIssues(result.error.issues);
-      setValidationErrors(issues);
+    const zodIssues = !result.success ? mapMdZodIssues(result.error.issues) : [];
+    const domainIssues = validateMenuTreeDomain(formData.menuTree || []);
+    const allIssues = [...zodIssues, ...domainIssues];
+
+    if (allIssues.length > 0) {
+      setValidationErrors(allIssues);
       toast.add({
         title: "Validation Failed",
-        description: `${issues.length} issue(s) detected in the hierarchy specification.`,
+        description: `${allIssues.length} issue(s) detected in the hierarchy specification.`,
         type: "warning",
       });
       return false;
@@ -116,69 +119,15 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     return true;
   }, [formData]);
 
-  const handleSubmit = React.useCallback(async () => {
-    const isValid = handleValidate();
-    if (!isValid) return false;
-
-    setSubmitting(true);
-    try {
-      const wireData = serializeMenuTreeToWireJson(formData);
-      const json = await cbs.send(
-        cbs.menuTree.save(wireData as unknown as Record<string, unknown>, {
-          recordId: formData.recordId || recordId,
-        }),
-        {
-          successTitle: "Navigation Tree Committed",
-          successMessage: `Saved hierarchy ${formData.recordId || recordId} to MENU.TREE`,
-        },
-      );
-
-      if (json.status === "SUCCESS") {
-        rebaseline();
-        refetchTrees();
-        setValidationErrors([]);
-        reset();
-        return true;
-      }
-      return false;
-    } catch (err: unknown) {
-      toast.add({
-        title: "Error",
-        description: err instanceof Error ? err.message : "Failed to save hierarchy",
-        type: "error",
-      });
-      return false;
-    } finally {
-      setSubmitting(false);
-    }
-  }, [formData, recordId, reset, rebaseline, refetchTrees, handleValidate]);
-
-  const handleAuthorize = React.useCallback(async () => {
-    if (!recordId.trim()) return false;
-    setSubmitting(true);
-    try {
-      const json = await cbs.send(cbs.menuTree.authorize(recordId.trim().toUpperCase()), {
-        successTitle: "Navigation Tree Authorized",
-        successMessage: `Authorized live menu tree #${recordId}`,
-      });
-      if (json.status === "SUCCESS") {
-        rebaseline();
-        refetchTrees();
-        reset();
-        return true;
-      }
-      return false;
-    } catch (err: unknown) {
-      toast.add({
-        title: "Authorization Error",
-        description: err instanceof Error ? err.message : "Authorization failed",
-        type: "error",
-      });
-      return false;
-    } finally {
-      setSubmitting(false);
-    }
-  }, [recordId, reset, rebaseline, refetchTrees]);
+  const { submitting, handleSubmit, handleAuthorize } = useMdSubmit({
+    formData,
+    recordId,
+    handleValidate,
+    rebaseline,
+    refetchTrees,
+    setValidationErrors,
+    reset,
+  });
 
   const handleCreateNew = React.useCallback(
     (customId?: string) => {

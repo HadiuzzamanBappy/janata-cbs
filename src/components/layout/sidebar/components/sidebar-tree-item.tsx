@@ -12,12 +12,12 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { cbsCommand } from "@/lib/cbs-command";
 import { cn } from "@/lib/core-utils";
+import type { MenuItem } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
-import type { TreeNode } from "../types";
 import { hasActiveChild, isCommandMatch } from "../utils";
 
 export interface TreeItemProps {
-  node: TreeNode;
+  node: MenuItem;
   level?: number;
   openSettingsTab?: (tabId: string) => void;
   clearSession?: () => void;
@@ -32,6 +32,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
   const isFolder = !node.command;
   const hasChildren = Boolean(node.children && node.children.length > 0);
   const isLeaf = !isFolder;
+  const nodeLabel = node.label || node.title || "";
 
   // Check if this node or any child node is currently active
   const isChildActive = React.useMemo(
@@ -56,7 +57,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
       setIsOpen((prev) => !prev);
     } else if (node.command) {
       cbsCommand.execute(node.command, {
-        title: node.title,
+        title: nodeLabel,
         target: node.menuAction === "POPUP" ? "popup" : "workspace",
       });
     }
@@ -109,7 +110,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
           }
         }}
         data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
-        data-cbs-label={node.title}
+        data-cbs-label={nodeLabel}
         data-cbs-link-handled="true"
         className={cn(
           "flex items-center gap-1.5 px-2 py-1.5 rounded-sm text-[13px] font-normal cursor-pointer transition-all duration-150 ease-out group/item w-full text-left border-0 bg-transparent relative leading-snug",
@@ -147,7 +148,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
         )}
 
         <span ref={textRef} className="flex-1 min-w-0 truncate">
-          {node.title}
+          {nodeLabel}
         </span>
       </button>
 
@@ -167,7 +168,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={handleMouseLeave}
             data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
-            data-cbs-label={node.title}
+            data-cbs-label={nodeLabel}
             data-cbs-link-handled="true"
             className="z-5000 flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[13px] font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100 border-0 text-left"
           >
@@ -196,7 +197,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
                 )}
               </span>
             )}
-            <span>{node.title}</span>
+            <span>{nodeLabel}</span>
           </button>,
           document.body,
         )}

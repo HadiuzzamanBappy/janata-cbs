@@ -17,11 +17,15 @@ interface RawMenuNode {
   id?: string | number;
   menuId?: string | number;
   label?: string;
+  title?: string;
   command?: string;
+  componentName?: string;
   menuType?: MenuType;
   menuAction?: MenuAction;
   children?: RawMenuNode[];
   items?: RawMenuNode[];
+  isVisible?: boolean;
+  orderIndex?: number;
   [key: string]: unknown;
 }
 
@@ -53,11 +57,16 @@ function normalizeNode(raw: RawMenuNode, idx: number, parentKey = "m"): MenuItem
     | undefined;
   const menuAction = rawMenuAction === "POPUP" ? "POPUP" : "SCREEN";
 
+  const label = String(raw.label ?? raw.title ?? id);
+  const command = trimmedCmd || undefined;
+
   return {
     id,
     menuId: raw.menuId,
-    label: String(raw.label ?? id),
-    command: raw.command ? String(raw.command).trim().toUpperCase() : undefined,
+    label,
+    title: label,
+    command,
+    componentName: raw.componentName || (command ? command.replace(/\./g, "_") : undefined),
     menuType,
     menuAction,
     isVisible: raw.isVisible !== false,
@@ -115,10 +124,9 @@ export function parseMenuCatalogRecord(
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
   const list = unwrapRecordsPayload(decoded);
-  const target = (list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded)) as Record<
-    string,
-    unknown
-  >;
+  const target = (list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded)) as
+    | Record<string, unknown>
+    | undefined;
 
   if (!target || typeof target !== "object") {
     return { success: false, error: "Empty or invalid record payload" };
@@ -190,7 +198,6 @@ export function parseMenuTreeRecord(
   }
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  // If the object already contains the MenuTreeRecord fields, parse it directly
   let target: unknown = decoded;
   if (decoded && typeof decoded === "object") {
     const rec = decoded as Record<string, unknown>;

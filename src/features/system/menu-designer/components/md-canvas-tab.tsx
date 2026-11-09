@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { closestCenter, DndContext } from "@dnd-kit/core";
 import * as React from "react";
 import { useContainerWidth } from "@/hooks";
 import { cn } from "@/lib/core-utils";
@@ -18,6 +9,7 @@ import type {
   MenuTreeNode,
   MenuTreeRecord,
 } from "@/lib/data-schemas/menu-designer-schema";
+import { useCanvasDnd } from "../hooks/use-canvas-dnd";
 import { MenuCatalogSidebar } from "./canvas/menu-catalog-sidebar";
 import { MenuTreeCanvas } from "./canvas/menu-tree-canvas";
 import { NodeInspector } from "./canvas/node-inspector";
@@ -72,6 +64,13 @@ export function MdCanvasTab({
   const [isCatalogOpen, setIsCatalogOpen] = React.useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = React.useState(false);
 
+  const { sensors, handleDragEnd } = useCanvasDnd({
+    nodes,
+    isReadOnly,
+    onDropCatalogItem,
+    onMoveNode,
+  });
+
   // When clicking any item on compact view, auto-open the right inspector drawer
   const handleSelectNode = (id: string) => {
     setSelectedNodeId(id);
@@ -80,94 +79,6 @@ export function MdCanvasTab({
       setIsCatalogOpen(false);
     }
   };
-
-  // Configure Dnd sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 4,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  // Helper to find a node and its parent info by ID
-  const findNodeInfo = React.useCallback(
-    (
-      targetId: string,
-    ): {
-      targetNode: MenuTreeNode | null;
-      parentNode: MenuTreeNode | null;
-      targetIndex: number;
-    } => {
-      let targetNode: MenuTreeNode | null = null;
-      let parentNode: MenuTreeNode | null = null;
-      let targetIndex = -1;
-
-      function traverse(list: MenuTreeNode[], parent: MenuTreeNode | null): boolean {
-        for (let i = 0; i < list.length; i++) {
-          const current = list[i];
-          if (current.id === targetId) {
-            targetNode = current;
-            parentNode = parent;
-            targetIndex = i;
-            return true;
-          }
-          if (current.children && current.children.length > 0) {
-            if (traverse(current.children, current)) return true;
-          }
-        }
-        return false;
-      }
-
-      traverse(nodes, null);
-      return { targetNode, parentNode, targetIndex };
-    },
-    [nodes],
-  );
-
-  const handleDragEnd = React.useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id || isReadOnly) return;
-
-      const activeId = String(active.id);
-      const overId = String(over.id);
-
-      // Scenario A: Dragged from Action Catalog
-      if (activeId.startsWith("catalog-")) {
-        const itemData = active.data.current?.item as MenuCatalogActionItem | undefined;
-        if (!itemData) return;
-
-        // Dropped onto an existing tree node
-        const { targetNode, parentNode, targetIndex } = findNodeInfo(overId);
-        if (targetNode) {
-          const isGroupFolder = !targetNode.command;
-          if (isGroupFolder) {
-            // Drop inside this folder at the end
-            onDropCatalogItem(itemData, targetNode.id);
-          } else {
-            // Dropped on a leaf item -> place next to it in the same parent
-            const parentId = parentNode ? parentNode.id : null;
-            onDropCatalogItem(itemData, parentId, targetIndex + 1);
-          }
-          return;
-        }
-
-        // Default fallback: add to root
-        onDropCatalogItem(itemData, null);
-        return;
-      }
-
-      // Scenario B: Reordering or reparenting within Tree
-      if (onMoveNode) {
-        onMoveNode(activeId, overId);
-      }
-    },
-    [isReadOnly, onDropCatalogItem, findNodeInfo, onMoveNode],
-  );
 
   // Find currently selected node in tree
   const selectedNode = React.useMemo(() => {
@@ -250,7 +161,7 @@ export function MdCanvasTab({
           />
         )}
 
-        {/* 1. Left Pane: Action Catalog (MENU) - Side-panel on Desktop, Offcanvas Drawer on Mobile/Compact */}
+        {/* 1. Left Pane: Action Catalog (MENU) */}
         {isCompact ? (
           <div
             className={cn(
@@ -310,7 +221,7 @@ export function MdCanvasTab({
           />
         </div>
 
-        {/* 3. Right Pane: Property & Override Inspector - Side-panel on Desktop, Offcanvas Drawer on Mobile/Compact */}
+        {/* 3. Right Pane: Property & Override Inspector */}
         {isCompact ? (
           <div
             className={cn(

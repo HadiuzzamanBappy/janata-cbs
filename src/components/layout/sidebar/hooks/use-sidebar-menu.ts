@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
 import { logger } from "@/lib/core-logger";
 import { parseMNU } from "@/lib/data-parsers";
 import type { MenuItem } from "@/lib/data-schemas";
-import { mapMenuItemToTreeNode } from "../utils";
 
 export function useSidebarMenu() {
   const { data: menuItems = [], isLoading: loading } = useQuery<MenuItem[]>({
@@ -27,12 +25,8 @@ export function useSidebarMenu() {
     },
   });
 
-  const treeNodes = React.useMemo(() => {
-    return menuItems.map(mapMenuItemToTreeNode);
-  }, [menuItems]);
-
   return {
-    treeNodes,
+    treeNodes: menuItems,
     loading,
   };
 }

@@ -5,8 +5,6 @@ export { SidebarMenuTree } from "./components/sidebar-menu-tree";
 export { SidebarTreeItem } from "./components/sidebar-tree-item";
 // Hooks
 export { useSidebarMenu } from "./hooks/use-sidebar-menu";
-// Types
-export type { TreeNode } from "./types";
 // Utilities
 export { hasActiveChild, isCommandMatch, mapMenuItemToTreeNode } from "./utils";
 

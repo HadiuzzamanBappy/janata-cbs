@@ -1,17 +1,8 @@
 import { getCanonicalScreenKey, resolveCommandAlias } from "@/lib/cbs-command";
 import type { MenuItem } from "@/lib/data-schemas";
-import type { TreeNode } from "./types";
 
-export function mapMenuItemToTreeNode(item: MenuItem): TreeNode {
-  return {
-    id: item.id,
-    title: item.label,
-    command: item.command,
-    componentName: item.command ? item.command.replace(/\./g, "_") : undefined,
-    menuType: item.menuType,
-    menuAction: item.menuAction,
-    children: item.children?.map(mapMenuItemToTreeNode),
-  };
+export function mapMenuItemToTreeNode(item: MenuItem): MenuItem {
+  return item;
 }
 
 /**
@@ -41,7 +32,7 @@ export function isCommandMatch(cmdA?: string, cmdB?: string): boolean {
 /**
  * Helper to check if a tree node or any of its descendants matches the active command/screen ID
  */
-export function hasActiveChild(node: TreeNode, activeId?: string): boolean {
+export function hasActiveChild(node: MenuItem, activeId?: string): boolean {
   if (!activeId) return false;
   if (isCommandMatch(node.command ?? node.id, activeId)) {
     return true;

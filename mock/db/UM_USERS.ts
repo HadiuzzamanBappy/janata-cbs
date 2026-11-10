@@ -2,82 +2,45 @@ import type { AuditData } from "@/lib/data-schemas/common-schema";
 import type { CbsVersionedTable } from "./types";
 
 /**
- * UsersRecord: The canonical database table schema for UM_USERS (matching SC_MODEL_CONFIG USERS).
+ * UmUsersRecord: Canonical database table schema for UM_USERS (matching SC_MODEL_CONFIG USERS).
  */
 export interface UmUsersRecord {
-  recordId?: string;
   userName: string;
   signOnName: string;
-  classification?: string | null;
-  language?: number | null;
-  companyCode?: string[] | null;
-  departmentCode?: number | null;
-  passwordValidity?: string | null;
-  startDateProfile?: string | null;
-  endDateProfile?: string | null;
-  startTime?: string | null;
-  endTime?: string | null;
-  timeOutMinutes?: number | null;
-  attempts?: number | null;
-  initApplication?: string | null;
-  customer?: string[] | null;
-  account?: string[] | null;
-  companyRestr?: string[] | null;
-  application?: string[] | null;
-  version?: string[] | null;
-  function?: string[] | null;
-  fieldNo?: string[] | null;
-  dataComparison?: string[] | null;
-  dataFrom?: string[] | null;
-  dataTo?: string[] | null;
-  signOnOffLog?: string | null;
-  securityMgmtL?: string | null;
-  applicationLog?: string | null;
-  functionIdLog?: string | null;
-  inputDayMonth?: string | null;
-  attemptsSince?: string | null;
-  dateLastSignOn?: string | null;
-  timeLastSignOn?: string | null;
-  password?: string[] | null;
-  passwChangeDate?: string | null;
-  passwEndDate?: string | null;
-  deactivationDate?: string | null;
-  reactivationDate?: string | null;
-  clearScreen?: string | null;
-  overrideClass?: string[] | null;
-  dealerDesk?: string | null;
-  printerForRpts?: string | null;
-  printerForPFunc?: string | null;
-  userAddr?: string[] | null;
-  rptToReceive?: string[] | null;
-  rptCopies?: string[] | null;
-  lastSpoolDate?: string[] | null;
-  lastSpoolTime?: string[] | null;
-  amountFormat?: string | null;
-  maxSessions?: number | null;
-  attributes?: string[] | null;
-  dispoOfficer?: string | null;
-  signOnItem?: string[] | null;
-  signOffItem?: string | null;
-  processDept?: string[] | null;
-  oc1?: string | null;
-  othBookAccess?: string[] | null;
-  othBookBlock?: string[] | null;
-  dispoRights?: string[] | null;
-  allowedDays?: string[] | null;
-  dayStTime?: string[] | null;
-  dayEndTime?: string[] | null;
-  ldapId?: string | null;
-  ldapDn?: string | null;
-  leadPref?: string | null;
-  dateFormat?: string | null;
-  offlineSmsProfile?: string | null;
-  signOnRtn?: string | null;
-  empBankId?: string | null;
-  mobileNumber?: string | null;
-  email?: string | null;
-  tDate?: string | null;
-  tTime?: string | null;
+  classification?: string;
+  language?: number;
+  companyCode?: string[];
+  departmentCode?: number;
+  passwordValidity?: string;
+  startDateProfile?: string;
+  endDateProfile?: string;
+  startTime?: string;
+  endTime?: string;
+  timeOutMinutes?: number;
+  attempts?: number;
+  initApplication?: string;
+  customer?: string[];
+  account?: string[];
+  companyRestr?: string[];
+  application?: string[];
+  version?: string[];
+  function?: string[];
+  fieldNo?: string[];
+  dataComparison?: string[];
+  dataFrom?: string[];
+  dataTo?: string[];
+  password?: string[];
+  overrideClass?: string[];
+  dealerDesk?: string;
+  maxSessions?: number;
+  attributes?: string[];
+  dispoOfficer?: string;
+  dispoRights?: string;
+  allowedDays?: string[];
+  dateFormat?: string;
+  empBankId?: string;
+  mobileNumber?: string;
+  email?: string;
   auditData?: AuditData;
 }
 
@@ -86,7 +49,7 @@ export interface UmUsersRecord {
  * Holds Core Banking Security / User Profile management records.
  */
 export const UM_USERS: Record<string, UmUsersRecord> = {
-  ZZ028459: {
+  ZZ0284590: {
     userName: "MD. HADIUZZAMAN BAPPY",
     signOnName: "ZZ028459",
     classification: "OFFICER",
@@ -112,7 +75,7 @@ export const UM_USERS: Record<string, UmUsersRecord> = {
       recBranchCode: "JB9999",
     },
   },
-  AD028459: {
+  AD0284590: {
     userName: "SYSTEM ADMINISTRATOR",
     signOnName: "AD028459",
     classification: "ADMIN",
@@ -138,13 +101,10 @@ export const UM_USERS: Record<string, UmUsersRecord> = {
       recBranchCode: "JB9999",
     },
   },
-  AH002814: {
+  AH0028140: {
     userName: "MOHAMMAD ANIS",
     signOnName: "AH002814",
-    classification: null,
-    language: null,
     companyCode: ["JB9999"],
-    departmentCode: null,
     passwordValidity: "2026-11-15",
     startDateProfile: "2026-10-15",
     endDateProfile: "2029-10-15",
@@ -152,65 +112,8 @@ export const UM_USERS: Record<string, UmUsersRecord> = {
     endTime: "23:59:00",
     timeOutMinutes: 5,
     attempts: 3,
-    initApplication: null,
-    customer: null,
-    account: null,
-    companyRestr: null,
-    application: null,
-    version: null,
-    function: null,
-    fieldNo: null,
-    dataComparison: null,
-    dataFrom: null,
-    dataTo: null,
-    signOnOffLog: null,
-    securityMgmtL: null,
-    applicationLog: null,
-    functionIdLog: null,
-    inputDayMonth: null,
-    attemptsSince: null,
-    dateLastSignOn: null,
-    timeLastSignOn: null,
-    password: null,
-    passwChangeDate: null,
-    passwEndDate: null,
-    deactivationDate: null,
-    reactivationDate: null,
-    clearScreen: null,
-    overrideClass: null,
-    dealerDesk: null,
-    printerForRpts: null,
-    printerForPFunc: null,
-    userAddr: null,
-    rptToReceive: null,
-    rptCopies: null,
-    lastSpoolDate: null,
-    lastSpoolTime: null,
-    amountFormat: null,
-    maxSessions: null,
-    attributes: null,
-    dispoOfficer: null,
-    signOnItem: null,
-    signOffItem: null,
-    processDept: null,
-    oc1: null,
-    othBookAccess: null,
-    othBookBlock: null,
-    dispoRights: null,
-    allowedDays: null,
-    dayStTime: null,
-    dayEndTime: null,
-    ldapId: null,
-    ldapDn: null,
-    leadPref: null,
-    dateFormat: null,
-    offlineSmsProfile: null,
-    signOnRtn: null,
     empBankId: "002814",
     mobileNumber: "01313037872",
-    email: "",
-    tDate: null,
-    tTime: null,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -221,7 +124,7 @@ export const UM_USERS: Record<string, UmUsersRecord> = {
       recBranchCode: "JB9999",
     },
   },
-  AH003592: {
+  AH0035920: {
     userName: "SHARMIN AKTER",
     signOnName: "AH003592",
     classification: "OFFICER",
@@ -235,65 +138,13 @@ export const UM_USERS: Record<string, UmUsersRecord> = {
     endTime: "18:00:00",
     timeOutMinutes: 15,
     attempts: 0,
-    initApplication: null,
-    customer: null,
-    account: null,
-    companyRestr: null,
-    application: null,
-    version: null,
-    function: null,
-    fieldNo: null,
-    dataComparison: null,
-    dataFrom: null,
-    dataTo: null,
-    signOnOffLog: null,
-    securityMgmtL: null,
-    applicationLog: null,
-    functionIdLog: null,
-    inputDayMonth: null,
-    attemptsSince: null,
-    dateLastSignOn: null,
-    timeLastSignOn: null,
-    password: null,
-    passwChangeDate: null,
-    passwEndDate: null,
-    deactivationDate: null,
-    reactivationDate: null,
-    clearScreen: null,
     overrideClass: ["L1"],
-    dealerDesk: null,
-    printerForRpts: null,
-    printerForPFunc: null,
-    userAddr: null,
-    rptToReceive: null,
-    rptCopies: null,
-    lastSpoolDate: null,
-    lastSpoolTime: null,
-    amountFormat: null,
     maxSessions: 1,
-    attributes: null,
-    dispoOfficer: null,
-    signOnItem: null,
-    signOffItem: null,
-    processDept: null,
-    oc1: null,
-    othBookAccess: null,
-    othBookBlock: null,
-    dispoRights: null,
     allowedDays: ["SUN", "MON", "TUE", "WED", "THU"],
-    dayStTime: null,
-    dayEndTime: null,
-    ldapId: null,
-    ldapDn: null,
-    leadPref: null,
     dateFormat: "DD/MM/YYYY",
-    offlineSmsProfile: null,
-    signOnRtn: null,
     empBankId: "003592",
     mobileNumber: "01712349876",
     email: "sharmin.akter@janatabank.gov.bd",
-    tDate: null,
-    tTime: null,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -311,7 +162,7 @@ export const UM_USERS: Record<string, UmUsersRecord> = {
 /* -------------------------------------------------------------------------- */
 
 export const UM_USERS_INAU: Record<string, UmUsersRecord> = {
-  AH005521: {
+  AH0055210: {
     userName: "KAMAL HOSSAIN",
     signOnName: "AH005521",
     classification: "TELLER",
@@ -325,65 +176,9 @@ export const UM_USERS_INAU: Record<string, UmUsersRecord> = {
     endTime: "17:00:00",
     timeOutMinutes: 10,
     attempts: 0,
-    initApplication: null,
-    customer: null,
-    account: null,
-    companyRestr: null,
-    application: null,
-    version: null,
-    function: null,
-    fieldNo: null,
-    dataComparison: null,
-    dataFrom: null,
-    dataTo: null,
-    signOnOffLog: null,
-    securityMgmtL: null,
-    applicationLog: null,
-    functionIdLog: null,
-    inputDayMonth: null,
-    attemptsSince: null,
-    dateLastSignOn: null,
-    timeLastSignOn: null,
-    password: null,
-    passwChangeDate: null,
-    passwEndDate: null,
-    deactivationDate: null,
-    reactivationDate: null,
-    clearScreen: null,
-    overrideClass: null,
-    dealerDesk: null,
-    printerForRpts: null,
-    printerForPFunc: null,
-    userAddr: null,
-    rptToReceive: null,
-    rptCopies: null,
-    lastSpoolDate: null,
-    lastSpoolTime: null,
-    amountFormat: null,
-    maxSessions: null,
-    attributes: null,
-    dispoOfficer: null,
-    signOnItem: null,
-    signOffItem: null,
-    processDept: null,
-    oc1: null,
-    othBookAccess: null,
-    othBookBlock: null,
-    dispoRights: null,
-    allowedDays: null,
-    dayStTime: null,
-    dayEndTime: null,
-    ldapId: null,
-    ldapDn: null,
-    leadPref: null,
-    dateFormat: null,
-    offlineSmsProfile: null,
-    signOnRtn: null,
     empBankId: "005521",
     mobileNumber: "01911998877",
     email: "kamal.hossain@janatabank.gov.bd",
-    tDate: null,
-    tTime: null,
     auditData: {
       recStatus: "INA",
       recCurrNumber: 1,

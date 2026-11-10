@@ -83,7 +83,11 @@ pnpm fixture:clean    # Normalize mock data fixtures
 
 1. **Unidirectional Layer Hierarchy:**
    Dependencies flow strictly one way. Lower layers must **never** import from higher layers:
-   $$\text{app} \longrightarrow \text{features} \longrightarrow \text{components} \longrightarrow \text{store} \longrightarrow \text{lib/cbs-_} \longrightarrow \text{lib/infra-_} \longrightarrow \text{types \& data-schemas}$$
+
+   ```text
+   app ──> features ──> components ──> store ──> lib/cbs-* ──> lib/infra-* ──> types & data-schemas
+   ```
+
    `src/lib` must **NEVER** import from `@/store`, `@/components`, `@/features`, or `@/app`. Upward notifications use the Adapter Bus (`registerCommandAdapter`).
 
 2. **Strict Server Boundary (`"server-only"`):**

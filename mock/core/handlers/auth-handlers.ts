@@ -1,14 +1,16 @@
 import "server-only";
 
-import { SC_USER, type UserRecord } from "@mock/db";
+import { SC_BRANCH, SC_USER, type UserRecord } from "@mock/db";
 import type { GrpcResponse, LoginRequest } from "@/lib/infra-grpc/generated/service";
 
 /**
  * Builds the dynamic runtime authentication response expected by auth-parser and session layer.
- * Injects token, txnDate (bank working date), and authenticated status on top of table record.
+ * Strictly reads from SC_USER (UserRecord) where accessibility is an array of capability codes.
  */
 export function buildMockUserAuthResponse(user: UserRecord): GrpcResponse {
-  const today = new Date().toISOString().split("T")[0];
+  const branch = SC_BRANCH[user.branchCode];
+  const branchName = branch?.branchTitle?.trim() || user.branchName || "CENTRAL OFFICE, HO, DHAKA";
+  const txnDate = branch?.currTxnDate || new Date().toISOString().split("T")[0];
 
   return {
     status: "SUCCESS",
@@ -24,9 +26,9 @@ export function buildMockUserAuthResponse(user: UserRecord): GrpcResponse {
       userRole: user.userRole,
       commandLine: user.commandLine,
       initLogin: Boolean(user.initLogin),
-      branchName: user.branchName,
+      branchName,
       branchCode: user.branchCode,
-      txnDate: today,
+      txnDate,
       userStatus: user.userStatus,
       authenticated: true,
       token: `mock_jwt_token_${user.userId}_${Date.now()}`,
@@ -38,7 +40,7 @@ export function getMockUserResponse(username?: string, password?: string): GrpcR
   if (!username || !password) return null;
   const cleanUser = username.trim().toUpperCase();
 
-  // Find user strictly by signon ID or userId
+  // Find user strictly by key or userId in SC_USER
   const user =
     SC_USER[cleanUser] || Object.values(SC_USER).find((u) => u.userId.toUpperCase() === cleanUser);
   if (!user) return null;
@@ -52,10 +54,10 @@ export function getMockUserResponse(username?: string, password?: string): GrpcR
 }
 
 /**
- * Simulates Core gRPC login process from local user fixtures.
+ * Handles Core gRPC login requests from local SC_USER fixtures.
  * Strictly verifies that both username and password are provided and match.
  */
-export async function mockLogin(
+export async function handleLogin(
   req: LoginRequest | { signon?: string; username?: string; password?: string },
 ): Promise<GrpcResponse> {
   const username = ("username" in req && req.username) || ("signon" in req && req.signon) || "";
@@ -73,5 +75,9 @@ export async function mockLogin(
       data: undefined,
     };
   }
+
   return authResponse;
 }
+
+/** Legacy alias for backwards compatibility across tests */
+export const mockLogin = handleLogin;

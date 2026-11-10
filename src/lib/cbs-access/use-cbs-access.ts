@@ -21,8 +21,8 @@ export function useCbsAccess(context: CbsAccessContext = {}): CbsAccessResult {
   const { command, recordStatus, recordInputter, mode } = context;
 
   const grantedRights = React.useMemo(() => {
-    return parseAccessibilityRights(user?.accessibility ?? user?.functionRights);
-  }, [user?.accessibility, user?.functionRights]);
+    return parseAccessibilityRights(user?.accessibility);
+  }, [user?.accessibility]);
 
   return React.useMemo(() => {
     return evaluateCbsAccess({

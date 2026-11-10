@@ -8,7 +8,7 @@ import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import {
   DROPDOWN_LOOKUP_SECTION,
   DROPDOWN_OPTIONS_SECTION,
-} from "@/features/system/model-config/fields";
+} from "@/features/system/model-config/fields/mc-lookup-fields";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { CbsRecordFunction } from "@/types";

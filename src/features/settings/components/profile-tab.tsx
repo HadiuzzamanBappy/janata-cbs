@@ -92,7 +92,9 @@ export function ProfileTab() {
             <div className="flex flex-col gap-0.5 p-2 rounded-md bg-muted/20 border border-border/40">
               <span className="text-muted-foreground text-[10px]">Accessibility</span>
               <span className="font-mono font-medium text-foreground text-xs">
-                {user.accessibility}
+                {Array.isArray(user.accessibility)
+                  ? user.accessibility.join("")
+                  : user.accessibility}
               </span>
             </div>
 
@@ -111,12 +113,12 @@ export function ProfileTab() {
             </div>
           </div>
 
-          {/* Function Rights (if present on session) */}
-          {Array.isArray(user.functionRights) && user.functionRights.length > 0 && (
+          {/* Accessibility Rights Badges */}
+          {Array.isArray(user.accessibility) && user.accessibility.length > 0 && (
             <div className="pt-0.5 space-y-1">
               <span className="text-[10px] text-muted-foreground">Function Rights:</span>
               <div className="flex flex-wrap gap-1">
-                {user.functionRights.map((right) => (
+                {user.accessibility.map((right) => (
                   <Badge key={right} variant="outline" className="font-mono text-[9px] px-1.5 py-0">
                     {right}
                   </Badge>

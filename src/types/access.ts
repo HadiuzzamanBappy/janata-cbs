@@ -82,7 +82,6 @@ export interface CbsUserSecurityContext {
   readonly userId?: string;
   readonly commandLine?: boolean;
   readonly accessibility?: string | readonly string[];
-  readonly functionRights?: readonly string[];
   readonly userRole?: readonly CbsUserRole[];
   readonly userGroup?: readonly string[];
 }

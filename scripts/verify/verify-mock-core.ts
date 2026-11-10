@@ -123,7 +123,8 @@ async function runSuite() {
       { username: loginInput.username, password: "***" },
       authOut,
       authRes.statusCode === 200 &&
-        authData?.accessibility === "RIDASHL" &&
+        Array.isArray(authData?.accessibility) &&
+        authData.accessibility.includes("R") &&
         wrongPassRes.statusCode === 401 &&
         noPassRes.statusCode === 401,
     );

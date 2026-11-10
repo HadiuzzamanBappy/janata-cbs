@@ -40,9 +40,7 @@ export function validateSecurityPermissions(
 
   // 5. Function rights (RIDASH) check
   if (command.functionCode) {
-    const userRights = parseAccessibilityRights(
-      user.functionRights?.length ? user.functionRights : user.accessibility,
-    );
+    const userRights = parseAccessibilityRights(user.accessibility);
 
     const hasRight = userRights.includes(command.functionCode);
     if (!hasRight) {

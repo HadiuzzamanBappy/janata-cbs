@@ -5,7 +5,7 @@ import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
-import { MODEL_CONFIG_SECTIONS } from "../fields";
+import { MODEL_CONFIG_SECTIONS } from "../fields/mc-general-fields";
 import type { ModelValidationErrorItem } from "../hooks/mc-validation";
 
 interface McGeneralTabProps {

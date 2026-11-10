@@ -9,7 +9,7 @@ import { setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
-import { DROPDOWN_LOOKUP_SECTION, DROPDOWN_OPTIONS_SECTION } from "../../fields";
+import { DROPDOWN_LOOKUP_SECTION, DROPDOWN_OPTIONS_SECTION } from "../../fields/mc-lookup-fields";
 
 export interface McLookupConfigProps {
   property: ModelProperty;

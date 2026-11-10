@@ -178,4 +178,3 @@ export function ungroupFolderInTree(tree: MenuItem[], folderId: string): MenuIte
   }
   return ungroup(tree);
 }
-

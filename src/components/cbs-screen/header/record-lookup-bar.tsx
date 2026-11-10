@@ -130,9 +130,9 @@ export function RecordLookupBar({
               {hasSearched ? "No matching records" : "Type to filter"}
             </div>
           ) : (
-            matchingItems.map((item, index) => (
+            matchingItems.map((item) => (
               <DropdownMenuItem
-                key={`${item.id}-${index}`}
+                key={item.id}
                 onClick={() => {
                   onSelectRecord(item.id);
                   inputRef.current?.focus();

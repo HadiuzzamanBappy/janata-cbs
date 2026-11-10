@@ -10,7 +10,7 @@ import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { PropertyType } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { CbsRecordFunction } from "@/types";
-import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields";
+import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields/mc-property-fields";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
 import { McLookupConfig } from "./mc-lookup-config";
 import { McObjectPropsCard } from "./mc-object-props-card";

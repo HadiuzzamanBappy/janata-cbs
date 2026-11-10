@@ -1,5 +1,4 @@
 import type { CurrentUser } from "@/lib/data-schemas/auth-schema";
-import { CBS_FUNCTION_CODES } from "@/types";
 import { decodeProtobufValue } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
@@ -16,43 +15,36 @@ export interface ParsedUserAuthResult {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Standard parser to map CBS authentication response payload into a CurrentUser domain session.
- * Purely extracts database wire fields without artificial mock defaults.
+ * Strict parser to map CBS authentication wire payload into a CurrentUser domain session.
+ * Purely extracts exact database wire fields without guessing or artificial fallbacks.
+ * Accessibility is parsed strictly as a single string array (e.g. ["R", "I", "D", "A", "S", "H", "L"]).
  */
-export function parseAuthWirePayload(data: unknown, fallbackUsername = ""): ParsedUserAuthResult {
+export function parseAuthWirePayload(data: unknown): ParsedUserAuthResult {
   const f = decodeProtobufValue<Record<string, unknown>>(data);
 
-  const rawAccessibility = typeof f.accessibility === "string" ? f.accessibility.trim() : "";
-
-  const functionRights = rawAccessibility
-    ? rawAccessibility === "ALL"
-      ? [...CBS_FUNCTION_CODES]
-      : rawAccessibility
-          .toUpperCase()
-          .split("")
-          .filter((char) => (CBS_FUNCTION_CODES as readonly string[]).includes(char))
-    : [];
+  // Accept accessibility strictly as array; if DB sent a string like "RIDASH", split into array
+  const rawAccess = f.accessibility ?? f.functionRights;
+  const accessibility: string[] = Array.isArray(rawAccess)
+    ? rawAccess.map(String)
+    : typeof rawAccess === "string"
+      ? rawAccess.trim().toUpperCase().split("")
+      : [];
 
   const currUser: CurrentUser = {
-    userId: String(f.userId || ""),
-    fullName: String(f.fullName || fallbackUsername || f.userId || ""),
-    branchCode: String(f.branchCode || ""),
-    branchName: String(f.branchName || ""),
-    txnDate: String(f.txnDate || ""),
-    userRole: Array.isArray(f.userRole)
-      ? f.userRole.map(String)
-      : f.userRole
-        ? [String(f.userRole)]
-        : [],
-    accessibility: rawAccessibility,
-    functionRights,
-    commandLine: Boolean(f.commandLine),
-    initLogin: Boolean(f.initLogin),
-    userStatus: typeof f.userStatus === "number" ? f.userStatus : 0,
+    userId: typeof f.userId === "string" ? f.userId.trim() : "",
+    fullName: typeof f.fullName === "string" ? f.fullName.trim() : "",
+    branchCode: typeof f.branchCode === "string" ? f.branchCode.trim() : "",
+    branchName: typeof f.branchName === "string" ? f.branchName.trim() : "",
+    txnDate: typeof f.txnDate === "string" ? f.txnDate.trim() : "",
+    userRole: Array.isArray(f.userRole) ? f.userRole.map(String) : [],
+    accessibility,
+    commandLine: f.commandLine === true,
+    initLogin: f.initLogin === true,
+    userStatus: typeof f.userStatus === "number" ? f.userStatus : 1,
   };
 
   return {
     currUser,
-    token: String(f.token || ""),
+    token: typeof f.token === "string" ? f.token : "",
   };
 }

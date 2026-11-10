@@ -10,7 +10,7 @@
  * 5. Form Config Spec Sanitization (sanitizeFormConfigRecord: cleans sparse database wire layout)
  * 6. Model Config Spec Sanitization (sanitizeModelConfigRecord: cleans table metadata)
  * 7. Tabular Inquiry Row Extraction (parseInquiryRecords: unpacks records array & totals)
- * 8. Navigation Menu Serialization (serializeMenuTreeToWireJson: transforms tree to database wire JSON)
+ * 8. Navigation Menu Serialization (sanitizeMenuTreeRecord: transforms tree to database wire JSON)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-data-parsers.ts
@@ -23,8 +23,8 @@ import {
   parseInquiryRecords,
   parseModelConfig,
   sanitizeFormConfigRecord,
+  sanitizeMenuTreeRecord,
   sanitizeModelConfigRecord,
-  serializeMenuTreeToWireJson,
   unwrapRecordsPayload,
 } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas";
@@ -328,47 +328,56 @@ async function runSuite() {
   );
 
   // ----------------------------------------------------------------------------
-  // 8. Navigation Menu Hierarchy Tree Serializer
+  // 8. Navigation Menu Hierarchy Tree Sanitizer & Serializer
   // ----------------------------------------------------------------------------
   const sampleTreeRecord = {
-    recordId: "MENU.ONE",
-    treeDescription: "Main Navigation Menu",
+    recordId: "menu.one  ",
+    treeDescription: "  Main Navigation Menu  ",
     menuTree: [
       {
         id: "root_1",
         menuId: 10,
-        label: "Banking Operations",
+        label: "  Banking Operations  ",
         isVisible: true,
-        orderIndex: 0,
+        orderIndex: 99,
         children: [
           {
             id: "leaf_1",
             menuId: 11,
-            label: "Customer Account",
-            command: "ACCOUNT I",
+            label: " Customer Account ",
+            command: "  ACCOUNT I  ",
             menuType: "FORM" as const,
             menuAction: "SCREEN" as const,
             isVisible: true,
-            orderIndex: 0,
+            orderIndex: 42,
             children: [],
           },
         ],
       },
     ],
   };
-  const serializedTree = serializeMenuTreeToWireJson(sampleTreeRecord);
+  const sanitizedTree = sanitizeMenuTreeRecord(sampleTreeRecord);
 
   recordTest(
-    "8. Menu Tree Serializer: Conforms internal tree structure for wire transmission",
+    "8. Menu Tree Sanitizer: Normalizes casing, trims whitespace & realigns sequential orderIndex",
     { recordId: sampleTreeRecord.recordId, rootNodes: sampleTreeRecord.menuTree.length },
     {
-      recordId: serializedTree.recordId,
-      rootNodesCount: serializedTree.menuTree.length,
-      firstLabel: serializedTree.menuTree[0]?.label,
+      recordId: sanitizedTree.recordId,
+      description: sanitizedTree.treeDescription,
+      rootLabel: sanitizedTree.menuTree[0]?.label,
+      rootOrderIndex: sanitizedTree.menuTree[0]?.orderIndex,
+      leafLabel: sanitizedTree.menuTree[0]?.children[0]?.label,
+      leafCommand: sanitizedTree.menuTree[0]?.children[0]?.command,
+      leafOrderIndex: sanitizedTree.menuTree[0]?.children[0]?.orderIndex,
     },
-    serializedTree.recordId === "MENU.ONE" &&
-      serializedTree.menuTree.length === 1 &&
-      serializedTree.menuTree[0]?.label === "Banking Operations",
+    sanitizedTree.recordId === "MENU.ONE" &&
+      sanitizedTree.treeDescription === "Main Navigation Menu" &&
+      sanitizedTree.menuTree.length === 1 &&
+      sanitizedTree.menuTree[0]?.label === "Banking Operations" &&
+      sanitizedTree.menuTree[0]?.orderIndex === 0 &&
+      sanitizedTree.menuTree[0]?.children[0]?.label === "Customer Account" &&
+      sanitizedTree.menuTree[0]?.children[0]?.command === "ACCOUNT I" &&
+      sanitizedTree.menuTree[0]?.children[0]?.orderIndex === 0,
   );
 
   // ----------------------------------------------------------------------------

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { serializeMenuTreeToWireJson } from "@/lib/data-parsers";
+import { sanitizeMenuTreeRecord } from "@/lib/data-parsers";
 import type {
   MenuDesignerValidationError,
   MenuTreeRecord,
@@ -37,7 +37,7 @@ export function useMdActions({
 
     setSubmitting(true);
     try {
-      const wireData = serializeMenuTreeToWireJson(formData);
+      const wireData = sanitizeMenuTreeRecord(formData);
       const json = await sendMutation(
         cbs.menuTree.save(wireData as unknown as Record<string, unknown>, {
           recordId: formData.recordId || recordId,

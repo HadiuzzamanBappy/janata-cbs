@@ -1,4 +1,3 @@
-import type { MenuRecord } from "@mock/db/SC_MENU";
 import { z } from "zod";
 import {
   type MenuAction,
@@ -29,6 +28,8 @@ interface RawMenuNode {
   [key: string]: unknown;
 }
 
+const VALID_MENU_TYPES: readonly MenuType[] = ["GROUP", "INQUIRY", "FORM", "REPORT"] as const;
+
 function normalizeNode(raw: RawMenuNode, idx: number, parentKey = "m"): MenuItem {
   const id = String(raw.id ?? raw.menuId ?? `${parentKey}-${idx}`);
   const rawChildren = raw.children ?? raw.items;
@@ -40,24 +41,19 @@ function normalizeNode(raw: RawMenuNode, idx: number, parentKey = "m"): MenuItem
   const rawMenuType = (raw.menuType ? String(raw.menuType).toUpperCase() : undefined) as
     | MenuType
     | undefined;
-  const validMenuTypes: MenuType[] = ["GROUP", "INQUIRY", "FORM", "REPORT"];
   const trimmedCmd = raw.command ? String(raw.command).trim().toUpperCase() : "";
   const inferredType: MenuType | undefined = trimmedCmd.startsWith("INQ")
     ? "INQUIRY"
-    : children && children.length > 0
+    : children.length > 0
       ? "GROUP"
       : trimmedCmd
         ? "FORM"
         : undefined;
 
-  const menuType = rawMenuType && validMenuTypes.includes(rawMenuType) ? rawMenuType : inferredType;
-
-  const rawMenuAction = (raw.menuAction ? String(raw.menuAction).toUpperCase() : undefined) as
-    | MenuAction
-    | undefined;
-  const menuAction = rawMenuAction === "POPUP" ? "POPUP" : "SCREEN";
-
-  const label = String(raw.label ?? raw.title ?? id);
+  const menuType =
+    rawMenuType && VALID_MENU_TYPES.includes(rawMenuType) ? rawMenuType : inferredType;
+  const menuAction = String(raw.menuAction ?? "").toUpperCase() === "POPUP" ? "POPUP" : "SCREEN";
+  const label = String(raw.label ?? raw.title ?? id).trim();
   const command = trimmedCmd || undefined;
 
   return {
@@ -96,10 +92,11 @@ export function parseMNU(
             : []
     ) as RawMenuNode[];
 
-    const result = nodes
-      .filter((node) => node && typeof node === "object" && node.isVisible !== false)
+    const data = nodes
+      .filter((node) => Boolean(node) && typeof node === "object" && node.isVisible !== false)
       .map((node, i) => normalizeNode(node, i));
-    return { success: true, data: result };
+
+    return { success: true, data };
   } catch (err) {
     return {
       success: false,
@@ -109,82 +106,7 @@ export function parseMNU(
 }
 
 /* ========================================================================== */
-/* 1. MENU CATALOG PARSERS (Table: SC_MENU)                                   */
-/* ========================================================================== */
-
-/**
- * Parses inbound JSON payload into a validated MenuRecord.
- */
-export function parseMenuCatalogRecord(
-  rawPayload: unknown,
-): { success: true; data: MenuRecord } | { success: false; error: string } {
-  if (!rawPayload || typeof rawPayload !== "object") {
-    return { success: false, error: "Menu catalog record payload is invalid" };
-  }
-
-  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  const list = unwrapRecordsPayload(decoded);
-  const target = (list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded)) as
-    | Record<string, unknown>
-    | undefined;
-
-  if (!target || typeof target !== "object") {
-    return { success: false, error: "Empty or invalid record payload" };
-  }
-
-  return {
-    success: true,
-    data: {
-      label: String(target.label ?? ""),
-      command: String(target.command ?? ""),
-      menuType: String(target.menuType ?? "FORM"),
-      menuAction: target.menuAction ? String(target.menuAction) : "SCREEN",
-      auditData: target.auditData as MenuRecord["auditData"],
-    },
-  };
-}
-
-/**
- * Parses a list of menu catalog records from CBS backend wire responses.
- */
-export function parseMenuCatalogList(
-  rawPayload: unknown,
-): { success: true; data: MenuRecord[] } | { success: false; error: string } {
-  if (!rawPayload) {
-    return { success: true, data: [] };
-  }
-
-  const rawList = unwrapRecordsPayload(rawPayload);
-  if (!Array.isArray(rawList)) {
-    return { success: false, error: "Expected an array of menu records" };
-  }
-
-  const data: MenuRecord[] = rawList.map((item) => {
-    const rec = (item ?? {}) as Record<string, unknown>;
-    return {
-      label: String(rec.label ?? ""),
-      command: String(rec.command ?? ""),
-      menuType: String(rec.menuType ?? "FORM"),
-      menuAction: rec.menuAction ? String(rec.menuAction) : "SCREEN",
-      auditData: rec.auditData as MenuRecord["auditData"],
-    };
-  });
-
-  return {
-    success: true,
-    data,
-  };
-}
-
-/**
- * Serializes internal MenuRecord for database storage or JSON preview.
- */
-export function serializeMenuCatalogToWireJson(record: MenuRecord): MenuRecord {
-  return { ...record };
-}
-
-/* ========================================================================== */
-/* 2. MENU TREE PARSERS (Table: SC_MENU_TREE)                                 */
+/* 1. MENU TREE PARSERS (Table: SC_MENU_TREE)                                 */
 /* ========================================================================== */
 
 /**
@@ -198,29 +120,17 @@ export function parseMenuTreeRecord(
   }
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  let target: unknown = decoded;
-  if (decoded && typeof decoded === "object") {
-    const rec = decoded as Record<string, unknown>;
-    if ("treeDescription" in rec || "menuTree" in rec) {
-      target = rec;
-    } else {
-      const list = unwrapRecordsPayload(decoded);
-      target = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
-    }
-  }
+  const target =
+    decoded &&
+    typeof decoded === "object" &&
+    !("treeDescription" in decoded || "menuTree" in decoded)
+      ? (unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded))
+      : decoded;
 
-  const parseResult = menuTreeRecordSchema.safeParse(target);
-  if (!parseResult.success) {
-    return {
-      success: false,
-      error: `MenuTree validation failed: ${parseResult.error.message}`,
-    };
-  }
-
-  return {
-    success: true,
-    data: parseResult.data,
-  };
+  const res = menuTreeRecordSchema.safeParse(target);
+  return res.success
+    ? { success: true, data: res.data }
+    : { success: false, error: `MenuTree validation failed: ${res.error.message}` };
 }
 
 /**
@@ -229,30 +139,70 @@ export function parseMenuTreeRecord(
 export function parseMenuTreeList(
   rawPayload: unknown,
 ): { success: true; data: MenuTreeRecord[] } | { success: false; error: string } {
-  if (!rawPayload) {
-    return { success: true, data: [] };
-  }
-
+  if (!rawPayload) return { success: true, data: [] };
   const rawList = unwrapRecordsPayload(rawPayload);
-  const parseResult = z.array(menuTreeRecordSchema).safeParse(rawList);
+  const res = z.array(menuTreeRecordSchema).safeParse(rawList);
+  return res.success
+    ? { success: true, data: res.data }
+    : { success: false, error: `Menu tree list validation failed: ${res.error.message}` };
+}
 
-  if (!parseResult.success) {
-    return {
-      success: false,
-      error: `Menu tree list validation failed: ${parseResult.error.message}`,
-    };
-  }
+/* ========================================================================== */
+/* 2. MENU TREE SANITIZATION & SERIALIZATION (Table: SC_MENU_TREE)            */
+/* ========================================================================== */
+
+/**
+ * Sanitizes an individual menu item node recursively for wire persistence:
+ * - Trims label, title, and command strings
+ * - Normalizes menuType (GROUP for folder nodes with children, INQUIRY/FORM for leaves)
+ * - Sequentially aligns orderIndex
+ * - Recursively purges empty/transient UI properties from children
+ */
+export function sanitizeMenuTreeNode(node: MenuItem, idx: number): MenuItem {
+  const label = (node.label ?? node.title ?? `node-${idx}`).trim();
+  const rawCmd = node.command ? node.command.trim() : "";
+  const children = Array.isArray(node.children)
+    ? node.children
+        .filter((child): child is MenuItem => Boolean(child) && typeof child === "object")
+        .map((child, childIdx) => sanitizeMenuTreeNode(child, childIdx))
+    : [];
+
+  const inferredType: MenuType =
+    children.length > 0 ? "GROUP" : rawCmd.toUpperCase().startsWith("INQ") ? "INQUIRY" : "FORM";
+  const menuType = node.menuType ?? inferredType;
 
   return {
-    success: true,
-    data: parseResult.data,
+    id: String(node.id || `node-${idx}`),
+    menuId: node.menuId,
+    label,
+    title: node.title?.trim() || label,
+    command: rawCmd || undefined,
+    componentName: node.componentName?.trim() || (rawCmd ? rawCmd.replace(/\./g, "_") : undefined),
+    menuType,
+    menuAction: node.menuAction === "POPUP" ? "POPUP" : "SCREEN",
+    isVisible: node.isVisible !== false,
+    orderIndex: idx,
+    children,
   };
 }
 
 /**
- * Serializes internal MenuTreeRecord for database storage or JSON preview.
+ * Sanitizes internal MenuTreeRecord for database storage or wire transmission.
+ * Ensures consistent trimmed strings, sequential node order, and schema conformity.
  */
-export function serializeMenuTreeToWireJson(record: MenuTreeRecord): MenuTreeRecord {
-  const result = menuTreeRecordSchema.safeParse(record);
-  return result.success ? result.data : record;
+export function sanitizeMenuTreeRecord(record: MenuTreeRecord): MenuTreeRecord {
+  const sanitized: MenuTreeRecord = {
+    recordId: record.recordId ? record.recordId.trim().toUpperCase() : undefined,
+    treeDescription: (record.treeDescription ?? "").trim(),
+    isActive: record.isActive !== false,
+    menuTree: Array.isArray(record.menuTree)
+      ? record.menuTree
+          .filter((item): item is MenuItem => Boolean(item) && typeof item === "object")
+          .map((item, idx) => sanitizeMenuTreeNode(item, idx))
+      : [],
+    auditData: record.auditData,
+  };
+
+  const result = menuTreeRecordSchema.safeParse(sanitized);
+  return result.success ? result.data : sanitized;
 }

@@ -57,9 +57,7 @@ export function useHotkeys(
   const { preventDefault = true, enableOnFormTags = false, enabled = true } = options;
 
   const handlerRef = useRef(handler);
-  useEffect(() => {
-    handlerRef.current = handler;
-  });
+  handlerRef.current = handler;
 
   useEffect(() => {
     if (!enabled) return;

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   Briefcase,
@@ -46,11 +46,7 @@ export function InquiryActions({
   return (
     <div className="flex items-center gap-1 shrink-0">
       {/* 1. Refresh Enquiry Data */}
-      <ActionBtn
-        onClick={onRefresh}
-        enabled={Boolean(onRefresh)}
-        defaultTooltip="Refresh Results (F5)"
-      >
+      <ActionBtn onClick={onRefresh} enabled={Boolean(onRefresh)} defaultTooltip="Refresh Results">
         <RefreshCw className="size-3" />
       </ActionBtn>
 

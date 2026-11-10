@@ -74,8 +74,8 @@ src/lib/cbs-screen/
                ▼                                 ▼
 ┌─────────────────────────────┐   ┌─────────────────────────────┐
 │      useGuardedAction       │   │        useCbsHotkeys        │
-│  • Return, New, Search      │   │  • F2, F3, F5, F6, F7, F8   │
-│  • Guarded when isDirty     │   │  • Universal terminal hotkey│
+│  • Return, New, Search      │   │  • Esc, F2, F5–F8, F10      │
+│  • Guarded when isDirty     │   │  • Minimal 1:1 screen keys  │
 └──────────────┬──────────────┘   └─────────────────────────────┘
                │
                ▼

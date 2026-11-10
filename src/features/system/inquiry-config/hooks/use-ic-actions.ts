@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeInquiryConfigRecord } from "@/lib/data-parsers";
 import type { CbsWirePayload } from "@/lib/data-schemas";
@@ -10,7 +10,7 @@ import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-sche
 import { CbsRecordFunction, CbsRequestType, type CbsScreenMode } from "@/types";
 import type { InquiryValidationErrorItem } from "./ic-validation";
 
-export interface UseIcSubmitOptions {
+export interface UseIcActionsOptions {
   formData: InquiryConfigRecord;
   recordId: string;
   handleValidate: () => boolean;
@@ -21,7 +21,7 @@ export interface UseIcSubmitOptions {
   setValidationErrors: (errors: InquiryValidationErrorItem[]) => void;
 }
 
-export function useIcSubmit({
+export function useIcActions({
   formData,
   recordId,
   handleValidate,
@@ -30,8 +30,9 @@ export function useIcSubmit({
   resetToIdle,
   setMode,
   setValidationErrors,
-}: UseIcSubmitOptions) {
+}: UseIcActionsOptions) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const { sendMutation } = useIdempotentSend();
 
   const handleSubmit = React.useCallback(
     async (funcCode: string = CbsRecordFunction.INPUT) => {
@@ -53,7 +54,7 @@ export function useIcSubmit({
           data: sanitized as unknown as Record<string, unknown>,
         };
 
-        const res = await cbs.send(payload);
+        const res = await sendMutation(payload);
         if (res.status === "SUCCESS" || res.success) {
           toast.add({
             title: "Operation Successful",
@@ -100,6 +101,7 @@ export function useIcSubmit({
       setValidationErrors,
       setMode,
       resetToIdle,
+      sendMutation,
     ],
   );
 

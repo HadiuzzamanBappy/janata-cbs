@@ -102,17 +102,18 @@ async function runSuite() {
   );
 
   // 1.5 SAVE / COMMIT
+  const sampleIdemUuid = "550e8400-e29b-41d4-a716-446655440000";
   const savePayload = account.save(
     { title: "Savings A/C" },
-    { recordId: "10001", idempotencyKey: "idem-1" },
+    { recordId: "10001", idempotencyKey: sampleIdemUuid },
   );
   recordTest(
-    "1.5 cbs.model.save: Builds PUT/INPUT envelope with data & idempotencyKey",
-    'account.save({ title: "Savings A/C" }, { recordId: "10001", idempotencyKey: "idem-1" })',
+    "1.5 cbs.model.save: Builds PUT/INPUT envelope with data & UUID idempotencyKey",
+    `account.save({ title: "Savings A/C" }, { recordId: "10001", idempotencyKey: "${sampleIdemUuid}" })`,
     savePayload,
     savePayload.requestType === CbsRequestType.PUT &&
       savePayload.recordFunction === CbsRecordFunction.INPUT &&
-      savePayload.idempotencyKey === "idem-1" &&
+      savePayload.idempotencyKey === sampleIdemUuid &&
       (savePayload.data as Record<string, unknown>)?.title === "Savings A/C",
   );
 
@@ -271,7 +272,7 @@ async function runSuite() {
   // --- 6. Universal Transport Dispatcher (cbs.send) ---
   console.log("\n── 6. Transport Dispatcher & Pre-Flight Validation (cbs.send) ──");
 
-  // 6.1 Pre-Flight Validation Guard
+  // 6.1 Pre-Flight Validation Guard (Empty requestType + Mutation missing idempotencyKey)
   let preflightCaught = false;
   let preflightError = "";
   try {
@@ -281,29 +282,53 @@ async function runSuite() {
     preflightCaught = true;
     preflightError = err instanceof Error ? err.message : String(err);
   }
+  let missingMutationKeyRejected = false;
+  try {
+    await cbs.send(account.save({ title: "Missing Key" }, { recordId: "10001" }), { silent: true });
+  } catch {
+    missingMutationKeyRejected = true;
+  }
   recordTest(
-    "6.1 cbs.send: Fails fast on malformed payload before network dispatch",
-    '{ requestType: "" }',
-    { caught: preflightCaught, error: preflightError },
-    preflightCaught && preflightError.includes("CLIENT_VALIDATION_ERROR"),
+    "6.1 cbs.send: Fails fast on malformed payload or mutation missing UUIDv4 idempotencyKey",
+    '{ requestType: "" } / PUT without idempotencyKey',
+    { caught: preflightCaught, missingMutationKeyRejected, error: preflightError },
+    preflightCaught &&
+      missingMutationKeyRejected &&
+      preflightError.includes("CLIENT_VALIDATION_ERROR"),
   );
 
   // 6.2 HTTP Mock Transport Matrix
   const originalFetch = globalThis.fetch;
   try {
-    // A. HTTP 200 SUCCESS
-    globalThis.fetch = async () =>
-      new Response(JSON.stringify({ status: "SUCCESS", data: { id: "101", balance: 500 } }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+    // A. HTTP 200 SUCCESS (Reads pass without fake keys; mutations forward caller UUIDv4)
+    let capturedBody: Record<string, unknown> = {};
+    globalThis.fetch = async (_url, init) => {
+      capturedBody = JSON.parse(String(init?.body || "{}")) as Record<string, unknown>;
+      return new Response(
+        JSON.stringify({ status: "SUCCESS", data: { id: "101", balance: 500 } }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    };
 
-    const successRes = await cbs.send(account.get("101"), { silent: true });
+    const readRes = await cbs.send(account.get("101"), { silent: true });
+    const mutRes = await cbs.send(
+      account.save({ title: "Savings A/C" }, { recordId: "101", idempotencyKey: sampleIdemUuid }),
+      { silent: true },
+    );
     recordTest(
-      "6.2 cbs.send: Dispatches HTTP POST /api/proxy and parses SUCCESS envelope",
-      'cbs.send(account.get("101"))',
-      successRes,
-      successRes.status === "SUCCESS" && (successRes.data as Record<string, unknown>)?.id === "101",
+      "6.2 cbs.send: Dispatches reads without fake keys and forwards mutation UUIDv4 idempotencyKey",
+      'cbs.send(account.get("101")) & cbs.send(account.save(..., { idempotencyKey }))',
+      {
+        idempotencyKey: capturedBody.idempotencyKey,
+        readStatus: readRes.status,
+        mutStatus: mutRes.status,
+      },
+      readRes.status === "SUCCESS" &&
+        mutRes.status === "SUCCESS" &&
+        capturedBody.idempotencyKey === sampleIdemUuid,
     );
 
     // B. Response Schema Validation

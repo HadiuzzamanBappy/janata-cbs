@@ -23,6 +23,7 @@ import {
   formatDateTime,
   formatValueDate,
   generateClientToken,
+  generateIdempotencyKey,
   toTitleCase,
 } from "@/lib/core-utils";
 
@@ -118,14 +119,23 @@ async function runSuite() {
     titleResult === "Janata Bank HO PLC ATM Branch",
   );
 
-  // ── 5. Ephemeral UI Client Token ──
-  console.log("\n── 5. Ephemeral UI Client Token (generateClientToken) ──");
+  // ── 5. Ephemeral UI Client Token & UUID Idempotency Key ──
+  console.log("\n── 5. Ephemeral UI Client Token & UUID Idempotency Key ──");
   const token = generateClientToken("rtn");
   recordTest(
     "5.1 Generates non-cryptographic short token with specified prefix",
     { prefix: "rtn" },
     { token },
     token.startsWith("rtn_") && token.length >= 10,
+  );
+
+  const idemKey = generateIdempotencyKey();
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  recordTest(
+    "5.2 Generates pure RFC 4122 UUIDv4 idempotencyKey",
+    "generateIdempotencyKey()",
+    { idemKey },
+    uuidRegex.test(idemKey),
   );
 
   // ── 6. Document Export Utilities ──

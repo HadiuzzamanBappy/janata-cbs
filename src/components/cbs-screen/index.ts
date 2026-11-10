@@ -16,6 +16,7 @@ export * from "./header/record-lookup-bar";
 // Hooks
 export * from "./hooks/use-cbs-persistence";
 export * from "./hooks/use-guarded-action";
+export * from "./hooks/use-idempotent-send";
 export * from "./hooks/use-record-lookup";
 
 // States

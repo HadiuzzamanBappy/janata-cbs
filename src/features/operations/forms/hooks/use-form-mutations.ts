@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { computeDelta } from "@/lib/cbs-record";
@@ -37,6 +38,7 @@ export function useFormMutations({
   onSuccess,
 }: UseFormMutationsProps) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const { sendMutation } = useIdempotentSend();
 
   const executeTransaction = React.useCallback(
     async (
@@ -84,7 +86,7 @@ export function useFormMutations({
       const targetId = (searchRecordId || (values.id as string) || "").trim();
 
       await executeTransaction(targetId, () =>
-        cbs.send(
+        sendMutation(
           cbs.model(modelCode).save(commitData, {
             recordId: targetId,
           }),
@@ -104,6 +106,7 @@ export function useFormMutations({
       values,
       searchRecordId,
       executeTransaction,
+      sendMutation,
     ],
   );
 
@@ -114,14 +117,14 @@ export function useFormMutations({
       await executeTransaction(
         targetId,
         () =>
-          cbs.send(cbs.model(modelCode).hold(targetId, values), {
+          sendMutation(cbs.model(modelCode).hold(targetId, values), {
             successTitle: "Transaction Held",
             successMessage: `Record draft for ${schema.title} placed on Hold.`,
           }),
         { resetOnSuccess: false },
       );
     };
-  }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction]);
+  }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction, sendMutation]);
 
   const handleDelete = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
@@ -137,13 +140,13 @@ export function useFormMutations({
       }
 
       await executeTransaction(targetId, () =>
-        cbs.send(cbs.model(modelCode).delete(targetId), {
+        sendMutation(cbs.model(modelCode).delete(targetId), {
           successTitle: "Record Deleted",
           successMessage: `Record #${targetId} marked for deletion in ${schema.title}.`,
         }),
       );
     };
-  }, [screenMode, schema, modelCode, searchRecordId, values.id, executeTransaction]);
+  }, [screenMode, schema, modelCode, searchRecordId, values.id, executeTransaction, sendMutation]);
 
   const handleAuthorizeReverse = React.useMemo(() => {
     if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
@@ -167,13 +170,13 @@ export function useFormMutations({
       const actionName = isLive ? "Reversal" : "Authorization";
 
       await executeTransaction(targetId, () =>
-        cbs.send(payload, {
+        sendMutation(payload, {
           successTitle: `${actionName} Successful`,
           successMessage: `Record #${targetId} ${actionName.toLowerCase()} completed for ${schema.title}.`,
         }),
       );
     };
-  }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction]);
+  }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction, sendMutation]);
 
   return {
     submitting,

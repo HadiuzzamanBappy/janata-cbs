@@ -177,6 +177,7 @@ async function runSuite() {
     }
 
     const envelope = {
+      idempotencyKey: parsed.data.idempotencyKey,
       servicePath: "default",
       requestType: rawWire.requestType,
       controlName: rawWire.controlName,

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
@@ -29,6 +30,8 @@ export function useFcActions({
   refreshForms,
   setSubmitting,
 }: UseFcActionsParams) {
+  const { sendMutation } = useIdempotentSend();
+
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
     const targetId = recordId || "";
@@ -37,7 +40,7 @@ export function useFcActions({
       // Clean internal canvas field ids & strip empty fields before sending to backend
       const cleanFormData = sanitizeFormConfigRecord(formData) || formData;
 
-      const res = await cbs.send<FormConfigRecord>(
+      const res = await sendMutation<FormConfigRecord>(
         cbs.formConfig.save(cleanFormData, { recordId: targetId }),
       );
       if (res.status === "SUCCESS") {
@@ -66,6 +69,7 @@ export function useFcActions({
     recordId,
     reset,
     resetToIdle,
+    sendMutation,
     setSubmitting,
   ]);
 
@@ -73,7 +77,7 @@ export function useFcActions({
     if (!recordId) return;
     setSubmitting(true);
     try {
-      const res = await cbs.send<FormConfigRecord>(cbs.formConfig.authorize(recordId));
+      const res = await sendMutation<FormConfigRecord>(cbs.formConfig.authorize(recordId));
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
@@ -92,13 +96,13 @@ export function useFcActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, setSubmitting]);
+  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, sendMutation, setSubmitting]);
 
   const handleHold = React.useCallback(async () => {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      const res = await cbs.send(cbs.formConfig.hold(recordId));
+      const res = await sendMutation(cbs.formConfig.hold(recordId));
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
@@ -111,13 +115,13 @@ export function useFcActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, rebaseline, setSubmitting]);
+  }, [recordId, rebaseline, sendMutation, setSubmitting]);
 
   const handleDelete = React.useCallback(async () => {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      const res = await cbs.send(cbs.formConfig.delete(recordId));
+      const res = await sendMutation(cbs.formConfig.delete(recordId));
       if (res.status === "SUCCESS") {
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
         await refreshForms();
@@ -131,13 +135,13 @@ export function useFcActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, refreshForms, reset, resetToIdle, setSubmitting]);
+  }, [recordId, refreshForms, reset, resetToIdle, sendMutation, setSubmitting]);
 
   const handleReverse = React.useCallback(async () => {
     if (!recordId) return;
     setSubmitting(true);
     try {
-      const res = await cbs.send(cbs.formConfig.reverse(recordId));
+      const res = await sendMutation(cbs.formConfig.reverse(recordId));
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
@@ -156,7 +160,7 @@ export function useFcActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, setSubmitting]);
+  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, sendMutation, setSubmitting]);
 
   return {
     handleSubmit,

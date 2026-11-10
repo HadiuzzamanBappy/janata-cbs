@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CBS_RECORD_STATUSES, type CbsRecordLifecycleStatus } from "@/types";
+import { CBS_RECORD_STATUSES, type CbsRecordLifecycleStatus, isCbsMutationRequest } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* 1. Protocol & Banking Enums (Zero Fallbacks, Strict Whitelist)             */
@@ -35,9 +35,22 @@ export type AuditData = z.infer<typeof auditDataSchema>;
 /* 3. Client -> BFF Wire Request (Zero Tolerance: STRICT)                     */
 /* -------------------------------------------------------------------------- */
 
+const enforceMutationIdempotency = (
+  val: { requestType: string; idempotencyKey?: string },
+  ctx: z.RefinementCtx,
+) => {
+  if (isCbsMutationRequest(val.requestType) && !val.idempotencyKey) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["idempotencyKey"],
+      message: "UUIDv4 idempotencyKey is required for mutation requests",
+    });
+  }
+};
+
 export const cbsWirePayloadSchema = z
   .object({
-    idempotencyKey: z.string().optional(),
+    idempotencyKey: z.uuid("Idempotency key must be a valid UUID").optional(),
     requestType: z.string().min(1, "Request type is required"),
     controlName: z.string().optional(),
     recordFunction: z.string().optional(),
@@ -47,7 +60,8 @@ export const cbsWirePayloadSchema = z
     servicePath: z.string().optional(),
     data: z.record(z.string(), z.unknown()).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine(enforceMutationIdempotency);
 
 export type CbsWirePayload = z.infer<typeof cbsWirePayloadSchema>;
 
@@ -55,19 +69,21 @@ export type CbsWirePayload = z.infer<typeof cbsWirePayloadSchema>;
 /* 5. Server Envelope Contract (BFF Proxy -> gRPC / Core Dispatcher)          */
 /* -------------------------------------------------------------------------- */
 
-export const grpcEnvelopeSchema = z.object({
-  idempotencyKey: z.string().optional(),
-  clientId: z.string().min(1),
-  requestType: z.string().min(1),
-  controlName: z.string().default(""),
-  recordFunction: z.string().default(""),
-  recordId: z.string().default(""),
-  branchCode: z.string().min(1),
-  authLevel: z.number().int().min(0).max(9),
-  userId: z.string().min(1),
-  servicePath: z.string().default("default"),
-  data: z.record(z.string(), z.unknown()).default({}),
-});
+export const grpcEnvelopeSchema = z
+  .object({
+    idempotencyKey: z.uuid("Idempotency key must be a valid UUID").optional(),
+    clientId: z.string().min(1),
+    requestType: z.string().min(1),
+    controlName: z.string().default(""),
+    recordFunction: z.string().default(""),
+    recordId: z.string().default(""),
+    branchCode: z.string().min(1),
+    authLevel: z.number().int().min(0).max(9),
+    userId: z.string().min(1),
+    servicePath: z.string().default("default"),
+    data: z.record(z.string(), z.unknown()).default({}),
+  })
+  .superRefine(enforceMutationIdempotency);
 export type GrpcEnvelope = z.infer<typeof grpcEnvelopeSchema>;
 
 /* -------------------------------------------------------------------------- */

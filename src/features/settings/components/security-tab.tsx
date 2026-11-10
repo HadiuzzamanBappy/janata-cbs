@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import * as React from "react";
+import { useIdempotentSend } from "@/components/cbs-screen";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { useSessionStore } from "@/store";
 
 export function ChangePassword() {
   const { user } = useSessionStore();
+  const { sendMutation } = useIdempotentSend();
 
   // Username State
   const [unameLoading, setUnameLoading] = React.useState(false);
@@ -57,7 +59,7 @@ export function ChangePassword() {
 
     setUnameLoading(true);
     try {
-      const res = await cbs.send(
+      const res = await sendMutation(
         cbs.userSecurity.changeSignOnName({
           oldUserName,
           newUserName,
@@ -103,7 +105,7 @@ export function ChangePassword() {
     setPassLoading(true);
 
     try {
-      const res = await cbs.send(
+      const res = await sendMutation(
         cbs.userSecurity.changePassword({
           currPass: oldPassword,
           newPass: newPassword,

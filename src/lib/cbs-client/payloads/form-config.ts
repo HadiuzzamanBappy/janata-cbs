@@ -40,7 +40,6 @@ export const formConfigPayloads = {
     options?: ModelOptions & {
       recordId?: string;
       recordFunction?: CbsRecordFunction;
-      idempotencyKey?: string;
     },
   ): CbsWirePayload => {
     const targetId = (options?.recordId || data?.recordId || data?.formId || "")

@@ -95,6 +95,36 @@ export const CbsRequestType = {
 
 export type CbsRequestType = (typeof CbsRequestType)[keyof typeof CbsRequestType];
 
+/**
+ * State-changing CBS wire request verbs that strictly require an attempt-scoped
+ * UUIDv4 idempotencyKey from the client origin.
+ */
+export const CBS_MUTATION_REQUEST_TYPES: ReadonlySet<string> = new Set<string>([
+  CbsRequestType.PUT,
+  CbsRequestType.DEL,
+  CbsRequestType.AUT,
+  CbsRequestType.REV,
+  CbsRequestType.TRV,
+  CbsRequestType.HLD,
+  CbsRequestType.SMC,
+  CbsRequestType.AMC,
+  CbsRequestType.SFC,
+  CbsRequestType.SMR,
+  CbsRequestType.DTR,
+  CbsRequestType.ATT,
+  CbsRequestType.CTT,
+  CbsRequestType.AFT,
+  CbsRequestType.CPW,
+  CbsRequestType.CUN,
+]);
+
+/**
+ * Returns true if the requestType is a state-changing mutation requiring idempotency.
+ */
+export function isCbsMutationRequest(requestType: string): boolean {
+  return CBS_MUTATION_REQUEST_TYPES.has((requestType || "").trim().toUpperCase());
+}
+
 /* -------------------------------------------------------------------------- */
 /* 2. Target Control Table Identifiers                                       */
 /* -------------------------------------------------------------------------- */

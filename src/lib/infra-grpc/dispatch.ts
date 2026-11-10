@@ -1,6 +1,5 @@
 import "server-only";
 
-import { randomUUID } from "node:crypto";
 import { mockDispatch } from "@mock/core";
 import { getServiceUrl, serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
@@ -39,7 +38,7 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
     const isFinancial = isFinancialRequest(envelope.requestType);
 
     const req: GrpcRequest = {
-      idempotencyKey: envelope.idempotencyKey || (isFinancial ? randomUUID() : ""),
+      idempotencyKey: envelope.idempotencyKey ?? "",
       clientId: envelope.clientId,
       requestType: envelope.requestType,
       controlName: envelope.controlName,
@@ -87,7 +86,7 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
       status: "FAIL",
       statusCode: status,
       message,
-      idempotencyKey: "",
+      idempotencyKey: envelope.idempotencyKey ?? "",
       errors: [message],
       timestamp: new Date().toISOString(),
       data: null,

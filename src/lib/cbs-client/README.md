@@ -10,7 +10,7 @@ It acts as the single boundary between the React presentation layer and the serv
 
 1. **`cbs.send` (`transport/proxy-client.ts`)**:
    - Type-safe HTTP fetch client dispatching payloads through `/api/proxy`.
-   - Pre-flight validation against `cbsWirePayloadSchema` (fails fast on malformed requests before network dispatch).
+   - Pre-flight validation against `cbsWirePayloadSchema` (requires valid UUIDv4 `idempotencyKey` on all mutation verbs via `useIdempotentSend()`, leaving reads key-free).
    - Automatic UI toast notifications for Success, Warning, and Banking Rule Rejections via `handleCbsResponseSemantics`.
    - Supports `AbortSignal` for request cancellation and runtime Zod `responseSchema` validation.
 

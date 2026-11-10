@@ -40,19 +40,22 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     const body = await req.json();
     const parsed = updateBranchSessionSchema.safeParse(body);
-
-    if (parsed.success) {
-      const updatedUser = await updateBranchCodeAndName(
-        parsed.data.branchCode,
-        parsed.data.branchName,
+    if (!parsed.success) {
+      return apiFail(
+        parsed.error.issues[0]?.message || "Invalid branch update parameters",
+        400,
+        parsed.error.issues.map((i) => i.message),
       );
-      if (!updatedUser) {
-        return apiFail("Failed to update session branch", 500);
-      }
-      return apiSuccess(updatedUser, "Branch context updated successfully");
     }
 
-    return apiSuccess(session.currUser);
+    const updatedUser = await updateBranchCodeAndName(
+      parsed.data.branchCode,
+      parsed.data.branchName,
+    );
+    if (!updatedUser) {
+      return apiFail("Failed to update session branch", 500);
+    }
+    return apiSuccess(updatedUser, "Branch context updated successfully");
   } catch (error: unknown) {
     sessionLogger.error("POST /api/session failed", error);
     return apiError(error, "Internal server error updating session");

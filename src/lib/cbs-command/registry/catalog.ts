@@ -52,7 +52,7 @@ export const MASTER_COMMAND_DEFINITIONS: readonly ControlCommand[] = [
   },
 ] as const;
 
-export function getAllRegisteredCommands(): ControlCommand[] {
+export function getMasterCommands(): ControlCommand[] {
   return [...MASTER_COMMAND_DEFINITIONS];
 }
 

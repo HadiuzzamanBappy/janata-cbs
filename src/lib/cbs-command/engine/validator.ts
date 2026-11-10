@@ -1,4 +1,4 @@
-import { parseAccessibilityRights } from "@/lib/cbs-access";
+import { hasAccessibilityRight } from "@/lib/cbs-access";
 import { CBS_FUNCTION_DEFINITIONS, type CbsUserSecurityContext } from "@/types";
 import type { CommandValidationResult, ParsedCommand } from "../types";
 
@@ -38,20 +38,14 @@ export function validateSecurityPermissions(
     };
   }
 
-  // 5. Function rights (RIDASH) check
-  if (command.functionCode) {
-    const userRights = parseAccessibilityRights(user.accessibility);
-
-    const hasRight = userRights.includes(command.functionCode);
-    if (!hasRight) {
-      const funcName =
-        CBS_FUNCTION_DEFINITIONS[command.functionCode]?.label || command.functionCode;
-      return {
-        allowed: false,
-        reason: `Permission Denied: User lacks ${funcName} rights for application ${command.application}.`,
-        requiredRight: command.functionCode,
-      };
-    }
+  // 5. Function rights (RIDASHL) check via centralized access helper
+  if (command.functionCode && !hasAccessibilityRight(user.accessibility, command.functionCode)) {
+    const funcName = CBS_FUNCTION_DEFINITIONS[command.functionCode]?.label || command.functionCode;
+    return {
+      allowed: false,
+      reason: `Permission Denied: User lacks ${funcName} rights for application ${command.application}.`,
+      requiredRight: command.functionCode,
+    };
   }
 
   return { allowed: true };

@@ -5,57 +5,33 @@ import type { ApiResponse } from "@/lib/data-schemas";
 import { type CbsWirePayload, cbsWirePayloadSchema } from "@/lib/data-schemas";
 import { handleCbsResponseSemantics } from "./response-handler";
 
-/* -------------------------------------------------------------------------- */
-/* Client Request Options Contract                                            */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Configuration options for dispatching a CBS request.
- */
 export interface SendCbsOptions<T = unknown> {
-  /** If true, suppresses automatic toast notifications */
   readonly silent?: boolean;
-  /** Toast title to display upon SUCCESS response */
   readonly successTitle?: string;
-  /** Toast description to display upon SUCCESS response */
   readonly successMessage?: string;
-  /** Toast description override to display upon error */
   readonly errorMessage?: string;
-  /** Optional AbortSignal to cancel in-flight requests (e.g., on unmount or keystroke) */
   readonly signal?: AbortSignal;
-  /** Optional runtime Zod schema to validate response data */
   readonly responseSchema?: z.ZodType<T>;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Universal HTTP Proxy Dispatcher                                            */
-/* -------------------------------------------------------------------------- */
+function notifyError(title: string, description: string, silent?: boolean): void {
+  if (!silent) {
+    toast.add({ title, description, type: "error" });
+  }
+}
 
 /**
- * Universal type-safe fetch client for CBS backend communication.
- *
- * Automatically routes through `/api/proxy`, handles session expiration (401),
- * validates wire parameters pre-flight, and renders UI toast alerts via response-handler.
- *
- * @param rawPayload - Standard wire payload describing the target operation.
- * @param options - Toast behavior, abort signal, and response validation options.
- * @returns Resolves with the standard ApiResponse envelope from the proxy.
+ * Universal type-safe fetch client routing through `/api/proxy`.
  */
 export async function sendCbsRequest<T = unknown>(
   rawPayload: CbsWirePayload,
   options?: SendCbsOptions<T>,
 ): Promise<ApiResponse<T>> {
-  // 1. Client-Side Pre-Flight Validation (Fail-Fast before network call)
+  // Pre-flight wire payload validation
   const validation = cbsWirePayloadSchema.safeParse(rawPayload);
   if (!validation.success) {
     const errorMsg = validation.error.issues[0]?.message || "Invalid CBS wire payload structure";
-    if (!options?.silent) {
-      toast.add({
-        title: "Payload Error",
-        description: errorMsg,
-        type: "error",
-      });
-    }
+    notifyError("Payload Error", errorMsg, options?.silent);
     throw new Error(`CLIENT_VALIDATION_ERROR: ${errorMsg}`);
   }
 
@@ -70,61 +46,39 @@ export async function sendCbsRequest<T = unknown>(
     });
 
     if (res.status === 401) {
-      toast.add({
-        title: "Session Expired",
-        description: "Your session has expired. Please log in again to continue.",
-        type: "error",
-      });
+      notifyError("Session Expired", "Your session has expired. Please log in again to continue.");
       throw new Error("UNAUTHORIZED");
     }
 
     const json = (await res.json()) as ApiResponse<T>;
-    const statusCode = json.statusCode || res.status;
 
-    // 2. Client-Side Runtime Schema Validation (optional)
+    // Optional response schema validation
     if (res.ok && json.status === "SUCCESS" && options?.responseSchema && json.data !== undefined) {
       const validated = options.responseSchema.safeParse(json.data);
       if (!validated.success) {
         const schemaErrorMsg =
           validated.error.issues[0]?.message || "Invalid server response structure";
-        if (!options.silent) {
-          toast.add({
-            title: "Response Validation Failed",
-            description: schemaErrorMsg,
-            type: "error",
-          });
-        }
+        notifyError("Response Validation Failed", schemaErrorMsg, options.silent);
         throw new Error(`RESPONSE_SCHEMA_ERROR: ${schemaErrorMsg}`);
       }
     }
 
-    // 3. Status Semantics & Toast Alerts (Section 6.6)
     handleCbsResponseSemantics(json, res.status, options, payload.recordId);
-
-    if (statusCode === 401) {
-      throw new Error("UNAUTHORIZED");
-    }
 
     return json;
   } catch (err: unknown) {
-    // If request was intentionally aborted, don't trigger error toasts
-    if (err instanceof DOMException && err.name === "AbortError") {
+    const isExpectedBailout =
+      (err instanceof DOMException && err.name === "AbortError") ||
+      (err instanceof Error && err.message === "UNAUTHORIZED");
+
+    if (isExpectedBailout) {
       throw err;
     }
 
-    if (err instanceof Error && err.message === "UNAUTHORIZED") {
-      throw err;
-    }
-
-    if (!options?.silent) {
-      toast.add({
-        title: "Network Error",
-        description:
-          options?.errorMessage ||
-          (err instanceof Error ? err.message : "CBS Gateway Communication Failed"),
-        type: "error",
-      });
-    }
+    const errorDesc =
+      options?.errorMessage ||
+      (err instanceof Error ? err.message : "CBS Gateway Communication Failed");
+    notifyError("Network Error", errorDesc, options?.silent);
     throw err;
   }
 }

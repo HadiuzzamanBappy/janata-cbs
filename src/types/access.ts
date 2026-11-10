@@ -17,8 +17,16 @@ export const CbsRecordFunction = {
 } as const;
 
 export type CbsRecordFunction = (typeof CbsRecordFunction)[keyof typeof CbsRecordFunction];
-export const CBS_FUNCTION_CODES = Object.values(CbsRecordFunction);
-export const CBS_FUNCTION_CODE_SET = new Set<string>(CBS_FUNCTION_CODES);
+export const CBS_FUNCTION_CODES: readonly CbsRecordFunction[] = Object.values(CbsRecordFunction);
+
+/** Controlled mutating function codes requiring server-side permission checks */
+export const CBS_CONTROLLED_FUNCTIONS: readonly CbsRecordFunction[] = [
+  CbsRecordFunction.INPUT,
+  CbsRecordFunction.AUTHORIZE,
+  CbsRecordFunction.DELETE,
+  CbsRecordFunction.REVERSE,
+  CbsRecordFunction.HOLD,
+];
 
 export interface CbsFunctionDefinition {
   readonly code: CbsRecordFunction;
@@ -65,23 +73,13 @@ export const CBS_FUNCTION_DEFINITIONS = {
 } as const satisfies Record<CbsRecordFunction, CbsFunctionDefinition>;
 
 /* -------------------------------------------------------------------------- */
-/* 2. Canonical User Security Roles & Capability Context                      */
+/* 2. Canonical User Security Context                                         */
 /* -------------------------------------------------------------------------- */
 
-export const CBS_USER_ROLES = {
-  ADMIN: "ADMIN",
-  USER: "USER",
-} as const;
-
-export type CbsUserRole = (typeof CBS_USER_ROLES)[keyof typeof CBS_USER_ROLES] | (string & {});
-
-/**
- * Universal User Security Profile Context.
- */
 export interface CbsUserSecurityContext {
   readonly userId?: string;
   readonly commandLine?: boolean;
-  readonly accessibility?: string | readonly string[];
-  readonly userRole?: readonly CbsUserRole[];
+  readonly accessibility?: readonly string[];
+  readonly userRole?: readonly string[];
   readonly userGroup?: readonly string[];
 }

@@ -26,20 +26,12 @@ export function registerDynamicAliases(controls: readonly ControlCommand[]): voi
 registerDynamicAliases(MASTER_COMMAND_DEFINITIONS);
 
 /**
- * Returns the canonical screen identifier for a given raw command or alias.
- */
-export function getCanonicalScreenKey(input: string): string | undefined {
-  if (!input) return undefined;
-  return CANONICAL_SCREEN_MAP.get(input.trim().toUpperCase());
-}
-
-/**
  * Resolves an alias to its canonical target command, or returns the input if already canonical.
  */
 export function resolveCommandAlias(input: string): string {
   if (!input) return "";
   const clean = input.trim().toUpperCase();
-  return CANONICAL_SCREEN_MAP.get(clean) || clean;
+  return CANONICAL_SCREEN_MAP.get(clean) ?? clean;
 }
 
 /**

@@ -12,21 +12,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useCbsAccess } from "@/lib/cbs-access";
+import type { CbsAccessResult } from "@/lib/cbs-access";
 import type { MoreActionItem } from "@/lib/cbs-screen/types";
 import { ActionBtn } from "./action-btn";
 
 export interface ActionMoreMenuProps {
   moreActions?: MoreActionItem[];
   submitting?: boolean;
+  access: CbsAccessResult;
 }
 
 /**
  * Secondary Operations Dropdown & Executor for CBS screens.
  * Allows users to pick an extra lifecycle action and execute it with permission enforcement.
  */
-export function ActionMoreMenu({ moreActions = [], submitting = false }: ActionMoreMenuProps) {
-  const access = useCbsAccess();
+export function ActionMoreMenu({
+  moreActions = [],
+  submitting = false,
+  access,
+}: ActionMoreMenuProps) {
   const [selectedAction, setSelectedAction] = React.useState<MoreActionItem | null>(null);
 
   const isAllowed = selectedAction

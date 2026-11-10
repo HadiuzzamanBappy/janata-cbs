@@ -119,7 +119,7 @@ async function runSuite() {
     branchName: "Corporate Branch",
     txnDate: "2026-11-03",
     userRole: "TELLER",
-    accessibility: "RS",
+    accessibility: ["R", "S"],
     commandLine: true,
     token: "mock-jwt-session-token",
   };

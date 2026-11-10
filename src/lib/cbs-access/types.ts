@@ -5,35 +5,31 @@ import type {
   CbsUserSecurityContext,
 } from "@/types";
 
-/* -------------------------------------------------------------------------- */
-/* Access Evaluation Context & Parameter Contracts                           */
-/* -------------------------------------------------------------------------- */
-
-/** Canonical alias for user context within cbs-access */
-export type CbsAccessUser = CbsUserSecurityContext;
-
+/**
+ * Universal context for evaluating CBS access rights, screen modes, and Four-Eyes compliance.
+ */
 export interface CbsAccessContext {
-  /** Optional user override to evaluate access without reading from adapter */
-  readonly user?: CbsAccessUser | null;
-  /** Screen command code (e.g. "CUSTOMER", "ACCOUNT", "MODEL.CONFIG") */
-  readonly command?: string;
-  /** Active record lifecycle status (INA, AU, HLD, etc.) */
+  /** User security profile or session context */
+  readonly user?: CbsUserSecurityContext | null;
+  /** Active user ID (defaults to user.userId; used for Four-Eyes verification) */
+  readonly userId?: string;
+  /** Function code rights (e.g. ['R', 'I', 'D', 'A', 'S', 'H', 'L']) */
+  readonly grantedRights?: readonly string[];
+  /** Lifecycle status of the current record (e.g. "INA", "AU", "HLD") */
   readonly recordStatus?: CbsRecordLifecycleStatus | string;
-  /** Inputter/Maker user ID of the current record */
+  /** User ID of the record creator/maker (used for Four-Eyes verification) */
   readonly recordInputter?: string;
-  /** Active screen display mode (IDLE, I, S, A, D, R, H, L) */
+  /** Current screen display mode */
   readonly mode?: CbsScreenMode;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Access Capability Evaluation Result                                        */
-/* -------------------------------------------------------------------------- */
-
+/**
+ * Evaluated access capabilities, UI flags, and compliance checks for the current session and record.
+ */
 export interface CbsAccessResult {
-  /** Whether user has a specific function code right in their accessibility profile */
+  /** Checks if the user holds a specific function code right */
   readonly hasFunctionRight: (code: CbsRecordFunction) => boolean;
 
-  /** Dynamic capability evaluations taking record state & Four-Eyes into account */
   readonly canSee: boolean;
   readonly canInput: boolean;
   readonly canDelete: boolean;
@@ -42,15 +38,15 @@ export interface CbsAccessResult {
   readonly canReverse: boolean;
   readonly canList: boolean;
 
-  /** True if screen should be rendered read-only */
+  /** True if the screen inputs should be disabled / read-only */
   readonly isReadOnly: boolean;
 
-  /** True if Four-Eyes compliance is violated (Maker trying to authorize own record) */
+  /** True if Maker and Checker are the same user (violating Four-Eyes principle) */
   readonly isFourEyesViolation: boolean;
 
-  /** Returns human-readable disabled explanation for tooltips */
+  /** Returns user-facing reason why a specific action is disabled, or null if enabled */
   readonly getDisableReason: (action: CbsRecordFunction) => string | null;
 
-  /** Raw parsed function rights array (e.g. ['R', 'I', 'D', 'A', 'S', 'H']) */
+  /** All granted function code rights for the active user */
   readonly grantedRights: readonly CbsRecordFunction[];
 }

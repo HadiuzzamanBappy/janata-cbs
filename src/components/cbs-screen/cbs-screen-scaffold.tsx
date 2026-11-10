@@ -1,7 +1,7 @@
 import { ConfirmDialog } from "@/components/feedback/confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCbsAccess } from "@/lib/cbs-access";
+import { useCbsAccess } from "@/hooks";
 import { useCbsHotkeys } from "@/lib/cbs-hotkeys";
 import type { CbsScreenScaffoldProps } from "@/lib/cbs-screen";
 import { CbsFormHeader } from "./header/cbs-form-header";
@@ -77,7 +77,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
   // 1. ACCESS & CAPABILITY GATE (RIDASHL & Four-Eyes Principle)
   // ===========================================================================
   const access = useCbsAccess({
-    command: commandCode,
     recordStatus: auditContext?.recStatus,
     recordInputter: auditContext?.recInputter,
     mode,
@@ -163,6 +162,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
           recordStatus={auditContext?.recStatus}
           recordInputter={auditContext?.recInputter}
           submitting={submitting}
+          access={access}
           availableItems={availableItems}
           moreActions={moreActions}
           validationErrors={validationErrors}

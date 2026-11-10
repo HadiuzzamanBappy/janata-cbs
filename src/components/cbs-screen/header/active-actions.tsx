@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUp, Check, Pause, Play, X } from "lucide-react";
+import type { CbsAccessResult } from "@/lib/cbs-access";
 import { useCbsActionBar } from "@/lib/cbs-screen";
 import type { CbsScreenMode } from "@/types";
 import { ActionBtn } from "./action-btn";
@@ -12,6 +13,7 @@ export interface ActiveActionsProps {
   command?: string;
   recordId?: string;
   submitting?: boolean;
+  access?: CbsAccessResult;
   onSubmit?: () => void;
   onValidate?: () => void;
   onHold?: () => void;
@@ -31,6 +33,7 @@ export function ActiveActions({
   command,
   recordId = "",
   submitting = false,
+  access,
   onSubmit,
   onValidate,
   onHold,
@@ -45,6 +48,7 @@ export function ActiveActions({
     recordInputter,
     command,
     submitting,
+    access,
     onSubmit,
     onValidate,
     onHold,

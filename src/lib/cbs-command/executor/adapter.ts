@@ -1,5 +1,5 @@
 import type { CbsScreenMode, CbsUserSecurityContext } from "@/types";
-import type { CommandInquiryState } from "../types";
+import type { CommandInquiryState, ParsedCommand } from "../types";
 
 export interface CommandTabPayload {
   readonly screenId: string;
@@ -12,17 +12,12 @@ export interface CommandTabPayload {
 }
 
 export interface CommandAdapter {
-  /** Get the current user profile for RBAC permission checks */
   readonly getCurrentUser?: () => CbsUserSecurityContext | null | undefined;
-  /** Spawn or open a tab inside the active workspace */
   readonly openTab?: (tab: CommandTabPayload) => void;
 }
 
 let activeAdapter: CommandAdapter = {};
 
-/**
- * Register a command adapter (called by WorkbenchProvider / App Shell).
- */
 export function registerCommandAdapter(adapter: Partial<CommandAdapter>): () => void {
   activeAdapter = { ...activeAdapter, ...adapter };
   return () => {
@@ -30,9 +25,16 @@ export function registerCommandAdapter(adapter: Partial<CommandAdapter>): () => 
   };
 }
 
-/**
- * Access the active command adapter.
- */
 export function getCommandAdapter(): CommandAdapter {
   return activeAdapter;
+}
+
+/**
+ * Resolves the canonical screen identifier string from a parsed command.
+ */
+export function resolveScreenId(parsed: ParsedCommand): string {
+  if (parsed.type === "INQUIRY") {
+    return parsed.application.startsWith("INQ ") ? parsed.application : `INQ ${parsed.application}`;
+  }
+  return parsed.version ? `${parsed.application},${parsed.version}` : parsed.application;
 }

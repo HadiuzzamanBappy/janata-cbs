@@ -14,7 +14,7 @@ It gives tellers and power operators the traditional command-line navigation spe
    `cbs-command` **NEVER** imports from `@/store`, `@/components`, `@/features`, or `@/app`. Upward UI notifications strictly use the **Inversion of Control Adapter Bus** (`registerCommandAdapter`).
 
 2. **Clean Inversion of Control (Zero Store Coupling)**:
-   The command engine does not directly mutate Zustand, Redux, or React context. The UI shell mounts a `CommandAdapter` once at app startup, providing hooks for `getCurrentUser`, `openTab`, `openPopup`, and `openInquiry`.
+   The command engine does not directly mutate Zustand, Redux, or React context. The UI shell mounts a `CommandAdapter` once at app startup, providing hooks for `getCurrentUser` and `openTab`.
 
 3. **Deterministic AST Pipeline**:
    Every raw input string passes through a linear, 3-stage pure pipeline:
@@ -24,7 +24,7 @@ It gives tellers and power operators the traditional command-line navigation spe
    - **Execution Routing**
 
 4. **Zero Magic Strings & Zero Fake IDs**:
-   All screen modes come from `CbsScreenMode`, action codes from `CbsRecordFunction`, and controls from `ControlCommand`. Record IDs are never mocked with timestamps.
+   All screen modes come from `CbsScreenMode`, action codes from `CbsRecordFunction`, and components from `CBS_SCREEN_COMPONENTS`. Record IDs are never mocked with timestamps.
 
 ---
 
@@ -35,20 +35,20 @@ Raw Command String (e.g., "ACCOUNT I 1000001", "INQ S GET.CUSTOMER", "SETTINGS:P
          │
          ▼
 [ 1. Registry & Alias Lookup ] (@/lib/cbs-command/registry)
-  • Resolves registered shorthand aliases: "MD" ➔ "SC.MENU.DESIGN", "MC" ➔ "SC.MODEL.BUILDER"
-  • Injects metadata (controlAction, controlType, title, category)
+  • Resolves registered shorthand aliases: "MD" ➔ "SC.MENU.DESIGN", "MC" ➔ "SC.MODEL.CONFIG"
+  • Injects metadata (controlAction, controlType, title)
          │
          ▼
 [ 2. Grammar Engine & Protocol Handlers ] (@/lib/cbs-command/engine, handlers/)
-  • SettingsHandler : Intercepts "SETTINGS:TAB", "THEME", "DARK", "PREFERENCES"
-  • InquiryHandler  : Parses "INQ [S] <QUERY_NAME> [PARAMS]"
-  • FormHandler     : Parses "<APP>[,<VER>] [FN] [RECORD_ID]" (RIDASHL grammar)
-  • Output          : Strongly-typed CommandExecutionAST
+  • SettingsCommandHandler : Intercepts "SETTINGS:TAB", "THEME", "DARK", "SECURITY"
+  • InquiryCommandHandler  : Parses "INQ [S] <QUERY_NAME>"
+  • FormCommandHandler     : Parses "<APP>[,<VER>] [FN] [RECORD_ID]" (RIDASHL grammar)
+  • Output                 : Strongly-typed ParsedCommand AST
          │
          ▼
 [ 3. RBAC Pre-Execution Guard ] (@/lib/cbs-command/engine/validator.ts)
-  • Validates commandLine clearance from user security profile
-  • Evaluates RIDASHL capabilities via @/lib/cbs-access (parseAccessibilityRights)
+  • Validates commandLine clearance from user security profile (commandLine !== false)
+  • Evaluates RIDASHL capabilities via @/lib/cbs-access (hasAccessibilityRight)
          │
          ▼
 [ 4. Execution Router ] (@/lib/cbs-command/executor)
@@ -61,27 +61,28 @@ Raw Command String (e.g., "ACCOUNT I 1000001", "INQ S GET.CUSTOMER", "SETTINGS:P
 
 ## 🕹️ Supported Banking Command Syntax
 
-| Protocol / Pattern      | Command Example       | Mode   | Description                                                          |
-| :---------------------- | :-------------------- | :----- | :------------------------------------------------------------------- |
-| **Base Application**    | `ACCOUNT`             | `IDLE` | Opens application in lookup / search mode                            |
-| **Auto-Auth Entry**     | `ACCOUNT,`            | `I`    | Direct data entry with supervisor auto-auth level 0 (`authLevel: 0`) |
-| **Versioned Screen**    | `CUSTOMER,KYC`        | `IDLE` | Opens specific sub-version / presentation spec of application        |
-| **Record Direct Open**  | `ACCOUNT 1000001`     | `I`    | Opens record in default Input (`I`) mode                             |
-| **Explicit Function**   | `ACCOUNT S 1000001`   | `S`    | **See**: Read-only ledger inspection (no record locks)               |
-|                         | `ACCOUNT I 1000001`   | `I`    | **Input**: Draft capture & updates (stages to `$NAU`)                |
-|                         | `ACCOUNT A 1000001`   | `A`    | **Authorize**: Checker approval (promotes draft to Live ledger)      |
-|                         | `ACCOUNT D 1000001`   | `D`    | **Delete**: Purges unapproved draft from unauthorized queue          |
-|                         | `ACCOUNT R 1000001`   | `R`    | **Reverse**: Reverses authorized record with offsetting entries      |
-|                         | `ACCOUNT H 1000001`   | `H`    | **Hold**: Parks draft pending further maker inputs                   |
-|                         | `ACCOUNT L`           | `L`    | **List**: Opens directory / table listing                            |
-| **Composite Record ID** | `ACCOUNT S 1000001;2` | `S`    | Supports multi-part keys (e.g., semicolon version notation)          |
-| **Inquiry Query**       | `INQ S GET.CUSTOMER`  | `S`    | Executes data inquiry / directory query                              |
-|                         | `INQUIRY GET.ACCOUNT` | `S`    | Long-form inquiry prefix with default `S` mode                       |
-| **Shorthand Aliases**   | `MD`                  | `IDLE` | Resolves to `SC.MENU.DESIGN` (Menu Designer)                         |
-|                         | `MC`                  | `IDLE` | Resolves to `SC.MODEL.BUILDER` (Model Builder)                       |
-|                         | `FC`                  | `IDLE` | Resolves to `SC.FORM.BUILDER` (Form Builder)                         |
-| **System Settings**     | `SETTINGS:SECURITY`   | —      | Opens Settings modal focused on Security tab                         |
-|                         | `THEME` / `DARK`      | —      | Opens Settings modal focused on Appearance / Theme tab               |
+| Protocol / Pattern      | Command Example        | Mode   | Description                                                          |
+| :---------------------- | :--------------------- | :----- | :------------------------------------------------------------------- |
+| **Base Application**    | `ACCOUNT`              | `IDLE` | Opens application in lookup / search mode                            |
+| **Auto-Auth Entry**     | `ACCOUNT,`             | `I`    | Direct data entry with supervisor auto-auth level 0 (`authLevel: 0`) |
+| **Versioned Screen**    | `CUSTOMER,KYC`         | `IDLE` | Opens specific sub-version / presentation spec of application        |
+| **Record Direct Open**  | `ACCOUNT 1000001`      | `I`    | Opens record in default Input (`I`) mode                             |
+| **Explicit Function**   | `ACCOUNT S 1000001`    | `S`    | **See**: Read-only ledger inspection (no record locks)               |
+|                         | `ACCOUNT I 1000001`    | `I`    | **Input**: Draft capture & updates (stages to `$NAU`)                |
+|                         | `ACCOUNT A 1000001`    | `A`    | **Authorize**: Checker approval (promotes draft to Live ledger)      |
+|                         | `ACCOUNT D 1000001`    | `D`    | **Delete**: Purges unapproved draft from unauthorized queue          |
+|                         | `ACCOUNT R 1000001`    | `R`    | **Reverse**: Reverses authorized record with offsetting entries      |
+|                         | `ACCOUNT H 1000001`    | `H`    | **Hold**: Parks draft pending further maker inputs                   |
+|                         | `ACCOUNT L`            | `L`    | **List**: Opens directory / table listing                            |
+| **Composite Record ID** | `ACCOUNT S 1000001;2`  | `S`    | Supports multi-part keys (e.g., semicolon version notation)          |
+| **Inquiry Query**       | `INQ S GET.CUSTOMER`   | `S`    | Executes data inquiry / directory query                              |
+|                         | `INQUIRY GET.ACCOUNT`  | `S`    | Long-form inquiry prefix with default `S` mode                       |
+| **Shorthand Aliases**   | `MD`                   | `IDLE` | Resolves to `SC.MENU.DESIGN` (Menu Designer)                         |
+|                         | `MC`                   | `IDLE` | Resolves to `SC.MODEL.CONFIG` (Model Config)                         |
+|                         | `FC`                   | `IDLE` | Resolves to `SC.FORM.CONFIG` (Form Design)                           |
+|                         | `IC`                   | `IDLE` | Resolves to `SC.INQUIRY.CONFIG` (Inquiry Design)                     |
+| **System Settings**     | `SETTINGS:SECURITY`    | —      | Opens Settings modal focused on Security tab                         |
+|                         | `THEME` / `APPEARANCE` | —      | Opens Settings modal focused on Appearance / Theme tab               |
 
 ---
 
@@ -95,7 +96,7 @@ import { cbsCommand } from "@/lib/cbs-command";
 // Execute standard banking command (auto-opens workspace tab or executes inquiry)
 const result = cbsCommand.execute("ACCOUNT I 1000001");
 
-if (!result.success) {
+if (!result.isValid) {
   console.error("Execution failed:", result.error);
 }
 
@@ -119,7 +120,7 @@ console.log(ast.version); // "1.0.0"
 console.log(ast.functionCode); // "I"
 console.log(ast.recordId); // "1000001"
 console.log(ast.screenMode); // "I"
-console.log(ast.valid); // true
+console.log(ast.isValid); // true
 ```
 
 ### 3. Register Shell Adapter (`registerCommandAdapter`)
@@ -135,19 +136,17 @@ import { useWorkbenchStore } from "@/store/workbench/workbench-store";
 const unregister = registerCommandAdapter({
   getCurrentUser: () => useSessionStore.getState().user,
   openTab: (tab) => useWorkbenchStore.getState().openTab(tab),
-  openInquiry: (inquiry) => useWorkbenchStore.getState().openInquiry(inquiry),
-  openPopup: (opts) => window.open(opts.url, "_blank", "width=1200,height=800"),
 });
 ```
 
 ### 4. Listen for System Settings Events
 
 ```typescript
-import { CBS_SETTINGS_EVENT, type CbsSettingsDetail } from "@/lib/cbs-command";
+import { CBS_SETTINGS_EVENT } from "@/lib/cbs-command";
 
-window.addEventListener(CBS_SETTINGS_EVENT, (event: CustomEvent<CbsSettingsDetail>) => {
-  const { targetTab } = event.detail; // "profile" | "appearance" | "security" | etc.
-  openSettingsModal(targetTab);
+window.addEventListener(CBS_SETTINGS_EVENT, (event: CustomEvent<{ tab: string }>) => {
+  const { tab } = event.detail; // "profile" | "appearance" | "security"
+  openSettingsModal(tab);
 });
 ```
 
@@ -157,18 +156,14 @@ window.addEventListener(CBS_SETTINGS_EVENT, (event: CustomEvent<CbsSettingsDetai
 
 ### Adding New Bespoke Screens or Shorthand Aliases
 
-The system is designed for zero-code extension of navigation commands and aliases:
-
 #### Step 1: Register in `MASTER_COMMAND_DEFINITIONS`
 
 Open [`src/lib/cbs-command/registry/catalog.ts`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-command/registry/catalog.ts) and add the screen definition:
 
 ```typescript
 {
-  id: "SC.LOAN.CONFIG",
-  title: "Loan Product Configurator",
-  category: "Administration",
   command: "SC.LOAN.CONFIG",
+  title: "Loan Product Configurator",
   aliases: ["LC", "LOAN.CFG"],
   controlAction: "SCREEN",
   controlType: "FORM",
@@ -188,23 +183,29 @@ To add a new grammar protocol (e.g., `REPORT <NAME>` or `BATCH <JOB_ID>`):
 1. **Implement `CommandHandler`** in `src/lib/cbs-command/handlers/`:
 
    ```typescript
-   export const reportHandler: CommandHandler = {
-     canHandle: (cmd) => cmd.startsWith("REPORT ") || cmd.startsWith("REP "),
-     parse: (cmd, raw) => {
-       // Extract report name & arguments
+   export class ReportCommandHandler implements CommandHandler {
+     readonly type = "FORM" as const;
+
+     canHandle(_raw: string, upper: string): boolean {
+       return upper.startsWith("REPORT ") || upper.startsWith("REP ");
+     }
+
+     parse(raw: string, upper: string): ParsedCommand {
+       const reportName = upper.replace(/^(REPORT|REP)\s+/, "").trim();
        return {
-         type: "REPORT",
+         raw,
+         isValid: true,
+         type: "FORM",
          application: reportName,
-         valid: true,
-         rawCommand: raw,
+         title: `Report: ${reportName}`,
+         authLevel: 1,
          screenMode: "IDLE",
-         // ...
        };
-     },
-   };
+     }
+   }
    ```
-2. **Register in `src/lib/cbs-command/engine/grammar.ts`**:
-   Add the handler to the `registeredHandlers` array. Handlers are evaluated in order; the first handler whose `canHandle(cmd)` returns `true` processes the command.
+
+2. **Register dynamically via `cbsCommand.registerHandler(new ReportCommandHandler())`**.
 
 ---
 

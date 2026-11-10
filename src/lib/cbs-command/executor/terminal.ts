@@ -2,8 +2,8 @@ import { toast } from "@/components/ui/toast";
 import { findCommandHandler, parseCbsCommand } from "../engine/grammar";
 import { validateSecurityPermissions } from "../engine/validator";
 import { resolveCommandTitle } from "../registry/alias";
-import type { ExecutionOptions, ParsedCommand } from "../types";
-import { getCommandAdapter } from "./adapter";
+import { CBS_SCREEN_COMPONENTS, type ExecutionOptions, type ParsedCommand } from "../types";
+import { getCommandAdapter, resolveScreenId } from "./adapter";
 import { spawnDetachedPopupWindow } from "./popup";
 
 /**
@@ -58,35 +58,24 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
   }
 
   // 5. Workspace Tab Target
-  const catalogTitle =
-    resolveCommandTitle(parsed.application) || resolveCommandTitle(rawInput.trim().split(/\s+/)[0]);
+  const catalogTitle = resolveCommandTitle(parsed.application);
   const screenTitle = options?.title || catalogTitle || parsed.title;
   const targetMode = options?.screenMode || parsed.screenMode;
-  const targetRecordId = options?.recordId || options?.searchRecordId || parsed.recordId;
+  const targetRecordId = options?.recordId || parsed.recordId;
 
   if (adapter.openTab) {
-    const fullFormId = parsed.version
-      ? `${parsed.application},${parsed.version}`
-      : parsed.application;
-    const screenId = parsed.type === "INQUIRY" ? `INQ ${parsed.application}` : fullFormId;
-
-    const enquiryState =
-      parsed.type === "INQUIRY"
-        ? options?.inquiryState || {
-            step: options?.step,
-            criteria: options?.criteria,
-            currentPage: options?.currentPage,
-            pageSize: options?.pageSize,
-          }
-        : undefined;
+    const screenId = resolveScreenId(parsed);
 
     adapter.openTab({
       screenId,
       title: screenTitle,
-      componentName: parsed.type === "INQUIRY" ? "INQUIRY_SCREEN" : "DYNAMIC_FORM",
+      componentName:
+        parsed.type === "INQUIRY"
+          ? CBS_SCREEN_COMPONENTS.INQUIRY_SCREEN
+          : CBS_SCREEN_COMPONENTS.DYNAMIC_FORM,
       screenMode: targetMode,
       searchRecordId: targetRecordId,
-      enquiryState,
+      enquiryState: parsed.type === "INQUIRY" ? options?.inquiryState : undefined,
       formData: options?.formData,
     });
   }

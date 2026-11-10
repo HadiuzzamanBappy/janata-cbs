@@ -8,16 +8,18 @@ It acts as the single boundary between the React presentation layer and the serv
 
 ## 📦 What It Contains
 
-1. **`sendCbsRequest`** (`transport/proxy-client.ts`):
-   - Type-safe HTTP fetch client dispatching payloads through `/api/proxy` (aliased as `cbs.send`).
-   - Pre-flight validation against `cbsWirePayloadSchema` (fails fast on malformed requests before network calls).
-   - Automatic UI toast notifications for Success, Warning, Error, and Session Expiry (401).
+1. **`cbs.send` (`transport/proxy-client.ts`)**:
+   - Type-safe HTTP fetch client dispatching payloads through `/api/proxy`.
+   - Pre-flight validation against `cbsWirePayloadSchema` (fails fast on malformed requests before network dispatch).
+   - Automatic UI toast notifications for Success, Warning, and Banking Rule Rejections via `handleCbsResponseSemantics`.
    - Supports `AbortSignal` for request cancellation and runtime Zod `responseSchema` validation.
 
-2. **Payload Factories** (`payloads/`):
+2. **Payload Factories (`payloads/`)**:
    - **`cbs.model(controlName)`**: Universal factory providing standard banking operations (`get`, `list`, `searchIds`, `getNewId`, `save`, `authorize`, `delete`, `hold`, `reverse`).
-   - **`cbs.branch`**: Pre-bound model for the branch catalog (`BRANCH`).
-   - **`cbs.menu` & `cbs.menuTree`**: Pre-bound models for menu definitions (`MENU`) and visual navigation trees (`MENU.TREE`).
+   - **`cbs.branch`**: Pre-bound model for the branch catalog (`SC_BRANCH`).
+   - **`cbs.control`**: Pre-bound model for the command catalog (`SC_CONTROL`).
+   - **`cbs.menu`**: Pre-bound model for the menu catalog (`SC_MENU`).
+   - **`cbs.menuTree`**: Pre-bound model for hierarchical navigation trees (`SC_MENU_TREE` via `GUM`).
    - **`cbs.modelConfig`**: Dedicated metamodel builder (`GMC`, `SMC`, `AMC`) via `MODEL.CONFIG`.
    - **`cbs.formConfig`**: Dedicated form layout presentation builder (`GFC`, `SFC`) via `CONFIG.FORM`.
    - **`cbs.inquiryConfig`**: Dedicated enquiry table schema builder (`INQUIRY`).

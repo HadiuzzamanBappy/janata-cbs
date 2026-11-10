@@ -1,4 +1,4 @@
-import { CBS_FUNCTION_CODE_SET, type CbsRecordFunction } from "@/types";
+import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
 import type { CommandHandler, ParsedCommand } from "../types";
 
 export class InquiryCommandHandler implements CommandHandler {
@@ -10,13 +10,9 @@ export class InquiryCommandHandler implements CommandHandler {
 
   parse(raw: string, upper: string): ParsedCommand {
     const trimmed = raw.trim();
-    const rest = upper.startsWith("INQUIRY ")
-      ? upper.slice("INQUIRY ".length).trim()
-      : upper.startsWith("INQ ")
-        ? upper.slice("INQ ".length).trim()
-        : "";
+    const rest = upper.replace(/^(INQUIRY|INQ)\s+/, "").trim();
 
-    if (!rest) {
+    if (!rest || rest === "INQ" || rest === "INQUIRY") {
       return {
         raw,
         isValid: false,
@@ -26,13 +22,12 @@ export class InquiryCommandHandler implements CommandHandler {
         title: "Inquiry Query",
         authLevel: 1,
         screenMode: "S",
-        params: {},
       };
     }
 
     const tokens = rest.split(/\s+/);
     const firstToken = tokens[0];
-    const isExplicitFunc = CBS_FUNCTION_CODE_SET.has(firstToken);
+    const isExplicitFunc = CBS_FUNCTION_CODES.includes(firstToken as CbsRecordFunction);
     const functionCode: CbsRecordFunction = isExplicitFunc
       ? (firstToken as CbsRecordFunction)
       : "S";
@@ -44,11 +39,9 @@ export class InquiryCommandHandler implements CommandHandler {
       type: "INQUIRY",
       application: query,
       title: `Inquiry: ${query}`,
-      target: query,
       authLevel: 1,
       functionCode,
       screenMode: "S",
-      params: { query },
     };
   }
 }

@@ -20,7 +20,7 @@ Next.js API Route (/api/proxy or /api/login)
           │
           ▼
 Server-side Dispatcher (@/lib/infra-grpc)
-  ├─ If appConfig.dataSource === "static" (or isStaticMode())
+  ├─ If serverConfig.dataSource === "static" (or isStaticMode())
   │    └─► @mock/core (mockDispatch / mockLogin / mockProcess)
   │             └─► @mock/core/database-router (resolves table)
   │                      └─► @mock/db/* (in-memory fixtures)
@@ -34,18 +34,18 @@ Server-side Dispatcher (@/lib/infra-grpc)
 1. **`/api/proxy` → `dispatch()` (`src/lib/infra-grpc/dispatch.ts:145`)**:
 
    ```typescript
-   if (appConfig.dataSource === "static") {
+   if (isStaticMode()) {
      return mockDispatch(envelope); // Calls mock/core to simulate CBS execution
    }
    ```
-2. **`/api/login` → `loginUser()` → `loginProcess()` (`src/lib/infra-grpc/client.ts:84`)**:
+2. **`/api/login` → `loginUser()` → `loginProcess()` (`src/lib/infra-grpc/client.ts`)**:
 
    ```typescript
    if (isStaticMode()) {
      return mockLogin(req); // Authenticates against mock/db/SC_USER
    }
    ```
-3. **gRPC Transport Fallback → `grpcProcess()` (`src/lib/infra-grpc/client.ts:109`)**:
+3. **gRPC Transport Fallback → `financialProcess()` / `nonFinancialProcess()` (`src/lib/infra-grpc/client.ts`)**:
 
    ```typescript
    if (isStaticMode()) {
@@ -128,7 +128,7 @@ Invoked by `loginProcess()` (`src/lib/infra-grpc/client.ts`) when `/api/login` a
 
 ### 3. `mockProcess(req)`
 
-Invoked by `grpcProcess()` (`src/lib/infra-grpc/client.ts`) to return protobuf-compatible `GrpcResponse` objects for unary gRPC calls.
+Invoked by `financialProcess()` / `nonFinancialProcess()` (`src/lib/infra-grpc/client.ts`) to return protobuf-compatible `GrpcResponse` objects for unary gRPC calls.
 
 ---
 

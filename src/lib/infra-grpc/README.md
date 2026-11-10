@@ -1,8 +1,8 @@
-# ⚡ CBS Infrastructure: gRPC & Microservices Gateway (`@/lib/infra-grpc`)
+# ⚡ CBS Infrastructure: gRPC Gateway (`@/lib/infra-grpc`)
 
-A high-performance, server-only RPC dispatching and authentication engine connecting the **Janata Core Banking Workbench (BFF)** to the Java Core Banking host and downstream banking microservices.
+A pure, server-only gRPC dispatching and authentication engine connecting the **Janata Core Banking Workbench (BFF)** to the Java Core Banking host and downstream gRPC services.
 
-It enforces a strict security boundary (`import "server-only"`), maintains a lazy connection channel pool, classifies operations into **Financial** vs. **Non-Financial** execution pipelines, injects automatic idempotency keys, manages operator session lifecycle via Redis, and provides transparent protocol routing across both binary **gRPC** and **REST** microservices.
+It enforces a strict security boundary (`import "server-only"`), maintains a lazy connection channel pool (`__grpcClientPool`), routes operations into **Financial (`FinancialProcess`)** vs. **Non-Financial (`NonFinancialProcess`)** RPCs, injects automatic idempotency keys, manages operator session lifecycle via Redis, and translates gRPC status codes to HTTP equivalents.
 
 ---
 
@@ -11,8 +11,8 @@ It enforces a strict security boundary (`import "server-only"`), maintains a laz
 ```text
 src/lib/infra-grpc/
 ├── auth.ts         # User authentication & session management (loginUser, logoutUser)
-├── client.ts       # Channel pooling, TLS, unary RPC callers (grpcProcess, loginProcess), and status mappers
-├── dispatch.ts     # Multi-protocol dispatcher routing by servicePath (gRPC vs. REST) with financial classification
+├── client.ts       # Channel pooling, TLS, 16 MB limit, RPC callers (loginProcess, financialProcess, nonFinancialProcess), status mapping
+├── dispatch.ts     # Pure gRPC dispatcher routing by servicePath with env-based financial detection
 ├── generated/      # Protobuf compiled TypeScript stubs (ts-proto) for GrpcServiceClient, GrpcRequest, GrpcResponse
 └── index.ts        # Server-only barrel export
 ```
@@ -27,42 +27,39 @@ Client Request via /api/proxy (HTTP JSON)
                  ▼
      [ 1. dispatch() ] (dispatch.ts)
                  │
-      ┌──────────┴──────────┐
-      ▼                     ▼
-servicePath === "rest"  servicePath === "default" (or gRPC microservice)
-      │                     │
-      │           [ 2. classify() ]
-      │           Determines: Financial vs Non-Financial
-      │                     │
-      │           [ 3. Idempotency Key Injection ]
-      │           Automatic crypto.randomUUID() for Financial txns
-      │                     │
-      ▼                     ▼
-[ executeRestTransport ] [ executeGrpcTransport ]
-  HTTP fetch POST          grpcProcess() (client.ts)
-      │                     │
-      │              Channel Pool (__grpcClientPool)
-      │              TLS / Insecure ChannelCredentials
-      │              Keepalive (60s ping / 20s timeout)
-      │                     │
-      └──────────┬──────────┘
+                 ├─► DATA_SOURCE === "static" ──► mockDispatch() (@mock/core)
+                 │
+                 ▼
+     [ 2. isFinancialRequest() ]
+     Matches requestType against serverConfig.grpc.financialTransactionTypes
+                 │
+                 ▼
+     [ 3. Idempotency Key Injection ]
+     Auto-generates crypto.randomUUID() for financial requests if absent
+                 │
+       ┌─────────┴─────────┐
+       ▼                   ▼
+ financialProcess()  nonFinancialProcess()  (client.ts)
+       │                   │
+       └─────────┬─────────┘
+                 ▼
+       Channel Pool (__grpcClientPool)
+       TLS / Insecure, Keepalive (60s/20s), 16 MB max payload, Deadline
+                 │
                  ▼
      [ 4. Standard Response Envelope ]
-     ApiResponse<T> (Unified JSON with status, timestamp, data)
+     ApiResponse<T> (Unified JSON with status, statusCode, data)
 ```
 
 ---
 
-## 🏛️ Financial vs. Non-Financial Classification
-
-In core banking, financial transactions carry strict ledger settlement and integrity requirements:
+## 🏛️ Financial vs. Non-Financial Routing
 
 1. **Financial Operations (`financialProcess`)**:
-   - Matches types defined in `appConfig.grpc.financialTransactionTypes` (e.g. `AFT` - Automated Fund Transfer, `ATT` - Account Transfer Transaction, `CTT` - Cash Transfer Transaction).
-   - **Guaranteed Idempotency:** Automatically generates and attaches a unique `crypto.randomUUID()` idempotency key if one was not provided, preventing duplicate ledger entries.
+   - Matches codes configured in `GRPC_FINANCIAL_TRANSACTION_TYPES` (`ATT`, `CTT`, `AFT`).
+   - Automatically attaches a `crypto.randomUUID()` `idempotencyKey` if omitted to prevent duplicate ledger entries.
 2. **Non-Financial Operations (`nonFinancialProcess`)**:
-   - Queries, lookups, schema inspections, menu retrievals (`GET`, `GRL`, `GMC`, `GFC`, `INQ`).
-   - Dispatched through standard fast unary calls.
+   - All other verbs (`GET`, `PUT`, `AUT`, `GRL`, `GMC`, `GFC`, `INQ`, etc.).
 
 ---
 
@@ -77,7 +74,7 @@ import { dispatch } from "@/lib/infra-grpc";
 import type { GrpcEnvelope } from "@/lib/data-schemas";
 
 const envelope: GrpcEnvelope = {
-  servicePath: "default", // Routes to primary core gRPC host
+  servicePath: "default",
   requestType: "PUT",
   controlName: "ACCOUNT",
   recordFunction: "I",
@@ -90,110 +87,42 @@ const envelope: GrpcEnvelope = {
   },
 };
 
-const token = "session-jwt-or-bearer-token";
 const response = await dispatch(envelope, token);
-
-if (response.status === "SUCCESS") {
-  console.log("Core banking ledger updated:", response.data);
-} else {
-  console.error("gRPC Error:", response.message, response.errors);
-}
 ```
 
----
+### 2. Service Routing via `servicePath`
 
-### 2. Microservice Routing via `servicePath`
-
-The dispatcher dynamically inspects `envelope.servicePath`:
-
-- `servicePath: "default"` → Dispatches via binary gRPC to `appConfig.grpc.host` (e.g., `localhost:9090`).
-- `servicePath: "customer"` → Routes to `SERVICE_CUSTOMER_BASE_URL`.
-- `servicePath: "urm"` → Routes to `SERVICE_URM_BASE_URL`.
-- If a service in `SERVICES` specifies `protocol: "rest"`, `dispatch()` automatically falls back to HTTP REST JSON posting without changing caller code.
-
----
+The dispatcher extracts the first segment of `envelope.servicePath` (defaulting to `"default"`) and resolves the target gRPC address via `getServiceUrl()` in `src/lib/core-config/server.ts`.
 
 ### 3. Authentication & Session Management (`loginUser`, `logoutUser`)
-
-Centralized server-side authentication integrating with Redis session management:
 
 ```typescript
 import { loginUser, logoutUser } from "@/lib/infra-grpc";
 
-// In /api/login route:
-const result = await loginUser({
-  username: "teller01",
-  password: "encrypted-password",
-});
-
-if (result.success) {
-  console.log("User authenticated and Redis session established:", result.user);
-}
-
-// In /api/logout route:
+const result = await loginUser({ username: "teller01", password: "secret" });
 await logoutUser();
 ```
 
----
+### 4. Offline / Static Mock Fallback
 
-### 4. Offline / Static Mock Core Engine Fallback
+When `serverConfig.dataSource === "static"`, `isStaticMode()` returns `true`:
 
-When `appConfig.dataSource === "static"`, `isStaticMode()` returns `true`:
-
-- `grpcProcess()` redirects automatically to `mockProcess()` / `mockDispatch()`.
-- `loginProcess()` redirects automatically to `mockLogin()`.
-- Allows full development, UI testing, and verification suites to run independently without a running Java backend.
+- `dispatch()` routes to `mockDispatch()`
+- `financialProcess()` / `nonFinancialProcess()` route to `mockProcess()`
+- `loginProcess()` routes to `mockLogin()`
 
 ---
 
-## 🛡️ Edge Cases & Resilience Handled
+## 🛡️ Resilience Handled
 
-1. **Strict Server Boundary (`import "server-only"`):**
-   Prevents `@grpc/grpc-js` and Node.js native crypto modules from ever leaking into client browser JavaScript.
-2. **Connection Channel Pooling:**
-   Reuses persistent HTTP/2 gRPC channels per server address using a global singleton map (`__grpcClientPool`). Avoids opening a new TCP handshake for every client request.
-3. **Keepalive Heartbeat:**
-   Channels are configured with `grpc.keepalive_time_ms: 60,000` and `grpc.keepalive_timeout_ms: 20,000` to prevent firewalls or cloud load balancers from silently dropping idle connections.
-4. **Full Standard gRPC-to-HTTP Status Code Mapping:**
-   `grpcStatusToHttp()` automatically translates native gRPC status codes into standard HTTP equivalents:
-   - `OK (0)` ➔ `200 OK`
-   - `CANCELLED (1)` ➔ `499 Client Closed Request`
-   - `UNKNOWN (2)` ➔ `500 Internal Server Error`
-   - `INVALID_ARGUMENT (3)` ➔ `400 Bad Request`
-   - `DEADLINE_EXCEEDED (4)` ➔ `504 Gateway Timeout`
-   - `NOT_FOUND (5)` ➔ `404 Not Found`
-   - `ALREADY_EXISTS (6)` ➔ `409 Conflict`
-   - `PERMISSION_DENIED (7)` ➔ `403 Forbidden`
-   - `RESOURCE_EXHAUSTED (8)` ➔ `429 Too Many Requests`
-   - `FAILED_PRECONDITION (9)` ➔ `412 Precondition Failed`
-   - `ABORTED (10)` ➔ `409 Conflict`
-   - `OUT_OF_RANGE (11)` ➔ `400 Bad Request`
-   - `UNIMPLEMENTED (12)` ➔ `501 Not Implemented`
-   - `INTERNAL (13)` ➔ `500 Internal Server Error`
-   - `UNAVAILABLE (14)` ➔ `503 Service Unavailable`
-   - `DATA_LOSS (15)` ➔ `500 Internal Server Error`
-   - `UNAUTHENTICATED (16)` ➔ `401 Unauthorized`
-
----
-
-## 🔒 Architectural State: Scalable or Sealed?
-
-### 1. Transport Core & Channel Pooling: **SEALED**
-
-Connection pooling, TLS creation, metadata forwarding, session auth hooks, and status code translation are complete and finalized.
-
-### 2. Service Endpoints & Command Overlays: **SCALABLE**
-
-When integrating new microservices or special command codes:
-
-- **Adding Microservices:** Add endpoint to `SERVICES` in `src/lib/core-config/server.ts`.
-- **Custom Request Type Overlays:** Add special command mapping in `REQUEST_TYPE_OVERLAYS` (e.g. `FUNDS.TRANSFER -> AFT`).
+1. **Strict Server Boundary (`import "server-only"`):** Keeps `@grpc/grpc-js` out of browser bundles.
+2. **Connection Channel Pooling (`__grpcClientPool`):** Reuses persistent HTTP/2 channels per normalized `host:port` target.
+3. **Message Limits, Keepalive & Deadlines:** 16 MB max send/receive message size, `60s / 20s` keepalive, and `serverConfig.grpc.timeoutMs` call deadlines on all RPCs including `loginProcess`.
+4. **gRPC-to-HTTP Status Mapping:** `grpcStatusToHttp()` translates `@grpc/grpc-js` error codes (`CANCELLED` → `499`, `INVALID_ARGUMENT` → `400`, `UNAUTHENTICATED` → `401`, `PERMISSION_DENIED` → `403`, `NOT_FOUND` → `404`, `ALREADY_EXISTS` / `ABORTED` → `409`, `FAILED_PRECONDITION` → `412`, `RESOURCE_EXHAUSTED` → `429`, `UNIMPLEMENTED` → `501`, `UNAVAILABLE` → `503`, `DEADLINE_EXCEEDED` → `504`, `INTERNAL` / `DATA_LOSS` → `500`).
 
 ---
 
 ## 🧪 Verification
-
-Run the infrastructure verification suite:
 
 ```bash
 pnpm verify:grpc

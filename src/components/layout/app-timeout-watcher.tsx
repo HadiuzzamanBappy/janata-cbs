@@ -11,10 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useIdleTimeout } from "@/hooks/use-idle-timeout";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 
 export function AppTimeoutWatcher() {
-  const timeoutMinutes = appConfig.logoutTime;
+  const timeoutMinutes = clientConfig.logoutTime;
   const { isWarningOpen, isLoggedOut, remainingSeconds, keepAlive, handleLogoutConfirm } =
     useIdleTimeout({
       timeoutMinutes,

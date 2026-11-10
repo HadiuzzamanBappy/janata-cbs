@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 
-const STORAGE_KEY = appConfig.storage.local.lastActivity;
-const WARNING_BEFORE_LOGOUT_MS = appConfig.storage.idleWarningWindowMs;
+const STORAGE_KEY = clientConfig.storage.local.lastActivity;
+const WARNING_BEFORE_LOGOUT_MS = clientConfig.storage.idleWarningWindowMs;
 
 interface UseIdleTimeoutOptions {
   timeoutMinutes?: number;
@@ -13,7 +13,7 @@ interface UseIdleTimeoutOptions {
 }
 
 export function useIdleTimeout({
-  timeoutMinutes = appConfig.logoutTime,
+  timeoutMinutes = clientConfig.logoutTime,
   onLogout,
 }: UseIdleTimeoutOptions = {}) {
   const router = useRouter();
@@ -37,7 +37,7 @@ export function useIdleTimeout({
       if (onLogout) {
         onLogout();
       } else {
-        await fetch(appConfig.routes.api.logout, { method: "POST" });
+        await fetch(clientConfig.routes.api.logout, { method: "POST" });
       }
     } catch {
       // Fail-safe cleanup
@@ -47,7 +47,7 @@ export function useIdleTimeout({
   }, [onLogout]);
 
   const handleLogoutConfirm = useCallback(() => {
-    router.push(appConfig.routes.login);
+    router.push(clientConfig.routes.login);
     router.refresh();
   }, [router]);
 
@@ -59,7 +59,7 @@ export function useIdleTimeout({
 
     // Heartbeat to update server-side session lastActiveAt
     try {
-      await fetch(appConfig.routes.api.session);
+      await fetch(clientConfig.routes.api.session);
     } catch {
       // Ignore heartbeat network drop
     }
@@ -88,7 +88,7 @@ export function useIdleTimeout({
         // Periodic heartbeat: notify server/Redis session every 3 minutes if actively interacting
         if (now - lastHeartbeat > 3 * 60 * 1000) {
           lastHeartbeat = now;
-          fetch(appConfig.routes.api.session).catch(() => {});
+          fetch(clientConfig.routes.api.session).catch(() => {});
         }
       }
     };

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { appConfig } from "@/lib/core-config/server";
+import { serverConfig } from "@/lib/core-config/server";
 import { cacheKey, getRedisClient } from "./client";
 
 export interface RateLimitResult {
@@ -11,12 +11,12 @@ export interface RateLimitResult {
 
 /**
  * Fixed-window rate limiter utilizing Redis.
- * Defaults to appConfig.auth.loginLimit attempts per window. Fails open on Redis outages.
+ * Defaults to serverConfig.auth.loginLimit attempts per window. Fails open on Redis outages.
  */
 export async function rateLimit(
   key: string,
-  limit = appConfig.auth.loginLimit,
-  windowSec = appConfig.auth.rateLimitWindowSec,
+  limit = serverConfig.auth.loginLimit,
+  windowSec = serverConfig.auth.rateLimitWindowSec,
 ): Promise<RateLimitResult> {
   const redis = getRedisClient();
   if (!redis) {

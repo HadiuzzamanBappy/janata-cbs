@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { getSession } from "@/lib/infra-redis";
 
 export const metadata: Metadata = {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function LoginPage() {
   const session = await getSession();
   if (session) {
-    redirect(appConfig.routes.dashboard);
+    redirect(clientConfig.routes.dashboard);
   }
 
   return (

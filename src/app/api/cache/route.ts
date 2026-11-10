@@ -1,5 +1,5 @@
 import type { NextRequest, NextResponse } from "next/server";
-import { appConfig } from "@/lib/core-config/server";
+import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import type { ApiResponse } from "@/lib/data-schemas";
 import { invalidateCache } from "@/lib/infra-redis";
@@ -12,7 +12,7 @@ const cacheLogger = logger.withContext("CACHE_API");
 
 export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
-    const secret = appConfig.redis.invalidateToken;
+    const secret = serverConfig.redis.invalidateToken;
 
     // Enforce token verification if configured
     const provided = request.headers.get("x-cache-token");

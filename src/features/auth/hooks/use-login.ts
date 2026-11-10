@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import type { ApiResponse } from "@/lib/data-schemas";
 import { type CurrentUser, type LoginInput, loginSchema } from "@/lib/data-schemas";
@@ -31,7 +31,7 @@ export function useLogin() {
 
       try {
         // 2. Fetch using centralized config route
-        const res = await fetch(appConfig.routes.api.login, {
+        const res = await fetch(clientConfig.routes.api.login, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(parseResult.data),
@@ -50,7 +50,7 @@ export function useLogin() {
         if (authenticatedUser) {
           // Reset client activity timestamp to current time on login
           if (typeof window !== "undefined") {
-            localStorage.setItem(appConfig.storage.local.lastActivity, String(Date.now()));
+            localStorage.setItem(clientConfig.storage.local.lastActivity, String(Date.now()));
           }
           // 3. Centralized Store sync
           setSession(authenticatedUser);
@@ -63,9 +63,9 @@ export function useLogin() {
 
         // 4. Navigation
         if (authenticatedUser?.initLogin) {
-          router.push(appConfig.routes.changePassword);
+          router.push(clientConfig.routes.changePassword);
         } else {
-          router.push(appConfig.routes.dashboard);
+          router.push(clientConfig.routes.dashboard);
         }
 
         router.refresh();

@@ -3,7 +3,7 @@
 import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import { registerCommandAdapter } from "@/lib/cbs-command";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import { createSessionStore, type SessionState, type SessionStore } from "./session-store";
 
@@ -34,7 +34,7 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
     // Universal session hydration across all windows & popups (deduplicated against React StrictMode & multiple mounts)
     if (!store.getState().user) {
       if (!sessionFetchPromise) {
-        sessionFetchPromise = fetch(appConfig.routes.api.session)
+        sessionFetchPromise = fetch(clientConfig.routes.api.session)
           .then((res) => res.json())
           .then((json) => {
             const user = json.data;

@@ -38,7 +38,7 @@ export const envSchema = z
     GRPC_HOST: z.string().trim().default("localhost:9090"),
     GRPC_USE_TLS: booleanEnv(false),
     GRPC_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
-    GRPC_FINANCIAL_TRANSACTION_TYPES: z.string().trim().default("AFT,ACT"),
+    GRPC_FINANCIAL_TRANSACTION_TYPES: z.string().trim().default("ATT,CTT,AFT"),
     CLIENT_ID: z.string().trim().default("WEB-CLIENT"),
 
     // 4. Downstream Microservices (HTTP / REST)

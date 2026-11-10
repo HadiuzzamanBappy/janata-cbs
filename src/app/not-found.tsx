@@ -2,7 +2,7 @@ import { FileQuestion } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/layout/sidebar/widgets/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 
 export default function GlobalNotFound() {
   return (
@@ -23,7 +23,7 @@ export default function GlobalNotFound() {
           page.
         </p>
         <Link
-          href={appConfig.routes.dashboard}
+          href={clientConfig.routes.dashboard}
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >
           Return to Dashboard

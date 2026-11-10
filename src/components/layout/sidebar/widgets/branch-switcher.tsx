@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { cn, toTitleCase } from "@/lib/core-utils";
 import { unwrapRecordsPayload } from "@/lib/data-parsers";
 import { useSessionStore } from "@/store";
@@ -71,8 +71,8 @@ export function BranchSwitcher({
           const code = String(b.recordId ?? "").trim();
           const name = String(b.branchTitle ?? code).trim() || code;
           const isCentral =
-            code === appConfig.centralBranch ||
-            code.replace(/\D/g, "") === appConfig.centralBranch.replace(/\D/g, "");
+            code === clientConfig.centralBranch ||
+            code.replace(/\D/g, "") === clientConfig.centralBranch.replace(/\D/g, "");
           const type = isCentral ? "Head Office" : String(b.branchType ?? "General").trim();
 
           return { code, name, type };
@@ -93,7 +93,7 @@ export function BranchSwitcher({
     refetch();
   }, [refetch]);
 
-  const activeBranchCode = currentBranch ?? user?.branchCode ?? appConfig.centralBranch;
+  const activeBranchCode = currentBranch ?? user?.branchCode ?? clientConfig.centralBranch;
   const activeBranchObj =
     branches.find(
       (b) =>
@@ -124,7 +124,7 @@ export function BranchSwitcher({
 
     // 2. Synchronize to server session and Redis store
     try {
-      await fetch(appConfig.routes.api.session, {
+      await fetch(clientConfig.routes.api.session, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ branchCode: code, branchName: name }),

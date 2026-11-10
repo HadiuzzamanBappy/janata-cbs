@@ -2,7 +2,7 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
-import { appConfig } from "@/lib/core-config/server";
+import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import type { CurrentUser } from "@/lib/data-schemas";
 import { cacheDelete, cacheGet, cacheKey, cacheSet } from "./client";
@@ -23,8 +23,8 @@ export interface SessionData {
 /* Configuration & In-Memory Fallback State                                   */
 /* -------------------------------------------------------------------------- */
 
-const COOKIE_NAME = appConfig.auth.cookieName;
-const TTL_SECONDS = appConfig.auth.sessionMaxAgeSeconds;
+const COOKIE_NAME = serverConfig.auth.cookieName;
+const TTL_SECONDS = serverConfig.auth.sessionMaxAgeSeconds;
 
 declare global {
   var __memorySessionStore: Map<string, SessionData> | undefined;
@@ -70,7 +70,7 @@ export async function createSession(
   await cacheSet(getSessionRedisKey(id), payload, TTL_SECONDS);
   memoryStore.set(id, payload);
 
-  const isSecure = !appConfig.isDev && appConfig.useHttps;
+  const isSecure = !serverConfig.isDev && serverConfig.useHttps;
 
   store.set(COOKIE_NAME, id, {
     httpOnly: true,
@@ -82,7 +82,7 @@ export async function createSession(
 
   // Persist active branch cookie for zero-latency client/server context resilience
   if (payload.currUser.branchCode) {
-    store.set(appConfig.auth.branchCookie, payload.currUser.branchCode, {
+    store.set(serverConfig.auth.branchCookie, payload.currUser.branchCode, {
       httpOnly: false, // Accessible by client and server
       secure: isSecure,
       sameSite: "lax",
@@ -92,7 +92,7 @@ export async function createSession(
   }
 
   if (payload.currUser.initLogin) {
-    store.set(appConfig.auth.initLoginCookie, "true", {
+    store.set(serverConfig.auth.initLoginCookie, "true", {
       httpOnly: true,
       secure: isSecure,
       sameSite: "lax",
@@ -100,7 +100,7 @@ export async function createSession(
       maxAge: TTL_SECONDS,
     });
   } else {
-    store.delete(appConfig.auth.initLoginCookie);
+    store.delete(serverConfig.auth.initLoginCookie);
   }
 
   return id;
@@ -122,7 +122,7 @@ export async function getSession(): Promise<SessionData | null> {
 
   if (!session) return null;
 
-  // Server-side Inactivity Guard governed strictly by appConfig.auth.sessionMaxAgeSeconds
+  // Server-side Inactivity Guard governed strictly by serverConfig.auth.sessionMaxAgeSeconds
   const maxInactiveMs = TTL_SECONDS * 1000;
   const now = Date.now();
 
@@ -194,8 +194,8 @@ export async function updateBranchCodeAndName(
 
   if (next?.currUser) {
     const store = await cookies();
-    const isSecure = !appConfig.isDev && appConfig.useHttps;
-    store.set(appConfig.auth.branchCookie, branchCode, {
+    const isSecure = !serverConfig.isDev && serverConfig.useHttps;
+    store.set(serverConfig.auth.branchCookie, branchCode, {
       httpOnly: false,
       secure: isSecure,
       sameSite: "lax",
@@ -215,7 +215,7 @@ export async function clearInitialLoginRequirement(): Promise<void> {
     currUser: { initLogin: false },
   });
   const store = await cookies();
-  store.delete(appConfig.auth.initLoginCookie);
+  store.delete(serverConfig.auth.initLoginCookie);
 }
 
 /**
@@ -230,6 +230,6 @@ export async function destroySession(): Promise<void> {
 
   const store = await cookies();
   store.delete(COOKIE_NAME);
-  store.delete(appConfig.auth.initLoginCookie);
-  store.delete(appConfig.auth.branchCookie);
+  store.delete(serverConfig.auth.initLoginCookie);
+  store.delete(serverConfig.auth.branchCookie);
 }

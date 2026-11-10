@@ -26,26 +26,6 @@ export const SERVICES: Record<string, ServiceDef> = {
 };
 
 /**
- * Domain-specific requestType overrides based on control keywords.
- * Decouples business transaction overrides from the low-level transport layer.
- */
-export const REQUEST_TYPE_OVERLAYS: Record<string, Record<string, string>> = {
-  USER: {
-    AUT: "UAU",
-  },
-  "FUNDS.TRANSFER": {
-    PUT: "AFT",
-    AUT: "AFT",
-    REV: "AFT",
-  },
-  "CASH.TRANSFER": {
-    PUT: "ACT",
-    AUT: "ACT",
-    REV: "ACT",
-  },
-};
-
-/**
  * Complete Server-Only Application Configuration.
  * Composes isomorphic client constants with validated server-only runtime secrets and infrastructure configs.
  * Protected by `import "server-only"`.
@@ -68,7 +48,9 @@ export const serverConfig = {
     host: env.GRPC_HOST,
     useTls: env.GRPC_USE_TLS,
     timeoutMs: env.GRPC_TIMEOUT_MS,
-    financialTransactionTypes: env.GRPC_FINANCIAL_TRANSACTION_TYPES.split(","),
+    financialTransactionTypes: env.GRPC_FINANCIAL_TRANSACTION_TYPES.split(",")
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean),
     clientId: env.CLIENT_ID,
     keepaliveTimeMs: 60_000,
     keepaliveTimeoutMs: 20_000,
@@ -110,11 +92,6 @@ export const serverConfig = {
 } as const;
 
 export type ServerConfig = typeof serverConfig;
-
-/**
- * Backward compatibility alias for server contexts.
- */
-export const appConfig = serverConfig;
 
 /**
  * Retrieves the full service endpoint registry.

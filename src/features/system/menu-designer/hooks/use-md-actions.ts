@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { serializeMenuTreeToWireJson } from "@/lib/data-parsers";
@@ -9,7 +10,7 @@ import type {
   MenuTreeRecord,
 } from "@/lib/data-schemas/menu-designer-schema";
 
-export interface UseMdSubmitOptions {
+export interface UseMdActionsOptions {
   formData: MenuTreeRecord;
   recordId: string;
   handleValidate: () => boolean;
@@ -19,7 +20,7 @@ export interface UseMdSubmitOptions {
   reset: () => void;
 }
 
-export function useMdSubmit({
+export function useMdActions({
   formData,
   recordId,
   handleValidate,
@@ -27,8 +28,9 @@ export function useMdSubmit({
   refetchTrees,
   setValidationErrors,
   reset,
-}: UseMdSubmitOptions) {
+}: UseMdActionsOptions) {
   const [submitting, setSubmitting] = React.useState(false);
+  const { sendMutation } = useIdempotentSend();
 
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return false;
@@ -36,7 +38,7 @@ export function useMdSubmit({
     setSubmitting(true);
     try {
       const wireData = serializeMenuTreeToWireJson(formData);
-      const json = await cbs.send(
+      const json = await sendMutation(
         cbs.menuTree.save(wireData as unknown as Record<string, unknown>, {
           recordId: formData.recordId || recordId,
         }),
@@ -64,13 +66,22 @@ export function useMdSubmit({
     } finally {
       setSubmitting(false);
     }
-  }, [formData, recordId, reset, rebaseline, refetchTrees, handleValidate, setValidationErrors]);
+  }, [
+    formData,
+    recordId,
+    reset,
+    rebaseline,
+    refetchTrees,
+    handleValidate,
+    setValidationErrors,
+    sendMutation,
+  ]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId.trim()) return false;
     setSubmitting(true);
     try {
-      const json = await cbs.send(cbs.menuTree.authorize(recordId.trim().toUpperCase()), {
+      const json = await sendMutation(cbs.menuTree.authorize(recordId.trim().toUpperCase()), {
         successTitle: "Navigation Tree Authorized",
         successMessage: `Authorized live menu tree #${recordId}`,
       });
@@ -91,7 +102,7 @@ export function useMdSubmit({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, reset, rebaseline, refetchTrees]);
+  }, [recordId, reset, rebaseline, refetchTrees, sendMutation]);
 
   return { submitting, handleSubmit, handleAuthorize };
 }

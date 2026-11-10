@@ -8,11 +8,11 @@ import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-sche
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type InquiryValidationErrorItem, validateInquiryConfig } from "./ic-validation";
 import { useIcActionOps } from "./use-ic-action-ops";
+import { useIcActions } from "./use-ic-actions";
 import { useIcCatalog } from "./use-ic-catalog";
 import { useIcColumnOps } from "./use-ic-column-ops";
 import { useIcFilterOps } from "./use-ic-filter-ops";
 import { INITIAL_INQUIRY_CONFIG, useIcPersistence } from "./use-ic-persistence";
-import { useIcSubmit } from "./use-ic-submit";
 
 export function useInquiryConfig(initialId?: string, tabId?: string) {
   const {
@@ -137,8 +137,8 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     }
   }, [mode]);
 
-  // 6. Submit operations via specialized hook
-  const { submitting, handleSubmit } = useIcSubmit({
+  // 6. Action operations via specialized hook
+  const { submitting, handleSubmit } = useIcActions({
     formData,
     recordId,
     handleValidate,

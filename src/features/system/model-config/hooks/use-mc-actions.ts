@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
@@ -41,6 +42,8 @@ export function useMcActions({
   upsertCatalogItem,
   fetchRecord,
 }: UseMcActionsParams) {
+  const { sendMutation } = useIdempotentSend();
+
   const executeMutation = React.useCallback(
     async (
       payload: CbsWirePayload,
@@ -53,7 +56,7 @@ export function useMcActions({
     ) => {
       setSubmitting(true);
       try {
-        const json = await cbs.send(payload, {
+        const json = await sendMutation(payload, {
           successTitle: options.successTitle,
           successMessage: options.successMessage,
         });
@@ -68,7 +71,7 @@ export function useMcActions({
         setSubmitting(false);
       }
     },
-    [recordId, setSubmitting],
+    [recordId, sendMutation, setSubmitting],
   );
 
   const handleSubmit = React.useCallback(async () => {

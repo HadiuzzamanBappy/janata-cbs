@@ -34,8 +34,8 @@ Client Request via /api/proxy (HTTP JSON)
      Matches requestType against serverConfig.grpc.financialTransactionTypes
                  │
                  ▼
-     [ 3. Idempotency Key Injection ]
-     Auto-generates crypto.randomUUID() for financial requests if absent
+     [ 3. Idempotency Key Forwarding ]
+     Forwards client-supplied UUIDv4 idempotencyKey untouched to GrpcRequest
                  │
        ┌─────────┴─────────┐
        ▼                   ▼
@@ -57,9 +57,11 @@ Client Request via /api/proxy (HTTP JSON)
 
 1. **Financial Operations (`financialProcess`)**:
    - Matches codes configured in `GRPC_FINANCIAL_TRANSACTION_TYPES` (`ATT`, `CTT`, `AFT`).
-   - Automatically attaches a `crypto.randomUUID()` `idempotencyKey` if omitted to prevent duplicate ledger entries.
+   - Sent over the blocking, strong-consistency `FinancialProcess` RPC.
 2. **Non-Financial Operations (`nonFinancialProcess`)**:
    - All other verbs (`GET`, `PUT`, `AUT`, `GRL`, `GMC`, `GFC`, `INQ`, etc.).
+3. **Official Banking Idempotency Key Flow (Pure UUIDv4)**:
+   - Attempt-scoped UUIDv4 keys are generated at the UI origin via `useIdempotentSend()` (reused across transient network/5xx retries, rotated on success or payload change), enforced on mutations by `cbsWirePayloadSchema` & `/api/proxy`, and forwarded untouched by `dispatch()`. Read operations pass without fake keys.
 
 ---
 

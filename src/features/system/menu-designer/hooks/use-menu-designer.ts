@@ -11,9 +11,9 @@ import {
 } from "@/lib/data-schemas/menu-designer-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { mapMdZodIssues, validateMenuTreeDomain } from "./md-validation";
+import { useMdActions } from "./use-md-actions";
 import { useMdCatalog } from "./use-md-catalog";
 import { INITIAL_MENU_TREE, useMdPersistence } from "./use-md-persistence";
-import { useMdSubmit } from "./use-md-submit";
 import { useMdTreeOps } from "./use-md-tree-ops";
 
 export function useMenuDesigner(initialId?: string, tabId?: string) {
@@ -119,7 +119,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     return true;
   }, [formData]);
 
-  const { submitting, handleSubmit, handleAuthorize } = useMdSubmit({
+  const { submitting, handleSubmit, handleAuthorize } = useMdActions({
     formData,
     recordId,
     handleValidate,

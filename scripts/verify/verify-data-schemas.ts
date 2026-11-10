@@ -203,13 +203,27 @@ async function runSuite() {
   );
 
   // 7. Universal Wire & API Response Contracts
-  const sampleWirePayload = {
+  const validMutationWire = {
+    idempotencyKey: "550e8400-e29b-41d4-a716-446655440000",
     requestType: "PUT",
     controlName: "ACCOUNT",
     recordId: "10001",
     data: { title: "Savings" },
   };
-  const wireResult = cbsWirePayloadSchema.safeParse(sampleWirePayload);
+  const missingKeyMutation = {
+    requestType: "PUT",
+    controlName: "ACCOUNT",
+    recordId: "10001",
+    data: { title: "Savings" },
+  };
+  const readWire = {
+    requestType: "GET",
+    controlName: "ACCOUNT",
+    recordId: "10001",
+  };
+  const wireResult = cbsWirePayloadSchema.safeParse(validMutationWire);
+  const missingKeyResult = cbsWirePayloadSchema.safeParse(missingKeyMutation);
+  const readResult = cbsWirePayloadSchema.safeParse(readWire);
 
   const sampleApiResponse = {
     status: "SUCCESS",
@@ -222,10 +236,18 @@ async function runSuite() {
   const responseResult = apiResponseSchema.safeParse(sampleApiResponse);
 
   recordTest(
-    "7. Wire & Response Schemas: Validates cbsWirePayload and apiResponse wire contracts",
-    { wireType: sampleWirePayload.requestType, resStatus: sampleApiResponse.status },
-    { wireSuccess: wireResult.success, resSuccess: responseResult.success },
-    wireResult.success === true && responseResult.success === true,
+    "7. Wire & Response Schemas: Enforces UUIDv4 idempotencyKey on mutations, optional on reads",
+    { mutationWithKey: validMutationWire.requestType, readWithoutKey: readWire.requestType },
+    {
+      mutationWithKeyValid: wireResult.success,
+      mutationMissingKeyRejected: !missingKeyResult.success,
+      readWithoutKeyValid: readResult.success,
+      resSuccess: responseResult.success,
+    },
+    wireResult.success === true &&
+      missingKeyResult.success === false &&
+      readResult.success === true &&
+      responseResult.success === true,
   );
 
   // 8. Metamodel Inheritance Defense: FormElement inherits baseFieldSchema + presentation overrides

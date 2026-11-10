@@ -3,6 +3,7 @@ import { type CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types
 
 export interface ModelOptions {
   servicePath?: string;
+  idempotencyKey?: string;
 }
 
 export interface CbsModelPayloadFactory<TData = Record<string, unknown>> {
@@ -27,7 +28,6 @@ export interface CbsModelPayloadFactory<TData = Record<string, unknown>> {
     options?: ModelOptions & {
       recordId?: string;
       recordFunction?: CbsRecordFunction;
-      idempotencyKey?: string;
     },
   ) => CbsWirePayload;
 
@@ -59,7 +59,7 @@ export function createModelPayloads<TData = Record<string, unknown>>(
     recordFunction: CbsRecordFunction,
     recordId = "",
     data?: Record<string, unknown>,
-    opts?: ModelOptions & { idempotencyKey?: string },
+    opts?: ModelOptions,
   ): CbsWirePayload => ({
     servicePath: opts?.servicePath?.trim() || servicePath,
     requestType,

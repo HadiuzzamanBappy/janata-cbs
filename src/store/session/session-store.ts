@@ -1,6 +1,6 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import type { CurrentUser } from "@/lib/data-schemas";
 
@@ -28,7 +28,7 @@ export const createSessionStore = () => {
         clearSession: () => set({ user: null, isAuthenticated: false }),
         logout: async () => {
           try {
-            await fetch(appConfig.routes.api.logout, { method: "POST" });
+            await fetch(clientConfig.routes.api.logout, { method: "POST" });
           } catch (e) {
             logger.error("Logout failed", e, "SESSION_STORE");
           }
@@ -37,13 +37,13 @@ export const createSessionStore = () => {
           // Cross-window coordination: notify detached windows without wiping draft form data
           if (typeof window !== "undefined") {
             try {
-              const channel = new BroadcastChannel(appConfig.storage.broadcast.workbenchBus);
+              const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
               channel.postMessage({ type: "SESSION_LOGOUT" });
               channel.close();
             } catch {
               // Ignore BroadcastChannel errors in non-supporting contexts
             }
-            window.location.href = appConfig.routes.login;
+            window.location.href = clientConfig.routes.login;
           }
         },
         setBranch: (branch) => {
@@ -51,7 +51,7 @@ export const createSessionStore = () => {
           // Broadcast branch change to detached popups
           if (typeof window !== "undefined") {
             try {
-              const channel = new BroadcastChannel(appConfig.storage.broadcast.workbenchBus);
+              const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
               channel.postMessage({ type: "BRANCH_CHANGED", branch });
               channel.close();
             } catch {
@@ -61,7 +61,7 @@ export const createSessionStore = () => {
         },
       }),
       {
-        name: appConfig.storage.session.sessionState,
+        name: clientConfig.storage.session.sessionState,
         storage: createJSONStorage(() => sessionStorage),
       },
     ),

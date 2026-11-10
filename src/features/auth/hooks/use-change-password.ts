@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import type { ApiResponse } from "@/lib/data-schemas";
 import { type ChangePasswordInput, changePasswordSchema } from "@/lib/data-schemas";
@@ -28,7 +28,7 @@ export function useChangePassword() {
 
       try {
         // 2. Fetch using centralized config route
-        const res = await fetch(appConfig.routes.api.changePassword, {
+        const res = await fetch(clientConfig.routes.api.changePassword, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -51,7 +51,7 @@ export function useChangePassword() {
         }
 
         // 3. Navigation to dashboard
-        router.push(appConfig.routes.dashboard);
+        router.push(clientConfig.routes.dashboard);
         router.refresh();
         return true;
       } catch (err: unknown) {

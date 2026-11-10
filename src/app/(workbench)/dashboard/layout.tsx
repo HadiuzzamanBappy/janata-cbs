@@ -2,13 +2,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type * as React from "react";
 import { WorkbenchShell } from "@/components/layout/workbench-shell";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { getSession } from "@/lib/infra-redis";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   if (!session) {
-    redirect(appConfig.routes.login);
+    redirect(clientConfig.routes.login);
   }
 
   const cookieStore = await cookies();

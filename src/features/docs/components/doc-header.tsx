@@ -14,7 +14,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { buttonVariants } from "@/components/ui/button";
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 import { DEV_NAV_GROUPS } from "../config";
 import type { NavGroup } from "../types";
 import { DocPdfModal } from "./pdf/doc-pdf-modal";
@@ -104,7 +104,7 @@ export function DocHeader({
 
           {/* Dashboard Icon Button: identical square styling to ThemeToggle (size-7, border-border/80) */}
           <Link
-            href={appConfig.routes.dashboard}
+            href={clientConfig.routes.dashboard}
             className={buttonVariants({
               variant: "outline",
               size: "icon-sm",

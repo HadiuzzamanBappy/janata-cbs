@@ -1,7 +1,6 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
-import { appConfig } from "@/lib/core-config";
-import { clientConfig } from "@/lib/core-config/client";
+import { clientConfig } from "@/lib/core-config";
 import type { CbsScreenMode } from "@/types";
 
 export interface WorkbenchTab {
@@ -174,7 +173,7 @@ export const createWorkbenchStore = () => {
       }),
 
       {
-        name: appConfig.storage.session.workbenchTabs,
+        name: clientConfig.storage.session.workbenchTabs,
         storage: createJSONStorage(() => sessionStorage),
         partialize: (state) =>
           ({

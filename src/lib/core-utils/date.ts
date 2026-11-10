@@ -1,4 +1,4 @@
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 
 /**
  * Core Banking Date & Julian / Value Date Formatting Utilities
@@ -21,7 +21,7 @@ export function formatValueDate(valueDateStr: string | null | undefined): string
   );
   if (Number.isNaN(date.getTime())) return valueDateStr;
 
-  return date.toLocaleDateString(appConfig.format.dateLocale, {
+  return date.toLocaleDateString(clientConfig.format.dateLocale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -37,13 +37,13 @@ export function formatDateTime(dateInput: Date | string | number | null | undefi
   const date = typeof dateInput === "object" ? dateInput : new Date(dateInput);
   if (Number.isNaN(date.getTime())) return String(dateInput);
 
-  const d = date.toLocaleDateString(appConfig.format.dateLocale, {
+  const d = date.toLocaleDateString(clientConfig.format.dateLocale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 
-  const t = date.toLocaleTimeString(appConfig.format.dateLocale, {
+  const t = date.toLocaleTimeString(clientConfig.format.dateLocale, {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",

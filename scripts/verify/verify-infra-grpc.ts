@@ -58,9 +58,8 @@ function recordTest(
 }
 
 async function runSuite() {
-  const { appConfig, getService } = await import("@/lib/core-config/server");
-  const { isStaticMode } = await import("@/lib/infra-grpc");
-  const { grpcStatusToHttp } = await import("@/lib/infra-grpc/client");
+  const { getService, serverConfig } = await import("@/lib/core-config/server");
+  const { grpcStatusToHttp, isFinancialRequest, isStaticMode } = await import("@/lib/infra-grpc");
 
   console.log("\n================================================================================");
   console.log("             CBS GRPC INFRASTRUCTURE & DISPATCH VERIFICATION                   ");
@@ -74,9 +73,9 @@ async function runSuite() {
   const isStatic = isStaticMode();
   recordTest(
     "1.1 Checks whether runtime mode matches dataSource configuration",
-    { dataSource: appConfig.dataSource },
+    { dataSource: serverConfig.dataSource },
     { isStaticMode: isStatic },
-    isStatic === (appConfig.dataSource === "static"),
+    isStatic === (serverConfig.dataSource === "static"),
   );
 
   // ── 2. Downstream Gateway Service Routing ──
@@ -99,12 +98,29 @@ async function runSuite() {
 
   // ── 3. Financial Transaction Classification ──
   console.log("\n── 3. Financial Transaction Classification ──");
-  const financialTypes = appConfig.grpc.financialTransactionTypes;
+  const financialTypes = serverConfig.grpc.financialTransactionTypes;
+  const requiredFinancialTypes = ["ATT", "CTT", "AFT"];
   recordTest(
     "3.1 Validates financial transaction types configured for dual-phase processing",
-    { configuredTypes: financialTypes },
+    { configuredTypes: financialTypes, required: requiredFinancialTypes },
     { isConfigured: financialTypes.length > 0, typesCount: financialTypes.length },
-    financialTypes.length > 0 && financialTypes.includes("AFT"),
+    requiredFinancialTypes.every((t) => financialTypes.includes(t)),
+  );
+
+  const classifiedFinancial = requiredFinancialTypes.map((t) => ({
+    type: t,
+    isFinancial: isFinancialRequest(t),
+  }));
+  const classifiedNonFinancial = ["GET", "PUT", "INQ"].map((t) => ({
+    type: t,
+    isFinancial: isFinancialRequest(t),
+  }));
+  recordTest(
+    "3.2 Routes configured financial types to FinancialProcess and others to NonFinancialProcess",
+    { financial: requiredFinancialTypes, nonFinancial: ["GET", "PUT", "INQ"] },
+    { financial: classifiedFinancial, nonFinancial: classifiedNonFinancial },
+    classifiedFinancial.every((c) => c.isFinancial) &&
+      classifiedNonFinancial.every((c) => !c.isFinancial),
   );
 
   // ── 4. gRPC Protocol to HTTP Status Translation ──

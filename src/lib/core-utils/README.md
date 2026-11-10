@@ -12,7 +12,6 @@ src/lib/core-utils/
 ├── currency.ts     # Currency formatting with BDT defaults and accounting parenthetical negatives
 ├── date.ts         # Julian / value date parser and ISO timestamp formatters
 ├── export.ts       # CSV (with Excel UTF-8 BOM), HTML report, and XML table exporters
-├── formula.ts      # Pure formula execution engine for computed form elements
 ├── id.ts           # Ephemeral UI token generator (generateClientToken)
 ├── index.ts        # Central public export barrel
 └── string.ts       # Title Case string formatter with banking acronym preservation
@@ -50,19 +49,7 @@ toTitleCase("BRANCH HO MANAGER"); // "Branch HO Manager" (HO preserved)
 toTitleCase("CUSTOMER PLC ATM"); // "Customer PLC ATM"
 ```
 
-### 4. Computed Formulas (`evaluateFormula`)
-
-```typescript
-import { evaluateFormula } from "@/lib/core-utils";
-
-const total = evaluateFormula("principal + (principal * rate / 100)", {
-  principal: 50000,
-  rate: 5,
-});
-// 52500
-```
-
-### 5. Document & Table Exports (`exportToCsv`, `exportToHtmlReport`, `exportToXml`)
+### 4. Document & Table Exports (`exportToCsv`, `exportToHtmlReport`, `exportToXml`)
 
 ```typescript
 import { exportToCsv, exportToHtmlReport, exportToXml } from "@/lib/core-utils";

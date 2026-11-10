@@ -12,10 +12,10 @@ $$\text{Level 6 (App)} \longrightarrow \text{Level 5 (Features)} \longrightarrow
 
 ## 2. Zero Magic Strings & Centralized Registry
 
-- **Zero Inline Paths**: Never hardcode route strings like `"/api/login"`. Use `appConfig.routes` (in `@/lib/core-config`).
+- **Zero Inline Paths**: Never hardcode route strings like `"/api/login"`. Use `clientConfig.routes` (in `@/lib/core-config`).
 - **Zero Raw Action Codes**: Never use raw string literals like `"S"`, `"I"`, `"AU"`, or `"NEW"`. Always use canonical enums from `@/types/cbs` or `@/lib/cbs-access` / `@/lib/cbs-record`.
 - **Zero Hardcoded Context**: Active branch codes, user credentials, and session tokens must resolve dynamically from `useSessionStore`.
-- **Storage Invariants**: All keys for `localStorage`, `sessionStorage`, or cookies must be declared in `appConfig.storageKeys` or `appConfig.auth`.
+- **Storage Invariants**: All keys for `localStorage`, `sessionStorage`, or cookies must be declared in `clientConfig.storage` or `clientConfig.auth`.
 
 ## 3. Server/Client Isolation Boundary
 
@@ -40,7 +40,7 @@ $$\text{Level 6 (App)} \longrightarrow \text{Level 5 (Features)} \longrightarrow
 - **No Backward Compatibility Burden**: The app is not in production. Do **NOT** keep deprecated shims, legacy aliasing, fallback adapter wrappers, or obsolete types. Update all call sites cleanly.
 - **1:1 WYSIWYG Fidelity**: In-memory state and wire data structures match 1:1 (`PROP: [...]` true recursive tree, no artificial flattening/re-nesting).
 - **Zero Dead Code**: Delete unused imports, orphaned types, unreachable branches, and abandoned utility files immediately.
-- **Strict Naming**: Files/folders in `kebab-case`, components/types in `PascalCase` (types sealed with `readonly`), primitives/enums in `UPPER_SNAKE_CASE`, config singletons in `camelCase` (`appConfig`), hooks prefixed with `use`.
+- **Strict Naming**: Files/folders in `kebab-case`, components/types in `PascalCase` (types sealed with `readonly`), primitives/enums in `UPPER_SNAKE_CASE`, config singletons in `camelCase` (`clientConfig`, `serverConfig`), hooks prefixed with `use`.
 - **File Lengths**: Keep standard leaf components focused (≤300 lines where feasible); large enterprise screens, designer canvases, and metamodel dictionaries are permitted to be larger when cohesive.
 
 ## 7. Core Banking Security & Domain Rules

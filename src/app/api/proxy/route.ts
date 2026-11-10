@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { verifyUserRecordAccess } from "@/lib/cbs-access";
-import { appConfig } from "@/lib/core-config/server";
+import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import { type ApiResponse, cbsWirePayloadSchema, type GrpcEnvelope } from "@/lib/data-schemas";
@@ -57,13 +57,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       servicePath: body.servicePath ?? "default",
       requestType: body.requestType,
       controlName: body.controlName ?? "",
-      branchCode: currUser.branchCode || appConfig.centralBranch,
+      branchCode: currUser.branchCode || serverConfig.centralBranch,
       recordFunction: body.recordFunction ?? "",
       recordId: body.recordId ?? "",
       authLevel: body.authLevel ?? 1,
       idempotencyKey: body.idempotencyKey,
       userId,
-      clientId: appConfig.grpc.clientId,
+      clientId: serverConfig.grpc.clientId,
       data: body.data ?? {},
     };
 

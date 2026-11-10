@@ -97,7 +97,7 @@ pnpm fixture:clean    # Normalize mock data fixtures
    A user who inputted or modified a transaction (`Maker`) can **never** authorize that same transaction (`Checker`). Block authorization in UI with a clear `<Tooltip>` explanation.
 
 4. **Zero Magic Strings:**
-   - Routes come from `appConfig.routes` (in `@/lib/core-config`).
+   - Routes come from `clientConfig.routes` (in `@/lib/core-config`).
    - Action codes and statuses come from canonical enums (`@/types/cbs`).
    - User identity and active branch resolve dynamically from `useSessionStore`.
 

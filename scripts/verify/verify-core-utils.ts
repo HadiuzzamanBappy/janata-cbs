@@ -7,11 +7,8 @@
  * 2. Currency Formatting (formatCurrency: BDT locale, decimals, accounting negative)
  * 3. CBS Value Date & Datetime (formatValueDate & formatDateTime: YYYYMMDD to human readable)
  * 4. Title Case with Acronyms (toTitleCase: preserves HO, PLC, ATM, BDT)
- * 5. Safe Math Formula Evaluation (evaluateFormula: executes arithmetic, enforces whitelist)
- * 6. Ephemeral UI Client Token (generateClientToken: format and prefix check)
- * 7. CSV Export with Excel UTF-8 BOM (exportToCsv: byte encoding and escaping)
- * 8. HTML Report Table Export (exportToHtmlReport: markup structure)
- * 9. XML Dataset Export (exportToXml: tag structure and character escaping)
+ * 5. Ephemeral UI Client Token (generateClientToken: format and prefix check)
+ * 6. Document Export Utilities (CSV, HTML, XML byte encoding and safety)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-core-utils.ts
@@ -19,7 +16,6 @@
 
 import {
   cn,
-  evaluateFormula,
   exportToCsv,
   exportToHtmlReport,
   exportToXml,
@@ -122,39 +118,18 @@ async function runSuite() {
     titleResult === "Janata Bank HO PLC ATM Branch",
   );
 
-  // ── 5. Safe Math Formula Evaluation ──
-  console.log("\n── 5. Safe Math Formula Evaluation (evaluateFormula) ──");
-  const calcResult = evaluateFormula("principal + (principal * rate / 100)", {
-    principal: 50000,
-    rate: 10,
-  });
-  recordTest(
-    "5.1 Computes banking interest formula with dynamic context values",
-    { formula: "principal + (principal * rate / 100)", principal: 50000, rate: 10 },
-    { calcResult },
-    calcResult === 55000,
-  );
-
-  const maliciousResult = evaluateFormula("window.alert(1)", {});
-  recordTest(
-    "5.2 Blocks arbitrary JavaScript code execution via strict arithmetic whitelist",
-    { payload: "window.alert(1)" },
-    { result: maliciousResult },
-    maliciousResult === undefined,
-  );
-
-  // ── 6. Ephemeral UI Client Token ──
-  console.log("\n── 6. Ephemeral UI Client Token (generateClientToken) ──");
+  // ── 5. Ephemeral UI Client Token ──
+  console.log("\n── 5. Ephemeral UI Client Token (generateClientToken) ──");
   const token = generateClientToken("rtn");
   recordTest(
-    "6.1 Generates non-cryptographic short token with specified prefix",
+    "5.1 Generates non-cryptographic short token with specified prefix",
     { prefix: "rtn" },
     { token },
     token.startsWith("rtn_") && token.length >= 10,
   );
 
-  // ── 7. Document Export Utilities ──
-  console.log("\n── 7. Document Export Utilities (CSV, HTML, XML) ──");
+  // ── 6. Document Export Utilities ──
+  console.log("\n── 6. Document Export Utilities (CSV, HTML, XML) ──");
   // In Node/tsx test environment, browser window is undefined so exports cleanly no-op
   const exportCols = [
     { key: "id", header: "ID" },
@@ -171,7 +146,7 @@ async function runSuite() {
     noCrash = false;
   }
   recordTest(
-    "7.1 Export functions execute safely in headless environments without DOM crashes",
+    "6.1 Export functions execute safely in headless environments without DOM crashes",
     { columns: exportCols, rows: exportRows },
     { headlessSafe: noCrash },
     noCrash === true,

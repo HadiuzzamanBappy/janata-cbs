@@ -1,4 +1,4 @@
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 
 /**
  * Core Banking Currency Formatting Utilities
@@ -23,7 +23,7 @@ export function formatCurrency(
   if (Number.isNaN(num)) return String(value);
 
   const {
-    currency = appConfig.format.currency,
+    currency = clientConfig.format.currency,
     decimals = 2,
     accountingNegative = false,
   } = options;
@@ -31,7 +31,7 @@ export function formatCurrency(
   const isNegative = num < 0;
   const absNum = Math.abs(num);
 
-  const formattedAbs = new Intl.NumberFormat(appConfig.format.locale, {
+  const formattedAbs = new Intl.NumberFormat(clientConfig.format.locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(absNum);

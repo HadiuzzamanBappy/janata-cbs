@@ -84,7 +84,7 @@ function recordTest(
 }
 
 async function runSuite() {
-  const { appConfig } = await import("@/lib/core-config/server");
+  const { serverConfig } = await import("@/lib/core-config/server");
   const { decodeProtobufValue, unwrapRecordsPayload } = await import("@/lib/data-parsers");
   const typeModule = await import("@/types");
   const { CbsRequestType, CbsRecordFunction } = typeModule;
@@ -96,10 +96,10 @@ async function runSuite() {
   console.log("\n================================================================================");
   console.log("             CBS LIVE API & BACKEND RESPONSE VERIFICATION SUITE                 ");
   console.log("================================================================================");
-  console.log(` Data Source Mode : ${appConfig.dataSource.toUpperCase()}`);
-  console.log(` gRPC Core Host   : ${appConfig.grpc.host}`);
-  console.log(` Client ID        : ${appConfig.grpc.clientId}`);
-  console.log(` Redis Cache      : ${appConfig.redis.enabled ? "ENABLED" : "DISABLED"}`);
+  console.log(` Data Source Mode : ${serverConfig.dataSource.toUpperCase()}`);
+  console.log(` gRPC Core Host   : ${serverConfig.grpc.host}`);
+  console.log(` Client ID        : ${serverConfig.grpc.clientId}`);
+  console.log(` Redis Cache      : ${serverConfig.redis.enabled ? "ENABLED" : "DISABLED"}`);
   console.log("================================================================================");
 
   let authToken = "";
@@ -109,7 +109,7 @@ async function runSuite() {
   console.log("\n── 1. Operator Authentication & Live Token Handshake ──");
   try {
     const loginPayload = {
-      clientId: appConfig.grpc.clientId,
+      clientId: serverConfig.grpc.clientId,
       username: process.env.TEST_USERNAME || "ZZ028459",
       password: process.env.TEST_PASSWORD || "sc1234567",
     };
@@ -132,7 +132,7 @@ async function runSuite() {
       },
       loginRes.status === "SUCCESS" ||
         loginRes.statusCode === 200 ||
-        appConfig.dataSource === "static",
+        serverConfig.dataSource === "static",
       loginRes.status !== "SUCCESS" ? loginRes.message : undefined,
     );
   } catch (err: unknown) {
@@ -140,7 +140,7 @@ async function runSuite() {
       "1.1 Authenticates operator credentials and exchanges for bearer token",
       "SYSADMIN login",
       { error: err instanceof Error ? err.message : String(err) },
-      appConfig.dataSource === "static",
+      serverConfig.dataSource === "static",
       err instanceof Error ? err.message : String(err),
     );
   }
@@ -180,12 +180,12 @@ async function runSuite() {
       servicePath: "default",
       requestType: rawWire.requestType,
       controlName: rawWire.controlName,
-      branchCode: appConfig.centralBranch,
+      branchCode: serverConfig.centralBranch,
       recordFunction: rawWire.recordFunction,
       recordId: rawWire.recordId || "",
       authLevel: 1,
       userId: loggedInUserId,
-      clientId: appConfig.grpc.clientId,
+      clientId: serverConfig.grpc.clientId,
       data: rawWire.data || {},
     };
 
@@ -366,7 +366,7 @@ async function runSuite() {
   }
   console.log("================================================================================\n");
 
-  if (failedTests > 0 && appConfig.dataSource === "static") {
+  if (failedTests > 0 && serverConfig.dataSource === "static") {
     process.exit(1);
   }
 }

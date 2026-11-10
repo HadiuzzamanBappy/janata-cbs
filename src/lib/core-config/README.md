@@ -10,10 +10,11 @@ It enforces a strict security boundary separating client-safe runtime constants 
 
 ```text
 src/lib/core-config/
-├── client.ts    # Client-safe constants, routes, formatters, and storage keys
+├── client.ts    # Client-safe constants, routes, formatters, and storage keys (clientConfig)
 ├── env.ts       # Validated server environment variables via Zod ('server-only')
-├── server.ts    # Composed server configuration, gRPC settings, and service registry ('server-only')
-└── index.ts     # Default entrypoint: re-exports clientConfig as appConfig for UI components
+├── server.ts    # Composed server configuration, gRPC settings, and service registry (serverConfig)
+├── theme.ts     # Centralized banking theme & accent presets
+└── index.ts     # Default entrypoint: re-exports clientConfig for UI components
 ```
 
 ---
@@ -25,13 +26,13 @@ src/lib/core-config/
 Import from `@/lib/core-config`:
 
 ```typescript
-import { appConfig } from "@/lib/core-config";
+import { clientConfig } from "@/lib/core-config";
 
 // Read client route or formatting rule
-const timeoutMin = appConfig.logoutTime;
-const currency = appConfig.format.currency; // "BDT"
-const proxyEndpoint = appConfig.routes.api.proxy; // "/api/proxy"
-const maxTabs = appConfig.workbench.maxOpenTabs; // 15
+const timeoutMin = clientConfig.logoutTime;
+const currency = clientConfig.format.currency; // "BDT"
+const proxyEndpoint = clientConfig.routes.api.proxy; // "/api/proxy"
+const maxTabs = clientConfig.workbench.maxOpenTabs; // 15
 ```
 
 ---
@@ -41,11 +42,11 @@ const maxTabs = appConfig.workbench.maxOpenTabs; // 15
 Import from `@/lib/core-config/server`:
 
 ```typescript
-import { appConfig, getServiceUrl } from "@/lib/core-config/server";
+import { serverConfig, getServiceUrl } from "@/lib/core-config/server";
 
 // Access validated runtime secrets & infrastructure endpoints
-const grpcHost = appConfig.grpc.host;
-const redisUrl = appConfig.redis.url;
+const grpcHost = serverConfig.grpc.host;
+const redisUrl = serverConfig.redis.url;
 const customerServiceUrl = getServiceUrl("customer");
 ```
 

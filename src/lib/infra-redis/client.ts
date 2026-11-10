@@ -1,7 +1,7 @@
 import "server-only";
 
 import Redis from "ioredis";
-import { appConfig } from "@/lib/core-config/server";
+import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 
 const redisLogger = logger.withContext("REDIS");
@@ -10,9 +10,9 @@ const redisLogger = logger.withContext("REDIS");
 /* Circuit Breaker & Connection State                                         */
 /* -------------------------------------------------------------------------- */
 
-const PREFIX = appConfig.redis.keyPrefix;
-const ENABLED = appConfig.redis.enabled;
-const COOLDOWN_MS = appConfig.redis.cooldownMs;
+const PREFIX = serverConfig.redis.keyPrefix;
+const ENABLED = serverConfig.redis.enabled;
+const COOLDOWN_MS = serverConfig.redis.cooldownMs;
 
 type Client = Redis & { __warned?: boolean };
 
@@ -42,7 +42,7 @@ export function getRedisClient(): Client | null {
   }
 
   try {
-    const client = new Redis(appConfig.redis.url, {
+    const client = new Redis(serverConfig.redis.url, {
       enableOfflineQueue: false,
       maxRetriesPerRequest: 1,
       connectTimeout: 1000,
@@ -62,7 +62,7 @@ export function getRedisClient(): Client | null {
     client.on("ready", () => {
       client.__warned = false;
       openUntil = 0;
-      redisLogger.info(`Redis connected successfully at ${appConfig.redis.url}`);
+      redisLogger.info(`Redis connected successfully at ${serverConfig.redis.url}`);
     });
 
     globalThis.__redisClient = client;

@@ -26,7 +26,7 @@ src/lib/infra-redis/
 If Redis crashes or is not running during local development:
 
 - The connection failure trips the circuit breaker (`tripCircuit()`).
-- During the cooldown window (`appConfig.redis.cooldownMs` = 5,000ms), all cache operations **fail open** without throwing errors or halting the banking operator.
+- During the cooldown window (`serverConfig.redis.cooldownMs` = 5,000ms), all cache operations **fail open** without throwing errors or halting the banking operator.
 - Sessions automatically fall back to a server-side in-memory `Map` (`__memorySessionStore`).
 - The entire workbench remains 100% operational with zero Redis dependencies.
 
@@ -235,7 +235,7 @@ pnpm cache:clear
   Connection pooling, single-flight collapse, circuit breaker trips, and session serialization are finalized and sealed.
 - **Cache Keys & TTLs: SCALABLE**
   When caching new entities:
-  - Add canonical cache key patterns to `appConfig.redis.cacheKeys` in `src/lib/core-config/server.ts`.
+  - Add canonical cache key patterns to `serverConfig.redis.cacheKeys` in `src/lib/core-config/server.ts`.
   - Set custom TTLs per entity using the `ttlSeconds` parameter in `getOrSet()`.
 
 ---

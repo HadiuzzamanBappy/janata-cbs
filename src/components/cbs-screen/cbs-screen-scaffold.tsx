@@ -14,7 +14,7 @@ import { CbsIdleState } from "./states/cbs-idle-state";
  *
  * Responsibilities:
  * 1. Enforces RIDASHL access rules & Four-Eyes principle via `useCbsAccess`.
- * 2. Wires banking terminal function hotkeys (F2, F3/Esc, F5, F6, F7, F8, F10) via `useCbsHotkeys`.
+ * 2. Wires minimal banking terminal hotkeys (F2, Esc, F5, F6, F7, F8, F10) via `useCbsHotkeys`.
  * 3. Intercepts navigation when dirty via `useGuardedAction` and renders `ConfirmDialog`.
  * 4. Adapts layout between Form Tabs, Tabular Inquiries, and Dynamic Form Grids.
  */
@@ -98,7 +98,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
   };
 
   // ===========================================================================
-  // 3. TERMINAL HOTKEYS (F2: New, F3/Esc: Return, F5: Save, F6: Hold, F8: Auth)
+  // 3. TERMINAL HOTKEYS (F2: New, Esc: Return, F5: Save, F6: Hold, F7: Validate, F8: Auth, F10: Delete)
   // ===========================================================================
   useCbsHotkeys({
     enabled: true,
@@ -108,7 +108,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
       onHold: access.canHold ? onHold : undefined,
       onValidate: !isReadOnly ? onValidate : undefined,
       onAuthorize: access.canAuthorize || access.canReverse ? onAuthorizeReverse : undefined,
-      onProcessAction,
       onDelete: access.canDelete ? onDelete : undefined,
       onReturn: handleGuardedReturn,
     },

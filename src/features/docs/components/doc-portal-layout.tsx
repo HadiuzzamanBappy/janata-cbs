@@ -1,8 +1,9 @@
 // Generic Reusable Documentation Portal Layout Component
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { useHotkeys } from "@/lib/cbs-hotkeys";
 import type { NavGroup } from "../types";
 import { DocHeader } from "./doc-header";
 import { DocSearchDialog } from "./doc-search-dialog";
@@ -27,18 +28,9 @@ export function DocPortalLayout({
 }: DocPortalLayoutProps) {
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // Keyboard shortcut listener (Cmd+K / Ctrl+K)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setSearchOpen((prev) => !prev);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  useHotkeys("ctrl+k", () => setSearchOpen((prev) => !prev), {
+    enableOnFormTags: true,
+  });
 
   return (
     <SidebarProvider defaultOpen={true}>

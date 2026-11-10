@@ -4,20 +4,15 @@ import * as React from "react";
 import type { CbsHotkeysHandlers, UseCbsHotkeysOptions } from "./types";
 
 /**
- * Standard mapping between plain Function Keys and handler methods.
+ * Minimal 1-to-1 mapping between plain Function Keys and core screen actions.
  */
 const CBS_FKEY_ACTION_MAP: Record<string, keyof CbsHotkeysHandlers> = {
-  F1: "onHelp",
   F2: "onCreateNew",
-  F3: "onReturn",
-  F4: "onSearchFocus",
   F5: "onCommit",
   F6: "onHold",
   F7: "onValidate",
   F8: "onAuthorize",
-  F9: "onProcessAction",
   F10: "onDelete",
-  F12: "onRefresh",
 };
 
 /**
@@ -29,7 +24,7 @@ function isModalActive(): boolean {
 
 /**
  * Universal CBS screen keyboard dispatcher.
- * Binds plain F-keys (F1–F12) and Escape to banking operations cleanly.
+ * Binds minimal screen function keys (F2, F5–F8, F10) and Escape (1 hotkey per operation).
  */
 export function useCbsHotkeys({ enabled = true, handlers }: UseCbsHotkeysOptions): void {
   const handlersRef = React.useRef(handlers);
@@ -39,14 +34,14 @@ export function useCbsHotkeys({ enabled = true, handlers }: UseCbsHotkeysOptions
     if (!enabled) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 1. Ignore during IME text input composition
-      if (e.isComposing) return;
+      // 1. Ignore during IME composition or while any modal dialog is open
+      if (e.isComposing || isModalActive()) return;
 
       const currentHandlers = handlersRef.current;
 
-      // 2. Handle Escape (Return to search, only if no modal dialog is open)
+      // 2. Escape: Return to search/idle
       if (e.key === "Escape") {
-        if (!isModalActive() && currentHandlers.onReturn) {
+        if (currentHandlers.onReturn) {
           e.preventDefault();
           currentHandlers.onReturn();
         }

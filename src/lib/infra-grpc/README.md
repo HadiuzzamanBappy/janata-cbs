@@ -2,7 +2,7 @@
 
 A pure, server-only gRPC dispatching and authentication engine connecting the **Janata Core Banking Workbench (BFF)** to the Java Core Banking host and downstream gRPC services.
 
-It enforces a strict security boundary (`import "server-only"`), maintains a lazy connection channel pool (`__grpcClientPool`), routes operations into **Financial (`FinancialProcess`)** vs. **Non-Financial (`NonFinancialProcess`)** RPCs, injects automatic idempotency keys, manages operator session lifecycle via Redis, and translates gRPC status codes to HTTP equivalents.
+It enforces a strict security boundary (`import "server-only"`), maintains a lazy connection channel pool (`__grpcClientPool`), routes operations into **Financial (`FinancialProcess`)** vs. **Non-Financial (`NonFinancialProcess`)** RPCs, forwards attempt-scoped idempotency keys, manages operator session lifecycle via Redis, and translates gRPC status codes to HTTP equivalents.
 
 ---
 
@@ -76,6 +76,7 @@ import { dispatch } from "@/lib/infra-grpc";
 import type { GrpcEnvelope } from "@/lib/data-schemas";
 
 const envelope: GrpcEnvelope = {
+  idempotencyKey: "550e8400-e29b-41d4-a716-446655440000",
   servicePath: "default",
   requestType: "PUT",
   controlName: "ACCOUNT",

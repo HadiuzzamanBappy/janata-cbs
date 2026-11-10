@@ -1,7 +1,7 @@
 import "server-only";
 
 import { serverConfig } from "@/lib/core-config/server";
-import { cacheKey, getRedisClient } from "./client";
+import { cacheKey, circuitOpen, getRedisClient, tripCircuit } from "./client";
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -18,12 +18,16 @@ export async function rateLimit(
   limit = serverConfig.auth.loginLimit,
   windowSec = serverConfig.auth.rateLimitWindowSec,
 ): Promise<RateLimitResult> {
+  if (circuitOpen()) {
+    return { allowed: true, remaining: limit, resetSec: windowSec };
+  }
+
   const redis = getRedisClient();
   if (!redis) {
     return { allowed: true, remaining: limit, resetSec: windowSec };
   }
 
-  const redisKey = cacheKey("rl", key);
+  const redisKey = cacheKey(serverConfig.redis.cacheKeys.rateLimit(key));
   try {
     const pipeline = redis.pipeline();
     pipeline.incr(redisKey);
@@ -38,6 +42,7 @@ export async function rateLimit(
       resetSec: ttl > 0 ? ttl : windowSec,
     };
   } catch {
+    tripCircuit();
     return { allowed: true, remaining: limit, resetSec: windowSec };
   }
 }

@@ -29,7 +29,7 @@ export const SERVICES: Record<string, ServiceDef> = {
  * Complete Server-Only Application Configuration.
  * Composes isomorphic client constants with validated server-only runtime secrets and infrastructure configs.
  * Protected by `import "server-only"`.
- */
+ */ 8;
 export const serverConfig = {
   ...clientConfig,
 
@@ -74,11 +74,12 @@ export const serverConfig = {
     specTtlSeconds: env.SPEC_TTL_SECONDS,
     defaultTtlSeconds: 86400,
     cacheKeys: {
-      branches: "branches:directory",
-      controls: "controls:list",
-      formSpec: (cmd: string) => `spec:${cmd}`,
-      inquirySpec: (cmd: string) => `spec:enq:${cmd}`,
-      menu: (controlName: string) => `menu:${controlName}`,
+      formSpec: (id: string) => `spec:form:${id}`,
+      modelSpec: (id: string) => `spec:model:${id}`,
+      inquirySpec: (id: string) => `spec:enq:${id}`,
+      menu: (target: string) => `menu:${target}`,
+      session: (id: string) => `sess:${id}`,
+      rateLimit: (key: string) => `rl:${key}`,
     },
   },
 
@@ -86,7 +87,6 @@ export const serverConfig = {
   auth: {
     ...clientConfig.auth,
     loginLimit: env.LOGIN_LIMIT,
-    sessionPrefix: `${env.REDIS_KEY_PREFIX}:sess:`,
     sessionMaxAgeSeconds: (env.NEXT_PUBLIC_LOGOUT_TIME + 1) * 60,
   },
 } as const;

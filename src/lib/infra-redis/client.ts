@@ -26,6 +26,10 @@ export function tripCircuit(): void {
   openUntil = Date.now() + COOLDOWN_MS;
 }
 
+export function resetCircuit(): void {
+  openUntil = 0;
+}
+
 declare global {
   var __redisClient: Client | null | undefined;
 }
@@ -123,6 +127,8 @@ export async function cacheSet(key: string, value: unknown, ttlSeconds: number):
  * Safe key deletion supporting single keys or SCAN-based pattern deletions.
  */
 export async function cacheDelete(pattern: string): Promise<number> {
+  if (circuitOpen()) return 0;
+
   const redis = getRedisClient();
   if (!redis) return 0;
 
@@ -143,6 +149,7 @@ export async function cacheDelete(pattern: string): Promise<number> {
 
     return removed;
   } catch {
+    tripCircuit();
     return 0;
   }
 }

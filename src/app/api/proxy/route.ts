@@ -70,20 +70,26 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // 3. Dispatch with Read-Through Redis Caching
     try {
       const cacheDesc = resolveCacheDescriptor(envelope);
+      let failedResponse: ApiResponse | null = null;
 
       const response = cacheDesc
-        ? (await getOrSet(
+        ? ((await getOrSet(
             cacheDesc.key,
             async () => {
               const res = await dispatch(envelope, token);
-              if (res.status !== "SUCCESS") return null;
+              if (res.status !== "SUCCESS") {
+                failedResponse = res;
+                return null;
+              }
               return {
                 ...res,
                 data: res.data ? decodeProtobufValue(res.data) : res.data,
               };
             },
             cacheDesc.ttl,
-          )) || (await dispatch(envelope, token))
+          )) ??
+          failedResponse ??
+          (await dispatch(envelope, token)))
         : await dispatch(envelope, token);
 
       if (response.status === "SUCCESS") {

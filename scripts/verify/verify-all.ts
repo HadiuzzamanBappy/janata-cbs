@@ -61,11 +61,15 @@ const SUITES = [
     command: "pnpm exec tsx scripts/verify/verify-infra-grpc.ts",
   },
   {
-    title: "12. In-Memory Mock Core Engine & Database (@mock/db & @mock/core)",
+    title: "12. Infra Redis & Spec Caching Engine (@/lib/infra-redis)",
+    command: "pnpm exec tsx scripts/verify/verify-infra-redis.ts",
+  },
+  {
+    title: "13. In-Memory Mock Core Engine & Database (@mock/db & @mock/core)",
     command: "pnpm exec tsx scripts/verify/verify-mock-core.ts",
   },
   {
-    title: "13. CBS Screen Architecture & Capabilities (@/lib/cbs-screen)",
+    title: "14. CBS Screen Architecture & Capabilities (@/lib/cbs-screen)",
     command: "pnpm exec tsx scripts/verify/verify-cbs-screen.ts",
   },
 ];

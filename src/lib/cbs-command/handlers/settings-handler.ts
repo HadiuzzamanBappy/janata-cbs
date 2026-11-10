@@ -12,15 +12,12 @@ export class SettingsCommandHandler implements CommandHandler {
   readonly type = "SETTINGS" as const;
 
   canHandle(_raw: string, upper: string): boolean {
-    const resolved = resolveCommandAlias(upper);
-    return resolved.startsWith("SETTINGS:");
+    return resolveCommandAlias(upper).startsWith("SETTINGS:");
   }
 
   parse(raw: string, upper: string): ParsedCommand {
     const resolved = resolveCommandAlias(upper);
-    const rawTab = resolved.startsWith("SETTINGS:")
-      ? resolved.slice("SETTINGS:".length).trim().toLowerCase()
-      : "";
+    const rawTab = resolved.slice("SETTINGS:".length).trim().toLowerCase();
 
     const settingsTab = CBS_SETTINGS_TABS.includes(rawTab as CbsSettingsTabId)
       ? (rawTab as CbsSettingsTabId)
@@ -36,7 +33,6 @@ export class SettingsCommandHandler implements CommandHandler {
         title: "Settings",
         authLevel: 1,
         screenMode: "IDLE",
-        params: {},
       };
     }
 
@@ -49,7 +45,6 @@ export class SettingsCommandHandler implements CommandHandler {
       target: settingsTab,
       authLevel: 1,
       screenMode: "IDLE",
-      params: { tab: settingsTab },
     };
   }
 

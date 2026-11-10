@@ -99,4 +99,3 @@ export const DROPDOWN_LOOKUP_SECTION: FormSection = {
     },
   ],
 };
-

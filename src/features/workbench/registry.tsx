@@ -6,13 +6,13 @@ import { SysFormConfig } from "@/features/system/form-config";
 import { SysInquiryConfig } from "@/features/system/inquiry-config";
 import { SysMenuDesigner } from "@/features/system/menu-designer";
 import { SysModelConfig } from "@/features/system/model-config";
-import { getCanonicalScreenKey } from "@/lib/cbs-command";
+import { resolveCommandAlias } from "@/lib/cbs-command";
 import type { CbsScreenComponent } from "@/lib/cbs-screen";
 
 /**
  * Dedicated registry for custom/bespoke React screen components.
  * Only canonical command keys are registered here; shorthand aliases
- * (e.g. MD, IC, FC, MC) are automatically resolved via `getCanonicalScreenKey`.
+ * (e.g. MD, IC, FC, MC) are automatically resolved via `resolveCommandAlias`.
  */
 const BESPOKE_SCREENS: Record<string, CbsScreenComponent> = {
   "SC.MENU.DESIGN": SysMenuDesigner,
@@ -42,7 +42,7 @@ export function isInquiryCommand(command: string): boolean {
  */
 export function isSystemScreen(command: string): boolean {
   const cleanCmd = extractCleanCommand(command);
-  const canonicalKey = getCanonicalScreenKey(cleanCmd) || cleanCmd;
+  const canonicalKey = resolveCommandAlias(cleanCmd);
   return Boolean(BESPOKE_SCREENS[canonicalKey]);
 }
 
@@ -57,7 +57,7 @@ export function resolveScreen(command: string): CbsScreenComponent {
   const cleanCmd = extractCleanCommand(command);
 
   // 1. Check canonical screen key via gateway
-  const canonicalKey = getCanonicalScreenKey(cleanCmd) || cleanCmd;
+  const canonicalKey = resolveCommandAlias(cleanCmd);
   if (BESPOKE_SCREENS[canonicalKey]) {
     return BESPOKE_SCREENS[canonicalKey];
   }

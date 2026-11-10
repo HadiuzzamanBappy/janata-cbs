@@ -15,6 +15,7 @@ src/lib/data-schemas/
 ├── control-schema.ts       # System commands, alias mappings, and control table catalog models (SC_CONTROL)
 ├── env-schema.ts           # Runtime environment and secrets validation (envSchema)
 ├── form-config-schema.ts   # Form Designer Canvas layout, widget compatibility & FormConfigRecord contracts (CONFIG.FORM)
+├── form-engine-schema.ts   # Dynamic form runtime schema generator & field validator definitions
 ├── inquiry-config-schema.ts# Visual inquiry designer configurations (columns, filters, actions) & runtime row types (INQUIRY)
 ├── menu-designer-schema.ts # Consolidated menu definitions: flat catalog (SC_MENU) & visual navigation tree (SC_MENU_TREE)
 ├── model-config-schema.ts  # Dynamic Model Builder & schema configuration models (MODEL.CONFIG)

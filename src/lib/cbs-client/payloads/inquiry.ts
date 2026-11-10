@@ -1,11 +1,5 @@
-import type {
-  CbsWirePayload,
-  InquiryCriteriaParam,
-  InquiryExecuteOptions,
-} from "@/lib/data-schemas";
+import type { CbsWirePayload, InquiryExecuteOptions } from "@/lib/data-schemas";
 import { CbsRecordFunction, CbsRequestType } from "@/types";
-
-export type { InquiryCriteriaParam, InquiryExecuteOptions };
 
 /**
  * Pure runtime enquiry executor payload builder.

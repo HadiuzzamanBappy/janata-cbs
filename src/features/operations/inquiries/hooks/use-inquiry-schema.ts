@@ -8,7 +8,7 @@ import type { InquiryConfigRecord } from "@/lib/data-schemas";
 
 export function useInquirySchema(command: string) {
   const parsed = cbsCommand.parse(command);
-  const cleanCmd = (parsed.target || parsed.application || command).trim().toUpperCase();
+  const cleanCmd = (parsed.application || command).trim().toUpperCase();
 
   const { data, isLoading, error, refetch } = useQuery<InquiryConfigRecord>({
     queryKey: ["cbs", "inquiry-schema", cleanCmd],

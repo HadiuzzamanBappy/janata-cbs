@@ -1,4 +1,4 @@
-import { getCanonicalScreenKey, resolveCommandAlias } from "@/lib/cbs-command";
+import { resolveCommandAlias } from "@/lib/cbs-command";
 import type { MenuItem } from "@/lib/data-schemas";
 
 export function mapMenuItemToTreeNode(item: MenuItem): MenuItem {
@@ -14,19 +14,10 @@ export function isCommandMatch(cmdA?: string, cmdB?: string): boolean {
   const b = cmdB.trim().toUpperCase();
   if (a === b) return true;
 
-  const canonicalA = getCanonicalScreenKey(a) || resolveCommandAlias(a);
-  const canonicalB = getCanonicalScreenKey(b) || resolveCommandAlias(b);
+  const canonicalA = resolveCommandAlias(a);
+  const canonicalB = resolveCommandAlias(b);
 
-  if (canonicalA && canonicalB && canonicalA.toUpperCase() === canonicalB.toUpperCase()) {
-    return true;
-  }
-  if (canonicalA && canonicalA.toUpperCase() === b) {
-    return true;
-  }
-  if (canonicalB && a === canonicalB.toUpperCase()) {
-    return true;
-  }
-  return false;
+  return canonicalA === canonicalB || canonicalA === b || canonicalB === a;
 }
 
 /**

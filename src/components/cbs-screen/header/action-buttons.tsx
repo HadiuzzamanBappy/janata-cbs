@@ -1,5 +1,6 @@
 "use client";
 
+import type { CbsAccessResult } from "@/lib/cbs-access";
 import type { CbsScreenMode } from "@/types";
 import { ActiveActions, type ActiveActionsProps } from "./active-actions";
 import { IdleActions, type IdleActionsProps } from "./idle-actions";
@@ -13,6 +14,7 @@ export interface ActionButtonsProps
     Omit<ActiveActionsProps, "mode"> {
   mode: CbsScreenMode;
   searchVal?: string;
+  access: CbsAccessResult;
 }
 
 /**
@@ -27,6 +29,7 @@ export function ActionButtons({
   recordInputter,
   command,
   submitting = false,
+  access,
   // Idle handlers
   onAmend,
   onView,
@@ -46,6 +49,7 @@ export function ActionButtons({
         searchVal={searchVal}
         command={command}
         submitting={submitting}
+        access={access}
         onAmend={onAmend}
         onView={onView}
         onPerformAction={onPerformAction}
@@ -61,6 +65,7 @@ export function ActionButtons({
       command={command}
       recordId={recordId || searchVal}
       submitting={submitting}
+      access={access}
       onSubmit={onSubmit}
       onValidate={onValidate}
       onHold={onHold}

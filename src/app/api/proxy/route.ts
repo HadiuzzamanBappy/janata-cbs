@@ -54,10 +54,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     // 2. Canonical GrpcEnvelope Assembly
     const envelope: GrpcEnvelope = {
-      servicePath: body.servicePath || "default",
+      servicePath: body.servicePath ?? "default",
       requestType: body.requestType,
       controlName: body.controlName ?? "",
-      branchCode: body.branchCode || currUser.branchCode || appConfig.centralBranch,
+      branchCode: currUser.branchCode || appConfig.centralBranch,
       recordFunction: body.recordFunction ?? "",
       recordId: body.recordId ?? "",
       authLevel: body.authLevel ?? 1,
@@ -77,7 +77,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
             async () => {
               const res = await dispatch(envelope, token);
               if (res.status !== "SUCCESS") return null;
-              // Decode raw Protobuf Struct into clean JSON BEFORE saving to Redis
               return {
                 ...res,
                 data: res.data ? decodeProtobufValue(res.data) : res.data,
@@ -88,19 +87,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
         : await dispatch(envelope, token);
 
       if (response.status === "SUCCESS") {
-        // Evict cached specs/menus if this was a mutation or authorization
         await autoInvalidateOnMutation(envelope);
 
-        if (body.requestType === CbsRequestType.INQ && response.data) {
-          const parsedRows = parseInquiryRecords(response);
-          return NextResponse.json(
-            { ...response, success: true, data: parsedRows },
-            { status: 200 },
-          );
-        }
+        const data =
+          body.requestType === CbsRequestType.INQ && response.data
+            ? parseInquiryRecords(response)
+            : response.data
+              ? decodeProtobufValue(response.data)
+              : response.data;
 
-        const cleanData = response.data ? decodeProtobufValue(response.data) : response.data;
-        return NextResponse.json({ ...response, success: true, data: cleanData }, { status: 200 });
+        return NextResponse.json({ ...response, success: true, data }, { status: 200 });
       }
 
       // Handle Downstream Core Failures

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
-import { extractMenuCommands, getAllRegisteredCommands } from "@/lib/cbs-command";
+import { extractMenuCommands, getMasterCommands } from "@/lib/cbs-command";
 import { logger } from "@/lib/core-logger";
 import { parseMNU } from "@/lib/data-parsers";
 import type { ControlCommand, MenuItem } from "@/lib/data-schemas";
@@ -41,7 +41,7 @@ export function useSearchCommands({ open }: UseSearchCommandsOptions) {
 
   // Merge static registry commands + dynamic API menu commands (deduplicated by command string)
   const allCommands = React.useMemo(() => {
-    const staticCmds = getAllRegisteredCommands();
+    const staticCmds = getMasterCommands();
     const map = new Map<string, ControlCommand>();
     for (const cmd of menuCmds) {
       if (!map.has(cmd.command.toUpperCase())) {

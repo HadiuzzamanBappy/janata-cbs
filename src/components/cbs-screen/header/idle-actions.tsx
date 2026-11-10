@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Search, Wrench } from "lucide-react";
+import type { CbsAccessResult } from "@/lib/cbs-access";
 import { useCbsActionBar } from "@/lib/cbs-screen";
 import { ActionBtn } from "./action-btn";
 
@@ -8,6 +9,7 @@ export interface IdleActionsProps {
   searchVal: string;
   command?: string;
   submitting?: boolean;
+  access?: CbsAccessResult;
   onAmend?: () => void;
   onView?: () => void;
   onPerformAction?: () => void;
@@ -20,6 +22,7 @@ export function IdleActions({
   searchVal,
   command = "",
   submitting = false,
+  access,
   onAmend,
   onView,
   onPerformAction,
@@ -29,6 +32,7 @@ export function IdleActions({
     searchVal,
     command,
     submitting,
+    access,
     onAmend,
     onView,
     onPerformAction,

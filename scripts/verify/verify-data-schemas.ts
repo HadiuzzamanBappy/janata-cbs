@@ -89,7 +89,7 @@ async function runSuite() {
     userId: "ZZ028459",
     fullName: "MD. HADIUZZAMAN BAPPY",
     userRole: ["MAKER"],
-    accessibility: "RIDASHL",
+    accessibility: ["R", "I", "D", "A", "S", "H", "L"],
     branchCode: "JB9999",
     branchName: "Head Office",
     txnDate: "2026-11-02",

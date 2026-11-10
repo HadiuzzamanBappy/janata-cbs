@@ -5,7 +5,8 @@
 "use client";
 
 import { toast } from "@/components/ui/toast";
-import { useCbsAccess } from "@/lib/cbs-access";
+import { useCbsAccess } from "@/hooks";
+import type { CbsAccessResult } from "@/lib/cbs-access";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import type { MoreActionItem } from "./types";
 
@@ -38,6 +39,7 @@ export interface UseCbsActionBarOptions {
   readonly recordInputter?: string;
   readonly command?: string;
   readonly submitting?: boolean;
+  readonly access?: CbsAccessResult;
   // Handlers passed from screen
   readonly onAmend?: () => void;
   readonly onView?: () => void;
@@ -60,8 +62,8 @@ export function useCbsActionBar({
   searchVal = "",
   recordStatus,
   recordInputter,
-  command,
   submitting = false,
+  access: passedAccess,
   onAmend,
   onView,
   onPerformAction,
@@ -73,7 +75,8 @@ export function useCbsActionBar({
   onProcessAction,
   onReturnToSearch,
 }: UseCbsActionBarOptions): CbsActionBarCapabilities {
-  const access = useCbsAccess({ mode, recordStatus, recordInputter, command });
+  const fallbackAccess = useCbsAccess({ mode, recordStatus, recordInputter });
+  const access = passedAccess ?? fallbackAccess;
   const hasTargetId = Boolean(searchVal.trim());
   const rawStatus = (recordStatus || "").toUpperCase().trim();
   const cleanStatus = rawStatus === "UA" ? "INA" : rawStatus;

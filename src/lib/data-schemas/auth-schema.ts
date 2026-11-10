@@ -67,12 +67,7 @@ export const currentUserSchema = z.object({
   branchCode: z.string().trim().min(1, "Branch Code is required"),
   fullName: z.string().default(""),
   userRole: z.array(z.string()).default([]),
-  accessibility: z
-    .union([z.array(z.string()), z.string()])
-    .transform((val) =>
-      Array.isArray(val) ? val : typeof val === "string" ? val.trim().toUpperCase().split("") : [],
-    )
-    .default([]),
+  accessibility: z.array(z.string()).default([]),
   branchName: z.string().default(""),
   txnDate: z.string().default(""),
   commandLine: z.boolean().default(false),

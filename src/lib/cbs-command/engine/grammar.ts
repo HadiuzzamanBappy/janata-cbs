@@ -65,7 +65,6 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       title: "",
       authLevel: 1,
       screenMode: "IDLE",
-      params: {},
     };
   }
 
@@ -81,7 +80,6 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       title: "",
       authLevel: 1,
       screenMode: "IDLE",
-      params: {},
     };
   }
 

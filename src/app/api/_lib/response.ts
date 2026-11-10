@@ -1,16 +1,20 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { ApiResponse } from "@/lib/data-schemas";
 
-/**
- * Standard API JSON response helper for Janata CBS API Routes.
- * Enforces unified timestamping, status codes, and type safety.
- */
+function createApiResponse<T>(
+  body: ApiResponse<T>,
+  statusCode: number,
+  headers?: Record<string, string>,
+): NextResponse<ApiResponse<T>> {
+  return NextResponse.json(body, { status: statusCode, headers });
+}
+
 export function apiSuccess<T>(
   data?: T,
   message?: string,
   statusCode = 200,
 ): NextResponse<ApiResponse<T>> {
-  return NextResponse.json(
+  return createApiResponse(
     {
       success: true,
       status: "SUCCESS",
@@ -19,7 +23,7 @@ export function apiSuccess<T>(
       data,
       timestamp: new Date().toISOString(),
     },
-    { status: statusCode },
+    statusCode,
   );
 }
 
@@ -29,7 +33,7 @@ export function apiFail(
   errors?: readonly string[],
   headers?: Record<string, string>,
 ): NextResponse<ApiResponse> {
-  return NextResponse.json(
+  return createApiResponse(
     {
       success: false,
       status: "FAIL",
@@ -38,7 +42,8 @@ export function apiFail(
       errors: errors ?? [message],
       timestamp: new Date().toISOString(),
     },
-    { status: statusCode, headers },
+    statusCode,
+    headers,
   );
 }
 
@@ -48,21 +53,19 @@ export function apiError(
   statusCode = 500,
 ): NextResponse<ApiResponse> {
   const message = err instanceof Error ? err.message : fallbackMessage;
-  return NextResponse.json(
+  return createApiResponse(
     {
       success: false,
       status: "ERROR",
       statusCode,
       message,
+      errors: [message],
       timestamp: new Date().toISOString(),
     },
-    { status: statusCode },
+    statusCode,
   );
 }
 
-/**
- * Extracts normalized client IP from request headers.
- */
 export function getClientIp(req: NextRequest): string {
   return (
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??

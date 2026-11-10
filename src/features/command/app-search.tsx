@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Command, CommandDialog } from "@/components/ui/command";
-import { useCbsAccess } from "@/lib/cbs-access";
+import { useCbsAccess } from "@/hooks";
 import { useSessionStore } from "@/store";
 import { CBS_FUNCTION_CODES, CBS_FUNCTION_DEFINITIONS } from "@/types";
 import { CommandGuidance } from "./components/command-guidance";

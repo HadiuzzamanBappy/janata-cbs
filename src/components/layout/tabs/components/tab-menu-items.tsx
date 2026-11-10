@@ -2,7 +2,7 @@
 
 import { Copy, ExternalLink, X, XCircle, XSquare } from "lucide-react";
 import { Fragment } from "react";
-import { cbsCommand } from "@/lib/cbs-command";
+import { type CommandInquiryState, cbsCommand } from "@/lib/cbs-command";
 import { useAlertStore, useWorkbenchStore } from "@/store";
 import type { TabMenuActionProps } from "../types";
 import { isTabDirty, promptCloseTab } from "../utils";
@@ -70,13 +70,8 @@ export function TabMenuItems({
       title: tab.title,
       target: "popup",
       screenMode: tab.screenMode,
-      searchRecordId: tab.searchRecordId,
-      step: tab.enquiryState?.step,
-      criteria: tab.enquiryState?.criteria as
-        | Record<string, { value: string; operand: string }>
-        | undefined,
-      currentPage: tab.enquiryState?.currentPage,
-      pageSize: tab.enquiryState?.pageSize,
+      recordId: tab.searchRecordId,
+      inquiryState: tab.enquiryState as CommandInquiryState | undefined,
       formData: tab.formData,
     });
     removeTab(tab.id);

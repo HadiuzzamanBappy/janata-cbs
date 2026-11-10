@@ -21,8 +21,7 @@ import {
   type CommandTabPayload,
   cbsCommand,
   extractMenuCommands,
-  getAllRegisteredCommands,
-  getCanonicalScreenKey,
+  getMasterCommands,
   registerCommandAdapter,
   resolveCommandAlias,
   resolveCommandTitle,
@@ -169,16 +168,13 @@ async function runSuite() {
   // ----------------------------------------------------------------------------
   const aliasInput = "MD";
   const resolvedTarget = resolveCommandAlias(aliasInput);
-  const canonicalScreen = getCanonicalScreenKey(aliasInput);
   const screenTitle = resolveCommandTitle(aliasInput);
 
   recordTest(
     "6. Command Alias Resolution: Shorthand alias to canonical screen key & title",
     aliasInput,
-    { resolvedTarget, canonicalScreen, screenTitle },
-    resolvedTarget === "SC.MENU.DESIGN" &&
-      canonicalScreen === "SC.MENU.DESIGN" &&
-      screenTitle === "Menu Hierarchy",
+    { resolvedTarget, screenTitle },
+    resolvedTarget === "SC.MENU.DESIGN" && screenTitle === "Menu Hierarchy",
   );
 
   // ----------------------------------------------------------------------------
@@ -213,7 +209,7 @@ async function runSuite() {
       ],
     },
   ];
-  const masterCommands = getAllRegisteredCommands();
+  const masterCommands = getMasterCommands();
   const extractedCommands = extractMenuCommands(sampleMenu);
 
   recordTest(
@@ -237,26 +233,41 @@ async function runSuite() {
   const readOnlyUser: CbsUserSecurityContext = {
     userId: "AUDITOR_01",
     commandLine: true,
-    accessibility: "RS",
+    accessibility: ["R", "S"],
   };
   const adminUser: CbsUserSecurityContext = {
     userId: "OFFICER_01",
     commandLine: true,
-    accessibility: "RIDASH",
+    accessibility: ["R", "I", "D", "A", "S", "H"],
+  };
+  const terminalLockedUser: CbsUserSecurityContext = {
+    userId: "TELLER_LOCKED",
+    commandLine: false,
+    accessibility: ["R", "I", "D", "A", "S", "H"],
   };
 
   const auditorCheck = validateSecurityPermissions(deleteCmd, readOnlyUser);
   const officerCheck = validateSecurityPermissions(deleteCmd, adminUser);
+  const lockedCheck = validateSecurityPermissions(deleteCmd, terminalLockedUser);
 
   recordTest(
-    "8. RBAC Security Clearance: Enforcing RIDASH rights on Delete function",
-    { command: "ACCOUNT D 99001", users: [readOnlyUser.userId, adminUser.userId] },
+    "8. RBAC Security Clearance: Enforcing RIDASH rights on Delete function and terminal lock",
+    {
+      command: "ACCOUNT D 99001",
+      users: [readOnlyUser.userId, adminUser.userId, terminalLockedUser.userId],
+    },
     {
       auditorAllowed: auditorCheck.allowed,
       auditorReason: auditorCheck.reason,
       officerAllowed: officerCheck.allowed,
+      lockedAllowed: lockedCheck.allowed,
+      lockedReason: lockedCheck.reason,
     },
-    !auditorCheck.allowed && auditorCheck.requiredRight === "D" && officerCheck.allowed === true,
+    !auditorCheck.allowed &&
+      auditorCheck.requiredRight === "D" &&
+      officerCheck.allowed === true &&
+      !lockedCheck.allowed &&
+      Boolean(lockedCheck.reason?.includes("Command Line access enabled")),
   );
 
   // ----------------------------------------------------------------------------

@@ -101,4 +101,3 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
     ],
   },
 ];
-

@@ -3,7 +3,7 @@
 import { ArrowDownToLine, Lock } from "lucide-react";
 import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useCbsAccess } from "@/lib/cbs-access";
+import type { CbsAccessResult } from "@/lib/cbs-access";
 import type { CbsScreenValidationError, MoreActionItem, RecordLookupItem } from "@/lib/cbs-screen";
 import { CBS_SCREEN_EVENT, resolveMoreActions } from "@/lib/cbs-screen";
 import type { CbsScreenMode } from "@/types";
@@ -36,6 +36,7 @@ export interface CbsFormHeaderProps {
   recordStatus?: string;
   recordInputter?: string;
   submitting?: boolean;
+  access: CbsAccessResult;
   moreActions?: MoreActionItem[];
   availableItems?: RecordLookupItem[];
   validationErrors?: CbsScreenValidationError[];
@@ -69,13 +70,13 @@ export function CbsFormHeader({
   recordStatus,
   recordInputter,
   submitting = false,
+  access,
   moreActions = [],
   availableItems = [],
   validationErrors = [],
   onSelectValidationTab,
   className = "",
 }: CbsFormHeaderProps) {
-  const access = useCbsAccess({ mode, recordStatus, recordInputter, command: commandCode });
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [hasSearched, setHasSearched] = React.useState(false);
@@ -176,6 +177,7 @@ export function CbsFormHeader({
             recordInputter={recordInputter}
             command={commandCode}
             submitting={submitting}
+            access={access}
             onAmend={onAmend}
             onView={onView}
             onPerformAction={onPerformAction}
@@ -195,6 +197,7 @@ export function CbsFormHeader({
             <ActionMoreMenu
               moreActions={resolveMoreActions(commandCode, moreActions)}
               submitting={submitting}
+              access={access}
             />
           </div>
 

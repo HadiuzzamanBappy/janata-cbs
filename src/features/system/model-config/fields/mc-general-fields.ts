@@ -259,4 +259,3 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
     ],
   },
 ];
-

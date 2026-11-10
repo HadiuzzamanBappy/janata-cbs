@@ -1,4 +1,4 @@
-import { CBS_FUNCTION_CODE_SET, CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
+import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
 import { resolveCommandAlias, resolveCommandTitle } from "../registry/alias";
 import type { CommandHandler, ParsedCommand } from "../types";
 
@@ -30,7 +30,7 @@ export class FormCommandHandler implements CommandHandler {
       version = parts.slice(1).join(",");
     }
 
-    const resolvedApp = resolveCommandAlias(app) || app;
+    const resolvedApp = resolveCommandAlias(app);
     const baseTitle = resolveCommandTitle(resolvedApp) || resolvedApp;
     const appTitle = version ? `${baseTitle},${version}` : baseTitle;
 
@@ -40,7 +40,7 @@ export class FormCommandHandler implements CommandHandler {
 
     if (remainingTokens.length > 0) {
       const token1 = remainingTokens[0].toUpperCase();
-      if (CBS_FUNCTION_CODE_SET.has(token1)) {
+      if (CBS_FUNCTION_CODES.includes(token1 as CbsRecordFunction)) {
         functionCode = token1 as CbsRecordFunction;
         recordId = remainingTokens.slice(1).join(" ") || undefined;
       } else if (authLevel === 0) {
@@ -59,7 +59,6 @@ export class FormCommandHandler implements CommandHandler {
           title: appTitle,
           authLevel,
           screenMode: "IDLE",
-          params: {},
         };
       }
     }
@@ -67,10 +66,6 @@ export class FormCommandHandler implements CommandHandler {
     // Default screen mode: matches functionCode if given, "I" if recordId is provided, else "IDLE"
     const screenMode = functionCode || (recordId ? "I" : "IDLE");
     const displayTitle = recordId ? `${appTitle} #${recordId}` : appTitle;
-    const params: Record<string, string> = {
-      ...(recordId ? { recordId } : {}),
-      ...(version !== undefined ? { version } : {}),
-    };
 
     return {
       raw: trimmed,
@@ -84,7 +79,6 @@ export class FormCommandHandler implements CommandHandler {
       functionCode,
       recordId,
       screenMode,
-      params,
     };
   }
 }

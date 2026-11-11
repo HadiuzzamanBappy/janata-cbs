@@ -61,14 +61,12 @@ export function useLogin() {
           );
         }
 
-        // 4. Navigation
+        // 4. Navigation — use replace so browser Back cannot bounce back to /login
         if (authenticatedUser?.initLogin) {
-          router.push(clientConfig.routes.changePassword);
+          router.replace(clientConfig.routes.changePassword);
         } else {
-          router.push(clientConfig.routes.dashboard);
+          router.replace(clientConfig.routes.dashboard);
         }
-
-        router.refresh();
         return authenticatedUser ?? null;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "An unexpected network error occurred";

@@ -21,17 +21,6 @@ export const loginSchema = z
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
-/** Validates self-service sign-on username modification requests ('CUN'). */
-export const changeUsernameSchema = z
-  .object({
-    oldUserName: z.string().trim().min(1, "Old sign-on name is required"),
-    newUserName: z.string().trim().min(1, "New sign-on name is required"),
-    password: z.string().min(1, "Password is required to confirm"),
-  })
-  .strict();
-
-export type ChangeUsernameInput = z.infer<typeof changeUsernameSchema>;
-
 /** Validates password rotation requests ('CPW') ensuring match, length, and complexity. */
 export const changePasswordSchema = z
   .object({

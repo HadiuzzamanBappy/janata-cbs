@@ -10,6 +10,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!session) {
     redirect(clientConfig.routes.login);
   }
+  if (session.currUser.initLogin) {
+    redirect(clientConfig.routes.changePassword);
+  }
 
   const cookieStore = await cookies();
   const sidebarCookie = cookieStore.get("sidebar_state")?.value;

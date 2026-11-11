@@ -42,7 +42,6 @@ interface MdCanvasTabProps {
 export function MdCanvasTab({
   nodes,
   formData,
-  setFormData,
   catalogItems,
   catalogLoading,
   collapsedNodeIds,
@@ -232,7 +231,6 @@ export function MdCanvasTab({
             <NodeInspector
               selectedNode={selectedNode}
               formData={formData}
-              onUpdateFormData={setFormData}
               onUpdateNode={onUpdateNode}
               onDeleteNode={handleDeleteWithSelection}
               onClose={() => {
@@ -247,7 +245,6 @@ export function MdCanvasTab({
           <NodeInspector
             selectedNode={selectedNode}
             formData={formData}
-            onUpdateFormData={setFormData}
             onUpdateNode={onUpdateNode}
             onDeleteNode={handleDeleteWithSelection}
             onClose={() => setSelectedNodeId(null)}

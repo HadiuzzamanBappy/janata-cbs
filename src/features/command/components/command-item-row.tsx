@@ -17,18 +17,16 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
     IconComp = FileSpreadsheet;
   }
 
-  // Search value indexing: includes title, all aliases, and canonical command
   const distinctAliases = (cmd.aliases || []).filter((alias) => alias !== cmd.command);
-  const searchValue = [cmd.title, ...distinctAliases, cmd.command].filter(Boolean).join(" ");
 
   return (
     <CommandItem
       key={cmd.command}
-      value={searchValue}
+      value={cmd.command}
       onSelect={() => onSelect(cmd)}
       className="group flex items-center justify-between py-1.5 px-2.5 cursor-pointer"
     >
-      <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         <div className="size-6 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
           <IconComp className="size-3.5" />
         </div>
@@ -37,16 +35,19 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
         </span>
       </div>
 
-      <div data-slot="command-shortcut" className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
+      <div
+        data-slot="command-shortcut"
+        className="ml-2 flex items-center gap-1.5 shrink-0 max-w-[45%] overflow-hidden"
+      >
         {distinctAliases.map((alias) => (
           <span
             key={alias}
-            className="font-mono text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20"
+            className="font-mono text-[10px] sm:text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20 shrink-0"
           >
             {alias}
           </span>
         ))}
-        <span className="font-mono text-[11px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md border border-border/40">
+        <span className="font-mono text-[10px] sm:text-[11px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md border border-border/40 truncate">
           {cmd.command}
         </span>
       </div>

@@ -1,8 +1,22 @@
 import type { ControlCommand } from "@/lib/data-schemas";
 
+function getMatchScore(c: ControlCommand, q: string): number {
+  const title = c.title.toLowerCase();
+  const cmd = c.command.toLowerCase();
+  const aliases = (c.aliases ?? []).map((a) => a.toLowerCase());
+
+  // 0: Exact match on command, alias, or title
+  if (cmd === q || aliases.includes(q) || title === q) return 0;
+  // 1: Prefix match on command, alias, or title
+  if (cmd.startsWith(q) || aliases.some((a) => a.startsWith(q)) || title.startsWith(q)) return 1;
+  // 2: Substring match
+  if (cmd.includes(q) || aliases.some((a) => a.includes(q)) || title.includes(q)) return 2;
+  return -1;
+}
+
 /**
- * Filter commands strictly on visible UI fields:
- * Title, Command, Alias ID, and Control Name.
+ * Filter and rank commands strictly on visible UI fields:
+ * Title, Command, Alias ID, and Control Name (exact matches ranked first).
  */
 export function filterVisibleCommands(
   commands: ControlCommand[],
@@ -10,12 +24,12 @@ export function filterVisibleCommands(
 ): ControlCommand[] {
   const q = searchQuery.trim().toLowerCase();
   if (!q) return commands;
-  return commands.filter((c) => {
-    const titleMatch = c.title.toLowerCase().includes(q);
-    const cmdMatch = c.command.toLowerCase().includes(q);
-    const aliasMatch = Boolean(c.aliases?.some((a) => a.toLowerCase().includes(q)));
-    return titleMatch || cmdMatch || aliasMatch;
-  });
+
+  return commands
+    .map((cmd, index) => ({ cmd, index, score: getMatchScore(cmd, q) }))
+    .filter((entry) => entry.score >= 0)
+    .sort((a, b) => a.score - b.score || a.index - b.index)
+    .map((entry) => entry.cmd);
 }
 
 /**

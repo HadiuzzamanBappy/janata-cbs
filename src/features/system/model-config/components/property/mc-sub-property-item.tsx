@@ -15,7 +15,7 @@ interface McSubPropertyItemProps {
   isCommitted: boolean;
   validationErrors: ModelValidationErrorItem[];
   onSelect: (sn: string) => void;
-  onDelete?: (sn: string, forceHardDelete?: boolean) => void;
+  onDelete?: (sn: string) => void;
 }
 
 export function McSubPropertyItem({
@@ -68,7 +68,7 @@ export function McSubPropertyItem({
             title="Delete subfield"
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation();
-              onDelete(sub.SN, true);
+              onDelete(sub.SN);
             }}
             className="size-4 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10"
           >

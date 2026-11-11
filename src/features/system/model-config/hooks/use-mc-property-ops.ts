@@ -133,33 +133,10 @@ export function useMcPropertyOps(
     [committedSnSet, setFormData],
   );
 
-  const moveField = React.useCallback(
-    (sn: string, direction: "up" | "down") => {
-      setFormData((prev) => {
-        const props = [...(prev.PROPERTIES || [])];
-        const index = props.findIndex((p) => p.SN === sn);
-        if (index === -1) return prev;
-        const targetIndex = direction === "up" ? index - 1 : index + 1;
-        if (targetIndex < 0 || targetIndex >= props.length) return prev;
-
-        const temp = props[index];
-        props[index] = props[targetIndex];
-        props[targetIndex] = temp;
-
-        return {
-          ...prev,
-          PROPERTIES: props,
-        };
-      });
-    },
-    [setFormData],
-  );
-
   return {
     addField,
     addSubField,
     updateField,
-    moveField,
     removeField: removeDraftField,
 
     isFieldCommitted,

@@ -32,6 +32,13 @@ export function AppTabBar() {
   }, [activeTabId]);
 
   if (tabs.length === 0) {
+    if (isMobile) {
+      return (
+        <div className="h-10 border-b border-border/60 bg-muted/40 flex items-center px-2 select-none relative w-full shrink-0">
+          <SidebarTrigger className="size-7 text-muted-foreground hover:text-foreground" />
+        </div>
+      );
+    }
     return null;
   }
 

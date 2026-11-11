@@ -19,7 +19,7 @@ interface McPropertiesTabProps {
   onAddField: () => string;
   onAddSubField?: (parentSn: string) => string;
   onUpdateField: (sn: string, patch: Partial<ModelProperty>) => void;
-  onRemoveField: (sn: string, forceHardDelete?: boolean) => void;
+  onRemoveField: (sn: string) => void;
 }
 
 export function McPropertiesTab({

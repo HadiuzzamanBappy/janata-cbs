@@ -9,7 +9,7 @@ export interface McObjectPropsCardProps {
   property: ModelProperty;
   onSelectSubField?: (sn: string) => void;
   onAddSubField?: (parentSn: string) => string;
-  onDeleteSubField?: (sn: string, forceHardDelete?: boolean) => void;
+  onDeleteSubField?: (sn: string) => void;
   disabled?: boolean;
 }
 
@@ -98,7 +98,7 @@ export function McObjectPropsCard({
                     <button
                       type="button"
                       title="Delete subfield"
-                      onClick={() => onDeleteSubField(sub.SN, true)}
+                      onClick={() => onDeleteSubField(sub.SN)}
                       className="size-4.5 inline-flex items-center justify-center rounded text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                     >
                       <Trash2 className="size-2.5" />

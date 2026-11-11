@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { buildRenderBlocks } from "@/lib/cbs-form-spec";
+import { buildRenderBlocks, evaluateOnChangeRule } from "@/lib/cbs-form-spec";
 import type { AuditData } from "@/lib/data-schemas";
 import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
@@ -60,19 +60,7 @@ export function FormRenderer({
       (sec.fields || []).forEach((f) => {
         if (f.NAME === key && f.ON_CHANGE?.target) {
           const rule = f.ON_CHANGE;
-          let targetVal: unknown = val;
-
-          if (rule.action === "join") {
-            const delim = rule.delimiter ?? "#";
-            targetVal = Array.isArray(val) ? val.filter(Boolean).join(delim) : String(val ?? "");
-          } else if (rule.action === "uppercase") {
-            targetVal = typeof val === "string" ? val.toUpperCase() : val;
-          } else if (rule.action === "lowercase") {
-            targetVal = typeof val === "string" ? val.toLowerCase() : val;
-          } else if (rule.action === "clear") {
-            targetVal = "";
-          }
-
+          const targetVal = evaluateOnChangeRule(rule.action, val, rule.delimiter);
           if (targetVal !== values[rule.target]) {
             onChange(rule.target, targetVal);
           }

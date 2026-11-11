@@ -12,6 +12,9 @@ export const metadata: Metadata = {
 export default async function LoginPage() {
   const session = await getSession();
   if (session) {
+    if (session.currUser.initLogin) {
+      redirect(clientConfig.routes.changePassword);
+    }
     redirect(clientConfig.routes.dashboard);
   }
 

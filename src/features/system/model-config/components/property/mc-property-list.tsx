@@ -26,7 +26,7 @@ interface McPropertyListProps {
   validationErrors?: ModelValidationErrorItem[];
   onAddField: () => string;
   onAddSubField?: (parentSn: string) => string;
-  onDeleteField?: (sn: string, forceHardDelete?: boolean) => void;
+  onDeleteField?: (sn: string) => void;
   className?: string;
 }
 
@@ -229,7 +229,7 @@ export function McPropertyList({
                         title="Delete draft column"
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
-                          onDeleteField(prop.SN, true);
+                          onDeleteField(prop.SN);
                         }}
                         className="size-5 p-0 rounded text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-colors"
                       >

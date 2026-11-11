@@ -18,7 +18,6 @@ export interface InquiryValidationErrorItem extends CbsScreenValidationError<Inq
   readonly fieldKey: string;
   readonly message: string;
   readonly itemIndex?: number;
-  readonly subSegment?: "columns" | "actions";
 }
 
 /**

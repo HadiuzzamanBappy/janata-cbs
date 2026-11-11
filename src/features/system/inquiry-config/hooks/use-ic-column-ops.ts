@@ -18,7 +18,7 @@ export function useIcColumnOps(
           fieldLength: col?.fieldLength || "20,L",
           fieldRowCol: col?.fieldRowCol || `1,${nextOrder}`,
           fieldFunc: col?.fieldFunc || "",
-          dataPassable: col?.dataPassable ?? null,
+          dataPassable: col?.dataPassable ?? true,
         };
         return {
           ...prev,

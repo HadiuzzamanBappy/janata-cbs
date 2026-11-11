@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CardContainer } from "@/features/form-engine/components/containers/card-container";
+import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import type {
   MenuDesignerValidationError,
   MenuTreeRecord,
@@ -52,17 +52,14 @@ export function MdGeneralTab({
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-3xl space-y-3 pb-8">
-        {MENU_DESIGNER_SECTIONS.map((section) => (
-          <CardContainer
-            key={section.id}
-            section={section}
-            values={formValues}
-            onChange={handleFieldChange}
-            errors={errorMap}
-            disabled={isReadOnly}
-            mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-          />
-        ))}
+        <FormRenderer
+          frmElements={{ sections: MENU_DESIGNER_SECTIONS }}
+          values={formValues}
+          onChange={handleFieldChange}
+          errors={errorMap}
+          disabled={isReadOnly}
+          mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+        />
       </div>
     </div>
   );

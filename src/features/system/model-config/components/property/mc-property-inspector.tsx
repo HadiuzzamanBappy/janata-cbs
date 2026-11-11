@@ -20,7 +20,7 @@ interface McPropertyInspectorProps {
   isCommitted?: boolean;
   validationErrors?: ModelValidationErrorItem[];
   onUpdate: (sn: string, patch: Partial<ModelProperty>) => void;
-  onDelete: (sn: string, forceHardDelete?: boolean) => void;
+  onDelete: (sn: string) => void;
   onSelectSubField?: (sn: string) => void;
   onAddSubField?: (parentSn: string) => string;
   onToggleSidebar?: () => void;

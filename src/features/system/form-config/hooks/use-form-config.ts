@@ -8,7 +8,6 @@ import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
 import type { CbsScreenMode } from "@/types";
 import { type FormConfigValidationError, validateFormConfig } from "./fc-validation";
 import { useFcActions } from "./use-fc-actions";
-import { useFcCatalog } from "./use-fc-catalog";
 import { useFcFieldOps } from "./use-fc-field-ops";
 import {
   createInitialDraft,
@@ -37,7 +36,6 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     resolvedInitialMode,
   } = useFormConfigPersistence(initialId, tabId);
 
-  const { availableForms, availableModels, refreshForms } = useFcCatalog();
   const [loading, setLoading] = React.useState<boolean>(false);
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const [selectedSectionId, setSelectedSectionId] = React.useState<string | null>(null);
@@ -159,7 +157,6 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     rebaseline,
     reset,
     resetToIdle,
-    refreshForms,
     setSubmitting,
   });
 
@@ -190,8 +187,6 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     validationErrors,
     targetModelRecord,
     rawRecord,
-    availableForms,
-    availableModels,
     ...sectionOps,
     ...fieldOps,
     ...actions,

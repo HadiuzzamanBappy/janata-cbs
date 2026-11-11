@@ -11,9 +11,9 @@ export interface CbsIdleStateProps {
 
 /**
  * Standard CBS IDLE state card.
- * Displays dashed boundary, subtle primary layer emblem, and operational directions.
+ * Minimal layout with simple title, short clean description, and primary layer emblem.
  */
-export function CbsIdleState({ title, code, customMessage, className = "" }: CbsIdleStateProps) {
+export function CbsIdleState({ title, customMessage, className = "" }: CbsIdleStateProps) {
   return (
     <div
       className={`w-full h-full min-h-75 flex flex-col items-center justify-center border-2 border-dashed border-border/50 rounded-md p-8 text-center bg-muted/10 select-none animate-in fade-in-50 ${className}`}
@@ -21,20 +21,12 @@ export function CbsIdleState({ title, code, customMessage, className = "" }: Cbs
       <div className="size-11 rounded-md border border-border/60 bg-muted/50 text-primary flex items-center justify-center mb-3 shadow-2xs">
         <Layers className="size-5.5" />
       </div>
-      <h3 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-        <span>{title}</span>
-        {code && (
-          <span className="text-[11px] font-mono text-muted-foreground font-normal">[{code}]</span>
-        )}
-      </h3>
-      <p className="text-xs text-muted-foreground max-w-sm mt-1">
-        {customMessage || (
-          <>
-            Select an action from the top toolbar to begin. Use <strong>+</strong> to create a new
-            entry, or enter / search a <strong>Record ID</strong> to view or edit existing records.
-          </>
-        )}
-      </p>
+      <div className="flex flex-col gap-1 max-w-sm">
+        <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {customMessage || "Enter or select a record to view or edit"}
+        </p>
+      </div>
     </div>
   );
 }

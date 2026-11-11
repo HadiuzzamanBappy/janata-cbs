@@ -1,9 +1,10 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
+import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import type { CbsWirePayload } from "@/lib/data-schemas";
@@ -11,7 +12,7 @@ import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
 } from "@/lib/data-schemas/model-config-schema";
-import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
 
 export interface UseMcActionsParams {
@@ -22,12 +23,6 @@ export interface UseMcActionsParams {
   rebaseline: () => void;
   resetToIdle: () => void;
   markAsCommitted: (properties: ModelConfigRecord["PROPERTIES"]) => void;
-  upsertCatalogItem: (item: {
-    id: string;
-    label: string;
-    details: string;
-    record?: ModelConfigRecord;
-  }) => void;
   fetchRecord: (id: string, mode?: CbsScreenMode) => Promise<void>;
 }
 
@@ -39,10 +34,10 @@ export function useMcActions({
   rebaseline,
   resetToIdle,
   markAsCommitted,
-  upsertCatalogItem,
   fetchRecord,
 }: UseMcActionsParams) {
   const { sendMutation } = useIdempotentSend();
+  const queryClient = useQueryClient();
 
   const executeMutation = React.useCallback(
     async (
@@ -61,17 +56,25 @@ export function useMcActions({
           successMessage: options.successMessage,
         });
         if (json.status === "SUCCESS") {
-          const syncId = options.targetId || recordId;
+          const syncId = (options.targetId || recordId).trim().toUpperCase();
           if (syncId) {
-            broadcastRecordMutation("MODEL.CONFIG", syncId);
+            broadcastRecordMutation(CbsControlTable.MODEL_CONFIG, syncId);
           }
+          await Promise.all([
+            syncId
+              ? queryClient.invalidateQueries({
+                  queryKey: cbsQueries.modelConfig.record(syncId).queryKey,
+                })
+              : Promise.resolve(),
+            queryClient.invalidateQueries({ queryKey: cbsQueries.formConfig.schemaRootKey }),
+          ]);
           await options.onSuccess?.();
         }
       } finally {
         setSubmitting(false);
       }
     },
-    [recordId, sendMutation, setSubmitting],
+    [queryClient, recordId, sendMutation, setSubmitting],
   );
 
   const handleSubmit = React.useCallback(async () => {
@@ -104,12 +107,6 @@ export function useMcActions({
         onSuccess: () => {
           rebaseline();
           markAsCommitted(cleanData.PROPERTIES || []);
-          upsertCatalogItem({
-            id: targetId,
-            label: cleanData.DESCRIPTION,
-            details: `${cleanData.PROPERTIES.length} properties`,
-            record: cleanData,
-          });
           resetToIdle();
         },
       },
@@ -122,7 +119,6 @@ export function useMcActions({
     recordId,
     resetToIdle,
     setValidationErrors,
-    upsertCatalogItem,
   ]);
 
   const handleAuthorize = React.useCallback(async () => {

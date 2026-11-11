@@ -1,13 +1,14 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Plus, Search, Sparkles } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cbs } from "@/lib/cbs-client";
+import { cbsQueries } from "@/lib/cbs-client";
 import { cn } from "@/lib/core-utils";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 export interface InquiryModelPopoverProps {
   targetModel?: string;
@@ -28,54 +29,23 @@ export function InquiryModelPopover({
 }: InquiryModelPopoverProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
-  const [modelProps, setModelProps] = React.useState<ModelProperty[]>([]);
 
-  React.useEffect(() => {
-    let mounted = true;
-    const cleanTarget = (targetModel || "").trim();
-    if (!cleanTarget) {
-      setModelProps([]);
-      return;
-    }
+  // Strip version suffixes (e.g. "USER.MGT$NAU" or "USER.MGT,NEW" -> "USER.MGT")
+  const lookupId = (targetModel || "").split("$")[0].split(",")[0].trim().toUpperCase();
 
-    // Strip version suffixes (e.g. "USER.MGT$NAU" or "USER.MGT,NEW" -> "USER.MGT")
-    const lookupId = cleanTarget.split("$")[0].split(",")[0].trim().toUpperCase();
-
-    async function loadModel() {
-      try {
-        const res = await cbs.send<{ record?: ModelConfigRecord } | ModelConfigRecord>(
-          cbs.modelConfig.get(lookupId),
-          { silent: true },
-        );
-        if (!mounted || res.status !== "SUCCESS" || !res.data) {
-          if (mounted) setModelProps([]);
-          return;
-        }
-
-        const rawData = res.data;
-        const rec =
-          (rawData as { record?: ModelConfigRecord }).record ?? (rawData as ModelConfigRecord);
-
-        // Normalize PROPERTIES from either direct property list or nested fields
-        const props =
-          rec?.PROPERTIES || (rec as unknown as { properties?: ModelProperty[] })?.properties || [];
-        if (mounted) {
-          setModelProps(Array.isArray(props) ? props : []);
-        }
-      } catch {
-        if (mounted) setModelProps([]);
-      }
-    }
-
-    loadModel();
-    return () => {
-      mounted = false;
-    };
-  }, [targetModel]);
+  // Fetch lazily on popover open and share the cached MODEL.CONFIG record across tabs
+  const { data: modelRecord, isLoading } = useQuery({
+    ...cbsQueries.modelConfig.record(lookupId),
+    enabled: open && Boolean(lookupId),
+  });
 
   const availableProps = React.useMemo(() => {
-    return modelProps.filter((p) => Boolean(p.NAME));
-  }, [modelProps]);
+    const rawProps =
+      modelRecord?.PROPERTIES ||
+      (modelRecord as unknown as { properties?: ModelProperty[] })?.properties ||
+      [];
+    return (Array.isArray(rawProps) ? rawProps : []).filter((p) => Boolean(p.NAME));
+  }, [modelRecord]);
 
   const filteredProps = React.useMemo(() => {
     if (!search.trim()) return availableProps;
@@ -130,7 +100,11 @@ export function InquiryModelPopover({
         </div>
 
         <div className="max-h-56 overflow-y-auto p-1 space-y-0.5 min-h-16">
-          {filteredProps.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-4 text-xs text-muted-foreground font-mono">
+              Loading model schema...
+            </div>
+          ) : filteredProps.length === 0 ? (
             <div className="text-center py-4 text-xs text-muted-foreground">
               {availableProps.length === 0 ? "No model properties found" : "No matching fields"}
             </div>

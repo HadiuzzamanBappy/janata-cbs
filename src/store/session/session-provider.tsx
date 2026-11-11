@@ -2,8 +2,8 @@
 
 import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
+import { cbsAuth } from "@/lib/cbs-client";
 import { registerCommandAdapter } from "@/lib/cbs-command";
-import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import { createSessionStore, type SessionState, type SessionStore } from "./session-store";
 
@@ -34,8 +34,8 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
     // Universal session hydration across all windows & popups (deduplicated against React StrictMode & multiple mounts)
     if (!store.getState().user) {
       if (!sessionFetchPromise) {
-        sessionFetchPromise = fetch(clientConfig.routes.api.session)
-          .then((res) => res.json())
+        sessionFetchPromise = cbsAuth
+          .getSession()
           .then((json) => {
             const user = json.data;
             if (json.success && user) {

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { cbsAuth } from "@/lib/cbs-client";
 import { clientConfig } from "@/lib/core-config";
 
 const STORAGE_KEY = clientConfig.storage.local.lastActivity;
@@ -37,7 +38,7 @@ export function useIdleTimeout({
       if (onLogout) {
         onLogout();
       } else {
-        await fetch(clientConfig.routes.api.logout, { method: "POST" });
+        await cbsAuth.logout();
       }
     } catch {
       // Fail-safe cleanup
@@ -59,7 +60,7 @@ export function useIdleTimeout({
 
     // Heartbeat to update server-side session lastActiveAt
     try {
-      await fetch(clientConfig.routes.api.session);
+      await cbsAuth.getSession();
     } catch {
       // Ignore heartbeat network drop
     }
@@ -88,7 +89,7 @@ export function useIdleTimeout({
         // Periodic heartbeat: notify server/Redis session every 3 minutes if actively interacting
         if (now - lastHeartbeat > 3 * 60 * 1000) {
           lastHeartbeat = now;
-          fetch(clientConfig.routes.api.session).catch(() => {});
+          cbsAuth.getSession().catch(() => {});
         }
       }
     };

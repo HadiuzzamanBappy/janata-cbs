@@ -59,7 +59,7 @@ export function InquiryPreview({
 
   // Execute live backend query simulation
   const executeQuery = React.useCallback(
-    async (critMap: FilterCriteriaMap) => {
+    async (critMap: FilterCriteriaMap, signal?: AbortSignal) => {
       setLoading(true);
       const queryString = serializeCriteriaToWire(critMap, config.INQSelectField || []);
 
@@ -71,7 +71,7 @@ export function InquiryPreview({
             curPage: 1,
             queryString,
           }),
-          { silent: true },
+          { silent: true, signal },
         );
 
         const dataset = parseInquiryRecords(queryRes.data);
@@ -83,6 +83,9 @@ export function InquiryPreview({
           type: "info",
         });
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return;
+        }
         console.warn("Inquiry simulation failed", err);
         toast.add({
           title: "Simulation Query Failed",
@@ -92,7 +95,9 @@ export function InquiryPreview({
         setRows([]);
         setStep("RESULTS");
       } finally {
-        setLoading(false);
+        if (!signal?.aborted) {
+          setLoading(false);
+        }
       }
     },
     [
@@ -105,9 +110,10 @@ export function InquiryPreview({
 
   // Auto-fetch if columns exist, no selection filters exist, and on RESULTS step
   React.useEffect(() => {
-    if (hasColumns && !hasFilters && step === "RESULTS") {
-      executeQuery({});
-    }
+    if (!hasColumns || hasFilters || step !== "RESULTS") return;
+    const controller = new AbortController();
+    executeQuery({}, controller.signal);
+    return () => controller.abort();
   }, [hasColumns, hasFilters, step, executeQuery]);
 
   const handleFilterSearch = (searchCrit: FilterCriteriaMap) => {

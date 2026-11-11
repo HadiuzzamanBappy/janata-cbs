@@ -1,15 +1,14 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
-import { parseInquiryConfig } from "@/lib/data-parsers";
+import { cbsQueries } from "@/lib/cbs-client";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type InquiryValidationErrorItem, validateInquiryConfig } from "./ic-validation";
 import { useIcActionOps } from "./use-ic-action-ops";
 import { useIcActions } from "./use-ic-actions";
-import { useIcCatalog } from "./use-ic-catalog";
 import { useIcColumnOps } from "./use-ic-column-ops";
 import { useIcFilterOps } from "./use-ic-filter-ops";
 import { INITIAL_INQUIRY_CONFIG, useIcPersistence } from "./use-ic-persistence";
@@ -32,7 +31,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     resolvedInitialMode,
   } = useIcPersistence(initialId, tabId);
 
-  const { inquiriesPool, refreshCatalog, upsertCatalogItem } = useIcCatalog();
+  const queryClient = useQueryClient();
   const filterOps = useIcFilterOps(setFormData);
   const columnOps = useIcColumnOps(setFormData);
   const actionOps = useIcActionOps(setFormData);
@@ -70,22 +69,21 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
   // 3. Load record from backend or fixtures
   const loadRecord = React.useCallback(
     async (idToLoad: string, targetMode: CbsScreenMode = CbsRecordFunction.SEE) => {
-      if (!idToLoad) return;
+      const cleanId = (idToLoad || "").trim().toUpperCase();
+      if (!cleanId) return;
       setLoading(true);
       try {
-        const res = await cbs.send<unknown>(cbs.inquiryConfig.get(idToLoad));
-        if (res.status === "SUCCESS" && res.data) {
-          setRawRecord(res.data);
-          const parsed = parseInquiryConfig(res.data);
-          const cleanData = parsed.success ? parsed.data : (res.data as InquiryConfigRecord);
-          hydrate(cleanData);
-          setRecordId(idToLoad);
+        const record = await queryClient.fetchQuery(cbsQueries.inquiryConfig.schema(cleanId));
+        if (record) {
+          setRawRecord(record);
+          hydrate(record);
+          setRecordId(cleanId);
           setMode(targetMode);
           setValidationErrors([]);
         } else {
           toast.add({
             title: "Record Not Found",
-            description: `Inquiry configuration "${idToLoad}" does not exist in the database.`,
+            description: `Inquiry configuration "${cleanId}" does not exist in the database.`,
             type: "error",
           });
         }
@@ -99,7 +97,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
         setLoading(false);
       }
     },
-    [hydrate, setRecordId, setMode],
+    [hydrate, queryClient, setMode, setRecordId],
   );
 
   // 4. Initial auto-load
@@ -142,7 +140,6 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     formData,
     recordId,
     handleValidate,
-    upsertCatalogItem,
     rebaseline,
     resetToIdle,
     setMode,
@@ -163,8 +160,6 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     isDirty,
     dirtyKeys,
     validationErrors,
-    inquiriesPool,
-    refreshCatalog,
     resetToIdle,
     initDraft,
     loadRecord,

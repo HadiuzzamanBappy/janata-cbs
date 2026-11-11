@@ -37,7 +37,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     validationErrors,
     targetModelRecord,
     rawRecord,
-    availableForms,
     addSection,
     updateSection,
     removeSection,
@@ -61,16 +60,6 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
 
   const [activeTab, setActiveTab] = React.useState<FormConfigTabKey>("general");
   const isReadOnly = mode !== "I";
-
-  const availableItems = React.useMemo(
-    () =>
-      availableForms.map((f) => ({
-        id: f.id,
-        label: f.label,
-        details: f.details,
-      })),
-    [availableForms],
-  );
 
   const tabs: CbsScreenTab<FormConfigTabKey>[] = React.useMemo(
     () => [
@@ -190,7 +179,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
           : handleAuthorize
       }
       submitting={submitting || loading}
-      availableItems={availableItems}
+      availableItems={[]}
       variant="system"
       tabs={tabs}
       activeTab={activeTab}

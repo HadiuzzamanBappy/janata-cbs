@@ -33,7 +33,6 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
     submitting,
     catalogItems,
     catalogLoading,
-    availableTrees,
     treeOps,
     fetchTreeRecord,
     handleCreateNew,
@@ -46,16 +45,6 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
 
   const [activeTab, setActiveTab] = React.useState<MenuDesignerTabKey>("general");
   const isReadOnly = mode !== CbsRecordFunction.INPUT;
-
-  const availableItems = React.useMemo(
-    () =>
-      availableTrees.map((item: { id: string; label: string; details: string }) => ({
-        id: item.id,
-        label: item.label,
-        details: item.details,
-      })),
-    [availableTrees],
-  );
 
   const tabs: CbsScreenTab<MenuDesignerTabKey>[] = React.useMemo(
     () => [
@@ -143,7 +132,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       onSubmit={handleSubmit}
       onAuthorizeReverse={handleAuthorize}
       submitting={submitting || loading}
-      availableItems={availableItems}
+      availableItems={[]}
       variant="system"
       tabs={tabs}
       activeTab={activeTab}

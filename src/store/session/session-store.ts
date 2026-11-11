@@ -1,5 +1,6 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
+import { cbsAuth } from "@/lib/cbs-client";
 import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import type { CurrentUser } from "@/lib/data-schemas";
@@ -28,7 +29,7 @@ export const createSessionStore = () => {
         clearSession: () => set({ user: null, isAuthenticated: false }),
         logout: async () => {
           try {
-            await fetch(clientConfig.routes.api.logout, { method: "POST" });
+            await cbsAuth.logout();
           } catch (e) {
             logger.error("Logout failed", e, "SESSION_STORE");
           }

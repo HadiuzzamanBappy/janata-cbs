@@ -1,9 +1,9 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
-import { parseModelConfig } from "@/lib/data-parsers";
+import { cbsQueries } from "@/lib/cbs-client";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
@@ -11,7 +11,6 @@ import {
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
 import { useMcActions } from "./use-mc-actions";
-import { useMcCatalog } from "./use-mc-catalog";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
 import { useMcPropertyOps } from "./use-mc-property-ops";
 
@@ -33,7 +32,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     resolvedInitialMode,
   } = useModelConfigPersistence(initialId, tabId);
 
-  const { modelsPool, refreshCatalog, upsertCatalogItem } = useMcCatalog();
+  const queryClient = useQueryClient();
   const {
     addField,
     addSubField,
@@ -86,26 +85,19 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       setValidationErrors([]);
 
       try {
-        const json = await cbs.send(cbs.modelConfig.get(cleanId));
-        if (json.status === "SUCCESS" && json.data) {
-          const parsed = parseModelConfig(json.data);
-          if (parsed.success) {
-            const raw =
-              ((json.data as Record<string, unknown>)?.record as ModelConfigRecord) ?? parsed.data;
-            setRawRecord(raw);
-            hydrate(parsed.data);
-            markAsCommitted(parsed.data.PROPERTIES || []);
-            setValidationErrors([]);
-            setMode(targetMode);
-            toast.add({
-              title: "Model Loaded",
-              description: `Loaded data dictionary for #${cleanId}`,
-              type: "success",
-            });
-            return;
-          }
-          console.error(`[ModelConfig] parse failed for ${cleanId}:`, parsed.error);
-          toast.add({ title: "Model Parse Failed", description: parsed.error, type: "error" });
+        const record = await queryClient.fetchQuery(cbsQueries.modelConfig.record(cleanId));
+        if (record?.TABLENAME) {
+          setRawRecord(record);
+          hydrate(record);
+          markAsCommitted(record.PROPERTIES || []);
+          setValidationErrors([]);
+          setMode(targetMode);
+          toast.add({
+            title: "Model Loaded",
+            description: `Loaded data dictionary for #${cleanId}`,
+            type: "success",
+          });
+          return;
         }
         if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
       } catch {
@@ -114,7 +106,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         setLoading(false);
       }
     },
-    [hydrate, initDraft, markAsCommitted, setMode, setRecordId],
+    [hydrate, initDraft, markAsCommitted, queryClient, setMode, setRecordId],
   );
 
   const handleValidate = React.useCallback((): boolean => {
@@ -149,7 +141,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     rebaseline,
     resetToIdle,
     markAsCommitted,
-    upsertCatalogItem,
     fetchRecord,
   });
 
@@ -184,8 +175,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     rawRecord,
     isDirty,
     dirtyKeys,
-    modelsPool,
-    refreshCatalog,
     loading,
     submitting,
     fetchRecord,

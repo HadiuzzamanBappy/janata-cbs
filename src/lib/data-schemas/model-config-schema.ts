@@ -43,12 +43,23 @@ export const modelConfigRecordSchema = z
     ASSOCIATES: z.array(z.string()).default([]),
     AUTHORIZE: z.boolean().default(false),
     SERVICEPATH: z.string().min(1, "Service Path is required"),
-    IDDEF: idDefSchema.default({
-      IDPREFIX: "",
-      SEQUENCELENGTH: "",
-      SEQUENCERESET: false,
-      IDPATTERN: "",
-    }),
+    IDDEF: idDefSchema
+      .nullable()
+      .transform(
+        (val) =>
+          val ?? {
+            IDPREFIX: "",
+            SEQUENCELENGTH: "",
+            SEQUENCERESET: false,
+            IDPATTERN: "",
+          },
+      )
+      .default({
+        IDPREFIX: "",
+        SEQUENCELENGTH: "",
+        SEQUENCERESET: false,
+        IDPATTERN: "",
+      }),
     PROPERTIES: z.array(modelPropertySchema).default([]),
     IDROUTINE: z.string().default("").optional(),
     FIELDBASED: z.boolean().default(false).optional(),

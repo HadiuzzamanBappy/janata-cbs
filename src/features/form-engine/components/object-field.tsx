@@ -97,14 +97,14 @@ export function ObjectField({
                 className={getFieldColSpanClass(1, child.WIDTH, child.LENGTH, child.TYPE)}
               >
                 {hasKernel ? (
-                  <FieldAtom field={boundChild} disabled={disabled} mode={mode} />
+                  <FieldAtom field={boundChild} disabled={isReadOnly} mode={mode} />
                 ) : (
                   <UnifiedFieldFactory
                     field={boundChild}
                     value={getFieldValue(values, fieldPath)}
                     onChange={onChange}
                     error={errors[fieldPath]}
-                    disabled={disabled}
+                    disabled={isReadOnly}
                     mode={mode}
                     allValues={values}
                     errors={errors}
@@ -191,14 +191,14 @@ export function ObjectField({
                     className={getFieldColSpanClass(1, child.WIDTH, child.LENGTH, child.TYPE)}
                   >
                     {hasKernel ? (
-                      <FieldAtom field={boundChild} disabled={disabled} mode={mode} />
+                      <FieldAtom field={boundChild} disabled={isReadOnly} mode={mode} />
                     ) : (
                       <UnifiedFieldFactory
                         field={boundChild}
                         value={getFieldValue(values, fieldPath)}
                         onChange={onChange}
                         error={errors[fieldPath]}
-                        disabled={disabled}
+                        disabled={isReadOnly}
                         mode={mode}
                         allValues={values}
                         errors={errors}

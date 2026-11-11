@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { generateIdempotencyKey } from "@/lib/core-utils";
 import { parseMenuTreeRecord } from "@/lib/data-parsers";
 import {
   type MenuDesignerValidationError,
@@ -131,7 +132,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
 
   const handleCreateNew = React.useCallback(
     (customId?: string) => {
-      const nextId = customId || `TREE.${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
+      const nextId = customId || `TREE.${generateIdempotencyKey().slice(0, 6).toUpperCase()}`;
       setRecordId(nextId);
       setValidationErrors([]);
       hydrate({

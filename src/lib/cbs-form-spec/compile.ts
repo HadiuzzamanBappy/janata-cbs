@@ -26,9 +26,10 @@ export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   return [
     {
       id: "sec_std_1",
-      title: model.DESCRIPTION || model.TABLENAME || "General Attributes",
+      title: "",
       description: "",
       containerType: "card",
+      containerConfig: { variant: "ghost", density: "compact" },
       columns: 1,
       collapsible: false,
       isCollapsed: false,

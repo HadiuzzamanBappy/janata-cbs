@@ -114,7 +114,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
         id: "preview",
         label: "Live Preview",
         icon: <Eye className="size-3 text-cyan-500" />,
-        content: <McPreviewTab formData={formData} />,
+        content: <McPreviewTab formData={formData} mode={mode} />,
       },
       {
         id: "json",
@@ -131,6 +131,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
       formData,
       isFieldCommitted,
       isReadOnly,
+      mode,
       removeField,
       selectedPropertySN,
       setFormData,

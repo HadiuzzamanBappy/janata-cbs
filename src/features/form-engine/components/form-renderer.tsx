@@ -23,6 +23,7 @@ export function FormRenderer({
   mode = "I",
   auditData,
   showAuditSection = false,
+  hideHeader = false,
 }: FormRendererProps) {
   const sections = frmElements?.sections || [];
 
@@ -94,6 +95,7 @@ export function FormRenderer({
                 errors={errors}
                 disabled={disabled}
                 mode={mode}
+                hideHeader={hideHeader}
               />
             );
           }

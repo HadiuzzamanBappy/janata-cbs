@@ -307,6 +307,34 @@ async function runSuite() {
       p4?.LENGTH === 65,
   );
 
+  const envelopePayload = {
+    status: "SUCCESS",
+    data: {
+      record: {
+        ...rawModelPayload,
+        TABLENAME: "ENVELOPE_TABLE",
+        auditFields: {
+          recStatus: "AU",
+          recCurrNumber: 3,
+        },
+      },
+    },
+  };
+  const parsedEnvelope = parseModelConfig(envelopePayload);
+
+  recordTest(
+    "6b. Model Config Envelope Unwrapper: Unwraps nested { data: { record } } and adapts auditFields",
+    { input: "data.record envelope" },
+    {
+      parsed: parsedEnvelope.success,
+      tableName: parsedEnvelope.success ? parsedEnvelope.data.TABLENAME : undefined,
+      auditStatus: parsedEnvelope.success ? parsedEnvelope.data.auditData?.recStatus : undefined,
+    },
+    parsedEnvelope.success === true &&
+      parsedEnvelope.data.TABLENAME === "ENVELOPE_TABLE" &&
+      parsedEnvelope.data.auditData?.recStatus === "AU",
+  );
+
   // ----------------------------------------------------------------------------
   // 7. Tabular Inquiry Row Parser
   // ----------------------------------------------------------------------------

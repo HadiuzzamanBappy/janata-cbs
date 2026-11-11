@@ -49,7 +49,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   const [rawRecord, setRawRecord] = React.useState<ModelConfigRecord | undefined>(undefined);
   const [validationErrors, setValidationErrors] = React.useState<ModelValidationErrorItem[]>([]);
 
-  // 1. Reset screen and commit set to idle
   const resetToIdle = React.useCallback(() => {
     reset();
     clearCommitted();
@@ -57,7 +56,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     setValidationErrors([]);
   }, [clearCommitted, reset]);
 
-  // 2. Initialize new empty draft
   const initDraft = React.useCallback(
     (cleanId: string) => {
       const draft: ModelConfigRecord = {
@@ -79,7 +77,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     [clearCommitted, hydrate, setMode],
   );
 
-  // 3. Fetch record from database
   const fetchRecord = React.useCallback(
     async (targetId: string, targetMode: CbsScreenMode = CbsRecordFunction.INPUT) => {
       if (!targetId.trim()) return;
@@ -93,7 +90,9 @@ export function useModelConfig(initialId?: string, tabId?: string) {
         if (json.status === "SUCCESS" && json.data) {
           const parsed = parseModelConfig(json.data);
           if (parsed.success) {
-            setRawRecord(parsed.data);
+            const raw =
+              ((json.data as Record<string, unknown>)?.record as ModelConfigRecord) ?? parsed.data;
+            setRawRecord(raw);
             hydrate(parsed.data);
             markAsCommitted(parsed.data.PROPERTIES || []);
             setValidationErrors([]);
@@ -105,15 +104,12 @@ export function useModelConfig(initialId?: string, tabId?: string) {
             });
             return;
           }
+          console.error(`[ModelConfig] parse failed for ${cleanId}:`, parsed.error);
+          toast.add({ title: "Model Parse Failed", description: parsed.error, type: "error" });
         }
-
-        if (targetMode === CbsRecordFunction.INPUT) {
-          initDraft(cleanId);
-        }
+        if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
       } catch {
-        if (targetMode === CbsRecordFunction.INPUT) {
-          initDraft(cleanId);
-        }
+        if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
       } finally {
         setLoading(false);
       }
@@ -121,7 +117,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     [hydrate, initDraft, markAsCommitted, setMode, setRecordId],
   );
 
-  // 4. Validate against Zod schema
   const handleValidate = React.useCallback((): boolean => {
     const validation = modelConfigRecordSchema.safeParse(formData);
     if (!validation.success) {
@@ -146,7 +141,6 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     return true;
   }, [formData]);
 
-  // 5. CBS Actions
   const { handleSubmit, handleAuthorize, handleHold, handleDelete, handleReverse } = useMcActions({
     formData,
     recordId,
@@ -162,21 +156,15 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   const handleCreateNew = React.useCallback(
     (newId?: string) => {
       const cleanId = (newId || "").trim().toUpperCase();
-      if (cleanId) {
-        fetchRecord(cleanId, CbsRecordFunction.INPUT);
-      }
+      if (cleanId) fetchRecord(cleanId, CbsRecordFunction.INPUT);
     },
     [fetchRecord],
   );
 
-  // Clear validation errors when switching away from edit mode
   React.useEffect(() => {
-    if (mode !== CbsRecordFunction.INPUT) {
-      setValidationErrors([]);
-    }
+    if (mode !== CbsRecordFunction.INPUT) setValidationErrors([]);
   }, [mode]);
 
-  // Auto-load initial record once if deep-linked or restored
   const hasLoadedInitialRef = React.useRef(false);
   React.useEffect(() => {
     if (!hasLoadedInitialRef.current && resolvedInitialId) {

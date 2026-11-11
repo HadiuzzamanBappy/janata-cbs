@@ -58,6 +58,43 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Normalizes operator accessibility rights from either an array or string.
+ * Supports:
+ * - Arrays: ["R", "I", "D", "A", "S", "H", "L"] -> preserved as string[]
+ * - String flags: "RIDASHL" or "RS" -> split into individual capability codes ["R", "S"]
+ * - Delimited strings: "R, I, D" or "R S D" -> parsed into array of codes
+ */
+export const accessibilitySchema = z
+  .union([z.array(z.string()), z.string()])
+  .nullish()
+  .transform((val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) {
+      return val.map((item) => String(item).trim()).filter(Boolean);
+    }
+    const str = String(val).trim();
+    if (!str) return [];
+    if (str.includes(",")) {
+      return str
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    if (str.includes(" ")) {
+      return str
+        .split(/\s+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    // String of single-character capability codes (e.g. "RIDASHL", "RS")
+    return str
+      .split("")
+      .map((s) => s.trim())
+      .filter(Boolean);
+  })
+  .default([]);
+
+/**
  * Universal authenticated CBS operator profile and session envelope.
  * Ingested from gRPC / Protobuf and persisted in Redis server session.
  * Pure representation of database session without duplicate entries.
@@ -67,7 +104,7 @@ export const currentUserSchema = z.object({
   branchCode: z.string().trim().min(1, "Branch Code is required"),
   fullName: z.string().default(""),
   userRole: z.array(z.string()).default([]),
-  accessibility: z.array(z.string()).default([]),
+  accessibility: accessibilitySchema,
   branchName: z.string().default(""),
   txnDate: z.string().default(""),
   commandLine: z.boolean().default(false),

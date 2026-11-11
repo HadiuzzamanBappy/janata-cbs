@@ -3,31 +3,28 @@ import { NextResponse } from "next/server";
 import { clientConfig } from "@/lib/core-config";
 
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
   const publicPaths: string[] = [clientConfig.routes.login, clientConfig.routes.api.login];
-  const isPublicPath = publicPaths.includes(request.nextUrl.pathname);
+  const isPublicPath = publicPaths.includes(pathname);
   const hasSession = request.cookies.has(clientConfig.auth.cookieName);
   const isInitLogin = request.cookies.get(clientConfig.auth.initLoginCookie)?.value === "true";
 
-  // FRAGILE SESSION: If user must change password, restrict them.
+  // Restricted pre-auth session: user must complete initial password change before accessing workbench.
+  // Allow /change-password, /login (handled by Server Component with Redis check to avoid self-redirects), and /api/*.
   if (hasSession && isInitLogin) {
-    // Let them stay on the change-password page or hit API routes
     if (
-      request.nextUrl.pathname === clientConfig.routes.changePassword ||
-      request.nextUrl.pathname.startsWith("/api/")
+      pathname === clientConfig.routes.changePassword ||
+      pathname === clientConfig.routes.login ||
+      pathname.startsWith("/api/")
     ) {
       return NextResponse.next();
     }
 
-    // They abandoned the flow! Destroy the session and force re-login.
-    const response = NextResponse.redirect(new URL(clientConfig.routes.login, request.url));
-    response.cookies.delete(clientConfig.auth.cookieName);
-    response.cookies.delete(clientConfig.auth.initLoginCookie);
-    return response;
+    return NextResponse.redirect(new URL(clientConfig.routes.changePassword, request.url));
   }
 
   if (!isPublicPath && !hasSession) {
-    const loginUrl = new URL(clientConfig.routes.login, request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL(clientConfig.routes.login, request.url));
   }
 
   return NextResponse.next();

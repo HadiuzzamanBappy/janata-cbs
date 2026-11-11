@@ -163,7 +163,6 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     isDirty,
     dirtyKeys,
     validationErrors,
-    clearValidationErrors: () => setValidationErrors([]),
     inquiriesPool,
     refreshCatalog,
     resetToIdle,

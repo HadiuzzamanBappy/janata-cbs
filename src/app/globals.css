@@ -131,7 +131,22 @@
     @apply border-border outline-ring/50;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
+    /* Text insertion caret always uses foreground so it's visible on cream/dark backgrounds */
+    caret-color: var(--foreground);
   }
+
+  :root {
+    /* Tell the browser this is a light surface — OS cursors render in dark ink */
+    color-scheme: light;
+    /* Native form controls (checkboxes, range, etc.) use brand accent */
+    accent-color: var(--primary);
+  }
+
+  .dark {
+    /* Tell the browser this is a dark surface — OS cursors render in light ink */
+    color-scheme: dark;
+  }
+
   ::selection {
     background-color: color-mix(in srgb, var(--primary) 20%, transparent);
     color: var(--primary);

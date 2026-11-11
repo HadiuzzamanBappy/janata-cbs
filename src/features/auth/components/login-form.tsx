@@ -42,26 +42,32 @@ export function LoginForm({ onSuccess, className = "mt-8 space-y-6" }: LoginForm
       )}
       <div className="space-y-1.5">
         <Label htmlFor="username" className="text-xs font-medium text-foreground">
-          Username
+          Sign-on Name
         </Label>
         <div className="relative">
+          {/*
+           * type="text" + autoComplete="username" → browser/password-managers correctly
+           * identify this as the username credential field (not a second password field).
+           * Visual masking is done with -webkit-text-security (Chromium + Safari) so the
+           * DOM type never flips to "password", keeping autofill semantics correct.
+           */}
           <Input
             id="username"
             name="username"
-            type={showUsername ? "text" : "password"}
-            placeholder="e.g. TELLER01"
+            type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
             disabled={loading}
             autoComplete="username"
-            className="h-9 text-xs pr-8"
+            style={{ WebkitTextSecurity: showUsername ? "none" : "disc" } as React.CSSProperties}
+            className="h-9 text-xs pr-8 focus-visible:ring-0 focus-visible:border-ring"
           />
           <button
             type="button"
             onClick={() => setShowUsername((prev) => !prev)}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
-            aria-label={showUsername ? "Hide username" : "Show username"}
+            aria-label={showUsername ? "Hide username" : "Reveal username"}
             tabIndex={-1}
           >
             {showUsername ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
@@ -82,7 +88,7 @@ export function LoginForm({ onSuccess, className = "mt-8 space-y-6" }: LoginForm
             required
             disabled={loading}
             autoComplete="current-password"
-            className="h-9 text-xs pr-8"
+            className="h-9 text-xs pr-8 focus-visible:ring-0 focus-visible:border-ring"
           />
           <button
             type="button"

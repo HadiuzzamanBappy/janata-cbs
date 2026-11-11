@@ -18,27 +18,32 @@ export interface McLookupConfigProps {
   errors?: Record<string, string>;
 }
 
+// Helper to normalize options list items into uniform { itemCode, itemLabel } records
+function normalizeOptionItems(rawData: unknown[]): Array<{ itemCode: string; itemLabel: string }> {
+  if (!Array.isArray(rawData) || rawData.length === 0) {
+    return [{ itemCode: "", itemLabel: "" }];
+  }
+  return rawData.map((it) => {
+    if (typeof it === "object" && it !== null) {
+      const rec = it as Record<string, unknown>;
+      const itemCode = String(rec.itemCode ?? rec.code ?? "");
+      const itemLabel = String(rec.itemLabel ?? rec.label ?? itemCode);
+      return { itemCode, itemLabel };
+    }
+    const str = String(it ?? "");
+    return { itemCode: str, itemLabel: str };
+  });
+}
+
 export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: McLookupConfigProps) {
   const param = property.PARAMETER as Record<string, unknown> | undefined;
   const paramType = param ? (param.type as string) || "O" : "NONE";
 
-  // Normalize data items so each item has { code, label } and has at least one initial item
+  // Normalize data items so each item has { itemCode, itemLabel } and has at least one initial item
   const normalizedProperty = React.useMemo(() => {
     if (param?.type === "O") {
       const rawData = Array.isArray(param.data) ? param.data : [];
-      const data =
-        rawData.length > 0
-          ? rawData.map((it: unknown) => {
-              if (typeof it === "object" && it !== null) {
-                const rec = it as Record<string, unknown>;
-                const itemCode = String(rec.itemCode ?? rec.code ?? "");
-                const itemLabel = String(rec.itemLabel ?? rec.label ?? itemCode);
-                return { itemCode, itemLabel };
-              }
-              const str = String(it ?? "");
-              return { itemCode: str, itemLabel: str };
-            })
-          : [{ itemCode: "", itemLabel: "" }];
+      const data = normalizeOptionItems(rawData);
 
       return {
         ...property,
@@ -81,19 +86,7 @@ export function McLookupConfig({ property, onUpdate, disabled, errors = {} }: Mc
 
       // Ensure data items are clean { itemCode, itemLabel } objects
       if (nextParam?.type === "O" && Array.isArray(nextParam.data)) {
-        nextParam.data = nextParam.data.map((it: unknown) => {
-          if (typeof it === "object" && it !== null) {
-            const rec = it as Record<string, unknown>;
-            const itemCode = String(rec.itemCode ?? rec.code ?? "");
-            const itemLabel = String(rec.itemLabel ?? rec.label ?? itemCode);
-            return {
-              itemCode,
-              itemLabel: itemLabel || itemCode,
-            };
-          }
-          const str = String(it ?? "");
-          return { itemCode: str, itemLabel: str };
-        });
+        nextParam.data = normalizeOptionItems(nextParam.data);
       }
 
       onUpdate(property.SN, {

@@ -25,6 +25,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     if (!session?.currUser) {
       return apiFail("User session expired or unauthorized", 401);
     }
+    if (session.currUser.initLogin) {
+      return apiFail("Password change required before accessing CBS core.", 403);
+    }
 
     const rawBody = await req.json();
     const parsed = cbsWirePayloadSchema.safeParse(rawBody);

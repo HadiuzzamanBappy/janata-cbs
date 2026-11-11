@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { ControlCommand } from "@/lib/data-schemas";
+import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
 import type { CommandGuideInfo } from "../types";
 
 interface UseCommandGuideOptions {
@@ -12,7 +13,8 @@ interface UseCommandGuideOptions {
 
 /**
  * Proactive command guidance powered by the centralized CBS Command Gateway.
- * Resolves application tokens, functions, and record IDs without ad-hoc string slicing.
+ * Resolves application tokens, functions, and record IDs without triggering false
+ * guidance warnings on multi-word natural-language search queries (e.g. "user req").
  */
 export function useCommandGuide({
   searchQuery,
@@ -22,15 +24,13 @@ export function useCommandGuide({
     const trimmed = searchQuery.trimStart();
     if (!trimmed) return null;
 
-    // Delegate parsing to CBS Command Gateway
     const parsed = cbsCommand.parse(trimmed);
-
-    // Filter out commands that do not provide RIDASH guidance (settings, inquiries)
     if (parsed.type === "SETTINGS" || parsed.type === "INQUIRY") {
       return null;
     }
 
-    const firstToken = trimmed.split(/\s+/)[0].toUpperCase();
+    const tokens = trimmed.split(/\s+/);
+    const firstToken = tokens[0].toUpperCase();
 
     // Check if the typed token matches a known control/command or registered alias
     const matched = allCommands.find(
@@ -39,13 +39,15 @@ export function useCommandGuide({
         c.aliases?.some((a) => a.toUpperCase() === firstToken),
     );
 
-    // If there is no trailing space yet, only show guidance on exact match
-    const hasSpace = /\s/.test(trimmed);
-    if (!hasSpace && !matched) {
-      return null;
-    }
+    // Recognize dotted/comma CBS app identifiers (e.g. "SC.MODEL.CONFIG", "ACCOUNT,V")
+    // or an explicit RIDASH function token after the app name
+    const looksLikeCbsApp = firstToken.includes(".") || firstToken.includes(",");
+    const secondTokenUpper = tokens[1]?.toUpperCase();
+    const hasValidFnToken = Boolean(
+      secondTokenUpper && CBS_FUNCTION_CODES.includes(secondTokenUpper as CbsRecordFunction),
+    );
 
-    if (!matched && !/^[A-Z][A-Z0-9._-]*$/i.test(firstToken)) {
+    if (!matched && !looksLikeCbsApp && !hasValidFnToken) {
       return null;
     }
 

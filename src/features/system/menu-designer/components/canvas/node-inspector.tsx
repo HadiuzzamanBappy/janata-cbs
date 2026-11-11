@@ -21,7 +21,6 @@ import { TreeContainerInspector } from "./tree-container-inspector";
 export interface NodeInspectorProps {
   selectedNode: MenuTreeNode | null;
   formData: MenuTreeRecord;
-  onUpdateFormData?: React.Dispatch<React.SetStateAction<MenuTreeRecord>>;
   onUpdateNode: (id: string, patch: Partial<MenuTreeNode>) => void;
   onDeleteNode: (id: string) => void;
   onClose: () => void;

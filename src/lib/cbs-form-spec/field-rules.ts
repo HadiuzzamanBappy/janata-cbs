@@ -3,6 +3,30 @@ import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { getFieldValue } from "./path-utils";
 
 /* -------------------------------------------------------------------------- */
+/* Reactive Field OnChange Action Evaluator                                   */
+/* -------------------------------------------------------------------------- */
+
+export function evaluateOnChangeRule(
+  action: string | undefined,
+  val: unknown,
+  delimiter: string = "#",
+): unknown {
+  if (action === "join") {
+    return Array.isArray(val) ? val.filter(Boolean).join(delimiter) : String(val ?? "");
+  }
+  if (action === "uppercase") {
+    return typeof val === "string" ? val.toUpperCase() : val;
+  }
+  if (action === "lowercase") {
+    return typeof val === "string" ? val.toLowerCase() : val;
+  }
+  if (action === "clear") {
+    return "";
+  }
+  return val;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Single Field Validation Primitive                                          */
 /* -------------------------------------------------------------------------- */
 

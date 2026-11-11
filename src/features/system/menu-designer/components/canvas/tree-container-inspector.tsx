@@ -3,27 +3,17 @@
 import { Network } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
-import type { MenuTreeNode, MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
+import { countTreeNodes } from "../../utils/menu-tree-ops";
 
 export interface TreeContainerInspectorProps {
   formData: MenuTreeRecord;
   className?: string;
 }
 
-function countTotalNodes(nodes: MenuTreeNode[]): number {
-  let count = 0;
-  for (const n of nodes) {
-    count += 1;
-    if (n.children && n.children.length > 0) {
-      count += countTotalNodes(n.children);
-    }
-  }
-  return count;
-}
-
 export function TreeContainerInspector({ formData, className }: TreeContainerInspectorProps) {
   const treeNodes = formData.menuTree || [];
-  const totalCount = countTotalNodes(treeNodes);
+  const totalCount = countTreeNodes(treeNodes);
   const rootGroupsCount = treeNodes.length;
 
   return (

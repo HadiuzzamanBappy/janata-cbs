@@ -40,6 +40,7 @@ export {};
 async function runSuite() {
   const { getMockProxyResponse, mockLogin, mockProcess } = await import("@mock/core");
   const { resolveTable } = await import("@mock/core/database-router");
+  const { CbsControlTable } = await import("@/types");
 
   interface TestCase {
     title: string;
@@ -217,13 +218,13 @@ async function runSuite() {
       inqRes.status === "SUCCESS" && Boolean(inqData && inqData.length > 0),
     );
 
-    // 7b. Inquiry Definition Retrieval (S INQUIRY.CONFIG GET.ACCOUNT)
+    // 7b. Inquiry Definition Retrieval (S INQUIRY GET.ACCOUNT)
     const inqConfigInput = {
       requestType: "S",
-      controlName: "INQUIRY.CONFIG",
+      controlName: CbsControlTable.INQUIRY_CONFIG,
       recordId: "GET.ACCOUNT",
     };
-    const inqConfigRes = getMockProxyResponse("S", "INQUIRY.CONFIG", "GET.ACCOUNT");
+    const inqConfigRes = getMockProxyResponse("S", CbsControlTable.INQUIRY_CONFIG, "GET.ACCOUNT");
     const inqConfigData = inqConfigRes.data as Record<string, unknown> | undefined;
     const inqConfigOut = {
       status: inqConfigRes.status,
@@ -232,7 +233,7 @@ async function runSuite() {
       filtersCount: (inqConfigData?.INQSelectField as unknown[])?.length,
     };
     recordTest(
-      "7b. Inquiry Definition Configuration (S INQUIRY.CONFIG GET.ACCOUNT)",
+      "7b. Inquiry Definition Configuration (S INQUIRY GET.ACCOUNT)",
       inqConfigInput,
       inqConfigOut,
       inqConfigRes.status === "SUCCESS" &&

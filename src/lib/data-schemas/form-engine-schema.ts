@@ -259,9 +259,15 @@ export const baseFieldSchema = z.looseObject({
     ),
   LABEL: z.string().trim().min(1, "Field label is required"),
   TYPE: propertyTypeSchema.default("Text"),
-  STRUCTURE: z.enum(["S", "M"]).default("S"),
+  STRUCTURE: z
+    .preprocess((val) => (typeof val === "string" ? val.toUpperCase() : val), z.enum(["S", "M"]))
+    .default("S"),
   LENGTH: z.coerce.number().default(50),
-  REQUIRED: z.boolean().default(false).optional(),
+  REQUIRED: z
+    .union([z.boolean(), z.null()])
+    .transform((v) => Boolean(v))
+    .default(false)
+    .optional(),
   PARAMETER: formFieldParameterSchema.optional(),
 });
 

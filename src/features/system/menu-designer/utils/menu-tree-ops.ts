@@ -1,3 +1,4 @@
+import { generateClientToken } from "@/lib/core-utils";
 import {
   isMenuFolderNode,
   type MenuAction,
@@ -67,7 +68,7 @@ export function addCatalogItemToTree(
 
   const isGroup = item.menuType === "GROUP" || !item.command?.trim();
   const newNode: MenuItem = {
-    id: `node_${crypto.randomUUID().slice(0, 8)}`,
+    id: generateClientToken("node"),
     menuId: numericMenuId || undefined,
     label: item.label,
     command: item.command?.trim().toUpperCase() || undefined,

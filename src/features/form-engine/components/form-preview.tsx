@@ -5,12 +5,15 @@ import * as React from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { FormRenderer } from "@/features/form-engine";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
-import { CbsRecordFunction } from "@/types";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 
 export interface FormPreviewProps {
   frmElements?: FormConfigRecord["frmElements"];
   emptyTitle?: string;
   emptyDescription?: string;
+  hideHeader?: boolean;
+  mode?: CbsScreenMode;
+  values?: Record<string, unknown>;
 }
 
 /**
@@ -22,8 +25,17 @@ export function FormPreview({
   frmElements,
   emptyTitle = "No Layout Designed Yet",
   emptyDescription = "There are no sections or fields to preview.",
+  hideHeader = false,
+  mode = CbsRecordFunction.INPUT,
+  values: initialValues,
 }: FormPreviewProps) {
-  const [formValues, setFormValues] = React.useState<Record<string, unknown>>({});
+  const [formValues, setFormValues] = React.useState<Record<string, unknown>>(initialValues || {});
+
+  React.useEffect(() => {
+    if (initialValues) {
+      setFormValues(initialValues);
+    }
+  }, [initialValues]);
 
   const handleInputChange = React.useCallback((key: string, val: unknown) => {
     setFormValues((prev) => ({ ...prev, [key]: val }));
@@ -47,7 +59,8 @@ export function FormPreview({
         frmElements={frmElements}
         values={formValues}
         onChange={handleInputChange}
-        mode={CbsRecordFunction.INPUT}
+        mode={mode}
+        hideHeader={hideHeader}
         auditData={{
           recStatus: "AU",
           recCurrNumber: 1,

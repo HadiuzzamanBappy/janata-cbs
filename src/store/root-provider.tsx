@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import * as React from "react";
 import { AlertStoreProvider } from "./alert/alert-provider";
 import { SessionStoreProvider } from "./session/session-provider";
@@ -37,6 +38,7 @@ export function CbsAppStoreProvider({ children }: CbsAppStoreProviderProps) {
           <AlertStoreProvider>{children}</AlertStoreProvider>
         </WorkbenchStoreProvider>
       </SessionStoreProvider>
+      <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
     </QueryClientProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { Minus, Plus } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { getInputWidthClass, resolveWidgetType } from "@/lib/cbs-form-spec";
 import { formatCurrency } from "@/lib/core-utils";
@@ -87,44 +87,49 @@ function ScalarFieldFactory({
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =
     useMultiValue(effectiveValue, isMulti, onChange, fieldKey);
 
-  // View Mode display text
+  // Helper to format any value (scalar or single item of an array) for view mode
+  const formatItemViewDisplay = useCallback(
+    (val: unknown) => {
+      if (val === undefined || val === null || val === "") return undefined;
+
+      const matchedOption = resolvedOptions.find((o) => o.code === String(val));
+      if (matchedOption) return matchedOption.label;
+
+      const normType = (field.TYPE || "").toLowerCase();
+      if (normType === "amount") {
+        return formatCurrency(val as number | string, {
+          currency: field.NUMBER_CONFIG?.currencyCode || "BDT",
+          decimals: field.NUMBER_CONFIG?.decimals ?? 2,
+        });
+      }
+      if (normType === "rate") {
+        const num = Number(val);
+        const dec = field.RATE_CONFIG?.decimals ?? 4;
+        const suf = field.RATE_CONFIG?.suffix ?? "%";
+        return Number.isNaN(num) ? `${String(val)}${suf}` : `${num.toFixed(dec)}${suf}`;
+      }
+      if (normType === "boolean") {
+        const lower = String(val).toLowerCase().trim();
+        const isTrue = lower === "true" || lower === "y" || lower === "1";
+        return isTrue
+          ? field.BOOLEAN_CONFIG?.activeLabel || "Yes"
+          : field.BOOLEAN_CONFIG?.inactiveLabel || "No";
+      }
+
+      return String(val);
+    },
+    [resolvedOptions, field.TYPE, field.NUMBER_CONFIG, field.RATE_CONFIG, field.BOOLEAN_CONFIG],
+  );
+
+  // View Mode display text for single-value mode
   const viewDisplay = useMemo(() => {
     if (value === undefined || value === null || value === "") return undefined;
-    if (Array.isArray(value)) return value.join(", ");
-
-    const matchedOption = resolvedOptions.find((o) => o.code === String(value));
-    if (matchedOption) return matchedOption.label;
-
-    const normType = (field.TYPE || "").toLowerCase();
-    if (normType === "amount") {
-      return formatCurrency(value as number | string, {
-        currency: field.NUMBER_CONFIG?.currencyCode || "BDT",
-        decimals: field.NUMBER_CONFIG?.decimals ?? 2,
-      });
+    if (Array.isArray(value)) {
+      const formatted = value.map((v) => formatItemViewDisplay(v) ?? "").filter(Boolean);
+      return formatted.length > 0 ? formatted.join(", ") : undefined;
     }
-    if (normType === "rate") {
-      const num = Number(value);
-      const dec = field.RATE_CONFIG?.decimals ?? 4;
-      const suf = field.RATE_CONFIG?.suffix ?? "%";
-      return Number.isNaN(num) ? `${String(value)}${suf}` : `${num.toFixed(dec)}${suf}`;
-    }
-    if (normType === "boolean") {
-      const lower = String(value).toLowerCase().trim();
-      const isTrue = lower === "true" || lower === "y" || lower === "1";
-      return isTrue
-        ? field.BOOLEAN_CONFIG?.activeLabel || "Yes"
-        : field.BOOLEAN_CONFIG?.inactiveLabel || "No";
-    }
-
-    return String(value);
-  }, [
-    value,
-    resolvedOptions,
-    field.TYPE,
-    field.NUMBER_CONFIG,
-    field.RATE_CONFIG,
-    field.BOOLEAN_CONFIG,
-  ]);
+    return formatItemViewDisplay(value);
+  }, [value, formatItemViewDisplay]);
 
   const renderSingleWidget = (
     val: unknown,
@@ -189,6 +194,8 @@ function ScalarFieldFactory({
               label={effectiveLabel}
               required={Boolean(field.REQUIRED)}
               error={isFirst ? error : undefined}
+              isViewMode={isViewMode}
+              viewDisplayValue={formatItemViewDisplay(itemVal)}
               indexSuffix={itemIdx + 1}
               enrichText={isFirst ? effectiveEnrichText : undefined}
               actionBeforeColon={actionControls}

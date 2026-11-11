@@ -5,12 +5,14 @@ import { FormPreview } from "@/features/form-engine";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import type { CbsScreenMode } from "@/types";
 
 export interface McPreviewTabProps {
   formData: ModelConfigRecord;
+  mode?: CbsScreenMode;
 }
 
-export function McPreviewTab({ formData }: McPreviewTabProps) {
+export function McPreviewTab({ formData, mode }: McPreviewTabProps) {
   const cleanData = React.useMemo(
     () => sanitizeModelConfigRecord(formData) ?? formData,
     [formData],
@@ -20,6 +22,7 @@ export function McPreviewTab({ formData }: McPreviewTabProps) {
   return (
     <FormPreview
       frmElements={spec.frmElements}
+      mode={mode}
       emptyTitle="No Fields in Model Configuration"
       emptyDescription="This model has no properties defined yet. Switch to the Properties tab to add columns before previewing."
     />

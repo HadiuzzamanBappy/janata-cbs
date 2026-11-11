@@ -16,7 +16,7 @@ const FIXED_TYPE_LENGTHS: Readonly<Record<string, number>> = {
   Object: 0,
 };
 
-const VALID_PROPERTY_TYPES: ReadonlySet<string> = new Set([
+const VALID_PROPERTY_TYPES = new Set([
   "Text",
   "Number",
   "Amount",
@@ -40,30 +40,57 @@ const BOOLEAN_FLAGS = [
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Normalizes and extracts the inner model config record from arbitrary CBS response envelopes.
+ */
+export function extractModelConfigRecord(rawPayload: unknown): Record<string, unknown> | null {
+  if (!rawPayload || typeof rawPayload !== "object") return null;
+  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
+  if (!decoded || typeof decoded !== "object") return null;
+
+  let target: Record<string, unknown> =
+    unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+  if (!target || typeof target !== "object") return null;
+
+  if (target.data && typeof target.data === "object" && !Array.isArray(target.data)) {
+    target = target.data as Record<string, unknown>;
+  }
+  if (target.record && typeof target.record === "object" && !Array.isArray(target.record)) {
+    target = target.record as Record<string, unknown>;
+  }
+  if (!target.auditData && target.auditFields && typeof target.auditFields === "object") {
+    target = { ...target, auditData: target.auditFields };
+  }
+  return target;
+}
+
+/**
  * Parses inbound wire payload into a strictly validated, sanitized ModelConfigRecord.
  */
 export function parseModelConfig(
   rawPayload: unknown,
 ): { success: true; data: ModelConfigRecord } | { success: false; error: string } {
-  if (!rawPayload || typeof rawPayload !== "object") {
-    return { success: false, error: "Model config payload is invalid" };
-  }
-
-  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  const target =
-    unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+  const target = extractModelConfigRecord(rawPayload);
+  if (!target) return { success: false, error: "Model config payload is invalid" };
 
   const parsed = modelConfigRecordSchema.safeParse(target);
   if (!parsed.success) {
-    return {
-      success: false,
-      error: `ModelConfig validation failed: ${parsed.error.message}`,
-    };
+    return { success: false, error: `ModelConfig validation failed: ${parsed.error.message}` };
   }
+
+  const sanitizedProps = (parsed.data.PROPERTIES || []).map((p, i) => sanitizeModelProperty(p, i));
 
   return {
     success: true,
-    data: sanitizeModelConfigRecord(parsed.data) ?? parsed.data,
+    data: {
+      ...parsed.data,
+      ACCESS: parsed.data.ACCESS.toUpperCase().startsWith("B") ? "B" : "G",
+      PROPERTIES: sanitizedProps,
+      USERDEFINEID: Boolean(parsed.data.USERDEFINEID),
+      READONLY: Boolean(parsed.data.READONLY),
+      SEARCHABLE: Boolean(parsed.data.SEARCHABLE),
+      AUTHORIZE: Boolean(parsed.data.AUTHORIZE),
+      FIELDBASED: Boolean(parsed.data.FIELDBASED),
+    },
   };
 }
 
@@ -72,10 +99,7 @@ export function parseModelConfig(
 /* -------------------------------------------------------------------------- */
 
 /**
- * Sanitizes a ModelProperty for MODEL.CONFIG:
- * - Enforces database column invariants based on TYPE (Date: 10, DateTime: 19, Boolean: 1/S, Object: 0)
- * - Purges presentation layer attributes (WIDTH, WIDGET, DISABLED, POSITION, DEFAULTVALUE, etc.)
- * - Normalizes parameter lookups (Options List 'O' vs Model Lookup 'M')
+ * Sanitizes a ModelProperty for MODEL.CONFIG: enforces physical invariants and purges UI noise.
  */
 export function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProperty {
   const normType = (
@@ -89,18 +113,16 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
     normLength = typeof rawLen === "number" && !Number.isNaN(rawLen) && rawLen > 0 ? rawLen : 50;
   }
 
-  const sanitized: Partial<ModelProperty> = {
+  const sanitized: ModelProperty = {
     SN: String(prop.SN || (index !== undefined ? index + 1 : "")).trim(),
     NAME: String(prop.NAME || "").trim(),
     LABEL: String(prop.LABEL || prop.NAME || "").trim(),
     TYPE: normType,
     STRUCTURE: normStructure,
     LENGTH: normLength,
+    REQUIRED: Boolean(prop.REQUIRED),
   };
 
-  if (prop.REQUIRED) sanitized.REQUIRED = true;
-
-  // Lookup parameters: ONLY applicable to Text
   if (normType === "Text" && prop.PARAMETER) {
     const { type, data, modelName, codeField, displayField, condition } = prop.PARAMETER;
     if (type === "O") {
@@ -113,9 +135,7 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
         })
         .filter((item): item is { itemCode: string; itemLabel: string } => item !== null);
 
-      if (cleanData.length > 0) {
-        sanitized.PARAMETER = { type: "O", data: cleanData };
-      }
+      if (cleanData.length > 0) sanitized.PARAMETER = { type: "O", data: cleanData };
     } else if (type === "M" && modelName?.trim()) {
       sanitized.PARAMETER = {
         type: "M",
@@ -127,19 +147,15 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
     }
   }
 
-  // Nested Object sub-properties: ONLY applicable to Object
   if (normType === "Object" && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
     sanitized.PROP = prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx));
   }
 
-  return sanitized as ModelProperty;
+  return sanitized;
 }
 
 /**
- * Sanitizes a ModelConfigRecord for sparse persistence:
- * - Normalizes ACCESS to standard banking codes (Global -> G, Branch -> B)
- * - Enforces physical column invariants on PROPERTIES and strips UI presentation fields
- * - Omits empty IDDEF, ASSOCIATES, and falsy boolean flags for sparse wire payloads
+ * Sanitizes a ModelConfigRecord for sparse persistence.
  */
 export function sanitizeModelConfigRecord(
   record?: ModelConfigRecord,
@@ -149,12 +165,10 @@ export function sanitizeModelConfigRecord(
   const rawAccess = String(record.ACCESS || "G")
     .trim()
     .toUpperCase();
-  const normAccess = rawAccess.startsWith("B") ? "B" : "G";
-
   const result: Partial<ModelConfigRecord> = {
     TABLENAME: String(record.TABLENAME || "").trim(),
     DESCRIPTION: String(record.DESCRIPTION || record.TABLENAME || "").trim(),
-    ACCESS: normAccess,
+    ACCESS: rawAccess.startsWith("B") ? "B" : "G",
     SERVICEPATH: String(record.SERVICEPATH || "/api/v1/data").trim(),
   };
 
@@ -184,10 +198,7 @@ export function sanitizeModelConfigRecord(
     }
   }
 
-  result.PROPERTIES = (record.PROPERTIES || []).map((prop, idx) =>
-    sanitizeModelProperty(prop, idx),
-  );
-
+  result.PROPERTIES = (record.PROPERTIES || []).map((p, i) => sanitizeModelProperty(p, i));
   if (record.auditData) result.auditData = record.auditData;
 
   return result as ModelConfigRecord;

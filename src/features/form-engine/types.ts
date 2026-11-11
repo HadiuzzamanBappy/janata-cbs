@@ -53,4 +53,5 @@ export interface FormRendererProps {
   mode?: CbsScreenMode;
   auditData?: AuditData | null;
   showAuditSection?: boolean;
+  hideHeader?: boolean;
 }

@@ -1,4 +1,5 @@
 import { clientConfig } from "@/lib/core-config";
+import { generateIdempotencyKey } from "@/lib/core-utils";
 import { CBS_SCREEN_COMPONENTS, type ExecutionOptions, type ParsedCommand } from "../types";
 import { resolveScreenId } from "./adapter";
 
@@ -32,7 +33,7 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
     params.set("pageSize", String(inquiry.pageSize));
   }
   const cleanApp = parsed.application.replace(/[^a-zA-Z0-9]/g, "_");
-  const tabId = options?.tabId || `popup_${cleanApp}_${crypto.randomUUID()}`;
+  const tabId = options?.tabId || `popup_${cleanApp}_${generateIdempotencyKey()}`;
   params.set("tabId", tabId);
 
   // Store large payloads safely in session storage instead of fragile URLs
@@ -59,7 +60,7 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
     "scrollbars=yes",
   ].join(",");
 
-  const windowName = `screen_${cleanApp}_${crypto.randomUUID()}`;
+  const windowName = `screen_${cleanApp}_${generateIdempotencyKey()}`;
   const win = window.open(screenUrl, windowName, popupFeatures);
   if (win) win.focus();
 }

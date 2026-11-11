@@ -1,4 +1,4 @@
-import type { CurrentUser } from "@/lib/data-schemas/auth-schema";
+import { accessibilitySchema, type CurrentUser } from "@/lib/data-schemas/auth-schema";
 import { decodeProtobufValue } from "./protobuf-decoder";
 
 export interface ParsedUserAuthResult {
@@ -9,13 +9,13 @@ export interface ParsedUserAuthResult {
 /**
  * Strict parser to map CBS authentication wire payload into a CurrentUser domain session.
  * Purely extracts exact database wire fields.
- * Accessibility is strictly received as an array of capability codes (e.g. ["R", "I", "D", "A", "S", "H", "L"]).
+ * Accessibility is adapted from either an array or a string (e.g. ["R", "S"] or "RIDASHL").
  */
 export function parseAuthWirePayload(data: unknown): ParsedUserAuthResult {
   const f = decodeProtobufValue<Record<string, unknown>>(data);
 
   const rawAccess = f.accessibility ?? f.functionRights;
-  const accessibility: string[] = Array.isArray(rawAccess) ? rawAccess.map(String) : [];
+  const accessibility = accessibilitySchema.parse(rawAccess);
 
   const currUser: CurrentUser = {
     userId: typeof f.userId === "string" ? f.userId.trim() : "",

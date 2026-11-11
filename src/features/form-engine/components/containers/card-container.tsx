@@ -37,7 +37,7 @@ export function CardContainer({
 
   // Resolve container styling based on containerConfig
   const getContainerClasses = () => {
-    if (hideHeader || !hasHeader) {
+    if (hideHeader || !hasHeader || config.variant === "ghost") {
       return isViewMode ? "space-y-1.5" : "space-y-2";
     }
 

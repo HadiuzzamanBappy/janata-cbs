@@ -31,8 +31,21 @@ export function parseGfcResponse(
   }
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  const target =
-    unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+  let target = unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+
+  if (target && typeof target === "object" && !Array.isArray(target)) {
+    const rec = target as Record<string, unknown>;
+    if (rec.data && typeof rec.data === "object" && !Array.isArray(rec.data)) {
+      target = rec.data as Record<string, unknown>;
+    }
+    if (
+      (target as Record<string, unknown>).record &&
+      typeof (target as Record<string, unknown>).record === "object" &&
+      !Array.isArray((target as Record<string, unknown>).record)
+    ) {
+      target = (target as Record<string, unknown>).record as Record<string, unknown>;
+    }
+  }
 
   if (!target || typeof target !== "object") {
     return { success: false, error: "GFC payload record is empty or invalid" };

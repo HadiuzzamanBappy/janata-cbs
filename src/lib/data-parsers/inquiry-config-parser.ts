@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   type EnquiryRow,
   type INQDef,
@@ -10,7 +9,20 @@ import {
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
-/* Inbound Wire Envelope Normalizer (Zero Legacy)                             */
+/* Constants & Sanitization Fields                                            */
+/* -------------------------------------------------------------------------- */
+
+const INQ_INFO_BOOLEANS = [
+  "showSerial",
+  "showPagination",
+  "showBranchWise",
+  "cmdFromInternal",
+] as const;
+
+const INQ_INFO_STRINGS = ["fixedSelection", "rptControllerName", "cmdFieldName"] as const;
+
+/* -------------------------------------------------------------------------- */
+/* Inbound Wire Envelope Normalizer                                           */
 /* -------------------------------------------------------------------------- */
 
 function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null {
@@ -18,7 +30,6 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
 
   let rec = target as Record<string, unknown>;
 
-  // Unwrap standard response envelopes: { data: { record: ... } } or { data: ... }
   if (rec.data && typeof rec.data === "object" && !Array.isArray(rec.data)) {
     rec = rec.data as Record<string, unknown>;
   }
@@ -26,25 +37,25 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
     rec = rec.record as Record<string, unknown>;
   }
 
-  const rawInqInfo =
+  const rawInq =
     rec.INQInfo && typeof rec.INQInfo === "object" ? (rec.INQInfo as Record<string, unknown>) : {};
 
   return {
     ...rec,
     INQInfo: {
-      controllerName: rawInqInfo.controllerName ?? rec.controllerName ?? "",
-      description: rawInqInfo.description ?? rec.description ?? "",
-      pageOrientation: rawInqInfo.pageOrientation ?? rec.pageOrientation ?? "Portrait",
-      perpageItem: rawInqInfo.perpageItem ?? rec.perpageItem ?? "30",
-      showSerial: rawInqInfo.showSerial ?? rec.showSerial ?? false,
-      showPagination: rawInqInfo.showPagination ?? rec.showPagination ?? false,
-      showBranchWise: rawInqInfo.showBranchWise ?? rec.showBranchWise ?? false,
-      inqType: rawInqInfo.inqType ?? rec.inqType ?? "DFT",
-      rptControllerName: rawInqInfo.rptControllerName ?? rec.rptControllerName ?? "",
-      fixedSelection: rawInqInfo.fixedSelection ?? rec.fixedSelection ?? "",
-      inqServicePath: rawInqInfo.inqServicePath ?? rec.inqServicePath ?? "default",
-      cmdFromInternal: rawInqInfo.cmdFromInternal ?? rec.cmdFromInternal ?? false,
-      cmdFieldName: rawInqInfo.cmdFieldName ?? rec.cmdFieldName ?? "",
+      controllerName: String(rawInq.controllerName ?? rec.controllerName ?? "").trim(),
+      description: String(rawInq.description ?? rec.description ?? "").trim(),
+      pageOrientation: rawInq.pageOrientation ?? rec.pageOrientation ?? "Portrait",
+      perpageItem: String(rawInq.perpageItem ?? rec.perpageItem ?? "30"),
+      showSerial: Boolean(rawInq.showSerial ?? rec.showSerial),
+      showPagination: Boolean(rawInq.showPagination ?? rec.showPagination),
+      showBranchWise: Boolean(rawInq.showBranchWise ?? rec.showBranchWise),
+      inqType: rawInq.inqType ?? rec.inqType ?? "DFT",
+      rptControllerName: String(rawInq.rptControllerName ?? rec.rptControllerName ?? "").trim(),
+      fixedSelection: String(rawInq.fixedSelection ?? rec.fixedSelection ?? "").trim(),
+      inqServicePath: String(rawInq.inqServicePath ?? rec.inqServicePath ?? "default").trim(),
+      cmdFromInternal: Boolean(rawInq.cmdFromInternal ?? rec.cmdFromInternal),
+      cmdFieldName: String(rawInq.cmdFieldName ?? rec.cmdFieldName ?? "").trim(),
     },
     INQSelectField: Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [],
     INQDef: Array.isArray(rec.INQDef) ? rec.INQDef : [],
@@ -54,9 +65,12 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
 }
 
 /* -------------------------------------------------------------------------- */
-/* Single Record & List Parsers                                               */
+/* Single Record Parser                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Parses inbound wire payload into a strictly validated, defensively sanitized InquiryConfigRecord.
+ */
 export function parseInquiryConfig(
   rawPayload: unknown,
 ): { success: true; data: InquiryConfigRecord } | { success: false; error: string } {
@@ -66,8 +80,7 @@ export function parseInquiryConfig(
 
   const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
   const list = unwrapRecordsPayload<Record<string, unknown>>(decoded);
-  const rawTarget = list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
-  const target = normalizeInquiryTarget(rawTarget);
+  const target = normalizeInquiryTarget(list[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded));
 
   if (!target) {
     return { success: false, error: "Inquiry config record is empty or invalid" };
@@ -81,35 +94,19 @@ export function parseInquiryConfig(
     };
   }
 
-  return { success: true, data: parseResult.data };
-}
-
-export function parseInquiryConfigList(
-  rawPayload: unknown,
-): { success: true; data: InquiryConfigRecord[] } | { success: false; error: string } {
-  if (!rawPayload) return { success: true, data: [] };
-
-  const rawList = unwrapRecordsPayload<unknown>(rawPayload);
-  const candidates = rawList.length > 0 ? rawList : Array.isArray(rawPayload) ? rawPayload : [];
-  const normalized = candidates
-    .map(normalizeInquiryTarget)
-    .filter((t): t is Record<string, unknown> => t !== null);
-
-  const parseResult = z.array(inquiryConfigRecordSchema).safeParse(normalized);
-  if (!parseResult.success) {
-    return {
-      success: false,
-      error: `Inquiry config list validation failed: ${parseResult.error.message}`,
-    };
-  }
-
-  return { success: true, data: parseResult.data };
+  return {
+    success: true,
+    data: sanitizeInquiryConfigRecord(parseResult.data) ?? parseResult.data,
+  };
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dataset Rows Parser                                                        */
+/* Dataset Rows Parser (for runtime tabular enquiry queries)                  */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Unpacks tabular records from query execution responses into typed EnquiryRow array.
+ */
 export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
   if (!rawPayload) return [];
 
@@ -133,13 +130,13 @@ export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Sanitizers & Wire Serializers                                              */
+/* Outbound Database Serializers & Query Sanitizers                           */
 /* -------------------------------------------------------------------------- */
 
 export function sanitizeInqSelectField(f: INQSelectField): INQSelectField {
   const result: Partial<INQSelectField> = {
-    selectFieldName: f.selectFieldName,
-    selectFieldDisplay: f.selectFieldDisplay || f.selectFieldName,
+    selectFieldName: f.selectFieldName.trim(),
+    selectFieldDisplay: (f.selectFieldDisplay || f.selectFieldName).trim(),
     selectFieldType: f.selectFieldType || "text",
     selectFieldOperator: f.selectFieldOperator || "EQ",
   };
@@ -153,8 +150,8 @@ export function sanitizeInqSelectField(f: INQSelectField): INQSelectField {
 
 export function sanitizeInqDef(col: INQDef): INQDef {
   const result: Partial<INQDef> = {
-    fieldName: col.fieldName,
-    fieldDisplay: col.fieldDisplay || col.fieldName,
+    fieldName: col.fieldName.trim(),
+    fieldDisplay: (col.fieldDisplay || col.fieldName).trim(),
     fieldType: col.fieldType || "DC",
     fieldLength: col.fieldLength || "20,L",
     fieldRowCol: col.fieldRowCol || "1,1",
@@ -164,32 +161,29 @@ export function sanitizeInqDef(col: INQDef): INQDef {
   return result as INQDef;
 }
 
+/**
+ * Produces a clean, sparse InquiryConfigRecord ready for database persistence.
+ */
 export function sanitizeInquiryConfigRecord(
   record?: InquiryConfigRecord,
 ): InquiryConfigRecord | undefined {
   if (!record) return undefined;
 
   const inqInfo: Partial<INQInfo> = {
-    controllerName: record.INQInfo?.controllerName || "",
-    description: record.INQInfo?.description || "",
-    inqServicePath: record.INQInfo?.inqServicePath || "default",
+    controllerName: String(record.INQInfo?.controllerName || "").trim(),
+    description: String(record.INQInfo?.description || "").trim(),
+    inqServicePath: String(record.INQInfo?.inqServicePath || "default").trim(),
     inqType: record.INQInfo?.inqType || "DFT",
     pageOrientation: record.INQInfo?.pageOrientation || "Portrait",
-    perpageItem: record.INQInfo?.perpageItem || "30",
+    perpageItem: String(record.INQInfo?.perpageItem || "30"),
   };
 
-  if (record.INQInfo?.showSerial) inqInfo.showSerial = true;
-  if (record.INQInfo?.showPagination) inqInfo.showPagination = true;
-  if (record.INQInfo?.showBranchWise) inqInfo.showBranchWise = true;
-  if (record.INQInfo?.fixedSelection?.trim()) {
-    inqInfo.fixedSelection = record.INQInfo.fixedSelection.trim();
+  for (const b of INQ_INFO_BOOLEANS) {
+    if (record.INQInfo?.[b]) inqInfo[b] = true;
   }
-  if (record.INQInfo?.rptControllerName?.trim()) {
-    inqInfo.rptControllerName = record.INQInfo.rptControllerName.trim();
-  }
-  if (record.INQInfo?.cmdFromInternal) inqInfo.cmdFromInternal = true;
-  if (record.INQInfo?.cmdFieldName?.trim()) {
-    inqInfo.cmdFieldName = record.INQInfo.cmdFieldName.trim();
+  for (const s of INQ_INFO_STRINGS) {
+    const val = record.INQInfo?.[s];
+    if (val?.trim()) inqInfo[s] = val.trim();
   }
 
   const result: Partial<InquiryConfigRecord> = {
@@ -197,8 +191,8 @@ export function sanitizeInquiryConfigRecord(
     INQSelectField: (record.INQSelectField || []).map(sanitizeInqSelectField),
     INQDef: (record.INQDef || []).map(sanitizeInqDef),
     INQCmds: (record.INQCmds || []).map((cmd) => ({
-      cmdButton: cmd.cmdButton,
-      cmdFor: cmd.cmdFor,
+      cmdButton: cmd.cmdButton.trim(),
+      cmdFor: cmd.cmdFor.trim(),
     })),
   };
 

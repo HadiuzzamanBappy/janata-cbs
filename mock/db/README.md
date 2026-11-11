@@ -11,7 +11,7 @@ In-memory persistence layer simulating Core Banking System storage when running 
   - Client components and `@/lib/cbs-client` **never** touch `@mock/db`.
   - At runtime, `@mock/db` is accessed strictly by `@mock/core` (via `database-router.ts` and domain handlers in `mock/core/handlers/`).
   - `@mock/core` in turn is invoked by server-side infra (`src/lib/infra-grpc/dispatch.ts` and `src/lib/infra-grpc/client.ts`) when in static mode.
-    _(Note: A single TypeScript type-only import `type { MenuRecord }` exists in `@/lib/data-parsers/menu-designer-parser.ts` for schema alignment)._
+  - Strict layer boundary: Zero runtime or type imports from `@mock/db` exist anywhere in `src/lib/`.
 
 ---
 

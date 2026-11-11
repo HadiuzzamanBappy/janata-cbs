@@ -3,7 +3,7 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
+import { parseModelConfig } from "@/lib/data-parsers";
 import {
   type ModelConfigRecord,
   modelConfigRecordSchema,
@@ -89,28 +89,22 @@ export function useModelConfig(initialId?: string, tabId?: string) {
       setValidationErrors([]);
 
       try {
-        const json = await cbs.send<{ record?: ModelConfigRecord } | ModelConfigRecord>(
-          cbs.modelConfig.get(cleanId),
-        );
-        const rawData = json.data;
-        const record =
-          json.status === "SUCCESS" && rawData
-            ? ((rawData as { record?: ModelConfigRecord }).record ?? (rawData as ModelConfigRecord))
-            : undefined;
-
-        if (record) {
-          setRawRecord(record);
-          const clean = sanitizeModelConfigRecord(record) ?? record;
-          hydrate(clean);
-          markAsCommitted(clean.PROPERTIES || []);
-          setValidationErrors([]);
-          setMode(targetMode);
-          toast.add({
-            title: "Model Loaded",
-            description: `Loaded data dictionary for #${cleanId}`,
-            type: "success",
-          });
-          return;
+        const json = await cbs.send(cbs.modelConfig.get(cleanId));
+        if (json.status === "SUCCESS" && json.data) {
+          const parsed = parseModelConfig(json.data);
+          if (parsed.success) {
+            setRawRecord(parsed.data);
+            hydrate(parsed.data);
+            markAsCommitted(parsed.data.PROPERTIES || []);
+            setValidationErrors([]);
+            setMode(targetMode);
+            toast.add({
+              title: "Model Loaded",
+              description: `Loaded data dictionary for #${cleanId}`,
+              type: "success",
+            });
+            return;
+          }
         }
 
         if (targetMode === CbsRecordFunction.INPUT) {

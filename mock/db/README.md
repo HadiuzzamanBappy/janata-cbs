@@ -46,7 +46,7 @@ All physical tables follow the standard banking convention: `PREFIX_TABLENAME`.
 | **`SC_BRANCH`**                        | `BRANCH`                      | `SC_BRANCH.ts`         | Branch Code: `"JB0001"`                              | Branch master records                                             |
 | **`SC_CONTROL`**                       | `CONTROL`                     | `SC_CONTROL.ts`        | Command Name: `"ACCOUNT"`                            | Terminal command and control specifications                       |
 | **`SC_FORM_CONFIG`**                   | `CONFIG.FORM`                 | `SC_FORM_CONFIG.ts`    | Composite: `"<MODEL>,<VERSION>"` (`"ACCOUNT,1.0.0"`) | Form schema and presentation layout configs                       |
-| **`SC_INQUIRY_CONFIG`**                | `INQUIRY.CONFIG`              | `SC_INQUIRY_CONFIG.ts` | Inquiry Verb: `"GET.ACCOUNT"`                        | Dynamic inquiry definitions and columns                           |
+| **`SC_INQUIRY_CONFIG`**                | `INQUIRY`                     | `SC_INQUIRY_CONFIG.ts` | Inquiry Verb: `"GET.ACCOUNT"`                        | Dynamic inquiry definitions and columns                           |
 | **`SC_LOOKUP`**                        | `LOOKUP`                      | `SC_LOOKUP.ts`         | Lookup ID: `"TITLE"`, `"SECTOR"`                     | System dropdown & code tables                                     |
 | **`SC_MENU`**                          | `MENU`                        | `SC_MENU.ts`           | Menu ID: `"M1"`, `"M2"`                              | Individual menu items and action links                            |
 | **`SC_MENU_TREE`**                     | `MENU.TREE`                   | `SC_MENU_TREE.ts`      | Root Key: `"MENU.ONE"`                               | Top-level tree hierarchy for navigation                           |
@@ -123,7 +123,7 @@ mock/db/
 ├── SC_BRANCH.ts            # Branch master
 ├── SC_CONTROL.ts           # Command catalog
 ├── SC_FORM_CONFIG.ts       # Form layout specs (CONFIG.FORM)
-├── SC_INQUIRY_CONFIG.ts    # Inquiry specs (INQUIRY.CONFIG)
+├── SC_INQUIRY_CONFIG.ts    # Inquiry specs (INQUIRY)
 ├── SC_LOOKUP.ts            # System dropdown lookups
 ├── SC_MENU.ts              # Menu item records
 ├── SC_MENU_TREE.ts         # Menu hierarchy (MENU.TREE)

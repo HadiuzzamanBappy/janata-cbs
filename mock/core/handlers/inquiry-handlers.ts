@@ -32,11 +32,7 @@ export function getMockInquiryPayload(command: string): unknown {
  */
 export function handleInquiry(payload: CbsWirePayload): ApiResponse {
   const cleanKey = (payload.controlName || payload.recordId || "").trim().toUpperCase();
-  const inqTable =
-    resolveTable(CbsControlTable.INQUIRY_CONFIG) ||
-    resolveTable("INQUIRY.CONFIG") ||
-    resolveTable("INQUIRY_CONFIG") ||
-    resolveTable("SC_INQUIRY_CONFIG");
+  const inqTable = resolveTable(CbsControlTable.INQUIRY_CONFIG);
   const inqSpec = inqTable?.LIVE[cleanKey] as
     | { INQInfo?: { controllerName?: string }; controllerName?: string }
     | undefined;

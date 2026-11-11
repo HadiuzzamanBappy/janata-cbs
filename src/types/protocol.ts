@@ -128,17 +128,6 @@ export function isCbsMutationRequest(requestType: string): boolean {
 /* -------------------------------------------------------------------------- */
 /* 2. Target Control Table Identifiers                                       */
 /* -------------------------------------------------------------------------- */
-// Local
-// export const CbsControlTable = {
-//   BRANCH: "BRANCH",
-//   CONTROL: "CONTROL",
-//   MENU: "MENU",
-//   MENU_TREE: "MENU.TREE",
-//   MODEL_CONFIG: "MODEL.CONFIG",
-//   FORM_CONFIG: "FORM.CONFIG",
-//   INQUIRY_CONFIG: "INQUIRY.CONFIG",
-// } as const;
-
 export const CbsControlTable = {
   BRANCH: "BRANCH",
   CONTROL: "CONTROL",

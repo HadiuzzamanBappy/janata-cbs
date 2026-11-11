@@ -25,6 +25,7 @@ import {
   sanitizeFormConfigRecord,
   sanitizeMenuTreeRecord,
   sanitizeModelConfigRecord,
+  sanitizeUserSession,
   unwrapRecordsPayload,
 } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas";
@@ -118,7 +119,7 @@ async function runSuite() {
     branchCode: "001",
     branchName: "Corporate Branch",
     txnDate: "2026-11-03",
-    userRole: "TELLER",
+    userRole: ["TELLER"],
     accessibility: ["R", "S"],
     commandLine: true,
     token: "mock-jwt-session-token",
@@ -138,6 +139,17 @@ async function runSuite() {
       Boolean(authResult.currUser.accessibility?.includes("S")) &&
       !authResult.currUser.accessibility?.includes("I") &&
       authResult.token === "mock-jwt-session-token",
+  );
+
+  const sanitizedUser = sanitizeUserSession(authResult.currUser);
+  recordTest(
+    "3b. Auth Session Sanitizer: Standardizes uppercase userId, branchCode & normalized roles",
+    authResult.currUser,
+    sanitizedUser,
+    sanitizedUser.userId === "OP100" &&
+      sanitizedUser.branchCode === "001" &&
+      sanitizedUser.userRole[0] === "TELLER" &&
+      sanitizedUser.accessibility?.length === 2,
   );
 
   // ----------------------------------------------------------------------------

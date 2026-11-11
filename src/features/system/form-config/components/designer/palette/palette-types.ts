@@ -1,6 +1,9 @@
+import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import type { FormContainerType } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+
+export { modelPropToFormElement };
 
 export interface FieldPaletteProps {
   targetModel?: string;
@@ -25,28 +28,3 @@ export interface FieldPaletteProps {
 export type PaletteItem =
   | { kind: "single"; property: ModelProperty }
   | { kind: "object-group"; parent: ModelProperty; children: ModelProperty[] };
-
-export function modelPropToFormElement(prop: ModelProperty): FormElement {
-  return {
-    SN: prop.SN || "1",
-    NAME: prop.NAME,
-    LABEL: prop.LABEL || prop.NAME,
-    TYPE: prop.TYPE || "Text",
-    LENGTH: prop.LENGTH ?? 35,
-    STRUCTURE: prop.STRUCTURE || "S",
-    REQUIRED: Boolean(prop.REQUIRED),
-    DISABLED: false,
-    WIDTH: "md",
-    POSITION: "",
-    PARAMETER: {
-      type: "O",
-      data: [],
-      modelName: "",
-      displayField: "",
-      condition: "",
-      reference: "",
-    },
-    ENRICHTEXT: "",
-    DEFAULTVALUE: "",
-  };
-}

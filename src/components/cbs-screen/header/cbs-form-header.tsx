@@ -9,9 +9,10 @@ import { CBS_SCREEN_EVENT, resolveMoreActions } from "@/lib/cbs-screen";
 import type { CbsScreenMode } from "@/types";
 import { useRecordLookup } from "../hooks/use-record-lookup";
 import { ActionBtn } from "./action-btn";
-import { ActionButtons } from "./action-buttons";
 import { ActionMoreMenu } from "./action-more-menu";
+import { ActiveActions } from "./active-actions";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
+import { IdleActions } from "./idle-actions";
 import { RecordLookupBar } from "./record-lookup-bar";
 
 export interface CbsFormHeaderProps {
@@ -167,28 +168,36 @@ export function CbsFormHeader({
       <header
         className={`sticky top-0 z-20 bg-muted/40 border-b border-border/80 select-none ${className}`}
       >
-        {/* ROW 1: Minimalist CBS Action Toolbar */}
         {/* ROW 1: Minimalist CBS Action Toolbar (Breaks naturally on small widths in exact order without scroll barriers) */}
         <div className="flex flex-wrap items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
-          <ActionButtons
-            mode={mode}
-            searchVal={inputVal}
-            recordStatus={recordStatus}
-            recordInputter={recordInputter}
-            command={commandCode}
-            submitting={submitting}
-            access={access}
-            onAmend={onAmend}
-            onView={onView}
-            onPerformAction={onPerformAction}
-            onSubmit={onSubmit}
-            onValidate={onValidate}
-            onHold={onHold}
-            onDelete={onDelete}
-            onAuthorizeReverse={onAuthorizeReverse}
-            onProcessAction={onProcessAction}
-            onReturnToSearch={onReturnToSearch}
-          />
+          {mode === "IDLE" ? (
+            <IdleActions
+              searchVal={inputVal}
+              command={commandCode}
+              submitting={submitting}
+              access={access}
+              onAmend={onAmend}
+              onView={onView}
+              onPerformAction={onPerformAction}
+            />
+          ) : (
+            <ActiveActions
+              mode={mode}
+              recordStatus={recordStatus}
+              recordInputter={recordInputter}
+              command={commandCode}
+              recordId={recordId || inputVal}
+              submitting={submitting}
+              access={access}
+              onSubmit={onSubmit}
+              onValidate={onValidate}
+              onHold={onHold}
+              onDelete={onDelete}
+              onAuthorizeReverse={onAuthorizeReverse}
+              onProcessAction={onProcessAction}
+              onReturnToSearch={onReturnToSearch}
+            />
+          )}
 
           <span className="h-4 w-px bg-border/60 mx-1 hidden sm:inline-block" />
 

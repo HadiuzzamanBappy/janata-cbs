@@ -13,8 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
-import { PROPERTY_TYPES } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import { type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas/model-config-schema";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
 import { McSubPropertyItem } from "./mc-sub-property-item";
 

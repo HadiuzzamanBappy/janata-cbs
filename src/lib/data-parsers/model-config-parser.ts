@@ -2,7 +2,8 @@ import {
   type ModelConfigRecord,
   type ModelProperty,
   modelConfigRecordSchema,
-} from "@/lib/data-schemas/model-config-schema";
+  PROPERTY_TYPES,
+} from "@/lib/data-schemas";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
@@ -16,16 +17,7 @@ const FIXED_TYPE_LENGTHS: Readonly<Record<string, number>> = {
   Object: 0,
 };
 
-const VALID_PROPERTY_TYPES = new Set([
-  "Text",
-  "Number",
-  "Amount",
-  "Rate",
-  "Date",
-  "DateTime",
-  "Boolean",
-  "Object",
-]);
+const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
 
 const BOOLEAN_FLAGS = [
   "USERDEFINEID",

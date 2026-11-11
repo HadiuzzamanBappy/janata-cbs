@@ -8,6 +8,7 @@ import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";
+import { useFormLayout } from "./form-layout-context";
 
 export interface ObjectFieldProps {
   field: FormElement;
@@ -28,6 +29,9 @@ export function ObjectField({
   mode = "I",
   hasKernel = false,
 }: ObjectFieldProps) {
+  const { layout } = useFormLayout();
+  const isStacked = layout === "stacked";
+
   const isMulti = field.STRUCTURE === "M";
   const groupKey = field.NAME;
   const label = field.LABEL || field.NAME;
@@ -73,13 +77,27 @@ export function ObjectField({
     return (
       <div className="space-y-1.5 w-full">
         {/* Group Header Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-          <div className="w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none">
+        <div
+          className={
+            isStacked
+              ? "flex items-center justify-between w-full pb-0.5"
+              : "flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2"
+          }
+        >
+          <div
+            className={
+              isStacked
+                ? "w-full flex items-center justify-between text-xs select-none"
+                : "w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none"
+            }
+          >
             <span className="truncate font-semibold text-foreground text-xs">{label}</span>
           </div>
-          <span className="hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none">
-            :
-          </span>
+          {!isStacked && (
+            <span className="hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none">
+              :
+            </span>
+          )}
         </div>
 
         {/* Sub-Fields */}
@@ -127,9 +145,21 @@ export function ObjectField({
 
         return (
           <div key={entryId} className="space-y-1.5">
-            {/* Inline Group Header: Label + [ - ] [ + ] + Colon */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <div className="w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none">
+            {/* Inline Group Header: Label + [ - ] [ + ] */}
+            <div
+              className={
+                isStacked
+                  ? "flex items-center justify-between w-full pb-0.5"
+                  : "flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2"
+              }
+            >
+              <div
+                className={
+                  isStacked
+                    ? "w-full flex items-center justify-between text-xs select-none"
+                    : "w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none"
+                }
+              >
                 <span className="truncate font-semibold text-foreground text-xs">
                   {label} {setIdx + 1}
                 </span>
@@ -170,9 +200,11 @@ export function ObjectField({
                 )}
               </div>
 
-              <span className="hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none">
-                :
-              </span>
+              {!isStacked && (
+                <span className="hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none">
+                  :
+                </span>
+              )}
             </div>
 
             {/* Sub-Fields for this Set */}

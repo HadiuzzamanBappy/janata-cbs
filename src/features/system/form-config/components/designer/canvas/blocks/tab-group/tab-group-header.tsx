@@ -7,7 +7,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { AddSectionFn } from "../canvas/canvas-types";
+import type { AddSectionFn } from "../../canvas-types";
 import { TabStripItem } from "./tab-strip-item";
 
 export interface TabGroupHeaderProps {

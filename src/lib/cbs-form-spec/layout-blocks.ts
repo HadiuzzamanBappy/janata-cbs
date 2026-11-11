@@ -34,3 +34,26 @@ export function buildRenderBlocks(sections: FormSection[]): RenderBlock[] {
 
   return blocks;
 }
+
+/**
+ * Resolves the raw sections array insertion index corresponding to a block gap.
+ * Protects clustered tab groups from being unintentionally split.
+ */
+export function getBlockGapSectionIndex(
+  blocks: RenderBlock[],
+  sections: FormSection[],
+  gapIndex: number,
+): number {
+  if (gapIndex <= 0) return 0;
+  if (gapIndex >= blocks.length) return sections.length;
+
+  const targetBlock = blocks[gapIndex];
+  if (!targetBlock) return sections.length;
+
+  const targetSec =
+    targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
+  if (!targetSec) return sections.length;
+
+  const rawIdx = sections.findIndex((s) => s.id === targetSec.id);
+  return rawIdx >= 0 ? rawIdx : sections.length;
+}

@@ -4,14 +4,46 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
-import { CanvasSectionGrid } from "./canvas-section-grid";
+import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import { CanvasSectionGrid } from "../canvas-section-grid";
+import type { AddSectionFn } from "../canvas-types";
 import { TabGroupHeader } from "./tab-group/tab-group-header";
-import type { SortableTabGroupCardProps } from "./tab-group/tab-group-types";
 import { useTabGroupDrop } from "./tab-group/use-tab-group-drop";
 
-export type { SortableTabGroupCardProps };
+export interface TabGroupBlockProps {
+  groupId: string;
+  tabSections: FormSection[];
+  selectedSectionId: string | null;
+  selectedFieldId: string | null;
+  onSelectSection: (id: string | null) => void;
+  onSelectField: (sectionId: string | null, fieldId: string | null) => void;
+  onAddSection?: AddSectionFn;
+  onRemoveSection: (id: string) => void;
+  onRemoveField: (fieldId: string) => void;
+  onConvertSectionZone?: (
+    sectionId: string,
+    targetType: "card" | "tab",
+    opts?: { groupId?: string; groupTitle?: string },
+  ) => void;
+  onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
+  onMoveFieldAcrossSections?: (
+    sourceSecId: string,
+    targetSecId: string,
+    fieldId: string,
+    targetFieldId?: string,
+    insertAtIndex?: number,
+  ) => void;
+  onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
+  onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
+  isCanvasDragging?: boolean;
+  disabled?: boolean;
+}
 
-export function SortableTabGroupCard({
+/**
+ * Tab Group Block.
+ * Renders an independent multi-page tabbed container block on the canvas.
+ */
+export function TabGroupBlock({
   groupId,
   tabSections,
   selectedSectionId,
@@ -28,7 +60,7 @@ export function SortableTabGroupCard({
   onMergeTabGroup,
   isCanvasDragging = false,
   disabled,
-}: SortableTabGroupCardProps) {
+}: TabGroupBlockProps) {
   const firstSection = tabSections[0];
   const [activeTabIdState, setActiveTabIdState] = React.useState<string>(firstSection?.id || "");
 
@@ -72,12 +104,20 @@ export function SortableTabGroupCard({
   const isAnyTabSelected = tabSections.some((s) => s.id === selectedSectionId);
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: canvas selectable container
     <section
       aria-label="Tab group container"
       ref={setNodeRef}
       style={style}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (activeSection) {
+          onSelectSection(activeSection.id);
+          onSelectField(activeSection.id, null);
+        }
+      }}
       className={cn(
-        "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs mb-3.5",
+        "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs my-1",
         isAnyTabSelected && "border-sky-500/80 ring-1 ring-sky-500/30",
         isDragging && "shadow-lg ring-2 ring-primary/40",
       )}
@@ -108,22 +148,13 @@ export function SortableTabGroupCard({
       />
 
       {activeSection && (
-        <section
-          aria-label={`Tab content for ${activeSection.groupTitle || activeSection.title}`}
+        // biome-ignore lint/a11y/noStaticElementInteractions: droppable container body
+        <div
           onDragOver={handleBodyDragOver}
           onDragLeave={handleBodyDragLeave}
           onDrop={handleBodyDrop}
-          className={cn(
-            "p-2.5 bg-card/40 transition-all",
-            dropZone === "body" && "bg-emerald-500/5 ring-2 ring-inset ring-emerald-500/30",
-          )}
+          className={cn("p-2.5 transition-colors", dropZone === "body" && "bg-primary/5")}
         >
-          {dropZone === "body" && (
-            <div className="text-[10px] font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-400/40 rounded px-2 py-1 mb-2 text-center select-none">
-              Container → new tab · Field → inside
-            </div>
-          )}
-
           <CanvasSectionGrid
             section={activeSection}
             selectedFieldId={selectedFieldId}
@@ -131,9 +162,10 @@ export function SortableTabGroupCard({
             onSelectField={onSelectField}
             onRemoveField={onRemoveField}
             onDropPaletteItem={onDropPaletteItem}
+            isNativeOver={dropZone === "body"}
             disabled={disabled}
           />
-        </section>
+        </div>
       )}
     </section>
   );

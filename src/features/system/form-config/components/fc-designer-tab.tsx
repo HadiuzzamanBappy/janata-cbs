@@ -1,175 +1,79 @@
 "use client";
 
-import * as React from "react";
 import { useContainerWidth } from "@/hooks";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
-import {
-  createNewFieldFromTemplate,
-  dispatchPaletteDrop,
-} from "./designer/canvas/palette-drop-dispatcher";
-import { type AddSectionFn, DesignerCanvas } from "./designer/designer-canvas";
+import { DesignerProvider, useDesignerContext } from "./designer/context/designer-context";
+import type { DesignerProviderProps } from "./designer/context/designer-context-types";
+import { DesignerCanvas } from "./designer/designer-canvas";
 import { FieldPalette } from "./designer/field-palette";
 import { PropertyInspector } from "./designer/property-inspector";
 
-export interface FcDesignerTabProps {
-  targetModel?: string;
-  modelProperties?: ModelProperty[];
-  sections: FormSection[];
-  selectedSectionId: string | null;
-  selectedFieldId: string | null;
-  onSelectSection: (id: string | null) => void;
-  onSelectField: (id: string | null) => void;
-  onAddSection: AddSectionFn;
-  onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
-  onRemoveSection: (id: string) => void;
-  onAddFieldToSection: (sectionId: string, template?: Partial<FormElement>) => void;
-  onUpdateField: (fieldId: string, patch: Partial<FormElement>) => void;
-  onRemoveField: (fieldId: string) => void;
-  onReorderFields: (sectionId: string, activeId: string, overId: string) => void;
-  onMoveFieldAcrossSections?: (
-    sourceSecId: string,
-    targetSecId: string,
-    fieldId: string,
-    targetFieldId?: string,
-    insertAtIndex?: number,
-  ) => void;
-  onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
-  ) => void;
-  onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
-  disabled?: boolean;
-}
+export type FcDesignerTabProps = Omit<DesignerProviderProps, "children" | "isCompact">;
 
 /**
  * Visual Form Designer Tab.
- * Clean, modular 3-pane workbench (Palette | Canvas | Inspector) adhering to the <=300 line budget.
+ * Clean, modular 3-pane workbench (Palette | Canvas | Inspector) adhering to <=150 lines.
  */
-export function FcDesignerTab({
-  targetModel,
-  modelProperties,
-  sections,
-  selectedSectionId,
-  selectedFieldId,
-  onSelectSection,
-  onSelectField,
-  onAddSection,
-  onUpdateSection,
-  onRemoveSection,
-  onAddFieldToSection,
-  onUpdateField,
-  onRemoveField,
-  onReorderFields,
-  onMoveFieldAcrossSections,
-  onReorderSections,
-  onConvertSectionZone,
-  onMergeTabGroup,
-  disabled,
-}: FcDesignerTabProps) {
+export function FcDesignerTab(props: FcDesignerTabProps) {
   const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(960);
-  const [isPaletteOpen, setIsPaletteOpen] = React.useState(false);
-  const [isInspectorOpen, setIsInspectorOpen] = React.useState(false);
-
-  const activeSection =
-    sections.find((s) => s.id === selectedSectionId) ||
-    (selectedFieldId
-      ? sections.find((s) =>
-          (s.fields || []).some((f) => f.SN === selectedFieldId || f.NAME === selectedFieldId),
-        ) || null
-      : sections[0] || null);
-
-  const activeField =
-    sections
-      .flatMap((s) => s.fields || [])
-      .find((f) => f.SN === selectedFieldId || f.NAME === selectedFieldId) || null;
-
-  const usedFieldNames = React.useMemo(() => {
-    return new Set(sections.flatMap((s) => (s.fields || []).map((f) => f.NAME)));
-  }, [sections]);
-
-  const handlePaletteAddField = (template: Partial<FormElement>) => {
-    if (isCompact) {
-      setIsPaletteOpen(false);
-    }
-
-    if (selectedSectionId) {
-      onAddFieldToSection(selectedSectionId, template);
-      return;
-    }
-
-    // When no section is selected, place directly on root as an independent item
-    const newField = createNewFieldFromTemplate(sections, template);
-    onAddSection("card", [newField], "");
-  };
-
-  const handleDropPaletteItem = (
-    payload: unknown,
-    targetSectionId?: string,
-    insertIndex?: number,
-  ) => {
-    dispatchPaletteDrop({
-      payload,
-      sections,
-      targetSectionId,
-      insertIndex,
-      onAddFieldToSection,
-      onAddSection,
-      handlePaletteAddField,
-    });
-  };
-
-  const handleHighlightField = (fieldName: string) => {
-    for (const sec of sections) {
-      const match = (sec.fields || []).find((f) => f.NAME === fieldName || f.SN === fieldName);
-      if (match) {
-        onSelectSection(sec.id);
-        onSelectField(match.SN || match.NAME);
-        if (isCompact) {
-          setIsPaletteOpen(false);
-          setIsInspectorOpen(true);
-        }
-        break;
-      }
-    }
-  };
-
-  const handleCanvasSelectField = (sectionId: string | null, fieldId: string | null) => {
-    if (sectionId) onSelectSection(sectionId);
-    onSelectField(fieldId);
-    if (isCompact && (fieldId || sectionId)) {
-      setIsInspectorOpen(true);
-      setIsPaletteOpen(false);
-    }
-  };
-
-  const handleCanvasBackgroundClick = () => {
-    const defaultSection =
-      sections.find((s) => s.containerType === "card") ||
-      sections.find((s) => s.containerType !== "tab") ||
-      sections[0];
-    if (defaultSection) {
-      onSelectSection(defaultSection.id);
-      onSelectField(null);
-    }
-  };
-
-  const hasSelection = Boolean(selectedFieldId || selectedSectionId);
 
   return (
     <div
       ref={containerRef}
       className="relative flex flex-col h-full w-full bg-background overflow-hidden"
     >
+      <DesignerProvider {...props} isCompact={isCompact}>
+        <DesignerWorkbenchLayout />
+      </DesignerProvider>
+    </div>
+  );
+}
+
+/**
+ * Internal 3-Pane Workbench Layout consuming scoped DesignerContext.
+ */
+function DesignerWorkbenchLayout() {
+  const {
+    modelProperties,
+    sections,
+    selectedSectionId,
+    selectedFieldId,
+    activeSection,
+    activeField,
+    disabled,
+    isCompact,
+    isPaletteOpen,
+    isInspectorOpen,
+    hasSelection,
+    setIsPaletteOpen,
+    setIsInspectorOpen,
+    togglePalette,
+    toggleInspector,
+    closeDrawers,
+    onSelectSection,
+    onSelectField,
+    handleCanvasSelectField,
+    handleCanvasBackgroundClick,
+    onAddSection,
+    onUpdateSection,
+    onRemoveSection,
+    onUpdateField,
+    onRemoveField,
+    onReorderFields,
+    onMoveFieldAcrossSections,
+    onReorderSections,
+    onConvertSectionZone,
+    onMergeTabGroup,
+    handleDropPaletteItem,
+  } = useDesignerContext();
+
+  return (
+    <>
       {/* Backdrop for Left Palette Drawer on compact screens */}
       {isCompact && isPaletteOpen && (
         <div
           className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
-          onClick={() => setIsPaletteOpen(false)}
+          onClick={closeDrawers}
           aria-hidden="true"
         />
       )}
@@ -178,7 +82,7 @@ export function FcDesignerTab({
       {isCompact && isInspectorOpen && (
         <div
           className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
-          onClick={() => setIsInspectorOpen(false)}
+          onClick={closeDrawers}
           aria-hidden="true"
         />
       )}
@@ -193,30 +97,12 @@ export function FcDesignerTab({
             )}
           >
             <FieldPalette
-              targetModel={targetModel}
-              modelProperties={modelProperties}
-              usedFieldNames={usedFieldNames}
-              onHighlightField={handleHighlightField}
-              onAddField={handlePaletteAddField}
-              onAddSection={(...args) => {
-                onAddSection(...args);
-                if (isCompact) setIsPaletteOpen(false);
-              }}
               onClose={() => setIsPaletteOpen(false)}
-              disabled={disabled}
               className="w-full h-full border-r border-border"
             />
           </div>
         ) : (
-          <FieldPalette
-            targetModel={targetModel}
-            modelProperties={modelProperties}
-            usedFieldNames={usedFieldNames}
-            onHighlightField={handleHighlightField}
-            onAddField={handlePaletteAddField}
-            onAddSection={onAddSection}
-            disabled={disabled}
-          />
+          <FieldPalette />
         )}
 
         {/* 2. Center: Canvas */}
@@ -249,14 +135,8 @@ export function FcDesignerTab({
           isPaletteOpen={isPaletteOpen}
           isInspectorOpen={isInspectorOpen}
           hasSelection={hasSelection}
-          onTogglePalette={() => {
-            setIsPaletteOpen((prev) => !prev);
-            setIsInspectorOpen(false);
-          }}
-          onToggleInspector={() => {
-            setIsInspectorOpen((prev) => !prev);
-            setIsPaletteOpen(false);
-          }}
+          onTogglePalette={togglePalette}
+          onToggleInspector={toggleInspector}
         />
 
         {/* 3. Right: Property Inspector (Side-panel on desktop, Drawer on compact) */}
@@ -301,6 +181,6 @@ export function FcDesignerTab({
           />
         )}
       </div>
-    </div>
+    </>
   );
 }

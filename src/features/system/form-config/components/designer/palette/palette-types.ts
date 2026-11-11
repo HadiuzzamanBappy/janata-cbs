@@ -5,13 +5,15 @@ import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 export { modelPropToFormElement };
 
+export type PaletteTypeFilter = "all" | "unplaced" | "text" | "number" | "date";
+
 export interface FieldPaletteProps {
   targetModel?: string;
   modelProperties?: ModelProperty[];
   usedFieldNames?: Set<string>;
   onHighlightField?: (fieldName: string) => void;
-  onAddField: (template: Partial<FormElement>) => void;
-  onAddSection: (
+  onAddField?: (template: Partial<FormElement>) => void;
+  onAddSection?: (
     containerType?: FormContainerType,
     initialFields?: FormElement[],
     customTitle?: string,

@@ -82,22 +82,30 @@ export function useFcFieldMovement(
             fields: [fieldToMove],
           };
 
-          const newSections = sections.map((s) =>
-            s.id === sourceSecId
-              ? {
-                  ...s,
-                  fields: s.fields.filter((f) => !isMatchingField(f, fieldId)),
-                }
-              : s,
-          );
+          const newSections = sections
+            .map((s) =>
+              s.id === sourceSecId
+                ? {
+                    ...s,
+                    fields: s.fields.filter((f) => !isMatchingField(f, fieldId)),
+                  }
+                : s,
+            )
+            .filter(
+              (s) =>
+                Boolean(s.title?.trim()) ||
+                s.containerType === "tab" ||
+                (s.fields && s.fields.length > 0),
+            );
 
-          let insertAt = newSections.length;
+          let insertAt = insertAtIndex !== undefined ? insertAtIndex : newSections.length;
           if (targetSecId === "gap-top" || targetSecId === "gap-0") {
             insertAt = 0;
-          } else if (targetSecId.startsWith("gap-")) {
+          } else if (targetSecId.startsWith("gap-") && insertAtIndex === undefined) {
             const rawIdx = parseInt(targetSecId.replace("gap-", ""), 10);
             if (!Number.isNaN(rawIdx)) insertAt = Math.min(rawIdx, newSections.length);
           }
+          insertAt = Math.max(0, Math.min(insertAt, newSections.length));
 
           newSections.splice(insertAt, 0, newCardSec);
 

@@ -1,6 +1,6 @@
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
 import * as React from "react";
-import type { RenderBlock } from "@/lib/cbs-form-spec";
+import { getBlockGapSectionIndex, type RenderBlock } from "@/lib/cbs-form-spec";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { DesignerCanvasProps } from "./canvas-types";
@@ -74,17 +74,7 @@ export function useCanvasDrag({
       } else if (overData?.type === "between-block-gap") {
         const gapIdx = overData.gapIndex as number;
         targetSecId = gapIdx <= 0 ? "gap-top" : `gap-${gapIdx}`;
-        if (gapIdx <= 0) {
-          insertAtIndex = 0;
-        } else if (gapIdx >= blocks.length) {
-          insertAtIndex = sections.length;
-        } else {
-          const targetBlock = blocks[gapIdx];
-          const targetSec =
-            targetBlock.type === "single" ? targetBlock.section : targetBlock.tabSections[0];
-          const rawIdx = targetSec ? sections.findIndex((s) => s.id === targetSec.id) : -1;
-          insertAtIndex = rawIdx >= 0 ? rawIdx : undefined;
-        }
+        insertAtIndex = getBlockGapSectionIndex(blocks, sections, gapIdx);
       } else {
         // Dragged outside any known drop target: DO NOTHING, return safely
         return;

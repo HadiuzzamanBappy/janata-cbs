@@ -75,6 +75,8 @@ export const formSectionSchema = z.object({
 export type FormSection = z.infer<typeof formSectionSchema>;
 
 export const formElementsContainerSchema = z.object({
+  columns: z.number().min(1).max(4).default(1).optional(),
+  density: z.enum(["compact", "normal", "spacious"]).default("compact").optional(),
   sections: z.array(formSectionSchema).default([]),
 });
 export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;

@@ -1,23 +1,90 @@
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
-import { baseFieldSchema } from "./form-engine-schema";
 
 /* ========================================================================== */
-/* 1. FIELD PROPERTY (Physical Database Column)                               */
+/* 1. PHYSICAL DATABASE COLUMN TYPES (Base Model Types)                       */
 /* ========================================================================== */
 
-export const baseModelPropertySchema = baseFieldSchema;
+export const propertyTypeSchema = z.enum([
+  "Text",
+  "Number",
+  "Amount",
+  "Rate",
+  "Date",
+  "DateTime",
+  "Boolean",
+  "Object",
+]);
+export type PropertyType = z.infer<typeof propertyTypeSchema>;
+export const PROPERTY_TYPES = propertyTypeSchema.options;
 
-export type ModelProperty = z.infer<typeof baseModelPropertySchema> & {
+/* ========================================================================== */
+/* 2. PARAMETER / LOOKUP CONTRACT                                             */
+/* ========================================================================== */
+
+export const parameterOptionItemSchema = z.union([
+  z.object({
+    itemCode: z.string().min(1, "itemCode is required"),
+    itemLabel: z.string().min(1, "itemLabel is required"),
+  }),
+  z.object({
+    code: z.string().min(1, "code is required"),
+    label: z.string().min(1, "label is required"),
+  }),
+]);
+export type ParameterOptionItem =
+  | { itemCode: string; itemLabel: string; code?: string; label?: string }
+  | { code: string; label: string; itemCode?: string; itemLabel?: string };
+
+export const formFieldParameterSchema = z.looseObject({
+  type: z.string().default("O"),
+  data: z.array(parameterOptionItemSchema).default([]).optional(),
+  modelName: z.string().default("").optional(),
+  codeField: z.string().default("").optional(),
+  displayField: z.string().default("").optional(),
+  condition: z.string().default("").optional(),
+  reference: z.string().default("").optional(),
+});
+export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;
+
+/* ========================================================================== */
+/* 3. BASE PHYSICAL FIELD & PROPERTY SCHEMA (MODEL.CONFIG Column Definition)  */
+/* ========================================================================== */
+
+export const baseFieldSchema = z.looseObject({
+  SN: z.coerce.string().default(""),
+  NAME: z
+    .string()
+    .trim()
+    .min(1, "Field name is required")
+    .regex(
+      /^[a-zA-Z_][a-zA-Z0-9_]*$/,
+      "Field name must begin with a letter or underscore and contain only alphanumeric characters or underscores",
+    ),
+  LABEL: z.string().trim().min(1, "Field label is required"),
+  TYPE: propertyTypeSchema.default("Text"),
+  STRUCTURE: z
+    .preprocess((val) => (typeof val === "string" ? val.toUpperCase() : val), z.enum(["S", "M"]))
+    .default("S"),
+  LENGTH: z.coerce.number().default(50),
+  REQUIRED: z
+    .union([z.boolean(), z.null()])
+    .transform((v) => Boolean(v))
+    .default(false)
+    .optional(),
+  PARAMETER: formFieldParameterSchema.optional(),
+});
+
+export type ModelProperty = z.infer<typeof baseFieldSchema> & {
   PROP?: ModelProperty[];
 };
 
-export const modelPropertySchema: z.ZodType<ModelProperty> = baseModelPropertySchema.extend({
+export const modelPropertySchema: z.ZodType<ModelProperty> = baseFieldSchema.extend({
   PROP: z.lazy(() => z.array(modelPropertySchema)).optional(),
 });
 
 /* ========================================================================== */
-/* 2. TABLE RECORD: MODEL CONFIG RECORD (MODEL.CONFIG)                        */
+/* 4. TABLE RECORD: MODEL CONFIG RECORD (MODEL.CONFIG)                        */
 /* ========================================================================== */
 
 export const idDefSchema = z.object({
@@ -73,7 +140,7 @@ export const modelConfigRecordSchema = z
       if (nameLower) {
         if (seenNames.has(nameLower)) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: `Duplicate column name "${prop.NAME}". Each property must have a unique name.`,
             path: ["PROPERTIES", idx, "NAME"],
           });
@@ -85,7 +152,7 @@ export const modelConfigRecordSchema = z
       if (prop.PARAMETER?.type === "M") {
         if (!prop.PARAMETER.modelName?.trim()) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: "Target model name is required for Model Lookup.",
             path: ["PROPERTIES", idx, "PARAMETER", "modelName"],
           });
@@ -94,29 +161,29 @@ export const modelConfigRecordSchema = z
 
       // Check Options List items have valid itemCode and itemLabel
       if (prop.PARAMETER?.type === "O") {
-        const data = Array.isArray(prop.PARAMETER.data) ? prop.PARAMETER.data : [];
-        if (data.length === 0) {
+        const optData = Array.isArray(prop.PARAMETER.data) ? prop.PARAMETER.data : [];
+        if (optData.length === 0) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: "At least one option must be defined for Options List (O).",
             path: ["PROPERTIES", idx, "PARAMETER", "data"],
           });
         } else {
-          data.forEach((item: unknown, itemIdx: number) => {
+          optData.forEach((item: unknown, itemIdx: number) => {
             if (typeof item === "object" && item !== null) {
               const rec = item as Record<string, unknown>;
               const itemCode = String(rec.itemCode ?? "").trim();
               const itemLabel = String(rec.itemLabel ?? "").trim();
               if (!itemCode || !itemLabel) {
                 ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
+                  code: "custom",
                   message: `Option #${itemIdx + 1} must have non-empty itemCode and itemLabel.`,
                   path: ["PROPERTIES", idx, "PARAMETER", "data", itemIdx],
                 });
               }
             } else {
               ctx.addIssue({
-                code: z.ZodIssueCode.custom,
+                code: "custom",
                 message: `Option #${itemIdx + 1} must be an object with itemCode and itemLabel.`,
                 path: ["PROPERTIES", idx, "PARAMETER", "data", itemIdx],
               });

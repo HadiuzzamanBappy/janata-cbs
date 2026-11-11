@@ -3,7 +3,6 @@ export * from "./cbs-screen-scaffold";
 
 // Header sub-components
 export * from "./header/action-btn";
-export * from "./header/action-buttons";
 export * from "./header/action-more-menu";
 export * from "./header/active-actions";
 export * from "./header/cbs-form-header";

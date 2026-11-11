@@ -37,26 +37,11 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
     rec = rec.record as Record<string, unknown>;
   }
 
-  const rawInq =
-    rec.INQInfo && typeof rec.INQInfo === "object" ? (rec.INQInfo as Record<string, unknown>) : {};
+  const inqInfo = rec.INQInfo && typeof rec.INQInfo === "object" ? rec.INQInfo : rec;
 
   return {
     ...rec,
-    INQInfo: {
-      controllerName: String(rawInq.controllerName ?? rec.controllerName ?? "").trim(),
-      description: String(rawInq.description ?? rec.description ?? "").trim(),
-      pageOrientation: rawInq.pageOrientation ?? rec.pageOrientation ?? "Portrait",
-      perpageItem: String(rawInq.perpageItem ?? rec.perpageItem ?? "30"),
-      showSerial: Boolean(rawInq.showSerial ?? rec.showSerial),
-      showPagination: Boolean(rawInq.showPagination ?? rec.showPagination),
-      showBranchWise: Boolean(rawInq.showBranchWise ?? rec.showBranchWise),
-      inqType: rawInq.inqType ?? rec.inqType ?? "DFT",
-      rptControllerName: String(rawInq.rptControllerName ?? rec.rptControllerName ?? "").trim(),
-      fixedSelection: String(rawInq.fixedSelection ?? rec.fixedSelection ?? "").trim(),
-      inqServicePath: String(rawInq.inqServicePath ?? rec.inqServicePath ?? "default").trim(),
-      cmdFromInternal: Boolean(rawInq.cmdFromInternal ?? rec.cmdFromInternal),
-      cmdFieldName: String(rawInq.cmdFieldName ?? rec.cmdFieldName ?? "").trim(),
-    },
+    INQInfo: inqInfo,
     INQSelectField: Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [],
     INQDef: Array.isArray(rec.INQDef) ? rec.INQDef : [],
     INQCmds: Array.isArray(rec.INQCmds) ? rec.INQCmds : [],
@@ -96,7 +81,7 @@ export function parseInquiryConfig(
 
   return {
     success: true,
-    data: sanitizeInquiryConfigRecord(parseResult.data) ?? parseResult.data,
+    data: parseResult.data,
   };
 }
 

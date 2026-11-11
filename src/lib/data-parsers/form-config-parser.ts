@@ -6,8 +6,7 @@ import {
 } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
-import { sanitizeModelConfigRecord } from "./model-config-parser";
-import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
+import { extractModelConfigRecord, sanitizeModelConfigRecord } from "./model-config-parser";
 
 /* -------------------------------------------------------------------------- */
 /* Combined GFC Response Parser                                                */
@@ -26,28 +25,8 @@ export interface ParsedGfcResponse {
 export function parseGfcResponse(
   rawPayload: unknown,
 ): { success: true; data: ParsedGfcResponse } | { success: false; error: string } {
-  if (!rawPayload || typeof rawPayload !== "object") {
-    return { success: false, error: "GFC payload is invalid" };
-  }
-
-  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  let target = unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
-
-  if (target && typeof target === "object" && !Array.isArray(target)) {
-    const rec = target as Record<string, unknown>;
-    if (rec.data && typeof rec.data === "object" && !Array.isArray(rec.data)) {
-      target = rec.data as Record<string, unknown>;
-    }
-    if (
-      (target as Record<string, unknown>).record &&
-      typeof (target as Record<string, unknown>).record === "object" &&
-      !Array.isArray((target as Record<string, unknown>).record)
-    ) {
-      target = (target as Record<string, unknown>).record as Record<string, unknown>;
-    }
-  }
-
-  if (!target || typeof target !== "object") {
+  const target = extractModelConfigRecord(rawPayload);
+  if (!target) {
     return { success: false, error: "GFC payload record is empty or invalid" };
   }
 
@@ -63,7 +42,7 @@ export function parseGfcResponse(
   const rawFc = FORMCONTROL as Record<string, unknown> | undefined;
 
   const hasExistingLayout = Boolean(
-    rawFc && Object.keys(rawFc).length > 0 && (rawFc.frmElements || rawFc.title || rawFc.sections),
+    rawFc && Object.keys(rawFc).length > 0 && (rawFc.frmElements || rawFc.title),
   );
 
   let form: FormConfigRecord | null = null;

@@ -159,7 +159,7 @@ export function normalizeParameter(raw?: Record<string, unknown> | null): FormEl
   };
 }
 
-export function modelPropToFormElement(p: ModelProperty, idx: number): FormElement {
+export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormElement {
   const snStr = String(p.SN || idx + 1);
   const baseLabel = p.LABEL || p.NAME || `Field #${snStr}`;
   const param = normalizeParameter(p.PARAMETER);

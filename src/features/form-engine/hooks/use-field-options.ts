@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import type { FormElement, FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormFieldParameter } from "@/lib/data-schemas/model-config-schema";
 import type { WidgetOption } from "../types";
 import { useModelLookup } from "./use-model-lookup";
 

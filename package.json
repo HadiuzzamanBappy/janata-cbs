@@ -25,6 +25,7 @@
     "verify:logger": "tsx scripts/verify/verify-core-logger.ts",
     "verify:utils": "tsx scripts/verify/verify-core-utils.ts",
     "verify:grpc": "tsx scripts/verify/verify-infra-grpc.ts",
+    "verify:redis": "tsx scripts/verify/verify-infra-redis.ts",
     "verify:mock": "tsx scripts/verify/verify-mock-core.ts",
     "verify:screen": "tsx scripts/verify/verify-cbs-screen.ts",
     "verify:api": "tsx scripts/verify/verify-api-live.ts",

@@ -6,16 +6,38 @@ It accelerates repetitive core banking metadata lookups (compiled form specifica
 
 ---
 
-## 📦 What It Contains
+## 📦 Subsystem Architecture
 
 ```text
 src/lib/infra-redis/
-├── client.ts       # ioredis connection pool, circuit breaker (open/closed/cooldown), and atomic key operations
-├── cache.ts        # Read-through cache API (getOrSet), single-flight request collapse, descriptor resolver, and auto-invalidation
-├── session.ts      # Server-side session lifecycle (create, read, patch, branch update, initLogin reset, destroy) with inactivity guard
+├── client.ts       # ioredis connection pool, circuit breaker (open/closed/cooldown), atomic key operations
+├── cache.ts        # Declarative domain spec cache policies, single-flight collapse, read-through API, auto-invalidation
+├── session.ts      # Server session lifecycle (create, read, patch, branch update, initLogin reset, destroy) with inactivity guard
 ├── rate-limit.ts   # Fixed-window Redis pipeline rate limiter for login brute-force prevention
 └── index.ts        # Server-only barrel exports ('server-only')
 ```
+
+---
+
+## 🏛️ Domain-Driven Caching Architecture
+
+### 1. Specification & Metadata Caching Principles
+
+To preserve absolute banking data integrity:
+
+- **Dynamic operations, customer balances, transactions, and searches (`SBI`, `GRL`, `INQ`, `LIST`) are NEVER cached.**
+- **Only immutable/semi-static specifications are cached** under canonical `CbsControlTable` domain policies:
+  - `FORM_CONFIG` (`FORM.CONFIG`): Dynamic form layouts $\to$ `cbs:spec:form:<ID>`
+  - `MODEL_CONFIG` (`MODEL.CONFIG`): Data model schemas $\to$ `cbs:spec:model:<ID>`
+  - `INQUIRY_CONFIG` (`INQUIRY.CONFIG`): Tabular inquiry definitions $\to$ `cbs:spec:enq:<ID>`
+  - `MENU_TREE` / `MENU` (`MENU.TREE`, `MENU`): Navigation trees $\to$ `cbs:menu:<TARGET>` / `cbs:menu:user:<USER_ID>`
+
+### 2. Dual-Protocol Design (gRPC Today, REST-Ready Tomorrow)
+
+Cache keys and policies resolve from **domain identity (`controlName` and canonical read verb `recordFunction: "S"`)**:
+
+- **Today (gRPC)**: Wire verbs like `GFC`, `GMC`, and `GUM` are normalized to canonical `CbsControlTable` identities.
+- **Tomorrow (REST)**: Standard HTTP `GET /api/proxy?controlName=FORM.CONFIG&recordId=ACCOUNT` with `recordFunction: "S"` matches the exact same domain policy with **zero code modifications**.
 
 ---
 
@@ -23,115 +45,72 @@ src/lib/infra-redis/
 
 ### 1. Circuit Breaker ("Fail-Open" Resilience)
 
-If Redis crashes or is not running during local development:
+If Redis is unreachable or crashes during operation:
 
-- The connection failure trips the circuit breaker (`tripCircuit()`).
+- The error trips the circuit breaker (`tripCircuit()`).
 - During the cooldown window (`serverConfig.redis.cooldownMs` = 5,000ms), all cache operations **fail open** without throwing errors or halting the banking operator.
-- Sessions automatically fall back to a server-side in-memory `Map` (`__memorySessionStore`).
+- Sessions automatically fall back to the in-memory `Map` (`__memorySessionStore`).
 - The entire workbench remains 100% operational with zero Redis dependencies.
 
 ### 2. Single-Flight Concurrency Deduplication (`singleFlight`)
 
 Prevents **cache stampedes ("thundering herd")** when 50+ tellers open the same form simultaneously on a cold morning:
 
-- The first request triggers the database/gRPC fetch or compiler.
-- All subsequent concurrent requests for the same key are attached to the **same in-flight Promise**.
-- Only 1 compilation or query hits the backend, resolving simultaneously for all callers.
+- The first request initiates the database/gRPC fetch or compiler.
+- All subsequent concurrent requests for the same key attach to the **same in-flight Promise**.
+- Exactly 1 compilation or query hits the backend, resolving simultaneously for all callers.
 
 ### 3. Non-Blocking Pattern Deletions
 
-Invalidations never run the blocking `KEYS *` command. Instead, `cacheDelete()` runs cursor-based `SCAN ... COUNT 200` to delete keys in safe micro-batches.
+Cache invalidation avoids blocking Redis with `KEYS *`. Instead, `cacheDelete()` runs cursor-based `SCAN ... COUNT 200` to delete matching keys in safe micro-batches.
 
 ### 4. Specification & Catalog Auto-Invalidation (`autoInvalidateOnMutation`)
 
-When a developer or supervisor saves or authorizes changes in **Model Config** (`SC.MODEL.CONFIG`), **Form Config** (`SC.FORM.CONFIG`), or **Menu Designer** (`SC.MENU.TREE`):
+When a developer or supervisor saves or authorizes changes in **Model Config** (`MODEL.CONFIG`), **Form Config** (`FORM.CONFIG`), **Inquiry Config** (`INQUIRY.CONFIG`), or **Menu Designer** (`MENU.TREE`):
 
 - `/api/proxy` automatically executes `autoInvalidateOnMutation(envelope)`.
-- It deletes wildcard pattern matches:
-  - Form specifications: `cbs:spec:${MODEL}*`
-  - Inquiry specifications: `cbs:spec:enq:${MODEL}*`
-  - Menu catalog items: `cbs:menu:${MODEL}`
-- Tellers and operators receive the freshly updated layout or catalog immediately without server restarts or manual cache purges.
+- Mutations (`PUT`, `AUT`, `DEL`, `REV`, `SMC`, `AMC`, `SFC`, `SMR`, `DTR`) trigger invalidation of the target model:
+  - Form specifications: `cbs:spec:form:${TARGET}*`
+  - Model specifications: `cbs:spec:model:${TARGET}*`
+  - Inquiry specifications: `cbs:spec:enq:${TARGET}*`
+  - Menu catalogs & user trees: `cbs:menu:${TARGET}*`, `cbs:menu:user*`
+- Read sequence operations (such as `GNI` / Get New ID) are strictly ignored to prevent false eviction.
+- Tellers receive updated layouts or menus immediately on their next form open.
 
 ---
 
-## 🏛️ Invalidation Flow in the Master Form Architecture
-
-```
-┌────────────────────────────────────────────────────────┐
-│             Model Config / Form Config Save            │
-│         (Maker commits change or Checker authorizes)   │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│                 /api/proxy Route Handler               │
-│                                                        │
-│   Detects mutation (PUT, AUT, I, A) on CONFIG tables   │
-│   autoInvalidateOnMutation() resolves targetModel      │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│             invalidateCache(targetModel)               │
-│                                                        │
-│   Scans and purges:                                    │
-│   • cbs:spec:ACCOUNT*                                  │
-│   • cbs:spec:enq:ACCOUNT*                              │
-│   • cbs:menu:ACCOUNT                                   │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│               Operator Opens Runtime Form              │
-│                                                        │
-│   getOrSet() experiences clean cache-miss              │
-│   Backend retrieves fresh schema from CBS core         │
-│   and re-caches with TTL                               │
-└────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🚀 How to Use
+## 🚀 API Reference
 
 ### 1. Read-Through Caching (`getOrSet`)
-
-Used in backend services and API routes to cache compiled form specifications, menus, and inquiries:
 
 ```typescript
 import { getOrSet } from "@/lib/infra-redis";
 
 // Fetches from Redis cache if available; otherwise executes fetcher and caches result
 const compiledSpec = await getOrSet(
-  "spec:ACCOUNT",
-  async () => fetchModelFromBackend("ACCOUNT"),
-  3600, // TTL in seconds (1 hour)
+  "spec:form:ACCOUNT",
+  async () => fetchFormFromBackend("ACCOUNT"),
+  86400, // TTL in seconds (24 hours)
 );
 ```
 
----
-
 ### 2. Resolving Cache Descriptors (`resolveCacheDescriptor`)
-
-Transparently detects read operations on cacheable metadata entities and maps them to canonical Redis keys and TTLs:
 
 ```typescript
 import { resolveCacheDescriptor } from "@/lib/infra-redis";
 
 const desc = resolveCacheDescriptor({
-  requestType: "GFC",
-  controlName: "CONFIG.FORM",
+  requestType: "GET",
+  controlName: "FORM.CONFIG",
+  recordFunction: "S",
   recordId: "ACCOUNT",
 });
 
 if (desc) {
-  console.log(desc.key); // "spec:ACCOUNT"
-  console.log(desc.ttl); // 3600
+  console.log(desc.key); // "spec:form:ACCOUNT"
+  console.log(desc.ttl); // 86400
 }
 ```
-
----
 
 ### 3. Wildcard Cache Invalidation (`invalidateCache`)
 
@@ -145,11 +124,7 @@ await invalidateCache("ACCOUNT");
 await invalidateCache();
 ```
 
----
-
 ### 4. Managing Server Sessions (`session.ts`)
-
-Encapsulates user session state behind secure, HTTP-only cookie IDs (`sid`):
 
 ```typescript
 import {
@@ -179,28 +154,20 @@ const sessionId = await createSession({
   },
 });
 
-// 2. In API Route / Server Action:
+// 2. Read Active Session:
 const session = await getSession();
-if (!session) {
-  throw new Error("UNAUTHORIZED");
-}
-console.log(session.currUser.fullName);
 
-// 3. On Branch Roaming:
+// 3. Branch Roaming:
 await updateBranchCodeAndName("JB0101", "Principal Branch");
 
-// 4. On First-Time Password Reset:
+// 4. Clear First-Time Login:
 await clearInitialLoginRequirement();
 
-// 5. On Logout:
+// 5. Logout:
 await destroySession();
 ```
 
----
-
 ### 5. Login Rate Limiting (`rateLimit`)
-
-Fixed-window rate limiter protecting login endpoints:
 
 ```typescript
 import { rateLimit } from "@/lib/infra-redis";
@@ -229,22 +196,10 @@ pnpm cache:clear
 
 ---
 
-## 🔒 Architectural State: Scalable or Sealed?
-
-- **Caching & Circuit Breaker Engine: SEALED**
-  Connection pooling, single-flight collapse, circuit breaker trips, and session serialization are finalized and sealed.
-- **Cache Keys & TTLs: SCALABLE**
-  When caching new entities:
-  - Add canonical cache key patterns to `serverConfig.redis.cacheKeys` in `src/lib/core-config/server.ts`.
-  - Set custom TTLs per entity using the `ttlSeconds` parameter in `getOrSet()`.
-
----
-
 ## 🧪 Verification
 
-Run the infrastructure verification suites:
+Run the full CBS verification harness:
 
 ```bash
-pnpm verify:services
-pnpm verify:config
+pnpm verify:all
 ```

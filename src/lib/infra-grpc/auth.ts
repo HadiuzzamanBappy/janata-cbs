@@ -3,8 +3,8 @@ import "server-only";
 import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { parseAuthWirePayload } from "@/lib/data-parsers";
-import { currentUserSchema, type LoginInput } from "@/lib/data-schemas";
-import { type CurrentUser, createSession, destroySession } from "@/lib/infra-redis";
+import { type CurrentUser, currentUserSchema, type LoginInput } from "@/lib/data-schemas";
+import { createSession, destroySession } from "@/lib/infra-redis";
 import { grpcStatusToHttp, loginProcess } from "./client";
 import type { GrpcResponse } from "./generated/service";
 

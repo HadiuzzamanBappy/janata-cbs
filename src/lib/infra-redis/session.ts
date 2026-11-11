@@ -19,6 +19,10 @@ export interface SessionData {
   lastActiveAt: number;
 }
 
+export type SessionPatch = Partial<Omit<SessionData, "createdAt" | "currUser">> & {
+  currUser?: Partial<CurrentUser>;
+};
+
 /* -------------------------------------------------------------------------- */
 /* Configuration & In-Memory Fallback State                                   */
 /* -------------------------------------------------------------------------- */
@@ -34,7 +38,16 @@ if (!globalThis.__memorySessionStore) {
 }
 const memoryStore = globalThis.__memorySessionStore;
 
-const getSessionRedisKey = (id: string): string => cacheKey("sess", id);
+const getSessionRedisKey = (id: string): string =>
+  cacheKey(serverConfig.redis.cacheKeys.session(id));
+
+const cookieOpts = (maxAge: number, httpOnly = true) => ({
+  httpOnly,
+  secure: !serverConfig.isDev && serverConfig.useHttps,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge,
+});
 
 async function currentSessionId(): Promise<string | null> {
   try {
@@ -70,35 +83,18 @@ export async function createSession(
   await cacheSet(getSessionRedisKey(id), payload, TTL_SECONDS);
   memoryStore.set(id, payload);
 
-  const isSecure = !serverConfig.isDev && serverConfig.useHttps;
+  store.set(COOKIE_NAME, id, cookieOpts(TTL_SECONDS, true));
 
-  store.set(COOKIE_NAME, id, {
-    httpOnly: true,
-    secure: isSecure,
-    sameSite: "lax",
-    path: "/",
-    maxAge: TTL_SECONDS,
-  });
-
-  // Persist active branch cookie for zero-latency client/server context resilience
   if (payload.currUser.branchCode) {
-    store.set(serverConfig.auth.branchCookie, payload.currUser.branchCode, {
-      httpOnly: false, // Accessible by client and server
-      secure: isSecure,
-      sameSite: "lax",
-      path: "/",
-      maxAge: TTL_SECONDS,
-    });
+    store.set(
+      serverConfig.auth.branchCookie,
+      payload.currUser.branchCode,
+      cookieOpts(TTL_SECONDS, false),
+    );
   }
 
   if (payload.currUser.initLogin) {
-    store.set(serverConfig.auth.initLoginCookie, "true", {
-      httpOnly: true,
-      secure: isSecure,
-      sameSite: "lax",
-      path: "/",
-      maxAge: TTL_SECONDS,
-    });
+    store.set(serverConfig.auth.initLoginCookie, "true", cookieOpts(TTL_SECONDS, true));
   } else {
     store.delete(serverConfig.auth.initLoginCookie);
   }
@@ -114,31 +110,25 @@ export async function getSession(): Promise<SessionData | null> {
   if (!id) return null;
 
   let session = await cacheGet<SessionData>(getSessionRedisKey(id));
-
-  // Fallback to in-memory store if Redis was offline or disabled
   if (!session) {
     session = memoryStore.get(id) ?? null;
   }
-
   if (!session) return null;
 
-  // Server-side Inactivity Guard governed strictly by serverConfig.auth.sessionMaxAgeSeconds
   const maxInactiveMs = TTL_SECONDS * 1000;
   const now = Date.now();
 
   if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
-    const timeoutMinutes = Math.floor(TTL_SECONDS / 60);
-    sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMinutes}m)`);
+    const timeoutMin = Math.floor(TTL_SECONDS / 60);
+    sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMin}m)`);
     await cacheDelete(getSessionRedisKey(id));
     memoryStore.delete(id);
     return null;
   }
 
-  // Refresh lastActiveAt and extend TTL
   session.lastActiveAt = now;
   await cacheSet(getSessionRedisKey(id), session, TTL_SECONDS);
   memoryStore.set(id, session);
-
   return session;
 }
 
@@ -151,10 +141,6 @@ export async function getFromSession<K extends keyof SessionData>(
   const session = await getSession();
   return session ? session[key] : null;
 }
-
-export type SessionPatch = Partial<Omit<SessionData, "createdAt" | "currUser">> & {
-  currUser?: Partial<CurrentUser>;
-};
 
 /**
  * Patches the existing active session while preserving remaining TTL.
@@ -179,7 +165,7 @@ export async function updateSession(patch: SessionPatch): Promise<SessionData | 
 }
 
 /**
- * Updates active user's branch code and branch name seamlessly and updates the branch cookie.
+ * Updates active user's branch code and branch name and synchronizes the branch cookie.
  */
 export async function updateBranchCodeAndName(
   branchCode: string,
@@ -194,14 +180,7 @@ export async function updateBranchCodeAndName(
 
   if (next?.currUser) {
     const store = await cookies();
-    const isSecure = !serverConfig.isDev && serverConfig.useHttps;
-    store.set(serverConfig.auth.branchCookie, branchCode, {
-      httpOnly: false,
-      secure: isSecure,
-      sameSite: "lax",
-      path: "/",
-      maxAge: TTL_SECONDS,
-    });
+    store.set(serverConfig.auth.branchCookie, branchCode, cookieOpts(TTL_SECONDS, false));
   }
 
   return next?.currUser ?? null;
@@ -211,15 +190,13 @@ export async function updateBranchCodeAndName(
  * Completes the first-time login lifecycle by clearing the initLogin requirement.
  */
 export async function clearInitialLoginRequirement(): Promise<void> {
-  await updateSession({
-    currUser: { initLogin: false },
-  });
+  await updateSession({ currUser: { initLogin: false } });
   const store = await cookies();
   store.delete(serverConfig.auth.initLoginCookie);
 }
 
 /**
- * Destroys active session in Redis and removes the HTTP-only cookie.
+ * Destroys active session in Redis and removes all session cookies.
  */
 export async function destroySession(): Promise<void> {
   const id = await currentSessionId();

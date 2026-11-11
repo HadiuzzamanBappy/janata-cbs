@@ -1,13 +1,11 @@
 import "server-only";
 
 import { serverConfig } from "@/lib/core-config/server";
-import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType, isCbsMutationRequest } from "@/types";
 import { cacheDelete, cacheGet, cacheKey, cacheSet, circuitOpen } from "./client";
 
-const DEFAULT_TTL_SECONDS = serverConfig.redis.defaultTtlSeconds;
-
 /* -------------------------------------------------------------------------- */
-/* Cache Key & Specification Descriptor Resolution                            */
+/* Declarative Domain Specification Policies                                  */
 /* -------------------------------------------------------------------------- */
 
 export interface CacheDescriptorTarget {
@@ -18,80 +16,97 @@ export interface CacheDescriptorTarget {
   userId?: string | null;
 }
 
+interface SpecCachePolicy {
+  resolveKey: (id: string, target: CacheDescriptorTarget) => string;
+  ttlSeconds: number;
+  requiresRecordId: boolean;
+}
+
+const { cacheKeys, specTtlSeconds, menuTtlSeconds } = serverConfig.redis;
+
+const SPEC_POLICIES: Readonly<Record<string, SpecCachePolicy>> = {
+  [CbsControlTable.FORM_CONFIG]: {
+    resolveKey: (id) => cacheKeys.formSpec(id),
+    ttlSeconds: specTtlSeconds,
+    requiresRecordId: true,
+  },
+  [CbsControlTable.MODEL_CONFIG]: {
+    resolveKey: (id) => cacheKeys.modelSpec(id),
+    ttlSeconds: specTtlSeconds,
+    requiresRecordId: true,
+  },
+  [CbsControlTable.INQUIRY_CONFIG]: {
+    resolveKey: (id) => cacheKeys.inquirySpec(id),
+    ttlSeconds: specTtlSeconds,
+    requiresRecordId: true,
+  },
+  [CbsControlTable.MENU_TREE]: {
+    resolveKey: (id, target) =>
+      cacheKeys.menu(id || (target.userId ? `user:${target.userId}` : "user")),
+    ttlSeconds: menuTtlSeconds,
+    requiresRecordId: false,
+  },
+  [CbsControlTable.MENU]: {
+    resolveKey: (id, target) =>
+      cacheKeys.menu(id || (target.userId ? `user:${target.userId}` : "user")),
+    ttlSeconds: menuTtlSeconds,
+    requiresRecordId: false,
+  },
+};
+
+const INVALIDATABLE_CONTROLS: ReadonlySet<string> = new Set<string>([
+  CbsControlTable.MODEL_CONFIG,
+  CbsControlTable.FORM_CONFIG,
+  CbsControlTable.INQUIRY_CONFIG,
+  CbsControlTable.MENU_TREE,
+  CbsControlTable.MENU,
+]);
+
+const MUTATION_RECORD_FUNCTIONS: ReadonlySet<string> = new Set<string>([
+  CbsRecordFunction.INPUT,
+  CbsRecordFunction.AUTHORIZE,
+  CbsRecordFunction.DELETE,
+  CbsRecordFunction.REVERSE,
+]);
+
+/* -------------------------------------------------------------------------- */
+/* Cache Key & Specification Descriptor Resolution                            */
+/* -------------------------------------------------------------------------- */
+
 /**
  * Resolves cache key and TTL for read-only specification/catalog requests.
  * Returns null for transactional mutations or runtime query data.
- *
- * CACHING PRINCIPLE:
- * - Dynamic operations, searches, and record lists (GRL, SBI, INQ, LIST) are NEVER cached.
- *   They represent operational database state and must always be a fresh fetch.
- * - Only immutable/semi-static specifications with a specific recordId (Model Configs,
- *   Form Layouts, Inquiry column definitions, and active Navigation Menu Trees) are cached.
  */
 export function resolveCacheDescriptor(
   target: CacheDescriptorTarget,
 ): { key: string; ttl: number } | null {
-  // 1. Dynamic lists, inquiries, and searches are NEVER cached — always fresh fetch
+  const reqType = (target.requestType || "").toUpperCase().trim();
+  const recFunc = (target.recordFunction || "").toUpperCase().trim();
+
+  // 1. Invariant: Mutations, searches, and runtime query data are strictly non-cacheable
   if (
-    target.requestType === CbsRequestType.SBI ||
-    target.requestType === CbsRequestType.GRL ||
-    target.requestType === CbsRequestType.INQ ||
-    target.recordFunction === CbsRecordFunction.LIST
+    isCbsMutationRequest(reqType) ||
+    recFunc === CbsRecordFunction.LIST ||
+    reqType === CbsRequestType.INQ ||
+    reqType === CbsRequestType.SBI ||
+    reqType === CbsRequestType.GRL
   ) {
     return null;
   }
 
-  const isReadOperation =
-    target.requestType === CbsRequestType.GET ||
-    target.requestType === CbsRequestType.GFC ||
-    target.requestType === CbsRequestType.GMC ||
-    target.requestType === CbsRequestType.GUM ||
-    target.recordFunction === CbsRecordFunction.SEE;
+  // 2. Must be a read intent (SEE or GET)
+  const isRead = recFunc === CbsRecordFunction.SEE || reqType === CbsRequestType.GET;
+  if (!isRead) return null;
 
-  if (!isReadOperation) return null;
-
+  // 3. Resolve canonical domain control table
   const ctrl = (target.controlName || "").toUpperCase().trim();
+  const policy = SPEC_POLICIES[ctrl];
+  if (!policy) return null;
+
   const recordId = (target.recordId || "").trim();
+  if (policy.requiresRecordId && !recordId) return null;
 
-  // Dynamic collections without an explicit recordId are NEVER cached
-  if (!recordId && target.requestType !== CbsRequestType.GUM) {
-    return null;
-  }
-
-  // 1. Dynamic Form Layout Spec: cbs:spec:<RECORD_ID>
-  if (ctrl === CbsControlTable.FORM_CONFIG || target.requestType === CbsRequestType.GFC) {
-    return {
-      key: serverConfig.redis.cacheKeys.formSpec(recordId),
-      ttl: serverConfig.redis.specTtlSeconds,
-    };
-  }
-
-  // 2. Data Model Config Spec: cbs:spec:model:<RECORD_ID>
-  if (ctrl === CbsControlTable.MODEL_CONFIG || target.requestType === CbsRequestType.GMC) {
-    return {
-      key: `spec:model:${recordId}`,
-      ttl: serverConfig.redis.specTtlSeconds,
-    };
-  }
-
-  // 3. User Navigation Menu Tree (GUM): cbs:menu:user:<USER_ID> or specific tree
-  if (target.requestType === CbsRequestType.GUM || ctrl === CbsControlTable.MENU_TREE) {
-    const treeTarget = recordId || (target.userId ? `user:${target.userId}` : "user");
-    return {
-      key: serverConfig.redis.cacheKeys.menu(treeTarget),
-      ttl: serverConfig.redis.menuTtlSeconds,
-    };
-  }
-
-  // 4. Inquiry Table Configuration Definition: cbs:spec:enq:<RECORD_ID>
-  if (ctrl === CbsControlTable.INQUIRY_CONFIG) {
-    return {
-      key: serverConfig.redis.cacheKeys.inquirySpec(recordId),
-      ttl: serverConfig.redis.specTtlSeconds,
-    };
-  }
-
-  return null;
+  return { key: policy.resolveKey(recordId, target), ttl: policy.ttlSeconds };
 }
 
 /**
@@ -104,36 +119,42 @@ export async function autoInvalidateOnMutation(target: {
   recordId?: string | null;
   data?: unknown;
 }): Promise<number> {
-  const ctrl = (target.controlName || "").toUpperCase();
-  const isMutationOrAuth =
-    target.requestType === CbsRequestType.PUT ||
-    target.requestType === CbsRequestType.AUT ||
-    target.recordFunction === CbsRecordFunction.INPUT ||
-    target.recordFunction === CbsRecordFunction.AUTHORIZE;
+  const reqType = (target.requestType || "").toUpperCase().trim();
+  if (reqType === CbsRequestType.GNI) return 0; // Get New ID is a read sequence, never a mutation
 
-  if (
-    isMutationOrAuth &&
-    (ctrl === CbsControlTable.MODEL_CONFIG ||
-      ctrl === CbsControlTable.FORM_CONFIG ||
-      ctrl === CbsControlTable.INQUIRY_CONFIG ||
-      ctrl === CbsControlTable.MENU_TREE)
-  ) {
-    const payloadData = target.data as Record<string, unknown> | undefined;
-    const targetModel =
-      (payloadData?.targetModel as string) ||
-      (payloadData?.tableName as string) ||
-      target.recordId ||
-      "";
-    if (targetModel.trim()) {
-      return await invalidateCache(targetModel.trim());
-    }
+  const ctrl = (target.controlName || "").toUpperCase().trim();
+  if (!INVALIDATABLE_CONTROLS.has(ctrl)) return 0;
+
+  const recFunc = (target.recordFunction || "").toUpperCase().trim();
+  if (!isCbsMutationRequest(reqType) && !MUTATION_RECORD_FUNCTIONS.has(recFunc)) {
+    return 0;
+  }
+
+  const payload = target.data as Record<string, unknown> | undefined;
+  const targetId = (
+    (payload?.TABLENAME as string) ||
+    (payload?.formId as string) ||
+    (payload?.inquiryId as string) ||
+    (payload?.targetModel as string) ||
+    target.recordId ||
+    ""
+  )
+    .trim()
+    .toUpperCase();
+
+  if (targetId) {
+    return invalidateCache(targetId);
+  }
+
+  if (ctrl === CbsControlTable.MENU_TREE || ctrl === CbsControlTable.MENU) {
+    return cacheDelete(cacheKey(cacheKeys.menu("*")));
   }
 
   return 0;
 }
 
 /* -------------------------------------------------------------------------- */
-/* Concurrency: Single-Flight Request Deduplication                           */
+/* Concurrency & Read-Through API                                             */
 /* -------------------------------------------------------------------------- */
 
 const inflight = new Map<string, Promise<unknown>>();
@@ -150,17 +171,13 @@ export function singleFlight<T>(key: string, run: () => Promise<T>): Promise<T> 
   return promise;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Read-Through Caching API                                                   */
-/* -------------------------------------------------------------------------- */
-
 /**
  * Gets a cached item by key or executes the fetcher function on miss / circuit trip.
  */
 export async function getOrSet<T>(
   key: string,
   fetcher: () => Promise<T>,
-  ttlSeconds: number = DEFAULT_TTL_SECONDS,
+  ttlSeconds: number = serverConfig.redis.defaultTtlSeconds,
 ): Promise<T> {
   const fullKey = cacheKey(key);
 
@@ -169,10 +186,9 @@ export async function getOrSet<T>(
     if (cached !== null) return cached;
   }
 
-  // Use single-flight pattern to collapse concurrent cold cache hits
   return singleFlight(fullKey, async () => {
     const freshData = await fetcher();
-    if (serverConfig.redis.enabled && !circuitOpen() && freshData) {
+    if (serverConfig.redis.enabled && !circuitOpen() && freshData != null) {
       await cacheSet(fullKey, freshData, ttlSeconds);
     }
     return freshData;
@@ -180,25 +196,21 @@ export async function getOrSet<T>(
 }
 
 /**
- * Invalidation hook to clear all or specific model schema caches.
- * Matches keys generated by `serverConfig.redis.cacheKeys`.
+ * Invalidation hook to clear all or specific model/form/inquiry/menu schema caches.
  */
 export async function invalidateCache(controlName?: string): Promise<number> {
   if (controlName) {
     const cleanCmd = controlName.trim().toUpperCase();
-    const specPattern = cacheKey(serverConfig.redis.cacheKeys.formSpec(`${cleanCmd}*`));
-    const enqPattern = cacheKey(serverConfig.redis.cacheKeys.inquirySpec(`${cleanCmd}*`));
-    const menuKey = cacheKey(serverConfig.redis.cacheKeys.menu(`${cleanCmd}*`));
-    const [specDel, enqDel, menuDel, userDel] = await Promise.all([
-      cacheDelete(specPattern),
-      cacheDelete(enqPattern),
-      cacheDelete(menuKey),
-      cacheDelete(cacheKey(serverConfig.redis.cacheKeys.menu("user*"))),
-    ]);
-    return specDel + enqDel + menuDel + userDel;
+    const patterns = [
+      cacheKey(cacheKeys.formSpec(`${cleanCmd}*`)),
+      cacheKey(cacheKeys.modelSpec(`${cleanCmd}*`)),
+      cacheKey(cacheKeys.inquirySpec(`${cleanCmd}*`)),
+      cacheKey(cacheKeys.menu(`${cleanCmd}*`)),
+      cacheKey(cacheKeys.menu("user*")),
+    ];
+    const counts = await Promise.all(patterns.map((p) => cacheDelete(p)));
+    return counts.reduce((sum, count) => sum + count, 0);
   }
 
-  // Delete all keys matching key prefix pattern (cbs:*)
-  const pattern = cacheKey("*");
-  return cacheDelete(pattern);
+  return cacheDelete(cacheKey("*"));
 }

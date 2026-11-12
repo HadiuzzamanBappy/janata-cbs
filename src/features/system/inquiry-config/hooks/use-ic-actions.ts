@@ -1,20 +1,20 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
+import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeInquiryConfigRecord } from "@/lib/data-parsers";
 import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
-import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import type { InquiryValidationErrorItem } from "./ic-validation";
 
 export interface UseIcActionsOptions {
   formData: InquiryConfigRecord;
   recordId: string;
   handleValidate: () => boolean;
-  upsertCatalogItem: (id: string, record: InquiryConfigRecord) => void;
   rebaseline: () => void;
   resetToIdle: () => void;
   setMode: (mode: CbsScreenMode) => void;
@@ -25,7 +25,6 @@ export function useIcActions({
   formData,
   recordId,
   handleValidate,
-  upsertCatalogItem,
   rebaseline,
   resetToIdle,
   setMode,
@@ -33,6 +32,7 @@ export function useIcActions({
 }: UseIcActionsOptions) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const { sendMutation } = useIdempotentSend();
+  const queryClient = useQueryClient();
 
   const handleSubmit = React.useCallback(
     async (funcCode: string = CbsRecordFunction.INPUT) => {
@@ -64,9 +64,9 @@ export function useIcActions({
             type: "success",
           });
 
-          upsertCatalogItem(targetId, sanitized);
           rebaseline();
-          broadcastRecordMutation("INQUIRY", targetId);
+          broadcastRecordMutation(CbsControlTable.INQUIRY_CONFIG, targetId);
+          await queryClient.invalidateQueries({ queryKey: cbsQueries.inquiryConfig.schemaRootKey });
           setValidationErrors([]);
 
           if (funcCode === CbsRecordFunction.HOLD) {
@@ -98,8 +98,8 @@ export function useIcActions({
       formData,
       recordId,
       handleValidate,
-      upsertCatalogItem,
       rebaseline,
+      queryClient,
       setValidationErrors,
       setMode,
       resetToIdle,

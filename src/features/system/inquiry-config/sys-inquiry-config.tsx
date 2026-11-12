@@ -34,7 +34,6 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
     loading,
     submitting,
     rawRecord,
-    inquiriesPool,
     validationErrors,
     resetToIdle,
     initDraft,
@@ -48,16 +47,6 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
 
   const [activeTab, setActiveTab] = React.useState<InquiryConfigTabKey>("general");
   const isReadOnly = mode !== CbsRecordFunction.INPUT;
-
-  const availableItems = React.useMemo(
-    () =>
-      inquiriesPool.map((inq) => ({
-        id: inq.id,
-        label: inq.label,
-        details: inq.details,
-      })),
-    [inquiriesPool],
-  );
 
   const tabs: CbsScreenTab<InquiryConfigTabKey>[] = React.useMemo(
     () => [
@@ -184,7 +173,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         )
       }
       submitting={submitting || loading}
-      availableItems={availableItems}
+      availableItems={[]}
       variant="system"
       tabs={tabs}
       activeTab={activeTab}

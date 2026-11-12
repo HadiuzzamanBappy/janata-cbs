@@ -24,9 +24,9 @@ export function handleCbsResponseSemantics<T>(
   recordId?: string,
 ): void {
   const isSuccess =
-    (httpStatus >= 200 && httpStatus < 300 && json.status === "SUCCESS") ||
-    json.statusCode === 200 ||
-    json.statusCode === 201;
+    httpStatus >= 200 &&
+    httpStatus < 300 &&
+    (json.status === "SUCCESS" || json.statusCode === 200 || json.statusCode === 201);
 
   if (isSuccess) {
     if (options?.successMessage && !options.silent) {

@@ -1,6 +1,9 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { cbs } from "@/lib/cbs-client";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import { cbsQueries } from "@/lib/cbs-client";
+import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { PaletteItem } from "./palette-types";
 
 export interface UsePaletteVariablesOptions {
@@ -14,43 +17,22 @@ export function usePaletteVariables({
   propsModelProperties,
   usedFieldNames,
 }: UsePaletteVariablesOptions) {
-  const [fetchedProperties, setFetchedProperties] = React.useState<ModelProperty[]>([]);
-  const [loadingModel, setLoadingModel] = React.useState<boolean>(false);
   const [modelFilter, setModelFilter] = React.useState<"all" | "unplaced">("all");
   const [collapsedGroups, setCollapsedGroups] = React.useState<Record<string, boolean>>({});
 
-  const modelProperties =
-    propsModelProperties && propsModelProperties.length > 0
-      ? propsModelProperties
-      : fetchedProperties;
+  const hasProps = Boolean(propsModelProperties && propsModelProperties.length > 0);
+  const cleanTarget = (targetModel || "").split("$")[0].split(",")[0].trim().toUpperCase();
 
-  React.useEffect(() => {
-    if ((propsModelProperties && propsModelProperties.length > 0) || !targetModel) {
-      setFetchedProperties([]);
-      return;
-    }
+  const { data: fetchedRecord, isLoading: loadingModel } = useQuery({
+    ...cbsQueries.modelConfig.record(cleanTarget),
+    enabled: !hasProps && Boolean(cleanTarget),
+  });
 
-    let isMounted = true;
-    setLoadingModel(true);
-
-    cbs
-      .send<ModelConfigRecord>(cbs.modelConfig.get(targetModel))
-      .then((res) => {
-        if (isMounted && res.data?.PROPERTIES) {
-          setFetchedProperties(res.data.PROPERTIES);
-        }
-      })
-      .catch(() => {
-        if (isMounted) setFetchedProperties([]);
-      })
-      .finally(() => {
-        if (isMounted) setLoadingModel(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [targetModel, propsModelProperties]);
+  const modelProperties = React.useMemo(
+    () =>
+      hasProps ? (propsModelProperties as ModelProperty[]) : (fetchedRecord?.PROPERTIES ?? []),
+    [hasProps, propsModelProperties, fetchedRecord],
+  );
 
   const placedCount = React.useMemo(() => {
     return modelProperties.filter((p) => usedFieldNames.has(p.NAME)).length;
@@ -107,7 +89,7 @@ export function usePaletteVariables({
 
   return {
     modelProperties,
-    loadingModel,
+    loadingModel: hasProps ? false : loadingModel,
     modelFilter,
     setModelFilter,
     placedCount,

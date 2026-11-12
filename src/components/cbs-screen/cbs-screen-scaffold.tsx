@@ -173,14 +173,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
       <div className="flex-1 overflow-hidden p-2 flex flex-col min-h-0">
         {mode === "IDLE" && variant !== "inquiry" ? (
           <div className="h-full flex flex-col items-center justify-center">
-            <CbsIdleState
-              title={title}
-              code={commandCode}
-              customMessage={
-                idleMessage ||
-                `Manage ${title} records (${commandCode}). Enter or select a Record ID in the toolbar above, or click + to create a new entry.`
-              }
-            />
+            <CbsIdleState title={title} customMessage={idleMessage} />
           </div>
         ) : variant === "system" ? (
           <div className="flex flex-col h-full overflow-hidden min-h-0">

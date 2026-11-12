@@ -1,9 +1,10 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
+import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeFormConfigRecord } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
@@ -16,7 +17,6 @@ export interface UseFcActionsParams {
   rebaseline: () => void;
   reset: () => void;
   resetToIdle?: () => void;
-  refreshForms: () => Promise<void>;
   setSubmitting: (val: boolean) => void;
 }
 
@@ -27,10 +27,14 @@ export function useFcActions({
   rebaseline,
   reset,
   resetToIdle,
-  refreshForms,
   setSubmitting,
 }: UseFcActionsParams) {
   const { sendMutation } = useIdempotentSend();
+  const queryClient = useQueryClient();
+
+  const invalidateFormCaches = React.useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: cbsQueries.formConfig.schemaRootKey });
+  }, [queryClient]);
 
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
@@ -46,7 +50,7 @@ export function useFcActions({
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, targetId);
-        await refreshForms();
+        await invalidateFormCaches();
         toast.add({
           title: "Form Saved",
           description: `Form ${targetId || "configuration"} successfully saved`,
@@ -64,8 +68,8 @@ export function useFcActions({
   }, [
     formData,
     handleValidate,
+    invalidateFormCaches,
     rebaseline,
-    refreshForms,
     recordId,
     reset,
     resetToIdle,
@@ -81,7 +85,7 @@ export function useFcActions({
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
-        await refreshForms();
+        await invalidateFormCaches();
         toast.add({
           title: "Form Authorized",
           description: `Record ${recordId} approved`,
@@ -96,7 +100,7 @@ export function useFcActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, sendMutation, setSubmitting]);
+  }, [invalidateFormCaches, recordId, rebaseline, reset, resetToIdle, sendMutation, setSubmitting]);
 
   const handleHold = React.useCallback(async () => {
     if (!recordId) return;
@@ -124,7 +128,7 @@ export function useFcActions({
       const res = await sendMutation(cbs.formConfig.delete(recordId));
       if (res.status === "SUCCESS") {
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
-        await refreshForms();
+        await invalidateFormCaches();
         if (resetToIdle) {
           resetToIdle();
         } else {
@@ -135,7 +139,7 @@ export function useFcActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, refreshForms, reset, resetToIdle, sendMutation, setSubmitting]);
+  }, [invalidateFormCaches, recordId, reset, resetToIdle, sendMutation, setSubmitting]);
 
   const handleReverse = React.useCallback(async () => {
     if (!recordId) return;
@@ -145,7 +149,7 @@ export function useFcActions({
       if (res.status === "SUCCESS") {
         rebaseline();
         broadcastRecordMutation(CbsControlTable.FORM_CONFIG, recordId);
-        await refreshForms();
+        await invalidateFormCaches();
         toast.add({
           title: "Record Reversed",
           description: `${recordId} reversed`,
@@ -160,7 +164,7 @@ export function useFcActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, rebaseline, refreshForms, reset, resetToIdle, sendMutation, setSubmitting]);
+  }, [invalidateFormCaches, recordId, rebaseline, reset, resetToIdle, sendMutation, setSubmitting]);
 
   return {
     handleSubmit,

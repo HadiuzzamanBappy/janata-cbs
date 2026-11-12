@@ -31,7 +31,6 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
     isDirty,
     loading,
     submitting,
-    modelsPool,
     validationErrors,
     isFieldCommitted,
     fetchRecord,
@@ -52,21 +51,6 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
   const [activeTab, setActiveTab] = React.useState<ModelConfigTabKey>("general");
   const [selectedPropertySN, setSelectedPropertySN] = React.useState<string | null>(null);
   const isReadOnly = mode !== CbsRecordFunction.INPUT;
-
-  const availableModels = React.useMemo(
-    () =>
-      modelsPool
-        .map((m) => {
-          const id = String(m.id || m.record?.TABLENAME || "").trim();
-          return {
-            id,
-            label: m.label || id,
-            details: m.details,
-          };
-        })
-        .filter((m) => m.id.length > 0),
-    [modelsPool],
-  );
 
   const tabs: CbsScreenTab<ModelConfigTabKey>[] = React.useMemo(
     () => [
@@ -167,7 +151,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
       onView={() => recordId && fetchRecord(recordId, CbsRecordFunction.SEE)}
       onAmend={() => recordId && fetchRecord(recordId, CbsRecordFunction.INPUT)}
       submitting={submitting || loading}
-      availableItems={availableModels}
+      availableItems={[]}
       variant="system"
       tabs={tabs}
       activeTab={activeTab}

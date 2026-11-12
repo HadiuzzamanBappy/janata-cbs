@@ -1,6 +1,7 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import Image from "next/image";
+import logo from "@/app/icon.png";
 import { ScreenLoader } from "@/features/workbench";
 import { cn } from "@/lib/core-utils";
 import { useWorkbenchStore } from "@/store";
@@ -28,10 +29,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-16 select-none">
-      <div className="size-12 rounded-md border border-border/60 bg-muted/50 text-primary flex items-center justify-center shadow-xs">
-        <Sparkles className="size-6" />
-      </div>
+    <div className="h-full flex flex-col items-center justify-center text-center gap-4 py-16 select-none animate-in fade-in-50">
+      <Image
+        src={logo}
+        alt="Janata Bank PLC"
+        width={32}
+        height={32}
+        priority
+        className="size-7 object-contain"
+      />
       <div className="flex flex-col gap-1 max-w-md">
         <h3 className="text-lg font-semibold tracking-tight text-foreground">Janata Bank PLC.</h3>
         <h2 className="text-sm text-muted-foreground leading-relaxed">Core Banking Solution</h2>

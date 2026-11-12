@@ -15,10 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
+import { cbsAuth, cbsQueries } from "@/lib/cbs-client";
 import { clientConfig } from "@/lib/core-config";
 import { cn, toTitleCase } from "@/lib/core-utils";
-import { unwrapRecordsPayload } from "@/lib/data-parsers";
 import { useSessionStore } from "@/store";
 
 interface BranchSwitcherProps {
@@ -27,18 +26,14 @@ interface BranchSwitcherProps {
   align?: "start" | "center" | "end";
 }
 
-interface BranchItem {
-  code: string;
-  name: string;
-  type: string;
-}
-
 export function BranchSwitcher({
   className,
   triggerClassName,
   align = "end",
 }: BranchSwitcherProps = {}) {
+  const [open, setOpen] = React.useState(false);
   const [branchSearch, setBranchSearch] = React.useState("");
+  const selectedItemRef = React.useRef<HTMLDivElement | null>(null);
   const { currentBranch, setBranch, user } = useSessionStore();
 
   const {
@@ -46,46 +41,7 @@ export function BranchSwitcher({
     isLoading: branchLoading,
     error: queryError,
     refetch,
-  } = useQuery<BranchItem[]>({
-    queryKey: ["app", "branches"],
-    queryFn: async () => {
-      const res = await cbs.send<unknown>(cbs.branch.list(), { silent: true });
-
-      if (res.status !== "SUCCESS") {
-        throw new Error(res.message || "Failed to load branch directory");
-      }
-
-      const rawRecords = unwrapRecordsPayload<{
-        recordId?: string;
-        branchTitle?: string;
-        branchType?: string;
-      }>(res.data);
-      const list = Array.isArray(rawRecords) ? rawRecords : [];
-
-      if (!list || list.length === 0) {
-        throw new Error("No branch records found from core banking service");
-      }
-
-      const mapped = list
-        .map((b) => {
-          const code = String(b.recordId ?? "").trim();
-          const name = String(b.branchTitle ?? code).trim() || code;
-          const isCentral =
-            code === clientConfig.centralBranch ||
-            code.replace(/\D/g, "") === clientConfig.centralBranch.replace(/\D/g, "");
-          const type = isCentral ? "Head Office" : String(b.branchType ?? "General").trim();
-
-          return { code, name, type };
-        })
-        .filter((b) => Boolean(b.code));
-
-      if (mapped.length === 0) {
-        throw new Error("Failed to parse branch directory records");
-      }
-
-      return mapped;
-    },
-  });
+  } = useQuery(cbsQueries.branch.list());
 
   const branchError =
     queryError instanceof Error ? queryError.message : queryError ? String(queryError) : null;
@@ -100,6 +56,20 @@ export function BranchSwitcher({
         b.code === activeBranchCode ||
         (activeBranchCode && b.code.replace(/\D/g, "") === activeBranchCode.replace(/\D/g, "")),
     ) ?? (branches.length > 0 ? branches[0] : null);
+
+  // Focus and scroll active branch into view when menu opens
+  React.useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => {
+        if (selectedItemRef.current) {
+          selectedItemRef.current.scrollIntoView({ block: "nearest" });
+          selectedItemRef.current.focus();
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+    setBranchSearch("");
+  }, [open]);
 
   const filteredBranches = React.useMemo(() => {
     if (!branchSearch.trim()) return branches;
@@ -124,11 +94,7 @@ export function BranchSwitcher({
 
     // 2. Synchronize to server session and Redis store
     try {
-      await fetch(clientConfig.routes.api.session, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ branchCode: code, branchName: name }),
-      });
+      await cbsAuth.updateBranch(code, name);
     } catch {
       // Graceful: client cookie and wire payload resolution still guarantee correct branch context
     }
@@ -136,7 +102,7 @@ export function BranchSwitcher({
 
   return (
     <div className={className}>
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger
           render={
             <Button
@@ -206,23 +172,31 @@ export function BranchSwitcher({
                 No branches found
               </div>
             ) : (
-              filteredBranches.map((b) => (
-                <DropdownMenuItem
-                  key={b.code}
-                  onClick={() => handleBranchSwitch(b.code, b.name)}
-                  className="flex items-center justify-between py-1.5 px-2 cursor-pointer focus:bg-accent text-xs gap-1.5"
-                >
-                  <div className="flex items-center gap-1.5 min-w-0 truncate">
-                    <span className="font-mono text-[9px] text-muted-foreground bg-muted px-1 py-0.2 rounded-xs shrink-0">
-                      {b.code}
-                    </span>
-                    <span className="truncate text-xs font-normal">{toTitleCase(b.name)}</span>
-                  </div>
-                  {activeBranchObj?.code === b.code && (
-                    <Check className="size-3 shrink-0 text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))
+              filteredBranches.map((b) => {
+                const isSelected = activeBranchObj?.code === b.code;
+                return (
+                  <DropdownMenuItem
+                    key={b.code}
+                    ref={isSelected ? selectedItemRef : undefined}
+                    onClick={() => {
+                      handleBranchSwitch(b.code, b.name);
+                      setOpen(false);
+                    }}
+                    className={cn(
+                      "flex items-center justify-between py-1.5 px-2 cursor-pointer focus:bg-accent text-xs gap-1.5",
+                      isSelected && "bg-accent/60 font-medium",
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0 truncate">
+                      <span className="font-mono text-[9px] text-muted-foreground bg-muted px-1 py-0.2 rounded-xs shrink-0">
+                        {b.code}
+                      </span>
+                      <span className="truncate text-xs font-normal">{toTitleCase(b.name)}</span>
+                    </div>
+                    {isSelected && <Check className="size-3 shrink-0 text-primary" />}
+                  </DropdownMenuItem>
+                );
+              })
             )}
           </DropdownMenuGroup>
         </DropdownMenuContent>

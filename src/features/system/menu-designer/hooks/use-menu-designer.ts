@@ -39,7 +39,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
   const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);
   const [validationErrors, setValidationErrors] = React.useState<MenuDesignerValidationError[]>([]);
 
-  const { catalogItems, catalogLoading, availableTrees, refetchTrees } = useMdCatalog();
+  const { catalogItems, catalogLoading } = useMdCatalog();
 
   const setTreeNodes = React.useCallback(
     (updater: (prev: MenuItem[]) => MenuItem[]) => {
@@ -125,7 +125,6 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     recordId,
     handleValidate,
     rebaseline,
-    refetchTrees,
     setValidationErrors,
     reset,
   });
@@ -160,7 +159,6 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
     dirtyKeys,
     catalogItems,
     catalogLoading,
-    availableTrees,
     treeOps,
     fetchTreeRecord,
     handleCreateNew,

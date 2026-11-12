@@ -1,9 +1,10 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
+import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { sanitizeMenuTreeRecord } from "@/lib/data-parsers";
 import type {
   MenuDesignerValidationError,
@@ -15,7 +16,6 @@ export interface UseMdActionsOptions {
   recordId: string;
   handleValidate: () => boolean;
   rebaseline: () => void;
-  refetchTrees: () => void;
   setValidationErrors: (errors: MenuDesignerValidationError[]) => void;
   reset: () => void;
 }
@@ -25,12 +25,16 @@ export function useMdActions({
   recordId,
   handleValidate,
   rebaseline,
-  refetchTrees,
   setValidationErrors,
   reset,
 }: UseMdActionsOptions) {
   const [submitting, setSubmitting] = React.useState(false);
   const { sendMutation } = useIdempotentSend();
+  const queryClient = useQueryClient();
+
+  const invalidateMenuCaches = React.useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: cbsQueries.menuTree.active().queryKey });
+  }, [queryClient]);
 
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return false;
@@ -50,7 +54,7 @@ export function useMdActions({
 
       if (json.status === "SUCCESS") {
         rebaseline();
-        refetchTrees();
+        await invalidateMenuCaches();
         setValidationErrors([]);
         reset();
         return true;
@@ -71,7 +75,7 @@ export function useMdActions({
     recordId,
     reset,
     rebaseline,
-    refetchTrees,
+    invalidateMenuCaches,
     handleValidate,
     setValidationErrors,
     sendMutation,
@@ -87,7 +91,7 @@ export function useMdActions({
       });
       if (json.status === "SUCCESS") {
         rebaseline();
-        refetchTrees();
+        await invalidateMenuCaches();
         reset();
         return true;
       }
@@ -102,7 +106,7 @@ export function useMdActions({
     } finally {
       setSubmitting(false);
     }
-  }, [recordId, reset, rebaseline, refetchTrees, sendMutation]);
+  }, [recordId, reset, rebaseline, invalidateMenuCaches, sendMutation]);
 
   return { submitting, handleSubmit, handleAuthorize };
 }

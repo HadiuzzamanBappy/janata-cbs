@@ -108,21 +108,10 @@ export function useFormActions({
   );
 
   const handleCreateNew = React.useCallback(
-    async (allocatedId?: string) => {
+    (allocatedId?: string) => {
       if (!schema || !modelCode) return;
-      let nextId = allocatedId;
-      if (!nextId) {
-        try {
-          const gni = await cbs.send<{ recordId?: string }>(cbs.model(modelCode).getNewId());
-          if (gni.status === "SUCCESS" && gni.data?.recordId) {
-            nextId = gni.data.recordId;
-          }
-        } catch {
-          // GNI fallback
-        }
-      }
-      const targetId = (nextId || searchRecordId).trim();
-      if (nextId) setSearchRecordId(nextId);
+      const targetId = (allocatedId || searchRecordId || "").trim();
+      if (allocatedId) setSearchRecordId(allocatedId.trim());
       resetForm(initialValues);
       setScreenMode(CbsRecordFunction.INPUT);
       toast.add({

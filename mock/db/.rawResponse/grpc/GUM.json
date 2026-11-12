@@ -1,0 +1,335 @@
+[
+    {
+        "requestType": "GUM",
+        "branchCode": "JB9999",
+        "userId": "ZZ0284590"
+    },
+    {
+        "errors": [],
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "idempotencyKey": "",
+        "message": "record successfully processed!",
+        "data": {
+            "records": [
+                {
+                    "id": "n_1786858616121_0",
+                    "menuId": 1,
+                    "label": "Operational",
+                    "command": "",
+                    "isVisible": true,
+                    "children": [
+                        {
+                            "id": "n_1786858624172_1",
+                            "menuId": 13,
+                            "label": "User Management",
+                            "command": "",
+                            "isVisible": true,
+                            "children": [
+                                {
+                                    "id": "n_1786858673775_5",
+                                    "menuId": 14,
+                                    "label": "User Request",
+                                    "command": "",
+                                    "isVisible": true,
+                                    "children": [
+                                        {
+                                            "id": "n_1787137168951_1",
+                                            "menuId": 29,
+                                            "label": "User Request",
+                                            "command": "INQ S GET.EMP.INFO",
+                                            "isVisible": true,
+                                            "children": []
+                                        },
+                                        {
+                                            "id": "n_1791696187922_3",
+                                            "menuId": 23,
+                                            "label": "Unauthorize User List",
+                                            "command": "INQ S USER.MGT.NAU.LIST",
+                                            "isVisible": true,
+                                            "children": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": "n_1792040223231_1",
+                                    "menuId": 44,
+                                    "label": "User Creation",
+                                    "command": null,
+                                    "isVisible": true,
+                                    "children": [
+                                        {
+                                            "id": "n_1791792195423_1",
+                                            "menuId": 43,
+                                            "label": "Create User",
+                                            "command": "INQ S GET.USER.MGT.AUTH",
+                                            "isVisible": true,
+                                            "children": []
+                                        },
+                                        {
+                                            "id": "n_1792040842726_1",
+                                            "menuId": 45,
+                                            "label": "Authorise/Delete User Unauth List",
+                                            "command": "INQ S GET.USER.UNAU.LIST",
+                                            "isVisible": true,
+                                            "children": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": "n_1793699467842_1",
+                                    "menuId": 49,
+                                    "label": "User Password Reset",
+                                    "command": null,
+                                    "isVisible": true,
+                                    "children": [
+                                        {
+                                            "id": "n_1793857791123_1",
+                                            "menuId": 48,
+                                            "label": "Password Reset",
+                                            "command": "PASSWORD.RESET,NEW N",
+                                            "isVisible": true,
+                                            "children": []
+                                        },
+                                        {
+                                            "id": "n_1793701257061_1",
+                                            "menuId": 50,
+                                            "label": "Authorise/Delete Password Reset Unauth List",
+                                            "command": "INQ S GET.USR.PASS.RST.UN.LIST",
+                                            "isVisible": true,
+                                            "children": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": "n_1793874723146_1",
+                                    "menuId": 52,
+                                    "label": "User Amendment Request",
+                                    "command": null,
+                                    "isVisible": true,
+                                    "children": [
+                                        {
+                                            "id": "n_1793874735321_2",
+                                            "menuId": 51,
+                                            "label": "User Inactive Request",
+                                            "command": "INQ S INQ.USER.MGT.AUTH.LIST",
+                                            "isVisible": true,
+                                            "children": []
+                                        },
+                                        {
+                                            "id": "n_1793878782542_1",
+                                            "menuId": 23,
+                                            "label": "Unauthorize User List",
+                                            "command": "INQ S USER.MGT.NAU.LIST",
+                                            "isVisible": true,
+                                            "children": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "id": "n_1792041063461_1",
+                                    "menuId": 47,
+                                    "label": "Report",
+                                    "command": "",
+                                    "isVisible": true,
+                                    "children": [
+                                        {
+                                            "id": "n_1792041107109_2",
+                                            "menuId": 46,
+                                            "label": "List of User",
+                                            "command": "INQ S GET.USER.LIST",
+                                            "isVisible": true,
+                                            "children": []
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": "n_1786858625499_2",
+                            "menuId": 3,
+                            "label": "Customer Manage",
+                            "command": "",
+                            "isVisible": true,
+                            "children": [
+                                {
+                                    "id": "n_1786859112388_8",
+                                    "menuId": 24,
+                                    "label": "Open / Edit General Customer ",
+                                    "command": "CUSTOMER,GENERAL",
+                                    "isVisible": true,
+                                    "children": []
+                                },
+                                {
+                                    "id": "n_1791358772946_1",
+                                    "menuId": 6,
+                                    "label": "Open / Edit Corporate Customer",
+                                    "command": "CUSTOMER,CORPORATE",
+                                    "isVisible": true,
+                                    "children": []
+                                },
+                                {
+                                    "id": "n_1791707614652_1",
+                                    "menuId": 41,
+                                    "label": "Create / Edit Govt.  Customer",
+                                    "command": "CUSTOMER,GOVERNMENT",
+                                    "isVisible": true,
+                                    "children": []
+                                },
+                                {
+                                    "id": "n_1791713757585_1",
+                                    "menuId": 42,
+                                    "label": "Open / Edit Staff Customer",
+                                    "command": "CUSTOMER,STAFF",
+                                    "isVisible": true,
+                                    "children": []
+                                }
+                            ]
+                        },
+                        {
+                            "id": "n_1786858625931_3",
+                            "menuId": 4,
+                            "label": "Account Manage",
+                            "command": "",
+                            "isVisible": true,
+                            "children": [
+                                {
+                                    "id": "n_1786859119420_9",
+                                    "menuId": 7,
+                                    "label": "Create Accouont",
+                                    "command": "ACCOUNT",
+                                    "isVisible": true,
+                                    "children": []
+                                }
+                            ]
+                        },
+                        {
+                            "id": "n_1786858648899_4",
+                            "menuId": 5,
+                            "label": "Funds Manage",
+                            "command": "",
+                            "isVisible": true,
+                            "children": [
+                                {
+                                    "id": "n_1786859124995_10",
+                                    "menuId": 8,
+                                    "label": "Funds Transfer",
+                                    "command": "FUNDS.TRANSFER",
+                                    "isVisible": true,
+                                    "children": []
+                                }
+                            ]
+                        },
+                        {
+                            "id": "n_1786862427083_1",
+                            "menuId": 10,
+                            "label": "Daily Inquiry",
+                            "command": "",
+                            "isVisible": true,
+                            "children": [
+                                {
+                                    "id": "n_1786862443210_2",
+                                    "menuId": 17,
+                                    "label": "Today Txn Report",
+                                    "command": "INQ S GET.TO.TXN",
+                                    "isVisible": true,
+                                    "children": []
+                                },
+                                {
+                                    "id": "n_1786862453089_3",
+                                    "menuId": 19,
+                                    "label": "Today Txn Entry",
+                                    "command": "INQ S GET.TODAY.ENTRY",
+                                    "isVisible": true,
+                                    "children": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": "n_1791699482794_1",
+                    "menuId": 31,
+                    "label": "Development Utility",
+                    "command": null,
+                    "isVisible": true,
+                    "children": [
+                        {
+                            "id": "n_1791699737289_3",
+                            "menuId": 32,
+                            "label": "Model Builder",
+                            "command": "SC.MODEL.BUILDER",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791699755769_4",
+                            "menuId": 33,
+                            "label": "Form Builder",
+                            "command": "SC.FORM.BUILDER",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791699756201_5",
+                            "menuId": 34,
+                            "label": "Inquiry Designer",
+                            "command": "SC.INQUIRY",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791699756418_6",
+                            "menuId": 35,
+                            "label": "Menu Designer",
+                            "command": "SC.MENU.DESIGN",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791699756626_7",
+                            "menuId": 36,
+                            "label": "Report Line Setup",
+                            "command": "SC.REPORT.LINE",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791699756817_8",
+                            "menuId": 37,
+                            "label": "User Group Setup",
+                            "command": "SC.USER.GROUP",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791699815073_9",
+                            "menuId": 38,
+                            "label": "User Reset",
+                            "command": "SC.USER.PASS.RESET",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791699828305_10",
+                            "menuId": 39,
+                            "label": "Report Builder",
+                            "command": "SC.REPORT.BUILDER",
+                            "isVisible": true,
+                            "children": []
+                        },
+                        {
+                            "id": "n_1791785678213_1",
+                            "menuId": 40,
+                            "label": "Account Group Id",
+                            "command": "AC.GROUP.ID",
+                            "isVisible": true,
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        },
+        "timestamp": "2026-11-12T08:33:52.589310868Z"
+    }
+]

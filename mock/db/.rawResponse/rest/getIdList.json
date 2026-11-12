@@ -1,0 +1,46 @@
+[
+    {
+        "context": {
+            "controlName": "CUSTOMER",
+            "servicePath": "URM",
+            "requestType": "GET",
+            "recordFunction": "L",
+            "userId": "MA0329900",
+            "branchCode": "001",
+            "authLevel": 1,
+            "clientId": "URM-CLIENT",
+            "dateTime": "2026-11-12T13:25:00+06:00",
+            "ip": "192.168.169.61"
+        },
+        "data": {
+            "queryData": {
+                "listMode": "IDS",
+                "idQuery": "",
+                "perPage": 10,
+                "curPage": 1
+            }
+        }
+    },
+    {
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "idempotencyKey": null,
+        "message": "Transaction completed successfully.",
+        "data": {
+            "recordIds": [
+                "00097863",
+                "00097864",
+                "00097865",
+                "00097916",
+                "00097956",
+                "00097958",
+                "00097963",
+                "00097970",
+                "00097974",
+                "00097975"
+            ]
+        },
+        "errors": null,
+        "timestamp": "Thu, 12 Nov 2026 15:20:24 GMT+06:00"
+    }
+]

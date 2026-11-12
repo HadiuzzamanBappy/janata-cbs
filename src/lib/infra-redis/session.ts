@@ -32,21 +32,29 @@ const TTL_SECONDS = serverConfig.auth.sessionMaxAgeSeconds;
 
 declare global {
   var __memorySessionStore: Map<string, SessionData> | undefined;
+  var __memoryUserSessionStore: Map<string, string> | undefined;
 }
 if (!globalThis.__memorySessionStore) {
   globalThis.__memorySessionStore = new Map<string, SessionData>();
 }
+if (!globalThis.__memoryUserSessionStore) {
+  globalThis.__memoryUserSessionStore = new Map<string, string>();
+}
 const memoryStore = globalThis.__memorySessionStore;
+const memoryUserSessionStore = globalThis.__memoryUserSessionStore;
 
 const getSessionRedisKey = (id: string): string =>
   cacheKey(serverConfig.redis.cacheKeys.session(id));
 
-const cookieOpts = (maxAge: number, httpOnly = true) => ({
+const getUserSessionRedisKey = (userId: string): string =>
+  cacheKey(serverConfig.redis.cacheKeys.userSession(userId));
+
+const cookieOpts = (httpOnly = true, maxAge?: number) => ({
   httpOnly,
   secure: !serverConfig.isDev && serverConfig.useHttps,
   sameSite: "lax" as const,
   path: "/",
-  maxAge,
+  ...(maxAge !== undefined ? { maxAge } : {}),
 });
 
 async function currentSessionId(): Promise<string | null> {
@@ -71,7 +79,21 @@ export async function createSession(
   const store = await cookies();
   const oldId = store.get(COOKIE_NAME)?.value;
 
-  if (oldId) {
+  // 1. Single Active Login: Invalidate any prior active session for this user across all devices
+  const userKey = getUserSessionRedisKey(data.userId);
+  const existingSessionId =
+    (await cacheGet<string>(userKey)) ?? memoryUserSessionStore.get(data.userId);
+
+  if (existingSessionId) {
+    sessionLogger.info(
+      `Revoking previous active session ${existingSessionId} for user ${data.userId} to enforce single login`,
+    );
+    await cacheDelete(getSessionRedisKey(existingSessionId));
+    memoryStore.delete(existingSessionId);
+  }
+
+  // Also clean up old session from current cookie if it differed
+  if (oldId && oldId !== existingSessionId) {
     await cacheDelete(getSessionRedisKey(oldId));
     memoryStore.delete(oldId);
   }
@@ -83,18 +105,24 @@ export async function createSession(
   await cacheSet(getSessionRedisKey(id), payload, TTL_SECONDS);
   memoryStore.set(id, payload);
 
-  store.set(COOKIE_NAME, id, cookieOpts(TTL_SECONDS, true));
+  // 2. Index this session as the user's active session
+  await cacheSet(userKey, id, TTL_SECONDS);
+  memoryUserSessionStore.set(data.userId, id);
+
+  // Session cookie: omit maxAge so the cookie persists for the active browser session.
+  // Redis TTL and session.lastActiveAt strictly govern the sliding inactivity window.
+  store.set(COOKIE_NAME, id, cookieOpts(true));
 
   if (payload.currUser.branchCode) {
     store.set(
       serverConfig.auth.branchCookie,
       payload.currUser.branchCode,
-      cookieOpts(TTL_SECONDS, false),
+      cookieOpts(false),
     );
   }
 
   if (payload.currUser.initLogin) {
-    store.set(serverConfig.auth.initLoginCookie, "true", cookieOpts(TTL_SECONDS, true));
+    store.set(serverConfig.auth.initLoginCookie, "true", cookieOpts(true));
   } else {
     store.delete(serverConfig.auth.initLoginCookie);
   }
@@ -115,6 +143,20 @@ export async function getSession(): Promise<SessionData | null> {
   }
   if (!session) return null;
 
+  // Single Active Login Check: Ensure this session is still the active session for this user
+  const userKey = getUserSessionRedisKey(session.userId);
+  const activeSessionId =
+    (await cacheGet<string>(userKey)) ?? memoryUserSessionStore.get(session.userId);
+
+  if (activeSessionId && activeSessionId !== id) {
+    sessionLogger.warn(
+      `Session ${id} superseded: user ${session.userId} has logged in from another browser or device`,
+    );
+    await cacheDelete(getSessionRedisKey(id));
+    memoryStore.delete(id);
+    return null;
+  }
+
   const maxInactiveMs = TTL_SECONDS * 1000;
   const now = Date.now();
 
@@ -123,12 +165,21 @@ export async function getSession(): Promise<SessionData | null> {
     sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMin}m)`);
     await cacheDelete(getSessionRedisKey(id));
     memoryStore.delete(id);
+    if (activeSessionId === id) {
+      await cacheDelete(userKey);
+      memoryUserSessionStore.delete(session.userId);
+    }
     return null;
   }
 
   session.lastActiveAt = now;
   await cacheSet(getSessionRedisKey(id), session, TTL_SECONDS);
   memoryStore.set(id, session);
+
+  // Refresh user session index TTL alongside active session
+  await cacheSet(userKey, id, TTL_SECONDS);
+  memoryUserSessionStore.set(session.userId, id);
+
   return session;
 }
 
@@ -180,7 +231,7 @@ export async function updateBranchCodeAndName(
 
   if (next?.currUser) {
     const store = await cookies();
-    store.set(serverConfig.auth.branchCookie, branchCode, cookieOpts(TTL_SECONDS, false));
+    store.set(serverConfig.auth.branchCookie, branchCode, cookieOpts(false));
   }
 
   return next?.currUser ?? null;
@@ -201,6 +252,19 @@ export async function clearInitialLoginRequirement(): Promise<void> {
 export async function destroySession(): Promise<void> {
   const id = await currentSessionId();
   if (id) {
+    let session = await cacheGet<SessionData>(getSessionRedisKey(id));
+    if (!session) {
+      session = memoryStore.get(id) ?? null;
+    }
+    if (session?.userId) {
+      const userKey = getUserSessionRedisKey(session.userId);
+      const activeSessionId =
+        (await cacheGet<string>(userKey)) ?? memoryUserSessionStore.get(session.userId);
+      if (activeSessionId === id) {
+        await cacheDelete(userKey);
+        memoryUserSessionStore.delete(session.userId);
+      }
+    }
     await cacheDelete(getSessionRedisKey(id));
     memoryStore.delete(id);
   }

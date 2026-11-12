@@ -1,0 +1,21 @@
+[
+    {
+        "clientId": "WEB-CLIENT",
+        "requestType": "GNI",
+        "controlName": "ACCOUNT",
+        "recordFunction": "I",
+        "branchCode": "JB9999",
+        "userId": "ZZ0284590"
+    },
+    {
+        "errors": [],
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "idempotencyKey": "",
+        "message": "record successfully processed!",
+        "data": {
+            "recordId": "0100000000761"
+        },
+        "timestamp": "2026-11-12T09:53:36.202934508Z"
+    }
+]

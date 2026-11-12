@@ -2,6 +2,7 @@
 
 import { useDroppable } from "@dnd-kit/core";
 import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
+import { Plus } from "lucide-react";
 import * as React from "react";
 import { getFieldColSpanClass, getGridColsClass } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
@@ -42,6 +43,17 @@ export function CanvasSectionGrid({
   });
 
   const [internalNativeOver, setInternalNativeOver] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleReset = () => setInternalNativeOver(false);
+    window.addEventListener("dragend", handleReset);
+    window.addEventListener("drop", handleReset);
+    return () => {
+      window.removeEventListener("dragend", handleReset);
+      window.removeEventListener("drop", handleReset);
+    };
+  }, []);
+
   const showHover = isOver || externalNativeOver || internalNativeOver;
   const isEmpty = section.fields.length === 0;
   const numCols = section.columns || 1;
@@ -49,13 +61,15 @@ export function CanvasSectionGrid({
   const handleNativeDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!disabled) setInternalNativeOver(true);
+    if (!disabled && !internalNativeOver) setInternalNativeOver(true);
   };
 
   const handleNativeDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setInternalNativeOver(false);
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setInternalNativeOver(false);
+    }
   };
 
   const handleNativeDrop = (e: React.DragEvent) => {
@@ -76,7 +90,7 @@ export function CanvasSectionGrid({
   const defaultEmptyText =
     section.containerType === "tab"
       ? "No fields placed in this tab yet — drag variables from the left palette"
-      : "No fields yet — drag variables here";
+      : "No fields in this card yet — drag variables from the left palette";
 
   return (
     <SortableContext items={fieldKeys} strategy={rectSortingStrategy}>
@@ -86,24 +100,30 @@ export function CanvasSectionGrid({
         onDragOver={handleNativeDragOver}
         onDragLeave={handleNativeDragLeave}
         onDrop={handleNativeDrop}
-        className={cn(
-          "transition-all rounded",
-          isEmpty && [
-            "min-h-12 flex items-center justify-center border border-dashed text-xs text-muted-foreground/60",
-            showHover
-              ? "border-primary bg-primary/10 text-primary font-medium"
-              : "border-border/60",
-          ],
-          !isEmpty && showHover && "bg-primary/5 ring-1 ring-primary/20 rounded",
-        )}
+        className="w-full transition-all rounded select-none"
       >
         {isEmpty ? (
           <button
             type="button"
             onClick={() => onSelectSection(section.id)}
-            className="w-full h-full py-3.5 bg-transparent border-0 text-xs text-muted-foreground/60 cursor-pointer"
+            className={cn(
+              "w-full min-h-20 sm:min-h-24 flex flex-col items-center justify-center p-3 text-center border-2 border-dashed rounded-lg transition-all cursor-pointer",
+              showHover
+                ? "border-primary bg-primary/10 text-primary scale-[1.01] shadow-xs"
+                : "border-border/60 bg-muted/5 text-muted-foreground hover:border-primary/40",
+            )}
           >
-            {showHover ? "↓ Drop field here" : emptyLabel || defaultEmptyText}
+            <div className="flex items-center gap-1.5 text-xs font-medium">
+              <Plus
+                className={cn("size-3.5", showHover ? "text-primary" : "text-muted-foreground")}
+              />
+              <span>
+                {showHover ? "Release to drop field here" : emptyLabel || defaultEmptyText}
+              </span>
+            </div>
+            <p className="text-[11px] text-muted-foreground/80 mt-1">
+              Drag variables from the left palette to place them inside
+            </p>
           </button>
         ) : (
           <div className={cn("grid gap-2", getGridColsClass(numCols))}>
@@ -130,6 +150,14 @@ export function CanvasSectionGrid({
                 />
               );
             })}
+
+            {/* Active Drop Placeholder Slot at End of Grid */}
+            {showHover && (
+              <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-[11px] font-medium animate-pulse shadow-xs">
+                <Plus className="size-3.5" />
+                <span>Drop field here</span>
+              </div>
+            )}
           </div>
         )}
       </section>

@@ -42,6 +42,7 @@ export interface SectionCardProps {
   disabled?: boolean;
   mode?: CbsScreenMode;
   hideHeader?: boolean;
+  layout?: "horizontal" | "stacked";
 }
 
 export interface FormRendererProps {
@@ -54,4 +55,5 @@ export interface FormRendererProps {
   auditData?: AuditData | null;
   showAuditSection?: boolean;
   hideHeader?: boolean;
+  layout?: "horizontal" | "stacked";
 }

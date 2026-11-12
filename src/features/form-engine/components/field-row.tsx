@@ -1,8 +1,8 @@
 import { Info } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
+import { useFormLayout } from "./form-layout-context";
 
 export interface FieldRowProps {
   id?: string;
@@ -17,6 +17,7 @@ export interface FieldRowProps {
   enrichText?: string;
   labelClassName?: string;
   inputClassName?: string;
+  stacked?: boolean;
   style?: CSSProperties;
   children: ReactNode;
 }
@@ -34,20 +35,28 @@ export function FieldRow({
   enrichText,
   labelClassName,
   inputClassName,
+  stacked,
   style,
   children,
 }: FieldRowProps) {
-  // Tooltip only for enrichText
+  const { layout: contextLayout } = useFormLayout();
+  const isStacked = stacked ?? contextLayout === "stacked";
+
+  // Tooltip only for enrichText:
+  // Desktop mode: tooltip is triggered on the underlined label text.
+  // Stacked/mobile mode: tooltip is triggered ONLY on the Info icon (label is plain).
   const showTooltip = Boolean(enrichText && String(enrichText).trim().length > 0);
+  const isDesktopTooltip = showTooltip && !isStacked;
+  const isIconTooltip = showTooltip && isStacked;
 
   const labelContent = (
     <span className="inline-flex items-center min-w-0 max-w-full" title={error || label}>
       <span
         className={cn(
           "truncate pb-0.5",
-          // Desktop: dotted underline indicating hover help. Mobile: underline hidden, Info icon displayed instead.
-          showTooltip
-            ? "cursor-help sm:underline decoration-dotted decoration-muted-foreground underline-offset-4"
+          // Dotted underline ONLY in desktop mode when label itself triggers the tooltip
+          isDesktopTooltip
+            ? "cursor-help underline decoration-dotted decoration-muted-foreground underline-offset-4"
             : "",
           error ? "text-destructive font-semibold" : "text-muted-foreground font-normal",
         )}
@@ -64,21 +73,27 @@ export function FieldRow({
 
   return (
     <div
-      className={cn(
-        "flex flex-col sm:flex-row sm:items-start gap-1",
-        isViewMode ? "sm:gap-2 leading-none" : "sm:gap-2",
-      )}
+      className={
+        isStacked
+          ? "flex flex-col gap-1 w-full"
+          : cn(
+              "flex flex-col sm:flex-row sm:items-start gap-1",
+              isViewMode ? "sm:gap-2 leading-none" : "sm:gap-2",
+            )
+      }
     >
-      {/* Label Column: Full-width top row on mobile, 144px (w-36) left column on desktop */}
+      {/* Label Column: Full-width top row on mobile or when stacked, 144px (w-36) left column on desktop */}
       <div
         className={cn(
-          "w-full sm:w-36 shrink-0 flex items-center justify-between text-xs select-none font-normal",
+          isStacked ? "w-full" : "w-full sm:w-36",
+          "shrink-0 flex items-center justify-between text-xs select-none font-normal",
           isViewMode ? "min-h-5 sm:min-h-5.5 pt-0.5" : "min-h-6 sm:min-h-7 sm:pt-1",
           labelClassName,
         )}
       >
         <div className="flex items-center gap-1 min-w-0 flex-1">
-          {showTooltip ? (
+          {/* Desktop Mode: Tooltip on label text hover */}
+          {isDesktopTooltip ? (
             <Tooltip>
               <TooltipTrigger render={labelContent} />
               <TooltipContent
@@ -93,28 +108,28 @@ export function FieldRow({
             labelContent
           )}
 
-          {/* Touch Info Popover: Triggers reliably on click/tap for tablet and mobile inspect mode */}
-          {showTooltip && (
-            <Popover>
-              <PopoverTrigger
+          {/* Stacked/Mobile Mode: Tooltip ONLY on the Info icon (triggers on desktop hover and mobile tap) */}
+          {isIconTooltip && (
+            <Tooltip>
+              <TooltipTrigger
                 render={
                   <button
                     type="button"
                     aria-label={`Help info for ${label}`}
-                    className="sm:hidden text-muted-foreground/60 hover:text-foreground inline-flex items-center p-0.5 rounded shrink-0 cursor-pointer focus:outline-none"
+                    className="text-muted-foreground/60 hover:text-foreground inline-flex items-center p-0.5 rounded shrink-0 cursor-help focus:outline-none"
                   >
-                    <Info className="size-3 text-muted-foreground/70" />
+                    <Info className="size-3 text-muted-foreground/70 hover:text-foreground transition-colors" />
                   </button>
                 }
               />
-              <PopoverContent
+              <TooltipContent
                 side="top"
-                align="start"
-                className="w-auto max-w-70 p-2 text-xs leading-relaxed z-50 shadow-lg bg-foreground text-background"
+                align="center"
+                className="text-xs max-w-70 sm:max-w-xs z-50 shadow-md"
               >
                 {String(enrichText)}
-              </PopoverContent>
-            </Popover>
+              </TooltipContent>
+            </Tooltip>
           )}
 
           {indexSuffix !== undefined && (
@@ -129,14 +144,16 @@ export function FieldRow({
       </div>
 
       {/* Colon separator: hidden on mobile stacked layout, visible on desktop */}
-      <span
-        className={cn(
-          "hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none",
-          isViewMode ? "pt-0.5" : "pt-1",
-        )}
-      >
-        :
-      </span>
+      {!isStacked && (
+        <span
+          className={cn(
+            "hidden sm:inline-block text-muted-foreground/60 font-mono text-xs shrink-0 select-none",
+            isViewMode ? "pt-0.5" : "pt-1",
+          )}
+        >
+          :
+        </span>
+      )}
 
       {/* Input or Pure Text View */}
       {isViewMode ? (
@@ -158,7 +175,10 @@ export function FieldRow({
       ) : (
         <div
           style={style}
-          className={cn("min-w-0 flex items-center w-full relative min-h-7", inputClassName)}
+          className={cn(
+            "min-w-0 flex items-center w-full relative min-h-7",
+            isStacked ? "w-full" : inputClassName,
+          )}
         >
           {children}
         </div>

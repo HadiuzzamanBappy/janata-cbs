@@ -83,6 +83,27 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         icon: <Palette className="size-3 text-primary" />,
         content: (
           <FcDesignerTab
+            formTitle={formData.title}
+            formDescription={formData.description}
+            authNumber={formData.authNumber}
+            rootColumns={formData.frmElements?.columns ?? 1}
+            rootDensity={formData.frmElements?.density ?? "compact"}
+            onUpdateFormConfig={(patch) => {
+              setFormData((prev) => ({
+                ...prev,
+                ...(patch.title !== undefined ? { title: patch.title } : {}),
+                ...(patch.description !== undefined ? { description: patch.description } : {}),
+                ...(patch.authNumber !== undefined ? { authNumber: patch.authNumber } : {}),
+                frmElements: {
+                  ...prev.frmElements,
+                  sections: prev.frmElements?.sections || [],
+                  ...(patch.columns !== undefined ? { columns: patch.columns } : {}),
+                  ...(patch.density !== undefined
+                    ? { density: patch.density as "compact" | "normal" | "spacious" }
+                    : {}),
+                },
+              }));
+            }}
             modelProperties={targetModelRecord?.PROPERTIES}
             targetModel={targetModelRecord?.TABLENAME}
             sections={formData.frmElements?.sections || []}

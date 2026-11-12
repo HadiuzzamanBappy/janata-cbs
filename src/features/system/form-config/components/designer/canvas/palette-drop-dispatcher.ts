@@ -46,7 +46,6 @@ export interface DispatchPaletteDropOptions {
   insertIndex?: number;
   onAddFieldToSection: (sectionId: string, template?: Partial<FormElement>) => void;
   onAddSection: AddSectionFn;
-  handlePaletteAddField: (template: Partial<FormElement>) => void;
 }
 
 /**
@@ -59,7 +58,6 @@ export function dispatchPaletteDrop({
   insertIndex,
   onAddFieldToSection,
   onAddSection,
-  handlePaletteAddField,
 }: DispatchPaletteDropOptions) {
   if (!payload || typeof payload !== "object") return;
   const data = payload as {
@@ -78,12 +76,11 @@ export function dispatchPaletteDrop({
   if ((data.type === "palette-variable" || data.type === "palette-field") && droppedField) {
     if (targetSectionId && targetSectionId !== "canvas-root") {
       onAddFieldToSection(targetSectionId, droppedField);
-    } else if (insertIndex !== undefined) {
-      // Direct drop on between-block gap: create an independent root field at exact insertIndex
-      onAddSection("card", [droppedField], "", undefined, undefined, insertIndex);
     } else {
-      // Fallback: add to existing selected/target section or create independent root field
-      handlePaletteAddField(droppedField);
+      // Direct drop on canvas root: create an independent standalone field block at targetIndex.
+      // Never silently inject into an existing selected section.
+      const targetIndex = insertIndex !== undefined ? insertIndex : sections.length;
+      onAddSection("card", [droppedField], "", undefined, undefined, targetIndex);
     }
     return;
   }

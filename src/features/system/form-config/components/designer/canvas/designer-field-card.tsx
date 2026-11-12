@@ -47,9 +47,14 @@ export function DesignerFieldCard({
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: interactive selectable canvas card
     <div
       ref={setNodeRef}
       style={style}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
       className={cn(
         "rounded-md border px-2.5 py-1.5 flex items-center justify-between text-xs transition-all bg-card/90 hover:border-primary/50 select-none",
         isSelected

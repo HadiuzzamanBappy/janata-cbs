@@ -4,6 +4,7 @@ export * from "./components/containers/tab-group-container";
 export * from "./components/field-atom";
 export * from "./components/field-factory";
 export * from "./components/field-row";
+export * from "./components/form-layout-context";
 export * from "./components/form-preview";
 export * from "./components/form-renderer";
 export * from "./hooks/use-model-lookup";

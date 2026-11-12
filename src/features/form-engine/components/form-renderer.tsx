@@ -7,6 +7,7 @@ import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
 import { CardContainer } from "./containers/card-container";
 import { TabGroupContainer } from "./containers/tab-group-container";
+import { FormLayoutContext } from "./form-layout-context";
 
 export type { FormRendererProps };
 
@@ -24,7 +25,9 @@ export function FormRenderer({
   auditData,
   showAuditSection = false,
   hideHeader = false,
+  layout = "horizontal",
 }: FormRendererProps) {
+  const layoutValue = React.useMemo(() => ({ layout }), [layout]);
   const sections = frmElements?.sections || [];
 
   // Active item tracking for multi-pane containers
@@ -70,46 +73,50 @@ export function FormRenderer({
   };
 
   return (
-    <div className="h-full w-full overflow-y-auto pr-1">
-      <div className="w-full space-y-2">
-        {blocks.map((block) => {
-          if (block.type === "single") {
+    <FormLayoutContext.Provider value={layoutValue}>
+      <div className="h-full w-full overflow-y-auto pr-1">
+        <div className="w-full space-y-2">
+          {blocks.map((block) => {
+            if (block.type === "single") {
+              return (
+                <CardContainer
+                  key={block.section.id}
+                  section={block.section}
+                  values={values}
+                  onChange={handleFieldChange}
+                  errors={errors}
+                  disabled={disabled}
+                  mode={mode}
+                  hideHeader={hideHeader}
+                />
+              );
+            }
+
+            // Tab Group
             return (
-              <CardContainer
-                key={block.section.id}
-                section={block.section}
+              <TabGroupContainer
+                key={block.groupId}
+                groupId={block.groupId}
+                tabSections={block.tabSections}
+                activeTabId={activeTabs[block.groupId]}
+                onTabChange={(grpId, tabId) =>
+                  setActiveTabs((prev) => ({ ...prev, [grpId]: tabId }))
+                }
                 values={values}
                 onChange={handleFieldChange}
                 errors={errors}
                 disabled={disabled}
                 mode={mode}
-                hideHeader={hideHeader}
               />
             );
-          }
+          })}
 
-          // Tab Group
-          return (
-            <TabGroupContainer
-              key={block.groupId}
-              groupId={block.groupId}
-              tabSections={block.tabSections}
-              activeTabId={activeTabs[block.groupId]}
-              onTabChange={(grpId, tabId) => setActiveTabs((prev) => ({ ...prev, [grpId]: tabId }))}
-              values={values}
-              onChange={handleFieldChange}
-              errors={errors}
-              disabled={disabled}
-              mode={mode}
-            />
-          );
-        })}
-
-        {/* Constant Read-Only Audit Section below all form sections */}
-        {showAuditSection && (
-          <AuditContainer auditData={auditData ?? (values.auditData as AuditData)} />
-        )}
+          {/* Constant Read-Only Audit Section below all form sections */}
+          {showAuditSection && (
+            <AuditContainer auditData={auditData ?? (values.auditData as AuditData)} />
+          )}
+        </div>
       </div>
-    </div>
+    </FormLayoutContext.Provider>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { generateClientToken } from "@/lib/core-utils";
 import type {
   FormConfigRecord,
   FormContainerType,
@@ -31,7 +32,7 @@ export function useFcSectionOps(
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const nextIndex = sections.length + 1;
-        const newId = `sec_${nextIndex}`;
+        const newId = generateClientToken("sec");
         const defaultTitle =
           customTitle !== undefined
             ? customTitle
@@ -43,7 +44,7 @@ export function useFcSectionOps(
           id: newId,
           title: defaultTitle,
           containerType,
-          groupId: containerType === "tab" ? groupId || `tabgrp_${nextIndex}` : groupId,
+          groupId: containerType === "tab" ? groupId || generateClientToken("tabgrp") : groupId,
           groupTitle:
             containerType === "tab" ? groupTitle || defaultTitle || `Tab ${nextIndex}` : groupTitle,
           columns: columns ?? 1,
@@ -71,13 +72,10 @@ export function useFcSectionOps(
           });
 
         let updatedSections: FormSection[];
-        if (
-          insertIndex !== undefined &&
-          insertIndex >= 0 &&
-          insertIndex <= cleanedExistingSections.length
-        ) {
+        if (insertIndex !== undefined) {
+          const boundedIndex = Math.max(0, Math.min(insertIndex, cleanedExistingSections.length));
           updatedSections = [...cleanedExistingSections];
-          updatedSections.splice(insertIndex, 0, newSection);
+          updatedSections.splice(boundedIndex, 0, newSection);
         } else {
           updatedSections = [...cleanedExistingSections, newSection];
         }

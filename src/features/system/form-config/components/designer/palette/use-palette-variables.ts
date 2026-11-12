@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
-import type { PaletteItem } from "./palette-types";
+import type { PaletteItem, PaletteTypeFilter } from "./palette-types";
 
 export interface UsePaletteVariablesOptions {
   targetModel?: string;
@@ -17,7 +17,8 @@ export function usePaletteVariables({
   propsModelProperties,
   usedFieldNames,
 }: UsePaletteVariablesOptions) {
-  const [modelFilter, setModelFilter] = React.useState<"all" | "unplaced">("all");
+  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [typeFilter, setTypeFilter] = React.useState<PaletteTypeFilter>("all");
   const [collapsedGroups, setCollapsedGroups] = React.useState<Record<string, boolean>>({});
 
   const hasProps = Boolean(propsModelProperties && propsModelProperties.length > 0);
@@ -75,23 +76,72 @@ export function usePaletteVariables({
       }
     }
 
-    if (modelFilter === "unplaced") {
-      return items.filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return items.filter((item) => {
+      // 1. Text Search Filter (NAME and LABEL)
+      if (query) {
+        if (item.kind === "single") {
+          const matchName = item.property.NAME.toLowerCase().includes(query);
+          const matchLabel = (item.property.LABEL || "").toLowerCase().includes(query);
+          if (!matchName && !matchLabel) return false;
+        } else {
+          const matchParent =
+            item.parent.NAME.toLowerCase().includes(query) ||
+            (item.parent.LABEL || "").toLowerCase().includes(query);
+          const matchChild = item.children.some(
+            (c) =>
+              c.NAME.toLowerCase().includes(query) || (c.LABEL || "").toLowerCase().includes(query),
+          );
+          if (!matchParent && !matchChild) return false;
+        }
+      }
+
+      // 2. Type / Placed Filter
+      if (typeFilter === "unplaced") {
         if (item.kind === "single") {
           return !usedFieldNames.has(item.property.NAME);
         }
         return item.children.some((c) => !usedFieldNames.has(c.NAME));
-      });
-    }
+      }
 
-    return items;
-  }, [modelProperties, modelFilter, usedFieldNames]);
+      if (typeFilter === "text") {
+        if (item.kind === "single") {
+          const t = (item.property.TYPE || "Text").toUpperCase();
+          return t.includes("TEXT") || t.includes("CHAR") || t.includes("STRING");
+        }
+        return true;
+      }
+
+      if (typeFilter === "number") {
+        if (item.kind === "single") {
+          const t = (item.property.TYPE || "").toUpperCase();
+          return (
+            t.includes("NUM") || t.includes("AMOUNT") || t.includes("INT") || t.includes("DECIMAL")
+          );
+        }
+        return true;
+      }
+
+      if (typeFilter === "date") {
+        if (item.kind === "single") {
+          const t = (item.property.TYPE || "").toUpperCase();
+          return t.includes("DATE") || t.includes("TIME");
+        }
+        return true;
+      }
+
+      return true;
+    });
+  }, [modelProperties, searchQuery, typeFilter, usedFieldNames]);
 
   return {
     modelProperties,
     loadingModel: hasProps ? false : loadingModel,
-    modelFilter,
-    setModelFilter,
+    searchQuery,
+    setSearchQuery,
+    typeFilter,
+    setTypeFilter,
     placedCount,
     paletteItems,
     collapsedGroups,

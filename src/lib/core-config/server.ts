@@ -79,6 +79,7 @@ export const serverConfig = {
       inquirySpec: (id: string) => `spec:enq:${id}`,
       menu: (target: string) => `menu:${target}`,
       session: (id: string) => `sess:${id}`,
+      userSession: (userId: string) => `user:sess:${userId}`,
       rateLimit: (key: string) => `rl:${key}`,
     },
   },

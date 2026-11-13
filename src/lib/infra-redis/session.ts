@@ -114,11 +114,7 @@ export async function createSession(
   store.set(COOKIE_NAME, id, cookieOpts(true));
 
   if (payload.currUser.branchCode) {
-    store.set(
-      serverConfig.auth.branchCookie,
-      payload.currUser.branchCode,
-      cookieOpts(false),
-    );
+    store.set(serverConfig.auth.branchCookie, payload.currUser.branchCode, cookieOpts(false));
   }
 
   if (payload.currUser.initLogin) {

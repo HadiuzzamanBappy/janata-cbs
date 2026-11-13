@@ -35,14 +35,14 @@ flowchart TD
 
 ### Detailed Gap Summary
 
-| # | Component | Root Cause | Symptom |
-| :--- | :--- | :--- | :--- |
-| **1** | [`src/lib/infra-redis/session.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/infra-redis/session.ts) | `cbs_sid` cookie is created with `maxAge: 960s` (16 mins). Next.js Server Components cannot set cookies, and `getSession()` never slides the cookie header. | Exactly 16 minutes after login, the browser deletes `cbs_sid` while the user is actively typing. The next proxy request fails with `401 Unauthorized`. |
-| **2** | [`src/lib/infra-redis/session.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/infra-redis/session.ts) | Redis stores sessions by random UUID (`cbs:sess:{uuid}`). There is no index mapping `userId -> sessionId`. | User `AD028459` can be logged in concurrently on Chrome, Edge, and multiple physical machines without conflict. |
-| **3** | [`src/components/layout/workbench-shell.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/components/layout/workbench-shell.tsx) | No active tab leadership election across browser tabs. | An operator can open 5 tabs in the same browser, creating desynchronized draft forms and uncoordinated record mutations. |
-| **4** | [`src/app/(workbench)/screen/[id]/page.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/app/(workbench)/screen/[id]/page.tsx) | Popups intentionally omit `AppTimeoutWatcher`, but have no passive activity listeners. DOM events in Window B do not bubble to Window A. | Operator works exclusively in a detached popup. The main dashboard receives zero events, times out after 15m, and deletes the Redis session. Submitting from popup fails with 401. |
-| **5** | [`src/hooks/use-idle-timeout.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/hooks/use-idle-timeout.ts) | `Number(localStorage.getItem(STORAGE_KEY) \|\| Date.now())` evaluates to `Date.now()` when the key is null. | `elapsed = Date.now() - Date.now() = 0`. The ticker permanently calculates `elapsed = 0` every second. The timeout warning never displays. |
-| **6** | [`src/lib/cbs-client/transport/proxy-client.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/cbs-client/transport/proxy-client.ts) | On `401 Unauthorized`, `proxy-client.ts` fires a Sonner toast and throws an error. | The operator is left on a dead form with disabled action buttons. No uncloseable "Session Expired" modal appears and no redirect occurs. |
+| #     | Component                                                                                                                              | Root Cause                                                                                                                                                  | Symptom                                                                                                                                                                            |
+| :---- | :------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1** | [`src/lib/infra-redis/session.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/infra-redis/session.ts)                             | `cbs_sid` cookie is created with `maxAge: 960s` (16 mins). Next.js Server Components cannot set cookies, and `getSession()` never slides the cookie header. | Exactly 16 minutes after login, the browser deletes `cbs_sid` while the user is actively typing. The next proxy request fails with `401 Unauthorized`.                             |
+| **2** | [`src/lib/infra-redis/session.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/infra-redis/session.ts)                             | Redis stores sessions by random UUID (`cbs:sess:{uuid}`). There is no index mapping `userId -> sessionId`.                                                  | User `AD028459` can be logged in concurrently on Chrome, Edge, and multiple physical machines without conflict.                                                                    |
+| **3** | [`src/components/layout/workbench-shell.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/components/layout/workbench-shell.tsx)       | No active tab leadership election across browser tabs.                                                                                                      | An operator can open 5 tabs in the same browser, creating desynchronized draft forms and uncoordinated record mutations.                                                           |
+| **4** | [`src/app/(workbench)/screen/[id]/page.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/app/(workbench)/screen/[id]/page.tsx)         | Popups intentionally omit `AppTimeoutWatcher`, but have no passive activity listeners. DOM events in Window B do not bubble to Window A.                    | Operator works exclusively in a detached popup. The main dashboard receives zero events, times out after 15m, and deletes the Redis session. Submitting from popup fails with 401. |
+| **5** | [`src/hooks/use-idle-timeout.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/hooks/use-idle-timeout.ts)                               | `Number(localStorage.getItem(STORAGE_KEY) \|\| Date.now())` evaluates to `Date.now()` when the key is null.                                                 | `elapsed = Date.now() - Date.now() = 0`. The ticker permanently calculates `elapsed = 0` every second. The timeout warning never displays.                                         |
+| **6** | [`src/lib/cbs-client/transport/proxy-client.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/cbs-client/transport/proxy-client.ts) | On `401 Unauthorized`, `proxy-client.ts` fires a Sonner toast and throws an error.                                                                          | The operator is left on a dead form with disabled action buttons. No uncloseable "Session Expired" modal appears and no redirect occurs.                                           |
 
 ---
 
@@ -86,14 +86,18 @@ sequenceDiagram
 ### Feature 1: Fix the Fixed Cookie Expiration Cliff (Sliding Inactivity Session)
 
 #### What It Does
+
 Transforms `cbs_sid` from a brittle, fixed 16-minute cookie into a **session-scoped cookie** (or long-lived shift cookie). The client browser will never discard `cbs_sid` mid-work. The true inactivity timeout is governed strictly by **Redis TTL** and `session.lastActiveAt`.
 
 #### Affected Files
+
 - [`src/lib/infra-redis/session.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/infra-redis/session.ts)
 - [`src/lib/core-config/server.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/core-config/server.ts)
 
 #### Implementation Details
+
 1. In `src/lib/infra-redis/session.ts`, update `cookieOpts`:
+
    ```ts
    // Session cookie: omit maxAge so the cookie persists for the browser session.
    // Redis TTL remains the strict source of truth for inactivity invalidation.
@@ -106,6 +110,7 @@ Transforms `cbs_sid` from a brittle, fixed 16-minute cookie into a **session-sco
    });
    ```
 2. When creating the session in `createSession`:
+
    ```ts
    // cbs_sid is session-scoped (expires when browser terminates or on explicit logout)
    store.set(COOKIE_NAME, id, cookieOpts(true));
@@ -113,6 +118,7 @@ Transforms `cbs_sid` from a brittle, fixed 16-minute cookie into a **session-sco
 3. Whenever `getSession()` is called (during proxy mutations, heartbeats, or route navigation), `session.lastActiveAt` updates and the Redis key TTL resets to `serverConfig.auth.sessionMaxAgeSeconds`.
 
 #### Verification Steps
+
 1. Log in with any teller user.
 2. Remain active for **17+ minutes** (perform intermittent clicks or form updates).
 3. **Verify:** No 401 error or "Session Expired" toast appears at minute 16. The session continues smoothly.
@@ -122,14 +128,18 @@ Transforms `cbs_sid` from a brittle, fixed 16-minute cookie into a **session-sco
 ### Feature 2: Server-Side Single Active Login (Cross-Browser / Cross-Device Enforcement)
 
 #### What It Does
+
 Prevents the same user ID from being logged in simultaneously on different browsers, machines, or incognito tabs. Logging in on a new device immediately terminates the prior device's session.
 
 #### Affected Files
+
 - [`src/lib/core-config/server.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/core-config/server.ts) (Add Redis cache key generator)
 - [`src/lib/infra-redis/session.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/infra-redis/session.ts) (User-to-session index & revocation)
 
 #### Implementation Details
+
 1. Add cache key helper in `src/lib/core-config/server.ts`:
+
    ```ts
    cacheKeys: {
      // ...
@@ -137,6 +147,7 @@ Prevents the same user ID from being logged in simultaneously on different brows
    }
    ```
 2. In `createSession` inside `src/lib/infra-redis/session.ts`:
+
    ```ts
    // 1. Evict any prior session for this userId across all devices
    const userSessionKey = cacheKey(serverConfig.redis.cacheKeys.userSession(data.userId));
@@ -151,6 +162,7 @@ Prevents the same user ID from being logged in simultaneously on different brows
    await cacheSet(userSessionKey, id, TTL_SECONDS);
    ```
 3. In `getSession` inside `src/lib/infra-redis/session.ts`:
+
    ```ts
    // Validate that this session is still the active session for this user
    const userSessionKey = cacheKey(serverConfig.redis.cacheKeys.userSession(session.userId));
@@ -163,6 +175,7 @@ Prevents the same user ID from being logged in simultaneously on different brows
    }
    ```
 4. On `destroySession`:
+
    ```ts
    if (session?.userId) {
      await cacheDelete(cacheKey(serverConfig.redis.cacheKeys.userSession(session.userId)));
@@ -170,6 +183,7 @@ Prevents the same user ID from being logged in simultaneously on different brows
    ```
 
 #### Verification Steps
+
 1. Log in as `AD028459` in Google Chrome (Session 1).
 2. Open Microsoft Edge and log in as `AD028459` (Session 2).
 3. Return to Chrome and click any screen or action button.
@@ -180,15 +194,19 @@ Prevents the same user ID from being logged in simultaneously on different brows
 ### Feature 3: Client-Side Single Active Tab Enforcement (Within the Same Browser)
 
 #### What It Does
+
 Enforces that an operator can only have **one active dashboard workbench tab** open within the same browser. Opening a second dashboard tab locks the first tab with an uncloseable security overlay and a **"Take Over Session Here"** action button.
 
 #### Affected Files
-- [`src/hooks/use-single-tab.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/hooks/use-single-tab.ts) *(New Hook)*
+
+- [`src/hooks/use-single-tab.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/hooks/use-single-tab.ts) _(New Hook)_
 - [`src/components/layout/workbench-shell.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/components/layout/workbench-shell.tsx)
 - [`src/lib/core-config/client.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/core-config/client.ts) (Add storage key)
 
 #### Implementation Details
+
 1. Add constant in `src/lib/core-config/client.ts`:
+
    ```ts
    storage: {
      local: {
@@ -205,10 +223,10 @@ Enforces that an operator can only have **one active dashboard workbench tab** o
 3. In `WorkbenchShell`:
    - If `isOverridden` is true, renders an uncloseable `<Dialog>` or full-height overlay:
      > **"Active Banking Session in Another Tab"**  
-     > *"This session was claimed by another browser tab. For data integrity, only one active tab is permitted."*  
+     > _"This session was claimed by another browser tab. For data integrity, only one active tab is permitted."_  
      > **Button:** `Take Over Session Here` (re-claims leadership).
-
 #### Verification Steps
+
 1. Open the dashboard in Tab 1.
 2. Open a new browser tab and navigate to `/dashboard` (Tab 2).
 3. **Verify:** Tab 1 instantly blurs and shows the "Active in Another Tab" modal.
@@ -220,13 +238,17 @@ Enforces that an operator can only have **one active dashboard workbench tab** o
 ### Feature 4: Detached Popup Passive Activity Reporter (No Dialogs in Popups)
 
 #### What It Does
+
 Honors the intentional design choice that **detached popups must never render timeout modals or countdown dialogs**, while resolving the activity blackout. Keystrokes and clicks in the popup passively update the shared `lastActivity` timestamp so the background dashboard does not falsely assume the operator is idle.
 
 #### Affected Files
+
 - [`src/app/(workbench)/screen/[id]/page.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/app/(workbench)/screen/[id]/page.tsx)
 
 #### Implementation Details
+
 1. In `StandaloneScreenContent` inside `src/app/(workbench)/screen/[id]/page.tsx`, mount a passive activity listener:
+
    ```ts
    React.useEffect(() => {
      let lastRecorded = Date.now();
@@ -254,6 +276,7 @@ Honors the intentional design choice that **detached popups must never render ti
 2. **Zero UI impact:** No `<AppTimeoutWatcher>`, no dialogs, and no countdown banners inside `/screen/[id]`.
 
 #### Verification Steps
+
 1. Open an Account Opening form in a detached popup window (`/screen/[id]`).
 2. Minimize or ignore the main dashboard window.
 3. Spend 16+ minutes typing and working inside the popup window.
@@ -264,13 +287,17 @@ Honors the intentional design choice that **detached popups must never render ti
 ### Feature 5: Fix Ticker Freeze & Multi-Tab Logout Sync in `useIdleTimeout`
 
 #### What It Does
+
 Fixes the mathematical bug where a missing or deleted `STORAGE_KEY` results in `elapsed = 0` forever (freezing the timeout watcher). Also ensures that when any tab logs out, all other open tabs immediately log out.
 
 #### Affected Files
+
 - [`src/hooks/use-idle-timeout.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/hooks/use-idle-timeout.ts)
 
 #### Implementation Details
+
 1. **Fix missing key handling in the 1-second ticker:**
+
    ```ts
    const rawStored = localStorage.getItem(STORAGE_KEY);
    if (!rawStored) {
@@ -283,6 +310,7 @@ Fixes the mathematical bug where a missing or deleted `STORAGE_KEY` results in `
    const elapsed = Date.now() - storedTime;
    ```
 2. **Fix multi-tab logout synchronization:**
+
    ```ts
    const handleStorageChange = (e: StorageEvent) => {
      if (isLoggedOut) return;
@@ -303,6 +331,7 @@ Fixes the mathematical bug where a missing or deleted `STORAGE_KEY` results in `
    };
    ```
 3. **Listen for `SESSION_LOGOUT` broadcast:**
+
    ```ts
    React.useEffect(() => {
      const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
@@ -316,6 +345,7 @@ Fixes the mathematical bug where a missing or deleted `STORAGE_KEY` results in `
    ```
 
 #### Verification Steps
+
 1. In Tab 1, click "Logout" or let the 15-minute timer expire.
 2. **Verify:** Tab 2 immediately transitions to the logged-out modal without delay.
 3. Leave the dashboard untouched for 14 minutes.
@@ -326,14 +356,18 @@ Fixes the mathematical bug where a missing or deleted `STORAGE_KEY` results in `
 ### Feature 6: Actionable Global 401 Interceptor with "Log In Again" Modal
 
 #### What It Does
+
 Replaces the unhelpful, passive floating Sonner toast with an uncloseable **"Session Expired"** modal when any API proxy call encounters `401 Unauthorized`.
 
 #### Affected Files
+
 - [`src/lib/cbs-client/transport/proxy-client.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/cbs-client/transport/proxy-client.ts)
 - [`src/components/layout/app-timeout-watcher.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/components/layout/app-timeout-watcher.tsx)
 
 #### Implementation Details
+
 1. In `src/lib/cbs-client/transport/proxy-client.ts`:
+
    ```ts
    if (res.status === 401) {
      if (typeof window !== "undefined") {
@@ -354,7 +388,9 @@ Replaces the unhelpful, passive floating Sonner toast with an uncloseable **"Ses
    - The uncloseable "Session Expired" dialog renders with the prominent **"Log In Again"** button, redirecting cleanly to `/login` and resetting stores.
 
 #### Verification Steps
+
 1. Simulate a backend 401 by manually deleting the active session key in Redis:
+
    ```bash
    pnpm cache:clear
    ```
@@ -386,4 +422,3 @@ pnpm verify:redis
 - [ ] **DRY Check:** Session verification logic delegates exclusively to `src/lib/infra-redis`.
 - [ ] **File Budgets:** Components $\le 300$ lines, hooks/helpers $\le 200$ lines.
 - [ ] **Dual Workspace Contract:** Internals tabs (`panel`) and detached popups (`window`) function without state or session collisions.
-

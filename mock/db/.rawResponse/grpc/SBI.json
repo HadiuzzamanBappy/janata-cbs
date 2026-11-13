@@ -1,175 +1,175 @@
 [
-    {
-        "idempotencyKey": "",
-        "clientId": "WEB-CLIENT",
-        "requestType": "SBI",
-        "controlName": "MENU",
-        "recordFunction": "L",
-        "recordId": "",
-        "authLevel": 1,
-        "branchCode": "JB9999",
-        "userId": "ZZ0284590"
-    },
-    {
-        "errors": [],
-        "status": "SUCCESS",
-        "statusCode": 200,
-        "idempotencyKey": "",
-        "message": "record successfully processed!",
-        "data": {
-            "records": [
-                {
-                    "recordId": "1"
-                },
-                {
-                    "recordId": "10"
-                },
-                {
-                    "recordId": "11"
-                },
-                {
-                    "recordId": "12"
-                },
-                {
-                    "recordId": "13"
-                },
-                {
-                    "recordId": "14"
-                },
-                {
-                    "recordId": "15"
-                },
-                {
-                    "recordId": "16"
-                },
-                {
-                    "recordId": "17"
-                },
-                {
-                    "recordId": "18"
-                },
-                {
-                    "recordId": "19"
-                },
-                {
-                    "recordId": "2"
-                },
-                {
-                    "recordId": "20"
-                },
-                {
-                    "recordId": "21"
-                },
-                {
-                    "recordId": "22"
-                },
-                {
-                    "recordId": "23"
-                },
-                {
-                    "recordId": "24"
-                },
-                {
-                    "recordId": "26"
-                },
-                {
-                    "recordId": "27"
-                },
-                {
-                    "recordId": "28"
-                },
-                {
-                    "recordId": "29"
-                },
-                {
-                    "recordId": "3"
-                },
-                {
-                    "recordId": "31"
-                },
-                {
-                    "recordId": "32"
-                },
-                {
-                    "recordId": "33"
-                },
-                {
-                    "recordId": "34"
-                },
-                {
-                    "recordId": "35"
-                },
-                {
-                    "recordId": "36"
-                },
-                {
-                    "recordId": "37"
-                },
-                {
-                    "recordId": "38"
-                },
-                {
-                    "recordId": "39"
-                },
-                {
-                    "recordId": "4"
-                },
-                {
-                    "recordId": "40"
-                },
-                {
-                    "recordId": "41"
-                },
-                {
-                    "recordId": "42"
-                },
-                {
-                    "recordId": "43"
-                },
-                {
-                    "recordId": "44"
-                },
-                {
-                    "recordId": "45"
-                },
-                {
-                    "recordId": "46"
-                },
-                {
-                    "recordId": "47"
-                },
-                {
-                    "recordId": "48"
-                },
-                {
-                    "recordId": "49"
-                },
-                {
-                    "recordId": "5"
-                },
-                {
-                    "recordId": "50"
-                },
-                {
-                    "recordId": "51"
-                },
-                {
-                    "recordId": "52"
-                },
-                {
-                    "recordId": "6"
-                },
-                {
-                    "recordId": "7"
-                },
-                {
-                    "recordId": "8"
-                },
-                {
-                    "recordId": "9"
-                }
-            ]
+  {
+    "idempotencyKey": "",
+    "clientId": "WEB-CLIENT",
+    "requestType": "SBI",
+    "controlName": "MENU",
+    "recordFunction": "L",
+    "recordId": "",
+    "authLevel": 1,
+    "branchCode": "JB9999",
+    "userId": "ZZ0284590"
+  },
+  {
+    "errors": [],
+    "status": "SUCCESS",
+    "statusCode": 200,
+    "idempotencyKey": "",
+    "message": "record successfully processed!",
+    "data": {
+      "records": [
+        {
+          "recordId": "1"
         },
-        "timestamp": "2026-11-12T09:10:35.634483357Z"
-    }
+        {
+          "recordId": "10"
+        },
+        {
+          "recordId": "11"
+        },
+        {
+          "recordId": "12"
+        },
+        {
+          "recordId": "13"
+        },
+        {
+          "recordId": "14"
+        },
+        {
+          "recordId": "15"
+        },
+        {
+          "recordId": "16"
+        },
+        {
+          "recordId": "17"
+        },
+        {
+          "recordId": "18"
+        },
+        {
+          "recordId": "19"
+        },
+        {
+          "recordId": "2"
+        },
+        {
+          "recordId": "20"
+        },
+        {
+          "recordId": "21"
+        },
+        {
+          "recordId": "22"
+        },
+        {
+          "recordId": "23"
+        },
+        {
+          "recordId": "24"
+        },
+        {
+          "recordId": "26"
+        },
+        {
+          "recordId": "27"
+        },
+        {
+          "recordId": "28"
+        },
+        {
+          "recordId": "29"
+        },
+        {
+          "recordId": "3"
+        },
+        {
+          "recordId": "31"
+        },
+        {
+          "recordId": "32"
+        },
+        {
+          "recordId": "33"
+        },
+        {
+          "recordId": "34"
+        },
+        {
+          "recordId": "35"
+        },
+        {
+          "recordId": "36"
+        },
+        {
+          "recordId": "37"
+        },
+        {
+          "recordId": "38"
+        },
+        {
+          "recordId": "39"
+        },
+        {
+          "recordId": "4"
+        },
+        {
+          "recordId": "40"
+        },
+        {
+          "recordId": "41"
+        },
+        {
+          "recordId": "42"
+        },
+        {
+          "recordId": "43"
+        },
+        {
+          "recordId": "44"
+        },
+        {
+          "recordId": "45"
+        },
+        {
+          "recordId": "46"
+        },
+        {
+          "recordId": "47"
+        },
+        {
+          "recordId": "48"
+        },
+        {
+          "recordId": "49"
+        },
+        {
+          "recordId": "5"
+        },
+        {
+          "recordId": "50"
+        },
+        {
+          "recordId": "51"
+        },
+        {
+          "recordId": "52"
+        },
+        {
+          "recordId": "6"
+        },
+        {
+          "recordId": "7"
+        },
+        {
+          "recordId": "8"
+        },
+        {
+          "recordId": "9"
+        }
+      ]
+    },
+    "timestamp": "2026-11-12T09:10:35.634483357Z"
+  }
 ]

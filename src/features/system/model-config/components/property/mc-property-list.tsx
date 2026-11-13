@@ -87,7 +87,7 @@ export function McPropertyList({
               title="Add a column"
             >
               <Plus className="size-3.5" />
-              <span className="hidden sm:inline">Add Column</span>
+              <span className="hidden sm:inline">Add</span>
             </Button>
           )}
         </div>
@@ -172,7 +172,7 @@ export function McPropertyList({
                           : "bg-muted text-muted-foreground font-medium",
                       )}
                     >
-                      #{prop.SN}
+                      {prop.SN}
                     </span>
 
                     {/* Column Name */}
@@ -231,8 +231,8 @@ export function McPropertyList({
                   </div>
                 </div>
 
-                {/* Sub-properties container when TYPE is Object */}
-                {prop.TYPE === "Object" && (
+                {/* Sub-properties container when TYPE is Json */}
+                {prop.TYPE === "Json" && (
                   <div className="bg-muted/15 border-l-2 border-primary/30 ml-3.5 my-0.5 space-y-0.5">
                     {(prop.PROP || []).map((sub) => (
                       <McSubPropertyItem

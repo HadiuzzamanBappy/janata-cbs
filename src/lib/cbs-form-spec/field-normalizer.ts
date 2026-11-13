@@ -59,8 +59,14 @@ export function deriveSemanticWidth(
   }
 
   const normType = (type || "").toLowerCase().trim();
-  if (normType === "textarea") return "full";
-  if (normType === "boolean" || normType === "switch" || normType === "checkbox") return "xs";
+  if (normType === "textarea" || normType === "json" || normType === "object") return "full";
+  if (
+    normType === "boolean" ||
+    normType === "switch" ||
+    normType === "checkbox" ||
+    normType === "time"
+  )
+    return "xs";
   if (normType === "date" || normType === "datetime") return "sm";
   if (normType === "amount" || normType === "rate" || normType === "number") return "md";
 
@@ -95,9 +101,13 @@ export function resolveWidgetType(
   param?: FormFieldParameter,
   explicitWidget?: string,
 ): FormWidgetType {
-  const normType = (type || "Text").trim();
+  const normType = (type || "String").trim();
+  const paramType = String(param?.TYPE || param?.type || "").toUpperCase();
+  const paramData = param?.DATA || param?.data;
   const hasLookup = Boolean(
-    param?.type === "M" || (param?.type === "O" && param.data && param.data.length > 0),
+    paramType === "M" ||
+      paramType === "L" ||
+      (paramType === "O" && Array.isArray(paramData) && paramData.length > 0),
   );
 
   if (explicitWidget) {
@@ -118,6 +128,7 @@ export function resolveWidgetType(
   if (typeLower === "textarea") return "textarea";
   if (typeLower === "datetime") return "datetime";
   if (typeLower === "date") return "date";
+  if (typeLower === "time") return "time";
   if (typeLower === "select") return "select";
   if (typeLower === "switch") return "switch";
   if (typeLower === "boolean" || typeLower === "checkbox") return "checkbox";
@@ -139,31 +150,47 @@ export function normalizeParameter(raw?: Record<string, unknown> | null): FormEl
   if (!raw) {
     return undefined;
   }
-  const rawData = Array.isArray(raw.data) ? raw.data : [];
-  const normalizedData = rawData.map((item) => {
+  const rawData: unknown[] = Array.isArray(raw.data)
+    ? (raw.data as unknown[])
+    : Array.isArray(raw.DATA)
+      ? (raw.DATA as unknown[])
+      : [];
+  const normalizedData = rawData.map((item: unknown) => {
     const d = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
-    const itemCode = String(d.itemCode ?? d.code ?? item ?? "").trim();
-    const itemLabel = String(d.itemLabel ?? d.label ?? d.itemCode ?? itemCode).trim();
+    const code = String(d.code ?? d.itemCode ?? item ?? "").trim();
+    const label = String(d.label ?? d.itemLabel ?? d.code ?? code).trim();
     return {
-      itemCode,
-      itemLabel: itemLabel || itemCode,
+      code,
+      label: label || code,
     };
   });
+
+  const rawType = String(raw.type ?? raw.TYPE ?? "O").toUpperCase();
+  const normalizedType = (rawType === "M" || rawType === "L" ? rawType : "O") as "O" | "M" | "L";
+  const modelName = String(raw.modelName ?? raw.SOURCE ?? raw.source ?? "");
+  const codeField = String(raw.codeField ?? raw.VALUEFIELD ?? raw.valueField ?? "");
+  const displayField = String(raw.displayField ?? raw.DISPLAYFIELD ?? "");
+  const condition = String(raw.condition ?? raw.CONDITION ?? "");
+  const reference = String(raw.reference ?? raw.REFERENCE ?? "");
+
   return {
-    type: String(raw.type || "O"),
+    type: normalizedType,
     data: normalizedData,
-    modelName: String(raw.modelName || ""),
-    codeField: String(raw.codeField || ""),
-    displayField: String(raw.displayField || ""),
-    condition: String(raw.condition || ""),
-    reference: String(raw.reference || ""),
+    modelName,
+    codeField,
+    displayField,
+    condition,
+    reference,
   };
 }
 
 export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormElement {
   const snStr = String(p.SN || idx + 1);
   const baseLabel = formatNameToLabel(p.NAME) || `Field #${snStr}`;
-  const param = normalizeParameter(p.PARAMETER);
+  const rawParam = (p as unknown as Record<string, unknown>).PARAMETER as
+    | Record<string, unknown>
+    | undefined;
+  const param = normalizeParameter(rawParam);
   const explicitWidget = (p as Record<string, unknown>).WIDGET as string | undefined;
   const effectiveWidget = resolveWidgetType(p.TYPE, param, explicitWidget);
 
@@ -175,7 +202,7 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
     SN: snStr,
     NAME: p.NAME || `field_${snStr}`,
     LABEL: baseLabel,
-    TYPE: p.TYPE || "Text",
+    TYPE: p.TYPE || "String",
     LENGTH: p.LENGTH ?? 35,
     STRUCTURE: p.STRUCTURE || "S",
     REQUIRED: Boolean(p.REQUIRED),

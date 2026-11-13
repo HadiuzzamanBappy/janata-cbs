@@ -163,7 +163,7 @@ async function runSuite() {
     PROPERTIES: [
       {
         NAME: "accNo",
-        TYPE: "Text",
+        TYPE: "String",
         LENGTH: 35,
         REQUIRED: true,
       },
@@ -219,7 +219,7 @@ async function runSuite() {
               SN: "1",
               NAME: "ACC_TITLE",
               LABEL: "Account Title",
-              TYPE: "Text",
+              TYPE: "String",
               STRUCTURE: "S",
               LENGTH: 35,
             },
@@ -249,7 +249,7 @@ async function runSuite() {
       {
         SN: "1",
         NAME: "id",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
@@ -273,7 +273,7 @@ async function runSuite() {
       {
         SN: "4",
         NAME: "userName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: "65" as unknown as number, // Stringified number from DB wire: should coerce to 65
       },

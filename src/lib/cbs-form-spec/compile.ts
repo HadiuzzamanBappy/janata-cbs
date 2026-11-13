@@ -5,7 +5,6 @@ import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-
 import {
   defaultWidthForLength,
   modelPropToFormElement,
-  normalizeParameter,
   resolveWidgetType,
 } from "./field-normalizer";
 
@@ -91,19 +90,14 @@ export function compileFormSpec(
       return {
         ...field,
         LABEL: field.LABEL || formatNameToLabel(modelProp.NAME),
-        TYPE: field.TYPE || modelProp.TYPE || "Text",
+        TYPE: field.TYPE || modelProp.TYPE || "String",
         LENGTH: field.LENGTH || modelProp.LENGTH || 35,
         STRUCTURE: field.STRUCTURE || modelProp.STRUCTURE || "S",
         // Invariant: ModelConfig is physical database authority.
         REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
         WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
-        WIDGET: resolveWidgetType(modelProp.TYPE, modelProp.PARAMETER, field.WIDGET),
-        PARAMETER:
-          field.PARAMETER?.data && field.PARAMETER.data.length > 0
-            ? field.PARAMETER
-            : modelProp.PARAMETER
-              ? normalizeParameter(modelProp.PARAMETER)
-              : field.PARAMETER,
+        WIDGET: resolveWidgetType(modelProp.TYPE, field.PARAMETER, field.WIDGET),
+        PARAMETER: field.PARAMETER,
         VALIDATION: field.VALIDATION,
         VISIBLE_WHEN: field.VISIBLE_WHEN,
         DISABLED_WHEN: field.DISABLED_WHEN,

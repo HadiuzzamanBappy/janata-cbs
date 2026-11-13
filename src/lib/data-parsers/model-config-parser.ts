@@ -13,8 +13,9 @@ import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 const FIXED_TYPE_LENGTHS: Readonly<Record<string, number>> = {
   Date: 10,
   DateTime: 19,
+  Time: 8,
   Boolean: 1,
-  Object: 0,
+  Json: 0,
 };
 
 const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
@@ -95,7 +96,7 @@ export function parseModelConfig(
  */
 export function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProperty {
   const normType = (
-    VALID_PROPERTY_TYPES.has(prop.TYPE) ? prop.TYPE : "Text"
+    VALID_PROPERTY_TYPES.has(prop.TYPE) ? prop.TYPE : "String"
   ) as ModelProperty["TYPE"];
   const normStructure = normType === "Boolean" ? "S" : prop.STRUCTURE === "M" ? "M" : "S";
 
@@ -114,31 +115,7 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
     REQUIRED: Boolean(prop.REQUIRED),
   };
 
-  if (normType === "Text" && prop.PARAMETER) {
-    const { type, data, modelName, codeField, displayField, condition } = prop.PARAMETER;
-    if (type === "O") {
-      const cleanData = (Array.isArray(data) ? data : [])
-        .map((item) => {
-          const rec = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
-          const code = String(rec.itemCode ?? rec.code ?? item ?? "").trim();
-          const label = String(rec.itemLabel ?? rec.label ?? code).trim();
-          return code || label ? { itemCode: code || label, itemLabel: label || code } : null;
-        })
-        .filter((item): item is { itemCode: string; itemLabel: string } => item !== null);
-
-      if (cleanData.length > 0) sanitized.PARAMETER = { type: "O", data: cleanData };
-    } else if (type === "M" && modelName?.trim()) {
-      sanitized.PARAMETER = {
-        type: "M",
-        modelName: modelName.trim(),
-        codeField: String(codeField || "").trim(),
-        displayField: String(displayField || "").trim(),
-        ...(condition?.trim() ? { condition: condition.trim() } : {}),
-      };
-    }
-  }
-
-  if (normType === "Object" && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
+  if (normType === "Json" && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
     sanitized.PROP = prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx));
   }
 

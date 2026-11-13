@@ -36,9 +36,11 @@ export function CheckboxGroupWidget({
               className={cn(
                 "inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs cursor-pointer transition-colors select-none",
                 isChecked
-                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  ? disabled
+                    ? "border-muted-foreground/30 bg-muted/60 text-muted-foreground font-medium"
+                    : "border-primary bg-primary/10 text-primary font-medium"
                   : "border-border/80 bg-background text-muted-foreground hover:border-foreground/40",
-                disabled && "opacity-80 cursor-default",
+                disabled && "opacity-60 cursor-not-allowed",
               )}
             >
               <input
@@ -67,7 +69,7 @@ export function CheckboxGroupWidget({
             htmlFor={optId}
             className={cn(
               "flex items-center gap-1.5 select-none",
-              disabled ? "cursor-default opacity-85" : "cursor-pointer",
+              disabled ? "cursor-not-allowed" : "cursor-pointer",
             )}
           >
             <Checkbox
@@ -75,9 +77,23 @@ export function CheckboxGroupWidget({
               checked={isChecked}
               disabled={disabled}
               onCheckedChange={(checked: boolean) => handleToggle(opt.code, Boolean(checked))}
-              className={cn("rounded", disabled && "disabled:opacity-90 disabled:cursor-default")}
+              className={cn(
+                "rounded",
+                "dark:data-checked:text-primary-foreground",
+                disabled &&
+                  (isChecked
+                    ? "bg-muted/70! border-border! text-muted-foreground!"
+                    : "bg-input/40! border-border/60!"),
+              )}
             />
-            <span className="text-xs font-mono font-normal text-foreground">{opt.label}</span>
+            <span
+              className={cn(
+                "text-xs font-mono font-normal transition-colors",
+                disabled ? "text-muted-foreground/85" : "text-foreground",
+              )}
+            >
+              {opt.label}
+            </span>
           </label>
         );
       })}

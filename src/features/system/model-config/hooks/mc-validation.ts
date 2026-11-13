@@ -26,9 +26,7 @@ export function mapZodIssuesToValidationErrors(
       tab = "properties";
       const targetProp = properties[path[1] as number];
       sn = targetProp?.SN;
-      if (path[2] === "PARAMETER") {
-        fieldKey = path[3] !== undefined ? `PARAMETER.${String(path[3])}` : "PARAMETER";
-      } else if (path[2] !== undefined) {
+      if (path[2] !== undefined) {
         fieldKey = String(path[2]);
       }
     } else if (path[0] === "auditData") {

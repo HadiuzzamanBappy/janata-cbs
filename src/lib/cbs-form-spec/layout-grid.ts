@@ -64,6 +64,9 @@ export function getInputWidthClass(
   if (widget === "date") {
     return "w-full sm:max-w-44";
   }
+  if (widget === "time") {
+    return "w-full sm:max-w-36";
+  }
   if (widget === "datetime") {
     return "w-full sm:max-w-56";
   }

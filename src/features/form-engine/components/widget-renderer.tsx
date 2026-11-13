@@ -59,6 +59,7 @@ export function renderFieldWidget({
       );
     case "date":
     case "datetime":
+    case "time":
       return (
         <DateWidget
           id={rowId}
@@ -67,7 +68,7 @@ export function renderFieldWidget({
           onChange={onChange}
           disabled={isReadOnly}
           error={error}
-          type={widget === "datetime" ? "datetime-local" : "date"}
+          type={widget === "datetime" ? "datetime-local" : widget === "time" ? "time" : "date"}
         />
       );
     case "textarea":

@@ -13,10 +13,14 @@
  */
 
 import {
+  applyFieldTransform,
   compileFormSpec,
   defaultWidthForLength,
   deriveSemanticWidth,
+  evaluateFieldCascade,
+  evaluateFieldCondition,
   resolveWidgetType,
+  validateSingleField,
   validateValues,
 } from "@/lib/cbs-form-spec";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
@@ -74,7 +78,7 @@ const testModel: ModelConfigRecord = {
     {
       SN: "1",
       NAME: "accountNumber",
-      TYPE: "Text",
+      TYPE: "String",
       STRUCTURE: "S",
       LENGTH: 12,
       REQUIRED: true,
@@ -82,7 +86,7 @@ const testModel: ModelConfigRecord = {
     {
       SN: "2",
       NAME: "accountTitle",
-      TYPE: "Text",
+      TYPE: "String",
       STRUCTURE: "S",
       LENGTH: 50,
       REQUIRED: true,
@@ -127,7 +131,7 @@ async function runSuite() {
   const wShort = defaultWidthForLength({
     SN: "1",
     NAME: "code",
-    TYPE: "Text",
+    TYPE: "String",
     STRUCTURE: "S",
     LENGTH: 4,
     REQUIRED: false,
@@ -142,7 +146,7 @@ async function runSuite() {
   const wLong = defaultWidthForLength({
     SN: "2",
     NAME: "narrative",
-    TYPE: "Text",
+    TYPE: "String",
     STRUCTURE: "S",
     LENGTH: 120,
     REQUIRED: false,
@@ -172,7 +176,7 @@ async function runSuite() {
   const wExplicitPreserved = deriveSemanticWidth("lg", 4, "Text");
   const resolvedSelect = resolveWidgetType("Text", {
     type: "O",
-    data: [{ itemCode: "A", itemLabel: "Active" }],
+    data: [{ code: "A", label: "Active" }],
   });
   recordTest(
     "1.4 Canonical Formulas: deriveSemanticWidth preserves explicit token & resolveWidgetType infers lookup 'select'",
@@ -218,7 +222,7 @@ async function runSuite() {
               SN: "1",
               NAME: "accountNumber",
               LABEL: "Bank A/C Number", // Custom label
-              TYPE: "Text",
+              TYPE: "String",
               LENGTH: 0, // Fallback to model physical length (12)
               STRUCTURE: "S",
               REQUIRED: false, // Model constraint (true) must take precedence
@@ -307,6 +311,114 @@ async function runSuite() {
     { values: "Valid account data payload" },
     cleanErrors,
     Object.keys(cleanErrors).length === 0,
+  );
+
+  const boolValid = validateSingleField(
+    { required: false, length: 1, type: "Boolean", label: "User Define Id" },
+    false,
+  );
+  recordTest(
+    "4.6 Validates boolean fields (true/false) with length 1 without character length errors",
+    { value: false, length: 1, type: "Boolean" },
+    { error: boolValid },
+    boolValid === null,
+  );
+
+  // ── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──
+  console.log("\n── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──");
+
+  const condEqPass = evaluateFieldCondition(
+    { field: "TYPE", operator: "eq", value: "Boolean" },
+    { TYPE: "Boolean" },
+  );
+  recordTest(
+    "5.1 Matches single field equality ('eq') correctly",
+    { condition: { field: "TYPE", operator: "eq", value: "Boolean" }, values: { TYPE: "Boolean" } },
+    { result: condEqPass },
+    condEqPass === true,
+  );
+
+  const condInPass = evaluateFieldCondition(
+    { field: "TYPE", operator: "in", value: ["Json", "Object", "Date", "Boolean"] },
+    { TYPE: "Json" },
+  );
+  const condInFail = evaluateFieldCondition(
+    { field: "TYPE", operator: "in", value: ["Json", "Object", "Date", "Boolean"] },
+    { TYPE: "String" },
+  );
+  recordTest(
+    "5.2 Matches single field inclusion ('in') and non-inclusion correctly",
+    { targetIn: "Json", targetNotIn: "String" },
+    { inMatches: condInPass, notInFails: !condInFail },
+    condInPass === true && condInFail === false,
+  );
+
+  const condCompoundPass = evaluateFieldCondition(
+    {
+      and: [
+        { field: "TYPE", operator: "eq", value: "Number" },
+        { field: "balance", operator: "gt", value: 1000 },
+      ],
+    },
+    { TYPE: "Number", balance: 5000 },
+  );
+  recordTest(
+    "5.3 Evaluates compound 'and' condition accurately",
+    { TYPE: "Number", balance: 5000 },
+    { result: condCompoundPass },
+    condCompoundPass === true,
+  );
+
+  const condHiddenPass = evaluateFieldCondition(
+    { field: "USERDEFINEID", operator: "truthy" },
+    { USERDEFINEID: true },
+  );
+  recordTest(
+    "5.4 Evaluates HIDDEN_WHEN / truthy condition accurately",
+    { USERDEFINEID: true },
+    { isHidden: condHiddenPass },
+    condHiddenPass === true,
+  );
+
+  // ── 6. Declarative Field Value Transforms & Cascades (applyFieldTransform & evaluateFieldCascade) ──
+  console.log("\n── 6. Declarative Field Value Transforms & Cascades ──");
+
+  const transformedStrip = applyFieldTransform("stripWhitespace", "  account Number 123  ");
+  recordTest(
+    "6.1 Strips all whitespace with 'stripWhitespace' transform",
+    "  account Number 123  ",
+    transformedStrip,
+    transformedStrip === "accountNumber123",
+  );
+
+  const transformedUpper = applyFieldTransform("uppercase", "test_column");
+  recordTest(
+    "6.2 Converts string to uppercase with 'uppercase' transform",
+    "test_column",
+    transformedUpper,
+    transformedUpper === "TEST_COLUMN",
+  );
+
+  const cascadeRules = [
+    { when: "Date", set: { LENGTH: 10, PROP: undefined } },
+    { when: "Boolean", set: { LENGTH: 1, STRUCTURE: "S" } },
+    { when: ["Json", "Object"], set: { LENGTH: 0, PROP: [] } },
+  ];
+
+  const cascadeBoolean = evaluateFieldCascade(cascadeRules, "Boolean");
+  recordTest(
+    "6.3 Evaluates single value cascade correctly",
+    { targetType: "Boolean" },
+    cascadeBoolean,
+    cascadeBoolean?.LENGTH === 1 && cascadeBoolean?.STRUCTURE === "S",
+  );
+
+  const cascadeJson = evaluateFieldCascade(cascadeRules, "Json");
+  recordTest(
+    "6.4 Evaluates multi-match array cascade correctly",
+    { targetType: "Json" },
+    cascadeJson,
+    cascadeJson?.LENGTH === 0 && Array.isArray(cascadeJson?.PROP),
   );
 
   // Consolidated Summary

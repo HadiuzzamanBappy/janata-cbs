@@ -111,7 +111,7 @@ async function runSuite() {
     PROPERTIES: [
       {
         NAME: "recordId",
-        TYPE: "Text",
+        TYPE: "String",
         LENGTH: 35,
         REQUIRED: true,
         WIDTH: 120,
@@ -122,6 +122,20 @@ async function runSuite() {
         LENGTH: 1,
         REQUIRED: false,
         WIDTH: 120,
+      },
+      {
+        NAME: "auditInfo",
+        TYPE: "Json",
+        STRUCTURE: "S",
+        LENGTH: 0,
+        PROP: [
+          {
+            NAME: "createdBy",
+            TYPE: "String",
+            LENGTH: 50,
+            REQUIRED: true,
+          },
+        ],
       },
     ],
   };
@@ -148,7 +162,7 @@ async function runSuite() {
             {
               NAME: "recordId",
               LABEL: "Record ID",
-              TYPE: "Text",
+              TYPE: "String",
               LENGTH: 35,
               WIDTH: "md",
               WIDGET: "text",
@@ -253,7 +267,7 @@ async function runSuite() {
     SN: "1",
     NAME: "accountNumber",
     LABEL: "Account Number",
-    TYPE: "Text",
+    TYPE: "String",
     STRUCTURE: "S",
     LENGTH: 16,
     REQUIRED: true,
@@ -282,14 +296,14 @@ async function runSuite() {
   };
   const fallbackResult = formElementSchema.safeParse(fallbackWidthSample);
   const isFallbackNormal = fallbackResult.success && fallbackResult.data.WIDTH === "md";
-  const isWidgetAllowed = isWidgetCompatibleWithType("Amount", "amount");
-  const isWidgetDisallowed = !isWidgetCompatibleWithType("Amount", "textarea");
+  const isWidgetAllowed = isWidgetCompatibleWithType("Number", "amount");
+  const isWidgetDisallowed = !isWidgetCompatibleWithType("Number", "textarea");
   recordTest(
     "9. Schema Defense: propertyWidthSchema normalizes invalid widths to 'md' & compatibility matrix guards widgets",
     {
       parsedWidth: fallbackResult.data?.WIDTH,
-      amountCanBeAmount: isWidgetAllowed,
-      amountCannotBeTextarea: isWidgetDisallowed,
+      numberCanBeAmount: isWidgetAllowed,
+      numberCannotBeTextarea: isWidgetDisallowed,
     },
     {
       fallbackNormal: isFallbackNormal,

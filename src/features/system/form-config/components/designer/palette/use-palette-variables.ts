@@ -49,16 +49,20 @@ export function usePaletteVariables({
     const childSet = new Set<string>();
 
     for (const p of modelProperties) {
-      if ((p.TYPE as string) === "Object") {
-        objectMap.set(p.SN, { parent: p, children: [] });
+      if ((p.TYPE as string) === "Json" || (p.TYPE as string) === "Object") {
+        const directChildren = Array.isArray(p.PROP) ? p.PROP : [];
+        objectMap.set(p.SN, { parent: p, children: [...directChildren] });
+        for (const child of directChildren) {
+          childSet.add(child.NAME);
+        }
       }
     }
 
     for (const p of modelProperties) {
-      if ((p.TYPE as string) !== "Object" && p.SN.includes("_")) {
+      if ((p.TYPE as string) !== "Json" && (p.TYPE as string) !== "Object" && p.SN.includes("_")) {
         const parentSn = p.SN.substring(0, p.SN.lastIndexOf("_"));
         const parentEntry = objectMap.get(parentSn);
-        if (parentEntry) {
+        if (parentEntry && !parentEntry.children.some((c) => c.SN === p.SN)) {
           parentEntry.children.push(p);
           childSet.add(p.NAME);
         }
@@ -67,7 +71,7 @@ export function usePaletteVariables({
 
     const items: PaletteItem[] = [];
     for (const p of modelProperties) {
-      if ((p.TYPE as string) === "Object") {
+      if ((p.TYPE as string) === "Json" || (p.TYPE as string) === "Object") {
         const grp = objectMap.get(p.SN);
         if (grp) {
           items.push({ kind: "object-group", parent: grp.parent, children: grp.children });

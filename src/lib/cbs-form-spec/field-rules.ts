@@ -1,6 +1,128 @@
 import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type {
+  FieldCascadeRule,
+  FieldTransform,
+  FieldVisibilityCondition,
+  FormElement,
+} from "@/lib/data-schemas/form-engine-schema";
 import { getFieldValue } from "./path-utils";
+
+/* -------------------------------------------------------------------------- */
+/* Field Value Transform Evaluator (TRANSFORM)                                */
+/* -------------------------------------------------------------------------- */
+
+export function applyFieldTransform(
+  transform: FieldTransform | undefined | null,
+  val: unknown,
+): unknown {
+  if (!transform || transform === "none" || typeof val !== "string") {
+    return val;
+  }
+  switch (transform) {
+    case "stripWhitespace":
+      return val.replace(/\s+/g, "");
+    case "uppercase":
+      return val.toUpperCase();
+    case "lowercase":
+      return val.toLowerCase();
+    case "trim":
+      return val.trim();
+    default:
+      return val;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reactive Field Cascading Defaults Evaluator (CASCADE)                      */
+/* -------------------------------------------------------------------------- */
+
+export function evaluateFieldCascade(
+  cascadeRules: FieldCascadeRule[] | undefined | null,
+  val: unknown,
+): Record<string, unknown> | null {
+  if (!cascadeRules || !Array.isArray(cascadeRules) || cascadeRules.length === 0) {
+    return null;
+  }
+
+  for (const rule of cascadeRules) {
+    if (!rule?.set) continue;
+    const whenVal = rule.when;
+
+    if (Array.isArray(whenVal)) {
+      if (whenVal.some((item) => item === val || String(item) === String(val ?? ""))) {
+        return rule.set;
+      }
+    } else if (whenVal === val || String(whenVal ?? "") === String(val ?? "")) {
+      return rule.set;
+    }
+  }
+
+  return null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Reactive Field Condition Evaluator (VISIBLE_WHEN / DISABLED_WHEN)          */
+/* -------------------------------------------------------------------------- */
+
+export function evaluateFieldCondition(
+  condition: FieldVisibilityCondition | undefined | null,
+  values: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!condition) return true;
+  const currentValues = values || {};
+
+  // 1. Compound 'and'
+  if ("and" in condition && Array.isArray(condition.and)) {
+    return condition.and.every((cond) => evaluateFieldCondition(cond, currentValues));
+  }
+
+  // 2. Compound 'or'
+  if ("or" in condition && Array.isArray(condition.or)) {
+    return condition.or.some((cond) => evaluateFieldCondition(cond, currentValues));
+  }
+
+  // 3. Single field condition
+  if ("field" in condition && typeof condition.field === "string") {
+    const targetVal = getFieldValue(currentValues, condition.field);
+    const op = condition.operator || "eq";
+    const expected = condition.value;
+
+    switch (op) {
+      case "eq":
+        return targetVal === expected || String(targetVal ?? "") === String(expected ?? "");
+      case "neq":
+        return targetVal !== expected && String(targetVal ?? "") !== String(expected ?? "");
+      case "in": {
+        if (!Array.isArray(expected)) return false;
+        return expected.some(
+          (item) => item === targetVal || String(item) === String(targetVal ?? ""),
+        );
+      }
+      case "notIn": {
+        if (!Array.isArray(expected)) return true;
+        return !expected.some(
+          (item) => item === targetVal || String(item) === String(targetVal ?? ""),
+        );
+      }
+      case "gt":
+        return Number(targetVal) > Number(expected);
+      case "lt":
+        return Number(targetVal) < Number(expected);
+      case "gte":
+        return Number(targetVal) >= Number(expected);
+      case "lte":
+        return Number(targetVal) <= Number(expected);
+      case "truthy":
+        return Boolean(targetVal);
+      case "falsy":
+        return !targetVal;
+      default:
+        return true;
+    }
+  }
+
+  return true;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Reactive Field OnChange Action Evaluator                                   */
@@ -42,7 +164,7 @@ export function validateSingleField(rule: FieldValidationRule, value: unknown): 
   const isMissingOrEmpty =
     value === undefined ||
     value === null ||
-    value === "" ||
+    (typeof value === "string" && value.trim() === "") ||
     (Array.isArray(value) &&
       (value.length === 0 ||
         value.every((v) => v === undefined || v === null || String(v).trim() === "")));
@@ -111,10 +233,9 @@ export function validateSingleField(rule: FieldValidationRule, value: unknown): 
     }
   }
 
-  // 5. Standard Text Max Length Validation
-  if (typeof rule.length === "number" && rule.length > 0) {
-    const str = String(value);
-    if (str.length > rule.length) {
+  // 5. Standard Text Max Length Validation (applies exclusively to text strings)
+  if (typeof value === "string" && typeof rule.length === "number" && rule.length > 0) {
+    if (value.length > rule.length) {
       return `${label} cannot exceed ${rule.length} characters`;
     }
   }

@@ -19,7 +19,7 @@ export function createNewFieldFromTemplate(
     SN: template.SN || String(sections.length + 1),
     NAME: fieldName,
     LABEL: template.LABEL || "New Field",
-    TYPE: template.TYPE || "Text",
+    TYPE: template.TYPE || "String",
     LENGTH: template.LENGTH ?? 35,
     STRUCTURE: template.STRUCTURE || "S",
     REQUIRED: Boolean(template.REQUIRED),

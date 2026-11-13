@@ -1,8 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { buildRenderBlocks, evaluateOnChangeRule } from "@/lib/cbs-form-spec";
+import {
+  applyFieldTransform,
+  buildRenderBlocks,
+  evaluateFieldCascade,
+  evaluateOnChangeRule,
+  setFieldValue,
+  validateValues,
+} from "@/lib/cbs-form-spec";
 import type { AuditData } from "@/lib/data-schemas";
+import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
 import { CardContainer } from "./containers/card-container";
@@ -19,7 +27,11 @@ export function FormRenderer({
   frmElements,
   values,
   onChange,
+  onRecordChange,
+  onValuesChange,
   errors = {},
+  externalErrors = {},
+  autoValidate = false,
   disabled = false,
   mode = "I",
   auditData,
@@ -56,21 +68,63 @@ export function FormRenderer({
     });
   }, [blocks]);
 
-  // Handle reactive ON_CHANGE rules on input change
-  const handleFieldChange = (key: string, val: unknown) => {
-    onChange(key, val);
+  // Automatic schema-driven validation
+  const schemaErrors = React.useMemo(() => {
+    if (!autoValidate || sections.length === 0) return {};
+    return validateValues(sections, values);
+  }, [sections, values, autoValidate]);
 
+  // Unified error map: schema validation errors merged with external business/server errors
+  const effectiveErrors = React.useMemo(() => {
+    return { ...schemaErrors, ...errors, ...externalErrors };
+  }, [schemaErrors, errors, externalErrors]);
+
+  // Handle field change with TRANSFORM, CASCADE, and ON_CHANGE
+  const handleFieldChange = (key: string, rawVal: unknown) => {
+    // 1. Locate the field spec
+    let fieldSpec: FormElement | undefined;
+    for (const sec of sections) {
+      fieldSpec = (sec.fields || []).find((f) => f.NAME === key);
+      if (fieldSpec) break;
+    }
+
+    // 2. Apply field value transform if configured
+    const val = fieldSpec?.TRANSFORM ? applyFieldTransform(fieldSpec.TRANSFORM, rawVal) : rawVal;
+
+    let nextValues = setFieldValue(values, key, val);
+    onChange?.(key, val);
+
+    // 3. Apply field cascades if configured
+    if (fieldSpec?.CASCADE) {
+      const cascadePatch = evaluateFieldCascade(fieldSpec.CASCADE, val);
+      if (cascadePatch) {
+        for (const [targetKey, targetVal] of Object.entries(cascadePatch)) {
+          nextValues = setFieldValue(nextValues, targetKey, targetVal);
+          onChange?.(targetKey, targetVal);
+        }
+      }
+    }
+
+    // 4. Handle reactive ON_CHANGE rules on input change
     sections.forEach((sec) => {
       (sec.fields || []).forEach((f) => {
         if (f.NAME === key && f.ON_CHANGE?.target) {
           const rule = f.ON_CHANGE;
           const targetVal = evaluateOnChangeRule(rule.action, val, rule.delimiter);
           if (targetVal !== values[rule.target]) {
-            onChange(rule.target, targetVal);
+            nextValues = setFieldValue(nextValues, rule.target, targetVal);
+            onChange?.(rule.target, targetVal);
           }
         }
       });
     });
+
+    // 5. Emit full nextValues to record subscribers
+    if (onRecordChange) {
+      onRecordChange(nextValues);
+    } else if (onValuesChange) {
+      onValuesChange(nextValues);
+    }
   };
 
   return (
@@ -85,7 +139,7 @@ export function FormRenderer({
                   section={block.section}
                   values={values}
                   onChange={handleFieldChange}
-                  errors={errors}
+                  errors={effectiveErrors}
                   disabled={disabled}
                   mode={mode}
                   hideHeader={hideHeader}
@@ -105,7 +159,7 @@ export function FormRenderer({
                 }
                 values={values}
                 onChange={handleFieldChange}
-                errors={errors}
+                errors={effectiveErrors}
                 disabled={disabled}
                 mode={mode}
               />

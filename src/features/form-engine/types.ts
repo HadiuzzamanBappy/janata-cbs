@@ -48,8 +48,12 @@ export interface SectionCardProps {
 export interface FormRendererProps {
   frmElements?: FormElementsContainer;
   values: Record<string, unknown>;
-  onChange: (key: string, value: unknown) => void;
+  onChange?: (key: string, value: unknown) => void;
+  onRecordChange?: (nextValues: Record<string, unknown>) => void;
+  onValuesChange?: (values: Record<string, unknown>) => void;
   errors?: Record<string, string>;
+  externalErrors?: Record<string, string>;
+  autoValidate?: boolean;
   disabled?: boolean;
   mode?: CbsScreenMode;
   auditData?: AuditData | null;

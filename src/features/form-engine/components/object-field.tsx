@@ -38,7 +38,7 @@ export function ObjectField({
   const label = field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME);
   const isInputMode = mode === "I";
   const isReadOnly = disabled || !isInputMode;
-  const subFields = (field.PROP || field.children || []) as FormElement[];
+  const subFields = (field.PROP || []) as FormElement[];
 
   // Retrieve array value using pure dot-path accessor
   const currentArray = useMemo(() => {
@@ -52,18 +52,29 @@ export function ObjectField({
 
   const setCount = isMulti ? Math.max(currentArray.length, 1) : 1;
 
-  const handleAddSet = useCallback(() => {
-    const nextArr = [...currentArray, {}];
-    onChange(groupKey, nextArr);
-  }, [currentArray, groupKey, onChange]);
+  const handleAddSet = useCallback(
+    (afterIdx?: number) => {
+      const nextArr = [...currentArray];
+      if (typeof afterIdx === "number") {
+        nextArr.splice(afterIdx + 1, 0, {});
+      } else {
+        nextArr.push({});
+      }
+      onChange(groupKey, nextArr);
+    },
+    [currentArray, groupKey, onChange],
+  );
 
   const handleRemoveSet = useCallback(
     (removeIdx: number) => {
-      if (setCount <= 1) return;
+      if (currentArray.length <= 1) {
+        onChange(groupKey, [{}]);
+        return;
+      }
       const nextArr = currentArray.filter((_, idx) => idx !== removeIdx);
-      onChange(groupKey, nextArr.length > 0 ? nextArr : [{}]);
+      onChange(groupKey, nextArr);
     },
-    [setCount, currentArray, groupKey, onChange],
+    [currentArray, groupKey, onChange],
   );
 
   const setEntries = useMemo(() => {
@@ -142,8 +153,6 @@ export function ObjectField({
   return (
     <div className="space-y-2 w-full">
       {setEntries.map(({ setIdx, entryId }) => {
-        const isLastSet = setIdx === setCount - 1;
-
         return (
           <div key={entryId} className="space-y-1.5">
             {/* Inline Group Header: Label + [ - ] [ + ] */}
@@ -182,21 +191,19 @@ export function ObjectField({
                         <Minus className="size-3.5 stroke-[2.5]" />
                       </Button>
                     )}
-                    {isLastSet && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddSet();
-                        }}
-                        className="size-5 p-0 text-primary hover:bg-primary/10 rounded cursor-pointer"
-                        title={`Add another ${label}`}
-                      >
-                        <Plus className="size-3.5 stroke-[2.5]" />
-                      </Button>
-                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleAddSet(setIdx);
+                      }}
+                      className="size-5 p-0 text-primary hover:bg-primary/10 rounded cursor-pointer"
+                      title={`Insert another ${label} after item ${setIdx + 1}`}
+                    >
+                      <Plus className="size-3.5 stroke-[2.5]" />
+                    </Button>
                   </div>
                 )}
               </div>

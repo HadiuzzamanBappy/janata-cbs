@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { FormFieldParameter } from "@/lib/data-schemas/model-config-schema";
+import type { FormElement, FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
 import type { WidgetOption } from "../types";
 import { useModelLookup } from "./use-model-lookup";
 
@@ -9,18 +8,16 @@ export function useFieldOptions(field: FormElement) {
   const { modelOptions, loading: modelLoading } = useModelLookup(param);
 
   const resolvedOptions: WidgetOption[] = useMemo(() => {
-    if (param?.type === "M") {
+    const pType = param?.type;
+    const pData = param?.data;
+    if (pType === "M") {
       return modelOptions;
     }
-    if (param?.type === "O" && Array.isArray(param.data) && param.data.length > 0) {
-      return param.data.map((d) => {
-        const itemCode = "itemCode" in d ? d.itemCode : d.code;
-        const itemLabel = "itemLabel" in d ? d.itemLabel : d.label;
-        return {
-          code: String(itemCode || ""),
-          label: String(itemLabel || itemCode || ""),
-        };
-      });
+    if (pType === "O" && Array.isArray(pData) && pData.length > 0) {
+      return pData.map((d) => ({
+        code: String(d.code ?? ""),
+        label: String(d.label ?? d.code ?? ""),
+      }));
     }
     return [];
   }, [param, modelOptions]);

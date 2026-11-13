@@ -25,7 +25,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "label",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 250,
         REQUIRED: true,
@@ -33,7 +33,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "command",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 250,
         REQUIRED: true,
@@ -41,39 +41,23 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "menuType",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "FORM", itemLabel: "Transactional Form" },
-            { itemCode: "INQUIRY", itemLabel: "Inquiry & Search" },
-            { itemCode: "REPORT", itemLabel: "Financial Report" },
-            { itemCode: "GROUP", itemLabel: "Submenu Group" },
-          ],
-        },
       },
       {
         SN: "4",
         NAME: "menuAction",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "SCREEN", itemLabel: "Open Screen (Workspace Tab)" },
-            { itemCode: "POPUP", itemLabel: "Modal Dialog (Popup Window)" },
-          ],
-        },
       },
       {
         SN: "5",
         NAME: "description",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 300,
         REQUIRED: false,
@@ -122,7 +106,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "treeDescription",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
@@ -138,7 +122,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "menuTree",
-        TYPE: "Object",
+        TYPE: "Json",
         STRUCTURE: "M",
         LENGTH: 0,
         REQUIRED: true,
@@ -179,7 +163,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "command",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: true,
@@ -187,7 +171,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "title",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
@@ -195,7 +179,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "aliases",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "M",
         LENGTH: 20,
         REQUIRED: false,
@@ -203,35 +187,18 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "controlAction",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "SCREEN", itemLabel: "Workspace Tab (Screen)" },
-            { itemCode: "POPUP", itemLabel: "Modal Dialog (Popup)" },
-            { itemCode: "SETTINGS", itemLabel: "Settings Dialog" },
-          ],
-        },
       },
       {
         SN: "5",
         NAME: "controlType",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "FORM", itemLabel: "Dynamic Form (GMC)" },
-            { itemCode: "INQUIRY", itemLabel: "Inquiry Query" },
-            { itemCode: "REPORT", itemLabel: "Financial Report" },
-            { itemCode: "SETTINGS", itemLabel: "System Settings" },
-          ],
-        },
       },
     ],
     IDROUTINE: "",
@@ -269,7 +236,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "category",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: true,
@@ -277,7 +244,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "lookupCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: true,
@@ -285,7 +252,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "description",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
@@ -293,17 +260,10 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "status",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "ACTIVE", itemLabel: "Active" },
-            { itemCode: "INACTIVE", itemLabel: "Inactive" },
-          ],
-        },
       },
     ],
     IDROUTINE: "",
@@ -341,7 +301,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "branchTitle",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
@@ -349,25 +309,15 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "branchType",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: true,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "HO", itemLabel: "Head Office" },
-            { itemCode: "DV", itemLabel: "Division" },
-            { itemCode: "AR", itemLabel: "Area Office" },
-            { itemCode: "BR", itemLabel: "Branch" },
-            { itemCode: "SB", itemLabel: "Sub Branch" },
-          ],
-        },
       },
       {
         SN: "3",
         NAME: "branchContact",
-        TYPE: "Object",
+        TYPE: "Json",
         STRUCTURE: "M",
         LENGTH: 0,
         REQUIRED: false,
@@ -375,7 +325,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "3_1",
             NAME: "addressLine",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "M",
             LENGTH: 100,
             REQUIRED: false,
@@ -383,7 +333,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "3_2",
             NAME: "email",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "S",
             LENGTH: 80,
             REQUIRED: false,
@@ -391,7 +341,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "3_3",
             NAME: "phone",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "M",
             LENGTH: 25,
             REQUIRED: false,
@@ -417,7 +367,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "bbCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: false,
@@ -425,7 +375,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "divCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
@@ -433,7 +383,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "areaCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
@@ -441,38 +391,23 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "9",
         NAME: "gradeCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "A", itemLabel: "Grade A" },
-            { itemCode: "B", itemLabel: "Grade B" },
-            { itemCode: "C", itemLabel: "Grade C" },
-            { itemCode: "CORP", itemLabel: "Corporate" },
-          ],
-        },
       },
       {
         SN: "10",
         NAME: "countryCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
-        PARAMETER: {
-          type: "M",
-          modelName: "COUNTRY",
-          codeField: "countryCode",
-          displayField: "countryName",
-        },
       },
       {
         SN: "11",
         NAME: "routingNumber",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 9,
         REQUIRED: false,
@@ -480,7 +415,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "12",
         NAME: "swiftCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
@@ -488,16 +423,10 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "13",
         NAME: "parentBranch",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: false,
-        PARAMETER: {
-          type: "M",
-          modelName: "BRANCH",
-          codeField: "recordId",
-          displayField: "branchTitle",
-        },
       },
     ],
     IDROUTINE: "",
@@ -535,7 +464,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "userId",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
@@ -543,7 +472,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "fullName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
@@ -551,7 +480,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "accessibility",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
@@ -559,7 +488,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "branchCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: true,
@@ -567,7 +496,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "commandLine",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
@@ -610,7 +539,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "userName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 65,
         REQUIRED: true,
@@ -618,7 +547,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "signOnName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 16,
         REQUIRED: true,
@@ -626,35 +555,18 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "classification",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: true,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "ADMIN", itemLabel: "System Administrator" },
-            { itemCode: "MANAGER", itemLabel: "Branch / General Manager" },
-            { itemCode: "SUPERVISOR", itemLabel: "Branch Supervisor (Checker)" },
-            { itemCode: "OFFICER", itemLabel: "Banking Officer (Maker)" },
-            { itemCode: "TELLER", itemLabel: "Cash & Teller Operator" },
-            { itemCode: "AUDITOR", itemLabel: "Internal / External Auditor" },
-          ],
-        },
       },
       {
         SN: "4",
         NAME: "companyCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "M",
         LENGTH: 10,
         REQUIRED: true,
-        PARAMETER: {
-          type: "M",
-          modelName: "BRANCH",
-          codeField: "recordId",
-          displayField: "branchTitle",
-        },
       },
       {
         SN: "5",
@@ -667,7 +579,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "email",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: false,
@@ -675,7 +587,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "mobileNumber",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: false,
@@ -699,7 +611,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "10",
         NAME: "startTime",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: false,
@@ -707,7 +619,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "11",
         NAME: "endTime",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 5,
         REQUIRED: false,
@@ -739,45 +651,23 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "15",
         NAME: "allowedDays",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "M",
         LENGTH: 3,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "SUN", itemLabel: "Sunday" },
-            { itemCode: "MON", itemLabel: "Monday" },
-            { itemCode: "TUE", itemLabel: "Tuesday" },
-            { itemCode: "WED", itemLabel: "Wednesday" },
-            { itemCode: "THU", itemLabel: "Thursday" },
-            { itemCode: "FRI", itemLabel: "Friday" },
-            { itemCode: "SAT", itemLabel: "Saturday" },
-          ],
-        },
       },
       {
         SN: "16",
         NAME: "overrideClass",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "M",
         LENGTH: 4,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "L1", itemLabel: "Level 1 - Officer Sign-off" },
-            { itemCode: "L2", itemLabel: "Level 2 - Supervisor Sign-off" },
-            { itemCode: "L3", itemLabel: "Level 3 - Branch Manager" },
-            { itemCode: "L4", itemLabel: "Level 4 - Regional Head" },
-            { itemCode: "L5", itemLabel: "Level 5 - Managing Director" },
-          ],
-        },
       },
       {
         SN: "17",
         NAME: "ldapId",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: false,
@@ -793,7 +683,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "19",
         NAME: "timeLastSignOn",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 8,
         REQUIRED: false,
@@ -817,7 +707,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "22",
         NAME: "empBankId",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 6,
         REQUIRED: false,
@@ -872,7 +762,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "employeeName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 65,
         REQUIRED: false,
@@ -880,7 +770,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "placeOfPosting",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 65,
         REQUIRED: false,
@@ -888,7 +778,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "userId",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: false,
@@ -896,7 +786,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "signOnName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: false,
@@ -904,7 +794,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "userPassword",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 12,
         REQUIRED: false,
@@ -920,7 +810,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "userDesignation",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 12,
         REQUIRED: false,
@@ -928,7 +818,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "empBankId",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 6,
         REQUIRED: false,
@@ -936,7 +826,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "9",
         NAME: "mobileNo",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
@@ -944,7 +834,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "10",
         NAME: "email",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 25,
         REQUIRED: false,
@@ -960,7 +850,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "12",
         NAME: "general",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
@@ -968,7 +858,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "13",
         NAME: "teller",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
@@ -976,7 +866,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "14",
         NAME: "oibta",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
@@ -984,7 +874,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "15",
         NAME: "dispo",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
@@ -992,7 +882,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "16",
         NAME: "bigFileUpload",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
@@ -1000,7 +890,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "17",
         NAME: "empRole",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: false,
@@ -1008,7 +898,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "18",
         NAME: "requestFor",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 15,
         REQUIRED: false,
@@ -1016,7 +906,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "19",
         NAME: "reqDescription",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 65,
         REQUIRED: false,
@@ -1024,7 +914,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "20",
         NAME: "requestReason",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 12,
         REQUIRED: false,
@@ -1032,7 +922,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "21",
         NAME: "requestStatus",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
@@ -1040,7 +930,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "22",
         NAME: "requestedBy",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 25,
         REQUIRED: false,
@@ -1048,7 +938,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "23",
         NAME: "approvedBy",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 25,
         REQUIRED: false,
@@ -1064,7 +954,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "25",
         NAME: "requestCoCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
@@ -1072,7 +962,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "26",
         NAME: "denyReason",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 65,
         REQUIRED: false,
@@ -1104,7 +994,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "30",
         NAME: "transferredBranch",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 11,
         REQUIRED: false,
@@ -1112,7 +1002,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "31",
         NAME: "clearing",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: false,
@@ -1165,7 +1055,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "passReset",
-        TYPE: "Object",
+        TYPE: "Json",
         STRUCTURE: "M",
         LENGTH: 0,
         REQUIRED: false,
@@ -1173,7 +1063,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_1",
             NAME: "userId",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "S",
             LENGTH: 20,
             REQUIRED: false,
@@ -1181,7 +1071,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_2",
             NAME: "resetPassword",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "S",
             LENGTH: 20,
             REQUIRED: false,
@@ -1197,7 +1087,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_4",
             NAME: "phone",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "S",
             LENGTH: 17,
             REQUIRED: false,
@@ -1205,7 +1095,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_5",
             NAME: "email",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "S",
             LENGTH: 50,
             REQUIRED: false,
@@ -1213,7 +1103,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_6",
             NAME: "userType",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "S",
             LENGTH: 3,
             REQUIRED: false,
@@ -1254,7 +1144,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "accountType",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
@@ -1262,7 +1152,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "customerId",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
@@ -1270,7 +1160,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "currency",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 3,
         REQUIRED: true,
@@ -1302,7 +1192,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "accountTitle",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
@@ -1310,7 +1200,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "nomineeName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "M",
         LENGTH: 100,
         REQUIRED: false,
@@ -1318,7 +1208,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "9",
         NAME: "nomineeRelation",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "M",
         LENGTH: 30,
         REQUIRED: false,
@@ -1334,7 +1224,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "11",
         NAME: "nomineeNid",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "M",
         LENGTH: 30,
         REQUIRED: false,
@@ -1342,7 +1232,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "12",
         NAME: "operatingMode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
@@ -1350,7 +1240,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "13",
         NAME: "enableChequeBook",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
@@ -1358,7 +1248,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "14",
         NAME: "enableDebitCard",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
@@ -1366,7 +1256,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "15",
         NAME: "enableSmsAlerts",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 1,
         REQUIRED: false,
@@ -1374,7 +1264,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "17",
         NAME: "street",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
@@ -1382,7 +1272,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "18",
         NAME: "city",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: true,
@@ -1390,7 +1280,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "19",
         NAME: "postalCode",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
@@ -1431,7 +1321,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "nationalId",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
@@ -1447,7 +1337,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "fatherName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
@@ -1455,7 +1345,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "motherName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,
@@ -1496,7 +1386,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "description",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 150,
         REQUIRED: true,
@@ -1504,7 +1394,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "controllerName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 35,
         REQUIRED: true,
@@ -1512,23 +1402,15 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "inqType",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 20,
         REQUIRED: true,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "DFT", itemLabel: "Default Query" },
-            { itemCode: "CUS", itemLabel: "Custom SQL / Filter" },
-            { itemCode: "RPT", itemLabel: "Report Extraction" },
-          ],
-        },
       },
       {
         SN: "4",
         NAME: "rptControllerName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: false,
@@ -1536,17 +1418,10 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "pageOrientation",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 10,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "Portrait", itemLabel: "Portrait" },
-            { itemCode: "Landscape", itemLabel: "Landscape" },
-          ],
-        },
       },
       {
         SN: "6",
@@ -1567,7 +1442,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "inqServicePath",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: false,
@@ -1608,7 +1483,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "tableName",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 40,
         REQUIRED: true,
@@ -1616,7 +1491,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "description",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 150,
         REQUIRED: true,
@@ -1624,7 +1499,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "prefix",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 6,
         REQUIRED: false,
@@ -1632,17 +1507,10 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "access",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: true,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "G", itemLabel: "Global (Bank-wide)" },
-            { itemCode: "C", itemLabel: "Company / Branch Level" },
-          ],
-        },
       },
       {
         SN: "5",
@@ -1671,7 +1539,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "servicePath",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 40,
         REQUIRED: false,
@@ -1712,7 +1580,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "title",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 80,
         REQUIRED: true,
@@ -1720,7 +1588,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "description",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 150,
         REQUIRED: false,
@@ -1732,13 +1600,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         STRUCTURE: "S",
         LENGTH: 2,
         REQUIRED: false,
-        PARAMETER: {
-          type: "O",
-          data: [
-            { itemCode: "1", itemLabel: "Single Authorization (Four-Eyes)" },
-            { itemCode: "2", itemLabel: "Dual Authorization (Six-Eyes)" },
-          ],
-        },
       },
     ],
     IDROUTINE: "",

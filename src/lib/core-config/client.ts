@@ -64,10 +64,12 @@ export const clientConfig = {
     prefix: APP_PREFIX,
     local: {
       lastActivity: `${APP_PREFIX}:session:last_activity`,
+      activeTabInstance: `${APP_PREFIX}:session:active_tab_instance`,
       themeMode: `${APP_PREFIX}:theme:mode`,
       themeAccent: `${APP_PREFIX}:theme:accent`,
     },
     session: {
+      tabInstanceId: `${APP_PREFIX}:session:tab_instance_id`,
       sessionState: `${APP_PREFIX}:session:state`,
       workbenchTabs: `${APP_PREFIX}:workbench:tabs`,
       draft: (tabId: string) => `${APP_PREFIX}:draft:${tabId}`,

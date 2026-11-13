@@ -48,6 +48,20 @@ export interface WorkbenchState {
 export type WorkbenchStore = ReturnType<typeof createWorkbenchStore>;
 
 export const createWorkbenchStore = () => {
+  // If this is a fresh navigation or duplicate tab (NOT a page reload F5), clear cloned tabs from sessionStorage
+  if (typeof window !== "undefined" && typeof performance !== "undefined") {
+    const navEntries = performance.getEntriesByType("navigation");
+    const isReload =
+      navEntries.length > 0 && (navEntries[0] as PerformanceNavigationTiming).type === "reload";
+    if (!isReload) {
+      try {
+        sessionStorage.removeItem(clientConfig.storage.session.workbenchTabs);
+      } catch {
+        // Safe fallback
+      }
+    }
+  }
+
   return createStore<WorkbenchState>()(
     persist(
       (set) => ({
@@ -58,6 +72,23 @@ export const createWorkbenchStore = () => {
             // Guard against memory leaks by capping maximum open tabs to 15
             if (state.tabs.length >= clientConfig.workbench.maxOpenTabs && !tab.id) {
               return state;
+            }
+
+            // Deduplication: If a tab with this explicit ID already exists, update and activate it
+            if (tab.id) {
+              const existingIndex = state.tabs.findIndex((t) => t.id === tab.id);
+              if (existingIndex !== -1) {
+                const updatedTabs = [...state.tabs];
+                updatedTabs[existingIndex] = {
+                  ...updatedTabs[existingIndex],
+                  ...tab,
+                  instanceNumber: updatedTabs[existingIndex].instanceNumber,
+                };
+                return {
+                  tabs: updatedTabs,
+                  activeTabId: tab.id,
+                };
+              }
             }
 
             const baseId = tab.screenId || tab.id || "screen";

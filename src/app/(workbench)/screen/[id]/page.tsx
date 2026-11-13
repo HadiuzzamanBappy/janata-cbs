@@ -23,6 +23,36 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const urlTabId = searchParams.get("tabId");
   const tabId = React.useMemo(() => urlTabId || makePopupTabId(screenId), [urlTabId, screenId]);
 
+  // Passive Activity Reporter: Throttled updates to localStorage keep the banking session alive
+  // across the master dashboard without displaying duplicate countdown dialogs in popups.
+  React.useEffect(() => {
+    let lastRecorded = Date.now();
+    const STORAGE_KEY = clientConfig.storage.local.lastActivity;
+
+    const handlePassiveActivity = () => {
+      const now = Date.now();
+      if (now - lastRecorded > 2000) {
+        lastRecorded = now;
+        try {
+          localStorage.setItem(STORAGE_KEY, String(now));
+        } catch {
+          // Safe fallback
+        }
+      }
+    };
+
+    const events = ["mousedown", "keydown", "touchstart", "wheel"];
+    for (const evt of events) {
+      window.addEventListener(evt, handlePassiveActivity, { passive: true });
+    }
+
+    return () => {
+      for (const evt of events) {
+        window.removeEventListener(evt, handlePassiveActivity);
+      }
+    };
+  }, []);
+
   // Hydrate popup tab state on initial mount from shared storage (supporting 150 - 1,000 fields)
   const isHydratedRef = React.useRef(false);
   React.useEffect(() => {
@@ -90,18 +120,21 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
       // 1. Broadcast via native BroadcastChannel (immune to F5 and cross-origin null openers)
       broadcastDockTab(tabId, payload);
 
-      // 2. Legacy postMessage fallback if window.opener is still alive
-      if (typeof window !== "undefined" && window.opener) {
+      // 2. Fallback to postMessage only if BroadcastChannel is unavailable
+      if (typeof window !== "undefined" && !("BroadcastChannel" in window)) {
         try {
-          window.opener.postMessage(
-            {
-              type: CBS_SCREEN_MESSAGE.DOCK_TAB,
-              payload,
-            },
-            window.location.origin,
-          );
+          const win = window as Window;
+          if (win.opener) {
+            win.opener.postMessage(
+              {
+                type: CBS_SCREEN_MESSAGE.DOCK_TAB,
+                payload,
+              },
+              win.location.origin,
+            );
+          }
         } catch {
-          // Handled by broadcast channel
+          // Handled
         }
       }
 
@@ -140,7 +173,8 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
  * Session inactivity timeout monitoring, countdown warning modals, and session
  * teardown triggers are managed exclusively by the centralized WorkbenchShell
  * in the primary dashboard window. Detached popups operate within the same
- * authenticated cookie session without rendering duplicate modal countdown triggers.
+ * authenticated cookie session, passively updating lastActivity without rendering
+ * duplicate modal countdown triggers.
  */
 export default function StandaloneScreenPage() {
   const params = useParams();

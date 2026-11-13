@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cbsAuth } from "@/lib/cbs-client";
+import { CBS_SCREEN_MESSAGE, getWorkbenchBus, type WorkbenchBusMessage } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 
 const STORAGE_KEY = clientConfig.storage.local.lastActivity;
@@ -22,49 +23,45 @@ export function useIdleTimeout({
   const warningThresholdMs = Math.max(totalTimeoutMs - WARNING_BEFORE_LOGOUT_MS, 0);
 
   const [isWarningOpen, setIsWarningOpen] = useState(false);
-  const [isLoggedOut, setIsLoggedOut] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(60);
   const isLoggingOutRef = useRef(false);
 
   const performLogout = useCallback(async () => {
     if (isLoggingOutRef.current) return;
     isLoggingOutRef.current = true;
-
-    // Immediately close the warning countdown and display the uncloseable logged-out modal
     setIsWarningOpen(false);
-    setIsLoggedOut(true);
 
     try {
-      if (onLogout) {
-        onLogout();
-      } else {
-        await cbsAuth.logout();
-      }
+      if (onLogout) onLogout();
+      else await cbsAuth.logout();
     } catch {
       // Fail-safe cleanup
     } finally {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(clientConfig.storage.local.activeTabInstance);
+      const bus = getWorkbenchBus();
+      if (bus) {
+        bus.postMessage({
+          type: CBS_SCREEN_MESSAGE.SESSION_LOGOUT,
+          tabId: "global",
+        } satisfies WorkbenchBusMessage);
+      }
+      router.push(clientConfig.routes.login);
+      router.refresh();
     }
-  }, [onLogout]);
-
-  const handleLogoutConfirm = useCallback(() => {
-    router.push(clientConfig.routes.login);
-    router.refresh();
-  }, [router]);
+  }, [onLogout, router]);
 
   const keepAlive = useCallback(async () => {
-    if (isLoggedOut) return;
     const now = Date.now();
     localStorage.setItem(STORAGE_KEY, String(now));
     setIsWarningOpen(false);
 
-    // Heartbeat to update server-side session lastActiveAt
     try {
       await cbsAuth.getSession();
     } catch {
       // Ignore heartbeat network drop
     }
-  }, [isLoggedOut]);
+  }, []);
 
   useEffect(() => {
     // Initialize timestamp if missing
@@ -96,17 +93,21 @@ export function useIdleTimeout({
 
     // User interaction listeners
     const events = ["mousedown", "keydown", "scroll", "touchstart", "wheel"];
-    if (!isLoggedOut) {
-      for (const evt of events) {
-        window.addEventListener(evt, handleUserActivity, { passive: true });
-      }
+    for (const evt of events) {
+      window.addEventListener(evt, handleUserActivity, { passive: true });
     }
 
     // Storage event for multi-tab synchronization
     const handleStorageChange = (e: StorageEvent) => {
-      if (isLoggedOut) return;
-      if (e.key === STORAGE_KEY && e.newValue) {
+      if (e.key === STORAGE_KEY) {
+        // If storage item was removed, peer tab logged out -> direct clean redirect
+        if (!e.newValue) {
+          router.push(clientConfig.routes.login);
+          router.refresh();
+          return;
+        }
         const remoteTime = Number(e.newValue);
+        if (Number.isNaN(remoteTime)) return;
         const elapsed = Date.now() - remoteTime;
         if (elapsed >= totalTimeoutMs) {
           performLogout();
@@ -117,14 +118,31 @@ export function useIdleTimeout({
     };
     window.addEventListener("storage", handleStorageChange);
 
+    // Listen for cross-tab session logout / session expired broadcasts
+    const bus = getWorkbenchBus();
+    const handleBusMessage = (event: MessageEvent<WorkbenchBusMessage>) => {
+      if (
+        event.data?.type === CBS_SCREEN_MESSAGE.SESSION_LOGOUT ||
+        event.data?.type === CBS_SCREEN_MESSAGE.SESSION_EXPIRED
+      ) {
+        router.push(clientConfig.routes.login);
+        router.refresh();
+      }
+    };
+    if (bus) {
+      bus.addEventListener("message", handleBusMessage);
+    }
+
     // 1-second wall-clock ticker
     const ticker = setInterval(() => {
-      if (isLoggedOut) {
-        clearInterval(ticker);
+      const rawStored = localStorage.getItem(STORAGE_KEY);
+      if (!rawStored) {
+        localStorage.setItem(STORAGE_KEY, String(Date.now()));
         return;
       }
 
-      const storedTime = Number(localStorage.getItem(STORAGE_KEY) || Date.now());
+      const storedTime = Number(rawStored);
+      if (Number.isNaN(storedTime)) return;
       const elapsed = Date.now() - storedTime;
 
       if (elapsed >= totalTimeoutMs) {
@@ -146,16 +164,17 @@ export function useIdleTimeout({
         window.removeEventListener(evt, handleUserActivity);
       }
       window.removeEventListener("storage", handleStorageChange);
+      if (bus) {
+        bus.removeEventListener("message", handleBusMessage);
+      }
       clearInterval(ticker);
     };
-  }, [totalTimeoutMs, warningThresholdMs, isWarningOpen, isLoggedOut, performLogout]);
+  }, [totalTimeoutMs, warningThresholdMs, isWarningOpen, performLogout, router]);
 
   return {
     isWarningOpen,
-    isLoggedOut,
     remainingSeconds,
     keepAlive,
     performLogout,
-    handleLogoutConfirm,
   };
 }

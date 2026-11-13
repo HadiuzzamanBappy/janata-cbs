@@ -7,6 +7,7 @@ import { cbsCommand } from "@/lib/cbs-command";
 import { CbsAppStoreProvider } from "@/store";
 import { AppAlert } from "./app-alert";
 import { AppSidebar } from "./app-sidebar";
+import { AppSingleTabWatcher } from "./app-single-tab-watcher";
 import { AppTabBar } from "./app-tabbar";
 import { AppTargetPreview } from "./app-target-preview";
 import { AppTimeoutWatcher } from "./app-timeout-watcher";
@@ -67,6 +68,7 @@ export function WorkbenchShell({
         {/* Global UI Overlays */}
         <Toaster />
         <AppAlert />
+        <AppSingleTabWatcher />
         <AppTimeoutWatcher />
         <AppTargetPreview />
       </SidebarProvider>

@@ -30,9 +30,22 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     const store = storeRef.current;
     if (!store) return;
 
+    // Helper to verify if this browser tab is currently the active leader
+    const isThisTabActive = () => {
+      if (typeof window === "undefined") return true;
+      const activeInstanceId = localStorage.getItem(clientConfig.storage.local.activeTabInstance);
+      const myInstanceId = sessionStorage.getItem(clientConfig.storage.session.tabInstanceId);
+      // If another tab is the active leader, this tab is inactive/overridden and must not receive dock events
+      if (activeInstanceId && myInstanceId && activeInstanceId !== myInstanceId) {
+        return false;
+      }
+      return true;
+    };
+
     const handleMessage = (e: MessageEvent) => {
       if (typeof window !== "undefined" && e.origin !== window.location.origin) return;
       if (e.data?.type === CBS_SCREEN_MESSAGE.DOCK_TAB && e.data?.payload) {
+        if (!isThisTabActive()) return;
         store.getState().addTab(e.data.payload);
         window.focus();
       }
@@ -45,7 +58,8 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
       const bus = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
       bus.onmessage = (event) => {
-        if (event.data?.type === "CBS_DOCK_TAB" && event.data?.payload) {
+        if (event.data?.type === CBS_SCREEN_MESSAGE.DOCK_TAB && event.data?.payload) {
+          if (!isThisTabActive()) return;
           store.getState().addTab(event.data.payload);
           window.focus();
         }

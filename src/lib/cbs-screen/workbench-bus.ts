@@ -23,6 +23,9 @@ export const CBS_SCREEN_EVENT = {
 export const CBS_SCREEN_MESSAGE = {
   DOCK_TAB: "CBS_DOCK_TAB",
   RECORD_MUTATED: "CBS_RECORD_MUTATED",
+  CLAIM_ACTIVE_TAB: "CBS_CLAIM_ACTIVE_TAB",
+  SESSION_LOGOUT: "CBS_SESSION_LOGOUT",
+  SESSION_EXPIRED: "CBS_SESSION_EXPIRED",
 } as const;
 
 /** Canonical popup tab ID — synchronized between page.tsx and popup openers */

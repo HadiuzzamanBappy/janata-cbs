@@ -10,10 +10,9 @@ import type {
 export const MAX_MENU_TREE_DEPTH = 4;
 
 export function mapMdZodIssues(issues: z.ZodIssue[]): MenuDesignerValidationError[] {
-  return mapZodIssuesToTabs<"general" | "canvas" | "audit">(issues, (path) => {
+  return mapZodIssuesToTabs<"general" | "canvas">(issues, (path) => {
     const head = path[0];
     if (head === "menuTree") return "canvas";
-    if (head === "auditData") return "audit";
     return "general";
   });
 }

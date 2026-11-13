@@ -38,6 +38,11 @@ export const cbsQueries = {
     active: schemaQueries.menuTreeActive,
   },
 
+  // System Controls & Screens
+  control: {
+    list: lookupQueries.controlList,
+  },
+
   // Meta-configuration designers & operational blueprints
   modelConfig: {
     record: schemaQueries.modelConfigRecord,

@@ -7,13 +7,15 @@ import { FieldRow } from "../field-row";
 export interface AuditContainerProps {
   auditData?: AuditData | null;
   className?: string;
+  variant?: "inline" | "card";
 }
 
 /**
  * AuditContainer: Fixed banking audit trailer container.
  * Displays maker-checker, authorization, timestamps, and revision details.
+ * Supports "card" (enclosed card with header matching CBS form cards) and "inline" (default border-top).
  */
-export function AuditContainer({ auditData, className }: AuditContainerProps) {
+export function AuditContainer({ auditData, className, variant = "card" }: AuditContainerProps) {
   const audit = auditData ?? {};
   const statusStr = String(audit.recStatus || "AU");
   const revisionStr = audit.recCurrNumber !== undefined ? String(audit.recCurrNumber) : "1";
@@ -23,8 +25,8 @@ export function AuditContainer({ auditData, className }: AuditContainerProps) {
   const inputTimeStr = audit.recInputTime || "—";
   const authTimeStr = audit.recAuthTime || "—";
 
-  return (
-    <div className={cn("pt-3 border-t border-border/40 flex flex-col gap-2 text-xs", className)}>
+  const rows = (
+    <div className="flex flex-col gap-2 text-xs">
       <FieldRow
         label="Record Status"
         isViewMode
@@ -87,6 +89,26 @@ export function AuditContainer({ auditData, className }: AuditContainerProps) {
       >
         <span />
       </FieldRow>
+    </div>
+  );
+
+  if (variant === "inline") {
+    return <div className={cn("pt-3 border-t border-border/40", className)}>{rows}</div>;
+  }
+
+  return (
+    <div
+      className={cn(
+        "rounded border border-border/80 bg-card/60 shadow-2xs p-3 space-y-2.5 transition-all duration-150",
+        className,
+      )}
+    >
+      <div className="flex items-center justify-between pb-1 border-b border-border/40">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Audit Trail & Record Information
+        </span>
+      </div>
+      {rows}
     </div>
   );
 }

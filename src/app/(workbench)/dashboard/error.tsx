@@ -12,11 +12,12 @@ export default function DashboardError({
   reset: () => void;
 }) {
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center p-8 bg-muted/10">
+    <div className="h-full w-full p-4 flex flex-col flex-1">
       <EmptyState
         icon={AlertTriangle}
         title="Dashboard Error"
         description={error.message || "An unexpected error occurred in the dashboard interface."}
+        className="w-full flex-1"
         action={
           <Button onClick={() => reset()} variant="outline" size="sm" className="h-8 text-xs">
             Try Again

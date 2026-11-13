@@ -1,19 +1,18 @@
 "use client";
 
-import { Code, Eye, FileText, Palette, ShieldCheck } from "lucide-react";
+import { Code, Eye, FileText, Palette } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
-import { FcAuditTab } from "./components/fc-audit-tab";
 import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
 import { FcPreviewTab } from "./components/fc-preview-tab";
 import { useFormConfig } from "./hooks/use-form-config";
 
-type FormConfigTabKey = "general" | "formDesigner" | "audit" | "preview" | "json";
+type FormConfigTabKey = "general" | "formDesigner" | "preview" | "json";
 
 export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -80,7 +79,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       {
         id: "formDesigner",
         label: "Form Designer",
-        icon: <Palette className="size-3 text-primary" />,
+        icon: <Palette className="size-3 text-muted-foreground" />,
         content: (
           <FcDesignerTab
             formTitle={formData.title}
@@ -127,21 +126,15 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         ),
       },
       {
-        id: "audit",
-        label: "Audit Data",
-        icon: <ShieldCheck className="size-3 text-purple-500" />,
-        content: <FcAuditTab formData={formData} />,
-      },
-      {
         id: "preview",
         label: "Live Preview",
-        icon: <Eye className="size-3 text-emerald-500" />,
+        icon: <Eye className="size-3 text-muted-foreground" />,
         content: <FcPreviewTab formData={formData} targetModelRecord={targetModelRecord} />,
       },
       {
         id: "json",
         label: "JSON Output",
-        icon: <Code className="size-3 text-amber-500" />,
+        icon: <Code className="size-3 text-muted-foreground" />,
         content: <FcJsonTab formData={formData} baseline={baseline} raw={rawRecord} />,
       },
     ],

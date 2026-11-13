@@ -2,7 +2,7 @@ import type { ZodError } from "zod";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
-export type ModelConfigTabKey = "general" | "properties" | "audit";
+export type ModelConfigTabKey = "general" | "properties";
 
 export interface ModelValidationErrorItem extends CbsScreenValidationError<ModelConfigTabKey> {
   readonly sn?: string;
@@ -32,7 +32,7 @@ export function mapZodIssuesToValidationErrors(
         fieldKey = String(path[2]);
       }
     } else if (path[0] === "auditData") {
-      tab = "audit";
+      tab = "general";
     }
 
     const labelPrefix = sn ? `Property #${sn}` : "General";

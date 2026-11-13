@@ -54,6 +54,9 @@ export function FcGeneralTab({
           errors={errorMap}
           disabled={isReadOnly}
           mode={isReadOnly ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          showAuditSection={true}
+          auditData={formData.auditData}
+          auditVariant="card"
         />
       </div>
     </div>

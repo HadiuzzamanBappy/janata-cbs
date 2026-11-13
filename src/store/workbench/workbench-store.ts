@@ -159,9 +159,12 @@ export const createWorkbenchStore = () => {
               ...source,
               id: uniqueInstanceId,
               instanceNumber: sameScreenCount + 1,
-              formData: undefined, // fresh — no stale draft
-              baseline: undefined,
+              screenMode: "IDLE", // fresh start — return to clean IDLE mode
+              searchRecordId: undefined, // fresh start — clear loaded record ID
+              formData: undefined, // fresh start — clear draft input values
+              baseline: undefined, // fresh start — clear baseline snapshot
               isDirty: false,
+              enquiryState: undefined, // fresh start for inquiries
             };
             const insertIndex = state.tabs.findIndex((t) => t.id === id) + 1;
             const newTabs = [

@@ -24,5 +24,4 @@ export * from "./states/cbs-idle-state";
 export * from "./states/cbs-system-skeleton";
 
 // Tabs
-export * from "./tabs/cbs-audit-tab";
 export * from "./tabs/cbs-json-viewer-tab";

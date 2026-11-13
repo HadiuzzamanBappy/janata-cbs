@@ -1,19 +1,18 @@
 "use client";
 
-import { Database, Eye, FileCode, FileText, ShieldCheck } from "lucide-react";
+import { Database, Eye, FileCode, FileText } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
-import { McAuditTab } from "./components/mc-audit-tab";
 import { McGeneralTab } from "./components/mc-general-tab";
 import { McJsonTab } from "./components/mc-json-tab";
 import { McPreviewTab } from "./components/mc-preview-tab";
 import { McPropertiesTab } from "./components/mc-properties-tab";
 import { useModelConfig } from "./hooks/use-model-config";
 
-type ModelConfigTabKey = "general" | "properties" | "audit" | "preview" | "json";
+type ModelConfigTabKey = "general" | "properties" | "preview" | "json";
 
 export function SysModelConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -71,7 +70,7 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
       {
         id: "properties",
         label: "Properties",
-        icon: <Database className="size-3 text-primary" />,
+        icon: <Database className="size-3 text-muted-foreground" />,
         badgeCount: validationErrors.filter((e) => e.tab === "properties").length || undefined,
         content: (
           <McPropertiesTab
@@ -89,21 +88,15 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
         ),
       },
       {
-        id: "audit",
-        label: "Audit Data",
-        icon: <ShieldCheck className="size-3 text-emerald-500" />,
-        content: <McAuditTab formData={formData} />,
-      },
-      {
         id: "preview",
         label: "Live Preview",
-        icon: <Eye className="size-3 text-cyan-500" />,
+        icon: <Eye className="size-3 text-muted-foreground" />,
         content: <McPreviewTab formData={formData} mode={mode} />,
       },
       {
         id: "json",
         label: "JSON Output",
-        icon: <FileCode className="size-3 text-amber-500" />,
+        icon: <FileCode className="size-3 text-muted-foreground" />,
         content: <McJsonTab formData={formData} baseline={baseline} raw={rawRecord} />,
       },
     ],

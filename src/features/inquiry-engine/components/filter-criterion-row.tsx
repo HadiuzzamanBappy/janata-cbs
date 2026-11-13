@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/core-utils";
 import type { INQSelectField, SelectionOperand } from "@/lib/data-schemas";
 import { INQUIRY_OPERAND_OPTIONS } from "../constants";
 import type { FilterCriterion } from "../types";
@@ -13,6 +14,7 @@ import type { FilterCriterion } from "../types";
 export interface FilterCriterionRowProps {
   field: INQSelectField;
   criterion: FilterCriterion;
+  hasError?: boolean;
   onValueChange: (fieldName: string, val: string) => void;
   onOperandChange: (fieldName: string, op: SelectionOperand) => void;
 }
@@ -20,9 +22,12 @@ export interface FilterCriterionRowProps {
 export function FilterCriterionRow({
   field,
   criterion,
+  hasError = false,
   onValueChange,
   onOperandChange,
 }: FilterCriterionRowProps) {
+  const isRequired = Boolean(field.selectFieldRequired);
+
   return (
     <div className="flex items-center gap-2">
       {/* Left Label (w-40) + fieldName */}
@@ -30,7 +35,14 @@ export function FilterCriterionRow({
         htmlFor={`inq-filter-${field.selectFieldName}`}
         className="w-40 shrink-0 text-xs font-medium text-muted-foreground flex items-center justify-between pr-1 select-none"
       >
-        <span className="truncate">{field.selectFieldDisplay}</span>
+        <span className="truncate flex items-center gap-0.5">
+          <span>{field.selectFieldDisplay}</span>
+          {isRequired && (
+            <span className="text-destructive font-bold text-xs" title="Required Filter">
+              *
+            </span>
+          )}
+        </span>
         <span className="text-[9px] font-mono text-muted-foreground/60 hidden sm:inline">
           {field.selectFieldName}
         </span>
@@ -65,8 +77,12 @@ export function FilterCriterionRow({
           type={field.selectFieldType === "number" ? "number" : "text"}
           placeholder={`e.g. ${field.selectFieldDisplay}...`}
           value={criterion.value}
+          required={isRequired}
           onChange={(e) => onValueChange(field.selectFieldName, e.target.value)}
-          className="h-7 text-xs font-mono bg-background border-border/80 rounded flex-1"
+          className={cn(
+            "h-7 text-xs font-mono bg-background border-border/80 rounded flex-1",
+            hasError && "border-destructive focus-visible:ring-destructive/30",
+          )}
         />
       </div>
     </div>

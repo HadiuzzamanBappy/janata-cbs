@@ -2,7 +2,7 @@ import type { ZodError } from "zod";
 
 export interface FormConfigValidationError {
   id: string;
-  tab: "general" | "formDesigner" | "preview" | "audit" | "json";
+  tab: "general" | "formDesigner" | "preview" | "json";
   fieldKey: string;
   message: string;
 }
@@ -24,7 +24,7 @@ export function mapZodIssuesToFcValidationErrors(
     } else if (path[0] === "frmElements") {
       tab = "formDesigner";
     } else if (path[0] === "auditData") {
-      tab = "audit";
+      tab = "general";
     }
 
     return {

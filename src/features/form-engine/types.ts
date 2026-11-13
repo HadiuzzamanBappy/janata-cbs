@@ -54,6 +54,7 @@ export interface FormRendererProps {
   mode?: CbsScreenMode;
   auditData?: AuditData | null;
   showAuditSection?: boolean;
+  auditVariant?: "inline" | "card";
   hideHeader?: boolean;
   layout?: "horizontal" | "stacked";
 }

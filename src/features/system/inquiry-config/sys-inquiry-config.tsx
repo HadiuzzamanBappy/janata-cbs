@@ -67,7 +67,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       {
         id: "selection",
         label: "Selection Criteria",
-        icon: <Filter className="size-3 text-sky-500" />,
+        icon: <Filter className="size-3 text-muted-foreground" />,
         badgeCount: validationErrors.filter((e) => e.tab === "selection").length || undefined,
         content: (
           <IcSelectionTab
@@ -85,7 +85,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       {
         id: "columns",
         label: "Columns",
-        icon: <Columns className="size-3 text-primary" />,
+        icon: <Columns className="size-3 text-muted-foreground" />,
         badgeCount: validationErrors.filter((e) => e.tab === "columns").length || undefined,
         content: (
           <IcColumnsTab
@@ -103,7 +103,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       {
         id: "actions",
         label: "Row Actions",
-        icon: <MousePointerClick className="size-3 text-violet-500" />,
+        icon: <MousePointerClick className="size-3 text-muted-foreground" />,
         badgeCount: validationErrors.filter((e) => e.tab === "actions").length || undefined,
         content: (
           <IcActionsTab
@@ -121,13 +121,13 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       {
         id: "preview",
         label: "Live Preview",
-        icon: <Eye className="size-3 text-emerald-500" />,
+        icon: <Eye className="size-3 text-muted-foreground" />,
         content: <IcPreviewTab formData={formData} />,
       },
       {
         id: "json",
-        label: "JSON Spec",
-        icon: <Code className="size-3 text-amber-500" />,
+        label: "JSON Output",
+        icon: <Code className="size-3 text-muted-foreground" />,
         content: <IcJsonTab formData={formData} baseline={baseline} raw={rawRecord} />,
       },
     ],

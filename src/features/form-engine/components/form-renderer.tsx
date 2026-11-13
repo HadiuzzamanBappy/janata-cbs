@@ -24,6 +24,7 @@ export function FormRenderer({
   mode = "I",
   auditData,
   showAuditSection = false,
+  auditVariant = "inline",
   hideHeader = false,
   layout = "horizontal",
 }: FormRendererProps) {
@@ -113,7 +114,10 @@ export function FormRenderer({
 
           {/* Constant Read-Only Audit Section below all form sections */}
           {showAuditSection && (
-            <AuditContainer auditData={auditData ?? (values.auditData as AuditData)} />
+            <AuditContainer
+              auditData={auditData ?? (values.auditData as AuditData)}
+              variant={auditVariant}
+            />
           )}
         </div>
       </div>

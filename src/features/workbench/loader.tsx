@@ -39,12 +39,20 @@ class ScreenErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 my-auto text-center flex flex-col items-center gap-2 bg-destructive/10 rounded-lg border border-destructive/20 max-w-md mx-auto">
-          <AlertCircle className="size-6 text-destructive" />
-          <h3 className="font-semibold text-xs text-destructive">Failed to Load Screen</h3>
-          <p className="text-[11px] text-muted-foreground font-mono">
-            {this.state.error?.message || `Render error on "${this.props.command}"`}
-          </p>
+        <div className="w-full h-full p-4 flex flex-col flex-1">
+          <div className="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-destructive/40 rounded-md p-8 text-center bg-destructive/5 select-none animate-in fade-in-50">
+            <div className="size-11 rounded-md border border-destructive/30 bg-destructive/10 text-destructive flex items-center justify-center mb-3 shadow-2xs">
+              <AlertCircle className="size-5.5" />
+            </div>
+            <div className="flex flex-col gap-1 max-w-sm">
+              <h3 className="text-sm font-semibold tracking-tight text-destructive">
+                Failed to Load Screen
+              </h3>
+              <p className="text-xs text-muted-foreground font-mono leading-relaxed">
+                {this.state.error?.message || `Render error on "${this.props.command}"`}
+              </p>
+            </div>
+          </div>
         </div>
       );
     }

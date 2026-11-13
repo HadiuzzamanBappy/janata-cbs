@@ -101,7 +101,7 @@ export type MenuTreeRecord = z.infer<typeof menuTreeRecordSchema>;
 
 export interface MenuDesignerValidationError {
   id: string;
-  tab: "general" | "canvas" | "audit";
+  tab: "general" | "canvas";
   nodeId?: string;
   fieldKey: string;
   message: string;

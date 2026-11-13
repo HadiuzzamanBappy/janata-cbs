@@ -23,14 +23,6 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
         WIDTH: "full",
         ENRICHTEXT: "Human-readable descriptive label for this navigation hierarchy.",
       },
-    ],
-  },
-  {
-    id: "sec_menu_status",
-    title: "Operational Lifecycle State",
-    containerType: "card",
-    columns: 1,
-    fields: [
       {
         SN: "2",
         NAME: "isActive",

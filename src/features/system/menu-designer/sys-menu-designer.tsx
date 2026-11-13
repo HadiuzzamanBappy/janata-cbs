@@ -1,18 +1,17 @@
 "use client";
 
-import { FileCode, FileText, History, Network } from "lucide-react";
+import { FileCode, FileText, Network } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
 import { CbsControlTable, CbsRecordFunction } from "@/types";
-import { MdAuditTab } from "./components/md-audit-tab";
 import { MdCanvasTab } from "./components/md-canvas-tab";
 import { MdGeneralTab } from "./components/md-general-tab";
 import { MdJsonTab } from "./components/md-json-tab";
 import { useMenuDesigner } from "./hooks/use-menu-designer";
 
-type MenuDesignerTabKey = "general" | "canvas" | "audit" | "json";
+type MenuDesignerTabKey = "general" | "canvas" | "json";
 
 export function SysMenuDesigner({ command, tabId }: ScreenProps) {
   const initialId = React.useMemo(() => {
@@ -64,7 +63,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       {
         id: "canvas",
         label: "Hierarchy Canvas",
-        icon: <Network className="size-3 text-primary" />,
+        icon: <Network className="size-3 text-muted-foreground" />,
         content: (
           <MdCanvasTab
             nodes={formData.menuTree}
@@ -89,15 +88,9 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
         ),
       },
       {
-        id: "audit",
-        label: "Audit Trail",
-        icon: <History className="size-3 text-sky-500" />,
-        content: <MdAuditTab formData={formData} />,
-      },
-      {
         id: "json",
-        label: "Spec Definition",
-        icon: <FileCode className="size-3 text-amber-500" />,
+        label: "JSON Output",
+        icon: <FileCode className="size-3 text-muted-foreground" />,
         content: <MdJsonTab formData={formData} baseline={baseline} raw={rawRecord} />,
       },
     ],

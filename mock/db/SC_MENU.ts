@@ -23,7 +23,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   // ============================================================================
   "1": {
     label: "User Request",
-    command: "INQ S GET.EMP.INFO",
+    command: "INQ GET.EMP.INFO",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {
@@ -38,7 +38,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "2": {
     label: "Unauthorize User List",
-    command: "INQ S USER.MGT.NAU.LIST",
+    command: "INQ USER.MGT.NAU.LIST",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {
@@ -53,7 +53,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "3": {
     label: "Create User",
-    command: "INQ S GET.USER.MGT.AUTH",
+    command: "INQ GET.USER.MGT.AUTH",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {
@@ -68,7 +68,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "4": {
     label: "Authorise/Delete User Unauth List",
-    command: "INQ S GET.USER.UNAU.LIST",
+    command: "INQ GET.USER.UNAU.LIST",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {
@@ -113,7 +113,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "7": {
     label: "User Inactive Request",
-    command: "INQ S INQ.USER.MGT.AUTH.LIST",
+    command: "INQ INQ.USER.MGT.AUTH.LIST",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {
@@ -128,7 +128,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "8": {
     label: "List of User",
-    command: "INQ S GET.USER.LIST",
+    command: "INQ GET.USER.LIST",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {
@@ -233,7 +233,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "15": {
     label: "Today Txn Report",
-    command: "INQ S GET.TO.TXN",
+    command: "INQ GET.TO.TXN",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {
@@ -248,7 +248,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "16": {
     label: "Today Txn Entry",
-    command: "INQ S GET.TODAY.ENTRY",
+    command: "INQ GET.TODAY.ENTRY",
     menuType: "INQUIRY",
     menuAction: "SCREEN",
     auditData: {

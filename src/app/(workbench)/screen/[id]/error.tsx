@@ -12,11 +12,12 @@ export default function ScreenError({
   reset: () => void;
 }) {
   return (
-    <div className="h-full flex items-center justify-center p-8">
+    <div className="h-screen w-screen p-4 flex flex-col">
       <EmptyState
         icon={AlertTriangle}
         title="Screen Crash"
         description={error.message || "An error occurred while rendering this popup window."}
+        className="w-full flex-1"
         action={
           <Button onClick={() => reset()} variant="outline" size="sm" className="h-8 text-xs">
             Reload Screen

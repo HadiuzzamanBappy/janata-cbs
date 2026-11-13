@@ -3,6 +3,7 @@
 import { Filter, Search } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toast";
 import type { SelectionOperand } from "@/lib/data-schemas";
 import type { FilterCriteriaMap, InquiryFilterBarProps } from "../types";
 import { FilterCriterionRow } from "./filter-criterion-row";
@@ -15,6 +16,7 @@ export function InquiryFilterBar({
   onReset,
   loading = false,
 }: InquiryFilterBarProps) {
+  const [missingFields, setMissingFields] = React.useState<Set<string>>(new Set());
   const [internalCriteria, setInternalCriteria] = React.useState<FilterCriteriaMap>(() => {
     const initial: FilterCriteriaMap = {};
     for (const f of fields) {
@@ -39,6 +41,13 @@ export function InquiryFilterBar({
   };
 
   const handleValueChange = (fieldName: string, val: string) => {
+    if (missingFields.has(fieldName) && val.trim() !== "") {
+      setMissingFields((prev) => {
+        const next = new Set(prev);
+        next.delete(fieldName);
+        return next;
+      });
+    }
     updateCriteria((prev) => ({
       ...prev,
       [fieldName]: { ...(prev[fieldName] || { operand: "EQ" }), value: val },
@@ -54,10 +63,31 @@ export function InquiryFilterBar({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate mandatory selection fields
+    const emptyRequired = fields.filter((f) => {
+      if (!f.selectFieldRequired) return false;
+      const val = criteria[f.selectFieldName]?.value;
+      return val === undefined || val === null || String(val).trim() === "";
+    });
+
+    if (emptyRequired.length > 0) {
+      setMissingFields(new Set(emptyRequired.map((f) => f.selectFieldName)));
+      const names = emptyRequired.map((f) => f.selectFieldDisplay || f.selectFieldName).join(", ");
+      toast.add({
+        title: "Required Filter Missing",
+        description: `Please enter a value for: ${names}`,
+        type: "destructive",
+      });
+      return;
+    }
+
+    setMissingFields(new Set());
     onSearch(criteria);
   };
 
   const handleClear = () => {
+    setMissingFields(new Set());
     const cleared: FilterCriteriaMap = {};
     for (const f of fields) {
       cleared[f.selectFieldName] = {
@@ -104,6 +134,7 @@ export function InquiryFilterBar({
                   key={field.selectFieldName}
                   field={field}
                   criterion={current}
+                  hasError={missingFields.has(field.selectFieldName)}
                   onValueChange={handleValueChange}
                   onOperandChange={handleOperandChange}
                 />

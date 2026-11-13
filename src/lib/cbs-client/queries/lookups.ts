@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { clientConfig } from "@/lib/core-config";
 import { unwrapRecordsPayload } from "@/lib/data-parsers";
 import type {
+  ControlCommand,
   MenuAction,
   MenuCatalogActionItem,
   MenuType,
@@ -24,6 +25,7 @@ export type ModelLookupPayload =
 
 const branchPayloads = createModelPayloads(CbsControlTable.BRANCH);
 const menuPayloads = createModelPayloads(CbsControlTable.MENU);
+const controlPayloads = createModelPayloads(CbsControlTable.CONTROL);
 
 /**
  * Tier: Master Reference Directories & Form Dropdown Lookups (`BRANCH`, `SC.LOOKUP`, etc.).
@@ -119,6 +121,41 @@ export const lookupQueries = {
             menuType: (r.menuType ? String(r.menuType) : "FORM") as MenuType,
             menuAction: (r.menuAction ? String(r.menuAction) : "SCREEN") as MenuAction,
           }));
+      },
+    }),
+
+  controlList: () =>
+    queryOptions<ControlCommand[]>({
+      queryKey: ["cbs", "controls", "list"] as const,
+      staleTime: 5 * 60 * 1000,
+      queryFn: async () => {
+        const res = await sendCbsRequest<unknown>(controlPayloads.list(), { silent: true });
+        if (res.status !== "SUCCESS") {
+          return [];
+        }
+        if (!res.data) return [];
+
+        const rawList = unwrapRecordsPayload(res.data);
+        return (rawList as Record<string, unknown>[])
+          .filter((r) => Boolean(r.command || r.recordId || r.id))
+          .map((r) => {
+            const command = String(r.command || r.recordId || r.id)
+              .trim()
+              .toUpperCase();
+            const rawAliases = Array.isArray(r.aliases) ? r.aliases : [];
+            const aliases = rawAliases.map((a) => String(a).trim().toUpperCase()).filter(Boolean);
+            return {
+              command,
+              title: String(r.title || command),
+              aliases,
+              controlAction: (r.controlAction
+                ? String(r.controlAction)
+                : "SCREEN") as ControlCommand["controlAction"],
+              controlType: (r.controlType
+                ? String(r.controlType)
+                : "FORM") as ControlCommand["controlType"],
+            };
+          });
       },
     }),
 };

@@ -2,7 +2,7 @@ import { Minus, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { getInputWidthClass, resolveWidgetType } from "@/lib/cbs-form-spec";
-import { formatCurrency } from "@/lib/core-utils";
+import { formatCurrency, formatNameToLabel } from "@/lib/core-utils";
 import { useFieldOptions } from "../hooks/use-field-options";
 import { useMultiValue } from "../hooks/use-multi-value";
 import type { UnifiedFieldFactoryProps } from "../types";
@@ -24,7 +24,9 @@ function ScalarFieldFactory({
   const isInputMode = mode === "I";
   const isViewMode = !isInputMode;
   const isReadOnly = disabled || field.DISABLED || isViewMode;
-  const effectiveLabel = labelOverride ?? field.LABEL ?? field.NAME;
+  const effectiveLabel =
+    labelOverride ??
+    (field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME));
   const fieldKey = field.NAME;
   const elementId = `elem_${field.SN}_${field.NAME}`;
 

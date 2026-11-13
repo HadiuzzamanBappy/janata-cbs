@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
+import { formatNameToLabel } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { PaletteItem, PaletteTypeFilter } from "./palette-types";
 
@@ -83,15 +84,16 @@ export function usePaletteVariables({
       if (query) {
         if (item.kind === "single") {
           const matchName = item.property.NAME.toLowerCase().includes(query);
-          const matchLabel = (item.property.LABEL || "").toLowerCase().includes(query);
+          const matchLabel = formatNameToLabel(item.property.NAME).toLowerCase().includes(query);
           if (!matchName && !matchLabel) return false;
         } else {
           const matchParent =
             item.parent.NAME.toLowerCase().includes(query) ||
-            (item.parent.LABEL || "").toLowerCase().includes(query);
+            formatNameToLabel(item.parent.NAME).toLowerCase().includes(query);
           const matchChild = item.children.some(
             (c) =>
-              c.NAME.toLowerCase().includes(query) || (c.LABEL || "").toLowerCase().includes(query),
+              c.NAME.toLowerCase().includes(query) ||
+              formatNameToLabel(c.NAME).toLowerCase().includes(query),
           );
           if (!matchParent && !matchChild) return false;
         }

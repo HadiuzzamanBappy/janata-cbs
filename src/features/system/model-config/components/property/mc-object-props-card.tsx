@@ -62,8 +62,7 @@ export function McObjectPropsCard({
           <div className="rounded border border-border/60 overflow-hidden divide-y divide-border/40">
             <div className="grid grid-cols-12 bg-muted/40 px-2.5 py-1 text-[10px] font-mono font-semibold text-muted-foreground uppercase">
               <span className="col-span-2">SN</span>
-              <span className="col-span-4">Field Name</span>
-              <span className="col-span-4">Display Label</span>
+              <span className="col-span-8">Field Name</span>
               <span className="col-span-2 text-right">Type</span>
             </div>
 
@@ -80,11 +79,8 @@ export function McObjectPropsCard({
                   <span className="col-span-2 font-mono font-bold text-primary text-[11px]">
                     #{sub.SN}
                   </span>
-                  <span className="col-span-4 font-mono font-medium text-foreground truncate">
+                  <span className="col-span-8 font-mono font-medium text-foreground truncate">
                     {sub.NAME || "<Unnamed>"}
-                  </span>
-                  <span className="col-span-4 text-muted-foreground truncate">
-                    {sub.LABEL || sub.NAME}
                   </span>
                 </button>
                 <div className="col-span-2 flex items-center justify-end gap-1.5">

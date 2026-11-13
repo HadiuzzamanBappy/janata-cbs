@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cbsQueries } from "@/lib/cbs-client";
-import { cn } from "@/lib/core-utils";
+import { cn, formatNameToLabel } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 
 export interface InquiryModelPopoverProps {
@@ -53,7 +53,7 @@ export function InquiryModelPopover({
     return availableProps.filter(
       (p) =>
         p.NAME?.toLowerCase().includes(term) ||
-        p.LABEL?.toLowerCase().includes(term) ||
+        formatNameToLabel(p.NAME).toLowerCase().includes(term) ||
         p.TYPE?.toLowerCase().includes(term),
     );
   }, [availableProps, search]);
@@ -132,7 +132,7 @@ export function InquiryModelPopover({
                       {prop.NAME}
                     </span>
                     <span className="text-[10px] text-muted-foreground truncate block">
-                      {prop.LABEL || prop.NAME}
+                      {formatNameToLabel(prop.NAME)}
                     </span>
                   </div>
 

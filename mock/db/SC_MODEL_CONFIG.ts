@@ -25,7 +25,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "label",
-        LABEL: "Menu Label",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 250,
@@ -34,7 +33,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "command",
-        LABEL: "Target Command",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 250,
@@ -43,7 +41,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "menuType",
-        LABEL: "Menu Type",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -61,7 +58,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "menuAction",
-        LABEL: "Menu Action",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -77,7 +73,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "description",
-        LABEL: "Description",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 300,
@@ -86,7 +81,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "isActive",
-        LABEL: "Is Active",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -128,7 +122,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "treeDescription",
-        LABEL: "Tree Description",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 100,
@@ -137,7 +130,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "isActive",
-        LABEL: "Is Active",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -146,7 +138,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "menuTree",
-        LABEL: "Menu Tree",
         TYPE: "Object",
         STRUCTURE: "M",
         LENGTH: 0,
@@ -188,7 +179,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "command",
-        LABEL: "Command Identifier",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 35,
@@ -197,7 +187,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "title",
-        LABEL: "Command Title",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 80,
@@ -206,7 +195,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "aliases",
-        LABEL: "Command Aliases",
         TYPE: "Text",
         STRUCTURE: "M",
         LENGTH: 20,
@@ -215,7 +203,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "controlAction",
-        LABEL: "Control Action",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -232,7 +219,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "controlType",
-        LABEL: "Control Type",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -283,7 +269,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "category",
-        LABEL: "Lookup Category",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 50,
@@ -292,7 +277,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "lookupCode",
-        LABEL: "Lookup Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 35,
@@ -301,7 +285,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "description",
-        LABEL: "Description",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 100,
@@ -310,7 +293,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "status",
-        LABEL: "Status",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -359,7 +341,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "branchTitle",
-        LABEL: "Branch Title",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 80,
@@ -368,7 +349,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "branchType",
-        LABEL: "Branch Type",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 2,
@@ -387,7 +367,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "branchContact",
-        LABEL: "Branch Contact",
         TYPE: "Object",
         STRUCTURE: "M",
         LENGTH: 0,
@@ -396,7 +375,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "3_1",
             NAME: "addressLine",
-            LABEL: "Address Line",
             TYPE: "Text",
             STRUCTURE: "M",
             LENGTH: 100,
@@ -405,7 +383,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "3_2",
             NAME: "email",
-            LABEL: "Email Address",
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 80,
@@ -414,7 +391,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "3_3",
             NAME: "phone",
-            LABEL: "Phone Number",
             TYPE: "Text",
             STRUCTURE: "M",
             LENGTH: 25,
@@ -425,7 +401,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "openDate",
-        LABEL: "Opening Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -434,7 +409,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "isActive",
-        LABEL: "Is Active",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -443,7 +417,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "bbCode",
-        LABEL: "BB Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -452,7 +425,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "divCode",
-        LABEL: "Division Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -461,7 +433,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "areaCode",
-        LABEL: "Area Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -470,7 +441,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "9",
         NAME: "gradeCode",
-        LABEL: "Branch Grade",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 5,
@@ -488,7 +458,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "10",
         NAME: "countryCode",
-        LABEL: "Country",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -503,7 +472,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "11",
         NAME: "routingNumber",
-        LABEL: "Routing Number",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 9,
@@ -512,7 +480,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "12",
         NAME: "swiftCode",
-        LABEL: "SWIFT / BIC Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 11,
@@ -521,7 +488,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "13",
         NAME: "parentBranch",
-        LABEL: "Parent Branch",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -569,7 +535,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "userId",
-        LABEL: "User ID",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -578,7 +543,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "fullName",
-        LABEL: "Full Name",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 100,
@@ -587,7 +551,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "accessibility",
-        LABEL: "Accessibility (RIDASH)",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -596,7 +559,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "branchCode",
-        LABEL: "Default Branch Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -605,7 +567,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "commandLine",
-        LABEL: "Enable Command Line",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -649,7 +610,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "userName",
-        LABEL: "User Full Name",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 65,
@@ -658,7 +618,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "signOnName",
-        LABEL: "Sign-on ID",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 16,
@@ -667,7 +626,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "classification",
-        LABEL: "User Classification",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -687,7 +645,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "companyCode",
-        LABEL: "Authorized Branch(es)",
         TYPE: "Text",
         STRUCTURE: "M",
         LENGTH: 10,
@@ -702,7 +659,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "departmentCode",
-        LABEL: "Department Code",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 4,
@@ -711,7 +667,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "email",
-        LABEL: "Corporate Email",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 80,
@@ -720,7 +675,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "mobileNumber",
-        LABEL: "Mobile Number",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -729,7 +683,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "startDateProfile",
-        LABEL: "Profile Start Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -738,7 +691,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "9",
         NAME: "endDateProfile",
-        LABEL: "Profile End Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -747,7 +699,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "10",
         NAME: "startTime",
-        LABEL: "Working Hours From (HH:MM)",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 5,
@@ -756,7 +707,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "11",
         NAME: "endTime",
-        LABEL: "Working Hours To (HH:MM)",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 5,
@@ -765,7 +715,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "12",
         NAME: "timeOutMinutes",
-        LABEL: "Session Timeout (Minutes)",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -774,7 +723,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "13",
         NAME: "maxSessions",
-        LABEL: "Max Concurrent Sessions",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 2,
@@ -783,7 +731,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "14",
         NAME: "attempts",
-        LABEL: "Failed Login Attempts",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -792,7 +739,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "15",
         NAME: "allowedDays",
-        LABEL: "Allowed Login Days",
         TYPE: "Text",
         STRUCTURE: "M",
         LENGTH: 3,
@@ -813,7 +759,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "16",
         NAME: "overrideClass",
-        LABEL: "Override Clearance Tier",
         TYPE: "Text",
         STRUCTURE: "M",
         LENGTH: 4,
@@ -832,7 +777,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "17",
         NAME: "ldapId",
-        LABEL: "Active Directory / SSO ID",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 35,
@@ -841,7 +785,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "18",
         NAME: "dateLastSignOn",
-        LABEL: "Last Sign-on Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -850,7 +793,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "19",
         NAME: "timeLastSignOn",
-        LABEL: "Last Sign-on Time",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 8,
@@ -859,7 +801,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "20",
         NAME: "deactivationDate",
-        LABEL: "Deactivation Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -868,7 +809,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "21",
         NAME: "reactivationDate",
-        LABEL: "Reactivation Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -877,7 +817,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "22",
         NAME: "empBankId",
-        LABEL: "Employee Bank ID",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 6,
@@ -886,7 +825,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "23",
         NAME: "passwordValidity",
-        LABEL: "Password Validity Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -895,7 +833,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "24",
         NAME: "language",
-        LABEL: "Language Code",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 2,
@@ -935,7 +872,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "employeeName",
-        LABEL: "Employee Name",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 65,
@@ -944,7 +880,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "placeOfPosting",
-        LABEL: "Place Of Posting",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 65,
@@ -953,7 +888,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "userId",
-        LABEL: "User Id",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -962,7 +896,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "signOnName",
-        LABEL: "Sign On Name",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 35,
@@ -971,7 +904,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "userPassword",
-        LABEL: "User Password",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 12,
@@ -980,7 +912,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "tellerId",
-        LABEL: "Teller Id",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 5,
@@ -989,7 +920,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "userDesignation",
-        LABEL: "User Designation",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 12,
@@ -998,7 +928,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "empBankId",
-        LABEL: "Emp Bank Id",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 6,
@@ -1007,7 +936,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "9",
         NAME: "mobileNo",
-        LABEL: "Mobile No",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 11,
@@ -1016,7 +944,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "10",
         NAME: "email",
-        LABEL: "Email",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 25,
@@ -1025,7 +952,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "11",
         NAME: "prlDate",
-        LABEL: "Prl Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1034,7 +960,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "12",
         NAME: "general",
-        LABEL: "General",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -1043,7 +968,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "13",
         NAME: "teller",
-        LABEL: "Teller",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -1052,7 +976,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "14",
         NAME: "oibta",
-        LABEL: "Oibta",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -1061,7 +984,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "15",
         NAME: "dispo",
-        LABEL: "Dispo",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -1070,7 +992,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "16",
         NAME: "bigFileUpload",
-        LABEL: "Big File Upload",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -1079,7 +1000,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "17",
         NAME: "empRole",
-        LABEL: "Emp Role",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -1088,7 +1008,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "18",
         NAME: "requestFor",
-        LABEL: "Request For",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 15,
@@ -1097,7 +1016,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "19",
         NAME: "reqDescription",
-        LABEL: "Req Description",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 65,
@@ -1106,7 +1024,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "20",
         NAME: "requestReason",
-        LABEL: "Request Reason",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 12,
@@ -1115,7 +1032,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "21",
         NAME: "requestStatus",
-        LABEL: "Request Status",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1124,7 +1040,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "22",
         NAME: "requestedBy",
-        LABEL: "Requested By",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 25,
@@ -1133,7 +1048,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "23",
         NAME: "approvedBy",
-        LABEL: "Approved By",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 25,
@@ -1142,7 +1056,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "24",
         NAME: "requestDateTime",
-        LABEL: "Request Date Time",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -1151,7 +1064,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "25",
         NAME: "requestCoCode",
-        LABEL: "Request Co Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 11,
@@ -1160,7 +1072,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "26",
         NAME: "denyReason",
-        LABEL: "Deny Reason",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 65,
@@ -1169,7 +1080,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "27",
         NAME: "stopStartDate",
-        LABEL: "Stop Start Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1178,7 +1088,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "28",
         NAME: "stopEndDate",
-        LABEL: "Stop End Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1187,7 +1096,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "29",
         NAME: "closeApplyDate",
-        LABEL: "Close Apply Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1196,7 +1104,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "30",
         NAME: "transferredBranch",
-        LABEL: "Transferred Branch",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 11,
@@ -1205,7 +1112,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "31",
         NAME: "clearing",
-        LABEL: "Clearing",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -1259,7 +1165,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "passReset",
-        LABEL: "Pass Reset",
         TYPE: "Object",
         STRUCTURE: "M",
         LENGTH: 0,
@@ -1268,7 +1173,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_1",
             NAME: "userId",
-            LABEL: "User Id",
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 20,
@@ -1277,7 +1181,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_2",
             NAME: "resetPassword",
-            LABEL: "Reset Password",
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 20,
@@ -1286,7 +1189,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_3",
             NAME: "dateOfBirth",
-            LABEL: "Date Of Birth",
             TYPE: "Date",
             STRUCTURE: "S",
             LENGTH: 11,
@@ -1295,7 +1197,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_4",
             NAME: "phone",
-            LABEL: "Phone",
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 17,
@@ -1304,7 +1205,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_5",
             NAME: "email",
-            LABEL: "Email",
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 50,
@@ -1313,7 +1213,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
           {
             SN: "1_6",
             NAME: "userType",
-            LABEL: "User Type",
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 3,
@@ -1355,7 +1254,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "accountType",
-        LABEL: "Account Type",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -1364,7 +1262,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "customerId",
-        LABEL: "Customer ID",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -1373,7 +1270,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "currency",
-        LABEL: "Currency",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 3,
@@ -1382,7 +1278,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "openingDate",
-        LABEL: "Opening Date",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1391,7 +1286,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "initialDeposit",
-        LABEL: "Initial Deposit",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 18,
@@ -1400,7 +1294,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "interestRate",
-        LABEL: "Interest Rate (%)",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 5,
@@ -1409,7 +1302,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "accountTitle",
-        LABEL: "Account Title",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 100,
@@ -1418,7 +1310,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "nomineeName",
-        LABEL: "Nominee Name",
         TYPE: "Text",
         STRUCTURE: "M",
         LENGTH: 100,
@@ -1427,7 +1318,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "9",
         NAME: "nomineeRelation",
-        LABEL: "Relationship",
         TYPE: "Text",
         STRUCTURE: "M",
         LENGTH: 30,
@@ -1436,7 +1326,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "10",
         NAME: "nomineeShare",
-        LABEL: "Share Percentage",
         TYPE: "Number",
         STRUCTURE: "M",
         LENGTH: 5,
@@ -1445,7 +1334,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "11",
         NAME: "nomineeNid",
-        LABEL: "Nominee NID / ID",
         TYPE: "Text",
         STRUCTURE: "M",
         LENGTH: 30,
@@ -1454,7 +1342,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "12",
         NAME: "operatingMode",
-        LABEL: "Operating Mode",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -1463,7 +1350,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "13",
         NAME: "enableChequeBook",
-        LABEL: "Enable Cheque Book",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1472,7 +1358,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "14",
         NAME: "enableDebitCard",
-        LABEL: "Enable Debit Card",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1481,7 +1366,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "15",
         NAME: "enableSmsAlerts",
-        LABEL: "Enable SMS Alerts",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1490,7 +1374,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "17",
         NAME: "street",
-        LABEL: "Street Address",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 100,
@@ -1499,7 +1382,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "18",
         NAME: "city",
-        LABEL: "City / District",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 50,
@@ -1508,7 +1390,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "19",
         NAME: "postalCode",
-        LABEL: "Postal Code",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1550,7 +1431,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "nationalId",
-        LABEL: "National NID",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -1559,7 +1439,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "dateOfBirth",
-        LABEL: "Date of Birth",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1568,7 +1447,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "fatherName",
-        LABEL: "Father's Name",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 100,
@@ -1577,7 +1455,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "motherName",
-        LABEL: "Mother's Name",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 100,
@@ -1619,7 +1496,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "description",
-        LABEL: "Inquiry Description",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 150,
@@ -1628,7 +1504,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "controllerName",
-        LABEL: "Target Controller Table",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 35,
@@ -1637,7 +1512,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "inqType",
-        LABEL: "Inquiry Type",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -1654,7 +1528,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "4",
         NAME: "rptControllerName",
-        LABEL: "Report Controller Name",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 50,
@@ -1663,7 +1536,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "5",
         NAME: "pageOrientation",
-        LABEL: "Page Orientation",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 10,
@@ -1679,7 +1551,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "6",
         NAME: "showSerial",
-        LABEL: "Show Row Serial",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1688,7 +1559,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "7",
         NAME: "showPagination",
-        LABEL: "Show Pagination",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1697,7 +1567,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "8",
         NAME: "inqServicePath",
-        LABEL: "Service Path",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 50,
@@ -1738,8 +1607,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     PROPERTIES: [
       {
         SN: "1",
-        NAME: "TABLENAME",
-        LABEL: "Table Name",
+        NAME: "tableName",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 40,
@@ -1747,8 +1615,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "2",
-        NAME: "DESCRIPTION",
-        LABEL: "Model Description",
+        NAME: "description",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 150,
@@ -1756,8 +1623,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "3",
-        NAME: "PREFIX",
-        LABEL: "Table Prefix",
+        NAME: "prefix",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 6,
@@ -1765,8 +1631,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "4",
-        NAME: "ACCESS",
-        LABEL: "Access Level",
+        NAME: "access",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 2,
@@ -1781,8 +1646,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "5",
-        NAME: "USERDEFINEID",
-        LABEL: "User Defined ID",
+        NAME: "userDefineId",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1790,8 +1654,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "6",
-        NAME: "AUTHORIZE",
-        LABEL: "Requires Maker-Checker",
+        NAME: "authorize",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1799,8 +1662,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "7",
-        NAME: "SEARCHABLE",
-        LABEL: "Searchable in Command Bar",
+        NAME: "searchable",
         TYPE: "Boolean",
         STRUCTURE: "S",
         LENGTH: 1,
@@ -1808,8 +1670,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       },
       {
         SN: "8",
-        NAME: "SERVICEPATH",
-        LABEL: "Backend Service Path",
+        NAME: "servicePath",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 40,
@@ -1851,7 +1712,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "title",
-        LABEL: "Form Title",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 80,
@@ -1860,7 +1720,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "2",
         NAME: "description",
-        LABEL: "Form Description",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 150,
@@ -1869,7 +1728,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "authNumber",
-        LABEL: "Required Authorizers",
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 2,

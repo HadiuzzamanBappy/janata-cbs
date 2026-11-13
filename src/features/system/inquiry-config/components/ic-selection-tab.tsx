@@ -12,7 +12,7 @@ import { Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useContainerWidth } from "@/hooks";
-import { cn } from "@/lib/core-utils";
+import { cn, formatNameToLabel } from "@/lib/core-utils";
 import type {
   INQSelectField,
   InquiryFieldType,
@@ -119,7 +119,7 @@ export function IcSelectionTab({
 
     onAddFilter({
       selectFieldName: prop.NAME,
-      selectFieldDisplay: prop.LABEL || prop.NAME,
+      selectFieldDisplay: formatNameToLabel(prop.NAME),
       selectFieldType,
       selectFieldOperator: defaultOperand,
       selectFieldValue: "",

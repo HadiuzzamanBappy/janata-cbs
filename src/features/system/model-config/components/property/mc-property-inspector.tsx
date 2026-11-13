@@ -65,18 +65,6 @@ export function McPropertyInspector({
       }
       const updated = setFieldValue(property as Record<string, unknown>, fieldKey, nextVal);
 
-      // Auto-suggest Display Label when Field Name is typed and Label is pristine
-      if (fieldKey === "NAME" && typeof value === "string") {
-        const cleanName = nextVal as string;
-        const currentLabel = (property.LABEL || "").trim();
-        const prevDerived = (property.NAME || "")
-          .replace(/[_-]/g, " ")
-          .replace(/\b\w/g, (c) => c.toUpperCase());
-        if (!currentLabel || currentLabel === prevDerived) {
-          updated.LABEL = cleanName.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-        }
-      }
-
       // Type change side-effects
       if (fieldKey === "TYPE") {
         const nextType = value as PropertyType;
@@ -178,9 +166,6 @@ export function McPropertyInspector({
           <span className="text-xs font-bold font-mono text-foreground uppercase tracking-wide truncate">
             {property.NAME || "<UNNAMED_FIELD>"}
           </span>
-          {property.LABEL && (
-            <span className="text-xs text-muted-foreground truncate">— {property.LABEL}</span>
-          )}
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">

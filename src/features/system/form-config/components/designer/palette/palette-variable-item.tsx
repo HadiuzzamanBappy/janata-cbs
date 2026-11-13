@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/core-utils";
+import { cn, formatNameToLabel } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { modelPropToFormElement } from "./palette-types";
@@ -69,7 +69,7 @@ export function PaletteVariableItem({
         ) : (
           <Plus className="size-3 text-primary shrink-0" />
         )}
-        <span className="truncate font-medium">{property.LABEL}</span>
+        <span className="truncate font-medium">{formatNameToLabel(property.NAME)}</span>
         {isRequired && <span className="text-destructive font-bold text-xs shrink-0">*</span>}
       </div>
 

@@ -56,12 +56,11 @@ export const baseFieldSchema = z.looseObject({
   NAME: z
     .string()
     .trim()
-    .min(1, "Field name is required")
+    .min(1, "Property name is required")
     .regex(
-      /^[a-zA-Z_][a-zA-Z0-9_]*$/,
-      "Field name must begin with a letter or underscore and contain only alphanumeric characters or underscores",
+      /^[a-z][a-zA-Z0-9]*$/,
+      "Property name must be in camelCase (e.g. accountType, customerName)",
     ),
-  LABEL: z.string().trim().min(1, "Field label is required"),
   TYPE: propertyTypeSchema.default("Text"),
   STRUCTURE: z
     .preprocess((val) => (typeof val === "string" ? val.toUpperCase() : val), z.enum(["S", "M"]))

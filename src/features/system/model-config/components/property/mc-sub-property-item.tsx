@@ -49,8 +49,8 @@ export function McSubPropertyItem({
         <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-muted text-muted-foreground shrink-0">
           #{sub.SN}
         </span>
-        <span className="text-[11px] truncate font-medium">
-          {sub.LABEL || sub.NAME || "<Unnamed Subfield>"}
+        <span className="text-[11px] truncate font-mono font-medium">
+          {sub.NAME || "<Unnamed Subfield>"}
         </span>
       </button>
       <div className="flex items-center gap-1 shrink-0 ml-1">

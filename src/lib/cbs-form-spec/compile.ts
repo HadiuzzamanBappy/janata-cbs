@@ -1,3 +1,4 @@
+import { formatNameToLabel } from "@/lib/core-utils";
 import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
@@ -89,7 +90,7 @@ export function compileFormSpec(
 
       return {
         ...field,
-        LABEL: field.LABEL || modelProp.LABEL || modelProp.NAME,
+        LABEL: field.LABEL || formatNameToLabel(modelProp.NAME),
         TYPE: field.TYPE || modelProp.TYPE || "Text",
         LENGTH: field.LENGTH || modelProp.LENGTH || 35,
         STRUCTURE: field.STRUCTURE || modelProp.STRUCTURE || "S",

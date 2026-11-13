@@ -21,21 +21,10 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         REQUIRED: true,
         WIDTH: "md",
         ENRICHTEXT:
-          "Database column identifier (snake_case or camelCase) mapped to backend tables.",
+          "Database column identifier in strict camelCase (e.g. accountNumber, openingDate).",
       },
       {
         SN: "2",
-        NAME: "LABEL",
-        LABEL: "Display Label",
-        TYPE: "Text",
-        STRUCTURE: "S",
-        LENGTH: 80,
-        REQUIRED: true,
-        WIDTH: "xl",
-        ENRICHTEXT: "Human-readable label displayed across user interface screens.",
-      },
-      {
-        SN: "3",
         NAME: "TYPE",
         LABEL: "Data Type",
         TYPE: "Text",
@@ -60,7 +49,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
           "Physical database column data type: Text, Number, Amount, Rate, Date, DateTime, Boolean, or Object.",
       },
       {
-        SN: "4",
+        SN: "3",
         NAME: "STRUCTURE",
         LABEL: "Structure",
         TYPE: "Text",
@@ -78,7 +67,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Single (S) scalar value or Multi-Value (M) repeating primitive array.",
       },
       {
-        SN: "5",
+        SN: "4",
         NAME: "LENGTH",
         LABEL: "Length",
         TYPE: "Number",
@@ -89,7 +78,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Maximum character storage limit or numerical precision allowed in database.",
       },
       {
-        SN: "6",
+        SN: "5",
         NAME: "REQUIRED",
         LABEL: "Required",
         TYPE: "Boolean",

@@ -1,3 +1,12 @@
+/**
+ * @fileoverview High-Density Percentage & Rate Input Widget
+ * @module form-engine/widgets/rate-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Monospace numeric input with fixed rate suffix badge ("%").
+ */
+
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
@@ -8,6 +17,7 @@ export interface RateWidgetProps extends BaseWidgetProps {
 
 export function RateWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

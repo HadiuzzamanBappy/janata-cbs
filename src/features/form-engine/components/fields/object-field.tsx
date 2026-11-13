@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Recursive Object & Table Set Field Component
+ * @module form-engine/object-field
+ *
+ * Core Invariants:
+ * - Renders nested sub-properties (PROP?: FormElement[]) for single objects and repeating table sets.
+ * - Dot-notates child field paths (e.g. "CUSTOMER.profile.name" or "ITEMS.0.code").
+ * - Delegates cell widths and value accessors purely to @/lib/cbs-form-spec.
+ */
+
 "use client";
 
 import { Minus, Plus } from "lucide-react";
@@ -6,10 +16,10 @@ import { Button } from "@/components/ui/button";
 import { getFieldColSpanClass, getFieldValue } from "@/lib/cbs-form-spec";
 import { formatNameToLabel } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { CbsScreenMode } from "@/types";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { useFormLayout } from "../form-layout-context";
 import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";
-import { useFormLayout } from "./form-layout-context";
 
 export interface ObjectFieldProps {
   field: FormElement;
@@ -27,7 +37,7 @@ export function ObjectField({
   onChange,
   errors = {},
   disabled = false,
-  mode = "I",
+  mode = CbsRecordFunction.INPUT,
   hasKernel = false,
 }: ObjectFieldProps) {
   const { layout } = useFormLayout();
@@ -36,7 +46,7 @@ export function ObjectField({
   const isMulti = field.STRUCTURE === "M";
   const groupKey = field.NAME;
   const label = field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME);
-  const isInputMode = mode === "I";
+  const isInputMode = mode === CbsRecordFunction.INPUT;
   const isReadOnly = disabled || !isInputMode;
   const subFields = (field.PROP || []) as FormElement[];
 

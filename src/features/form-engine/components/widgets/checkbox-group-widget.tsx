@@ -1,3 +1,13 @@
+/**
+ * @fileoverview High-Density Multi-Select Checkbox Group Widget
+ * @module form-engine/widgets/checkbox-group-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Does NOT mutate base UI primitives (src/components/ui/checkbox.tsx remains pristine).
+ * - Supports standard inline matrix and badge selection variants.
+ */
+
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,6 +21,7 @@ export interface CheckboxGroupWidgetProps extends BaseWidgetProps {
 
 export function CheckboxGroupWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,
@@ -82,8 +93,8 @@ export function CheckboxGroupWidget({
                 "dark:data-checked:text-primary-foreground",
                 disabled &&
                   (isChecked
-                    ? "bg-muted/70! border-border! text-muted-foreground!"
-                    : "bg-input/40! border-border/60!"),
+                    ? "!bg-muted/70 !border-border !text-muted-foreground"
+                    : "!bg-input/40 !border-border/60"),
               )}
             />
             <span

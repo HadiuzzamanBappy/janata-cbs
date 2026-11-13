@@ -1,3 +1,13 @@
+/**
+ * @fileoverview High-Density Lookup Input & Dropdown Selector Widget
+ * @module form-engine/widgets/select-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Dual-input mode: direct rapid code entry or inline chevron dropdown selection.
+ * - Handles asynchronous model fetching state with loading spinner.
+ */
+
 "use client";
 
 import { ChevronDown, Loader2 } from "lucide-react";
@@ -20,12 +30,9 @@ export interface SelectWidgetProps extends BaseWidgetProps {
   label?: string;
 }
 
-/**
- * CBS Lookup Action Input with inline Dropdown Trigger.
- * Allows operators to either type the code directly or click the Chevron dropdown button beside it.
- */
 export function SelectWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

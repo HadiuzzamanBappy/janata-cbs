@@ -1,3 +1,12 @@
+/**
+ * @fileoverview High-Density Boolean Switch Widget
+ * @module form-engine/widgets/switch-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Compact banking toggle switch with active/inactive label badge.
+ */
+
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
 
@@ -8,6 +17,7 @@ export interface SwitchWidgetProps extends BaseWidgetProps {
 
 export function SwitchWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

@@ -1,31 +1,33 @@
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { WidgetOption } from "../types";
-import { AmountWidget } from "./widgets/amount-widget";
-import { CheckboxGroupWidget } from "./widgets/checkbox-group-widget";
-import { CheckboxWidget } from "./widgets/checkbox-widget";
-import { DateWidget } from "./widgets/date-widget";
-import { RadioWidget } from "./widgets/radio-widget";
-import { RateWidget } from "./widgets/rate-widget";
-import { SelectWidget } from "./widgets/select-widget";
-import { SwitchWidget } from "./widgets/switch-widget";
-import { TextWidget } from "./widgets/text-widget";
-import { TextareaWidget } from "./widgets/textarea-widget";
+/**
+ * @fileoverview Form Widget Resolver & Dynamic Dispatcher
+ * @module form-engine/widget-renderer
+ *
+ * Core Invariants:
+ * - Exhaustive routing from FormWidgetType to concrete high-density widget components.
+ * - Enforces BaseWidgetProps contract across all widgets.
+ * - Handles specialized widget variants (e.g. segmented radio group, multiline date/time).
+ */
 
-export interface WidgetRendererProps {
-  widget: string;
-  field: FormElement;
-  fieldKey: string;
-  rowId: string;
-  value: unknown;
-  onChange: (next: unknown) => void;
-  isReadOnly: boolean;
-  error?: string;
-  placeholder?: string;
-  resolvedOptions: WidgetOption[];
-  modelLoading: boolean;
-  effectiveLabel: string;
-}
+import type { WidgetRendererProps } from "../../types";
+import { AmountWidget } from "./amount-widget";
+import { CheckboxGroupWidget } from "./checkbox-group-widget";
+import { CheckboxWidget } from "./checkbox-widget";
+import { DateWidget } from "./date-widget";
+import { RadioWidget } from "./radio-widget";
+import { RateWidget } from "./rate-widget";
+import { SelectWidget } from "./select-widget";
+import { SwitchWidget } from "./switch-widget";
+import { TextWidget } from "./text-widget";
+import { TextareaWidget } from "./textarea-widget";
 
+export type { WidgetRendererProps };
+
+/**
+ * Dispatches a field to its concrete presentation widget based on normalized widget type.
+ *
+ * @param props Normalized widget renderer props.
+ * @returns Rendered JSX widget element.
+ */
 export function renderFieldWidget({
   widget,
   field,
@@ -42,6 +44,7 @@ export function renderFieldWidget({
 }: WidgetRendererProps) {
   switch (widget) {
     case "select":
+    case "combobox":
       return (
         <SelectWidget
           id={rowId}
@@ -97,17 +100,6 @@ export function renderFieldWidget({
       );
     case "radio":
     case "radio-group":
-      return (
-        <RadioWidget
-          id={rowId}
-          fieldKey={fieldKey}
-          value={value}
-          onChange={onChange}
-          disabled={isReadOnly}
-          options={resolvedOptions}
-          variant={field.WIDGET === "segmented" ? "group" : "standard"}
-        />
-      );
     case "segmented":
       return (
         <RadioWidget
@@ -117,7 +109,7 @@ export function renderFieldWidget({
           onChange={onChange}
           disabled={isReadOnly}
           options={resolvedOptions}
-          variant="group"
+          variant={widget === "segmented" || field.WIDGET === "segmented" ? "group" : "standard"}
         />
       );
     case "checkbox":

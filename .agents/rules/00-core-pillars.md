@@ -85,7 +85,7 @@ Whenever reviewing, refactoring, or editing ANY file in the codebase, you MUST a
    - NEVER fabricate IDs with timestamps (e.g., `NEW.${Date.now()}`).
    - New record creation is strictly input-driven or sequence-allocated via the core backend (`GNI`). If sequence allocation fails and no candidate ID is provided, return empty string `""`.
 
-5. **Strict File Budget Compliance (Rule 2)**:
-   - Presentation components: **$\le 300$ lines**.
-   - Custom hooks, persistence, and pure helpers: **$\le 200$ lines**.
-   - If a file exceeds budget, decompose into single-responsibility child modules immediately.
+5. **Flexible File Budget Compliance (Rule 2)**:
+   - Presentation components: Target **$\le 300$ lines** (flexible stretch up to **350 lines** when cohesive).
+   - Custom hooks, persistence, and pure helpers: Target **$\le 250$ lines** (flexible stretch up to **280 lines** for comprehensive domain logic and rule engines).
+   - Avoid artificial line squeezing or premature micro-fragmentation; decompose only when a file contains distinct, separable responsibilities.

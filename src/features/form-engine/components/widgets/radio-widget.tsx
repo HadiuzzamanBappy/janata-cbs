@@ -1,3 +1,12 @@
+/**
+ * @fileoverview High-Density Radio & Segmented Button Group Widget
+ * @module form-engine/widgets/radio-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Supports standard circular radio list and compact segmented button bar ("group" variant).
+ */
+
 "use client";
 
 import { Label } from "@/components/ui/label";
@@ -12,6 +21,7 @@ export interface RadioWidgetProps extends BaseWidgetProps {
 
 export function RadioWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

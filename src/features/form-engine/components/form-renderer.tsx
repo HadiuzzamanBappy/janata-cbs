@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Pure composition orchestrator for dynamic CBS forms.
+ * Coordinates section render blocks (cards and tab groups), automatic schema validation,
+ * field value transforms, cascades, and reactive on-change rules.
+ *
+ * @module features/form-engine/components/form-renderer
+ */
+
 "use client";
 
 import * as React from "react";
@@ -6,11 +14,13 @@ import {
   buildRenderBlocks,
   evaluateFieldCascade,
   evaluateOnChangeRule,
+  getFieldValue,
   setFieldValue,
   validateValues,
 } from "@/lib/cbs-form-spec";
 import type { AuditData } from "@/lib/data-schemas";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import { CbsRecordFunction } from "@/types";
 import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
 import { CardContainer } from "./containers/card-container";
@@ -33,7 +43,7 @@ export function FormRenderer({
   externalErrors = {},
   autoValidate = false,
   disabled = false,
-  mode = "I",
+  mode = CbsRecordFunction.INPUT,
   auditData,
   showAuditSection = false,
   auditVariant = "inline",
@@ -106,18 +116,14 @@ export function FormRenderer({
     }
 
     // 4. Handle reactive ON_CHANGE rules on input change
-    sections.forEach((sec) => {
-      (sec.fields || []).forEach((f) => {
-        if (f.NAME === key && f.ON_CHANGE?.target) {
-          const rule = f.ON_CHANGE;
-          const targetVal = evaluateOnChangeRule(rule.action, val, rule.delimiter);
-          if (targetVal !== values[rule.target]) {
-            nextValues = setFieldValue(nextValues, rule.target, targetVal);
-            onChange?.(rule.target, targetVal);
-          }
-        }
-      });
-    });
+    if (fieldSpec?.ON_CHANGE?.target) {
+      const rule = fieldSpec.ON_CHANGE;
+      const targetVal = evaluateOnChangeRule(rule.action, val, rule.delimiter);
+      if (targetVal !== getFieldValue(nextValues, rule.target)) {
+        nextValues = setFieldValue(nextValues, rule.target, targetVal);
+        onChange?.(rule.target, targetVal);
+      }
+    }
 
     // 5. Emit full nextValues to record subscribers
     if (onRecordChange) {

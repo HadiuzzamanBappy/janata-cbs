@@ -1,3 +1,12 @@
+/**
+ * @fileoverview High-Density Financial Amount Input Widget
+ * @module form-engine/widgets/amount-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Monospace currency input with fixed currency prefix badge.
+ */
+
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
@@ -8,6 +17,7 @@ export interface AmountWidgetProps extends BaseWidgetProps {
 
 export function AmountWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

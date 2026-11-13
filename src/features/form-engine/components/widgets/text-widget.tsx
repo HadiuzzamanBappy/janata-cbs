@@ -1,3 +1,13 @@
+/**
+ * @fileoverview High-Density Text & Number Input Widget
+ * @module form-engine/widgets/text-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Supports TextWidgetConfig (uppercase/lowercase transformation, autoTrim on blur).
+ * - Compact banking typography (h-7, text-xs, monospace for numbers).
+ */
+
 import type { ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
@@ -11,6 +21,7 @@ export interface TextWidgetProps extends BaseWidgetProps {
 
 export function TextWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

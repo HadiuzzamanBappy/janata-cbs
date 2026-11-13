@@ -1,7 +1,7 @@
 # 🏛️ CBS Session Lifecycle, Timeout & Single-Login Architecture Specification
 
 > **Document Type:** Developer Architecture & Implementation Specification  
-> **Status:** Draft / Planned Implementation  
+> **Status:** Fully Implemented & Verified (All 6 Features Complete)  
 > **Target Audience:** CBS Core Engineers, Frontend Architects, Code Reviewers  
 > **Scope:** `src/lib/infra-redis`, `src/hooks`, `src/components/layout`, `src/lib/cbs-client`, `src/app/(workbench)`
 
@@ -191,7 +191,7 @@ Prevents the same user ID from being logged in simultaneously on different brows
 
 ---
 
-### Feature 3: Client-Side Single Active Tab Enforcement (Within the Same Browser)
+### Feature 3: Client-Side Single Active Tab Enforcement (Within the Same Browser) — [COMPLETED]
 
 #### What It Does
 
@@ -199,9 +199,11 @@ Enforces that an operator can only have **one active dashboard workbench tab** o
 
 #### Affected Files
 
-- [`src/hooks/use-single-tab.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/hooks/use-single-tab.ts) _(New Hook)_
-- [`src/components/layout/workbench-shell.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/components/layout/workbench-shell.tsx)
-- [`src/lib/core-config/client.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/core-config/client.ts) (Add storage key)
+- [`src/hooks/use-single-tab.ts`](file:///d:/Work/React/cbs/janata-cbs/src/hooks/use-single-tab.ts) _(New Hook)_
+- [`src/components/layout/app-single-tab-watcher.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/components/layout/app-single-tab-watcher.tsx) _(New Watcher Overlay)_
+- [`src/components/layout/workbench-shell.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/components/layout/workbench-shell.tsx)
+- [`src/lib/core-config/client.ts`](file:///d:/Work/React/cbs/janata-cbs/src/lib/core-config/client.ts)
+- [`src/lib/cbs-screen/workbench-bus.ts`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-screen/workbench-bus.ts)
 
 #### Implementation Details
 
@@ -235,7 +237,7 @@ Enforces that an operator can only have **one active dashboard workbench tab** o
 
 ---
 
-### Feature 4: Detached Popup Passive Activity Reporter (No Dialogs in Popups)
+### Feature 4: Detached Popup Passive Activity Reporter (No Dialogs in Popups) — [COMPLETED]
 
 #### What It Does
 
@@ -243,7 +245,7 @@ Honors the intentional design choice that **detached popups must never render ti
 
 #### Affected Files
 
-- [`src/app/(workbench)/screen/[id]/page.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/app/(workbench)/screen/[id]/page.tsx)
+- [`src/app/(workbench)/screen/[id]/page.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/app/(workbench)/screen/[id]/page.tsx)
 
 #### Implementation Details
 
@@ -284,7 +286,7 @@ Honors the intentional design choice that **detached popups must never render ti
 
 ---
 
-### Feature 5: Fix Ticker Freeze & Multi-Tab Logout Sync in `useIdleTimeout`
+### Feature 5: Fix Ticker Freeze & Multi-Tab Logout Sync in `useIdleTimeout` — [COMPLETED]
 
 #### What It Does
 
@@ -292,7 +294,7 @@ Fixes the mathematical bug where a missing or deleted `STORAGE_KEY` results in `
 
 #### Affected Files
 
-- [`src/hooks/use-idle-timeout.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/hooks/use-idle-timeout.ts)
+- [`src/hooks/use-idle-timeout.ts`](file:///d:/Work/React/cbs/janata-cbs/src/hooks/use-idle-timeout.ts)
 
 #### Implementation Details
 
@@ -353,7 +355,7 @@ Fixes the mathematical bug where a missing or deleted `STORAGE_KEY` results in `
 
 ---
 
-### Feature 6: Actionable Global 401 Interceptor with "Log In Again" Modal
+### Feature 6: Actionable Global 401 Interceptor with "Log In Again" Modal — [COMPLETED]
 
 #### What It Does
 
@@ -361,8 +363,8 @@ Replaces the unhelpful, passive floating Sonner toast with an uncloseable **"Ses
 
 #### Affected Files
 
-- [`src/lib/cbs-client/transport/proxy-client.ts`](file:///d:/CBS/In_house/finx/janata-cbs/src/lib/cbs-client/transport/proxy-client.ts)
-- [`src/components/layout/app-timeout-watcher.tsx`](file:///d:/CBS/In_house/finx/janata-cbs/src/components/layout/app-timeout-watcher.tsx)
+- [`src/lib/cbs-client/transport/proxy-client.ts`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-client/transport/proxy-client.ts)
+- [`src/components/layout/app-timeout-watcher.tsx`](file:///d:/Work/React/cbs/janata-cbs/src/components/layout/app-timeout-watcher.tsx)
 
 #### Implementation Details
 

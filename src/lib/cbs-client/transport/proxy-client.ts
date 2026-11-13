@@ -46,7 +46,18 @@ export async function sendCbsRequest<T = unknown>(
     });
 
     if (res.status === 401) {
-      notifyError("Session Expired", "Your session has expired. Please log in again to continue.");
+      if (typeof window !== "undefined") {
+        if ("BroadcastChannel" in window) {
+          try {
+            const bus = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
+            bus.postMessage({ type: "CBS_SESSION_EXPIRED", tabId: "global" });
+            bus.close();
+          } catch {
+            // Safe fallback
+          }
+        }
+        window.location.href = clientConfig.routes.login;
+      }
       throw new Error("UNAUTHORIZED");
     }
 

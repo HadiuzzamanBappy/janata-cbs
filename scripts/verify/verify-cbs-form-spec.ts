@@ -74,7 +74,6 @@ const testModel: ModelConfigRecord = {
     {
       SN: "1",
       NAME: "accountNumber",
-      LABEL: "Account Number",
       TYPE: "Text",
       STRUCTURE: "S",
       LENGTH: 12,
@@ -83,7 +82,6 @@ const testModel: ModelConfigRecord = {
     {
       SN: "2",
       NAME: "accountTitle",
-      LABEL: "Account Title",
       TYPE: "Text",
       STRUCTURE: "S",
       LENGTH: 50,
@@ -92,7 +90,6 @@ const testModel: ModelConfigRecord = {
     {
       SN: "3",
       NAME: "balance",
-      LABEL: "Ledger Balance",
       TYPE: "Number",
       STRUCTURE: "S",
       LENGTH: 10,
@@ -101,7 +98,6 @@ const testModel: ModelConfigRecord = {
     {
       SN: "4",
       NAME: "openingDate",
-      LABEL: "Account Opening Date",
       TYPE: "Date",
       STRUCTURE: "S",
       LENGTH: 10,
@@ -110,7 +106,6 @@ const testModel: ModelConfigRecord = {
     {
       SN: "5",
       NAME: "nomineeShare",
-      LABEL: "Nominee Share %",
       TYPE: "Number",
       STRUCTURE: "S",
       LENGTH: 3,
@@ -132,7 +127,6 @@ async function runSuite() {
   const wShort = defaultWidthForLength({
     SN: "1",
     NAME: "code",
-    LABEL: "Code",
     TYPE: "Text",
     STRUCTURE: "S",
     LENGTH: 4,
@@ -148,7 +142,6 @@ async function runSuite() {
   const wLong = defaultWidthForLength({
     SN: "2",
     NAME: "narrative",
-    LABEL: "Narrative",
     TYPE: "Text",
     STRUCTURE: "S",
     LENGTH: 120,
@@ -164,7 +157,6 @@ async function runSuite() {
   const wDate = defaultWidthForLength({
     SN: "3",
     NAME: "openingDate",
-    LABEL: "Opening Date",
     TYPE: "Date",
     STRUCTURE: "S",
     LENGTH: 10,
@@ -200,10 +192,12 @@ async function runSuite() {
       sectionsCount: fallback.frmElements.sections.length,
       firstSectionId: fallback.frmElements.sections[0]?.id,
       fieldsCount: fallback.frmElements.sections[0]?.fields.length,
+      generatedFirstLabel: fallback.frmElements.sections[0]?.fields[0]?.LABEL,
     },
     fallback.title === "Customer Account Definition" &&
       fallback.frmElements.sections.length === 1 &&
-      fallback.frmElements.sections[0]?.fields.length === testModel.PROPERTIES.length,
+      fallback.frmElements.sections[0]?.fields.length === testModel.PROPERTIES.length &&
+      fallback.frmElements.sections[0]?.fields[0]?.LABEL === "Account Number",
   );
 
   // ── 3. Custom Layout Compilation & Model Rules Merging ──
@@ -285,8 +279,8 @@ async function runSuite() {
     "4.3 Flags invalid numeric formats and digit count limits",
     { balance: "not-a-number", nomineeShare: 10000 },
     numErrors,
-    numErrors.balance === "Ledger Balance must be a valid number" &&
-      numErrors.nomineeShare === "Nominee Share % cannot exceed 3 digits",
+    numErrors.balance === "Balance must be a valid number" &&
+      numErrors.nomineeShare === "Nominee Share cannot exceed 3 digits",
   );
 
   const dateErrors = validateValues(fallback, {
@@ -298,7 +292,7 @@ async function runSuite() {
     "4.4 Flags unparseable or malformed date strings",
     { openingDate: "invalid-date-string" },
     dateErrors,
-    dateErrors.openingDate === "Account Opening Date must be a valid date",
+    dateErrors.openingDate === "Opening Date must be a valid date",
   );
 
   const cleanErrors = validateValues(fallback, {

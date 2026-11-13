@@ -162,8 +162,7 @@ async function runSuite() {
     SERVICEPATH: "common.v1.Service",
     PROPERTIES: [
       {
-        NAME: "ACC_NO",
-        LABEL: "Account Number",
+        NAME: "accNo",
         TYPE: "Text",
         LENGTH: 35,
         REQUIRED: true,
@@ -249,8 +248,7 @@ async function runSuite() {
     PROPERTIES: [
       {
         SN: "1",
-        NAME: "ID",
-        LABEL: "Record Identifier",
+        NAME: "id",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 20,
@@ -260,24 +258,21 @@ async function runSuite() {
       },
       {
         SN: "2",
-        NAME: "IS_ACTIVE",
-        LABEL: "Is Active",
+        NAME: "isActive",
         TYPE: "Boolean",
         STRUCTURE: "M", // Invalid for boolean: should normalize to 'S'
         LENGTH: 50, // Invalid for boolean: should normalize to 1
       },
       {
         SN: "3",
-        NAME: "TXN_DATE",
-        LABEL: "Transaction Date",
+        NAME: "txnDate",
         TYPE: "Date",
         STRUCTURE: "S",
         LENGTH: 35, // Should normalize to 10
       },
       {
         SN: "4",
-        NAME: "USER_NAME",
-        LABEL: "User Name",
+        NAME: "userName",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: "65" as unknown as number, // Stringified number from DB wire: should coerce to 65
@@ -313,6 +308,7 @@ async function runSuite() {
       sanitizedModel?.PROPERTIES.length === 4 &&
       !("WIDTH" in (p1 || {})) &&
       !("WIDGET" in (p1 || {})) &&
+      !("LABEL" in (p1 || {})) &&
       p2?.STRUCTURE === "S" &&
       p2?.LENGTH === 1 &&
       p3?.LENGTH === 10 &&

@@ -4,6 +4,7 @@ import { Minus, Plus } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { getFieldColSpanClass, getFieldValue } from "@/lib/cbs-form-spec";
+import { formatNameToLabel } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 import { FieldAtom } from "./field-atom";
@@ -34,7 +35,7 @@ export function ObjectField({
 
   const isMulti = field.STRUCTURE === "M";
   const groupKey = field.NAME;
-  const label = field.LABEL || field.NAME;
+  const label = field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME);
   const isInputMode = mode === "I";
   const isReadOnly = disabled || !isInputMode;
   const subFields = (field.PROP || field.children || []) as FormElement[];

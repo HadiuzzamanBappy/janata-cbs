@@ -56,10 +56,7 @@ export function McPropertyList({
     const term = searchFilter.trim().toLowerCase();
     return properties.filter((prop) => {
       const matchSearch =
-        !term ||
-        prop.NAME.toLowerCase().includes(term) ||
-        prop.LABEL.toLowerCase().includes(term) ||
-        String(prop.SN).includes(term);
+        !term || prop.NAME.toLowerCase().includes(term) || String(prop.SN).includes(term);
       const matchType = typeFilter === "ALL" || prop.TYPE === typeFilter;
       return matchSearch && matchType;
     });
@@ -178,16 +175,16 @@ export function McPropertyList({
                       #{prop.SN}
                     </span>
 
-                    {/* Name & Label */}
+                    {/* Column Name */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span
                           className={cn(
-                            "text-xs truncate font-medium",
+                            "text-xs truncate font-mono font-medium",
                             isSelected ? "text-foreground font-semibold" : "text-foreground",
                           )}
                         >
-                          {prop.LABEL || prop.NAME || "<Unnamed>"}
+                          {prop.NAME || "<Unnamed>"}
                         </span>
                         {prop.REQUIRED && (
                           <span
@@ -198,11 +195,6 @@ export function McPropertyList({
                           </span>
                         )}
                       </div>
-                      {prop.NAME && prop.LABEL && prop.NAME !== prop.LABEL && (
-                        <div className="text-[10px] truncate leading-tight font-mono text-muted-foreground">
-                          {prop.NAME}
-                        </div>
-                      )}
                     </div>
                   </button>
 

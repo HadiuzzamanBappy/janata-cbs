@@ -110,8 +110,7 @@ async function runSuite() {
     SERVICEPATH: "common.v1.TestService",
     PROPERTIES: [
       {
-        NAME: "ID",
-        LABEL: "Record ID",
+        NAME: "recordId",
         TYPE: "Text",
         LENGTH: 35,
         REQUIRED: true,
@@ -119,7 +118,6 @@ async function runSuite() {
       },
       {
         NAME: "isActive",
-        LABEL: "Active Status",
         TYPE: "Boolean",
         LENGTH: 1,
         REQUIRED: false,
@@ -148,7 +146,7 @@ async function runSuite() {
           zone: "standard",
           fields: [
             {
-              NAME: "ID",
+              NAME: "recordId",
               LABEL: "Record ID",
               TYPE: "Text",
               LENGTH: 35,

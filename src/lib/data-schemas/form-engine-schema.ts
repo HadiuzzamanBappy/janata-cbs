@@ -189,6 +189,7 @@ export const propertyWidthSchema = z.preprocess((val) => {
 export type PropertyWidth = SemanticWidthToken;
 
 export const formElementSchema = baseFieldSchema.extend({
+  LABEL: z.string().default("").optional(),
   WIDTH: propertyWidthSchema.default("md").optional(),
   DISABLED: z.boolean().default(false).optional(),
   POSITION: z.string().default("").optional(),

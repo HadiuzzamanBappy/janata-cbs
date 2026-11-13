@@ -2,7 +2,7 @@ import { Boxes, ChevronDown, ChevronRight, Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/core-utils";
+import { cn, formatNameToLabel } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import { modelPropToFormElement } from "./palette-types";
@@ -96,9 +96,9 @@ export function PaletteObjectGroup({
             type="button"
             onClick={() => onHighlightField?.(parent.NAME)}
             className="font-medium text-foreground truncate cursor-pointer hover:underline text-left"
-            title={`${parent.LABEL || parent.NAME} (${parent.STRUCTURE === "M" ? "Multi" : "Single"} Object)`}
+            title={`${formatNameToLabel(parent.NAME)} (${parent.STRUCTURE === "M" ? "Multi" : "Single"} Object)`}
           >
-            {parent.LABEL || parent.NAME}
+            {formatNameToLabel(parent.NAME)}
           </button>
         </div>
 
@@ -141,7 +141,7 @@ export function PaletteObjectGroup({
                 key={child.SN}
                 className="flex items-center justify-between text-[10px] px-1 py-0.5 rounded text-muted-foreground"
               >
-                <span className="truncate">{child.LABEL || child.NAME}</span>
+                <span className="truncate">{formatNameToLabel(child.NAME)}</span>
                 <span className="font-mono text-[9px] opacity-70">{child.TYPE}</span>
               </div>
             );

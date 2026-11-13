@@ -12,7 +12,7 @@ import { Plus } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useContainerWidth } from "@/hooks";
-import { cn } from "@/lib/core-utils";
+import { cn, formatNameToLabel } from "@/lib/core-utils";
 import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
@@ -115,7 +115,7 @@ export function IcColumnsTab({
 
     onAddColumn({
       fieldName: prop.NAME,
-      fieldDisplay: prop.LABEL || prop.NAME,
+      fieldDisplay: formatNameToLabel(prop.NAME),
       fieldType: "DC",
       fieldLength: `${defaultLength},${alignment}`,
       fieldRowCol: "1,1",

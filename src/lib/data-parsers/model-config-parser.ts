@@ -108,7 +108,6 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
   const sanitized: ModelProperty = {
     SN: String(prop.SN || (index !== undefined ? index + 1 : "")).trim(),
     NAME: String(prop.NAME || "").trim(),
-    LABEL: String(prop.LABEL || prop.NAME || "").trim(),
     TYPE: normType,
     STRUCTURE: normStructure,
     LENGTH: normLength,

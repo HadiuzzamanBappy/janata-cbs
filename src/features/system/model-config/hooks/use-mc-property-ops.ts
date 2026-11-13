@@ -32,7 +32,6 @@ export function useMcPropertyOps(
       const newField: ModelProperty = {
         SN: nextSn,
         NAME: "",
-        LABEL: "",
         TYPE: "Text",
         STRUCTURE: "S",
         LENGTH: 50,
@@ -59,7 +58,6 @@ export function useMcPropertyOps(
           const newSubField: ModelProperty = {
             SN: nextSn,
             NAME: "",
-            LABEL: "",
             TYPE: "Text",
             STRUCTURE: "S",
             LENGTH: 35,

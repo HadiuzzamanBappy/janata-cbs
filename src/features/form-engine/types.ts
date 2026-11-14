@@ -10,8 +10,11 @@
 
 import type { ReactNode } from "react";
 import type { AuditData } from "@/lib/data-schemas";
-import type { FormElementsContainer, FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type {
+  FormElement,
+  FormElementsContainer,
+  FormSection,
+} from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
 
 // ─────────────────────────────────────────────────────────────────────────────

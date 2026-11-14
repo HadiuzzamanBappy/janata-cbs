@@ -1,13 +1,11 @@
-import { modelPropToFormElement } from "@/lib/cbs-form-spec";
-import type { FormContainerType } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
-
-export { modelPropToFormElement };
+import type { FormContainerType, FormElement, ModelProperty } from "@/lib/data-schemas";
 
 export type PaletteTypeFilter = "all" | "unplaced" | "text" | "number" | "date";
 
 export interface FieldPaletteProps {
+  className?: string;
+  onClose?: () => void;
+  // Optional prop overrides for testing / standalone usage
   targetModel?: string;
   modelProperties?: ModelProperty[];
   usedFieldNames?: Set<string>;
@@ -23,8 +21,6 @@ export interface FieldPaletteProps {
     columns?: number,
   ) => void;
   disabled?: boolean;
-  className?: string;
-  onClose?: () => void;
 }
 
 export type PaletteItem =

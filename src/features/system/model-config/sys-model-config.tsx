@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Main screen container for MODEL.CONFIG data dictionary workbench.
+ * Houses General, Properties master-detail, Live Form Preview, and JSON wire tabs
+ * on top of the unified CbsScreenScaffold architecture.
+ *
+ * @module features/system/model-config/sys-model-config
+ */
+
 "use client";
 
 import { Database, Eye, FileCode, FileText } from "lucide-react";
@@ -5,7 +13,7 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
-import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
+import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { McGeneralTab } from "./components/mc-general-tab";
 import { McJsonTab } from "./components/mc-json-tab";
 import { McPreviewTab } from "./components/mc-preview-tab";
@@ -131,7 +139,9 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
       }
       onCreateNew={handleCreateNew}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" && recordId ? () => fetchRecord(recordId, mode) : undefined}
+      onReset={
+        mode !== CBS_SCREEN_MODES[0] && recordId ? () => fetchRecord(recordId, mode) : undefined
+      }
       onValidate={handleValidate}
       onSubmit={handleSubmit}
       onHold={handleHold}

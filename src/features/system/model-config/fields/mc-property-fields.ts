@@ -1,4 +1,15 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+/**
+ * @fileoverview Property Inspector Field Specifications for MODEL.CONFIG
+ * @module features/system/model-config/fields/mc-property-fields
+ *
+ * Core Invariants:
+ * - Direct 1:1 binding with modelPropertySchema (SN, NAME, TYPE, STRUCTURE, LENGTH, REQUIRED).
+ * - Property types derived dynamically from canonical PROPERTY_TYPES.
+ * - Zero backward-compatibility shims (no legacy DATA or itemCode/itemLabel).
+ */
+
+import type { FormSection } from "@/lib/data-schemas";
+import { PROPERTY_TYPES } from "@/lib/data-schemas";
 
 /**
  * Standard Form Sections definition for the selected Model Property inspector.
@@ -34,26 +45,8 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         WIDGET: "segmented",
         DEFAULTVALUE: "String",
         PARAMETER: {
-          TYPE: "O",
           type: "O",
-          DATA: [
-            { itemCode: "String", itemLabel: "String" },
-            { itemCode: "Number", itemLabel: "Number" },
-            { itemCode: "Boolean", itemLabel: "Boolean" },
-            { itemCode: "Date", itemLabel: "Date" },
-            { itemCode: "DateTime", itemLabel: "DateTime" },
-            { itemCode: "Time", itemLabel: "Time" },
-            { itemCode: "Json", itemLabel: "Json" },
-          ],
-          data: [
-            { code: "String", label: "String" },
-            { code: "Number", label: "Number" },
-            { code: "Boolean", label: "Boolean" },
-            { code: "Date", label: "Date" },
-            { code: "DateTime", label: "DateTime" },
-            { code: "Time", label: "Time" },
-            { code: "Json", label: "Json" },
-          ],
+          data: PROPERTY_TYPES.map((t) => ({ code: t, label: t })),
         },
         CASCADE: [
           { when: "Date", set: { LENGTH: 10, PROP: undefined } },
@@ -62,7 +55,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
           { when: "Number", set: { LENGTH: 15, PROP: undefined } },
           { when: "String", set: { LENGTH: 50, PROP: undefined } },
           { when: "Boolean", set: { LENGTH: 1, STRUCTURE: "S", PROP: undefined } },
-          { when: ["Json", "Object"], set: { LENGTH: 0, PROP: [] } },
+          { when: "Json", set: { LENGTH: 0, PROP: [] } },
         ],
         ENRICHTEXT:
           "Physical database column data type: String, Number, Boolean, Date, DateTime, Time, or Json.",
@@ -103,7 +96,7 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         DISABLED_WHEN: {
           field: "TYPE",
           operator: "in",
-          value: ["Json", "Object", "Date", "DateTime", "Time", "Boolean"],
+          value: ["Json", "Date", "DateTime", "Time", "Boolean"],
         },
         ENRICHTEXT:
           "Maximum character storage limit or numerical precision (not applicable for Json, fixed for Boolean/Date/Time).",

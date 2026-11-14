@@ -1,9 +1,15 @@
+/**
+ * @fileoverview Field movement and reordering hook for Form Designer.
+ * Handles intra-section sorting and inter-section movement.
+ *
+ * @module features/system/form-config/hooks/use-fc-field-movement
+ */
+
 "use client";
 
 import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
-import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormConfigRecord, FormElement, FormSection } from "@/lib/data-schemas";
 
 export function isMatchingField(field: FormElement, identifier: string): boolean {
   return (
@@ -102,7 +108,7 @@ export function useFcFieldMovement(
           if (targetSecId === "gap-top" || targetSecId === "gap-0") {
             insertAt = 0;
           } else if (targetSecId.startsWith("gap-") && insertAtIndex === undefined) {
-            const rawIdx = parseInt(targetSecId.replace("gap-", ""), 10);
+            const rawIdx = Number.parseInt(targetSecId.replace("gap-", ""), 10);
             if (!Number.isNaN(rawIdx)) insertAt = Math.min(rawIdx, newSections.length);
           }
           insertAt = Math.max(0, Math.min(insertAt, newSections.length));

@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Main Form Configuration Screen (FORM.CONFIG).
+ * Provides a 4-tab workbench: General Metadata, Visual Form Designer,
+ * Live Runtime Preview, and Wire JSON Inspection.
+ *
+ * @module features/system/form-config/sys-form-config
+ */
+
 "use client";
 
 import { Code, Eye, FileText, Palette } from "lucide-react";
@@ -5,7 +13,7 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
-import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
+import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { FcDesignerTab } from "./components/fc-designer-tab";
 import { FcGeneralTab } from "./components/fc-general-tab";
 import { FcJsonTab } from "./components/fc-json-tab";
@@ -58,7 +66,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   } = useFormConfig(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<FormConfigTabKey>("general");
-  const isReadOnly = mode !== "I";
+  const isReadOnly = mode !== CbsRecordFunction.INPUT;
 
   const tabs: CbsScreenTab<FormConfigTabKey>[] = React.useMemo(
     () => [
@@ -129,7 +137,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         id: "preview",
         label: "Live Preview",
         icon: <Eye className="size-3 text-muted-foreground" />,
-        content: <FcPreviewTab formData={formData} targetModelRecord={targetModelRecord} />,
+        content: <FcPreviewTab formData={formData} mode={mode} />,
       },
       {
         id: "json",
@@ -161,6 +169,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       setSelectedSectionId,
       setSelectedFieldId,
       validationErrors,
+      mode,
     ],
   );
 
@@ -180,7 +189,9 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         newId && fetchRecord(newId.toUpperCase(), CbsRecordFunction.INPUT)
       }
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" ? () => recordId && fetchRecord(recordId, mode) : undefined}
+      onReset={
+        mode !== CBS_SCREEN_MODES[0] && recordId ? () => fetchRecord(recordId, mode) : undefined
+      }
       onAmend={() => recordId && fetchRecord(recordId, CbsRecordFunction.INPUT)}
       onView={() => recordId && fetchRecord(recordId, CbsRecordFunction.SEE)}
       onValidate={handleValidate}

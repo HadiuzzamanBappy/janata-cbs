@@ -1,4 +1,11 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+/**
+ * @fileoverview Form section specifications for FORM.CONFIG General tab.
+ * Defines metadata, security clearance, and routine hooks schemas.
+ *
+ * @module features/system/form-config/fields/fc-general-fields
+ */
+
+import type { FormSection } from "@/lib/data-schemas";
 
 /**
  * Standard Form Sections definition for FORM.CONFIG General tab.
@@ -65,14 +72,13 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
           {
             SN: "4_1",
             NAME: "routineName",
-            LABEL: "Routine Hook",
+            LABEL: "Routine Name",
             TYPE: "String",
             STRUCTURE: "S",
-            LENGTH: 60,
+            LENGTH: 50,
             REQUIRED: true,
             WIDTH: "md",
-            ENRICHTEXT:
-              "Backend routine executed during input validation before transaction packaging.",
+            ENRICHTEXT: "Name of the server or client routine executed before form submission.",
           },
           {
             SN: "4_2",
@@ -80,16 +86,16 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
             LABEL: "Description",
             TYPE: "String",
             STRUCTURE: "S",
-            LENGTH: 120,
+            LENGTH: 100,
             WIDTH: "xl",
-            ENRICHTEXT: "Functional purpose and ledger staging rules of this validation hook.",
+            ENRICHTEXT: "Functional purpose and conditions of this validation hook.",
           },
         ],
       },
       {
         SN: "5",
         NAME: "frmRoutine.rtnBeforeAuth",
-        LABEL: "Before-Auth Routine",
+        LABEL: "Pre-Auth Routine",
         TYPE: "Json",
         STRUCTURE: "M",
         LENGTH: 0,
@@ -98,14 +104,13 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
           {
             SN: "5_1",
             NAME: "routineName",
-            LABEL: "Routine Hook",
+            LABEL: "Routine Name",
             TYPE: "String",
             STRUCTURE: "S",
-            LENGTH: 60,
+            LENGTH: 50,
             REQUIRED: true,
             WIDTH: "md",
-            ENRICHTEXT:
-              "Executed when supervisor triggers authorization, before committing records to core.",
+            ENRICHTEXT: "Hook executed during Maker-Checker verification prior to authorization.",
           },
           {
             SN: "5_2",
@@ -113,16 +118,16 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
             LABEL: "Description",
             TYPE: "String",
             STRUCTURE: "S",
-            LENGTH: 120,
+            LENGTH: 100,
             WIDTH: "xl",
-            ENRICHTEXT: "Pre-authorization limit verification or credit check hook details.",
+            ENRICHTEXT: "Validation rules enforced on the authorizer/checker.",
           },
         ],
       },
       {
         SN: "6",
         NAME: "frmRoutine.rtnAfterAuth",
-        LABEL: "After-Auth Routine",
+        LABEL: "Post-Auth Routine",
         TYPE: "Json",
         STRUCTURE: "M",
         LENGTH: 0,
@@ -131,14 +136,14 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
           {
             SN: "6_1",
             NAME: "routineName",
-            LABEL: "Routine Hook",
+            LABEL: "Routine Name",
             TYPE: "String",
             STRUCTURE: "S",
-            LENGTH: 60,
+            LENGTH: 50,
             REQUIRED: true,
             WIDTH: "md",
             ENRICHTEXT:
-              "Executed post-commit to generate downstream accounting vouchers, notices, or logs.",
+              "Post-commit hook (e.g. accounting voucher posting, notification triggers).",
           },
           {
             SN: "6_2",
@@ -146,10 +151,9 @@ export const FORM_CONFIG_SECTIONS: FormSection[] = [
             LABEL: "Description",
             TYPE: "String",
             STRUCTURE: "S",
-            LENGTH: 120,
+            LENGTH: 100,
             WIDTH: "xl",
-            ENRICHTEXT:
-              "Downstream event dispatcher or post-authorization balance reconciliation routine.",
+            ENRICHTEXT: "Downstream events dispatched following successful authorization.",
           },
         ],
       },

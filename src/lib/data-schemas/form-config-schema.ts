@@ -1,7 +1,27 @@
+/**
+ * @fileoverview Data schemas for CBS Form Configuration (SC_FORM_CONFIG).
+ * Defines the master form configuration entity, routine hooks, and GFC wire contracts.
+ * Layout nodes (containers, sections) are canonically defined in form-engine-schema.
+ *
+ * @module lib/data-schemas/form-config-schema
+ */
+
 import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
-import { formElementSchema } from "./form-engine-schema";
+import { formElementsContainerSchema } from "./form-engine-schema";
 import { modelConfigRecordSchema } from "./model-config-schema";
+
+// Re-export layout nodes for convenience
+export {
+  type ContainerConfig,
+  containerConfigSchema,
+  type FormContainerType,
+  type FormElementsContainer,
+  type FormSection,
+  formContainerTypeSchema,
+  formElementsContainerSchema,
+  formSectionSchema,
+} from "./form-engine-schema";
 
 /* ========================================================================== */
 /* 1. ROUTINE HOOKS CONTRACT                                                  */
@@ -22,67 +42,7 @@ export const formRoutineSchema = z.object({
 export type FormRoutine = z.infer<typeof formRoutineSchema>;
 
 /* ========================================================================== */
-/* 2. FORM LAYOUT SECTIONS & CONTAINERS (Visual UI Layout Nodes)               */
-/* ========================================================================== */
-
-/**
- * Universal Container Type:
- * - 'card': Standard elevated card box with title bar and optional collapse
- * - 'tab': Tab pane clustered inside a TabGroup header
- */
-export const formContainerTypeSchema = z.enum(["card", "tab"]);
-export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
-
-/**
- * Universal Container Visual & Behavioral Configuration:
- * Allows configuring styling, borders, density, badges, icons, and behavior per container.
- */
-export const containerConfigSchema = z.object({
-  variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
-  density: z.enum(["compact", "normal", "spacious"]).optional(),
-  badge: z.string().optional(),
-  badgeVariant: z.enum(["default", "secondary", "outline", "destructive"]).optional(),
-  icon: z.string().optional(),
-  bordered: z.boolean().optional(),
-  accentColor: z.string().optional(),
-  customClass: z.string().optional(),
-});
-export type ContainerConfig = z.infer<typeof containerConfigSchema>;
-
-export const formSectionSchema = z.object({
-  id: z.string(),
-  title: z.string().default("").optional(),
-  description: z.string().optional(),
-
-  // Container classification
-  containerType: formContainerTypeSchema.default("card"),
-
-  // Multi-pane grouping (tabs, steps, accordions)
-  groupId: z.string().optional(),
-  groupTitle: z.string().optional(),
-
-  // Grid layout inside this section
-  columns: z.number().min(1).max(4).default(1).optional(),
-  collapsible: z.boolean().default(false).optional(),
-  isCollapsed: z.boolean().default(false).optional(),
-
-  // Container visual & behavioral configuration
-  containerConfig: containerConfigSchema.optional(),
-
-  // Fields placed in this section (scalar or object fields)
-  fields: z.array(formElementSchema).default([]),
-});
-export type FormSection = z.infer<typeof formSectionSchema>;
-
-export const formElementsContainerSchema = z.object({
-  columns: z.number().min(1).max(4).default(1).optional(),
-  density: z.enum(["compact", "normal", "spacious"]).default("compact").optional(),
-  sections: z.array(formSectionSchema).default([]),
-});
-export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;
-
-/* ========================================================================== */
-/* 3. MASTER FORM CONFIG RECORD (SC_FORM_CONFIG)                              */
+/* 2. MASTER FORM CONFIG RECORD (SC_FORM_CONFIG)                              */
 /* ========================================================================== */
 
 export const formConfigRecordSchema = z.object({
@@ -102,7 +62,7 @@ export const formConfigRecordSchema = z.object({
 export type FormConfigRecord = z.infer<typeof formConfigRecordSchema>;
 
 /* ========================================================================== */
-/* 4. COMBINED GFC / GNI WIRE RESPONSE CONTRACT                               */
+/* 3. COMBINED GFC / GNI WIRE RESPONSE CONTRACT                               */
 /* ========================================================================== */
 
 export const gfcResponseSchema = modelConfigRecordSchema.extend({

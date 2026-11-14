@@ -1,5 +1,11 @@
-import type { FormContainerType, FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+/**
+ * @fileoverview Palette drop event dispatcher for Form Designer Canvas.
+ * Dispatches variables or structural container presets dropped onto canvas sections.
+ *
+ * @module features/system/form-config/components/designer/canvas/palette-drop-dispatcher
+ */
+
+import type { FormContainerType, FormElement, FormSection } from "@/lib/data-schemas";
 import type { AddSectionFn } from "./canvas-types";
 
 export interface CreateNewFieldOptions {
@@ -16,6 +22,7 @@ export function createNewFieldFromTemplate(
 ): FormElement {
   const fieldName = template.NAME || `field_${(sections.length + 1).toString()}`;
   return {
+    ...template,
     SN: template.SN || String(sections.length + 1),
     NAME: fieldName,
     LABEL: template.LABEL || "New Field",
@@ -29,10 +36,6 @@ export function createNewFieldFromTemplate(
     PARAMETER: template.PARAMETER || {
       type: "O",
       data: [],
-      modelName: "",
-      displayField: "",
-      condition: "",
-      reference: "",
     },
     ENRICHTEXT: template.ENRICHTEXT || "",
     DEFAULTVALUE: template.DEFAULTVALUE || "",

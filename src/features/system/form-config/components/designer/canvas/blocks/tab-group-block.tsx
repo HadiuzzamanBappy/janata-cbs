@@ -4,7 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { CanvasSectionGrid } from "../canvas-section-grid";
 import type { AddSectionFn } from "../canvas-types";
 import { TabGroupHeader } from "./tab-group/tab-group-header";
@@ -101,7 +101,10 @@ export function TabGroupBlock({
     opacity: isDragging ? 0.35 : 1,
   };
 
-  const isAnyTabSelected = tabSections.some((s) => s.id === selectedSectionId);
+  const isGroupExplicitlySelected =
+    Boolean(selectedSectionId) &&
+    tabSections.some((s) => s.id === selectedSectionId) &&
+    !selectedFieldId;
 
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: canvas selectable container
@@ -117,8 +120,8 @@ export function TabGroupBlock({
         }
       }}
       className={cn(
-        "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs my-1",
-        isAnyTabSelected && "border-sky-500/80 ring-1 ring-sky-500/30",
+        "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs first:mt-0 my-1",
+        isGroupExplicitlySelected && "border-primary/80 ring-1 ring-primary/30",
         isDragging && "shadow-lg ring-2 ring-primary/40",
       )}
     >

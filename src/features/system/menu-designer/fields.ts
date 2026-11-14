@@ -1,4 +1,4 @@
-﻿import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
 /**

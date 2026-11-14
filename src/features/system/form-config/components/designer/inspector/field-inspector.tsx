@@ -1,21 +1,33 @@
+/**
+ * @fileoverview Field Property Inspector for Form Designer workbench.
+ * Streamlined inspector rendering physical DB anchor, general specifications,
+ * contextual widget rules, lookup binding, and reactive collapsible sections via Form Engine.
+ *
+ * @module features/system/form-config/components/designer/inspector/field-inspector
+ */
+
 "use client";
 
 import * as React from "react";
 import { Label } from "@/components/ui/label";
-import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { FormRenderer } from "@/features/form-engine";
+import {
+  FIELD_ADVANCED_RULES_SECTION,
+  FIELD_ANCHOR_SECTION,
+  FIELD_CONDITIONS_SECTION,
+  FIELD_GENERAL_PROPERTIES_SECTION,
+  FIELD_ON_CHANGE_SECTION,
+} from "@/features/system/form-config/fields/fc-field-fields";
+import { getContextualWidgetSection } from "@/features/system/form-config/fields/fc-widget-fields";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import {
   COMPATIBLE_WIDGETS_FOR_TYPE,
   type FormElement,
+  type FormSection,
   type FormWidgetType,
-} from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+  type ModelProperty,
+} from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
-import { InspectorAnchorSection } from "./inspector-anchor-section";
-import {
-  FIELD_GENERAL_PROPERTIES_SECTION,
-  getContextualWidgetSection,
-} from "./inspector-fields-spec";
 import { InspectorLookupConfig } from "./inspector-lookup-config";
 
 export interface FieldInspectorProps {
@@ -24,6 +36,37 @@ export interface FieldInspectorProps {
   baseType: "TEXT" | "NUMBER" | "DATE";
   onUpdateField: (patch: Partial<FormElement>) => void;
   disabled?: boolean;
+}
+
+/**
+ * Physical Model Anchor view rendered in native CBS SEE mode via FormRenderer.
+ */
+function FieldAnchorView({
+  selectedField,
+  matchedModelProp,
+}: {
+  selectedField: FormElement;
+  matchedModelProp: ModelProperty | null;
+}) {
+  const anchorValues = React.useMemo(
+    () => ({
+      NAME: selectedField.NAME,
+      SN: `#${selectedField.SN}`,
+      PHYSICAL_TYPE: matchedModelProp?.TYPE || selectedField.TYPE || "Text",
+      STRUCTURE: selectedField.STRUCTURE === "M" ? "Multi-Value (M)" : "Single (S)",
+    }),
+    [selectedField, matchedModelProp],
+  );
+
+  return (
+    <FormRenderer
+      frmElements={{ sections: [FIELD_ANCHOR_SECTION] }}
+      values={anchorValues}
+      mode={CbsRecordFunction.SEE}
+      hideHeader
+      layout="horizontal"
+    />
+  );
 }
 
 export function FieldInspector({
@@ -55,27 +98,26 @@ export function FieldInspector({
     [currentWidget],
   );
 
+  // Group all editable sections together for unified FormEngine rendering
+  const editableSections = React.useMemo<FormSection[]>(() => {
+    const list: FormSection[] = [FIELD_GENERAL_PROPERTIES_SECTION];
+    if (contextualSection) list.push(contextualSection);
+    list.push(FIELD_ADVANCED_RULES_SECTION, FIELD_ON_CHANGE_SECTION, FIELD_CONDITIONS_SECTION);
+    return list;
+  }, [contextualSection]);
+
+  const isSelectionWidget =
+    currentWidget === "select" ||
+    currentWidget === "radio-group" ||
+    currentWidget === "segmented" ||
+    currentWidget === "checkbox-group";
+
   return (
     <div className="space-y-3.5 p-3 select-none text-xs">
-      {/* 1. Physical DB Model Anchor */}
-      <InspectorAnchorSection
-        selectedField={field}
-        matchedModelProp={matchedModelProp}
-        baseType={baseType}
-      />
+      {/* 1. Physical DB Model Anchor (Horizontal View Mode) */}
+      <FieldAnchorView selectedField={field} matchedModelProp={matchedModelProp} />
 
-      {/* 2. General Field Properties (Rendered via FormEngine from JSON spec) */}
-      <FormRenderer
-        frmElements={{ sections: [FIELD_GENERAL_PROPERTIES_SECTION] }}
-        values={field as Record<string, unknown>}
-        onChange={handleFieldPropertyChange}
-        disabled={disabled}
-        mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-        hideHeader
-        layout="stacked"
-      />
-
-      {/* 3. Widget Presentation Selector */}
+      {/* 2. Widget Presentation Selector */}
       <div className="space-y-1.5 pt-2 border-t border-border/50">
         <div className="flex items-center justify-between">
           <Label className="text-[11px] font-medium text-foreground">Widget Presentation</Label>
@@ -105,31 +147,25 @@ export function FieldInspector({
         </div>
       </div>
 
-      {/* 4. Contextual Widget Rules (Rendered via FormEngine from JSON spec) */}
-      {contextualSection && (
-        <div className="pt-2 border-t border-border/50">
-          <FormRenderer
-            frmElements={{ sections: [contextualSection] }}
-            values={field as Record<string, unknown>}
-            onChange={handleFieldPropertyChange}
-            disabled={disabled}
-            mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-            hideHeader
-            layout="stacked"
-          />
-        </div>
-      )}
-
-      {/* 5. Select / Lookup Binding */}
-      {(currentWidget === "select" ||
-        currentWidget === "radio-group" ||
-        currentWidget === "segmented") && (
+      {/* 3. Lookup / Data Source Binding (if selection widget) */}
+      {isSelectionWidget && (
         <InspectorLookupConfig
           selectedField={field}
           onUpdateField={onUpdateField}
           disabled={disabled}
         />
       )}
+
+      {/* 4. Unified Form Engine Specification (General + Contextual + Collapsible Rules) */}
+      <FormRenderer
+        frmElements={{ sections: editableSections }}
+        values={field as Record<string, unknown>}
+        onChange={handleFieldPropertyChange}
+        disabled={disabled}
+        mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+        hideHeader
+        layout="stacked"
+      />
     </div>
   );
 }

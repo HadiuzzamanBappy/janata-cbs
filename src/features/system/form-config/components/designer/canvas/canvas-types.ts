@@ -1,5 +1,8 @@
-import type { FormContainerType, FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type {
+  FormContainerType,
+  FormElement,
+  FormSection,
+} from "@/lib/data-schemas/form-engine-schema";
 
 /** Callback signature for adding a new section/container to the canvas */
 export type AddSectionFn = (

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/core-utils";
+import type { FormElement } from "@/lib/data-schemas";
 import { useOptionalDesignerContext } from "./context/designer-context";
 import { PaletteContainersList } from "./palette/palette-containers-list";
 import { PaletteObjectGroup } from "./palette/palette-object-group";
@@ -31,7 +32,6 @@ export function FieldPalette({
   className,
   onClose,
 }: FieldPaletteProps) {
-  // Gracefully consume from DesignerContext with prop fallbacks
   const ctx = useOptionalDesignerContext();
 
   const targetModel = propsTargetModel ?? ctx?.targetModel;
@@ -41,6 +41,13 @@ export function FieldPalette({
   const onAddField = propsOnAddField ?? ctx?.handlePaletteAddField;
   const onAddSection = propsOnAddSection ?? ctx?.onAddSection;
   const disabled = propsDisabled ?? ctx?.disabled ?? false;
+
+  const handleSafeAddField = React.useCallback(
+    (tpl: Partial<FormElement>) => {
+      onAddField?.(tpl);
+    },
+    [onAddField],
+  );
 
   const [activePaletteTab, setActivePaletteTab] = React.useState<"variables" | "containers">(
     "variables",
@@ -75,7 +82,7 @@ export function FieldPalette({
         onValueChange={(v) => setActivePaletteTab(v as "variables" | "containers")}
         className="flex flex-col flex-1 min-h-0 gap-0"
       >
-        {/* Consistent Compact Header with Unified Tabs */}
+        {/* Compact Header with Tabs */}
         <div className="px-1.5 py-1 border-b border-border/60 bg-muted/20 flex items-center justify-between gap-1 shrink-0">
           <TabsList className="h-6.5 p-0.5 bg-muted/40 flex-1">
             <TabsTrigger
@@ -95,7 +102,7 @@ export function FieldPalette({
               value="containers"
               className="h-5.5 px-2 text-[11px] gap-1 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-xs"
             >
-              <Layers className="size-3 text-emerald-500 shrink-0" />
+              <Layers className="size-3 text-primary shrink-0" />
               <span className="truncate">Containers</span>
             </TabsTrigger>
           </TabsList>
@@ -119,7 +126,7 @@ export function FieldPalette({
           value="variables"
           className="flex-1 flex flex-col min-h-0 m-0 p-0 border-0 outline-none"
         >
-          {/* Search & Filter on a Single Compact Row */}
+          {/* Search & Filter Row */}
           <div className="px-1.5 py-1 border-b border-border/60 bg-muted/10 flex items-center gap-1.5 shrink-0">
             <div className="relative flex-1 min-w-0">
               <Search className="size-3 text-muted-foreground absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -184,7 +191,7 @@ export function FieldPalette({
                         property={item.property}
                         isPlaced={usedFieldNames.has(item.property.NAME)}
                         disabled={disabled}
-                        onAddField={(tpl) => onAddField?.(tpl)}
+                        onAddField={handleSafeAddField}
                         onHighlightField={onHighlightField}
                       />
                     );
@@ -199,7 +206,7 @@ export function FieldPalette({
                       usedFieldNames={usedFieldNames}
                       disabled={disabled}
                       onToggleCollapse={toggleGroupCollapse}
-                      onAddField={(tpl) => onAddField?.(tpl)}
+                      onAddField={handleSafeAddField}
                       onHighlightField={onHighlightField}
                     />
                   );
@@ -222,10 +229,9 @@ export function FieldPalette({
           value="containers"
           className="flex-1 overflow-y-auto m-0 p-0 border-0 outline-none"
         >
-          <PaletteContainersList
-            disabled={disabled}
-            onAddSection={(...args) => onAddSection?.(...args)}
-          />
+          {onAddSection && (
+            <PaletteContainersList disabled={disabled} onAddSection={onAddSection} />
+          )}
         </TabsContent>
       </Tabs>
     </div>

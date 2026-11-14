@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Domain actions and mutation coordinator for MODEL.CONFIG.
+ * Dispatches save, authorize, hold, delete, and reverse mutations via
+ * wire protocol request factories with query cache invalidations.
+ *
+ * @module features/system/model-config/hooks/use-mc-actions
+ */
+
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
@@ -7,11 +15,11 @@ import { toast } from "@/components/ui/toast";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
-import type { CbsWirePayload } from "@/lib/data-schemas";
 import {
+  type CbsWirePayload,
   type ModelConfigRecord,
   modelConfigRecordSchema,
-} from "@/lib/data-schemas/model-config-schema";
+} from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
 
@@ -158,7 +166,6 @@ export function useMcActions({
   }, [executeMutation, fetchRecord, recordId]);
 
   return {
-    executeMutation,
     handleSubmit,
     handleAuthorize,
     handleHold,

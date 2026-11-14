@@ -1,7 +1,15 @@
+/**
+ * @fileoverview Property operations hook for MODEL.CONFIG property trees.
+ * Manages adding, updating, subfield nesting, and append-only immutability
+ * constraints for committed physical database properties.
+ *
+ * @module features/system/model-config/hooks/use-mc-property-ops
+ */
+
 "use client";
 
 import * as React from "react";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas";
 
 export function useMcPropertyOps(
   setFormData: React.Dispatch<React.SetStateAction<ModelConfigRecord>>,
@@ -131,14 +139,17 @@ export function useMcPropertyOps(
     [committedSnSet, setFormData],
   );
 
+  const clearCommitted = React.useCallback(() => {
+    setCommittedSnSet(new Set());
+  }, []);
+
   return {
     addField,
     addSubField,
     updateField,
     removeField: removeDraftField,
-
     isFieldCommitted,
     markAsCommitted,
-    clearCommitted: () => setCommittedSnSet(new Set()),
+    clearCommitted,
   };
 }

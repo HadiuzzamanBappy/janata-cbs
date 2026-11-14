@@ -1,6 +1,13 @@
+/**
+ * @fileoverview Validation error mapping for MODEL.CONFIG.
+ * Translates Zod schema validation errors to tab-aware screen validation items.
+ *
+ * @module features/system/model-config/hooks/mc-validation
+ */
+
 import type { ZodError } from "zod";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas";
 
 export type ModelConfigTabKey = "general" | "properties";
 

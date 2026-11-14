@@ -257,3 +257,63 @@ export type FormElement = z.infer<typeof formElementSchema> & {
 export const recursiveFormElementSchema: z.ZodType<FormElement> = formElementSchema.extend({
   PROP: z.lazy(() => z.array(recursiveFormElementSchema)).optional(),
 });
+
+/* ========================================================================== */
+/* 6. FORM LAYOUT SECTIONS & CONTAINERS (Form Engine Layout Nodes)            */
+/* ========================================================================== */
+
+/**
+ * Universal Container Type:
+ * - 'card': Standard elevated card box with title bar and optional collapse
+ * - 'tab': Tab pane clustered inside a TabGroup header
+ */
+export const formContainerTypeSchema = z.enum(["card", "tab"]);
+export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
+
+/**
+ * Universal Container Visual & Behavioral Configuration:
+ * Allows configuring styling, borders, density, badges, icons, and behavior per container.
+ */
+export const containerConfigSchema = z.object({
+  variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
+  density: z.enum(["compact", "normal", "spacious"]).optional(),
+  badge: z.string().optional(),
+  badgeVariant: z.enum(["default", "secondary", "outline", "destructive"]).optional(),
+  icon: z.string().optional(),
+  bordered: z.boolean().optional(),
+  accentColor: z.string().optional(),
+  customClass: z.string().optional(),
+});
+export type ContainerConfig = z.infer<typeof containerConfigSchema>;
+
+export const formSectionSchema = z.object({
+  id: z.string(),
+  title: z.string().default("").optional(),
+  description: z.string().optional(),
+
+  // Container classification
+  containerType: formContainerTypeSchema.default("card"),
+
+  // Multi-pane grouping (tabs, steps, accordions)
+  groupId: z.string().optional(),
+  groupTitle: z.string().optional(),
+
+  // Grid layout inside this section
+  columns: z.number().min(1).max(4).default(1).optional(),
+  collapsible: z.boolean().default(false).optional(),
+  isCollapsed: z.boolean().default(false).optional(),
+
+  // Container visual & behavioral configuration
+  containerConfig: containerConfigSchema.optional(),
+
+  // Fields placed in this section (scalar or object fields)
+  fields: z.array(formElementSchema).default([]),
+});
+export type FormSection = z.infer<typeof formSectionSchema>;
+
+export const formElementsContainerSchema = z.object({
+  columns: z.number().min(1).max(4).default(1).optional(),
+  density: z.enum(["compact", "normal", "spacious"]).default("compact").optional(),
+  sections: z.array(formSectionSchema).default([]),
+});
+export type FormElementsContainer = z.infer<typeof formElementsContainerSchema>;

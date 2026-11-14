@@ -4,7 +4,7 @@ import { ExternalLink, X } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { type DragPayload, isContainerPayload } from "./tab-group-types";
 
 export interface TabStripItemProps {

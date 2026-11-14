@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Column list panel for MODEL.CONFIG properties tab.
+ * Renders filterable property hierarchy with selection states, validation badges,
+ * subfield insertion, and append-only deletion safeguards.
+ *
+ * @module features/system/model-config/components/property/mc-property-list
+ */
+
 "use client";
 
 import { Plus, Search, Trash2 } from "lucide-react";
@@ -13,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
-import { type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas/model-config-schema";
+import { type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
 import { McSubPropertyItem } from "./mc-sub-property-item";
 

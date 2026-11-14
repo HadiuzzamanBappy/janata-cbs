@@ -1,7 +1,6 @@
 import { Columns2, Columns3, Columns4, Layers, LayoutList, PanelTop } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { FormContainerType } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormContainerType, FormElement } from "@/lib/data-schemas";
 
 export interface PaletteContainersListProps {
   disabled?: boolean;
@@ -21,42 +20,42 @@ export function PaletteContainersList({ disabled, onAddSection }: PaletteContain
     {
       title: "1-Col Card Section",
       subtitle: "Single-column full width scanline",
-      icon: <LayoutList className="size-3.5 text-blue-500 shrink-0" />,
+      icon: <LayoutList className="size-3.5 text-primary shrink-0" />,
       containerType: "card" as const,
       columns: 1,
     },
     {
       title: "2-Col Card Section",
       subtitle: "Compact dual-column banking pair",
-      icon: <Columns2 className="size-3.5 text-indigo-500 shrink-0" />,
+      icon: <Columns2 className="size-3.5 text-primary/80 shrink-0" />,
       containerType: "card" as const,
       columns: 2,
     },
     {
       title: "3-Col Card Section",
       subtitle: "Standard 3-column workstation layout",
-      icon: <Columns3 className="size-3.5 text-purple-500 shrink-0" />,
+      icon: <Columns3 className="size-3.5 text-primary/70 shrink-0" />,
       containerType: "card" as const,
       columns: 3,
     },
     {
       title: "4-Col Card Section",
       subtitle: "High-density 4-column financial grid",
-      icon: <Columns4 className="size-3.5 text-emerald-500 shrink-0" />,
+      icon: <Columns4 className="size-3.5 text-primary/60 shrink-0" />,
       containerType: "card" as const,
       columns: 4,
     },
     {
       title: "Tab Group Container",
       subtitle: "Multi-page tabbed container",
-      icon: <Layers className="size-3.5 text-sky-500 shrink-0" />,
+      icon: <Layers className="size-3.5 text-primary shrink-0" />,
       containerType: "tab" as const,
       columns: 2,
     },
     {
       title: "Header Summary Card",
       subtitle: "Readonly compact top summary card",
-      icon: <PanelTop className="size-3.5 text-amber-500 shrink-0" />,
+      icon: <PanelTop className="size-3.5 text-muted-foreground shrink-0" />,
       containerType: "card" as const,
       columns: 4,
     },

@@ -1,15 +1,19 @@
+/**
+ * @fileoverview Unified Property Inspector panel for Form Designer workbench.
+ * Renders hierarchical properties for Root Canvas, Containers, and Fields.
+ *
+ * @module features/system/form-config/components/designer/property-inspector
+ */
+
 "use client";
 
 import { ArrowLeft, Settings, Type } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
 import { useOptionalDesignerContext } from "./context/designer-context";
-import { ContainerInspector } from "./inspector/container-inspector";
+import { ContainerInspector, RootCanvasInspector } from "./inspector/canvas-inspectors";
 import { FieldInspector } from "./inspector/field-inspector";
-import { RootCanvasInspector } from "./inspector/root-canvas-inspector";
 
 export interface PropertyInspectorProps {
   selectedSection?: FormSection | null;
@@ -23,10 +27,16 @@ export interface PropertyInspectorProps {
   className?: string;
 }
 
+function resolveBaseType(type?: string): "TEXT" | "NUMBER" | "DATE" {
+  const norm = (type || "").toUpperCase();
+  if (norm.includes("NUM") || norm.includes("AMOUNT")) return "NUMBER";
+  if (norm.includes("DATE") || norm.includes("TIME")) return "DATE";
+  return "TEXT";
+}
+
 /**
  * PropertyInspector: Streamlined right-hand workbench panel.
  * Directly renders flat properties for Root Canvas, Containers, or Fields.
- * Never displays an empty state placeholder.
  */
 export function PropertyInspector(props: PropertyInspectorProps) {
   const ctx = useOptionalDesignerContext();
@@ -38,10 +48,10 @@ export function PropertyInspector(props: PropertyInspectorProps) {
 
   const onUpdateSection = React.useCallback(
     (patch: Partial<FormSection>) => {
-      if (props.onUpdateSection) {
-        props.onUpdateSection(patch);
-      } else if (ctx && selectedSection) {
-        ctx.onUpdateSection(selectedSection.id, patch);
+      if (selectedSection) {
+        props.onUpdateSection
+          ? props.onUpdateSection(patch)
+          : ctx?.onUpdateSection(selectedSection.id, patch);
       }
     },
     [props.onUpdateSection, ctx, selectedSection],
@@ -49,17 +59,14 @@ export function PropertyInspector(props: PropertyInspectorProps) {
 
   const onUpdateField = React.useCallback(
     (patch: Partial<FormElement>) => {
-      if (props.onUpdateField) {
-        props.onUpdateField(patch);
-      } else if (ctx && selectedField) {
-        ctx.onUpdateField(selectedField.SN || selectedField.NAME, patch);
+      if (selectedField) {
+        props.onUpdateField
+          ? props.onUpdateField(patch)
+          : ctx?.onUpdateField(selectedField.SN || selectedField.NAME, patch);
       }
     },
     [props.onUpdateField, ctx, selectedField],
   );
-
-  const onDeselectField =
-    props.onDeselectField ?? (ctx ? () => ctx.onSelectField(null) : undefined);
 
   // Parent container lookup for hierarchical back navigation
   const parentContainer = React.useMemo(() => {
@@ -71,48 +78,21 @@ export function PropertyInspector(props: PropertyInspectorProps) {
     );
   }, [selectedField, ctx?.sections]);
 
-  const isParentAnActualContainer = React.useMemo(() => {
-    if (!parentContainer) return false;
-    return (
-      Boolean(parentContainer.title?.trim()) ||
-      parentContainer.containerType === "tab" ||
-      Boolean(parentContainer.groupTitle)
-    );
-  }, [parentContainer]);
-
   const handleBack = React.useCallback(() => {
-    if (selectedField) {
-      if (isParentAnActualContainer && parentContainer) {
-        if (ctx) {
-          ctx.onSelectSection(parentContainer.id);
-          ctx.onSelectField(null);
-        } else if (onDeselectField) {
-          onDeselectField();
-        }
-      } else {
-        if (ctx) {
-          ctx.onSelectSection(null);
-          ctx.onSelectField(null);
-        } else if (onDeselectField) {
-          onDeselectField();
-        }
-      }
-    } else if (selectedSection) {
-      if (ctx) {
-        ctx.onSelectSection(null);
-        ctx.onSelectField(null);
-      }
+    if (
+      selectedField &&
+      parentContainer &&
+      (parentContainer.containerType === "tab" || parentContainer.title?.trim())
+    ) {
+      ctx?.onSelectSection(parentContainer.id);
+      ctx?.onSelectField(null);
+    } else {
+      ctx?.onSelectSection(null);
+      ctx?.onSelectField(null);
+      props.onDeselectField?.();
     }
-  }, [
-    selectedField,
-    selectedSection,
-    isParentAnActualContainer,
-    parentContainer,
-    ctx,
-    onDeselectField,
-  ]);
+  }, [selectedField, parentContainer, ctx, props.onDeselectField]);
 
-  // Resolve underlying physical database model property (if available)
   const matchedModelProp = React.useMemo(() => {
     if (!selectedField) return null;
     return (
@@ -121,48 +101,25 @@ export function PropertyInspector(props: PropertyInspectorProps) {
     );
   }, [modelProperties, selectedField]);
 
-  // Determine normalized base physical type (TEXT | NUMBER | DATE)
-  const baseType = React.useMemo<"TEXT" | "NUMBER" | "DATE">(() => {
-    const rawType = (matchedModelProp?.TYPE || selectedField?.TYPE || "Text").toUpperCase();
-    if (rawType.includes("NUM") || rawType.includes("AMOUNT")) return "NUMBER";
-    if (rawType.includes("DATE") || rawType.includes("TIME")) return "DATE";
-    return "TEXT";
-  }, [matchedModelProp, selectedField]);
+  const baseType = resolveBaseType(matchedModelProp?.TYPE || selectedField?.TYPE);
 
-  const inspectorHeader = React.useMemo(() => {
-    if (selectedField) {
-      return {
+  const header = selectedField
+    ? {
         icon: <Type className="size-3.5 text-primary shrink-0" />,
         title: selectedField.LABEL || selectedField.NAME || "Field Configuration",
-      };
-    }
-    if (selectedSection) {
-      return {
-        icon: <Settings className="size-3.5 text-primary shrink-0" />,
-        title:
-          selectedSection.groupTitle ||
-          selectedSection.title ||
-          (selectedSection.containerType === "tab" ? "Tab Item" : "Card Container"),
-      };
-    }
-    return {
-      icon: <Settings className="size-3.5 text-muted-foreground shrink-0" />,
-      title: "Canvas Properties",
-    };
-  }, [selectedField, selectedSection]);
-
-  const backButtonTooltip = React.useMemo(() => {
-    if (selectedField) {
-      if (isParentAnActualContainer && parentContainer) {
-        return `Back to ${parentContainer.title || parentContainer.groupTitle || "Container"}`;
       }
-      return "Back to Canvas Properties";
-    }
-    if (selectedSection) {
-      return "Back to Canvas Properties";
-    }
-    return "";
-  }, [selectedField, selectedSection, isParentAnActualContainer, parentContainer]);
+    : selectedSection
+      ? {
+          icon: <Settings className="size-3.5 text-primary shrink-0" />,
+          title:
+            selectedSection.groupTitle ||
+            selectedSection.title ||
+            (selectedSection.containerType === "tab" ? "Tab Item" : "Card Container"),
+        }
+      : {
+          icon: <Settings className="size-3.5 text-muted-foreground shrink-0" />,
+          title: "Canvas Properties",
+        };
 
   const hasBackAction = Boolean(selectedField || selectedSection);
 
@@ -173,24 +130,22 @@ export function PropertyInspector(props: PropertyInspectorProps) {
         props.className,
       )}
     >
-      {/* ── Ultra-Minimal Header: [Back or Icon] Title (No close button or badge label) ── */}
+      {/* ── Header: [Back or Icon] Title ── */}
       <div className="h-8 px-2.5 border-b border-border/60 bg-muted/25 flex items-center shrink-0 gap-1.5">
         {hasBackAction ? (
           <button
             type="button"
             onClick={handleBack}
             className="p-1 -ml-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
-            title={backButtonTooltip}
+            title="Back"
           >
             <ArrowLeft className="size-3.5" />
           </button>
         ) : (
-          inspectorHeader.icon
+          header.icon
         )}
 
-        <span className="font-semibold text-foreground text-xs truncate">
-          {inspectorHeader.title}
-        </span>
+        <span className="font-semibold text-foreground text-xs truncate">{header.title}</span>
       </div>
 
       {/* ── Direct Scrollable Properties Body ────── */}

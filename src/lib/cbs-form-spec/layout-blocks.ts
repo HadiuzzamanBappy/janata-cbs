@@ -8,7 +8,7 @@
  * - Pure layout calculation with zero DOM or UI framework dependencies.
  */
 
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 
 /**
  * Union type representing an isolated section or an aggregated tab cluster.

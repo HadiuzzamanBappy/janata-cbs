@@ -1,7 +1,15 @@
+/**
+ * @fileoverview Container zone conversion and tab grouping hook for Form Designer.
+ * Transforms sections between Card boxes and Tab Group panes.
+ *
+ * @module features/system/form-config/hooks/use-fc-section-zones
+ */
+
 "use client";
 
 import * as React from "react";
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import { generateClientToken } from "@/lib/core-utils";
+import type { FormConfigRecord } from "@/lib/data-schemas";
 
 export function useFcSectionZones(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
@@ -21,7 +29,7 @@ export function useFcSectionZones(
             sections: sections.map((sec, idx) => {
               if (sec.id !== sectionId) return sec;
               if (targetType === "tab") {
-                const grpId = opts?.groupId || `tabgrp_${idx + 1}`;
+                const grpId = opts?.groupId || generateClientToken("tabgrp");
                 const title = opts?.groupTitle || sec.title || `Tab ${idx + 1}`;
                 return {
                   ...sec,

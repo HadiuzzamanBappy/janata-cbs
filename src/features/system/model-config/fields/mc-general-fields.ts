@@ -1,4 +1,12 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+/**
+ * @fileoverview Form sections specification for MODEL.CONFIG General tab.
+ * Configures model attributes, physical table mappings, ID generation rules,
+ * and operational governance flags for core CBS schema definitions.
+ *
+ * @module features/system/model-config/fields/mc-general-fields
+ */
+
+import type { FormSection } from "@/lib/data-schemas";
 
 /**
  * Standard Form Sections definition for MODEL.CONFIG General tab.

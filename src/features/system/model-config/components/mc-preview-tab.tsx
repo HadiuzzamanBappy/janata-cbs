@@ -1,10 +1,14 @@
+/**
+ * @fileoverview Live Form Engine preview tab for MODEL.CONFIG editor.
+ * Renders interactive form preview for the configured model schema.
+ *
+ * @module features/system/model-config/components/mc-preview-tab
+ */
+
 "use client";
 
-import * as React from "react";
 import { FormPreview } from "@/features/form-engine";
-import { compileFormSpec } from "@/lib/cbs-form-spec";
-import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import type { ModelConfigRecord } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
 
 export interface McPreviewTabProps {
@@ -13,15 +17,9 @@ export interface McPreviewTabProps {
 }
 
 export function McPreviewTab({ formData, mode }: McPreviewTabProps) {
-  const cleanData = React.useMemo(
-    () => sanitizeModelConfigRecord(formData) ?? formData,
-    [formData],
-  );
-  const spec = React.useMemo(() => compileFormSpec(cleanData, null), [cleanData]);
-
   return (
     <FormPreview
-      frmElements={spec.frmElements}
+      modelRecord={formData}
       mode={mode}
       emptyTitle="No Fields in Model Configuration"
       emptyDescription="This model has no properties defined yet. Switch to the Properties tab to add columns before previewing."

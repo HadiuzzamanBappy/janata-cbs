@@ -89,7 +89,7 @@ export function InsertionIndicator({
       aria-label={`Insert at position ${gapIndex}`}
       className={cn(
         "w-full transition-all duration-150 flex items-center justify-center relative select-none",
-        isHighlighted ? "h-6 my-1" : "h-2 my-0",
+        isHighlighted ? "h-6 my-1" : gapIndex === 0 ? "h-0.5 my-0" : "h-1.5 my-0",
       )}
     >
       <div

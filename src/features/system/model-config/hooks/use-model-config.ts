@@ -1,13 +1,17 @@
+/**
+ * @fileoverview Main state and lifecycle hook for the MODEL.CONFIG feature.
+ * Coordinates persistence, property tree mutations, validation, and domain actions.
+ *
+ * @module features/system/model-config/hooks/use-model-config
+ */
+
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbsQueries } from "@/lib/cbs-client";
-import {
-  type ModelConfigRecord,
-  modelConfigRecordSchema,
-} from "@/lib/data-schemas/model-config-schema";
+import { type ModelConfigRecord, modelConfigRecordSchema } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
 import { useMcActions } from "./use-mc-actions";

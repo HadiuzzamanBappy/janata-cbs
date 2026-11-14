@@ -7,7 +7,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { CanvasSectionGrid } from "../canvas-section-grid";
 
 export interface CardContainerBlockProps {
@@ -98,6 +98,7 @@ export function CardContainerBlock({
 
   const numCols = section.columns || 1;
   const isCollapsed = Boolean(section.collapsible && section.isCollapsed);
+  const isContainerExplicitlySelected = isSecSelected && !selectedFieldId;
 
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: canvas selectable container
@@ -111,8 +112,8 @@ export function CardContainerBlock({
         onSelectField(section.id, null);
       }}
       className={cn(
-        "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs my-1",
-        isSecSelected && "border-primary/80 ring-1 ring-primary/30",
+        "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs first:mt-0 my-1",
+        isContainerExplicitlySelected && "border-primary/80 ring-1 ring-primary/30",
         isDragging && "shadow-lg ring-2 ring-primary/40",
       )}
     >
@@ -120,7 +121,7 @@ export function CardContainerBlock({
       <div
         className={cn(
           "px-2.5 py-1.5 flex items-center justify-between text-xs bg-muted/25 border-b border-border/60 select-none",
-          isSecSelected && "bg-primary/5",
+          isContainerExplicitlySelected && "bg-primary/5",
         )}
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1">

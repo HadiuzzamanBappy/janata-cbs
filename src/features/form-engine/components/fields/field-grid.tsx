@@ -15,7 +15,7 @@ import {
   getGridColsClass,
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";

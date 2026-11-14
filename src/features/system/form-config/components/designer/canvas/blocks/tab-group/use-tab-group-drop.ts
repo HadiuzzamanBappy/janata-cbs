@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { type DragPayload, isContainerPayload, isTabGroupPayload } from "./tab-group-types";
 
 export interface TabGroupDropParams {

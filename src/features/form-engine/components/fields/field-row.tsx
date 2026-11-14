@@ -62,7 +62,7 @@ export function FieldRow({
   const labelContent = (
     <span
       className={cn(
-        "group/label inline-flex items-center min-w-0 max-w-full select-none",
+        "group/label inline-flex items-center min-w-0 max-w-full select-none outline-none",
         isDesktopTooltip ? "cursor-help" : "",
       )}
       title={error ? error : isDesktopTooltip ? undefined : label}
@@ -74,7 +74,7 @@ export function FieldRow({
             "border-b border-dotted",
             error
               ? "border-destructive/40 group-hover/label:border-destructive text-destructive font-semibold"
-              : "border-muted-foreground/30 group-hover/label:border-primary group-hover/label:text-foreground text-muted-foreground font-normal",
+              : "border-muted-foreground/25 group-hover/label:border-primary group-hover/label:text-foreground text-muted-foreground font-normal",
           ],
           !isDesktopTooltip &&
             (error ? "text-destructive font-semibold" : "text-muted-foreground font-normal"),
@@ -113,12 +113,12 @@ export function FieldRow({
         <div className="flex items-center gap-1 min-w-0 flex-1">
           {/* Desktop Mode: Tooltip on label text hover */}
           {isDesktopTooltip ? (
-            <Tooltip>
-              <TooltipTrigger render={labelContent} />
+            <Tooltip disableHoverablePopup>
+              <TooltipTrigger delay={350} closeDelay={100} render={labelContent} />
               <TooltipContent
                 side="right"
                 align="center"
-                className="text-xs max-w-70 sm:max-w-xs z-50 shadow-md"
+                className="text-xs max-w-70 sm:max-w-xs z-50 shadow-md pointer-events-none"
               >
                 {String(enrichText)}
               </TooltipContent>
@@ -129,8 +129,10 @@ export function FieldRow({
 
           {/* Stacked/Mobile Mode: Tooltip ONLY on the Info icon */}
           {isIconTooltip && (
-            <Tooltip>
+            <Tooltip disableHoverablePopup>
               <TooltipTrigger
+                delay={120}
+                closeDelay={0}
                 render={
                   <button
                     type="button"
@@ -144,7 +146,7 @@ export function FieldRow({
               <TooltipContent
                 side="top"
                 align="center"
-                className="text-xs max-w-70 sm:max-w-xs z-50 shadow-md"
+                className="text-xs max-w-70 sm:max-w-xs z-50 shadow-md pointer-events-none"
               >
                 {String(enrichText)}
               </TooltipContent>

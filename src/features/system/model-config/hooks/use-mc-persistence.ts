@@ -1,8 +1,14 @@
+/**
+ * @fileoverview Persistence hook and initial state for MODEL.CONFIG records.
+ * Integrates with CBS screen persistence layer and validates drafts with Zod.
+ *
+ * @module features/system/model-config/hooks/use-mc-persistence
+ */
+
 "use client";
 
 import { useCbsPersistence } from "@/components/cbs-screen";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
-import { modelConfigRecordSchema } from "@/lib/data-schemas/model-config-schema";
+import { type ModelConfigRecord, modelConfigRecordSchema } from "@/lib/data-schemas";
 
 export const INITIAL_MODEL: ModelConfigRecord = {
   DESCRIPTION: "",

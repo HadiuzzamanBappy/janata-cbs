@@ -1,11 +1,18 @@
+/**
+ * @fileoverview Form Configuration General Metadata Tab.
+ * Configures top-level form title, description, authorization level, and routine hooks.
+ *
+ * @module features/system/form-config/components/fc-general-tab
+ */
+
 "use client";
 
 import * as React from "react";
-import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { FormRenderer } from "@/features/form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
-import { FORM_CONFIG_SECTIONS } from "../fields";
+import { FORM_CONFIG_SECTIONS } from "../fields/fc-general-fields";
 import type { FormConfigValidationError } from "../hooks/fc-validation";
 
 export interface FcGeneralTabProps {

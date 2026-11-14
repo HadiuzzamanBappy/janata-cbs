@@ -1,11 +1,18 @@
+/**
+ * @fileoverview Main state management and command workflow hook for FORM.CONFIG.
+ * Coordinates persistence, model schema fetching, validation, operations, and screen lifecycle.
+ *
+ * @module features/system/form-config/hooks/use-form-config
+ */
+
 "use client";
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { parseGfcResponse } from "@/lib/data-parsers";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
-import type { CbsScreenMode } from "@/types";
+import type { ModelConfigRecord } from "@/lib/data-schemas";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type FormConfigValidationError, validateFormConfig } from "./fc-validation";
 import { useFcActions } from "./use-fc-actions";
 import { useFcFieldOps } from "./use-fc-field-ops";
@@ -47,8 +54,24 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   const sectionOps = useFcSectionOps(setFormData, setSelectedSectionId, setSelectedFieldId);
   const fieldOps = useFcFieldOps(setFormData, setSelectedFieldId, setSelectedSectionId);
 
+  const initDraft = React.useCallback(
+    (cleanId: string) => {
+      const draft = createInitialDraft(cleanId);
+      hydrate(draft);
+      setMode(CbsRecordFunction.INPUT);
+      setSelectedSectionId(null);
+      setSelectedFieldId(null);
+      toast.add({
+        title: "New Form Config Draft",
+        description: `Initialized clean layout draft for #${cleanId}.`,
+        type: "info",
+      });
+    },
+    [hydrate, setMode],
+  );
+
   const fetchRecord = React.useCallback(
-    async (id: string, targetMode: CbsScreenMode = "I") => {
+    async (id: string, targetMode: CbsScreenMode = CbsRecordFunction.INPUT) => {
       const cleanId = (id || "").trim().toUpperCase();
       if (!cleanId) return;
       setRecordId(cleanId);
@@ -66,60 +89,31 @@ export function useFormConfig(initialId?: string, tabId?: string) {
             if (!isNew && form) {
               hydrate(form);
               setMode(targetMode);
-              const firstSec = form.frmElements?.sections?.[0];
-              setSelectedSectionId(firstSec?.id || null);
-              const firstField = firstSec?.fields?.[0];
-              setSelectedFieldId(firstField?.SN || firstField?.NAME || null);
+              setSelectedSectionId(null);
+              setSelectedFieldId(null);
               return;
             }
 
             // 2. New Form Config (FORMCONTROL is {}): initialize clean empty draft
-            if (targetMode === "I") {
-              const draft = createInitialDraft(cleanId);
-              hydrate(draft);
-              setMode("I");
-              setSelectedSectionId(null);
-              setSelectedFieldId(null);
-              toast.add({
-                title: "New Form Config Draft",
-                description: `Initialized clean layout draft for #${cleanId}.`,
-                type: "info",
-              });
+            if (targetMode === CbsRecordFunction.INPUT) {
+              initDraft(cleanId);
               return;
             }
           }
         }
 
-        if (targetMode === "I") {
-          const draft = createInitialDraft(cleanId);
-          hydrate(draft);
-          setMode("I");
-          setSelectedSectionId(null);
-          setSelectedFieldId(null);
-          toast.add({
-            title: "New Form Config Draft",
-            description: `Initialized clean layout draft for #${cleanId}.`,
-            type: "info",
-          });
+        if (targetMode === CbsRecordFunction.INPUT) {
+          initDraft(cleanId);
         }
       } catch {
-        if (targetMode === "I") {
-          const draft = createInitialDraft(cleanId);
-          hydrate(draft);
-          setMode("I");
-          setSelectedSectionId(null);
-          setSelectedFieldId(null);
-          toast.add({
-            title: "New Form Config Draft",
-            description: `Initialized layout draft for #${cleanId}.`,
-            type: "info",
-          });
+        if (targetMode === CbsRecordFunction.INPUT) {
+          initDraft(cleanId);
         }
       } finally {
         setLoading(false);
       }
     },
-    [hydrate, setMode, setRecordId],
+    [hydrate, initDraft, setMode, setRecordId],
   );
 
   const handleValidate = React.useCallback(() => {
@@ -165,7 +159,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   React.useEffect(() => {
     if (!hasLoadedInitialRef.current && resolvedInitialId) {
       hasLoadedInitialRef.current = true;
-      fetchRecord(resolvedInitialId, resolvedInitialMode || "I");
+      fetchRecord(resolvedInitialId, resolvedInitialMode || CbsRecordFunction.INPUT);
     }
   }, [fetchRecord, resolvedInitialId, resolvedInitialMode]);
 

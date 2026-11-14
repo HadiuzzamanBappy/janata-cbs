@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { getBlockGapSectionIndex, type RenderBlock } from "@/lib/cbs-form-spec";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { CardContainerBlock } from "./blocks/card-container-block";
 import { StandaloneFieldBlock } from "./blocks/standalone-field-block";
 import { TabGroupBlock } from "./blocks/tab-group-block";
@@ -73,7 +73,7 @@ export function CanvasBlockFlow({
   };
 
   return (
-    <div className="flex flex-col min-h-full py-1">
+    <div className="flex flex-col min-h-full pt-0 pb-2">
       {/* 1. Top insertion placement slot */}
       <InsertionIndicator
         id="gap-top"

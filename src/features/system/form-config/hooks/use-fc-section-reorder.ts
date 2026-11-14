@@ -1,7 +1,14 @@
+/**
+ * @fileoverview Section reordering hook for Form Designer.
+ * Reorders standalone cards or clusters of grouped tabs on the canvas.
+ *
+ * @module features/system/form-config/hooks/use-fc-section-reorder
+ */
+
 "use client";
 
 import * as React from "react";
-import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord, FormSection } from "@/lib/data-schemas";
 
 export function useFcSectionReorder(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,

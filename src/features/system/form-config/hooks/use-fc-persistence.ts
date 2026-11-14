@@ -1,10 +1,14 @@
+/**
+ * @fileoverview Persistence binding and initial empty draft for FORM.CONFIG.
+ * Integrates with CBS screen persistence layer and validates schema with Zod.
+ *
+ * @module features/system/form-config/hooks/use-fc-persistence
+ */
+
 "use client";
 
 import { useCbsPersistence } from "@/components/cbs-screen";
-import {
-  type FormConfigRecord,
-  formConfigRecordSchema,
-} from "@/lib/data-schemas/form-config-schema";
+import { type FormConfigRecord, formConfigRecordSchema } from "@/lib/data-schemas";
 
 export const INITIAL_FORM_CONFIG: FormConfigRecord = {
   title: "",
@@ -21,12 +25,11 @@ export const INITIAL_FORM_CONFIG: FormConfigRecord = {
 };
 
 /**
- * Creates a clean, empty form layout draft for self-entry.
+ * Creates a fresh, empty form layout draft for self-entry.
  * No synthetic titles, descriptions, or dummy sections are pre-filled.
  */
-export function createInitialDraft(_cleanId?: string, _description?: string): FormConfigRecord {
+export function createInitialDraft(_cleanId?: string): FormConfigRecord {
   return {
-    ...INITIAL_FORM_CONFIG,
     title: "",
     description: "",
     authNumber: 1,

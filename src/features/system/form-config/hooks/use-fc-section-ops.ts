@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Section lifecycle and container operations hook for Form Designer.
+ * Coordinates adding, updating, removing, and tab group clustering of sections.
+ *
+ * @module features/system/form-config/hooks/use-fc-section-ops
+ */
+
 "use client";
 
 import * as React from "react";
@@ -5,9 +12,9 @@ import { generateClientToken } from "@/lib/core-utils";
 import type {
   FormConfigRecord,
   FormContainerType,
+  FormElement,
   FormSection,
-} from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+} from "@/lib/data-schemas";
 import { useFcSectionReorder } from "./use-fc-section-reorder";
 import { useFcSectionZones } from "./use-fc-section-zones";
 

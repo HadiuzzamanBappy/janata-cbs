@@ -1,10 +1,9 @@
 import { Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
+import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
-import { modelPropToFormElement } from "./palette-types";
+import type { FormElement, ModelProperty } from "@/lib/data-schemas";
 
 export interface PaletteVariableItemProps {
   property: ModelProperty;
@@ -54,7 +53,7 @@ export function PaletteVariableItem({
       className={cn(
         "w-full h-7 flex items-center justify-between px-2 rounded border text-[11px] transition-all text-left",
         isPlaced
-          ? "bg-muted/15 border-emerald-500/30 text-muted-foreground cursor-default"
+          ? "bg-muted/15 border-border text-muted-foreground cursor-default"
           : "bg-background/80 border-border/70 text-foreground hover:border-primary/50 hover:bg-accent/40 shadow-2xs cursor-grab active:cursor-grabbing",
       )}
       title={
@@ -65,7 +64,7 @@ export function PaletteVariableItem({
     >
       <div className="flex items-center gap-1.5 truncate flex-1 min-w-0">
         {isPlaced ? (
-          <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+          <span className="size-1.5 rounded-full bg-primary shrink-0" />
         ) : (
           <Plus className="size-3 text-primary shrink-0" />
         )}
@@ -77,7 +76,7 @@ export function PaletteVariableItem({
         {isMulti && (
           <Badge
             variant="outline"
-            className="text-[8px] h-3.5 px-0.5 font-mono text-sky-500 border-sky-500/40 bg-sky-500/5"
+            className="text-[8px] h-3.5 px-0.5 font-mono text-primary border-primary/40 bg-primary/5"
             title="Multi-value property"
           >
             M
@@ -87,7 +86,7 @@ export function PaletteVariableItem({
           variant="outline"
           className={cn(
             "text-[8px] h-3.5 px-1 font-mono uppercase",
-            isPlaced && "text-emerald-500 border-emerald-500/40 bg-emerald-500/5 font-semibold",
+            isPlaced && "text-muted-foreground border-border bg-muted/20 font-semibold",
           )}
         >
           {property.TYPE}

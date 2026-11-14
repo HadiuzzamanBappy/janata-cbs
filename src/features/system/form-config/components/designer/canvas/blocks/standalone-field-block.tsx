@@ -4,7 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type * as React from "react";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { DesignerFieldCard } from "../designer-field-card";
 
 export interface StandaloneFieldBlockProps {
@@ -62,7 +62,7 @@ export function StandaloneFieldBlock({
         onSelectField(section.id, fieldId);
       }}
       className={cn(
-        "relative rounded-md transition-all select-none my-1 group",
+        "relative rounded-md transition-all select-none first:mt-0 my-1 group",
         isDragging && "shadow-lg ring-2 ring-primary/40",
       )}
     >

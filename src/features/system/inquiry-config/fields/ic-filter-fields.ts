@@ -1,5 +1,5 @@
 import { INQUIRY_OPERAND_OPTIONS } from "@/features/inquiry-engine";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 
 /**
  * Standard Form Sections definition for INQUIRY.CONFIG Selection Criteria Inspector.

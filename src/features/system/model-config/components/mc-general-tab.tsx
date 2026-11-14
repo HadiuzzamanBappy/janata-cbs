@@ -1,8 +1,15 @@
+/**
+ * @fileoverview General tab for MODEL.CONFIG editor.
+ * Renders model attributes, ID rules, and governance flags via FormRenderer.
+ *
+ * @module features/system/model-config/components/mc-general-tab
+ */
+
 "use client";
 
 import * as React from "react";
-import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import { FormRenderer } from "@/features/form-engine";
+import type { ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { MODEL_CONFIG_SECTIONS } from "../fields/mc-general-fields";
 import type { ModelValidationErrorItem } from "../hooks/mc-validation";

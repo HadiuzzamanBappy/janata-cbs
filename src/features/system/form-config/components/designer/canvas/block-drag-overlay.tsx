@@ -2,8 +2,7 @@
 
 import { DragOverlay } from "@dnd-kit/core";
 import { Badge } from "@/components/ui/badge";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement, FormSection } from "@/lib/data-schemas/form-engine-schema";
 
 export interface BlockDragOverlayProps {
   activeDragItem: {

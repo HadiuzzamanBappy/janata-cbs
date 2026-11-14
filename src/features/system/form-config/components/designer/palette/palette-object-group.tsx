@@ -2,10 +2,9 @@ import { Boxes, ChevronDown, ChevronRight, Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { modelPropToFormElement } from "@/lib/cbs-form-spec";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
-import { modelPropToFormElement } from "./palette-types";
+import type { FormElement, ModelProperty } from "@/lib/data-schemas";
 
 export interface PaletteObjectGroupProps {
   parent: ModelProperty;
@@ -47,8 +46,8 @@ export function PaletteObjectGroup({
       return;
     }
     const payload = {
-      type: "palette-field",
-      field: objectFieldElement,
+      type: "palette-variable",
+      element: objectFieldElement,
     };
     e.dataTransfer.setData("application/json", JSON.stringify(payload));
     e.dataTransfer.effectAllowed = "copy";
@@ -62,7 +61,7 @@ export function PaletteObjectGroup({
     <div
       className={cn(
         "rounded border text-[11px] transition-all bg-card/60 shadow-2xs overflow-hidden",
-        isParentPlaced ? "border-emerald-500/40 bg-muted/15" : "border-primary/30 bg-primary/5",
+        isParentPlaced ? "border-border bg-muted/15" : "border-primary/30 bg-primary/5",
       )}
     >
       {/* Object Group Header */}
@@ -90,7 +89,7 @@ export function PaletteObjectGroup({
             {isCollapsed ? <ChevronRight className="size-3" /> : <ChevronDown className="size-3" />}
           </button>
 
-          <Boxes className="size-3 text-purple-400 shrink-0" />
+          <Boxes className="size-3 text-primary shrink-0" />
 
           <button
             type="button"
@@ -105,12 +104,7 @@ export function PaletteObjectGroup({
         <div className="flex items-center gap-1 shrink-0">
           <Badge
             variant="outline"
-            className={cn(
-              "text-[9px] h-3.5 px-1 font-mono uppercase",
-              parent.STRUCTURE === "M"
-                ? "border-purple-500/40 text-purple-400 bg-purple-500/10"
-                : "border-blue-500/40 text-blue-400 bg-blue-500/10",
-            )}
+            className="text-[9px] h-3.5 px-1 font-mono uppercase border-primary/40 text-primary bg-primary/10"
           >
             {parent.STRUCTURE === "M" ? "M-Obj" : "S-Obj"}
           </Badge>
@@ -128,7 +122,7 @@ export function PaletteObjectGroup({
             </Button>
           )}
 
-          {isParentPlaced && <span className="text-[10px] text-emerald-500 font-semibold">✓</span>}
+          {isParentPlaced && <span className="text-[10px] text-primary font-semibold">✓</span>}
         </div>
       </div>
 

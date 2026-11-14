@@ -1,10 +1,17 @@
+/**
+ * @fileoverview Properties Master-Detail tab for MODEL.CONFIG editor.
+ * Houses responsive property tree list on left and inspector form on right.
+ *
+ * @module features/system/model-config/components/mc-properties-tab
+ */
+
 "use client";
 
 import { Layers } from "lucide-react";
 import * as React from "react";
 import { useContainerWidth } from "@/hooks";
 import { cn } from "@/lib/core-utils";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas";
 import type { ModelValidationErrorItem } from "../hooks/mc-validation";
 import { McPropertyInspector } from "./property/mc-property-inspector";
 import { McPropertyList } from "./property/mc-property-list";

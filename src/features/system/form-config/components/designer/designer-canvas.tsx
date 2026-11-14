@@ -228,7 +228,7 @@ export function DesignerCanvas({
         ref={scrollContainerRef}
         aria-label="Form designer canvas workspace"
         className={cn(
-          "flex-1 overflow-y-auto p-2 sm:p-3 select-none transition-colors",
+          "flex-1 overflow-y-auto px-2 sm:px-3 pt-1 pb-3 select-none transition-colors",
           isCanvasDragOver && "bg-primary/5 ring-1 ring-primary/40",
         )}
         onDragOver={handleNativeCanvasDragOver}

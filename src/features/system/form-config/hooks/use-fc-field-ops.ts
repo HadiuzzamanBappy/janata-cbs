@@ -1,8 +1,14 @@
+/**
+ * @fileoverview Field manipulation operations hook for Form Designer.
+ * Coordinates field addition, updating, deletion, and cross-section movement.
+ *
+ * @module features/system/form-config/hooks/use-fc-field-ops
+ */
+
 "use client";
 
 import * as React from "react";
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormConfigRecord, FormElement } from "@/lib/data-schemas";
 import { isMatchingField, useFcFieldMovement } from "./use-fc-field-movement";
 
 export function useFcFieldOps(
@@ -24,6 +30,7 @@ export function useFcFieldOps(
         const fieldLabel = fieldTemplate?.LABEL || `Field ${existingCount}`;
 
         const newField: FormElement = {
+          ...fieldTemplate,
           SN: fieldSn,
           NAME: fieldName,
           LABEL: fieldLabel,
@@ -37,10 +44,6 @@ export function useFcFieldOps(
           PARAMETER: fieldTemplate?.PARAMETER || {
             type: "O",
             data: [],
-            modelName: "",
-            displayField: "",
-            condition: "",
-            reference: "",
           },
           ENRICHTEXT: fieldTemplate?.ENRICHTEXT || "",
           DEFAULTVALUE: fieldTemplate?.DEFAULTVALUE || "",

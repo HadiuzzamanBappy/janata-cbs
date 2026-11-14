@@ -1,4 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import type { AddSectionFn } from "../../canvas-types";
 
 export type DragPayload = Record<string, unknown>;

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Sub-property item row for nested Json object schemas.
+ * Renders nested property node with SN breadcrumbs and deletion action.
+ *
+ * @module features/system/model-config/components/property/mc-sub-property-item
+ */
+
 "use client";
 
 import { Trash2 } from "lucide-react";
@@ -5,7 +12,7 @@ import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
 
 interface McSubPropertyItemProps {

@@ -9,7 +9,7 @@
 "use client";
 
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
+import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { CardContainer } from "./card-container";
 

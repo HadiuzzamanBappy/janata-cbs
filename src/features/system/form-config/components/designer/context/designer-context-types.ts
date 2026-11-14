@@ -1,6 +1,5 @@
 import type * as React from "react";
-import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement, FormSection } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { AddSectionFn } from "../canvas/canvas-types";
 

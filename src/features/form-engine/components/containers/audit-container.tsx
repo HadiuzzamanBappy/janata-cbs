@@ -41,6 +41,7 @@ const AUDIT_FIELD_SPECS: readonly AuditFieldSpec[] = [
   },
   {
     key: "recBranchCode",
+    label: "Branch Code",
     enrichText: "Originating bank branch code where this record was booked.",
     defaultFallback: "JB0001",
   },

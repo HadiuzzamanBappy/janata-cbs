@@ -1,11 +1,18 @@
+/**
+ * @fileoverview Property inspector panel for MODEL.CONFIG properties.
+ * Renders column definitions and physical constraints using FormRenderer.
+ *
+ * @module features/system/model-config/components/property/mc-property-inspector
+ */
+
 "use client";
 
 import { PanelLeft } from "lucide-react";
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import { FormRenderer } from "@/features/form-engine";
+import type { ModelProperty } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields/mc-property-fields";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";

@@ -1,26 +1,17 @@
 "use client";
 
-import { Eye, EyeOff, Folder, Info, Lock, Terminal, Trash2, X } from "lucide-react";
-import { SwitchWidget } from "@/components/cbs-form-engine";
+import { ArrowLeft, Trash2, X } from "lucide-react";
+import * as React from "react";
+import { FormRenderer } from "@/components/cbs-form-engine";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
-import type { MenuTreeNode, MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
-import { TreeContainerInspector } from "./tree-container-inspector";
+import type { MenuAction, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
+import { CbsRecordFunction } from "@/types";
+import { NODE_INSPECTOR_SECTIONS } from "../../fields/md-inspector-fields";
 
 export interface NodeInspectorProps {
-  selectedNode: MenuTreeNode | null;
-  formData: MenuTreeRecord;
+  selectedNode: MenuTreeNode;
   onUpdateNode: (id: string, patch: Partial<MenuTreeNode>) => void;
   onDeleteNode: (id: string) => void;
   onClose: () => void;
@@ -28,245 +19,98 @@ export interface NodeInspectorProps {
   className?: string;
 }
 
-interface InspectorFieldRowProps {
-  label: string;
-  tooltip?: string;
-  children: React.ReactNode;
-}
-
-function InspectorFieldRow({ label, tooltip, children }: InspectorFieldRowProps) {
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs select-none">
-        <Label className="text-[11px] font-medium text-muted-foreground flex items-center">
-          {label}
-        </Label>
-        {tooltip && (
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <span className="inline-flex items-center text-muted-foreground/60 hover:text-foreground cursor-help p-0.5 transition-colors">
-                  <Info className="size-3" />
-                </span>
-              }
-            />
-            <TooltipContent side="left" className="text-xs max-w-56 z-50">
-              {tooltip}
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export function NodeInspector({
   selectedNode,
-  formData,
   onUpdateNode,
   onDeleteNode,
   onClose,
   disabled = false,
   className,
 }: NodeInspectorProps) {
-  // If NO node is selected, show the Hierarchy Tree Container Properties!
-  if (!selectedNode) {
-    return <TreeContainerInspector formData={formData} className={className} />;
-  }
+  const isFolder = Boolean(
+    !selectedNode.command || (selectedNode.children && selectedNode.children.length > 0),
+  );
 
-  // A folder/group has no command or has children
-  const isFolder =
-    !selectedNode.command || (selectedNode.children && selectedNode.children.length > 0);
+  // Form values strictly verbatim from response
+  const formValues = React.useMemo<Record<string, unknown>>(() => {
+    return {
+      ...selectedNode,
+      isFolder,
+      command: selectedNode.command ?? "",
+      menuType: selectedNode.menuType ?? "",
+      label: selectedNode.label ?? "",
+      menuAction: selectedNode.menuAction ?? "",
+      isVisible: selectedNode.isVisible !== false,
+    };
+  }, [selectedNode, isFolder]);
+
+  const handleFieldChange = React.useCallback(
+    (fieldKey: string, val: unknown) => {
+      if (fieldKey === "label") {
+        onUpdateNode(selectedNode.id, { label: String(val) });
+      } else if (fieldKey === "menuAction") {
+        onUpdateNode(selectedNode.id, { menuAction: val as MenuAction });
+      } else if (fieldKey === "isVisible") {
+        onUpdateNode(selectedNode.id, { isVisible: Boolean(val) });
+      }
+    },
+    [selectedNode.id, onUpdateNode],
+  );
 
   return (
     <aside
-      aria-label="Tree Node Properties"
-      className={cn(
-        "w-68 shrink-0 border-l border-border/70 bg-card flex flex-col h-full overflow-hidden",
-        className,
-      )}
+      aria-label="Node Inspector"
+      className={cn("flex flex-col h-full select-none text-xs overflow-hidden bg-card", className)}
     >
-      {/* Compact Header */}
-      <header className="px-3 py-2 border-b border-border/70 flex items-center justify-between gap-2 shrink-0 bg-muted/20">
+      {/* 1. Header Bar: [←] Title + Badge + [X] */}
+      <div className="h-9 px-3 border-b border-border/60 bg-muted/25 flex items-center justify-between shrink-0 gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
-          {isFolder ? (
-            <Folder className="size-3.5 text-amber-500 fill-amber-500/10 shrink-0" />
-          ) : (
-            <Terminal className="size-3.5 text-primary shrink-0" />
-          )}
-          <div className="min-w-0">
-            <h3 className="text-xs font-semibold truncate leading-tight">
-              {isFolder ? "Folder Properties" : "Menu Item Properties"}
-            </h3>
-            <p className="text-[10px] text-muted-foreground font-mono truncate">
-              {selectedNode.id}
-            </p>
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          onClick={onClose}
-          className="size-5.5 text-muted-foreground hover:text-foreground shrink-0"
-          title="Deselect to Container Properties"
-        >
-          <X className="size-3.5" />
-        </Button>
-      </header>
-
-      {/* Compact Inspector Body */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs">
-        {/* Element Kind Pill */}
-        <div className="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-border/50 bg-muted/15">
-          <span className="text-[11px] text-muted-foreground font-medium">Kind:</span>
-          <div className="flex items-center gap-1.5">
-            <Badge
-              variant={isFolder ? "secondary" : "outline"}
-              className="text-[10px] font-mono h-4.5 px-1.5"
-            >
-              {isFolder ? "FOLDER GROUP" : `MENU #${selectedNode.menuId || "N/A"}`}
-            </Badge>
-            <span
-              title="Catalog Definition Linked"
-              className="inline-flex items-center text-muted-foreground/60"
-            >
-              <Lock className="size-2.5" />
-            </span>
-          </div>
-        </div>
-
-        {/* Target Command Code (Leaf Items Only) - FIXED / INHERITED */}
-        {!isFolder && (
-          <InspectorFieldRow
-            label="Target Command Code"
-            tooltip="Fixed by SC_MENU catalog definition. The execution target cannot be changed directly in the navigation tree."
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 -ml-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
+            title="Back / Close"
           >
-            <div className="relative">
-              <Input
-                id="node-cmd"
-                value={selectedNode.command || ""}
-                disabled
-                className="h-7.5 text-xs font-mono font-medium uppercase bg-muted/30 text-muted-foreground/80 cursor-not-allowed pr-6"
-                placeholder="N/A"
-              />
-              <Lock className="size-3 text-muted-foreground/50 absolute right-2 top-2.5 pointer-events-none" />
-            </div>
-          </InspectorFieldRow>
-        )}
-
-        {/* Menu Item Type - FIXED / INHERITED */}
-        <InspectorFieldRow
-          label="Functional Menu Type"
-          tooltip="Fixed by SC_MENU catalog definition: GROUP, INQUIRY, FORM, or REPORT."
-        >
-          <div className="relative">
-            <Input
-              id="node-menu-type"
-              value={isFolder ? "GROUP (Folder)" : selectedNode.menuType || "FORM"}
-              disabled
-              className="h-7.5 text-xs font-medium uppercase bg-muted/30 text-muted-foreground/80 cursor-not-allowed pr-6"
-            />
-            <Lock className="size-3 text-muted-foreground/50 absolute right-2 top-2.5 pointer-events-none" />
-          </div>
-        </InspectorFieldRow>
-
-        {/* Display Label - EDITABLE OVERRIDE */}
-        <InspectorFieldRow
-          label="Display Label"
-          tooltip="Contextual persona override. You can customize this label specifically for this menu tree layout."
-        >
-          <Input
-            id="node-label"
-            value={selectedNode.label}
-            disabled={disabled}
-            onChange={(e) => onUpdateNode(selectedNode.id, { label: e.target.value })}
-            className="h-7.5 text-xs font-medium"
-            placeholder="e.g. Account Maintenance"
-          />
-        </InspectorFieldRow>
-
-        {/* Target Window Action Mode (Leaf Items Only) - EDITABLE OVERRIDE */}
-        {!isFolder && (
-          <InspectorFieldRow
-            label="Display Window Action"
-            tooltip="Contextual window override: opens as an integrated Workspace Tab (SCREEN) or detached multi-monitor window (POPUP)."
-          >
-            <Select
-              value={selectedNode.menuAction || "SCREEN"}
-              disabled={disabled}
-              onValueChange={(val) => {
-                if (val === "SCREEN" || val === "POPUP") {
-                  onUpdateNode(selectedNode.id, { menuAction: val });
-                }
-              }}
-            >
-              <SelectTrigger id="node-menu-action" className="w-full h-7.5 text-xs">
-                <SelectValue placeholder="Select target mode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="SCREEN" className="text-xs">
-                  SCREEN (Tab)
-                </SelectItem>
-                <SelectItem value="POPUP" className="text-xs">
-                  POPUP (Detached)
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </InspectorFieldRow>
-        )}
-
-        {/* Visibility Switch - EDITABLE OVERRIDE */}
-        <div className="flex items-center justify-between px-2.5 py-1.5 rounded border border-border/60 bg-muted/5">
-          <Label
-            htmlFor="node-visible"
-            className="text-[11px] font-medium cursor-pointer flex items-center gap-1.5 text-foreground"
-          >
-            {selectedNode.isVisible !== false ? (
-              <Eye className="size-3.5 text-emerald-500" />
-            ) : (
-              <EyeOff className="size-3.5 text-muted-foreground" />
-            )}
-            Visible in Navigation
-          </Label>
-          <div className="flex items-center gap-1.5">
-            {isFolder && (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <span className="inline-flex items-center text-muted-foreground/60 hover:text-foreground cursor-help p-0.5">
-                      <Info className="size-3" />
-                    </span>
-                  }
-                />
-                <TooltipContent side="left" className="text-xs max-w-52 z-50">
-                  Toggling off hides this folder and all its nested sub-items.
-                </TooltipContent>
-              </Tooltip>
-            )}
-            <SwitchWidget
-              id="node-visible"
-              fieldKey="isVisible"
-              value={selectedNode.isVisible !== false}
-              disabled={disabled}
-              onChange={(checked) => onUpdateNode(selectedNode.id, { isVisible: Boolean(checked) })}
-            />
-          </div>
-        </div>
-
-        {/* Nesting Entitlement Hint */}
-        <div className="flex items-center justify-between text-[11px] px-2 py-1.5 rounded bg-muted/20 text-muted-foreground border border-border/40">
-          <span>Nesting:</span>
-          <span className="font-medium text-foreground/80">
-            {isFolder
-              ? `${selectedNode.children?.length || 0} child item(s)`
-              : "Leaf item (no children)"}
+            <ArrowLeft className="size-3.5" />
+          </button>
+          <span className="font-semibold text-xs text-foreground truncate">
+            {selectedNode.label || selectedNode.id}
           </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Badge
+            variant="outline"
+            className="text-[10px] font-mono h-4.5 px-1.5 shrink-0 uppercase"
+          >
+            {selectedNode.menuType || (isFolder ? "FOLDER" : "ITEM")}
+          </Badge>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 text-muted-foreground hover:text-foreground rounded hover:bg-muted/60 transition-colors cursor-pointer shrink-0"
+            title="Close Inspector"
+          >
+            <X className="size-3.5" />
+          </button>
         </div>
       </div>
 
-      {/* Footer Actions */}
+      {/* 2. Declarative FormRenderer Body (Ghost Container) */}
+      <div className="flex-1 overflow-y-auto p-3">
+        <FormRenderer
+          frmElements={{ sections: NODE_INSPECTOR_SECTIONS }}
+          values={formValues}
+          onChange={handleFieldChange}
+          disabled={disabled}
+          mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
+          hideHeader
+          layout="stacked"
+          className="overflow-visible"
+        />
+      </div>
+
+      {/* 3. Footer Delete Action */}
       {!disabled && (
         <footer className="p-2.5 border-t border-border/70 shrink-0 bg-muted/10">
           <Button

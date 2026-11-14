@@ -35,15 +35,15 @@ export const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
   z.object({
     id: z.string().min(1, "Item ID is required"),
     menuId: z.union([z.number(), z.string()]).optional(),
-    label: z.string().min(1, "Menu label is required"),
-    title: z.string().optional(),
+    label: z.string().trim().min(1, "Menu label is required"),
+    title: z.string().trim().optional(),
     command: z
       .string()
       .trim()
       .nullable()
       .optional()
-      .transform((val) => (val === null || val === "" ? undefined : val)),
-    componentName: z.string().optional(),
+      .transform((val) => (val === null ? undefined : val)),
+    componentName: z.string().trim().optional(),
     menuType: menuTypeSchema.optional(),
     menuAction: menuActionSchema.optional(),
     isVisible: z.boolean().default(true),
@@ -86,8 +86,9 @@ export interface MenuCatalogActionItem {
 /* ========================================================================== */
 
 export const menuTreeRecordSchema = z.object({
-  recordId: z.string().optional(),
-  treeDescription: z.string().min(1, "Tree Description is required"),
+  recordId: z.string().trim().optional(),
+  id: z.string().trim().optional(),
+  treeDescription: z.string().trim().min(1, "Tree Description is required"),
   isActive: z.boolean().optional(),
   menuTree: z.array(menuItemSchema).default([]),
   auditData: auditDataSchema.optional(),

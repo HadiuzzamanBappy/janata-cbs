@@ -19,15 +19,15 @@ import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-sch
 function getMenuTypeIcon(menuType?: string) {
   switch (menuType) {
     case "GROUP":
-      return <Folder className="size-3 text-muted-foreground/80 shrink-0" />;
+      return <Folder className="size-3.5 text-muted-foreground/80 shrink-0" />;
     case "INQUIRY":
-      return <Search className="size-3 text-muted-foreground/70 shrink-0" />;
+      return <Search className="size-3.5 text-muted-foreground/80 shrink-0" />;
     case "REPORT":
-      return <BarChart3 className="size-3 text-muted-foreground/70 shrink-0" />;
+      return <BarChart3 className="size-3.5 text-muted-foreground/80 shrink-0" />;
     case "FORM":
-      return <FileSpreadsheet className="size-3 text-muted-foreground/70 shrink-0" />;
+      return <FileSpreadsheet className="size-3.5 text-muted-foreground/80 shrink-0" />;
     default:
-      return <FileText className="size-3 text-muted-foreground/70 shrink-0" />;
+      return <FileText className="size-3.5 text-muted-foreground/80 shrink-0" />;
   }
 }
 
@@ -55,68 +55,73 @@ function DraggableCatalogCard({ item, isAdded, disabled, onAddItem }: DraggableC
       draggable={!isDragDisabled}
       onDragStart={handleDragStart}
       className={cn(
-        "group relative p-2 rounded-md border transition-all flex items-start justify-between gap-2 select-none",
+        "group relative px-2.5 py-1.5 rounded-md border transition-all select-none flex flex-col justify-center min-h-12",
         isAdded
-          ? "border-emerald-500/30 bg-emerald-500/5 opacity-80 cursor-default"
-          : "border-border/70 bg-card hover:border-primary/50 hover:bg-accent/40",
-        !isDragDisabled && "cursor-grab active:cursor-grabbing",
+          ? "border-primary/40 bg-primary/5 cursor-default"
+          : "border-border/70 bg-card hover:border-primary/50 hover:bg-accent/40 cursor-grab active:cursor-grabbing",
       )}
     >
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 flex-wrap">
+      {/* Row 1: Icon + Label (truncated) + Pin / Always-visible Add button */}
+      <div className="flex items-center justify-between gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
           {getMenuTypeIcon(item.menuType)}
-          <span
-            className={cn(
-              "text-xs font-medium truncate",
-              isAdded ? "text-emerald-700 dark:text-emerald-400 font-semibold" : "text-foreground",
-            )}
-          >
+          <span className="text-xs font-medium text-foreground truncate" title={item.label}>
             {item.label}
           </span>
+        </div>
+
+        <div className="flex items-center shrink-0">
+          {isAdded ? (
+            <div
+              title="Already added to menu hierarchy"
+              className="size-5 flex items-center justify-center shrink-0 text-primary"
+            >
+              <Pin className="size-3 fill-current rotate-45" />
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              disabled={disabled}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddItem(item);
+              }}
+              title="Add to Canvas Root"
+              className="size-5 rounded transition-all shrink-0 text-muted-foreground hover:bg-primary/10 hover:text-primary opacity-100 disabled:opacity-0 cursor-pointer"
+            >
+              <Plus className="size-3" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Row 2: Terminal Prompt + Command (truncated) + Type badge + Optional POPUP Badge */}
+      <div className="flex items-center justify-between gap-1.5 min-w-0 mt-0.5">
+        <div className="flex items-center gap-1 min-w-0 flex-1">
+          <Terminal className="size-2.5 text-muted-foreground/70 shrink-0" />
+          <span
+            className="text-[10px] font-mono text-muted-foreground truncate"
+            title={item.command || "No command"}
+          >
+            {item.command || "—"}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
           {item.menuType && (
-            <span className="text-[9px] px-1 py-0.5 rounded font-mono text-muted-foreground/80 bg-muted/50 border border-border/40 leading-none">
+            <span className="text-[9px] px-1 py-0.5 rounded font-mono text-muted-foreground bg-muted/60 border border-border/50 leading-none shrink-0 uppercase">
               {item.menuType}
             </span>
           )}
           {item.menuAction === "POPUP" && (
-            <span className="text-[9px] px-1 py-0.5 rounded font-mono text-indigo-500 bg-indigo-500/10 border border-indigo-500/20 leading-none">
+            <span className="text-[9px] px-1 py-0.5 rounded font-mono text-primary bg-primary/10 border border-primary/20 leading-none shrink-0">
               POPUP
             </span>
           )}
         </div>
-        {item.command && (
-          <div className="flex items-center gap-1 mt-0.5">
-            <Terminal className="size-2.5 text-muted-foreground" />
-            <span className="text-[10px] font-mono text-muted-foreground truncate">
-              {item.command}
-            </span>
-          </div>
-        )}
       </div>
-
-      {isAdded ? (
-        <div
-          title="Already added to menu hierarchy"
-          className="flex items-center justify-center h-6 w-6 rounded text-emerald-600 dark:text-emerald-400 shrink-0"
-        >
-          <Pin className="size-3.5 fill-current rotate-45" />
-        </div>
-      ) : (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          disabled={disabled}
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddItem(item);
-          }}
-          title="Add to Canvas Root"
-          className="h-6 w-6 rounded transition-all shrink-0 text-muted-foreground hover:bg-primary/10 hover:text-primary opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-0"
-        >
-          <Plus className="size-3.5" />
-        </Button>
-      )}
     </li>
   );
 }
@@ -176,9 +181,7 @@ export function MenuCatalogSidebar({
           </span>
           <div className="flex items-center gap-1.5 shrink-0 text-[10px] font-mono text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded border border-border/50">
             {addedCount > 0 && (
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                {addedCount} pinned
-              </span>
+              <span className="text-primary font-semibold">{addedCount} pinned</span>
             )}
             {addedCount > 0 && <span className="text-border">/</span>}
             <span>{filteredItems.length} total</span>

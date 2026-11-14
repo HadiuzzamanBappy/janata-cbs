@@ -16,14 +16,14 @@ import type { MenuItem } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
 import { hasActiveChild, isCommandMatch } from "../utils";
 
-export interface TreeItemProps {
+export interface CbsMenuTreeItemProps {
   node: MenuItem;
   level?: number;
   openSettingsTab?: (tabId: string) => void;
   clearSession?: () => void;
 }
 
-export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeItemProps) {
+export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenuTreeItemProps) {
   const { tabs, activeTabId } = useWorkbenchStore();
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
@@ -209,7 +209,7 @@ export function SidebarTreeItem({ node, openSettingsTab, clearSession }: TreeIte
           <div className="absolute left-0 top-0 bottom-1 w-px bg-border/40" />
 
           {node.children?.map((child) => (
-            <SidebarTreeItem
+            <CbsMenuTreeItem
               key={child.id}
               node={child}
               openSettingsTab={openSettingsTab}

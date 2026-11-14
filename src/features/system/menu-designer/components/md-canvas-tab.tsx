@@ -41,7 +41,7 @@ interface MdCanvasTabProps {
 
 export function MdCanvasTab({
   nodes,
-  formData,
+  formData: _formData,
   catalogItems,
   catalogLoading,
   collapsedNodeIds,
@@ -70,14 +70,22 @@ export function MdCanvasTab({
     onMoveNode,
   });
 
-  // When clicking any item on compact view, auto-open the right inspector drawer
-  const handleSelectNode = (id: string) => {
-    setSelectedNodeId(id);
-    if (isCompact && id) {
+  // When clicking any item, auto-open the off-canvas inspector drawer
+  const handleSelectNode = React.useCallback(
+    (id: string) => {
+      setSelectedNodeId(id);
       setIsInspectorOpen(true);
-      setIsCatalogOpen(false);
-    }
-  };
+      if (isCompact) {
+        setIsCatalogOpen(false);
+      }
+    },
+    [isCompact],
+  );
+
+  const handleCloseInspector = React.useCallback(() => {
+    setSelectedNodeId(null);
+    setIsInspectorOpen(false);
+  }, []);
 
   // Find currently selected node in tree
   const selectedNode = React.useMemo(() => {
@@ -145,17 +153,17 @@ export function MdCanvasTab({
         {/* Backdrop for Left Catalog Drawer on compact screens */}
         {isCompact && isCatalogOpen && (
           <div
-            className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
+            className="absolute inset-0 bg-black/40 z-30 transition-opacity"
             onClick={() => setIsCatalogOpen(false)}
             aria-hidden="true"
           />
         )}
 
-        {/* Backdrop for Right Inspector Drawer on compact screens */}
-        {isCompact && isInspectorOpen && (
+        {/* Backdrop for Off-Canvas Inspector on compact screens (no blur) */}
+        {isCompact && isInspectorOpen && selectedNode && (
           <div
-            className="absolute inset-0 bg-black/40 z-30 backdrop-blur-xs transition-opacity"
-            onClick={() => setIsInspectorOpen(false)}
+            className="absolute inset-0 bg-black/40 z-30 transition-opacity duration-200"
+            onClick={handleCloseInspector}
             aria-hidden="true"
           />
         )}
@@ -208,49 +216,34 @@ export function MdCanvasTab({
             onDropCatalogItem={onDropCatalogItem}
             isReadOnly={isReadOnly}
             showCatalogToggle={isCompact}
-            showInspectorToggle={isCompact}
+            showInspectorToggle={false}
             onToggleCatalog={() => {
               setIsCatalogOpen((prev) => !prev);
               setIsInspectorOpen(false);
             }}
-            onToggleInspector={() => {
-              setIsInspectorOpen((prev) => !prev);
-              setIsCatalogOpen(false);
-            }}
           />
         </div>
 
-        {/* 3. Right Pane: Property & Override Inspector */}
-        {isCompact ? (
-          <div
-            className={cn(
-              "absolute inset-y-0 right-0 z-40 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out bg-card",
-              isInspectorOpen ? "translate-x-0" : "translate-x-full pointer-events-none",
-            )}
-          >
+        {/* 3. Universal Off-Canvas Inspector Drawer (Mobile & Desktop) */}
+        <div
+          className={cn(
+            "absolute inset-y-0 right-0 z-40 w-full sm:w-80 md:w-88 shadow-2xl transition-transform duration-200 ease-in-out bg-card border-l border-border flex flex-col",
+            isInspectorOpen && selectedNode
+              ? "translate-x-0"
+              : "translate-x-full pointer-events-none",
+          )}
+        >
+          {selectedNode && (
             <NodeInspector
               selectedNode={selectedNode}
-              formData={formData}
               onUpdateNode={onUpdateNode}
               onDeleteNode={handleDeleteWithSelection}
-              onClose={() => {
-                setSelectedNodeId(null);
-                setIsInspectorOpen(false);
-              }}
+              onClose={handleCloseInspector}
               disabled={isReadOnly}
-              className="w-full h-full border-l border-border"
+              className="w-full h-full"
             />
-          </div>
-        ) : (
-          <NodeInspector
-            selectedNode={selectedNode}
-            formData={formData}
-            onUpdateNode={onUpdateNode}
-            onDeleteNode={handleDeleteWithSelection}
-            onClose={() => setSelectedNodeId(null)}
-            disabled={isReadOnly}
-          />
-        )}
+          )}
+        </div>
       </div>
     </DndContext>
   );

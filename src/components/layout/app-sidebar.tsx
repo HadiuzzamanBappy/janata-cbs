@@ -3,13 +3,9 @@
 import { Search } from "lucide-react";
 import * as React from "react";
 import { AppSearch } from "@/components/cbs-command";
+import { CbsMenuTree, useCbsMenu } from "@/components/cbs-menu";
 import { AppSettings } from "@/components/cbs-settings";
-import {
-  SidebarFooterNav,
-  SidebarHeaderNav,
-  SidebarMenuTree,
-  useSidebarMenu,
-} from "@/components/layout/sidebar";
+import { SidebarFooterNav, SidebarHeaderNav } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarRail } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -26,7 +22,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
 
   const { user, logout } = useSessionStore();
   const userLoading = !user;
-  const { treeNodes, loading } = useSidebarMenu();
+  const { treeNodes, loading } = useCbsMenu();
 
   useHotkeys("ctrl+k", () => setSearchOpen((prev) => !prev), {
     enableOnFormTags: true,
@@ -83,7 +79,7 @@ export function AppSidebar({ ...props }: AppSidebarProps) {
         </div>
 
         {/* Sidebar Content (Menu Tree) */}
-        <SidebarMenuTree
+        <CbsMenuTree
           treeNodes={treeNodes}
           loading={loading}
           openSettingsTab={openSettingsTab}

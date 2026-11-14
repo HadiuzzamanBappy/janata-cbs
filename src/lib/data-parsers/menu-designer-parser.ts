@@ -66,7 +66,7 @@ function normalizeNode(raw: RawMenuNode, idx: number, parentKey = "m"): MenuItem
     menuType,
     menuAction,
     isVisible: raw.isVisible !== false,
-    orderIndex: typeof raw.orderIndex === "number" ? raw.orderIndex : idx,
+    orderIndex: typeof raw.orderIndex === "number" ? raw.orderIndex : idx + 1,
     children,
   };
 }
@@ -127,7 +127,24 @@ export function parseMenuTreeRecord(
       ? (unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded))
       : decoded;
 
-  const res = menuTreeRecordSchema.safeParse(target);
+  if (!target || typeof target !== "object") {
+    return { success: false, error: "Menu tree payload is empty or invalid" };
+  }
+
+  const rawObj = target as Record<string, unknown>;
+  const recordId =
+    typeof rawObj.recordId === "string" && rawObj.recordId.trim()
+      ? rawObj.recordId.trim().toUpperCase()
+      : typeof rawObj.id === "string" && rawObj.id.trim()
+        ? rawObj.id.trim().toUpperCase()
+        : undefined;
+
+  const normalized = {
+    ...rawObj,
+    recordId,
+  };
+
+  const res = menuTreeRecordSchema.safeParse(normalized);
   return res.success
     ? { success: true, data: res.data }
     : { success: false, error: `MenuTree validation failed: ${res.error.message}` };
@@ -159,40 +176,46 @@ export function parseMenuTreeList(
  * - Recursively purges empty/transient UI properties from children
  */
 export function sanitizeMenuTreeNode(node: MenuItem, idx: number): MenuItem {
-  const label = (node.label ?? node.title ?? `node-${idx}`).trim();
-  const rawCmd = node.command ? node.command.trim() : "";
+  const label = (node.label ?? node.title ?? `node-${idx + 1}`).trim();
   const children = Array.isArray(node.children)
     ? node.children
         .filter((child): child is MenuItem => Boolean(child) && typeof child === "object")
         .map((child, childIdx) => sanitizeMenuTreeNode(child, childIdx))
     : [];
 
-  const inferredType: MenuType =
-    children.length > 0 ? "GROUP" : rawCmd.toUpperCase().startsWith("INQ") ? "INQUIRY" : "FORM";
-  const menuType = node.menuType ?? inferredType;
+  const isFolder = children.length > 0;
+  const rawCmd = typeof node.command === "string" ? node.command.trim() : "";
+  const command = isFolder ? rawCmd || "" : rawCmd || undefined;
+
+  const inferredType: MenuType | undefined = isFolder
+    ? (node.menuType ?? undefined)
+    : (node.menuType ?? (rawCmd.toUpperCase().startsWith("INQ") ? "INQUIRY" : "FORM"));
+
+  const menuAction = isFolder ? undefined : node.menuAction === "POPUP" ? "POPUP" : "SCREEN";
 
   return {
-    id: String(node.id || `node-${idx}`),
+    id: String(node.id || `node-${idx + 1}`),
     menuId: node.menuId,
     label,
-    title: node.title?.trim() || label,
-    command: rawCmd || undefined,
-    componentName: node.componentName?.trim() || (rawCmd ? rawCmd.replace(/\./g, "_") : undefined),
-    menuType,
-    menuAction: node.menuAction === "POPUP" ? "POPUP" : "SCREEN",
+    title: node.title?.trim() || undefined,
+    command,
+    componentName: node.componentName?.trim() || undefined,
+    menuType: node.menuType ?? inferredType,
+    menuAction,
     isVisible: node.isVisible !== false,
-    orderIndex: idx,
+    orderIndex: idx + 1,
     children,
   };
 }
 
 /**
  * Sanitizes internal MenuTreeRecord for database storage or wire transmission.
- * Ensures consistent trimmed strings, sequential node order, and schema conformity.
+ * Ensures consistent trimmed strings, sequential 1-based node order, and schema conformity.
  */
 export function sanitizeMenuTreeRecord(record: MenuTreeRecord): MenuTreeRecord {
+  const recordId = (record.recordId || (record as { id?: string }).id)?.trim().toUpperCase();
   const sanitized: MenuTreeRecord = {
-    recordId: record.recordId ? record.recordId.trim().toUpperCase() : undefined,
+    recordId: recordId || undefined,
     treeDescription: (record.treeDescription ?? "").trim(),
     isActive: record.isActive !== false,
     menuTree: Array.isArray(record.menuTree)

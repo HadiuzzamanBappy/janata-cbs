@@ -5,7 +5,7 @@
  * @module features/system/form-config/components/designer/palette/palette-variable-item
  */
 
-import { Plus } from "lucide-react";
+import { Pin, Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { modelPropToFormElement } from "@/lib/cbs-form-spec";
@@ -62,10 +62,10 @@ export function PaletteVariableItem({
       className={cn(
         "w-full h-7 flex items-center justify-between px-2 rounded border text-[11px] transition-all text-left",
         isSelected
-          ? "bg-primary/10 border-primary ring-1 ring-primary/40 text-primary font-semibold shadow-2xs cursor-pointer"
+          ? "border-primary bg-primary/10 ring-1 ring-primary/40 font-semibold shadow-2xs cursor-pointer"
           : isPlaced
-            ? "bg-muted/15 border-border text-muted-foreground hover:bg-muted/30 cursor-pointer"
-            : "bg-background/80 border-border/70 text-foreground hover:border-primary/50 hover:bg-accent/40 shadow-2xs cursor-grab active:cursor-grabbing",
+            ? "border-primary/40 bg-primary/5 hover:bg-primary/10 cursor-pointer"
+            : "bg-background/80 border-border/70 hover:border-primary/50 hover:bg-accent/40 shadow-2xs cursor-grab active:cursor-grabbing",
       )}
       title={
         isPlaced
@@ -75,14 +75,14 @@ export function PaletteVariableItem({
     >
       <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 font-mono">
         {isSelected ? (
-          <span className="size-1.5 rounded-full bg-primary ring-2 ring-primary/30 shrink-0" />
+          <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
         ) : isPlaced ? (
-          <span className="size-1.5 rounded-full bg-primary/70 shrink-0" />
+          <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
         ) : (
-          <Plus className="size-3 text-primary shrink-0" />
+          <Plus className="size-3 text-muted-foreground shrink-0" />
         )}
         <span className="text-[10px] text-muted-foreground shrink-0">#{property.SN}</span>
-        <span className="truncate text-[11px] font-medium">{property.NAME}</span>
+        <span className="truncate text-[11px] font-medium text-foreground">{property.NAME}</span>
         {isRequired && <span className="text-destructive font-bold text-xs shrink-0">*</span>}
       </div>
 
@@ -103,8 +103,8 @@ export function PaletteVariableItem({
             isSelected
               ? "text-primary border-primary/50 bg-primary/10 font-bold"
               : isPlaced
-                ? "text-muted-foreground border-border bg-muted/20 font-semibold"
-                : "",
+                ? "text-muted-foreground border-border/70 bg-muted/30 font-semibold"
+                : "text-muted-foreground border-border bg-muted/20",
           )}
         >
           {property.TYPE}

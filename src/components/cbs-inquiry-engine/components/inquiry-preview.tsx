@@ -8,7 +8,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { type FilterCriteriaMap, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
 import { parseInquiryRecords } from "@/lib/data-parsers";
-import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
 import { InquiryTable } from "./inquiry-table";
 

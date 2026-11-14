@@ -3,13 +3,26 @@
 import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { deriveInquiryColumnMeta } from "@/lib/cbs-inquiry-spec";
-import type { EnquiryRow, INQCmd, INQDef } from "@/lib/data-schemas/inquiry-config-schema";
+import type { EnquiryRow, INQCmd, INQDef } from "@/lib/data-schemas";
 import { useInquiryPagination } from "../hooks/use-inquiry-pagination";
 import { useInquirySort } from "../hooks/use-inquiry-sort";
-import { InquiryEmptyState } from "./table/inquiry-empty-state";
 import { InquiryPagination } from "./table/inquiry-pagination";
 import { InquiryTableBody } from "./table/inquiry-table-body";
 import { InquiryTableHeader } from "./table/inquiry-table-header";
+
+export interface InquiryEmptyStateProps {
+  message?: string;
+}
+
+export function InquiryEmptyState({
+  message = "No matching records found.",
+}: InquiryEmptyStateProps) {
+  return (
+    <div className="flex-1 min-h-50 flex flex-col items-center justify-center p-6 text-center bg-muted/10">
+      <p className="text-xs text-muted-foreground font-mono">{message}</p>
+    </div>
+  );
+}
 
 export interface InquiryTableProps {
   columns: INQDef[];

@@ -3,7 +3,7 @@
 import { Eye, Pencil, Play, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { executeInquiryCommand, resolveCommandTemplate } from "@/lib/cbs-inquiry-spec";
-import type { EnquiryRow, INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
+import type { EnquiryRow, INQCmd } from "@/lib/data-schemas";
 
 export interface InquiryRowActionsProps {
   commands: INQCmd[];

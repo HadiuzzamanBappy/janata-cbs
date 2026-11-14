@@ -9,9 +9,9 @@
 
 import { PanelLeft } from "lucide-react";
 import * as React from "react";
+import { FormRenderer } from "@/components/cbs-form-engine";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FormRenderer } from "@/features/form-engine";
 import type { ModelProperty } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields/mc-property-fields";

@@ -56,6 +56,8 @@
             "paths": {
               "@/features/auth/components": "Import from '@/features/auth' public barrel instead.",
               "@/components/cbs-command/components": "Import from '@/components/cbs-command' public barrel instead.",
+              "@/components/cbs-form-engine/components": "Import from '@/components/cbs-form-engine' public barrel instead.",
+              "@/components/cbs-inquiry-engine/components": "Import from '@/components/cbs-inquiry-engine' public barrel instead.",
               "@/features/docs/components": "Import from '@/features/docs' public barrel instead.",
               "@/features/operations/components": "Import from '@/features/operations' public barrel instead.",
               "@/components/cbs-settings/components": "Import from '@/components/cbs-settings' public barrel instead.",

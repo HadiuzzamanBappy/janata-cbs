@@ -1,6 +1,7 @@
 "use client";
 
 import { Eye, EyeOff, Folder, Info, Lock, Terminal, Trash2, X } from "lucide-react";
+import { SwitchWidget } from "@/components/cbs-form-engine";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { SwitchWidget } from "@/features/form-engine/components/widgets/switch-widget";
 import { cn } from "@/lib/core-utils";
 import type { MenuTreeNode, MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 import { TreeContainerInspector } from "./tree-container-inspector";

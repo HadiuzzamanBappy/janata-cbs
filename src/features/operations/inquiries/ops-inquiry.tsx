@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { InquiryFilterBar, InquiryTable } from "@/components/cbs-inquiry-engine";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { InquiryFilterBar, InquiryTable } from "@/features/inquiry-engine";
 import { cbs } from "@/lib/cbs-client";
 import {
   buildDefaultCriteria,

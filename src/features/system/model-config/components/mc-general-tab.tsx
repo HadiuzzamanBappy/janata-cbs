@@ -8,7 +8,7 @@
 "use client";
 
 import * as React from "react";
-import { FormRenderer } from "@/features/form-engine";
+import { FormRenderer } from "@/components/cbs-form-engine";
 import type { ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { MODEL_CONFIG_SECTIONS } from "../fields/mc-general-fields";

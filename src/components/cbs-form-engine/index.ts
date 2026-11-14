@@ -17,6 +17,7 @@ export * from "./components/fields/object-field";
 export * from "./components/form-layout-context";
 export * from "./components/form-preview";
 export * from "./components/form-renderer";
+export * from "./components/widgets/switch-widget";
 export * from "./components/widgets/widget-renderer";
 export * from "./hooks/use-field-options";
 export * from "./hooks/use-model-lookup";

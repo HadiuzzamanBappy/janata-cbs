@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { FormRenderer } from "@/components/cbs-form-engine";
 import { Button } from "@/components/ui/button";
-import { FormRenderer } from "@/features/form-engine/components/form-renderer";
 import type { INQCmd } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { ACTION_INSPECTOR_SECTIONS } from "../../fields/ic-action-fields";

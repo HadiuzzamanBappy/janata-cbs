@@ -1,12 +1,11 @@
-// Components - Roots
-
 // Headless Specification, Compilation & Domain Algorithms
 export * from "@/lib/cbs-inquiry-spec";
-// Components - Subcomponents
+// Subcomponents - Filters
 export {
   FilterCriterionRow,
   type FilterCriterionRowProps,
 } from "./components/filters/filter-criterion-row";
+// Main Root Components
 export {
   InquiryFilterBar,
   type InquiryFilterBarProps,
@@ -16,34 +15,32 @@ export {
   type InquiryPreviewProps,
 } from "./components/inquiry-preview";
 export {
+  InquiryRowActions,
+  type InquiryRowActionsProps,
+} from "./components/inquiry-row-actions";
+export {
+  InquiryEmptyState,
+  type InquiryEmptyStateProps,
   InquiryTable,
   type InquiryTableProps,
 } from "./components/inquiry-table";
+
+// Subcomponents - Table
 export {
   CellFormatter,
   type CellFormatterProps,
 } from "./components/table/cell-formatter";
 export {
-  ColumnHeader,
-  type ColumnHeaderProps,
-} from "./components/table/column-header";
-export {
-  InquiryEmptyState,
-  type InquiryEmptyStateProps,
-} from "./components/table/inquiry-empty-state";
-export {
   InquiryPagination,
   type InquiryPaginationProps,
 } from "./components/table/inquiry-pagination";
-export {
-  InquiryRowActions,
-  type InquiryRowActionsProps,
-} from "./components/table/inquiry-row-actions";
 export {
   InquiryTableBody,
   type InquiryTableBodyProps,
 } from "./components/table/inquiry-table-body";
 export {
+  ColumnHeader,
+  type ColumnHeaderProps,
   InquiryTableHeader,
   type InquiryTableHeaderProps,
 } from "./components/table/inquiry-table-header";

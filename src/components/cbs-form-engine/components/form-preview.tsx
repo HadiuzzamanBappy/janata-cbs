@@ -11,11 +11,11 @@
 import { Layout } from "lucide-react";
 import * as React from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
-import { FormRenderer } from "@/features/form-engine";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { FormRenderer } from "./form-renderer";
 
 export interface FormPreviewProps {
   frmElements?: FormConfigRecord["frmElements"];

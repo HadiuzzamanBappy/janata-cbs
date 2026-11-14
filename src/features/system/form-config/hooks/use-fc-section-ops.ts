@@ -10,6 +10,7 @@
 import * as React from "react";
 import { generateClientToken } from "@/lib/core-utils";
 import type {
+  ContainerConfig,
   FormConfigRecord,
   FormContainerType,
   FormElement,
@@ -35,6 +36,7 @@ export function useFcSectionOps(
       groupTitle?: string,
       insertIndex?: number,
       columns?: number,
+      containerConfig?: ContainerConfig,
     ) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
@@ -57,6 +59,7 @@ export function useFcSectionOps(
           columns: columns ?? 1,
           collapsible: false,
           isCollapsed: false,
+          containerConfig,
           fields: initialFields,
         };
 
@@ -114,12 +117,25 @@ export function useFcSectionOps(
             return { ...sec, ...patch };
           }
           if (
-            patch.groupId &&
             targetSec?.containerType === "tab" &&
             sec.containerType === "tab" &&
+            sec.groupId &&
             sec.groupId === targetSec.groupId
           ) {
-            return { ...sec, groupId: patch.groupId };
+            if (patch.groupId) {
+              return { ...sec, groupId: patch.groupId };
+            }
+            if (patch.containerConfig) {
+              return {
+                ...sec,
+                containerConfig: {
+                  ...sec.containerConfig,
+                  tabVariant: patch.containerConfig.tabVariant ?? sec.containerConfig?.tabVariant,
+                  heightMode: patch.containerConfig.heightMode ?? sec.containerConfig?.heightMode,
+                  minHeight: patch.containerConfig.minHeight ?? sec.containerConfig?.minHeight,
+                },
+              };
+            }
           }
           return sec;
         });
@@ -179,10 +195,49 @@ export function useFcSectionOps(
     [setFormData, setSelectedSectionId, setSelectedFieldId],
   );
 
+  const ungroupSection = React.useCallback(
+    (id: string) => {
+      setFormData((prev) => {
+        const sections = prev.frmElements?.sections || [];
+        const secIndex = sections.findIndex((s) => s.id === id);
+        if (secIndex === -1) return prev;
+
+        const secToUngroup = sections[secIndex];
+        const fields = secToUngroup?.fields || [];
+
+        // If card has fields, unpack each field into an untitled standalone section
+        const standaloneSections: FormSection[] = fields.map((f) => ({
+          id: generateClientToken("sec_field"),
+          title: "",
+          containerType: "card" as const,
+          columns: 1,
+          collapsible: false,
+          isCollapsed: false,
+          fields: [f],
+        }));
+
+        const updatedSections = [...sections];
+        updatedSections.splice(secIndex, 1, ...standaloneSections);
+
+        return {
+          ...prev,
+          frmElements: {
+            sections: updatedSections,
+          },
+        };
+      });
+
+      setSelectedSectionId(null);
+      setSelectedFieldId(null);
+    },
+    [setFormData, setSelectedSectionId, setSelectedFieldId],
+  );
+
   return {
     addSection,
     updateSection,
     removeSection,
+    ungroupSection,
     reorderSections: reorder.reorderSections,
     convertSectionZone: zones.convertSectionZone,
     mergeTabGroups: zones.mergeTabGroups,

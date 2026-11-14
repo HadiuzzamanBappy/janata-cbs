@@ -75,7 +75,7 @@ Janata CBS dynamic forms support **14 presentation widgets** strictly aligned wi
 ## Core Invariants
 
 1. **Zero Template Loss During Drag-and-Drop**:
-   Palette drop dispatchers (`palette-drop-dispatcher.ts`) and field manipulation hooks (`use-fc-field-ops.ts`) strictly spread `...template` and `...fieldTemplate`, preventing loss of contextual widget configs, rules, or transforms when adding fields.
+   Palette drop dispatchers (`canvas-drop-dispatcher.ts`) and field manipulation hooks (`use-fc-field-ops.ts`) strictly spread `...template` and `...fieldTemplate`, preventing loss of contextual widget configs, rules, or transforms when adding fields.
 2. **Strict Zod Domain Boundary**:
    Form definitions validate against `formConfigRecordSchema` before committing state or dispatching save operations via `cbs.formConfig.put(...)`.
 3. **Public Barrel Architecture**:

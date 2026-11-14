@@ -7,37 +7,25 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
-import type { AddSectionFn } from "../../canvas-types";
+import { useDesignerContext } from "../../context/designer-context";
+import { useGlobalDragReset } from "../canvas-chrome";
+import type { AddSectionFn } from "../canvas-types";
 import { TabStripItem } from "./tab-strip-item";
 
 export interface TabGroupHeaderProps {
   groupId: string;
   tabSections: FormSection[];
   activeTabId: string;
-  selectedSectionId: string | null;
+  selectedSectionId?: string | null;
   disabled?: boolean;
   isCanvasDragging?: boolean;
   dropZone: "header" | "body" | null;
   attributes: DraggableAttributes;
   listeners: SyntheticListenerMap | undefined;
-  onSelectSection: (id: string | null) => void;
-  onSelectField: (sectionId: string | null, fieldId: string | null) => void;
+  onSelectSection?: (id: string | null) => void;
+  onSelectField?: (sectionId: string | null, fieldId: string | null) => void;
   onAddSection?: AddSectionFn;
-  onRemoveSection: (id: string) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
-  ) => void;
-  onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
-  onMoveFieldAcrossSections?: (
-    sourceSecId: string,
-    targetSecId: string,
-    fieldId: string,
-    targetFieldId?: string,
-    insertAtIndex?: number,
-  ) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
+  onRemoveSection?: (id: string) => void;
   onHeaderDragOver: (e: React.DragEvent) => void;
   onHeaderDragLeave: (e: React.DragEvent) => void;
   onHeaderDrop: (e: React.DragEvent) => void;
@@ -45,30 +33,30 @@ export interface TabGroupHeaderProps {
   setDropZone: (zone: "header" | "body" | null) => void;
 }
 
-export function TabGroupHeader({
-  groupId,
-  tabSections,
-  activeTabId,
-  selectedSectionId,
-  disabled,
-  isCanvasDragging,
-  dropZone,
-  attributes,
-  listeners,
-  onSelectSection,
-  onSelectField,
-  onAddSection,
-  onRemoveSection,
-  onConvertSectionZone,
-  onReorderSections,
-  onMoveFieldAcrossSections,
-  onDropPaletteItem,
-  onHeaderDragOver,
-  onHeaderDragLeave,
-  onHeaderDrop,
-  setActiveTabIdState,
-  setDropZone,
-}: TabGroupHeaderProps) {
+export function TabGroupHeader(props: TabGroupHeaderProps) {
+  const context = useDesignerContext();
+  const {
+    groupId,
+    tabSections,
+    activeTabId,
+    dropZone,
+    attributes,
+    listeners,
+    isCanvasDragging,
+    onHeaderDragOver,
+    onHeaderDragLeave,
+    onHeaderDrop,
+    setActiveTabIdState,
+    setDropZone,
+  } = props;
+
+  const selectedSectionId =
+    props.selectedSectionId !== undefined ? props.selectedSectionId : context.selectedSectionId;
+  const onSelectSection = props.onSelectSection ?? context.handleCanvasSelectSection;
+  const onSelectField = props.onSelectField ?? context.handleCanvasSelectField;
+  const onAddSection = props.onAddSection ?? context.onAddSection;
+  const onRemoveSection = props.onRemoveSection ?? context.onRemoveSection;
+  const disabled = props.disabled ?? context.disabled;
   const isHoveringHeader = dropZone === "header" && isCanvasDragging;
   const [tabDragOverId, setTabDragOverId] = React.useState<string | null>(null);
   const tabHoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -90,22 +78,13 @@ export function TabGroupHeader({
     }
   };
 
-  React.useEffect(() => {
-    const handleDragReset = () => {
+  useGlobalDragReset(
+    React.useCallback(() => {
       setDropZone(null);
       setTabDragOverId(null);
       if (tabHoverTimerRef.current) clearTimeout(tabHoverTimerRef.current);
-    };
-
-    window.addEventListener("dragend", handleDragReset);
-    window.addEventListener("drop", handleDragReset);
-
-    return () => {
-      window.removeEventListener("dragend", handleDragReset);
-      window.removeEventListener("drop", handleDragReset);
-      if (tabHoverTimerRef.current) clearTimeout(tabHoverTimerRef.current);
-    };
-  }, [setDropZone]);
+    }, [setDropZone]),
+  );
 
   React.useEffect(() => {
     if (!isCanvasDragging) {
@@ -125,6 +104,7 @@ export function TabGroupHeader({
   return (
     <nav
       aria-label="Tab navigation strip"
+      data-tab-header="true"
       onDragOver={onHeaderDragOver}
       onDragLeave={onHeaderDragLeave}
       onDrop={onHeaderDrop}
@@ -133,7 +113,7 @@ export function TabGroupHeader({
         isHoveringHeader && "bg-sky-500/15 ring-2 ring-inset ring-sky-500/70 border-sky-500",
       )}
     >
-      <div className="flex items-end gap-1.5 overflow-x-auto min-w-0 flex-1 h-full">
+      <div className="flex items-end gap-1.5 min-w-0 flex-1 h-full">
         {!disabled && (
           <button
             type="button"
@@ -183,10 +163,6 @@ export function TabGroupHeader({
                   onSelectField(null, null);
                 }}
                 onRemove={() => onRemoveSection(tab.id)}
-                onReorderSections={onReorderSections}
-                onConvertSectionZone={onConvertSectionZone}
-                onMoveFieldAcrossSections={onMoveFieldAcrossSections}
-                onDropPaletteItem={onDropPaletteItem}
                 onDragOverTab={(tabId) => {
                   if (tabDragOverId !== tabId) {
                     setTabDragOverId(tabId);
@@ -223,19 +199,17 @@ export function TabGroupHeader({
 
       {!disabled && (
         <div className="flex items-center gap-0.5 shrink-0 self-center">
-          {onAddSection && (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={handleAddTab}
-              className="h-7 w-7 p-0 text-sky-600 dark:text-sky-400 hover:text-sky-500 hover:bg-sky-500/10 cursor-pointer shrink-0"
-              title="Add a new tab"
-              aria-label="Add a new tab to this tab group"
-            >
-              <Plus className="size-3.5" />
-            </Button>
-          )}
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={handleAddTab}
+            className="h-7 w-7 p-0 text-sky-600 dark:text-sky-400 hover:text-sky-500 hover:bg-sky-500/10 cursor-pointer shrink-0"
+            title="Add a new tab"
+            aria-label="Add a new tab to this tab group"
+          >
+            <Plus className="size-3.5" />
+          </Button>
 
           <Button
             size="sm"

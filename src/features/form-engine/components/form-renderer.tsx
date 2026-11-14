@@ -18,6 +18,7 @@ import {
   setFieldValue,
   validateValues,
 } from "@/lib/cbs-form-spec";
+import { cn } from "@/lib/core-utils";
 import type { AuditData } from "@/lib/data-schemas";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import { CbsRecordFunction } from "@/types";
@@ -49,8 +50,15 @@ export function FormRenderer({
   auditVariant = "inline",
   hideHeader = false,
   layout = "horizontal",
+  density = "compact",
+  className,
 }: FormRendererProps) {
-  const layoutValue = React.useMemo(() => ({ layout }), [layout]);
+  const effectiveLayout = frmElements?.layout || layout || "horizontal";
+  const effectiveDensity = frmElements?.density || density || "compact";
+  const layoutValue = React.useMemo(
+    () => ({ layout: effectiveLayout, density: effectiveDensity }),
+    [effectiveLayout, effectiveDensity],
+  );
   const sections = frmElements?.sections || [];
 
   // Active item tracking for multi-pane containers
@@ -135,7 +143,7 @@ export function FormRenderer({
 
   return (
     <FormLayoutContext.Provider value={layoutValue}>
-      <div className="h-full w-full overflow-y-auto pr-1">
+      <div className={cn("h-full w-full", className ? className : "overflow-y-auto pr-1")}>
         <div className="w-full space-y-2">
           {blocks.map((block) => {
             if (block.type === "single") {

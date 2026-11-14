@@ -5,7 +5,8 @@ import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
-import { type DragPayload, isContainerPayload } from "./tab-group-types";
+import { useDesignerContext } from "../../context/designer-context";
+import { type DragPayload, isContainerPayload } from "./use-tab-group-drop";
 
 export interface TabStripItemProps {
   tab: FormSection;
@@ -18,44 +19,33 @@ export interface TabStripItemProps {
   disabled?: boolean;
   onSelect: () => void;
   onRemove: () => void;
-  onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
-  ) => void;
-  onMoveFieldAcrossSections?: (
-    sourceSecId: string,
-    targetSecId: string,
-    fieldId: string,
-    targetFieldId?: string,
-    insertAtIndex?: number,
-  ) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
   onDragOverTab: (tabId: string) => void;
   onDragLeaveTab: (tabId: string) => void;
   onDropOnTab: () => void;
 }
 
-export function TabStripItem({
-  tab,
-  index,
-  totalTabs,
-  isActive,
-  isSelected,
-  isOverThisTab,
-  groupId,
-  disabled,
-  onSelect,
-  onRemove,
-  onReorderSections,
-  onConvertSectionZone,
-  onMoveFieldAcrossSections,
-  onDropPaletteItem,
-  onDragOverTab,
-  onDragLeaveTab,
-  onDropOnTab,
-}: TabStripItemProps) {
+export function TabStripItem(props: TabStripItemProps) {
+  const context = useDesignerContext();
+  const {
+    tab,
+    index,
+    totalTabs,
+    isActive,
+    isSelected,
+    isOverThisTab,
+    groupId,
+    onSelect,
+    onRemove,
+    onDragOverTab,
+    onDragLeaveTab,
+    onDropOnTab,
+  } = props;
+
+  const disabled = props.disabled ?? context.disabled;
+  const onReorderSections = context.onReorderSections;
+  const onConvertSectionZone = context.onConvertSectionZone;
+  const onMoveFieldAcrossSections = context.onMoveFieldAcrossSections;
+  const onDropPaletteItem = context.handleDropPaletteItem;
   const universalTabNumber = index + 1;
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -77,7 +67,6 @@ export function TabStripItem({
   const handleDragOver = (e: React.DragEvent) => {
     if (disabled) return;
     e.preventDefault();
-    e.stopPropagation();
     onDragOverTab(tab.id);
   };
 
@@ -182,9 +171,9 @@ export function TabStripItem({
         }
       }}
       className={cn(
-        "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-9 px-0",
+        "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-8 px-0",
         isActive
-          ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-sky-500 after:rounded-t-sm"
+          ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-sky-500 after:rounded-t-sm -mb-px"
           : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t-sm border border-transparent",
         isSelected && !isActive && "ring-1 ring-sky-500/50 text-foreground",
         isOverThisTab && "ring-2 ring-sky-500 border-sky-500 bg-sky-500/20 scale-102",
@@ -206,6 +195,22 @@ export function TabStripItem({
             {universalTabNumber}
           </Badge>
           <span>{tab.groupTitle || tab.title || "Tab"}</span>
+          {tab.containerConfig?.badge && (
+            <span
+              className={cn(
+                "inline-flex items-center px-1.5 py-0.2 text-[9px] font-mono rounded",
+                tab.containerConfig.badgeVariant === "destructive"
+                  ? "bg-destructive/10 text-destructive"
+                  : tab.containerConfig.badgeVariant === "outline"
+                    ? "border border-border text-foreground"
+                    : tab.containerConfig.badgeVariant === "secondary"
+                      ? "bg-secondary text-secondary-foreground"
+                      : "bg-muted text-muted-foreground",
+              )}
+            >
+              {tab.containerConfig.badge}
+            </span>
+          )}
         </span>
       </div>
 

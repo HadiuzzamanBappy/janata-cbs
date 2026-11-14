@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 
-export interface DesignerFieldCardProps {
+export interface CanvasFieldCardProps {
   field: FormElement;
   sectionId: string;
   isSelected: boolean;
@@ -19,7 +19,9 @@ export interface DesignerFieldCardProps {
   disabled?: boolean;
 }
 
-export function DesignerFieldCard({
+export type DesignerFieldCardProps = CanvasFieldCardProps;
+
+export function CanvasFieldCard({
   field,
   sectionId,
   isSelected,
@@ -27,7 +29,7 @@ export function DesignerFieldCard({
   onRemove,
   className,
   disabled,
-}: DesignerFieldCardProps) {
+}: CanvasFieldCardProps) {
   const fieldId = String(field.SN || field.NAME || "field");
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -51,6 +53,7 @@ export function DesignerFieldCard({
     <div
       ref={setNodeRef}
       style={style}
+      data-field-card="true"
       onClick={(e) => {
         e.stopPropagation();
         onSelect();
@@ -84,25 +87,30 @@ export function DesignerFieldCard({
           }}
           className="min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
         >
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 min-w-0">
             <span className="font-semibold text-foreground truncate">{field.LABEL}</span>
-            {field.REQUIRED && <span className="text-destructive font-bold text-xs">*</span>}
+            {field.REQUIRED && (
+              <span className="text-destructive font-bold text-xs shrink-0">*</span>
+            )}
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground font-mono">
-            <span>{field.NAME}</span>
-            <span>&bull;</span>
-            <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase">
+          <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground font-mono min-w-0 overflow-hidden">
+            <span className="truncate max-w-[120px]">{field.NAME}</span>
+            <span className="shrink-0">&bull;</span>
+            <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase shrink-0">
               {field.TYPE}
             </Badge>
             {field.WIDTH && (
-              <Badge variant="secondary" className="text-[8px] h-3.5 px-1 font-mono uppercase">
+              <Badge
+                variant="secondary"
+                className="text-[8px] h-3.5 px-1 font-mono uppercase shrink-0"
+              >
                 {String(field.WIDTH)}
               </Badge>
             )}
             {field.STRUCTURE === "M" && (
               <Badge
                 variant="outline"
-                className="text-[8px] h-3.5 px-1 text-sky-500 border-sky-500/40 bg-sky-500/5 font-mono"
+                className="text-[8px] h-3.5 px-1 text-sky-500 border-sky-500/40 bg-sky-500/5 font-mono shrink-0"
               >
                 MULTI
               </Badge>
@@ -110,7 +118,7 @@ export function DesignerFieldCard({
             {field.DISABLED && (
               <Badge
                 variant="outline"
-                className="text-[8px] h-3.5 px-1 text-muted-foreground border-border bg-muted/40 font-mono"
+                className="text-[8px] h-3.5 px-1 text-muted-foreground border-border bg-muted/40 font-mono shrink-0"
               >
                 DISABLED
               </Badge>
@@ -137,3 +145,5 @@ export function DesignerFieldCard({
     </div>
   );
 }
+
+export { CanvasFieldCard as DesignerFieldCard };

@@ -19,13 +19,22 @@ export function useFcFieldOps(
   const movement = useFcFieldMovement(setFormData, setSelectedFieldId, setSelectedSectionId);
 
   const addFieldToSection = React.useCallback(
-    (sectionId: string, fieldTemplate?: Partial<FormElement>) => {
+    (sectionId: string, fieldTemplate?: Partial<FormElement>, insertIndex?: number) => {
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const targetSection = sections.find((s) => s.id === sectionId);
-        const existingCount = (targetSection?.fields?.length || 0) + 1;
+        const existingFields = targetSection?.fields || [];
+        const existingCount = existingFields.length + 1;
+        const usedSns = new Set(existingFields.map((f) => String(f.SN)));
 
-        const fieldSn = fieldTemplate?.SN || String(existingCount);
+        let fieldSn = fieldTemplate?.SN || String(existingCount);
+        if (usedSns.has(fieldSn)) {
+          let candidate = existingCount;
+          while (usedSns.has(String(candidate))) {
+            candidate++;
+          }
+          fieldSn = String(candidate);
+        }
         const fieldName = fieldTemplate?.NAME || `field_${existingCount}`;
         const fieldLabel = fieldTemplate?.LABEL || `Field ${existingCount}`;
 
@@ -49,9 +58,20 @@ export function useFcFieldOps(
           DEFAULTVALUE: fieldTemplate?.DEFAULTVALUE || "",
         };
 
-        const updatedSections = sections.map((sec) =>
-          sec.id === sectionId ? { ...sec, fields: [...(sec.fields || []), newField] } : sec,
-        );
+        const updatedSections = sections.map((sec) => {
+          if (sec.id !== sectionId) return sec;
+          const currentFields = [...(sec.fields || [])];
+          if (
+            typeof insertIndex === "number" &&
+            insertIndex >= 0 &&
+            insertIndex <= currentFields.length
+          ) {
+            currentFields.splice(insertIndex, 0, newField);
+          } else {
+            currentFields.push(newField);
+          }
+          return { ...sec, fields: currentFields };
+        });
 
         setSelectedFieldId(fieldName);
 

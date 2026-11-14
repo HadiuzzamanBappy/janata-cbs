@@ -149,7 +149,7 @@ export function PropertyInspector(props: PropertyInspectorProps) {
       </div>
 
       {/* ── Direct Scrollable Properties Body ────── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {selectedField ? (
           <FieldInspector
             field={selectedField}
@@ -166,7 +166,7 @@ export function PropertyInspector(props: PropertyInspectorProps) {
           />
         ) : (
           <RootCanvasInspector
-            columns={ctx?.rootColumns}
+            layout={ctx?.rootLayout}
             density={ctx?.rootDensity}
             onUpdateFormConfig={ctx?.onUpdateFormConfig}
             disabled={disabled}

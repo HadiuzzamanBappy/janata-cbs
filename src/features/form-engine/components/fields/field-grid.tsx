@@ -52,7 +52,7 @@ export function FieldGrid({
         getGridColsClass(effectiveCols),
       )}
     >
-      {section.fields.map((field) => {
+      {section.fields.map((field, idx) => {
         // 1. Evaluate reactive visibility & hidden conditions
         if (field.VISIBLE_WHEN && !evaluateFieldCondition(field.VISIBLE_WHEN, values)) {
           return null;
@@ -69,7 +69,7 @@ export function FieldGrid({
 
         return (
           <div
-            key={field.SN}
+            key={field.NAME || `${field.SN || "field"}-${idx}`}
             className={getFieldColSpanClass(effectiveCols, field.WIDTH, field.LENGTH, field.TYPE)}
           >
             {hasKernel ? (

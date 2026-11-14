@@ -3,8 +3,9 @@
 import { useDroppable } from "@dnd-kit/core";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
+import { useGlobalDragReset } from "./canvas-chrome";
 
-export interface InsertionIndicatorProps {
+export interface CanvasGapIndicatorProps {
   id: string;
   gapIndex: number;
   isActive?: boolean;
@@ -12,19 +13,21 @@ export interface InsertionIndicatorProps {
   disabled?: boolean;
 }
 
+export type InsertionIndicatorProps = CanvasGapIndicatorProps;
+
 /**
- * Universal Insertion Indicator.
+ * Universal Canvas Gap Indicator.
  * Renders a collapsed drop zone that expands into an active placement guide
  * line when an item (variable, card, tab) is dragged over the gap or when
  * the pointer position in the canvas targets this slot.
  */
-export function InsertionIndicator({
+export function CanvasGapIndicator({
   id,
   gapIndex,
   isActive,
   onDropItem,
   disabled,
-}: InsertionIndicatorProps) {
+}: CanvasGapIndicatorProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: { type: "between-block-gap", gapId: id, gapIndex },
@@ -33,34 +36,25 @@ export function InsertionIndicator({
 
   const [isNativeOver, setIsNativeOver] = React.useState(false);
 
-  React.useEffect(() => {
-    const handleDragReset = () => setIsNativeOver(false);
-    window.addEventListener("dragend", handleDragReset);
-    window.addEventListener("drop", handleDragReset);
-    return () => {
-      window.removeEventListener("dragend", handleDragReset);
-      window.removeEventListener("drop", handleDragReset);
-    };
-  }, []);
+  useGlobalDragReset(React.useCallback(() => setIsNativeOver(false), []));
 
   const isHighlighted = (isOver || isNativeOver || isActive) && !disabled;
 
   const handleNativeDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     if (!disabled) setIsNativeOver(true);
   };
 
   const handleNativeDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     if (!disabled && !isNativeOver) setIsNativeOver(true);
   };
 
   const handleNativeDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    setIsNativeOver(false);
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsNativeOver(false);
+    }
   };
 
   const handleNativeDrop = (e: React.DragEvent) => {
@@ -82,6 +76,8 @@ export function InsertionIndicator({
   return (
     <section
       ref={setNodeRef}
+      data-canvas-gap="true"
+      data-gap-index={gapIndex}
       onDragEnter={handleNativeDragEnter}
       onDragOver={handleNativeDragOver}
       onDragLeave={handleNativeDragLeave}
@@ -109,3 +105,5 @@ export function InsertionIndicator({
     </section>
   );
 }
+
+export { CanvasGapIndicator as InsertionIndicator };

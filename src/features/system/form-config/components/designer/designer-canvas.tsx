@@ -18,12 +18,11 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { buildRenderBlocks, getBlockGapSectionIndex } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import { BlockDragOverlay } from "./canvas/block-drag-overlay";
-import { CanvasBlockFlow } from "./canvas/canvas-block-flow";
-import { CanvasCompactBar } from "./canvas/canvas-compact-bar";
+import { BlockDragOverlay, CanvasCompactBar, EmptyCanvasSplash } from "./canvas/canvas-chrome";
+import { CanvasFlow } from "./canvas/canvas-flow";
 import type { DesignerCanvasProps } from "./canvas/canvas-types";
-import { EmptyCanvasSplash } from "./canvas/empty-canvas-splash";
 import { useCanvasDrag } from "./canvas/use-canvas-drag";
+import { useDesignerContext } from "./context/designer-context";
 
 export type { AddSectionFn, DesignerCanvasProps } from "./canvas/canvas-types";
 
@@ -31,31 +30,22 @@ export type { AddSectionFn, DesignerCanvasProps } from "./canvas/canvas-types";
  * DesignerCanvas: Core visual drag-and-drop workspace for CBS Form Designer.
  * Orchestrates independent layout blocks (Standalone Fields, Cards, TabGroups).
  */
-export function DesignerCanvas({
-  sections,
-  selectedSectionId,
-  selectedFieldId,
-  onSelectSection,
-  onSelectField,
-  onAddSection,
-  onUpdateSection,
-  onRemoveSection,
-  onRemoveField,
-  onReorderFields,
-  onMoveFieldAcrossSections,
-  onReorderSections,
-  onConvertSectionZone,
-  onDropPaletteItem,
-  onClickBackground,
-  onMergeTabGroup,
-  disabled,
-  isCompact = false,
-  isPaletteOpen = false,
-  isInspectorOpen = false,
-  hasSelection = false,
-  onTogglePalette,
-  onToggleInspector,
-}: DesignerCanvasProps) {
+export function DesignerCanvas(props: DesignerCanvasProps = {}) {
+  const context = useDesignerContext();
+
+  const sections = props.sections ?? context.sections;
+  const onReorderFields = props.onReorderFields ?? context.onReorderFields;
+  const onMoveFieldAcrossSections =
+    props.onMoveFieldAcrossSections ?? context.onMoveFieldAcrossSections;
+  const onReorderSections = props.onReorderSections ?? context.onReorderSections;
+  const onConvertSectionZone = props.onConvertSectionZone ?? context.onConvertSectionZone;
+  const onDropPaletteItem = props.onDropPaletteItem ?? context.handleDropPaletteItem;
+  const onClickBackground = props.onClickBackground ?? context.handleCanvasBackgroundClick;
+  const onMergeTabGroup = props.onMergeTabGroup ?? context.onMergeTabGroup;
+  const disabled = props.disabled ?? context.disabled;
+  const isCompact = props.isCompact ?? context.isCompact;
+  const isPaletteOpen = props.isPaletteOpen ?? context.isPaletteOpen;
+  const onTogglePalette = props.onTogglePalette ?? context.togglePalette;
   const [isCanvasDragOver, setIsCanvasDragOver] = React.useState(false);
   const [activeGapIndex, setActiveGapIndex] = React.useState<number | null>(null);
   const scrollContainerRef = React.useRef<HTMLElement>(null);
@@ -119,6 +109,31 @@ export function DesignerCanvas({
     const container = scrollContainerRef.current;
     if (!container) return;
 
+    // 1. If dragging directly over an internal container dropzone (card, section grid, tab header, field card),
+    // clear activeGapIndex so no between-block insertion line shows simultaneously.
+    const target = e.target as HTMLElement | null;
+    const isInsideContainerDropZone = Boolean(
+      target?.closest(
+        "[data-canvas-card], [data-tab-group-container], [data-canvas-section-grid], [data-tab-header], [data-field-card]",
+      ),
+    );
+
+    if (isInsideContainerDropZone) {
+      setActiveGapIndex(null);
+      return;
+    }
+
+    // 2. If hovering directly over a gap indicator, activate that specific gap.
+    const gapElem = target?.closest<HTMLElement>("[data-canvas-gap]");
+    if (gapElem) {
+      const gapIdx = Number(gapElem.getAttribute("data-gap-index"));
+      if (!Number.isNaN(gapIdx)) {
+        setActiveGapIndex(gapIdx);
+        return;
+      }
+    }
+
+    // 3. Coordinate-based gap detection for empty canvas margins / between blocks.
     const blockNodes = container.querySelectorAll<HTMLElement>("[data-canvas-block]");
     if (blockNodes.length === 0) {
       setActiveGapIndex(blocks.length);
@@ -126,18 +141,35 @@ export function DesignerCanvas({
     }
 
     const pointerY = e.clientY;
-    let computedGap = blocks.length;
+    const firstRect = blockNodes[0].getBoundingClientRect();
+    const lastRect = blockNodes[blockNodes.length - 1].getBoundingClientRect();
 
-    for (let i = 0; i < blockNodes.length; i++) {
-      const rect = blockNodes[i].getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      if (pointerY < midY) {
-        computedGap = i;
-        break;
+    // Above the first block -> top gap (0)
+    if (pointerY <= firstRect.top + 8) {
+      setActiveGapIndex(0);
+      return;
+    }
+
+    // Below the last block -> bottom gap (blocks.length)
+    if (pointerY >= lastRect.bottom - 8) {
+      setActiveGapIndex(blocks.length);
+      return;
+    }
+
+    // Between adjacent blocks
+    const GAP_SNAP_BUFFER = 16;
+    for (let i = 0; i < blockNodes.length - 1; i++) {
+      const currentBottom = blockNodes[i].getBoundingClientRect().bottom;
+      const nextTop = blockNodes[i + 1].getBoundingClientRect().top;
+
+      if (pointerY >= currentBottom - GAP_SNAP_BUFFER && pointerY <= nextTop + GAP_SNAP_BUFFER) {
+        setActiveGapIndex(i + 1);
+        return;
       }
     }
 
-    setActiveGapIndex(computedGap);
+    // Pointer is squarely inside a block body that is not a dropzone
+    setActiveGapIndex(null);
   };
 
   const handleNativeCanvasDragLeave = (e: React.DragEvent) => {
@@ -153,6 +185,11 @@ export function DesignerCanvas({
     setIsCanvasDragOver(false);
     setActiveGapIndex(null);
     if (disabled) return;
+
+    const target = e.target as HTMLElement | null;
+    if (target?.closest("[data-canvas-section-grid], [data-tab-header]")) {
+      return;
+    }
 
     try {
       const dataStr = e.dataTransfer.getData("application/json");
@@ -196,15 +233,10 @@ export function DesignerCanvas({
         )}
         <EmptyCanvasSplash
           isOver={isCanvasDragOver}
-          onAddSection={onAddSection}
-          onClickBackground={() => {
-            onSelectSection(null);
-            onSelectField(null, null);
-          }}
+          onClickBackground={onClickBackground}
           onDragOver={handleNativeCanvasDragOver}
           onDragLeave={handleNativeCanvasDragLeave}
           onDrop={handleNativeCanvasDrop}
-          disabled={disabled}
         />
       </div>
     );
@@ -212,17 +244,7 @@ export function DesignerCanvas({
 
   return (
     <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-background">
-      {isCompact && (
-        <CanvasCompactBar
-          sectionsCount={sections.length}
-          totalFieldsCount={totalFieldsCount}
-          isPaletteOpen={isPaletteOpen}
-          isInspectorOpen={isInspectorOpen}
-          hasSelection={hasSelection}
-          onTogglePalette={onTogglePalette}
-          onToggleInspector={onToggleInspector}
-        />
-      )}
+      {isCompact && <CanvasCompactBar />}
 
       <section
         ref={scrollContainerRef}
@@ -260,25 +282,10 @@ export function DesignerCanvas({
           }}
         >
           <SortableContext items={sortableCardIds} strategy={verticalListSortingStrategy}>
-            <CanvasBlockFlow
+            <CanvasFlow
               blocks={blocks}
-              sections={sections}
-              selectedSectionId={selectedSectionId}
-              selectedFieldId={selectedFieldId}
               activeGapIndex={activeGapIndex}
-              onSelectSection={onSelectSection}
-              onSelectField={onSelectField}
-              onAddSection={onAddSection}
-              onUpdateSection={onUpdateSection}
-              onRemoveSection={onRemoveSection}
-              onRemoveField={onRemoveField}
-              onConvertSectionZone={onConvertSectionZone}
-              onReorderSections={onReorderSections}
-              onMoveFieldAcrossSections={onMoveFieldAcrossSections}
-              onDropPaletteItem={onDropPaletteItem}
-              onMergeTabGroup={onMergeTabGroup}
               isCanvasDragging={isDragging}
-              disabled={disabled}
             />
           </SortableContext>
 

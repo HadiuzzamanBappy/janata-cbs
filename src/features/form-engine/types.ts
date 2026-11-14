@@ -111,4 +111,6 @@ export interface FormRendererProps {
   auditVariant?: "inline" | "card";
   hideHeader?: boolean;
   layout?: "horizontal" | "stacked";
+  density?: "compact" | "normal" | "spacious";
+  className?: string;
 }

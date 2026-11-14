@@ -2,7 +2,21 @@
 
 import * as React from "react";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
-import { type DragPayload, isContainerPayload, isTabGroupPayload } from "./tab-group-types";
+import { useDesignerContext } from "../../context/designer-context";
+
+export type DragPayload = Record<string, unknown>;
+
+export function isTabGroupPayload(p: DragPayload): boolean {
+  return (
+    p.type === "palette-tabgroup" ||
+    p.containerType === "tab" ||
+    (p.type === "palette-container" && p.containerType === "tab")
+  );
+}
+
+export function isContainerPayload(p: DragPayload): boolean {
+  return p.type === "palette-container" || ["card", "tab"].includes(String(p.containerType || ""));
+}
 
 export interface TabGroupDropParams {
   groupId: string;
@@ -18,21 +32,18 @@ export interface TabGroupDropParams {
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
 }
 
-export function useTabGroupDrop({
-  groupId,
-  tabSections,
-  activeSection,
-  disabled,
-  onConvertSectionZone,
-  onMergeTabGroup,
-  onDropPaletteItem,
-}: TabGroupDropParams) {
+export function useTabGroupDrop(params: TabGroupDropParams) {
+  const context = useDesignerContext();
+  const { groupId, tabSections, activeSection } = params;
+  const disabled = params.disabled ?? context.disabled;
+  const onConvertSectionZone = params.onConvertSectionZone ?? context.onConvertSectionZone;
+  const onMergeTabGroup = params.onMergeTabGroup ?? context.onMergeTabGroup;
+  const onDropPaletteItem = params.onDropPaletteItem ?? context.handleDropPaletteItem;
   const [dropZone, setDropZone] = React.useState<"header" | "body" | null>(null);
 
   const handleHeaderDragOver = React.useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-      e.stopPropagation();
       if (!disabled) setDropZone("header");
     },
     [disabled],

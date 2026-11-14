@@ -1,4 +1,5 @@
 import type {
+  ContainerConfig,
   FormContainerType,
   FormElement,
   FormSection,
@@ -13,23 +14,24 @@ export type AddSectionFn = (
   groupTitle?: string,
   insertIndex?: number,
   columns?: number,
+  containerConfig?: ContainerConfig,
 ) => void;
 
 export interface DesignerCanvasProps {
-  sections: FormSection[];
-  selectedSectionId: string | null;
-  selectedFieldId: string | null;
-  onSelectSection: (id: string | null) => void;
+  sections?: FormSection[];
+  selectedSectionId?: string | null;
+  selectedFieldId?: string | null;
+  onSelectSection?: (id: string | null) => void;
   /**
    * fieldId = null means deselect; sectionId provides which section
    * the field belongs to so the property inspector can resolve it.
    */
-  onSelectField: (sectionId: string | null, fieldId: string | null) => void;
+  onSelectField?: (sectionId: string | null, fieldId: string | null) => void;
   onAddSection?: AddSectionFn;
-  onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
-  onRemoveSection: (id: string) => void;
-  onRemoveField: (fieldId: string) => void;
-  onReorderFields: (sectionId: string, activeId: string, overId: string) => void;
+  onUpdateSection?: (id: string, patch: Partial<FormSection>) => void;
+  onRemoveSection?: (id: string) => void;
+  onRemoveField?: (fieldId: string) => void;
+  onReorderFields?: (sectionId: string, activeId: string, overId: string) => void;
   onMoveFieldAcrossSections?: (
     sourceSecId: string,
     targetSecId: string,
@@ -46,6 +48,7 @@ export interface DesignerCanvasProps {
     targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
+  onUngroupSection?: (id: string) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   /** Called when user clicks the bare canvas background — not on any card. */

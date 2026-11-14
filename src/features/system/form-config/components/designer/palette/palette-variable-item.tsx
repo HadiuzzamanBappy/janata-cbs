@@ -1,13 +1,21 @@
+/**
+ * @fileoverview Palette variable item component for Form Designer.
+ * Displays draggable model variable pills with SN, column code, type badges, and selection states.
+ *
+ * @module features/system/form-config/components/designer/palette/palette-variable-item
+ */
+
 import { Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { modelPropToFormElement } from "@/lib/cbs-form-spec";
-import { cn, formatNameToLabel } from "@/lib/core-utils";
+import { cn } from "@/lib/core-utils";
 import type { FormElement, ModelProperty } from "@/lib/data-schemas";
 
 export interface PaletteVariableItemProps {
   property: ModelProperty;
   isPlaced: boolean;
+  isSelected?: boolean;
   disabled?: boolean;
   onAddField: (template: Partial<FormElement>) => void;
   onHighlightField?: (fieldName: string) => void;
@@ -16,6 +24,7 @@ export interface PaletteVariableItemProps {
 export function PaletteVariableItem({
   property,
   isPlaced,
+  isSelected = false,
   disabled,
   onAddField,
   onHighlightField,
@@ -52,9 +61,11 @@ export function PaletteVariableItem({
       onClick={handleClick}
       className={cn(
         "w-full h-7 flex items-center justify-between px-2 rounded border text-[11px] transition-all text-left",
-        isPlaced
-          ? "bg-muted/15 border-border text-muted-foreground cursor-default"
-          : "bg-background/80 border-border/70 text-foreground hover:border-primary/50 hover:bg-accent/40 shadow-2xs cursor-grab active:cursor-grabbing",
+        isSelected
+          ? "bg-primary/10 border-primary ring-1 ring-primary/40 text-primary font-semibold shadow-2xs cursor-pointer"
+          : isPlaced
+            ? "bg-muted/15 border-border text-muted-foreground hover:bg-muted/30 cursor-pointer"
+            : "bg-background/80 border-border/70 text-foreground hover:border-primary/50 hover:bg-accent/40 shadow-2xs cursor-grab active:cursor-grabbing",
       )}
       title={
         isPlaced
@@ -62,13 +73,16 @@ export function PaletteVariableItem({
           : `Drag or click to add '${property.NAME}' (${property.TYPE}) to canvas`
       }
     >
-      <div className="flex items-center gap-1.5 truncate flex-1 min-w-0">
-        {isPlaced ? (
-          <span className="size-1.5 rounded-full bg-primary shrink-0" />
+      <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 font-mono">
+        {isSelected ? (
+          <span className="size-1.5 rounded-full bg-primary ring-2 ring-primary/30 shrink-0" />
+        ) : isPlaced ? (
+          <span className="size-1.5 rounded-full bg-primary/70 shrink-0" />
         ) : (
           <Plus className="size-3 text-primary shrink-0" />
         )}
-        <span className="truncate font-medium">{formatNameToLabel(property.NAME)}</span>
+        <span className="text-[10px] text-muted-foreground shrink-0">#{property.SN}</span>
+        <span className="truncate text-[11px] font-medium">{property.NAME}</span>
         {isRequired && <span className="text-destructive font-bold text-xs shrink-0">*</span>}
       </div>
 
@@ -86,7 +100,11 @@ export function PaletteVariableItem({
           variant="outline"
           className={cn(
             "text-[8px] h-3.5 px-1 font-mono uppercase",
-            isPlaced && "text-muted-foreground border-border bg-muted/20 font-semibold",
+            isSelected
+              ? "text-primary border-primary/50 bg-primary/10 font-bold"
+              : isPlaced
+                ? "text-muted-foreground border-border bg-muted/20 font-semibold"
+                : "",
           )}
         >
           {property.TYPE}

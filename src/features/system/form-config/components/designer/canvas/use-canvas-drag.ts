@@ -82,7 +82,7 @@ export function useCanvasDrag({
       if (sourceSecId && targetSecId) {
         if (sourceSecId === targetSecId) {
           if (targetFieldId && targetFieldId !== activeId) {
-            onReorderFields(sourceSecId, activeId, targetFieldId);
+            onReorderFields?.(sourceSecId, activeId, targetFieldId);
           }
         } else if (onMoveFieldAcrossSections) {
           onMoveFieldAcrossSections(

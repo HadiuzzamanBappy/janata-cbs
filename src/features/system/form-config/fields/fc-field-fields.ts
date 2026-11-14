@@ -100,6 +100,25 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
     },
     {
       SN: "3",
+      NAME: "STRUCTURE",
+      LABEL: "Input Structure",
+      TYPE: "String",
+      STRUCTURE: "S",
+      LENGTH: 1,
+      WIDGET: "segmented",
+      WIDTH: "full",
+      DEFAULTVALUE: "S",
+      PARAMETER: {
+        type: "O",
+        data: [
+          { code: "S", label: "Single (S)" },
+          { code: "M", label: "Multi-Value (M)" },
+        ],
+      },
+      ENRICHTEXT: "Capture a single value or a repeatable multi-value array on the form.",
+    },
+    {
+      SN: "4",
       NAME: "REQUIRED",
       LABEL: "Required Field",
       TYPE: "Boolean",
@@ -118,7 +137,7 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       ENRICHTEXT: "Whether input is mandatory before commit.",
     },
     {
-      SN: "4",
+      SN: "5",
       NAME: "DISABLED",
       LABEL: "Read-Only / Disabled",
       TYPE: "Boolean",
@@ -137,7 +156,7 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       ENRICHTEXT: "Disallows manual operator input.",
     },
     {
-      SN: "5",
+      SN: "6",
       NAME: "ENRICHTEXT",
       LABEL: "Help & Guidance Tooltip",
       TYPE: "String",
@@ -147,7 +166,7 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       ENRICHTEXT: "Contextual help text shown on hover via dotted underline tooltip.",
     },
     {
-      SN: "6",
+      SN: "7",
       NAME: "DEFAULTVALUE",
       LABEL: "Default Value",
       TYPE: "String",
@@ -157,7 +176,7 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       ENRICHTEXT: "Pre-filled default populated for new records.",
     },
     {
-      SN: "7",
+      SN: "8",
       NAME: "FIXEDVALUE",
       LABEL: "Fixed Constant Value",
       TYPE: "String",
@@ -174,9 +193,9 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
  */
 export const FIELD_ADVANCED_RULES_SECTION: FormSection = {
   id: "sec_field_advanced_rules",
-  title: "Advanced Rules & Transforms",
+  title: "Validation & Transforms",
   containerType: "card",
-  containerConfig: { variant: "ghost" },
+  containerConfig: { variant: "subtle", showHeader: true, bordered: true },
   collapsible: true,
   isCollapsed: true,
   columns: 1,
@@ -233,7 +252,7 @@ export const FIELD_ON_CHANGE_SECTION: FormSection = {
   id: "sec_field_on_change",
   title: "Field Automation (On Change)",
   containerType: "card",
-  containerConfig: { variant: "ghost" },
+  containerConfig: { variant: "subtle", showHeader: true, bordered: true },
   collapsible: true,
   isCollapsed: true,
   columns: 1,
@@ -289,9 +308,9 @@ export const FIELD_ON_CHANGE_SECTION: FormSection = {
  */
 export const FIELD_CONDITIONS_SECTION: FormSection = {
   id: "sec_field_conditions",
-  title: "Conditional Visibility & State",
+  title: "Conditional State (Disabled When)",
   containerType: "card",
-  containerConfig: { variant: "ghost" },
+  containerConfig: { variant: "subtle", showHeader: true, bordered: true },
   collapsible: true,
   isCollapsed: true,
   columns: 1,

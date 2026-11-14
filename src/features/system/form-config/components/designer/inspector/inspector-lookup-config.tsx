@@ -1,6 +1,7 @@
 /**
  * @fileoverview Lookup and options configuration sub-panel for Form Designer.
  * Supports Static Options lists (O), Model Entity Lookups (M), and Local Catalogs (L).
+ * Rendered purely through Form Engine using standard JSON specifications.
  *
  * @module features/system/form-config/components/designer/inspector/inspector-lookup-config
  */
@@ -28,12 +29,12 @@ export interface InspectorLookupConfigProps {
 /**
  * InspectorLookupConfig: Configures static options lists (O), model lookups (M),
  * or local CBS catalog tables (L) for dropdown, radio-group, and segmented selectors.
- * Fully managed through Form Engine schemas.
+ * Fully managed through Form Engine schemas with multi-object repeating support.
  */
 export function InspectorLookupConfig({
   selectedField,
   onUpdateField,
-  disabled,
+  disabled = false,
 }: InspectorLookupConfigProps) {
   const param = (selectedField.PARAMETER || {}) as Record<string, unknown>;
   const paramType = (param.type as string) || "O";
@@ -56,7 +57,7 @@ export function InspectorLookupConfig({
         : DROPDOWN_LOOKUP_SECTION;
 
   return (
-    <div className="pt-2 border-t border-border/50">
+    <div className="space-y-2">
       <FormRenderer
         frmElements={{ sections: [DROPDOWN_SOURCE_SELECTOR_SECTION, activeSection] }}
         values={selectedField as Record<string, unknown>}
@@ -65,6 +66,7 @@ export function InspectorLookupConfig({
         mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
         hideHeader
         layout="stacked"
+        className="overflow-visible"
       />
     </div>
   );

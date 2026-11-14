@@ -7,15 +7,17 @@ import * as React from "react";
 import { getFieldColSpanClass, getGridColsClass } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
-import { DesignerFieldCard } from "./designer-field-card";
+import { useDesignerContext } from "../context/designer-context";
+import { useGlobalDragReset } from "./canvas-chrome";
+import { CanvasFieldCard } from "./canvas-field-card";
 
 export interface CanvasSectionGridProps {
   section: FormSection;
-  selectedFieldId: string | null;
-  onSelectSection: (id: string | null) => void;
-  onSelectField: (sectionId: string | null, fieldId: string | null) => void;
-  onRemoveField: (fieldId: string) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
+  selectedFieldId?: string | null;
+  onSelectSection?: (id: string | null) => void;
+  onSelectField?: (sectionId: string | null, fieldId: string | null) => void;
+  onRemoveField?: (fieldId: string) => void;
+  onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
   disabled?: boolean;
   isNativeOver?: boolean;
   emptyLabel?: string;
@@ -25,17 +27,16 @@ export interface CanvasSectionGridProps {
  * Universal 12-column sortable grid and droppable dropzone for form fields.
  * Shared across CardContainer and TabGroup sections.
  */
-export function CanvasSectionGrid({
-  section,
-  selectedFieldId,
-  onSelectSection,
-  onSelectField,
-  onRemoveField,
-  onDropPaletteItem,
-  disabled,
-  isNativeOver: externalNativeOver,
-  emptyLabel,
-}: CanvasSectionGridProps) {
+export function CanvasSectionGrid(props: CanvasSectionGridProps) {
+  const context = useDesignerContext();
+  const { section, isNativeOver: externalNativeOver, emptyLabel } = props;
+  const selectedFieldId =
+    props.selectedFieldId !== undefined ? props.selectedFieldId : context.selectedFieldId;
+  const onSelectSection = props.onSelectSection ?? context.handleCanvasSelectSection;
+  const onSelectField = props.onSelectField ?? context.handleCanvasSelectField;
+  const onRemoveField = props.onRemoveField ?? context.onRemoveField;
+  const onDropPaletteItem = props.onDropPaletteItem ?? context.handleDropPaletteItem;
+  const disabled = props.disabled ?? context.disabled;
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `sec-drop-${section.id}`,
     data: { type: "section-dropzone", sectionId: section.id },
@@ -43,16 +44,15 @@ export function CanvasSectionGrid({
   });
 
   const [internalNativeOver, setInternalNativeOver] = React.useState(false);
+  const [dropInsertIndex, setDropInsertIndex] = React.useState<number | null>(null);
+  const gridContainerRef = React.useRef<HTMLDivElement | null>(null);
 
-  React.useEffect(() => {
-    const handleReset = () => setInternalNativeOver(false);
-    window.addEventListener("dragend", handleReset);
-    window.addEventListener("drop", handleReset);
-    return () => {
-      window.removeEventListener("dragend", handleReset);
-      window.removeEventListener("drop", handleReset);
-    };
-  }, []);
+  useGlobalDragReset(
+    React.useCallback(() => {
+      setInternalNativeOver(false);
+      setDropInsertIndex(null);
+    }, []),
+  );
 
   const showHover = isOver || externalNativeOver || internalNativeOver;
   const isEmpty = section.fields.length === 0;
@@ -60,32 +60,89 @@ export function CanvasSectionGrid({
 
   const handleNativeDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-    if (!disabled && !internalNativeOver) setInternalNativeOver(true);
+    if (disabled) return;
+    if (!internalNativeOver) setInternalNativeOver(true);
+
+    if (section.fields.length === 0) {
+      setDropInsertIndex(0);
+      return;
+    }
+
+    const gridEl = gridContainerRef.current;
+    if (!gridEl) {
+      setDropInsertIndex(section.fields.length);
+      return;
+    }
+
+    const fieldCards = gridEl.querySelectorAll<HTMLElement>("[data-field-card]");
+    if (fieldCards.length === 0) {
+      setDropInsertIndex(section.fields.length);
+      return;
+    }
+
+    const pointerX = e.clientX;
+    const pointerY = e.clientY;
+    let computedIndex = section.fields.length;
+
+    for (let i = 0; i < fieldCards.length; i++) {
+      const rect = fieldCards[i].getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      const midX = rect.left + rect.width / 2;
+
+      // Pointer is strictly above this card row
+      if (pointerY < rect.top) {
+        computedIndex = i;
+        break;
+      }
+
+      // Pointer is within this card row
+      if (pointerY <= rect.bottom) {
+        if (numCols === 1) {
+          // In 1 column layout: top half = before card; bottom half = after card
+          if (pointerY < midY) {
+            computedIndex = i;
+            break;
+          }
+          computedIndex = i + 1;
+          continue;
+        }
+
+        // Multi-column layout: left half = before card; right half = after card
+        if (pointerX < midX) {
+          computedIndex = i;
+          break;
+        }
+        computedIndex = i + 1;
+      }
+    }
+
+    setDropInsertIndex(computedIndex);
   };
 
   const handleNativeDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setInternalNativeOver(false);
+      setDropInsertIndex(null);
     }
   };
 
   const handleNativeDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const finalIndex = dropInsertIndex !== null ? dropInsertIndex : section.fields.length;
     setInternalNativeOver(false);
+    setDropInsertIndex(null);
     if (disabled || !onDropPaletteItem) return;
     try {
       const dataStr = e.dataTransfer.getData("application/json");
-      if (dataStr) onDropPaletteItem(JSON.parse(dataStr), section.id);
+      if (dataStr) onDropPaletteItem(JSON.parse(dataStr), section.id, finalIndex);
     } catch {
       /* ignore */
     }
   };
 
-  const fieldKeys = section.fields.map((f) => String(f.SN || f.NAME || "field"));
+  const fieldKeys = section.fields.map((f, idx) => String(f.NAME || f.SN || `field-${idx}`));
 
   const defaultEmptyText =
     section.containerType === "tab"
@@ -97,6 +154,8 @@ export function CanvasSectionGrid({
       <section
         aria-label={`Fields in ${section.groupTitle || section.title || "section"}`}
         ref={setDropRef}
+        data-canvas-section-grid="true"
+        data-section-id={section.id}
         onDragOver={handleNativeDragOver}
         onDragLeave={handleNativeDragLeave}
         onDrop={handleNativeDrop}
@@ -126,38 +185,47 @@ export function CanvasSectionGrid({
             </p>
           </button>
         ) : (
-          <div className={cn("grid gap-2", getGridColsClass(numCols))}>
-            {section.fields.map((field) => {
-              const fieldId = String(field.SN || field.NAME || "field");
+          <div ref={gridContainerRef} className={cn("grid gap-2", getGridColsClass(numCols))}>
+            {section.fields.map((field, idx) => {
+              const fieldId = String(field.NAME || field.SN || `field-${idx}`);
               const isSelected =
                 selectedFieldId === fieldId ||
                 selectedFieldId === field.SN ||
                 selectedFieldId === field.NAME;
+              const isDropTargetHere = showHover && dropInsertIndex === idx;
 
               return (
-                <DesignerFieldCard
-                  key={fieldId}
-                  field={field}
-                  sectionId={section.id}
-                  isSelected={Boolean(isSelected)}
-                  className={getFieldColSpanClass(numCols, field.WIDTH, field.LENGTH, field.TYPE)}
-                  onSelect={() => {
-                    onSelectSection(section.id);
-                    onSelectField(section.id, fieldId);
-                  }}
-                  onRemove={() => onRemoveField(fieldId)}
-                  disabled={disabled}
-                />
+                <React.Fragment key={fieldId}>
+                  {isDropTargetHere && (
+                    <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-[11px] font-medium animate-pulse shadow-xs">
+                      <Plus className="size-3.5" />
+                      <span>Drop field here</span>
+                    </div>
+                  )}
+                  <CanvasFieldCard
+                    field={field}
+                    sectionId={section.id}
+                    isSelected={Boolean(isSelected)}
+                    className={getFieldColSpanClass(numCols, field.WIDTH, field.LENGTH, field.TYPE)}
+                    onSelect={() => {
+                      onSelectSection(section.id);
+                      onSelectField(section.id, fieldId);
+                    }}
+                    onRemove={() => onRemoveField(fieldId)}
+                    disabled={disabled}
+                  />
+                </React.Fragment>
               );
             })}
 
             {/* Active Drop Placeholder Slot at End of Grid */}
-            {showHover && (
-              <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-[11px] font-medium animate-pulse shadow-xs">
-                <Plus className="size-3.5" />
-                <span>Drop field here</span>
-              </div>
-            )}
+            {showHover &&
+              (dropInsertIndex === null || dropInsertIndex >= section.fields.length) && (
+                <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-[11px] font-medium animate-pulse shadow-xs">
+                  <Plus className="size-3.5" />
+                  <span>Drop field here</span>
+                </div>
+              )}
           </div>
         )}
       </section>

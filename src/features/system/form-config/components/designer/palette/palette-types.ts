@@ -1,4 +1,9 @@
-import type { FormContainerType, FormElement, ModelProperty } from "@/lib/data-schemas";
+import type {
+  ContainerConfig,
+  FormContainerType,
+  FormElement,
+  ModelProperty,
+} from "@/lib/data-schemas";
 
 export type PaletteTypeFilter = "all" | "unplaced" | "text" | "number" | "date";
 
@@ -19,6 +24,7 @@ export interface FieldPaletteProps {
     groupTitle?: string,
     insertIndex?: number,
     columns?: number,
+    containerConfig?: ContainerConfig,
   ) => void;
   disabled?: boolean;
 }

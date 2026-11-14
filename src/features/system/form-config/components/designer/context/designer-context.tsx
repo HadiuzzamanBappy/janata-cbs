@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import { createNewFieldFromTemplate, dispatchPaletteDrop } from "../canvas/palette-drop-dispatcher";
+import { createNewFieldFromTemplate, dispatchPaletteDrop } from "../canvas/canvas-drop-dispatcher";
 import type { DesignerContextValue, DesignerProviderProps } from "./designer-context-types";
 
 export type { DesignerContextValue, DesignerProviderProps };
@@ -14,7 +14,7 @@ export function DesignerProvider({
   formTitle,
   formDescription,
   authNumber,
-  rootColumns,
+  rootLayout,
   rootDensity,
   onUpdateFormConfig,
   isCompact = false,
@@ -35,6 +35,7 @@ export function DesignerProvider({
   onMoveFieldAcrossSections,
   onReorderSections,
   onConvertSectionZone,
+  onUngroupSection,
   onMergeTabGroup,
   disabled,
 }: DesignerProviderProps) {
@@ -147,6 +148,18 @@ export function DesignerProvider({
     [onSelectSection, onSelectField, isCompact],
   );
 
+  const handleCanvasSelectSection = React.useCallback(
+    (sectionId: string | null) => {
+      onSelectSection(sectionId);
+      onSelectField(null);
+      if (isCompact && sectionId) {
+        setIsInspectorOpen(true);
+        setIsPaletteOpen(false);
+      }
+    },
+    [onSelectSection, onSelectField, isCompact],
+  );
+
   const handleCanvasBackgroundClick = React.useCallback(() => {
     onSelectSection(null);
     onSelectField(null);
@@ -159,7 +172,7 @@ export function DesignerProvider({
       formTitle,
       formDescription,
       authNumber,
-      rootColumns,
+      rootLayout,
       rootDensity,
       onUpdateFormConfig,
       targetModel,
@@ -184,6 +197,7 @@ export function DesignerProvider({
       onSelectField,
       handleHighlightField,
       handleCanvasSelectField,
+      handleCanvasSelectSection,
       handleCanvasBackgroundClick,
       onAddSection,
       onUpdateSection,
@@ -195,6 +209,7 @@ export function DesignerProvider({
       onMoveFieldAcrossSections,
       onReorderSections,
       onConvertSectionZone,
+      onUngroupSection,
       onMergeTabGroup,
       handlePaletteAddField,
       handleDropPaletteItem,
@@ -220,6 +235,7 @@ export function DesignerProvider({
       onSelectField,
       handleHighlightField,
       handleCanvasSelectField,
+      handleCanvasSelectSection,
       handleCanvasBackgroundClick,
       onAddSection,
       onUpdateSection,
@@ -231,13 +247,14 @@ export function DesignerProvider({
       onMoveFieldAcrossSections,
       onReorderSections,
       onConvertSectionZone,
+      onUngroupSection,
       onMergeTabGroup,
       handlePaletteAddField,
       handleDropPaletteItem,
       formTitle,
       formDescription,
       authNumber,
-      rootColumns,
+      rootLayout,
       rootDensity,
       onUpdateFormConfig,
     ],

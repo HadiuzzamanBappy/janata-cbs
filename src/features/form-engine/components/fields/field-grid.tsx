@@ -1,3 +1,13 @@
+/**
+ * @fileoverview High-Density Section Field Grid Component
+ * @module form-engine/field-grid
+ *
+ * Core Invariants:
+ * - Arranges section fields across responsive Tailwind multi-column layouts.
+ * - Evaluates reactive visibility (VISIBLE_WHEN, HIDDEN_WHEN) and disabled conditions (DISABLED_WHEN).
+ * - Delegates grid classes and cell spans to getGridColsClass and getFieldColSpanClass.
+ */
+
 import {
   evaluateFieldCondition,
   getFieldColSpanClass,
@@ -6,7 +16,7 @@ import {
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { CbsScreenMode } from "@/types";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";
 
@@ -27,12 +37,12 @@ export function FieldGrid({
   onChange,
   errors = {},
   disabled = false,
-  mode = "I",
+  mode = CbsRecordFunction.INPUT,
   numCols,
   hasKernel,
 }: FieldGridProps) {
   const effectiveCols = numCols || section.columns || 1;
-  const isViewMode = mode !== "I";
+  const isViewMode = mode !== CbsRecordFunction.INPUT;
 
   return (
     <div

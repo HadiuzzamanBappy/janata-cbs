@@ -1,3 +1,13 @@
+/**
+ * @fileoverview High-Density Boolean Checkbox Widget
+ * @module form-engine/widgets/checkbox-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Does NOT mutate base UI primitives (src/components/ui/checkbox.tsx remains pristine).
+ * - Renders active/inactive semantic badges with high-contrast disabled styling.
+ */
+
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,6 +21,7 @@ export interface CheckboxWidgetProps extends BaseWidgetProps {
 
 export function CheckboxWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

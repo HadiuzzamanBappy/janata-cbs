@@ -1,30 +1,27 @@
+/**
+ * @fileoverview Isolated Field Atom Subscriber
+ * @module form-engine/field-atom
+ *
+ * Core Invariants:
+ * - Subscribes ONLY to its own fieldKey via useFormKernel.
+ * - Typing into one field in a 100+ field banking form does NOT re-render sibling FieldAtoms.
+ * - Completely eliminates keystroke thrashing.
+ */
+
 "use client";
 
 import { useCallback } from "react";
 import { getFieldValue } from "@/lib/cbs-form-spec";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { CbsScreenMode } from "@/types";
-import { useFormKernel } from "../store/form-kernel-provider";
+import { CbsRecordFunction } from "@/types";
+import { useFormKernel } from "../../store/form-kernel-provider";
+import type { FieldAtomProps } from "../../types";
 import { UnifiedFieldFactory } from "./field-factory";
 
-export interface FieldAtomProps {
-  field: FormElement;
-  mode?: CbsScreenMode;
-  disabled?: boolean;
-  labelOverride?: string;
-  labelSuffix?: React.ReactNode;
-  actionBeforeColon?: React.ReactNode;
-}
+export type { FieldAtomProps };
 
-/**
- * Isolated Field Atom Subscriber
- *
- * Subscribes ONLY to its own fieldKey.
- * When other fields in the 150 - 1,000 field form mutate, this component DOES NOT re-render.
- */
 export function FieldAtom({
   field,
-  mode = "I",
+  mode = CbsRecordFunction.INPUT,
   disabled = false,
   labelOverride,
   labelSuffix,

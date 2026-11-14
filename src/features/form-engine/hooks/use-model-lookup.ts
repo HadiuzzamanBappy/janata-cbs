@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Dynamic Model Lookup Query Hook
+ * @module form-engine/hooks/use-model-lookup
+ *
+ * Core Invariants:
+ * - Resolves dynamic CBS model lookup options when parameter.type === 'M' or 'L'.
+ * - Backed by centralized cbsQueries so multiple fields referencing the same lookup table
+ *   share one cached React Query request.
+ * - Evaluates custom in-memory condition filtering (e.g. "STATUS == 'ACTIVE'").
+ */
+
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
@@ -7,12 +18,14 @@ import type { FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
 import type { WidgetOption } from "../types";
 
 /**
- * Resolves dynamic CBS model lookup options when parameter.type === 'M'.
- * Backed by centralized `cbsQueries.modelLookup` so multiple fields referencing the same
- * lookup table share one cached request, with per-field condition/display mapping in memory.
+ * Executes a cached inquiry query for model lookup parameters and maps rows to WidgetOption[].
+ *
+ * @param param Lookup parameter configuration from field specification.
+ * @returns Array of resolved lookup options and query loading state.
  */
 export function useModelLookup(param: FormFieldParameter | undefined) {
-  const isModelLookup = param?.type === "M" && Boolean(param.modelName?.trim());
+  const isModelLookup =
+    (param?.type === "M" || param?.type === "L") && Boolean(param.modelName?.trim());
   const cleanModel = isModelLookup ? (param?.modelName || "").trim().toUpperCase() : "";
 
   const { data: payload, isLoading: loading } = useQuery(cbsQueries.model(cleanModel).lookup());

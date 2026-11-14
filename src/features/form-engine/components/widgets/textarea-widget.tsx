@@ -1,3 +1,12 @@
+/**
+ * @fileoverview High-Density Multiline Textarea Widget
+ * @module form-engine/widgets/textarea-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Compact banking typography (min-h-14, text-xs).
+ */
+
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
@@ -8,6 +17,7 @@ export interface TextareaWidgetProps extends BaseWidgetProps {
 
 export function TextareaWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

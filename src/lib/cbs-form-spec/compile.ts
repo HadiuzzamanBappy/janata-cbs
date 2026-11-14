@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Master Form Specification Compiler & Fallback Layout Generator
+ * @module cbs-form-spec/compile
+ *
+ * Core Invariants:
+ * - ModelConfigRecord is the sole authority on physical schema (TYPE, LENGTH, STRUCTURE, REQUIRED).
+ * - FormConfigRecord provides presentation structure (sections, widgets, labels, widths, rules).
+ * - Fallback: When no custom layout exists, produces a canonical 12-column responsive card section.
+ */
+
 import { formatNameToLabel } from "@/lib/core-utils";
 import type { FormConfigRecord, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
@@ -8,14 +18,16 @@ import {
   resolveWidgetType,
 } from "./field-normalizer";
 
-/* -------------------------------------------------------------------------- */
-/* Fallback Layout Generator (Single Responsibility: Model -> Default Layout)  */
-/* -------------------------------------------------------------------------- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Fallback Layout Generator
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Generates canonical responsive fallback layout sections from a physical ModelConfigRecord.
- * Preserves strict creation order of properties. Object types are compiled as inline
- * "object-group" sections with their nested child fields.
+ * Builds canonical 12-column responsive fallback sections from a physical ModelConfigRecord.
+ * Preserves definition order and compiles nested properties into inline sub-groups.
+ *
+ * @param model Physical model configuration from backend core.
+ * @returns Standard single-section card layout containing all model fields.
  */
 export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const allProps = model.PROPERTIES || [];
@@ -38,15 +50,70 @@ export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   ];
 }
 
-/* -------------------------------------------------------------------------- */
-/* Master Form Specification Compiler (Single Responsibility: Merge Layout)    */
-/* -------------------------------------------------------------------------- */
+// ─────────────────────────────────────────────────────────────────────────────
+// Field-Level Model Merger
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Pure, authoritative compiler for the CBS presentation layer.
- * Merges a ModelConfigRecord (physical DB authority) with an optional
- * FormConfigRecord layout (visual arrangement). If no custom layout is supplied,
- * generates a 12-column responsive fallback grid.
+ * Merges a visual presentation FormElement with its underlying physical ModelProperty:
+ * - DB Constraints (Authority: ModelConfig): TYPE, LENGTH, STRUCTURE, REQUIRED.
+ * - Presentation (Authority: FormConfig): WIDGET, LABEL, WIDTH, VALIDATION, CASCADE, ON_CHANGE.
+ * - Sub-Properties: Recursively merges nested object field hierarchies in `PROP`.
+ *
+ * @param field Presentation form element from visual designer.
+ * @param modelProp Matching physical database property definition.
+ * @returns Merged canonical FormElement with physical integrity preserved.
+ */
+export function mergeFieldWithModelProp(
+  field: FormElement,
+  modelProp?: ModelProperty,
+): FormElement {
+  if (!modelProp) {
+    return field;
+  }
+
+  // Recursively merge nested sub-properties for object fields
+  let mergedSubProps = field.PROP;
+  if (Array.isArray(modelProp.PROP) && modelProp.PROP.length > 0) {
+    const subPropMap = new Map(modelProp.PROP.map((sp) => [sp.NAME.toLowerCase(), sp]));
+    if (Array.isArray(field.PROP) && field.PROP.length > 0) {
+      mergedSubProps = field.PROP.map((subF) =>
+        mergeFieldWithModelProp(subF, subPropMap.get(subF.NAME.toLowerCase())),
+      );
+    } else {
+      mergedSubProps = modelProp.PROP.map((sp, idx) => modelPropToFormElement(sp, idx));
+    }
+  }
+
+  return {
+    ...field,
+    // Database schema authority (physical integrity)
+    TYPE: modelProp.TYPE || field.TYPE || "String",
+    LENGTH: modelProp.LENGTH || field.LENGTH || 35,
+    STRUCTURE: modelProp.STRUCTURE || field.STRUCTURE || "S",
+    REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
+
+    // Presentation layer attributes with sensible fallbacks
+    LABEL: field.LABEL || formatNameToLabel(modelProp.NAME),
+    WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
+    WIDGET: resolveWidgetType(modelProp.TYPE, field.PARAMETER, field.WIDGET),
+
+    ...(mergedSubProps && mergedSubProps.length > 0 ? { PROP: mergedSubProps } : {}),
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Master Form Specification Compiler
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Pure compiler that harmonizes physical data schemas with presentation layouts.
+ * - If `layout` is null/empty: generates a canonical 12-column card fallback layout.
+ * - If `layout` is provided: merges visual elements against authoritative model properties.
+ *
+ * @param model Physical model configuration (sole authority on database schema).
+ * @param layout Optional visual layout configuration from form designer.
+ * @returns Fully compiled FormConfigRecord ready for FormRenderer consumption.
  */
 export function compileFormSpec(
   model: ModelConfigRecord,
@@ -66,6 +133,8 @@ export function compileFormSpec(
         rtnAfterAuth: [],
       },
       frmElements: {
+        columns: 1,
+        density: "compact",
         sections: buildFallbackSections(model),
       },
       auditData: model.auditData,
@@ -73,7 +142,6 @@ export function compileFormSpec(
   }
 
   // Case B: Custom Layout Composition
-  // Physical model property constraints (REQUIRED, LENGTH, TYPE) are authoritative
   const propertyMap = new Map(
     (model.PROPERTIES || []).map((p: ModelProperty) => [p.NAME.toLowerCase(), p]),
   );
@@ -81,28 +149,9 @@ export function compileFormSpec(
   const cleanSections: FormSection[] = layout.frmElements.sections.map((section) => ({
     ...section,
     columns: section.columns ?? 1,
-    fields: (section.fields || []).map((field) => {
-      const modelProp = propertyMap.get(field.NAME.toLowerCase());
-      if (!modelProp) {
-        return field;
-      }
-
-      return {
-        ...field,
-        LABEL: field.LABEL || formatNameToLabel(modelProp.NAME),
-        TYPE: field.TYPE || modelProp.TYPE || "String",
-        LENGTH: field.LENGTH || modelProp.LENGTH || 35,
-        STRUCTURE: field.STRUCTURE || modelProp.STRUCTURE || "S",
-        // Invariant: ModelConfig is physical database authority.
-        REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
-        WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
-        WIDGET: resolveWidgetType(modelProp.TYPE, field.PARAMETER, field.WIDGET),
-        PARAMETER: field.PARAMETER,
-        VALIDATION: field.VALIDATION,
-        VISIBLE_WHEN: field.VISIBLE_WHEN,
-        DISABLED_WHEN: field.DISABLED_WHEN,
-      };
-    }),
+    fields: (section.fields || []).map((field) =>
+      mergeFieldWithModelProp(field, propertyMap.get(field.NAME.toLowerCase())),
+    ),
   }));
 
   return {
@@ -110,6 +159,8 @@ export function compileFormSpec(
     title: layout.title || model.DESCRIPTION || modelCode,
     description: layout.description || model.DESCRIPTION || modelCode,
     frmElements: {
+      ...(layout.frmElements.columns ? { columns: layout.frmElements.columns } : {}),
+      ...(layout.frmElements.density ? { density: layout.frmElements.density } : {}),
       sections: cleanSections,
     },
     auditData: layout.auditData || model.auditData,

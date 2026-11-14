@@ -1,13 +1,19 @@
 /**
- * High-Performance Atomized Form Kernel Store
+ * @fileoverview High-Performance Atomized Form Kernel Store
+ * @module form-engine/store/form-kernel-store
  *
- * Implements fine-grained per-field subscriptions for 150 - 1,000 field banking forms.
- * Typing into a field updates only that field's subscribers.
- * Zero whole-form re-renders.
+ * Core Invariants:
+ * - Implements fine-grained per-field subscriptions for 150 - 1,000 field banking forms.
+ * - Typing into a field updates only that field's subscribers (zero whole-form re-renders).
+ * - Integrates with @/lib/cbs-form-spec (getFieldValue, setFieldValue) for dot-path support.
  */
 
 import { createStore } from "zustand/vanilla";
 import { getFieldValue, setFieldValue } from "@/lib/cbs-form-spec";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Store State & Actions Interface
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface FormKernelState {
   values: Record<string, unknown>;
@@ -33,6 +39,16 @@ export interface FormKernelState {
 
 export type FormKernelStore = ReturnType<typeof createFormKernelStore>;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Store Factory
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Creates an isolated Zustand vanilla store instance for fine-grained form state.
+ *
+ * @param initialValues Initial form values dictionary.
+ * @returns Isolated FormKernelStore instance.
+ */
 export function createFormKernelStore(initialValues: Record<string, unknown> = {}) {
   return createStore<FormKernelState>()((set, get) => ({
     values: { ...initialValues },
@@ -46,7 +62,7 @@ export function createFormKernelStore(initialValues: Record<string, unknown> = {
 
     setValue: (field: string, value: unknown) => {
       set((state) => {
-        // Fast-path: don't mutate if identical value
+        // Fast-path: don't trigger state update if identical value
         const currentVal = getFieldValue(state.values, field);
         if (currentVal === value) return state;
 

@@ -1,8 +1,16 @@
+/**
+ * @fileoverview Tab group container for clustered CBS dynamic form sections.
+ * Renders tab-grouped sections into a high-density banking workbench TabBar
+ * with active badge indicators, error counts, and embedded CardContainer content.
+ *
+ * @module features/form-engine/components/containers/tab-group-container
+ */
+
 "use client";
 
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
-import type { CbsScreenMode } from "@/types";
+import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { CardContainer } from "./card-container";
 
 export interface TabGroupContainerProps {
@@ -30,7 +38,7 @@ export function TabGroupContainer({
   onChange,
   errors = {},
   disabled = false,
-  mode = "I",
+  mode = CbsRecordFunction.INPUT,
 }: TabGroupContainerProps) {
   const currentActiveId = activeTabId || tabSections[0]?.id;
   const activeSection = tabSections.find((t) => t.id === currentActiveId) || tabSections[0];

@@ -1,8 +1,18 @@
+/**
+ * @fileoverview High-Density Banking Field Row Component
+ * @module form-engine/field-row
+ *
+ * Core Invariants:
+ * - Renders CBS standard 2-column (label : input) or stacked layout.
+ * - Displays required indicator asterisk, index suffix, and enrich text tooltip.
+ * - Read-only view mode renders clean monospace values with em-dash fallbacks.
+ */
+
 import { Info } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
-import { useFormLayout } from "./form-layout-context";
+import { useFormLayout } from "../form-layout-context";
 
 export interface FieldRowProps {
   id?: string;
@@ -50,15 +60,24 @@ export function FieldRow({
   const isIconTooltip = showTooltip && isStacked;
 
   const labelContent = (
-    <span className="inline-flex items-center min-w-0 max-w-full" title={error || label}>
+    <span
+      className={cn(
+        "group/label inline-flex items-center min-w-0 max-w-full select-none",
+        isDesktopTooltip ? "cursor-help" : "",
+      )}
+      title={error ? error : isDesktopTooltip ? undefined : label}
+    >
       <span
         className={cn(
-          "truncate pb-0.5",
-          // Dotted underline ONLY in desktop mode when label itself triggers the tooltip
-          isDesktopTooltip
-            ? "cursor-help underline decoration-dotted decoration-muted-foreground underline-offset-4"
-            : "",
-          error ? "text-destructive font-semibold" : "text-muted-foreground font-normal",
+          "truncate pb-0.5 transition-colors duration-150 ease-out",
+          isDesktopTooltip && [
+            "border-b border-dotted",
+            error
+              ? "border-destructive/40 group-hover/label:border-destructive text-destructive font-semibold"
+              : "border-muted-foreground/30 group-hover/label:border-primary group-hover/label:text-foreground text-muted-foreground font-normal",
+          ],
+          !isDesktopTooltip &&
+            (error ? "text-destructive font-semibold" : "text-muted-foreground font-normal"),
         )}
       >
         {label}
@@ -108,7 +127,7 @@ export function FieldRow({
             labelContent
           )}
 
-          {/* Stacked/Mobile Mode: Tooltip ONLY on the Info icon (triggers on desktop hover and mobile tap) */}
+          {/* Stacked/Mobile Mode: Tooltip ONLY on the Info icon */}
           {isIconTooltip && (
             <Tooltip>
               <TooltipTrigger

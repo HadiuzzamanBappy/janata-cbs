@@ -1,7 +1,22 @@
+/**
+ * @fileoverview Unified Form Engine Component Contracts & Type Definitions
+ * @module form-engine/types
+ *
+ * Core Invariants:
+ * - Direct 1:1 alignment with FormElement and FormSection domain schemas.
+ * - Centralized interface contracts for widgets, field factories, containers, and orchestrators.
+ * - Zero duplicated schema definitions; reuses canonical types from @/lib/data-schemas.
+ */
+
+import type { ReactNode } from "react";
 import type { AuditData } from "@/lib/data-schemas";
 import type { FormElementsContainer, FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
 import type { CbsScreenMode } from "@/types";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Widget Contracts
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface WidgetOption {
   code: string;
@@ -19,6 +34,25 @@ export interface BaseWidgetProps {
   className?: string;
 }
 
+export interface WidgetRendererProps {
+  widget: string;
+  field: FormElement;
+  fieldKey: string;
+  rowId: string;
+  value: unknown;
+  onChange: (next: unknown) => void;
+  isReadOnly: boolean;
+  error?: string;
+  placeholder?: string;
+  resolvedOptions: WidgetOption[];
+  modelLoading: boolean;
+  effectiveLabel: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Field Factory & Atom Contracts
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface UnifiedFieldFactoryProps {
   field: FormElement;
   value: unknown;
@@ -27,12 +61,25 @@ export interface UnifiedFieldFactoryProps {
   disabled?: boolean;
   mode?: CbsScreenMode;
   labelOverride?: string;
-  labelSuffix?: React.ReactNode;
-  actionBeforeColon?: React.ReactNode;
+  labelSuffix?: ReactNode;
+  actionBeforeColon?: ReactNode;
   allValues?: Record<string, unknown>;
   errors?: Record<string, string>;
   hasKernel?: boolean;
 }
+
+export interface FieldAtomProps {
+  field: FormElement;
+  mode?: CbsScreenMode;
+  disabled?: boolean;
+  labelOverride?: string;
+  labelSuffix?: ReactNode;
+  actionBeforeColon?: ReactNode;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Container & Orchestrator Contracts
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface SectionCardProps {
   section: FormSection;

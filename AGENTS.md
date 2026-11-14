@@ -33,7 +33,7 @@ Before saving edits to any file, ensure:
 - [ ] **Zero Legacy**: No backward-compatibility shims, legacy query params (`?id=`), or deprecated aliases.
 - [ ] **Zero Magic Strings**: Mode strings and action codes use `CbsRecordFunction.*` and `CBS_SCREEN_MODES`.
 - [ ] **No Fake IDs**: No `Date.now()` timestamp ID generation.
-- [ ] **Size Budget**: Components $\le 300$ lines, hooks/helpers $\le 200$ lines.
+- [ ] **Size Budget**: Components $\le 300$ lines (stretch up to $350$ when cohesive), hooks/helpers/stores $\le 250$ lines (stretch up to $280$ for comprehensive domain rules before decomposing). Avoid premature micro-fragmentation.
 
 ---
 

@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Shared preview harness for dynamic CBS forms.
+ * Used by MODEL.CONFIG, CONFIG.FORM, and custom screens to provide a live interactive
+ * preview of dynamic form element schemas with zero duplicate preview code.
+ *
+ * @module features/form-engine/components/form-preview
+ */
+
 "use client";
 
 import { Layout } from "lucide-react";

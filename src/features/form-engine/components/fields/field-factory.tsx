@@ -1,14 +1,25 @@
+/**
+ * @fileoverview Unified Field Factory Component
+ * @module form-engine/field-factory
+ *
+ * Core Invariants:
+ * - Directs scalar fields to ScalarFieldFactory and object/JSON fields to ObjectField.
+ * - Resolves defaults (DEFAULTVALUE, FIXEDVALUE) and multi-value repetition (STRUCTURE === "M").
+ * - Delegates widget resolution and input width tokens purely to @/lib/cbs-form-spec.
+ */
+
 import { Minus, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { getInputWidthClass, resolveWidgetType } from "@/lib/cbs-form-spec";
 import { formatCurrency, formatNameToLabel } from "@/lib/core-utils";
-import { useFieldOptions } from "../hooks/use-field-options";
-import { useMultiValue } from "../hooks/use-multi-value";
-import type { UnifiedFieldFactoryProps } from "../types";
+import { CbsRecordFunction } from "@/types";
+import { useFieldOptions } from "../../hooks/use-field-options";
+import { useMultiValue } from "../../hooks/use-multi-value";
+import type { UnifiedFieldFactoryProps } from "../../types";
+import { renderFieldWidget } from "../widgets/widget-renderer";
 import { FieldRow } from "./field-row";
 import { ObjectField } from "./object-field";
-import { renderFieldWidget } from "./widget-renderer";
 
 function ScalarFieldFactory({
   field,
@@ -16,12 +27,12 @@ function ScalarFieldFactory({
   onChange,
   error,
   disabled = false,
-  mode = "I",
+  mode = CbsRecordFunction.INPUT,
   labelOverride,
   labelSuffix,
   actionBeforeColon,
 }: UnifiedFieldFactoryProps) {
-  const isInputMode = mode === "I";
+  const isInputMode = mode === CbsRecordFunction.INPUT;
   const isViewMode = !isInputMode;
   const isReadOnly = disabled || field.DISABLED || isViewMode;
   const effectiveLabel =

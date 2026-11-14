@@ -1,3 +1,13 @@
+/**
+ * @fileoverview High-Density Temporal Input Widget (Date, DateTime, Time)
+ * @module form-engine/widgets/date-widget
+ *
+ * Core Invariants:
+ * - Extends BaseWidgetProps.
+ * - Supports date, datetime-local, and time input formats.
+ * - Dual color scheme support (scheme-light dark:scheme-dark) for native picker dialogs.
+ */
+
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +20,7 @@ export interface DateWidgetProps extends BaseWidgetProps {
 
 export function DateWidget({
   id,
+  fieldKey: _fieldKey,
   value,
   onChange,
   disabled = false,

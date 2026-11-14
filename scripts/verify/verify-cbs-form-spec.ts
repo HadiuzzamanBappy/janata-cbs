@@ -14,12 +14,20 @@
 
 import {
   applyFieldTransform,
+  buildRenderBlocks,
   compileFormSpec,
   defaultWidthForLength,
+  deleteFieldValue,
   deriveSemanticWidth,
   evaluateFieldCascade,
   evaluateFieldCondition,
+  getBlockGapSectionIndex,
+  getFieldColSpanClass,
+  getFieldValue,
+  getGridColsClass,
+  getInputWidthClass,
   resolveWidgetType,
+  setFieldValue,
   validateSingleField,
   validateValues,
 } from "@/lib/cbs-form-spec";
@@ -173,8 +181,8 @@ async function runSuite() {
     wDate === "sm",
   );
 
-  const wExplicitPreserved = deriveSemanticWidth("lg", 4, "Text");
-  const resolvedSelect = resolveWidgetType("Text", {
+  const wExplicitPreserved = deriveSemanticWidth("lg", 4, "String");
+  const resolvedSelect = resolveWidgetType("String", {
     type: "O",
     data: [{ code: "A", label: "Active" }],
   });
@@ -250,6 +258,51 @@ async function runSuite() {
       customField?.REQUIRED === true,
   );
 
+  const advancedLayout: FormConfigRecord = {
+    title: "Advanced Layout",
+    frmElements: {
+      sections: [
+        {
+          id: "sec_adv",
+          containerType: "card",
+          fields: [
+            {
+              SN: "1",
+              NAME: "accountNumber",
+              LABEL: "A/C Number",
+              TYPE: "String",
+              STRUCTURE: "S",
+              LENGTH: 12,
+              TRANSFORM: "uppercase",
+              CASCADE: [{ when: "SAVINGS", set: { balance: 500 } }],
+              ON_CHANGE: { target: "accountTitle", action: "copy" },
+              HIDDEN_WHEN: { field: "USERDEFINEID", operator: "truthy" },
+              RATE_CONFIG: { decimals: 4, allowNegative: false, suffix: "%" },
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const compiledAdv = compileFormSpec(testModel, advancedLayout);
+  const advField = compiledAdv.frmElements.sections[0]?.fields[0];
+  recordTest(
+    "3.2 Preserves all advanced FormElement properties (CASCADE, TRANSFORM, RATE_CONFIG, ON_CHANGE, HIDDEN_WHEN)",
+    { fieldName: "accountNumber" },
+    {
+      transform: advField?.TRANSFORM,
+      hasCascade: Boolean(advField?.CASCADE),
+      hasOnChange: Boolean(advField?.ON_CHANGE),
+      hasHiddenWhen: Boolean(advField?.HIDDEN_WHEN),
+      hasRateConfig: Boolean(advField?.RATE_CONFIG),
+    },
+    advField?.TRANSFORM === "uppercase" &&
+      Array.isArray(advField?.CASCADE) &&
+      advField?.ON_CHANGE?.target === "accountTitle" &&
+      advField?.HIDDEN_WHEN !== undefined &&
+      advField?.RATE_CONFIG?.suffix === "%",
+  );
+
   // ── 4. Headless Value Validation ──
   console.log("\n── 4. Headless Runtime Value Validation (validateValues) ──");
   const requiredErrors = validateValues(fallback, {});
@@ -322,6 +375,76 @@ async function runSuite() {
     { value: false, length: 1, type: "Boolean" },
     { error: boolValid },
     boolValid === null,
+  );
+
+  const timeValid = validateSingleField(
+    { required: true, type: "Time", label: "Transaction Time" },
+    "14:30",
+  );
+  const timeInvalid = validateSingleField(
+    { required: true, type: "Time", label: "Transaction Time" },
+    "invalid-time",
+  );
+  recordTest(
+    "4.7 Validates Time format (HH:mm) accurately",
+    { valid: "14:30", invalid: "invalid-time" },
+    { validRes: timeValid, invalidRes: timeInvalid },
+    timeValid === null && timeInvalid === "Transaction Time must be a valid time (HH:mm)",
+  );
+
+  const customRuleErrors = validateSingleField(
+    {
+      required: true,
+      label: "Custom Code",
+      type: "String",
+      validation: {
+        matches: "^[A-Z]{3}$",
+        message: "Code must be exactly 3 uppercase letters",
+      },
+    },
+    "abcd",
+  );
+  recordTest(
+    "4.8 Evaluates custom validation matches regex with custom message",
+    { value: "abcd", regex: "^[A-Z]{3}$" },
+    { error: customRuleErrors },
+    customRuleErrors === "Code must be exactly 3 uppercase letters",
+  );
+
+  const nestedObjSection = [
+    {
+      id: "sec_obj",
+      containerType: "card" as const,
+      fields: [
+        {
+          SN: "1",
+          NAME: "AUDIT_DETAILS",
+          TYPE: "Json" as const,
+          STRUCTURE: "S" as const,
+          LENGTH: 0,
+          PROP: [
+            {
+              SN: "1.1",
+              NAME: "reviewer",
+              LABEL: "Reviewer Name",
+              TYPE: "String" as const,
+              STRUCTURE: "S" as const,
+              LENGTH: 35,
+              REQUIRED: true,
+            },
+          ],
+        },
+      ],
+    },
+  ];
+  const nestedErrors = validateValues(nestedObjSection, {
+    AUDIT_DETAILS: { reviewer: "" },
+  });
+  recordTest(
+    "4.9 Recursively validates nested sub-properties (PROP) in object fields",
+    { data: { AUDIT_DETAILS: { reviewer: "" } } },
+    nestedErrors,
+    nestedErrors["AUDIT_DETAILS.reviewer"] === "Reviewer Name is required",
   );
 
   // ── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──
@@ -419,6 +542,119 @@ async function runSuite() {
     { targetType: "Json" },
     cascadeJson,
     cascadeJson?.LENGTH === 0 && Array.isArray(cascadeJson?.PROP),
+  );
+
+  // ── 7. Render Block Clustering & Layout Navigation ──
+  console.log("\n── 7. Render Block Clustering & Layout Navigation ──");
+
+  const layoutSections = [
+    { id: "sec_card1", containerType: "card" as const, fields: [] },
+    { id: "sec_tab1", containerType: "tab" as const, groupId: "grp_tabs", fields: [] },
+    { id: "sec_tab2", containerType: "tab" as const, groupId: "grp_tabs", fields: [] },
+    { id: "sec_card2", containerType: "card" as const, fields: [] },
+  ];
+  const clusteredBlocks = buildRenderBlocks(layoutSections);
+  recordTest(
+    "7.1 Clusters contiguous tabs into tab-group block and keeps cards separate",
+    { totalSections: layoutSections.length },
+    { totalBlocks: clusteredBlocks.length, blockTypes: clusteredBlocks.map((b) => b.type) },
+    clusteredBlocks.length === 3 &&
+      clusteredBlocks[0]?.type === "single" &&
+      clusteredBlocks[1]?.type === "tab-group" &&
+      clusteredBlocks[1]?.tabSections.length === 2 &&
+      clusteredBlocks[2]?.type === "single",
+  );
+
+  const gapIdx = getBlockGapSectionIndex(clusteredBlocks, layoutSections, 2);
+  recordTest(
+    "7.2 Resolves raw section insertion index from block gap correctly",
+    { targetBlockGap: 2 },
+    { sectionIndex: gapIdx },
+    gapIdx === 3,
+  );
+
+  // ── 8. Layout Grid & Input Width Classes ──
+  console.log("\n── 8. Layout Grid & Input Width Classes ──");
+
+  const inputWidthSwitch = getInputWidthClass(undefined, undefined, "Boolean", "switch");
+  const inputWidthTime = getInputWidthClass(undefined, undefined, "Time", "time");
+  const inputWidthTextMd = getInputWidthClass("md", 35, "String", "text");
+  recordTest(
+    "8.1 Resolves specialized input widths for boolean, time, and standard semantic tokens",
+    { switch: "switch", time: "time", textMd: "md" },
+    { switchWidth: inputWidthSwitch, timeWidth: inputWidthTime, textWidth: inputWidthTextMd },
+    inputWidthSwitch === "w-auto" &&
+      inputWidthTime === "w-full sm:max-w-36" &&
+      inputWidthTextMd === "w-full sm:max-w-72",
+  );
+
+  const gridCols12 = getGridColsClass(12);
+  const gridCols2 = getGridColsClass(2);
+  recordTest(
+    "8.2 Maps grid column configuration to responsive grid CSS classes",
+    { cols12: 12, cols2: 2 },
+    { css12: gridCols12, css2: gridCols2 },
+    gridCols12 === "grid-cols-12" && gridCols2 === "grid-cols-1 md:grid-cols-2",
+  );
+
+  const colSpanSingle = getFieldColSpanClass(1, "md", 35, "String");
+  const colSpan12Md = getFieldColSpanClass(12, "md", 35, "String");
+  recordTest(
+    "8.3 Computes field cell column spans across single-col and 12-col grids",
+    { cols1: 1, cols12: 12 },
+    { span1: colSpanSingle, span12: colSpan12Md },
+    colSpanSingle === "w-full col-span-1" && colSpan12Md === "col-span-12 md:col-span-4",
+  );
+
+  // ── 9. Path Utilities (getFieldValue, setFieldValue, deleteFieldValue) ──
+  console.log("\n── 9. Path Utilities (getFieldValue, setFieldValue, deleteFieldValue) ──");
+
+  const initialRecord = {
+    accountNumber: "AC1001",
+    CUSTOMER: {
+      profile: {
+        name: "Jane Doe",
+      },
+      tags: ["vip", "retail"],
+    },
+    "FLAT.KEY": "DirectValue",
+  };
+
+  const directHit = getFieldValue(initialRecord, "FLAT.KEY");
+  const nestedHit = getFieldValue(initialRecord, "CUSTOMER.profile.name");
+  const missingHit = getFieldValue(initialRecord, "CUSTOMER.profile.missing");
+  recordTest(
+    "9.1 Safely reads direct flattened keys and deeply nested dot-paths",
+    { directPath: "FLAT.KEY", nestedPath: "CUSTOMER.profile.name" },
+    { directHit, nestedHit, missingHit },
+    directHit === "DirectValue" && nestedHit === "Jane Doe" && missingHit === undefined,
+  );
+
+  const updatedRecord = setFieldValue(initialRecord, "CUSTOMER.profile.name", "John Smith");
+  const addedArrayElem = setFieldValue(updatedRecord, "CUSTOMER.tags.2", "priority");
+  recordTest(
+    "9.2 Immutably sets nested object and array values without mutating source record",
+    { updatedPath: "CUSTOMER.profile.name", addedPath: "CUSTOMER.tags.2" },
+    {
+      originalName: initialRecord.CUSTOMER.profile.name,
+      updatedName: updatedRecord.CUSTOMER.profile.name,
+      newTag: addedArrayElem.CUSTOMER.tags[2],
+    },
+    initialRecord.CUSTOMER.profile.name === "Jane Doe" &&
+      updatedRecord.CUSTOMER.profile.name === "John Smith" &&
+      addedArrayElem.CUSTOMER.tags[2] === "priority",
+  );
+
+  const deletedRecord = deleteFieldValue(addedArrayElem, "CUSTOMER.profile.name");
+  recordTest(
+    "9.3 Immutably deletes nested keys without mutating source record",
+    { deletePath: "CUSTOMER.profile.name" },
+    {
+      deletedResult: getFieldValue(deletedRecord, "CUSTOMER.profile.name"),
+      priorResult: getFieldValue(addedArrayElem, "CUSTOMER.profile.name"),
+    },
+    getFieldValue(deletedRecord, "CUSTOMER.profile.name") === undefined &&
+      getFieldValue(addedArrayElem, "CUSTOMER.profile.name") === "John Smith",
   );
 
   // Consolidated Summary

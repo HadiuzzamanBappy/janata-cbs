@@ -1,11 +1,20 @@
+/**
+ * @fileoverview Card container for CBS dynamic form sections.
+ * Renders individual form sections with configurable variants (default, subtle, bordered,
+ * elevated, ghost), density settings, section badges, and collapsible state.
+ *
+ * @module features/form-engine/components/containers/card-container
+ */
+
 "use client";
 
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useContext, useState } from "react";
 import { cn } from "@/lib/core-utils";
+import { CbsRecordFunction } from "@/types";
 import { FormKernelContext } from "../../store/form-kernel-provider";
 import type { SectionCardProps } from "../../types";
-import { FieldGrid } from "../field-grid";
+import { FieldGrid } from "../fields/field-grid";
 
 export type CardContainerProps = SectionCardProps;
 
@@ -20,7 +29,7 @@ export function CardContainer({
   onChange,
   errors = {},
   disabled = false,
-  mode = "I",
+  mode = CbsRecordFunction.INPUT,
   hideHeader = false,
 }: CardContainerProps) {
   const hasKernel = Boolean(useContext(FormKernelContext));
@@ -30,7 +39,7 @@ export function CardContainer({
   );
 
   const numCols = section.columns || 1;
-  const isViewMode = mode !== "I";
+  const isViewMode = mode !== CbsRecordFunction.INPUT;
   const config = section.containerConfig || {};
 
   const hasHeader = Boolean(section.title || isCollapsible || config.badge);

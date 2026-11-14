@@ -1,6 +1,25 @@
+/**
+ * @fileoverview Multi-Value Repeatable Scalar Array Hook
+ * @module form-engine/hooks/use-multi-value
+ *
+ * Core Invariants:
+ * - Manages repeatable scalar array states (STRUCTURE === "M").
+ * - Uses stable client tokens (generateClientToken("mv")) instead of non-deterministic timestamps.
+ * - Provides immutable array item mutations (append, insert at index, remove).
+ */
+
 import { useEffect, useMemo, useState } from "react";
 import { generateClientToken } from "@/lib/core-utils";
 
+/**
+ * Manages repeatable array items for multi-value scalar fields.
+ *
+ * @param value Current field value (scalar or array).
+ * @param isMulti Boolean indicating whether the field allows multiple values.
+ * @param onChange Field change dispatcher.
+ * @param fieldKey Field identifier key.
+ * @returns Stable item keys, normalized array values, and array mutation handlers.
+ */
 export function useMultiValue(
   value: unknown,
   isMulti: boolean,

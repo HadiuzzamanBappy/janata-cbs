@@ -185,17 +185,25 @@ export function FieldPalette({
               <div className="space-y-1">
                 {paletteItems.map((item: PaletteItem) => {
                   if (item.kind === "single") {
+                    const isSelected =
+                      ctx?.selectedFieldId === item.property.NAME ||
+                      ctx?.selectedFieldId === item.property.SN;
                     return (
                       <PaletteVariableItem
                         key={item.property.NAME}
                         property={item.property}
                         isPlaced={usedFieldNames.has(item.property.NAME)}
+                        isSelected={isSelected}
                         disabled={disabled}
                         onAddField={handleSafeAddField}
                         onHighlightField={onHighlightField}
                       />
                     );
                   }
+
+                  const isGroupSelected =
+                    ctx?.selectedFieldId === item.parent.NAME ||
+                    ctx?.selectedFieldId === item.parent.SN;
 
                   return (
                     <PaletteObjectGroup
@@ -204,6 +212,7 @@ export function FieldPalette({
                       childProperties={item.children}
                       isCollapsed={collapsedGroups[item.parent.SN] ?? false}
                       usedFieldNames={usedFieldNames}
+                      isSelected={isGroupSelected}
                       disabled={disabled}
                       onToggleCollapse={toggleGroupCollapse}
                       onAddField={handleSafeAddField}

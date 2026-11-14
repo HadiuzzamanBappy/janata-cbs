@@ -5,36 +5,18 @@ import { CSS } from "@dnd-kit/utilities";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import { useDesignerContext } from "../../context/designer-context";
 import { CanvasSectionGrid } from "../canvas-section-grid";
-import type { AddSectionFn } from "../canvas-types";
-import { TabGroupHeader } from "./tab-group/tab-group-header";
-import { useTabGroupDrop } from "./tab-group/use-tab-group-drop";
+import { TabGroupHeader } from "./tab-group-header";
+import { useTabGroupDrop } from "./use-tab-group-drop";
 
 export interface TabGroupBlockProps {
   groupId: string;
   tabSections: FormSection[];
-  selectedSectionId: string | null;
-  selectedFieldId: string | null;
-  onSelectSection: (id: string | null) => void;
-  onSelectField: (sectionId: string | null, fieldId: string | null) => void;
-  onAddSection?: AddSectionFn;
-  onRemoveSection: (id: string) => void;
-  onRemoveField: (fieldId: string) => void;
-  onConvertSectionZone?: (
-    sectionId: string,
-    targetType: "card" | "tab",
-    opts?: { groupId?: string; groupTitle?: string },
-  ) => void;
-  onReorderSections?: (activeId: string, overId: string, insertIndex?: number) => void;
-  onMoveFieldAcrossSections?: (
-    sourceSecId: string,
-    targetSecId: string,
-    fieldId: string,
-    targetFieldId?: string,
-    insertAtIndex?: number,
-  ) => void;
-  onDropPaletteItem?: (payload: unknown, targetSectionId?: string) => void;
-  onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
+  selectedSectionId?: string | null;
+  selectedFieldId?: string | null;
+  onSelectSection?: (id: string | null) => void;
+  onSelectField?: (sectionId: string | null, fieldId: string | null) => void;
   isCanvasDragging?: boolean;
   disabled?: boolean;
 }
@@ -43,24 +25,16 @@ export interface TabGroupBlockProps {
  * Tab Group Block.
  * Renders an independent multi-page tabbed container block on the canvas.
  */
-export function TabGroupBlock({
-  groupId,
-  tabSections,
-  selectedSectionId,
-  selectedFieldId,
-  onSelectSection,
-  onSelectField,
-  onAddSection,
-  onRemoveSection,
-  onRemoveField,
-  onConvertSectionZone,
-  onReorderSections,
-  onMoveFieldAcrossSections,
-  onDropPaletteItem,
-  onMergeTabGroup,
-  isCanvasDragging = false,
-  disabled,
-}: TabGroupBlockProps) {
+export function TabGroupBlock(props: TabGroupBlockProps) {
+  const context = useDesignerContext();
+  const { groupId, tabSections, isCanvasDragging = false } = props;
+  const selectedSectionId =
+    props.selectedSectionId !== undefined ? props.selectedSectionId : context.selectedSectionId;
+  const selectedFieldId =
+    props.selectedFieldId !== undefined ? props.selectedFieldId : context.selectedFieldId;
+  const onSelectSection = props.onSelectSection ?? context.handleCanvasSelectSection;
+  const onSelectField = props.onSelectField ?? context.handleCanvasSelectField;
+  const disabled = props.disabled ?? context.disabled;
   const firstSection = tabSections[0];
   const [activeTabIdState, setActiveTabIdState] = React.useState<string>(firstSection?.id || "");
 
@@ -89,10 +63,6 @@ export function TabGroupBlock({
     groupId,
     tabSections,
     activeSection,
-    disabled,
-    onConvertSectionZone,
-    onMergeTabGroup,
-    onDropPaletteItem,
   });
 
   const style: React.CSSProperties = {
@@ -106,12 +76,33 @@ export function TabGroupBlock({
     tabSections.some((s) => s.id === selectedSectionId) &&
     !selectedFieldId;
 
+  const config = activeSection?.containerConfig || {};
+  const tabVariant = config.tabVariant || "card";
+  const heightMode = config.heightMode || "auto";
+  const minHeightVal = config.minHeight
+    ? typeof config.minHeight === "number"
+      ? `${config.minHeight}px`
+      : config.minHeight
+    : undefined;
+
+  const containerVariantClass = {
+    card: "rounded-lg border border-border/80 bg-card/60 shadow-2xs",
+    workbench: "rounded-none border-b border-border/80 bg-transparent shadow-none",
+    pills: "rounded-lg border border-border/60 bg-muted/20 shadow-2xs",
+  }[tabVariant];
+
+  const mergedStyle: React.CSSProperties = {
+    ...style,
+    ...(minHeightVal ? { minHeight: minHeightVal } : {}),
+  };
+
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: canvas selectable container
     <section
+      data-tab-group-container="true"
       aria-label="Tab group container"
       ref={setNodeRef}
-      style={style}
+      style={mergedStyle}
       onClick={(e) => {
         e.stopPropagation();
         if (activeSection) {
@@ -120,7 +111,9 @@ export function TabGroupBlock({
         }
       }}
       className={cn(
-        "rounded-lg border border-border/80 bg-card/60 overflow-hidden transition-all relative shadow-2xs first:mt-0 my-1",
+        containerVariantClass,
+        heightMode === "fill" && "min-h-[350px]",
+        "overflow-hidden transition-all relative first:mt-0 my-1",
         isGroupExplicitlySelected && "border-primary/80 ring-1 ring-primary/30",
         isDragging && "shadow-lg ring-2 ring-primary/40",
       )}
@@ -129,20 +122,10 @@ export function TabGroupBlock({
         groupId={groupId}
         tabSections={tabSections}
         activeTabId={activeTabId}
-        selectedSectionId={selectedSectionId}
-        disabled={disabled}
         isCanvasDragging={isCanvasDragging}
         dropZone={dropZone}
         attributes={attributes}
         listeners={listeners}
-        onSelectSection={onSelectSection}
-        onSelectField={onSelectField}
-        onAddSection={onAddSection}
-        onRemoveSection={onRemoveSection}
-        onConvertSectionZone={onConvertSectionZone}
-        onReorderSections={onReorderSections}
-        onMoveFieldAcrossSections={onMoveFieldAcrossSections}
-        onDropPaletteItem={onDropPaletteItem}
         onHeaderDragOver={handleHeaderDragOver}
         onHeaderDragLeave={handleHeaderDragLeave}
         onHeaderDrop={handleHeaderDrop}
@@ -158,16 +141,7 @@ export function TabGroupBlock({
           onDrop={handleBodyDrop}
           className={cn("p-2.5 transition-colors", dropZone === "body" && "bg-primary/5")}
         >
-          <CanvasSectionGrid
-            section={activeSection}
-            selectedFieldId={selectedFieldId}
-            onSelectSection={onSelectSection}
-            onSelectField={onSelectField}
-            onRemoveField={onRemoveField}
-            onDropPaletteItem={onDropPaletteItem}
-            isNativeOver={dropZone === "body"}
-            disabled={disabled}
-          />
+          <CanvasSectionGrid section={activeSection} isNativeOver={dropZone === "body"} />
         </div>
       )}
     </section>

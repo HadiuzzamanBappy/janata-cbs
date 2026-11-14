@@ -12,33 +12,41 @@ import { FormRenderer } from "@/features/form-engine";
 import {
   CONTAINER_PROPERTIES_SECTION,
   ROOT_FORM_PROPERTIES_SECTION,
+  TAB_PROPERTIES_SECTIONS,
 } from "@/features/system/form-config/fields/fc-canvas-fields";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 
 export interface RootCanvasInspectorProps {
-  columns?: number;
-  density?: string;
-  onUpdateFormConfig?: (patch: { columns?: number; density?: string }) => void;
+  layout?: "horizontal" | "stacked";
+  density?: "compact" | "normal" | "spacious";
+  onUpdateFormConfig?: (patch: {
+    layout?: "horizontal" | "stacked";
+    density?: "compact" | "normal" | "spacious";
+  }) => void;
   disabled?: boolean;
 }
 
 export function RootCanvasInspector({
-  columns = 1,
+  layout = "horizontal",
   density = "compact",
   onUpdateFormConfig,
   disabled = false,
 }: RootCanvasInspectorProps) {
-  const values = React.useMemo(() => ({ columns, density }), [columns, density]);
+  const values = React.useMemo(() => ({ layout, density }), [layout, density]);
 
   const handlePropertyChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
       if (!onUpdateFormConfig) return;
-      if (fieldKey === "columns") {
-        onUpdateFormConfig({ columns: Number(value) || 1 });
+      if (fieldKey === "layout") {
+        onUpdateFormConfig({
+          layout: (value as "horizontal" | "stacked") || "horizontal",
+        });
       } else if (fieldKey === "density") {
-        onUpdateFormConfig({ density: value as string });
+        onUpdateFormConfig({
+          density: (value as "compact" | "normal") || "compact",
+        });
       }
     },
     [onUpdateFormConfig],
@@ -54,6 +62,7 @@ export function RootCanvasInspector({
         mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
         hideHeader
         layout="stacked"
+        className="overflow-visible"
       />
     </div>
   );
@@ -70,25 +79,52 @@ export function ContainerInspector({
   onUpdateSection,
   disabled = false,
 }: ContainerInspectorProps) {
+  const isTab = section.containerType === "tab";
+  const inspectorSections = isTab ? TAB_PROPERTIES_SECTIONS : [CONTAINER_PROPERTIES_SECTION];
+
+  // Normalized values: maps legacy variant to new atomic fields so inspector switches reflect legacy states accurately
+  const normalizedValues = React.useMemo(() => {
+    const raw = section as Record<string, unknown>;
+    const cfg = section.containerConfig || {};
+    return {
+      ...raw,
+      containerConfig: {
+        ...cfg,
+        showHeader: cfg.showHeader !== undefined ? cfg.showHeader : cfg.variant !== "ghost",
+        bordered: cfg.bordered !== undefined ? cfg.bordered : cfg.variant !== "ghost",
+        background:
+          cfg.background ??
+          (cfg.variant === "ghost" ? "none" : cfg.variant === "subtle" ? "subtle" : "regular"),
+      },
+    };
+  }, [section]);
+
   const handleSectionPropertyChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
       const finalVal = fieldKey === "columns" ? Number(value) || 1 : value;
-      const updated = setFieldValue(section as Record<string, unknown>, fieldKey, finalVal);
+      let updated = setFieldValue(section as Record<string, unknown>, fieldKey, finalVal);
+      if (isTab && fieldKey === "title") {
+        updated = {
+          ...updated,
+          groupTitle: String(value || ""),
+        };
+      }
       onUpdateSection(updated as Partial<FormSection>);
     },
-    [section, onUpdateSection],
+    [section, isTab, onUpdateSection],
   );
 
   return (
     <div className="p-3 select-none text-xs">
       <FormRenderer
-        frmElements={{ sections: [CONTAINER_PROPERTIES_SECTION] }}
-        values={section as Record<string, unknown>}
+        frmElements={{ sections: inspectorSections }}
+        values={normalizedValues}
         onChange={handleSectionPropertyChange}
         disabled={disabled}
         mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-        hideHeader
+        hideHeader={!isTab}
         layout="stacked"
+        className="overflow-visible"
       />
     </div>
   );

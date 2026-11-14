@@ -11,6 +11,7 @@ export interface PaletteObjectGroupProps {
   childProperties: ModelProperty[];
   isCollapsed: boolean;
   usedFieldNames: Set<string>;
+  isSelected?: boolean;
   disabled?: boolean;
   onToggleCollapse: (sn: string) => void;
   onAddField: (template: Partial<FormElement>) => void;
@@ -22,6 +23,7 @@ export function PaletteObjectGroup({
   childProperties,
   isCollapsed,
   usedFieldNames,
+  isSelected = false,
   disabled,
   onToggleCollapse,
   onAddField,
@@ -61,7 +63,11 @@ export function PaletteObjectGroup({
     <div
       className={cn(
         "rounded border text-[11px] transition-all bg-card/60 shadow-2xs overflow-hidden",
-        isParentPlaced ? "border-border bg-muted/15" : "border-primary/30 bg-primary/5",
+        isSelected
+          ? "border-primary bg-primary/10 ring-1 ring-primary/40 font-semibold shadow-2xs"
+          : isParentPlaced
+            ? "border-border bg-muted/15"
+            : "border-primary/30 bg-primary/5",
       )}
     >
       {/* Object Group Header */}
@@ -76,7 +82,7 @@ export function PaletteObjectGroup({
             : "",
         )}
       >
-        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1 font-mono">
           <button
             type="button"
             onClick={(e) => {
@@ -91,13 +97,15 @@ export function PaletteObjectGroup({
 
           <Boxes className="size-3 text-primary shrink-0" />
 
+          <span className="text-[10px] text-muted-foreground shrink-0">#{parent.SN}</span>
+
           <button
             type="button"
             onClick={() => onHighlightField?.(parent.NAME)}
-            className="font-medium text-foreground truncate cursor-pointer hover:underline text-left"
-            title={`${formatNameToLabel(parent.NAME)} (${parent.STRUCTURE === "M" ? "Multi" : "Single"} Object)`}
+            className="font-medium text-foreground truncate cursor-pointer hover:underline text-left text-[11px]"
+            title={`${parent.NAME} (${parent.STRUCTURE === "M" ? "Multi" : "Single"} Object)`}
           >
-            {formatNameToLabel(parent.NAME)}
+            {parent.NAME}
           </button>
         </div>
 

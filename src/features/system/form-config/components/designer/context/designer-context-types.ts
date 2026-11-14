@@ -7,14 +7,14 @@ export interface DesignerContextValue {
   formTitle?: string;
   formDescription?: string;
   authNumber?: number;
-  rootColumns?: number;
-  rootDensity?: string;
+  rootLayout?: "horizontal" | "stacked";
+  rootDensity?: "compact" | "normal" | "spacious";
   onUpdateFormConfig?: (patch: {
     title?: string;
     description?: string;
     authNumber?: number;
-    columns?: number;
-    density?: string;
+    layout?: "horizontal" | "stacked";
+    density?: "compact" | "normal" | "spacious";
   }) => void;
   targetModel?: string;
   modelProperties?: ModelProperty[];
@@ -40,12 +40,17 @@ export interface DesignerContextValue {
   onSelectField: (id: string | null) => void;
   handleHighlightField: (fieldName: string) => void;
   handleCanvasSelectField: (sectionId: string | null, fieldId: string | null) => void;
+  handleCanvasSelectSection: (sectionId: string | null) => void;
   handleCanvasBackgroundClick: () => void;
   // Mutation Handlers
   onAddSection: AddSectionFn;
   onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection: (id: string) => void;
-  onAddFieldToSection: (sectionId: string, template?: Partial<FormElement>) => void;
+  onAddFieldToSection: (
+    sectionId: string,
+    template?: Partial<FormElement>,
+    insertIndex?: number,
+  ) => void;
   onUpdateField: (fieldId: string, patch: Partial<FormElement>) => void;
   onRemoveField: (fieldId: string) => void;
   onReorderFields: (sectionId: string, activeId: string, overId: string) => void;
@@ -62,6 +67,7 @@ export interface DesignerContextValue {
     targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
+  onUngroupSection?: (id: string) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   handlePaletteAddField: (template: Partial<FormElement>) => void;
   handleDropPaletteItem: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
@@ -72,14 +78,14 @@ export interface DesignerProviderProps {
   formTitle?: string;
   formDescription?: string;
   authNumber?: number;
-  rootColumns?: number;
-  rootDensity?: string;
+  rootLayout?: "horizontal" | "stacked";
+  rootDensity?: "compact" | "normal" | "spacious";
   onUpdateFormConfig?: (patch: {
     title?: string;
     description?: string;
     authNumber?: number;
-    columns?: number;
-    density?: string;
+    layout?: "horizontal" | "stacked";
+    density?: "compact" | "normal" | "spacious";
   }) => void;
   isCompact?: boolean;
   targetModel?: string;
@@ -92,7 +98,11 @@ export interface DesignerProviderProps {
   onAddSection: AddSectionFn;
   onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
   onRemoveSection: (id: string) => void;
-  onAddFieldToSection: (sectionId: string, template?: Partial<FormElement>) => void;
+  onAddFieldToSection: (
+    sectionId: string,
+    template?: Partial<FormElement>,
+    insertIndex?: number,
+  ) => void;
   onUpdateField: (fieldId: string, patch: Partial<FormElement>) => void;
   onRemoveField: (fieldId: string) => void;
   onReorderFields: (sectionId: string, activeId: string, overId: string) => void;
@@ -109,6 +119,7 @@ export interface DesignerProviderProps {
     targetType: "card" | "tab",
     opts?: { groupId?: string; groupTitle?: string },
   ) => void;
+  onUngroupSection?: (id: string) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   disabled?: boolean;
 }

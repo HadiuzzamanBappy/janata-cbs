@@ -45,34 +45,82 @@ export function TabGroupContainer({
 
   // Visual config from active tab or first tab
   const activeConfig = activeSection?.containerConfig || {};
+  const tabVariant = activeConfig.tabVariant || "card";
+  const heightMode = activeConfig.heightMode || "auto";
+  const minHeightStyle = activeConfig.minHeight
+    ? typeof activeConfig.minHeight === "number"
+      ? `${activeConfig.minHeight}px`
+      : activeConfig.minHeight
+    : undefined;
+
+  const containerVariantClass = {
+    card: "rounded border border-border/80 bg-card/60 shadow-2xs",
+    workbench: "rounded-none border-b border-border/80 bg-transparent shadow-none",
+    pills: "rounded-lg border border-border/60 bg-muted/20 shadow-2xs",
+  }[tabVariant];
+
+  const containerHeightClass = {
+    auto: "",
+    fill: "flex-1 h-full min-h-0 flex flex-col",
+    fixed: "flex flex-col",
+  }[heightMode];
+
+  const headerClass = {
+    card: "flex h-9 border-b border-border/80 bg-muted/40 p-0 gap-0 items-end select-none overflow-x-auto overflow-y-hidden no-scrollbar",
+    workbench:
+      "flex h-9 border-b border-border/80 bg-muted/30 p-0 gap-0 items-end select-none overflow-x-auto overflow-y-hidden no-scrollbar",
+    pills:
+      "flex h-10 border-b border-border/40 bg-muted/30 px-2 py-1 gap-1 items-center select-none overflow-x-auto overflow-y-hidden no-scrollbar",
+  }[tabVariant];
 
   return (
     <div
+      style={minHeightStyle ? { minHeight: minHeightStyle } : undefined}
       className={cn(
-        "rounded border border-border/80 bg-card/60 shadow-2xs overflow-hidden",
+        containerVariantClass,
+        containerHeightClass,
+        "overflow-hidden",
         activeConfig.customClass,
       )}
     >
       {/* Workbench TabBar Header */}
-      <div className="flex border-b border-border/80 bg-muted/40 p-0 gap-0 items-end select-none overflow-x-auto">
+      <div className={headerClass}>
         {tabSections.map((tab) => {
           const isActive = tab.id === currentActiveId;
           const config = tab.containerConfig || {};
+          const isPills = tabVariant === "pills";
+
+          const buttonClass = isPills
+            ? cn(
+                "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer whitespace-nowrap",
+                isActive
+                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                  : "text-muted-foreground hover:bg-background/40 hover:text-foreground",
+              )
+            : cn(
+                "relative flex items-center gap-1.5 h-8 px-3 text-xs font-medium transition-all duration-150 cursor-pointer whitespace-nowrap rounded-none",
+                isActive
+                  ? "bg-background text-foreground font-semibold border-t border-l border-r border-border/80 border-b-0 shadow-2xs z-10 -mb-px after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
+                  : "text-muted-foreground hover:bg-background/50 hover:text-foreground border-transparent",
+              );
+
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => onTabChange(groupId, tab.id)}
-              className={cn(
-                "relative flex items-center gap-1.5 h-8 px-3 text-xs font-medium transition-all duration-150 cursor-pointer whitespace-nowrap rounded-none",
-                isActive
-                  ? "bg-background text-foreground font-semibold border-t border-l border-r border-border/80 border-b-0 shadow-2xs z-10 -mb-px after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                  : "text-muted-foreground hover:bg-background/50 hover:text-foreground border-transparent",
-              )}
+              className={buttonClass}
             >
               <span>{tab.groupTitle || tab.title || "Tab"}</span>
               {config.badge && (
-                <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-mono rounded bg-muted text-muted-foreground">
+                <span
+                  className={cn(
+                    "inline-flex items-center px-1.5 py-0.2 text-[9px] font-mono rounded",
+                    isPills && isActive
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
                   {config.badge}
                 </span>
               )}
@@ -83,7 +131,13 @@ export function TabGroupContainer({
 
       {/* Active Tab Body without duplicate inner header */}
       {activeSection && (
-        <div className="p-3">
+        <div
+          className={cn(
+            "p-3",
+            heightMode === "fill" && "flex-1 overflow-y-auto min-h-0",
+            heightMode === "fixed" && "flex-1",
+          )}
+        >
           <CardContainer
             key={activeSection.id}
             section={activeSection}

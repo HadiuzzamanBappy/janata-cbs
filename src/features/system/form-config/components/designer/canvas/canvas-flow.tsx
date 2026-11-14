@@ -3,24 +3,26 @@
 import * as React from "react";
 import { getBlockGapSectionIndex, type RenderBlock } from "@/lib/cbs-form-spec";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
-import { CardContainerBlock } from "./blocks/card-container-block";
-import { StandaloneFieldBlock } from "./blocks/standalone-field-block";
-import { TabGroupBlock } from "./blocks/tab-group-block";
+import { useDesignerContext } from "../context/designer-context";
+import { CardContainerBlock, StandaloneFieldBlock } from "./canvas-card-blocks";
+import { CanvasGapIndicator } from "./canvas-gap-indicator";
 import type { AddSectionFn } from "./canvas-types";
-import { InsertionIndicator } from "./insertion-indicator";
+import { TabGroupBlock } from "./tab-group/tab-group-block";
 
-export interface CanvasBlockFlowProps {
+export interface CanvasFlowProps {
   blocks: RenderBlock[];
-  sections: FormSection[];
-  selectedSectionId: string | null;
-  selectedFieldId: string | null;
   activeGapIndex?: number | null;
-  onSelectSection: (id: string | null) => void;
-  onSelectField: (sectionId: string | null, fieldId: string | null) => void;
+  isCanvasDragging?: boolean;
+  // Optional overrides (fallback to useDesignerContext)
+  sections?: FormSection[];
+  selectedSectionId?: string | null;
+  selectedFieldId?: string | null;
+  onSelectSection?: (id: string | null) => void;
+  onSelectField?: (sectionId: string | null, fieldId: string | null) => void;
   onAddSection?: AddSectionFn;
-  onUpdateSection: (id: string, patch: Partial<FormSection>) => void;
-  onRemoveSection: (id: string) => void;
-  onRemoveField: (fieldId: string) => void;
+  onUpdateSection?: (id: string, patch: Partial<FormSection>) => void;
+  onRemoveSection?: (id: string) => void;
+  onRemoveField?: (fieldId: string) => void;
   onConvertSectionZone?: (
     sectionId: string,
     targetType: "card" | "tab",
@@ -36,35 +38,24 @@ export interface CanvasBlockFlowProps {
   ) => void;
   onDropPaletteItem?: (payload: unknown, targetSectionId?: string, insertIndex?: number) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
-  isCanvasDragging?: boolean;
   disabled?: boolean;
 }
 
+export type CanvasBlockFlowProps = CanvasFlowProps;
+
 /**
- * Universal Canvas Block Flow.
+ * Universal Canvas Flow.
  * Renders the vertical, open flow of independent blocks (Standalone Fields,
  * Cards, and Tab Groups) interleaved with live insertion placement indicators.
  */
-export function CanvasBlockFlow({
-  blocks,
-  sections,
-  selectedSectionId,
-  selectedFieldId,
-  activeGapIndex,
-  onSelectSection,
-  onSelectField,
-  onAddSection,
-  onUpdateSection,
-  onRemoveSection,
-  onRemoveField,
-  onConvertSectionZone,
-  onReorderSections,
-  onMoveFieldAcrossSections,
-  onDropPaletteItem,
-  onMergeTabGroup,
-  isCanvasDragging,
-  disabled,
-}: CanvasBlockFlowProps) {
+export function CanvasFlow(props: CanvasFlowProps) {
+  const context = useDesignerContext();
+  const { blocks, activeGapIndex, isCanvasDragging } = props;
+
+  const sections = props.sections ?? context.sections;
+  const onDropPaletteItem = props.onDropPaletteItem ?? context.handleDropPaletteItem;
+  const disabled = props.disabled ?? context.disabled;
+
   const handleDropAtGap = (payload: unknown, gapIndex: number) => {
     if (onDropPaletteItem) {
       const sectionInsertIndex = getBlockGapSectionIndex(blocks, sections, gapIndex);
@@ -75,7 +66,7 @@ export function CanvasBlockFlow({
   return (
     <div className="flex flex-col min-h-full pt-0 pb-2">
       {/* 1. Top insertion placement slot */}
-      <InsertionIndicator
+      <CanvasGapIndicator
         id="gap-top"
         gapIndex={0}
         isActive={activeGapIndex === 0}
@@ -94,23 +85,10 @@ export function CanvasBlockFlow({
                 <TabGroupBlock
                   groupId={block.groupId}
                   tabSections={block.tabSections}
-                  selectedSectionId={selectedSectionId}
-                  selectedFieldId={selectedFieldId}
-                  onSelectSection={onSelectSection}
-                  onSelectField={onSelectField}
-                  onAddSection={onAddSection}
-                  onRemoveSection={onRemoveSection}
-                  onRemoveField={onRemoveField}
-                  onConvertSectionZone={onConvertSectionZone}
-                  onReorderSections={onReorderSections}
-                  onMoveFieldAcrossSections={onMoveFieldAcrossSections}
-                  onDropPaletteItem={onDropPaletteItem}
-                  onMergeTabGroup={onMergeTabGroup}
                   isCanvasDragging={isCanvasDragging}
-                  disabled={disabled}
                 />
               </div>
-              <InsertionIndicator
+              <CanvasGapIndicator
                 id={`gap-${nextGapIndex}`}
                 gapIndex={nextGapIndex}
                 isActive={activeGapIndex === nextGapIndex}
@@ -129,17 +107,9 @@ export function CanvasBlockFlow({
           return (
             <React.Fragment key={`standalone-${sec.id}`}>
               <div data-canvas-block={idx} className="w-full">
-                <StandaloneFieldBlock
-                  section={sec}
-                  selectedFieldId={selectedFieldId}
-                  onSelectSection={onSelectSection}
-                  onSelectField={onSelectField}
-                  onRemoveSection={onRemoveSection}
-                  onRemoveField={onRemoveField}
-                  disabled={disabled}
-                />
+                <StandaloneFieldBlock section={sec} />
               </div>
-              <InsertionIndicator
+              <CanvasGapIndicator
                 id={`gap-${nextGapIndex}`}
                 gapIndex={nextGapIndex}
                 isActive={activeGapIndex === nextGapIndex}
@@ -153,21 +123,9 @@ export function CanvasBlockFlow({
         return (
           <React.Fragment key={`card-${sec.id}`}>
             <div data-canvas-block={idx} className="w-full">
-              <CardContainerBlock
-                section={sec}
-                isSecSelected={selectedSectionId === sec.id}
-                selectedFieldId={selectedFieldId}
-                onSelectSection={onSelectSection}
-                onSelectField={onSelectField}
-                onUpdateSection={onUpdateSection}
-                onRemoveSection={onRemoveSection}
-                onRemoveField={onRemoveField}
-                onConvertSectionZone={onConvertSectionZone}
-                onDropPaletteItem={onDropPaletteItem}
-                disabled={disabled}
-              />
+              <CardContainerBlock section={sec} />
             </div>
-            <InsertionIndicator
+            <CanvasGapIndicator
               id={`gap-${nextGapIndex}`}
               gapIndex={nextGapIndex}
               isActive={activeGapIndex === nextGapIndex}
@@ -180,3 +138,5 @@ export function CanvasBlockFlow({
     </div>
   );
 }
+
+export { CanvasFlow as CanvasBlockFlow };

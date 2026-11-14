@@ -12,10 +12,12 @@ import * as React from "react";
 
 export interface FormLayoutContextValue {
   layout: "horizontal" | "stacked";
+  density: "compact" | "normal" | "spacious";
 }
 
 export const FormLayoutContext = React.createContext<FormLayoutContextValue>({
   layout: "horizontal",
+  density: "compact",
 });
 
 /**

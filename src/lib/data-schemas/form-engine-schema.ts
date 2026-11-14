@@ -277,10 +277,18 @@ export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
 export const containerConfigSchema = z.object({
   variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
   density: z.enum(["compact", "normal", "spacious"]).optional(),
+  showHeader: z.boolean().default(true).optional(),
+  bordered: z.boolean().default(true).optional(),
+  background: z.enum(["regular", "subtle", "none"]).default("regular").optional(),
+
+  // Tab Group container styling & height modes
+  tabVariant: z.enum(["card", "workbench", "pills"]).default("card").optional(),
+  heightMode: z.enum(["auto", "fill", "fixed"]).default("auto").optional(),
+  minHeight: z.union([z.number(), z.string()]).optional(),
+
   badge: z.string().optional(),
   badgeVariant: z.enum(["default", "secondary", "outline", "destructive"]).optional(),
   icon: z.string().optional(),
-  bordered: z.boolean().optional(),
   accentColor: z.string().optional(),
   customClass: z.string().optional(),
 });
@@ -313,6 +321,7 @@ export type FormSection = z.infer<typeof formSectionSchema>;
 
 export const formElementsContainerSchema = z.object({
   columns: z.number().min(1).max(4).default(1).optional(),
+  layout: z.enum(["horizontal", "stacked"]).default("horizontal").optional(),
   density: z.enum(["compact", "normal", "spacious"]).default("compact").optional(),
   sections: z.array(formSectionSchema).default([]),
 });

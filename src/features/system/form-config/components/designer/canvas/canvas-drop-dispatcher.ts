@@ -2,10 +2,15 @@
  * @fileoverview Palette drop event dispatcher for Form Designer Canvas.
  * Dispatches variables or structural container presets dropped onto canvas sections.
  *
- * @module features/system/form-config/components/designer/canvas/palette-drop-dispatcher
+ * @module features/system/form-config/components/designer/canvas/canvas-drop-dispatcher
  */
 
-import type { FormContainerType, FormElement, FormSection } from "@/lib/data-schemas";
+import type {
+  ContainerConfig,
+  FormContainerType,
+  FormElement,
+  FormSection,
+} from "@/lib/data-schemas";
 import type { AddSectionFn } from "./canvas-types";
 
 export interface CreateNewFieldOptions {
@@ -47,7 +52,11 @@ export interface DispatchPaletteDropOptions {
   sections: FormSection[];
   targetSectionId?: string;
   insertIndex?: number;
-  onAddFieldToSection: (sectionId: string, template?: Partial<FormElement>) => void;
+  onAddFieldToSection: (
+    sectionId: string,
+    template?: Partial<FormElement>,
+    insertIndex?: number,
+  ) => void;
   onAddSection: AddSectionFn;
 }
 
@@ -73,12 +82,13 @@ export function dispatchPaletteDrop({
     groupId?: string;
     groupTitle?: string;
     columns?: number;
+    containerConfig?: ContainerConfig;
   };
 
   const droppedField = data.element || data.field;
   if ((data.type === "palette-variable" || data.type === "palette-field") && droppedField) {
     if (targetSectionId && targetSectionId !== "canvas-root") {
-      onAddFieldToSection(targetSectionId, droppedField);
+      onAddFieldToSection(targetSectionId, droppedField, insertIndex);
     } else {
       // Direct drop on canvas root: create an independent standalone field block at targetIndex.
       // Never silently inject into an existing selected section.
@@ -117,6 +127,7 @@ export function dispatchPaletteDrop({
       effectiveGroupTitle,
       insertIndex,
       data.columns,
+      data.containerConfig,
     );
   }
 }

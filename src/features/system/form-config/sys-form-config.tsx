@@ -47,6 +47,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
     addSection,
     updateSection,
     removeSection,
+    ungroupSection,
     addFieldToSection,
     updateField,
     removeField,
@@ -93,7 +94,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             formTitle={formData.title}
             formDescription={formData.description}
             authNumber={formData.authNumber}
-            rootColumns={formData.frmElements?.columns ?? 1}
+            rootLayout={formData.frmElements?.layout ?? "horizontal"}
             rootDensity={formData.frmElements?.density ?? "compact"}
             onUpdateFormConfig={(patch) => {
               setFormData((prev) => ({
@@ -104,10 +105,8 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
                 frmElements: {
                   ...prev.frmElements,
                   sections: prev.frmElements?.sections || [],
-                  ...(patch.columns !== undefined ? { columns: patch.columns } : {}),
-                  ...(patch.density !== undefined
-                    ? { density: patch.density as "compact" | "normal" | "spacious" }
-                    : {}),
+                  ...(patch.layout !== undefined ? { layout: patch.layout } : {}),
+                  ...(patch.density !== undefined ? { density: patch.density } : {}),
                 },
               }));
             }}
@@ -121,6 +120,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             onAddSection={addSection}
             onUpdateSection={updateSection}
             onRemoveSection={removeSection}
+            onUngroupSection={ungroupSection}
             onAddFieldToSection={addFieldToSection}
             onUpdateField={updateField}
             onRemoveField={removeField}
@@ -157,6 +157,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
       addSection,
       updateSection,
       removeSection,
+      ungroupSection,
       addFieldToSection,
       updateField,
       removeField,

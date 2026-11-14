@@ -27,7 +27,7 @@ export function useFcFieldOps(
           SN: fieldSn,
           NAME: fieldName,
           LABEL: fieldLabel,
-          TYPE: fieldTemplate?.TYPE || "Text",
+          TYPE: fieldTemplate?.TYPE || "String",
           LENGTH: fieldTemplate?.LENGTH ?? 35,
           STRUCTURE: fieldTemplate?.STRUCTURE || "S",
           REQUIRED: fieldTemplate?.REQUIRED ?? false,

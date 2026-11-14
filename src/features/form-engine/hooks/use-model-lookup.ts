@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
-import type { FormFieldParameter } from "@/lib/data-schemas/model-config-schema";
+import type { FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
 import type { WidgetOption } from "../types";
 
 /**
@@ -47,8 +47,8 @@ export function useModelLookup(param: FormFieldParameter | undefined) {
       }
     }
 
-    const codeKey = param?.codeField || param?.reference || "id";
-    const displayKey = param?.displayField || "description";
+    const codeKey = String(param?.codeField || param?.reference || "id");
+    const displayKey = String(param?.displayField || "description");
 
     return filtered
       .map((item) => {

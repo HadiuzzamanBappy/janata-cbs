@@ -5,7 +5,7 @@ import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
 
 export interface DateWidgetProps extends BaseWidgetProps {
-  type?: "date" | "datetime-local";
+  type?: "date" | "datetime-local" | "time";
 }
 
 export function DateWidget({
@@ -19,6 +19,7 @@ export function DateWidget({
 }: DateWidgetProps) {
   const strVal = String(value ?? "");
   const isDateTime = type === "datetime-local";
+  const isTime = type === "time";
 
   return (
     <div className={cn("flex items-center gap-1.5 flex-1 w-full min-w-0 max-w-full", className)}>
@@ -42,7 +43,7 @@ export function DateWidget({
           size="sm"
           onClick={() => onChange("")}
           className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground rounded cursor-pointer"
-          title={`Clear ${isDateTime ? "date & time" : "date"}`}
+          title={`Clear ${isDateTime ? "date & time" : isTime ? "time" : "date"}`}
         >
           <X className="size-3.5" />
         </Button>

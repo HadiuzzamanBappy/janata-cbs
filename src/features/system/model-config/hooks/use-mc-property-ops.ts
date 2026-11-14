@@ -32,7 +32,7 @@ export function useMcPropertyOps(
       const newField: ModelProperty = {
         SN: nextSn,
         NAME: "",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 50,
         REQUIRED: false,
@@ -58,14 +58,14 @@ export function useMcPropertyOps(
           const newSubField: ModelProperty = {
             SN: nextSn,
             NAME: "",
-            TYPE: "Text",
+            TYPE: "String",
             STRUCTURE: "S",
             LENGTH: 35,
             REQUIRED: false,
           };
           return {
             ...p,
-            TYPE: "Object" as const,
+            TYPE: "Json" as const,
             PROP: [...currentChildren, newSubField],
           };
         });

@@ -26,7 +26,7 @@ export function CheckboxWidget({
         htmlFor={id}
         className={cn(
           "flex items-center gap-2 select-none",
-          disabled ? "cursor-default opacity-85" : "cursor-pointer",
+          disabled ? "cursor-not-allowed" : "cursor-pointer",
         )}
       >
         <Checkbox
@@ -34,14 +34,25 @@ export function CheckboxWidget({
           checked={isChecked}
           disabled={disabled}
           onCheckedChange={(val: boolean) => onChange(Boolean(val))}
-          className={cn("rounded", disabled && "disabled:opacity-90 disabled:cursor-default")}
+          className={cn(
+            "rounded",
+            "dark:data-checked:text-primary-foreground",
+            disabled &&
+              (isChecked
+                ? "!bg-muted/70 !border-border !text-muted-foreground"
+                : "!bg-input/40 !border-border/60"),
+          )}
         />
         <span
           className={cn(
             "text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold",
-            isChecked
-              ? "bg-primary/10 text-primary border-primary/25"
-              : "bg-muted text-muted-foreground border-border/40",
+            disabled
+              ? isChecked
+                ? "bg-muted/70 text-muted-foreground border-border/80"
+                : "bg-input/40 text-muted-foreground/70 border-border/50"
+              : isChecked
+                ? "bg-primary/10 text-primary border-primary/25"
+                : "bg-muted text-muted-foreground border-border/40",
           )}
         >
           {isChecked ? activeLabel : inactiveLabel}

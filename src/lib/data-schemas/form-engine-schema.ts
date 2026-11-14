@@ -13,6 +13,7 @@ export const formWidgetTypeSchema = z.enum([
   "rate",
   "date",
   "datetime",
+  "time",
   "select",
   "radio-group",
   "switch",
@@ -28,31 +29,30 @@ export const FORM_WIDGET_TYPES = formWidgetTypeSchema.options;
 /* ========================================================================== */
 
 export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidgetType[]> = {
-  Text: ["text", "textarea", "select", "radio-group", "segmented", "checkbox", "checkbox-group"],
+  String: ["text", "textarea", "select", "radio-group", "segmented", "checkbox", "checkbox-group"],
   Number: ["number", "amount", "rate", "select", "radio-group", "segmented"],
-  Amount: ["amount", "number", "text"],
-  Rate: ["rate", "number", "text"],
+  Boolean: ["switch", "checkbox", "radio-group", "segmented"],
   Date: ["date", "datetime", "text"],
   DateTime: ["datetime", "date", "text"],
-  Boolean: ["switch", "checkbox", "radio-group", "segmented"],
-  Object: [],
+  Time: ["time", "text"],
+  Json: [],
 } as const;
 
 export function getDefaultWidgetForType(type: PropertyType | string): FormWidgetType {
-  const normalized = (type || "Text").trim();
+  const normalized = (type || "String").trim();
   switch (normalized) {
     case "Number":
       return "number";
-    case "Amount":
-      return "amount";
-    case "Rate":
-      return "rate";
     case "Date":
       return "date";
     case "DateTime":
       return "datetime";
     case "Boolean":
       return "checkbox";
+    case "Time":
+      return "time";
+    case "Json":
+      return "text";
     default:
       return "text";
   }
@@ -62,11 +62,34 @@ export function isWidgetCompatibleWithType(
   type: PropertyType | string,
   widget: FormWidgetType | string,
 ): boolean {
-  const normType = (type || "Text").trim() as PropertyType;
+  const normType = (type || "String").trim() as PropertyType;
   const normWidget = (widget || "text").trim().toLowerCase() as FormWidgetType;
   const allowed = COMPATIBLE_WIDGETS_FOR_TYPE[normType];
   return !allowed || allowed.length === 0 || allowed.includes(normWidget);
 }
+
+/* ========================================================================== */
+/* 3. PARAMETER / LOOKUP CONTRACT (Presentation Layer Input Selectors)        */
+/* ========================================================================== */
+
+export const parameterOptionItemSchema = z.object({
+  code: z.union([z.string(), z.number()]),
+  label: z.string(),
+});
+
+export type ParameterOptionItem = z.infer<typeof parameterOptionItemSchema>;
+
+export const formFieldParameterSchema = z.looseObject({
+  type: z.enum(["O", "M", "L"]).default("O"),
+  data: z.array(parameterOptionItemSchema).default([]),
+  modelName: z.string().default("").optional(),
+  codeField: z.union([z.string(), z.number()]).default("").optional(),
+  displayField: z.string().default("").optional(),
+  condition: z.string().default("").optional(),
+  reference: z.string().default("").optional(),
+});
+
+export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;
 
 /* ========================================================================== */
 /* 3. REACTIVE ACTIONS & VALIDATION RULES                                     */
@@ -78,6 +101,21 @@ export const formOnChangeRuleSchema = z.looseObject({
   delimiter: z.string().default("#").optional(),
 });
 export type FormOnChangeRule = z.infer<typeof formOnChangeRuleSchema>;
+
+export const fieldTransformSchema = z.enum([
+  "uppercase",
+  "lowercase",
+  "trim",
+  "stripWhitespace",
+  "none",
+]);
+export type FieldTransform = z.infer<typeof fieldTransformSchema>;
+
+export const fieldCascadeRuleSchema = z.looseObject({
+  when: z.any(),
+  set: z.record(z.string(), z.any()),
+});
+export type FieldCascadeRule = z.infer<typeof fieldCascadeRuleSchema>;
 
 export const fieldValidationRuleSchema = z.looseObject({
   matches: z.string().optional(),
@@ -196,7 +234,9 @@ export const formElementSchema = baseFieldSchema.extend({
   ENRICHTEXT: z.string().default("").optional(),
   DEFAULTVALUE: z.string().default("").optional(),
   FIXEDVALUE: z.string().default("").optional(),
+  PARAMETER: formFieldParameterSchema.optional(),
   VISIBLE_WHEN: fieldVisibilityConditionSchema.optional(),
+  HIDDEN_WHEN: fieldVisibilityConditionSchema.optional(),
   DISABLED_WHEN: fieldVisibilityConditionSchema.optional(),
   WIDGET: formWidgetTypeSchema.optional(),
   TEXT_CONFIG: textWidgetConfigSchema.optional(),
@@ -205,15 +245,15 @@ export const formElementSchema = baseFieldSchema.extend({
   DATE_CONFIG: dateWidgetConfigSchema.optional(),
   BOOLEAN_CONFIG: booleanWidgetConfigSchema.optional(),
   ON_CHANGE: formOnChangeRuleSchema.optional(),
+  TRANSFORM: fieldTransformSchema.optional(),
+  CASCADE: z.array(fieldCascadeRuleSchema).optional(),
   VALIDATION: fieldValidationRuleSchema.optional(),
 });
 
 export type FormElement = z.infer<typeof formElementSchema> & {
   PROP?: FormElement[];
-  children?: FormElement[];
 };
 
 export const recursiveFormElementSchema: z.ZodType<FormElement> = formElementSchema.extend({
   PROP: z.lazy(() => z.array(recursiveFormElementSchema)).optional(),
-  children: z.lazy(() => z.array(recursiveFormElementSchema)).optional(),
 });

@@ -25,8 +25,7 @@ function ScalarFieldFactory({
   const isViewMode = !isInputMode;
   const isReadOnly = disabled || field.DISABLED || isViewMode;
   const effectiveLabel =
-    labelOverride ??
-    (field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME));
+    labelOverride ?? (field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME));
   const fieldKey = field.NAME;
   const elementId = `elem_${field.SN}_${field.NAME}`;
 
@@ -50,7 +49,7 @@ function ScalarFieldFactory({
       return undefined;
     }
     const normType = (field.TYPE || "").toLowerCase();
-    if (normType === "number" || normType === "amount" || normType === "rate") {
+    if (normType === "number") {
       const n = Number(rawDefault);
       return Number.isNaN(n) ? rawDefault : n;
     }
@@ -97,20 +96,19 @@ function ScalarFieldFactory({
       const matchedOption = resolvedOptions.find((o) => o.code === String(val));
       if (matchedOption) return matchedOption.label;
 
-      const normType = (field.TYPE || "").toLowerCase();
-      if (normType === "amount") {
+      if (widget === "amount" || field.WIDGET === "amount") {
         return formatCurrency(val as number | string, {
           currency: field.NUMBER_CONFIG?.currencyCode || "BDT",
           decimals: field.NUMBER_CONFIG?.decimals ?? 2,
         });
       }
-      if (normType === "rate") {
+      if (widget === "rate" || field.WIDGET === "rate") {
         const num = Number(val);
         const dec = field.RATE_CONFIG?.decimals ?? 4;
         const suf = field.RATE_CONFIG?.suffix ?? "%";
         return Number.isNaN(num) ? `${String(val)}${suf}` : `${num.toFixed(dec)}${suf}`;
       }
-      if (normType === "boolean") {
+      if (field.TYPE === "Boolean") {
         const lower = String(val).toLowerCase().trim();
         const isTrue = lower === "true" || lower === "y" || lower === "1";
         return isTrue
@@ -120,7 +118,15 @@ function ScalarFieldFactory({
 
       return String(val);
     },
-    [resolvedOptions, field.TYPE, field.NUMBER_CONFIG, field.RATE_CONFIG, field.BOOLEAN_CONFIG],
+    [
+      resolvedOptions,
+      widget,
+      field.WIDGET,
+      field.TYPE,
+      field.NUMBER_CONFIG,
+      field.RATE_CONFIG,
+      field.BOOLEAN_CONFIG,
+    ],
   );
 
   // View Mode display text for single-value mode
@@ -235,7 +241,7 @@ function ScalarFieldFactory({
 }
 
 export function UnifiedFieldFactory(props: UnifiedFieldFactoryProps) {
-  if (props.field.TYPE === "Object") {
+  if (props.field.TYPE === "Json") {
     return (
       <ObjectField
         field={props.field}

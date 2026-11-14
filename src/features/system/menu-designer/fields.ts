@@ -16,7 +16,7 @@ export const MENU_DESIGNER_SECTIONS: FormSection[] = [
         SN: "1",
         NAME: "treeDescription",
         LABEL: "Tree Description",
-        TYPE: "Text",
+        TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 100,
         REQUIRED: true,

@@ -1,4 +1,9 @@
-import { getFieldColSpanClass, getFieldValue, getGridColsClass } from "@/lib/cbs-form-spec";
+import {
+  evaluateFieldCondition,
+  getFieldColSpanClass,
+  getFieldValue,
+  getGridColsClass,
+} from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-config-schema";
 import type { CbsScreenMode } from "@/types";
@@ -37,28 +42,44 @@ export function FieldGrid({
         getGridColsClass(effectiveCols),
       )}
     >
-      {section.fields.map((field) => (
-        <div
-          key={field.SN}
-          className={getFieldColSpanClass(effectiveCols, field.WIDTH, field.LENGTH, field.TYPE)}
-        >
-          {hasKernel ? (
-            <FieldAtom field={field} disabled={disabled} mode={mode} />
-          ) : (
-            <UnifiedFieldFactory
-              field={field}
-              value={getFieldValue(values, field.NAME)}
-              onChange={onChange}
-              error={errors[field.NAME]}
-              disabled={disabled}
-              mode={mode}
-              allValues={values}
-              errors={errors}
-              hasKernel={false}
-            />
-          )}
-        </div>
-      ))}
+      {section.fields.map((field) => {
+        // 1. Evaluate reactive visibility & hidden conditions
+        if (field.VISIBLE_WHEN && !evaluateFieldCondition(field.VISIBLE_WHEN, values)) {
+          return null;
+        }
+        if (field.HIDDEN_WHEN && evaluateFieldCondition(field.HIDDEN_WHEN, values)) {
+          return null;
+        }
+
+        // 2. Evaluate reactive disabled condition
+        const isFieldDisabled =
+          disabled ||
+          Boolean(field.DISABLED) ||
+          (field.DISABLED_WHEN ? evaluateFieldCondition(field.DISABLED_WHEN, values) : false);
+
+        return (
+          <div
+            key={field.SN}
+            className={getFieldColSpanClass(effectiveCols, field.WIDTH, field.LENGTH, field.TYPE)}
+          >
+            {hasKernel ? (
+              <FieldAtom field={field} disabled={isFieldDisabled} mode={mode} />
+            ) : (
+              <UnifiedFieldFactory
+                field={field}
+                value={getFieldValue(values, field.NAME)}
+                onChange={onChange}
+                error={errors[field.NAME]}
+                disabled={isFieldDisabled}
+                mode={mode}
+                allValues={values}
+                errors={errors}
+                hasKernel={false}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

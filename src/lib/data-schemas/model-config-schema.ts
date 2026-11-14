@@ -2,53 +2,25 @@ import { z } from "zod";
 import { auditDataSchema } from "./common-schema";
 
 /* ========================================================================== */
-/* 1. PHYSICAL DATABASE COLUMN TYPES (Base Model Types)                       */
+/* 1. PHYSICAL DATABASE COLUMN TYPES (Canonical 7 Core Types)                 */
 /* ========================================================================== */
 
-export const propertyTypeSchema = z.enum([
-  "Text",
+export const PROPERTY_TYPES = [
+  "String",
   "Number",
-  "Amount",
-  "Rate",
+  "Boolean",
   "Date",
   "DateTime",
-  "Boolean",
-  "Object",
-]);
+  "Time",
+  "Json",
+] as const;
+
+export const propertyTypeSchema = z.enum(PROPERTY_TYPES);
+
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
-export const PROPERTY_TYPES = propertyTypeSchema.options;
 
 /* ========================================================================== */
-/* 2. PARAMETER / LOOKUP CONTRACT                                             */
-/* ========================================================================== */
-
-export const parameterOptionItemSchema = z.union([
-  z.object({
-    itemCode: z.string().min(1, "itemCode is required"),
-    itemLabel: z.string().min(1, "itemLabel is required"),
-  }),
-  z.object({
-    code: z.string().min(1, "code is required"),
-    label: z.string().min(1, "label is required"),
-  }),
-]);
-export type ParameterOptionItem =
-  | { itemCode: string; itemLabel: string; code?: string; label?: string }
-  | { code: string; label: string; itemCode?: string; itemLabel?: string };
-
-export const formFieldParameterSchema = z.looseObject({
-  type: z.string().default("O"),
-  data: z.array(parameterOptionItemSchema).default([]).optional(),
-  modelName: z.string().default("").optional(),
-  codeField: z.string().default("").optional(),
-  displayField: z.string().default("").optional(),
-  condition: z.string().default("").optional(),
-  reference: z.string().default("").optional(),
-});
-export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;
-
-/* ========================================================================== */
-/* 3. BASE PHYSICAL FIELD & PROPERTY SCHEMA (MODEL.CONFIG Column Definition)  */
+/* 2. BASE PHYSICAL FIELD SCHEMA (MODEL.CONFIG Pure Column DDL)               */
 /* ========================================================================== */
 
 export const baseFieldSchema = z.looseObject({
@@ -61,7 +33,7 @@ export const baseFieldSchema = z.looseObject({
       /^[a-z][a-zA-Z0-9]*$/,
       "Property name must be in camelCase (e.g. accountType, customerName)",
     ),
-  TYPE: propertyTypeSchema.default("Text"),
+  TYPE: propertyTypeSchema.default("String"),
   STRUCTURE: z
     .preprocess((val) => (typeof val === "string" ? val.toUpperCase() : val), z.enum(["S", "M"]))
     .default("S"),
@@ -71,7 +43,6 @@ export const baseFieldSchema = z.looseObject({
     .transform((v) => Boolean(v))
     .default(false)
     .optional(),
-  PARAMETER: formFieldParameterSchema.optional(),
 });
 
 export type ModelProperty = z.infer<typeof baseFieldSchema> & {
@@ -145,50 +116,6 @@ export const modelConfigRecordSchema = z
           });
         }
         seenNames.add(nameLower);
-      }
-
-      // Check Model Lookup target model
-      if (prop.PARAMETER?.type === "M") {
-        if (!prop.PARAMETER.modelName?.trim()) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Target model name is required for Model Lookup.",
-            path: ["PROPERTIES", idx, "PARAMETER", "modelName"],
-          });
-        }
-      }
-
-      // Check Options List items have valid itemCode and itemLabel
-      if (prop.PARAMETER?.type === "O") {
-        const optData = Array.isArray(prop.PARAMETER.data) ? prop.PARAMETER.data : [];
-        if (optData.length === 0) {
-          ctx.addIssue({
-            code: "custom",
-            message: "At least one option must be defined for Options List (O).",
-            path: ["PROPERTIES", idx, "PARAMETER", "data"],
-          });
-        } else {
-          optData.forEach((item: unknown, itemIdx: number) => {
-            if (typeof item === "object" && item !== null) {
-              const rec = item as Record<string, unknown>;
-              const itemCode = String(rec.itemCode ?? "").trim();
-              const itemLabel = String(rec.itemLabel ?? "").trim();
-              if (!itemCode || !itemLabel) {
-                ctx.addIssue({
-                  code: "custom",
-                  message: `Option #${itemIdx + 1} must have non-empty itemCode and itemLabel.`,
-                  path: ["PROPERTIES", idx, "PARAMETER", "data", itemIdx],
-                });
-              }
-            } else {
-              ctx.addIssue({
-                code: "custom",
-                message: `Option #${itemIdx + 1} must be an object with itemCode and itemLabel.`,
-                path: ["PROPERTIES", idx, "PARAMETER", "data", itemIdx],
-              });
-            }
-          });
-        }
       }
     });
   });

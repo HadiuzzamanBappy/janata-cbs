@@ -138,9 +138,6 @@ export function McPropertiesTab({
             isCommitted={isFieldCommitted(selectedProperty.SN)}
             validationErrors={validationErrors}
             onUpdate={onUpdateField}
-            onDelete={onRemoveField}
-            onSelectSubField={handleSelectSN}
-            onAddSubField={onAddSubField}
             onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
             isSidebarOpen={isSidebarOpen}
             showSidebarToggle={isCompact}

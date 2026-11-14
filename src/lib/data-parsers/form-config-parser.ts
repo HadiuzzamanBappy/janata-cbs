@@ -93,7 +93,7 @@ export function sanitizeFormElement(field: FormElement): FormElement {
     SN: String(cleanField.SN || "1").trim(),
     NAME: cleanField.NAME.trim(),
     LABEL: (cleanField.LABEL || cleanField.NAME).trim(),
-    TYPE: cleanField.TYPE || "Text",
+    TYPE: cleanField.TYPE || "String",
     STRUCTURE: cleanField.STRUCTURE || "S",
     LENGTH: normLength,
   };
@@ -118,33 +118,66 @@ export function sanitizeFormElement(field: FormElement): FormElement {
     };
   }
 
-  if (cleanField.VALIDATION?.matches?.trim()) {
-    sanitized.VALIDATION = {
-      matches: cleanField.VALIDATION.matches.trim(),
-      ...(cleanField.VALIDATION.message?.trim()
-        ? { message: cleanField.VALIDATION.message.trim() }
-        : {}),
-    };
+  if (cleanField.VALIDATION) {
+    const v = cleanField.VALIDATION;
+    const cleanVal: Partial<typeof v> = {};
+    if (v.matches?.trim()) cleanVal.matches = v.matches.trim();
+    if (v.message?.trim()) cleanVal.message = v.message.trim();
+    if (typeof v.min === "number") cleanVal.min = v.min;
+    if (typeof v.max === "number") cleanVal.max = v.max;
+    if (v.pattern?.trim()) cleanVal.pattern = v.pattern.trim();
+    if (Object.keys(cleanVal).length > 0) {
+      sanitized.VALIDATION = cleanVal as typeof v;
+    }
   }
 
   const p = cleanField.PARAMETER;
-  if (p?.type === "M" && p.modelName?.trim()) {
+  const pType = String(p?.type ?? "").toUpperCase();
+  const modelName = String(p?.modelName ?? "").trim();
+  if (pType === "M" && modelName) {
+    const codeStr = String(p?.codeField ?? "").trim();
+    const refStr = String(p?.reference ?? "").trim();
+    const dispStr = String(p?.displayField ?? "").trim();
+    const condStr = String(p?.condition ?? "").trim();
     sanitized.PARAMETER = {
       type: "M",
-      modelName: p.modelName.trim(),
-      ...(p.reference?.trim() ? { reference: p.reference.trim() } : {}),
-      ...(p.displayField?.trim() ? { displayField: p.displayField.trim() } : {}),
-      ...(p.condition?.trim() ? { condition: p.condition.trim() } : {}),
-      ...(p.codeField?.trim() ? { codeField: p.codeField.trim() } : {}),
+      modelName,
+      data: [],
+      ...(refStr ? { reference: refStr } : {}),
+      ...(dispStr ? { displayField: dispStr } : {}),
+      ...(condStr ? { condition: condStr } : {}),
+      ...(codeStr ? { codeField: codeStr } : {}),
     };
-  } else if ((p?.type === "O" || !p?.type) && Array.isArray(p?.data) && p.data.length > 0) {
-    sanitized.PARAMETER = { type: "O", data: p.data };
+  } else if ((pType === "O" || !pType) && Array.isArray(p?.data)) {
+    const rawArr = p.data;
+    if (rawArr.length > 0) {
+      sanitized.PARAMETER = {
+        type: "O",
+        data: rawArr.map((opt) => ({
+          code: String(opt.code ?? ""),
+          label: String(opt.label ?? opt.code ?? ""),
+        })),
+      };
+    }
   }
 
   if (cleanField.TEXT_CONFIG) sanitized.TEXT_CONFIG = cleanField.TEXT_CONFIG;
   if (cleanField.NUMBER_CONFIG) sanitized.NUMBER_CONFIG = cleanField.NUMBER_CONFIG;
+  if (cleanField.RATE_CONFIG) sanitized.RATE_CONFIG = cleanField.RATE_CONFIG;
   if (cleanField.DATE_CONFIG) sanitized.DATE_CONFIG = cleanField.DATE_CONFIG;
   if (cleanField.BOOLEAN_CONFIG) sanitized.BOOLEAN_CONFIG = cleanField.BOOLEAN_CONFIG;
+
+  if (cleanField.VISIBLE_WHEN) sanitized.VISIBLE_WHEN = cleanField.VISIBLE_WHEN;
+  if (cleanField.HIDDEN_WHEN) sanitized.HIDDEN_WHEN = cleanField.HIDDEN_WHEN;
+  if (cleanField.DISABLED_WHEN) sanitized.DISABLED_WHEN = cleanField.DISABLED_WHEN;
+  if (cleanField.TRANSFORM) sanitized.TRANSFORM = cleanField.TRANSFORM;
+  if (Array.isArray(cleanField.CASCADE) && cleanField.CASCADE.length > 0) {
+    sanitized.CASCADE = cleanField.CASCADE;
+  }
+
+  if (Array.isArray(cleanField.PROP) && cleanField.PROP.length > 0) {
+    sanitized.PROP = cleanField.PROP.map(sanitizeFormElement);
+  }
 
   return sanitized as FormElement;
 }
@@ -204,6 +237,8 @@ export function sanitizeFormConfigRecord(record?: FormConfigRecord): FormConfigR
 
   if (record.frmElements?.sections) {
     result.frmElements = {
+      ...(record.frmElements.columns ? { columns: record.frmElements.columns } : {}),
+      ...(record.frmElements.density ? { density: record.frmElements.density } : {}),
       sections: record.frmElements.sections.map(sanitizeFormSection),
     };
   }

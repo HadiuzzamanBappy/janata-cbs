@@ -2,6 +2,8 @@
 
 import { Search } from "lucide-react";
 import * as React from "react";
+import { AppSearch } from "@/components/cbs-command";
+import { AppSettings } from "@/components/cbs-settings";
 import {
   SidebarFooterNav,
   SidebarHeaderNav,
@@ -11,8 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sidebar, SidebarRail } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AppSearch } from "@/features/command";
-import { AppSettings } from "@/features/settings";
 import { CBS_SETTINGS_EVENT } from "@/lib/cbs-command";
 import { useHotkeys } from "@/lib/cbs-hotkeys";
 import { useSessionStore } from "@/store";

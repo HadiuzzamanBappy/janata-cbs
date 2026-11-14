@@ -3,14 +3,13 @@
 import * as React from "react";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
+import { InquiryFilterBar, InquiryTable } from "@/features/inquiry-engine";
+import { cbs } from "@/lib/cbs-client";
 import {
   buildDefaultCriteria,
   type FilterCriteriaMap,
-  InquiryFilterBar,
-  InquiryTable,
   serializeCriteriaToWire,
-} from "@/features/inquiry-engine";
-import { cbs } from "@/lib/cbs-client";
+} from "@/lib/cbs-inquiry-spec";
 import type { CbsScreenProps } from "@/lib/cbs-screen";
 import { parseInquiryRecords } from "@/lib/data-parsers";
 import { useSessionStore } from "@/store/session/session-provider";
@@ -58,6 +57,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
         const queryRes = await cbs.send<unknown>(
           cbs.inquiry.executeQuery(targetControl, {
             servicePath: schema.INQInfo?.inqServicePath,
+            inqType: schema.INQInfo?.inqType,
             perPage: queryPerPage,
             curPage: 1,
             queryString,
@@ -147,18 +147,22 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
       onInquiryBackToSelection={() => setStep("SELECTION")}
       onInquiryRefresh={handleRefresh}
       onInquiryPrintLocal={() => window.print()}
-      onInquiryPrintServer={() =>
+      onInquiryPrintServer={() => {
+        const rptTarget = schema.INQInfo?.rptControllerName || commandCode;
         toast.add({
-          title: "Server Print Spooled",
-          description: `Report spooled for ${commandCode}`,
+          title: "Server Report Spooled",
+          description: `Spool job created for ${rptTarget} (controller: ${commandCode})`,
           type: "info",
-        })
-      }
+        });
+      }}
       onInquiryExportCSV={handleExportCSV}
       onInquiryExportHTML={handleExportHTML}
       onInquiryExportXML={handleExportXML}
       className={className}
     >
+      {schema.INQInfo?.pageOrientation === "Landscape" && (
+        <style>{`@media print { @page { size: landscape; } }`}</style>
+      )}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === "SELECTION" ? (
           <InquiryFilterBar
@@ -179,6 +183,8 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
             onPageChange={setCurrentPage}
             showSerial={schema.INQInfo.showSerial}
             showPagination={schema.INQInfo.showPagination}
+            cmdFromInternal={schema.INQInfo.cmdFromInternal}
+            cmdFieldName={schema.INQInfo.cmdFieldName}
           />
         )}
       </div>

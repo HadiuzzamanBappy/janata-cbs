@@ -20,9 +20,11 @@ import {
   decodeProtobufValue,
   parseAuthWirePayload,
   parseGfcResponse,
+  parseInquiryConfig,
   parseInquiryRecords,
   parseModelConfig,
   sanitizeFormConfigRecord,
+  sanitizeInquiryConfigRecord,
   sanitizeMenuTreeRecord,
   sanitizeModelConfigRecord,
   sanitizeUserSession,
@@ -361,6 +363,82 @@ async function runSuite() {
     { rawRecordsCount: rawInquiryWire.data.records.length },
     { parsedCount: parsedInquiry.length, firstId: parsedInquiry[0]?.id },
     parsedInquiry.length === 2 && parsedInquiry[0]?.id === "TXN101",
+  );
+
+  // ----------------------------------------------------------------------------
+  // 7.1. Inquiry Config Specification Parser & 1:1 Roundtrip Sanitizer
+  // ----------------------------------------------------------------------------
+  const sampleInquiryConfigPayload = {
+    data: {
+      INQInfo: {
+        controllerName: "BRANCH",
+        description: "Branch directory and routing information",
+        pageOrientation: "Portrait",
+        perpageItem: "30",
+        showSerial: true,
+        showPagination: true,
+        showBranchWise: false,
+        inqType: "DFT",
+        rptControllerName: "RPT.BRANCH.DIR",
+        fixedSelection: "",
+        inqServicePath: "default",
+        cmdFromInternal: false,
+        cmdFieldName: "",
+      },
+      INQSelectField: [
+        {
+          selectFieldName: "recordId",
+          selectFieldDisplay: "Branch Code",
+          selectFieldType: "text",
+          selectFieldOperator: "EQ",
+          selectFieldOperatorFixed: "",
+          selectFieldValue: "",
+          selectFieldRequired: false,
+        },
+      ],
+      INQDef: [
+        {
+          fieldName: "recordId",
+          fieldDisplay: "Branch Code",
+          fieldType: "DC",
+          fieldFunc: "",
+          fieldRowCol: "1,1",
+          fieldLength: "12,L",
+          dataPassable: null,
+        },
+      ],
+      INQCmds: [
+        {
+          cmdFor: "BRANCH.SEE",
+          cmdButton: "View Branch",
+        },
+      ],
+    },
+  };
+  const parsedInqConfig = parseInquiryConfig(sampleInquiryConfigPayload);
+  const sanitizedInqConfig = parsedInqConfig.success
+    ? sanitizeInquiryConfigRecord(parsedInqConfig.data)
+    : undefined;
+
+  recordTest(
+    "7.1. Inquiry Config Parser & Sanitizer: Enforces 1:1 lossless roundtrip across all canonical fields",
+    {
+      controllerName: sampleInquiryConfigPayload.data.INQInfo.controllerName,
+      hasSelectField: sampleInquiryConfigPayload.data.INQSelectField.length > 0,
+      hasDef: sampleInquiryConfigPayload.data.INQDef.length > 0,
+    },
+    {
+      parseSuccess: parsedInqConfig.success,
+      sanitizedMatches: Boolean(sanitizedInqConfig),
+      sanitizedShowBranchWise: sanitizedInqConfig?.INQInfo.showBranchWise,
+      sanitizedRequired: sanitizedInqConfig?.INQSelectField[0]?.selectFieldRequired,
+      sanitizedDataPassable: sanitizedInqConfig?.INQDef[0]?.dataPassable,
+    },
+    parsedInqConfig.success === true &&
+      Boolean(sanitizedInqConfig) &&
+      sanitizedInqConfig?.INQInfo.showBranchWise === false &&
+      sanitizedInqConfig?.INQSelectField[0]?.selectFieldRequired === false &&
+      sanitizedInqConfig?.INQDef[0]?.dataPassable === null,
   );
 
   // ----------------------------------------------------------------------------

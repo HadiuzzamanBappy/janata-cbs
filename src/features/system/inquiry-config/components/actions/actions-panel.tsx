@@ -7,7 +7,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { MousePointerClick } from "lucide-react";
-import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd } from "@/lib/data-schemas";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
 import { DesignerEmptyList } from "../shared/designer-empty-list";
 import { ActionItem } from "./action-item";

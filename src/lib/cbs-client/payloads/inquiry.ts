@@ -19,6 +19,7 @@ export const inquiryPayloads = {
       queryString: options.queryString || [],
       curPage: options.curPage || 1,
       perPage: options.perPage || 1000,
+      ...(options.inqType ? { inqType: options.inqType } : {}),
     },
   }),
 };

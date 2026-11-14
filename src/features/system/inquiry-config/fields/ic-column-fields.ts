@@ -1,4 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormSection } from "@/lib/data-schemas";
 
 /**
  * Standard Form Sections definition for INQUIRY.CONFIG Column Inspector.

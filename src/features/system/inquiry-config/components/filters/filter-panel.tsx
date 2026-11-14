@@ -7,12 +7,12 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Filter } from "lucide-react";
-import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQSelectField } from "@/lib/data-schemas";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
 import { DesignerEmptyList } from "../shared/designer-empty-list";
 import { FilterItem } from "./filter-item";
 
-export interface SelectionPanelProps {
+export interface FilterPanelProps {
   filters: INQSelectField[];
   filterKeys: string[];
   selectedIdx: number;
@@ -25,7 +25,7 @@ export interface SelectionPanelProps {
   onDragEnd: (event: DragEndEvent) => void;
 }
 
-export function SelectionPanel({
+export function FilterPanel({
   filters,
   filterKeys,
   selectedIdx,
@@ -36,14 +36,14 @@ export function SelectionPanel({
   onSelectFilter,
   onRemoveFilter,
   onDragEnd,
-}: SelectionPanelProps) {
+}: FilterPanelProps) {
   return (
     <div className="w-full flex-1 flex flex-col min-h-0">
       <div className="flex-1 overflow-y-auto min-h-0">
         {filters.length === 0 ? (
           <DesignerEmptyList
             icon={Filter}
-            title="No Criteria Defined"
+            title="No Filters Defined"
             description={`Import properties from ${targetModel || "the model"} or add a custom filter.`}
           />
         ) : (
@@ -52,11 +52,12 @@ export function SelectionPanel({
               <div className="divide-y divide-border/30">
                 {filters.map((filter, index) => {
                   const filterErrors = validationErrors.filter(
-                    (err) => err.tab === "selection" && err.itemIndex === index,
+                    (err) => err.tab === "filters" && err.itemIndex === index,
                   );
                   return (
                     <FilterItem
                       key={filterKeys[index]}
+                      id={filterKeys[index]}
                       field={filter}
                       index={index}
                       isSelected={selectedIdx === index}

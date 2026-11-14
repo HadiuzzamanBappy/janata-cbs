@@ -5,9 +5,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
-import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQDef } from "@/lib/data-schemas";
 
 export interface ColumnItemProps {
+  id: string;
   col: INQDef;
   index: number;
   isSelected: boolean;
@@ -19,6 +20,7 @@ export interface ColumnItemProps {
 }
 
 export function ColumnItem({
+  id,
   col,
   index,
   isSelected,
@@ -29,7 +31,7 @@ export function ColumnItem({
   onRemove,
 }: ColumnItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `col-${col.fieldName}`,
+    id,
     disabled,
   });
 

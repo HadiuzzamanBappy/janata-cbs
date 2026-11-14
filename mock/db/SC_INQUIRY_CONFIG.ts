@@ -136,7 +136,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
     },
     INQInfo: {
       description: "Get User Request List",
-      pageOrientation: "",
+      pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,
       showPagination: true,
@@ -254,7 +254,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
     },
     INQInfo: {
       description: "User Request Unauth List",
-      pageOrientation: "",
+      pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,
       showPagination: true,
@@ -366,7 +366,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
     },
     INQInfo: {
       description: "Get Authorize User Request List",
-      pageOrientation: "",
+      pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,
       showPagination: true,
@@ -484,7 +484,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
     },
     INQInfo: {
       description: "Authorise/Delete User List",
-      pageOrientation: "",
+      pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,
       showPagination: true,
@@ -588,7 +588,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
     },
     INQInfo: {
       description: "Authorise/Delete User Password Reset List",
-      pageOrientation: "",
+      pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,
       showPagination: true,
@@ -646,7 +646,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
     },
     INQInfo: {
       description: "Get Authorized User Mgt List",
-      pageOrientation: "",
+      pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,
       showPagination: true,
@@ -772,7 +772,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
     },
     INQInfo: {
       description: "User List",
-      pageOrientation: "",
+      pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,
       showPagination: true,

@@ -8,13 +8,13 @@ import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { IcActionsTab } from "./components/ic-actions-tab";
 import { IcColumnsTab } from "./components/ic-columns-tab";
+import { IcFilterTab } from "./components/ic-filter-tab";
 import { IcGeneralTab } from "./components/ic-general-tab";
 import { IcJsonTab } from "./components/ic-json-tab";
 import { IcPreviewTab } from "./components/ic-preview-tab";
-import { IcSelectionTab } from "./components/ic-selection-tab";
 import { useInquiryConfig } from "./hooks/use-inquiry-config";
 
-type InquiryConfigTabKey = "general" | "selection" | "columns" | "actions" | "preview" | "json";
+type InquiryConfigTabKey = "general" | "filters" | "columns" | "actions" | "preview" | "json";
 
 export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
   const initialId = React.useMemo(() => {
@@ -65,12 +65,12 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         ),
       },
       {
-        id: "selection",
-        label: "Selection Criteria",
+        id: "filters",
+        label: "Filters",
         icon: <Filter className="size-3 text-muted-foreground" />,
-        badgeCount: validationErrors.filter((e) => e.tab === "selection").length || undefined,
+        badgeCount: validationErrors.filter((e) => e.tab === "filters").length || undefined,
         content: (
-          <IcSelectionTab
+          <IcFilterTab
             filters={formData.INQSelectField || []}
             targetModel={formData.INQInfo?.controllerName}
             onAddFilter={filterOps.addFilter}

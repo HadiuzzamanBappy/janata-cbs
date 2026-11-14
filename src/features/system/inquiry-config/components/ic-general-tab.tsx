@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { FormRenderer } from "@/features/form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { INQUIRY_CONFIG_SECTIONS } from "../fields/ic-general-fields";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";

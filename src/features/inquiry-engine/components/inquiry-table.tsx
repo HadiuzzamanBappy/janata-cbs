@@ -2,15 +2,32 @@
 
 import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
+import { deriveInquiryColumnMeta } from "@/lib/cbs-inquiry-spec";
+import type { EnquiryRow, INQCmd, INQDef } from "@/lib/data-schemas/inquiry-config-schema";
 import { useInquiryPagination } from "../hooks/use-inquiry-pagination";
 import { useInquirySort } from "../hooks/use-inquiry-sort";
-import type { InquiryTableProps } from "../types";
-import { deriveInquiryColumnMeta } from "../utils/column-compiler";
-import { InquiryEmptyState } from "./inquiry-empty-state";
-import { InquiryPagination } from "./inquiry-pagination";
-import { InquiryTableBody } from "./inquiry-table-body";
-import { InquiryTableHeader } from "./inquiry-table-header";
+import { InquiryEmptyState } from "./table/inquiry-empty-state";
+import { InquiryPagination } from "./table/inquiry-pagination";
+import { InquiryTableBody } from "./table/inquiry-table-body";
+import { InquiryTableHeader } from "./table/inquiry-table-header";
+
+export interface InquiryTableProps {
+  columns: INQDef[];
+  rows: EnquiryRow[];
+  commands?: INQCmd[];
+  pageSize?: number;
+  onPageSizeChange?: (size: number) => void;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
+  totalRows?: number;
+  showSerial?: boolean;
+  showPagination?: boolean;
+  cmdFromInternal?: boolean;
+  cmdFieldName?: string;
+  className?: string;
+  onViewRecord?: (recordId: string, row: EnquiryRow) => void;
+  onEditRecord?: (recordId: string, row: EnquiryRow) => void;
+}
 
 export function InquiryTable({
   columns,
@@ -23,6 +40,8 @@ export function InquiryTable({
   totalRows,
   showSerial = true,
   showPagination = true,
+  cmdFromInternal = false,
+  cmdFieldName = "",
   className = "",
 }: InquiryTableProps) {
   // 1. Derive presentation metadata from canonical INQDef wire spec
@@ -75,7 +94,7 @@ export function InquiryTable({
   });
 
   const displayRows = showPagination ? paginatedRows : sortedRows;
-  const showActionsColumn = commands.length > 0;
+  const showActionsColumn = commands.length > 0 || Boolean(cmdFromInternal && cmdFieldName);
 
   return (
     <TooltipProvider delay={150}>
@@ -112,6 +131,8 @@ export function InquiryTable({
                   currentPage={currentPage}
                   pageSize={pageSize}
                   showPagination={showPagination}
+                  cmdFromInternal={cmdFromInternal}
+                  cmdFieldName={cmdFieldName}
                 />
               </table>
             </div>

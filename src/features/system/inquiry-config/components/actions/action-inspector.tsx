@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { FormRenderer } from "@/features/form-engine/components/form-renderer";
-import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { ACTION_INSPECTOR_SECTIONS } from "../../fields/ic-action-fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
@@ -65,9 +65,11 @@ export function ActionInspector({
     const existingParts = (activeAction.cmdFor || "").trim().split(/\s+/);
     const prefix =
       existingParts[0] && existingParts[0].length > 0 ? existingParts[0] : targetModel || "ACCOUNT";
+    const paramToken =
+      existingParts[2] && existingParts[2].length > 0 ? existingParts[2] : "recordId";
     onUpdateAction(selectedActionIdx, {
       cmdButton: preset.label,
-      cmdFor: `${prefix} ${preset.commandSuffix}`,
+      cmdFor: `${prefix} ${preset.mode} ${paramToken}`,
     });
   };
 

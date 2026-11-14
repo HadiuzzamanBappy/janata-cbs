@@ -28,6 +28,7 @@
     "verify:redis": "tsx scripts/verify/verify-infra-redis.ts",
     "verify:mock": "tsx scripts/verify/verify-mock-core.ts",
     "verify:screen": "tsx scripts/verify/verify-cbs-screen.ts",
+    "verify:inquiry": "tsx scripts/verify/verify-cbs-inquiry-spec.ts",
     "verify:api": "tsx scripts/verify/verify-api-live.ts",
     "cache:clear": "tsx scripts/cache/cache-clear.ts",
     "cache:inspect": "tsx scripts/cache/cache-inspect.ts",

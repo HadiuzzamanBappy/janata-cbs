@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { buildDefaultCriteria, type FilterCriteriaMap } from "@/features/inquiry-engine";
+import { buildDefaultCriteria, type FilterCriteriaMap } from "@/lib/cbs-inquiry-spec";
 import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
 

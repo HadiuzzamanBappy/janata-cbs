@@ -1,10 +1,14 @@
-import type { SelectionOperand } from "./types";
+import type { SelectionOperand } from "@/lib/data-schemas";
 
-export const INQUIRY_OPERAND_OPTIONS: Array<{
+export type { SelectionOperand };
+
+export interface InquiryOperandOption {
   value: SelectionOperand;
   label: string;
   badge: string;
-}> = [
+}
+
+export const INQUIRY_OPERAND_OPTIONS: InquiryOperandOption[] = [
   { value: "EQ", label: "Equal to", badge: "EQ" },
   { value: "GT", label: "Greater than", badge: "GT" },
   { value: "LT", label: "Less than", badge: "LT" },
@@ -24,3 +28,18 @@ export const INQUIRY_FILTER_FIELD_TYPES = [
   { value: "date", label: "Date (YYYYMMDD)" },
   { value: "select", label: "Dropdown Options" },
 ] as const;
+
+export const STANDARD_BANKING_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "", label: "All Statuses" },
+  { value: "AU", label: "Authorized (AU)" },
+  { value: "INA", label: "Inactive / Input (INA)" },
+  { value: "DEL", label: "Deleted (DEL)" },
+  { value: "HLD", label: "On Hold (HLD)" },
+  { value: "LIVE", label: "Live (LIVE)" },
+];
+
+export const STANDARD_BOOLEAN_FILTER_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "", label: "All" },
+  { value: "Y", label: "Yes (Y)" },
+  { value: "N", label: "No (N)" },
+];

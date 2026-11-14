@@ -1,43 +1,52 @@
-// Components
-export { CellFormatter } from "./components/cell-formatter";
-export { ColumnHeader } from "./components/column-header";
-export { FilterCriterionRow } from "./components/filter-criterion-row";
-export { InquiryEmptyState } from "./components/inquiry-empty-state";
-export { InquiryFilterBar } from "./components/inquiry-filter-bar";
-export { InquiryPagination } from "./components/inquiry-pagination";
-export { InquiryPreview } from "./components/inquiry-preview";
-export { InquiryRowActions } from "./components/inquiry-row-actions";
-export { InquiryTable } from "./components/inquiry-table";
-export { InquiryTableBody } from "./components/inquiry-table-body";
-export { InquiryTableHeader } from "./components/inquiry-table-header";
+// Components - Roots
 
-// Constants
-export { INQUIRY_FILTER_FIELD_TYPES, INQUIRY_OPERAND_OPTIONS } from "./constants";
-
+// Headless Specification, Compilation & Domain Algorithms
+export * from "@/lib/cbs-inquiry-spec";
+// Components - Subcomponents
+export {
+  FilterCriterionRow,
+  type FilterCriterionRowProps,
+} from "./components/filters/filter-criterion-row";
+export {
+  InquiryFilterBar,
+  type InquiryFilterBarProps,
+} from "./components/inquiry-filter-bar";
+export {
+  InquiryPreview,
+  type InquiryPreviewProps,
+} from "./components/inquiry-preview";
+export {
+  InquiryTable,
+  type InquiryTableProps,
+} from "./components/inquiry-table";
+export {
+  CellFormatter,
+  type CellFormatterProps,
+} from "./components/table/cell-formatter";
+export {
+  ColumnHeader,
+  type ColumnHeaderProps,
+} from "./components/table/column-header";
+export {
+  InquiryEmptyState,
+  type InquiryEmptyStateProps,
+} from "./components/table/inquiry-empty-state";
+export {
+  InquiryPagination,
+  type InquiryPaginationProps,
+} from "./components/table/inquiry-pagination";
+export {
+  InquiryRowActions,
+  type InquiryRowActionsProps,
+} from "./components/table/inquiry-row-actions";
+export {
+  InquiryTableBody,
+  type InquiryTableBodyProps,
+} from "./components/table/inquiry-table-body";
+export {
+  InquiryTableHeader,
+  type InquiryTableHeaderProps,
+} from "./components/table/inquiry-table-header";
 // Hooks
 export { useInquiryPagination } from "./hooks/use-inquiry-pagination";
 export { useInquirySort } from "./hooks/use-inquiry-sort";
-
-// Types
-export * from "./types";
-
-// Utils
-export {
-  type DerivedColumnMeta,
-  deriveInquiryColumnMeta,
-  formatColumnCoordinates,
-  formatColumnLength,
-  type ParsedColumnCoordinates,
-  type ParsedColumnLength,
-  parseColumnCoordinates,
-  parseColumnLength,
-} from "./utils/column-compiler";
-export {
-  executeInquiryCommand,
-  resolveCommandTemplate,
-} from "./utils/command-resolver";
-export {
-  buildDefaultCriteria,
-  parseFixedSelectionToWire,
-  serializeCriteriaToWire,
-} from "./utils/criteria-mapper";

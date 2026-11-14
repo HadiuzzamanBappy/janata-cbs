@@ -7,8 +7,8 @@ import {
   formatColumnLength,
   parseColumnCoordinates,
   parseColumnLength,
-} from "@/features/inquiry-engine";
-import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
+} from "@/lib/cbs-inquiry-spec";
+import type { INQDef } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { COLUMN_INSPECTOR_SECTIONS } from "../../fields/ic-column-fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
@@ -43,7 +43,15 @@ export function ColumnInspector({
     for (const err of validationErrors) {
       if (err.tab === "columns" && err.itemIndex === selectedColIdx) {
         const cleanKey = err.fieldKey.split(".").pop() || err.fieldKey;
-        map[cleanKey] = err.message;
+        if (cleanKey === "fieldRowCol") {
+          map.gridRow = err.message;
+          map.gridCol = err.message;
+        } else if (cleanKey === "fieldLength") {
+          map.columnWidth = err.message;
+          map.alignment = err.message;
+        } else {
+          map[cleanKey] = err.message;
+        }
       }
     }
     return map;

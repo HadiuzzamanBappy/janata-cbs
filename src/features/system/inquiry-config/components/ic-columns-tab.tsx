@@ -13,8 +13,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useContainerWidth } from "@/hooks";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { INQDef, ModelProperty } from "@/lib/data-schemas";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { ColumnInspector } from "./columns/column-inspector";
 import { ColumnsPanel } from "./columns/columns-panel";
@@ -73,7 +72,7 @@ export function IcColumnsTab({
   );
 
   const configuredFieldNames = React.useMemo(
-    () => new Set(columns.map((c) => c.fieldName.toLowerCase())),
+    () => new Set<string>(columns.map((c) => c.fieldName.toLowerCase())),
     [columns],
   );
 
@@ -118,7 +117,7 @@ export function IcColumnsTab({
       fieldDisplay: formatNameToLabel(prop.NAME),
       fieldType: "DC",
       fieldLength: `${defaultLength},${alignment}`,
-      fieldRowCol: "1,1",
+      fieldRowCol: `1,${columns.length + 1}`,
       dataPassable: true,
     });
     setSelectedColIdx(columns.length);

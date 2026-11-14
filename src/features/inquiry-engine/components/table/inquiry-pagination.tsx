@@ -2,6 +2,13 @@
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface InquiryPaginationProps {
   currentPage: number;
@@ -19,6 +26,7 @@ export function InquiryPagination({
   pageSize,
   totalCount,
   onPageChange,
+  onPageSizeChange,
   className = "",
 }: InquiryPaginationProps) {
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -40,7 +48,30 @@ export function InquiryPagination({
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
+        {onPageSizeChange && (
+          <div className="flex items-center gap-1.5 border-r border-border/50 pr-2">
+            <span className="text-[11px] text-muted-foreground">Rows:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(val: string | null) => {
+                if (val) onPageSizeChange(Number(val));
+              }}
+            >
+              <SelectTrigger className="h-6 w-16 text-[11px] font-mono px-1.5 py-0 bg-background border-border/80 rounded">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="text-[11px] font-mono min-w-16">
+                {[15, 30, 50, 100].map((sz) => (
+                  <SelectItem key={sz} value={String(sz)}>
+                    {sz}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Page Buttons */}
         <div className="flex items-center gap-1">
           <Button

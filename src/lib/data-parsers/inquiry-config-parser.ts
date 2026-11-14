@@ -9,19 +9,6 @@ import {
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
-/* Constants & Sanitization Fields                                            */
-/* -------------------------------------------------------------------------- */
-
-const INQ_INFO_BOOLEANS = [
-  "showSerial",
-  "showPagination",
-  "showBranchWise",
-  "cmdFromInternal",
-] as const;
-
-const INQ_INFO_STRINGS = ["fixedSelection", "rptControllerName", "cmdFieldName"] as const;
-
-/* -------------------------------------------------------------------------- */
 /* Inbound Wire Envelope Normalizer                                           */
 /* -------------------------------------------------------------------------- */
 
@@ -119,68 +106,64 @@ export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
 /* -------------------------------------------------------------------------- */
 
 export function sanitizeInqSelectField(f: INQSelectField): INQSelectField {
-  const result: Partial<INQSelectField> = {
-    selectFieldName: f.selectFieldName.trim(),
-    selectFieldDisplay: (f.selectFieldDisplay || f.selectFieldName).trim(),
+  return {
+    selectFieldName: f.selectFieldName?.trim() || "",
+    selectFieldDisplay: f.selectFieldDisplay?.trim() || f.selectFieldName?.trim() || "",
     selectFieldType: f.selectFieldType || "text",
     selectFieldOperator: f.selectFieldOperator || "EQ",
+    selectFieldOperatorFixed: f.selectFieldOperatorFixed?.trim() || "",
+    selectFieldValue: f.selectFieldValue?.trim() || "",
+    selectFieldRequired: Boolean(f.selectFieldRequired),
   };
-  if (f.selectFieldValue?.trim()) result.selectFieldValue = f.selectFieldValue.trim();
-  if (f.selectFieldRequired) result.selectFieldRequired = true;
-  if (f.selectFieldOperatorFixed?.trim()) {
-    result.selectFieldOperatorFixed = f.selectFieldOperatorFixed.trim();
-  }
-  return result as INQSelectField;
 }
 
 export function sanitizeInqDef(col: INQDef): INQDef {
-  const result: Partial<INQDef> = {
-    fieldName: col.fieldName.trim(),
-    fieldDisplay: (col.fieldDisplay || col.fieldName).trim(),
-    fieldType: col.fieldType || "DC",
-    fieldLength: col.fieldLength || "20,L",
-    fieldRowCol: col.fieldRowCol || "1,1",
+  return {
+    fieldName: col.fieldName?.trim() || "",
+    fieldDisplay: col.fieldDisplay?.trim() || col.fieldName?.trim() || "",
+    fieldType: col.fieldType?.trim() || "DC",
+    fieldFunc: col.fieldFunc?.trim() || "",
+    fieldRowCol: col.fieldRowCol?.trim() || "1,1",
+    fieldLength: col.fieldLength?.trim() || "20,L",
+    dataPassable: col.dataPassable === true ? true : col.dataPassable === false ? false : null,
   };
-  if (col.fieldFunc?.trim()) result.fieldFunc = col.fieldFunc.trim();
-  if (col.dataPassable) result.dataPassable = true;
-  return result as INQDef;
 }
 
 /**
- * Produces a clean, sparse InquiryConfigRecord ready for database persistence.
+ * Produces a clean, normalized InquiryConfigRecord aligned 1:1 with the canonical schema.
  */
 export function sanitizeInquiryConfigRecord(
   record?: InquiryConfigRecord,
 ): InquiryConfigRecord | undefined {
   if (!record) return undefined;
 
-  const inqInfo: Partial<INQInfo> = {
+  const inqInfo: INQInfo = {
     controllerName: String(record.INQInfo?.controllerName || "").trim(),
     description: String(record.INQInfo?.description || "").trim(),
+    pageOrientation:
+      record.INQInfo?.pageOrientation?.trim() === "Landscape" ? "Landscape" : "Portrait",
+    perpageItem: String(record.INQInfo?.perpageItem || "30").trim() || "30",
+    showSerial: Boolean(record.INQInfo?.showSerial),
+    showPagination: Boolean(record.INQInfo?.showPagination),
+    showBranchWise: Boolean(record.INQInfo?.showBranchWise),
+    inqType: record.INQInfo?.inqType?.trim() || "DFT",
+    rptControllerName: String(record.INQInfo?.rptControllerName || "").trim(),
+    fixedSelection: String(record.INQInfo?.fixedSelection || "").trim(),
     inqServicePath: String(record.INQInfo?.inqServicePath || "default").trim(),
-    inqType: record.INQInfo?.inqType || "DFT",
-    pageOrientation: record.INQInfo?.pageOrientation || "Portrait",
-    perpageItem: String(record.INQInfo?.perpageItem || "30"),
+    cmdFromInternal: Boolean(record.INQInfo?.cmdFromInternal),
+    cmdFieldName: String(record.INQInfo?.cmdFieldName || "").trim(),
   };
 
-  for (const b of INQ_INFO_BOOLEANS) {
-    if (record.INQInfo?.[b]) inqInfo[b] = true;
-  }
-  for (const s of INQ_INFO_STRINGS) {
-    const val = record.INQInfo?.[s];
-    if (val?.trim()) inqInfo[s] = val.trim();
-  }
-
-  const result: Partial<InquiryConfigRecord> = {
-    INQInfo: inqInfo as INQInfo,
+  const result: InquiryConfigRecord = {
+    INQInfo: inqInfo,
     INQSelectField: (record.INQSelectField || []).map(sanitizeInqSelectField),
     INQDef: (record.INQDef || []).map(sanitizeInqDef),
     INQCmds: (record.INQCmds || []).map((cmd) => ({
-      cmdButton: cmd.cmdButton.trim(),
-      cmdFor: cmd.cmdFor.trim(),
+      cmdFor: cmd.cmdFor?.trim() || "",
+      cmdButton: cmd.cmdButton?.trim() || "",
     })),
   };
 
   if (record.auditData) result.auditData = record.auditData;
-  return result as InquiryConfigRecord;
+  return result;
 }

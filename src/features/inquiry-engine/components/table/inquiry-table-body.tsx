@@ -1,7 +1,7 @@
 import * as React from "react";
+import { type DerivedColumnMeta, executePrimaryInquiryCommand } from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
 import type { EnquiryRow, INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
-import type { DerivedColumnMeta } from "../utils/column-compiler";
 import { CellFormatter } from "./cell-formatter";
 import { InquiryRowActions } from "./inquiry-row-actions";
 
@@ -18,6 +18,8 @@ export interface InquiryTableBodyProps {
   currentPage: number;
   pageSize: number;
   showPagination: boolean;
+  cmdFromInternal?: boolean;
+  cmdFieldName?: string;
 }
 
 export function InquiryTableBody({
@@ -33,6 +35,8 @@ export function InquiryTableBody({
   currentPage,
   pageSize,
   showPagination,
+  cmdFromInternal = false,
+  cmdFieldName = "",
 }: InquiryTableBodyProps) {
   return (
     <tbody className="[&_tr:last-child]:border-0">
@@ -46,10 +50,15 @@ export function InquiryTableBody({
               : `inq-row-${serialNum}`;
         const isStriped = rowIdx % 2 === 1;
 
+        const handleRowDoubleClick = () => {
+          executePrimaryInquiryCommand(commands, row, cmdFromInternal, cmdFieldName);
+        };
+
         if (!isMultiRow) {
           return (
             <tr
               key={rowKey}
+              onDoubleClick={handleRowDoubleClick}
               className={`hover:bg-primary/10 transition-colors border-b border-border/30 font-mono text-xs ${
                 isStriped ? "bg-muted/40" : "bg-transparent"
               }`}
@@ -59,25 +68,64 @@ export function InquiryTableBody({
                   {serialNum}
                 </td>
               )}
-              {columnMetas.map((col) => (
-                <td
-                  key={col.id}
-                  className={`py-1.5 px-2.5 text-xs whitespace-nowrap ${col.isMono ? "font-mono" : ""} ${
-                    col.align === "right"
-                      ? "text-right"
-                      : col.align === "center"
-                        ? "text-center"
-                        : "text-left"
-                  }`}
-                >
-                  <CellFormatter
-                    value={row[col.id]}
-                    format={col.format}
-                    isMono={col.isMono}
-                    routine={col.routine}
-                  />
-                </td>
-              ))}
+              {columnMetas.map((col) => {
+                const isPassable = col.canPass;
+                return (
+                  <td
+                    key={col.id}
+                    onClick={
+                      isPassable
+                        ? (e) => {
+                            e.stopPropagation();
+                            executePrimaryInquiryCommand(
+                              commands,
+                              row,
+                              cmdFromInternal,
+                              cmdFieldName,
+                            );
+                          }
+                        : undefined
+                    }
+                    onKeyDown={
+                      isPassable
+                        ? (e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              executePrimaryInquiryCommand(
+                                commands,
+                                row,
+                                cmdFromInternal,
+                                cmdFieldName,
+                              );
+                            }
+                          }
+                        : undefined
+                    }
+                    tabIndex={isPassable ? 0 : undefined}
+                    role={isPassable ? "button" : undefined}
+                    title={isPassable ? `Click to open / drill down (${col.label})` : undefined}
+                    className={cn(
+                      "py-1.5 px-2.5 text-xs whitespace-nowrap",
+                      col.isMono ? "font-mono" : "",
+                      col.align === "right"
+                        ? "text-right"
+                        : col.align === "center"
+                          ? "text-center"
+                          : "text-left",
+                      isPassable &&
+                        "cursor-pointer text-primary hover:underline hover:text-primary/80 font-medium",
+                    )}
+                  >
+                    <CellFormatter
+                      value={row[col.id]}
+                      format={col.format}
+                      isMono={col.isMono}
+                      routine={col.routine}
+                    />
+                  </td>
+                );
+              })}
 
               {showActionsColumn && (
                 <td
@@ -85,7 +133,12 @@ export function InquiryTableBody({
                     isStriped ? "bg-muted/95" : "bg-card/95"
                   }`}
                 >
-                  <InquiryRowActions commands={commands} row={row} />
+                  <InquiryRowActions
+                    commands={commands}
+                    row={row}
+                    cmdFromInternal={cmdFromInternal}
+                    cmdFieldName={cmdFieldName}
+                  />
                 </td>
               )}
             </tr>
@@ -103,6 +156,7 @@ export function InquiryTableBody({
               return (
                 <tr
                   key={`${rowKey}-line-${rowNum}`}
+                  onDoubleClick={handleRowDoubleClick}
                   className={cn(
                     "hover:bg-primary/10 transition-colors font-mono text-xs",
                     isStriped ? "bg-muted/30" : "bg-transparent",
@@ -126,11 +180,44 @@ export function InquiryTableBody({
                       isLastCol && rowCols.length < maxColsInAnyRow
                         ? maxColsInAnyRow - rowCols.length + 1
                         : undefined;
+                    const isPassable = col.canPass;
 
                     return (
                       <td
                         key={col.id}
                         colSpan={colSpan}
+                        onClick={
+                          isPassable
+                            ? (e) => {
+                                e.stopPropagation();
+                                executePrimaryInquiryCommand(
+                                  commands,
+                                  row,
+                                  cmdFromInternal,
+                                  cmdFieldName,
+                                );
+                              }
+                            : undefined
+                        }
+                        onKeyDown={
+                          isPassable
+                            ? (e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  executePrimaryInquiryCommand(
+                                    commands,
+                                    row,
+                                    cmdFromInternal,
+                                    cmdFieldName,
+                                  );
+                                }
+                              }
+                            : undefined
+                        }
+                        tabIndex={isPassable ? 0 : undefined}
+                        role={isPassable ? "button" : undefined}
+                        title={isPassable ? `Click to open (${col.label})` : undefined}
                         className={cn(
                           "py-1.5 px-2.5 text-xs whitespace-nowrap",
                           col.isMono ? "font-mono" : "",
@@ -140,6 +227,8 @@ export function InquiryTableBody({
                             : col.align === "center"
                               ? "text-center"
                               : "text-left",
+                          isPassable &&
+                            "cursor-pointer text-primary hover:underline hover:text-primary/80 font-medium",
                         )}
                       >
                         {!isFirst && (
@@ -165,7 +254,12 @@ export function InquiryTableBody({
                         isStriped ? "bg-muted/95" : "bg-card/95",
                       )}
                     >
-                      <InquiryRowActions commands={commands} row={row} />
+                      <InquiryRowActions
+                        commands={commands}
+                        row={row}
+                        cmdFromInternal={cmdFromInternal}
+                        cmdFieldName={cmdFieldName}
+                      />
                     </td>
                   )}
                 </tr>

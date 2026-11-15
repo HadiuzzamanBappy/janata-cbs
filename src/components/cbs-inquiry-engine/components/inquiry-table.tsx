@@ -3,7 +3,7 @@
 import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { deriveInquiryColumnMeta } from "@/lib/cbs-inquiry-spec";
-import type { EnquiryRow, INQCmd, INQDef } from "@/lib/data-schemas";
+import type { INQCmd, INQDef, InquiryRow } from "@/lib/data-schemas";
 import { useInquiryPagination } from "../hooks/use-inquiry-pagination";
 import { useInquirySort } from "../hooks/use-inquiry-sort";
 import { InquiryPagination } from "./table/inquiry-pagination";
@@ -26,7 +26,7 @@ export function InquiryEmptyState({
 
 export interface InquiryTableProps {
   columns: INQDef[];
-  rows: EnquiryRow[];
+  rows: InquiryRow[];
   commands?: INQCmd[];
   pageSize?: number;
   onPageSizeChange?: (size: number) => void;
@@ -38,8 +38,8 @@ export interface InquiryTableProps {
   cmdFromInternal?: boolean;
   cmdFieldName?: string;
   className?: string;
-  onViewRecord?: (recordId: string, row: EnquiryRow) => void;
-  onEditRecord?: (recordId: string, row: EnquiryRow) => void;
+  onViewRecord?: (recordId: string, row: InquiryRow) => void;
+  onEditRecord?: (recordId: string, row: InquiryRow) => void;
 }
 
 export function InquiryTable({

@@ -19,6 +19,7 @@ export interface CbsFormHeaderProps {
   title: string;
   commandCode?: string;
   recordId?: string;
+  authLevel?: number;
   onRecordIdChange?: (id: string) => void;
   onRecordSearch?: (id: string) => void;
   onReset?: () => void;
@@ -53,6 +54,7 @@ export function CbsFormHeader({
   title,
   commandCode,
   recordId = "",
+  authLevel,
   onRecordIdChange,
   onRecordSearch,
   onReset,
@@ -242,8 +244,21 @@ export function CbsFormHeader({
 
         {/* ROW 2: CBS Record Header: Label + Record ID Field + Add Button */}
         <div className="flex flex-wrap items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
-          <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
+          <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap flex items-center">
             {title}
+            {(authLevel === 0 ||
+              commandCode?.endsWith(",") ||
+              commandCode?.includes(", ") ||
+              commandCode?.includes(",I ") ||
+              commandCode?.includes(",A ") ||
+              commandCode?.includes(",S ")) && (
+              <span
+                className="font-mono text-sm font-extrabold text-amber-500 dark:text-amber-400 leading-none select-none ml-0.5"
+                title="Zero-Auth Variant (Level 0)"
+              >
+                ,
+              </span>
+            )}
           </span>
 
           {mode === "IDLE" ? (

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { buildDefaultCriteria, type FilterCriteriaMap } from "@/lib/cbs-inquiry-spec";
-import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
+import type { InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
 
 export interface UseInquiryStateOptions {
@@ -15,34 +15,34 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
   const currentTab = tabs.find((t) => t.id === tabId);
 
   // 1. Initial Step: Persisted tab state or "SELECTION"
-  const initialStep = currentTab?.enquiryState?.step || "SELECTION";
+  const initialStep = currentTab?.inquiryState?.step || "SELECTION";
 
   // 2. Initial Criteria: Persisted tab criteria or default from schema
   const initialCriteria = React.useMemo((): FilterCriteriaMap => {
     if (
-      currentTab?.enquiryState?.criteria &&
-      Object.keys(currentTab.enquiryState.criteria).length > 0
+      currentTab?.inquiryState?.criteria &&
+      Object.keys(currentTab.inquiryState.criteria).length > 0
     ) {
-      return currentTab.enquiryState.criteria as unknown as FilterCriteriaMap;
+      return currentTab.inquiryState.criteria as unknown as FilterCriteriaMap;
     }
     return buildDefaultCriteria(schema?.INQSelectField);
-  }, [currentTab?.enquiryState?.criteria, schema?.INQSelectField]);
+  }, [currentTab?.inquiryState?.criteria, schema?.INQSelectField]);
 
   // 3. Initial Current Page: Persisted tab page or 1
-  const initialPage = currentTab?.enquiryState?.currentPage || 1;
+  const initialPage = currentTab?.inquiryState?.currentPage || 1;
 
   // 4. Initial Page Size: Persisted tab size or schema perpageItem or 30
   const initialPageSize = React.useMemo(() => {
-    if (currentTab?.enquiryState?.pageSize) return currentTab.enquiryState.pageSize;
+    if (currentTab?.inquiryState?.pageSize) return currentTab.inquiryState.pageSize;
     const schemaPerPage = Number(schema?.INQInfo?.perpageItem);
     if (!Number.isNaN(schemaPerPage) && schemaPerPage > 0) {
       return schemaPerPage;
     }
     return 30;
-  }, [currentTab?.enquiryState?.pageSize, schema?.INQInfo?.perpageItem]);
+  }, [currentTab?.inquiryState?.pageSize, schema?.INQInfo?.perpageItem]);
 
   const [step, setStepState] = React.useState<"SELECTION" | "RESULTS">(initialStep);
-  const [filteredRows, setFilteredRows] = React.useState<EnquiryRow[]>([]);
+  const [filteredRows, setFilteredRows] = React.useState<InquiryRow[]>([]);
   const [currentPage, setCurrentPageState] = React.useState(initialPage);
   const [pageSize, setPageSizeState] = React.useState(initialPageSize);
   const [currentCriteria, setCurrentCriteriaState] =
@@ -53,14 +53,14 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
       setStepState(newStep);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, {
-          enquiryState: {
-            ...currentTab?.enquiryState,
+          inquiryState: {
+            ...currentTab?.inquiryState,
             step: newStep,
           },
         });
       }
     },
-    [tabId, updateTabState, currentTab?.enquiryState],
+    [tabId, updateTabState, currentTab?.inquiryState],
   );
 
   const setCurrentPage = React.useCallback(
@@ -68,14 +68,14 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
       setCurrentPageState(page);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, {
-          enquiryState: {
-            ...currentTab?.enquiryState,
+          inquiryState: {
+            ...currentTab?.inquiryState,
             currentPage: page,
           },
         });
       }
     },
-    [tabId, updateTabState, currentTab?.enquiryState],
+    [tabId, updateTabState, currentTab?.inquiryState],
   );
 
   const setPageSize = React.useCallback(
@@ -83,14 +83,14 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
       setPageSizeState(size);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, {
-          enquiryState: {
-            ...currentTab?.enquiryState,
+          inquiryState: {
+            ...currentTab?.inquiryState,
             pageSize: size,
           },
         });
       }
     },
-    [tabId, updateTabState, currentTab?.enquiryState],
+    [tabId, updateTabState, currentTab?.inquiryState],
   );
 
   const setCurrentCriteria = React.useCallback(
@@ -98,14 +98,14 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
       setCurrentCriteriaState(crit);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, {
-          enquiryState: {
-            ...currentTab?.enquiryState,
+          inquiryState: {
+            ...currentTab?.inquiryState,
             criteria: crit,
           },
         });
       }
     },
-    [tabId, updateTabState, currentTab?.enquiryState],
+    [tabId, updateTabState, currentTab?.inquiryState],
   );
 
   // Sync criteria when schema loads if not already configured in tab
@@ -115,14 +115,14 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
     isInitializedRef.current = true;
 
     const hasPersistedCriteria =
-      currentTab?.enquiryState?.criteria &&
-      Object.keys(currentTab.enquiryState.criteria).length > 0;
+      currentTab?.inquiryState?.criteria &&
+      Object.keys(currentTab.inquiryState.criteria).length > 0;
 
     if (!hasPersistedCriteria) {
       const defaults = buildDefaultCriteria(schema.INQSelectField);
       setCurrentCriteriaState(defaults);
     }
-  }, [schema, currentTab?.enquiryState?.criteria]);
+  }, [schema, currentTab?.inquiryState?.criteria]);
 
   return {
     step,

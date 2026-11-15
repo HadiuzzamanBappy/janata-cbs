@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { ApiResponse, CbsWirePayload } from "@/lib/data-schemas";
+import { CbsRecordFunction } from "@/types";
 import { resolveTable } from "../database-router";
 import { notFoundResult, successResult } from "../response-factory";
 
@@ -50,12 +51,27 @@ export function handleSeeRecord(payload: CbsWirePayload): ApiResponse {
     ? `${upperId.split(",")[0].trim()},${upperId.split(",")[1].trim()}`
     : "";
 
-  // Direct, clean key resolution: exact key, uppercase key, composite key, or prefix-prepended key
-  const rawRecord =
-    table.LIVE[recId] ||
-    table.LIVE[upperId] ||
-    (compositeKey ? table.LIVE[compositeKey] : undefined) ||
-    (table.prefix ? table.LIVE[`${table.prefix}${upperId}`] : undefined);
+  const isAuthOrPending =
+    payload.recordFunction === CbsRecordFunction.AUTHORIZE || payload.recordFunction === "A";
+
+  const inauBucket = table.table?.INAU as Record<string, Record<string, unknown>> | undefined;
+  const liveBucket = table.LIVE;
+
+  const resolveFromBucket = (bucket?: Record<string, Record<string, unknown>>) => {
+    if (!bucket) return undefined;
+    return (
+      bucket[recId] ||
+      bucket[upperId] ||
+      (compositeKey ? bucket[compositeKey] : undefined) ||
+      (table.prefix ? bucket[`${table.prefix}${upperId}`] : undefined)
+    );
+  };
+
+  // When authorising (A) or reading pending draft, check INAU first; otherwise check LIVE first with INAU fallback
+  const primaryBucket = isAuthOrPending && inauBucket ? inauBucket : liveBucket;
+  const secondaryBucket = isAuthOrPending ? liveBucket : inauBucket;
+
+  const rawRecord = resolveFromBucket(primaryBucket) || resolveFromBucket(secondaryBucket);
 
   if (!rawRecord) {
     return notFoundResult(`Record #${recId} not found in database table ${cmd}`);
@@ -69,9 +85,17 @@ export function handleSeeRecord(payload: CbsWirePayload): ApiResponse {
     (hasComma ? recId.split(",")[0].trim() : undefined);
   const version = rawRecord.version || (hasComma ? recId.split(",")[1]?.trim() : undefined);
 
+  const audit = rawRecord.auditData as Record<string, unknown> | undefined;
+  const recordStatus =
+    rawRecord.RECORD_STATUS ||
+    rawRecord.status ||
+    (audit?.recStatus === "AU" ? "AU" : audit?.recStatus) ||
+    (isAuthOrPending ? "UA" : "AU");
+
   const recordWithId = {
     recordId: resolvedId,
     id: resolvedId,
+    RECORD_STATUS: recordStatus,
     ...(targetModel ? { targetModel } : {}),
     ...(version ? { version } : {}),
     ...rawRecord,

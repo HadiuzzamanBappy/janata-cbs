@@ -82,7 +82,7 @@ src/
 │   ├── command/          # CBS Command Gateway bar & fast action executor
 │   ├── operations/       # Core business screens
 │   │   ├── forms/        # 12-column dynamic GMC form engine & field controls
-│   │   └── inquiries/    # Enquiry queries, data filters, and high-density tables
+│   │   └── inquiries/    # Inquiry queries, data filters, and high-density tables
 │   ├── workbench/        # Multitab layout, unified screen loader, and component registry
 │   ├── system/           # Bespoke admin tools (Menu Catalog, Menu Designer, Model Config, User Groups)
 │   ├── settings/         # User preferences and workstation hotkeys

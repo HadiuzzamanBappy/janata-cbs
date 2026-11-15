@@ -4,6 +4,7 @@ import { type CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types
 export interface ModelOptions {
   servicePath?: string;
   idempotencyKey?: string;
+  recordFunction?: CbsRecordFunction;
 }
 
 export interface CbsModelPayloadFactory<TData = Record<string, unknown>> {
@@ -11,7 +12,10 @@ export interface CbsModelPayloadFactory<TData = Record<string, unknown>> {
   readonly servicePath?: string;
 
   /** S: See / Read single record */
-  get: (recordId: string, options?: ModelOptions) => CbsWirePayload;
+  get: (
+    recordId: string,
+    options?: ModelOptions & { recordFunction?: CbsRecordFunction },
+  ) => CbsWirePayload;
 
   /** L: List records */
   list: (options?: ModelOptions & { criteria?: Record<string, unknown> }) => CbsWirePayload;
@@ -74,7 +78,14 @@ export function createModelPayloads<TData = Record<string, unknown>>(
     controlName: control,
     servicePath,
 
-    get: (id, opts) => toPayload(CbsRequestType.GET, CbsRecordFunction.SEE, id, undefined, opts),
+    get: (id, opts) =>
+      toPayload(
+        CbsRequestType.GET,
+        opts?.recordFunction || CbsRecordFunction.SEE,
+        id,
+        undefined,
+        opts,
+      ),
 
     list: (opts) => toPayload(CbsRequestType.GRL, CbsRecordFunction.LIST, "", opts?.criteria, opts),
 

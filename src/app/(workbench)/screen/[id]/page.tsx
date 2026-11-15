@@ -93,7 +93,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
         screenMode: mode,
         searchRecordId: recordId,
         formData: storageDraft || undefined,
-        enquiryState: {
+        inquiryState: {
           step,
           criteria,
           currentPage: pageStr ? Number(pageStr) : undefined,
@@ -114,7 +114,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
         screenMode: currentTab?.screenMode,
         searchRecordId: currentTab?.searchRecordId,
         formData: currentTab?.formData,
-        enquiryState: currentTab?.enquiryState,
+        inquiryState: currentTab?.inquiryState,
       };
 
       // 1. Broadcast via native BroadcastChannel (immune to F5 and cross-origin null openers)

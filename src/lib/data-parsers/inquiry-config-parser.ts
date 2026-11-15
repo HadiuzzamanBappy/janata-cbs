@@ -1,9 +1,9 @@
 import {
-  type EnquiryRow,
   type INQDef,
   type INQInfo,
   type INQSelectField,
   type InquiryConfigRecord,
+  type InquiryRow,
   inquiryConfigRecordSchema,
 } from "@/lib/data-schemas/inquiry-config-schema";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
@@ -73,13 +73,13 @@ export function parseInquiryConfig(
 }
 
 /* -------------------------------------------------------------------------- */
-/* Dataset Rows Parser (for runtime tabular enquiry queries)                  */
+/* Dataset Rows Parser (for runtime tabular inquiry queries)                  */
 /* -------------------------------------------------------------------------- */
 
 /**
- * Unpacks tabular records from query execution responses into typed EnquiryRow array.
+ * Unpacks tabular records from query execution responses into typed InquiryRow array.
  */
-export function parseInquiryRecords(rawPayload: unknown): EnquiryRow[] {
+export function parseInquiryRecords(rawPayload: unknown): InquiryRow[] {
   if (!rawPayload) return [];
 
   const records = unwrapRecordsPayload<Record<string, unknown>>(rawPayload);

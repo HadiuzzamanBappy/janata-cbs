@@ -12,12 +12,25 @@ export class SettingsCommandHandler implements CommandHandler {
   readonly type = "SETTINGS" as const;
 
   canHandle(_raw: string, upper: string): boolean {
-    return resolveCommandAlias(upper).startsWith("SETTINGS:");
+    const resolved = resolveCommandAlias(upper);
+    return (
+      resolved === "SETTINGS" ||
+      resolved.startsWith("SETTINGS:") ||
+      resolved.startsWith("SETTINGS ")
+    );
   }
 
   parse(raw: string, upper: string): ParsedCommand {
     const resolved = resolveCommandAlias(upper);
-    const rawTab = resolved.slice("SETTINGS:".length).trim().toLowerCase();
+    let rawTab = "profile";
+
+    if (resolved.includes(":") || resolved.includes(" ")) {
+      const sep = resolved.includes(":") ? ":" : " ";
+      rawTab = resolved
+        .slice(resolved.indexOf(sep) + 1)
+        .trim()
+        .toLowerCase();
+    }
 
     const settingsTab = CBS_SETTINGS_TABS.includes(rawTab as CbsSettingsTabId)
       ? (rawTab as CbsSettingsTabId)

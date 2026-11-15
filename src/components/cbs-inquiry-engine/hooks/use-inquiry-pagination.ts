@@ -1,8 +1,8 @@
 import * as React from "react";
-import type { EnquiryRow } from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryRow } from "@/lib/data-schemas/inquiry-config-schema";
 
 export interface UseInquiryPaginationProps {
-  rows: EnquiryRow[];
+  rows: InquiryRow[];
   initialPageSize?: number;
   controlledPage?: number;
   controlledPageSize?: number;

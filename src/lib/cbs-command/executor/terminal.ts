@@ -75,8 +75,9 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
           : CBS_SCREEN_COMPONENTS.DYNAMIC_FORM,
       screenMode: targetMode,
       searchRecordId: targetRecordId,
-      enquiryState: parsed.type === "INQUIRY" ? options?.inquiryState : undefined,
+      inquiryState: parsed.type === "INQUIRY" ? options?.inquiryState : undefined,
       formData: options?.formData,
+      authLevel: parsed.authLevel,
     });
   }
 

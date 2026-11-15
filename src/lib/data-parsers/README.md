@@ -13,7 +13,7 @@ src/lib/data-parsers/
 ├── protobuf-decoder.ts       # Universal Protobuf wire normalizer & response envelope unwrapper
 ├── auth-parser.ts            # Parses login/auth responses into typed CurrentUser models and session tokens
 ├── form-config-parser.ts     # Parses GFC responses & FormConfigRecord; sanitizes elements, sections, and form configs
-├── inquiry-config-parser.ts  # Parses inquiry definitions, dataset rows (EnquiryRow); sanitizes criteria and columns
+├── inquiry-config-parser.ts  # Parses inquiry definitions, dataset rows (InquiryRow); sanitizes criteria and columns
 ├── menu-designer-parser.ts   # Parses GUM navigation menus (parseMNU) and visual trees (SC_MENU_TREE)
 ├── model-config-parser.ts    # Parses GMC responses & ModelConfigRecord; sanitizes model properties and model configs
 └── index.ts                  # Public barrel export

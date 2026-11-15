@@ -46,7 +46,7 @@ const authPayload = buildAuthorizeRecordRequest({
   recordId: "10001",
 });
 
-// 4. Executing an Enquiry (INQ, SEE)
+// 4. Executing an Inquiry (INQ, SEE)
 const inqPayload = buildInquiryRequest({
   inquirySpec: "GET.EMP.INFO",
   criteria: { BRANCH_CODE: { value: "JB0001", operand: "EQ" } },

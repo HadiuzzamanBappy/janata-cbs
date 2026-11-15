@@ -195,7 +195,7 @@ export interface InquiryExecuteOptions {
 /* 8. DATASET ROW / RESULT SCHEMA                                             */
 /* ========================================================================== */
 
-export const enquiryRowSchema = z
+export const inquiryRowSchema = z
   .looseObject({
     id: z.string().nullish(),
     recordId: z.string().nullish(),
@@ -209,7 +209,7 @@ export const enquiryRowSchema = z
     };
   });
 
-export type EnquiryRow = {
+export type InquiryRow = {
   id: string;
   recordId: string;
   [key: string]: unknown;

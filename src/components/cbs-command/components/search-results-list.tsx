@@ -1,4 +1,4 @@
-import { Terminal } from "lucide-react";
+import { AlertCircle, Terminal } from "lucide-react";
 import { CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import type { ControlCommand } from "@/lib/data-schemas";
 import { CommandItemRow } from "./command-item-row";
@@ -7,6 +7,7 @@ interface SearchResultsListProps {
   categories: [string, ControlCommand[]][];
   onSelectCommand: (cmd: ControlCommand) => void;
   rawCommandInput?: string | null;
+  syntaxError?: string | null;
   onExecuteRawInput?: (raw: string) => void;
 }
 
@@ -14,13 +15,26 @@ export function SearchResultsList({
   categories,
   onSelectCommand,
   rawCommandInput,
+  syntaxError,
   onExecuteRawInput,
 }: SearchResultsListProps) {
   return (
     <CommandList className="max-h-72">
-      <CommandEmpty className="py-6 text-xs text-muted-foreground">
-        No commands or screens found.
-      </CommandEmpty>
+      {syntaxError && categories.length === 0 && !rawCommandInput ? (
+        <div className="py-3 px-3 m-2 text-xs border border-destructive/30 bg-destructive/5 rounded-md flex items-start gap-2 text-destructive">
+          <AlertCircle className="size-4 shrink-0 mt-0.5" />
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <span className="font-semibold text-[11px] uppercase tracking-wide">
+              Invalid Command Syntax
+            </span>
+            <span className="text-muted-foreground text-[11px] leading-relaxed">{syntaxError}</span>
+          </div>
+        </div>
+      ) : (
+        <CommandEmpty className="py-6 text-xs text-muted-foreground">
+          No commands or screens found.
+        </CommandEmpty>
+      )}
 
       {categories.map(([category, items]) => (
         <CommandGroup key={category} heading={category}>

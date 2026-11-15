@@ -2,12 +2,12 @@ import type { CbsWirePayload, InquiryExecuteOptions } from "@/lib/data-schemas";
 import { CbsRecordFunction, CbsRequestType } from "@/types";
 
 /**
- * Pure runtime enquiry executor payload builder.
+ * Pure runtime inquiry executor payload builder.
  * Table definition maintenance (get, list, save) is handled by `cbs.inquiryConfig`.
  */
 export const inquiryPayloads = {
   /**
-   * Execute tabular runtime enquiry query ('INQ').
+   * Execute tabular runtime inquiry query ('INQ').
    */
   executeQuery: (controlName: string, options: InquiryExecuteOptions = {}): CbsWirePayload => ({
     servicePath: options.servicePath,

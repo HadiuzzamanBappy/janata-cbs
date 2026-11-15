@@ -68,7 +68,35 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
     };
   }
 
-  // 2. Syntax validation: First token must start with a valid alphanumeric letter or known prefix
+  // 2. Syntax validation: Disallow leading commas or consecutive commas in first token
+  const firstWord = trimmed.split(/\s+/)[0];
+  if (firstWord.startsWith(",")) {
+    return {
+      raw: trimmed,
+      isValid: false,
+      error: `Invalid application or command identifier: "${firstWord}". Commands cannot start with a comma.`,
+      type: "FORM",
+      application: "",
+      title: "",
+      authLevel: 1,
+      screenMode: "IDLE",
+    };
+  }
+
+  if (firstWord.includes(",,")) {
+    return {
+      raw: trimmed,
+      isValid: false,
+      error: `Invalid command syntax: multiple consecutive commas detected in "${firstWord}".`,
+      type: "FORM",
+      application: "",
+      title: "",
+      authLevel: 1,
+      screenMode: "IDLE",
+    };
+  }
+
+  // First token must start with a valid alphanumeric letter or known prefix
   const firstToken = trimmed.split(/[\s,]+/)[0];
   if (!/^[A-Z][A-Z0-9._-]*$/i.test(firstToken) && !firstToken.includes(":")) {
     return {

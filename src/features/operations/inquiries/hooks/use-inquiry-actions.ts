@@ -6,11 +6,11 @@ import {
   exportToHtmlReport,
   exportToXml,
 } from "@/lib/core-utils/export";
-import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
+import type { InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
 
 export interface UseInquiryActionsProps {
   schema: InquiryConfigRecord | null;
-  filteredRows: EnquiryRow[];
+  filteredRows: InquiryRow[];
   onRefreshQuery?: () => Promise<void> | void;
 }
 
@@ -19,7 +19,7 @@ export function useInquiryActions({
   filteredRows,
   onRefreshQuery,
 }: UseInquiryActionsProps) {
-  const getExportColumns = React.useCallback((): ExportColumn<EnquiryRow>[] => {
+  const getExportColumns = React.useCallback((): ExportColumn<InquiryRow>[] => {
     if (!schema?.INQDef) return [];
     return schema.INQDef.map((col) => ({
       key: col.fieldName,

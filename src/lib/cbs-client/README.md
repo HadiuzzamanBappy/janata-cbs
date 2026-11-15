@@ -22,8 +22,8 @@ It acts as the single boundary between the React presentation layer and the serv
    - **`cbs.menuTree`**: Pre-bound model for hierarchical navigation trees (`SC_MENU_TREE` via `GUM`).
    - **`cbs.modelConfig`**: Dedicated metamodel builder (`GMC`, `SMC`, `AMC`) via `MODEL.CONFIG`.
    - **`cbs.formConfig`**: Dedicated form layout presentation builder (`GFC`, `SFC`) via `CONFIG.FORM`.
-   - **`cbs.inquiryConfig`**: Dedicated enquiry table schema builder (`INQUIRY`).
-   - **`cbs.inquiry`**: Dynamic tabular enquiry runtime query execution (`INQ`).
+   - **`cbs.inquiryConfig`**: Dedicated inquiry table schema builder (`INQUIRY`).
+   - **`cbs.inquiry`**: Dynamic tabular inquiry runtime query execution (`INQ`).
    - **`cbs.userSecurity`**: Password change (`CPW`).
 
 ---

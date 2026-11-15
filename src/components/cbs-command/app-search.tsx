@@ -52,13 +52,24 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
   }, [filteredCommands]);
 
   // Only allow direct terminal execution when commandLine is permitted, no menu item matched, and syntax is valid
-  const rawCommandInput = React.useMemo(() => {
+  const parsedCandidate = React.useMemo(() => {
     const trimmed = searchQuery.trim();
     if (!userHasCommandLine || !trimmed || filteredCommands.length > 0) {
       return null;
     }
-    return cbsCommand.parse(trimmed).isValid ? trimmed : null;
+    return cbsCommand.parse(trimmed);
   }, [filteredCommands.length, searchQuery, userHasCommandLine]);
+
+  const rawCommandInput = React.useMemo(() => {
+    return parsedCandidate?.isValid ? searchQuery.trim() : null;
+  }, [parsedCandidate, searchQuery]);
+
+  const commandSyntaxError = React.useMemo(() => {
+    if (parsedCandidate && !parsedCandidate.isValid && searchQuery.trim()) {
+      return parsedCandidate.error ?? "Invalid command syntax.";
+    }
+    return null;
+  }, [parsedCandidate, searchQuery]);
 
   // Hook 3: Proactive RIDASH & Space Guidance via Gateway Parser
   const commandGuideInfo = useCommandGuide({
@@ -125,6 +136,7 @@ export function AppSearch({ open, onOpenChange }: GlobalSearchProps) {
           categories={categories}
           onSelectCommand={handleSelectCommand}
           rawCommandInput={rawCommandInput}
+          syntaxError={commandSyntaxError}
           onExecuteRawInput={handleExecuteRawInput}
         />
 

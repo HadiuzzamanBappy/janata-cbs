@@ -90,7 +90,7 @@ janata-cbs/
     │   │   │   └── widgets/                   # High-density typed inputs (amount, date, rate, select, text, etc.)
     │   │   ├── store/                         # Headless 2-tier state kernel (form-kernel-store.ts)
     │   │   └── hooks/                         # use-field-options, use-model-lookup, use-multi-value
-    │   ├── cbs-inquiry-engine/                # Dynamic Tabular Enquiry Presentation Engine (InquiryTable, FilterBar)
+    │   ├── cbs-inquiry-engine/                # Dynamic Tabular Inquiry Presentation Engine (InquiryTable, FilterBar)
     │   │   ├── components/                    # inquiry-table, inquiry-filter-bar, pagination, row actions
     │   │   └── hooks/                         # use-inquiry-pagination, use-inquiry-sort
     │   ├── cbs-menu/                          # Universal UI Navigation Menu Renderer (CbsMenuTree, CbsMenuTreeItem)
@@ -180,7 +180,7 @@ janata-cbs/
 | **BFF Wire Client**           | [`src/lib/cbs-client/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-client), [`src/app/api/proxy/`](file:///d:/Work/React/cbs/janata-cbs/src/app/api/proxy)                                 | Typed request payload factories dispatched strictly via `/api/proxy`.     |
 | **Form Engine Kernel**        | [`src/components/cbs-form-engine/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-form-engine), [`src/lib/cbs-form-spec/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-form-spec) | Zero-lag 150–1000 field rendering with 2-tier state & 12-col grid.        |
 | **Record Delta Mutations**    | [`src/lib/cbs-record/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-record)                                                                                                                 | Baseline snapshot vs modified state diffing for touch-only commits.       |
-| **Inquiry Engine**            | [`src/components/cbs-inquiry-engine/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-inquiry-engine)                                                                                   | Tabular enquiry execution, real-time filtering, PDF/Excel generation.     |
+| **Inquiry Engine**            | [`src/components/cbs-inquiry-engine/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-inquiry-engine)                                                                                   | Tabular inquiry execution, real-time filtering, PDF/Excel generation.     |
 | **Visual Form Designer**      | [`src/features/system/form-config/`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config)                                                                                       | Visual DnD layout builder supporting root fields, cards, and tab groups.  |
 | **Menu Hierarchy Designer**   | [`src/features/system/menu-designer/`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/menu-designer)                                                                                   | Visual navigation tree builder and hierarchy reordering.                  |
 | **Metamodel Dictionary**      | [`src/features/system/model-config/`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/model-config)                                                                                     | Data dictionary schema definitions, datatypes, and foreign lookups.       |

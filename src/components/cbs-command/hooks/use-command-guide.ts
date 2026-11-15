@@ -25,7 +25,7 @@ export function useCommandGuide({
     if (!trimmed) return null;
 
     const parsed = cbsCommand.parse(trimmed);
-    if (parsed.type === "SETTINGS" || parsed.type === "INQUIRY") {
+    if (!parsed.isValid || parsed.type === "SETTINGS" || parsed.type === "INQUIRY") {
       return null;
     }
 

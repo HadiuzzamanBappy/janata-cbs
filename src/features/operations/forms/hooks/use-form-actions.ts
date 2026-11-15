@@ -46,9 +46,16 @@ export function useFormActions({
       if (!schema || !cleanId || !modelCode) return;
 
       try {
-        const res = await cbs.send<Record<string, unknown>>(cbs.model(modelCode).get(cleanId), {
-          silent: true,
-        });
+        const recordFunction = Object.values(CbsRecordFunction).includes(
+          modeToSet as CbsRecordFunction,
+        )
+          ? (modeToSet as CbsRecordFunction)
+          : CbsRecordFunction.SEE;
+
+        const res = await cbs.send<Record<string, unknown>>(
+          cbs.model(modelCode).get(cleanId, { recordFunction }),
+          { silent: true },
+        );
 
         if (res.status === "SUCCESS" && res.data) {
           if (hydrate) {
@@ -57,8 +64,18 @@ export function useFormActions({
             setValues(res.data);
           }
           setScreenMode(modeToSet);
+          if (cleanId !== searchRecordId) {
+            setSearchRecordId(cleanId);
+          }
+          const toastTitle =
+            modeToSet === CbsRecordFunction.AUTHORIZE
+              ? "Authorizing Record"
+              : modeToSet === CbsRecordFunction.SEE
+                ? "Viewing Record"
+                : "Editing Record";
+
           toast.add({
-            title: modeToSet === CbsRecordFunction.SEE ? "Viewing Record" : "Editing Record",
+            title: toastTitle,
             description: `Loaded record #${cleanId} for ${schema.title}`,
             type: "success",
           });
@@ -73,7 +90,7 @@ export function useFormActions({
         setScreenMode(modeToSet);
       }
     },
-    [schema, modelCode, setScreenMode, setValues, hydrate],
+    [schema, modelCode, setScreenMode, setValues, hydrate, searchRecordId, setSearchRecordId],
   );
 
   // Auto-fetch record data when opened with initial query/mode

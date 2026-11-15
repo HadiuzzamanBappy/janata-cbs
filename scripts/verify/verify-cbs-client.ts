@@ -69,6 +69,17 @@ async function runSuite() {
       getPayload.recordId === "10001",
   );
 
+  // 1.1b GET with explicit recordFunction
+  const getAuthPayload = account.get("10001", { recordFunction: CbsRecordFunction.AUTHORIZE });
+  recordTest(
+    "1.1b cbs.model.get: Builds GET envelope with custom recordFunction (e.g. AUTHORIZE)",
+    'account.get("10001", { recordFunction: CbsRecordFunction.AUTHORIZE })',
+    getAuthPayload,
+    getAuthPayload.requestType === CbsRequestType.GET &&
+      getAuthPayload.recordFunction === CbsRecordFunction.AUTHORIZE &&
+      getAuthPayload.recordId === "10001",
+  );
+
   // 1.2 LIST
   const listPayload = account.list({ criteria: { branch: "0101" } });
   recordTest(

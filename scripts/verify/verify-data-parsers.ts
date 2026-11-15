@@ -359,7 +359,7 @@ async function runSuite() {
   const parsedInquiry = parseInquiryRecords(rawInquiryWire);
 
   recordTest(
-    "7. Inquiry Records Parser: Normalizes tabular row items into typed EnquiryRow list",
+    "7. Inquiry Records Parser: Normalizes tabular row items into typed InquiryRow list",
     { rawRecordsCount: rawInquiryWire.data.records.length },
     { parsedCount: parsedInquiry.length, firstId: parsedInquiry[0]?.id },
     parsedInquiry.length === 2 && parsedInquiry[0]?.id === "TXN101",

@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { EnquiryRow } from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryRow } from "@/lib/data-schemas/inquiry-config-schema";
 
 export type SortDirection = "asc" | "desc" | null;
 
@@ -8,7 +8,7 @@ export interface SortState {
   direction: SortDirection;
 }
 
-export function useInquirySort(rows: EnquiryRow[]) {
+export function useInquirySort(rows: InquiryRow[]) {
   const [sortState, setSortState] = React.useState<SortState>({
     column: null,
     direction: null,

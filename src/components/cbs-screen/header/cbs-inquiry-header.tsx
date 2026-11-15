@@ -95,7 +95,7 @@ export function CbsInquiryHeader({
         {/* ROW 2: Ultra-compact CBS Record Title */}
         <div className="flex flex-wrap items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap">
-            {title || "Enquiry Screen"}
+            {title || "Inquiry"}
           </span>
 
           <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs">

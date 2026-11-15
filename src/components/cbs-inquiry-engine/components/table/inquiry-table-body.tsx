@@ -1,12 +1,12 @@
 import * as React from "react";
 import { type DerivedColumnMeta, executePrimaryInquiryCommand } from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
-import type { EnquiryRow, INQCmd } from "@/lib/data-schemas";
+import type { INQCmd, InquiryRow } from "@/lib/data-schemas";
 import { InquiryRowActions } from "../inquiry-row-actions";
 import { CellFormatter } from "./cell-formatter";
 
 export interface InquiryTableBodyProps {
-  rows: EnquiryRow[];
+  rows: InquiryRow[];
   isMultiRow: boolean;
   sortedRowNumbers: number[];
   rowsMap: Map<number, DerivedColumnMeta[]>;

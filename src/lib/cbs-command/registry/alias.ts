@@ -9,7 +9,7 @@ const CANONICAL_TITLE_MAP = new Map<string, string>();
  */
 export function registerDynamicAliases(controls: readonly ControlCommand[]): void {
   for (const cmd of controls) {
-    if (cmd.controlAction !== "SCREEN") continue;
+    if (cmd.controlAction !== "SCREEN" && cmd.controlAction !== "SETTINGS") continue;
 
     const keys = [cmd.command, ...(cmd.aliases || [])];
     for (const key of keys) {

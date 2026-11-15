@@ -71,7 +71,7 @@ export function TabMenuItems({
       target: "popup",
       screenMode: tab.screenMode,
       recordId: tab.searchRecordId,
-      inquiryState: tab.enquiryState as CommandInquiryState | undefined,
+      inquiryState: tab.inquiryState as CommandInquiryState | undefined,
       formData: tab.formData,
     });
     removeTab(tab.id);

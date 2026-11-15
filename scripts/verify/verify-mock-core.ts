@@ -280,6 +280,28 @@ async function runSuite() {
       seeRes.status === "SUCCESS" && seeOut.recordId === "AC1001",
     );
 
+    // 10b. Single Record Read in Authorize Mode (GET / A from INAU)
+    const seeAuthInput = {
+      requestType: "GET",
+      controlName: "USERS",
+      recordFunction: "A",
+      recordId: "AH0055210",
+    };
+    const seeAuthRes = getMockProxyResponse(seeAuthInput);
+    const seeAuthData = seeAuthRes.data as Record<string, unknown> | undefined;
+    recordTest(
+      "10b. Single Record Read in Authorize Mode (GET / A from INAU)",
+      seeAuthInput,
+      {
+        recordId: seeAuthData?.recordId,
+        userName: seeAuthData?.userName,
+        status: seeAuthRes.status,
+      },
+      seeAuthRes.status === "SUCCESS" &&
+        seeAuthData?.recordId === "AH0055210" &&
+        seeAuthData?.userName === "KAMAL HOSSAIN",
+    );
+
     // 11. Maker-Checker Lifecycle Status Mutation (PUT -> UA)
     const putInput = {
       requestType: "PUT",

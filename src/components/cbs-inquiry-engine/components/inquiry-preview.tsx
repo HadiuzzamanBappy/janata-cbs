@@ -8,7 +8,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { type FilterCriteriaMap, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
 import { parseInquiryRecords } from "@/lib/data-parsers";
-import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas";
+import type { InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
 import { InquiryTable } from "./inquiry-table";
 
@@ -37,7 +37,7 @@ export function InquiryPreview({
   const [step, setStep] = React.useState<"SELECTION" | "RESULTS">(
     hasFilters ? "SELECTION" : "RESULTS",
   );
-  const [rows, setRows] = React.useState<EnquiryRow[]>([]);
+  const [rows, setRows] = React.useState<InquiryRow[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [criteria, setCriteria] = React.useState<FilterCriteriaMap>({});
 

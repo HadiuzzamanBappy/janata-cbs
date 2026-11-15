@@ -25,7 +25,7 @@ import {
   resolveCommandTemplate,
   serializeCriteriaToWire,
 } from "@/lib/cbs-inquiry-spec";
-import type { EnquiryRow, INQCmd, INQDef, INQSelectField } from "@/lib/data-schemas";
+import type { INQCmd, INQDef, INQSelectField, InquiryRow } from "@/lib/data-schemas";
 
 interface TestCase {
   title: string;
@@ -286,7 +286,7 @@ async function runSuite() {
   // ── 6. Command Template Interpolation ──
   console.log("\n── 6. Command Template Interpolation (resolveCommandTemplate) ──");
   {
-    const sampleRow: EnquiryRow = {
+    const sampleRow: InquiryRow = {
       id: "REC-9001",
       recordId: "REC-9001",
       ACCOUNT_NUMBER: "1002345001",
@@ -327,7 +327,7 @@ async function runSuite() {
     "\n── 7. Internal Commands & Primary Action Resolution (getPrimaryInquiryCommand) ──",
   );
   {
-    const sampleRow: EnquiryRow = {
+    const sampleRow: InquiryRow = {
       id: "ACC-5001",
       recordId: "ACC-5001",
       TXN_CMD: "USER.MGT,AUTH A ACC-5001",

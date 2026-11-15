@@ -2,7 +2,7 @@
 
 The centralized Zod validation and TypeScript type-contract library for the **Janata Core Banking Workbench**.
 
-It serves as the **Single Source of Truth** for all data entering or leaving the system: wire request envelopes, dynamic form configurations, enquiry specifications, user session models, and runtime environment validation.
+It serves as the **Single Source of Truth** for all data entering or leaving the system: wire request envelopes, dynamic form configurations, inquiry specifications, user session models, and runtime environment validation.
 
 ---
 

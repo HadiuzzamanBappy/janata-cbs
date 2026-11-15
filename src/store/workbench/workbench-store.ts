@@ -1,6 +1,7 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { clientConfig } from "@/lib/core-config";
+import { generateClientToken } from "@/lib/core-utils";
 import type { CbsScreenMode } from "@/types";
 
 export interface WorkbenchTab {
@@ -16,7 +17,8 @@ export interface WorkbenchTab {
   isDirty?: boolean; // True only when the user has actually edited/typed changes
   screenMode?: CbsScreenMode;
   searchRecordId?: string;
-  enquiryState?: {
+  authLevel?: number; // Authorization level: 0 for auto-auth (comma entry), 1+ for multi-level
+  inquiryState?: {
     step?: "SELECTION" | "RESULTS";
     criteria?: Record<string, { value: string; operand: string }>;
     currentPage?: number;
@@ -102,7 +104,7 @@ export const createWorkbenchStore = () => {
             const uniqueInstanceId =
               tab.id && !state.tabs.some((t) => t.id === tab.id)
                 ? tab.id
-                : `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                : generateClientToken(baseId);
 
             const newTab: WorkbenchTab = {
               ...tab,
@@ -154,7 +156,7 @@ export const createWorkbenchStore = () => {
             const sameScreenCount = state.tabs.filter(
               (t) => (t.screenId || t.id) === baseId || t.title === cleanTitle,
             ).length;
-            const uniqueInstanceId = `${baseId}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+            const uniqueInstanceId = generateClientToken(baseId);
             const newTab: WorkbenchTab = {
               ...source,
               id: uniqueInstanceId,
@@ -164,7 +166,7 @@ export const createWorkbenchStore = () => {
               formData: undefined, // fresh start — clear draft input values
               baseline: undefined, // fresh start — clear baseline snapshot
               isDirty: false,
-              enquiryState: undefined, // fresh start for inquiries
+              inquiryState: undefined, // fresh start for inquiries
             };
             const insertIndex = state.tabs.findIndex((t) => t.id === id) + 1;
             const newTabs = [

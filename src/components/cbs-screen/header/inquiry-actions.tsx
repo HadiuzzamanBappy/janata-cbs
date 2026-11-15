@@ -45,7 +45,7 @@ export function InquiryActions({
 }: InquiryActionsProps) {
   return (
     <div className="flex items-center gap-1 shrink-0">
-      {/* 1. Refresh Enquiry Data */}
+      {/* 1. Refresh Inquiry Data */}
       <ActionBtn onClick={onRefresh} enabled={Boolean(onRefresh)} defaultTooltip="Refresh Results">
         <RefreshCw className="size-3" />
       </ActionBtn>

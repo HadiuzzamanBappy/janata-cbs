@@ -5,6 +5,7 @@ import { FormRenderer } from "@/components/cbs-form-engine";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
+import { useWorkbenchStore } from "@/store";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
@@ -37,6 +38,17 @@ export function OpsForm({
   onReturn,
 }: OpsFormProps) {
   const modelCode = (command || "").split(",")[0].trim().toUpperCase();
+
+  const { tabs } = useWorkbenchStore();
+  const currentTab = tabs.find((t) => t.id === tabId);
+  const isZeroAuth =
+    currentTab?.authLevel === 0 ||
+    command.endsWith(",") ||
+    command.includes(", ") ||
+    command.includes(",I ") ||
+    command.includes(",A ") ||
+    command.includes(",S ");
+  const effectiveAuthLevel = isZeroAuth ? 0 : (currentTab?.authLevel ?? 1);
 
   // 1. Authoritative CBS Form & Model Schema Resolver
   const { schema, loading, error, refetch } = useFormSchema(command);
@@ -122,6 +134,7 @@ export function OpsForm({
       variant="form"
       title={schema.title}
       commandCode={command.trim().toUpperCase()}
+      authLevel={effectiveAuthLevel}
       mode={screenMode}
       recordId={searchRecordId}
       isDirty={isDirty}

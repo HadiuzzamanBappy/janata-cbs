@@ -1,11 +1,11 @@
 import { cbsCommand } from "@/lib/cbs-command";
-import type { EnquiryRow, INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd, InquiryRow } from "@/lib/data-schemas/inquiry-config-schema";
 
 /**
  * Resolves CBS command templates from INQCmds (e.g. "USER.MGT,NEW1 A recordId" or "ACCOUNT S @ID")
  * by dynamically interpolating row values before execution.
  */
-export function resolveCommandTemplate(cmdTemplate: string, row: EnquiryRow): string {
+export function resolveCommandTemplate(cmdTemplate: string, row: InquiryRow): string {
   if (!cmdTemplate) return "";
 
   const tokens = cmdTemplate.trim().split(/\s+/);
@@ -37,12 +37,12 @@ export function resolveCommandTemplate(cmdTemplate: string, row: EnquiryRow): st
 }
 
 /**
- * Resolves the primary executable CBS command for an enquiry row.
+ * Resolves the primary executable CBS command for an inquiry row.
  * Handles both standard INQCmd templates and internal dynamic row commands (cmdFromInternal).
  */
 export function getPrimaryInquiryCommand(
   commands: INQCmd[] = [],
-  row: EnquiryRow,
+  row: InquiryRow,
   cmdFromInternal = false,
   cmdFieldName = "",
 ): string {
@@ -68,7 +68,7 @@ export function getPrimaryInquiryCommand(
  */
 export function executeInquiryCommand(
   command: INQCmd,
-  row: EnquiryRow,
+  row: InquiryRow,
   cmdFromInternal = false,
   cmdFieldName = "",
 ) {
@@ -91,7 +91,7 @@ export function executeInquiryCommand(
  */
 export function executePrimaryInquiryCommand(
   commands: INQCmd[] = [],
-  row: EnquiryRow,
+  row: InquiryRow,
   cmdFromInternal = false,
   cmdFieldName = "",
 ) {

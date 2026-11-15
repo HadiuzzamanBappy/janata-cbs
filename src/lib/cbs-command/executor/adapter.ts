@@ -7,8 +7,9 @@ export interface CommandTabPayload {
   readonly componentName: string;
   readonly screenMode?: CbsScreenMode;
   readonly searchRecordId?: string;
-  readonly enquiryState?: CommandInquiryState;
+  readonly inquiryState?: CommandInquiryState;
   readonly formData?: Record<string, unknown>;
+  readonly authLevel?: number;
 }
 
 export interface CommandAdapter {
@@ -36,5 +37,6 @@ export function resolveScreenId(parsed: ParsedCommand): string {
   if (parsed.type === "INQUIRY") {
     return parsed.application.startsWith("INQ ") ? parsed.application : `INQ ${parsed.application}`;
   }
-  return parsed.version ? `${parsed.application},${parsed.version}` : parsed.application;
+  const base = parsed.version ? `${parsed.application},${parsed.version}` : parsed.application;
+  return parsed.authLevel === 0 ? `${base},` : base;
 }

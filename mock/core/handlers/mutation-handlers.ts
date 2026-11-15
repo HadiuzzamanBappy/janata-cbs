@@ -103,7 +103,10 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
 
   const cmd = (payload.controlName || "").trim().toUpperCase();
   const table = resolveTable(cmd);
-  const existingRecord = table?.LIVE[targetId] || {};
+  const existingRecord =
+    table?.LIVE[targetId] ||
+    (table?.table?.INAU as Record<string, Record<string, unknown>> | undefined)?.[targetId] ||
+    {};
   const currentAudit = (existingRecord.auditData as Record<string, unknown> | undefined) || {};
 
   const updatedRecord = {
@@ -135,6 +138,9 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
 
   if (table?.LIVE) {
     table.LIVE[targetId] = updatedRecord;
+  }
+  if (code === "AU" && table?.table?.INAU) {
+    delete (table.table.INAU as Record<string, Record<string, unknown>>)[targetId];
   }
 
   return successResult(

@@ -1020,7 +1020,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       recBranchCode: "JB9999",
     },
     INQInfo: {
-      description: "Account enquiry with customer balances, status, and branch code",
+      description: "Account inquiry with customer balances, status, and branch code",
       pageOrientation: "Portrait",
       perpageItem: "30",
       showSerial: true,

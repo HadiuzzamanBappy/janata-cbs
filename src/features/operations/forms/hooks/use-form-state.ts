@@ -35,6 +35,7 @@ export function useFormState({
     setFormData: setValuesState,
     baseline,
     rebaseline,
+    hydrate,
     reset,
     isDirty,
   } = useCbsPersistence<Record<string, unknown>>({
@@ -104,6 +105,7 @@ export function useFormState({
     values,
     setValue,
     setValues,
+    hydrate,
     baseline,
     rebaseline,
     errors,

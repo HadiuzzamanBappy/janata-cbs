@@ -191,5 +191,3 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
     </CbsScreenScaffold>
   );
 }
-
-export const InquiryScreen = OpsInquiry;

@@ -1,116 +1,135 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { CBS_SCREEN_MESSAGE, getWorkbenchBus, type WorkbenchBusMessage } from "@/lib/cbs-screen";
+import { useCallback, useSyncExternalStore } from "react";
+import {
+  CBS_SCREEN_MESSAGE,
+  getTabInstanceId,
+  getWorkbenchBus,
+  type WorkbenchBusMessage,
+} from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
-import { generateIdempotencyKey } from "@/lib/core-utils";
+
+// Window-level singleton state for this browser tab
+let isOverriddenState = false;
+let isCoordinatorInitialized = false;
+const subscribers = new Set<() => void>();
+
+function notifySubscribers(): void {
+  for (const subscriber of subscribers) {
+    subscriber();
+  }
+}
+
+function setOverridden(value: boolean): void {
+  if (isOverriddenState !== value) {
+    isOverriddenState = value;
+    notifySubscribers();
+  }
+}
 
 /**
- * Hook to enforce client-side single active tab leadership (Temenos Transact style).
- *
- * When another tab opens or reclaims leadership, this tab is marked as `isOverridden = true`.
- * Calling `takeOver()` claims leadership back and overrides other tabs.
+ * Broadcast leadership claim across all tabs
  */
-export function useSingleTab() {
-  const [isOverridden, setIsOverridden] = useState(false);
-  const tabInstanceIdRef = useRef<string>("");
+export function claimLeadership(tabId?: string): void {
+  if (typeof window === "undefined") return;
+  const id = tabId || getTabInstanceId();
+  if (!id) return;
 
-  // Retrieve or generate ephemeral tab instance ID (stable across reloads in same tab, fresh on duplicate)
-  const getInstanceId = useCallback((): string => {
-    if (typeof window === "undefined") return "";
-
-    let isReload = false;
-    if (typeof performance !== "undefined") {
-      const navEntries = performance.getEntriesByType("navigation");
-      isReload =
-        navEntries.length > 0 && (navEntries[0] as PerformanceNavigationTiming).type === "reload";
-    }
-
-    // Only reuse sessionStorage ID if this is an explicit page reload (F5)
-    let id = isReload ? sessionStorage.getItem(clientConfig.storage.session.tabInstanceId) : null;
-
-    if (!id) {
-      id = `tab_${generateIdempotencyKey().slice(0, 12)}`;
-      sessionStorage.setItem(clientConfig.storage.session.tabInstanceId, id);
-    }
-    return id;
-  }, []);
-
-  // Broadcast leadership claim across all tabs
-  const claimLeadership = useCallback((id: string) => {
-    if (typeof window === "undefined" || !id) return;
+  try {
     localStorage.setItem(clientConfig.storage.local.activeTabInstance, id);
-    const bus = getWorkbenchBus();
-    if (bus) {
-      bus.postMessage({
-        type: CBS_SCREEN_MESSAGE.CLAIM_ACTIVE_TAB,
-        tabId: id,
-      } satisfies WorkbenchBusMessage);
-    }
-    setIsOverridden(false);
-  }, []);
+  } catch {
+    // Safe fallback
+  }
 
-  // Re-claim leadership when user clicks "Take Over Session Here"
-  const takeOver = useCallback(() => {
-    const myId = tabInstanceIdRef.current || getInstanceId();
-    tabInstanceIdRef.current = myId;
-    claimLeadership(myId);
-  }, [claimLeadership, getInstanceId]);
+  const bus = getWorkbenchBus();
+  if (bus) {
+    bus.postMessage({
+      type: CBS_SCREEN_MESSAGE.CLAIM_ACTIVE_TAB,
+      tabId: id,
+    } satisfies WorkbenchBusMessage);
+  }
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  setOverridden(false);
+}
 
-    const myId = getInstanceId();
-    tabInstanceIdRef.current = myId;
+function initSingleTabCoordinator(): void {
+  if (typeof window === "undefined" || isCoordinatorInitialized) return;
+  isCoordinatorInitialized = true;
 
-    // Claim active leadership on mount
-    claimLeadership(myId);
+  const myId = getTabInstanceId();
 
-    // Listen to BroadcastChannel for peer tab leadership claims
-    const bus = getWorkbenchBus();
-    const handleBusMessage = (event: MessageEvent<WorkbenchBusMessage>) => {
+  // Claim leadership on initial workbench mount
+  claimLeadership(myId);
+
+  // 1. Listen to BroadcastChannel for peer tab leadership claims
+  const bus = getWorkbenchBus();
+  if (bus) {
+    bus.addEventListener("message", (event: MessageEvent<WorkbenchBusMessage>) => {
       if (
         event.data?.type === CBS_SCREEN_MESSAGE.CLAIM_ACTIVE_TAB &&
         event.data.tabId &&
         event.data.tabId !== myId
       ) {
-        setIsOverridden(true);
+        setOverridden(true);
       }
-    };
+    });
+  }
 
-    if (bus) {
-      bus.addEventListener("message", handleBusMessage);
+  // 2. Listen to localStorage storage events (fires across different tabs in same browser)
+  window.addEventListener("storage", (e: StorageEvent) => {
+    if (e.key === clientConfig.storage.local.activeTabInstance) {
+      if (e.newValue && e.newValue !== myId) {
+        setOverridden(true);
+      } else if (e.newValue === myId) {
+        setOverridden(false);
+      }
     }
+  });
 
-    // Listen to localStorage storage events (fires across different tabs in same browser)
-    const handleStorage = (e: StorageEvent) => {
-      if (
-        e.key === clientConfig.storage.local.activeTabInstance &&
-        e.newValue &&
-        e.newValue !== myId
-      ) {
-        setIsOverridden(true);
-      }
-    };
-    window.addEventListener("storage", handleStorage);
+  // 3. Re-verify leadership when window regains focus
+  window.addEventListener("focus", () => {
+    const currentActive = localStorage.getItem(clientConfig.storage.local.activeTabInstance);
+    if (!currentActive) {
+      claimLeadership(myId);
+    } else if (currentActive !== myId) {
+      setOverridden(true);
+    } else {
+      setOverridden(false);
+    }
+  });
+}
 
-    // Check leadership when window regains focus
-    const handleFocus = () => {
-      const currentActive = localStorage.getItem(clientConfig.storage.local.activeTabInstance);
-      if (currentActive && currentActive !== myId) {
-        setIsOverridden(true);
-      }
-    };
-    window.addEventListener("focus", handleFocus);
+function subscribe(callback: () => void): () => void {
+  initSingleTabCoordinator();
+  subscribers.add(callback);
+  return () => {
+    subscribers.delete(callback);
+  };
+}
 
-    return () => {
-      if (bus) {
-        bus.removeEventListener("message", handleBusMessage);
-      }
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [claimLeadership, getInstanceId]);
+function getSnapshot(): boolean {
+  return isOverriddenState;
+}
+
+function getServerSnapshot(): boolean {
+  return false;
+}
+
+/**
+ * Hook to enforce client-side single active tab leadership (Temenos Transact style).
+ *
+ * All consumers within the same tab share a single coordinator, preventing intra-tab
+ * race conditions or duplicate ID generation.
+ *
+ * When another tab opens or reclaims leadership, this tab is marked as `isOverridden = true`.
+ * Calling `takeOver()` claims leadership back and overrides other tabs.
+ */
+export function useSingleTab() {
+  const isOverridden = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  const takeOver = useCallback(() => {
+    claimLeadership();
+  }, []);
 
   return {
     isOverridden,

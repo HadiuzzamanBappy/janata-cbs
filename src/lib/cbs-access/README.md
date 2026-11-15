@@ -25,7 +25,7 @@ src/lib/cbs-access/
    - `hasAccessibilityRight(granted, required)`: Checks if a given function code exists in the user's rights array.
    - `verifyUserRecordAccess(user, recordFunction)`: Server-side capability gate for API route handlers (e.g. `/api/proxy`). Validates that the active user possesses the required capability before executing controlled actions (`I`, `A`, `D`, `R`, `H`).
 2. **`record-guard.ts`**:
-   - `evaluateCbsAccess(context)`: Single, pure source of truth for resolving rights and evaluating capabilities against active record status (`INA`, `AU`, `NEW`, `HLD`), screen mode (`IDLE`, `I`, `S`, etc.), and Four-Eyes Maker-Checker rules.
+   - `evaluateCbsAccess(context)`: Single, pure source of truth for resolving rights and evaluating capabilities against active record status (`UA`, `AU`, `NEW`, `HLD`), screen mode (`IDLE`, `I`, `S`, etc.), and Four-Eyes Maker-Checker rules.
 3. **`types.ts`**:
    - `CbsAccessContext`: Single unified evaluation input interface.
    - `CbsAccessResult`: Computed boolean capabilities, read-only flags, and tooltip explanation generators.
@@ -40,8 +40,8 @@ Every core banking user profile is assigned a subset of standard function codes:
 | :------ | :---------------------- | :----------------------------------- | :-------------------------------------------------------------------------------- |
 | **`R`** | **Reverse**             | Reverse a live committed transaction | Record status must be authorized (`AU`). Blocked in `IDLE` mode.                  |
 | **`I`** | **Input / Maker**       | Create records and edit drafts       | Allowed on uncommitted / editable drafts. If missing, forces `isReadOnly = true`. |
-| **`D`** | **Delete**              | Delete uncommitted draft             | Only permitted on uncommitted drafts (`INA` or `NEW`); strictly blocked on `AU`.  |
-| **`A`** | **Authorize / Checker** | Authorize pending transaction        | Pending (`INA`) only; **Strictly blocked if Maker === Checker (Four-Eyes)**.      |
+| **`D`** | **Delete**              | Delete uncommitted draft             | Only permitted on uncommitted drafts (`UA` or `NEW`); strictly blocked on `AU`.   |
+| **`A`** | **Authorize / Checker** | Authorize pending transaction        | Pending (`UA`) only; **Strictly blocked if Maker === Checker (Four-Eyes)**.       |
 | **`S`** | **See**                 | View and inspect record details      | Read-only inspection; non-mutating.                                               |
 | **`H`** | **History / Hold**      | Place draft on hold                  | Allowed on uncommitted/pending drafts (`cleanStatus !== "AU"`).                   |
 | **`L`** | **List**                | Query directories & inquiry tables   | Read-only listing and searching (`canList`).                                      |
@@ -68,7 +68,7 @@ Every core banking user profile is assigned a subset of standard function codes:
 ### 3. State Transition Guards
 
 - **Live Records (`AU`)**: Cannot be deleted (`canDelete = false`); must use Reverse (`R`).
-- **Pending Records (`INA`)**: Cannot be reversed (`canReverse = false`); must be authorized or held.
+- **Pending Records (`UA`)**: Cannot be reversed (`canReverse = false`); must be authorized or held.
 
 ---
 
@@ -101,7 +101,7 @@ import { evaluateCbsAccess } from "@/lib/cbs-access";
 const access = evaluateCbsAccess({
   userId: "CHECKER01",
   recordInputter: "MAKER01", // Different user -> Four-Eyes passes
-  recordStatus: "INA", // Pending approval
+  recordStatus: "UA", // Pending approval
   mode: "I",
   grantedRights: ["R", "I", "D", "A", "S", "H", "L"],
 });
@@ -128,7 +128,7 @@ export function ScreenActionBar({ currentRecord, screenMode }) {
     isFourEyesViolation,
     getDisableReason,
   } = useCbsAccess({
-    recordStatus: currentRecord?.recStatus, // "INA", "AU", "NEW"
+    recordStatus: currentRecord?.recStatus, // "UA", "AU", "NEW"
     recordInputter: currentRecord?.recInputter, // Maker user ID
     mode: screenMode, // "I", "S", "A", etc.
   });

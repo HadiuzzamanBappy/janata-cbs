@@ -12,7 +12,7 @@
  * 8. Sequence ID Allocation (GNI)
  * 9. Key ID List & Wildcard Search (SBI)
  * 10. Single Record Read in View Mode (S / SEE)
- * 11. Maker-Checker Lifecycle Status Mutation (PUT -> INA)
+ * 11. Maker-Checker Lifecycle Status Mutation (PUT -> UA)
  * 12. Full Unary gRPC Wire Envelope Dispatch (mockProcess)
  *
  * Usage:
@@ -280,7 +280,7 @@ async function runSuite() {
       seeRes.status === "SUCCESS" && seeOut.recordId === "AC1001",
     );
 
-    // 11. Maker-Checker Lifecycle Status Mutation (PUT -> INA)
+    // 11. Maker-Checker Lifecycle Status Mutation (PUT -> UA)
     const putInput = {
       requestType: "PUT",
       controlName: "ACCOUNT",
@@ -295,10 +295,10 @@ async function runSuite() {
       balance: putData?.balance,
     };
     recordTest(
-      "11. Maker-Checker Lifecycle Status Mutation (PUT -> INA)",
+      "11. Maker-Checker Lifecycle Status Mutation (PUT -> UA)",
       putInput,
       putOut,
-      putRes.status === "SUCCESS" && putOut.RECORD_STATUS === "INA",
+      putRes.status === "SUCCESS" && putOut.RECORD_STATUS === "UA",
     );
 
     // 12. Full Unary gRPC Wire Envelope Dispatch (mockProcess)

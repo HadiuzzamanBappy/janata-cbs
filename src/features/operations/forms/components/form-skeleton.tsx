@@ -6,7 +6,7 @@ export interface FormSkeletonProps {
 }
 
 /**
- * FormSkeleton mirrors the exact IDLE state layout of FormScreen:
+ * FormSkeleton mirrors the exact IDLE state layout of OpsForm:
  * - Row 1: Action toolbar with Edit, View, Perform icons + action dropdown
  * - Row 2: Title label + Record ID input box + Add button
  * - Body: Centered dashed canvas with Layers icon placeholder

@@ -32,7 +32,7 @@ export const INQUIRY_FILTER_FIELD_TYPES = [
 export const STANDARD_BANKING_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "", label: "All Statuses" },
   { value: "AU", label: "Authorized (AU)" },
-  { value: "INA", label: "Inactive / Input (INA)" },
+  { value: "UA", label: "Unauthorized / Input (UA)" },
   { value: "DEL", label: "Deleted (DEL)" },
   { value: "HLD", label: "On Hold (HLD)" },
   { value: "LIVE", label: "Live (LIVE)" },

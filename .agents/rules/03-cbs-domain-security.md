@@ -19,7 +19,7 @@ User capabilities strictly adhere to the 7-character capability profile:
 
 - **`R`**: Reverse authorized live record (`AU`)
 - **`I`**: Input new record or modify draft (Maker)
-- **`D`**: Delete pending unauthorized record (`INA`)
+- **`D`**: Delete pending unauthorized record (`UA`)
 - **`A`**: Authorize pending record into ledger (Checker)
 - **`S`**: See / View record details
 - **`H`**: Hold record
@@ -30,7 +30,7 @@ Always check capabilities via `useCbsAccess()` or `src/lib/cbs-access` before re
 ## 3. Four-Eyes Principle (Maker-Checker Enforcement)
 
 - **Non-Negotiable Rule**: A record inputter (`Maker`) can NEVER authorize their own record (`Checker !== Maker`).
-- When an unauthorized record (`INA`) is viewed:
+- When an unauthorized record (`UA`) is viewed:
   - If `record.authoriser === currentTeller` or maker matches the active user, authorization is strictly blocked.
   - Disable the Authorize action button and show an explicit tooltip explaining the restriction.
 

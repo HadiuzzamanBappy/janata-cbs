@@ -3,7 +3,7 @@
 import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { useStore } from "zustand";
 import { registerCommandAdapter } from "@/lib/cbs-command";
-import { CBS_SCREEN_MESSAGE } from "@/lib/cbs-screen";
+import { CBS_SCREEN_MESSAGE, getTabInstanceId } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
@@ -34,7 +34,7 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     const isThisTabActive = () => {
       if (typeof window === "undefined") return true;
       const activeInstanceId = localStorage.getItem(clientConfig.storage.local.activeTabInstance);
-      const myInstanceId = sessionStorage.getItem(clientConfig.storage.session.tabInstanceId);
+      const myInstanceId = getTabInstanceId();
       // If another tab is the active leader, this tab is inactive/overridden and must not receive dock events
       if (activeInstanceId && myInstanceId && activeInstanceId !== myInstanceId) {
         return false;

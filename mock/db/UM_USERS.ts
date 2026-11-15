@@ -180,7 +180,7 @@ export const UM_USERS_INAU: Record<string, UmUsersRecord> = {
     mobileNumber: "01911998877",
     email: "kamal.hossain@janatabank.gov.bd",
     auditData: {
-      recStatus: "INA",
+      recStatus: "UA",
       recCurrNumber: 1,
       recInputter: "IA0245820",
       recInputTime: "2026-10-20 11:15:00",

@@ -80,10 +80,10 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
     DEL: { label: "deleted", code: "DEL" },
     REV: { label: "reversed", code: "REV" },
     TRV: { label: "reversed", code: "REV" },
-    PUT: { label: "saved", code: "INA" },
-    SMC: { label: "saved", code: "INA" },
-    SFC: { label: "saved", code: "INA" },
-    SMR: { label: "saved", code: "INA" },
+    PUT: { label: "saved", code: "UA" },
+    SMC: { label: "saved", code: "UA" },
+    SFC: { label: "saved", code: "UA" },
+    SMR: { label: "saved", code: "UA" },
     DTR: { label: "deleted", code: "DEL" },
     ATT: { label: "executed", code: "AU" },
     CTT: { label: "executed", code: "AU" },
@@ -92,7 +92,7 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
 
   const { label, code } = statusMap[reqType] || {
     label: "saved",
-    code: "INA",
+    code: "UA",
   };
 
   const targetId =

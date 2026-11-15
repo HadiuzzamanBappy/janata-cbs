@@ -9,6 +9,7 @@
 
 import * as React from "react";
 import { clientConfig } from "@/lib/core-config";
+import { generateIdempotencyKey } from "@/lib/core-utils";
 
 // ============================================================================
 // Window & Event Contracts
@@ -170,4 +171,43 @@ export function useRecordMutationSubscriber(
       bus.removeEventListener("message", handler);
     };
   }, [controlFilter]);
+}
+
+// ============================================================================
+// Single Tab Instance Identifier
+// ============================================================================
+
+/**
+ * Canonical browser tab instance identifier.
+ * Stable across reloads and navigations in the same tab, but unique across different or duplicated tabs.
+ */
+export function getTabInstanceId(): string {
+  if (typeof window === "undefined") return "";
+
+  const win = window as unknown as { __CBS_TAB_INSTANCE_ID__?: string };
+  if (win.__CBS_TAB_INSTANCE_ID__) {
+    return win.__CBS_TAB_INSTANCE_ID__;
+  }
+
+  // window.name persists across page reloads and navigations in THIS tab,
+  // but is reset to "" by modern browsers (Chrome/Edge/Firefox) on duplicated tabs.
+  if (window.name?.startsWith("cbs_tab_")) {
+    win.__CBS_TAB_INSTANCE_ID__ = window.name;
+    try {
+      sessionStorage.setItem(clientConfig.storage.session.tabInstanceId, window.name);
+    } catch {
+      // Safe fallback
+    }
+    return window.name;
+  }
+
+  const newId = `cbs_tab_${generateIdempotencyKey().slice(0, 12)}`;
+  win.__CBS_TAB_INSTANCE_ID__ = newId;
+  try {
+    window.name = newId;
+    sessionStorage.setItem(clientConfig.storage.session.tabInstanceId, newId);
+  } catch {
+    // Safe fallback
+  }
+  return newId;
 }

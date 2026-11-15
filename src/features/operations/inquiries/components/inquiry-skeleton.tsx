@@ -6,7 +6,7 @@ export interface InquirySkeletonProps {
 }
 
 /**
- * InquirySkeleton mirrors the exact IDLE (SELECTION) state layout of InquiryScreen:
+ * InquirySkeleton mirrors the exact IDLE (SELECTION) state layout of OpsInquiry:
  * - Centered selection criteria card with filter rows (label, operand, value input)
  * - Bottom action bar with Find (search) and Clear buttons
  */

@@ -20,7 +20,7 @@ In-memory persistence layer simulating Core Banking System storage when running 
 Every table implements `CbsVersionedTable<T>` (defined in `types.ts`) partitioned into 4 lifecycle rooms:
 
 - **`LIVE`**: Active production records with authorized status (`recStatus: "AU"`).
-- **`INAU`**: Input Unauthorized drafts awaiting checker authorization (`recStatus: "INA"`).
+- **`INAU`**: Input Unauthorized drafts awaiting checker authorization (`recStatus: "UA"`).
 - **`HIS`**: Historical audit trail (array `T[]` of past modified versions).
 - **`DEL`**: Soft-deleted or reversed records (`recStatus: "REV"` / `"DEL"`).
 
@@ -100,7 +100,7 @@ const history = queryCbsDatabase("ACCOUNT", "AC1001", "HIS");
 
 When processing mutations in `mock/core/handlers/mutation-handlers.ts`:
 
-- **Maker Saves (`PUT` / `SMC` / `SFC` / `SMR`)**: Writes to `table.INAU[recordId]` with `recStatus: "INA"`. `table.LIVE` remains untouched.
+- **Maker Saves (`PUT` / `SMC` / `SFC` / `SMR`)**: Writes to `table.INAU[recordId]` with `recStatus: "UA"`. `table.LIVE` remains untouched.
 - **Checker Authorizes (`AUT` / `AMC`)**: Moves snapshot from `table.INAU` to `table.LIVE[recordId]` with `recStatus: "AU"`. If a previous live version existed, appends it to `table.HIS[recordId]` and increments `recCurrNumber`.
 - **Officer Reverses (`REV` / `DEL` / `TRV`)**: Moves live record to `table.DEL[recordId]` with `recStatus: "REV"` and appends previous snapshot to `table.HIS`.
 

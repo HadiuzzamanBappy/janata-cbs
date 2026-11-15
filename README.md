@@ -13,7 +13,7 @@ Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of 
 ### What it DOES:
 
 - Provides a fast, interactive, high-density interface for tellers, branch officers, and administrators.
-- Dynamically renders forms (`FormScreen`) and inquiry data views (`InquiryScreen`) from backend metadata specs.
+- Dynamically renders forms (`OpsForm`) and inquiry data views (`OpsInquiry`) from backend metadata specs.
 - Enforces strict banking role permissions (`RIDASHL`) and Maker-Checker (Four-Eyes) validation in the UI.
 - Maintains user session state and a multitab workbench (`panel` mode) or multi-window workstation (`window` mode) via Zustand.
 - Translates client requests to backend gRPC payloads securely through Next.js server proxies.
@@ -94,7 +94,7 @@ src/
 │   ├── cbs-client/       # Front-end API client interfacing with /api/proxy
 │   ├── cbs-form-spec/    # Form specification & layout generator from MODEL.CONFIG
 │   ├── cbs-hotkeys/      # Banking keyboard shortcut listener engine (F-keys, Esc, Enter)
-│   ├── cbs-record/       # CBS record status machines (INA, AU, Hold, Reverse, Delete)
+│   ├── cbs-record/       # CBS record status machines (UA, AU, Hold, Reverse, Delete)
 │   ├── cbs-screen/       # Screen metadata configuration & permission mapping
 │   ├── core-config/      # Validated environment configurations
 │   ├── core-logger/      # Structured application logger
@@ -151,7 +151,7 @@ pnpm verify:all
 pnpm verify:access      # Tests RIDASHL rights, Four-Eyes principle, and role clearance
 pnpm verify:command     # Tests CBS command gateway syntax, aliases, and RBAC execution
 pnpm verify:client      # Tests wire request factories (GET, PUT, AUT, INQ, GRL)
-pnpm verify:record      # Tests CBS record status transitions (INA, AU, Hold, Reverse)
+pnpm verify:record      # Tests CBS record status transitions (UA, AU, Hold, Reverse)
 pnpm verify:schemas     # Tests Zod domain schemas and validation contracts
 pnpm verify:config      # Tests environment matrix and runtime configuration
 pnpm verify:logger      # Tests banking-grade logger and PII redaction engine

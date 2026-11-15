@@ -41,7 +41,7 @@ When working on a specific feature, run the targeted test to quickly verify your
 | Command                 | Target Scope      | Key Things Verified                                             |
 | :---------------------- | :---------------- | :-------------------------------------------------------------- |
 | `pnpm verify:access`    | Access & Security | RIDASHL functions, Four-Eyes principle, Maker-Checker blocking  |
-| `pnpm verify:record`    | Record & Forms    | Delta calculation, dirty mutations, INA/AU lifecycle            |
+| `pnpm verify:record`    | Record & Forms    | Delta calculation, dirty mutations, UA/AU lifecycle             |
 | `pnpm verify:form-spec` | Dynamic Form Spec | GMC form schemas, field types, validation rules                 |
 | `pnpm verify:command`   | Command Gateway   | Syntax parsing, comma auto-auth (`USER,`), aliases (`MD`, `UG`) |
 | `pnpm verify:client`    | Wire Protocol     | Payload factories (`GET`, `PUT`, `AUT`, `INQ`, `GRL`)           |

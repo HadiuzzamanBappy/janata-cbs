@@ -15,7 +15,7 @@ import type { DynamicFormProps } from "./types";
 
 const EMPTY_INITIAL_VALUES: Record<string, unknown> = {};
 
-export type FormScreenProps = DynamicFormProps & {
+export type OpsFormProps = DynamicFormProps & {
   initialValues?: Record<string, unknown>;
   initialScreenMode?: CbsScreenMode;
   initialRecordId?: string;
@@ -35,7 +35,7 @@ export function OpsForm({
   initialRecordId: initialRecordIdProp,
   onSuccess,
   onReturn,
-}: FormScreenProps) {
+}: OpsFormProps) {
   const modelCode = (command || "").split(",")[0].trim().toUpperCase();
 
   // 1. Authoritative CBS Form & Model Schema Resolver
@@ -50,6 +50,8 @@ export function OpsForm({
     values,
     setValue,
     setValues,
+    hydrate,
+    baseline,
     errors,
     isDirty,
     validate,
@@ -71,6 +73,7 @@ export function OpsForm({
     setScreenMode,
     values,
     initialValues,
+    baseline,
     validate,
     resetForm,
     onSuccess,
@@ -85,6 +88,7 @@ export function OpsForm({
     screenMode,
     setScreenMode,
     setValues,
+    hydrate,
     resetForm,
     validate,
     initialValues,
@@ -153,5 +157,3 @@ export function OpsForm({
     </CbsScreenScaffold>
   );
 }
-
-export { OpsForm as FormScreen };

@@ -17,6 +17,7 @@
 import { z } from "zod";
 import {
   getDefaultMoreActions,
+  getTabInstanceId,
   makePopupTabId,
   mapZodIssuesToTabs,
   resolveInitialFormData,
@@ -177,6 +178,16 @@ async function runSuite() {
     { inputScreen: "CUSTOMER ACCOUNT OPENING" },
     { popupId },
     popupId === "popup-CUSTOMER_ACCOUNT_OPENING",
+  );
+
+  // ── 7. Single Tab Instance ID Resolution ──
+  console.log("\n── 7. Single Tab Instance ID Resolution (getTabInstanceId) ──");
+  const ssrTabId = getTabInstanceId();
+  recordTest(
+    "7.1 Returns empty string in SSR environment (typeof window === 'undefined')",
+    { env: "node" },
+    { tabId: ssrTabId },
+    ssrTabId === "",
   );
 
   // Consolidated Summary

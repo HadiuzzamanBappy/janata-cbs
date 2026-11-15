@@ -33,7 +33,7 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
   const canDelete =
     hasRight(CbsRecordFunction.DELETE) &&
     !isIdle &&
-    (cleanStatus === CbsRecordStatus.INA ||
+    (cleanStatus === CbsRecordStatus.UA ||
       cleanStatus === CbsRecordStatus.NEW ||
       cleanStatus === "");
 
@@ -43,11 +43,11 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
     !isIdle &&
     cleanStatus !== CbsRecordStatus.AU;
 
-  // 5. Can Authorize: Requires 'A' right, pending 'INA' status, not in IDLE, and passes Four-Eyes
+  // 5. Can Authorize: Requires 'A' right, pending 'UA' status, not in IDLE, and passes Four-Eyes
   const canAuthorize =
     hasRight(CbsRecordFunction.AUTHORIZE) &&
     !isIdle &&
-    cleanStatus === CbsRecordStatus.INA &&
+    cleanStatus === CbsRecordStatus.UA &&
     !isFourEyesViolation;
 
   // 6. Can Reverse: Requires 'R' right on live authorized 'AU' records
@@ -75,8 +75,8 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
       if (isFourEyesViolation) {
         return "Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction.";
       }
-      if (cleanStatus && cleanStatus !== CbsRecordStatus.INA) {
-        return `Cannot Authorize: Record status is '${cleanStatus}' (must be pending '${CbsRecordStatus.INA}').`;
+      if (cleanStatus && cleanStatus !== CbsRecordStatus.UA) {
+        return `Cannot Authorize: Record status is '${cleanStatus}' (must be pending '${CbsRecordStatus.UA}').`;
       }
     }
 

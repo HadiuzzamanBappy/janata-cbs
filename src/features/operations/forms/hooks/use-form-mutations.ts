@@ -17,6 +17,7 @@ export interface UseFormMutationsProps {
   setScreenMode: (mode: CbsScreenMode) => void;
   values: Record<string, unknown>;
   initialValues: Record<string, unknown>;
+  baseline?: Record<string, unknown>;
   validate: () => boolean;
   resetForm: (values?: Record<string, unknown>) => void;
   onSuccess?: (result: unknown) => void;
@@ -33,6 +34,7 @@ export function useFormMutations({
   setScreenMode,
   values,
   initialValues,
+  baseline,
   validate,
   resetForm,
   onSuccess,
@@ -77,9 +79,10 @@ export function useFormMutations({
       }
       if (!schema || !modelCode) return;
 
+      const baseSnapshot = baseline || initialValues;
       const delta =
-        screenMode === "I" && Object.keys(initialValues).length > 0
-          ? computeDelta(initialValues, values).modifiedFields
+        screenMode === "I" && Object.keys(baseSnapshot).length > 0
+          ? computeDelta(baseSnapshot, values).modifiedFields
           : values;
 
       const commitData = Object.keys(delta).length > 0 ? delta : values;
@@ -103,6 +106,7 @@ export function useFormMutations({
       modelCode,
       screenMode,
       initialValues,
+      baseline,
       values,
       searchRecordId,
       executeTransaction,

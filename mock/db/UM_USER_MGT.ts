@@ -155,7 +155,7 @@ export const UM_USER_MGT_INAU: Record<string, UmUserMgtRecord> = {
     transferredBranch: "JB0002",
     clearing: "Y",
     auditData: {
-      recStatus: "INA",
+      recStatus: "UA",
       recCurrNumber: 1,
       recInputter: "IA0245820",
       recInputTime: "2026-10-07 06:24:49",
@@ -192,7 +192,7 @@ export const UM_USER_MGT_INAU: Record<string, UmUserMgtRecord> = {
     transferredBranch: "JB0015",
     clearing: "N",
     auditData: {
-      recStatus: "INA",
+      recStatus: "UA",
       recCurrNumber: 1,
       recInputter: "IA0245820",
       recInputTime: "2026-10-08 09:15:30",

@@ -15,7 +15,7 @@ export interface CbsAccessContext {
   readonly userId?: string;
   /** Function code rights (e.g. ['R', 'I', 'D', 'A', 'S', 'H', 'L']) */
   readonly grantedRights?: readonly string[];
-  /** Lifecycle status of the current record (e.g. "INA", "AU", "HLD") */
+  /** Lifecycle status of the current record (e.g. "UA", "AU", "HLD") */
   readonly recordStatus?: CbsRecordLifecycleStatus | string;
   /** User ID of the record creator/maker (used for Four-Eyes verification) */
   readonly recordInputter?: string;

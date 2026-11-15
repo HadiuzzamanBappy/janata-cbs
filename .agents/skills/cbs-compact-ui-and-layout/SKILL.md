@@ -1,4 +1,4 @@
-﻿---
+---
 
 name: cbs-compact-ui-and-layout
 description: Use this skill when designing, authoring, or refactoring user interfaces, screens, forms, tables, and dialogs in Janata CBS. Enforces minimal, compact, high-density banking layout conventions, semantic OKLCH design tokens, 12-column grids, and multi-monitor resolution consistency (from 1366x768 branch terminals to 1920x1080+ workstations).
@@ -27,7 +27,7 @@ Never use standard consumer web dimensions (e.g., `h-11`, `p-6`, `text-base`). A
 | **Buttons (Primary/Secondary)** | `h-8 px-3 text-xs font-medium rounded-md`                       | Standard touch/click target for banking workflows.    |
 | **Icon CTA / Action Buttons**   | `size-7 sm:size-8 rounded-md shrink-0`                          | Icon size inside: `size-3.5` or `size-4`.             |
 | **Table Rows & Cells**          | `h-8 px-2.5 py-1 text-xs`                                       | High row density for multi-record accounting lists.   |
-| **Status Badges**               | `h-5 px-1.5 text-[10px] font-semibold tracking-wider font-mono` | E.g., `AU`, `INA`, `REV`, `DEL`, `HLD`.               |
+| **Status Badges**               | `h-5 px-1.5 text-[10px] font-semibold tracking-wider font-mono` | E.g., `AU`, `UA`, `REV`, `DEL`, `HLD`.                |
 | **Form Card Sections**          | `p-3 sm:p-4 gap-3`                                              | Tight card padding with bounded vertical flow.        |
 
 ---

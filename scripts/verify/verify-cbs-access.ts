@@ -6,7 +6,7 @@
  *
  * 1. Full Access Profile Capability Grants
  * 2. IDLE Mode Operational Action Guards
- * 3. Active Pending Record (INA) Lifecycle Actions
+ * 3. Active Pending Record (UA) Lifecycle Actions
  * 4. Live Authorized Record (AU) Lifecycle Actions
  * 5. Read-Only / Lookup Profile Enforcement
  * 6. Screen Mode Read-Only Lock Matrix
@@ -97,18 +97,18 @@ recordTest(
     !idleAccess.canReverse,
 );
 
-// --- 3. Active Pending Record (INA) Lifecycle Actions ---
-console.log("\n── 3. Active Pending Record (INA) Lifecycle ──");
+// --- 3. Active Pending Record (UA) Lifecycle Actions ---
+console.log("\n── 3. Active Pending Record (UA) Lifecycle ──");
 const pendingAccess = evaluateCbsAccess({
   userId: "TELLER02",
   recordInputter: "TELLER01",
-  recordStatus: "INA",
+  recordStatus: "UA",
   mode: "I",
   grantedRights: fullRights,
 });
 recordTest(
-  "3.1 Pending Record (INA): Permits Authorize, Hold, and Delete; Blocks Reverse",
-  '{ recordStatus: "INA", recordInputter: "TELLER01", userId: "TELLER02", mode: "I" }',
+  "3.1 Pending Record (UA): Permits Authorize, Hold, and Delete; Blocks Reverse",
+  '{ recordStatus: "UA", recordInputter: "TELLER01", userId: "TELLER02", mode: "I" }',
   {
     canAuthorize: pendingAccess.canAuthorize,
     canHold: pendingAccess.canHold,
@@ -199,13 +199,13 @@ console.log("\n── 7. Four-Eyes Maker-Checker Compliance ──");
 const fourEyesViolation = evaluateCbsAccess({
   userId: " teller01 ",
   recordInputter: "TELLER01", // Case & whitespace insensitive match
-  recordStatus: "INA",
+  recordStatus: "UA",
   mode: "A",
   grantedRights: fullRights,
 });
 recordTest(
   "7.1 Four-Eyes Guard: Blocks authorization when Maker (Inputter) attempts to authorize own record",
-  '{ userId: " teller01 ", recordInputter: "TELLER01", recordStatus: "INA", mode: "A" }',
+  '{ userId: " teller01 ", recordInputter: "TELLER01", recordStatus: "UA", mode: "A" }',
   {
     isFourEyesViolation: fourEyesViolation.isFourEyesViolation,
     canAuthorize: fourEyesViolation.canAuthorize,

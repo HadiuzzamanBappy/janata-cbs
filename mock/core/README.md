@@ -91,7 +91,7 @@ Requests dispatch dynamically by `requestType` to modular domain handlers:
 | **`SBI`**, **`RIL`**                             | Key / ID List Search  | `query-handlers.ts`    | `handleSearchById()`            | Target Table `getIdList()` with wildcard match           |
 | **`GRL`**, **`GCQ`**, **`GMV`**, **`GGL`**       | Record Collections    | `query-handlers.ts`    | `handleRecordList()`            | Target Table `getList()`                                 |
 | **`GET`**, **`S`**, **`SEE`**, **`GRV`**         | Read Record           | `query-handlers.ts`    | `handleSeeRecord()`             | Target Table `LIVE` or historical record snapshot        |
-| **`PUT`**, **`SMC`**, **`SFC`**, **`SMR`**       | Save Draft (Maker)    | `mutation-handlers.ts` | `handleMutation()`              | Writes pending record with `recStatus: "INA"`            |
+| **`PUT`**, **`SMC`**, **`SFC`**, **`SMR`**       | Save Draft (Maker)    | `mutation-handlers.ts` | `handleMutation()`              | Writes pending record with `recStatus: "UA"`             |
 | **`AUT`**, **`AMC`**                             | Authorize (Checker)   | `mutation-handlers.ts` | `handleMutation()`              | Validates Maker-Checker rule, writes `recStatus: "AU"`   |
 | **`DEL`**, **`HLD`**, **`REV`**, **`TRV`**, etc. | Lifecycle Transitions | `mutation-handlers.ts` | `handleMutation()`              | Updates record status to `"DEL"`, `"HLD"`, `"REV"`, etc. |
 

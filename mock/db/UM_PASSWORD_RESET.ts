@@ -92,7 +92,7 @@ export const UM_PASSWORD_RESET_INAU: Record<string, UmPasswordResetRecord> = {
       },
     ],
     auditData: {
-      recStatus: "INA",
+      recStatus: "UA",
       recCurrNumber: 1,
       recInputter: "IA0245820",
       recInputTime: "2026-11-03 10:20:14",
@@ -115,7 +115,7 @@ export const UM_PASSWORD_RESET_INAU: Record<string, UmPasswordResetRecord> = {
       },
     ],
     auditData: {
-      recStatus: "INA",
+      recStatus: "UA",
       recCurrNumber: 1,
       recInputter: "IA0245820",
       recInputTime: "2026-11-03 11:45:00",

@@ -15,6 +15,7 @@ export interface UseFormActionsProps {
   screenMode: CbsScreenMode;
   setScreenMode: (mode: CbsScreenMode) => void;
   setValues: (values: Record<string, unknown>) => void;
+  hydrate?: (record: Record<string, unknown>) => void;
   resetForm: (values?: Record<string, unknown>) => void;
   validate: () => boolean;
   initialValues: Record<string, unknown>;
@@ -32,6 +33,7 @@ export function useFormActions({
   screenMode,
   setScreenMode,
   setValues,
+  hydrate,
   resetForm,
   validate,
   initialValues,
@@ -49,7 +51,11 @@ export function useFormActions({
         });
 
         if (res.status === "SUCCESS" && res.data) {
-          setValues(res.data);
+          if (hydrate) {
+            hydrate(res.data);
+          } else {
+            setValues(res.data);
+          }
           setScreenMode(modeToSet);
           toast.add({
             title: modeToSet === CbsRecordFunction.SEE ? "Viewing Record" : "Editing Record",
@@ -67,7 +73,7 @@ export function useFormActions({
         setScreenMode(modeToSet);
       }
     },
-    [schema, modelCode, setScreenMode, setValues],
+    [schema, modelCode, setScreenMode, setValues, hydrate],
   );
 
   // Auto-fetch record data when opened with initial query/mode

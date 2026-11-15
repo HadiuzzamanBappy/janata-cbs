@@ -20,7 +20,7 @@ User rights are defined by a 7-character string where each character represents 
 | :-----: | :-------- | :--------------------------------------------------------- |
 | **`R`** | Reverse   | Reversing an authorized, live transaction (`AU`)           |
 | **`I`** | Input     | Creating a new record or modifying a pending draft (Maker) |
-| **`D`** | Delete    | Deleting an unauthorized pending record (`INA`)            |
+| **`D`** | Delete    | Deleting an unauthorized pending record (`UA`)             |
 | **`A`** | Authorize | Approving a pending record into the live ledger (Checker)  |
 | **`S`** | See       | Viewing full record data (Read-Only)                       |
 | **`H`** | Hold      | Placing a pending transaction on temporary hold            |
@@ -71,7 +71,7 @@ export function TransactionActionBar({ record }: { record: CbsRecord }) {
 
 Functions are strictly gated by the record's current lifecycle status:
 
-- **Pending / Unauthorized (`INA`):**
+- **Pending / Unauthorized (`UA`):**
   - Editable via `I`
   - Deletable via `D`
   - Authorizable via `A` (if not the Maker)

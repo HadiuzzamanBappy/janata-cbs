@@ -40,6 +40,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
     handleAuthorize,
     validationErrors,
     resetToIdle,
+    isDirty,
   } = useMenuDesigner(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<MenuDesignerTabKey>("general");
@@ -113,6 +114,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       commandCode={CbsControlTable.MENU_TREE}
       recordId={recordId || formData.recordId}
       mode={mode}
+      isDirty={isDirty}
       auditContext={formData.auditData}
       onRecordIdChange={(id) => setRecordId(id.toUpperCase())}
       onRecordSearch={(id) => fetchTreeRecord(id.toUpperCase(), CbsRecordFunction.INPUT)}

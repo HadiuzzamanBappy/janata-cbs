@@ -1,7 +1,7 @@
 "use client";
 
-import { FormScreen } from "@/features/operations/forms";
-import { InquiryScreen } from "@/features/operations/inquiries";
+import { OpsForm } from "@/features/operations/forms";
+import { OpsInquiry } from "@/features/operations/inquiries";
 import { SysFormConfig } from "@/features/system/form-config";
 import { SysInquiryConfig } from "@/features/system/inquiry-config";
 import { SysMenuDesigner } from "@/features/system/menu-designer";
@@ -50,8 +50,8 @@ export function isSystemScreen(command: string): boolean {
  * Universal Screen Resolver.
  * Resolves screens strictly through canonical domain rules:
  * 1. Bespoke system screen registry (e.g. SC.MODEL.CONFIG, SC.FORM.CONFIG).
- * 2. Dynamic Inquiry screen (`InquiryScreen`) when prefixed with INQ or INQUIRY.
- * 3. Dynamic Form screen (`FormScreen`) for all transactional CBS records.
+ * 2. Dynamic Inquiry screen (`OpsInquiry`) when prefixed with INQ or INQUIRY.
+ * 3. Dynamic Form screen (`OpsForm`) for all transactional CBS records.
  */
 export function resolveScreen(command: string): CbsScreenComponent {
   const cleanCmd = extractCleanCommand(command);
@@ -64,9 +64,9 @@ export function resolveScreen(command: string): CbsScreenComponent {
 
   // 2. Check if command is an Inquiry screen
   if (isInquiryCommand(command)) {
-    return InquiryScreen;
+    return OpsInquiry;
   }
 
   // 3. Dynamic Form Screen Fallback
-  return FormScreen;
+  return OpsForm;
 }

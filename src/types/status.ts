@@ -5,7 +5,7 @@
 /**
  * Chronological record lifecycle statuses in Core Banking:
  *  - NEW: Uncommitted newly created draft
- *  - INA: Input Not Authorized (pending Maker-Checker approval in $NAU)
+ *  - UA:  Unauthorized / Input Not Authorized (pending Maker-Checker approval in $NAU)
  *  - AU:  Authorized / Live ledger record
  *  - HLD: Held / Parked draft
  *  - REV: Reversed accounting transaction
@@ -13,7 +13,7 @@
  */
 export const CbsRecordStatus = {
   NEW: "NEW",
-  INA: "INA",
+  UA: "UA",
   AU: "AU",
   HLD: "HLD",
   REV: "REV",
@@ -37,9 +37,9 @@ export const CBS_RECORD_STATUS_DEFINITIONS = {
     label: "New Draft",
     variant: "outline",
   },
-  [CbsRecordStatus.INA]: {
-    code: CbsRecordStatus.INA,
-    description: "Input Not Authorized (awaiting Checker approval in $NAU)",
+  [CbsRecordStatus.UA]: {
+    code: CbsRecordStatus.UA,
+    description: "Unauthorized (awaiting Checker approval in $NAU)",
     label: "Pending Approval",
     variant: "secondary",
   },

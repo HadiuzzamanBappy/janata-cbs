@@ -77,7 +77,7 @@ export function useCbsActionBar({
   const access = passedAccess ?? fallbackAccess;
   const hasTargetId = Boolean(searchVal.trim());
   const rawStatus = (recordStatus || "").toUpperCase().trim();
-  const cleanStatus = rawStatus === "UA" ? "INA" : rawStatus;
+  const cleanStatus = rawStatus === "INA" ? "UA" : rawStatus;
   const isIdle = mode === "IDLE";
   const isSee = mode === CbsRecordFunction.SEE;
   const isAuth = mode === CbsRecordFunction.AUTHORIZE;
@@ -144,8 +144,8 @@ export function useCbsActionBar({
         ? access.getDisableReason(CbsRecordFunction.DELETE) || "Requires Delete ('D') permission"
         : undefined;
 
-  // 8. Authorize (✓✓) - Only permitted in Authorize ('A') mode for unauthorized records (INA)
-  const isPendingAuth = !cleanStatus || cleanStatus === "INA" || cleanStatus === "NEW";
+  // 8. Authorize (✓✓) - Only permitted in Authorize ('A') mode for unauthorized records (UA)
+  const isPendingAuth = !cleanStatus || cleanStatus === "UA" || cleanStatus === "NEW";
   const authorizeEnabled = Boolean(
     isAuth && onAuthorizeReverse && !submitting && access.canAuthorize && isPendingAuth,
   );

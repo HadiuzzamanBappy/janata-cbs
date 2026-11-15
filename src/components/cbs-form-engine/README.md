@@ -1,4 +1,4 @@
-# ⚡ Janata CBS Form Engine (`@/features/form-engine`)
+# ⚡ Janata CBS Form Engine (`@/components/cbs-form-engine`)
 
 A high-density, schema-driven dynamic form presentation engine designed for **Janata CBS Workbench**.
 

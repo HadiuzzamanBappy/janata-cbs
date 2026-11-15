@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { FormRenderer } from "@/components/cbs-form-engine";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
-import { FormRenderer } from "@/features/form-engine";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";

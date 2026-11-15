@@ -1,6 +1,6 @@
 "use client";
 
-import { InquiryPreview } from "@/features/inquiry-engine";
+import { InquiryPreview } from "@/components/cbs-inquiry-engine";
 import type { InquiryConfigRecord } from "@/lib/data-schemas";
 
 export interface IcPreviewTabProps {

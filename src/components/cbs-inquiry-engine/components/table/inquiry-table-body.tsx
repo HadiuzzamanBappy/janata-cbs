@@ -1,9 +1,9 @@
 import * as React from "react";
 import { type DerivedColumnMeta, executePrimaryInquiryCommand } from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
-import type { EnquiryRow, INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
+import type { EnquiryRow, INQCmd } from "@/lib/data-schemas";
+import { InquiryRowActions } from "../inquiry-row-actions";
 import { CellFormatter } from "./cell-formatter";
-import { InquiryRowActions } from "./inquiry-row-actions";
 
 export interface InquiryTableBodyProps {
   rows: EnquiryRow[];

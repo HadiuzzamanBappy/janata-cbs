@@ -1,6 +1,6 @@
 # FORM.CONFIG — Enterprise CBS Visual Form Designer & Workbench
 
-The `FORM.CONFIG` feature is the visual form authoring and layout management workbench for Janata CBS. It bridges raw database definitions from `MODEL.CONFIG` to high-density, dynamic banking screens rendered by the dynamic Form Engine (`@/features/form-engine`) and compiled via `@/lib/cbs-form-spec`.
+The `FORM.CONFIG` feature is the visual form authoring and layout management workbench for Janata CBS. It bridges raw database definitions from `MODEL.CONFIG` to high-density, dynamic banking screens rendered by the dynamic Form Engine (`@/components/cbs-form-engine`) and compiled via `@/lib/cbs-form-spec`.
 
 ---
 
@@ -79,7 +79,7 @@ Janata CBS dynamic forms support **14 presentation widgets** strictly aligned wi
 2. **Strict Zod Domain Boundary**:
    Form definitions validate against `formConfigRecordSchema` before committing state or dispatching save operations via `cbs.formConfig.put(...)`.
 3. **Public Barrel Architecture**:
-   Deep internal imports into other features (`@/features/form-engine/components/...`) are strictly forbidden; all cross-feature communication resolves through public barrels (`@/features/form-engine`).
+   Deep internal imports into components (`@/components/cbs-form-engine/components/...`) are strictly forbidden; all communication resolves through public barrels (`@/components/cbs-form-engine`).
 4. **Canonical Enumerations**:
    All screen modes strictly use `CbsRecordFunction` (`INPUT`, `SEE`, `AUTHORIZE`, `REVERSE`, `DELETE`, `HOLD`) and `CBS_SCREEN_MODES[0]` for `IDLE`.
 5. **Size Budget**:

@@ -7,7 +7,7 @@
 
 "use client";
 
-import { FormPreview } from "@/features/form-engine";
+import { FormPreview } from "@/components/cbs-form-engine";
 import type { ModelConfigRecord } from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
 

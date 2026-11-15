@@ -10,8 +10,8 @@
 
 import { Boxes, ShieldCheck, Sliders } from "lucide-react";
 import * as React from "react";
+import { FormRenderer } from "@/components/cbs-form-engine";
 import { Label } from "@/components/ui/label";
-import { FormRenderer } from "@/features/form-engine";
 import {
   FIELD_ADVANCED_RULES_SECTION,
   FIELD_CONDITIONS_SECTION,

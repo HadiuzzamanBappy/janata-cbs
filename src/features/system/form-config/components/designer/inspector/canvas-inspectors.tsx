@@ -8,7 +8,7 @@
 "use client";
 
 import * as React from "react";
-import { FormRenderer } from "@/features/form-engine";
+import { FormRenderer } from "@/components/cbs-form-engine";
 import {
   CONTAINER_PROPERTIES_SECTION,
   ROOT_FORM_PROPERTIES_SECTION,

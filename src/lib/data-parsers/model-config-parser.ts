@@ -15,7 +15,7 @@ const FIXED_TYPE_LENGTHS: Readonly<Record<string, number>> = {
   DateTime: 19,
   Time: 8,
   Boolean: 1,
-  Json: 0,
+  JsonArray: 0,
 };
 
 const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
@@ -95,8 +95,9 @@ export function parseModelConfig(
  * Sanitizes a ModelProperty for MODEL.CONFIG: enforces physical invariants and purges UI noise.
  */
 export function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProperty {
+  const rawType = prop.TYPE;
   const normType = (
-    VALID_PROPERTY_TYPES.has(prop.TYPE) ? prop.TYPE : "String"
+    VALID_PROPERTY_TYPES.has(rawType) ? rawType : "String"
   ) as ModelProperty["TYPE"];
   const normStructure = normType === "Boolean" ? "S" : prop.STRUCTURE === "M" ? "M" : "S";
 
@@ -115,7 +116,7 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
     REQUIRED: Boolean(prop.REQUIRED),
   };
 
-  if (normType === "Json" && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
+  if (normType === "JsonArray" && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
     sanitized.PROP = prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx));
   }
 

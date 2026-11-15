@@ -55,10 +55,10 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
           { when: "Number", set: { LENGTH: 15, PROP: undefined } },
           { when: "String", set: { LENGTH: 50, PROP: undefined } },
           { when: "Boolean", set: { LENGTH: 1, STRUCTURE: "S", PROP: undefined } },
-          { when: "Json", set: { LENGTH: 0, PROP: [] } },
+          { when: "JsonArray", set: { LENGTH: 0, PROP: [] } },
         ],
         ENRICHTEXT:
-          "Physical database column data type: String, Number, Boolean, Date, DateTime, Time, or Json.",
+          "Physical database column data type: String, Number, Boolean, Date, DateTime, Time, or JsonArray.",
       },
       {
         SN: "3",
@@ -96,10 +96,10 @@ export const PROPERTY_INSPECTOR_SECTIONS: FormSection[] = [
         DISABLED_WHEN: {
           field: "TYPE",
           operator: "in",
-          value: ["Json", "Date", "DateTime", "Time", "Boolean"],
+          value: ["JsonArray", "Date", "DateTime", "Time", "Boolean"],
         },
         ENRICHTEXT:
-          "Maximum character storage limit or numerical precision (not applicable for Json, fixed for Boolean/Date/Time).",
+          "Maximum character storage limit or numerical precision (not applicable for JsonArray, fixed for Boolean/Date/Time).",
       },
       {
         SN: "5",

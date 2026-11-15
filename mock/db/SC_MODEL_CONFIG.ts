@@ -122,7 +122,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "menuTree",
-        TYPE: "Json",
+        TYPE: "JsonArray",
         STRUCTURE: "M",
         LENGTH: 0,
         REQUIRED: true,
@@ -317,7 +317,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "3",
         NAME: "branchContact",
-        TYPE: "Json",
+        TYPE: "JsonArray",
         STRUCTURE: "M",
         LENGTH: 0,
         REQUIRED: false,
@@ -1055,7 +1055,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       {
         SN: "1",
         NAME: "passReset",
-        TYPE: "Json",
+        TYPE: "JsonArray",
         STRUCTURE: "M",
         LENGTH: 0,
         REQUIRED: false,

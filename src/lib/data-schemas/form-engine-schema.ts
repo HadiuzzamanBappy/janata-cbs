@@ -35,7 +35,7 @@ export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidg
   Date: ["date", "datetime", "text"],
   DateTime: ["datetime", "date", "text"],
   Time: ["time", "text"],
-  Json: [],
+  JsonArray: [],
 } as const;
 
 export function getDefaultWidgetForType(type: PropertyType | string): FormWidgetType {
@@ -51,7 +51,7 @@ export function getDefaultWidgetForType(type: PropertyType | string): FormWidget
       return "checkbox";
     case "Time":
       return "time";
-    case "Json":
+    case "JsonArray":
       return "text";
     default:
       return "text";

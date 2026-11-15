@@ -252,7 +252,7 @@ function ScalarFieldFactory({
 }
 
 export function UnifiedFieldFactory(props: UnifiedFieldFactoryProps) {
-  if (props.field.TYPE === "Json") {
+  if (props.field.TYPE === "JsonArray") {
     return (
       <ObjectField
         field={props.field}

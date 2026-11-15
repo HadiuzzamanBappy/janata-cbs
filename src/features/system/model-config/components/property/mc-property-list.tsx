@@ -239,8 +239,8 @@ export function McPropertyList({
                   </div>
                 </div>
 
-                {/* Sub-properties container when TYPE is Json */}
-                {prop.TYPE === "Json" && (
+                {/* Sub-properties container when TYPE is JsonArray */}
+                {prop.TYPE === "JsonArray" && (
                   <div className="bg-muted/15 border-l-2 border-primary/30 ml-3.5 my-0.5 space-y-0.5">
                     {(prop.PROP || []).map((sub) => (
                       <McSubPropertyItem

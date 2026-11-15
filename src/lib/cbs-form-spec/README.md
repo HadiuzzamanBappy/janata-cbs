@@ -11,7 +11,7 @@ It bridges backend data schemas defined in **Model Config** (`SC.MODEL.CONFIG`) 
 ```text
 ┌─────────────────────────────────┐
 │     Model Config (SC.MODEL)     │  <── Sole Authority on Data Schema
-│  (Properties, Types, DB Limits) │      (Physical DDL: String, Number, Boolean, Date, DateTime, Time, Json)
+│  (Properties, Types, DB Limits) │      (Physical DDL: String, Number, Boolean, Date, DateTime, Time, JsonArray)
 └────────────────┬────────────────┘
                  │
                  ▼

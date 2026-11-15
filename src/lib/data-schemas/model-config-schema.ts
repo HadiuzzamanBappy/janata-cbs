@@ -12,7 +12,7 @@ export const PROPERTY_TYPES = [
   "Date",
   "DateTime",
   "Time",
-  "Json",
+  "JsonArray",
 ] as const;
 
 export const propertyTypeSchema = z.enum(PROPERTY_TYPES);

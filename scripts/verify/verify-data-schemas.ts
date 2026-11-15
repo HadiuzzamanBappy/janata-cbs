@@ -126,7 +126,7 @@ async function runSuite() {
       },
       {
         NAME: "auditInfo",
-        TYPE: "Json",
+        TYPE: "JsonArray",
         STRUCTURE: "S",
         LENGTH: 0,
         PROP: [

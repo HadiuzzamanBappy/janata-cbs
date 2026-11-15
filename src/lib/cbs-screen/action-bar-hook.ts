@@ -77,7 +77,7 @@ export function useCbsActionBar({
   const access = passedAccess ?? fallbackAccess;
   const hasTargetId = Boolean(searchVal.trim());
   const rawStatus = (recordStatus || "").toUpperCase().trim();
-  const cleanStatus = rawStatus === "INA" ? "UA" : rawStatus;
+  const cleanStatus = rawStatus;
   const isIdle = mode === "IDLE";
   const isSee = mode === CbsRecordFunction.SEE;
   const isAuth = mode === CbsRecordFunction.AUTHORIZE;

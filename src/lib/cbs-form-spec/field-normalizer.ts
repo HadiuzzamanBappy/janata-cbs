@@ -66,8 +66,8 @@ export function deriveSemanticWidth(
     return "xxl";
   }
 
-  const normType = (type || "").trim() as PropertyType;
-  if (normType === "Json") return "full";
+  const normType = (type || "").trim();
+  if (normType === "JsonArray") return "full";
   if (normType === "Boolean" || normType === "Time") return "xs";
   if (normType === "Date" || normType === "DateTime") return "sm";
   if (normType === "Number") return "md";

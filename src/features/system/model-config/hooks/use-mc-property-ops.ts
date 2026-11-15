@@ -73,7 +73,7 @@ export function useMcPropertyOps(
           };
           return {
             ...p,
-            TYPE: "Json" as const,
+            TYPE: "JsonArray" as const,
             PROP: [...currentChildren, newSubField],
           };
         });

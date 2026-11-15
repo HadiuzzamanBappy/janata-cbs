@@ -83,12 +83,14 @@ janata-cbs/
     │       └── cache/route.ts                 # Server cache invalidation endpoint
     │
     ├── components/                            # Reusable UI Primitives & CBS Scaffolding
+    │   ├── cbs-command/                       # Global Command Gateway Bar (Ctrl+K, grammar parser, navigation modal)
     │   ├── cbs-screen/                        # Standard Banking Screen Layout & Lifecycle Scaffolding
     │   │   ├── header/                        # Action bars (active/idle actions, record-lookup-bar, validation checklist)
     │   │   ├── hooks/                         # Screen lifecycle hooks (use-cbs-persistence, use-guarded-action, use-record-lookup)
     │   │   ├── states/                        # Standard states (cbs-idle-state, cbs-error-state, cbs-system-skeleton)
     │   │   ├── tabs/                          # Standard metadata tabs (cbs-audit-tab, cbs-json-viewer-tab)
     │   │   └── cbs-screen-scaffold.tsx        # Outer container standardizing header, content & footer
+    │   ├── cbs-settings/                      # Workstation Preferences Dialog (Appearance, profile, security, deactivation)
     │   ├── feedback/                          # Modal dialogs, empty states & error boundaries
     │   ├── layout/                            # Shell scaffolding (workbench-shell, app-sidebar, app-tabbar, timeouts)
     │   │   ├── sidebar/                       # Navigation tree, branch switcher & theme toggle
@@ -97,7 +99,6 @@ janata-cbs/
     │
     ├── features/                              # Domain Application Engines & Bespoke Screens
     │   ├── auth/                              # Operator login & password management flows
-    │   ├── command/                           # Global Command Gateway Bar (Ctrl+K, grammar parser, navigation)
     │   ├── docs/                              # In-app Markdown/Mermaid docs viewer & PDF compiler
     │   ├── form-engine/                       # Headless Atomized Form Kernel (150-1000 fields)
     │   │   ├── components/                    # form-renderer, field-atom, field-grid, field-row, object-field
@@ -110,7 +111,6 @@ janata-cbs/
     │   │   ├── store/                         # Isolated inquiry state store (inquiry-store.ts)
     │   │   └── hooks/                         # use-inquiry-execution, use-inquiry-filters, use-inquiry-export
     │   ├── operations/                        # Generic screens (cbs-form-screen, cbs-inquiry-screen)
-    │   ├── settings/                          # User workstation preferences (theme, hotkeys, density)
     │   ├── system/                            # Banking System Administration & Visual Designers
     │   │   ├── form-config/                   # Visual Form Designer (GMC Screen Config Studio)
     │   │   │   ├── components/designer/       # DnD canvas, field palette, property inspector, 12-col grid
@@ -172,7 +172,7 @@ janata-cbs/
 | :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
 | **Authentication & Session**  | [`src/features/auth/`](file:///d:/Work/React/cbs/janata-cbs/src/features/auth), [`src/store/session/`](file:///d:/Work/React/cbs/janata-cbs/src/store/session)                       | Operator login, credentials change, session cookie management.            |
 | **Access Rights & Four-Eyes** | [`src/lib/cbs-access/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-access)                                                                                                     | Pure TS evaluation of RIDASHL capabilities and Maker $\neq$ Checker rule. |
-| **Command Gateway**           | [`src/features/command/`](file:///d:/Work/React/cbs/janata-cbs/src/features/command), [`src/lib/cbs-command/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-command)             | Terminal syntax parser, aliases, and screen navigation router.            |
+| **Command Gateway**           | [`src/components/cbs-command/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-command), [`src/lib/cbs-command/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-command) | Terminal syntax parser, aliases, and screen navigation router.            |
 | **BFF Wire Client**           | [`src/lib/cbs-client/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-client), [`src/app/api/proxy/`](file:///d:/Work/React/cbs/janata-cbs/src/app/api/proxy)                     | Typed request payload factories dispatched strictly via `/api/proxy`.     |
 | **Form Engine Kernel**        | [`src/features/form-engine/`](file:///d:/Work/React/cbs/janata-cbs/src/features/form-engine), [`src/lib/cbs-form-spec/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-form-spec) | Zero-lag 150–1000 field rendering with 2-tier state & 12-col grid.        |
 | **Record Delta Mutations**    | [`src/lib/cbs-record/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-record)                                                                                                     | Baseline snapshot vs modified state diffing for touch-only commits.       |

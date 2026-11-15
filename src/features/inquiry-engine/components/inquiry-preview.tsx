@@ -6,10 +6,9 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { type FilterCriteriaMap, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
 import { parseInquiryRecords } from "@/lib/data-parsers";
 import type { EnquiryRow, InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
-import type { FilterCriteriaMap } from "../types";
-import { serializeCriteriaToWire } from "../utils/criteria-mapper";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
 import { InquiryTable } from "./inquiry-table";
 
@@ -61,12 +60,19 @@ export function InquiryPreview({
   const executeQuery = React.useCallback(
     async (critMap: FilterCriteriaMap, signal?: AbortSignal) => {
       setLoading(true);
-      const queryString = serializeCriteriaToWire(critMap, config.INQSelectField || []);
+      const branchCodeToFilter = config.INQInfo?.showBranchWise ? "1001" : null;
+      const queryString = serializeCriteriaToWire(
+        critMap,
+        config.INQSelectField || [],
+        config.INQInfo?.fixedSelection,
+        branchCodeToFilter,
+      );
 
       try {
         const queryRes = await cbs.send<unknown>(
           cbs.inquiry.executeQuery(targetController, {
             servicePath: config.INQInfo?.inqServicePath,
+            inqType: config.INQInfo?.inqType,
             perPage: Number(config.INQInfo?.perpageItem) || 1000,
             curPage: 1,
             queryString,
@@ -103,7 +109,10 @@ export function InquiryPreview({
     [
       targetController,
       config.INQInfo?.inqServicePath,
+      config.INQInfo?.inqType,
       config.INQInfo?.perpageItem,
+      config.INQInfo?.fixedSelection,
+      config.INQInfo?.showBranchWise,
       config.INQSelectField,
     ],
   );
@@ -177,6 +186,9 @@ export function InquiryPreview({
             commands={config.INQCmds || []}
             pageSize={pageSize}
             showSerial={config.INQInfo?.showSerial}
+            showPagination={config.INQInfo?.showPagination}
+            cmdFromInternal={config.INQInfo?.cmdFromInternal}
+            cmdFieldName={config.INQInfo?.cmdFieldName}
           />
         )}
       </div>

@@ -13,7 +13,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useContainerWidth } from "@/hooks";
 import { cn } from "@/lib/core-utils";
-import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd } from "@/lib/data-schemas";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { ActionInspector } from "./actions/action-inspector";
 import { ActionsPanel } from "./actions/actions-panel";
@@ -65,7 +65,10 @@ export function IcActionsTab({
     }
   }, [actions.length, selectedActionIdx]);
 
-  const actionKeys = React.useMemo(() => actions.map((_, i) => `action-${i}`), [actions]);
+  const actionKeys = React.useMemo(
+    () => actions.map((a, i) => `action-${a.cmdButton || i}-${i}`),
+    [actions],
+  );
 
   const actionsErrors = React.useMemo(
     () => validationErrors.filter((e) => e.tab === "actions"),
@@ -108,7 +111,10 @@ export function IcActionsTab({
             variant="default"
             size="sm"
             onClick={() => {
-              onAddAction();
+              onAddAction({
+                cmdButton: "View",
+                cmdFor: `${targetModel || "ACCOUNT"} S recordId`,
+              });
               setSelectedActionIdx(actions.length);
               if (isCompact) {
                 setIsSidebarOpen(false);

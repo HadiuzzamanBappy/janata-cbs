@@ -68,7 +68,7 @@ export function formatColumnCoordinates(row: number, col: number): string {
 
 /**
  * Compiles a canonical CBS INQDef wire spec into presentation metadata for UI tables.
- * Keeps data-schemas pure and isolates display math to the presentation layer.
+ * Keeps data-schemas pure and isolates display math to the specification compiler.
  */
 export function deriveInquiryColumnMeta(col: INQDef): DerivedColumnMeta {
   const { length, alignCode, align } = parseColumnLength(col.fieldLength);

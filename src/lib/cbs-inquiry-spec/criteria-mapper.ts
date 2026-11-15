@@ -1,5 +1,11 @@
 import type { INQSelectField, InquiryCriteriaParam, SelectionOperand } from "@/lib/data-schemas";
-import type { FilterCriteriaMap } from "../types";
+
+export interface FilterCriterion {
+  value: string;
+  operand: SelectionOperand;
+}
+
+export type FilterCriteriaMap = Record<string, FilterCriterion>;
 
 export type CbsWireCriteriaParam = InquiryCriteriaParam;
 

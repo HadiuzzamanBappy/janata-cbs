@@ -19,6 +19,7 @@ import {
   currentUserSchema,
   formConfigRecordSchema,
   formElementSchema,
+  inquiryConfigRecordSchema,
   isWidgetCompatibleWithType,
   loginSchema,
   menuTreeRecordSchema,
@@ -310,6 +311,75 @@ async function runSuite() {
       compatibilityMatrixValid: isWidgetAllowed && isWidgetDisallowed,
     },
     isFallbackNormal && isWidgetAllowed && isWidgetDisallowed,
+  );
+
+  // 10. Inquiry Config Specification Schema (1:1 Canonical CBS Structure)
+  const sampleInquiryWire = {
+    INQInfo: {
+      controllerName: "ACCOUNT",
+      description: "Customer Account Ledger",
+      pageOrientation: "Portrait",
+      perpageItem: "25",
+      showSerial: true,
+      showPagination: true,
+      showBranchWise: true,
+      inqType: "DFT",
+      rptControllerName: "RPT.ACC.LEDGER",
+      fixedSelection: "",
+      inqServicePath: "default",
+      cmdFromInternal: false,
+      cmdFieldName: "",
+    },
+    INQSelectField: [
+      {
+        selectFieldName: "accountNumber",
+        selectFieldDisplay: "Account No",
+        selectFieldType: "text",
+        selectFieldOperator: "EQ",
+        selectFieldOperatorFixed: "",
+        selectFieldValue: "",
+        selectFieldRequired: true,
+      },
+    ],
+    INQDef: [
+      {
+        fieldName: "accountNumber",
+        fieldDisplay: "Account No",
+        fieldType: "DC",
+        fieldFunc: "",
+        fieldRowCol: "1,1",
+        fieldLength: "16,L",
+        dataPassable: true,
+      },
+    ],
+    INQCmds: [
+      {
+        cmdFor: "ACCOUNT.SEE",
+        cmdButton: "View Account",
+      },
+    ],
+  };
+  const inqSchemaResult = inquiryConfigRecordSchema.safeParse(sampleInquiryWire);
+  recordTest(
+    "10. Inquiry Config Schema: Enforces 1:1 canonical inquiry structure across INQInfo, INQSelectField, INQDef, and INQCmds",
+    {
+      controller: sampleInquiryWire.INQInfo.controllerName,
+      filterCount: sampleInquiryWire.INQSelectField.length,
+      colCount: sampleInquiryWire.INQDef.length,
+      cmdCount: sampleInquiryWire.INQCmds.length,
+    },
+    {
+      conforms: inqSchemaResult.success,
+      parsedController: inqSchemaResult.data?.INQInfo.controllerName,
+      parsedShowBranchWise: inqSchemaResult.data?.INQInfo.showBranchWise,
+      parsedRequired: inqSchemaResult.data?.INQSelectField[0]?.selectFieldRequired,
+      parsedDataPassable: inqSchemaResult.data?.INQDef[0]?.dataPassable,
+    },
+    inqSchemaResult.success === true &&
+      inqSchemaResult.data?.INQInfo.controllerName === "ACCOUNT" &&
+      inqSchemaResult.data?.INQInfo.showBranchWise === true &&
+      inqSchemaResult.data?.INQSelectField[0]?.selectFieldRequired === true &&
+      inqSchemaResult.data?.INQDef[0]?.dataPassable === true,
   );
 
   // Final Summary

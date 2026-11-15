@@ -1,12 +1,9 @@
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
-import {
-  type InquiryConfigRecord,
-  inquiryConfigRecordSchema,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import { type InquiryConfigRecord, inquiryConfigRecordSchema } from "@/lib/data-schemas";
 
 export type InquiryConfigTabKey =
   | "general"
-  | "selection"
+  | "filters"
   | "columns"
   | "actions"
   | "preview"
@@ -48,7 +45,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
       let labelPrefix = "General";
 
       if (firstSegment === "INQSelectField") {
-        tab = "selection";
+        tab = "filters";
         if (itemIndex !== undefined) {
           const filter = formData.INQSelectField?.[itemIndex];
           const name = filter?.selectFieldDisplay || filter?.selectFieldName;
@@ -97,14 +94,14 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     });
   }
 
-  // 3. Domain Business Rules: Selection Tab
+  // 3. Domain Business Rules: Filters Tab
   const seenFilterNames = new Set<string>();
   (formData.INQSelectField || []).forEach((filter, idx) => {
     const fName = filter.selectFieldName?.trim();
     if (!fName) {
       addIssue({
         id: `err-sel-${idx}-name`,
-        tab: "selection",
+        tab: "filters",
         fieldKey: `INQSelectField.${idx}.selectFieldName`,
         message: `Filter #${idx + 1}: Field Key is required`,
         itemIndex: idx,
@@ -112,7 +109,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     } else if (seenFilterNames.has(fName.toLowerCase())) {
       addIssue({
         id: `err-sel-dup-${idx}`,
-        tab: "selection",
+        tab: "filters",
         fieldKey: `INQSelectField.${idx}.selectFieldName`,
         message: `Filter #${idx + 1}: Duplicate filter field key "${fName}"`,
         itemIndex: idx,
@@ -124,7 +121,7 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
     if (!filter.selectFieldDisplay?.trim()) {
       addIssue({
         id: `err-sel-${idx}-display`,
-        tab: "selection",
+        tab: "filters",
         fieldKey: `INQSelectField.${idx}.selectFieldDisplay`,
         message: `Filter #${idx + 1}: Display Label is required`,
         itemIndex: idx,

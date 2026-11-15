@@ -4,11 +4,12 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { INQUIRY_OPERAND_OPTIONS } from "@/features/inquiry-engine";
+import { INQUIRY_OPERAND_OPTIONS } from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
-import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQSelectField } from "@/lib/data-schemas";
 
 export interface FilterItemProps {
+  id: string;
   field: INQSelectField;
   index: number;
   isSelected: boolean;
@@ -20,6 +21,7 @@ export interface FilterItemProps {
 }
 
 export function FilterItem({
+  id,
   field,
   index,
   isSelected,
@@ -30,7 +32,7 @@ export function FilterItem({
   onRemove,
 }: FilterItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: `filter-${field.selectFieldName}`,
+    id,
     disabled,
   });
 

@@ -7,7 +7,7 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Columns } from "lucide-react";
-import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQDef } from "@/lib/data-schemas";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
 import { DesignerEmptyList } from "../shared/designer-empty-list";
 import { ColumnItem } from "./column-item";
@@ -57,6 +57,7 @@ export function ColumnsPanel({
                   return (
                     <ColumnItem
                       key={columnKeys[idx]}
+                      id={columnKeys[idx]}
                       col={col}
                       index={idx}
                       isSelected={selectedColIdx === idx}

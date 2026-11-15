@@ -1,4 +1,4 @@
-import type { DerivedColumnMeta } from "../utils/column-compiler";
+import type { DerivedColumnMeta } from "@/lib/cbs-inquiry-spec";
 import { ColumnHeader } from "./column-header";
 
 export interface InquiryTableHeaderProps {

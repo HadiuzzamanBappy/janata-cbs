@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { FormRenderer } from "@/features/form-engine/components/form-renderer";
+import { FormRenderer } from "@/features/form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { INQSelectField } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQSelectField } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { FILTER_INSPECTOR_SECTIONS } from "../../fields/ic-filter-fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
@@ -36,7 +36,7 @@ export function FilterInspector({
   const errorMap = React.useMemo(() => {
     const map: Record<string, string> = {};
     for (const err of validationErrors) {
-      if (err.tab === "selection" && err.itemIndex === selectedIdx) {
+      if (err.tab === "filters" && err.itemIndex === selectedIdx) {
         const cleanKey = err.fieldKey.split(".").pop() || err.fieldKey;
         map[cleanKey] = err.message;
       }

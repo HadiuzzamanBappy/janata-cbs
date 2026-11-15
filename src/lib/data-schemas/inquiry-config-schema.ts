@@ -32,14 +32,14 @@ export const INQUIRY_FIELD_TYPE_SET = new Set<string>(INQUIRY_FIELD_TYPES);
 
 const cbsString = (fallback = "") =>
   z
-    .string()
+    .union([z.string(), z.number()])
     .nullish()
-    .transform((v) => (v?.trim() ? v.trim() : fallback));
+    .transform((v) => (v != null && String(v).trim() !== "" ? String(v).trim() : fallback));
 
 const cbsBoolean = z
-  .union([z.boolean(), z.string()])
+  .union([z.boolean(), z.string(), z.number()])
   .nullish()
-  .transform((v) => v === true || v === "true" || v === "Y")
+  .transform((v) => v === true || v === "true" || v === "Y" || v === 1 || v === "1")
   .default(false);
 
 export const selectionOperandSchema = z
@@ -88,9 +88,11 @@ export const inqDefSchema = z.object({
   fieldRowCol: cbsString("1,1"),
   fieldLength: cbsString("20,L"),
   dataPassable: z
-    .union([z.string(), z.boolean()])
+    .union([z.string(), z.boolean(), z.number()])
     .nullish()
-    .transform((v) => (v == null ? null : v === true || v === "true" || v === "Y")),
+    .transform((v) =>
+      v == null ? null : v === true || v === "true" || v === "Y" || v === 1 || v === "1",
+    ),
 });
 
 export type INQDef = z.infer<typeof inqDefSchema>;
@@ -113,11 +115,16 @@ export type INQCmd = z.infer<typeof inqCmdSchema>;
 export const inqInfoSchema = z.object({
   controllerName: cbsString(""),
   description: cbsString(""),
-  pageOrientation: cbsString("Portrait"),
+  pageOrientation: z
+    .string()
+    .nullish()
+    .transform((v) => (v?.trim() === "Landscape" ? "Landscape" : "Portrait"))
+    .default("Portrait"),
   perpageItem: z
     .union([z.string(), z.number()])
     .nullish()
-    .transform((val) => (val != null && String(val).trim() !== "" ? String(val) : "30")),
+    .transform((val) => (val != null && String(val).trim() !== "" ? String(val) : "30"))
+    .default("30"),
   showSerial: cbsBoolean,
   showPagination: cbsBoolean,
   showBranchWise: cbsBoolean,
@@ -181,6 +188,7 @@ export interface InquiryExecuteOptions {
   curPage?: number;
   perPage?: number;
   servicePath?: string;
+  inqType?: string;
 }
 
 /* ========================================================================== */

@@ -72,6 +72,10 @@ const SUITES = [
     title: "14. CBS Screen Architecture & Capabilities (@/lib/cbs-screen)",
     command: "pnpm exec tsx scripts/verify/verify-cbs-screen.ts",
   },
+  {
+    title: "15. CBS Inquiry Spec & Compiler Engine (@/lib/cbs-inquiry-spec)",
+    command: "pnpm exec tsx scripts/verify/verify-cbs-inquiry-spec.ts",
+  },
 ];
 
 console.log("\n================================================================================");

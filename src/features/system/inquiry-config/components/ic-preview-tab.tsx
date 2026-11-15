@@ -1,7 +1,7 @@
 "use client";
 
 import { InquiryPreview } from "@/features/inquiry-engine";
-import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryConfigRecord } from "@/lib/data-schemas";
 
 export interface IcPreviewTabProps {
   formData: InquiryConfigRecord;
@@ -12,5 +12,11 @@ export interface IcPreviewTabProps {
  * directly to the authoritative InquiryPreview component in inquiry-engine.
  */
 export function IcPreviewTab({ formData }: IcPreviewTabProps) {
-  return <InquiryPreview config={formData} />;
+  return (
+    <InquiryPreview
+      config={formData}
+      emptyTitle="No Columns or Criteria Defined"
+      emptyDescription="This inquiry has no display columns or filter criteria configured yet. Switch to the Filters or Columns tab to add fields."
+    />
+  );
 }

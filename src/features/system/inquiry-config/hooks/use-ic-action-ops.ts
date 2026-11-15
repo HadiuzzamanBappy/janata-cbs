@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { INQCmd, InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd, InquiryConfigRecord } from "@/lib/data-schemas";
 
 export function useIcActionOps(
   setFormData: React.Dispatch<React.SetStateAction<InquiryConfigRecord>>,

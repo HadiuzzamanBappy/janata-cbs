@@ -1,4 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormSection } from "@/lib/data-schemas";
 
 /**
  * Standard Form Sections definition for INQUIRY.CONFIG Row Action Inspector.
@@ -7,7 +7,7 @@ import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 export const ACTION_INSPECTOR_SECTIONS: FormSection[] = [
   {
     id: "sec_act_identity",
-    title: "Action Preset & Button Label",
+    title: "Action Identity & Button Label",
     containerType: "card",
     columns: 1,
     fields: [
@@ -27,21 +27,21 @@ export const ACTION_INSPECTOR_SECTIONS: FormSection[] = [
   },
   {
     id: "sec_act_command",
-    title: "Target & Parameter Configuration",
+    title: "Command Execution Target",
     containerType: "card",
     columns: 1,
     fields: [
       {
         SN: "2",
         NAME: "cmdFor",
-        LABEL: "Command Target",
+        LABEL: "Command Syntax",
         TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 120,
         REQUIRED: true,
         WIDTH: "xl",
         ENRICHTEXT:
-          "Command template executed when clicked, with field placeholder tokens (e.g. ACCOUNT S recordId).",
+          "Command template executed when clicked, with field placeholder tokens (e.g. ACCOUNT S recordId or BRANCH.DIR S @ID).",
       },
     ],
   },

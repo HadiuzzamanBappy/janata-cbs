@@ -4,7 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Play, Trash2 } from "lucide-react";
 import { cn } from "@/lib/core-utils";
-import type { INQCmd } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd } from "@/lib/data-schemas";
 
 export interface ActionItemProps {
   action: INQCmd;

@@ -103,9 +103,19 @@ export function CellFormatter({
     case "badge": {
       const upper = strVal.toUpperCase();
       const isPositive =
-        upper === "ACTIVE" || upper === "AUTHORIZED" || upper === "SUCCESS" || upper === "APPROVED";
+        upper === "ACTIVE" ||
+        upper === "AUTHORIZED" ||
+        upper === "AU" ||
+        upper === "LIVE" ||
+        upper === "SUCCESS" ||
+        upper === "APPROVED";
       const isNegative =
-        upper === "REJECTED" || upper === "CLOSED" || upper === "FAILED" || upper === "BLOCKED";
+        upper === "REJECTED" ||
+        upper === "CLOSED" ||
+        upper === "FAILED" ||
+        upper === "BLOCKED" ||
+        upper === "DEL" ||
+        upper === "REVE";
 
       return (
         <Badge

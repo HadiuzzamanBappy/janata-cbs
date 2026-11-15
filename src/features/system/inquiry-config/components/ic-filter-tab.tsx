@@ -13,19 +13,15 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useContainerWidth } from "@/hooks";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import type {
-  INQSelectField,
-  InquiryFieldType,
-  SelectionOperand,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQSelectField, InquiryFieldType, SelectionOperand } from "@/lib/data-schemas";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
-import { FilterInspector } from "./selection/filter-inspector";
-import { SelectionPanel } from "./selection/selection-panel";
+import { FilterInspector } from "./filters/filter-inspector";
+import { FilterPanel } from "./filters/filter-panel";
 import { InquiryModelPopover } from "./shared/inquiry-model-popover";
 import { InspectorEmptyState } from "./shared/inspector-empty-state";
 
-export interface IcSelectionTabProps {
+export interface IcFilterTabProps {
   filters: INQSelectField[];
   targetModel?: string;
   onAddFilter: (filter?: Partial<INQSelectField>) => void;
@@ -36,7 +32,7 @@ export interface IcSelectionTabProps {
   validationErrors?: InquiryValidationErrorItem[];
 }
 
-export function IcSelectionTab({
+export function IcFilterTab({
   filters,
   targetModel,
   onAddFilter,
@@ -45,7 +41,7 @@ export function IcSelectionTab({
   onReorderFilters,
   disabled = false,
   validationErrors = [],
-}: IcSelectionTabProps) {
+}: IcFilterTabProps) {
   const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(860);
   const [selectedIdx, setSelectedIdx] = React.useState<number>(0);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -65,7 +61,7 @@ export function IcSelectionTab({
   );
 
   const filterKeys = React.useMemo(
-    () => filters.map((f) => `filter-${f.selectFieldName}`),
+    () => filters.map((f: INQSelectField, i) => `filter-${f.selectFieldName || i}-${i}`),
     [filters],
   );
 
@@ -100,7 +96,7 @@ export function IcSelectionTab({
   const activeFilter = filters[selectedIdx] || null;
 
   const configuredFieldNames = React.useMemo(
-    () => new Set(filters.map((f) => f.selectFieldName.toLowerCase())),
+    () => new Set<string>(filters.map((f: INQSelectField) => f.selectFieldName.toLowerCase())),
     [filters],
   );
 
@@ -182,8 +178,8 @@ export function IcSelectionTab({
         </div>
       </div>
 
-      {/* Reusable Selection List Panel */}
-      <SelectionPanel
+      {/* Reusable Filter List Panel */}
+      <FilterPanel
         filters={filters}
         filterKeys={filterKeys}
         selectedIdx={selectedIdx}

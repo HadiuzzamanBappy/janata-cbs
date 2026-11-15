@@ -1,4 +1,4 @@
-import { Boxes, ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { Boxes, ChevronDown, ChevronRight, Pin, Plus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,8 +66,8 @@ export function PaletteObjectGroup({
         isSelected
           ? "border-primary bg-primary/10 ring-1 ring-primary/40 font-semibold shadow-2xs"
           : isParentPlaced
-            ? "border-border bg-muted/15"
-            : "border-primary/30 bg-primary/5",
+            ? "border-primary/40 bg-primary/5"
+            : "border-border/70 bg-card hover:border-primary/50",
       )}
     >
       {/* Object Group Header */}
@@ -130,7 +130,9 @@ export function PaletteObjectGroup({
             </Button>
           )}
 
-          {isParentPlaced && <span className="text-[10px] text-primary font-semibold">✓</span>}
+          {isParentPlaced && (
+            <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
+          )}
         </div>
       </div>
 

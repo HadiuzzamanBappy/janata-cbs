@@ -1,6 +1,6 @@
 "use client";
 
-import { SidebarMenuTree } from "@/components/layout/sidebar/components/sidebar-menu-tree";
+import { CbsMenuTree } from "@/components/cbs-menu";
 import type { MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
 
 export interface CanvasSidebarPreviewProps {
@@ -15,7 +15,7 @@ export function CanvasSidebarPreview({ treeNodes }: CanvasSidebarPreviewProps) {
         <span className="font-mono text-[10px] text-primary">Live Readout</span>
       </div>
       <div className="rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-xs">
-        <SidebarMenuTree
+        <CbsMenuTree
           treeNodes={treeNodes}
           loading={false}
           openSettingsTab={() => {}}

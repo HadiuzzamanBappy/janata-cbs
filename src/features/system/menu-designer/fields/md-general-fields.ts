@@ -3,7 +3,7 @@ import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
 
 /**
  * Standard Form Sections definition for MENU.DESIGNER General tab.
- * Rendered using the platform's form-engine SectionCard.
+ * Rendered using the platform's form-engine FormRenderer.
  */
 export const MENU_DESIGNER_SECTIONS: FormSection[] = [
   {

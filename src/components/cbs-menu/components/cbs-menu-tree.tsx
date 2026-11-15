@@ -1,23 +1,33 @@
+"use client";
+
 import { SidebarContent } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/core-utils";
 import type { MenuItem } from "@/lib/data-schemas";
-import { SidebarTreeItem } from "./sidebar-tree-item";
+import { CbsMenuTreeItem } from "./cbs-menu-tree-item";
 
-interface SidebarMenuTreeProps {
+export interface CbsMenuTreeProps {
   treeNodes: MenuItem[];
-  loading: boolean;
-  openSettingsTab: (tabId: string) => void;
-  onLogout: () => void;
+  loading?: boolean;
+  openSettingsTab?: (tabId: string) => void;
+  onLogout?: () => void;
+  className?: string;
 }
 
-export function SidebarMenuTree({
+export function CbsMenuTree({
   treeNodes,
-  loading,
-  openSettingsTab,
-  onLogout,
-}: SidebarMenuTreeProps) {
+  loading = false,
+  openSettingsTab = () => {},
+  onLogout = () => {},
+  className,
+}: CbsMenuTreeProps) {
   return (
-    <SidebarContent className="p-1.5 overflow-y-auto overflow-x-visible flex-1 group-data-[collapsible=icon]:hidden">
+    <SidebarContent
+      className={cn(
+        "p-1.5 overflow-y-auto overflow-x-visible flex-1 group-data-[collapsible=icon]:hidden",
+        className,
+      )}
+    >
       {loading ? (
         <div className="flex flex-col space-y-1.5 p-1">
           <Skeleton className="h-5 w-3/4 rounded-sm" />
@@ -34,7 +44,7 @@ export function SidebarMenuTree({
       ) : (
         <div role="tree" className="flex flex-col space-y-0.5">
           {treeNodes.map((node) => (
-            <SidebarTreeItem
+            <CbsMenuTreeItem
               key={node.id}
               node={node}
               openSettingsTab={openSettingsTab}

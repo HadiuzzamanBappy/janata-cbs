@@ -30,8 +30,8 @@ export const ROOT_FORM_PROPERTIES_SECTION: FormSection = {
       PARAMETER: {
         type: "O",
         data: [
-          { code: "horizontal", label: "Horizontal (Label : Input)" },
-          { code: "stacked", label: "Stacked (Label above Input)" },
+          { code: "horizontal", label: "Horizontal" },
+          { code: "stacked", label: "Stacked" },
         ],
       },
       ENRICHTEXT:
@@ -50,8 +50,8 @@ export const ROOT_FORM_PROPERTIES_SECTION: FormSection = {
       PARAMETER: {
         type: "O",
         data: [
-          { code: "compact", label: "Compact (32px)" },
-          { code: "normal", label: "Normal (36px)" },
+          { code: "compact", label: "Compact" },
+          { code: "normal", label: "Normal" },
         ],
       },
       ENRICHTEXT: "Default row spacing and input height across all form containers.",

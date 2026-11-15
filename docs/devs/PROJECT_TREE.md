@@ -93,6 +93,10 @@ janata-cbs/
     │   ├── cbs-inquiry-engine/                # Dynamic Tabular Enquiry Presentation Engine (InquiryTable, FilterBar)
     │   │   ├── components/                    # inquiry-table, inquiry-filter-bar, pagination, row actions
     │   │   └── hooks/                         # use-inquiry-pagination, use-inquiry-sort
+    │   ├── cbs-menu/                          # Universal UI Navigation Menu Renderer (CbsMenuTree, CbsMenuTreeItem)
+    │   │   ├── components/                    # cbs-menu-tree, cbs-menu-tree-item
+    │   │   ├── hooks/                         # use-cbs-menu (active tree query)
+    │   │   └── utils.ts                       # Tree traversal, active child matching & command resolution
     │   ├── cbs-screen/                        # Standard Banking Screen Layout & Lifecycle Scaffolding
     │   │   ├── header/                        # Action bars (active/idle actions, record-lookup-bar, validation checklist)
     │   │   ├── hooks/                         # Screen lifecycle hooks (use-cbs-persistence, use-guarded-action, use-record-lookup)
@@ -120,7 +124,8 @@ janata-cbs/
     │   │   │   ├── hooks/                     # use-inquiry-config, use-ic-column-ops, use-ic-filter-ops
     │   │   │   └── sys-inquiry-config.tsx     # Inquiry Designer screen entrypoint
     │   │   ├── menu-designer/                 # Menu Designer Studio (SC_MENU_TREE)
-    │   │   │   ├── components/canvas/         # Visual tree canvas, sidebar preview, node inspector
+    │   │   │   ├── components/canvas/         # Catalog, tree canvas, node inspector, menu-tree/ subcomponents
+    │   │   │   ├── fields/                    # Declarative form specs (md-general-fields, md-inspector-fields)
     │   │   │   ├── hooks/                     # use-menu-designer, use-canvas-dnd, use-md-tree-ops
     │   │   │   └── sys-menu-designer.tsx      # Menu Designer screen entrypoint
     │   │   └── model-config/                  # Metamodel Dictionary Studio (SC_MODEL_CONFIG)

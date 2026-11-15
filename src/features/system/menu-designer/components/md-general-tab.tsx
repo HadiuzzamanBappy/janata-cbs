@@ -7,7 +7,7 @@ import type {
   MenuTreeRecord,
 } from "@/lib/data-schemas/menu-designer-schema";
 import { CbsRecordFunction } from "@/types";
-import { MENU_DESIGNER_SECTIONS, setMenuDesignerFieldValue } from "../fields";
+import { MENU_DESIGNER_SECTIONS, setMenuDesignerFieldValue } from "../fields/md-general-fields";
 
 interface MdGeneralTabProps {
   formData: MenuTreeRecord;

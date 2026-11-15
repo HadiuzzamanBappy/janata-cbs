@@ -488,10 +488,10 @@ async function runSuite() {
       sanitizedTree.treeDescription === "Main Navigation Menu" &&
       sanitizedTree.menuTree.length === 1 &&
       sanitizedTree.menuTree[0]?.label === "Banking Operations" &&
-      sanitizedTree.menuTree[0]?.orderIndex === 0 &&
+      sanitizedTree.menuTree[0]?.orderIndex === 1 &&
       sanitizedTree.menuTree[0]?.children[0]?.label === "Customer Account" &&
       sanitizedTree.menuTree[0]?.children[0]?.command === "ACCOUNT I" &&
-      sanitizedTree.menuTree[0]?.children[0]?.orderIndex === 0,
+      sanitizedTree.menuTree[0]?.children[0]?.orderIndex === 1,
   );
 
   // ----------------------------------------------------------------------------

@@ -4,9 +4,9 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Network } from "lucide-react";
 import * as React from "react";
 import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
-import { CanvasSidebarPreview } from "./canvas-sidebar-preview";
-import { CanvasToolbar } from "./canvas-toolbar";
-import { TreeNodeItem } from "./tree-node-item";
+import { CanvasSidebarPreview } from "./menu-tree/canvas-sidebar-preview";
+import { CanvasToolbar } from "./menu-tree/canvas-toolbar";
+import { TreeNodeItem } from "./menu-tree/tree-node-item";
 
 interface MenuTreeCanvasProps {
   nodes: MenuTreeNode[];

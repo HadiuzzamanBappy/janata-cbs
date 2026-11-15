@@ -246,14 +246,14 @@ export function TreeNodeItem({
                 setIsEditingLabel(false);
               }
             }}
-            className="h-6 text-xs max-w-xs flex-1 min-w-0"
+            className="h-6 text-xs max-w-xs shrink-0"
           />
         ) : (
           <button
             type="button"
             onClick={() => onSelect?.(node.id)}
             onDoubleClick={() => !isReadOnly && setIsEditingLabel(true)}
-            className="font-medium text-foreground hover:text-primary transition-colors truncate text-left cursor-pointer flex-1 min-w-0"
+            className="font-medium text-foreground hover:text-primary transition-colors truncate text-left cursor-pointer shrink-0 max-w-sm"
             title="Click to inspect properties • Double-click to rename"
           >
             {node.label}
@@ -269,11 +269,14 @@ export function TreeNodeItem({
         {node.command && (
           <Badge
             variant="outline"
-            className="hidden sm:inline-flex h-4.5 px-1.5 text-[10px] font-mono uppercase bg-muted/30 text-muted-foreground border-border/60 shrink-0 max-w-35 truncate"
+            className="h-4 px-1 text-[9px] font-mono uppercase bg-muted/40 text-muted-foreground border-border/60 shrink-0 max-w-44 truncate leading-none"
           >
             {node.command}
           </Badge>
         )}
+
+        {/* Empty spacer so title + badge remain anchored together on the left */}
+        <div className="flex-1 min-w-1" />
       </div>
 
       {/* Right: Functional Hierarchy Actions (Responsive) */}

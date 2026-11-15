@@ -44,9 +44,9 @@ export const SC_BRANCH: Record<string, BranchRecord> = {
     branchType: "BR",
     branchContact: [
       {
-        addressLine: null,
-        email: null,
-        phone: null,
+        addressLine: "",
+        email: "",
+        phone: "",
       },
     ],
     openDate: "20250101",
@@ -74,9 +74,9 @@ export const SC_BRANCH: Record<string, BranchRecord> = {
     branchType: "BR",
     branchContact: [
       {
-        addressLine: null,
-        email: null,
-        phone: null,
+        addressLine: "",
+        email: "",
+        phone: "",
       },
     ],
     openDate: "20250101",
@@ -104,9 +104,9 @@ export const SC_BRANCH: Record<string, BranchRecord> = {
     branchType: "BR",
     branchContact: [
       {
-        addressLine: null,
-        email: null,
-        phone: null,
+        addressLine: "",
+        email: "",
+        phone: "",
       },
     ],
     openDate: "20250101",
@@ -134,9 +134,9 @@ export const SC_BRANCH: Record<string, BranchRecord> = {
     branchType: "BR",
     branchContact: [
       {
-        addressLine: null,
-        email: null,
-        phone: null,
+        addressLine: "",
+        email: "",
+        phone: "",
       },
     ],
     openDate: "20250101",
@@ -164,9 +164,9 @@ export const SC_BRANCH: Record<string, BranchRecord> = {
     branchType: "BR",
     branchContact: [
       {
-        addressLine: null,
-        email: null,
-        phone: null,
+        addressLine: "",
+        email: "",
+        phone: "",
       },
     ],
     openDate: "20250101",

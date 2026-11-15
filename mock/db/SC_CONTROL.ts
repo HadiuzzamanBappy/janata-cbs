@@ -77,6 +77,22 @@ export const SC_CONTROL: Record<string, RawControlRecord> = {
       recBranchCode: "JB9999",
     },
   },
+  "FUNDS.TRANSFER": {
+    command: "FUNDS.TRANSFER",
+    title: "Funds Transfer",
+    aliases: ["FT"],
+    controlAction: "SCREEN",
+    controlType: "FORM",
+    auditData: {
+      recStatus: "AU",
+      recCurrNumber: 1,
+      recInputter: "SYSTEM",
+      recInputTime: "2026-01-01 00:00:00",
+      recAuthorizer: "SYSTEM",
+      recAuthTime: "2026-01-01 00:05:00",
+      recBranchCode: "JB9999",
+    },
+  },
   USER: {
     command: "USER",
     title: "User Management",

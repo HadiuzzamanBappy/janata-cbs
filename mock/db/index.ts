@@ -2,6 +2,7 @@
 
 export * from "./AC_ACCOUNT";
 export * from "./CUST_CUSTOMER";
+export * from "./FT_FUNDS_TRANSFER";
 export * from "./SC_BRANCH";
 export * from "./SC_CONTROL";
 export * from "./SC_FORM_CONFIG";
@@ -18,6 +19,7 @@ export * from "./UM_USERS";
 
 import { AC_ACCOUNT_TABLE } from "./AC_ACCOUNT";
 import { CUST_CUSTOMER_TABLE } from "./CUST_CUSTOMER";
+import { FT_FUNDS_TRANSFER_TABLE } from "./FT_FUNDS_TRANSFER";
 import { SC_BRANCH_TABLE } from "./SC_BRANCH";
 import { SC_CONTROL_TABLE } from "./SC_CONTROL";
 import { SC_FORM_CONFIG_TABLE } from "./SC_FORM_CONFIG";
@@ -39,6 +41,7 @@ import { UM_USERS_TABLE } from "./UM_USERS";
 export const CBS_PHYSICAL_TABLES = {
   AC_ACCOUNT: AC_ACCOUNT_TABLE,
   CUST_CUSTOMER: CUST_CUSTOMER_TABLE,
+  FT_FUNDS_TRANSFER: FT_FUNDS_TRANSFER_TABLE,
   SC_BRANCH: SC_BRANCH_TABLE,
   SC_CONTROL: SC_CONTROL_TABLE,
   SC_FORM_CONFIG: SC_FORM_CONFIG_TABLE,

@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import type { FormConfigRecord } from "@/lib/data-schemas";
-import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 
 export interface UseFormActionsProps {
   modelCode: string;
@@ -98,7 +98,7 @@ export function useFormActions({
   React.useEffect(() => {
     if (!schema) return;
     const cleanId = searchRecordId?.trim();
-    if (cleanId && screenMode !== "IDLE") {
+    if (cleanId && screenMode !== CBS_IDLE_MODE) {
       const loadKey = `${modelCode}:${cleanId}:${screenMode}`;
       if (lastLoadedKeyRef.current === loadKey) return;
       lastLoadedKeyRef.current = loadKey;
@@ -175,11 +175,11 @@ export function useFormActions({
       return;
     }
     resetForm(initialValues);
-    setScreenMode("IDLE");
+    setScreenMode(CBS_IDLE_MODE);
   }, [onReturn, resetForm, initialValues, setScreenMode]);
 
   const handleValidate = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema) return undefined;
+    if (screenMode === CBS_IDLE_MODE || !schema) return undefined;
     return () => {
       const isValid = validate();
       if (!isValid) {

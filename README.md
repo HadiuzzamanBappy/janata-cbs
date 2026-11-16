@@ -102,8 +102,7 @@ src/
 │   ├── data-parsers/     # Wire payload and stream parsers
 │   ├── data-schemas/     # Zod schemas for request/response payloads
 │   ├── infra-grpc/       # Server-only gRPC client, credentials, and dispatcher
-│   ├── infra-redis/      # Redis connection pool and caching circuit-breaker
-│   └── infra-services/   # Dual-mode service layers & transparent Redis caching
+│   └── infra-redis/      # Redis connection pool and caching circuit-breaker
 │
 ├── mock/                 # Core Banking DB Tables & Simulated Core (Outside src/)
 │   ├── core/             # Offline in-memory CBS engine simulator (@mock/core)
@@ -156,7 +155,9 @@ pnpm verify:schemas     # Tests Zod domain schemas and validation contracts
 pnpm verify:config      # Tests environment matrix and runtime configuration
 pnpm verify:logger      # Tests banking-grade logger and PII redaction engine
 pnpm verify:utils       # Tests currency formatting (BDT), account masks, and value dates
-pnpm verify:services    # Tests infrastructure services and gRPC protocol mapping
+pnpm verify:grpc        # Tests gRPC gateway routing, financial txn split, and status mapping
+pnpm verify:redis       # Tests Redis key namespacing, circuit breaker, and spec caching
+pnpm verify:layers      # Tests layer boundaries, barrel imports, and client/server isolation
 pnpm verify:mock        # Tests in-memory mock engine & simulated database fixtures
 ```
 

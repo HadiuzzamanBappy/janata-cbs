@@ -173,10 +173,10 @@ export function TabStripItem(props: TabStripItemProps) {
       className={cn(
         "group relative flex items-center text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 select-none cursor-pointer h-8 px-0",
         isActive
-          ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-sky-500 after:rounded-t-sm -mb-px"
+          ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-t-sm -mb-px"
           : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t-sm border border-transparent",
-        isSelected && !isActive && "ring-1 ring-sky-500/50 text-foreground",
-        isOverThisTab && "ring-2 ring-sky-500 border-sky-500 bg-sky-500/20 scale-102",
+        isSelected && !isActive && "ring-1 ring-primary/50 text-foreground",
+        isOverThisTab && "ring-2 ring-primary border-primary bg-primary/20 scale-102",
       )}
     >
       {/* Primary Tab Select Button */}
@@ -187,7 +187,7 @@ export function TabStripItem(props: TabStripItemProps) {
             className={cn(
               "h-4 min-w-4 px-1 rounded-xs text-[10px] font-mono flex items-center justify-center transition-opacity",
               isActive
-                ? "bg-sky-500/15 text-sky-500 border-transparent font-semibold"
+                ? "bg-primary/15 text-primary border-transparent font-semibold"
                 : "opacity-70 border-transparent",
               !disabled && "group-hover:opacity-0",
             )}

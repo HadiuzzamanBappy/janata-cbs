@@ -1,4 +1,4 @@
-export * from "./action-bar-hook";
+export * from "./action-bar";
 export * from "./more-actions";
 export * from "./persistence";
 export * from "./types";

@@ -48,28 +48,174 @@
         "noExplicitAny": "error",
         "noConsole": "off",
         "noDocumentCookie": "off"
-      },
-      "style": {
-        "noRestrictedImports": {
-          "level": "error",
-          "options": {
-            "paths": {
-              "@/features/auth/components": "Import from '@/features/auth' public barrel instead.",
-              "@/components/cbs-command/components": "Import from '@/components/cbs-command' public barrel instead.",
-              "@/components/cbs-form-engine/components": "Import from '@/components/cbs-form-engine' public barrel instead.",
-              "@/components/cbs-inquiry-engine/components": "Import from '@/components/cbs-inquiry-engine' public barrel instead.",
-              "@/components/cbs-menu/components": "Import from '@/components/cbs-menu' public barrel instead.",
-              "@/features/docs/components": "Import from '@/features/docs' public barrel instead.",
-              "@/features/operations/components": "Import from '@/features/operations' public barrel instead.",
-              "@/components/cbs-settings/components": "Import from '@/components/cbs-settings' public barrel instead.",
-              "@/features/system/components": "Import from '@/features/system' public barrel instead.",
-              "@/features/workbench/components": "Import from '@/features/workbench' public barrel instead."
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/types/**", "src/lib/data-schemas/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/**",
+                      "!@/types",
+                      "!@/types/**",
+                      "!@/lib/data-schemas",
+                      "!@/lib/data-schemas/**"
+                    ],
+                    "message": "L0 contracts (types, data-schemas) may only import other L0 modules. See CLAUDE.md §2 / pnpm verify:layers."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "src/lib/core-config/**",
+        "src/lib/core-logger/**",
+        "src/lib/data-parsers/**",
+        "src/lib/infra-*/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/lib/cbs-*",
+                      "@/lib/cbs-*/**",
+                      "@/lib/core-utils",
+                      "@/lib/core-utils/**",
+                      "@/store",
+                      "@/store/**",
+                      "@/hooks",
+                      "@/hooks/**",
+                      "@/components/**",
+                      "@/features/**",
+                      "@/app/**"
+                    ],
+                    "message": "L1 core/infra may only import L0–L1. Notify upward via the adapter bus. See CLAUDE.md §2."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/lib/cbs-*/**", "src/lib/core-utils/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/store",
+                      "@/store/**",
+                      "@/hooks",
+                      "@/hooks/**",
+                      "@/components/**",
+                      "@/features/**",
+                      "@/app/**"
+                    ],
+                    "message": "src/lib must never import store/hooks/components/features/app. Use notifyUser() / registerCommandAdapter (adapter bus). See CLAUDE.md §2."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/store/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/hooks",
+                      "@/hooks/**",
+                      "@/components/**",
+                      "@/features/**",
+                      "@/app/**"
+                    ],
+                    "message": "L3 store may only import L0–L3. See CLAUDE.md §2."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/hooks/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components/**", "@/features/**", "@/app/**"],
+                    "message": "L3.5 hooks may only import L0–L3.5. See CLAUDE.md §2."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/features/**",
+                      "@/app/**",
+                      "!@/app/**/*.png",
+                      "!@/app/**/*.svg",
+                      "!@/app/**/*.ico"
+                    ],
+                    "message": "L4 components may not import features or app code (static assets excepted). See CLAUDE.md §2."
+                  }
+                ]
+              }
             }
           }
         }
       }
     }
-  },
+  ],
   "css": {
     "parser": {
       "cssModules": true,

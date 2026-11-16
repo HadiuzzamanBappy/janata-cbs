@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { CBS_SCREEN_MODES, CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CBS_SCREEN_MODES, CbsRecordFunction, type CbsScreenMode } from "@/types";
 
 /**
  * Resolves initial record ID from explicit prop, workbench tab state, or window location search.
@@ -30,7 +30,7 @@ const VALID_SCREEN_MODES = new Set<string>(CBS_SCREEN_MODES);
 export function resolveInitialScreenMode(
   tabMode?: string,
   resolvedId?: string,
-  fallbackMode: CbsScreenMode = "IDLE",
+  fallbackMode: CbsScreenMode = CBS_IDLE_MODE,
 ): CbsScreenMode {
   if (typeof window !== "undefined") {
     const p = new URLSearchParams(window.location.search);

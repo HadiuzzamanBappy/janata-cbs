@@ -13,7 +13,7 @@ import {
   resolveInitialScreenMode,
 } from "@/lib/cbs-screen";
 import { useWorkbenchStore } from "@/store";
-import type { CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, type CbsScreenMode } from "@/types";
 
 export interface UseCbsPersistenceReturn<TRecord> {
   // Identity & Mode
@@ -46,7 +46,7 @@ export function useCbsPersistence<TRecord extends Record<string, unknown>>({
   tabId,
   initialData,
   schema,
-  fallbackMode = "IDLE",
+  fallbackMode = CBS_IDLE_MODE,
   ignoredKeys = [],
 }: CbsPersistenceOptions<TRecord>): UseCbsPersistenceReturn<TRecord> {
   const { tabs, updateTabState } = useWorkbenchStore();
@@ -145,14 +145,14 @@ export function useCbsPersistence<TRecord extends Record<string, unknown>>({
   }, [formData, tabId, updateTabState]);
 
   const reset = React.useCallback(() => {
-    setModeState("IDLE");
+    setModeState(CBS_IDLE_MODE);
     setRecordIdState("");
     setFormData(initialData);
     baselineRef.current = structuredClone(initialData);
     if (tabId) {
       updateTabState(tabId, {
         searchRecordId: "",
-        screenMode: "IDLE",
+        screenMode: CBS_IDLE_MODE,
         formData: initialData,
         baseline: initialData,
         isDirty: false,

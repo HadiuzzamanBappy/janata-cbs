@@ -1,3 +1,4 @@
+import { CBS_IDLE_MODE } from "@/types";
 import { resolveCommandAlias } from "../registry/alias";
 import {
   CBS_SETTINGS_EVENT,
@@ -45,7 +46,7 @@ export class SettingsCommandHandler implements CommandHandler {
         application: "SETTINGS",
         title: "Settings",
         authLevel: 1,
-        screenMode: "IDLE",
+        screenMode: CBS_IDLE_MODE,
       };
     }
 
@@ -57,7 +58,7 @@ export class SettingsCommandHandler implements CommandHandler {
       title: `${settingsTab.toUpperCase()} Settings`,
       target: settingsTab,
       authLevel: 1,
-      screenMode: "IDLE",
+      screenMode: CBS_IDLE_MODE,
     };
   }
 

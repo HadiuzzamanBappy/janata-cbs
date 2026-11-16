@@ -26,7 +26,7 @@ $$\text{Level 6 (App)} \longrightarrow \text{Level 5 (Features)} \longrightarrow
 
 - **Internal Tabs (`panel` mode)**: Managed by `WorkbenchStore` in-memory. Switching tabs is instantaneous and preserves form draft state.
 - **Detached Windows (`window` mode)**: When popped out via `window.open()`, the popup runs as an autonomous Next.js screen instance under `src/app/(workbench)/screen/[id]/page.tsx`.
-- **Cross-Window Synchronization**: Record mutations broadcast via `BroadcastChannel("cbs_workbench_bus")` to refresh open parent tabs without conflict.
+- **Cross-Window Synchronization**: Record mutations broadcast via `BroadcastChannel(clientConfig.storage.broadcast.workbenchBus)` to refresh open parent tabs without conflict.
 
 ## 5. High-Performance Form State (No Keystroke Thrashing)
 

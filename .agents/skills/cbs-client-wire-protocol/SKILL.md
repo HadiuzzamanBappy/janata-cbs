@@ -98,7 +98,8 @@ Whenever you change wire factories, proxy logic, or backend dispatchers, run:
 
 ```bash
 pnpm verify:client
-pnpm verify:services
+pnpm verify:grpc
+pnpm verify:parsers
 ```
 
 All wire factory tests must report `[PASS]` before finalizing changes.

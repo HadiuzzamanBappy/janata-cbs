@@ -77,7 +77,7 @@ export function JsonViewerToolbar({
                       )}
                       aria-label="View original database payload"
                     >
-                      <Database className="size-3.5 text-cyan-400" />
+                      <Database className="size-3.5 text-info" />
                     </button>
                   }
                 />
@@ -101,11 +101,11 @@ export function JsonViewerToolbar({
                     )}
                     aria-label="View differences"
                   >
-                    <GitCompare className="size-3.5 text-amber-400" />
+                    <GitCompare className="size-3.5 text-warning" />
                     {hasDiff && diffSummary && (
                       <span className="inline-flex items-center gap-0.5 text-[10px] font-mono leading-none">
                         {diffSummary.additions > 0 && (
-                          <span className="text-emerald-500 font-semibold">
+                          <span className="text-success font-semibold">
                             +{diffSummary.additions}
                           </span>
                         )}

@@ -1,9 +1,12 @@
 import { parseCbsCommand, registerCommandHandler } from "./engine/grammar";
 import { validateSecurityPermissions } from "./engine/validator";
 import {
+  type CbsNotification,
+  type CbsNotificationType,
   type CommandAdapter,
   type CommandTabPayload,
   getCommandAdapter,
+  notifyUser,
   registerCommandAdapter,
 } from "./executor/adapter";
 import { executeCbsCommand } from "./executor/terminal";
@@ -39,6 +42,8 @@ export const cbsCommand = {
 };
 
 export type {
+  CbsNotification,
+  CbsNotificationType,
   CommandAdapter,
   CommandHandler,
   CommandInquiryState,
@@ -54,6 +59,7 @@ export {
   extractMenuCommands,
   getCommandAdapter,
   getMasterCommands,
+  notifyUser,
   registerCommandAdapter,
   registerCommandHandler,
   registerDynamicAliases,

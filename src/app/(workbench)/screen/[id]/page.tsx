@@ -16,7 +16,7 @@ import {
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { CbsAppStoreProvider, useSessionStore, useWorkbenchStore } from "@/store";
-import type { CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, type CbsScreenMode } from "@/types";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const searchParams = useSearchParams();
@@ -112,7 +112,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
 
     const existingTab = tabs.find((t) => t.id === tabId);
     if (!existingTab) {
-      const mode = (searchParams.get("mode") as CbsScreenMode) || "IDLE";
+      const mode = (searchParams.get("mode") as CbsScreenMode) || CBS_IDLE_MODE;
       const recordId = searchParams.get("recordId") || "";
       const title = searchParams.get("title") || screenId;
       const component = searchParams.get("component") || "DYNAMIC_FORM";
@@ -200,7 +200,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-background text-foreground antialiased select-none">
       {/* Session Expired Satellite Alert Bar */}
       {isSessionExpired && (
-        <div className="bg-amber-500/15 border-b border-amber-500/30 px-3 py-1.5 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 z-50 shrink-0">
+        <div className="bg-warning/15 border-b border-warning/30 px-3 py-1.5 flex items-center justify-between text-xs text-foreground z-50 shrink-0">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className="font-semibold shrink-0">Session Expired:</span>
             <span className="truncate">
@@ -210,7 +210,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="px-2.5 py-0.5 bg-amber-500/20 hover:bg-amber-500/30 rounded border border-amber-500/40 text-xs font-medium cursor-pointer shrink-0 ml-2"
+            className="px-2.5 py-0.5 bg-warning/20 hover:bg-warning/30 rounded border border-warning/40 text-xs font-medium cursor-pointer shrink-0 ml-2"
           >
             Refresh
           </button>
@@ -221,7 +221,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
       {isSessionExpired &&
       !tabs.some((t) => t.id === tabId && t.formData && Object.keys(t.formData).length > 0) ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-muted/10">
-          <div className="size-12 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-3">
+          <div className="size-12 rounded-full bg-warning/10 text-warning flex items-center justify-center mb-3">
             <Lock className="size-6" />
           </div>
           <h3 className="text-sm font-semibold text-foreground mb-1">Session Inactive</h3>

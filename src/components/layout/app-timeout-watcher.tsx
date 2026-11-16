@@ -31,7 +31,7 @@ export function AppTimeoutWatcher() {
     <Dialog open={isWarningOpen && !isOverridden} onOpenChange={(open) => !open && keepAlive()}>
       <DialogContent className="sm:max-w-md" showCloseButton={false}>
         <DialogHeader className="gap-2">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-md bg-warning/10 text-warning border border-warning/20">
             <AlertTriangle className="h-5 w-5" />
           </div>
           <DialogTitle className="text-center text-lg font-semibold">
@@ -43,7 +43,7 @@ export function AppTimeoutWatcher() {
         </DialogHeader>
 
         <div className="my-2 flex flex-col items-center justify-center">
-          <span className="font-mono text-3xl font-bold tracking-wider text-amber-600 dark:text-amber-400">
+          <span className="font-mono text-3xl font-bold tracking-wider text-warning">
             00:{remainingSeconds.toString().padStart(2, "0")}
           </span>
           <span className="text-xs text-muted-foreground mt-1">seconds remaining</span>

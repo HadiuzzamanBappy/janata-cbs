@@ -1,9 +1,9 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { ThemeToggle } from "@/components/layout/sidebar";
 import { cn } from "@/lib/core-utils";
 import { useThemeAccent } from "@/store";
+import { ThemeToggle } from "./theme-toggle";
 
 export function AppearanceTab() {
   const { accent, setAccent, presets } = useThemeAccent();

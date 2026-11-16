@@ -1,4 +1,4 @@
-import { ThemeToggle } from "@/components/layout";
+import { ThemeToggle } from "@/components/cbs-settings";
 import { SessionStoreProvider } from "@/store";
 import { AuthSplitCard } from "./_components/auth-split-card";
 

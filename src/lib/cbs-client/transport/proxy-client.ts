@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { toast } from "@/components/ui/toast";
+import { notifyUser } from "@/lib/cbs-command";
 import { clientConfig } from "@/lib/core-config";
 import type { ApiResponse } from "@/lib/data-schemas";
 import { type CbsWirePayload, cbsWirePayloadSchema } from "@/lib/data-schemas";
@@ -16,7 +16,7 @@ export interface SendCbsOptions<T = unknown> {
 
 function notifyError(title: string, description: string, silent?: boolean): void {
   if (!silent) {
-    toast.add({ title, description, type: "error" });
+    notifyUser({ title, description, type: "error" });
   }
 }
 

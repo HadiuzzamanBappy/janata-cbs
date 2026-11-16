@@ -85,7 +85,7 @@ When adding a custom screen component:
   - Tabs are managed in-memory via `WorkbenchStore`.
 - **Detached Windows (`window` mode):**
   - Rendered via `window.open()` as autonomous instances under `/screen/[id]`.
-  - Communicates cross-window updates using `BroadcastChannel("cbs_workbench_bus")`.
+  - Communicates cross-window updates using `BroadcastChannel(clientConfig.storage.broadcast.workbenchBus)`.
 
 ---
 

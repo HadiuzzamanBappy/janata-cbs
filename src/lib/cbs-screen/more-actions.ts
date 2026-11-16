@@ -2,7 +2,7 @@
 // CBS More Actions Resolution & Standard Preset Actions
 // ============================================================================
 
-import { toast } from "@/components/ui/toast";
+import { notifyUser } from "@/lib/cbs-command";
 import { CbsRecordFunction } from "@/types";
 import type { MoreActionItem } from "./types";
 
@@ -17,7 +17,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
       label: "Copy",
       command: "COPY",
       onClick: () =>
-        toast.add({
+        notifyUser({
           title: "Copy",
           description: `Copied record data for ${cleanCode}`,
           type: "info",
@@ -27,7 +27,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
       label: "Paste",
       command: "PASTE",
       onClick: () =>
-        toast.add({
+        notifyUser({
           title: "Paste",
           description: `Pasted record data into ${cleanCode}`,
           type: "info",
@@ -38,7 +38,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
       label: "Search from live",
       command: "SFL",
       onClick: () =>
-        toast.add({
+        notifyUser({
           title: "Search from live",
           description: `Searching live file for ${cleanCode}`,
           type: "info",
@@ -49,7 +49,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
       label: "Search from unauth",
       command: "SFU",
       onClick: () =>
-        toast.add({
+        notifyUser({
           title: "Search from unauth",
           description: `Searching unauthorized file for ${cleanCode}`,
           type: "info",
@@ -60,7 +60,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
       label: "Search from history",
       command: "SFH",
       onClick: () =>
-        toast.add({
+        notifyUser({
           title: "Search from history",
           description: `Searching history file for ${cleanCode}`,
           type: "info",
@@ -71,7 +71,7 @@ export function getDefaultMoreActions(code: string): MoreActionItem[] {
       label: "Show history record",
       command: "SHR",
       onClick: () =>
-        toast.add({
+        notifyUser({
           title: "Show history record",
           description: `Displaying history record for ${cleanCode}`,
           type: "info",

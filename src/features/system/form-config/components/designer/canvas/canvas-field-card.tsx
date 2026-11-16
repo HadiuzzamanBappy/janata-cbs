@@ -127,7 +127,7 @@ export function CanvasFieldCard({
             {field.STRUCTURE === "M" && (
               <Badge
                 variant="outline"
-                className="text-[8px] h-3.5 px-1 text-sky-500 border-sky-500/40 bg-sky-500/5 font-mono shrink-0"
+                className="text-[8px] h-3.5 px-1 text-info border-info/40 bg-info/5 font-mono shrink-0"
               >
                 MULTI
               </Badge>

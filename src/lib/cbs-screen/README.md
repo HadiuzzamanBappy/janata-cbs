@@ -10,7 +10,7 @@ It translates raw banking entitlements (`cbs-access`) into **reactive action bar
 
 ```text
 src/lib/cbs-screen/
-├── action-bar-hook.ts  # Action bar capability engine & dynamic disable reason resolution
+├── action-bar.ts       # Action bar capability resolver & dynamic disable reason resolution
 ├── more-actions.ts     # Standard preset and extensible More Actions resolvers
 ├── persistence.ts      # Pure initial record/mode/form data resolution with Zod validation
 ├── types.ts            # Layout models, tabs, audit raw contracts, and scaffold props
@@ -23,9 +23,9 @@ src/lib/cbs-screen/
 
 ## 🔑 Core Modules & Contracts
 
-### 1. Action Bar Capabilities (`action-bar-hook.ts` & `more-actions.ts`)
+### 1. Action Bar Capabilities (`action-bar.ts` & `more-actions.ts`)
 
-- **`useCbsActionBar`**: Headless state engine that computes `enabled` and `reason` for all 11 action bar buttons (`Commit`, `Validate`, `Hold`, `Delete`, `Authorize`, `Reverse`, `Process`, `Amend`, `View`, `PerformAction`, `ReturnToSearch`).
+- **`resolveCbsActionBar`**: Pure resolver (callers pass `access` from `useCbsAccess()`) that computes `enabled` and `reason` for all 11 action bar buttons (`Commit`, `Validate`, `Hold`, `Delete`, `Authorize`, `Reverse`, `Process`, `Amend`, `View`, `PerformAction`, `ReturnToSearch`).
 - Automatically factors in `submitting` state, active screen mode (`IDLE`, `I`, `S`, `A`), and user entitlements via `access.getDisableReason(func)`.
 - Eliminates hardcoded strings and legacy rights by binding strictly to `CbsRecordFunction` (`@/types`).
 
@@ -66,7 +66,7 @@ src/lib/cbs-screen/
          ┌──────────────────┴──────────────────┐
          ▼                                     ▼
 ┌─────────────────────────────┐   ┌─────────────────────────────┐
-│     useCbsPersistence       │   │       useCbsActionBar       │
+│     useCbsPersistence       │   │     resolveCbsActionBar     │
 │  • Pure baseline tracking   │   │  • RIDASHL capability map   │
 │  • Debounced tab store sync │   │  • Mode: IDLE, I, S, A      │
 │  • rebaseline() on save     │   │  • Four-Eyes status check   │

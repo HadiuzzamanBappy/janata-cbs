@@ -1,6 +1,7 @@
 "use client";
 
 import { LogOut, User } from "lucide-react";
+import { ThemeToggle } from "@/components/cbs-settings";
 import { Button } from "@/components/ui/button";
 import { SidebarFooter } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,7 +9,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { toTitleCase } from "@/lib/core-utils";
 import { useSessionStore } from "@/store";
 import { BranchSwitcher } from "../widgets/branch-switcher";
-import { ThemeToggle } from "../widgets/theme-toggle";
 
 interface SidebarFooterNavProps {
   onOpenSettingsTab: (tabId: string) => void;

@@ -86,7 +86,7 @@ export function McPropertyInspector({
           {!isCommitted && (
             <Badge
               variant="outline"
-              className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-amber-500 border-amber-500/30 bg-amber-500/10"
+              className="font-mono text-[10px] h-5 rounded uppercase tracking-wider text-warning border-warning/30 bg-warning/10"
             >
               New
             </Badge>

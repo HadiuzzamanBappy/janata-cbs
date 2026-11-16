@@ -137,7 +137,7 @@ export function InquiryModelPopover({
                   </div>
 
                   {isConfigured ? (
-                    <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                    <CheckCircle2 className="size-3.5 text-success shrink-0" />
                   ) : (
                     <Plus className="size-3 text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0" />
                   )}

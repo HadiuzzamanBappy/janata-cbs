@@ -38,7 +38,7 @@ export function JsonDiffView({ diffSummary, hasDiff }: JsonDiffViewProps) {
               key={item.id}
               className={cn(
                 "flex items-stretch leading-5 group",
-                isAdd && "bg-emerald-500/10 hover:bg-emerald-500/15 text-emerald-300",
+                isAdd && "bg-success/10 hover:bg-success/15 text-success",
                 isDel && "bg-destructive/10 hover:bg-destructive/15 text-destructive",
                 !isAdd && !isDel && "hover:bg-muted/30 text-foreground",
               )}
@@ -57,7 +57,7 @@ export function JsonDiffView({ diffSummary, hasDiff }: JsonDiffViewProps) {
               <div
                 className={cn(
                   "w-6 select-none text-center font-mono font-bold text-xs shrink-0",
-                  isAdd && "text-emerald-400",
+                  isAdd && "text-success",
                   isDel && "text-destructive",
                   !isAdd && !isDel && "text-transparent",
                 )}

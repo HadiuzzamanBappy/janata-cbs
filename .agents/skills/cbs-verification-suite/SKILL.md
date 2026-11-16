@@ -20,17 +20,27 @@ To run the complete verification suite across all domain modules:
 pnpm verify:all
 ```
 
-This sequentially executes all 9 verification sub-suites:
+This sequentially executes all 16 offline verification sub-suites (see `scripts/verify/verify-all.ts`):
 
 1. `CBS Access Control & RIDASHL Capabilities` (`@/lib/cbs-access`)
 2. `Form Delta Mutation Engine` (`@/lib/cbs-record`)
 3. `CBS Form Spec & Compiler Engine` (`@/lib/cbs-form-spec`)
 4. `CBS Command Gateway & Alias Parser` (`@/lib/cbs-command`)
 5. `CBS Client Wire Protocol & Payload Factories` (`@/lib/cbs-client`)
-6. `Environment Matrix, Schemas & PII Redaction` (`@/lib/data-schemas` & `@/lib/core-logger`)
-7. `Core Banking Utilities & Localization` (`@/lib/core-utils`)
-8. `Infra Services, Gateway & gRPC Protocol` (`@/lib/infra-services`)
-9. `In-Memory Mock Core Engine & Database` (`@mock/db` & `@mock/core`)
+6. `CBS Wire Data Parsers & Serializers` (`@/lib/data-parsers`)
+7. `CBS Domain Schemas` (`@/lib/data-schemas`)
+8. `CBS Core Configuration & Environments` (`@/lib/core-config`)
+9. `CBS Core Logger & PII Redaction` (`@/lib/core-logger`)
+10. `Core Banking Utilities & Localization` (`@/lib/core-utils`)
+11. `Infra gRPC Protocol & Gateway` (`@/lib/infra-grpc`)
+12. `Infra Redis & Spec Caching Engine` (`@/lib/infra-redis`)
+13. `In-Memory Mock Core Engine & Database` (`@mock/db` & `@mock/core`)
+14. `CBS Screen Architecture & Capabilities` (`@/lib/cbs-screen`)
+15. `CBS Inquiry Spec & Compiler Engine` (`@/lib/cbs-inquiry-spec`)
+16. `Architectural Layer & Barrel Boundaries` (`src/**`, strict: any violation fails)
+
+`pnpm verify:api` (live backend probe) is intentionally **excluded**. It requires a reachable gRPC core
+(`DATA_SOURCE=grpc`) and a running dev server for the `/api/proxy` probe.
 
 ---
 
@@ -49,8 +59,14 @@ When working on a specific feature, run the targeted test to quickly verify your
 | `pnpm verify:schemas`   | Domain Schemas    | Zod domain validation contracts and auth rules                  |
 | `pnpm verify:config`    | Core Config       | Environment matrix permutations, runtime configs, services      |
 | `pnpm verify:logger`    | Core Logger       | Account number masking, sensitive keys, deep PII redaction      |
-| `pnpm verify:services`  | Infra Services    | Mock responses, fallback dispatcher, GRL catalog items          |
+| `pnpm verify:parsers`   | Wire Parsers      | Protobuf decoding, auth/GFC/inquiry/menu payload sanitizers     |
+| `pnpm verify:grpc`      | Infra gRPC        | Static mode, service routing, financial txn split, status map   |
+| `pnpm verify:redis`     | Infra Redis       | Key namespacing, circuit breaker, spec cache & invalidation     |
 | `pnpm verify:mock`      | Mock Database     | In-memory core dispatch, login, and process paths               |
+| `pnpm verify:screen`    | Screen Arch       | Initial record/mode/form resolution, more-actions, popup IDs    |
+| `pnpm verify:inquiry`   | Inquiry Spec      | Criteria serialization, column geometry, command interpolation  |
+| `pnpm verify:layers`    | Architecture      | Layer inversions, barrel bypasses, client/server boundary       |
+| `pnpm verify:api`       | Live Backend      | Live gRPC core + `/api/proxy` probe (not in `verify:all`)       |
 
 ---
 

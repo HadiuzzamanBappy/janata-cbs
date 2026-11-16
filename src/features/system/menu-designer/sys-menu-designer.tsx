@@ -5,7 +5,7 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
-import { CbsControlTable, CbsRecordFunction } from "@/types";
+import { CBS_IDLE_MODE, CbsControlTable, CbsRecordFunction } from "@/types";
 import { MdCanvasTab } from "./components/md-canvas-tab";
 import { MdGeneralTab } from "./components/md-general-tab";
 import { MdJsonTab } from "./components/md-json-tab";
@@ -120,7 +120,9 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
       onRecordSearch={(id) => fetchTreeRecord(id.toUpperCase(), CbsRecordFunction.INPUT)}
       onCreateNew={(id) => handleCreateNew(id?.toUpperCase())}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" && recordId ? () => fetchTreeRecord(recordId, mode) : undefined}
+      onReset={
+        mode !== CBS_IDLE_MODE && recordId ? () => fetchTreeRecord(recordId, mode) : undefined
+      }
       onAmend={() => recordId && fetchTreeRecord(recordId, CbsRecordFunction.INPUT)}
       onView={() => recordId && fetchTreeRecord(recordId, CbsRecordFunction.SEE)}
       onValidate={handleValidate}

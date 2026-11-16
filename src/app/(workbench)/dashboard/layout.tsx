@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type * as React from "react";
-import { WorkbenchShell } from "@/components/layout/workbench-shell";
+import { WorkbenchShell } from "@/components/layout";
 import { clientConfig } from "@/lib/core-config";
 import { getSession } from "@/lib/infra-redis";
 

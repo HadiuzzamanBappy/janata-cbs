@@ -2,7 +2,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { clientConfig } from "@/lib/core-config";
 import { generateClientToken } from "@/lib/core-utils";
-import type { CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, type CbsScreenMode } from "@/types";
 
 export interface WorkbenchTab {
   id: string; // Unique instance ID for every tab opened
@@ -148,7 +148,7 @@ export const createWorkbenchStore = () => {
               ...source,
               id: uniqueInstanceId,
               instanceNumber: sameScreenCount + 1,
-              screenMode: "IDLE", // fresh start — return to clean IDLE mode
+              screenMode: CBS_IDLE_MODE, // fresh start — return to clean IDLE mode
               searchRecordId: undefined, // fresh start — clear loaded record ID
               formData: undefined, // fresh start — clear draft input values
               baseline: undefined, // fresh start — clear baseline snapshot

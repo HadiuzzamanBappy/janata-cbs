@@ -4,7 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { parseInquiryConfig } from "@/lib/data-parsers";
-import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type InquiryValidationErrorItem, validateInquiryConfig } from "./ic-validation";
 import { useIcActionOps } from "./use-ic-action-ops";
 import { useIcActions } from "./use-ic-actions";
@@ -70,7 +70,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
       if (!cleanId) return;
       setLoading(true);
       try {
-        const recordFunction = targetMode === "IDLE" ? CbsRecordFunction.SEE : targetMode;
+        const recordFunction = targetMode === CBS_IDLE_MODE ? CbsRecordFunction.SEE : targetMode;
         const res = await cbs.send<unknown>(cbs.inquiryConfig.get(cleanId, { recordFunction }), {
           silent: true,
         });

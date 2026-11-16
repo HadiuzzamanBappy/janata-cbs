@@ -1,4 +1,4 @@
-import { CbsRecordFunction, CbsRecordStatus } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import type { CbsAccessContext, CbsAccessResult } from "./types";
 
 /**
@@ -6,7 +6,7 @@ import type { CbsAccessContext, CbsAccessResult } from "./types";
  * Evaluates user profile rights against record lifecycle state and Four-Eyes Maker-Checker compliance.
  */
 export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResult {
-  const { user, recordStatus, recordInputter, mode = "IDLE" } = context;
+  const { user, recordStatus, recordInputter, mode = CBS_IDLE_MODE } = context;
 
   const userId = context.userId ?? user?.userId;
   const grantedRights = (context.grantedRights ??
@@ -16,7 +16,7 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
   const hasRight = (code: CbsRecordFunction) => grantedRights.includes(code);
 
   const cleanStatus = (recordStatus || "").toUpperCase().trim();
-  const isIdle = mode === "IDLE";
+  const isIdle = mode === CBS_IDLE_MODE;
 
   // Four-Eyes Rule: If the record has an inputter, the Maker cannot authorize their own transaction
   const isFourEyesViolation = Boolean(

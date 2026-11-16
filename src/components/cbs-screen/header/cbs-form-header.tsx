@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import type { CbsAccessResult } from "@/lib/cbs-access";
 import type { CbsScreenValidationError, MoreActionItem, RecordLookupItem } from "@/lib/cbs-screen";
 import { CBS_SCREEN_EVENT, resolveMoreActions } from "@/lib/cbs-screen";
-import type { CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { useRecordLookup } from "../hooks/use-record-lookup";
 import { ActionBtn } from "./action-btn";
 import { ActionMoreMenu } from "./action-more-menu";
@@ -69,7 +69,7 @@ export function CbsFormHeader({
   onProcessAction,
   onReturnToSearch,
   onCreateNew,
-  mode = "IDLE",
+  mode = CBS_IDLE_MODE,
   recordStatus,
   recordInputter,
   submitting = false,
@@ -172,7 +172,7 @@ export function CbsFormHeader({
       >
         {/* ROW 1: Minimalist CBS Action Toolbar (Breaks naturally on small widths in exact order without scroll barriers) */}
         <div className="flex flex-wrap items-center gap-1.5 px-2 py-1 border-b border-border/50 bg-background/90 text-xs">
-          {mode === "IDLE" ? (
+          {mode === CBS_IDLE_MODE ? (
             <IdleActions
               searchVal={inputVal}
               command={commandCode}
@@ -213,7 +213,7 @@ export function CbsFormHeader({
           </div>
 
           {/* Validation Checklist Indicator & Drawer (visible only in active edit mode 'I') */}
-          {mode === "I" && validationErrors.length > 0 && (
+          {mode === CbsRecordFunction.INPUT && validationErrors.length > 0 && (
             <>
               <span className="h-4 w-px bg-border/60 mx-1 hidden sm:inline-block" />
               <CbsValidationChecklist
@@ -253,7 +253,7 @@ export function CbsFormHeader({
               commandCode?.includes(",A ") ||
               commandCode?.includes(",S ")) && (
               <span
-                className="font-mono text-sm font-extrabold text-amber-500 dark:text-amber-400 leading-none select-none ml-0.5"
+                className="font-mono text-sm font-extrabold text-warning leading-none select-none ml-0.5"
                 title="Zero-Auth Variant (Level 0)"
               >
                 ,
@@ -261,7 +261,7 @@ export function CbsFormHeader({
             )}
           </span>
 
-          {mode === "IDLE" ? (
+          {mode === CBS_IDLE_MODE ? (
             <RecordLookupBar
               inputVal={inputVal}
               onInputChange={handleInputChange}
@@ -283,7 +283,7 @@ export function CbsFormHeader({
               <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
                 <Lock className="size-3 text-muted-foreground" />
                 {inputVal.trim() ||
-                  (mode === "I" && !inputVal.trim()
+                  (mode === CbsRecordFunction.INPUT && !inputVal.trim()
                     ? "NEW"
                     : commandCode
                       ? `[${commandCode}]`

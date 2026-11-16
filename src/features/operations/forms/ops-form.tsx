@@ -6,7 +6,7 @@ import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { getDefaultMoreActions } from "@/lib/cbs-screen";
 import type { AuditData } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
-import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { FormSkeleton } from "./components/form-skeleton";
 import { useFormActions } from "./hooks/use-form-actions";
 import { useFormMutations } from "./hooks/use-form-mutations";
@@ -149,7 +149,7 @@ export function OpsForm({
       onDelete={mutations.handleDelete}
       onAuthorizeReverse={mutations.handleAuthorizeReverse}
       onReturnToSearch={actions.handleReturnToSearch}
-      onReset={screenMode !== "IDLE" ? () => resetForm(initialValues) : undefined}
+      onReset={screenMode !== CBS_IDLE_MODE ? () => resetForm(initialValues) : undefined}
       onSubmit={mutations.handleSubmit}
       onValidate={actions.handleValidate}
       submitting={mutations.submitting}

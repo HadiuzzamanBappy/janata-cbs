@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toast";
 import { cbsCommand } from "@/lib/cbs-command";
 import { CbsAppStoreProvider } from "@/store";
 import { AppAlert } from "./app-alert";
+import { AppNotifier } from "./app-notifier";
 import { AppSidebar } from "./app-sidebar";
 import { AppSingleTabWatcher } from "./app-single-tab-watcher";
 import { AppTabBar } from "./app-tabbar";
@@ -68,6 +69,7 @@ export function WorkbenchShell({
 
         {/* Global UI Overlays */}
         <Toaster />
+        <AppNotifier />
         <AppAlert />
         <AppSingleTabWatcher />
         <AppTimeoutWatcher />

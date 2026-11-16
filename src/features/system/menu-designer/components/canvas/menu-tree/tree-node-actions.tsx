@@ -80,7 +80,7 @@ export function TreeNodeActions({
               {isVisible ? (
                 <EyeOff className="size-3.5 text-muted-foreground" />
               ) : (
-                <Eye className="size-3.5 text-emerald-500" />
+                <Eye className="size-3.5 text-success" />
               )}
               <span>{isVisible ? "Hide Node" : "Show Node"}</span>
             </DropdownMenuItem>
@@ -110,7 +110,7 @@ export function TreeNodeActions({
             </DropdownMenuItem>
 
             {isFolderNode && isFolder && onUngroup && (
-              <DropdownMenuItem onClick={() => onUngroup(nodeId)} className="gap-2 text-amber-500">
+              <DropdownMenuItem onClick={() => onUngroup(nodeId)} className="gap-2 text-warning">
                 <FolderMinus className="size-3.5" />
                 <span>Ungroup</span>
               </DropdownMenuItem>
@@ -142,7 +142,7 @@ export function TreeNodeActions({
           className={cn(
             "h-6 w-6 transition-colors",
             isVisible
-              ? "text-emerald-500 hover:text-emerald-600"
+              ? "text-success hover:text-success/80"
               : "text-muted-foreground hover:text-foreground",
           )}
           title={isVisible ? "Visible (Click to hide)" : "Hidden (Click to show)"}
@@ -156,7 +156,7 @@ export function TreeNodeActions({
             variant="ghost"
             size="icon-xs"
             onClick={() => onUngroup(nodeId)}
-            className="h-6 w-6 text-muted-foreground hover:text-amber-500"
+            className="h-6 w-6 text-muted-foreground hover:text-warning"
             title="Ungroup folder (promote all children up)"
           >
             <FolderMinus className="size-3.5" />

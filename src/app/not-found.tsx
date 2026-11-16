@@ -1,6 +1,6 @@
 import { FileQuestion } from "lucide-react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/layout/sidebar/widgets/theme-toggle";
+import { ThemeToggle } from "@/components/cbs-settings";
 import { buttonVariants } from "@/components/ui/button";
 import { clientConfig } from "@/lib/core-config";
 

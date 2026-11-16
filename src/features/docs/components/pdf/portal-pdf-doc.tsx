@@ -1,9 +1,11 @@
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import type React from "react";
+import appIcon from "@/app/icon.png";
 import type { PortalDocsBundle } from "../../types";
 import { pdfStyles } from "./pdf-styles";
 
-const APP_LOGO_SRC = "/icon.png";
+/** Bundler-hashed URL of the Next metadata icon (`src/app/icon.png`); never hand-write its path. */
+const APP_LOGO_SRC = appIcon.src;
 
 /**
  * Parses inline formatting (**bold** and `code` badges) into native @react-pdf/renderer Text nodes.

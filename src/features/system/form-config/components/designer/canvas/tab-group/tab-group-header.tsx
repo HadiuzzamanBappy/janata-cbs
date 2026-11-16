@@ -110,7 +110,7 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
       onDrop={onHeaderDrop}
       className={cn(
         "bg-muted/40 border-b border-border/70 px-2 pt-0 pb-0 flex items-end justify-between gap-2 transition-all h-9",
-        isHoveringHeader && "bg-sky-500/15 ring-2 ring-inset ring-sky-500/70 border-sky-500",
+        isHoveringHeader && "bg-primary/15 ring-2 ring-inset ring-primary/70 border-primary",
       )}
     >
       <div className="flex items-end gap-1.5 min-w-0 flex-1 h-full">
@@ -127,12 +127,12 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
         )}
 
         <div className="flex items-center gap-1 shrink-0 mr-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          <Layers className="size-3 text-sky-500" />
+          <Layers className="size-3 text-info" />
           <span>Tab Group</span>
         </div>
 
         {isHoveringHeader && (
-          <span className="text-[10px] font-semibold text-sky-500 bg-sky-500/15 border border-sky-400/50 rounded-full px-2 py-0.5 shrink-0 select-none mb-1.5">
+          <span className="text-[10px] font-semibold text-info bg-info/15 border border-info/50 rounded-full px-2 py-0.5 shrink-0 select-none mb-1.5">
             + New tab here
           </span>
         )}
@@ -204,7 +204,7 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
             size="sm"
             variant="ghost"
             onClick={handleAddTab}
-            className="h-7 w-7 p-0 text-sky-600 dark:text-sky-400 hover:text-sky-500 hover:bg-sky-500/10 cursor-pointer shrink-0"
+            className="h-7 w-7 p-0 text-info hover:text-info/80 hover:bg-info/10 cursor-pointer shrink-0"
             title="Add a new tab"
             aria-label="Add a new tab to this tab group"
           >

@@ -1,4 +1,4 @@
-import { toast } from "@/components/ui/toast";
+import { type CbsNotification, notifyUser } from "@/lib/cbs-command";
 import type { ApiResponse } from "@/lib/data-schemas";
 
 export interface ResponseHandlerOptions {
@@ -6,12 +6,6 @@ export interface ResponseHandlerOptions {
   readonly successTitle?: string;
   readonly successMessage?: string;
   readonly errorMessage?: string;
-}
-
-interface ToastPayload {
-  title: string;
-  description: string;
-  type: "success" | "warning" | "error";
 }
 
 /**
@@ -30,7 +24,7 @@ export function handleCbsResponseSemantics<T>(
 
   if (isSuccess) {
     if (options?.successMessage && !options.silent) {
-      toast.add({
+      notifyUser({
         title: options.successTitle || (json.statusCode === 201 ? "Created" : "Success"),
         description: options.successMessage,
         type: "success",
@@ -45,7 +39,7 @@ export function handleCbsResponseSemantics<T>(
   const customOrMessage = options?.errorMessage || json.message;
   const statusCode = json.statusCode || httpStatus;
 
-  const errorSpecs: Record<number, ToastPayload> = {
+  const errorSpecs: Record<number, CbsNotification> = {
     401: {
       title: "Authentication Failed",
       description: json.message || "Session expired or invalid credentials. Please log in again.",
@@ -79,11 +73,11 @@ export function handleCbsResponseSemantics<T>(
     },
   };
 
-  const current = errorSpecs[statusCode] || {
+  const current: CbsNotification = errorSpecs[statusCode] || {
     title: "CBS Error",
     description: customOrMessage || detail || "Request failed",
     type: "error",
   };
 
-  toast.add(current);
+  notifyUser(current);
 }

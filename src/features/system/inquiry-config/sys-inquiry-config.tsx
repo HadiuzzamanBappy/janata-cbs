@@ -5,7 +5,7 @@ import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
-import { CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
+import { CBS_IDLE_MODE, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
 import { IcActionsTab } from "./components/ic-actions-tab";
 import { IcColumnsTab } from "./components/ic-columns-tab";
 import { IcFilterTab } from "./components/ic-filter-tab";
@@ -158,7 +158,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       }
       onCreateNew={(newId?: string) => newId && initDraft(newId.toUpperCase())}
       onReturnToSearch={resetToIdle}
-      onReset={mode !== "IDLE" && recordId ? () => loadRecord(recordId, mode) : undefined}
+      onReset={mode !== CBS_IDLE_MODE && recordId ? () => loadRecord(recordId, mode) : undefined}
       onAmend={() => recordId && loadRecord(recordId, CbsRecordFunction.INPUT)}
       onView={() => recordId && loadRecord(recordId, CbsRecordFunction.SEE)}
       onValidate={handleValidate}

@@ -7,7 +7,7 @@ import { cbs } from "@/lib/cbs-client";
 import { computeDelta } from "@/lib/cbs-record";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import type { FormConfigRecord } from "@/lib/data-schemas";
-import { CbsRecordStatus, type CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus, type CbsScreenMode } from "@/types";
 
 export interface UseFormMutationsProps {
   modelCode: string;
@@ -55,7 +55,7 @@ export function useFormMutations({
           broadcastRecordMutation(modelCode, targetId);
           if (options.resetOnSuccess) {
             resetForm(initialValues);
-            setScreenMode("IDLE");
+            setScreenMode(CBS_IDLE_MODE);
           }
           if (onSuccess) onSuccess(json);
         }
@@ -81,7 +81,7 @@ export function useFormMutations({
 
       const baseSnapshot = baseline || initialValues;
       const delta =
-        screenMode === "I" && Object.keys(baseSnapshot).length > 0
+        screenMode === CbsRecordFunction.INPUT && Object.keys(baseSnapshot).length > 0
           ? computeDelta(baseSnapshot, values).modifiedFields
           : values;
 
@@ -115,7 +115,7 @@ export function useFormMutations({
   );
 
   const handleHold = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
+    if (screenMode === CBS_IDLE_MODE || !schema || !modelCode) return undefined;
     return async () => {
       const targetId = (searchRecordId || (values.id as string) || "").trim();
       await executeTransaction(
@@ -131,7 +131,7 @@ export function useFormMutations({
   }, [screenMode, schema, modelCode, searchRecordId, values, executeTransaction, sendMutation]);
 
   const handleDelete = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
+    if (screenMode === CBS_IDLE_MODE || !schema || !modelCode) return undefined;
     return async () => {
       const targetId = (searchRecordId || (values.id as string) || "").trim();
       if (!targetId) {
@@ -153,7 +153,7 @@ export function useFormMutations({
   }, [screenMode, schema, modelCode, searchRecordId, values.id, executeTransaction, sendMutation]);
 
   const handleAuthorizeReverse = React.useMemo(() => {
-    if (screenMode === "IDLE" || !schema || !modelCode) return undefined;
+    if (screenMode === CBS_IDLE_MODE || !schema || !modelCode) return undefined;
     return async () => {
       const targetId = (searchRecordId || (values.id as string) || "").trim();
       if (!targetId) {

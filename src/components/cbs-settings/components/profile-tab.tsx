@@ -35,7 +35,7 @@ export function ProfileTab() {
                 <span>&bull;</span>
                 <span
                   className={
-                    user.userStatus === 1 ? "text-emerald-500 font-medium" : "text-muted-foreground"
+                    user.userStatus === 1 ? "text-success font-medium" : "text-muted-foreground"
                   }
                 >
                   {user.userStatus === 1 ? "Active" : "Inactive"}

@@ -55,7 +55,8 @@ pnpm ui:add <name>    # Add a base component primitive
 These are standalone `tsx` verification scripts (not Jest/Vitest). Run the suite matching the area you modified:
 
 ```bash
-pnpm verify:all       # Runs all 15 sub-suites sequentially
+pnpm verify:all       # Runs all 16 offline sub-suites sequentially (excludes verify:api)
+pnpm verify:layers    # Layer inversions, barrel bypasses, client/server boundary (strict)
 pnpm verify:access    # RIDASHL rights + Four-Eyes maker-checker
 pnpm verify:command   # Terminal command grammar, aliases, RBAC
 pnpm verify:client    # Wire request factories & payload contracts
@@ -71,7 +72,7 @@ pnpm verify:grpc      # Infra gRPC protocol & gateway
 pnpm verify:redis     # Infra Redis & specification caching engine
 pnpm verify:mock      # In-memory mock core engine & dispatch
 pnpm verify:screen    # CBS screen architecture & capabilities
-pnpm verify:api       # Live CBS core proxy & dispatch API
+pnpm verify:api       # Live CBS core proxy & dispatch API (needs DATA_SOURCE=grpc + running dev server)
 ```
 
 ### Cache & Tools

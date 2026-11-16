@@ -1,8 +1,10 @@
 "use client";
 
 import { Pencil, Search, Wrench } from "lucide-react";
+import { useCbsAccess } from "@/hooks";
 import type { CbsAccessResult } from "@/lib/cbs-access";
-import { useCbsActionBar } from "@/lib/cbs-screen";
+import { resolveCbsActionBar } from "@/lib/cbs-screen";
+import { CBS_IDLE_MODE } from "@/types";
 import { ActionBtn } from "./action-btn";
 
 export interface IdleActionsProps {
@@ -27,12 +29,13 @@ export function IdleActions({
   onView,
   onPerformAction,
 }: IdleActionsProps) {
-  const actions = useCbsActionBar({
-    mode: "IDLE",
+  const sessionAccess = useCbsAccess({ mode: CBS_IDLE_MODE });
+  const actions = resolveCbsActionBar({
+    mode: CBS_IDLE_MODE,
     searchVal,
     command,
     submitting,
-    access,
+    access: access ?? sessionAccess,
     onAmend,
     onView,
     onPerformAction,

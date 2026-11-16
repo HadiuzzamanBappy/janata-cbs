@@ -4,7 +4,7 @@ import * as React from "react";
 import { useCbsPersistence } from "@/components/cbs-screen";
 import { validateValues } from "@/lib/cbs-form-spec";
 import type { FormConfigRecord } from "@/lib/data-schemas";
-import type { CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, type CbsScreenMode } from "@/types";
 
 export interface UseFormStateOptions {
   schema: FormConfigRecord | null;
@@ -42,7 +42,7 @@ export function useFormState({
     initialId: initialRecordId,
     tabId,
     initialData: initialValues,
-    fallbackMode: initialScreenMode || "IDLE",
+    fallbackMode: initialScreenMode || CBS_IDLE_MODE,
     ignoredKeys: ["auditData"],
   });
 

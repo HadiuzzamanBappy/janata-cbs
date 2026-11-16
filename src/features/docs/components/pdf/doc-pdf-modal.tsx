@@ -113,7 +113,7 @@ export function DocPdfModal({
           </div>
         ) : isCompleted ? (
           <div className="py-4 text-center space-y-4">
-            <div className="mx-auto size-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+            <div className="mx-auto size-12 rounded-full bg-success/10 text-success flex items-center justify-center">
               <CheckCircle2 className="size-6" />
             </div>
             <div>
@@ -158,7 +158,7 @@ export function DocPdfModal({
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">1. Fetching documentation content</span>
                 {progressPercent >= 30 ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                 ) : (
                   <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
                 )}
@@ -166,7 +166,7 @@ export function DocPdfModal({
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">2. Building PDF cover & layout</span>
                 {progressPercent >= 65 ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                 ) : progressPercent >= 30 ? (
                   <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
                 ) : (
@@ -176,7 +176,7 @@ export function DocPdfModal({
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">3. Compiling native vector pages</span>
                 {progressPercent >= 100 ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                 ) : progressPercent >= 65 ? (
                   <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
                 ) : (

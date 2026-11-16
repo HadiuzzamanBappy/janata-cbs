@@ -6,6 +6,7 @@
   - `bg-primary`, `bg-card`, `bg-background`, `bg-muted`
   - `text-foreground`, `text-muted-foreground`, `text-primary`
   - `border-border`, `ring-ring`
+  - Status: `text-success`, `text-warning`, `text-info`, `text-destructive` (with `bg-*/10`, `border-*/30` tints). Selection/hover/drop-target states use `primary`.
 - **NEVER** hardcode static Tailwind color numbers (e.g. `bg-blue-600`, `text-zinc-900`, `text-gray-500`).
 
 ## 2. Dynamic Accent Switching

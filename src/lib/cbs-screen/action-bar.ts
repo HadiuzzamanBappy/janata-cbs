@@ -2,11 +2,8 @@
 // CBS Screen Action Bar Capability Decision Engine
 // ============================================================================
 
-"use client";
-
-import { useCbsAccess } from "@/hooks";
 import type { CbsAccessResult } from "@/lib/cbs-access";
-import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus, type CbsScreenMode } from "@/types";
 
 export interface ActionCapability {
   readonly enabled: boolean;
@@ -30,14 +27,14 @@ export interface CbsActionBarCapabilities {
   readonly returnToSearch: ActionCapability;
 }
 
-export interface UseCbsActionBarOptions {
+export interface CbsActionBarOptions {
   readonly mode: CbsScreenMode;
   readonly searchVal?: string;
   readonly recordStatus?: string;
-  readonly recordInputter?: string;
   readonly command?: string;
   readonly submitting?: boolean;
-  readonly access?: CbsAccessResult;
+  /** Resolved RIDASHL + Four-Eyes access (callers obtain it via `useCbsAccess()`). */
+  readonly access: CbsAccessResult;
   // Handlers passed from screen
   readonly onAmend?: () => void;
   readonly onView?: () => void;
@@ -52,16 +49,15 @@ export interface UseCbsActionBarOptions {
 }
 
 /**
- * Headless state & capability decision engine for CBS Action Toolbar.
+ * Pure, headless capability decision engine for the CBS Action Toolbar.
  * Implements deterministic enabled/disabled matrix and permission enforcement.
  */
-export function useCbsActionBar({
+export function resolveCbsActionBar({
   mode,
   searchVal = "",
   recordStatus,
-  recordInputter,
   submitting = false,
-  access: passedAccess,
+  access,
   onAmend,
   onView,
   onPerformAction,
@@ -72,13 +68,10 @@ export function useCbsActionBar({
   onAuthorizeReverse,
   onProcessAction,
   onReturnToSearch,
-}: UseCbsActionBarOptions): CbsActionBarCapabilities {
-  const fallbackAccess = useCbsAccess({ mode, recordStatus, recordInputter });
-  const access = passedAccess ?? fallbackAccess;
+}: CbsActionBarOptions): CbsActionBarCapabilities {
   const hasTargetId = Boolean(searchVal.trim());
-  const rawStatus = (recordStatus || "").toUpperCase().trim();
-  const cleanStatus = rawStatus;
-  const isIdle = mode === "IDLE";
+  const cleanStatus = (recordStatus || "").toUpperCase().trim();
+  const isIdle = mode === CBS_IDLE_MODE;
   const isSee = mode === CbsRecordFunction.SEE;
   const isAuth = mode === CbsRecordFunction.AUTHORIZE;
   const isReadOnly = isSee || isAuth;
@@ -145,7 +138,8 @@ export function useCbsActionBar({
         : undefined;
 
   // 8. Authorize (✓✓) - Only permitted in Authorize ('A') mode for unauthorized records (UA)
-  const isPendingAuth = !cleanStatus || cleanStatus === "UA" || cleanStatus === "NEW";
+  const isPendingAuth =
+    !cleanStatus || cleanStatus === CbsRecordStatus.UA || cleanStatus === CbsRecordStatus.NEW;
   const authorizeEnabled = Boolean(
     isAuth && onAuthorizeReverse && !submitting && access.canAuthorize && isPendingAuth,
   );
@@ -153,7 +147,7 @@ export function useCbsActionBar({
     ? "Disabled in View mode"
     : isCreate
       ? "Cannot authorize an uncommitted record"
-      : cleanStatus === "AU"
+      : cleanStatus === CbsRecordStatus.AU
         ? "Record is already authorized. Use Reversal (✕✓) instead."
         : !access.canAuthorize
           ? access.getDisableReason(CbsRecordFunction.AUTHORIZE) ||
@@ -161,7 +155,7 @@ export function useCbsActionBar({
           : undefined;
 
   // 9. Reverse (✕✓) - Only permitted in Authorize ('A') or Reverse ('R') mode for live authorized records (AU)
-  const isLiveAU = cleanStatus === "AU";
+  const isLiveAU = cleanStatus === CbsRecordStatus.AU;
   const isRevOrAuth = isAuth || mode === CbsRecordFunction.REVERSE;
   const reverseEnabled = Boolean(
     isRevOrAuth && onAuthorizeReverse && !submitting && access.canReverse && isLiveAU,
@@ -170,8 +164,8 @@ export function useCbsActionBar({
     ? "Disabled in View mode"
     : isCreate
       ? "Cannot reverse an uncommitted record"
-      : cleanStatus !== "AU"
-        ? `Cannot Reverse: Record status is '${cleanStatus || "NEW"}' (must be live 'AU').`
+      : cleanStatus !== CbsRecordStatus.AU
+        ? `Cannot Reverse: Record status is '${cleanStatus || CbsRecordStatus.NEW}' (must be live 'AU').`
         : !access.canReverse
           ? access.getDisableReason(CbsRecordFunction.REVERSE) ||
             "Requires Reverse ('R') permission"

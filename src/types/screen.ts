@@ -4,12 +4,16 @@
 
 import { CbsRecordFunction } from "./access";
 
+/** Screen mode before any record function is chosen (search / landing state). */
+export const CBS_IDLE_MODE = "IDLE" as const;
+export type CbsIdleMode = typeof CBS_IDLE_MODE;
+
 /**
  * Resulting UI screen display mode:
- * "IDLE" or standard RIDASHL code ("S" | "I" | "D" | "A" | "R" | "H" | "L")
+ * `CBS_IDLE_MODE` or standard RIDASHL code ("S" | "I" | "D" | "A" | "R" | "H" | "L")
  */
-export const CBS_SCREEN_MODES = ["IDLE", ...Object.values(CbsRecordFunction)] as const;
-export type CbsScreenMode = "IDLE" | CbsRecordFunction;
+export const CBS_SCREEN_MODES = [CBS_IDLE_MODE, ...Object.values(CbsRecordFunction)] as const;
+export type CbsScreenMode = CbsIdleMode | CbsRecordFunction;
 
 /**
  * Workspace rendering display targets:

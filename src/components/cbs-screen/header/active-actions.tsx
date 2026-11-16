@@ -1,13 +1,14 @@
 "use client";
 
 import { ArrowUp, Check, Pause, Play, X } from "lucide-react";
+import { useCbsAccess } from "@/hooks";
 import type { CbsAccessResult } from "@/lib/cbs-access";
-import { useCbsActionBar } from "@/lib/cbs-screen";
-import type { CbsScreenMode } from "@/types";
+import { resolveCbsActionBar } from "@/lib/cbs-screen";
+import type { CbsIdleMode, CbsScreenMode } from "@/types";
 import { ActionBtn } from "./action-btn";
 
 export interface ActiveActionsProps {
-  mode: Exclude<CbsScreenMode, "IDLE">;
+  mode: Exclude<CbsScreenMode, CbsIdleMode>;
   recordStatus?: string;
   recordInputter?: string;
   command?: string;
@@ -42,13 +43,13 @@ export function ActiveActions({
   onProcessAction,
   onReturnToSearch,
 }: ActiveActionsProps) {
-  const actions = useCbsActionBar({
+  const sessionAccess = useCbsAccess({ mode, recordStatus, recordInputter });
+  const actions = resolveCbsActionBar({
     mode,
     recordStatus,
-    recordInputter,
     command,
     submitting,
-    access,
+    access: access ?? sessionAccess,
     onSubmit,
     onValidate,
     onHold,

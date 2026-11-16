@@ -80,7 +80,7 @@ export function ChangePassword() {
         )}
 
         {passSuccess && (
-          <Alert className="mb-3 py-2 px-3 text-xs border-emerald-500/30 text-emerald-600 bg-emerald-500/10 dark:text-emerald-400">
+          <Alert className="mb-3 py-2 px-3 text-xs border-success/30 text-success bg-success/10">
             <AlertDescription className="text-xs">{passSuccess}</AlertDescription>
           </Alert>
         )}

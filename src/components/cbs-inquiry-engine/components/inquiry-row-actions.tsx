@@ -73,7 +73,7 @@ export function InquiryRowActions({
         ) : isEdit ? (
           <Pencil className="size-2.5" />
         ) : isAuth ? (
-          <ShieldCheck className="size-2.5 text-amber-500" />
+          <ShieldCheck className="size-2.5 text-warning" />
         ) : (
           <Play className="size-2.5" />
         );

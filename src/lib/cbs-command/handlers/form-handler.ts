@@ -1,4 +1,4 @@
-import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
+import { CBS_FUNCTION_CODES, CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { resolveCommandAlias, resolveCommandTitle } from "../registry/alias";
 import type { CommandHandler, ParsedCommand } from "../types";
 
@@ -50,7 +50,7 @@ export class FormCommandHandler implements CommandHandler {
         application: "",
         title: "",
         authLevel: 1,
-        screenMode: "IDLE",
+        screenMode: CBS_IDLE_MODE,
       };
     }
 
@@ -77,7 +77,7 @@ export class FormCommandHandler implements CommandHandler {
           application: resolvedApp,
           title: appTitle,
           authLevel,
-          screenMode: "IDLE",
+          screenMode: CBS_IDLE_MODE,
         };
       } else {
         // Standard command without function code: arguments represent the record ID
@@ -88,7 +88,9 @@ export class FormCommandHandler implements CommandHandler {
     // Screen mode resolution:
     // 1. With recordId: use explicit function code, or default to "S" (standard view)
     // 2. Without recordId (bare model, zero-auth comma, or function code only): strictly loads model in IDLE state (record lookup / search prompt)
-    const screenMode: CbsRecordFunction | "IDLE" = recordId ? functionCode || "S" : "IDLE";
+    const screenMode: CbsScreenMode = recordId
+      ? functionCode || CbsRecordFunction.SEE
+      : CBS_IDLE_MODE;
     const displayTitle = recordId ? `${appTitle} #${recordId}` : appTitle;
 
     return {

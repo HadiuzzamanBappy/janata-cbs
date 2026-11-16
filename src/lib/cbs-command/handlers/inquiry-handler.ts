@@ -1,4 +1,4 @@
-import { CBS_FUNCTION_CODES, type CbsRecordFunction } from "@/types";
+import { CBS_FUNCTION_CODES, CbsRecordFunction } from "@/types";
 import { resolveCommandTitle } from "../registry/alias";
 import type { CommandHandler, ParsedCommand } from "../types";
 
@@ -22,7 +22,7 @@ export class InquiryCommandHandler implements CommandHandler {
         application: "INQUIRY",
         title: "Inquiry Query",
         authLevel: 1,
-        screenMode: "S",
+        screenMode: CbsRecordFunction.SEE,
       };
     }
 
@@ -44,7 +44,7 @@ export class InquiryCommandHandler implements CommandHandler {
         title: "Inquiry Query",
         authLevel: 1,
         functionCode,
-        screenMode: "S",
+        screenMode: CbsRecordFunction.SEE,
       };
     }
 

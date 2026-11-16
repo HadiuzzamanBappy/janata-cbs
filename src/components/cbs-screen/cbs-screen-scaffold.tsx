@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCbsAccess } from "@/hooks";
 import { useCbsHotkeys } from "@/lib/cbs-hotkeys";
 import type { CbsScreenScaffoldProps } from "@/lib/cbs-screen";
+import { CBS_IDLE_MODE } from "@/types";
 import { CbsFormHeader } from "./header/cbs-form-header";
 import { CbsInquiryHeader } from "./header/cbs-inquiry-header";
 import { useGuardedAction } from "./hooks/use-guarded-action";
@@ -24,7 +25,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
   commandCode,
   recordId = "",
   authLevel,
-  mode = "IDLE",
+  mode = CBS_IDLE_MODE,
 
   // 2. State & Audit Context
   isDirty = false,
@@ -182,7 +183,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
 
       {/* 4.2 MAIN BODY CANVAS */}
       <div className="flex-1 overflow-hidden p-2 flex flex-col min-h-0">
-        {mode === "IDLE" && variant !== "inquiry" ? (
+        {mode === CBS_IDLE_MODE && variant !== "inquiry" ? (
           <div className="h-full flex flex-col items-center justify-center">
             <CbsIdleState title={title} customMessage={idleMessage} />
           </div>

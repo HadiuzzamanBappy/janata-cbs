@@ -5,6 +5,7 @@ import {
   type InquiryConfigRecord,
   inquiryConfigRecordSchema,
 } from "@/lib/data-schemas/inquiry-config-schema";
+import { CBS_IDLE_MODE } from "@/types";
 
 export const INITIAL_INQUIRY_CONFIG: InquiryConfigRecord = {
   INQInfo: {
@@ -33,6 +34,6 @@ export function useIcPersistence(initialId?: string, tabId?: string) {
     tabId,
     initialData: INITIAL_INQUIRY_CONFIG,
     schema: inquiryConfigRecordSchema,
-    fallbackMode: "IDLE",
+    fallbackMode: CBS_IDLE_MODE,
   });
 }

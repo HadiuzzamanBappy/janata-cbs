@@ -4,8 +4,9 @@ import * as React from "react";
 import { getBlockGapSectionIndex, type RenderBlock } from "@/lib/cbs-form-spec";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { useDesignerContext } from "../context/designer-context";
-import { CardContainerBlock, StandaloneFieldBlock } from "./canvas-card-blocks";
+import { CardContainerBlock } from "./canvas-card-container-block";
 import { CanvasGapIndicator } from "./canvas-gap-indicator";
+import { StandaloneFieldBlock } from "./canvas-standalone-field-block";
 import type { AddSectionFn } from "./canvas-types";
 import { TabGroupBlock } from "./tab-group/tab-group-block";
 

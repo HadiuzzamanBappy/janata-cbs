@@ -37,10 +37,10 @@ Always check capabilities via `useCbsAccess()` or `src/lib/cbs-access` before re
 ## 4. CBS Command Gateway
 
 - **No Direct `<Link>` to Screens**: Never use `<Link href="/screen/...">` or `router.push()` to navigate between CBS transaction screens. Navigation must trigger `cbsCommand.execute("COMMAND ...")`.
-- Canonical aliases resolve through `getCanonicalScreenKey()` (e.g. `MD` → `SC.MENU.DESIGN`).
+- Canonical aliases resolve through `cbsCommand.resolveAlias()` (`@/lib/cbs-command`) (e.g. `MD` → `SC.MENU.DESIGN`).
 
 ## 5. Multi-Instance Tab / Window Contract
 
 - Internal tabs run in-memory via `WorkbenchStore`.
 - Popped-out windows run under `src/app/(workbench)/screen/[id]/page.tsx`.
-- Cross-window record actions (Authorize, Delete, Save) broadcast on `BroadcastChannel("cbs_workbench_bus")` to trigger background parent tab re-fetches.
+- Cross-window record actions (Authorize, Delete, Save) broadcast on `BroadcastChannel(clientConfig.storage.broadcast.workbenchBus)` to trigger background parent tab re-fetches.

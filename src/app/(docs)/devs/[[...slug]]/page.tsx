@@ -1,5 +1,5 @@
 // Devs Documentation Dynamic Page
-import { DocViewer } from "@/features/docs/components/doc-viewer";
+import { DocViewer } from "@/features/docs/server";
 
 export const dynamic = "force-dynamic";
 

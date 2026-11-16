@@ -1,9 +1,8 @@
-import { toast } from "@/components/ui/toast";
 import { findCommandHandler, parseCbsCommand } from "../engine/grammar";
 import { validateSecurityPermissions } from "../engine/validator";
 import { resolveCommandTitle } from "../registry/alias";
 import { CBS_SCREEN_COMPONENTS, type ExecutionOptions, type ParsedCommand } from "../types";
-import { getCommandAdapter, resolveScreenId } from "./adapter";
+import { getCommandAdapter, notifyUser, resolveScreenId } from "./adapter";
 import { spawnDetachedPopupWindow } from "./popup";
 
 /**
@@ -18,7 +17,7 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
     const errorMsg = parsed.error || `Command "${rawInput}" does not follow CBS syntax rules.`;
     options?.onError?.(errorMsg);
     if (!options?.silent) {
-      toast.add({
+      notifyUser({
         title: "Invalid Command",
         description: errorMsg,
         type: "error",
@@ -36,7 +35,7 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
     const errorMsg = security.reason || "You do not have permissions to execute this command.";
     options?.onError?.(errorMsg);
     if (!options?.silent) {
-      toast.add({
+      notifyUser({
         title: "Access Denied",
         description: errorMsg,
         type: "error",

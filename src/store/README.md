@@ -13,7 +13,7 @@ Modern Next.js applications (App Router) encounter cross-request state pollution
 2. **Strict Session Boundary (`sessionStorage`)**:
    In compliance with banking security standards, operational state (teller sessions and workbench tabs) is committed to `sessionStorage` rather than `localStorage`. Terminating the browser session automatically evicts working state.
 3. **Cross-Window Bus Coordination (`BroadcastChannel`)**:
-   When banking screens are popped out into detached windows or secondary teller monitors, state synchronization (such as global session logout, branch switching, or tab re-docking) is propagated across browser contexts via `BroadcastChannel("cbs_workbench_bus")`.
+   When banking screens are popped out into detached windows or secondary teller monitors, state synchronization (such as global session logout, branch switching, or tab re-docking) is propagated across browser contexts via `BroadcastChannel(clientConfig.storage.broadcast.workbenchBus)`.
 4. **Decoupled Command Bus Adapter**:
    Instead of coupling stores directly to hotkeys or execution engines, stores register adapters with `cbs-command` via `registerCommandAdapter()`, adhering to clean inversion of control.
 

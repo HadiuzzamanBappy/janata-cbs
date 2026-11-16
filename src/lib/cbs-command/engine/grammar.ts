@@ -1,3 +1,4 @@
+import { CBS_IDLE_MODE } from "@/types";
 import { FormCommandHandler } from "../handlers/form-handler";
 import { InquiryCommandHandler } from "../handlers/inquiry-handler";
 import { SettingsCommandHandler } from "../handlers/settings-handler";
@@ -64,7 +65,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       application: "",
       title: "",
       authLevel: 1,
-      screenMode: "IDLE",
+      screenMode: CBS_IDLE_MODE,
     };
   }
 
@@ -79,7 +80,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       application: "",
       title: "",
       authLevel: 1,
-      screenMode: "IDLE",
+      screenMode: CBS_IDLE_MODE,
     };
   }
 
@@ -92,7 +93,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       application: "",
       title: "",
       authLevel: 1,
-      screenMode: "IDLE",
+      screenMode: CBS_IDLE_MODE,
     };
   }
 
@@ -107,7 +108,7 @@ export function parseCbsCommand(rawInput: string): ParsedCommand {
       application: "",
       title: "",
       authLevel: 1,
-      screenMode: "IDLE",
+      screenMode: CBS_IDLE_MODE,
     };
   }
 

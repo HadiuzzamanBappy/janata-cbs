@@ -12,6 +12,16 @@ import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 /* Inbound Wire Envelope Normalizer                                           */
 /* -------------------------------------------------------------------------- */
 
+function cleanWireString(val: unknown, fallback = ""): string {
+  if (val === null || val === undefined) return fallback;
+  const str = String(val).trim();
+  return str !== "" ? str : fallback;
+}
+
+function cleanWireBoolean(val: unknown): boolean {
+  return val === true || val === "true" || val === "Y" || val === 1 || val === "1";
+}
+
 function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null {
   if (!target || typeof target !== "object") return null;
 
@@ -24,14 +34,74 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
     rec = rec.record as Record<string, unknown>;
   }
 
-  const inqInfo = rec.INQInfo && typeof rec.INQInfo === "object" ? rec.INQInfo : rec;
+  const rawInfo = (rec.INQInfo && typeof rec.INQInfo === "object" ? rec.INQInfo : rec) as Record<
+    string,
+    unknown
+  >;
+
+  const inqInfo: Record<string, unknown> = {
+    controllerName: cleanWireString(rawInfo.controllerName),
+    description: cleanWireString(rawInfo.description),
+    pageOrientation:
+      String(rawInfo.pageOrientation).trim() === "Landscape" ? "Landscape" : "Portrait",
+    perpageItem: cleanWireString(rawInfo.perpageItem, "30"),
+    showSerial: cleanWireBoolean(rawInfo.showSerial),
+    showPagination: cleanWireBoolean(rawInfo.showPagination),
+    showBranchWise: cleanWireBoolean(rawInfo.showBranchWise),
+    inqType: cleanWireString(rawInfo.inqType, "DFT"),
+    rptControllerName: cleanWireString(rawInfo.rptControllerName),
+    fixedSelection: cleanWireString(rawInfo.fixedSelection),
+    inqServicePath: cleanWireString(rawInfo.inqServicePath, "default"),
+    cmdFromInternal: cleanWireBoolean(rawInfo.cmdFromInternal),
+    cmdFieldName: cleanWireString(rawInfo.cmdFieldName),
+  };
+
+  const rawSelectFields = Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [];
+  const inqSelectField = rawSelectFields.map((f: unknown) => {
+    const rawF = (f && typeof f === "object" ? f : {}) as Record<string, unknown>;
+    const rawType = cleanWireString(rawF.selectFieldType, "text").toLowerCase();
+    const cleanType = ["text", "number", "date", "select"].includes(rawType) ? rawType : "text";
+    return {
+      selectFieldName: cleanWireString(rawF.selectFieldName),
+      selectFieldDisplay:
+        cleanWireString(rawF.selectFieldDisplay) || cleanWireString(rawF.selectFieldName),
+      selectFieldType: cleanType,
+      selectFieldOperator: cleanWireString(rawF.selectFieldOperator, "EQ").toUpperCase(),
+      selectFieldOperatorFixed: cleanWireString(rawF.selectFieldOperatorFixed),
+      selectFieldValue: cleanWireString(rawF.selectFieldValue),
+      selectFieldRequired: cleanWireBoolean(rawF.selectFieldRequired),
+    };
+  });
+
+  const rawDefs = Array.isArray(rec.INQDef) ? rec.INQDef : [];
+  const inqDef = rawDefs.map((col: unknown) => {
+    const rawCol = (col && typeof col === "object" ? col : {}) as Record<string, unknown>;
+    return {
+      fieldName: cleanWireString(rawCol.fieldName),
+      fieldDisplay: cleanWireString(rawCol.fieldDisplay) || cleanWireString(rawCol.fieldName),
+      fieldType: cleanWireString(rawCol.fieldType, "DC"),
+      fieldFunc: cleanWireString(rawCol.fieldFunc),
+      fieldRowCol: cleanWireString(rawCol.fieldRowCol, "1,1"),
+      fieldLength: cleanWireString(rawCol.fieldLength, "20,L"),
+      dataPassable: cleanWireBoolean(rawCol.dataPassable),
+    };
+  });
+
+  const rawCmds = Array.isArray(rec.INQCmds) ? rec.INQCmds : [];
+  const inqCmds = rawCmds.map((cmd: unknown) => {
+    const rawCmd = (cmd && typeof cmd === "object" ? cmd : {}) as Record<string, unknown>;
+    return {
+      cmdFor: cleanWireString(rawCmd.cmdFor),
+      cmdButton: cleanWireString(rawCmd.cmdButton),
+    };
+  });
 
   return {
     ...rec,
     INQInfo: inqInfo,
-    INQSelectField: Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [],
-    INQDef: Array.isArray(rec.INQDef) ? rec.INQDef : [],
-    INQCmds: Array.isArray(rec.INQCmds) ? rec.INQCmds : [],
+    INQSelectField: inqSelectField,
+    INQDef: inqDef,
+    INQCmds: inqCmds,
     auditData: rec.auditData ?? undefined,
   };
 }
@@ -125,7 +195,7 @@ export function sanitizeInqDef(col: INQDef): INQDef {
     fieldFunc: col.fieldFunc?.trim() || "",
     fieldRowCol: col.fieldRowCol?.trim() || "1,1",
     fieldLength: col.fieldLength?.trim() || "20,L",
-    dataPassable: col.dataPassable === true ? true : col.dataPassable === false ? false : null,
+    dataPassable: Boolean(col.dataPassable),
   };
 }
 

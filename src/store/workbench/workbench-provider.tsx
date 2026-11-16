@@ -5,6 +5,7 @@ import { useStore } from "zustand";
 import { registerCommandAdapter } from "@/lib/cbs-command";
 import { CBS_SCREEN_MESSAGE, getTabInstanceId } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
+import { useSessionStore } from "../session/session-provider";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
 let activeWorkbenchStore: WorkbenchStore | null = null;
@@ -25,6 +26,26 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     storeRef.current = createWorkbenchStore();
     activeWorkbenchStore = storeRef.current;
   }
+
+  // Operator isolation: keep tabs intact for same user re-auth, purge on user switch
+  const currentUser = useSessionStore((state) => state.user);
+
+  useEffect(() => {
+    if (!currentUser?.userId || typeof window === "undefined") return;
+    const store = storeRef.current;
+    if (!store) return;
+
+    try {
+      const lastUser = sessionStorage.getItem(clientConfig.storage.session.lastWorkbenchUser);
+      if (lastUser && lastUser !== currentUser.userId) {
+        // Different banking operator logged in: purge tabs to prevent cross-user data leakage
+        store.getState().closeAllTabs();
+      }
+      sessionStorage.setItem(clientConfig.storage.session.lastWorkbenchUser, currentUser.userId);
+    } catch {
+      // Safe fallback
+    }
+  }, [currentUser?.userId]);
 
   useEffect(() => {
     const store = storeRef.current;

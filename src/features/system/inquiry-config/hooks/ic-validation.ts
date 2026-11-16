@@ -93,6 +93,14 @@ export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryVal
       message: "General: Description is required",
     });
   }
+  if (formData.INQInfo?.cmdFromInternal && !formData.INQInfo?.cmdFieldName?.trim()) {
+    addIssue({
+      id: "err-gen-cmd-field",
+      tab: "general",
+      fieldKey: "INQInfo.cmdFieldName",
+      message: "General: Row Command Field is required when Dynamic Row Command is enabled",
+    });
+  }
 
   // 3. Domain Business Rules: Filters Tab
   const seenFilterNames = new Set<string>();

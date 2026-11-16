@@ -404,7 +404,7 @@ async function runSuite() {
           fieldFunc: "",
           fieldRowCol: "1,1",
           fieldLength: "12,L",
-          dataPassable: null,
+          dataPassable: false,
         },
       ],
       INQCmds: [
@@ -438,7 +438,7 @@ async function runSuite() {
       Boolean(sanitizedInqConfig) &&
       sanitizedInqConfig?.INQInfo.showBranchWise === false &&
       sanitizedInqConfig?.INQSelectField[0]?.selectFieldRequired === false &&
-      sanitizedInqConfig?.INQDef[0]?.dataPassable === null,
+      sanitizedInqConfig?.INQDef[0]?.dataPassable === false,
   );
 
   // ----------------------------------------------------------------------------

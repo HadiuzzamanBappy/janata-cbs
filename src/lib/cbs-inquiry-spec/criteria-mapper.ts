@@ -7,8 +7,6 @@ export interface FilterCriterion {
 
 export type FilterCriteriaMap = Record<string, FilterCriterion>;
 
-export type CbsWireCriteriaParam = InquiryCriteriaParam;
-
 /**
  * Builds a default criteria map from an array of INQSelectField definitions.
  */

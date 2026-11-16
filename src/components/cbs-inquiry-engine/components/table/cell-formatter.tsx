@@ -1,9 +1,8 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDateTime, formatValueDate } from "@/lib/core-utils";
 
-export type CellFormatType = "text" | "currency" | "date" | "account" | "badge" | "number";
+export type CellFormatType = "text" | "currency" | "date" | "number";
 
 export interface CellFormatterProps {
   value: unknown;
@@ -47,11 +46,11 @@ export function CellFormatter({
   value,
   format = "text",
   currencyCode,
-  isMono,
+  isMono = true,
   routine,
 }: CellFormatterProps) {
   if (value === undefined || value === null || value === "") {
-    return <span className="text-muted-foreground/40 font-mono text-[11px]">-</span>;
+    return <span className="text-muted-foreground/30 font-mono text-[10px]">-</span>;
   }
 
   const rawStr = String(value);
@@ -61,9 +60,9 @@ export function CellFormatter({
     case "currency": {
       const numVal =
         typeof value === "number" ? value : Number.parseFloat(strVal.replace(/[^0-9.-]+/g, ""));
-      if (Number.isNaN(numVal)) return <span className="font-mono text-xs">{strVal}</span>;
+      if (Number.isNaN(numVal)) return <span className="font-mono text-[11px]">{strVal}</span>;
       return (
-        <span className="font-mono text-xs font-medium tabular-nums">
+        <span className="font-mono text-[11px] font-medium tabular-nums">
           {formatCurrency(numVal, { currency: currencyCode || "BDT" })}
         </span>
       );
@@ -71,9 +70,9 @@ export function CellFormatter({
 
     case "number": {
       const numVal = typeof value === "number" ? value : Number.parseFloat(strVal);
-      if (Number.isNaN(numVal)) return <span className="font-mono text-xs">{strVal}</span>;
+      if (Number.isNaN(numVal)) return <span className="font-mono text-[11px]">{strVal}</span>;
       return (
-        <span className="font-mono text-xs tabular-nums">
+        <span className="font-mono text-[11px] tabular-nums">
           {numVal.toLocaleString(undefined, { maximumFractionDigits: 4 })}
         </span>
       );
@@ -81,53 +80,20 @@ export function CellFormatter({
 
     case "date": {
       if (/^\d{8}$/.test(strVal)) {
-        return <span className="font-mono text-xs tabular-nums">{formatValueDate(strVal)}</span>;
+        return (
+          <span className="font-mono text-[11px] tabular-nums">{formatValueDate(strVal)}</span>
+        );
       }
       if (/^\d{4}-\d{2}-\d{2}$/.test(strVal)) {
         const [y, m, d] = strVal.split("-");
         const formatted = formatValueDate(`${y}${m}${d}`);
-        return <span className="font-mono text-xs tabular-nums">{formatted || strVal}</span>;
+        return <span className="font-mono text-[11px] tabular-nums">{formatted || strVal}</span>;
       }
       const formatted = formatDateTime(strVal);
-      return <span className="font-mono text-xs tabular-nums">{formatted || strVal}</span>;
-    }
-
-    case "account": {
-      return (
-        <span className="font-mono text-xs font-semibold tracking-wider text-primary/90">
-          {strVal}
-        </span>
-      );
-    }
-
-    case "badge": {
-      const upper = strVal.toUpperCase();
-      const isPositive =
-        upper === "ACTIVE" ||
-        upper === "AUTHORIZED" ||
-        upper === "AU" ||
-        upper === "LIVE" ||
-        upper === "SUCCESS" ||
-        upper === "APPROVED";
-      const isNegative =
-        upper === "REJECTED" ||
-        upper === "CLOSED" ||
-        upper === "FAILED" ||
-        upper === "BLOCKED" ||
-        upper === "DEL" ||
-        upper === "REVE";
-
-      return (
-        <Badge
-          variant={isPositive ? "default" : isNegative ? "destructive" : "secondary"}
-          className="text-[10px] font-mono px-1.5 py-0 h-4.5 rounded uppercase tracking-wider"
-        >
-          {strVal}
-        </Badge>
-      );
+      return <span className="font-mono text-[11px] tabular-nums">{formatted || strVal}</span>;
     }
 
     default:
-      return <span className={isMono ? "font-mono text-xs" : "text-xs"}>{strVal}</span>;
+      return <span className={isMono ? "font-mono text-[11px]" : "text-[11px]"}>{strVal}</span>;
   }
 }

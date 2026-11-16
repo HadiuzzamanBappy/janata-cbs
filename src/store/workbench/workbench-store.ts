@@ -7,6 +7,7 @@ import type { CbsScreenMode } from "@/types";
 export interface WorkbenchTab {
   id: string; // Unique instance ID for every tab opened
   screenId?: string; // Base screen or command ID
+  menuNodeId?: string; // Source menu node ID for exact sidebar navigation highlighting
   title: string; // Clean screen title without count string
   instanceNumber: number; // 1-based count number: 1, 2, 3...
   icon?: string;
@@ -50,20 +51,6 @@ export interface WorkbenchState {
 export type WorkbenchStore = ReturnType<typeof createWorkbenchStore>;
 
 export const createWorkbenchStore = () => {
-  // If this is a fresh navigation or duplicate tab (NOT a page reload F5), clear cloned tabs from sessionStorage
-  if (typeof window !== "undefined" && typeof performance !== "undefined") {
-    const navEntries = performance.getEntriesByType("navigation");
-    const isReload =
-      navEntries.length > 0 && (navEntries[0] as PerformanceNavigationTiming).type === "reload";
-    if (!isReload) {
-      try {
-        sessionStorage.removeItem(clientConfig.storage.session.workbenchTabs);
-      } catch {
-        // Safe fallback
-      }
-    }
-  }
-
   return createStore<WorkbenchState>()(
     persist(
       (set) => ({

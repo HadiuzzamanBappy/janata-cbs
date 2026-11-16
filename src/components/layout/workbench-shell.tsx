@@ -33,7 +33,8 @@ export function WorkbenchShell({
         if (cmd) {
           const title =
             trigger.getAttribute("data-cbs-label") || trigger.textContent?.slice(0, 40)?.trim();
-          cbsCommand.execute(cmd, { title: title || undefined });
+          const menuNodeId = trigger.getAttribute("data-cbs-node-id") || undefined;
+          cbsCommand.execute(cmd, { title: title || undefined, menuNodeId });
         }
       }
     };

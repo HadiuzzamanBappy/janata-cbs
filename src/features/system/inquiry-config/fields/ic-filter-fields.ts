@@ -21,6 +21,7 @@ export const FILTER_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 50,
         REQUIRED: true,
         WIDTH: "md",
+        TRANSFORM: "stripWhitespace",
         ENRICHTEXT:
           "Database column or model property key used to query records (e.g. recordId, branchCode).",
       },
@@ -72,7 +73,7 @@ export const FILTER_INSPECTOR_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 10,
         WIDGET: "select",
-        WIDTH: "xl",
+        WIDTH: "md",
         DEFAULTVALUE: "EQ",
         PARAMETER: {
           type: "O",

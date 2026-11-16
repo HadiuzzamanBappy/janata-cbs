@@ -56,7 +56,16 @@ export async function sendCbsRequest<T = unknown>(
             // Safe fallback
           }
         }
-        window.location.href = clientConfig.routes.login;
+        const isPopup = window.location.pathname.startsWith(clientConfig.routes.screen);
+        if (isPopup) {
+          notifyError(
+            "Session Expired",
+            "Please log in on your main browser tab and retry.",
+            options?.silent,
+          );
+        } else {
+          window.location.href = clientConfig.routes.login;
+        }
       }
       throw new Error("UNAUTHORIZED");
     }

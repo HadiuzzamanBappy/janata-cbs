@@ -59,12 +59,12 @@ export function InquiryTableBody({
             <tr
               key={rowKey}
               onDoubleClick={handleRowDoubleClick}
-              className={`hover:bg-primary/10 transition-colors border-b border-border/30 font-mono text-xs ${
-                isStriped ? "bg-muted/40" : "bg-transparent"
+              className={`h-6.5 hover:bg-primary/10 transition-colors border-b border-border/25 font-mono text-[11px] ${
+                isStriped ? "bg-muted/30" : "bg-transparent"
               }`}
             >
               {showSerial && (
-                <td className="w-12 text-center font-mono text-[11px] text-muted-foreground py-1.5 px-2 whitespace-nowrap">
+                <td className="w-8 text-center font-mono text-[10px] text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap">
                   {serialNum}
                 </td>
               )}
@@ -106,8 +106,7 @@ export function InquiryTableBody({
                     role={isPassable ? "button" : undefined}
                     title={isPassable ? `Click to open / drill down (${col.label})` : undefined}
                     className={cn(
-                      "py-1.5 px-2.5 text-xs whitespace-nowrap",
-                      col.isMono ? "font-mono" : "",
+                      "py-0.5 px-2 text-[11px] font-mono whitespace-nowrap leading-tight",
                       col.align === "right"
                         ? "text-right"
                         : col.align === "center"
@@ -129,7 +128,7 @@ export function InquiryTableBody({
 
               {showActionsColumn && (
                 <td
-                  className={`w-20 px-1.5 py-1 text-center sticky right-0 backdrop-blur-xs border-l border-border/30 whitespace-nowrap ${
+                  className={`w-14 px-1 py-0.5 text-center sticky right-0 backdrop-blur-xs border-l border-border/25 whitespace-nowrap ${
                     isStriped ? "bg-muted/95" : "bg-card/95"
                   }`}
                 >
@@ -158,17 +157,17 @@ export function InquiryTableBody({
                   key={`${rowKey}-line-${rowNum}`}
                   onDoubleClick={handleRowDoubleClick}
                   className={cn(
-                    "hover:bg-primary/10 transition-colors font-mono text-xs",
-                    isStriped ? "bg-muted/30" : "bg-transparent",
+                    "h-6.5 hover:bg-primary/10 transition-colors font-mono text-[11px]",
+                    isStriped ? "bg-muted/25" : "bg-transparent",
                     isLast
-                      ? "border-b border-border/80 shadow-2xs"
-                      : "border-b border-dashed border-border/30",
+                      ? "border-b border-border/70 shadow-2xs"
+                      : "border-b border-dashed border-border/25",
                   )}
                 >
                   {isFirst && showSerial && (
                     <td
                       rowSpan={sortedRowNumbers.length}
-                      className="w-12 text-center font-mono text-[11px] text-muted-foreground py-1.5 px-2 whitespace-nowrap align-middle border-r border-border/30 font-semibold"
+                      className="w-8 text-center font-mono text-[10px] text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap align-middle border-r border-border/25 font-semibold"
                     >
                       {serialNum}
                     </td>
@@ -219,9 +218,8 @@ export function InquiryTableBody({
                         role={isPassable ? "button" : undefined}
                         title={isPassable ? `Click to open (${col.label})` : undefined}
                         className={cn(
-                          "py-1.5 px-2.5 text-xs whitespace-nowrap",
-                          col.isMono ? "font-mono" : "",
-                          !isFirst && "text-muted-foreground/90 bg-muted/15",
+                          "py-0.5 px-2 text-[11px] font-mono whitespace-nowrap leading-tight",
+                          !isFirst && "text-muted-foreground/85 bg-muted/10",
                           col.align === "right"
                             ? "text-right"
                             : col.align === "center"
@@ -232,7 +230,7 @@ export function InquiryTableBody({
                         )}
                       >
                         {!isFirst && (
-                          <span className="text-[10px] font-sans font-medium text-muted-foreground/70 mr-1.5 not-italic">
+                          <span className="text-[9px] font-sans font-medium text-muted-foreground/60 mr-1 not-italic">
                             {col.label}:
                           </span>
                         )}
@@ -250,7 +248,7 @@ export function InquiryTableBody({
                     <td
                       rowSpan={sortedRowNumbers.length}
                       className={cn(
-                        "w-20 px-1.5 py-1 text-center sticky right-0 backdrop-blur-xs border-l border-border/30 whitespace-nowrap align-middle",
+                        "w-14 px-1 py-0.5 text-center sticky right-0 backdrop-blur-xs border-l border-border/25 whitespace-nowrap align-middle",
                         isStriped ? "bg-muted/95" : "bg-card/95",
                       )}
                     >

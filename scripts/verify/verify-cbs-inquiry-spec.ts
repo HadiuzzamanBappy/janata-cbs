@@ -274,10 +274,10 @@ async function runSuite() {
     };
     const derivedStatus = deriveInquiryColumnMeta(statusCol);
     recordTest(
-      "5.3 Semantic status field detected as badge format with row 2 coordinates",
+      "5.3 Status field defaults to clean text format with row 2 center coordinates",
       statusCol,
       derivedStatus,
-      derivedStatus.format === "badge" &&
+      derivedStatus.format === "text" &&
         derivedStatus.row === 2 &&
         derivedStatus.align === "center",
     );

@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
-import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { INQSelectField } from "@/lib/data-schemas";
+import type { INQSelectField, InquiryFieldType, SelectionOperand } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { FILTER_INSPECTOR_SECTIONS } from "../../fields/ic-filter-fields";
 import type { InquiryValidationErrorItem } from "../../hooks/ic-validation";
@@ -32,7 +31,7 @@ export function FilterInspector({
   isSidebarOpen = false,
   showSidebarToggle = false,
 }: FilterInspectorProps) {
-  // Map validation errors for this criterion
+  // 1. Map validation errors for this criterion
   const errorMap = React.useMemo(() => {
     const map: Record<string, string> = {};
     for (const err of validationErrors) {
@@ -44,38 +43,42 @@ export function FilterInspector({
     return map;
   }, [validationErrors, selectedIdx]);
 
-  // Centralized field change dispatcher
-  const handleFieldChange = React.useCallback(
-    (fieldKey: string, value: unknown) => {
-      let finalVal = value;
-      if (fieldKey === "selectFieldName" && typeof value === "string") {
-        finalVal = value.replace(/\s+/g, "");
-      } else if (fieldKey === "selectFieldOperatorFixed") {
-        finalVal = value ? field.selectFieldOperator || "EQ" : "";
-      }
-      const updated = setFieldValue(
-        field as unknown as Record<string, unknown>,
-        fieldKey,
-        finalVal,
-      );
-
-      // Auto-suggest display label if pristine
-      if (fieldKey === "selectFieldName" && typeof value === "string") {
-        const cleanName = finalVal as string;
-        const currentDisplay = (field.selectFieldDisplay || "").trim();
-        const prevDerived = (field.selectFieldName || "")
-          .replace(/[_-]/g, " ")
-          .replace(/\b\w/g, (c) => c.toUpperCase());
-        if (!currentDisplay || currentDisplay === prevDerived) {
-          (updated as Record<string, unknown>).selectFieldDisplay = cleanName
-            .replace(/[_-]/g, " ")
-            .replace(/\b\w/g, (c) => c.toUpperCase());
-        }
-      }
-      onUpdate(updated as unknown as Partial<INQSelectField>);
-    },
-    [field, onUpdate],
+  // 2. Prepare values dictionary for Form Engine
+  const formValues = React.useMemo(
+    () => ({
+      ...field,
+      selectFieldOperatorFixed: Boolean(field.selectFieldOperatorFixed),
+    }),
+    [field],
   );
+
+  // 3. Form Engine onRecordChange: atomically formats and emits INQSelectField patch
+  const handleRecordChange = (next: Record<string, unknown>) => {
+    const nextName = String(next.selectFieldName ?? "");
+    let nextDisplay = String(next.selectFieldDisplay ?? "");
+
+    // Auto-derive display label if untouched or followed the previous derived name
+    const prevDerived = (field.selectFieldName || "")
+      .replace(/[_-]/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const currentDisplay = (field.selectFieldDisplay || "").trim();
+    if (nextName !== field.selectFieldName && (!currentDisplay || currentDisplay === prevDerived)) {
+      nextDisplay = nextName.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+
+    const isFixed = Boolean(next.selectFieldOperatorFixed);
+    const operator = (next.selectFieldOperator as SelectionOperand) || "EQ";
+
+    onUpdate({
+      selectFieldName: nextName,
+      selectFieldDisplay: nextDisplay,
+      selectFieldType: (next.selectFieldType as InquiryFieldType) || "text",
+      selectFieldOperator: operator,
+      selectFieldOperatorFixed: isFixed ? operator : "",
+      selectFieldValue: String(next.selectFieldValue ?? ""),
+      selectFieldRequired: Boolean(next.selectFieldRequired),
+    });
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background/50">
@@ -99,13 +102,8 @@ export function FilterInspector({
         <div className="max-w-3xl space-y-3">
           <FormRenderer
             frmElements={{ sections: FILTER_INSPECTOR_SECTIONS }}
-            values={
-              {
-                ...field,
-                selectFieldOperatorFixed: Boolean(field.selectFieldOperatorFixed),
-              } as Record<string, unknown>
-            }
-            onChange={handleFieldChange}
+            values={formValues}
+            onRecordChange={handleRecordChange}
             errors={errorMap}
             disabled={disabled}
             mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}

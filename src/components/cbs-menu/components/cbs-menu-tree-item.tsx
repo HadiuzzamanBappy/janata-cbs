@@ -36,8 +36,8 @@ export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenu
 
   // Check if this node or any child node is currently active
   const isChildActive = React.useMemo(
-    () => hasActiveChild(node, activeCommand),
-    [node, activeCommand],
+    () => hasActiveChild(node, activeCommand, activeTab?.menuNodeId),
+    [node, activeCommand, activeTab?.menuNodeId],
   );
 
   const [isOpen, setIsOpen] = React.useState(isChildActive);
@@ -49,7 +49,12 @@ export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenu
     }
   }, [isChildActive]);
 
-  const isActive = isLeaf && isCommandMatch(node.command ?? node.id, activeCommand);
+  // Strict node ID matching if opened from menu, falling back to command match for palette runs
+  const isActive =
+    isLeaf &&
+    (activeTab?.menuNodeId
+      ? activeTab.menuNodeId === node.id
+      : isCommandMatch(node.command ?? node.id, activeCommand));
 
   const handleClick = (e?: React.SyntheticEvent) => {
     e?.stopPropagation();
@@ -59,6 +64,7 @@ export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenu
       cbsCommand.execute(node.command, {
         title: nodeLabel,
         target: node.menuAction === "POPUP" ? "popup" : "workspace",
+        menuNodeId: node.id,
       });
     }
   };
@@ -111,6 +117,7 @@ export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenu
         }}
         data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
         data-cbs-label={nodeLabel}
+        data-cbs-node-id={node.id}
         data-cbs-link-handled="true"
         className={cn(
           "flex items-center gap-1.5 px-2 py-1.5 rounded-sm text-[13px] font-normal cursor-pointer transition-all duration-150 ease-out group/item w-full text-left border-0 bg-transparent relative leading-snug",
@@ -169,6 +176,7 @@ export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenu
             onMouseLeave={handleMouseLeave}
             data-cbs-command={isLeaf ? (node.command ?? node.id) : undefined}
             data-cbs-label={nodeLabel}
+            data-cbs-node-id={node.id}
             data-cbs-link-handled="true"
             className="z-5000 flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[13px] font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100 border-0 text-left"
           >

@@ -25,7 +25,18 @@ export const createSessionStore = () => {
         user: null,
         currentBranch: null,
         isAuthenticated: false,
-        setSession: (user) => set({ user, isAuthenticated: true }),
+        setSession: (user) => {
+          set({ user, isAuthenticated: true });
+          if (typeof window !== "undefined") {
+            try {
+              const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
+              channel.postMessage({ type: "CBS_SESSION_RESTORED", payload: user });
+              channel.close();
+            } catch {
+              // Safe fallback
+            }
+          }
+        },
         clearSession: () => set({ user: null, isAuthenticated: false }),
         logout: async () => {
           try {
@@ -39,6 +50,7 @@ export const createSessionStore = () => {
           if (typeof window !== "undefined") {
             try {
               const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
+              channel.postMessage({ type: "CBS_SESSION_LOGOUT" });
               channel.postMessage({ type: "SESSION_LOGOUT" });
               channel.close();
             } catch {

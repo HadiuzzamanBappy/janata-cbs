@@ -38,6 +38,7 @@ export function ColumnInspector({
   isSidebarOpen = false,
   showSidebarToggle = false,
 }: ColumnInspectorProps) {
+  // 1. Map validation errors for this column
   const errorMap = React.useMemo(() => {
     const map: Record<string, string> = {};
     for (const err of validationErrors) {
@@ -57,72 +58,58 @@ export function ColumnInspector({
     return map;
   }, [validationErrors, selectedColIdx]);
 
+  // 2. Prepare form values from decomposed INQDef
+  const formValues = React.useMemo(() => {
+    if (!activeCol) return {};
+    const { length: currentLen, alignCode: currentAlign } = parseColumnLength(
+      activeCol.fieldLength,
+    );
+    const { row: currentRow, col: currentCol } = parseColumnCoordinates(activeCol.fieldRowCol);
+    return {
+      fieldName: activeCol.fieldName || "",
+      fieldDisplay: activeCol.fieldDisplay || "",
+      fieldType: activeCol.fieldType || "DC",
+      alignment: currentAlign,
+      columnWidth: currentLen,
+      gridRow: currentRow,
+      gridCol: currentCol,
+      fieldFunc: activeCol.fieldFunc || "",
+      dataPassable: Boolean(activeCol.dataPassable),
+    };
+  }, [activeCol]);
+
   if (!activeCol) {
     return (
       <InspectorEmptyState message="Select a column from the left to inspect its definition." />
     );
   }
 
-  // Decompose length & alignment using centralized inquiry engine helper
-  const { length: currentLen, alignCode: currentAlign } = parseColumnLength(activeCol.fieldLength);
+  // 3. Form Engine onRecordChange: atomically formats and emits INQDef patch
+  const handleRecordChange = (next: Record<string, unknown>) => {
+    const nextName = String(next.fieldName ?? "");
+    let nextDisplay = String(next.fieldDisplay ?? "");
 
-  // Decompose grid row & col using centralized inquiry engine helper
-  const { row: currentRow, col: currentCol } = parseColumnCoordinates(activeCol.fieldRowCol);
-
-  const formValues = {
-    fieldName: activeCol.fieldName || "",
-    fieldDisplay: activeCol.fieldDisplay || "",
-    fieldType: activeCol.fieldType || "DC",
-    alignment: currentAlign,
-    columnWidth: currentLen,
-    gridRow: currentRow,
-    gridCol: currentCol,
-    fieldFunc: activeCol.fieldFunc || "",
-    dataPassable: Boolean(activeCol.dataPassable),
-  };
-
-  const handleFieldChange = (fieldKey: string, value: unknown) => {
-    if (fieldKey === "fieldName" && typeof value === "string") {
-      const cleanName = value.replace(/\s+/g, "");
-      const patch: Partial<INQDef> = { fieldName: cleanName };
-      const currentDisplay = (activeCol.fieldDisplay || "").trim();
-      const prevDerived = (activeCol.fieldName || "")
-        .replace(/[_-]/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-      if (!currentDisplay || currentDisplay === prevDerived) {
-        patch.fieldDisplay = cleanName
-          .replace(/[_-]/g, " ")
-          .replace(/\b\w/g, (c) => c.toUpperCase());
-      }
-      onUpdateColumn(selectedColIdx, patch);
-    } else if (fieldKey === "fieldDisplay") {
-      onUpdateColumn(selectedColIdx, { fieldDisplay: String(value ?? "") });
-    } else if (fieldKey === "fieldType") {
-      onUpdateColumn(selectedColIdx, { fieldType: String(value ?? "DC") });
-    } else if (fieldKey === "alignment") {
-      onUpdateColumn(selectedColIdx, {
-        fieldLength: formatColumnLength(currentLen, (value || "L") as "L" | "R" | "C"),
-      });
-    } else if (fieldKey === "columnWidth") {
-      const widthVal = Number(value) || 20;
-      onUpdateColumn(selectedColIdx, {
-        fieldLength: formatColumnLength(widthVal, currentAlign),
-      });
-    } else if (fieldKey === "gridRow") {
-      const rowVal = Number(value) || 1;
-      onUpdateColumn(selectedColIdx, {
-        fieldRowCol: formatColumnCoordinates(rowVal, currentCol),
-      });
-    } else if (fieldKey === "gridCol") {
-      const colVal = Number(value) || 1;
-      onUpdateColumn(selectedColIdx, {
-        fieldRowCol: formatColumnCoordinates(currentRow, colVal),
-      });
-    } else if (fieldKey === "fieldFunc") {
-      onUpdateColumn(selectedColIdx, { fieldFunc: String(value ?? "") });
-    } else if (fieldKey === "dataPassable") {
-      onUpdateColumn(selectedColIdx, { dataPassable: Boolean(value) });
+    // Auto-derive label if fieldDisplay is empty or followed the previous derived name
+    const prevDerived = (activeCol.fieldName || "")
+      .replace(/[_-]/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const currentDisplay = (activeCol.fieldDisplay || "").trim();
+    if (nextName !== activeCol.fieldName && (!currentDisplay || currentDisplay === prevDerived)) {
+      nextDisplay = nextName.replace(/[_-]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     }
+
+    onUpdateColumn(selectedColIdx, {
+      fieldName: nextName,
+      fieldDisplay: nextDisplay,
+      fieldType: String(next.fieldType ?? "DC"),
+      fieldFunc: String(next.fieldFunc ?? ""),
+      fieldRowCol: formatColumnCoordinates(Number(next.gridRow) || 1, Number(next.gridCol) || 1),
+      fieldLength: formatColumnLength(
+        Number(next.columnWidth) || 20,
+        (next.alignment || "L") as "L" | "R" | "C",
+      ),
+      dataPassable: Boolean(next.dataPassable),
+    });
   };
 
   return (
@@ -147,8 +134,8 @@ export function ColumnInspector({
         <div className="max-w-3xl space-y-3">
           <FormRenderer
             frmElements={{ sections: COLUMN_INSPECTOR_SECTIONS }}
-            values={formValues as Record<string, unknown>}
-            onChange={handleFieldChange}
+            values={formValues}
+            onRecordChange={handleRecordChange}
             errors={errorMap}
             disabled={disabled}
             mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}

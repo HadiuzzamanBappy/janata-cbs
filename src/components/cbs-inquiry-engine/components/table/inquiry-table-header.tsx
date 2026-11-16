@@ -22,7 +22,7 @@ export function ColumnHeader({
   if (!onSort) {
     return (
       <span
-        className={`text-xs font-semibold uppercase tracking-wider text-muted-foreground ${
+        className={`text-[11px] font-semibold uppercase tracking-tight text-muted-foreground ${
           align === "right"
             ? "text-right block w-full"
             : align === "center"
@@ -40,17 +40,17 @@ export function ColumnHeader({
       variant="ghost"
       size="sm"
       onClick={() => onSort(columnId)}
-      className={`h-7 px-1.5 -ml-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-1 ${
+      className={`h-5 px-1 -ml-1 text-[11px] font-semibold uppercase tracking-tight text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center gap-1 ${
         align === "right" ? "ml-auto" : align === "center" ? "mx-auto" : ""
       } ${className}`}
     >
       <span>{label}</span>
       {sortDirection === "asc" ? (
-        <ArrowUp className="size-3 text-primary" />
+        <ArrowUp className="size-2.5 text-primary" />
       ) : sortDirection === "desc" ? (
-        <ArrowDown className="size-3 text-primary" />
+        <ArrowDown className="size-2.5 text-primary" />
       ) : (
-        <ArrowUpDown className="size-3 opacity-40 hover:opacity-100" />
+        <ArrowUpDown className="size-2.5 opacity-40 hover:opacity-100" />
       )}
     </Button>
   );
@@ -86,7 +86,7 @@ export function InquiryTableHeader({
       {!isMultiRow ? (
         <tr className="hover:bg-transparent border-b border-border/60">
           {showSerial && (
-            <th className="w-12 text-center text-xs font-semibold text-muted-foreground py-1 px-2 whitespace-nowrap">
+            <th className="w-8 text-center text-[10px] font-semibold text-muted-foreground py-0.5 px-1 whitespace-nowrap">
               #
             </th>
           )}
@@ -94,7 +94,7 @@ export function InquiryTableHeader({
             <th
               key={col.id}
               style={{ width: col.width }}
-              className={`text-xs font-semibold text-foreground/90 py-1.5 px-2.5 h-7.5 whitespace-nowrap ${
+              className={`text-[11px] font-semibold text-foreground/80 py-1 px-2 h-6.5 whitespace-nowrap ${
                 col.align === "right"
                   ? "text-right"
                   : col.align === "center"
@@ -113,7 +113,7 @@ export function InquiryTableHeader({
           ))}
 
           {showActionsColumn && (
-            <th className="w-20 px-2 py-1 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20 whitespace-nowrap">
+            <th className="w-14 px-1 py-0.5 text-center text-[10px] font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20 whitespace-nowrap">
               Actions
             </th>
           )}
@@ -131,7 +131,7 @@ export function InquiryTableHeader({
               {isFirstRow && showSerial && (
                 <th
                   rowSpan={sortedRowNumbers.length}
-                  className="w-12 text-center text-xs font-semibold text-muted-foreground py-1 px-2 whitespace-nowrap align-middle border-r border-border/30"
+                  className="w-8 text-center text-[10px] font-semibold text-muted-foreground py-0.5 px-1 whitespace-nowrap align-middle border-r border-border/30"
                 >
                   #
                 </th>
@@ -149,7 +149,7 @@ export function InquiryTableHeader({
                     key={col.id}
                     colSpan={colSpan}
                     style={{ width: colSpan ? undefined : col.width }}
-                    className={`text-xs font-semibold text-foreground/90 py-1.5 px-2.5 h-7.5 whitespace-nowrap ${
+                    className={`text-[11px] font-semibold text-foreground/80 py-1 px-2 h-6.5 whitespace-nowrap ${
                       col.align === "right"
                         ? "text-right"
                         : col.align === "center"
@@ -158,7 +158,7 @@ export function InquiryTableHeader({
                     }`}
                   >
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono font-bold text-primary bg-primary/10 px-1 py-0.5 rounded">
+                      <span className="text-[9px] font-mono font-bold text-primary bg-primary/10 px-1 py-0.5 rounded">
                         L{rowNum}.{col.order}
                       </span>
                       <ColumnHeader
@@ -176,7 +176,7 @@ export function InquiryTableHeader({
               {isFirstRow && showActionsColumn && (
                 <th
                   rowSpan={sortedRowNumbers.length}
-                  className="w-20 px-2 py-1 text-center text-xs font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20 whitespace-nowrap align-middle"
+                  className="w-14 px-1 py-0.5 text-center text-[10px] font-semibold text-muted-foreground sticky right-0 bg-muted/95 backdrop-blur-xs border-l border-border/40 z-20 whitespace-nowrap align-middle"
                 >
                   Actions
                 </th>

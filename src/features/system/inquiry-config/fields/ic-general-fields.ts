@@ -19,7 +19,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         STRUCTURE: "S",
         LENGTH: 120,
         REQUIRED: true,
-        WIDTH: "md",
+        WIDTH: "xl",
         ENRICHTEXT: "Descriptive title of this inquiry definition.",
       },
       {
@@ -42,7 +42,7 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 10,
         REQUIRED: true,
         WIDGET: "select",
-        WIDTH: "lg",
+        WIDTH: "sm",
         DEFAULTVALUE: "DFT",
         PARAMETER: {
           type: "O",
@@ -155,6 +155,48 @@ export const INQUIRY_CONFIG_SECTIONS: FormSection[] = [
         WIDTH: "md",
         DEFAULTVALUE: "default",
         ENRICHTEXT: "Backend service routing endpoint path.",
+      },
+    ],
+  },
+  {
+    id: "sec_inq_execution_scope",
+    title: "Execution Scope & Row Commands",
+    containerType: "card",
+    columns: 1,
+    fields: [
+      {
+        SN: "11",
+        NAME: "fixedSelection",
+        LABEL: "Fixed Selection",
+        TYPE: "String",
+        STRUCTURE: "S",
+        LENGTH: 200,
+        WIDTH: "lg",
+        ENRICHTEXT:
+          "Mandatory criteria applied to all query executions (e.g. STATUS EQ 'AU' or requestFor EQ 'NEW').",
+      },
+      {
+        SN: "12",
+        NAME: "cmdFromInternal",
+        LABEL: "Dynamic Row Command",
+        TYPE: "Boolean",
+        STRUCTURE: "S",
+        LENGTH: 1,
+        WIDGET: "checkbox",
+        WIDTH: "full",
+        ENRICHTEXT:
+          "Execute action command dynamically from a data row field instead of static action buttons.",
+      },
+      {
+        SN: "13",
+        NAME: "cmdFieldName",
+        LABEL: "Row Command Field",
+        TYPE: "String",
+        STRUCTURE: "S",
+        LENGTH: 50,
+        WIDTH: "md",
+        ENRICHTEXT:
+          "Field key in the row tuple containing the dynamic command (e.g. actionCommand).",
       },
     ],
   },

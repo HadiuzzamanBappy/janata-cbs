@@ -27,6 +27,8 @@ export const CBS_SCREEN_MESSAGE = {
   CLAIM_ACTIVE_TAB: "CBS_CLAIM_ACTIVE_TAB",
   SESSION_LOGOUT: "CBS_SESSION_LOGOUT",
   SESSION_EXPIRED: "CBS_SESSION_EXPIRED",
+  SESSION_RESTORED: "CBS_SESSION_RESTORED",
+  SESSION_LOGIN: "CBS_SESSION_LOGIN",
 } as const;
 
 /** Canonical popup tab ID — synchronized between page.tsx and popup openers */

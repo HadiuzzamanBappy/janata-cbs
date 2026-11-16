@@ -68,6 +68,7 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
 
     adapter.openTab({
       screenId,
+      menuNodeId: options?.menuNodeId,
       title: screenTitle,
       componentName:
         parsed.type === "INQUIRY"

@@ -22,13 +22,6 @@ export const INQUIRY_OPERAND_OPTIONS: InquiryOperandOption[] = [
   { value: "LK", label: "Like (*)", badge: "LK" },
 ];
 
-export const INQUIRY_FILTER_FIELD_TYPES = [
-  { value: "text", label: "Text String (CHAR)" },
-  { value: "number", label: "Numeric / Amount" },
-  { value: "date", label: "Date (YYYYMMDD)" },
-  { value: "select", label: "Dropdown Options" },
-] as const;
-
 export const STANDARD_BANKING_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "", label: "All Statuses" },
   { value: "AU", label: "Authorized (AU)" },

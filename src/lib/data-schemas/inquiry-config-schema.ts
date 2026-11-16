@@ -20,58 +20,25 @@ export const INQUIRY_OPERANDS = [
 ] as const;
 
 export type SelectionOperand = (typeof INQUIRY_OPERANDS)[number];
-export const INQUIRY_OPERAND_SET = new Set<string>(INQUIRY_OPERANDS);
 
 export const INQUIRY_FIELD_TYPES = ["text", "number", "date", "select"] as const;
 export type InquiryFieldType = (typeof INQUIRY_FIELD_TYPES)[number];
-export const INQUIRY_FIELD_TYPE_SET = new Set<string>(INQUIRY_FIELD_TYPES);
 
-/* ========================================================================== */
-/* REUSABLE TRANSFORM PRIMITIVES                                              */
-/* ========================================================================== */
-
-const cbsString = (fallback = "") =>
-  z
-    .union([z.string(), z.number()])
-    .nullish()
-    .transform((v) => (v != null && String(v).trim() !== "" ? String(v).trim() : fallback));
-
-const cbsBoolean = z
-  .union([z.boolean(), z.string(), z.number()])
-  .nullish()
-  .transform((v) => v === true || v === "true" || v === "Y" || v === 1 || v === "1")
-  .default(false);
-
-export const selectionOperandSchema = z
-  .string()
-  .nullish()
-  .transform((v) => {
-    const clean = v?.trim().toUpperCase();
-    return clean && INQUIRY_OPERAND_SET.has(clean) ? (clean as SelectionOperand) : "EQ";
-  })
-  .pipe(z.enum(INQUIRY_OPERANDS));
-
-export const inquiryFieldTypeSchema = z
-  .string()
-  .nullish()
-  .transform((v) => {
-    const clean = v?.trim().toLowerCase();
-    return clean && INQUIRY_FIELD_TYPE_SET.has(clean) ? (clean as InquiryFieldType) : "text";
-  })
-  .pipe(z.enum(INQUIRY_FIELD_TYPES));
+export const selectionOperandSchema = z.enum(INQUIRY_OPERANDS);
+export const inquiryFieldTypeSchema = z.enum(INQUIRY_FIELD_TYPES);
 
 /* ========================================================================== */
 /* 2. SELECTION / FILTER FIELDS (INQSelectField)                              */
 /* ========================================================================== */
 
 export const inqSelectFieldSchema = z.object({
-  selectFieldName: cbsString(""),
-  selectFieldDisplay: cbsString(""),
+  selectFieldName: z.string().default(""),
+  selectFieldDisplay: z.string().default(""),
   selectFieldType: inquiryFieldTypeSchema.default("text"),
   selectFieldOperator: selectionOperandSchema.default("EQ"),
-  selectFieldOperatorFixed: cbsString(""),
-  selectFieldValue: cbsString(""),
-  selectFieldRequired: cbsBoolean,
+  selectFieldOperatorFixed: z.string().default(""),
+  selectFieldValue: z.string().default(""),
+  selectFieldRequired: z.boolean().default(false),
 });
 
 export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
@@ -81,18 +48,13 @@ export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
 /* ========================================================================== */
 
 export const inqDefSchema = z.object({
-  fieldName: cbsString(""),
-  fieldDisplay: cbsString(""),
-  fieldType: cbsString("DC"),
-  fieldFunc: cbsString(""),
-  fieldRowCol: cbsString("1,1"),
-  fieldLength: cbsString("20,L"),
-  dataPassable: z
-    .union([z.string(), z.boolean(), z.number()])
-    .nullish()
-    .transform((v) =>
-      v == null ? null : v === true || v === "true" || v === "Y" || v === 1 || v === "1",
-    ),
+  fieldName: z.string().default(""),
+  fieldDisplay: z.string().default(""),
+  fieldType: z.string().default("DC"),
+  fieldFunc: z.string().default(""),
+  fieldRowCol: z.string().default("1,1"),
+  fieldLength: z.string().default("20,L"),
+  dataPassable: z.boolean().default(false),
 });
 
 export type INQDef = z.infer<typeof inqDefSchema>;
@@ -102,8 +64,8 @@ export type INQDef = z.infer<typeof inqDefSchema>;
 /* ========================================================================== */
 
 export const inqCmdSchema = z.object({
-  cmdFor: cbsString(""),
-  cmdButton: cbsString(""),
+  cmdFor: z.string().default(""),
+  cmdButton: z.string().default(""),
 });
 
 export type INQCmd = z.infer<typeof inqCmdSchema>;
@@ -113,27 +75,19 @@ export type INQCmd = z.infer<typeof inqCmdSchema>;
 /* ========================================================================== */
 
 export const inqInfoSchema = z.object({
-  controllerName: cbsString(""),
-  description: cbsString(""),
-  pageOrientation: z
-    .string()
-    .nullish()
-    .transform((v) => (v?.trim() === "Landscape" ? "Landscape" : "Portrait"))
-    .default("Portrait"),
-  perpageItem: z
-    .union([z.string(), z.number()])
-    .nullish()
-    .transform((val) => (val != null && String(val).trim() !== "" ? String(val) : "30"))
-    .default("30"),
-  showSerial: cbsBoolean,
-  showPagination: cbsBoolean,
-  showBranchWise: cbsBoolean,
-  inqType: cbsString("DFT"),
-  rptControllerName: cbsString(""),
-  fixedSelection: cbsString(""),
-  inqServicePath: cbsString("default"),
-  cmdFromInternal: cbsBoolean,
-  cmdFieldName: cbsString(""),
+  controllerName: z.string().default(""),
+  description: z.string().default(""),
+  pageOrientation: z.enum(["Portrait", "Landscape"]).default("Portrait"),
+  perpageItem: z.string().default("30"),
+  showSerial: z.boolean().default(false),
+  showPagination: z.boolean().default(false),
+  showBranchWise: z.boolean().default(false),
+  inqType: z.string().default("DFT"),
+  rptControllerName: z.string().default(""),
+  fixedSelection: z.string().default(""),
+  inqServicePath: z.string().default("default"),
+  cmdFromInternal: z.boolean().default(false),
+  cmdFieldName: z.string().default(""),
 });
 
 export type INQInfo = z.infer<typeof inqInfoSchema>;
@@ -160,10 +114,7 @@ export const inquiryCriteriaParamSchema = z.object({
   selectFieldName: z.string().trim().min(1, "Field name is required"),
   selectFieldType: inquiryFieldTypeSchema.default("text"),
   selectFieldOperator: selectionOperandSchema.default("EQ"),
-  selectFieldValue: z
-    .string()
-    .nullish()
-    .transform((v) => (v?.trim() ? v.trim() : "")),
+  selectFieldValue: z.string().default(""),
 });
 
 export interface InquiryCriteriaParam {
@@ -177,10 +128,7 @@ export const inquiryExecuteOptionsSchema = z.object({
   queryString: z.array(inquiryCriteriaParamSchema).default([]),
   curPage: z.number().int().positive().default(1),
   perPage: z.number().int().positive().default(1000),
-  servicePath: z
-    .string()
-    .nullish()
-    .transform((v) => (v?.trim() ? v.trim() : undefined)),
+  servicePath: z.string().default("default"),
 });
 
 export interface InquiryExecuteOptions {

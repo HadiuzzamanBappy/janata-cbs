@@ -6,6 +6,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const publicPaths: string[] = [clientConfig.routes.login, clientConfig.routes.api.login];
   const isPublicPath = publicPaths.includes(pathname);
+  const isScreenPath = pathname.startsWith(clientConfig.routes.screen);
   const hasSession = request.cookies.has(clientConfig.auth.cookieName);
   const isInitLogin = request.cookies.get(clientConfig.auth.initLoginCookie)?.value === "true";
 
@@ -21,6 +22,12 @@ export function proxy(request: NextRequest) {
     }
 
     return NextResponse.redirect(new URL(clientConfig.routes.changePassword, request.url));
+  }
+
+  // Allow detached satellite screens (/screen/*) to render without session cookie
+  // so they render an in-place session lock UI rather than redirecting to /login and turning into /dashboard.
+  if (isScreenPath) {
+    return NextResponse.next();
   }
 
   if (!isPublicPath && !hasSession) {

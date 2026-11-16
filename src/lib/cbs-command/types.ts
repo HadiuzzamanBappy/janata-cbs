@@ -40,6 +40,7 @@ export interface ExecutionOptions {
   readonly user?: CbsUserSecurityContext | null;
   readonly target?: LaunchTarget;
   readonly tabId?: string;
+  readonly menuNodeId?: string;
   readonly title?: string;
   readonly screenMode?: CbsScreenMode;
   readonly recordId?: string;

@@ -2,7 +2,7 @@ import type { FormSection } from "@/lib/data-schemas";
 
 /**
  * Standard Form Sections definition for INQUIRY.CONFIG Column Inspector.
- * Rendered using the CBS platform's FormRenderer.
+ * Rendered 1:1 using the CBS platform's FormRenderer across 2 standard cards.
  */
 export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
   {
@@ -20,6 +20,7 @@ export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
         LENGTH: 50,
         REQUIRED: true,
         WIDTH: "md",
+        TRANSFORM: "stripWhitespace",
         ENRICHTEXT:
           "Underlying database column or model property key returned in query result tuples.",
       },
@@ -41,14 +42,14 @@ export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
         TYPE: "String",
         STRUCTURE: "S",
         LENGTH: 10,
-        WIDGET: "select",
+        WIDGET: "segmented",
         WIDTH: "md",
         DEFAULTVALUE: "DC",
         PARAMETER: {
           type: "O",
           data: [
-            { code: "VC", label: "Variable Field" },
-            { code: "DC", label: "Data Column" },
+            { code: "DC", label: "Data Column (DC)" },
+            { code: "VC", label: "Variable (VC)" },
           ],
         },
         ENRICHTEXT:
@@ -90,7 +91,7 @@ export const COLUMN_INSPECTOR_SECTIONS: FormSection[] = [
         TYPE: "Number",
         STRUCTURE: "S",
         LENGTH: 4,
-        WIDTH: "sm",
+        WIDTH: "xs",
         DEFAULTVALUE: "20",
         ENRICHTEXT:
           "Display character width allocation (e.g. 20 characters for account numbers, 35 for titles).",

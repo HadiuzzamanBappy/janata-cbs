@@ -38,7 +38,7 @@ export function IcGeneralTab({
     (fieldKey: string, value: unknown) => {
       let finalVal = value;
       if (fieldKey === "perpageItem") {
-        finalVal = value !== "" && value !== undefined && value !== null ? Number(value) : 30;
+        finalVal = value !== "" && value !== undefined && value !== null ? String(value) : "30";
       } else if (fieldKey === "controllerName" || fieldKey === "rptControllerName") {
         finalVal = typeof value === "string" ? value.toUpperCase() : value;
       }

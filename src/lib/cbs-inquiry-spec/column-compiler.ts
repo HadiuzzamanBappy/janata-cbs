@@ -16,7 +16,7 @@ export interface DerivedColumnMeta {
   label: string;
   align: "left" | "right" | "center";
   width: string;
-  format: "text" | "currency" | "date" | "number" | "badge" | "account";
+  format: "text" | "currency" | "date" | "number";
   isMono: boolean;
   row: number;
   order: number;
@@ -68,35 +68,25 @@ export function formatColumnCoordinates(row: number, col: number): string {
 
 /**
  * Compiles a canonical CBS INQDef wire spec into presentation metadata for UI tables.
- * Keeps data-schemas pure and isolates display math to the specification compiler.
+ * Follows the CBS inquiry configuration strictly as the source of truth without magic name guessing.
  */
 export function deriveInquiryColumnMeta(col: INQDef): DerivedColumnMeta {
   const { length, alignCode, align } = parseColumnLength(col.fieldLength);
   const { row, col: order } = parseColumnCoordinates(col.fieldRowCol);
 
-  // Map CBS conversion routines or semantic field names to UI display format
-  const funcUpper = col.fieldFunc?.toUpperCase() || "";
-  const nameLower = col.fieldName.toLowerCase();
+  // Map CBS conversion routines strictly based on explicit fieldFunc or numeric alignment
+  const funcUpper = col.fieldFunc?.toUpperCase().trim() || "";
 
-  let format: "text" | "currency" | "date" | "number" | "badge" | "account" = "text";
-  if (funcUpper.includes("AMT") || nameLower.includes("balance") || nameLower.includes("amount")) {
+  let format: "text" | "currency" | "date" | "number" = "text";
+  if (funcUpper.includes("AMT") || funcUpper.includes("CURR")) {
     format = "currency";
-  } else if (funcUpper.includes("DATE") || nameLower.includes("date")) {
+  } else if (funcUpper.includes("DATE") || funcUpper === "D") {
     format = "date";
   } else if (alignCode === "R") {
     format = "number";
-  } else if (nameLower === "status" || nameLower.endsWith("status")) {
-    format = "badge";
-  } else if (nameLower.includes("account") || nameLower.includes("accno")) {
-    format = "account";
   }
 
-  const isMono =
-    align === "right" ||
-    nameLower.includes("id") ||
-    nameLower.includes("ref") ||
-    nameLower.includes("date") ||
-    nameLower.includes("account");
+  const isMono = align === "right" || align === "center";
 
   return {
     id: col.fieldName,

@@ -19,7 +19,6 @@ export {
   resolveCommandTemplate,
 } from "./command-resolver";
 export {
-  INQUIRY_FILTER_FIELD_TYPES,
   INQUIRY_OPERAND_OPTIONS,
   type InquiryOperandOption,
   type SelectionOperand,
@@ -29,7 +28,6 @@ export {
 // Criteria Mapper & Wire Serialization
 export {
   buildDefaultCriteria,
-  type CbsWireCriteriaParam,
   type FilterCriteriaMap,
   type FilterCriterion,
   parseFixedSelectionToWire,

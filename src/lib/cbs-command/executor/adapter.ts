@@ -3,6 +3,7 @@ import type { CommandInquiryState, ParsedCommand } from "../types";
 
 export interface CommandTabPayload {
   readonly screenId: string;
+  readonly menuNodeId?: string;
   readonly title: string;
   readonly componentName: string;
   readonly screenMode?: CbsScreenMode;

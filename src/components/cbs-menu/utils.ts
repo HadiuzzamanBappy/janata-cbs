@@ -21,15 +21,20 @@ export function isCommandMatch(cmdA?: string, cmdB?: string): boolean {
 }
 
 /**
- * Helper to check if a tree node or any of its descendants matches the active command/screen ID
+ * Helper to check if a tree node or any of its descendants matches the active command/screen ID.
+ * When menuNodeId is specified, uses strict node ID matching to prevent duplicate branch expansion.
  */
-export function hasActiveChild(node: MenuItem, activeId?: string): boolean {
+export function hasActiveChild(node: MenuItem, activeId?: string, menuNodeId?: string): boolean {
   if (!activeId) return false;
-  if (isCommandMatch(node.command ?? node.id, activeId)) {
+  if (menuNodeId) {
+    if (node.id === menuNodeId) {
+      return true;
+    }
+  } else if (isCommandMatch(node.command ?? node.id, activeId)) {
     return true;
   }
   if (node.children && node.children.length > 0) {
-    return node.children.some((child) => hasActiveChild(child, activeId));
+    return node.children.some((child) => hasActiveChild(child, activeId, menuNodeId));
   }
   return false;
 }

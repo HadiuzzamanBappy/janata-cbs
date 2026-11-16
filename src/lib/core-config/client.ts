@@ -72,6 +72,7 @@ export const clientConfig = {
       tabInstanceId: `${APP_PREFIX}:session:tab_instance_id`,
       sessionState: `${APP_PREFIX}:session:state`,
       workbenchTabs: `${APP_PREFIX}:workbench:tabs`,
+      lastWorkbenchUser: `${APP_PREFIX}:workbench:last_user`,
       draft: (tabId: string) => `${APP_PREFIX}:draft:${tabId}`,
       criteria: (tabId: string) => `${APP_PREFIX}:criteria:${tabId}`,
     },

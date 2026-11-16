@@ -118,7 +118,7 @@ export function IcColumnsTab({
       fieldType: "DC",
       fieldLength: `${defaultLength},${alignment}`,
       fieldRowCol: `1,${columns.length + 1}`,
-      dataPassable: true,
+      dataPassable: false,
     });
     setSelectedColIdx(columns.length);
     if (isCompact) {

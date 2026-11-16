@@ -1,23 +1,74 @@
 "use client";
 
+import { Lock } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { ScreenLoader } from "@/features/workbench";
+import { cbsAuth } from "@/lib/cbs-client";
 import {
   broadcastDockTab,
   CBS_SCREEN_EVENT,
   CBS_SCREEN_MESSAGE,
+  getWorkbenchBus,
   getWorkbenchDraft,
   makePopupTabId,
+  type WorkbenchBusMessage,
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
-import { CbsAppStoreProvider, useWorkbenchStore } from "@/store";
+import { CbsAppStoreProvider, useSessionStore, useWorkbenchStore } from "@/store";
 import type { CbsScreenMode } from "@/types";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const searchParams = useSearchParams();
   const { tabs, addTab } = useWorkbenchStore();
   const screenId = decodeURIComponent(rawId);
+  const { user } = useSessionStore();
+  const [isSessionExpired, setIsSessionExpired] = React.useState(false);
+
+  // Cross-window session coordination for detached popup screens
+  React.useEffect(() => {
+    const bus = getWorkbenchBus();
+    if (!bus) return;
+
+    const handleMessage = (event: MessageEvent<WorkbenchBusMessage>) => {
+      const type = event.data?.type;
+      if (
+        type === CBS_SCREEN_MESSAGE.SESSION_EXPIRED ||
+        type === CBS_SCREEN_MESSAGE.SESSION_LOGOUT
+      ) {
+        setIsSessionExpired(true);
+      } else if (
+        type === CBS_SCREEN_MESSAGE.SESSION_RESTORED ||
+        type === CBS_SCREEN_MESSAGE.SESSION_LOGIN
+      ) {
+        setIsSessionExpired(false);
+      }
+    };
+
+    bus.addEventListener("message", handleMessage);
+    return () => bus.removeEventListener("message", handleMessage);
+  }, []);
+
+  // Clear expired state whenever user is restored or active in store
+  React.useEffect(() => {
+    if (user) {
+      setIsSessionExpired(false);
+    }
+  }, [user]);
+
+  // Check active session on initial mount / page reload
+  React.useEffect(() => {
+    cbsAuth
+      .getSession()
+      .then((res) => {
+        if (!res.success || !res.data) {
+          setIsSessionExpired(true);
+        }
+      })
+      .catch(() => {
+        setIsSessionExpired(true);
+      });
+  }, []);
 
   // Read clean tabId passed from popup dispatcher or fallback to canonical ID
   const urlTabId = searchParams.get("tabId");
@@ -147,20 +198,60 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-background text-foreground antialiased select-none">
-      {/* Screen Canvas Container (Takes 100% viewport height cleanly) */}
-      <main className="flex-1 min-h-0 w-full overflow-hidden flex flex-col bg-background">
-        <ScreenLoader
-          command={
-            searchParams.get("component") === "INQUIRY_SCREEN" &&
-            !screenId.toUpperCase().startsWith("INQ ")
-              ? `INQ ${screenId}`
-              : screenId
-          }
-          tabId={tabId}
-          mode="window"
-          className="flex-1 h-full min-h-0"
-        />
-      </main>
+      {/* Session Expired Satellite Alert Bar */}
+      {isSessionExpired && (
+        <div className="bg-amber-500/15 border-b border-amber-500/30 px-3 py-1.5 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 z-50 shrink-0">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-semibold shrink-0">Session Expired:</span>
+            <span className="truncate">
+              Please log in on your main browser tab and click Refresh to resume.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-2.5 py-0.5 bg-amber-500/20 hover:bg-amber-500/30 rounded border border-amber-500/40 text-xs font-medium cursor-pointer shrink-0 ml-2"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
+
+      {/* Screen Canvas Container: Shows lock screen on unauthenticated fresh load, or keeps form visible if user has active draft */}
+      {isSessionExpired &&
+      !tabs.some((t) => t.id === tabId && t.formData && Object.keys(t.formData).length > 0) ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-muted/10">
+          <div className="size-12 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mb-3">
+            <Lock className="size-6" />
+          </div>
+          <h3 className="text-sm font-semibold text-foreground mb-1">Session Inactive</h3>
+          <p className="text-xs text-muted-foreground max-w-sm mb-4 leading-relaxed">
+            Your banking session has timed out. Please log in on your main browser tab to continue
+            using this screen.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="px-3 py-1.5 text-xs font-medium rounded bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shadow-xs"
+          >
+            Check Session & Refresh
+          </button>
+        </div>
+      ) : (
+        <main className="flex-1 min-h-0 w-full overflow-hidden flex flex-col bg-background">
+          <ScreenLoader
+            command={
+              searchParams.get("component") === "INQUIRY_SCREEN" &&
+              !screenId.toUpperCase().startsWith("INQ ")
+                ? `INQ ${screenId}`
+                : screenId
+            }
+            tabId={tabId}
+            mode="window"
+            className="flex-1 h-full min-h-0"
+          />
+        </main>
+      )}
     </div>
   );
 }

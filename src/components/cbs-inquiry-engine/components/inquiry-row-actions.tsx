@@ -27,7 +27,7 @@ export function InquiryRowActions({
     const executable = resolveCommandTemplate(rawCmd, row);
 
     return (
-      <div className="flex items-center gap-1 justify-center">
+      <div className="flex items-center gap-0.5 justify-center">
         <Tooltip>
           <TooltipTrigger
             render={
@@ -43,13 +43,13 @@ export function InquiryRowActions({
                 }
                 data-cbs-command={executable}
                 data-cbs-link-handled="true"
-                className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center size-5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
-                <Play className="size-3 text-primary" />
+                <Play className="size-2.5 text-primary" />
               </button>
             }
           />
-          <TooltipContent className="text-xs font-medium">
+          <TooltipContent className="text-[11px] font-medium">
             Open: {executable || rawCmd}
           </TooltipContent>
         </Tooltip>
@@ -58,7 +58,7 @@ export function InquiryRowActions({
   }
 
   return (
-    <div className="flex items-center gap-1 justify-center">
+    <div className="flex items-center gap-0.5 justify-center">
       {commands.map((cmd) => {
         const btnLower = cmd.cmdButton.toLowerCase();
         const isView =
@@ -69,13 +69,13 @@ export function InquiryRowActions({
           btnLower.includes("auth") || btnLower.includes("check") || btnLower.includes("approve");
 
         const icon = isView ? (
-          <Eye className="size-3" />
+          <Eye className="size-2.5" />
         ) : isEdit ? (
-          <Pencil className="size-3" />
+          <Pencil className="size-2.5" />
         ) : isAuth ? (
-          <ShieldCheck className="size-3 text-amber-500" />
+          <ShieldCheck className="size-2.5 text-amber-500" />
         ) : (
-          <Play className="size-3" />
+          <Play className="size-2.5" />
         );
 
         const executable = resolveCommandTemplate(cmd.cmdFor, row);
@@ -89,13 +89,13 @@ export function InquiryRowActions({
                   onClick={() => executeInquiryCommand(cmd, row, cmdFromInternal, cmdFieldName)}
                   data-cbs-command={executable}
                   data-cbs-link-handled="true"
-                  className="inline-flex items-center justify-center size-5.5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center size-5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                 >
                   {icon}
                 </button>
               }
             />
-            <TooltipContent className="text-xs font-medium">{cmd.cmdButton}</TooltipContent>
+            <TooltipContent className="text-[11px] font-medium">{cmd.cmdButton}</TooltipContent>
           </Tooltip>
         );
       })}

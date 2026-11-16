@@ -108,11 +108,11 @@ export function ActionItem({
             e.stopPropagation();
             onRemove();
           }}
-          className="text-muted-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer shrink-0"
+          className="text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 rounded p-1 transition-colors cursor-pointer shrink-0"
           title="Delete action"
           aria-label="Delete action"
         >
-          <Trash2 className="size-3" />
+          <Trash2 className="size-3.5" />
         </button>
       )}
     </div>

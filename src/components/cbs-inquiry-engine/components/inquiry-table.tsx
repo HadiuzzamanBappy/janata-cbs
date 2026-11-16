@@ -18,8 +18,8 @@ export function InquiryEmptyState({
   message = "No matching records found.",
 }: InquiryEmptyStateProps) {
   return (
-    <div className="flex-1 min-h-50 flex flex-col items-center justify-center p-6 text-center bg-muted/10">
-      <p className="text-xs text-muted-foreground font-mono">{message}</p>
+    <div className="flex-1 min-h-30 flex flex-col items-center justify-center p-3 text-center bg-muted/10">
+      <p className="text-[11px] text-muted-foreground font-mono">{message}</p>
     </div>
   );
 }
@@ -38,8 +38,6 @@ export interface InquiryTableProps {
   cmdFromInternal?: boolean;
   cmdFieldName?: string;
   className?: string;
-  onViewRecord?: (recordId: string, row: InquiryRow) => void;
-  onEditRecord?: (recordId: string, row: InquiryRow) => void;
 }
 
 export function InquiryTable({
@@ -89,22 +87,15 @@ export function InquiryTable({
   const { sortState, handleSort, sortedRows } = useInquirySort(rows);
 
   // 4. Pagination calculation
-  const {
-    currentPage,
-    pageSize,
-    totalPages,
-    totalCount,
-    handlePageChange,
-    handlePageSizeChange,
-    paginatedRows,
-  } = useInquiryPagination({
-    rows: sortedRows,
-    controlledPageSize,
-    onPageSizeChange,
-    controlledPage,
-    onPageChange,
-    totalRows,
-  });
+  const { currentPage, pageSize, totalPages, totalCount, handlePageChange, paginatedRows } =
+    useInquiryPagination({
+      rows: sortedRows,
+      controlledPageSize,
+      onPageSizeChange,
+      controlledPage,
+      onPageChange,
+      totalRows,
+    });
 
   const displayRows = showPagination ? paginatedRows : sortedRows;
   const showActionsColumn = commands.length > 0 || Boolean(cmdFromInternal && cmdFieldName);
@@ -118,7 +109,7 @@ export function InquiryTable({
             <InquiryEmptyState />
           ) : (
             <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full caption-bottom text-sm">
+              <table className="w-full caption-bottom text-[11px]">
                 <InquiryTableHeader
                   isMultiRow={isMultiRow}
                   sortedRowNumbers={sortedRowNumbers}
@@ -160,7 +151,6 @@ export function InquiryTable({
             pageSize={pageSize}
             totalCount={totalCount}
             onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
           />
         )}
       </div>

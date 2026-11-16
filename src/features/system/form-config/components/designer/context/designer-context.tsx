@@ -38,6 +38,7 @@ export function DesignerProvider({
   onUngroupSection,
   onMergeTabGroup,
   disabled,
+  validationErrors = [],
 }: DesignerProviderProps) {
   const [isPaletteOpen, setIsPaletteOpen] = React.useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = React.useState(false);
@@ -67,6 +68,23 @@ export function DesignerProvider({
   const usedFieldNames = React.useMemo(() => {
     return new Set(sections.flatMap((s) => (s.fields || []).map((f) => f.NAME)));
   }, [sections]);
+
+  const getSectionErrors = React.useCallback(
+    (sectionId: string) => {
+      return validationErrors.filter((e) => e.tab === "formDesigner" && e.sectionId === sectionId);
+    },
+    [validationErrors],
+  );
+
+  const getFieldErrors = React.useCallback(
+    (fieldId: string) => {
+      return validationErrors.filter(
+        (e) =>
+          e.tab === "formDesigner" && (e.fieldId === fieldId || e.fieldKey.endsWith(`.${fieldId}`)),
+      );
+    },
+    [validationErrors],
+  );
 
   const togglePalette = React.useCallback(() => {
     setIsPaletteOpen((prev) => !prev);
@@ -184,6 +202,9 @@ export function DesignerProvider({
       activeField,
       usedFieldNames,
       disabled,
+      validationErrors,
+      getSectionErrors,
+      getFieldErrors,
       isCompact,
       isPaletteOpen,
       isInspectorOpen,
@@ -224,6 +245,9 @@ export function DesignerProvider({
       activeField,
       usedFieldNames,
       disabled,
+      validationErrors,
+      getSectionErrors,
+      getFieldErrors,
       isCompact,
       isPaletteOpen,
       isInspectorOpen,

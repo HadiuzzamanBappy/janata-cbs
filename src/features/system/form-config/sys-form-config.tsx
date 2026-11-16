@@ -89,6 +89,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
         id: "formDesigner",
         label: "Form Designer",
         icon: <Palette className="size-3 text-muted-foreground" />,
+        badgeCount: validationErrors.filter((e) => e.tab === "formDesigner").length || undefined,
         content: (
           <FcDesignerTab
             formTitle={formData.title}
@@ -96,6 +97,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
             authNumber={formData.authNumber}
             rootLayout={formData.frmElements?.layout ?? "horizontal"}
             rootDensity={formData.frmElements?.density ?? "compact"}
+            validationErrors={validationErrors}
             onUpdateFormConfig={(patch) => {
               setFormData((prev) => ({
                 ...prev,

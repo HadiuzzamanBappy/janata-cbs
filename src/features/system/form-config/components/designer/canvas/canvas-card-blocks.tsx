@@ -9,7 +9,15 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronDown, ChevronRight, GripVertical, Layers, Trash2, Ungroup } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  GripVertical,
+  Layers,
+  Trash2,
+  Ungroup,
+} from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -159,6 +167,8 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
   const isCollapsed = Boolean(section.collapsible && section.isCollapsed);
   const isContainerExplicitlySelected = isSecSelected && !selectedFieldId;
   const config = section.containerConfig || {};
+  const sectionErrors = context.getSectionErrors(section.id);
+  const hasErrors = sectionErrors.length > 0;
 
   const bg =
     config.background ??
@@ -171,13 +181,15 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
       ? config.showHeader
       : Boolean(section.title || section.collapsible || config.badge) && config.variant !== "ghost";
 
-  const borderClass = !isBordered
-    ? "border border-dashed border-border/40"
-    : config.variant === "bordered"
-      ? "border-2 border-border"
-      : config.variant === "subtle" || bg === "subtle"
-        ? "border border-border/40"
-        : "border border-border/80";
+  const borderClass = hasErrors
+    ? "border border-destructive/60"
+    : !isBordered
+      ? "border border-dashed border-border/40"
+      : config.variant === "bordered"
+        ? "border-2 border-border"
+        : config.variant === "subtle" || bg === "subtle"
+          ? "border border-border/40"
+          : "border border-border/80";
 
   const bgClass =
     bg === "none"
@@ -260,6 +272,16 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
               <span className="text-xs font-semibold text-foreground uppercase tracking-wider shrink-0 whitespace-nowrap">
                 {section.title || "Untitled Card"}
               </span>
+              {hasErrors && (
+                <Badge
+                  variant="destructive"
+                  className="text-[9px] h-3.5 px-1 rounded-xs font-mono ml-1 shrink-0"
+                  title={sectionErrors.map((e) => e.message).join("\n")}
+                >
+                  <AlertTriangle className="size-2.5 mr-0.5" />
+                  {sectionErrors.length}
+                </Badge>
+              )}
               {section.description && (
                 <span
                   className="text-[11px] text-muted-foreground/60 font-normal truncate min-w-0"

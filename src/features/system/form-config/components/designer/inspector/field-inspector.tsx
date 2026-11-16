@@ -39,6 +39,7 @@ export interface FieldInspectorProps {
   baseType?: "TEXT" | "NUMBER" | "DATE";
   onUpdateField: (patch: Partial<FormElement>) => void;
   disabled?: boolean;
+  errors?: Record<string, string>;
 }
 
 type FieldInspectorTab = "basics" | "widget" | "rules";
@@ -66,6 +67,7 @@ export function FieldInspector({
   baseType: _baseType,
   onUpdateField,
   disabled = false,
+  errors = {},
 }: FieldInspectorProps) {
   const [activeTab, setActiveTab] = React.useState<FieldInspectorTab>("basics");
 
@@ -231,6 +233,7 @@ export function FieldInspector({
             frmElements={{ sections: [generalPropertiesSection] }}
             values={field as Record<string, unknown>}
             onChange={handleFieldPropertyChange}
+            errors={errors}
             disabled={disabled}
             mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
             hideHeader

@@ -103,6 +103,27 @@ export function PropertyInspector(props: PropertyInspectorProps) {
 
   const baseType = resolveBaseType(matchedModelProp?.TYPE || selectedField?.TYPE);
 
+  const fieldErrorMap = React.useMemo(() => {
+    if (!selectedField || !ctx) return {};
+    const fieldId = selectedField.SN || selectedField.NAME;
+    const errors = ctx.getFieldErrors(fieldId);
+    const map: Record<string, string> = {};
+    for (const err of errors) {
+      map[err.fieldKey] = err.message;
+    }
+    return map;
+  }, [selectedField, ctx]);
+
+  const sectionErrorMap = React.useMemo(() => {
+    if (!selectedSection || !ctx) return {};
+    const errors = ctx.getSectionErrors(selectedSection.id);
+    const map: Record<string, string> = {};
+    for (const err of errors) {
+      map[err.fieldKey] = err.message;
+    }
+    return map;
+  }, [selectedSection, ctx]);
+
   const header = selectedField
     ? {
         icon: <Type className="size-3.5 text-primary shrink-0" />,
@@ -157,12 +178,14 @@ export function PropertyInspector(props: PropertyInspectorProps) {
             baseType={baseType}
             onUpdateField={onUpdateField}
             disabled={disabled}
+            errors={fieldErrorMap}
           />
         ) : selectedSection ? (
           <ContainerInspector
             section={selectedSection}
             onUpdateSection={onUpdateSection}
             disabled={disabled}
+            errors={sectionErrorMap}
           />
         ) : (
           <RootCanvasInspector

@@ -15,13 +15,9 @@ import { toast } from "@/components/ui/toast";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
-import {
-  type CbsWirePayload,
-  type ModelConfigRecord,
-  modelConfigRecordSchema,
-} from "@/lib/data-schemas";
+import type { CbsWirePayload, ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
+import { type ModelValidationErrorItem, validateModelConfig } from "./mc-validation";
 
 export interface UseMcActionsParams {
   formData: ModelConfigRecord;
@@ -86,12 +82,8 @@ export function useMcActions({
   );
 
   const handleSubmit = React.useCallback(async () => {
-    const validation = modelConfigRecordSchema.safeParse(formData);
-    if (!validation.success) {
-      const errors = mapZodIssuesToValidationErrors(
-        validation.error.issues,
-        formData.PROPERTIES || [],
-      );
+    const errors = validateModelConfig(formData);
+    if (errors.length > 0) {
       setValidationErrors(errors);
       toast.add({
         title: "Validation Issues Found",
@@ -102,8 +94,8 @@ export function useMcActions({
     }
 
     setValidationErrors([]);
-    const targetId = recordId || formData.TABLENAME || validation.data.TABLENAME || "";
-    const cleanData = sanitizeModelConfigRecord(validation.data) || validation.data;
+    const targetId = recordId || formData.TABLENAME || "";
+    const cleanData = sanitizeModelConfigRecord(formData) || formData;
     await executeMutation(
       cbs.modelConfig.save(cleanData as unknown as Record<string, unknown>, {
         recordId: targetId,

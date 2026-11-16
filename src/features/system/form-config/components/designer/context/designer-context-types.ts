@@ -1,4 +1,5 @@
 import type * as React from "react";
+import type { FormConfigValidationError } from "@/features/system/form-config/hooks/fc-validation";
 import type { FormElement, FormSection } from "@/lib/data-schemas/form-engine-schema";
 import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
 import type { AddSectionFn } from "../canvas/canvas-types";
@@ -25,6 +26,9 @@ export interface DesignerContextValue {
   activeField: FormElement | null;
   usedFieldNames: Set<string>;
   disabled?: boolean;
+  validationErrors?: FormConfigValidationError[];
+  getSectionErrors: (sectionId: string) => FormConfigValidationError[];
+  getFieldErrors: (fieldId: string) => FormConfigValidationError[];
   // Responsive / Drawer state
   isCompact: boolean;
   isPaletteOpen: boolean;
@@ -122,4 +126,5 @@ export interface DesignerProviderProps {
   onUngroupSection?: (id: string) => void;
   onMergeTabGroup?: (sourceGroupId: string, targetGroupId: string) => void;
   disabled?: boolean;
+  validationErrors?: FormConfigValidationError[];
 }

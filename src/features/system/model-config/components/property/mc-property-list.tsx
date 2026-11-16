@@ -169,6 +169,7 @@ export function McPropertyList({
                   <button
                     type="button"
                     onClick={() => onSelectSN(prop.SN)}
+                    data-node-id={prop.SN}
                     className="flex items-center gap-2 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
                   >
                     {/* Sequence Number Badge */}

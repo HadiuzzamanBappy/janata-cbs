@@ -11,9 +11,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbsQueries } from "@/lib/cbs-client";
-import { type ModelConfigRecord, modelConfigRecordSchema } from "@/lib/data-schemas";
+import type { ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { type ModelValidationErrorItem, mapZodIssuesToValidationErrors } from "./mc-validation";
+import { type ModelValidationErrorItem, validateModelConfig } from "./mc-validation";
 import { useMcActions } from "./use-mc-actions";
 import { INITIAL_MODEL, useModelConfigPersistence } from "./use-mc-persistence";
 import { useMcPropertyOps } from "./use-mc-property-ops";
@@ -114,12 +114,8 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   );
 
   const handleValidate = React.useCallback((): boolean => {
-    const validation = modelConfigRecordSchema.safeParse(formData);
-    if (!validation.success) {
-      const errors = mapZodIssuesToValidationErrors(
-        validation.error.issues,
-        formData.PROPERTIES || [],
-      );
+    const errors = validateModelConfig(formData);
+    if (errors.length > 0) {
       setValidationErrors(errors);
       toast.add({
         title: "Validation Issues Found",

@@ -8,6 +8,7 @@
 
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
@@ -89,6 +90,8 @@ export function TabGroupContainer({
           const isActive = tab.id === currentActiveId;
           const config = tab.containerConfig || {};
           const isPills = tabVariant === "pills";
+          const tabFields = tab.fields || [];
+          const tabErrorCount = tabFields.filter((f) => errors[f.NAME]).length;
 
           const buttonClass = isPills
             ? cn(
@@ -112,6 +115,14 @@ export function TabGroupContainer({
               className={buttonClass}
             >
               <span>{tab.groupTitle || tab.title || "Tab"}</span>
+              {tabErrorCount > 0 && (
+                <Badge
+                  variant="destructive"
+                  className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-xs shrink-0"
+                >
+                  {tabErrorCount}
+                </Badge>
+              )}
               {config.badge && (
                 <span
                   className={cn(

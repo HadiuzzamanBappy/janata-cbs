@@ -2,12 +2,13 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Minus } from "lucide-react";
+import { AlertTriangle, GripVertical, Minus } from "lucide-react";
 import type * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import { useOptionalDesignerContext } from "../context/designer-context";
 
 export interface CanvasFieldCardProps {
   field: FormElement;
@@ -31,6 +32,9 @@ export function CanvasFieldCard({
   disabled,
 }: CanvasFieldCardProps) {
   const fieldId = String(field.SN || field.NAME || "field");
+  const ctx = useOptionalDesignerContext();
+  const fieldErrors = ctx ? ctx.getFieldErrors(fieldId) : [];
+  const hasErrors = fieldErrors.length > 0;
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: fieldId,
@@ -61,8 +65,12 @@ export function CanvasFieldCard({
       className={cn(
         "rounded-md border px-2.5 py-1.5 flex items-center justify-between text-xs transition-all bg-card/90 hover:border-primary/50 select-none",
         isSelected
-          ? "border-primary ring-1 ring-primary/40 bg-primary/10 shadow-xs"
-          : "border-border/70",
+          ? hasErrors
+            ? "border-destructive ring-1 ring-destructive/40 bg-destructive/10 shadow-xs"
+            : "border-primary ring-1 ring-primary/40 bg-primary/10 shadow-xs"
+          : hasErrors
+            ? "border-destructive/60 bg-destructive/5 hover:border-destructive"
+            : "border-border/70",
         isDragging && "shadow-md opacity-40",
         className,
       )}
@@ -92,9 +100,18 @@ export function CanvasFieldCard({
             {field.REQUIRED && (
               <span className="text-destructive font-bold text-xs shrink-0">*</span>
             )}
+            {hasErrors && (
+              <span
+                className="flex items-center gap-0.5 text-destructive text-[10px] font-semibold shrink-0"
+                title={fieldErrors.map((e) => e.message).join("\n")}
+              >
+                <AlertTriangle className="size-3 text-destructive" />
+                <span>{fieldErrors.length}</span>
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground font-mono min-w-0 overflow-hidden">
-            <span className="truncate max-w-[120px]">{field.NAME}</span>
+            <span className="truncate max-w-30">{field.NAME}</span>
             <span className="shrink-0">&bull;</span>
             <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase shrink-0">
               {field.TYPE}

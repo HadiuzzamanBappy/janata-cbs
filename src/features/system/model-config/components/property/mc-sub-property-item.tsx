@@ -51,6 +51,7 @@ export function McSubPropertyItem({
       <button
         type="button"
         onClick={() => onSelect(sub.SN)}
+        data-node-id={sub.SN}
         className="flex items-center gap-1.5 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
       >
         <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-muted text-muted-foreground shrink-0">

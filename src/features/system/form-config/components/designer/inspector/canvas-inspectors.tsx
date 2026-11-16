@@ -72,12 +72,14 @@ export interface ContainerInspectorProps {
   section: FormSection;
   onUpdateSection: (patch: Partial<FormSection>) => void;
   disabled?: boolean;
+  errors?: Record<string, string>;
 }
 
 export function ContainerInspector({
   section,
   onUpdateSection,
   disabled = false,
+  errors = {},
 }: ContainerInspectorProps) {
   const isTab = section.containerType === "tab";
   const inspectorSections = isTab ? TAB_PROPERTIES_SECTIONS : [CONTAINER_PROPERTIES_SECTION];
@@ -120,6 +122,7 @@ export function ContainerInspector({
         frmElements={{ sections: inspectorSections }}
         values={normalizedValues}
         onChange={handleSectionPropertyChange}
+        errors={errors}
         disabled={disabled}
         mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
         hideHeader={!isTab}

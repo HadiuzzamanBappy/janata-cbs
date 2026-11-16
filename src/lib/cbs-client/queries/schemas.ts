@@ -139,7 +139,8 @@ export const schemaQueries = {
           throw new Error(res.message || `Failed to fetch inquiry schema for "${cleanCmd}"`);
         }
         const parsedRecord = parseInquiryConfig(res.data);
-        return parsedRecord.success ? parsedRecord.data : (res.data as InquiryConfigRecord);
+        if (!parsedRecord.success) throw new Error(parsedRecord.error);
+        return parsedRecord.data;
       },
     });
   },

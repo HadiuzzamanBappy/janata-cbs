@@ -49,7 +49,16 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
         schema.INQInfo?.fixedSelection,
         branchCodeToFilter,
       );
-      const targetControl = schema.INQInfo?.controllerName?.trim() || commandCode;
+      // INQ executes against the configured target controller — never the raw command text
+      const targetControl = schema.INQInfo?.controllerName?.trim();
+      if (!targetControl) {
+        toast.add({
+          title: "Inquiry Not Configured",
+          description: `"${command}" has no target controller (INQInfo.controllerName). Fix it in the Inquiry Designer.`,
+          type: "destructive",
+        });
+        return;
+      }
       const isPaginationEnabled = schema.INQInfo?.showPagination !== false;
       const queryPerPage = isPaginationEnabled ? pageSize || 30 : 1000;
 
@@ -64,6 +73,15 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
           }),
           { silent: true },
         );
+
+        if (queryRes.status !== "SUCCESS") {
+          toast.add({
+            title: "Query Failed",
+            description: queryRes.message || `Core rejected inquiry on ${targetControl}`,
+            type: "destructive",
+          });
+          return;
+        }
 
         const dataset = parseInquiryRecords(queryRes.data);
 
@@ -89,7 +107,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
     [
       schema,
       currentBranch,
-      commandCode,
+      command,
       pageSize,
       setCurrentCriteria,
       setFilteredRows,

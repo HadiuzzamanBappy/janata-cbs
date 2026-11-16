@@ -441,6 +441,84 @@ async function runSuite() {
       sanitizedInqConfig?.INQDef[0]?.dataPassable === false,
   );
 
+  // Shape captured from the live core (GET INQUIRY S GET.EMP.INFO): properties keyed by model SN
+  const snKeyedInquiryPayload = {
+    recordId: "GET.EMP.INFO",
+    INQInfo: {
+      "1_1": "Get User Request List",
+      "1_2": "",
+      "1_3": "30",
+      "1_4": true,
+      "1_5": true,
+      "1_6": false,
+      "1_7": "DFR",
+      "1_8": "BANKID",
+      "1_9": "",
+      "1_10": "",
+      "1_11": "finxurm",
+      "1_12": true,
+      "1_13": "actions",
+    },
+    INQSelectField: [
+      {
+        "2_1": "bankId",
+        "2_2": "text",
+        "2_3": "EQ",
+        "2_4": "EQ",
+        "2_5": "Bank Id",
+        "2_6": "",
+        "2_7": false,
+      },
+    ],
+    INQDef: [
+      {
+        "3_1": "employeeName",
+        "3_2": "DC",
+        "3_3": "",
+        "3_4": "1,2",
+        "3_5": "150,L",
+        "3_6": "Emp Name",
+        "3_7": true,
+      },
+    ],
+    INQCmds: [{ "4_1": "USERS S recordId", "4_2": "Edit" }],
+  };
+  const snParsed = parseInquiryConfig(snKeyedInquiryPayload);
+  const snRec = snParsed.success ? snParsed.data : undefined;
+
+  recordTest(
+    "7.2. Inquiry Config Parser: Resolves core SN-keyed properties (1_x/2_x/3_x/4_x) to canonical names",
+    { controller: "1_8", inqType: "1_7", servicePath: "1_11", column: "3_1" },
+    {
+      parseSuccess: snParsed.success,
+      controllerName: snRec?.INQInfo.controllerName,
+      inqType: snRec?.INQInfo.inqType,
+      inqServicePath: snRec?.INQInfo.inqServicePath,
+      showPagination: snRec?.INQInfo.showPagination,
+      cmdFieldName: snRec?.INQInfo.cmdFieldName,
+      filter: snRec?.INQSelectField[0],
+      column: snRec?.INQDef[0],
+      command: snRec?.INQCmds[0],
+    },
+    snParsed.success === true &&
+      snRec?.INQInfo.controllerName === "BANKID" &&
+      snRec?.INQInfo.inqType === "DFR" &&
+      snRec?.INQInfo.inqServicePath === "finxurm" &&
+      snRec?.INQInfo.perpageItem === "30" &&
+      snRec?.INQInfo.showPagination === true &&
+      snRec?.INQInfo.cmdFromInternal === true &&
+      snRec?.INQInfo.cmdFieldName === "actions" &&
+      snRec?.INQSelectField[0]?.selectFieldOperatorFixed === "EQ" &&
+      snRec?.INQSelectField[0]?.selectFieldDisplay === "Bank Id" &&
+      snRec?.INQDef[0]?.fieldName === "employeeName" &&
+      snRec?.INQDef[0]?.fieldDisplay === "Emp Name" &&
+      snRec?.INQDef[0]?.fieldLength === "150,L" &&
+      snRec?.INQDef[0]?.dataPassable === true &&
+      snRec?.INQCmds[0]?.cmdFor === "USERS S recordId" &&
+      snRec?.INQCmds[0]?.cmdButton === "Edit" &&
+      !Object.keys(snRec?.INQInfo ?? {}).some((k) => /^\d+_\d+$/.test(k)),
+  );
+
   // ----------------------------------------------------------------------------
   // 8. Navigation Menu Hierarchy Tree Sanitizer & Serializer
   // ----------------------------------------------------------------------------

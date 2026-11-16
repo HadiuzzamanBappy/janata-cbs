@@ -94,11 +94,15 @@ export function resolveCacheDescriptor(
     return null;
   }
 
-  // 2. Must be a read intent (SEE or GET)
+  // 2. Maintenance reads (I/A/H/R/D) may resolve the pending INAU copy, and the cache key
+  //    carries no record function — caching them would leak drafts into live SEE reads.
+  if (recFunc && recFunc !== CbsRecordFunction.SEE) return null;
+
+  // 3. Must be a read intent (SEE or GET)
   const isRead = recFunc === CbsRecordFunction.SEE || reqType === CbsRequestType.GET;
   if (!isRead) return null;
 
-  // 3. Resolve canonical domain control table
+  // 4. Resolve canonical domain control table
   const ctrl = (target.controlName || "").toUpperCase().trim();
   const policy = SPEC_POLICIES[ctrl];
   if (!policy) return null;

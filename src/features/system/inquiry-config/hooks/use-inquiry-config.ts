@@ -1,10 +1,9 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import { cbsQueries } from "@/lib/cbs-client";
-import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import { cbs } from "@/lib/cbs-client";
+import { parseInquiryConfig } from "@/lib/data-parsers";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type InquiryValidationErrorItem, validateInquiryConfig } from "./ic-validation";
 import { useIcActionOps } from "./use-ic-action-ops";
@@ -31,7 +30,6 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     resolvedInitialMode,
   } = useIcPersistence(initialId, tabId);
 
-  const queryClient = useQueryClient();
   const filterOps = useIcFilterOps(setFormData);
   const columnOps = useIcColumnOps(setFormData);
   const actionOps = useIcActionOps(setFormData);
@@ -47,46 +45,64 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
     setRawRecord(undefined);
   }, [reset]);
 
-  // 2. Initialize new inquiry draft
+  // 2. Initialize new inquiry draft (the inquiry ID is NOT the target controller)
   const initDraft = React.useCallback(
     (cleanId: string) => {
-      const draft: InquiryConfigRecord = {
-        ...INITIAL_INQUIRY_CONFIG,
-        INQInfo: {
-          ...INITIAL_INQUIRY_CONFIG.INQInfo,
-          description: "",
-          controllerName: cleanId.replace(/[.-]/g, "_").toUpperCase(),
-        },
-      };
-      hydrate(draft);
+      hydrate({ ...INITIAL_INQUIRY_CONFIG, INQInfo: { ...INITIAL_INQUIRY_CONFIG.INQInfo } });
+      setRawRecord(undefined);
       setRecordId(cleanId);
       setMode(CbsRecordFunction.INPUT);
       setValidationErrors([]);
+      toast.add({
+        title: "New Inquiry Draft",
+        description: `#${cleanId} does not exist yet. Configure it and commit to create.`,
+        type: "info",
+      });
     },
     [hydrate, setRecordId, setMode],
   );
 
-  // 3. Load record from backend or fixtures
+  // 3. Load the maintenance record (bypasses the runtime schema cache).
+  // recordFunction travels on the wire so the core serves the INAU copy for I/A.
   const loadRecord = React.useCallback(
     async (idToLoad: string, targetMode: CbsScreenMode = CbsRecordFunction.SEE) => {
       const cleanId = (idToLoad || "").trim().toUpperCase();
       if (!cleanId) return;
       setLoading(true);
       try {
-        const record = await queryClient.fetchQuery(cbsQueries.inquiryConfig.schema(cleanId));
-        if (record) {
-          setRawRecord(record);
-          hydrate(record);
+        const recordFunction = targetMode === "IDLE" ? CbsRecordFunction.SEE : targetMode;
+        const res = await cbs.send<unknown>(cbs.inquiryConfig.get(cleanId, { recordFunction }), {
+          silent: true,
+        });
+
+        if (res.status === "SUCCESS" && res.data) {
+          const parsed = parseInquiryConfig(res.data);
+          if (!parsed.success) {
+            toast.add({
+              title: "Invalid Inquiry Record",
+              description: parsed.error,
+              type: "error",
+            });
+            return;
+          }
+          setRawRecord(res.data);
+          hydrate(parsed.data);
           setRecordId(cleanId);
           setMode(targetMode);
           setValidationErrors([]);
-        } else {
-          toast.add({
-            title: "Record Not Found",
-            description: `Inquiry configuration "${cleanId}" does not exist in the database.`,
-            type: "error",
-          });
+          return;
         }
+
+        if (res.statusCode === 404 && targetMode === CbsRecordFunction.INPUT) {
+          initDraft(cleanId);
+          return;
+        }
+
+        toast.add({
+          title: res.statusCode === 404 ? "Record Not Found" : "Load Failed",
+          description: res.message || `Inquiry configuration "${cleanId}" could not be loaded.`,
+          type: "error",
+        });
       } catch (err: unknown) {
         toast.add({
           title: "Network Error",
@@ -97,7 +113,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
         setLoading(false);
       }
     },
-    [hydrate, queryClient, setMode, setRecordId],
+    [hydrate, initDraft, setMode, setRecordId],
   );
 
   // 4. Initial auto-load

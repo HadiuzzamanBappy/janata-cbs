@@ -1,4 +1,5 @@
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
+import { sanitizeInquiryConfigRecord } from "@/lib/data-parsers";
 import { type InquiryConfigRecord, inquiryConfigRecordSchema } from "@/lib/data-schemas";
 
 export type InquiryConfigTabKey =
@@ -20,8 +21,13 @@ export interface InquiryValidationErrorItem extends CbsScreenValidationError<Inq
 /**
  * Validates the Inquiry Configuration record across all tabs (General, Selection, Table)
  * returning user-navigable error items aligned with CbsScreenScaffold and Model Config standards.
+ *
+ * Validation runs on the sanitized record — the exact shape committed on the wire — so gaps the
+ * serializer fills (blank label → field name, blank type/operator → text/EQ, orientation,
+ * page size) never block a save. Only genuine definition errors surface.
  */
-export function validateInquiryConfig(formData: InquiryConfigRecord): InquiryValidationErrorItem[] {
+export function validateInquiryConfig(draft: InquiryConfigRecord): InquiryValidationErrorItem[] {
+  const formData = sanitizeInquiryConfigRecord(draft) ?? draft;
   const issues: InquiryValidationErrorItem[] = [];
   const seenKeys = new Set<string>();
 

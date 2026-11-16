@@ -41,7 +41,7 @@ export function InquiryPreview({
   const [loading, setLoading] = React.useState(false);
   const [criteria, setCriteria] = React.useState<FilterCriteriaMap>({});
 
-  const targetController = config.INQInfo?.controllerName?.trim() || "ACCOUNT";
+  const targetController = config.INQInfo?.controllerName?.trim() || "";
 
   // Initialize criteria from select fields
   React.useEffect(() => {
@@ -59,6 +59,15 @@ export function InquiryPreview({
   // Execute live backend query simulation
   const executeQuery = React.useCallback(
     async (critMap: FilterCriteriaMap, signal?: AbortSignal) => {
+      if (!targetController) {
+        toast.add({
+          title: "No Target Controller",
+          description: "Set the Target Table / Controller on the General tab to preview.",
+          type: "warning",
+        });
+        setRows([]);
+        return;
+      }
       setLoading(true);
       const branchCodeToFilter = config.INQInfo?.showBranchWise ? "1001" : null;
       const queryString = serializeCriteriaToWire(
@@ -79,6 +88,10 @@ export function InquiryPreview({
           }),
           { silent: true, signal },
         );
+
+        if (queryRes.status !== "SUCCESS") {
+          throw new Error(queryRes.message || `Core rejected inquiry on ${targetController}`);
+        }
 
         const dataset = parseInquiryRecords(queryRes.data);
         setRows(dataset);

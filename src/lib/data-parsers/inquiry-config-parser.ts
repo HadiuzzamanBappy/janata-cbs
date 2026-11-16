@@ -1,4 +1,5 @@
 import {
+  type INQCmd,
   type INQDef,
   type INQInfo,
   type INQSelectField,
@@ -22,6 +23,83 @@ function cleanWireBoolean(val: unknown): boolean {
   return val === true || val === "true" || val === "Y" || val === 1 || val === "1";
 }
 
+/* -------------------------------------------------------------------------- */
+/* Core SN-Keyed Wire Format                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The CBS core may return INQUIRY records keyed by the INQUIRY model's property serial numbers
+ * ("1_8", "3_1") instead of property names. Each section's SN prefix and positional field order
+ * below mirror the core's INQUIRY model (index i ↔ SN `${prefix}_${i + 1}`).
+ */
+const INQUIRY_SN_LAYOUT = {
+  INQInfo: {
+    prefix: "1",
+    fields: [
+      "description",
+      "pageOrientation",
+      "perpageItem",
+      "showSerial",
+      "showPagination",
+      "showBranchWise",
+      "inqType",
+      "controllerName",
+      "rptControllerName",
+      "fixedSelection",
+      "inqServicePath",
+      "cmdFromInternal",
+      "cmdFieldName",
+    ] satisfies (keyof INQInfo)[],
+  },
+  INQSelectField: {
+    prefix: "2",
+    fields: [
+      "selectFieldName",
+      "selectFieldType",
+      "selectFieldOperator",
+      "selectFieldOperatorFixed",
+      "selectFieldDisplay",
+      "selectFieldValue",
+      "selectFieldRequired",
+    ] satisfies (keyof INQSelectField)[],
+  },
+  INQDef: {
+    prefix: "3",
+    fields: [
+      "fieldName",
+      "fieldType",
+      "fieldFunc",
+      "fieldRowCol",
+      "fieldLength",
+      "fieldDisplay",
+      "dataPassable",
+    ] satisfies (keyof INQDef)[],
+  },
+  INQCmds: {
+    prefix: "4",
+    fields: ["cmdFor", "cmdButton"] satisfies (keyof INQCmd)[],
+  },
+} as const;
+
+type InquirySnSection = keyof typeof INQUIRY_SN_LAYOUT;
+
+/** Resolves SN-keyed properties to canonical names; named keys always take precedence. */
+function resolveSnKeys(raw: unknown, section: InquirySnSection): Record<string, unknown> {
+  const rec = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const { prefix, fields } = INQUIRY_SN_LAYOUT[section];
+  const resolved: Record<string, unknown> = { ...rec };
+
+  fields.forEach((name, idx) => {
+    const snKey = `${prefix}_${idx + 1}`;
+    if (resolved[name] === undefined && snKey in rec) {
+      resolved[name] = rec[snKey];
+    }
+    delete resolved[snKey];
+  });
+
+  return resolved;
+}
+
 function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null {
   if (!target || typeof target !== "object") return null;
 
@@ -34,10 +112,10 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
     rec = rec.record as Record<string, unknown>;
   }
 
-  const rawInfo = (rec.INQInfo && typeof rec.INQInfo === "object" ? rec.INQInfo : rec) as Record<
-    string,
-    unknown
-  >;
+  const rawInfo = resolveSnKeys(
+    rec.INQInfo && typeof rec.INQInfo === "object" ? rec.INQInfo : rec,
+    "INQInfo",
+  );
 
   const inqInfo: Record<string, unknown> = {
     controllerName: cleanWireString(rawInfo.controllerName),
@@ -58,7 +136,7 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
 
   const rawSelectFields = Array.isArray(rec.INQSelectField) ? rec.INQSelectField : [];
   const inqSelectField = rawSelectFields.map((f: unknown) => {
-    const rawF = (f && typeof f === "object" ? f : {}) as Record<string, unknown>;
+    const rawF = resolveSnKeys(f, "INQSelectField");
     const rawType = cleanWireString(rawF.selectFieldType, "text").toLowerCase();
     const cleanType = ["text", "number", "date", "select"].includes(rawType) ? rawType : "text";
     return {
@@ -75,7 +153,7 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
 
   const rawDefs = Array.isArray(rec.INQDef) ? rec.INQDef : [];
   const inqDef = rawDefs.map((col: unknown) => {
-    const rawCol = (col && typeof col === "object" ? col : {}) as Record<string, unknown>;
+    const rawCol = resolveSnKeys(col, "INQDef");
     return {
       fieldName: cleanWireString(rawCol.fieldName),
       fieldDisplay: cleanWireString(rawCol.fieldDisplay) || cleanWireString(rawCol.fieldName),
@@ -89,7 +167,7 @@ function normalizeInquiryTarget(target: unknown): Record<string, unknown> | null
 
   const rawCmds = Array.isArray(rec.INQCmds) ? rec.INQCmds : [];
   const inqCmds = rawCmds.map((cmd: unknown) => {
-    const rawCmd = (cmd && typeof cmd === "object" ? cmd : {}) as Record<string, unknown>;
+    const rawCmd = resolveSnKeys(cmd, "INQCmds");
     return {
       cmdFor: cleanWireString(rawCmd.cmdFor),
       cmdButton: cleanWireString(rawCmd.cmdButton),

@@ -35,13 +35,28 @@ export function useIcActions({
   const queryClient = useQueryClient();
 
   const handleSubmit = React.useCallback(
-    async (funcCode: string = CbsRecordFunction.INPUT) => {
-      if (!handleValidate()) return false;
+    async (funcCode: CbsRecordFunction = CbsRecordFunction.INPUT) => {
+      // The record key is the inquiry ID (e.g. GET.BRANCH) — never the target controller.
+      const targetId = recordId.trim().toUpperCase();
+      if (!targetId) {
+        toast.add({
+          title: "Missing Inquiry ID",
+          description: "Enter or open an inquiry ID before performing this operation.",
+          type: "error",
+        });
+        return false;
+      }
+
+      // Only a commit (I) needs a complete definition; H parks work-in-progress,
+      // and A/D/R act on the stored record, not on the form.
+      if (funcCode === CbsRecordFunction.INPUT && !handleValidate()) return false;
 
       setSubmitting(true);
       try {
-        const sanitized = sanitizeInquiryConfigRecord(formData) || formData;
-        const targetId = recordId || formData.INQInfo?.controllerName || "NEW";
+        const sanitized = (sanitizeInquiryConfigRecord(formData) || formData) as unknown as Record<
+          string,
+          unknown
+        >;
 
         const payload =
           funcCode === CbsRecordFunction.AUTHORIZE
@@ -49,12 +64,10 @@ export function useIcActions({
             : funcCode === CbsRecordFunction.DELETE
               ? cbs.inquiryConfig.delete(targetId)
               : funcCode === CbsRecordFunction.HOLD
-                ? cbs.inquiryConfig.hold(targetId)
+                ? cbs.inquiryConfig.hold(targetId, sanitized)
                 : funcCode === CbsRecordFunction.REVERSE
                   ? cbs.inquiryConfig.reverse(targetId)
-                  : cbs.inquiryConfig.save(sanitized as unknown as Record<string, unknown>, {
-                      recordId: targetId,
-                    });
+                  : cbs.inquiryConfig.save(sanitized, { recordId: targetId });
 
         const res = await sendMutation(payload);
         if (res.status === "SUCCESS" || res.success) {

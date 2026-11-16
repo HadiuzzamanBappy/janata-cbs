@@ -31,15 +31,23 @@ export function parseGfcResponse(
   }
 
   const parsed = gfcResponseSchema.safeParse(target);
-  if (!parsed.success) {
-    return {
-      success: false,
-      error: `GFC response validation failed: ${parsed.error.message}`,
-    };
-  }
+  let modelRaw: Record<string, unknown>;
+  let rawFc: Record<string, unknown> | undefined;
 
-  const { FORMCONTROL, ...modelRaw } = parsed.data;
-  const rawFc = FORMCONTROL as Record<string, unknown> | undefined;
+  if (parsed.success) {
+    const { FORMCONTROL, ...rest } = parsed.data;
+    modelRaw = rest as Record<string, unknown>;
+    rawFc = FORMCONTROL as Record<string, unknown> | undefined;
+  } else {
+    // Resilient fallback: extract FORMCONTROL and model fields defensively
+    // so properties palette is never dropped due to non-fatal schema mismatch
+    const { FORMCONTROL, ...rest } = target;
+    modelRaw = rest;
+    rawFc = (FORMCONTROL && typeof FORMCONTROL === "object" ? FORMCONTROL : {}) as Record<
+      string,
+      unknown
+    >;
+  }
 
   const hasExistingLayout = Boolean(
     rawFc && Object.keys(rawFc).length > 0 && (rawFc.frmElements || rawFc.title),
@@ -238,6 +246,7 @@ export function sanitizeFormConfigRecord(record?: FormConfigRecord): FormConfigR
   if (record.frmElements?.sections) {
     result.frmElements = {
       ...(record.frmElements.columns ? { columns: record.frmElements.columns } : {}),
+      ...(record.frmElements.layout ? { layout: record.frmElements.layout } : {}),
       ...(record.frmElements.density ? { density: record.frmElements.density } : {}),
       sections: record.frmElements.sections.map(sanitizeFormSection),
     };

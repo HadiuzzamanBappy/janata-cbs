@@ -137,16 +137,24 @@ export const lookupQueries = {
 
         const rawList = unwrapRecordsPayload(res.data);
         return (rawList as Record<string, unknown>[])
-          .filter((r) => Boolean(r.command || r.recordId || r.id))
+          .filter((r) => Boolean(r.command || r.controlName || r.recordId || r.id))
           .map((r) => {
-            const command = String(r.command || r.recordId || r.id)
+            const canonicalCommand = String(r.controlName || r.command || r.recordId || r.id)
+              .trim()
+              .toUpperCase();
+            const recordId = String(r.recordId || r.id || "")
               .trim()
               .toUpperCase();
             const rawAliases = Array.isArray(r.aliases) ? r.aliases : [];
             const aliases = rawAliases.map((a) => String(a).trim().toUpperCase()).filter(Boolean);
+
+            if (recordId && recordId !== canonicalCommand && !aliases.includes(recordId)) {
+              aliases.push(recordId);
+            }
+
             return {
-              command,
-              title: String(r.title || command),
+              command: canonicalCommand,
+              title: String(r.title || r.description || canonicalCommand),
               aliases,
               controlAction: (r.controlAction
                 ? String(r.controlAction)

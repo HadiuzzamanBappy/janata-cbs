@@ -20,6 +20,19 @@ export function registerDynamicAliases(controls: readonly ControlCommand[]): voi
       }
     }
   }
+
+  // Guarantee that static master definitions (e.g. SC.MODEL.CONFIG, SC.MENU.DESIGN)
+  // always take precedence and cannot be overwritten by dynamic controls
+  for (const cmd of MASTER_COMMAND_DEFINITIONS) {
+    const keys = [cmd.command, ...(cmd.aliases || [])];
+    for (const key of keys) {
+      const upper = key.trim().toUpperCase();
+      CANONICAL_SCREEN_MAP.set(upper, cmd.command);
+      if (cmd.title) {
+        CANONICAL_TITLE_MAP.set(upper, cmd.title);
+      }
+    }
+  }
 }
 
 // Bootstrap with static system catalog

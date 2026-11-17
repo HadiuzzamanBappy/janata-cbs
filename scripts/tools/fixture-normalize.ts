@@ -2,12 +2,21 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { decodeProtobufValue } from "@/lib/data-parsers/protobuf-decoder";
 
-const fileArg = process.argv[2] || "branch";
+/**
+ * Decodes protobuf `Struct` payloads in a captured raw response into plain JSON.
+ *
+ * Usage:
+ *   pnpm fixture:clean [path]   # path relative to mock/db/.rawResponse (default: grpc/GRL-Branch)
+ *   pnpm fixture:clean grpc/GMC
+ */
+const RAW_RESPONSE_DIR = resolve(__dirname, "../../mock/db/.rawResponse");
+
+const fileArg = process.argv[2] || "grpc/GRL-Branch";
 const fileName = fileArg.endsWith(".json") ? fileArg : `${fileArg}.json`;
 const baseName = fileName.replace(/\.json$/, "");
 
-const sourcePath = resolve(__dirname, `../../mock/.response/${fileName}`);
-const targetPath = resolve(__dirname, `../../mock/.response/${baseName}.normalized.json`);
+const sourcePath = resolve(RAW_RESPONSE_DIR, fileName);
+const targetPath = resolve(RAW_RESPONSE_DIR, `${baseName}.normalized.json`);
 
 try {
   const rawText = readFileSync(sourcePath, "utf-8");

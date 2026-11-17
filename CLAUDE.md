@@ -1,110 +1,54 @@
 # CLAUDE.md
 
-Guidance for Claude Code (claude.ai/code) when working in this repository.
-
-This repo is co-maintained with Google Antigravity. **`AGENTS.md` and `.agents/` are the shared source of
-truth.** This file imports them and adds Claude-specific, code-verified enforcement detail. Change a rule
-in `AGENTS.md` / `.agents/`, and add only Claude-specific or verified-reality notes here.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 @AGENTS.md
 
-## Always-On Rules (`.agents/rules/`)
+## Claude Code Workflow
 
-@.agents/rules/00-core-pillars.md
-@.agents/rules/01-architecture-layers.md
-@.agents/rules/02-nextjs-and-react19.md
-@.agents/rules/03-cbs-domain-security.md
-@.agents/rules/04-styling-and-tokens.md
+- **Quality Gates:** Always run `pnpm lint:fix` and `pnpm typecheck` before ending a task, plus the `verify:*` suite for each module you changed (or `pnpm verify:all`).
+- **No test framework:** `verify:*` commands are standalone `tsx` scripts in `scripts/verify/` (not Jest or Vitest), one file per module, with no per-case filtering. To run one suite directly, use `pnpm exec tsx scripts/verify/<file>.ts`. `verify:all` runs 16 suites in order, including `verify:layers`, and hides a suite's output unless it fails.
+- **`verify:layers`** is the import-graph audit. It checks layer ranks, barrel-only imports, that `"use client"` files never pull in server modules, and that every `lib/infra-*` file starts with `import "server-only"`. It has no allowlist: fix the import.
+- **`verify:api` is not part of `verify:all`.** It calls the live backend, using `GRPC_HOST` from `.env.local`, and probes `/api/proxy`, so it needs a running core and dev server.
+- **Barrels:** import a unit through its `index.ts` (or `server.ts` for server-only exports). Some barrels sit at the sub-feature level, for example `@/features/operations/forms` and `@/features/system/menu-designer`. Never deep-import `.../components/...`. Biome's `noRestrictedImports` (in `biome.json`) catches layer inversions while you edit, and `verify:layers` catches deep imports.
 
-## 1. Quality Gates (all must pass before you say "done")
+## Local Runtime Modes
 
-```bash
-pnpm lint:fix        # Biome. Only expected output: 1 max-size warning on mock/db/.rawResponse/grpc/GRL-Branch.json
-pnpm typecheck       # tsc --noEmit (strict, noUnusedLocals/Parameters, zero `any`)
-pnpm verify:<suite>  # the suite for the module you touched (see AGENTS.md §2)
-pnpm verify:all      # 16 offline suites, including verify:layers
-```
+Copy `.env.example` to `.env.local`. `DATA_SOURCE` controls every backend connection (forms, menus, inquiries, branches, login):
 
-- Suites are standalone `tsx` scripts in `scripts/verify/`. There's no Jest/Vitest, no watch mode, no filter.
-- `verify:api` is **not** in `verify:all`. It needs `DATA_SOURCE=grpc`, a reachable core, and `pnpm dev`.
-  Offline failures of it are not regressions.
-- `verify:layers` is **strict**: any layer inversion, barrel bypass or client/server leak fails it. There is no
-  allowlist. Fix the import.
+- `DATA_SOURCE=static` + `CACHE_ENABLED=false`: offline mode with no dependencies. `isStaticMode()` in `src/lib/infra-grpc/client.ts` sends `dispatch()`/login to the in-memory simulator in `mock/` instead of gRPC.
+- `DATA_SOURCE=grpc` + `CACHE_ENABLED=true`: live Java core at `GRPC_HOST`, with Redis at `REDIS_URL`.
 
-## 2. Layer Map & Forbidden Imports (enforced by `pnpm verify:layers`)
+`mock/` lives outside `src/` and is imported as `@mock/core` (handlers, `database-router.ts`, response factory) and `@mock/db` (tables named after the real CBS tables: `SC_MODEL_CONFIG`, `SC_FORM_CONFIG`, `SC_INQUIRY_CONFIG`, `SC_MENU_TREE`, `AC_ACCOUNT`, `FT_FUNDS_TRANSFER`, …). If you add a screen or table that should work offline, add its mock table and handler, then run `pnpm verify:mock`.
 
-| Rank | Path (under `src/`)                                                        | May import | Must NEVER import                                                              |
-| ---- | -------------------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------ |
-| L0   | `types/`, `lib/data-schemas/`                                              | L0 only    | anything else internal                                                         |
-| L1   | `lib/core-config/`, `lib/core-logger/`, `lib/data-parsers/`, `lib/infra-*` | L0–L1      | `lib/cbs-*`, `lib/core-utils`, L3+                                             |
-| L2   | `lib/cbs-*`, `lib/core-utils/`                                             | L0–L2      | `@/store`, `@/hooks`, `@/components` (incl. `ui/toast`), `@/features`, `@/app` |
-| L3   | `store/`                                                                   | L0–L3      | `@/hooks`, `@/components`, `@/features`, `@/app`                               |
-| L3.5 | `hooks/` (bridges store → lib, e.g. `useCbsAccess`)                        | L0–L3.5    | `@/components`, `@/features`, `@/app`                                          |
-| L4   | `components/`                                                              | L0–L4      | `@/features`, `@/app` (static assets like `@/app/icon.png` are allowed)        |
-| L5   | `features/`                                                                | L0–L5      | `@/app`                                                                        |
-| L6   | `app/`, `proxy.ts`                                                         | all        | n/a                                                                            |
+## Request Lifecycle (client → core)
 
-- **Upward signals from `lib/`** go through the adapter bus in `src/lib/cbs-command/executor/adapter.ts`:
-  call `notifyUser({ title, description, type })` for toasts (bound to the UI by `AppNotifier` in
-  `components/layout`). Use `registerCommandAdapter` for other slots. Its disposer removes only the slots it
-  registered. Never import UI (`@/components/ui/toast`) or React hooks from `lib/`. A `lib` helper that needs
-  session or access state takes it as a parameter, as `resolveCbsActionBar({ access })` does.
-- **Barrels:** Code outside a unit imports only the unit root, or `<unit>/server` for server-only exports
-  (filesystem/backend, guarded by `import "server-only"`, e.g. `@/features/docs/server`). Units are
-  `components/<name>` (except `ui/`) and `features/<name>`. For the **feature groups** `features/operations/*`
-  and `features/system/*`, each sub-feature is the unit (e.g. `@/features/system/form-config`).
-- **Enforcement:** Biome `overrides` in `biome.json` flag layer inversions as you edit, for `@/` imports.
-  `verify:layers` is authoritative: it also catches relative imports, barrel bypasses, and client/server leaks.
-- **Server boundary:** a `"use client"` file must never import `@/lib/infra-grpc`, `@/lib/infra-redis`,
-  `@/lib/core-config/server`, `@grpc/*`, or `ioredis`. Every `lib/infra-grpc|infra-redis` module starts with
-  `import "server-only";`. Browser → backend only via `@/lib/cbs-client` → `/api/proxy`. Route handlers
-  validate bodies with `.safeParse()` from `@/lib/data-schemas`.
+1. The client uses request factories in `src/lib/cbs-client` (`payloads/`, `queries/`, `transport/`). They are TanStack Query based, and they `POST` only to `/api/proxy`.
+2. `src/app/api/proxy/route.ts`:
+   - loads the Redis session (`getSession`), returning 401 if there is none and 403 if `initLogin` is set
+   - checks the body with Zod (`cbsWirePayloadSchema.safeParse`)
+   - checks RIDASHL/Four-Eyes on the server (`verifyUserRecordAccess`)
+   - builds a `GrpcEnvelope` (branch and user come from the session, never from the client)
+   - runs a read-through cache (`resolveCacheDescriptor` → `getOrSet`) around `dispatch()` (gRPC, or mock in static mode)
+   - on success, calls `autoInvalidateOnMutation`
+   - decodes the response with `decodeProtobufValue` / `parseInquiryRecords` (for `INQ`)
+3. The other API routes are `login`, `logout`, `session`, `change-password`, and `cache` (token-guarded invalidation). `src/proxy.ts` is the Next 16 replacement for middleware and acts as the session/redirect guard. `/screen/*` is let through on purpose so popups can render an in-place lock screen.
+4. The gRPC contract is `proto/service.proto`. Stubs are generated into `src/lib/infra-grpc/generated/` with `pnpm proto:gen`; never hand-edit them.
 
-## 3. Centralization: where every constant lives
+## Screen Resolution & Workbench
 
-| Need                                       | Use                                                       | Defined in                                           |
-| ------------------------------------------ | --------------------------------------------------------- | ---------------------------------------------------- |
-| Page / API routes                          | `clientConfig.routes.*`, `clientConfig.routes.api.*`      | `src/lib/core-config/client.ts`                      |
-| Storage, cookie, broadcast keys            | `clientConfig.storage.*` (e.g. `.broadcast.workbenchBus`) | `src/lib/core-config/client.ts`                      |
-| Server env (gRPC, Redis, TTLs)             | `serverConfig.*` (server-only)                            | `src/lib/core-config/server.ts`                      |
-| Record functions (RIDASHL / mode codes)    | `CbsRecordFunction.*`                                     | `src/types/access.ts`                                |
-| Record statuses (`AU`, `UA`, …)            | `CbsRecordStatus.*`                                       | `src/types/status.ts`                                |
-| Screen modes / type                        | `CBS_IDLE_MODE`, `CBS_SCREEN_MODES`, `CbsScreenMode`      | `src/types/screen.ts`                                |
-| Status colors (success / warning / info)   | `text-success`, `bg-warning/10`, `border-info/40`, …      | `src/app/globals.css` (`--success/--warning/--info`) |
-| User notifications from `lib/`             | `notifyUser()`                                            | `src/lib/cbs-command/executor/adapter.ts`            |
-| Access decisions (`isReadOnly`, Four-Eyes) | `useCbsAccess()` → `evaluateCbsAccess()`                  | `src/hooks/use-cbs-access.ts`, `src/lib/cbs-access/` |
-| Dirty detection                            | `evaluateDirty`                                           | `src/lib/cbs-record/baseline.ts`                     |
-| Hotkeys                                    | `useCbsHotkeys`                                           | `src/lib/cbs-hotkeys/`                               |
-| Screen navigation / aliases                | `cbsCommand.execute()`, `cbsCommand.resolveAlias()`       | `src/lib/cbs-command/index.ts`                       |
-| Class merging                              | `cn()`                                                    | `@/lib/core-utils`                                   |
+- Every banking screen is opened by a command string, e.g. `ACCOUNT I 1001`, `INQ GET.EMP.INFO`, or `SC.MENU.DESIGN`. `resolveScreen()` in `src/features/workbench/registry.tsx` resolves it in this order:
+  1. `resolveCommandAlias()`, then the `BESPOKE_SCREENS` map (system/admin screens in `src/features/system/*`)
+  2. an `INQ`/`INQUIRY` prefix → `OpsInquiry`
+  3. anything else → `OpsForm`
+- Forms and inquiries are schema-driven: specs come from `MODEL.CONFIG` / `CONFIG.FORM` / inquiry config over the wire. They are compiled by `lib/cbs-form-spec` / `lib/cbs-inquiry-spec` and rendered by `components/cbs-form-engine` / `components/cbs-inquiry-engine`. Fix rendering bugs in the spec compiler or engine, not per screen.
+- To add a bespoke screen, register its canonical key in `BESPOKE_SCREENS` and add aliases in `lib/cbs-command` (see the `cbs-command-and-navigation` skill).
+- The workbench has two modes:
+  - `panel` mode: tabs in `useWorkbenchStore`, inside `WorkbenchShell` at `/dashboard`
+  - `window` mode: detached popups at `/screen/[id]`
+- Popups rebuild their tab from URL params plus sessionStorage drafts (`getWorkbenchDraft`). They sync session and dock events over a `BroadcastChannel` (`getWorkbenchBus`, `CBS_SCREEN_MESSAGE`). Only the main shell runs the idle-timeout watcher.
+- Zustand stores (`session`, `workbench`, `alert`, `theme`) are exported from `@/store` and provided by `CbsAppStoreProvider`.
 
-`router.push(clientConfig.routes.*)` is fine for **auth/shell routes** (login, dashboard, change-password).
-Only CBS **screen** navigation must go through `cbsCommand.execute`.
+## Docs
 
-## 4. Styling & Mode Conventions (drift cleared 2026-11-16; keep it that way)
-
-- **Colors:** never use palette classes (`text-emerald-500`, `bg-sky-500/15`). Map by meaning:
-  success → `success`, caution → `warning`, neutral identity/info → `info`, destructive → `destructive`.
-  **Selection, hover, drop-target and active-tab states use `primary`**, so they follow the theme accent.
-  Tokens adapt per theme, so don't add `dark:` color overrides.
-- **Modes:** compare against `CBS_IDLE_MODE` / `CbsRecordFunction.*` and statuses against `CbsRecordStatus.*`.
-  Never compare against raw `"IDLE"`, `"I"`, `"S"`, `"AU"` or `"UA"` strings.
-- **Assets:** reference Next metadata files (e.g. `src/app/icon.png`) by static import (`appIcon.src`). Never
-  hand-write their URL: Next serves them at hashed paths (`/icon?<generated>`).
-- `src/proxy.ts` carries `import "server-only"`. Next's middleware/proxy layer resolves it to an empty module,
-  and the Turbopack production build is verified.
-
-## 5. Do-Not-Edit / Generated Paths
-
-- `src/lib/infra-grpc/generated/` comes from `pnpm proto:gen` (`proto/service.proto`, needs `protoc`). Regenerate it; don't hand-edit it.
-- `src/components/ui/` holds shadcn/Base UI primitives (`pnpm ui:add`), which Biome ignores. Don't restyle them in place.
-- The `<!-- BEGIN/END:nextjs-agent-rules -->` block in `AGENTS.md` is owned by `next dev`. It never touches this file.
-- `.env.local` contains real endpoints/tokens. Never print its values or commit it.
-
-## 6. Runtime & Environment
-
-- **Offline (default):** `DATA_SOURCE=static`, `CACHE_ENABLED=false` → in-memory mock core (`mock/`, aliases
-  `@mock/core`, `@mock/db`). No Redis/gRPC needed, and Redis isn't installed locally.
-- **Live:** `DATA_SOURCE=grpc`, `CACHE_ENABLED=true`, `GRPC_HOST`, `REDIS_URL`. See `.env.example`.
-- **Windows 11.** Prefer the Bash tool (Git Bash). PowerShell 5.1 lacks `&&`. Biome enforces LF, and
-  `core.autocrlf=false`. `core.symlinks=false`, so `.claude/skills/*` are pointer files to `.agents/skills/*`, not symlinks.
+`docs/devs/` (developer portal) and `docs/manual/` (operator manual) are Markdown files rendered in the app at `/devs/*` and `/manual/*` by `src/features/docs`. When you change behaviour they describe, update them, following the `documentation-authoring` skill.

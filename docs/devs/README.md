@@ -4,53 +4,22 @@ Welcome to the official developer documentation for the **Janata CBS Core Bankin
 
 This application is an enterprise-grade Next.js App Router (React 19) frontend refactored into a clean **Domain-Driven Architecture (DDD)**. It acts as the dynamic presentation layer and Backend-for-Frontend (BFF) proxy for the Java Core Banking Engine.
 
+> [!NOTE]
+> The rules every change must follow live in [AGENTS.md](../../AGENTS.md) and [.agents/rules/](../../.agents/rules/). This hub only lists pages that exist. To add a page, create `docs/devs/<path>.md`, then add it both to this sitemap and to `DEV_NAV_GROUPS` in [src/features/docs/config.ts](../../src/features/docs/config.ts).
+
 ---
 
 ## 🗺️ Master Documentation Sitemap
 
-### 00. Refactoring Progress & Checklists
+### 00. Refactoring
 
-- [Master Refactoring Audit Plan](00-refractor/refractor.md) — Legacy inventory, syscomp mapping, and refactoring audit plan.
-- [Refactoring Progress Checklist](00-refractor/refractor-checklist.md) — Step-by-step checklist of refactored domain modules.
-- [Legacy Src Component Checklist](00-refractor/legacy-src-checklist.md) — syscomp files migration status.
-- [Future Architecture Upgrades](00-refractor/future-architecture-upgrades.md) — Planned technical enhancements & upgrades.
-- [AI Agent Development Guide](00-refractor/agent-development-guide.md) — AI agent rules and workflow guide.
+- [Master Refactoring Audit Plan](00-refractor/refractor.md) — A leaves-to-root audit: red flags per layer, before/after patterns, and exit gates for each phase.
 
-### 01. System Architecture & Governance
+### 01. Engineering Reference
 
-- [Overview & Topology](01-architecture/overview.md) — 3-Tier Core Banking Topology, tier boundaries, and system flow.
-- [Folder Structure & DDD](01-architecture/folder-structure.md) — Domain-Driven Design (DDD) rules, public API barrel exports, and file size limits.
-- [Security & Secrets](01-architecture/security-and-secrets.md) — `import "server-only"` guards, secret isolation, HTTP-only session cookies, and security invariants.
-- [Code Review Standards](01-architecture/code-review-standards.md) — Master 12-phase audit checklist for code reviews and PR approvals.
-
-### 02. Core Dynamic Engine Platform
-
-- [GMC Payload Spec](02-core-engine/gmc-schema-spec.md) — Dynamic GMC payload format, Zod schemas, sensitive field password masking, and 12-column grid math.
-- [Form Rendering Pipeline](02-core-engine/form-rendering-pipeline.md) — Pipeline lifecycle: `useSchema` $\rightarrow$ `DynamicForm` $\rightarrow$ `FormRenderer` $\rightarrow$ `FieldFactory` $\rightarrow$ `shadcn/ui`.
-- [Component Loader & Pop-outs](02-core-engine/component-loader.md) — Unified `ComponentLoader`, custom screen overrides (`INQ`, `SC.CHANGE.PASS`), dual-mode display, and window pop-out manager.
-
-### 03. Business Domain Modules
-
-- [Auth & Session](03-domain-features/auth-and-session.md) — Login flows, sliding Redis session state, and password change controls.
-- [Workspace & Windows](03-domain-features/workspace-and-windows.md) — Tabbed workspace state (`useWorkbenchStore`), draft preservation, menu tree parser (`MNU`), and pop-out windows.
-- [Inquiries Engine](03-domain-features/inquiries.md) — Inquiry engine screens (`INQ`, `GIR`, `SIR`), search filter builders, and high-density `@tanstack/react-table` data grids.
-- [Reporting Studio](03-domain-features/reporting-studio.md) — Reporting viewers and report line designer (`SC.REPORT.LINE.tsx`).
-- [System Config Tools](03-domain-features/system-config.md) — Administrative form builder (`SC.FORM.BUILDER.tsx`), model config, and menu tree editor.
-
-### 04. Data Flow & API Transport
-
-- [gRPC & BFF Proxy](04-data-flow-and-api/grpc-and-bff-proxy.md) — Next.js `/api/proxy` route handler, session verification, `Envelope` contract, and gRPC client connection pool.
-- [Dynamic API Architecture](04-data-flow-and-api/dynamic-api-integration.md) — Dynamic API concept, `recordFunction` codes (`S`, `M`, `A`, `D`), and standardized `APIResponse<T>` contract.
-- [Caching & Circuit Breaker](04-data-flow-and-api/caching-strategy.md) — 3-tier read-through caching (Memory $\rightarrow$ Redis $\rightarrow$ Core DB) and fail-open circuit breaker rules.
-- [Error Handling & Alerts](04-data-flow-and-api/error-handling-and-alerts.md) — Error boundaries, status code mappings, and `useAlertStore` modal alerts.
-
-### 05. Operational Developer Runbooks
-
-- [Quickstart Local Setup](05-developer-guides/quickstart-setup.md) — Local setup, environment variables (`.env.local`), and `pnpm` scripts.
-- [Scaffold New DDD Feature](05-developer-guides/adding-new-domain-feature.md) — Step-by-step runbook for scaffolding a new domain module under `src/features/`.
-- [Offline Static Mock Mode](05-developer-guides/static-mock-mode.md) — Running offline with static fixture specs (`DATA_SOURCE=static`).
-- [Extending & Creating Doc Modules](05-developer-guides/extending-doc-portal-or-module.md) — Step-by-step guide for adding doc pages or scaffolding new documentation portals.
-- [Git Workflow & Commit Rules](05-developer-guides/git-workflow-and-commits.md) — Git commit conventions, imperative mood summaries, commit scopes, and Husky hooks.
+- [Project Tree](PROJECT_TREE.md) — Annotated repository and `src/` layer structure.
+- [Library Checklist](LIB_CHECKLIST.md) — Review checklist for `src/lib` modules: headless, unidirectional, deterministic, and within the size budget.
+- [Developer Study Plan](PROJECT_STUDY_PLAN.md) — Onboarding curriculum covering every language, library and pattern used in the repository.
 
 ---
 
@@ -60,10 +29,16 @@ This application is an enterprise-grade Next.js App Router (React 19) frontend r
 # 1. Install dependencies
 pnpm install
 
-# 2. Run TypeScript type check
-pnpm typecheck
+# 2. Configure the local environment (offline mock mode works with no backend)
+cp .env.example .env.local
 
-# 3. Start local development server
+# 3. Run the quality gates
+pnpm typecheck
+pnpm lint
+pnpm verify:all
+
+# 4. Start local development server
 pnpm dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to access the application.

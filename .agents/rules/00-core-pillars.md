@@ -53,7 +53,7 @@ $$\text{Level 6 (App)} \longrightarrow \text{Level 5 (Features)} \longrightarrow
 ## 8. High-Density Zero-Fluff UI
 
 - **Eliminate Clutter**: No marketing taglines, verbose helper paragraphs, or redundant secondary labels.
-- **Self-Explanatory Layouts**: Clear domain labels, sensible grouping, 12-column grid hierarchy, compact controls (`h-9 text-xs`, IDs/dates in `font-mono`).
+- **Self-Explanatory Layouts**: Clear domain labels, sensible grouping, 12-column grid hierarchy, compact controls (`h-8 text-xs`, IDs/dates in `font-mono`).
 - **Tooltips for Assistance**: Use compact icon tooltips (`<Tooltip>`) or the validation drawer—never static canvas filler.
 
 ## 9. Tri-Experience Optimization & Zero Breakage (UX / DX / AX)

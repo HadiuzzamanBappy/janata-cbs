@@ -60,57 +60,23 @@ Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of 
 
 ## 📁 Directory Structure (Domain-Driven)
 
+Layers depend strictly downward (`app → features → components → hooks → store → lib → types`). The full annotated tree is in [docs/devs/PROJECT_TREE.md](docs/devs/PROJECT_TREE.md).
+
 ```text
+mock/                      # Offline core simulator (@mock/core) & in-memory CBS tables (@mock/db), outside src/
+proto/service.proto        # gRPC contract → pnpm proto:gen → src/lib/infra-grpc/generated/
+scripts/                   # cache/, tools/ (proto-gen, fixture-normalize), verify/ (domain suites)
 src/
-├── app/                  # Next.js App Router
-│   ├── (auth)/           # Authentication route group (Login, lock screen)
-│   ├── (workbench)/      # Core banking workbench (screen/[id], multi-tab layout)
-│   ├── (docs)/           # In-app operator & technical documentation portal
-│   ├── api/              # API routes & gRPC proxy endpoints (/api/proxy)
-│   ├── globals.css       # Tailwind v4 semantic design tokens (OKLCH)
-│   └── layout.tsx        # Root HTML layout with providers
-│
-├── components/           # Reusable UI & CBS presentation elements
-│   ├── ui/               # Atomic shadcn/ui and Base UI primitives
-│   ├── layout/           # Global shell components (Workbench header, sidebar, topbar)
-│   ├── cbs-access/       # Permission badges, function right indicators, guards
-│   ├── cbs-screen/       # High-density form cards, action headers, command wrappers
-│   └── feedback/         # Modals, confirmation dialogs, toast notifications
-│
-├── features/             # Domain-Driven Modules
-│   ├── auth/             # Authentication & session controls
-│   ├── command/          # CBS Command Gateway bar & fast action executor
-│   ├── operations/       # Core business screens
-│   │   ├── forms/        # 12-column dynamic GMC form engine & field controls
-│   │   └── inquiries/    # Inquiry queries, data filters, and high-density tables
-│   ├── workbench/        # Multitab layout, unified screen loader, and component registry
-│   ├── system/           # Bespoke admin tools (Menu Catalog, Menu Designer, Model Config, User Groups)
-│   ├── settings/         # User preferences and workstation hotkeys
-│   └── docs/             # Technical docs viewer
-│
-├── lib/                  # CBS Infrastructure, Clients & Utilities
-│   ├── cbs-access/       # RIDASHL permission engine & Four-Eyes verification
-│   ├── cbs-command/      # Command parser, grammar evaluator, and alias registry
-│   ├── cbs-client/       # Front-end API client interfacing with /api/proxy
-│   ├── cbs-form-spec/    # Form specification & layout generator from MODEL.CONFIG
-│   ├── cbs-hotkeys/      # Banking keyboard shortcut listener engine (F-keys, Esc, Enter)
-│   ├── cbs-record/       # CBS record status machines (UA, AU, Hold, Reverse, Delete)
-│   ├── cbs-screen/       # Screen metadata configuration & permission mapping
-│   ├── core-config/      # Validated environment configurations
-│   ├── core-logger/      # Structured application logger
-│   ├── core-utils/       # Banking formatters (BDT currency, account masking, dates)
-│   ├── data-parsers/     # Wire payload and stream parsers
-│   ├── data-schemas/     # Zod schemas for request/response payloads
-│   ├── infra-grpc/       # Server-only gRPC client, credentials, and dispatcher
-│   └── infra-redis/      # Redis connection pool and caching circuit-breaker
-│
-├── mock/                 # Core Banking DB Tables & Simulated Core (Outside src/)
-│   ├── core/             # Offline in-memory CBS engine simulator (@mock/core)
-│   └── db/               # In-Memory CBS Database Tables & Schemas (@mock/db)
-│
-├── store/                # Zustand Global Stores (Workbench, Session, Alerts)
-├── types/                # Global TypeScript definitions & banking types
-└── proxy.ts              # Next.js session guard & auth middleware
+├── app/                   # Next.js App Router: (auth), (workbench)/dashboard + screen/[id], (docs), api/
+├── features/              # Screens: auth, docs, operations (OpsForm, OpsInquiry), system designers, workbench registry
+├── components/            # cbs-command, cbs-form-engine, cbs-inquiry-engine, cbs-menu, cbs-screen, cbs-settings,
+│                          # feedback, layout, ui (shadcn/Base UI primitives)
+├── hooks/                 # Global hooks (idle timeout, single tab, container width, access)
+├── store/                 # Zustand stores: alert, session, theme, workbench (+ root-provider)
+├── lib/                   # cbs-* domain libraries, core-* config/logger/utils, data-parsers, data-schemas,
+│                          # infra-grpc & infra-redis ("server-only")
+├── types/                 # Canonical contracts: access, protocol, screen, status
+└── proxy.ts               # Next.js 16 request proxy (session guard & redirects)
 ```
 
 ---
@@ -143,29 +109,18 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 The project includes specialized verification scripts ensuring that all banking rules, access boundaries, and wire contracts remain intact:
 
 ```bash
-# Run all verifications
-pnpm verify:all
-
-# Specific test suites:
-pnpm verify:access      # Tests RIDASHL rights, Four-Eyes principle, and role clearance
-pnpm verify:command     # Tests CBS command gateway syntax, aliases, and RBAC execution
-pnpm verify:client      # Tests wire request factories (GET, PUT, AUT, INQ, GRL)
-pnpm verify:record      # Tests CBS record status transitions (UA, AU, Hold, Reverse)
-pnpm verify:schemas     # Tests Zod domain schemas and validation contracts
-pnpm verify:config      # Tests environment matrix and runtime configuration
-pnpm verify:logger      # Tests banking-grade logger and PII redaction engine
-pnpm verify:utils       # Tests currency formatting (BDT), account masks, and value dates
-pnpm verify:grpc        # Tests gRPC gateway routing, financial txn split, and status mapping
-pnpm verify:redis       # Tests Redis key namespacing, circuit breaker, and spec caching
-pnpm verify:layers      # Tests layer boundaries, barrel imports, and client/server isolation
-pnpm verify:mock        # Tests in-memory mock engine & simulated database fixtures
+pnpm verify:all         # Runs the 16 offline suites (includes verify:layers)
+pnpm verify:access      # Run a single suite; the full list is in AGENTS.md §2
+pnpm verify:api         # Live core + running dev server required (not part of verify:all)
 ```
+
+The complete list of suites, one per library, is in [AGENTS.md §2](AGENTS.md#2-command-reference).
 
 ---
 
 ## 🧠 Architectural Rules
 
-1. **High-Density Compact Sizing:** Banking operators require maximum screen real estate. Use compact control heights (`h-9`), `text-xs` typography for tables and labels, and 12-column grid structures.
+1. **High-Density Compact Sizing:** Banking operators require maximum screen real estate. Use compact control heights (`h-8`), `text-xs` typography for tables and labels, and 12-column grid structures.
 2. **Strict Server Boundary:** Never import `@grpc/grpc-js`, Redis, or server credentials in client components. Access backend services only via the `/api/proxy` route or Server Actions.
 3. **Four-Eyes Enforcement:** Always apply Four-Eyes checks on authorization actions (`Maker !== Checker`).
 4. **Unified Screen Loader:** Dynamic screens must resolve through `resolveScreen()` in `src/features/workbench/registry.tsx` rather than hardcoded ad-hoc component switches.

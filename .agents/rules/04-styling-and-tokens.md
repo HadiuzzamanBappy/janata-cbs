@@ -23,4 +23,4 @@
 ## 4. Class Merging & Layout Density
 
 - Always combine conditional class names using `cn()` from `@/lib/core-utils` (`clsx` + `tailwind-merge`).
-- Forms use the 12-column grid system (`col-span-12`, `sm:col-span-6`, etc.) with compact density (`h-9 text-xs`, IDs/dates in `font-mono`).
+- Forms use the 12-column grid system (`col-span-12`, `sm:col-span-6`, etc.) with compact density (`h-8 text-xs`, IDs/dates in `font-mono`).

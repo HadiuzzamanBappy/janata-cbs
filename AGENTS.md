@@ -111,7 +111,7 @@ pnpm fixture:clean    # Normalize mock data fixtures
    Never use `<Link href="/screen/...">` or `router.push()` to switch banking screens. Use `cbsCommand.execute("COMMAND ...")`.
 
 6. **Styling with Semantic Tokens:**
-   Use Tailwind v4 semantic classes (`bg-primary`, `text-muted-foreground`, `border-border`). Never hardcode numbered colors (`bg-blue-600`). Forms use the 12-column grid with compact banking density (`h-9 text-xs`, monospace financial values).
+   Use Tailwind v4 semantic classes (`bg-primary`, `text-muted-foreground`, `border-border`). Never hardcode numbered colors (`bg-blue-600`). Forms use the 12-column grid with compact banking density (`h-8 text-xs`, monospace financial values).
 
 7. **Next.js 16 Asynchronous APIs:**
    `cookies()`, `headers()`, `params`, and `searchParams` are async Promises and must be `await`ed.

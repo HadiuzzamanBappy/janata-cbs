@@ -6,11 +6,7 @@ Welcome to the User Operating Manual for **Janata CBS Core Banking Workbench**. 
 
 ## 🗺️ User Manual Sitemap
 
-### 01. Getting Started & Workspace Setup
-
-- [Officer Login & Password Reset](01-getting-started/officer-login.md) — Logging in, branch selection, and password management.
-- [Workspace & Window Navigation](01-getting-started/workspace-navigation.md) — Working with internal tabs vs pop-out windows.
-
-### 02. Troubleshooting & FAQs
-
-- [Common Error Messages & FAQs](04-troubleshooting/error-messages-faq.md) — Alert dialogs, session timeouts, & system error help.
+> [!NOTE]
+> The step-by-step guides for logging in, working with screens and windows, and resolving common error messages are being rewritten for the current version of the Workbench. They will appear here as soon as they are published.
+>
+> Until then, contact your branch system administrator for help with day-to-day tasks.

@@ -1,0 +1,17 @@
+# Normalize all text files to LF in the repo AND in every working tree,
+# regardless of the machine's core.autocrlf setting. Biome enforces
+# `formatter.lineEnding: "lf"` (biome.json), so CRLF checkouts fail `pnpm lint`.
+* text=auto eol=lf
+
+# Binary assets (never normalized or diffed as text)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary

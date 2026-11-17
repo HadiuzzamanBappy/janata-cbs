@@ -48,11 +48,11 @@ janata-cbs/
 ├── mock/                                      # Offline Core Banking Simulator & Database Fixtures
 │   ├── core/                                  # In-Memory Banking Protocol Simulator (@mock/core)
 │   │   ├── handlers/                          # Protocol verb handlers (query, mutation, inquiry, menu, model)
-│   │   ├── auth-simulator.ts                  # Mock operator authentication & JWT issuer
+│   │   ├── index.ts                           # Public entry: mockDispatch / mockLogin (used when DATA_SOURCE=static)
 │   │   ├── database-router.ts                 # Dynamic table router resolving canonical DB tables
 │   │   └── response-factory.ts                # Canonical CBS wire envelope factories
 │   └── db/                                    # Simulated Core Banking In-Memory Tables (@mock/db)
-│       ├── rawResponse/                       # Raw core JSON snapshots (formConfig, inquiryResult, menuTree, etc.)
+│       ├── .rawResponse/                      # Raw core JSON snapshots (formConfig, inquiryResult, menuTree, etc.)
 │       └── [TABLES].ts                        # Canonical tables (AC_ACCOUNT, CUST_CUSTOMER, SC_FORM_CONFIG, etc.)
 │
 ├── proto/                                     # Protobuf Definitions for Core Banking gRPC Host
@@ -61,8 +61,8 @@ janata-cbs/
 ├── scripts/                                   # Standalone Tooling & Verification Harnesses
 │   ├── cache/                                 # Redis cache maintenance scripts (clear, inspect)
 │   ├── tools/                                 # Generator utilities (proto-gen, fixture-normalize)
-│   └── verify/                                # 13 Automated Verification Suites (pnpm verify:all)
-│       ├── verify-all.ts                      # Master runner executing all 13 domain test suites
+│   └── verify/                                # 17 verification suites (16 offline via pnpm verify:all, plus verify:api)
+│       ├── verify-all.ts                      # Master runner executing the 16 offline suites
 │       └── verify-*.ts                        # Dedicated suites (access, client, command, form-spec, record, etc.)
 │
 └── src/                                       # Janata CBS Application Source Code
@@ -113,7 +113,7 @@ janata-cbs/
     ├── features/                              # Pure Banking Domain Screens & Workflows
     │   ├── auth/                              # Operator login & password management flows
     │   ├── docs/                              # In-app Markdown/Mermaid docs viewer & PDF compiler
-    │   ├── operations/                        # Generic screens (cbs-form-screen, cbs-inquiry-screen)
+    │   ├── operations/                        # Generic screens (forms/ops-form.tsx, inquiries/ops-inquiry.tsx)
     │   ├── system/                            # Banking System Administration & Visual Designers
     │   │   ├── form-config/                   # Visual Form Designer (GMC Screen Config Studio)
     │   │   │   ├── components/designer/       # DnD canvas, field palette, property inspector, 12-col grid
@@ -172,19 +172,19 @@ janata-cbs/
 
 ## 3. Subsystem Cross-Reference Guide
 
-| Domain Subsystem              | Architectural Location                                                                                                                                                                           | Primary Role & Invariants                                                 |
-| :---------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
-| **Authentication & Session**  | [`src/features/auth/`](file:///d:/Work/React/cbs/janata-cbs/src/features/auth), [`src/store/session/`](file:///d:/Work/React/cbs/janata-cbs/src/store/session)                                   | Operator login, credentials change, session cookie management.            |
-| **Access Rights & Four-Eyes** | [`src/lib/cbs-access/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-access)                                                                                                                 | Pure TS evaluation of RIDASHL capabilities and Maker $\neq$ Checker rule. |
-| **Command Gateway**           | [`src/components/cbs-command/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-command), [`src/lib/cbs-command/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-command)             | Terminal syntax parser, aliases, and screen navigation router.            |
-| **BFF Wire Client**           | [`src/lib/cbs-client/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-client), [`src/app/api/proxy/`](file:///d:/Work/React/cbs/janata-cbs/src/app/api/proxy)                                 | Typed request payload factories dispatched strictly via `/api/proxy`.     |
-| **Form Engine Kernel**        | [`src/components/cbs-form-engine/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-form-engine), [`src/lib/cbs-form-spec/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-form-spec) | Zero-lag 150–1000 field rendering with 2-tier state & 12-col grid.        |
-| **Record Delta Mutations**    | [`src/lib/cbs-record/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-record)                                                                                                                 | Baseline snapshot vs modified state diffing for touch-only commits.       |
-| **Inquiry Engine**            | [`src/components/cbs-inquiry-engine/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-inquiry-engine)                                                                                   | Tabular inquiry execution, real-time filtering, PDF/Excel generation.     |
-| **Visual Form Designer**      | [`src/features/system/form-config/`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/form-config)                                                                                       | Visual DnD layout builder supporting root fields, cards, and tab groups.  |
-| **Menu Hierarchy Designer**   | [`src/features/system/menu-designer/`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/menu-designer)                                                                                   | Visual navigation tree builder and hierarchy reordering.                  |
-| **Metamodel Dictionary**      | [`src/features/system/model-config/`](file:///d:/Work/React/cbs/janata-cbs/src/features/system/model-config)                                                                                     | Data dictionary schema definitions, datatypes, and foreign lookups.       |
-| **Screen Lifecycle**          | [`src/components/cbs-screen/`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-screen), [`src/lib/cbs-screen/`](file:///d:/Work/React/cbs/janata-cbs/src/lib/cbs-screen)                 | Standard action headers, persistence workflows, cross-tab bus sync.       |
-| **MDI Workbench Shell**       | [`src/components/layout/`](file:///d:/Work/React/cbs/janata-cbs/src/components/layout), [`src/store/workbench/`](file:///d:/Work/React/cbs/janata-cbs/src/store/workbench)                       | Multi-tab bar, detached popup windows, and navigation sidebar.            |
-| **Mock Core Simulator**       | [`mock/core/`](file:///d:/Work/React/cbs/janata-cbs/mock/core), [`mock/db/`](file:///d:/Work/React/cbs/janata-cbs/mock/db)                                                                       | Offline simulated core banking protocol handlers and DB fixtures.         |
-| **Verification Test Suite**   | [`scripts/verify/`](file:///d:/Work/React/cbs/janata-cbs/scripts/verify)                                                                                                                         | 13 standalone TSX verification runners guaranteeing domain invariants.    |
+| Domain Subsystem              | Architectural Location                                                                                                             | Primary Role & Invariants                                                 |
+| :---------------------------- | :--------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------ |
+| **Authentication & Session**  | [`src/features/auth/`](../../src/features/auth), [`src/store/session/`](../../src/store/session)                                   | Operator login, credentials change, session cookie management.            |
+| **Access Rights & Four-Eyes** | [`src/lib/cbs-access/`](../../src/lib/cbs-access)                                                                                  | Pure TS evaluation of RIDASHL capabilities and Maker $\neq$ Checker rule. |
+| **Command Gateway**           | [`src/components/cbs-command/`](../../src/components/cbs-command), [`src/lib/cbs-command/`](../../src/lib/cbs-command)             | Terminal syntax parser, aliases, and screen navigation router.            |
+| **BFF Wire Client**           | [`src/lib/cbs-client/`](../../src/lib/cbs-client), [`src/app/api/proxy/`](../../src/app/api/proxy)                                 | Typed request payload factories dispatched strictly via `/api/proxy`.     |
+| **Form Engine Kernel**        | [`src/components/cbs-form-engine/`](../../src/components/cbs-form-engine), [`src/lib/cbs-form-spec/`](../../src/lib/cbs-form-spec) | Zero-lag 150–1000 field rendering with 2-tier state & 12-col grid.        |
+| **Record Delta Mutations**    | [`src/lib/cbs-record/`](../../src/lib/cbs-record)                                                                                  | Baseline snapshot vs modified state diffing for touch-only commits.       |
+| **Inquiry Engine**            | [`src/components/cbs-inquiry-engine/`](../../src/components/cbs-inquiry-engine)                                                    | Tabular inquiry execution, real-time filtering, PDF/Excel generation.     |
+| **Visual Form Designer**      | [`src/features/system/form-config/`](../../src/features/system/form-config)                                                        | Visual DnD layout builder supporting root fields, cards, and tab groups.  |
+| **Menu Hierarchy Designer**   | [`src/features/system/menu-designer/`](../../src/features/system/menu-designer)                                                    | Visual navigation tree builder and hierarchy reordering.                  |
+| **Metamodel Dictionary**      | [`src/features/system/model-config/`](../../src/features/system/model-config)                                                      | Data dictionary schema definitions, datatypes, and foreign lookups.       |
+| **Screen Lifecycle**          | [`src/components/cbs-screen/`](../../src/components/cbs-screen), [`src/lib/cbs-screen/`](../../src/lib/cbs-screen)                 | Standard action headers, persistence workflows, cross-tab bus sync.       |
+| **MDI Workbench Shell**       | [`src/components/layout/`](../../src/components/layout), [`src/store/workbench/`](../../src/store/workbench)                       | Multi-tab bar, detached popup windows, and navigation sidebar.            |
+| **Mock Core Simulator**       | [`mock/core/`](../../mock/core), [`mock/db/`](../../mock/db)                                                                       | Offline simulated core banking protocol handlers and DB fixtures.         |
+| **Verification Test Suite**   | [`scripts/verify/`](../../scripts/verify)                                                                                          | 17 standalone TSX verification runners guaranteeing domain invariants.    |

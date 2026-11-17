@@ -77,7 +77,7 @@
    - Color abstractions: `bg-card`, `bg-popover`, `text-muted-foreground`, `border-border`, `bg-primary/10`.
    - Never hardcoding numeric hex/palette values (e.g. forbid `bg-blue-600` or `#1e40af`).
 3. **Banking Compact Density Conventions:**
-   - Workstation density: compact `h-8` / `h-9` inputs, `text-xs`, tight padding (`px-2 py-1`).
+   - Workstation density: compact `h-8` inputs, `text-xs`, tight padding (`px-2 py-1`).
    - Tabular and numerical data: `font-mono` and `tabular-nums` alignment for financial figures.
    - Screen resolution resilience: ensuring layouts work flawlessly on 1366x768 teller terminals up to 4K displays.
 4. **12-Column Responsive Layout Grid:**

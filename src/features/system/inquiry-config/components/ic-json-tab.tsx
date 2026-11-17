@@ -20,7 +20,10 @@ export function IcJsonTab({ formData, baseline, raw }: IcJsonTabProps) {
     : "Inquiry Configuration & Wire Spec (JSON)";
 
   const cleanData = React.useMemo(() => sanitizeInquiryConfigRecord(formData), [formData]);
-  const cleanBaseline = React.useMemo(() => sanitizeInquiryConfigRecord(baseline), [baseline]);
+  const cleanBaseline = React.useMemo(
+    () => (baseline ? sanitizeInquiryConfigRecord(baseline) : undefined),
+    [baseline],
+  );
 
   return (
     <CbsJsonViewerTab

@@ -8,6 +8,7 @@ import {
   type WorkbenchBusMessage,
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
+import { cbsStorage } from "@/lib/core-utils";
 
 // Window-level singleton state for this browser tab
 let isOverriddenState = false;
@@ -35,11 +36,7 @@ export function claimLeadership(tabId?: string): void {
   const id = tabId || getTabInstanceId();
   if (!id) return;
 
-  try {
-    localStorage.setItem(clientConfig.storage.local.activeTabInstance, id);
-  } catch {
-    // Safe fallback
-  }
+  cbsStorage.set("local", clientConfig.storage.local.activeTabInstance, id);
 
   const bus = getWorkbenchBus();
   if (bus) {
@@ -88,7 +85,7 @@ function initSingleTabCoordinator(): void {
 
   // 3. Re-verify leadership when window regains focus
   window.addEventListener("focus", () => {
-    const currentActive = localStorage.getItem(clientConfig.storage.local.activeTabInstance);
+    const currentActive = cbsStorage.get("local", clientConfig.storage.local.activeTabInstance);
     if (!currentActive) {
       claimLeadership(myId);
     } else if (currentActive !== myId) {

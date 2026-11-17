@@ -6,9 +6,14 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
-import { parseInquiryRecords } from "@/lib/data-parsers";
-import type { FilterCriteriaMap, InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
+import { buildDefaultCriteria, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
+import { logger } from "@/lib/core-logger";
+import {
+  type FilterCriteriaMap,
+  type InquiryConfigRecord,
+  type InquiryRow,
+  inquiryRowListSchema,
+} from "@/lib/data-schemas";
 import { CBS_INQUIRY_STEP, type CbsInquiryStep } from "@/types";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
 import { InquiryTable } from "./inquiry-table";
@@ -46,14 +51,7 @@ export function InquiryPreview({
 
   // Initialize criteria from select fields
   React.useEffect(() => {
-    const initial: FilterCriteriaMap = {};
-    for (const f of config.INQSelectField || []) {
-      initial[f.selectFieldName] = {
-        value: f.selectFieldValue || "",
-        operand: (f.selectFieldOperator as FilterCriteriaMap[string]["operand"]) || "EQ",
-      };
-    }
-    setCriteria(initial);
+    setCriteria(buildDefaultCriteria(config.INQSelectField));
     setStep(hasFilters ? CBS_INQUIRY_STEP.SELECTION : CBS_INQUIRY_STEP.RESULTS);
   }, [config.INQSelectField, hasFilters]);
 
@@ -79,7 +77,7 @@ export function InquiryPreview({
       );
 
       try {
-        const queryRes = await cbs.send<unknown>(
+        const queryRes = await cbs.send(
           cbs.inquiry.executeQuery(targetController, {
             servicePath: config.INQInfo?.inqServicePath,
             inqType: config.INQInfo?.inqType,
@@ -87,14 +85,14 @@ export function InquiryPreview({
             curPage: 1,
             queryString,
           }),
-          { silent: true, signal },
+          { silent: true, signal, responseSchema: inquiryRowListSchema },
         );
 
         if (queryRes.status !== "SUCCESS") {
           throw new Error(queryRes.message || `Core rejected inquiry on ${targetController}`);
         }
 
-        const dataset = parseInquiryRecords(queryRes.data);
+        const dataset = queryRes.data ?? [];
         setRows(dataset);
         setStep(CBS_INQUIRY_STEP.RESULTS);
         toast.add({
@@ -106,7 +104,7 @@ export function InquiryPreview({
         if (err instanceof DOMException && err.name === "AbortError") {
           return;
         }
-        console.warn("Inquiry simulation failed", err);
+        logger.warn("Inquiry simulation failed", err, "INQUIRY_PREVIEW");
         toast.add({
           title: "Simulation Query Failed",
           description: err instanceof Error ? err.message : "Backend query failed",
@@ -145,14 +143,7 @@ export function InquiryPreview({
   };
 
   const handleResetFilters = () => {
-    const cleared: FilterCriteriaMap = {};
-    for (const f of config.INQSelectField || []) {
-      cleared[f.selectFieldName] = {
-        value: "",
-        operand: (f.selectFieldOperator as FilterCriteriaMap[string]["operand"]) || "EQ",
-      };
-    }
-    setCriteria(cleared);
+    setCriteria(buildDefaultCriteria(config.INQSelectField));
     setRows([]);
   };
 

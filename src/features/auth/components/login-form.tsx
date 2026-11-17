@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { clientConfig } from "@/lib/core-config";
+import { cbsStorage } from "@/lib/core-utils";
 import { useLogin } from "../hooks/use-login";
 import type { LoginFormProps } from "../types";
 
@@ -18,9 +19,7 @@ export function LoginForm({ onSuccess, className = "mt-8 space-y-6" }: LoginForm
 
   // Clean up any stale inactivity timestamp when landing on login page
   React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(clientConfig.storage.local.lastActivity);
-    }
+    cbsStorage.remove("local", clientConfig.storage.local.lastActivity);
   }, []);
 
   const { login, loading, error } = useLogin();

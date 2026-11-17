@@ -1,10 +1,5 @@
-import {
-  type ModelConfigRecord,
-  type ModelProperty,
-  modelConfigRecordSchema,
-  PROPERTY_TYPES,
-} from "@/lib/data-schemas";
-import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
+import { type ModelConfigRecord, type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas";
+import { unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
 /* Constants & Type Mappings                                                  */
@@ -37,11 +32,10 @@ const BOOLEAN_FLAGS = [
  */
 export function extractModelConfigRecord(rawPayload: unknown): Record<string, unknown> | null {
   if (!rawPayload || typeof rawPayload !== "object") return null;
-  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
-  if (!decoded || typeof decoded !== "object") return null;
+  const payload = rawPayload as Record<string, unknown>;
 
   let target: Record<string, unknown> =
-    unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded);
+    unwrapRecordsPayload(payload)[0] ?? (Array.isArray(payload) ? payload[0] : payload);
   if (!target || typeof target !== "object") return null;
 
   if (target.data && typeof target.data === "object" && !Array.isArray(target.data)) {
@@ -56,37 +50,6 @@ export function extractModelConfigRecord(rawPayload: unknown): Record<string, un
   return target;
 }
 
-/**
- * Parses inbound wire payload into a strictly validated, sanitized ModelConfigRecord.
- */
-export function parseModelConfig(
-  rawPayload: unknown,
-): { success: true; data: ModelConfigRecord } | { success: false; error: string } {
-  const target = extractModelConfigRecord(rawPayload);
-  if (!target) return { success: false, error: "Model config payload is invalid" };
-
-  const parsed = modelConfigRecordSchema.safeParse(target);
-  if (!parsed.success) {
-    return { success: false, error: `ModelConfig validation failed: ${parsed.error.message}` };
-  }
-
-  const sanitizedProps = (parsed.data.PROPERTIES || []).map((p, i) => sanitizeModelProperty(p, i));
-
-  return {
-    success: true,
-    data: {
-      ...parsed.data,
-      ACCESS: parsed.data.ACCESS.toUpperCase().startsWith("B") ? "B" : "G",
-      PROPERTIES: sanitizedProps,
-      USERDEFINEID: Boolean(parsed.data.USERDEFINEID),
-      READONLY: Boolean(parsed.data.READONLY),
-      SEARCHABLE: Boolean(parsed.data.SEARCHABLE),
-      AUTHORIZE: Boolean(parsed.data.AUTHORIZE),
-      FIELDBASED: Boolean(parsed.data.FIELDBASED),
-    },
-  };
-}
-
 /* -------------------------------------------------------------------------- */
 /* Outbound Database Serializers & Physical Column Sanitizers                 */
 /* -------------------------------------------------------------------------- */
@@ -94,7 +57,7 @@ export function parseModelConfig(
 /**
  * Sanitizes a ModelProperty for MODEL.CONFIG: enforces physical invariants and purges UI noise.
  */
-export function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProperty {
+function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProperty {
   const rawType = prop.TYPE;
   const normType = (
     VALID_PROPERTY_TYPES.has(rawType) ? rawType : "String"
@@ -126,11 +89,7 @@ export function sanitizeModelProperty(prop: ModelProperty, index?: number): Mode
 /**
  * Sanitizes a ModelConfigRecord for sparse persistence.
  */
-export function sanitizeModelConfigRecord(
-  record?: ModelConfigRecord,
-): ModelConfigRecord | undefined {
-  if (!record) return undefined;
-
+export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfigRecord {
   const rawAccess = String(record.ACCESS || "G")
     .trim()
     .toUpperCase();

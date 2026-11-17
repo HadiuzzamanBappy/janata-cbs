@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
+import { cbsStorage } from "@/lib/core-utils";
 import {
   type ApiResponse,
   type CurrentUser,
@@ -54,9 +55,7 @@ export function useLogin() {
         const authenticatedUser = data.data;
         if (authenticatedUser) {
           // Reset client activity timestamp to current time on login
-          if (typeof window !== "undefined") {
-            localStorage.setItem(clientConfig.storage.local.lastActivity, String(Date.now()));
-          }
+          cbsStorage.set("local", clientConfig.storage.local.lastActivity, String(Date.now()));
           // 3. Centralized Store sync
           setSession(authenticatedUser);
           logger.info(

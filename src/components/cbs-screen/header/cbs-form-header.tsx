@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import type { CbsAccessResult } from "@/lib/cbs-access";
 import type { CbsScreenValidationError, MoreActionItem, RecordLookupItem } from "@/lib/cbs-screen";
 import { CBS_SCREEN_EVENT, resolveMoreActions } from "@/lib/cbs-screen";
+import { logger } from "@/lib/core-logger";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { useRecordLookup } from "../hooks/use-record-lookup";
 import { ActionBtn } from "./action-btn";
@@ -149,7 +150,7 @@ export function CbsFormHeader({
         }
       }
     } catch (err) {
-      console.warn("[CbsFormHeader] Failed to allocate new record sequence:", err);
+      logger.warn("Failed to allocate new record sequence", err, "CBS_FORM_HEADER");
     }
   }, [fetchNewRecordId, inputVal, onRecordIdChange, onCreateNew, onRecordSearch]);
 

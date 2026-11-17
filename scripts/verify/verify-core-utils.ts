@@ -9,12 +9,15 @@
  * 4. Title Case with Acronyms (toTitleCase: preserves HO, PLC, ATM, BDT)
  * 5. Ephemeral UI Client Token (generateClientToken: format and prefix check)
  * 6. Document Export Utilities (CSV, HTML, XML byte encoding and safety)
+ * 7. Web Storage Gateway (cbsStorage: SSR-safe, JSON + schema validated, failure tolerant)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-core-utils.ts
  */
 
+import { z } from "zod";
 import {
+  cbsStorage,
   cn,
   exportToCsv,
   exportToHtmlReport,
@@ -161,6 +164,61 @@ async function runSuite() {
     { headlessSafe: noCrash },
     noCrash === true,
   );
+
+  // ----------------------------------------------------------------------------
+  // 7. Web Storage Gateway
+  // ----------------------------------------------------------------------------
+  const ssrSafe =
+    cbsStorage.get("local", "k") === null && cbsStorage.readJson("session", "k") === null;
+  cbsStorage.set("local", "k", "v"); // must be a silent no-op without window
+  recordTest(
+    "7. cbsStorage is SSR-safe: reads return null and writes no-op without a window",
+    { window: typeof globalThis.window },
+    { ssrSafe },
+    ssrSafe,
+  );
+
+  const backing = new Map<string, string>();
+  const fakeArea = {
+    getItem: (k: string) => backing.get(k) ?? null,
+    setItem: (k: string, v: string) => {
+      if (k === "quota") throw new Error("QuotaExceededError");
+      backing.set(k, v);
+    },
+    removeItem: (k: string) => backing.delete(k),
+  };
+  const g = globalThis as unknown as { window?: unknown };
+  g.window = { localStorage: fakeArea, sessionStorage: fakeArea };
+  try {
+    const schema = z.object({ value: z.string() });
+    cbsStorage.writeJson("session", "crit", { value: "AU" });
+    backing.set("bad", "{not json");
+    backing.set("wrongShape", JSON.stringify({ value: 42 }));
+    const roundTrip = cbsStorage.readJson("session", "crit", schema);
+    const badJson = cbsStorage.readJson("session", "bad");
+    const wrongShape = cbsStorage.readJson("session", "wrongShape", schema);
+    let quotaThrew = false;
+    try {
+      cbsStorage.set("local", "quota", "x");
+    } catch {
+      quotaThrew = true;
+    }
+    cbsStorage.remove("session", "crit", "bad");
+    const removed = !backing.has("crit") && !backing.has("bad");
+
+    recordTest(
+      "7.1 cbsStorage round-trips JSON, rejects corrupt/invalid data and absorbs quota errors",
+      { written: { value: "AU" } },
+      { roundTrip, badJson, wrongShape, quotaThrew, removed },
+      roundTrip?.value === "AU" &&
+        badJson === null &&
+        wrongShape === null &&
+        !quotaThrew &&
+        removed,
+    );
+  } finally {
+    delete g.window;
+  }
 
   // Consolidated Summary
   const passedTests = testCases.filter((t) => t.passed).length;

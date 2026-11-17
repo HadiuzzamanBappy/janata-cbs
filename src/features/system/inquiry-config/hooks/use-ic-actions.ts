@@ -53,10 +53,7 @@ export function useIcActions({
 
       setSubmitting(true);
       try {
-        const sanitized = (sanitizeInquiryConfigRecord(formData) || formData) as unknown as Record<
-          string,
-          unknown
-        >;
+        const sanitized = sanitizeInquiryConfigRecord(formData);
 
         const payload =
           funcCode === CbsRecordFunction.AUTHORIZE

@@ -119,11 +119,15 @@ export interface InquiryCriteriaParam {
 }
 
 /** One operator's filter input on the criteria screen, keyed by field name in `FilterCriteriaMap`. */
-export interface FilterCriterion {
-  value: string;
-  operand: SelectionOperand;
-}
-export type FilterCriteriaMap = Record<string, FilterCriterion>;
+const filterCriterionSchema = z.object({
+  value: z.string(),
+  operand: selectionOperandSchema,
+});
+export type FilterCriterion = z.infer<typeof filterCriterionSchema>;
+
+/** Validates criteria restored from storage (popup hand-off) before they reach the UI. */
+export const filterCriteriaMapSchema = z.record(z.string(), filterCriterionSchema);
+export type FilterCriteriaMap = z.infer<typeof filterCriteriaMapSchema>;
 
 /** Inquiry state persisted on a workbench tab and carried across popups / dock-backs. */
 export interface InquiryTabState {
@@ -145,7 +149,7 @@ export interface InquiryExecuteOptions {
 /* 8. DATASET ROW / RESULT SCHEMA                                             */
 /* ========================================================================== */
 
-export const inquiryRowSchema = z
+const inquiryRowSchema = z
   .looseObject({
     id: z.string().nullish(),
     recordId: z.string().nullish(),
@@ -158,6 +162,9 @@ export const inquiryRowSchema = z
       recordId: (row.recordId?.trim() || canonicalId) as string,
     };
   });
+
+/** Contract for INQ result sets returned by the BFF (rows are parsed server-side). */
+export const inquiryRowListSchema = z.array(inquiryRowSchema);
 
 export type InquiryRow = {
   id: string;

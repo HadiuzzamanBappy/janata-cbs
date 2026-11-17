@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   type MenuAction,
   type MenuItem,
@@ -6,7 +5,7 @@ import {
   type MenuType,
   menuTreeRecordSchema,
 } from "@/lib/data-schemas";
-import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
+import { unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* ========================================================================== */
 /* 0. NAVIGATION MENU TREE PARSER (GUM / Sidebar Navigation)                  */
@@ -80,15 +79,15 @@ export function parseMNU(
   if (!rawPayload) return { success: true, data: [] };
 
   try {
-    const decoded = decodeProtobufValue<unknown>(rawPayload);
-    const list = unwrapRecordsPayload(decoded);
+    const payload: unknown = rawPayload;
+    const list = unwrapRecordsPayload(payload);
     const nodes = (
       Array.isArray(list) && list.length > 0
         ? list
-        : Array.isArray(decoded)
-          ? decoded
-          : typeof decoded === "object" && decoded
-            ? [decoded]
+        : Array.isArray(payload)
+          ? payload
+          : typeof payload === "object" && payload
+            ? [payload]
             : []
     ) as RawMenuNode[];
 
@@ -119,13 +118,13 @@ export function parseMenuTreeRecord(
     return { success: false, error: "Menu tree payload is invalid" };
   }
 
-  const decoded = decodeProtobufValue<Record<string, unknown>>(rawPayload);
+  const payload = rawPayload as Record<string, unknown>;
   const target =
-    decoded &&
-    typeof decoded === "object" &&
-    !("treeDescription" in decoded || "menuTree" in decoded)
-      ? (unwrapRecordsPayload(decoded)[0] ?? (Array.isArray(decoded) ? decoded[0] : decoded))
-      : decoded;
+    payload &&
+    typeof payload === "object" &&
+    !("treeDescription" in payload || "menuTree" in payload)
+      ? (unwrapRecordsPayload(payload)[0] ?? (Array.isArray(payload) ? payload[0] : payload))
+      : payload;
 
   if (!target || typeof target !== "object") {
     return { success: false, error: "Menu tree payload is empty or invalid" };
@@ -150,20 +149,6 @@ export function parseMenuTreeRecord(
     : { success: false, error: `MenuTree validation failed: ${res.error.message}` };
 }
 
-/**
- * Parses a list of menu tree records from CBS backend wire responses.
- */
-export function parseMenuTreeList(
-  rawPayload: unknown,
-): { success: true; data: MenuTreeRecord[] } | { success: false; error: string } {
-  if (!rawPayload) return { success: true, data: [] };
-  const rawList = unwrapRecordsPayload(rawPayload);
-  const res = z.array(menuTreeRecordSchema).safeParse(rawList);
-  return res.success
-    ? { success: true, data: res.data }
-    : { success: false, error: `Menu tree list validation failed: ${res.error.message}` };
-}
-
 /* ========================================================================== */
 /* 2. MENU TREE SANITIZATION & SERIALIZATION (Table: SC_MENU_TREE)            */
 /* ========================================================================== */
@@ -175,7 +160,7 @@ export function parseMenuTreeList(
  * - Sequentially aligns orderIndex
  * - Recursively purges empty/transient UI properties from children
  */
-export function sanitizeMenuTreeNode(node: MenuItem, idx: number): MenuItem {
+function sanitizeMenuTreeNode(node: MenuItem, idx: number): MenuItem {
   const label = (node.label ?? node.title ?? `node-${idx + 1}`).trim();
   const children = Array.isArray(node.children)
     ? node.children

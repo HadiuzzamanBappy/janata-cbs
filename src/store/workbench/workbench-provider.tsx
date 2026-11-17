@@ -5,6 +5,7 @@ import { useStore } from "zustand";
 import { registerCommandAdapter } from "@/lib/cbs-command";
 import { CBS_SCREEN_MESSAGE, getTabInstanceId } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
+import { cbsStorage } from "@/lib/core-utils";
 import { useSessionStore } from "../session/session-provider";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
@@ -35,16 +36,12 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     const store = storeRef.current;
     if (!store) return;
 
-    try {
-      const lastUser = sessionStorage.getItem(clientConfig.storage.session.lastWorkbenchUser);
-      if (lastUser && lastUser !== currentUser.userId) {
-        // Different banking operator logged in: purge tabs to prevent cross-user data leakage
-        store.getState().closeAllTabs();
-      }
-      sessionStorage.setItem(clientConfig.storage.session.lastWorkbenchUser, currentUser.userId);
-    } catch {
-      // Safe fallback
+    const lastUser = cbsStorage.get("session", clientConfig.storage.session.lastWorkbenchUser);
+    if (lastUser && lastUser !== currentUser.userId) {
+      // Different banking operator logged in: purge tabs to prevent cross-user data leakage
+      store.getState().closeAllTabs();
     }
+    cbsStorage.set("session", clientConfig.storage.session.lastWorkbenchUser, currentUser.userId);
   }, [currentUser?.userId]);
 
   useEffect(() => {
@@ -54,7 +51,10 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
     // Helper to verify if this browser tab is currently the active leader
     const isThisTabActive = () => {
       if (typeof window === "undefined") return true;
-      const activeInstanceId = localStorage.getItem(clientConfig.storage.local.activeTabInstance);
+      const activeInstanceId = cbsStorage.get(
+        "local",
+        clientConfig.storage.local.activeTabInstance,
+      );
       const myInstanceId = getTabInstanceId();
       // If another tab is the active leader, this tab is inactive/overridden and must not receive dock events
       if (activeInstanceId && myInstanceId && activeInstanceId !== myInstanceId) {

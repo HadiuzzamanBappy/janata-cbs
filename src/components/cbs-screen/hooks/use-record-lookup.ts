@@ -3,6 +3,7 @@
 import * as React from "react";
 import { cbs } from "@/lib/cbs-client";
 import type { RecordLookupItem } from "@/lib/cbs-screen";
+import { logger } from "@/lib/core-logger";
 import { unwrapRecordsPayload } from "@/lib/data-parsers";
 
 /**
@@ -70,7 +71,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
           setItems(staticItems ?? []);
         }
       } catch (err: unknown) {
-        console.warn(`[useRecordLookup] Failed to fetch records for ${cleanControl}:`, err);
+        logger.warn(`Failed to fetch records for ${cleanControl}`, err, "RECORD_LOOKUP");
         setItems(staticItems ?? []);
       } finally {
         setLoading(false);
@@ -105,7 +106,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
 
         return cleanCandidate || "";
       } catch (err: unknown) {
-        console.warn(`[useRecordLookup] GNI sequence request failed for ${cleanControl}:`, err);
+        logger.warn(`GNI sequence request failed for ${cleanControl}`, err, "RECORD_LOOKUP");
         return cleanCandidate || "";
       } finally {
         setGeneratingId(false);

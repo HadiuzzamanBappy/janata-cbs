@@ -1,5 +1,5 @@
 import { clientConfig } from "@/lib/core-config";
-import { generateIdempotencyKey } from "@/lib/core-utils";
+import { cbsStorage, generateIdempotencyKey } from "@/lib/core-utils";
 import { CBS_SCREEN_COMPONENTS } from "@/types";
 import type { ExecutionOptions, ParsedCommand } from "../types";
 import { resolveScreenId } from "./adapter";
@@ -39,16 +39,10 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
 
   // Store large payloads safely in session storage instead of fragile URLs
   if (options?.formData && Object.keys(options.formData).length > 0) {
-    sessionStorage.setItem(
-      clientConfig.storage.session.draft(tabId),
-      JSON.stringify(options.formData),
-    );
+    cbsStorage.writeJson("session", clientConfig.storage.session.draft(tabId), options.formData);
   }
   if (inquiry?.criteria && Object.keys(inquiry.criteria).length > 0) {
-    sessionStorage.setItem(
-      clientConfig.storage.session.criteria(tabId),
-      JSON.stringify(inquiry.criteria),
-    );
+    cbsStorage.writeJson("session", clientConfig.storage.session.criteria(tabId), inquiry.criteria);
   }
 
   const screenAppKey = resolveScreenId(parsed);

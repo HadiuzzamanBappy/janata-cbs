@@ -34,22 +34,3 @@ export function parseAuthWirePayload(data: unknown): ParsedUserAuthResult {
     token: typeof f.token === "string" ? f.token : "",
   };
 }
-
-/**
- * Serializer & sanitizer for CurrentUser sessions (SerDe outbound symmetry).
- * Sanitizes and normalizes the user profile before storage or transmission.
- */
-export function sanitizeUserSession(user: CurrentUser): CurrentUser {
-  return currentUserSchema.parse({
-    userId: user.userId.trim().toUpperCase(),
-    branchCode: user.branchCode.trim().toUpperCase(),
-    fullName: user.fullName.trim(),
-    userRole: user.userRole.map((r) => r.trim().toUpperCase()).filter(Boolean),
-    accessibility: user.accessibility,
-    branchName: user.branchName.trim(),
-    txnDate: user.txnDate.trim(),
-    commandLine: Boolean(user.commandLine),
-    initLogin: Boolean(user.initLogin),
-    userStatus: user.userStatus,
-  });
-}

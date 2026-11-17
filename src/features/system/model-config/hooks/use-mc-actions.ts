@@ -95,9 +95,9 @@ export function useMcActions({
 
     setValidationErrors([]);
     const targetId = recordId || formData.TABLENAME || "";
-    const cleanData = sanitizeModelConfigRecord(formData) || formData;
+    const cleanData = sanitizeModelConfigRecord(formData);
     await executeMutation(
-      cbs.modelConfig.save(cleanData as unknown as Record<string, unknown>, {
+      cbs.modelConfig.save(cleanData, {
         recordId: targetId,
       }),
       {

@@ -4,6 +4,9 @@
 
 /**
  * Universal CBS Protobuf & Dynamic Struct Data Normalizer.
+ * Server-side only by convention: runs once per core response, in the BFF proxy and the
+ * login parser. Never re-run it on decoded data — a record field named `fields` would be
+ * unwrapped as if it were a protobuf Struct.
  * Recursively decodes any Protobuf Struct / Value structure (string_value,
  * number_value, bool_value, list_value, struct_value, fields) into clean,
  * canonical JavaScript objects, arrays, and primitives.
@@ -56,14 +59,15 @@ export function decodeProtobufValue<T = unknown>(val: unknown): T {
 
 /**
  * Strictly unwraps an array of record items from canonical response envelopes
- * (data.records, data.fields.records, data.list, etc.) or direct arrays.
+ * (data.records, data.list, etc.) or direct arrays. Expects an already-decoded payload:
+ * the BFF proxy is the single point that runs decodeProtobufValue on core responses.
  */
 export function unwrapRecordsPayload<T = unknown>(data: unknown): T[] {
   if (!data) return [];
-  if (Array.isArray(data)) return data.map((d) => decodeProtobufValue<T>(d));
+  if (Array.isArray(data)) return data as T[];
 
-  const decoded = decodeProtobufValue<Record<string, unknown>>(data);
-  if (decoded && typeof decoded === "object") {
+  const decoded = data as Record<string, unknown>;
+  if (typeof decoded === "object") {
     if (Array.isArray(decoded.records)) {
       return decoded.records as T[];
     }
@@ -79,7 +83,7 @@ export function unwrapRecordsPayload<T = unknown>(data: unknown): T[] {
     if (Array.isArray(decoded.menuTree)) {
       return decoded.menuTree as T[];
     }
-    const inner = decoded.data || decoded.record || decoded.fields;
+    const inner = decoded.data || decoded.record;
     if (inner && typeof inner === "object" && !Array.isArray(inner)) {
       const innerRec = inner as Record<string, unknown>;
       if (Array.isArray(innerRec.records)) return innerRec.records as T[];

@@ -89,7 +89,7 @@ export function useFcActions({
   const handleSubmit = React.useCallback(async () => {
     if (!handleValidate()) return;
     const targetId = (recordId || "").trim().toUpperCase();
-    const cleanFormData = sanitizeFormConfigRecord(formData) || formData;
+    const cleanFormData = sanitizeFormConfigRecord(formData);
 
     await executeMutation(cbs.formConfig.save(cleanFormData, { recordId: targetId }), {
       successTitle: "Form Saved",

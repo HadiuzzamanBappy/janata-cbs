@@ -7,8 +7,8 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { buildDefaultCriteria, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
 import type { CbsScreenProps } from "@/lib/cbs-screen";
-import { parseInquiryRecords } from "@/lib/data-parsers";
-import type { FilterCriteriaMap } from "@/lib/data-schemas";
+import { logger } from "@/lib/core-logger";
+import { type FilterCriteriaMap, inquiryRowListSchema } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 import { CBS_INQUIRY_STEP } from "@/types";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
@@ -61,7 +61,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
       const queryPerPage = isPaginationEnabled ? pageSize || 30 : 1000;
 
       try {
-        const queryRes = await cbs.send<unknown>(
+        const queryRes = await cbs.send(
           cbs.inquiry.executeQuery(targetControl, {
             servicePath: schema.INQInfo?.inqServicePath,
             inqType: schema.INQInfo?.inqType,
@@ -69,7 +69,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
             curPage: 1,
             queryString,
           }),
-          { silent: true },
+          { silent: true, responseSchema: inquiryRowListSchema },
         );
 
         if (queryRes.status !== "SUCCESS") {
@@ -81,7 +81,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
           return;
         }
 
-        const dataset = parseInquiryRecords(queryRes.data);
+        const dataset = queryRes.data ?? [];
 
         setCurrentCriteria(criteria);
         setFilteredRows(dataset);
@@ -94,7 +94,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
           type: "info",
         });
       } catch (err) {
-        console.warn("Dynamic inquiry query failed", err);
+        logger.warn("Dynamic inquiry query failed", err, "INQUIRY");
         toast.add({
           title: "Query Failed",
           description: err instanceof Error ? err.message : "Backend query failed",

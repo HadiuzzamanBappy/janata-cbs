@@ -26,7 +26,10 @@ export function FcJsonTab({ formData, baseline, raw }: FcJsonTabProps) {
     : "Form Layout Presentation Specification (JSON)";
 
   const cleanData = React.useMemo(() => sanitizeFormConfigRecord(formData), [formData]);
-  const cleanBaseline = React.useMemo(() => sanitizeFormConfigRecord(baseline), [baseline]);
+  const cleanBaseline = React.useMemo(
+    () => (baseline ? sanitizeFormConfigRecord(baseline) : undefined),
+    [baseline],
+  );
 
   return (
     <CbsJsonViewerTab

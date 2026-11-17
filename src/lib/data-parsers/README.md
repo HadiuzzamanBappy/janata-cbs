@@ -12,8 +12,11 @@ It transforms raw, low-level Google Protobuf wire structs (`string_value`, `stru
 src/lib/data-parsers/
 ├── protobuf-decoder.ts       # Universal Protobuf wire normalizer & response envelope unwrapper
 ├── auth-parser.ts            # Parses login/auth responses into typed CurrentUser models and session tokens
-├── form-config-parser.ts     # Parses GFC responses & FormConfigRecord; sanitizes elements, sections, and form configs
-├── inquiry-config-parser.ts  # Parses inquiry definitions, dataset rows (InquiryRow); sanitizes criteria and columns
+├── form-config-parser.ts     # Parses GFC responses into ModelConfigRecord + FormConfigRecord
+├── form-config-serializer.ts # Sanitizes FormConfigRecord (elements, sections, routines) for persistence
+├── inquiry-config-parser.ts  # Parses inquiry definitions (incl. core SN-keyed records)
+├── inquiry-config-serializer.ts # Sanitizes InquiryConfigRecord (criteria, columns, commands) for persistence
+├── inquiry-rows-parser.ts    # Parses INQ result sets into InquiryRow[] (runs in the BFF proxy only)
 ├── menu-designer-parser.ts   # Parses GUM navigation menus (parseMNU) and visual trees (SC_MENU_TREE)
 ├── model-config-parser.ts    # Parses GMC responses & ModelConfigRecord; sanitizes model properties and model configs
 └── index.ts                  # Public barrel export
@@ -79,16 +82,21 @@ Every wire payload flows symmetrically through two distinct directions:
 
 ## 🚀 How to Use
 
-### 1. Decoding Low-Level Protobuf Structs
+### 1. Decoding Low-Level Protobuf Structs (server only, once per response)
+
+`decodeProtobufValue` runs in exactly two places: the BFF proxy (`/api/proxy`, every core
+response, INQ rows also go through `parseInquiryRecords` there) and `parseAuthWirePayload`
+(login). Responses reach the browser already decoded, so client-side parsers never decode again.
+Re-decoding is not idempotent: a genuine record attribute named `fields` would be flattened.
 
 ```typescript
 import { decodeProtobufValue, unwrapRecordsPayload } from "@/lib/data-parsers";
 
-// Converts { string_value: "Janata Bank" } -> "Janata Bank"
+// Server: converts { string_value: "Janata Bank" } -> "Janata Bank"
 const cleanData = decodeProtobufValue(rawProtobufObject);
 
-// Extracts items from data.records, data.list, or direct array:
-const items = unwrapRecordsPayload<RawRecord>(rawResponse);
+// Anywhere: extracts items from data.records, data.list, or a direct array of decoded data
+const items = unwrapRecordsPayload<RawRecord>(cleanData);
 ```
 
 ---
@@ -118,7 +126,8 @@ if (menuResult.success) {
 
 ### 3. Outbound Record Sanitization (Pre-Commit)
 
-Used in feature mutation hooks before sending updates to `/api/proxy`:
+Used in feature mutation hooks before sending updates to `/api/proxy`. Every
+`sanitize*Record` is total — `(record: T) => T` — so callers never need `sanitize(x) || x`:
 
 ```typescript
 import {
@@ -158,9 +167,19 @@ Protobuf `Value`, `ListValue`, and `Struct` unwrapping mechanics are complete an
 When creating a new domain schema (e.g. `loan-schema.ts`), pair it with a parser and sanitizer:
 
 1. Create `src/lib/data-parsers/loan-parser.ts`.
-2. Use `unwrapRecordsPayload` or `decodeProtobufValue`.
+2. Use `unwrapRecordsPayload` on the (already decoded) payload — never `decodeProtobufValue`.
 3. Implement `parseLoanRecord` and `sanitizeLoanRecord`.
 4. Export from `index.ts`.
+
+**When to split a domain file.** Keep one `<domain>-parser.ts` (inbound parse + outbound
+sanitizer together) by default. Split into `<domain>-parser.ts` (inbound) and
+`<domain>-serializer.ts` (outbound `sanitize*`) only when either holds:
+
+- the file exceeds the helper size budget (250 lines; 280 stretch), or
+- its parts run in different places (e.g. `inquiry-rows-parser.ts` runs only in the BFF proxy).
+
+Form and inquiry are split; auth, model and menu stay single-file because they are small.
+Callers always import from the `@/lib/data-parsers` barrel, so a split never touches them.
 
 ---
 

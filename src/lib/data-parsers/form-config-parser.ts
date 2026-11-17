@@ -1,11 +1,10 @@
 import {
   type FormConfigRecord,
-  type FormElement,
-  type FormSection,
   formConfigRecordSchema,
   gfcResponseSchema,
   type ModelConfigRecord,
 } from "@/lib/data-schemas";
+import { sanitizeFormConfigRecord } from "./form-config-serializer";
 import { extractModelConfigRecord, sanitizeModelConfigRecord } from "./model-config-parser";
 
 /* -------------------------------------------------------------------------- */
@@ -57,12 +56,11 @@ export function parseGfcResponse(
   if (hasExistingLayout && rawFc) {
     const formParsed = formConfigRecordSchema.safeParse(rawFc);
     if (formParsed.success) {
-      form = sanitizeFormConfigRecord(formParsed.data) ?? formParsed.data;
+      form = sanitizeFormConfigRecord(formParsed.data);
     }
   }
 
-  const model =
-    sanitizeModelConfigRecord(modelRaw as ModelConfigRecord) ?? (modelRaw as ModelConfigRecord);
+  const model = sanitizeModelConfigRecord(modelRaw as ModelConfigRecord);
 
   return {
     success: true,
@@ -72,185 +70,4 @@ export function parseGfcResponse(
       isNew: form === null,
     },
   };
-}
-
-/* -------------------------------------------------------------------------- */
-/* Outbound Database Serializers & Physical Form Sanitizers                   */
-/* -------------------------------------------------------------------------- */
-
-const TEXT_OVERRIDES = ["POSITION", "ENRICHTEXT", "FIXEDVALUE", "DEFAULTVALUE"] as const;
-const SECTION_STRINGS = ["title", "description", "groupId", "groupTitle"] as const;
-
-/**
- * Sanitizes a FormElement for database persistence and wire JSON output:
- * - Removes client-only identifiers (`id: "f_..."`)
- * - Omits default falsy flags (`REQUIRED: false`, `DISABLED: false`)
- * - Omits empty text overrides and compresses sparse JSON
- */
-export function sanitizeFormElement(field: FormElement): FormElement {
-  const { id: _clientId, ...cleanField } = field as FormElement & { id?: string };
-
-  const rawLength =
-    typeof cleanField.LENGTH === "string"
-      ? Number.parseInt(cleanField.LENGTH, 10)
-      : cleanField.LENGTH;
-  const normLength =
-    typeof rawLength === "number" && !Number.isNaN(rawLength) && rawLength > 0 ? rawLength : 35;
-
-  const sanitized: Partial<FormElement> = {
-    SN: String(cleanField.SN || "1").trim(),
-    NAME: cleanField.NAME.trim(),
-    LABEL: (cleanField.LABEL || cleanField.NAME).trim(),
-    TYPE: cleanField.TYPE || "String",
-    STRUCTURE: cleanField.STRUCTURE || "S",
-    LENGTH: normLength,
-  };
-
-  if (cleanField.REQUIRED) sanitized.REQUIRED = true;
-  if (cleanField.DISABLED) sanitized.DISABLED = true;
-  if (cleanField.WIDTH && cleanField.WIDTH !== "md") sanitized.WIDTH = cleanField.WIDTH;
-  if (cleanField.WIDGET) sanitized.WIDGET = cleanField.WIDGET;
-
-  for (const key of TEXT_OVERRIDES) {
-    const val = cleanField[key];
-    if (val !== undefined && val !== null && String(val).trim() !== "") {
-      sanitized[key] = String(val).trim();
-    }
-  }
-
-  if (cleanField.ON_CHANGE?.target?.trim()) {
-    sanitized.ON_CHANGE = {
-      target: cleanField.ON_CHANGE.target.trim(),
-      action: cleanField.ON_CHANGE.action || "copy",
-      ...(cleanField.ON_CHANGE.delimiter ? { delimiter: cleanField.ON_CHANGE.delimiter } : {}),
-    };
-  }
-
-  if (cleanField.VALIDATION) {
-    const v = cleanField.VALIDATION;
-    const cleanVal: Partial<typeof v> = {};
-    if (v.matches?.trim()) cleanVal.matches = v.matches.trim();
-    if (v.message?.trim()) cleanVal.message = v.message.trim();
-    if (typeof v.min === "number") cleanVal.min = v.min;
-    if (typeof v.max === "number") cleanVal.max = v.max;
-    if (v.pattern?.trim()) cleanVal.pattern = v.pattern.trim();
-    if (Object.keys(cleanVal).length > 0) {
-      sanitized.VALIDATION = cleanVal as typeof v;
-    }
-  }
-
-  const p = cleanField.PARAMETER;
-  const pType = String(p?.type ?? "").toUpperCase();
-  const modelName = String(p?.modelName ?? "").trim();
-  if (pType === "M" && modelName) {
-    const codeStr = String(p?.codeField ?? "").trim();
-    const refStr = String(p?.reference ?? "").trim();
-    const dispStr = String(p?.displayField ?? "").trim();
-    const condStr = String(p?.condition ?? "").trim();
-    sanitized.PARAMETER = {
-      type: "M",
-      modelName,
-      data: [],
-      ...(refStr ? { reference: refStr } : {}),
-      ...(dispStr ? { displayField: dispStr } : {}),
-      ...(condStr ? { condition: condStr } : {}),
-      ...(codeStr ? { codeField: codeStr } : {}),
-    };
-  } else if ((pType === "O" || !pType) && Array.isArray(p?.data)) {
-    const rawArr = p.data;
-    if (rawArr.length > 0) {
-      sanitized.PARAMETER = {
-        type: "O",
-        data: rawArr.map((opt) => ({
-          code: String(opt.code ?? ""),
-          label: String(opt.label ?? opt.code ?? ""),
-        })),
-      };
-    }
-  }
-
-  if (cleanField.TEXT_CONFIG) sanitized.TEXT_CONFIG = cleanField.TEXT_CONFIG;
-  if (cleanField.NUMBER_CONFIG) sanitized.NUMBER_CONFIG = cleanField.NUMBER_CONFIG;
-  if (cleanField.RATE_CONFIG) sanitized.RATE_CONFIG = cleanField.RATE_CONFIG;
-  if (cleanField.DATE_CONFIG) sanitized.DATE_CONFIG = cleanField.DATE_CONFIG;
-  if (cleanField.BOOLEAN_CONFIG) sanitized.BOOLEAN_CONFIG = cleanField.BOOLEAN_CONFIG;
-
-  if (cleanField.VISIBLE_WHEN) sanitized.VISIBLE_WHEN = cleanField.VISIBLE_WHEN;
-  if (cleanField.HIDDEN_WHEN) sanitized.HIDDEN_WHEN = cleanField.HIDDEN_WHEN;
-  if (cleanField.DISABLED_WHEN) sanitized.DISABLED_WHEN = cleanField.DISABLED_WHEN;
-  if (cleanField.TRANSFORM) sanitized.TRANSFORM = cleanField.TRANSFORM;
-  if (Array.isArray(cleanField.CASCADE) && cleanField.CASCADE.length > 0) {
-    sanitized.CASCADE = cleanField.CASCADE;
-  }
-
-  if (Array.isArray(cleanField.PROP) && cleanField.PROP.length > 0) {
-    sanitized.PROP = cleanField.PROP.map(sanitizeFormElement);
-  }
-
-  return sanitized as FormElement;
-}
-
-/**
- * Sanitizes a FormSection for sparse database persistence:
- * - Omits empty titles, descriptions, groupIds
- * - Omits default false flags (collapsible: false, isCollapsed: false)
- * - Sanitizes all inner child fields
- */
-export function sanitizeFormSection(section: FormSection): FormSection {
-  const sanitized: Partial<FormSection> = {
-    id: section.id,
-    containerType: section.containerType || "card",
-    columns: section.columns || 1,
-  };
-
-  for (const key of SECTION_STRINGS) {
-    if (section[key]?.trim()) sanitized[key] = section[key].trim();
-  }
-  if (section.collapsible) sanitized.collapsible = true;
-  if (section.isCollapsed) sanitized.isCollapsed = true;
-  if (section.containerConfig) sanitized.containerConfig = section.containerConfig;
-
-  sanitized.fields = (section.fields || []).map(sanitizeFormElement);
-  return sanitized as FormSection;
-}
-
-/**
- * Produces a clean, sparse FormConfigRecord ready for database wire persistence.
- */
-export function sanitizeFormConfigRecord(record?: FormConfigRecord): FormConfigRecord | undefined {
-  if (!record) return undefined;
-
-  const result: Partial<FormConfigRecord> = {};
-
-  if (record.title?.trim()) result.title = record.title.trim();
-  if (record.description?.trim()) result.description = record.description.trim();
-  if (record.authNumber !== undefined && record.authNumber !== null) {
-    result.authNumber = record.authNumber;
-  }
-  if (record.auditData) result.auditData = record.auditData;
-
-  if (record.frmRoutine) {
-    const rtnValidate = (record.frmRoutine.rtnValidate || []).filter((r) => r.routineName?.trim());
-    const rtnBeforeAuth = (record.frmRoutine.rtnBeforeAuth || []).filter((r) =>
-      r.routineName?.trim(),
-    );
-    const rtnAfterAuth = (record.frmRoutine.rtnAfterAuth || []).filter((r) =>
-      r.routineName?.trim(),
-    );
-
-    if (rtnValidate.length > 0 || rtnBeforeAuth.length > 0 || rtnAfterAuth.length > 0) {
-      result.frmRoutine = { rtnValidate, rtnBeforeAuth, rtnAfterAuth };
-    }
-  }
-
-  if (record.frmElements?.sections) {
-    result.frmElements = {
-      ...(record.frmElements.columns ? { columns: record.frmElements.columns } : {}),
-      ...(record.frmElements.layout ? { layout: record.frmElements.layout } : {}),
-      ...(record.frmElements.density ? { density: record.frmElements.density } : {}),
-      sections: record.frmElements.sections.map(sanitizeFormSection),
-    };
-  }
-
-  return result as FormConfigRecord;
 }

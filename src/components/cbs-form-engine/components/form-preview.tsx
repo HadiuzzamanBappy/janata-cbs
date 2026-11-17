@@ -56,7 +56,7 @@ export function FormPreview({
   const effectiveFrmElements = React.useMemo(() => {
     if (frmElements) return frmElements;
     if (modelRecord) {
-      const cleanData = sanitizeModelConfigRecord(modelRecord) ?? modelRecord;
+      const cleanData = sanitizeModelConfigRecord(modelRecord);
       return compileFormSpec(cleanData, null).frmElements;
     }
     return undefined;

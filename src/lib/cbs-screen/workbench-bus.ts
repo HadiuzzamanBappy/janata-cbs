@@ -9,7 +9,7 @@
 
 import * as React from "react";
 import { clientConfig } from "@/lib/core-config";
-import { generateIdempotencyKey } from "@/lib/core-utils";
+import { cbsStorage, generateIdempotencyKey } from "@/lib/core-utils";
 
 // ============================================================================
 // Window & Event Contracts
@@ -61,11 +61,7 @@ export interface WorkbenchBusMessage {
  */
 export function setWorkbenchDraft(tabId: string, data: Record<string, unknown>): void {
   if (typeof window === "undefined" || !tabId) return;
-  try {
-    sessionStorage.setItem(clientConfig.storage.session.draft(tabId), JSON.stringify(data));
-  } catch (err) {
-    console.warn(`[WorkbenchBus] Failed to store draft for ${tabId}:`, err);
-  }
+  cbsStorage.writeJson("session", clientConfig.storage.session.draft(tabId), data);
 }
 
 /**
@@ -73,12 +69,7 @@ export function setWorkbenchDraft(tabId: string, data: Record<string, unknown>):
  */
 export function getWorkbenchDraft<T = Record<string, unknown>>(tabId: string): T | null {
   if (typeof window === "undefined" || !tabId) return null;
-  try {
-    const raw = sessionStorage.getItem(clientConfig.storage.session.draft(tabId));
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
+  return cbsStorage.readJson<T>("session", clientConfig.storage.session.draft(tabId));
 }
 
 /**
@@ -86,11 +77,7 @@ export function getWorkbenchDraft<T = Record<string, unknown>>(tabId: string): T
  */
 export function clearWorkbenchDraft(tabId: string): void {
   if (typeof window === "undefined" || !tabId) return;
-  try {
-    sessionStorage.removeItem(clientConfig.storage.session.draft(tabId));
-  } catch {
-    // Safe ignore
-  }
+  cbsStorage.remove("session", clientConfig.storage.session.draft(tabId));
 }
 
 // ============================================================================
@@ -195,11 +182,7 @@ export function getTabInstanceId(): string {
   // but is reset to "" by modern browsers (Chrome/Edge/Firefox) on duplicated tabs.
   if (window.name?.startsWith("cbs_tab_")) {
     win.__CBS_TAB_INSTANCE_ID__ = window.name;
-    try {
-      sessionStorage.setItem(clientConfig.storage.session.tabInstanceId, window.name);
-    } catch {
-      // Safe fallback
-    }
+    cbsStorage.set("session", clientConfig.storage.session.tabInstanceId, window.name);
     return window.name;
   }
 
@@ -207,9 +190,9 @@ export function getTabInstanceId(): string {
   win.__CBS_TAB_INSTANCE_ID__ = newId;
   try {
     window.name = newId;
-    sessionStorage.setItem(clientConfig.storage.session.tabInstanceId, newId);
   } catch {
-    // Safe fallback
+    // window.name is read-only in some sandboxed frames
   }
+  cbsStorage.set("session", clientConfig.storage.session.tabInstanceId, newId);
   return newId;
 }

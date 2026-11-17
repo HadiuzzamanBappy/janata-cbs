@@ -14,6 +14,7 @@ src/lib/core-utils/
 ├── export.ts       # CSV (with Excel UTF-8 BOM), HTML report, and XML table exporters
 ├── id.ts           # Ephemeral UI token generator (generateClientToken)
 ├── index.ts        # Central public export barrel
+├── storage.ts      # cbsStorage: the only Web Storage gateway (SSR-safe, JSON + Zod validated)
 └── string.ts       # Title Case string formatter with banking acronym preservation
 ```
 
@@ -63,6 +64,23 @@ const rows = [{ accountNo: "AC10001", balance: 50000 }];
 exportToCsv("accounts", columns, rows);
 exportToHtmlReport("accounts", columns, rows);
 exportToXml("accounts", columns, rows);
+```
+
+### 5. Web Storage (`cbsStorage`)
+
+The only module allowed to call `localStorage` / `sessionStorage`. Every call is SSR-safe and
+absorbs quota, privacy-mode and disabled-storage errors, so callers never write `try/catch`.
+
+```typescript
+import { cbsStorage } from "@/lib/core-utils";
+import { clientConfig } from "@/lib/core-config";
+import { filterCriteriaMapSchema } from "@/lib/data-schemas";
+
+cbsStorage.set("local", clientConfig.storage.local.lastActivity, String(Date.now()));
+cbsStorage.remove("local", clientConfig.storage.local.lastActivity);
+
+// JSON with optional Zod validation — corrupt or wrong-shaped data reads back as null
+const criteria = cbsStorage.readJson("session", key, filterCriteriaMapSchema);
 ```
 
 ---

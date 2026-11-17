@@ -27,7 +27,7 @@ export interface InquiryValidationErrorItem extends CbsScreenValidationError<Inq
  * page size) never block a save. Only genuine definition errors surface.
  */
 export function validateInquiryConfig(draft: InquiryConfigRecord): InquiryValidationErrorItem[] {
-  const formData = sanitizeInquiryConfigRecord(draft) ?? draft;
+  const formData = sanitizeInquiryConfigRecord(draft);
   const issues: InquiryValidationErrorItem[] = [];
   const seenKeys = new Set<string>();
 

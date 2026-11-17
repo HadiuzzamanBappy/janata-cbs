@@ -15,6 +15,7 @@ import {
 import { useSingleTab } from "@/hooks";
 import { cbsAuth } from "@/lib/cbs-client";
 import { clientConfig } from "@/lib/core-config";
+import { cbsStorage } from "@/lib/core-utils";
 
 const ALERT_FAVICON =
   'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f59e0b"><path d="M12 2L1 21h22L12 2zm-1 7h2v5h-2V9zm1 9a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z"/></svg>';
@@ -60,8 +61,11 @@ export function AppSingleTabWatcher() {
     } catch {
       // Safe fallback
     } finally {
-      localStorage.removeItem(clientConfig.storage.local.lastActivity);
-      localStorage.removeItem(clientConfig.storage.local.activeTabInstance);
+      cbsStorage.remove(
+        "local",
+        clientConfig.storage.local.lastActivity,
+        clientConfig.storage.local.activeTabInstance,
+      );
       router.push(clientConfig.routes.login);
       router.refresh();
     }

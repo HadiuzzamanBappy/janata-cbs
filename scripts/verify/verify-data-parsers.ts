@@ -4,7 +4,7 @@
  * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
  * parser capability exposed by `@/lib/data-parsers` with explicit Input and Output visualization:
  * 1. Protobuf Value Decoding (decodeProtobufValue: decodes string_value, struct_value, list_value)
- * 2. Record Envelope Unwrapping (unwrapRecordsPayload: extracts arrays from common wire wrappers)
+ * 2. Record Envelope Unwrapping (unwrapRecordsPayload: extracts arrays; never re-decodes)
  * 3. Operator Auth Response Parsing (parseAuthWirePayload: maps session fields & RIDASHL rights)
  * 4. Combined GFC Specification Parsing (parseGfcResponse: extracts model and presentation)
  * 5. Form Config Spec Sanitization (sanitizeFormConfigRecord: cleans sparse database wire layout)
@@ -22,12 +22,9 @@ import {
   parseGfcResponse,
   parseInquiryConfig,
   parseInquiryRecords,
-  parseModelConfig,
   sanitizeFormConfigRecord,
   sanitizeInquiryConfigRecord,
   sanitizeMenuTreeRecord,
-  sanitizeModelConfigRecord,
-  sanitizeUserSession,
   unwrapRecordsPayload,
 } from "@/lib/data-parsers";
 import type { FormConfigRecord } from "@/lib/data-schemas";
@@ -112,6 +109,17 @@ async function runSuite() {
     unwrapped.length === 2 && unwrapped[0]?.id === "REC_01",
   );
 
+  // Decode-once invariant: unwrapping already-decoded data must not re-run the protobuf
+  // decoder, or a genuine record attribute named `fields` gets flattened away.
+  const decodedRows = [{ id: "SEC_01", fields: { NAME: { LABEL: "Name" } } }];
+  const unwrappedDecoded = unwrapRecordsPayload<{ id: string; fields: unknown }>(decodedRows);
+  recordTest(
+    "2b. Decode-Once Invariant: Unwrapper leaves decoded records (incl. a `fields` key) untouched",
+    decodedRows,
+    unwrappedDecoded,
+    unwrappedDecoded[0]?.fields === decodedRows[0]?.fields,
+  );
+
   // ----------------------------------------------------------------------------
   // 3. Authentication Wire Payload Parser
   // ----------------------------------------------------------------------------
@@ -141,17 +149,6 @@ async function runSuite() {
       Boolean(authResult.currUser.accessibility?.includes("S")) &&
       !authResult.currUser.accessibility?.includes("I") &&
       authResult.token === "mock-jwt-session-token",
-  );
-
-  const sanitizedUser = sanitizeUserSession(authResult.currUser);
-  recordTest(
-    "3b. Auth Session Sanitizer: Standardizes uppercase userId, branchCode & normalized roles",
-    authResult.currUser,
-    sanitizedUser,
-    sanitizedUser.userId === "OP100" &&
-      sanitizedUser.branchCode === "001" &&
-      sanitizedUser.userRole[0] === "TELLER" &&
-      sanitizedUser.accessibility?.length === 2,
   );
 
   // ----------------------------------------------------------------------------
@@ -281,10 +278,10 @@ async function runSuite() {
       },
     ],
   };
-  const parsedModel = parseModelConfig(rawModelPayload);
-  const sanitizedModel = parsedModel.success
-    ? sanitizeModelConfigRecord(parsedModel.data)
-    : undefined;
+  // Production path: GMC/GFC records reach the client through parseGfcResponse, which
+  // unwraps the envelope and runs sanitizeModelConfigRecord on the model half.
+  const parsedModel = parseGfcResponse(rawModelPayload);
+  const sanitizedModel = parsedModel.success ? parsedModel.data.model : undefined;
   const p1 = sanitizedModel?.PROPERTIES[0] as unknown as Record<string, unknown>;
   const p2 = sanitizedModel?.PROPERTIES[1];
   const p3 = sanitizedModel?.PROPERTIES[2];
@@ -330,7 +327,10 @@ async function runSuite() {
       },
     },
   };
-  const parsedEnvelope = parseModelConfig(envelopePayload);
+  const parsedGfcEnvelope = parseGfcResponse(envelopePayload);
+  const parsedEnvelope = parsedGfcEnvelope.success
+    ? ({ success: true, data: parsedGfcEnvelope.data.model } as const)
+    : ({ success: false } as const);
 
   recordTest(
     "6b. Model Config Envelope Unwrapper: Unwraps nested { data: { record } } and adapts auditFields",

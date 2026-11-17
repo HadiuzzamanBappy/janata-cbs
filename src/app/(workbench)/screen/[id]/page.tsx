@@ -15,7 +15,8 @@ import {
   type WorkbenchBusMessage,
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
-import { type FilterCriteriaMap, isApiSuccess } from "@/lib/data-schemas";
+import { cbsStorage } from "@/lib/core-utils";
+import { filterCriteriaMapSchema, isApiSuccess } from "@/lib/data-schemas";
 import { CbsAppStoreProvider, useSessionStore, useWorkbenchStore } from "@/store";
 import {
   CBS_IDLE_MODE,
@@ -90,11 +91,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
       const now = Date.now();
       if (now - lastRecorded > 2000) {
         lastRecorded = now;
-        try {
-          localStorage.setItem(STORAGE_KEY, String(now));
-        } catch {
-          // Safe fallback
-        }
+        cbsStorage.set("local", STORAGE_KEY, String(now));
       }
     };
 
@@ -129,18 +126,12 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
       // Read large payload from session storage draft (supports 1,000 fields with zero URL overflow)
       const storageDraft = getWorkbenchDraft(tabId);
 
-      let criteria: FilterCriteriaMap | undefined;
-      const storageCrit =
-        typeof window !== "undefined"
-          ? sessionStorage.getItem(clientConfig.storage.session.criteria(tabId))
-          : null;
-      if (storageCrit) {
-        try {
-          criteria = JSON.parse(storageCrit);
-        } catch {
-          // Safe fallback
-        }
-      }
+      const criteria =
+        cbsStorage.readJson(
+          "session",
+          clientConfig.storage.session.criteria(tabId),
+          filterCriteriaMapSchema,
+        ) ?? undefined;
 
       addTab({
         id: tabId,

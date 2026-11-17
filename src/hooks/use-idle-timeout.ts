@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { cbsAuth } from "@/lib/cbs-client";
 import { CBS_SCREEN_MESSAGE, getWorkbenchBus, type WorkbenchBusMessage } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
+import { cbsStorage } from "@/lib/core-utils";
 
 const STORAGE_KEY = clientConfig.storage.local.lastActivity;
 const WARNING_BEFORE_LOGOUT_MS = clientConfig.storage.idleWarningWindowMs;
@@ -37,8 +38,7 @@ export function useIdleTimeout({
     } catch {
       // Fail-safe cleanup
     } finally {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(clientConfig.storage.local.activeTabInstance);
+      cbsStorage.remove("local", STORAGE_KEY, clientConfig.storage.local.activeTabInstance);
       const bus = getWorkbenchBus();
       if (bus) {
         bus.postMessage({
@@ -53,7 +53,7 @@ export function useIdleTimeout({
 
   const keepAlive = useCallback(async () => {
     const now = Date.now();
-    localStorage.setItem(STORAGE_KEY, String(now));
+    cbsStorage.set("local", STORAGE_KEY, String(now));
     setIsWarningOpen(false);
 
     try {
@@ -65,8 +65,8 @@ export function useIdleTimeout({
 
   useEffect(() => {
     // Initialize timestamp if missing
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      localStorage.setItem(STORAGE_KEY, String(Date.now()));
+    if (!cbsStorage.get("local", STORAGE_KEY)) {
+      cbsStorage.set("local", STORAGE_KEY, String(Date.now()));
     }
 
     let lastRecorded = Date.now();
@@ -78,7 +78,7 @@ export function useIdleTimeout({
       // Throttle writes to localStorage (once every 2s)
       if (now - lastRecorded > 2000) {
         lastRecorded = now;
-        localStorage.setItem(STORAGE_KEY, String(now));
+        cbsStorage.set("local", STORAGE_KEY, String(now));
         if (isWarningOpen) {
           setIsWarningOpen(false);
         }
@@ -135,9 +135,9 @@ export function useIdleTimeout({
 
     // 1-second wall-clock ticker
     const ticker = setInterval(() => {
-      const rawStored = localStorage.getItem(STORAGE_KEY);
+      const rawStored = cbsStorage.get("local", STORAGE_KEY);
       if (!rawStored) {
-        localStorage.setItem(STORAGE_KEY, String(Date.now()));
+        cbsStorage.set("local", STORAGE_KEY, String(Date.now()));
         return;
       }
 

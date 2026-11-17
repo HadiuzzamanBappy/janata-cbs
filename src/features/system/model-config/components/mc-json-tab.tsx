@@ -26,7 +26,10 @@ export function McJsonTab({ formData, baseline, raw }: McJsonTabProps) {
     : "Database Wire Output Payload (JSON)";
 
   const cleanData = React.useMemo(() => sanitizeModelConfigRecord(formData), [formData]);
-  const cleanBaseline = React.useMemo(() => sanitizeModelConfigRecord(baseline), [baseline]);
+  const cleanBaseline = React.useMemo(
+    () => (baseline ? sanitizeModelConfigRecord(baseline) : undefined),
+    [baseline],
+  );
 
   return (
     <CbsJsonViewerTab

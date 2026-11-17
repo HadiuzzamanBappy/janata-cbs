@@ -3,7 +3,12 @@ import { verifyUserRecordAccess } from "@/lib/cbs-access";
 import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
-import { type ApiResponse, cbsWirePayloadSchema, type GrpcEnvelope } from "@/lib/data-schemas";
+import {
+  type ApiResponse,
+  CBS_API_STATUS,
+  cbsWirePayloadSchema,
+  type GrpcEnvelope,
+} from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
 import {
   autoInvalidateOnMutation,
@@ -18,6 +23,19 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const proxyLogger = logger.withContext("PROXY_API");
+
+/**
+ * Single decode point for core payloads: INQ results become InquiryRow[], everything else
+ * is protobuf-decoded. Cached entries hold the decoded form, so cache hits skip this step.
+ */
+function decodeResponse(requestType: string, res: ApiResponse): ApiResponse {
+  if (res.status !== CBS_API_STATUS.SUCCESS || !res.data) return res;
+  const data =
+    requestType === CbsRequestType.INQ
+      ? parseInquiryRecords(decodeProtobufValue(res.data))
+      : decodeProtobufValue(res.data);
+  return { ...res, data };
+}
 
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
@@ -70,42 +88,33 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       data: body.data ?? {},
     };
 
-    // 3. Dispatch with Read-Through Redis Caching
+    // 3. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {
       const cacheDesc = resolveCacheDescriptor(envelope);
+      const dispatchDecoded = async () =>
+        decodeResponse(envelope.requestType, await dispatch(envelope, token));
       let failedResponse: ApiResponse | null = null;
 
       const response = cacheDesc
         ? ((await getOrSet(
             cacheDesc.key,
             async () => {
-              const res = await dispatch(envelope, token);
-              if (res.status !== "SUCCESS") {
+              const res = await dispatchDecoded();
+              if (res.status !== CBS_API_STATUS.SUCCESS) {
                 failedResponse = res;
                 return null;
               }
-              return {
-                ...res,
-                data: res.data ? decodeProtobufValue(res.data) : res.data,
-              };
+              return res;
             },
             cacheDesc.ttl,
           )) ??
           failedResponse ??
-          (await dispatch(envelope, token)))
-        : await dispatch(envelope, token);
+          (await dispatchDecoded()))
+        : await dispatchDecoded();
 
-      if (response.status === "SUCCESS") {
+      if (response.status === CBS_API_STATUS.SUCCESS) {
         await autoInvalidateOnMutation(envelope);
-
-        const data =
-          body.requestType === CbsRequestType.INQ && response.data
-            ? parseInquiryRecords(response)
-            : response.data
-              ? decodeProtobufValue(response.data)
-              : response.data;
-
-        return NextResponse.json({ ...response, data }, { status: 200 });
+        return NextResponse.json(response, { status: 200 });
       }
 
       // Handle Downstream Core Failures

@@ -3,16 +3,21 @@
 
 import mermaid from "mermaid";
 import { useTheme } from "next-themes";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { logger } from "@/lib/core-logger";
 
 export function MermaidDiagram({ chart }: { chart: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
+  // Deterministic DOM id: React useId (sanitised for CSS selectors) plus a per-render sequence,
+  // so overlapping renders (theme switch, StrictMode remount) never share a temp element id.
+  const baseId = `mermaid-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const renderSeqRef = useRef(0);
 
   useEffect(() => {
     let isMounted = true;
-    const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+    renderSeqRef.current += 1;
+    const id = `${baseId}-${renderSeqRef.current}`;
     const isDark = resolvedTheme === "dark";
 
     mermaid.initialize({
@@ -69,7 +74,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
         containerRef.current.innerHTML = "";
       }
     };
-  }, [chart, resolvedTheme]);
+  }, [baseId, chart, resolvedTheme]);
 
   return (
     <div

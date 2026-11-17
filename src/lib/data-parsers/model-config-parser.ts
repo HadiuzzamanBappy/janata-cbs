@@ -1,16 +1,22 @@
-import { type ModelConfigRecord, type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas";
+import {
+  CBS_PROPERTY_TYPE,
+  type ModelConfigRecord,
+  type ModelProperty,
+  PROPERTY_TYPES,
+  type PropertyType,
+} from "@/lib/data-schemas";
 import { unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
 /* Constants & Type Mappings                                                  */
 /* -------------------------------------------------------------------------- */
 
-const FIXED_TYPE_LENGTHS: Readonly<Record<string, number>> = {
+const FIXED_TYPE_LENGTHS: Readonly<Partial<Record<PropertyType, number>>> = {
   Date: 10,
   DateTime: 19,
   Time: 8,
   Boolean: 1,
-  JsonArray: 0,
+  Array: 0,
 };
 
 const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
@@ -62,7 +68,8 @@ function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProper
   const normType = (
     VALID_PROPERTY_TYPES.has(rawType) ? rawType : "String"
   ) as ModelProperty["TYPE"];
-  const normStructure = normType === "Boolean" ? "S" : prop.STRUCTURE === "M" ? "M" : "S";
+  const normStructure =
+    normType === CBS_PROPERTY_TYPE.BOOLEAN ? "S" : prop.STRUCTURE === "M" ? "M" : "S";
 
   let normLength = FIXED_TYPE_LENGTHS[normType];
   if (normLength === undefined) {
@@ -79,7 +86,7 @@ function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProper
     REQUIRED: Boolean(prop.REQUIRED),
   };
 
-  if (normType === "JsonArray" && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
+  if (normType === CBS_PROPERTY_TYPE.ARRAY && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
     sanitized.PROP = prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx));
   }
 

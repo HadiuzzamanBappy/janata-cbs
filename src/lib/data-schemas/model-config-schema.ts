@@ -5,17 +5,28 @@ import { auditDataSchema } from "./common-schema";
 /* 1. PHYSICAL DATABASE COLUMN TYPES (Canonical 7 Core Types)                 */
 /* ========================================================================== */
 
-export const PROPERTY_TYPES = [
-  "String",
-  "Number",
-  "Boolean",
-  "Date",
-  "DateTime",
-  "Time",
-  "JsonArray",
-] as const;
+/**
+ * Canonical MODEL.CONFIG column types.
+ * - **Comparisons** (`===`, `!==`, `case`) use this constant, never a string literal.
+ * - **Declared values** (field-spec JSON such as `fields/*.ts`, objects built in code, mock rows)
+ *   use the plain literal, e.g. `TYPE: "Array"`. The compiler still checks it against
+ *   `PropertyType`, and the JSON stays copy-paste-ready for the CBS database.
+ */
+export const CBS_PROPERTY_TYPE = {
+  STRING: "String",
+  NUMBER: "Number",
+  BOOLEAN: "Boolean",
+  DATE: "Date",
+  DATETIME: "DateTime",
+  TIME: "Time",
+  /** Repeating group of nested sub-properties (`PROP`); stored with LENGTH 0. */
+  ARRAY: "Array",
+} as const;
 
-const propertyTypeSchema = z.enum(PROPERTY_TYPES);
+const propertyTypeSchema = z.enum(CBS_PROPERTY_TYPE);
+
+/** Ordered list of column types (drives the MODEL.CONFIG type selector). */
+export const PROPERTY_TYPES = propertyTypeSchema.options;
 
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
 

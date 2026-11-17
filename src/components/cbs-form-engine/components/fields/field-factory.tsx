@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { getInputWidthClass, resolveWidgetType } from "@/lib/cbs-form-spec";
 import { formatCurrency, formatNameToLabel } from "@/lib/core-utils";
+import { CBS_PROPERTY_TYPE } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { useFieldOptions } from "../../hooks/use-field-options";
 import { useMultiValue } from "../../hooks/use-multi-value";
@@ -119,7 +120,7 @@ function ScalarFieldFactory({
         const suf = field.RATE_CONFIG?.suffix ?? "%";
         return Number.isNaN(num) ? `${String(val)}${suf}` : `${num.toFixed(dec)}${suf}`;
       }
-      if (field.TYPE === "Boolean") {
+      if (field.TYPE === CBS_PROPERTY_TYPE.BOOLEAN) {
         const lower = String(val).toLowerCase().trim();
         const isTrue = lower === "true" || lower === "y" || lower === "1";
         return isTrue
@@ -252,7 +253,7 @@ function ScalarFieldFactory({
 }
 
 export function UnifiedFieldFactory(props: UnifiedFieldFactoryProps) {
-  if (props.field.TYPE === "JsonArray") {
+  if (props.field.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
     return (
       <ObjectField
         field={props.field}

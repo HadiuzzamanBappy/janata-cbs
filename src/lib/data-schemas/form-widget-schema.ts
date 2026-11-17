@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { PropertyType } from "./model-config-schema";
+import { CBS_PROPERTY_TYPE, type PropertyType } from "./model-config-schema";
 
 /* ========================================================================== */
 /* 1. PRESENTATION UI WIDGET TYPES                                            */
@@ -35,23 +35,23 @@ export const COMPATIBLE_WIDGETS_FOR_TYPE: Record<PropertyType, readonly FormWidg
   Date: ["date", "datetime", "text"],
   DateTime: ["datetime", "date", "text"],
   Time: ["time", "text"],
-  JsonArray: [],
+  Array: [],
 } as const;
 
 export function getDefaultWidgetForType(type: PropertyType | string): FormWidgetType {
   const normalized = (type || "String").trim();
   switch (normalized) {
-    case "Number":
+    case CBS_PROPERTY_TYPE.NUMBER:
       return "number";
-    case "Date":
+    case CBS_PROPERTY_TYPE.DATE:
       return "date";
-    case "DateTime":
+    case CBS_PROPERTY_TYPE.DATETIME:
       return "datetime";
-    case "Boolean":
+    case CBS_PROPERTY_TYPE.BOOLEAN:
       return "checkbox";
-    case "Time":
+    case CBS_PROPERTY_TYPE.TIME:
       return "time";
-    case "JsonArray":
+    case CBS_PROPERTY_TYPE.ARRAY:
       return "text";
     default:
       return "text";

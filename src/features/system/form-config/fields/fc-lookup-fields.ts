@@ -53,7 +53,7 @@ export const DROPDOWN_OPTIONS_SECTION: FormSection = {
       SN: "1",
       NAME: "PARAMETER.data",
       LABEL: "Options List",
-      TYPE: "JsonArray",
+      TYPE: "Array",
       STRUCTURE: "M",
       LENGTH: 0,
       WIDTH: "full",

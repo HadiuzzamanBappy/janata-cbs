@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/core-utils";
-import { type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas";
+import { CBS_PROPERTY_TYPE, type ModelProperty, PROPERTY_TYPES } from "@/lib/data-schemas";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
 import { McSubPropertyItem } from "./mc-sub-property-item";
 
@@ -240,8 +240,8 @@ export function McPropertyList({
                   </div>
                 </div>
 
-                {/* Sub-properties container when TYPE is JsonArray */}
-                {prop.TYPE === "JsonArray" && (
+                {/* Sub-properties container when TYPE is Array */}
+                {prop.TYPE === CBS_PROPERTY_TYPE.ARRAY && (
                   <div className="bg-muted/15 border-l-2 border-primary/30 ml-3.5 my-0.5 space-y-0.5">
                     {(prop.PROP || []).map((sub) => (
                       <McSubPropertyItem

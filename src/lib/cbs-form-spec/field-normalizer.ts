@@ -10,6 +10,7 @@
 
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
+  CBS_PROPERTY_TYPE,
   type FormElement,
   type FormFieldParameter,
   type FormWidgetType,
@@ -65,10 +66,10 @@ export function deriveSemanticWidth(
   }
 
   const normType = (type || "").trim();
-  if (normType === "JsonArray") return "full";
-  if (normType === "Boolean" || normType === "Time") return "xs";
-  if (normType === "Date" || normType === "DateTime") return "sm";
-  if (normType === "Number") return "md";
+  if (normType === CBS_PROPERTY_TYPE.ARRAY) return "full";
+  if (normType === CBS_PROPERTY_TYPE.BOOLEAN || normType === CBS_PROPERTY_TYPE.TIME) return "xs";
+  if (normType === CBS_PROPERTY_TYPE.DATE || normType === CBS_PROPERTY_TYPE.DATETIME) return "sm";
+  if (normType === CBS_PROPERTY_TYPE.NUMBER) return "md";
 
   return "md";
 }

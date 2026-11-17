@@ -33,15 +33,15 @@ The `MODEL.CONFIG` feature is the central schema and data dictionary management 
 
 All physical columns in Janata CBS strictly conform to the 7 canonical `PROPERTY_TYPES`:
 
-| Type        | Structure                   | Length                   | Default Widget        | Cascade Behaviors                              |
-| :---------- | :-------------------------- | :----------------------- | :-------------------- | :--------------------------------------------- |
-| `String`    | Single (`S`) or Multi (`M`) | Variable ($1 \dots 500$) | `text`                | Clears subfield array (`PROP: undefined`)      |
-| `Number`    | Single (`S`) or Multi (`M`) | Variable ($1 \dots 15$)  | `number` / `amount`   | Clears subfield array (`PROP: undefined`)      |
-| `Boolean`   | Single (`S`) strictly       | Fixed ($1$)              | `checkbox` / `switch` | Locks `STRUCTURE="S"`, `LENGTH=1`              |
-| `Date`      | Single (`S`) or Multi (`M`) | Fixed ($10$)             | `date`                | Locks `LENGTH=10`, clears `PROP`               |
-| `DateTime`  | Single (`S`) or Multi (`M`) | Fixed ($19$)             | `datetime`            | Locks `LENGTH=19`, clears `PROP`               |
-| `Time`      | Single (`S`) or Multi (`M`) | Fixed ($8$)              | `time`                | Locks `LENGTH=8`, clears `PROP`                |
-| `JsonArray` | Single (`S`) or Multi (`M`) | Dynamic ($0$)            | Nested fields         | Enables recursive child subfields (`PROP: []`) |
+| Type       | Structure                   | Length                   | Default Widget        | Cascade Behaviors                              |
+| :--------- | :-------------------------- | :----------------------- | :-------------------- | :--------------------------------------------- |
+| `String`   | Single (`S`) or Multi (`M`) | Variable ($1 \dots 500$) | `text`                | Clears subfield array (`PROP: undefined`)      |
+| `Number`   | Single (`S`) or Multi (`M`) | Variable ($1 \dots 15$)  | `number` / `amount`   | Clears subfield array (`PROP: undefined`)      |
+| `Boolean`  | Single (`S`) strictly       | Fixed ($1$)              | `checkbox` / `switch` | Locks `STRUCTURE="S"`, `LENGTH=1`              |
+| `Date`     | Single (`S`) or Multi (`M`) | Fixed ($10$)             | `date`                | Locks `LENGTH=10`, clears `PROP`               |
+| `DateTime` | Single (`S`) or Multi (`M`) | Fixed ($19$)             | `datetime`            | Locks `LENGTH=19`, clears `PROP`               |
+| `Time`     | Single (`S`) or Multi (`M`) | Fixed ($8$)              | `time`                | Locks `LENGTH=8`, clears `PROP`                |
+| `Array`    | Single (`S`) or Multi (`M`) | Dynamic ($0$)            | Nested fields         | Enables recursive child subfields (`PROP: []`) |
 
 ---
 
@@ -69,7 +69,7 @@ All physical columns in Janata CBS strictly conform to the 7 canonical `PROPERTY
   - `mc-json-tab.tsx` — Formatted wire output payload viewer with diff baseline.
   - `property/mc-property-list.tsx` — Filterable column hierarchy with badge indicators.
   - `property/mc-property-inspector.tsx` — Column detail form powered by FormRenderer.
-  - `property/mc-sub-property-item.tsx` — Nested subfield row component for JsonArray objects.
+  - `property/mc-sub-property-item.tsx` — Nested subfield row component for Array objects.
 - `fields/`
   - `mc-general-fields.ts` — Form spec for model identification, ID rules, and governance flags.
   - `mc-property-fields.ts` — Form spec for property inspector column attributes.

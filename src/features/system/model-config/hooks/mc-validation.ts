@@ -38,7 +38,7 @@ export function mapZodIssuesToValidationErrors(
       tab = "properties";
       const targetProp = properties[path[1] as number];
 
-      // Support nested sub-properties inside JsonArray (e.g. PROPERTIES.0.PROP.1.NAME)
+      // Support nested sub-properties inside Array (e.g. PROPERTIES.0.PROP.1.NAME)
       if (path[2] === "PROP" && typeof path[3] === "number") {
         const subProp = targetProp?.PROP?.[path[3] as number];
         sn = subProp?.SN;

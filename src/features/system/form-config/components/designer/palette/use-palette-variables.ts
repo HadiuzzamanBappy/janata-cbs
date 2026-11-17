@@ -12,6 +12,7 @@ import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
 import { formatNameToLabel } from "@/lib/core-utils";
 import type { ModelProperty } from "@/lib/data-schemas";
+import { CBS_PROPERTY_TYPE } from "@/lib/data-schemas";
 import type { PaletteItem, PaletteTypeFilter } from "./palette-types";
 
 export interface UsePaletteVariablesOptions {
@@ -56,7 +57,7 @@ export function usePaletteVariables({
     const childSet = new Set<string>();
 
     for (const p of modelProperties) {
-      if (p.TYPE === "JsonArray") {
+      if (p.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
         const directChildren = Array.isArray(p.PROP) ? p.PROP : [];
         objectMap.set(p.SN, { parent: p, children: [...directChildren] });
         for (const child of directChildren) {
@@ -66,7 +67,7 @@ export function usePaletteVariables({
     }
 
     for (const p of modelProperties) {
-      if (p.TYPE !== "JsonArray" && p.SN.includes("_")) {
+      if (p.TYPE !== CBS_PROPERTY_TYPE.ARRAY && p.SN.includes("_")) {
         const parentSn = p.SN.substring(0, p.SN.lastIndexOf("_"));
         const parentEntry = objectMap.get(parentSn);
         if (parentEntry && !parentEntry.children.some((c) => c.SN === p.SN)) {
@@ -78,7 +79,7 @@ export function usePaletteVariables({
 
     const items: PaletteItem[] = [];
     for (const p of modelProperties) {
-      if (p.TYPE === "JsonArray") {
+      if (p.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
         const grp = objectMap.get(p.SN);
         if (grp) {
           items.push({ kind: "object-group", parent: grp.parent, children: grp.children });

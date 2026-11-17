@@ -419,7 +419,7 @@ async function runSuite() {
         {
           SN: "1",
           NAME: "AUDIT_DETAILS",
-          TYPE: "JsonArray" as const,
+          TYPE: "Array" as const,
           STRUCTURE: "S" as const,
           LENGTH: 0,
           PROP: [
@@ -462,16 +462,16 @@ async function runSuite() {
   );
 
   const condInPass = evaluateFieldCondition(
-    { field: "TYPE", operator: "in", value: ["JsonArray", "Object", "Date", "Boolean"] },
-    { TYPE: "JsonArray" },
+    { field: "TYPE", operator: "in", value: ["Array", "Object", "Date", "Boolean"] },
+    { TYPE: "Array" },
   );
   const condInFail = evaluateFieldCondition(
-    { field: "TYPE", operator: "in", value: ["JsonArray", "Object", "Date", "Boolean"] },
+    { field: "TYPE", operator: "in", value: ["Array", "Object", "Date", "Boolean"] },
     { TYPE: "String" },
   );
   recordTest(
     "5.2 Matches single field inclusion ('in') and non-inclusion correctly",
-    { targetIn: "JsonArray", targetNotIn: "String" },
+    { targetIn: "Array", targetNotIn: "String" },
     { inMatches: condInPass, notInFails: !condInFail },
     condInPass === true && condInFail === false,
   );
@@ -525,7 +525,7 @@ async function runSuite() {
   const cascadeRules = [
     { when: "Date", set: { LENGTH: 10, PROP: undefined } },
     { when: "Boolean", set: { LENGTH: 1, STRUCTURE: "S" } },
-    { when: ["JsonArray", "Object"], set: { LENGTH: 0, PROP: [] } },
+    { when: ["Array", "Object"], set: { LENGTH: 0, PROP: [] } },
   ];
 
   const cascadeBoolean = evaluateFieldCascade(cascadeRules, "Boolean");
@@ -536,10 +536,10 @@ async function runSuite() {
     cascadeBoolean?.LENGTH === 1 && cascadeBoolean?.STRUCTURE === "S",
   );
 
-  const cascadeJson = evaluateFieldCascade(cascadeRules, "JsonArray");
+  const cascadeJson = evaluateFieldCascade(cascadeRules, "Array");
   recordTest(
     "6.4 Evaluates multi-match array cascade correctly",
-    { targetType: "JsonArray" },
+    { targetType: "Array" },
     cascadeJson,
     cascadeJson?.LENGTH === 0 && Array.isArray(cascadeJson?.PROP),
   );

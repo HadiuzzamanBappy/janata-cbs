@@ -37,7 +37,7 @@ export function PaletteObjectGroup({
 
   const objectFieldElement: FormElement = {
     ...modelPropToFormElement(parent),
-    TYPE: "JsonArray",
+    TYPE: "Array",
     STRUCTURE: parent.STRUCTURE === "M" ? "M" : "S",
     PROP: childSubFields,
   };

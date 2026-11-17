@@ -14,7 +14,7 @@ import {
   type GrpcResponse,
   GrpcServiceClient,
   type LoginRequest,
-} from "@/lib/infra-grpc/generated/service";
+} from "./generated/service";
 
 const MAX_GRPC_MESSAGE_BYTES = 16 * 1024 * 1024; // 16 MB for large INQ / GMC / GFC payloads
 

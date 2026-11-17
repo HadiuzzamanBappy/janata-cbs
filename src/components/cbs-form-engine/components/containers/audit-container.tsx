@@ -10,6 +10,7 @@
 
 import { cn, formatNameToLabel } from "@/lib/core-utils";
 import type { AuditData } from "@/lib/data-schemas";
+import { CBS_RECORD_STATUS_DEFINITIONS, CbsRecordStatus } from "@/types";
 import { FieldRow } from "../fields/field-row";
 
 export interface AuditContainerProps {
@@ -25,13 +26,17 @@ interface AuditFieldSpec {
   defaultFallback?: string;
 }
 
+const RECORD_STATUS_LEGEND = Object.values(CBS_RECORD_STATUS_DEFINITIONS)
+  .filter((def) => def.code !== CbsRecordStatus.NEW)
+  .map((def) => `${def.code} = ${def.label}`)
+  .join(", ");
+
 const AUDIT_FIELD_SPECS: readonly AuditFieldSpec[] = [
   {
     key: "recStatus",
     label: "Record Status",
-    enrichText:
-      "Lifecycle status of this record (e.g. INAU = Unauthorized, AU/LIVE = Authorized, RNAU = Reverse Unauthorized).",
-    defaultFallback: "AU",
+    enrichText: `Lifecycle status of this record (${RECORD_STATUS_LEGEND}).`,
+    defaultFallback: CbsRecordStatus.AU,
   },
   {
     key: "recCurrNumber",

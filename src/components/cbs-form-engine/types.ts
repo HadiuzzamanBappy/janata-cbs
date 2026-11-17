@@ -9,12 +9,12 @@
  */
 
 import type { ReactNode } from "react";
-import type { AuditData } from "@/lib/data-schemas";
 import type {
+  AuditData,
   FormElement,
   FormElementsContainer,
   FormSection,
-} from "@/lib/data-schemas/form-engine-schema";
+} from "@/lib/data-schemas";
 import type { CbsScreenMode } from "@/types";
 
 // ─────────────────────────────────────────────────────────────────────────────

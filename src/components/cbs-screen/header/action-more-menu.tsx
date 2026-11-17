@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { CbsAccessResult } from "@/lib/cbs-access";
-import type { MoreActionItem } from "@/lib/cbs-screen/types";
+import type { MoreActionItem } from "@/lib/cbs-screen";
 import { ActionBtn } from "./action-btn";
 
 export interface ActionMoreMenuProps {

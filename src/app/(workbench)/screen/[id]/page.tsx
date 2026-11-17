@@ -15,8 +15,14 @@ import {
   type WorkbenchBusMessage,
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
+import { type FilterCriteriaMap, isApiSuccess } from "@/lib/data-schemas";
 import { CbsAppStoreProvider, useSessionStore, useWorkbenchStore } from "@/store";
-import { CBS_IDLE_MODE, type CbsScreenMode } from "@/types";
+import {
+  CBS_IDLE_MODE,
+  CBS_SCREEN_COMPONENTS,
+  type CbsInquiryStep,
+  type CbsScreenMode,
+} from "@/types";
 
 function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const searchParams = useSearchParams();
@@ -61,7 +67,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
     cbsAuth
       .getSession()
       .then((res) => {
-        if (!res.success || !res.data) {
+        if (!isApiSuccess(res) || !res.data) {
           setIsSessionExpired(true);
         }
       })
@@ -115,15 +121,15 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
       const mode = (searchParams.get("mode") as CbsScreenMode) || CBS_IDLE_MODE;
       const recordId = searchParams.get("recordId") || "";
       const title = searchParams.get("title") || screenId;
-      const component = searchParams.get("component") || "DYNAMIC_FORM";
-      const step = searchParams.get("step") as "SELECTION" | "RESULTS" | undefined;
+      const component = searchParams.get("component") || CBS_SCREEN_COMPONENTS.DYNAMIC_FORM;
+      const step = searchParams.get("step") as CbsInquiryStep | undefined;
       const pageStr = searchParams.get("page");
       const pageSizeStr = searchParams.get("pageSize");
 
       // Read large payload from session storage draft (supports 1,000 fields with zero URL overflow)
       const storageDraft = getWorkbenchDraft(tabId);
 
-      let criteria: Record<string, { value: string; operand: string }> | undefined;
+      let criteria: FilterCriteriaMap | undefined;
       const storageCrit =
         typeof window !== "undefined"
           ? sessionStorage.getItem(clientConfig.storage.session.criteria(tabId))
@@ -144,6 +150,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
         screenMode: mode,
         searchRecordId: recordId,
         formData: storageDraft || undefined,
+        isDirty: Boolean(storageDraft),
         inquiryState: {
           step,
           criteria,
@@ -161,10 +168,12 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
       const payload = {
         screenId,
         title: currentTab?.title || searchParams.get("title") || screenId,
-        componentName: currentTab?.componentName || "DYNAMIC_FORM",
+        componentName: currentTab?.componentName || CBS_SCREEN_COMPONENTS.DYNAMIC_FORM,
         screenMode: currentTab?.screenMode,
         searchRecordId: currentTab?.searchRecordId,
         formData: currentTab?.formData,
+        baseline: currentTab?.baseline,
+        isDirty: currentTab?.isDirty,
         inquiryState: currentTab?.inquiryState,
       };
 
@@ -198,25 +207,6 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-background text-foreground antialiased select-none">
-      {/* Session Expired Satellite Alert Bar */}
-      {isSessionExpired && (
-        <div className="bg-warning/15 border-b border-warning/30 px-3 py-1.5 flex items-center justify-between text-xs text-foreground z-50 shrink-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-semibold shrink-0">Session Expired:</span>
-            <span className="truncate">
-              Please log in on your main browser tab and click Refresh to resume.
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="px-2.5 py-0.5 bg-warning/20 hover:bg-warning/30 rounded border border-warning/40 text-xs font-medium cursor-pointer shrink-0 ml-2"
-          >
-            Refresh
-          </button>
-        </div>
-      )}
-
       {/* Screen Canvas Container: Shows lock screen on unauthenticated fresh load, or keeps form visible if user has active draft */}
       {isSessionExpired &&
       !tabs.some((t) => t.id === tabId && t.formData && Object.keys(t.formData).length > 0) ? (
@@ -241,7 +231,7 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
         <main className="flex-1 min-h-0 w-full overflow-hidden flex flex-col bg-background">
           <ScreenLoader
             command={
-              searchParams.get("component") === "INQUIRY_SCREEN" &&
+              searchParams.get("component") === CBS_SCREEN_COMPONENTS.INQUIRY_SCREEN &&
               !screenId.toUpperCase().startsWith("INQ ")
                 ? `INQ ${screenId}`
                 : screenId

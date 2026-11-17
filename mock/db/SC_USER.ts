@@ -1,4 +1,4 @@
-import type { AuditData } from "@/lib/data-schemas/common-schema";
+import type { AuditData } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
 
 /**

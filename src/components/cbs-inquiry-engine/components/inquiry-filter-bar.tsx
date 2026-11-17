@@ -4,8 +4,7 @@ import { Filter, Search } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import type { FilterCriteriaMap, SelectionOperand } from "@/lib/cbs-inquiry-spec";
-import type { INQSelectField } from "@/lib/data-schemas";
+import type { FilterCriteriaMap, INQSelectField, SelectionOperand } from "@/lib/data-schemas";
 import { FilterCriterionRow } from "./filters/filter-criterion-row";
 
 export interface InquiryFilterBarProps {

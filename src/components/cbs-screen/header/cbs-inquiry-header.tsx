@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import { CBS_SCREEN_EVENT } from "@/lib/cbs-screen";
+import type { CbsInquiryStep } from "@/types";
 import { CbsValidationChecklist } from "./cbs-validation-checklist";
 import { InquiryActions, type InquiryActionsProps } from "./inquiry-actions";
 
 export interface CbsInquiryHeaderProps extends InquiryActionsProps {
   title: string;
   commandCode: string;
-  step?: "SELECTION" | "RESULTS";
+  step?: CbsInquiryStep;
   validationErrors?: CbsScreenValidationError[];
   onSelectValidationTab?: (tab: string) => void;
 }

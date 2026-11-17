@@ -1,11 +1,11 @@
 import {
   type FormConfigRecord,
+  type FormElement,
   type FormSection,
   formConfigRecordSchema,
   gfcResponseSchema,
-} from "@/lib/data-schemas/form-config-schema";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+  type ModelConfigRecord,
+} from "@/lib/data-schemas";
 import { extractModelConfigRecord, sanitizeModelConfigRecord } from "./model-config-parser";
 
 /* -------------------------------------------------------------------------- */

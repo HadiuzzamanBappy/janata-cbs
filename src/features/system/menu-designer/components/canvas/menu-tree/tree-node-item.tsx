@@ -16,11 +16,11 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
-import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuItem } from "@/lib/data-schemas";
 import { TreeNodeActions } from "./tree-node-actions";
 
 interface TreeNodeItemProps {
-  node: MenuTreeNode;
+  node: MenuItem;
   level: number;
   isCollapsed: boolean;
   isSelected?: boolean;
@@ -28,7 +28,7 @@ interface TreeNodeItemProps {
   canOutdent?: boolean;
   onSelect?: (id: string) => void;
   onToggleCollapse: (id: string) => void;
-  onUpdate: (id: string, patch: Partial<MenuTreeNode>) => void;
+  onUpdate: (id: string, patch: Partial<MenuItem>) => void;
   onDelete: (id: string) => void;
   onUngroup?: (id: string) => void;
   onIndent?: (id: string) => void;

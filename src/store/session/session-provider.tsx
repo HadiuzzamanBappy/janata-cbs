@@ -5,6 +5,7 @@ import { useStore } from "zustand";
 import { cbsAuth } from "@/lib/cbs-client";
 import { registerCommandAdapter } from "@/lib/cbs-command";
 import { logger } from "@/lib/core-logger";
+import { isApiSuccess } from "@/lib/data-schemas";
 import { createSessionStore, type SessionState, type SessionStore } from "./session-store";
 
 let activeSessionStore: SessionStore | null = null;
@@ -38,7 +39,7 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
           .getSession()
           .then((json) => {
             const user = json.data;
-            if (json.success && user) {
+            if (isApiSuccess(json) && user) {
               store.getState().setSession(user);
               if (user.branchCode && !store.getState().currentBranch) {
                 store.getState().setBranch(user.branchCode);

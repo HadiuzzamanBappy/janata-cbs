@@ -1,10 +1,10 @@
 "use client";
 
 import { CbsMenuTree } from "@/components/cbs-menu";
-import type { MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuItem } from "@/lib/data-schemas";
 
 export interface CanvasSidebarPreviewProps {
-  treeNodes: MenuTreeNode[];
+  treeNodes: MenuItem[];
 }
 
 export function CanvasSidebarPreview({ treeNodes }: CanvasSidebarPreviewProps) {

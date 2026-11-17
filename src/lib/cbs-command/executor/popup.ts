@@ -1,6 +1,7 @@
 import { clientConfig } from "@/lib/core-config";
 import { generateIdempotencyKey } from "@/lib/core-utils";
-import { CBS_SCREEN_COMPONENTS, type ExecutionOptions, type ParsedCommand } from "../types";
+import { CBS_SCREEN_COMPONENTS } from "@/types";
+import type { ExecutionOptions, ParsedCommand } from "../types";
 import { resolveScreenId } from "./adapter";
 
 /**

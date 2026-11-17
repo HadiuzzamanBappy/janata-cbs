@@ -1,4 +1,4 @@
-import type { INQDef } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQDef } from "@/lib/data-schemas";
 
 export interface ParsedColumnLength {
   length: number;

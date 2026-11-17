@@ -1,4 +1,4 @@
-import { isMenuFolderNode, type MenuItem } from "@/lib/data-schemas/menu-designer-schema";
+import { isMenuFolderNode, type MenuItem } from "@/lib/data-schemas";
 
 /* -------------------------------------------------------------------------- */
 /* Shared Internal Helpers                                                    */

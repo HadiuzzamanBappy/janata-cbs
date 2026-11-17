@@ -1,8 +1,7 @@
 "use client";
 
 import { useCbsPersistence } from "@/components/cbs-screen";
-import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
-import { menuTreeRecordSchema } from "@/lib/data-schemas/menu-designer-schema";
+import { type MenuTreeRecord, menuTreeRecordSchema } from "@/lib/data-schemas";
 
 export const INITIAL_MENU_TREE: MenuTreeRecord = {
   recordId: "",

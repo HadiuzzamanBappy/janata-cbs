@@ -1,11 +1,6 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
-import {
-  type ExportColumn,
-  exportToCsv,
-  exportToHtmlReport,
-  exportToXml,
-} from "@/lib/core-utils/export";
+import { type ExportColumn, exportToCsv, exportToHtmlReport, exportToXml } from "@/lib/core-utils";
 import type { InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
 
 export interface UseInquiryActionsProps {

@@ -13,8 +13,12 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { useContainerWidth } from "@/hooks";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import type { INQSelectField, InquiryFieldType, SelectionOperand } from "@/lib/data-schemas";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type {
+  INQSelectField,
+  InquiryFieldType,
+  ModelProperty,
+  SelectionOperand,
+} from "@/lib/data-schemas";
 import type { InquiryValidationErrorItem } from "../hooks/ic-validation";
 import { FilterInspector } from "./filters/filter-inspector";
 import { FilterPanel } from "./filters/filter-panel";

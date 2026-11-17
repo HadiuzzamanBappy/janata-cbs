@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { INQSelectField, InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQSelectField, InquiryConfigRecord } from "@/lib/data-schemas";
 
 export function useIcFilterOps(
   setFormData: React.Dispatch<React.SetStateAction<InquiryConfigRecord>>,

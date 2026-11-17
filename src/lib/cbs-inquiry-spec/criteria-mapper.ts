@@ -1,11 +1,9 @@
-import type { INQSelectField, InquiryCriteriaParam, SelectionOperand } from "@/lib/data-schemas";
-
-export interface FilterCriterion {
-  value: string;
-  operand: SelectionOperand;
-}
-
-export type FilterCriteriaMap = Record<string, FilterCriterion>;
+import type {
+  FilterCriteriaMap,
+  INQSelectField,
+  InquiryCriteriaParam,
+  SelectionOperand,
+} from "@/lib/data-schemas";
 
 /**
  * Builds a default criteria map from an array of INQSelectField definitions.

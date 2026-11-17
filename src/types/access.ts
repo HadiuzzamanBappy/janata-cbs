@@ -28,7 +28,7 @@ export const CBS_CONTROLLED_FUNCTIONS: readonly CbsRecordFunction[] = [
   CbsRecordFunction.HOLD,
 ];
 
-export interface CbsFunctionDefinition {
+interface CbsFunctionDefinition {
   readonly code: CbsRecordFunction;
   readonly label: string;
   readonly description: string;

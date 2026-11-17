@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import type { ApiResponse } from "@/lib/data-schemas";
+import { type ApiResponse, CBS_API_STATUS } from "@/lib/data-schemas";
 
 function createApiResponse<T>(
   body: ApiResponse<T>,
@@ -16,8 +16,7 @@ export function apiSuccess<T>(
 ): NextResponse<ApiResponse<T>> {
   return createApiResponse(
     {
-      success: true,
-      status: "SUCCESS",
+      status: CBS_API_STATUS.SUCCESS,
       statusCode,
       message,
       data,
@@ -35,8 +34,7 @@ export function apiFail(
 ): NextResponse<ApiResponse> {
   return createApiResponse(
     {
-      success: false,
-      status: "FAIL",
+      status: CBS_API_STATUS.FAIL,
       statusCode,
       message,
       errors: errors ?? [message],
@@ -55,8 +53,7 @@ export function apiError(
   const message = err instanceof Error ? err.message : fallbackMessage;
   return createApiResponse(
     {
-      success: false,
-      status: "ERROR",
+      status: CBS_API_STATUS.ERROR,
       statusCode,
       message,
       errors: [message],

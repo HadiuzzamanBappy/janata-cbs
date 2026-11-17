@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { buildDefaultCriteria, type FilterCriteriaMap } from "@/lib/cbs-inquiry-spec";
-import type { InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
+import { buildDefaultCriteria } from "@/lib/cbs-inquiry-spec";
+import type { FilterCriteriaMap, InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
+import { CBS_INQUIRY_STEP, type CbsInquiryStep } from "@/types";
 
 export interface UseInquiryStateOptions {
   tabId?: string;
@@ -14,8 +15,8 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
   const { tabs, updateTabState } = useWorkbenchStore();
   const currentTab = tabs.find((t) => t.id === tabId);
 
-  // 1. Initial Step: Persisted tab state or "SELECTION"
-  const initialStep = currentTab?.inquiryState?.step || "SELECTION";
+  // 1. Initial Step: Persisted tab state or CBS_INQUIRY_STEP.SELECTION
+  const initialStep = currentTab?.inquiryState?.step || CBS_INQUIRY_STEP.SELECTION;
 
   // 2. Initial Criteria: Persisted tab criteria or default from schema
   const initialCriteria = React.useMemo((): FilterCriteriaMap => {
@@ -23,7 +24,7 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
       currentTab?.inquiryState?.criteria &&
       Object.keys(currentTab.inquiryState.criteria).length > 0
     ) {
-      return currentTab.inquiryState.criteria as unknown as FilterCriteriaMap;
+      return currentTab.inquiryState.criteria;
     }
     return buildDefaultCriteria(schema?.INQSelectField);
   }, [currentTab?.inquiryState?.criteria, schema?.INQSelectField]);
@@ -41,7 +42,7 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
     return 30;
   }, [currentTab?.inquiryState?.pageSize, schema?.INQInfo?.perpageItem]);
 
-  const [step, setStepState] = React.useState<"SELECTION" | "RESULTS">(initialStep);
+  const [step, setStepState] = React.useState<CbsInquiryStep>(initialStep);
   const [filteredRows, setFilteredRows] = React.useState<InquiryRow[]>([]);
   const [currentPage, setCurrentPageState] = React.useState(initialPage);
   const [pageSize, setPageSizeState] = React.useState(initialPageSize);
@@ -49,7 +50,7 @@ export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
     React.useState<FilterCriteriaMap>(initialCriteria);
 
   const setStep = React.useCallback(
-    (newStep: "SELECTION" | "RESULTS") => {
+    (newStep: CbsInquiryStep) => {
       setStepState(newStep);
       if (tabId && typeof updateTabState === "function") {
         updateTabState(tabId, {

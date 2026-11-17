@@ -5,14 +5,12 @@ import { InquiryFilterBar, InquiryTable } from "@/components/cbs-inquiry-engine"
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import {
-  buildDefaultCriteria,
-  type FilterCriteriaMap,
-  serializeCriteriaToWire,
-} from "@/lib/cbs-inquiry-spec";
+import { buildDefaultCriteria, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
 import type { CbsScreenProps } from "@/lib/cbs-screen";
 import { parseInquiryRecords } from "@/lib/data-parsers";
-import { useSessionStore } from "@/store/session/session-provider";
+import type { FilterCriteriaMap } from "@/lib/data-schemas";
+import { useSessionStore } from "@/store";
+import { CBS_INQUIRY_STEP } from "@/types";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
 import { useInquiryActions } from "./hooks/use-inquiry-actions";
 import { useInquirySchema } from "./hooks/use-inquiry-schema";
@@ -88,7 +86,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
         setCurrentCriteria(criteria);
         setFilteredRows(dataset);
         setCurrentPage(1);
-        setStep("RESULTS");
+        setStep(CBS_INQUIRY_STEP.RESULTS);
 
         toast.add({
           title: "Query Executed",
@@ -122,11 +120,11 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
     onRefreshQuery: () => handleFilterSearch(currentCriteria),
   });
 
-  // Re-fetch dataset automatically if step was restored as "RESULTS" (e.g. after page refresh or popup open)
+  // Re-fetch dataset automatically if step was restored as CBS_INQUIRY_STEP.RESULTS (e.g. after page refresh or popup open)
   const isAutoRestoredRef = React.useRef(false);
   React.useEffect(() => {
     if (!schema || isAutoRestoredRef.current) return;
-    if (step === "RESULTS" && filteredRows.length === 0) {
+    if (step === CBS_INQUIRY_STEP.RESULTS && filteredRows.length === 0) {
       isAutoRestoredRef.current = true;
       handleFilterSearch(currentCriteria);
     }
@@ -162,7 +160,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
       commandCode={commandCode}
       variant="inquiry"
       inquiryStep={step}
-      onInquiryBackToSelection={() => setStep("SELECTION")}
+      onInquiryBackToSelection={() => setStep(CBS_INQUIRY_STEP.SELECTION)}
       onInquiryRefresh={handleRefresh}
       onInquiryPrintLocal={() => window.print()}
       onInquiryPrintServer={() => {
@@ -182,7 +180,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
         <style>{`@media print { @page { size: landscape; } }`}</style>
       )}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {step === "SELECTION" ? (
+        {step === CBS_INQUIRY_STEP.SELECTION ? (
           <InquiryFilterBar
             fields={schema.INQSelectField}
             criteria={currentCriteria}

@@ -1,5 +1,5 @@
 import { cbsCommand } from "@/lib/cbs-command";
-import type { INQCmd, InquiryRow } from "@/lib/data-schemas/inquiry-config-schema";
+import type { INQCmd, InquiryRow } from "@/lib/data-schemas";
 
 /**
  * Resolves CBS command templates from INQCmds (e.g. "USER.MGT,NEW1 A recordId" or "ACCOUNT S @ID")

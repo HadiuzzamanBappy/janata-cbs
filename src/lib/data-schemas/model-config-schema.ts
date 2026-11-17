@@ -15,7 +15,7 @@ export const PROPERTY_TYPES = [
   "JsonArray",
 ] as const;
 
-export const propertyTypeSchema = z.enum(PROPERTY_TYPES);
+const propertyTypeSchema = z.enum(PROPERTY_TYPES);
 
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
 
@@ -57,14 +57,12 @@ export const modelPropertySchema: z.ZodType<ModelProperty> = baseFieldSchema.ext
 /* 4. TABLE RECORD: MODEL CONFIG RECORD (MODEL.CONFIG)                        */
 /* ========================================================================== */
 
-export const idDefSchema = z.object({
+const idDefSchema = z.object({
   IDPREFIX: z.string().default(""),
   SEQUENCELENGTH: z.union([z.number(), z.string()]).default("").optional(),
   SEQUENCERESET: z.boolean().default(false),
   IDPATTERN: z.string().default(""),
 });
-
-export type IdDef = z.infer<typeof idDefSchema>;
 
 export const modelConfigRecordSchema = z
   .looseObject({

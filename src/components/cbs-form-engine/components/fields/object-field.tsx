@@ -15,7 +15,7 @@ import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { getFieldColSpanClass, getFieldValue } from "@/lib/cbs-form-spec";
 import { formatNameToLabel } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { useFormLayout } from "../form-layout-context";
 import { FieldAtom } from "./field-atom";

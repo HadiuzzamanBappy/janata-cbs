@@ -5,7 +5,7 @@ import {
   type MenuCatalogActionItem,
   type MenuItem,
   type MenuType,
-} from "@/lib/data-schemas/menu-designer-schema";
+} from "@/lib/data-schemas";
 
 /* -------------------------------------------------------------------------- */
 /* Query & Inspection Helpers                                                 */

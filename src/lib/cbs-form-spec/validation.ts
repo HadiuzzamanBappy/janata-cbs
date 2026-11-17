@@ -8,12 +8,12 @@
  * - 1:1 Schema fidelity with FieldValidationRule (matches, min, max, message, pattern).
  */
 
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
 import type {
   FieldValidationRule,
+  FormConfigRecord,
   FormElement,
   FormSection,
-} from "@/lib/data-schemas/form-engine-schema";
+} from "@/lib/data-schemas";
 import { getFieldValue } from "./path-utils";
 
 // ─────────────────────────────────────────────────────────────────────────────

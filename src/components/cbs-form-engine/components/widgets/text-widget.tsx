@@ -11,7 +11,7 @@
 import type { ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
-import type { TextWidgetConfig } from "@/lib/data-schemas/form-engine-schema";
+import type { TextWidgetConfig } from "@/lib/data-schemas";
 import type { BaseWidgetProps } from "../../types";
 
 export interface TextWidgetProps extends BaseWidgetProps {

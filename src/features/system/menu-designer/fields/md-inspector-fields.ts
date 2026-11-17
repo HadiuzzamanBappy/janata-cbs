@@ -1,4 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormSection } from "@/lib/data-schemas";
 
 /**
  * Node Inspector Specification:

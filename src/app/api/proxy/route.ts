@@ -105,7 +105,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
               ? decodeProtobufValue(response.data)
               : response.data;
 
-        return NextResponse.json({ ...response, success: true, data }, { status: 200 });
+        return NextResponse.json({ ...response, data }, { status: 200 });
       }
 
       // Handle Downstream Core Failures
@@ -121,7 +121,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
           ...response,
           message: response.message || fallbackMessage,
           errors: response.errors?.length ? response.errors : [fallbackMessage],
-          success: false,
         },
         { status: response.statusCode || 400 },
       );

@@ -1,4 +1,4 @@
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
+import type { FormConfigRecord } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
 
 /**

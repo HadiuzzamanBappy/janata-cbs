@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@/lib/data-schemas";
+import { type ApiResponse, CBS_API_STATUS } from "@/lib/data-schemas";
 import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
 
 /**
@@ -6,8 +6,7 @@ import type { GrpcResponse } from "@/lib/infra-grpc/generated/service";
  */
 export function successResult<T = unknown>(data: T, message = "Success"): ApiResponse<T> {
   return {
-    success: true,
-    status: "SUCCESS",
+    status: CBS_API_STATUS.SUCCESS,
     statusCode: 200,
     message,
     errors: [],
@@ -21,8 +20,7 @@ export function successResult<T = unknown>(data: T, message = "Success"): ApiRes
  */
 export function notFoundResult(message = "Record not found"): ApiResponse<null> {
   return {
-    success: false,
-    status: "RECORD_NOT_FOUND",
+    status: CBS_API_STATUS.RECORD_NOT_FOUND,
     statusCode: 404,
     message,
     errors: [message],
@@ -36,8 +34,7 @@ export function notFoundResult(message = "Record not found"): ApiResponse<null> 
  */
 export function errorResult(statusCode: number, message: string): ApiResponse<null> {
   return {
-    success: false,
-    status: "ERROR",
+    status: CBS_API_STATUS.ERROR,
     statusCode,
     message,
     errors: [message],

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { type CbsAccessContext, type CbsAccessResult, evaluateCbsAccess } from "@/lib/cbs-access";
-import { useSessionStore } from "@/store/session/session-provider";
+import { useSessionStore } from "@/store";
 
 /**
  * Universal React hook to evaluate active user's Core Banking accessibility & capabilities.

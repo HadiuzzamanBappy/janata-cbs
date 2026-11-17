@@ -14,7 +14,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
-import type { MenuCatalogActionItem } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuCatalogActionItem } from "@/lib/data-schemas";
 
 function getMenuTypeIcon(menuType?: string) {
   switch (menuType) {

@@ -1,7 +1,8 @@
+import { CBS_SCREEN_COMPONENTS } from "@/types";
 import { findCommandHandler, parseCbsCommand } from "../engine/grammar";
 import { validateSecurityPermissions } from "../engine/validator";
 import { resolveCommandTitle } from "../registry/alias";
-import { CBS_SCREEN_COMPONENTS, type ExecutionOptions, type ParsedCommand } from "../types";
+import type { ExecutionOptions, ParsedCommand } from "../types";
 import { getCommandAdapter, notifyUser, resolveScreenId } from "./adapter";
 import { spawnDetachedPopupWindow } from "./popup";
 

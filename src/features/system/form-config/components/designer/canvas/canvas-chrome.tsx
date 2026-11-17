@@ -13,7 +13,7 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { FormElement, FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement, FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
 import type { DesignerCanvasProps } from "./canvas-types";
 

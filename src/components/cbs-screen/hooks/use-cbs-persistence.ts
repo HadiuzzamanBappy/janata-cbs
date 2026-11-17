@@ -87,6 +87,12 @@ export function useCbsPersistence<TRecord extends Record<string, unknown>>({
     (currentTab?.baseline as TRecord) ?? (currentTab?.formData as TRecord) ?? initialData,
   );
 
+  // Unsaved draft carried in by a remount, pop-out or dock. The first hydrate (the
+  // mount-time record fetch) must refresh only the baseline, never overwrite the draft.
+  const pendingDraftRef = React.useRef<boolean>(
+    Boolean(currentTab?.isDirty && currentTab.formData && resolvedInitialId),
+  );
+
   // ---------------------------------------------------------------------------
   // 3. Dirty Evaluation (Delta Engine)
   // ---------------------------------------------------------------------------
@@ -102,10 +108,13 @@ export function useCbsPersistence<TRecord extends Record<string, unknown>>({
   // ---------------------------------------------------------------------------
   const setRecordId = React.useCallback(
     (id: string) => {
+      if (id.trim().toUpperCase() !== resolvedInitialId.trim().toUpperCase()) {
+        pendingDraftRef.current = false;
+      }
       setRecordIdState(id);
       if (tabId) updateTabState(tabId, { searchRecordId: id });
     },
-    [tabId, updateTabState],
+    [resolvedInitialId, tabId, updateTabState],
   );
 
   const setMode = React.useCallback(
@@ -122,6 +131,12 @@ export function useCbsPersistence<TRecord extends Record<string, unknown>>({
   const hydrate = React.useCallback(
     (record: TRecord) => {
       baselineRef.current = structuredClone(record);
+      if (pendingDraftRef.current) {
+        pendingDraftRef.current = false;
+        setFormData((draft) => ({ ...draft })); // re-evaluate dirty against the fresh baseline
+        if (tabId) updateTabState(tabId, { baseline: record });
+        return;
+      }
       setFormData(record);
       if (tabId) {
         updateTabState(tabId, {
@@ -145,6 +160,7 @@ export function useCbsPersistence<TRecord extends Record<string, unknown>>({
   }, [formData, tabId, updateTabState]);
 
   const reset = React.useCallback(() => {
+    pendingDraftRef.current = false;
     setModeState(CBS_IDLE_MODE);
     setRecordIdState("");
     setFormData(initialData);

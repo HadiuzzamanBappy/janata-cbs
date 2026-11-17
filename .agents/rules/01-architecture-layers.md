@@ -50,7 +50,7 @@ Level 0: Contracts & Schemas      (src/types/, src/lib/data-schemas/)
 
 6. **`src/features/` (Level 5):**
    - Screen composition, designer tabs, and dynamic form engines.
-   - Can import Levels 0 through 4. Sibling features must import only through public barrel exports (`index.ts`, or `server.ts` for server-only exports). Deep imports like `@/features/X/components/...` are rejected by `pnpm verify:layers`; Biome flags layer inversions while editing.
+   - Can import Levels 0 through 4. Sibling features must import only through public barrel exports (`index.ts`, or `server.ts` for server-only exports). The same barrel rule applies to every unit under `src/lib/*`, `src/store` and `src/hooks`: deep imports like `@/features/X/components/...`, `@/lib/data-schemas/form-engine-schema` or `@/store/session/session-provider` are rejected by `pnpm verify:layers`; Biome flags layer inversions while editing.
 
 7. **`src/app/` (Level 6):**
    - Next.js App Router layouts, routes, and API route handlers.

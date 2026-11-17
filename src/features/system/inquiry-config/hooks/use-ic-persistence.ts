@@ -1,10 +1,7 @@
 "use client";
 
 import { useCbsPersistence } from "@/components/cbs-screen";
-import {
-  type InquiryConfigRecord,
-  inquiryConfigRecordSchema,
-} from "@/lib/data-schemas/inquiry-config-schema";
+import { type InquiryConfigRecord, inquiryConfigRecordSchema } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE } from "@/types";
 
 export const INITIAL_INQUIRY_CONFIG: InquiryConfigRecord = {

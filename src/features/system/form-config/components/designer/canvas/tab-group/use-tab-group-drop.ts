@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
 
 export type DragPayload = Record<string, unknown>;

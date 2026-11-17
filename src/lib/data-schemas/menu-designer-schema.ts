@@ -5,13 +5,11 @@ import { auditDataSchema } from "./common-schema";
 /* Canonical Enums                                                            */
 /* -------------------------------------------------------------------------- */
 
-export const menuTypeSchema = z.enum(["GROUP", "INQUIRY", "FORM", "REPORT"]);
+const menuTypeSchema = z.enum(["GROUP", "INQUIRY", "FORM", "REPORT"]);
 export type MenuType = z.infer<typeof menuTypeSchema>;
-export const MENU_TYPES = menuTypeSchema.options;
 
-export const menuActionSchema = z.enum(["SCREEN", "POPUP"]);
+const menuActionSchema = z.enum(["SCREEN", "POPUP"]);
 export type MenuAction = z.infer<typeof menuActionSchema>;
-export const MENU_ACTIONS = menuActionSchema.options;
 
 /* ========================================================================== */
 /* 1. Universal UI Navigation Menu Item (Sidebar, Drawer, & Canvas Tree)      */
@@ -31,7 +29,7 @@ export type MenuItem = {
   children: MenuItem[];
 };
 
-export const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
+const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
   z.object({
     id: z.string().min(1, "Item ID is required"),
     menuId: z.union([z.number(), z.string()]).optional(),
@@ -51,10 +49,6 @@ export const menuItemSchema: z.ZodType<MenuItem> = z.lazy(() =>
     children: z.array(menuItemSchema).default([]),
   }),
 );
-
-/** Unified Alias: MenuTreeNode is strictly identical to MenuItem */
-export type MenuTreeNode = MenuItem;
-export const menuTreeNodeSchema = menuItemSchema;
 
 /**
  * Domain Helper: Determines whether a menu node represents a navigation folder/group

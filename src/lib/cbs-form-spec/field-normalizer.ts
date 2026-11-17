@@ -10,19 +10,17 @@
 
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
+  type FormElement,
   type FormFieldParameter,
+  type FormWidgetType,
   getDefaultWidgetForType,
   isWidgetCompatibleWithType,
+  type ModelProperty,
   type PropertyType,
-} from "@/lib/data-schemas";
-import {
-  type FormElement,
-  type FormWidgetType,
   type PropertyWidth,
   SEMANTIC_WIDTH_TOKENS,
   type SemanticWidthToken,
-} from "@/lib/data-schemas/form-engine-schema";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+} from "@/lib/data-schemas";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Semantic Width Derivation

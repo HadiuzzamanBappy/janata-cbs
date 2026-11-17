@@ -6,13 +6,13 @@ import { FormRenderer } from "@/components/cbs-form-engine";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { MenuAction, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuAction, MenuItem } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { NODE_INSPECTOR_SECTIONS } from "../../fields/md-inspector-fields";
 
 export interface NodeInspectorProps {
-  selectedNode: MenuTreeNode;
-  onUpdateNode: (id: string, patch: Partial<MenuTreeNode>) => void;
+  selectedNode: MenuItem;
+  onUpdateNode: (id: string, patch: Partial<MenuItem>) => void;
   onDeleteNode: (id: string) => void;
   onClose: () => void;
   disabled?: boolean;

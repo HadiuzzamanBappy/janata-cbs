@@ -36,13 +36,14 @@ Any dynamic operational table (`CUSTOMER`, `ACCOUNT`, `TELLER`, `LOAN`, etc.) us
 
 ```typescript
 import { cbs } from "@/lib/cbs-client";
+import { isApiSuccess } from "@/lib/data-schemas";
 
 // Read an Account record ('GET')
 const response = await cbs.send(cbs.model("ACCOUNT").get("10000001"), {
   successTitle: "Account Loaded",
 });
 
-if (response.status === "SUCCESS") {
+if (isApiSuccess(response)) {
   console.log("Account data:", response.data);
 }
 

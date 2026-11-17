@@ -6,9 +6,10 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
-import { type FilterCriteriaMap, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
+import { serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
 import { parseInquiryRecords } from "@/lib/data-parsers";
-import type { InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
+import type { FilterCriteriaMap, InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
+import { CBS_INQUIRY_STEP, type CbsInquiryStep } from "@/types";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
 import { InquiryTable } from "./inquiry-table";
 
@@ -34,8 +35,8 @@ export function InquiryPreview({
   const hasColumns = Boolean(config.INQDef && config.INQDef.length > 0);
   const hasConfiguration = hasFilters || hasColumns;
 
-  const [step, setStep] = React.useState<"SELECTION" | "RESULTS">(
-    hasFilters ? "SELECTION" : "RESULTS",
+  const [step, setStep] = React.useState<CbsInquiryStep>(
+    hasFilters ? CBS_INQUIRY_STEP.SELECTION : CBS_INQUIRY_STEP.RESULTS,
   );
   const [rows, setRows] = React.useState<InquiryRow[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -53,7 +54,7 @@ export function InquiryPreview({
       };
     }
     setCriteria(initial);
-    setStep(hasFilters ? "SELECTION" : "RESULTS");
+    setStep(hasFilters ? CBS_INQUIRY_STEP.SELECTION : CBS_INQUIRY_STEP.RESULTS);
   }, [config.INQSelectField, hasFilters]);
 
   // Execute live backend query simulation
@@ -95,7 +96,7 @@ export function InquiryPreview({
 
         const dataset = parseInquiryRecords(queryRes.data);
         setRows(dataset);
-        setStep("RESULTS");
+        setStep(CBS_INQUIRY_STEP.RESULTS);
         toast.add({
           title: "Simulation Executed",
           description: `Loaded ${dataset.length} record(s)`,
@@ -112,7 +113,7 @@ export function InquiryPreview({
           type: "destructive",
         });
         setRows([]);
-        setStep("RESULTS");
+        setStep(CBS_INQUIRY_STEP.RESULTS);
       } finally {
         if (!signal?.aborted) {
           setLoading(false);
@@ -132,7 +133,7 @@ export function InquiryPreview({
 
   // Auto-fetch if columns exist, no selection filters exist, and on RESULTS step
   React.useEffect(() => {
-    if (!hasColumns || hasFilters || step !== "RESULTS") return;
+    if (!hasColumns || hasFilters || step !== CBS_INQUIRY_STEP.RESULTS) return;
     const controller = new AbortController();
     executeQuery({}, controller.signal);
     return () => controller.abort();
@@ -167,13 +168,13 @@ export function InquiryPreview({
 
   return (
     <div className={`h-full flex flex-col min-h-0 overflow-hidden pr-1 ${className}`}>
-      {step === "RESULTS" && hasFilters && (
+      {step === CBS_INQUIRY_STEP.RESULTS && hasFilters && (
         <div className="shrink-0 pb-1.5 flex items-center">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => setStep("SELECTION")}
+            onClick={() => setStep(CBS_INQUIRY_STEP.SELECTION)}
             className="h-6 text-xs px-2 gap-1 text-primary hover:text-primary/80"
           >
             <ArrowLeft className="size-3" />
@@ -183,7 +184,7 @@ export function InquiryPreview({
       )}
 
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {step === "SELECTION" ? (
+        {step === CBS_INQUIRY_STEP.SELECTION ? (
           <InquiryFilterBar
             fields={config.INQSelectField || []}
             criteria={criteria}

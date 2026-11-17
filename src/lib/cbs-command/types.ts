@@ -1,3 +1,4 @@
+import type { InquiryTabState } from "@/lib/data-schemas";
 import type { CbsRecordFunction, CbsScreenMode, CbsUserSecurityContext } from "@/types";
 
 // 1. Protocol Types & Enums
@@ -6,11 +7,6 @@ export type LaunchTarget = "workspace" | "popup";
 export const CBS_SETTINGS_TABS = ["profile", "appearance", "security"] as const;
 export type CbsSettingsTabId = (typeof CBS_SETTINGS_TABS)[number];
 export const CBS_SETTINGS_EVENT = "cbs:open-settings" as const;
-
-export const CBS_SCREEN_COMPONENTS = {
-  DYNAMIC_FORM: "DYNAMIC_FORM",
-  INQUIRY_SCREEN: "INQUIRY_SCREEN",
-} as const;
 
 // 2. Command AST (Parser Output)
 export interface ParsedCommand {
@@ -29,12 +25,6 @@ export interface ParsedCommand {
 }
 
 // 3. Execution Payloads & Options
-export interface CommandInquiryState {
-  readonly criteria?: Record<string, { value: string; operand: string }>;
-  readonly currentPage?: number;
-  readonly pageSize?: number;
-  readonly step?: "SELECTION" | "RESULTS";
-}
 
 export interface ExecutionOptions {
   readonly user?: CbsUserSecurityContext | null;
@@ -45,7 +35,7 @@ export interface ExecutionOptions {
   readonly screenMode?: CbsScreenMode;
   readonly recordId?: string;
   readonly formData?: Record<string, unknown>;
-  readonly inquiryState?: CommandInquiryState;
+  readonly inquiryState?: InquiryTabState;
   readonly silent?: boolean;
   readonly onError?: (error: string) => void;
 }

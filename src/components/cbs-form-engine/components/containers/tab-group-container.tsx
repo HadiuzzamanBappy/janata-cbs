@@ -10,7 +10,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { CardContainer } from "./card-container";
 

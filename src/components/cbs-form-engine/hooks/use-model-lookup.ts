@@ -14,7 +14,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { cbsQueries } from "@/lib/cbs-client";
-import type { FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
+import type { FormFieldParameter } from "@/lib/data-schemas";
 import type { WidgetOption } from "../types";
 
 /**

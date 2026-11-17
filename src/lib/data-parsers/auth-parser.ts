@@ -1,4 +1,4 @@
-import { type CurrentUser, currentUserSchema } from "@/lib/data-schemas/auth-schema";
+import { type CurrentUser, currentUserSchema } from "@/lib/data-schemas";
 import { decodeProtobufValue } from "./protobuf-decoder";
 
 export interface ParsedUserAuthResult {

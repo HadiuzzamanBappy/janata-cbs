@@ -12,7 +12,7 @@ import type {
   FieldCascadeRule,
   FieldTransform,
   FieldVisibilityCondition,
-} from "@/lib/data-schemas/form-engine-schema";
+} from "@/lib/data-schemas";
 import { getFieldValue } from "./path-utils";
 
 // ─────────────────────────────────────────────────────────────────────────────

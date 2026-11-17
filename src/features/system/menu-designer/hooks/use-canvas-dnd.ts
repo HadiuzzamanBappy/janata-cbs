@@ -9,10 +9,10 @@ import {
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import * as React from "react";
-import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuItem } from "@/lib/data-schemas";
 
 interface UseCanvasDndOptions {
-  nodes: MenuTreeNode[];
+  nodes: MenuItem[];
   isReadOnly?: boolean;
   onDropCatalogItem: (
     item: MenuCatalogActionItem,
@@ -43,15 +43,15 @@ export function useCanvasDnd({
     (
       targetId: string,
     ): {
-      targetNode: MenuTreeNode | null;
-      parentNode: MenuTreeNode | null;
+      targetNode: MenuItem | null;
+      parentNode: MenuItem | null;
       targetIndex: number;
     } => {
-      let targetNode: MenuTreeNode | null = null;
-      let parentNode: MenuTreeNode | null = null;
+      let targetNode: MenuItem | null = null;
+      let parentNode: MenuItem | null = null;
       let targetIndex = -1;
 
-      function traverse(list: MenuTreeNode[], parent: MenuTreeNode | null): boolean {
+      function traverse(list: MenuItem[], parent: MenuItem | null): boolean {
         for (let i = 0; i < list.length; i++) {
           const current = list[i];
           if (current.id === targetId) {

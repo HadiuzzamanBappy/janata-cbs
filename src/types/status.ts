@@ -23,7 +23,7 @@ export const CbsRecordStatus = {
 export type CbsRecordLifecycleStatus = (typeof CbsRecordStatus)[keyof typeof CbsRecordStatus];
 export const CBS_RECORD_STATUSES = Object.values(CbsRecordStatus);
 
-export interface CbsRecordStatusDefinition {
+interface CbsRecordStatusDefinition {
   readonly code: CbsRecordLifecycleStatus;
   readonly description: string;
   readonly label: string;

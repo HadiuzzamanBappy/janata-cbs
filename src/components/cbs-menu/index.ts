@@ -1,10 +1,3 @@
-// Domain type re-exports
-export type {
-  MenuAction,
-  MenuItem,
-  MenuTreeNode,
-  MenuType,
-} from "@/lib/data-schemas";
 export {
   CbsMenuTree,
   type CbsMenuTreeProps,

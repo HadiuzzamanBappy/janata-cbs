@@ -3,14 +3,15 @@ import "server-only";
 import { mockDispatch } from "@mock/core";
 import { getServiceUrl, serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
-import type { ApiResponse, GrpcEnvelope } from "@/lib/data-schemas";
 import {
-  financialProcess,
-  grpcStatusToHttp,
-  isStaticMode,
-  nonFinancialProcess,
-} from "@/lib/infra-grpc/client";
-import type { GrpcRequest } from "@/lib/infra-grpc/generated/service";
+  type ApiResponse,
+  type ApiStatus,
+  apiStatusSchema,
+  CBS_API_STATUS,
+  type GrpcEnvelope,
+} from "@/lib/data-schemas";
+import { financialProcess, grpcStatusToHttp, isStaticMode, nonFinancialProcess } from "./client";
+import type { GrpcRequest } from "./generated/service";
 
 const grpcLogger = logger.withContext("GRPC");
 
@@ -21,6 +22,17 @@ const FINANCIAL_REQUEST_TYPES = new Set(serverConfig.grpc.financialTransactionTy
  */
 export function isFinancialRequest(requestType: string): boolean {
   return FINANCIAL_REQUEST_TYPES.has(requestType.trim().toUpperCase());
+}
+
+/**
+ * Validates the core's status string at the trust boundary. An unrecognised value is
+ * surfaced as ERROR (never as success) and logged so it can be added to CBS_API_STATUS.
+ */
+function resolveCoreStatus(rawStatus: string): ApiStatus {
+  const parsed = apiStatusSchema.safeParse(rawStatus);
+  if (parsed.success) return parsed.data;
+  grpcLogger.error(`Core returned unrecognised status "${rawStatus}"`);
+  return CBS_API_STATUS.ERROR;
 }
 
 /**
@@ -59,9 +71,11 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
       ? await financialProcess(address, req, token)
       : await nonFinancialProcess(address, req, token);
 
+    const status = resolveCoreStatus(res.status);
+
     // Surface backend-side failures with the exact request that triggered them,
     // since the host often returns ERROR with an empty message on unhandled exceptions.
-    if (res.status !== "SUCCESS") {
+    if (status !== CBS_API_STATUS.SUCCESS) {
       grpcLogger.warn(
         `← ${res.status} ${res.statusCode} for ${req.requestType} ${req.controlName}`,
         {
@@ -72,7 +86,7 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
     }
 
     return {
-      status: res.status,
+      status,
       statusCode: res.statusCode,
       message: res.message,
       idempotencyKey: res.idempotencyKey,
@@ -83,7 +97,7 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
   } catch (error: unknown) {
     const { status, message } = grpcStatusToHttp(error);
     return {
-      status: "FAIL",
+      status: CBS_API_STATUS.FAIL,
       statusCode: status,
       message,
       idempotencyKey: envelope.idempotencyKey ?? "",

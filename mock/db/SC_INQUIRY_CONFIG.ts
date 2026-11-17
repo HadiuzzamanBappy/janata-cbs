@@ -1,4 +1,4 @@
-import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryConfigRecord } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
 
 /**

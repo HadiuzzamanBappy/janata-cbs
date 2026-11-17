@@ -20,5 +20,18 @@ export type CbsScreenMode = CbsIdleMode | CbsRecordFunction;
  *  - panel: Embedded inside workbench tabbed interface
  *  - window: Detached standalone browser popup window
  */
-export const WORKSPACE_DISPLAY_MODES = ["panel", "window"] as const;
+const WORKSPACE_DISPLAY_MODES = ["panel", "window"] as const;
 export type WorkspaceDisplayMode = (typeof WORKSPACE_DISPLAY_MODES)[number];
+
+/** Generic screen hosts a workbench tab can render (bespoke screens resolve by command key). */
+export const CBS_SCREEN_COMPONENTS = {
+  DYNAMIC_FORM: "DYNAMIC_FORM",
+  INQUIRY_SCREEN: "INQUIRY_SCREEN",
+} as const;
+
+/** Two-step inquiry flow: criteria selection, then the result grid. */
+export const CBS_INQUIRY_STEP = {
+  SELECTION: "SELECTION",
+  RESULTS: "RESULTS",
+} as const;
+export type CbsInquiryStep = (typeof CBS_INQUIRY_STEP)[keyof typeof CBS_INQUIRY_STEP];

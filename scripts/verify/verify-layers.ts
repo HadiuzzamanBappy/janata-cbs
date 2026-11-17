@@ -3,8 +3,9 @@
  *
  * Static import-graph audit enforcing the invariants in `.agents/rules/01-architecture-layers.md`:
  * 1. Unidirectional Layers (a lower layer never imports a higher layer)
- * 2. Feature/Component Barrels (outside consumers import a unit's `index.ts`, or its
- *    server-only entry `<unit>/server.ts` for filesystem/backend-bound exports)
+ * 2. Barrels (outside consumers import a unit's `index.ts`, or its server-only entry
+ *    `<unit>/server.ts` for filesystem/backend-bound exports). Units: `lib/<x>`, `store`,
+ *    `hooks`, `components/<x>` and `features/<x>` (or `features/<group>/<x>`).
  * 3. Client Boundary ("use client" files never import server-only drivers/modules)
  * 4. Server Sealing (every `lib/infra-grpc` & `lib/infra-redis` module starts with "server-only")
  *
@@ -65,13 +66,19 @@ function layerOf(srcPath: string): readonly [string, number, string] | undefined
   return LAYERS.find(([prefix]) => srcPath === prefix || srcPath.startsWith(prefix));
 }
 
-/** Barrel units: `components/<x>` and `features/<x>`, or `features/<group>/<x>` when the group has no index. */
+/**
+ * Barrel units: `lib/<x>`, `store`, `hooks`, `components/<x>` (except `ui`) and `features/<x>`,
+ * or `features/<group>/<x>` when the group has no index.
+ */
 function collectUnits(): string[] {
   const hasIndex = (d: string) =>
     ["index.ts", "index.tsx"].some((f) => existsSync(join(SRC, d, f)));
   const subdirs = (d: string) =>
     readdirSync(join(SRC, d)).filter((n) => statSync(join(SRC, d, n)).isDirectory());
-  const units: string[] = [];
+  const units: string[] = ["store", "hooks"].filter(hasIndex);
+  for (const name of subdirs("lib")) {
+    if (hasIndex(`lib/${name}`)) units.push(`lib/${name}`);
+  }
   for (const name of subdirs("components")) {
     if (name !== "ui" && hasIndex(`components/${name}`)) units.push(`components/${name}`);
   }

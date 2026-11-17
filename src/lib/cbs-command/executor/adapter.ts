@@ -1,5 +1,6 @@
+import type { InquiryTabState } from "@/lib/data-schemas";
 import type { CbsScreenMode, CbsUserSecurityContext } from "@/types";
-import type { CommandInquiryState, ParsedCommand } from "../types";
+import type { ParsedCommand } from "../types";
 
 export interface CommandTabPayload {
   readonly screenId: string;
@@ -8,7 +9,7 @@ export interface CommandTabPayload {
   readonly componentName: string;
   readonly screenMode?: CbsScreenMode;
   readonly searchRecordId?: string;
-  readonly inquiryState?: CommandInquiryState;
+  readonly inquiryState?: InquiryTabState;
   readonly formData?: Record<string, unknown>;
   readonly authLevel?: number;
 }

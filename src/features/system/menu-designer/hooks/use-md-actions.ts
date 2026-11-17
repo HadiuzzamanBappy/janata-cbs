@@ -6,10 +6,7 @@ import { useIdempotentSend } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { sanitizeMenuTreeRecord } from "@/lib/data-parsers";
-import type {
-  MenuDesignerValidationError,
-  MenuTreeRecord,
-} from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuDesignerValidationError, MenuTreeRecord } from "@/lib/data-schemas";
 
 export interface UseMdActionsOptions {
   formData: MenuTreeRecord;

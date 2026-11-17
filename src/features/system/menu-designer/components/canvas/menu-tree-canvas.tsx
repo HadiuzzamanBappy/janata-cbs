@@ -3,20 +3,20 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Network } from "lucide-react";
 import * as React from "react";
-import type { MenuCatalogActionItem, MenuTreeNode } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuItem } from "@/lib/data-schemas";
 import { CanvasSidebarPreview } from "./menu-tree/canvas-sidebar-preview";
 import { CanvasToolbar } from "./menu-tree/canvas-toolbar";
 import { TreeNodeItem } from "./menu-tree/tree-node-item";
 
 interface MenuTreeCanvasProps {
-  nodes: MenuTreeNode[];
+  nodes: MenuItem[];
   collapsedNodeIds: Set<string>;
   selectedNodeId?: string | null;
   onSelectNode?: (id: string) => void;
   onToggleCollapse: (id: string) => void;
   onExpandAll?: () => void;
   onCollapseAll?: () => void;
-  onUpdateNode: (id: string, patch: Partial<MenuTreeNode>) => void;
+  onUpdateNode: (id: string, patch: Partial<MenuItem>) => void;
   onDeleteNode: (id: string) => void;
   onUngroupNode?: (id: string) => void;
   onIndentNode?: (id: string) => void;
@@ -59,7 +59,7 @@ export function MenuTreeCanvas({
   const [viewMode, setViewMode] = React.useState<"designer" | "preview">("designer");
 
   const previewTreeNodes = React.useMemo(() => {
-    function filterVisible(list: MenuTreeNode[]): MenuTreeNode[] {
+    function filterVisible(list: MenuItem[]): MenuItem[] {
       return list
         .filter((node) => node.isVisible !== false)
         .map((node) => ({
@@ -73,7 +73,7 @@ export function MenuTreeCanvas({
   // Extract flat list of node IDs for SortableContext
   const allNodeIds = React.useMemo(() => {
     const ids: string[] = [];
-    function collect(list: MenuTreeNode[]) {
+    function collect(list: MenuItem[]) {
       for (const n of list) {
         ids.push(n.id);
         if (n.children && n.children.length > 0) {
@@ -111,7 +111,7 @@ export function MenuTreeCanvas({
   };
 
   const renderRecursive = (
-    items: MenuTreeNode[],
+    items: MenuItem[],
     level = 0,
     parentId: string | null = null,
   ): React.ReactNode => {

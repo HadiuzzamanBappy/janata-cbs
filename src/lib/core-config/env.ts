@@ -1,5 +1,5 @@
 import "server-only";
-import { type Env, envSchema } from "@/lib/data-schemas/env-schema";
+import { type Env, envSchema } from "@/lib/data-schemas";
 
 export type { Env };
 export { envSchema };

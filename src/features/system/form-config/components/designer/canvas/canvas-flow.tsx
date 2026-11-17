@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { getBlockGapSectionIndex, type RenderBlock } from "@/lib/cbs-form-spec";
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
 import { CardContainerBlock } from "./canvas-card-container-block";
 import { CanvasGapIndicator } from "./canvas-gap-indicator";

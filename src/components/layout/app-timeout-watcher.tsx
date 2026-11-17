@@ -10,8 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useIdleTimeout } from "@/hooks/use-idle-timeout";
-import { useSingleTab } from "@/hooks/use-single-tab";
+import { useIdleTimeout, useSingleTab } from "@/hooks";
 import { clientConfig } from "@/lib/core-config";
 
 /**

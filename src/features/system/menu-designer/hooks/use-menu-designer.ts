@@ -9,7 +9,7 @@ import {
   type MenuDesignerValidationError,
   type MenuItem,
   menuTreeRecordSchema,
-} from "@/lib/data-schemas/menu-designer-schema";
+} from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { mapMdZodIssues, validateMenuTreeDomain } from "./md-validation";
 import { useMdActions } from "./use-md-actions";

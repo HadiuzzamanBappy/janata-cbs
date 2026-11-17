@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { MenuCatalogActionItem, MenuItem } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuItem } from "@/lib/data-schemas";
 import {
   indentNodeInTree,
   outdentNodeInTree,

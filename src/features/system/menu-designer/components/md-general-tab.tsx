@@ -2,10 +2,7 @@
 
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
-import type {
-  MenuDesignerValidationError,
-  MenuTreeRecord,
-} from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuDesignerValidationError, MenuTreeRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import { MENU_DESIGNER_SECTIONS, setMenuDesignerFieldValue } from "../fields/md-general-fields";
 

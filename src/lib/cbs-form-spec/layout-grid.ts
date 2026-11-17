@@ -8,7 +8,7 @@
  * - Single row fallback (cols <= 1) assigns full row span ("w-full col-span-1") to all fields.
  */
 
-import type { PropertyWidth, SemanticWidthToken } from "@/lib/data-schemas/form-engine-schema";
+import type { PropertyWidth, SemanticWidthToken } from "@/lib/data-schemas";
 import { deriveSemanticWidth } from "./field-normalizer";
 
 // ─────────────────────────────────────────────────────────────────────────────

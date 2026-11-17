@@ -3,7 +3,7 @@ import type {
   FormContainerType,
   FormElement,
   FormSection,
-} from "@/lib/data-schemas/form-engine-schema";
+} from "@/lib/data-schemas";
 
 /** Callback signature for adding a new section/container to the canvas */
 export type AddSectionFn = (

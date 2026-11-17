@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { InquiryRow } from "@/lib/data-schemas/inquiry-config-schema";
+import type { InquiryRow } from "@/lib/data-schemas";
 
 export interface UseInquiryPaginationProps {
   rows: InquiryRow[];

@@ -14,7 +14,6 @@ import { registerDynamicAliases, resolveCommandAlias, resolveCommandTitle } from
 import { extractMenuCommands, getMasterCommands } from "./registry/catalog";
 import type {
   CommandHandler,
-  CommandInquiryState,
   CommandValidationResult,
   ExecutionOptions,
   ParsedCommand,
@@ -46,7 +45,6 @@ export type {
   CbsNotificationType,
   CommandAdapter,
   CommandHandler,
-  CommandInquiryState,
   CommandTabPayload,
   CommandValidationResult,
   ExecutionOptions,

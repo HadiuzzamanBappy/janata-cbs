@@ -1,6 +1,5 @@
 import type { SelectionOperand } from "@/lib/data-schemas";
-
-export type { SelectionOperand };
+import { CBS_RECORD_STATUS_DEFINITIONS, CbsRecordStatus } from "@/types";
 
 export interface InquiryOperandOption {
   value: SelectionOperand;
@@ -22,13 +21,15 @@ export const INQUIRY_OPERAND_OPTIONS: InquiryOperandOption[] = [
   { value: "LK", label: "Like (*)", badge: "LK" },
 ];
 
+/**
+ * Record-status filter choices, derived from the canonical status definitions.
+ * NEW is a client-only draft state the core never stores, so it is not filterable.
+ */
 export const STANDARD_BANKING_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "", label: "All Statuses" },
-  { value: "AU", label: "Authorized (AU)" },
-  { value: "UA", label: "Unauthorized / Input (UA)" },
-  { value: "DEL", label: "Deleted (DEL)" },
-  { value: "HLD", label: "On Hold (HLD)" },
-  { value: "LIVE", label: "Live (LIVE)" },
+  ...Object.values(CBS_RECORD_STATUS_DEFINITIONS)
+    .filter((def) => def.code !== CbsRecordStatus.NEW)
+    .map((def) => ({ value: def.code, label: `${def.label} (${def.code})` })),
 ];
 
 export const STANDARD_BOOLEAN_FILTER_OPTIONS: Array<{ value: string; label: string }> = [

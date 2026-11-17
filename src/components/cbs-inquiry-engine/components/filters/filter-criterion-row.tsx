@@ -7,13 +7,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  type FilterCriterion,
   INQUIRY_OPERAND_OPTIONS,
   STANDARD_BANKING_STATUS_OPTIONS,
   STANDARD_BOOLEAN_FILTER_OPTIONS,
 } from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
-import type { INQSelectField, SelectionOperand } from "@/lib/data-schemas";
+import type { FilterCriterion, INQSelectField, SelectionOperand } from "@/lib/data-schemas";
 
 export interface FilterCriterionRowProps {
   field: INQSelectField;

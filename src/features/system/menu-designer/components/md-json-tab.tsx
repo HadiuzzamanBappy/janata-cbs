@@ -2,7 +2,7 @@
 
 import { CbsJsonViewerTab } from "@/components/cbs-screen";
 import { sanitizeMenuTreeRecord } from "@/lib/data-parsers";
-import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuTreeRecord } from "@/lib/data-schemas";
 
 interface MdJsonTabProps {
   formData: MenuTreeRecord;

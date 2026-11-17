@@ -5,7 +5,7 @@ import {
   type MenuTreeRecord,
   type MenuType,
   menuTreeRecordSchema,
-} from "@/lib/data-schemas/menu-designer-schema";
+} from "@/lib/data-schemas";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* ========================================================================== */

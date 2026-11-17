@@ -27,19 +27,17 @@ export {
 /* 1. ROUTINE HOOKS CONTRACT                                                  */
 /* ========================================================================== */
 
-export const routineItemSchema = z.object({
+const routineItemSchema = z.object({
   id: z.string().optional(),
   routineName: z.string().default(""),
   routineDescription: z.string().default(""),
 });
-export type RoutineItem = z.infer<typeof routineItemSchema>;
 
-export const formRoutineSchema = z.object({
+const formRoutineSchema = z.object({
   rtnValidate: z.array(routineItemSchema).default([]),
   rtnBeforeAuth: z.array(routineItemSchema).default([]),
   rtnAfterAuth: z.array(routineItemSchema).default([]),
 });
-export type FormRoutine = z.infer<typeof formRoutineSchema>;
 
 /* ========================================================================== */
 /* 2. MASTER FORM CONFIG RECORD (SC_FORM_CONFIG)                              */

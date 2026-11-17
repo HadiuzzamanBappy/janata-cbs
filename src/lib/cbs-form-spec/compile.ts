@@ -9,9 +9,13 @@
  */
 
 import { formatNameToLabel } from "@/lib/core-utils";
-import type { FormConfigRecord } from "@/lib/data-schemas/form-config-schema";
-import type { FormElement, FormSection } from "@/lib/data-schemas/form-engine-schema";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type {
+  FormConfigRecord,
+  FormElement,
+  FormSection,
+  ModelConfigRecord,
+  ModelProperty,
+} from "@/lib/data-schemas";
 import {
   defaultWidthForLength,
   modelPropToFormElement,

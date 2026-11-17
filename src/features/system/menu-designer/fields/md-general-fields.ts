@@ -1,5 +1,4 @@
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
-import type { MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
+import type { FormSection, MenuTreeRecord } from "@/lib/data-schemas";
 
 /**
  * Standard Form Sections definition for MENU.DESIGNER General tab.

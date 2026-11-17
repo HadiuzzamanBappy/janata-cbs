@@ -9,7 +9,7 @@
  */
 
 import { useMemo } from "react";
-import type { FormElement, FormFieldParameter } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement, FormFieldParameter } from "@/lib/data-schemas";
 import type { WidgetOption } from "../types";
 import { useModelLookup } from "./use-model-lookup";
 

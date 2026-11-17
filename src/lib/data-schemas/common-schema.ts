@@ -1,15 +1,27 @@
 import { z } from "zod";
-import { CBS_RECORD_STATUSES, type CbsRecordLifecycleStatus, isCbsMutationRequest } from "@/types";
+import { CBS_RECORD_STATUSES, isCbsMutationRequest } from "@/types";
 
 /* -------------------------------------------------------------------------- */
 /* 1. Protocol & Banking Enums (Zero Fallbacks, Strict Whitelist)             */
 /* -------------------------------------------------------------------------- */
 
-export const API_STATUSES = ["SUCCESS", "FAIL", "ERROR", "RECORD_NOT_FOUND", "RETRY"] as const;
-export type ApiStatus = (typeof API_STATUSES)[number];
+/** Canonical BFF/core response statuses. The single source for every status comparison. */
+export const CBS_API_STATUS = {
+  SUCCESS: "SUCCESS",
+  FAIL: "FAIL",
+  ERROR: "ERROR",
+  RECORD_NOT_FOUND: "RECORD_NOT_FOUND",
+  RETRY: "RETRY",
+} as const;
+export type ApiStatus = (typeof CBS_API_STATUS)[keyof typeof CBS_API_STATUS];
+export const apiStatusSchema = z.enum(CBS_API_STATUS);
 
-export const cbsRecordStatusSchema = z.enum(CBS_RECORD_STATUSES);
-export type CbsRecordStatusCode = CbsRecordLifecycleStatus;
+/** The one success predicate for any API response envelope. */
+export function isApiSuccess(response: { readonly status: string }): boolean {
+  return response.status === CBS_API_STATUS.SUCCESS;
+}
+
+const cbsRecordStatusSchema = z.enum(CBS_RECORD_STATUSES);
 
 /* -------------------------------------------------------------------------- */
 /* 2. Maker-Checker Audit Trail Contract                                      */
@@ -69,7 +81,7 @@ export type CbsWirePayload = z.infer<typeof cbsWirePayloadSchema>;
 /* 5. Server Envelope Contract (BFF Proxy -> gRPC / Core Dispatcher)          */
 /* -------------------------------------------------------------------------- */
 
-export const grpcEnvelopeSchema = z
+const grpcEnvelopeSchema = z
   .object({
     idempotencyKey: z.uuid("Idempotency key must be a valid UUID").optional(),
     clientId: z.string().min(1),
@@ -91,7 +103,7 @@ export type GrpcEnvelope = z.infer<typeof grpcEnvelopeSchema>;
 /* -------------------------------------------------------------------------- */
 
 export const apiResponseSchema = z.object({
-  status: z.enum(API_STATUSES).or(z.string()),
+  status: apiStatusSchema,
   statusCode: z.number().int(),
   idempotencyKey: z.string().optional(),
   message: z.string().optional(),
@@ -99,7 +111,6 @@ export const apiResponseSchema = z.object({
   errors: z.array(z.string()).readonly().optional(),
   fieldErrors: z.record(z.string(), z.array(z.string()).readonly()).readonly().optional(),
   timestamp: z.string(),
-  success: z.boolean().optional(),
 });
 
 type InferredApiResponse = z.infer<typeof apiResponseSchema>;

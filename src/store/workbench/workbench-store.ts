@@ -2,6 +2,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { clientConfig } from "@/lib/core-config";
 import { generateClientToken } from "@/lib/core-utils";
+import type { InquiryTabState } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, type CbsScreenMode } from "@/types";
 
 export interface WorkbenchTab {
@@ -19,12 +20,7 @@ export interface WorkbenchTab {
   screenMode?: CbsScreenMode;
   searchRecordId?: string;
   authLevel?: number; // Authorization level: 0 for auto-auth (comma entry), 1+ for multi-level
-  inquiryState?: {
-    step?: "SELECTION" | "RESULTS";
-    criteria?: Record<string, { value: string; operand: string }>;
-    currentPage?: number;
-    pageSize?: number;
-  };
+  inquiryState?: InquiryTabState;
 }
 
 export interface WorkbenchState {

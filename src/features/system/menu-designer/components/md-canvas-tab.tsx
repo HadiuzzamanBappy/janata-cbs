@@ -4,18 +4,14 @@ import { closestCenter, DndContext } from "@dnd-kit/core";
 import * as React from "react";
 import { useContainerWidth } from "@/hooks";
 import { cn } from "@/lib/core-utils";
-import type {
-  MenuCatalogActionItem,
-  MenuTreeNode,
-  MenuTreeRecord,
-} from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuCatalogActionItem, MenuItem, MenuTreeRecord } from "@/lib/data-schemas";
 import { useCanvasDnd } from "../hooks/use-canvas-dnd";
 import { MenuCatalogSidebar } from "./canvas/menu-catalog-sidebar";
 import { MenuTreeCanvas } from "./canvas/menu-tree-canvas";
 import { NodeInspector } from "./canvas/node-inspector";
 
 interface MdCanvasTabProps {
-  nodes: MenuTreeNode[];
+  nodes: MenuItem[];
   formData: MenuTreeRecord;
   setFormData: React.Dispatch<React.SetStateAction<MenuTreeRecord>>;
   catalogItems: MenuCatalogActionItem[];
@@ -24,7 +20,7 @@ interface MdCanvasTabProps {
   onToggleCollapse: (id: string) => void;
   onExpandAll?: () => void;
   onCollapseAll?: () => void;
-  onUpdateNode: (id: string, patch: Partial<MenuTreeNode>) => void;
+  onUpdateNode: (id: string, patch: Partial<MenuItem>) => void;
   onDeleteNode: (id: string) => void;
   onUngroupNode?: (id: string) => void;
   onIndentNode?: (id: string) => void;
@@ -90,7 +86,7 @@ export function MdCanvasTab({
   // Find currently selected node in tree
   const selectedNode = React.useMemo(() => {
     if (!selectedNodeId) return null;
-    function find(list: MenuTreeNode[]): MenuTreeNode | null {
+    function find(list: MenuItem[]): MenuItem | null {
       for (const node of list) {
         if (node.id === selectedNodeId) return node;
         if (node.children?.length > 0) {
@@ -108,7 +104,7 @@ export function MdCanvasTab({
     const ids = new Set<string>();
     const cmds = new Set<string>();
 
-    function traverse(list: MenuTreeNode[]) {
+    function traverse(list: MenuItem[]) {
       for (const node of list) {
         if (node.menuId !== undefined && node.menuId !== null && node.menuId !== 0) {
           ids.add(String(node.menuId));

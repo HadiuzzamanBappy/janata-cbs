@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCbsAccess } from "@/hooks";
 import { useCbsHotkeys } from "@/lib/cbs-hotkeys";
 import type { CbsScreenScaffoldProps } from "@/lib/cbs-screen";
-import { CBS_IDLE_MODE } from "@/types";
+import { CBS_IDLE_MODE, CBS_INQUIRY_STEP } from "@/types";
 import { CbsFormHeader } from "./header/cbs-form-header";
 import { CbsInquiryHeader } from "./header/cbs-inquiry-header";
 import { useGuardedAction } from "./hooks/use-guarded-action";
@@ -133,7 +133,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
     >
       {/* 4.1 TOP CBS HEADER */}
       {variant === "inquiry" ? (
-        inquiryStep === "RESULTS" ? (
+        inquiryStep === CBS_INQUIRY_STEP.RESULTS ? (
           <CbsInquiryHeader
             title={title}
             commandCode={commandCode}

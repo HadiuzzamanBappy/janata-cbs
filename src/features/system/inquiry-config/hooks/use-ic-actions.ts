@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeInquiryConfigRecord } from "@/lib/data-parsers";
-import type { InquiryConfigRecord } from "@/lib/data-schemas/inquiry-config-schema";
+import { type InquiryConfigRecord, isApiSuccess } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import type { InquiryValidationErrorItem } from "./ic-validation";
 
@@ -70,7 +70,7 @@ export function useIcActions({
                   : cbs.inquiryConfig.save(sanitized, { recordId: targetId });
 
         const res = await sendMutation(payload);
-        if (res.status === "SUCCESS" || res.success) {
+        if (isApiSuccess(res)) {
           toast.add({
             title: "Operation Successful",
             description: `Inquiry ${targetId} processed successfully (${funcCode}).`,

@@ -1,4 +1,4 @@
-import type { ModelConfigRecord } from "@/lib/data-schemas/model-config-schema";
+import type { ModelConfigRecord } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
 
 export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cbsQueries } from "@/lib/cbs-client";
 import { cn, formatNameToLabel } from "@/lib/core-utils";
-import type { ModelProperty } from "@/lib/data-schemas/model-config-schema";
+import type { ModelProperty } from "@/lib/data-schemas";
 
 export interface InquiryModelPopoverProps {
   targetModel?: string;

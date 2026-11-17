@@ -6,7 +6,7 @@ import {
   type InquiryConfigRecord,
   type InquiryRow,
   inquiryConfigRecordSchema,
-} from "@/lib/data-schemas/inquiry-config-schema";
+} from "@/lib/data-schemas";
 import { decodeProtobufValue, unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */

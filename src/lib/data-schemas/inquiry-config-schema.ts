@@ -1,11 +1,12 @@
 import { z } from "zod";
+import type { CbsInquiryStep } from "@/types";
 import { auditDataSchema } from "./common-schema";
 
 /* ========================================================================== */
 /* 1. SELECTION CRITERIA OPERANDS & FIELD TYPES                               */
 /* ========================================================================== */
 
-export const INQUIRY_OPERANDS = [
+const INQUIRY_OPERANDS = [
   "EQ",
   "NE",
   "GT",
@@ -21,17 +22,17 @@ export const INQUIRY_OPERANDS = [
 
 export type SelectionOperand = (typeof INQUIRY_OPERANDS)[number];
 
-export const INQUIRY_FIELD_TYPES = ["text", "number", "date", "select"] as const;
+const INQUIRY_FIELD_TYPES = ["text", "number", "date", "select"] as const;
 export type InquiryFieldType = (typeof INQUIRY_FIELD_TYPES)[number];
 
-export const selectionOperandSchema = z.enum(INQUIRY_OPERANDS);
-export const inquiryFieldTypeSchema = z.enum(INQUIRY_FIELD_TYPES);
+const selectionOperandSchema = z.enum(INQUIRY_OPERANDS);
+const inquiryFieldTypeSchema = z.enum(INQUIRY_FIELD_TYPES);
 
 /* ========================================================================== */
 /* 2. SELECTION / FILTER FIELDS (INQSelectField)                              */
 /* ========================================================================== */
 
-export const inqSelectFieldSchema = z.object({
+const inqSelectFieldSchema = z.object({
   selectFieldName: z.string().default(""),
   selectFieldDisplay: z.string().default(""),
   selectFieldType: inquiryFieldTypeSchema.default("text"),
@@ -47,7 +48,7 @@ export type INQSelectField = z.infer<typeof inqSelectFieldSchema>;
 /* 3. COLUMN DEFINITION (INQDef)                                              */
 /* ========================================================================== */
 
-export const inqDefSchema = z.object({
+const inqDefSchema = z.object({
   fieldName: z.string().default(""),
   fieldDisplay: z.string().default(""),
   fieldType: z.string().default("DC"),
@@ -63,7 +64,7 @@ export type INQDef = z.infer<typeof inqDefSchema>;
 /* 4. COMMAND ACTIONS (INQCmds)                                               */
 /* ========================================================================== */
 
-export const inqCmdSchema = z.object({
+const inqCmdSchema = z.object({
   cmdFor: z.string().default(""),
   cmdButton: z.string().default(""),
 });
@@ -74,7 +75,7 @@ export type INQCmd = z.infer<typeof inqCmdSchema>;
 /* 5. GENERAL INQUIRY INFO (INQInfo)                                          */
 /* ========================================================================== */
 
-export const inqInfoSchema = z.object({
+const inqInfoSchema = z.object({
   controllerName: z.string().default(""),
   description: z.string().default(""),
   pageOrientation: z.enum(["Portrait", "Landscape"]).default("Portrait"),
@@ -110,13 +111,6 @@ export type InquiryConfigRecord = z.infer<typeof inquiryConfigRecordSchema>;
 /* 7. RUNTIME QUERY PROTOCOL SCHEMAS & TYPES                                  */
 /* ========================================================================== */
 
-export const inquiryCriteriaParamSchema = z.object({
-  selectFieldName: z.string().trim().min(1, "Field name is required"),
-  selectFieldType: inquiryFieldTypeSchema.default("text"),
-  selectFieldOperator: selectionOperandSchema.default("EQ"),
-  selectFieldValue: z.string().default(""),
-});
-
 export interface InquiryCriteriaParam {
   selectFieldName: string;
   selectFieldType?: InquiryFieldType;
@@ -124,12 +118,20 @@ export interface InquiryCriteriaParam {
   selectFieldValue?: string;
 }
 
-export const inquiryExecuteOptionsSchema = z.object({
-  queryString: z.array(inquiryCriteriaParamSchema).default([]),
-  curPage: z.number().int().positive().default(1),
-  perPage: z.number().int().positive().default(1000),
-  servicePath: z.string().default("default"),
-});
+/** One operator's filter input on the criteria screen, keyed by field name in `FilterCriteriaMap`. */
+export interface FilterCriterion {
+  value: string;
+  operand: SelectionOperand;
+}
+export type FilterCriteriaMap = Record<string, FilterCriterion>;
+
+/** Inquiry state persisted on a workbench tab and carried across popups / dock-backs. */
+export interface InquiryTabState {
+  step?: CbsInquiryStep;
+  criteria?: FilterCriteriaMap;
+  currentPage?: number;
+  pageSize?: number;
+}
 
 export interface InquiryExecuteOptions {
   queryString?: InquiryCriteriaParam[];

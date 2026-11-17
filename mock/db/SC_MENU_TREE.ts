@@ -1,4 +1,4 @@
-import type { MenuTreeNode, MenuTreeRecord } from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuItem, MenuTreeRecord } from "@/lib/data-schemas";
 import type { CbsVersionedTable } from "./types";
 
 /**
@@ -373,7 +373,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
   },
 };
 
-export const CBS_MAIN_NAV_TREE: MenuTreeNode[] = SC_MENU_TREE["MENU.ONE"].menuTree;
+export const CBS_MAIN_NAV_TREE: MenuItem[] = SC_MENU_TREE["MENU.ONE"].menuTree;
 
 /* -------------------------------------------------------------------------- */
 /* Versioned CBS Table Associates (INAU, HIS, DEL)                            */

@@ -53,7 +53,7 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
  * - String flags: "RIDASHL" or "RS" -> split into individual capability codes ["R", "S"]
  * - Delimited strings: "R, I, D" or "R S D" -> parsed into array of codes
  */
-export const accessibilitySchema = z
+const accessibilitySchema = z
   .union([z.array(z.string()), z.string()])
   .nullish()
   .transform((val) => {
@@ -114,5 +114,3 @@ export const updateBranchSessionSchema = z
     branchName: z.string().trim().min(1, "Branch name is required"),
   })
   .strict();
-
-export type UpdateBranchSessionInput = z.infer<typeof updateBranchSessionSchema>;

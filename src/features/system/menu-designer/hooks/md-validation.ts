@@ -2,10 +2,7 @@
 
 import type { z } from "zod";
 import { mapZodIssuesToTabs } from "@/lib/cbs-screen";
-import type {
-  MenuDesignerValidationError,
-  MenuItem,
-} from "@/lib/data-schemas/menu-designer-schema";
+import type { MenuDesignerValidationError, MenuItem } from "@/lib/data-schemas";
 
 export const MAX_MENU_TREE_DEPTH = 4;
 

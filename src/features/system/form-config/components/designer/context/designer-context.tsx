@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { FormElement } from "@/lib/data-schemas";
 import { createNewFieldFromTemplate, dispatchPaletteDrop } from "../canvas/canvas-drop-dispatcher";
 import type { DesignerContextValue, DesignerProviderProps } from "./designer-context-types";
 

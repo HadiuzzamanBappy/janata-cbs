@@ -99,7 +99,7 @@ export type CbsRequestType = (typeof CbsRequestType)[keyof typeof CbsRequestType
  * State-changing CBS wire request verbs that strictly require an attempt-scoped
  * UUIDv4 idempotencyKey from the client origin.
  */
-export const CBS_MUTATION_REQUEST_TYPES: ReadonlySet<string> = new Set<string>([
+const CBS_MUTATION_REQUEST_TYPES: ReadonlySet<string> = new Set<string>([
   CbsRequestType.PUT,
   CbsRequestType.DEL,
   CbsRequestType.AUT,

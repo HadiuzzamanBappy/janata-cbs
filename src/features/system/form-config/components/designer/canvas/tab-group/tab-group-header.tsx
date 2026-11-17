@@ -6,7 +6,7 @@ import { GripVertical, Layers, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
-import type { FormSection } from "@/lib/data-schemas/form-engine-schema";
+import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
 import { useGlobalDragReset } from "../canvas-chrome";
 import type { AddSectionFn } from "../canvas-types";

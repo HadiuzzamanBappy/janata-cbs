@@ -8,7 +8,7 @@
 import type * as React from "react";
 import type { z } from "zod";
 import type { AuditData } from "@/lib/data-schemas";
-import type { CbsRecordFunction, CbsScreenMode } from "@/types";
+import type { CbsInquiryStep, CbsRecordFunction, CbsScreenMode } from "@/types";
 
 export interface MoreActionItem {
   readonly label: string;
@@ -78,7 +78,7 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   moreActions?: MoreActionItem[];
 
   // 1.1 Inquiry Variant Header Props
-  inquiryStep?: "SELECTION" | "RESULTS";
+  inquiryStep?: CbsInquiryStep;
   onInquiryBackToSelection?: () => void;
   onInquiryRefresh?: () => void;
   onInquiryPrintLocal?: () => void;

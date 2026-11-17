@@ -4,8 +4,13 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
-import type { ApiResponse } from "@/lib/data-schemas";
-import { type CurrentUser, type LoginInput, loginSchema } from "@/lib/data-schemas";
+import {
+  type ApiResponse,
+  type CurrentUser,
+  isApiSuccess,
+  type LoginInput,
+  loginSchema,
+} from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 
 export function useLogin() {
@@ -39,7 +44,7 @@ export function useLogin() {
 
         const data = (await res.json().catch(() => ({}))) as ApiResponse<CurrentUser>;
 
-        if (!res.ok || (data.status && data.status !== "SUCCESS" && !data.success)) {
+        if (!res.ok || !isApiSuccess(data)) {
           const message =
             data.message || data.errors?.[0] || "Authentication failed. Please check credentials.";
           setError(message);

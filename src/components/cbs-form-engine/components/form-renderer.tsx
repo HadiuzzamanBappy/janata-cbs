@@ -19,8 +19,7 @@ import {
   validateValues,
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { AuditData } from "@/lib/data-schemas";
-import type { FormElement } from "@/lib/data-schemas/form-engine-schema";
+import type { AuditData, FormElement } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";

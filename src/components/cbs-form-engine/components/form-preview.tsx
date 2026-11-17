@@ -14,7 +14,7 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
-import { CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { CbsRecordFunction, CbsRecordStatus, type CbsScreenMode } from "@/types";
 import { FormRenderer } from "./form-renderer";
 
 export interface FormPreviewProps {
@@ -83,7 +83,7 @@ export function FormPreview({
         mode={mode}
         hideHeader={hideHeader}
         auditData={{
-          recStatus: "AU",
+          recStatus: CbsRecordStatus.AU,
           recCurrNumber: 1,
           recInputter: "DEV.USER_01",
           recInputTime: "2602121545",

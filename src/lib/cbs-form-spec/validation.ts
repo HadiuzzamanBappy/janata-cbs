@@ -14,7 +14,24 @@ import type {
   FormElement,
   FormSection,
 } from "@/lib/data-schemas";
+import { evaluateFieldCondition } from "./field-rules";
 import { getFieldValue } from "./path-utils";
+
+/** Plain decimal only: no exponent, hex, Infinity or thousands separators. */
+const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
+const ISO_DATE_PREFIX = /^(\d{4})-(\d{2})-(\d{2})/;
+
+/** Rejects impossible calendar dates that Date.parse rolls over (e.g. 2026-02-30). */
+function isRealCalendarDate(value: string): boolean {
+  if (Number.isNaN(Date.parse(value))) return false;
+  const parts = ISO_DATE_PREFIX.exec(value);
+  if (!parts) return true;
+  const [year, month, day] = [Number(parts[1]), Number(parts[2]), Number(parts[3])];
+  const d = new Date(Date.UTC(year, month - 1, day));
+  return d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day;
+}
+
+const isScalar = (v: unknown): boolean => v === null || typeof v !== "object";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Single Field Validation
@@ -63,14 +80,27 @@ export function validateSingleField(
   if (isMissingOrEmpty) return null;
 
   const fieldType = (ctx.type || "").toLowerCase();
+
+  // Multi-value (M) scalar field: every filled item meets the single-value rules
+  if (Array.isArray(value)) {
+    if (fieldType === "array" || !value.every(isScalar)) return null;
+    for (const item of value) {
+      const itemError = validateSingleField({ ...ctx, required: false }, item);
+      if (itemError) return itemError;
+    }
+    return null;
+  }
+
   const isNumeric = fieldType === "number" || fieldType === "amount" || fieldType === "rate";
   const isDate = fieldType === "date" || fieldType === "datetime";
   const isTime = fieldType === "time";
 
   // 2. Numeric Type & Range Validation
   if (isNumeric) {
-    const num = Number(value);
-    if (typeof value === "string" && (Number.isNaN(num) || value.trim() === "")) {
+    const num = Number(typeof value === "string" ? value.trim() : value);
+    const isPlain =
+      typeof value === "string" ? PLAIN_NUMBER.test(value.trim()) : Number.isFinite(num);
+    if (!isPlain) {
       return `${label} must be a valid number`;
     }
     if (typeof ctx.length === "number" && ctx.length > 0) {
@@ -88,7 +118,7 @@ export function validateSingleField(
 
   // 3. Date Type Validation
   if (isDate) {
-    if (typeof value === "string" && Number.isNaN(Date.parse(value))) {
+    if (typeof value === "string" && !isRealCalendarDate(value.trim())) {
       return `${label} must be a valid date`;
     }
     return null;
@@ -154,6 +184,10 @@ export function validateFormFields(
   for (const field of fields) {
     const fieldKey = parentPrefix ? `${parentPrefix}.${field.NAME}` : field.NAME;
     if (!fieldKey) continue;
+
+    // A field the screen hides (same conditions as FieldGrid) can't be filled, so it isn't checked
+    if (field.VISIBLE_WHEN && !evaluateFieldCondition(field.VISIBLE_WHEN, currentValues)) continue;
+    if (field.HIDDEN_WHEN && evaluateFieldCondition(field.HIDDEN_WHEN, currentValues)) continue;
 
     const val = getFieldValue(currentValues, fieldKey);
     const err = validateSingleField(

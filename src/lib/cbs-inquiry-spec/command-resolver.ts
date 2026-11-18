@@ -1,15 +1,21 @@
 import { cbsCommand } from "@/lib/cbs-command";
-import type { INQCmd, InquiryRow } from "@/lib/data-schemas";
+import { type INQCmd, INQUIRY_ID_TOKENS, type InquiryRow } from "@/lib/data-schemas";
+
+/** `SCREEN FUNCTION` lead the template and are never row fields. */
+const COMMAND_HEAD_TOKENS = 2;
 
 /**
  * Resolves CBS command templates from INQCmds (e.g. "USER.MGT,NEW1 A recordId" or "ACCOUNT S @ID")
- * by dynamically interpolating row values before execution.
+ * by dynamically interpolating row values before execution. Only the tokens after
+ * `SCREEN FUNCTION` are row fields, so a column named like the screen can't rewrite the command.
  */
 export function resolveCommandTemplate(cmdTemplate: string, row: InquiryRow): string {
   if (!cmdTemplate) return "";
 
   const tokens = cmdTemplate.trim().split(/\s+/);
-  const resolvedTokens = tokens.map((token) => {
+  const resolvedTokens = tokens.map((token, idx) => {
+    if (idx < COMMAND_HEAD_TOKENS) return token;
+
     // 1. Direct key match (case-sensitive)
     if (token in row && row[token] !== undefined && row[token] !== null) {
       return String(row[token]);
@@ -17,7 +23,7 @@ export function resolveCommandTemplate(cmdTemplate: string, row: InquiryRow): st
 
     // 2. Standard CBS primary key alias tokens (@ID, @id, RECORDID, ID)
     const upperToken = token.toUpperCase();
-    if (upperToken === "@ID" || upperToken === "RECORDID" || upperToken === "ID") {
+    if (INQUIRY_ID_TOKENS.includes(upperToken)) {
       const primaryKey = row.recordId ?? row.id ?? row.ID;
       if (primaryKey !== undefined && primaryKey !== null) {
         return String(primaryKey);

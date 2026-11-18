@@ -6,7 +6,8 @@
  * 1. Semantic Width Mapping (defaultWidthForLength: xs, sm, md, lg, full)
  * 2. Fallback Layout Compilation (buildFallbackSections: 12-col card layout when no custom layout)
  * 3. Custom Layout Compilation & Model Rules Merging (compileFormSpec: preserves layout, enforces model constraints)
- * 4. Headless Value Validation (validateValues: required, numeric/digits, date, length, clean state)
+ * 4. Headless Value Validation (validateValues: required, numeric/digits, date, length, clean state,
+ *    hidden fields, multi-value items, plain numbers, real calendar dates)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-form-spec.ts
@@ -445,6 +446,72 @@ async function runSuite() {
     { data: { AUDIT_DETAILS: { reviewer: "" } } },
     nestedErrors,
     nestedErrors["AUDIT_DETAILS.reviewer"] === "Reviewer Name is required",
+  );
+
+  const conditionalSection = [
+    {
+      id: "sec_cond",
+      containerType: "card" as const,
+      fields: [
+        { SN: "1", NAME: "kind", TYPE: "String" as const, STRUCTURE: "S" as const, LENGTH: 1 },
+        {
+          SN: "2",
+          NAME: "extra",
+          LABEL: "Extra",
+          TYPE: "String" as const,
+          STRUCTURE: "S" as const,
+          LENGTH: 10,
+          REQUIRED: true,
+          VISIBLE_WHEN: { field: "kind", operator: "eq" as const, value: "X" },
+        },
+      ],
+    },
+  ];
+  const hiddenErrors = validateValues(conditionalSection, { kind: "Y" });
+  const shownErrors = validateValues(conditionalSection, { kind: "X" });
+  recordTest(
+    "4.10 Skips a required field the screen hides (VISIBLE_WHEN false), checks it once shown",
+    { hidden: { kind: "Y" }, shown: { kind: "X" } },
+    { hiddenErrors, shownErrors },
+    !hiddenErrors.extra && shownErrors.extra === "Extra is required",
+  );
+
+  const multiTooLong = validateSingleField({ type: "String", length: 3, label: "Code" }, [
+    "ok",
+    "toolong",
+  ]);
+  const multiDigits = validateSingleField({ type: "Number", length: 2, label: "Qty" }, ["1", "2"]);
+  const multiNotNumber = validateSingleField({ type: "Number", length: 5, label: "Qty" }, ["abc"]);
+  recordTest(
+    "4.11 Checks every item of a multi-value field (length, number) without false digit errors",
+    { tooLong: ["ok", "toolong"], digits: ["1", "2"], notNumber: ["abc"] },
+    { multiTooLong, multiDigits, multiNotNumber },
+    multiTooLong === "Code cannot exceed 3 characters" &&
+      multiDigits === null &&
+      multiNotNumber === "Qty must be a valid number",
+  );
+
+  const junkNumbers = ["Infinity", "0x10", "1e3"].map((v) =>
+    validateSingleField({ type: "Number", length: 18, label: "Amount" }, v),
+  );
+  const plainNumbers = ["-5", "12.50", " 7 "].map((v) =>
+    validateSingleField({ type: "Number", length: 18, label: "Amount" }, v),
+  );
+  recordTest(
+    "4.12 Accepts only plain decimal numbers (rejects Infinity, hex, exponent)",
+    { junk: ["Infinity", "0x10", "1e3"], plain: ["-5", "12.50", " 7 "] },
+    { junkNumbers, plainNumbers },
+    junkNumbers.every((e) => e === "Amount must be a valid number") &&
+      plainNumbers.every((e) => e === null),
+  );
+
+  const impossibleDate = validateSingleField({ type: "Date", label: "Value Date" }, "2026-02-30");
+  const leapDate = validateSingleField({ type: "Date", label: "Value Date" }, "2028-02-29");
+  recordTest(
+    "4.13 Rejects impossible calendar dates that Date.parse rolls over",
+    { impossible: "2026-02-30", leap: "2028-02-29" },
+    { impossibleDate, leapDate },
+    impossibleDate === "Value Date must be a valid date" && leapDate === null,
   );
 
   // ── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──

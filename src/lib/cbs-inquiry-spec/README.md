@@ -24,21 +24,22 @@ SC_INQUIRY_CONFIG (core / mock)            ← one record per inquiry: INQInfo, 
 
 ## Modules
 
-| File                  | Responsibility                                                                                                                                                                                                                                                 |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `column-compiler.ts`  | Parses and formats the core's column strings: length + alignment (`"20,L"`) and grid position (`"1,2"`). `deriveInquiryColumnMeta()` turns one `INQDef` into display metadata, using only the config (no guessing from field names).                           |
-| `criteria-mapper.ts`  | `buildDefaultCriteria()` builds the empty filter state. `serializeCriteriaToWire()` builds the request filters in a fixed order (see below). `parseFixedSelectionToWire()` parses `INQInfo.fixedSelection` strings such as `"STATUS EQ AU, CATEGORY EQ 1001"`. |
-| `command-resolver.ts` | Fills a row's values into `INQCmd.cmdFor` templates and hands the result to `cbsCommand.execute`. Supports commands stored on the row itself (`cmdFromInternal` + `cmdFieldName`). `executePrimaryInquiryCommand()` is what a double-click on a row runs.      |
-| `constants.ts`        | The operand list (`EQ`, `GT`, `LT`, `GE`, `LE`, `RG`, `CT`, `SW`, `EW`, `NE`, `LK`) and the record-status filter options, which come from `CBS_RECORD_STATUS_DEFINITIONS` (`NEW` is left out because the core never stores it).                                |
+| File                  | Responsibility                                                                                                                                                                                                                                                                                      |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `column-compiler.ts`  | Parses and formats the core's column strings: length + alignment (`"20,L"`) and grid position (`"1,2"`). `deriveInquiryColumnMeta()` turns one `INQDef` into display metadata, using only the config (no guessing from field names).                                                                |
+| `criteria-mapper.ts`  | `buildDefaultCriteria()` builds the empty filter state. `serializeCriteriaToWire()` builds the request filters in a fixed order (see below). It parses `INQInfo.fixedSelection` with `parseFixedSelection()` from `@/lib/data-schemas` and throws on an invalid statement.                          |
+| `command-resolver.ts` | Fills a row's values into `INQCmd.cmdFor` templates (only the tokens after `SCREEN FUNCTION`) and hands the result to `cbsCommand.execute`. Supports commands stored on the row itself (`cmdFromInternal` + `cmdFieldName`). `executePrimaryInquiryCommand()` is what a double-click on a row runs. |
+| `constants.ts`        | The operand list (`EQ`, `GT`, `LT`, `GE`, `LE`, `RG`, `CT`, `SW`, `EW`, `NE`, `LK`) and the record-status filter options, which come from `CBS_RECORD_STATUS_DEFINITIONS` (`NEW` is left out because the core never stores it).                                                                     |
 
 ---
 
 ## Invariants
 
-1. **Filter order is fixed.** `serializeCriteriaToWire()` always emits, in this order: the branch filter (only when the caller passes a branch), the configured `fixedSelection`, then the operator's non-empty criteria. Blank values are dropped, and the operand defaults to `EQ`.
-2. **The branch comes from the session, never from the config.** The engine adds the branch filter (`INQUIRY_BRANCH_FIELD`) only when `INQInfo.showBranchWise` is set, and `/api/proxy` overwrites its value with the session's branch, so a value tampered with in the browser can't read another branch.
+1. **Filter order is fixed.** `serializeCriteriaToWire()` always emits, in this order: the branch filter (only when the caller passes a branch), the configured `fixedSelection`, then the operator's non-empty criteria. Blank values are dropped, and the operand defaults to `EQ`. A `fixedSelection` statement that doesn't parse (`field OPERAND value`, a known operand, quoted values may hold `,` or `;`) makes it throw instead of running without that condition.
+2. **The branch comes from the session, never from the config.** The engine adds the branch filter (`INQUIRY_BRANCH_FIELD`) only when `INQInfo.showBranchWise` is set, and `/api/proxy` (`pinInquiryBranch` in `src/app/api/_lib/envelope.ts`) forces every `branchCode` criterion, matched ignoring case, to `EQ` the session's branch, so a value or operator (`NE`) tampered with in the browser can't read another branch. A request that leaves the branch filter out entirely isn't caught: the proxy doesn't know which inquiries are branch-wise.
 3. **Row actions go through the command gateway.** Row commands are always run with `cbsCommand.execute`, never by routing directly, so aliases, RBAC and screen resolution apply to them exactly as they do to typed commands.
-4. **`@internal` exports** (`getPrimaryInquiryCommand`, `parseFixedSelectionToWire`) are public only so `scripts/verify` can test them. Don't use them in app code.
+4. **Saves are checked twice.** The designer and `/api/proxy` both run `inquiryConfigSaveSchema` (`@/lib/data-schemas`) on an inquiry config PUT.
+5. **`@internal` exports** (`getPrimaryInquiryCommand`) are public only so `scripts/verify` can test them. Don't use them in app code.
 
 ---
 

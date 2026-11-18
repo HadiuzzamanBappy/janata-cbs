@@ -1,13 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server";
+import type { ZodType } from "zod";
 import { verifyUserRecordAccess } from "@/lib/cbs-access";
 import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import {
   type ApiResponse,
   cbsWirePayloadSchema,
-  type GrpcEnvelope,
-  INQUIRY_BRANCH_FIELD,
+  formConfigSaveSchema,
+  inquiryConfigSaveSchema,
   isApiSuccess,
+  modelConfigSaveSchema,
 } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
 import {
@@ -16,14 +18,29 @@ import {
   getSession,
   resolveCacheDescriptor,
 } from "@/lib/infra-redis";
-import { CbsRequestType } from "@/types";
-import { buildGrpcEnvelope } from "../_lib/envelope";
+import { CbsControlTable, CbsRequestType } from "@/types";
+import { buildGrpcEnvelope, pinInquiryBranch } from "../_lib/envelope";
 import { apiError, apiFail } from "../_lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const proxyLogger = logger.withContext("PROXY_API");
+
+/**
+ * Config saves whose `data` is checked here too, so a direct API call can't skip the screen's rules.
+ * Dedicated verbs (SMC, SFC) are keyed by request type; a generic PUT by `PUT:<CONTROL>`.
+ */
+const SAVE_DATA_SCHEMAS: Readonly<Partial<Record<string, ZodType>>> = {
+  [CbsRequestType.SMC]: modelConfigSaveSchema,
+  [CbsRequestType.SFC]: formConfigSaveSchema,
+  [`${CbsRequestType.PUT}:${CbsControlTable.INQUIRY_CONFIG}`]: inquiryConfigSaveSchema,
+};
+
+function saveDataSchemaFor(requestType: string, controlName?: string): ZodType | undefined {
+  const control = (controlName ?? "").trim().toUpperCase();
+  return SAVE_DATA_SCHEMAS[requestType] ?? SAVE_DATA_SCHEMAS[`${requestType}:${control}`];
+}
 
 /**
  * Single decode point for core payloads: INQ results become InquiryRow[], everything else
@@ -36,21 +53,6 @@ function decodeResponse(requestType: string, res: ApiResponse): ApiResponse {
       ? parseInquiryRecords(decodeProtobufValue(res.data))
       : decodeProtobufValue(res.data);
   return { ...res, data };
-}
-
-/**
- * Branch-wise inquiries filter on `INQUIRY_BRANCH_FIELD`. The browser builds that filter, so it's
- * pinned to the envelope's (session) branch here: a tampered filter can't read another branch.
- */
-function pinInquiryBranch(envelope: GrpcEnvelope): GrpcEnvelope {
-  const queryString = envelope.data.queryString;
-  if (envelope.requestType !== CbsRequestType.INQ || !Array.isArray(queryString)) return envelope;
-  const pinned = queryString.map((c) =>
-    (c as { selectFieldName?: unknown })?.selectFieldName === INQUIRY_BRANCH_FIELD
-      ? { ...(c as object), selectFieldValue: envelope.branchCode }
-      : c,
-  );
-  return { ...envelope, data: { ...envelope.data, queryString: pinned } };
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
@@ -89,10 +91,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       ]);
     }
 
-    // 2. Canonical GrpcEnvelope Assembly (branch and user come from the session)
+    // 2. Config save rules (the same schema the designer screen checks before sending)
+    const dataCheck = saveDataSchemaFor(body.requestType, body.controlName)?.safeParse(body.data);
+    if (dataCheck && !dataCheck.success) {
+      return apiFail(
+        dataCheck.error.issues[0]?.message || "Invalid configuration record",
+        400,
+        dataCheck.error.issues.map((i) => i.message),
+      );
+    }
+
+    // 3. Canonical GrpcEnvelope Assembly (branch and user come from the session)
     const envelope = pinInquiryBranch(buildGrpcEnvelope(session, body));
 
-    // 3. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
+    // 4. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {
       const cacheDesc = resolveCacheDescriptor(envelope);
       const dispatchDecoded = async () =>

@@ -117,7 +117,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   );
 
   const handleValidate = React.useCallback(() => {
-    const issues = validateFormConfig(formData);
+    const issues = validateFormConfig(formData, targetModelRecord);
     setValidationErrors(issues);
     if (issues.length > 0) {
       toast.add({
@@ -133,7 +133,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       type: "success",
     });
     return true;
-  }, [formData]);
+  }, [formData, targetModelRecord]);
 
   const resetToIdle = React.useCallback(() => {
     setSelectedSectionId(null);

@@ -97,7 +97,7 @@ export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfi
     TABLENAME: String(record.TABLENAME || "").trim(),
     DESCRIPTION: String(record.DESCRIPTION || record.TABLENAME || "").trim(),
     ACCESS: rawAccess.startsWith("B") ? "B" : "G",
-    SERVICEPATH: String(record.SERVICEPATH || "/api/v1/data").trim(),
+    SERVICEPATH: String(record.SERVICEPATH || "").trim(),
   };
 
   if (record.PREFIX?.trim()) result.PREFIX = record.PREFIX.trim();

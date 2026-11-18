@@ -7,6 +7,7 @@
  * 2. Downstream Gateway Routing (getService: default gRPC route vs custom microservices)
  * 3. Financial Transaction Classification (financial vs non-financial pipeline)
  * 4. gRPC Protocol to HTTP Status Error Translation (standard mapping matrix)
+ * 5. Inquiry Branch Pinning (pinInquiryBranch: branch criteria forced to EQ the session branch)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-infra-grpc.ts
@@ -143,6 +144,39 @@ async function runSuite() {
       res.status === item.expectedHttp,
     );
   }
+
+  // ── 5. Inquiry Branch Pinning (pinInquiryBranch: the envelope sent to the core) ──
+  console.log("\n── 5. Inquiry Branch Pinning (pinInquiryBranch) ──");
+  const { pinInquiryBranch } = await import("../../src/app/api/_lib/envelope");
+  const tampered = pinInquiryBranch({
+    servicePath: "default",
+    requestType: "INQ",
+    controlName: "ACCOUNT",
+    branchCode: "JB0001",
+    recordFunction: "S",
+    recordId: "",
+    authLevel: 1,
+    userId: "U1",
+    clientId: "WEB",
+    data: {
+      queryString: [
+        { selectFieldName: "branchCode", selectFieldOperator: "NE", selectFieldValue: "JB0001" },
+        { selectFieldName: "BranchCode", selectFieldOperator: "CT", selectFieldValue: "" },
+        { selectFieldName: "accountType", selectFieldOperator: "EQ", selectFieldValue: "SB" },
+      ],
+    },
+  }).data.queryString as Array<Record<string, string>>;
+  recordTest(
+    "5.1 Every branchCode criterion (any case, any operator) becomes EQ the session branch",
+    { session: "JB0001", sent: ["branchCode NE JB0001", "BranchCode CT ''", "accountType EQ SB"] },
+    tampered,
+    tampered[0].selectFieldOperator === "EQ" &&
+      tampered[0].selectFieldValue === "JB0001" &&
+      tampered[1].selectFieldName === "branchCode" &&
+      tampered[1].selectFieldOperator === "EQ" &&
+      tampered[1].selectFieldValue === "JB0001" &&
+      tampered[2].selectFieldValue === "SB",
+  );
 
   // Consolidated Summary
   const passedTests = testCases.filter((t) => t.passed).length;

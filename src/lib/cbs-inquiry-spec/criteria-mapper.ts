@@ -3,6 +3,7 @@ import {
   type INQSelectField,
   INQUIRY_BRANCH_FIELD,
   type InquiryCriteriaParam,
+  parseFixedSelection,
   type SelectionOperand,
 } from "@/lib/data-schemas";
 
@@ -19,40 +20,6 @@ export function buildDefaultCriteria(fields: readonly INQSelectField[] = []): Fi
     };
   }
   return criteria;
-}
-
-/**
- * Parses a CBS fixedSelection string (e.g. "STATUS EQ AU" or "RECORD.STATUS NE REVE, CATEGORY EQ 1001")
- * into InquiryCriteriaParam items.
- * @internal Exported only for scripts/verify.
- */
-export function parseFixedSelectionToWire(fixedSelection?: string): InquiryCriteriaParam[] {
-  if (!fixedSelection || fixedSelection.trim() === "") return [];
-
-  const statements = fixedSelection
-    .split(/[,;\n]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  const result: InquiryCriteriaParam[] = [];
-
-  for (const stmt of statements) {
-    // Expected syntax: FIELD_NAME OPERAND VALUE (e.g. "STATUS EQ 'AU'" or "ACCOUNT.STATUS EQ 1")
-    const match = stmt.match(/^([A-Za-z0-9_.]+)\s+([A-Za-z]{2})\s+(.+)$/);
-    if (!match) continue;
-
-    const [, rawField, rawOp, rawVal] = match;
-    const cleanValue = rawVal?.trim().replace(/^['"]|['"]$/g, "") || "";
-
-    result.push({
-      selectFieldName: rawField?.trim() || "",
-      selectFieldType: "text",
-      selectFieldOperator: (rawOp?.trim().toUpperCase() || "EQ") as SelectionOperand,
-      selectFieldValue: cleanValue,
-    });
-  }
-
-  return result;
 }
 
 /**
@@ -77,9 +44,12 @@ export function serializeCriteriaToWire(
   }
 
   // 2. Append fixed selections if configured
-  if (fixedSelection?.trim()) {
-    result.push(...parseFixedSelectionToWire(fixedSelection));
+  // Fail closed: running without a fixed condition would return rows the inquiry must hide
+  const fixed = parseFixedSelection(fixedSelection);
+  if (fixed.invalid.length > 0) {
+    throw new Error(`Inquiry fixed selection is invalid: ${fixed.invalid.join("; ")}`);
   }
+  result.push(...fixed.criteria);
 
   // 3. Append operator-specified filter criteria
   for (const [fieldName, crit] of Object.entries(criteria)) {

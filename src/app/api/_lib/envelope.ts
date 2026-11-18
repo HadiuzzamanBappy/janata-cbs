@@ -1,6 +1,7 @@
 import { serverConfig } from "@/lib/core-config/server";
-import type { CbsWirePayload, GrpcEnvelope } from "@/lib/data-schemas";
+import { type CbsWirePayload, type GrpcEnvelope, INQUIRY_BRANCH_FIELD } from "@/lib/data-schemas";
 import type { SessionData } from "@/lib/infra-redis";
+import { CbsRequestType } from "@/types";
 
 type EnvelopeRequest = Pick<CbsWirePayload, "requestType"> & Partial<CbsWirePayload>;
 
@@ -22,4 +23,27 @@ export function buildGrpcEnvelope(session: SessionData, body: EnvelopeRequest): 
     clientId: serverConfig.grpc.clientId,
     data: body.data ?? {},
   };
+}
+
+/**
+ * Branch-wise inquiries filter on `INQUIRY_BRANCH_FIELD`. The browser builds that filter, so every
+ * criterion on it (matched ignoring case) is forced to `EQ` the envelope's session branch: a
+ * tampered value or operator (`NE`, `CT`) can't read another branch.
+ */
+export function pinInquiryBranch(envelope: GrpcEnvelope): GrpcEnvelope {
+  const queryString = envelope.data.queryString;
+  if (envelope.requestType !== CbsRequestType.INQ || !Array.isArray(queryString)) return envelope;
+  const branchField = INQUIRY_BRANCH_FIELD.toLowerCase();
+  const pinned = queryString.map((c) => {
+    const name = (c as { selectFieldName?: unknown })?.selectFieldName;
+    return typeof name === "string" && name.trim().toLowerCase() === branchField
+      ? {
+          ...(c as object),
+          selectFieldName: INQUIRY_BRANCH_FIELD,
+          selectFieldOperator: "EQ",
+          selectFieldValue: envelope.branchCode,
+        }
+      : c;
+  });
+  return { ...envelope, data: { ...envelope.data, queryString: pinned } };
 }

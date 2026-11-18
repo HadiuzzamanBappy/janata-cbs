@@ -1,6 +1,10 @@
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import { sanitizeInquiryConfigRecord } from "@/lib/data-parsers";
-import { type InquiryConfigRecord, inquiryConfigRecordSchema } from "@/lib/data-schemas";
+import {
+  type InquiryConfigRecord,
+  inquiryConfigSaveSchema,
+  type ModelConfigRecord,
+} from "@/lib/data-schemas";
 
 export type InquiryConfigTabKey =
   | "general"
@@ -18,29 +22,32 @@ export interface InquiryValidationErrorItem extends CbsScreenValidationError<Inq
   readonly itemIndex?: number;
 }
 
+/** Row keys every inquiry row carries, whatever its model. */
+const ROW_META_FIELDS: ReadonlySet<string> = new Set(["recordid", "id", "auditdata"]);
+
 /**
- * Validates the Inquiry Configuration record across all tabs (General, Selection, Table)
- * returning user-navigable error items aligned with CbsScreenScaffold and Model Config standards.
- *
- * Validation runs on the sanitized record — the exact shape committed on the wire — so gaps the
- * serializer fills (blank label → field name, blank type/operator → text/EQ, orientation,
- * page size) never block a save. Only genuine definition errors surface.
+ * Validates an INQUIRY.CONFIG draft against the save rules (`inquiryConfigSaveSchema`, the same
+ * check `/api/proxy` runs on save). With the target model, it also flags filters and columns the
+ * model doesn't have.
  */
-export function validateInquiryConfig(draft: InquiryConfigRecord): InquiryValidationErrorItem[] {
+export function validateInquiryConfig(
+  draft: InquiryConfigRecord,
+  model?: ModelConfigRecord | null,
+): InquiryValidationErrorItem[] {
   const formData = sanitizeInquiryConfigRecord(draft);
   const issues: InquiryValidationErrorItem[] = [];
   const seenKeys = new Set<string>();
 
   const addIssue = (item: InquiryValidationErrorItem) => {
-    const dedupeKey = `${item.tab}:${item.fieldKey}`;
+    const dedupeKey = `${item.tab}:${item.fieldKey}:${item.message}`;
     if (!seenKeys.has(dedupeKey)) {
       seenKeys.add(dedupeKey);
       issues.push(item);
     }
   };
 
-  // 1. Zod Schema Validation
-  const parseResult = inquiryConfigRecordSchema.safeParse(formData);
+  // 1. Save rules
+  const parseResult = inquiryConfigSaveSchema.safeParse(formData);
   if (!parseResult.success) {
     parseResult.error.issues.forEach((issue, idx) => {
       const pathStr = issue.path.join(".");
@@ -82,132 +89,34 @@ export function validateInquiryConfig(draft: InquiryConfigRecord): InquiryValida
     });
   }
 
-  // 2. Domain Business Rules: General Tab
-  if (!formData.INQInfo?.controllerName?.trim()) {
-    addIssue({
-      id: "err-gen-controller",
-      tab: "general",
-      fieldKey: "INQInfo.controllerName",
-      message: "General: Target Table / Controller is required",
-    });
-  }
-  if (!formData.INQInfo?.description?.trim()) {
-    addIssue({
-      id: "err-gen-description",
-      tab: "general",
-      fieldKey: "INQInfo.description",
-      message: "General: Description is required",
-    });
-  }
-  if (formData.INQInfo?.cmdFromInternal && !formData.INQInfo?.cmdFieldName?.trim()) {
-    addIssue({
-      id: "err-gen-cmd-field",
-      tab: "general",
-      fieldKey: "INQInfo.cmdFieldName",
-      message: "General: Row Command Field is required when Dynamic Row Command is enabled",
-    });
-  }
-
-  // 3. Domain Business Rules: Filters Tab
-  const seenFilterNames = new Set<string>();
-  (formData.INQSelectField || []).forEach((filter, idx) => {
-    const fName = filter.selectFieldName?.trim();
-    if (!fName) {
+  // 2. Target model: every filter and column must be a model property
+  if (model) {
+    const modelNames = new Set(model.PROPERTIES.map((p) => p.NAME.toLowerCase()));
+    const isKnown = (name: string) => {
+      const root = name.trim().split(".")[0].toLowerCase();
+      return !root || modelNames.has(root) || ROW_META_FIELDS.has(root);
+    };
+    formData.INQSelectField.forEach((filter, idx) => {
+      if (isKnown(filter.selectFieldName)) return;
       addIssue({
-        id: `err-sel-${idx}-name`,
+        id: `model-sel-${idx}`,
         tab: "filters",
         fieldKey: `INQSelectField.${idx}.selectFieldName`,
-        message: `Filter #${idx + 1}: Field Key is required`,
+        message: `Filter #${idx + 1}: "${filter.selectFieldName}" is not in model ${model.TABLENAME}`,
         itemIndex: idx,
       });
-    } else if (seenFilterNames.has(fName.toLowerCase())) {
+    });
+    formData.INQDef.forEach((col, idx) => {
+      if (isKnown(col.fieldName)) return;
       addIssue({
-        id: `err-sel-dup-${idx}`,
-        tab: "filters",
-        fieldKey: `INQSelectField.${idx}.selectFieldName`,
-        message: `Filter #${idx + 1}: Duplicate filter field key "${fName}"`,
+        id: `model-col-${idx}`,
+        tab: "columns",
+        fieldKey: `INQDef.${idx}.fieldName`,
+        message: `Column #${idx + 1}: "${col.fieldName}" is not in model ${model.TABLENAME}`,
         itemIndex: idx,
       });
-    } else {
-      seenFilterNames.add(fName.toLowerCase());
-    }
-
-    if (!filter.selectFieldDisplay?.trim()) {
-      addIssue({
-        id: `err-sel-${idx}-display`,
-        tab: "filters",
-        fieldKey: `INQSelectField.${idx}.selectFieldDisplay`,
-        message: `Filter #${idx + 1}: Display Label is required`,
-        itemIndex: idx,
-      });
-    }
-  });
-
-  // 4. Domain Business Rules: Columns & Actions Tab
-  const columns = formData.INQDef || [];
-  if (columns.length === 0) {
-    addIssue({
-      id: "err-table-no-columns",
-      tab: "columns",
-      fieldKey: "INQDef",
-      message: "Columns: At least one column must be configured",
     });
   }
-
-  const seenColNames = new Set<string>();
-  columns.forEach((col, idx) => {
-    const cName = col.fieldName?.trim();
-    if (!cName) {
-      addIssue({
-        id: `err-col-${idx}-name`,
-        tab: "columns",
-        fieldKey: `INQDef.${idx}.fieldName`,
-        message: `Column #${idx + 1}: Field Name is required`,
-        itemIndex: idx,
-      });
-    } else if (seenColNames.has(cName.toLowerCase())) {
-      addIssue({
-        id: `err-col-dup-${idx}`,
-        tab: "columns",
-        fieldKey: `INQDef.${idx}.fieldName`,
-        message: `Column #${idx + 1}: Duplicate column field name "${cName}"`,
-        itemIndex: idx,
-      });
-    } else {
-      seenColNames.add(cName.toLowerCase());
-    }
-
-    if (!col.fieldDisplay?.trim()) {
-      addIssue({
-        id: `err-col-${idx}-display`,
-        tab: "columns",
-        fieldKey: `INQDef.${idx}.fieldDisplay`,
-        message: `Column #${idx + 1}: Display Header is required`,
-        itemIndex: idx,
-      });
-    }
-  });
-
-  (formData.INQCmds || []).forEach((act, idx) => {
-    if (!act.cmdButton?.trim()) {
-      addIssue({
-        id: `err-act-${idx}-btn`,
-        tab: "actions",
-        fieldKey: `INQCmds.${idx}.cmdButton`,
-        message: `Action #${idx + 1}: Button label is required`,
-        itemIndex: idx,
-      });
-    }
-    if (!act.cmdFor?.trim()) {
-      addIssue({
-        id: `err-act-${idx}-for`,
-        tab: "actions",
-        fieldKey: `INQCmds.${idx}.cmdFor`,
-        message: `Action #${idx + 1}: Command target is required`,
-        itemIndex: idx,
-      });
-    }
-  });
 
   return issues;
 }

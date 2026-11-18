@@ -27,6 +27,5 @@ export {
 // Criteria Mapper & Wire Serialization
 export {
   buildDefaultCriteria,
-  parseFixedSelectionToWire,
   serializeCriteriaToWire,
 } from "./criteria-mapper";

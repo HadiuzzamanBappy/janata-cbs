@@ -11,7 +11,7 @@ import type { CbsScreenValidationError } from "@/lib/cbs-screen";
 import {
   type ModelConfigRecord,
   type ModelProperty,
-  modelConfigRecordSchema,
+  modelConfigSaveSchema,
 } from "@/lib/data-schemas";
 
 export type ModelConfigTabKey = "general" | "properties";
@@ -24,7 +24,7 @@ export interface ModelValidationErrorItem extends CbsScreenValidationError<Model
  * Transforms raw Zod validation issues into user-navigable ModelValidationErrorItems
  * with tab location, fieldKey, and property SN metadata (including nested sub-properties).
  */
-export function mapZodIssuesToValidationErrors(
+function mapZodIssuesToValidationErrors(
   issues: ZodError["issues"],
   properties: ModelProperty[],
 ): ModelValidationErrorItem[] {
@@ -34,14 +34,13 @@ export function mapZodIssuesToValidationErrors(
     let sn: string | undefined;
     let fieldKey = String(path[path.length - 1] || "unknown");
 
-    if (path[0] === "PROPERTIES" && typeof path[1] === "number") {
+    if (path[0] === "PROPERTIES") {
       tab = "properties";
-      const targetProp = properties[path[1] as number];
+      const targetProp = typeof path[1] === "number" ? properties[path[1]] : undefined;
 
       // Support nested sub-properties inside Array (e.g. PROPERTIES.0.PROP.1.NAME)
       if (path[2] === "PROP" && typeof path[3] === "number") {
-        const subProp = targetProp?.PROP?.[path[3] as number];
-        sn = subProp?.SN;
+        sn = targetProp?.PROP?.[path[3]]?.SN;
         fieldKey = String(path[4] || "NAME");
       } else {
         sn = targetProp?.SN;
@@ -49,11 +48,9 @@ export function mapZodIssuesToValidationErrors(
           fieldKey = String(path[2]);
         }
       }
-    } else if (path[0] === "auditData") {
-      tab = "general";
     }
 
-    const labelPrefix = sn ? `Property #${sn}` : "General";
+    const labelPrefix = sn ? `Property #${sn}` : tab === "properties" ? "Properties" : "General";
     return {
       id: `${tab}-${sn || "root"}-${fieldKey}-${idx}`,
       tab,
@@ -66,29 +63,12 @@ export function mapZodIssuesToValidationErrors(
 }
 
 /**
- * Validates the entire ModelConfigRecord against canonical Zod schema and CBS domain rules.
+ * Validates a MODEL.CONFIG draft against the save rules (`modelConfigSaveSchema`, the same check
+ * `/api/proxy` runs on SMC).
  */
 export function validateModelConfig(formData: ModelConfigRecord): ModelValidationErrorItem[] {
-  const issues: ModelValidationErrorItem[] = [];
-
-  // 1. Zod schema validation
-  const validation = modelConfigRecordSchema.safeParse(formData);
-  if (!validation.success) {
-    issues.push(
-      ...mapZodIssuesToValidationErrors(validation.error.issues, formData.PROPERTIES || []),
-    );
-  }
-
-  // 2. Domain checks: At least one property required
-  const props = formData.PROPERTIES || [];
-  if (props.length === 0) {
-    issues.push({
-      id: "err_no_properties",
-      tab: "properties",
-      fieldKey: "PROPERTIES",
-      message: "Properties: At least one column/property must be configured in the data dictionary",
-    });
-  }
-
-  return issues;
+  const validation = modelConfigSaveSchema.safeParse(formData);
+  return validation.success
+    ? []
+    : mapZodIssuesToValidationErrors(validation.error.issues, formData.PROPERTIES || []);
 }

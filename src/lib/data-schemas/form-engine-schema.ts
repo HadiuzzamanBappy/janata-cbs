@@ -148,16 +148,20 @@ export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
  * Allows configuring styling, borders, density, badges, icons, and behavior per container.
  */
 export const containerConfigSchema = z.object({
-  /** Style preset; explicit showHeader / bordered / background override it. "ghost" = frameless. */
+  /**
+   * Style preset; explicit showHeader / bordered / background override it. "ghost" = frameless.
+   * None of these have a schema default: a parsed layout must leave them unset so the variant
+   * preset applies and a tab group can find the one tab that carries its settings.
+   */
   variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
   density: z.enum(["compact", "normal", "spacious"]).optional(),
-  showHeader: z.boolean().default(true).optional(),
-  bordered: z.boolean().default(true).optional(),
-  background: z.enum(["regular", "subtle", "none"]).default("regular").optional(),
+  showHeader: z.boolean().optional(),
+  bordered: z.boolean().optional(),
+  background: z.enum(["regular", "subtle", "none"]).optional(),
 
-  // Tab Group container styling & height modes
-  tabVariant: z.enum(["card", "workbench", "pills"]).default("card").optional(),
-  heightMode: z.enum(["auto", "fill", "fixed"]).default("auto").optional(),
+  // Tab Group container styling & height modes (renderers fall back to "card" / "auto")
+  tabVariant: z.enum(["card", "workbench", "pills"]).optional(),
+  heightMode: z.enum(["auto", "fill", "fixed"]).optional(),
   minHeight: z.union([z.number(), z.string()]).optional(),
 
   badge: z.string().optional(),

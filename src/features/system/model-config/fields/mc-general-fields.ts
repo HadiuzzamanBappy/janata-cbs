@@ -28,12 +28,13 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 35,
         REQUIRED: true,
         WIDTH: "md",
-        TRANSFORM: "stripWhitespace",
+        TRANSFORM: "uppercase",
         DISABLED_WHEN: {
           field: "auditData.recStatus",
           operator: "truthy",
         },
-        ENRICHTEXT: "Physical database table name (locked once created).",
+        ENRICHTEXT:
+          "Physical table name: uppercase letters, digits, dots or underscores (locked once created).",
       },
       {
         SN: "2",
@@ -71,7 +72,8 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         REQUIRED: true,
         WIDTH: "sm",
         DEFAULTVALUE: "default",
-        ENRICHTEXT: "Backend microservice path or endpoint routing key.",
+        ENRICHTEXT:
+          "Service that owns this table: default (the core) or a microservice name such as finxurm.",
       },
       {
         SN: "5",

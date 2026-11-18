@@ -3,7 +3,7 @@
  *
  * Deterministic & Transparent Verification of Core Inquiry Specification Subsystems:
  * 1. Criteria Mapping & Wire Serialization (serializeCriteriaToWire, operands, defaults)
- * 2. Fixed Selection Expression Parsing (parseFixedSelectionToWire)
+ * 2. Fixed Selection Expression Parsing (parseFixedSelection)
  * 3. Multi-Line Grid Coordinate Geometry (parseColumnCoordinates, formatting)
  * 4. Field Length & Alignment Specifiers (parseColumnLength, formatting)
  * 5. Presentation Column Metadata Derivation (deriveInquiryColumnMeta)
@@ -21,11 +21,16 @@ import {
   getPrimaryInquiryCommand,
   parseColumnCoordinates,
   parseColumnLength,
-  parseFixedSelectionToWire,
   resolveCommandTemplate,
   serializeCriteriaToWire,
 } from "@/lib/cbs-inquiry-spec";
-import type { INQCmd, INQDef, INQSelectField, InquiryRow } from "@/lib/data-schemas";
+import {
+  type INQCmd,
+  type INQDef,
+  type INQSelectField,
+  type InquiryRow,
+  parseFixedSelection,
+} from "@/lib/data-schemas";
 
 interface TestCase {
   title: string;
@@ -65,9 +70,9 @@ async function runSuite() {
   console.log("================================================================================");
 
   // ── 1. Fixed Selection Expression Parsing ──
-  console.log("\n── 1. Fixed Selection Expression Parsing (parseFixedSelectionToWire) ──");
+  console.log("\n── 1. Fixed Selection Expression Parsing (parseFixedSelection) ──");
   {
-    const singleStmt = parseFixedSelectionToWire("STATUS EQ AU");
+    const singleStmt = parseFixedSelection("STATUS EQ AU").criteria;
     recordTest(
       "1.1 Single fixed selection parsed into canonical InquiryCriteriaParam",
       "STATUS EQ AU",
@@ -78,7 +83,7 @@ async function runSuite() {
         singleStmt[0].selectFieldValue === "AU",
     );
 
-    const multiStmt = parseFixedSelectionToWire("RECORD.STATUS NE 'REVE', CATEGORY EQ 1001");
+    const multiStmt = parseFixedSelection("RECORD.STATUS NE 'REVE', CATEGORY EQ 1001").criteria;
     recordTest(
       "1.2 Comma-delimited statements with quotes parsed cleanly",
       "RECORD.STATUS NE 'REVE', CATEGORY EQ 1001",
@@ -91,12 +96,29 @@ async function runSuite() {
         multiStmt[1].selectFieldValue === "1001",
     );
 
-    const emptyStmt = parseFixedSelectionToWire("");
+    const emptyStmt = parseFixedSelection("").criteria;
     recordTest(
       "1.3 Empty or whitespace fixedSelection returns empty array",
       "",
       emptyStmt,
       Array.isArray(emptyStmt) && emptyStmt.length === 0,
+    );
+
+    const quoted = parseFixedSelection('remarks EQ "a,b"; recStatus XX AU; broken');
+    let refused = "";
+    try {
+      serializeCriteriaToWire({}, [], "recStatus XX AU");
+    } catch (error) {
+      refused = (error as Error).message;
+    }
+    recordTest(
+      "1.4 Quoted commas stay in the value; bad statements are reported and the query refuses to run",
+      'remarks EQ "a,b"; recStatus XX AU; broken',
+      { criteria: quoted.criteria, invalid: quoted.invalid, refused },
+      quoted.criteria.length === 1 &&
+        quoted.criteria[0].selectFieldValue === "a,b" &&
+        JSON.stringify(quoted.invalid) === JSON.stringify(["recStatus XX AU", "broken"]) &&
+        refused.includes("recStatus XX AU"),
     );
   }
 
@@ -319,6 +341,15 @@ async function runSuite() {
       { template: "BRANCH.REVIEW S BRANCH_CODE @ID", row: sampleRow },
       interpolatedMulti,
       interpolatedMulti === "BRANCH.REVIEW S 0012 REC-9001",
+    );
+
+    const headRow = { ...sampleRow, USERS: "HIJACK", I: "X" } as InquiryRow;
+    const headSafe = resolveCommandTemplate("USERS I recordId", headRow);
+    recordTest(
+      "6.4 Screen and function tokens are never replaced by same-named row columns",
+      { template: "USERS I recordId", row: { USERS: "HIJACK", I: "X" } },
+      headSafe,
+      headSafe === "USERS I REC-9001",
     );
   }
 

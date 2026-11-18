@@ -5,7 +5,7 @@
  * schema capability exposed by `@/lib/data-schemas` with explicit Input and Output visualization:
  * 1. Authentication Schemas (login credentials and password complexity)
  * 2. User Session & Roles (banking operator profile and access level)
- * 3. Form and Model Metadata Specifications (formConfigRecordSchema, modelConfigRecordSchema)
+ * 3. Form and Model Metadata Specifications (form / model record and save schemas)
  * 4. Navigation Menu Hierarchy Schema (menuTreeRecordSchema)
  *
  * Usage:
@@ -18,12 +18,15 @@ import {
   changePasswordSchema,
   currentUserSchema,
   formConfigRecordSchema,
+  formConfigSaveSchema,
   formElementSchema,
   inquiryConfigRecordSchema,
+  inquiryConfigSaveSchema,
   isWidgetCompatibleWithType,
   loginSchema,
   menuTreeRecordSchema,
   modelConfigRecordSchema,
+  modelConfigSaveSchema,
   popupSearchParamsSchema,
 } from "@/lib/data-schemas";
 
@@ -149,6 +152,42 @@ async function runSuite() {
     modelSchemaResult.success === true,
   );
 
+  // 4b. Save rules (SMC): stricter than reads, so stored models still load
+  const saveIssues = modelConfigSaveSchema
+    .safeParse({
+      ...sampleModel,
+      TABLENAME: "test table",
+      PROPERTIES: [{ NAME: "amount", TYPE: "Number", LENGTH: 0 }],
+      IDDEF: { IDPREFIX: "TT", SEQUENCELENGTH: "abc", SEQUENCERESET: false, IDPATTERN: "" },
+    })
+    .error?.issues.map((i) => i.path.join("."));
+  const expectedSaveIssues = [
+    "TABLENAME",
+    "ACCESS",
+    "SERVICEPATH",
+    "IDDEF.SEQUENCELENGTH",
+    "PROPERTIES.0.LENGTH",
+  ];
+  const cleanSave = modelConfigSaveSchema.safeParse({
+    ...sampleModel,
+    ACCESS: "G",
+    SERVICEPATH: "finxurm",
+  });
+  const emptySave = modelConfigSaveSchema.safeParse({
+    ...sampleModel,
+    ACCESS: "G",
+    SERVICEPATH: "default",
+    PROPERTIES: [],
+  });
+  recordTest(
+    "4b. Model Save Schema: uppercase table, G/B, service name, numeric sequence, positive length, ≥1 property",
+    { readSampleAccess: sampleModel.ACCESS, readSampleService: sampleModel.SERVICEPATH },
+    { saveIssues, cleanSave: cleanSave.success, emptySave: emptySave.success },
+    JSON.stringify(saveIssues) === JSON.stringify(expectedSaveIssues) &&
+      cleanSave.success &&
+      !emptySave.success,
+  );
+
   // 5. Versioned Form Presentation Specification Contract
   const sampleForm = {
     title: "Test Form",
@@ -181,6 +220,54 @@ async function runSuite() {
     { title: sampleForm.title, sectionsCount: sampleForm.frmElements.sections.length },
     { conforms: formSchemaResult.success },
     formSchemaResult.success === true,
+  );
+
+  // 5b. Form save rules (SFC) and layout flags left unset on read
+  const mainField = sampleForm.frmElements.sections[0].fields[0];
+  const badFormIssues = formConfigSaveSchema
+    .safeParse({
+      ...sampleForm,
+      frmElements: {
+        sections: [
+          sampleForm.frmElements.sections[0],
+          {
+            id: "sec_main",
+            title: "Second",
+            fields: [
+              {
+                ...mainField,
+                NAME: "status",
+                WIDGET: "radio-group",
+                VISIBLE_WHEN: { field: "missingField", operator: "eq", value: "X" },
+                VALIDATION: { min: 9, max: 1, pattern: "([A-Z" },
+              },
+            ],
+          },
+        ],
+      },
+    })
+    .error?.issues.map((i) => i.path.join("."));
+  const expectedFormIssues = [
+    "frmElements.sections.1.id",
+    "frmElements.sections.1.fields.0.VISIBLE_WHEN.field",
+    "frmElements.sections.1.fields.0.PARAMETER",
+    "frmElements.sections.1.fields.0.VALIDATION.min",
+    "frmElements.sections.1.fields.0.VALIDATION.pattern",
+  ];
+  const cleanFormSave = formConfigSaveSchema.safeParse(sampleForm);
+  const ghostConfig = formConfigRecordSchema.parse({
+    ...sampleForm,
+    frmElements: {
+      sections: [{ ...sampleForm.frmElements.sections[0], containerConfig: { variant: "ghost" } }],
+    },
+  }).frmElements.sections[0].containerConfig;
+  recordTest(
+    "5b. Form Save Schema: unique section ids, known condition targets, options, min ≤ max, valid regex; ghost keeps its preset",
+    { sections: 2, ghost: { variant: "ghost" } },
+    { badFormIssues, cleanFormSave: cleanFormSave.success, ghostConfig },
+    JSON.stringify(badFormIssues) === JSON.stringify(expectedFormIssues) &&
+      cleanFormSave.success &&
+      JSON.stringify(ghostConfig) === JSON.stringify({ variant: "ghost" }),
   );
 
   // 6. Navigation Menu Hierarchy Schema Contract
@@ -381,6 +468,54 @@ async function runSuite() {
       inqSchemaResult.data?.INQInfo.showBranchWise === true &&
       inqSchemaResult.data?.INQSelectField[0]?.selectFieldRequired === true &&
       inqSchemaResult.data?.INQDef[0]?.dataPassable === true,
+  );
+
+  // 10b. Inquiry save rules (PUT on INQUIRY): the read sample's "ACCOUNT.SEE" has no function
+  const sampleSaveIssues = inquiryConfigSaveSchema
+    .safeParse(sampleInquiryWire)
+    .error?.issues.map((i) => i.path.join("."));
+  const badInquiryIssues = inquiryConfigSaveSchema
+    .safeParse({
+      ...sampleInquiryWire,
+      INQInfo: {
+        ...sampleInquiryWire.INQInfo,
+        perpageItem: "abc",
+        inqServicePath: "/api/x",
+        fixedSelection: 'remarks EQ "a,b"; status XX AU',
+      },
+      INQSelectField: [
+        {
+          ...sampleInquiryWire.INQSelectField[0],
+          selectFieldType: "number",
+          selectFieldOperator: "CT",
+        },
+      ],
+      INQDef: [
+        sampleInquiryWire.INQDef[0],
+        { ...sampleInquiryWire.INQDef[0], fieldName: "balance", fieldDisplay: "Balance" },
+      ],
+      INQCmds: [{ cmdFor: "ACCOUNT S missingField", cmdButton: "View" }],
+    })
+    .error?.issues.map((i) => i.path.join("."));
+  const expectedInquiryIssues = [
+    "INQInfo.perpageItem",
+    "INQInfo.inqServicePath",
+    "INQInfo.fixedSelection",
+    "INQSelectField.0.selectFieldOperator",
+    "INQDef.1.fieldRowCol",
+    "INQCmds.0.cmdFor",
+  ];
+  const cleanInquirySave = inquiryConfigSaveSchema.safeParse({
+    ...sampleInquiryWire,
+    INQCmds: [{ cmdFor: "ACCOUNT S @ID", cmdButton: "View Account" }],
+  });
+  recordTest(
+    "10b. Inquiry Save Schema: page size, service name, fixed selection, operator by type, unique cells, RIDASHL commands on columns",
+    { sampleCommand: sampleInquiryWire.INQCmds[0].cmdFor },
+    { sampleSaveIssues, badInquiryIssues, cleanInquirySave: cleanInquirySave.success },
+    JSON.stringify(sampleSaveIssues) === JSON.stringify(["INQCmds.0.cmdFor"]) &&
+      JSON.stringify(badInquiryIssues) === JSON.stringify(expectedInquiryIssues) &&
+      cleanInquirySave.success,
   );
 
   // Popup URL parameters: a trust boundary. Valid values pass; a tampered value is dropped alone

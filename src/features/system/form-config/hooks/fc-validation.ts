@@ -8,7 +8,11 @@
 
 import type { ZodError } from "zod";
 import type { CbsScreenValidationError } from "@/lib/cbs-screen";
-import { type FormConfigRecord, formConfigRecordSchema } from "@/lib/data-schemas";
+import {
+  type FormConfigRecord,
+  formConfigSaveSchema,
+  type ModelConfigRecord,
+} from "@/lib/data-schemas";
 
 export type FormConfigTabKey = "general" | "formDesigner" | "preview" | "json";
 
@@ -21,171 +25,76 @@ export interface FormConfigValidationError extends CbsScreenValidationError<Form
   readonly fieldId?: string;
 }
 
+/** Field identity used by the canvas and inspector to find their errors. */
+const fieldIdOf = (field: { SN?: string; NAME?: string }, idx: number): string =>
+  String(field.SN || field.NAME || `f_${idx}`);
+
 /**
- * Transforms Zod validation issues into user-navigable FormConfigValidationError items.
+ * Maps save-schema issues to designer targets. A path inside
+ * `frmElements.sections[s].fields[f]` points at that section and field, and `fieldKey` is the
+ * field property (`LABEL`, `VALIDATION.min`) the inspector highlights.
  */
-export function mapZodIssuesToFcValidationErrors(
+function mapZodIssuesToFcValidationErrors(
   issues: ZodError["issues"],
+  formData: FormConfigRecord,
 ): FormConfigValidationError[] {
   return issues.map((issue, idx) => {
     const path = issue.path;
-    let tab: FormConfigValidationError["tab"] = "general";
-    const fieldKey = String(path[path.length - 1] || "unknown");
-
-    if (path[0] === "frmRoutine") {
-      tab = "general";
-    } else if (path[0] === "frmElements") {
-      tab = "formDesigner";
-    } else if (path[0] === "auditData") {
-      tab = "general";
+    if (path[0] !== "frmElements" || path[1] !== "sections") {
+      return {
+        id: `general-${path.join(".")}-${idx}`,
+        tab: "general",
+        fieldKey: path.join("."),
+        message: path[0] === "frmRoutine" ? issue.message : `General: ${issue.message}`,
+      };
     }
 
+    const sIdx = typeof path[2] === "number" ? path[2] : -1;
+    const section = formData.frmElements?.sections?.[sIdx];
+    const secDisplay =
+      section?.title?.trim() || (sIdx >= 0 ? `Section #${sIdx + 1}` : "Form Designer");
+    const fIdx = path[3] === "fields" && typeof path[4] === "number" ? path[4] : -1;
+    const field = fIdx >= 0 ? section?.fields?.[fIdx] : undefined;
+
     return {
-      id: `${tab}-${fieldKey}-${idx}`,
-      tab,
-      fieldKey: path.join("."),
-      message: issue.message,
+      id: `formDesigner-${path.join(".")}-${idx}`,
+      tab: "formDesigner",
+      fieldKey: field ? path.slice(5).join(".") || "NAME" : path.slice(3).join(".") || "sections",
+      sectionId: section?.id,
+      fieldId: field ? fieldIdOf(field, fIdx) : undefined,
+      message: `${secDisplay}: ${issue.message}`,
     };
   });
 }
 
 /**
- * Performs business-level and schema validation on the FormConfig record across all tabs.
+ * Validates a FORM.CONFIG draft against the save rules (`formConfigSaveSchema`, the same check
+ * `/api/proxy` runs on SFC). With the target model, it also flags fields the model no longer has.
  */
-export function validateFormConfig(formData: FormConfigRecord): FormConfigValidationError[] {
-  const issues: FormConfigValidationError[] = [];
-  const seenIds = new Set<string>();
+export function validateFormConfig(
+  formData: FormConfigRecord,
+  model?: ModelConfigRecord | null,
+): FormConfigValidationError[] {
+  const parsed = formConfigSaveSchema.safeParse(formData);
+  const issues = parsed.success
+    ? []
+    : mapZodIssuesToFcValidationErrors(parsed.error.issues, formData);
+  if (!model) return issues;
 
-  const addIssue = (item: FormConfigValidationError) => {
-    const dedupeKey = item.id;
-    if (!seenIds.has(dedupeKey)) {
-      seenIds.add(dedupeKey);
-      issues.push(item);
-    }
-  };
-
-  // 1. Zod schema validation
-  const parsed = formConfigRecordSchema.safeParse(formData);
-  if (!parsed.success) {
-    const zodIssues = mapZodIssuesToFcValidationErrors(parsed.error.issues);
-    zodIssues.forEach(addIssue);
-  }
-
-  // 2. Business-level domain checks: General Tab
-  const title = typeof formData.title === "string" ? formData.title.trim() : "";
-  if (!title) {
-    addIssue({
-      id: "err_missing_title",
-      tab: "general",
-      fieldKey: "title",
-      message: "General: Form title is required",
-    });
-  }
-
-  // Validate that any configured routines have a Routine Name
-  const routineGroups = [
-    { key: "rtnValidate" as const, label: "Validation Routine" },
-    { key: "rtnBeforeAuth" as const, label: "Before-Auth Routine" },
-    { key: "rtnAfterAuth" as const, label: "After-Auth Routine" },
-  ];
-
-  for (const group of routineGroups) {
-    const list = formData.frmRoutine?.[group.key] || [];
-    list.forEach((item, idx) => {
-      const name = (item.routineName || "").trim();
-      if (!name) {
-        addIssue({
-          id: `err_routine_${group.key}_${idx}_name`,
-          tab: "general",
-          fieldKey: `frmRoutine.${group.key}.${idx}.routineName`,
-          message: `${group.label} #${idx + 1}: Routine Name is required`,
-        });
-      }
-    });
-  }
-
-  // 3. Business-level domain checks: Form Designer Tab
-  const sections = formData.frmElements?.sections || [];
-  if (sections.length === 0) {
-    addIssue({
-      id: "err_no_sections",
-      tab: "formDesigner",
-      fieldKey: "frmElements.sections",
-      message: "Form Designer: At least one section must be configured",
-    });
-    return issues;
-  }
-
-  const seenFieldNames = new Map<string, string>(); // lowercase name -> section title
-
-  sections.forEach((section, sIdx) => {
-    const secTitle = (section.title || "").trim();
-    const secDisplay = secTitle || `Section #${sIdx + 1}`;
-
-    if (!secTitle) {
-      addIssue({
-        id: `err_sec_${section.id || sIdx}_title`,
+  const modelNames = new Set(model.PROPERTIES.map((p) => p.NAME.toLowerCase()));
+  (formData.frmElements?.sections ?? []).forEach((section, sIdx) => {
+    (section.fields ?? []).forEach((field, fIdx) => {
+      const name = (field.NAME || "").trim();
+      if (!name || modelNames.has(name.toLowerCase())) return;
+      issues.push({
+        id: `formDesigner-model-${section.id}-${fIdx}`,
         tab: "formDesigner",
-        fieldKey: "title",
+        fieldKey: "NAME",
         sectionId: section.id,
-        message: `Section #${sIdx + 1}: Section Title is required`,
+        fieldId: fieldIdOf(field, fIdx),
+        message: `${section.title?.trim() || `Section #${sIdx + 1}`}: Field "${name}" is not in model ${model.TABLENAME}`,
       });
-    }
-
-    const fields = section.fields || [];
-    if (fields.length === 0) {
-      addIssue({
-        id: `err_sec_${section.id || sIdx}_empty`,
-        tab: "formDesigner",
-        fieldKey: "fields",
-        sectionId: section.id,
-        message: `${secDisplay}: At least one field is required`,
-      });
-    }
-
-    fields.forEach((field, fIdx) => {
-      const fName = (field.NAME || "").trim();
-      const fieldIdentifier = String(field.SN || fName || `f_${fIdx}`);
-
-      if (!fName) {
-        addIssue({
-          id: `err_field_${section.id}_${fieldIdentifier}_name`,
-          tab: "formDesigner",
-          fieldKey: "NAME",
-          sectionId: section.id,
-          fieldId: fieldIdentifier,
-          message: `${secDisplay}: Field #${fIdx + 1} Name (NAME) is required`,
-        });
-      } else {
-        const lowerName = fName.toLowerCase();
-        if (seenFieldNames.has(lowerName)) {
-          const prevSec = seenFieldNames.get(lowerName);
-          addIssue({
-            id: `err_field_dup_${lowerName}`,
-            tab: "formDesigner",
-            fieldKey: "NAME",
-            sectionId: section.id,
-            fieldId: fieldIdentifier,
-            message: `${secDisplay}: Duplicate field name "${fName}" (already used in ${prevSec})`,
-          });
-        } else {
-          seenFieldNames.set(lowerName, secDisplay);
-        }
-      }
-
-      const fLabel = (field.LABEL || "").trim();
-      if (!fLabel) {
-        addIssue({
-          id: `err_field_${section.id}_${fieldIdentifier}_label`,
-          tab: "formDesigner",
-          fieldKey: "LABEL",
-          sectionId: section.id,
-          fieldId: fieldIdentifier,
-          message: `${secDisplay}: Field "${fName || `#${fIdx + 1}`}" Label is required`,
-        });
-      }
     });
   });
-
   return issues;
 }

@@ -10,15 +10,15 @@
 
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
+import { setFieldValue } from "@/lib/cbs-form-spec";
+import type { FormElement } from "@/lib/data-schemas";
+import { CbsRecordFunction } from "@/types";
 import {
   DROPDOWN_LOCAL_SECTION,
   DROPDOWN_LOOKUP_SECTION,
   DROPDOWN_OPTIONS_SECTION,
   DROPDOWN_SOURCE_SELECTOR_SECTION,
-} from "@/features/system/form-config/fields/fc-lookup-fields";
-import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { FormElement } from "@/lib/data-schemas";
-import { CbsRecordFunction } from "@/types";
+} from "../../../fields/fc-lookup-fields";
 
 export interface InspectorLookupConfigProps {
   selectedField: FormElement;

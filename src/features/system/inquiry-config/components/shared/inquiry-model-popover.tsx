@@ -40,10 +40,7 @@ export function InquiryModelPopover({
   });
 
   const availableProps = React.useMemo(() => {
-    const rawProps =
-      modelRecord?.PROPERTIES ||
-      (modelRecord as unknown as { properties?: ModelProperty[] })?.properties ||
-      [];
+    const rawProps = modelRecord?.PROPERTIES;
     return (Array.isArray(rawProps) ? rawProps : []).filter((p) => Boolean(p.NAME));
   }, [modelRecord]);
 

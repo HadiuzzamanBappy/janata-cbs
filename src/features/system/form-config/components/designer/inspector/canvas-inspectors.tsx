@@ -9,14 +9,14 @@
 
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
+import { setFieldValue } from "@/lib/cbs-form-spec";
+import type { FormSection } from "@/lib/data-schemas";
+import { CbsRecordFunction } from "@/types";
 import {
   CONTAINER_PROPERTIES_SECTION,
   ROOT_FORM_PROPERTIES_SECTION,
   TAB_PROPERTIES_SECTIONS,
-} from "@/features/system/form-config/fields/fc-canvas-fields";
-import { setFieldValue } from "@/lib/cbs-form-spec";
-import type { FormSection } from "@/lib/data-schemas";
-import { CbsRecordFunction } from "@/types";
+} from "../../../fields/fc-canvas-fields";
 
 export interface RootCanvasInspectorProps {
   layout?: "horizontal" | "stacked";
@@ -84,7 +84,7 @@ export function ContainerInspector({
   const isTab = section.containerType === "tab";
   const inspectorSections = isTab ? TAB_PROPERTIES_SECTIONS : [CONTAINER_PROPERTIES_SECTION];
 
-  // Normalized values: maps legacy variant to new atomic fields so inspector switches reflect legacy states accurately
+  // Normalized values: expands the variant preset (e.g. "ghost") into the atomic fields so the inspector switches show the effective state
   const normalizedValues = React.useMemo(() => {
     const raw = section as Record<string, unknown>;
     const cfg = section.containerConfig || {};

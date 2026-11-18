@@ -18,9 +18,9 @@ This plan runs strictly from dependency leaves to root. A phase may only change 
 | P2    | Parsers, utils, storage, logger        | ✅ done     | `594a4d0` (+ `decb0c4` `JsonArray` → `Array`) | ✅ passed                             | ✅ green (run in P3)      |
 | P3    | Wire client, proxy, gRPC, Redis, mock  | ✅ done     | `6b63473`                                     | ✅ passed                             | ✅ green 9/9 (2026-11-18) |
 | P4    | Command, access, screen, stores, hooks | ✅ done     | `48e5707`                                     | ✅ passed                             | —                         |
-| P5    | UI primitives & tokens                 | ✅ done     | ⏳ uncommitted (owner commits)                | ⏳ pending (incl. visual check)       | ⏳ CPW needs a live test  |
-| P6    | Engines & feature modules              | ⏳ **next** | —                                             | —                                     | —                         |
-| P7    | App, routing, route handlers           | ⏳          | —                                             | —                                     | required at exit          |
+| P5    | UI primitives & tokens                 | ✅ done     | `56c3cb7`                                     | ✅ committed by owner                 | ⏳ CPW needs a live test  |
+| P6    | Engines & feature modules              | ✅ done     | ⏳ uncommitted (owner commits)                | ⏳ pending                            | —                         |
+| P7    | App, routing, route handlers           | ⏳ **next** | —                                             | —                                     | required at exit          |
 
 ### How to resume a session
 
@@ -365,7 +365,7 @@ export function createScopedStore<S>(name: string, init: (seed: Partial<S>) => S
 ## Phase 5 — UI Primitives & Design System (L4)
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-18), not yet committed.** Results are in the [Phase 5 outcome](#phase-5-outcome) table below the exit gate.
+> **Status: ✅ complete (2026-11-18), commit `56c3cb7`.** Results are in the [Phase 5 outcome](#phase-5-outcome) table below the exit gate.
 
 **Scope:** [components/ui/](../../../src/components/ui/) (3,688 lines), [layout/](../../../src/components/layout/), [cbs-screen/](../../../src/components/cbs-screen/) (2,686 lines), [cbs-settings/](../../../src/components/cbs-settings/), [globals.css](../../../src/app/globals.css).
 
@@ -424,7 +424,7 @@ For F5-2, keep **one** `ChangePasswordForm` in L4 (`components/cbs-settings`), b
 ### Phase 5 outcome
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-18), not yet committed.** Gates: lint 0 / 0, typecheck 0, `verify:layers` and `verify:all` 16/16, build green (the compiled CSS for `text-2xs`/`text-3xs` is `font-size` only, identical to the old arbitrary classes).
+> **Status: ✅ complete (2026-11-18).** Gates: lint 0 / 0, typecheck 0, `verify:layers` and `verify:all` 16/16, build green (the compiled CSS for `text-2xs`/`text-3xs` is `font-size` only, identical to the old arbitrary classes).
 
 | ID   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -438,7 +438,8 @@ For F5-2, keep **one** `ChangePasswordForm` in L4 (`components/cbs-settings`), b
 
 ## Phase 6 — Feature Modules & Engines (L4 engines + L5 features)
 
-> **Status: ⏳ not started.**
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** F6-1 was skipped by owner decision; the rest are done or resolved. See the [Phase 6 outcome](#phase-6-outcome).
 
 **Scope:** [cbs-form-engine/](../../../src/components/cbs-form-engine/) (3,438 lines), [cbs-inquiry-engine/](../../../src/components/cbs-inquiry-engine/) (1,642), [features/operations/](../../../src/features/operations/) (1,298), [features/system/](../../../src/features/system/) (**16,578**), [features/workbench/](../../../src/features/workbench/).
 
@@ -484,12 +485,26 @@ export function useInquiryExecution(schema: InquiryConfigRecord, controller: str
 
 ### Exit gate P6
 
-- [ ] All 4 designers run on `useCbsDesignerRecord` and load through `cbsQueries`. Target: `features/system/*/hooks` shrinks by ≥ 500 lines with no behaviour change.
-- [ ] `parseInquiryConfig` is called only inside `lib/cbs-client/queries`, and there is a single `useInquiryExecution`.
-- [ ] 0 `legacy` fallbacks and 0 `as unknown as` remain in `src/features` and `src/components`.
-- [ ] Every file is within budget (≤ 300/350 lines for components, ≤ 250/280 for hooks and helpers).
-- [ ] Manual smoke test of each designer in static mode: load existing → edit → validate error → save → reload. Also a dynamic form (`ACCOUNT I …`), with Maker ≠ Checker authorisation, and an inquiry with filters and paging in both panel and popup mode.
-- [ ] `pnpm verify:form-spec` · `verify:inquiry` · `verify:screen` · `verify:mock` · `verify:all` all green.
+- [ ] ~~All 4 designers run on `useCbsDesignerRecord`~~ _Skipped by owner decision (minimal-change rule): each designer hook is within budget, and a shared hook over four different protocols would be a large, risky rewrite._
+- [x] There is a single inquiry execution path (`runInquiry`). ~~`parseInquiryConfig` only inside `cbsQueries`~~ _withdrawn: see F6-2._
+- [x] 0 `legacy` fallbacks (F6-4: `variant` turned out to be a live preset, not legacy) and 0 `as unknown as` in `src/features` and `src/components` (vendored `ui/` excluded).
+- [x] Every file is within budget, except the declarative field-spec files (`fields/*.ts`), which the owner exempted as data, not code.
+- [ ] Manual smoke test of each designer, a dynamic form and an inquiry (panel and popup) _(owner)_.
+- [x] `pnpm verify:form-spec` · `verify:inquiry` · `verify:screen` · `verify:mock` · `verify:all` all green, and `pnpm build` green.
+
+### Phase 6 outcome
+
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** Gates: lint 0 / 0, typecheck 0, `verify:form-spec` 32, `verify:inquiry` 20, `verify:screen` 13, `verify:mock` 15, `verify:all` 16/16, build green. Diff so far: 13 files, about +100 / −128.
+
+| ID   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F6-1 | ⏭ **Skipped (owner decision).** The four designer hooks stay as they are; each is within its size budget, and they use different protocols (SFC, SMC, inquiry, menu), validation and new-draft logic.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| F6-2 | ✅ **Finding withdrawn, and a related one recorded.** The Inquiry designer is correct to bypass the cached `cbsQueries` schema: it loads the maintenance record with `recordFunction`, so Input/Authorize mode gets the pending (INAU) copy. Moving it to the cached runtime query would show the wrong copy. **New open item (needs the core contract):** the Form, Model and Menu designers always load with `recordFunction: SEE`, which the proxy caches. So in Authorize mode they show the live (possibly cached) record, not the pending change. Confirm whether GMC and GFC honour `recordFunction` before changing it.                                                                                                                |
+| F6-3 | ✅ New [run-inquiry.ts](../../../src/components/cbs-inquiry-engine/run-inquiry.ts) `runInquiry(config, criteria, { branchCode, perPage, signal })` holds the one serialize → `executeQuery` → status check path. `OpsInquiry` and `InquiryPreview` keep their own state and toasts. **Bug fixed on the way:** the preview sent a hard-coded branch `"1001"` for branch-wise inquiries; it now uses the operator's session branch. Small text change: an inquiry with no target controller now shows the shared message in the "Query Failed" toast.                                                                                                                                                                                            |
+| F6-4 | ✅ **Finding withdrawn: `variant` is not legacy.** No live `CONFIG.FORM` records exist yet (owner: only MODEL.CONFIG is populated), so no saved data depends on it, but the code still produces it: `containerConfig.variant: "ghost"` is a live preset used by 15 system field specs (the Form Config, Menu Designer and inspector panels) and by the form-spec compiler for every form generated from MODEL.CONFIG (`compile.ts`). Deleting the resolver would draw borders and backgrounds around all of them. Kept as a documented preset (explicit `showHeader` / `bordered` / `background` override it); the misleading "legacy" comments are reworded and the schema field is documented. The temporary scan script was deleted unused. |
+| F6-5 | ✅ All 5 casts removed. The field `id` fallbacks were dead (no form element carries an `id`; the generated `sec_field` ids belong to sections), the lowercase `properties` fallback was dead (nothing produces it), and `FormConfigRecord` is assignable to the form renderer's `values` without a cast.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| F6-6 | ✅ The 5 deep self-imports inside `form-config` are relative. The field-spec files (`fc-canvas-fields` 383, `fc-widget-fields` 368, `fc-field-fields` 362, `mc-general-fields` 291) are exempt from the budget as declarative data (owner decision). The components over 300 lines (`canvas-card-container-block` 339, `cbs-form-header` 308) are within the 350-line stretch.                                                                                                                                                                                                                                                                                                                                                                 |
 
 ---
 

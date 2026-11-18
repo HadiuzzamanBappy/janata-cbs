@@ -1,6 +1,6 @@
 import type * as React from "react";
-import type { FormConfigValidationError } from "@/features/system/form-config/hooks/fc-validation";
 import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
+import type { FormConfigValidationError } from "../../../hooks/fc-validation";
 import type { AddSectionFn } from "../canvas/canvas-types";
 
 export interface DesignerContextValue {

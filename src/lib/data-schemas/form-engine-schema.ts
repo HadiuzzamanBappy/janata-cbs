@@ -147,6 +147,7 @@ export type FormContainerType = z.infer<typeof formContainerTypeSchema>;
  * Allows configuring styling, borders, density, badges, icons, and behavior per container.
  */
 export const containerConfigSchema = z.object({
+  /** Style preset; explicit showHeader / bordered / background override it. "ghost" = frameless. */
   variant: z.enum(["default", "subtle", "bordered", "elevated", "ghost"]).optional(),
   density: z.enum(["compact", "normal", "spacious"]).optional(),
   showHeader: z.boolean().default(true).optional(),

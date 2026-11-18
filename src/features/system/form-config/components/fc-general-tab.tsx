@@ -56,7 +56,7 @@ export function FcGeneralTab({
       <div className="max-w-4xl space-y-3 pb-8">
         <FormRenderer
           frmElements={{ sections: FORM_CONFIG_SECTIONS }}
-          values={formData as unknown as Record<string, unknown>}
+          values={formData}
           onChange={handleFieldChange}
           errors={errorMap}
           disabled={isReadOnly}

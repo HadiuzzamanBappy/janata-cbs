@@ -47,3 +47,5 @@ export {
 // Hooks
 export { useInquiryPagination } from "./hooks/use-inquiry-pagination";
 export { useInquirySort } from "./hooks/use-inquiry-sort";
+// Execution
+export { type RunInquiryOptions, runInquiry } from "./run-inquiry";

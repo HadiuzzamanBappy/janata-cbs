@@ -63,17 +63,12 @@ export function useFcSectionOps(
           fields: initialFields,
         };
 
-        const newFieldKeys = new Set(
-          initialFields.map((f) => f.NAME || f.SN || (f as unknown as { id?: string }).id),
-        );
+        const newFieldKeys = new Set(initialFields.map((f) => f.NAME || f.SN));
         const cleanedExistingSections = sections
           .map((sec) => ({
             ...sec,
             fields: (sec.fields || []).filter(
-              (f) =>
-                !newFieldKeys.has(f.NAME) &&
-                !newFieldKeys.has(f.SN) &&
-                !newFieldKeys.has((f as unknown as { id?: string }).id),
+              (f) => !newFieldKeys.has(f.NAME) && !newFieldKeys.has(f.SN),
             ),
           }))
           .filter((sec) => {

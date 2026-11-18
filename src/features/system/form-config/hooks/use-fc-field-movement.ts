@@ -12,11 +12,7 @@ import { generateClientToken } from "@/lib/core-utils";
 import type { FormConfigRecord, FormElement, FormSection } from "@/lib/data-schemas";
 
 export function isMatchingField(field: FormElement, identifier: string): boolean {
-  return (
-    field.SN === identifier ||
-    field.NAME === identifier ||
-    (field as unknown as Record<string, unknown>).id === identifier
-  );
+  return field.SN === identifier || field.NAME === identifier;
 }
 
 export function useFcFieldMovement(

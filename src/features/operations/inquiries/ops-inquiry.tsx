@@ -1,14 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { InquiryFilterBar, InquiryTable } from "@/components/cbs-inquiry-engine";
+import { InquiryFilterBar, InquiryTable, runInquiry } from "@/components/cbs-inquiry-engine";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
-import { buildDefaultCriteria, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
+import { buildDefaultCriteria } from "@/lib/cbs-inquiry-spec";
 import type { CbsScreenProps } from "@/lib/cbs-screen";
 import { logger } from "@/lib/core-logger";
-import { type FilterCriteriaMap, inquiryRowListSchema, isApiSuccess } from "@/lib/data-schemas";
+import type { FilterCriteriaMap } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 import { CBS_INQUIRY_STEP } from "@/types";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
@@ -40,48 +39,12 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
     async (criteria: FilterCriteriaMap) => {
       if (!schema) return;
 
-      const branchCodeToFilter = schema.INQInfo?.showBranchWise ? currentBranch : null;
-      const queryString = serializeCriteriaToWire(
-        criteria,
-        schema.INQSelectField,
-        schema.INQInfo?.fixedSelection,
-        branchCodeToFilter,
-      );
-      // INQ executes against the configured target controller — never the raw command text
-      const targetControl = schema.INQInfo?.controllerName?.trim();
-      if (!targetControl) {
-        toast.add({
-          title: "Inquiry Not Configured",
-          description: `"${command}" has no target controller (INQInfo.controllerName). Fix it in the Inquiry Designer.`,
-          type: "destructive",
-        });
-        return;
-      }
       const isPaginationEnabled = schema.INQInfo?.showPagination !== false;
-      const queryPerPage = isPaginationEnabled ? pageSize || 30 : 1000;
-
       try {
-        const queryRes = await cbs.send(
-          cbs.inquiry.executeQuery(targetControl, {
-            servicePath: schema.INQInfo?.inqServicePath,
-            inqType: schema.INQInfo?.inqType,
-            perPage: queryPerPage,
-            curPage: 1,
-            queryString,
-          }),
-          { silent: true, responseSchema: inquiryRowListSchema },
-        );
-
-        if (!isApiSuccess(queryRes)) {
-          toast.add({
-            title: "Query Failed",
-            description: queryRes.message || `Core rejected inquiry on ${targetControl}`,
-            type: "destructive",
-          });
-          return;
-        }
-
-        const dataset = queryRes.data ?? [];
+        const dataset = await runInquiry(schema, criteria, {
+          branchCode: currentBranch,
+          perPage: isPaginationEnabled ? pageSize || 30 : 1000,
+        });
 
         setCurrentCriteria(criteria);
         setFilteredRows(dataset);
@@ -102,16 +65,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
         });
       }
     },
-    [
-      schema,
-      currentBranch,
-      command,
-      pageSize,
-      setCurrentCriteria,
-      setFilteredRows,
-      setCurrentPage,
-      setStep,
-    ],
+    [schema, currentBranch, pageSize, setCurrentCriteria, setFilteredRows, setCurrentPage, setStep],
   );
 
   const { handleExportCSV, handleExportHTML, handleExportXML, handleRefresh } = useInquiryActions({

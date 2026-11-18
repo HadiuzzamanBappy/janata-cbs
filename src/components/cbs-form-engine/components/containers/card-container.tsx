@@ -60,15 +60,15 @@ export function CardContainer({
   // Check if embedded inside a Tab Group (via hideHeader or containerType === "tab")
   const isEmbeddedTab = hideHeader || section.containerType === "tab";
 
-  // Resolve background (new background property takes precedence, falls back to legacy variant)
+  // Resolve background (explicit background wins, else the variant preset decides)
   const bg =
     config.background ??
     (config.variant === "ghost" ? "none" : config.variant === "subtle" ? "subtle" : "regular");
 
-  // Resolve border (new bordered property takes precedence, falls back to legacy variant)
+  // Resolve border (explicit bordered wins, else the variant preset decides)
   const isBordered = config.bordered !== undefined ? config.bordered : config.variant !== "ghost";
 
-  // Resolve header visibility (hideHeader prop takes precedence, then config.showHeader, then legacy check)
+  // Resolve header visibility (hideHeader prop, then config.showHeader, then the variant preset)
   const shouldShowHeader =
     !hideHeader &&
     (config.showHeader !== undefined ? config.showHeader : hasHeader && config.variant !== "ghost");

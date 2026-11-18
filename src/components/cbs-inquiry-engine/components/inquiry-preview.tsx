@@ -5,17 +5,12 @@ import * as React from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
-import { cbs } from "@/lib/cbs-client";
-import { buildDefaultCriteria, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
+import { buildDefaultCriteria } from "@/lib/cbs-inquiry-spec";
 import { logger } from "@/lib/core-logger";
-import {
-  type FilterCriteriaMap,
-  type InquiryConfigRecord,
-  type InquiryRow,
-  inquiryRowListSchema,
-  isApiSuccess,
-} from "@/lib/data-schemas";
+import type { FilterCriteriaMap, InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
+import { useSessionStore } from "@/store";
 import { CBS_INQUIRY_STEP, type CbsInquiryStep } from "@/types";
+import { runInquiry } from "../run-inquiry";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
 import { InquiryTable } from "./inquiry-table";
 
@@ -49,6 +44,7 @@ export function InquiryPreview({
   const [criteria, setCriteria] = React.useState<FilterCriteriaMap>({});
 
   const targetController = config.INQInfo?.controllerName?.trim() || "";
+  const currentBranch = useSessionStore((s) => s.currentBranch || s.user?.branchCode);
 
   // Initialize criteria from select fields
   React.useEffect(() => {
@@ -69,31 +65,13 @@ export function InquiryPreview({
         return;
       }
       setLoading(true);
-      const branchCodeToFilter = config.INQInfo?.showBranchWise ? "1001" : null;
-      const queryString = serializeCriteriaToWire(
-        critMap,
-        config.INQSelectField || [],
-        config.INQInfo?.fixedSelection,
-        branchCodeToFilter,
-      );
 
       try {
-        const queryRes = await cbs.send(
-          cbs.inquiry.executeQuery(targetController, {
-            servicePath: config.INQInfo?.inqServicePath,
-            inqType: config.INQInfo?.inqType,
-            perPage: Number(config.INQInfo?.perpageItem) || 1000,
-            curPage: 1,
-            queryString,
-          }),
-          { silent: true, signal, responseSchema: inquiryRowListSchema },
-        );
-
-        if (!isApiSuccess(queryRes)) {
-          throw new Error(queryRes.message || `Core rejected inquiry on ${targetController}`);
-        }
-
-        const dataset = queryRes.data ?? [];
+        const dataset = await runInquiry(config, critMap, {
+          branchCode: currentBranch,
+          perPage: Number(config.INQInfo?.perpageItem) || 1000,
+          signal,
+        });
         setRows(dataset);
         setStep(CBS_INQUIRY_STEP.RESULTS);
         toast.add({
@@ -119,15 +97,7 @@ export function InquiryPreview({
         }
       }
     },
-    [
-      targetController,
-      config.INQInfo?.inqServicePath,
-      config.INQInfo?.inqType,
-      config.INQInfo?.perpageItem,
-      config.INQInfo?.fixedSelection,
-      config.INQInfo?.showBranchWise,
-      config.INQSelectField,
-    ],
+    [targetController, config, currentBranch],
   );
 
   // Auto-fetch if columns exist, no selection filters exist, and on RESULTS step

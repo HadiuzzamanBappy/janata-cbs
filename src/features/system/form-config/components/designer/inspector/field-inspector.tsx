@@ -12,13 +12,6 @@ import { Boxes, ShieldCheck, Sliders } from "lucide-react";
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { Label } from "@/components/ui/label";
-import {
-  FIELD_ADVANCED_RULES_SECTION,
-  FIELD_CONDITIONS_SECTION,
-  FIELD_GENERAL_PROPERTIES_SECTION,
-  FIELD_ON_CHANGE_SECTION,
-} from "@/features/system/form-config/fields/fc-field-fields";
-import { getContextualWidgetSection } from "@/features/system/form-config/fields/fc-widget-fields";
 import { setFieldValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import {
@@ -31,6 +24,13 @@ import {
   type PropertyType,
 } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
+import {
+  FIELD_ADVANCED_RULES_SECTION,
+  FIELD_CONDITIONS_SECTION,
+  FIELD_GENERAL_PROPERTIES_SECTION,
+  FIELD_ON_CHANGE_SECTION,
+} from "../../../fields/fc-field-fields";
+import { getContextualWidgetSection } from "../../../fields/fc-widget-fields";
 import { InspectorLookupConfig } from "./inspector-lookup-config";
 
 export interface FieldInspectorProps {

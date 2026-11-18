@@ -76,7 +76,7 @@ export function ActionItem({
       >
         <span
           className={cn(
-            "text-[10px] font-mono px-1 py-0.5 rounded shrink-0",
+            "text-3xs font-mono px-1 py-0.5 rounded shrink-0",
             isSelected
               ? "bg-primary/15 text-primary font-bold border border-primary/25"
               : "bg-muted text-muted-foreground font-medium",
@@ -89,13 +89,13 @@ export function ActionItem({
 
         <div className="flex-1 min-w-0">
           <span className="font-medium truncate block">{action.cmdButton || "<Empty Action>"}</span>
-          <span className="text-[10px] font-mono text-muted-foreground/70 truncate block">
+          <span className="text-3xs font-mono text-muted-foreground/70 truncate block">
             {action.cmdFor || "Not configured"}
           </span>
         </div>
 
         {hasError && (
-          <span className="text-destructive font-mono text-[9px] font-bold px-1 py-0.5 rounded bg-destructive/10 shrink-0">
+          <span className="text-destructive font-mono text-3xs font-bold px-1 py-0.5 rounded bg-destructive/10 shrink-0">
             {errorCount ? `${errorCount} ERR` : "ERR"}
           </span>
         )}

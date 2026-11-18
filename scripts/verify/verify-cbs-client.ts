@@ -7,7 +7,6 @@
  * 2. cbs.branch, cbs.control, cbs.menu, cbs.menuTree - System directory models
  * 3. cbs.modelConfig, cbs.formConfig, cbs.inquiryConfig - Meta-config protocol overrides
  * 4. cbs.inquiry - Runtime inquiry query execution (INQ)
- * 5. cbs.userSecurity - Security credential mutations (CPW)
  * 6. cbs.send - Universal transport dispatcher (pre-flight validation, HTTP dispatch, 401 handling, cancellation,
  *    single notification per failure)
  *
@@ -265,16 +264,6 @@ async function runSuite() {
       (inqRun.data as Record<string, unknown>)?.curPage === 1 &&
       (inqRun.data as Record<string, unknown>)?.perPage === 50 &&
       Array.isArray((inqRun.data as Record<string, unknown>)?.queryString),
-  );
-
-  // --- 5. User Security (cbs.userSecurity) ---
-  console.log("\n── 5. User Security (cbs.userSecurity) ──");
-  const cpw = cbs.userSecurity.changePassword({ currPass: "p1", newPass: "p2" });
-  recordTest(
-    "5.1 cbs.userSecurity: Emits CPW wire security envelope",
-    "cbs.userSecurity.changePassword(...)",
-    { changePassword: cpw.requestType },
-    cpw.requestType === CbsRequestType.CPW,
   );
 
   // --- 6. Universal Transport Dispatcher (cbs.send) ---

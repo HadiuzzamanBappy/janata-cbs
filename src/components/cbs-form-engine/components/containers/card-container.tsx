@@ -158,13 +158,13 @@ export function CardContainer({
                   <ChevronDown className="size-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
                 )}
                 {section.title && (
-                  <span className="text-[11px] font-semibold uppercase tracking-wider shrink-0 whitespace-nowrap text-foreground/90 group-hover:text-foreground">
+                  <span className="text-2xs font-semibold uppercase tracking-wider shrink-0 whitespace-nowrap text-foreground/90 group-hover:text-foreground">
                     {section.title}
                   </span>
                 )}
                 {section.description && (
                   <span
-                    className="text-[11px] text-muted-foreground/60 font-normal truncate min-w-0"
+                    className="text-2xs text-muted-foreground/60 font-normal truncate min-w-0"
                     title={section.description}
                   >
                     &bull; {section.description}
@@ -176,7 +176,7 @@ export function CardContainer({
               {config.badge && (
                 <span
                   className={cn(
-                    "inline-flex items-center px-1.5 py-0.2 text-[10px] font-medium rounded-full shrink-0 whitespace-nowrap",
+                    "inline-flex items-center px-1.5 py-0.2 text-3xs font-medium rounded-full shrink-0 whitespace-nowrap",
                     config.badgeVariant === "destructive"
                       ? "bg-destructive/10 text-destructive"
                       : config.badgeVariant === "outline"
@@ -194,13 +194,13 @@ export function CardContainer({
             <>
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 {section.title && (
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shrink-0 whitespace-nowrap">
+                  <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground shrink-0 whitespace-nowrap">
                     {section.title}
                   </span>
                 )}
                 {section.description && (
                   <span
-                    className="text-[11px] text-muted-foreground/60 font-normal truncate min-w-0"
+                    className="text-2xs text-muted-foreground/60 font-normal truncate min-w-0"
                     title={section.description}
                   >
                     &bull; {section.description}
@@ -212,7 +212,7 @@ export function CardContainer({
               {config.badge && (
                 <span
                   className={cn(
-                    "inline-flex items-center px-1.5 py-0.2 text-[10px] font-medium rounded-full shrink-0 whitespace-nowrap",
+                    "inline-flex items-center px-1.5 py-0.2 text-3xs font-medium rounded-full shrink-0 whitespace-nowrap",
                     config.badgeVariant === "destructive"
                       ? "bg-destructive/10 text-destructive"
                       : config.badgeVariant === "outline"

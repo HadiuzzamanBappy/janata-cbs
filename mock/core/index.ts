@@ -8,6 +8,7 @@ import {
   getMockFormPayload,
   getMockMenuPayload,
   getMockUserResponse,
+  handleChangePassword,
   handleGetFormConfig,
   handleGetMenu,
   handleGetModelConfig,
@@ -62,6 +63,11 @@ export function getMockProxyResponse(
     controlName: cleanCmd,
     recordId: recId,
   };
+
+  // 0a. CPW (Change Password)
+  if (reqType === CbsRequestType.CPW) {
+    return handleChangePassword(normalizedPayload);
+  }
 
   // 0. GUM / GCM (Get User Navigation Menu Tree)
   if (reqType === CbsRequestType.GUM || reqType === CbsRequestType.GCM) {

@@ -145,7 +145,7 @@ export function DocSidebar({
                 className="w-full min-w-0 border-none overflow-hidden"
               >
                 <AccordionTrigger className="w-full min-w-0 hover:no-underline no-underline py-1.5 px-2 rounded-sm hover:bg-accent/40 transition">
-                  <div className="flex items-center gap-2 font-semibold text-[10px] uppercase tracking-wider text-muted-foreground min-w-0 flex-1 truncate">
+                  <div className="flex items-center gap-2 font-semibold text-3xs uppercase tracking-wider text-muted-foreground min-w-0 flex-1 truncate">
                     <group.icon className="size-3.5 text-primary shrink-0" />
                     <span className="truncate flex-1 min-w-0 text-left">{group.title}</span>
                   </div>

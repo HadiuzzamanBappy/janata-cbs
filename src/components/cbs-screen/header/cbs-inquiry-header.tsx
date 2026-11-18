@@ -99,7 +99,7 @@ export function CbsInquiryHeader({
             {title || "Inquiry"}
           </span>
 
-          <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs">
+          <span className="font-mono text-2xs font-bold px-1.5 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs">
             {commandCode}
           </span>
         </div>

@@ -102,7 +102,7 @@ function DraggableCatalogCard({ item, isAdded, disabled, onAddItem }: DraggableC
         <div className="flex items-center gap-1 min-w-0 flex-1">
           <Terminal className="size-2.5 text-muted-foreground/70 shrink-0" />
           <span
-            className="text-[10px] font-mono text-muted-foreground truncate"
+            className="text-3xs font-mono text-muted-foreground truncate"
             title={item.command || "No command"}
           >
             {item.command || "—"}
@@ -111,12 +111,12 @@ function DraggableCatalogCard({ item, isAdded, disabled, onAddItem }: DraggableC
 
         <div className="flex items-center gap-1 shrink-0">
           {item.menuType && (
-            <span className="text-[9px] px-1 py-0.5 rounded font-mono text-muted-foreground bg-muted/60 border border-border/50 leading-none shrink-0 uppercase">
+            <span className="text-3xs px-1 py-0.5 rounded font-mono text-muted-foreground bg-muted/60 border border-border/50 leading-none shrink-0 uppercase">
               {item.menuType}
             </span>
           )}
           {item.menuAction === "POPUP" && (
-            <span className="text-[9px] px-1 py-0.5 rounded font-mono text-primary bg-primary/10 border border-primary/20 leading-none shrink-0">
+            <span className="text-3xs px-1 py-0.5 rounded font-mono text-primary bg-primary/10 border border-primary/20 leading-none shrink-0">
               POPUP
             </span>
           )}
@@ -176,10 +176,10 @@ export function MenuCatalogSidebar({
     >
       <div className="p-2.5 border-b border-border/80 space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider truncate">
+          <span className="text-2xs font-semibold text-foreground uppercase tracking-wider truncate">
             Catalog (MENU)
           </span>
-          <div className="flex items-center gap-1.5 shrink-0 text-[10px] font-mono text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded border border-border/50">
+          <div className="flex items-center gap-1.5 shrink-0 text-3xs font-mono text-muted-foreground bg-muted/40 px-1.5 py-0.5 rounded border border-border/50">
             {addedCount > 0 && (
               <span className="text-primary font-semibold">{addedCount} pinned</span>
             )}

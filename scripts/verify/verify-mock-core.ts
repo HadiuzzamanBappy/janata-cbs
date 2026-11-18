@@ -130,6 +130,33 @@ async function runSuite() {
         noPassRes.statusCode === 401,
     );
 
+    // 3. Password Change (CPW): verifies the current password, then the new one is the login secret
+    const cpw = (currPass: string, newPass: string) =>
+      getMockProxyResponse({
+        requestType: "CPW",
+        userId: "ST0284590",
+        data: { currPass, newPass },
+      } as Parameters<typeof getMockProxyResponse>[0]);
+    const wrongCurrent = cpw("not-the-password", "Changed@123");
+    const changed = cpw("password123", "Changed@123");
+    const loginNew = await handleLogin({ username: "ST028459", password: "Changed@123" });
+    const loginOld = await handleLogin({ username: "ST028459", password: "password123" });
+    cpw("Changed@123", "password123"); // restore the fixture for later suites
+    recordTest(
+      "3. Password Change (CPW): wrong current password is rejected; the new password replaces the old",
+      { user: "ST0284590", newPass: "***" },
+      {
+        wrongCurrent: wrongCurrent.statusCode,
+        changed: changed.status,
+        loginNew: loginNew.statusCode,
+        loginOld: loginOld.statusCode,
+      },
+      wrongCurrent.status !== "SUCCESS" &&
+        changed.status === "SUCCESS" &&
+        loginNew.statusCode === 200 &&
+        loginOld.statusCode === 401,
+    );
+
     // 4. Metamodel Form Schema Introspection (GMC)
     // 4a. Pure Model Schema (when base model name passed)
     const gmcModelInput = { requestType: "GMC", controlName: "ACCOUNT" };

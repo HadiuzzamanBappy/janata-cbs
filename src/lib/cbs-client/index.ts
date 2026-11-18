@@ -4,7 +4,6 @@ import { formConfigPayloads } from "./payloads/form-config";
 import { inquiryPayloads } from "./payloads/inquiry";
 import { menuTreePayloads } from "./payloads/menu-tree";
 import { modelConfigPayloads } from "./payloads/model-config";
-import { userSecurityPayloads } from "./payloads/user-security";
 import { lookupQueries } from "./queries/lookups";
 import { SCHEMA_ROOT_KEYS, schemaQueries } from "./queries/schemas";
 import { cbsAuth } from "./transport/auth-client";
@@ -77,7 +76,6 @@ export const cbs = {
 
   // Query & security engines
   inquiry: inquiryPayloads,
-  userSecurity: userSecurityPayloads,
 } as const;
 
 export default cbs;

@@ -1,10 +1,6 @@
 import { resolveCommandAlias } from "@/lib/cbs-command";
 import type { MenuItem } from "@/lib/data-schemas";
 
-export function mapMenuItemToTreeNode(item: MenuItem): MenuItem {
-  return item;
-}
-
 /**
  * Checks if two command identifiers or aliases match the same canonical screen or target.
  */

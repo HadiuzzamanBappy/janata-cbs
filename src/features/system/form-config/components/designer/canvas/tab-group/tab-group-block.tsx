@@ -7,6 +7,7 @@ import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../../context/designer-context";
 import { CanvasSectionGrid } from "../canvas-section-grid";
+import { selectableProps } from "../selectable";
 import { TabGroupHeader } from "./tab-group-header";
 import { useTabGroupDrop } from "./use-tab-group-drop";
 
@@ -97,19 +98,17 @@ export function TabGroupBlock(props: TabGroupBlockProps) {
   };
 
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: canvas selectable container
     <section
       data-tab-group-container="true"
       aria-label="Tab group container"
       ref={setNodeRef}
       style={mergedStyle}
-      onClick={(e) => {
-        e.stopPropagation();
+      {...selectableProps(() => {
         if (activeSection) {
           onSelectSection(activeSection.id);
           onSelectField(activeSection.id, null);
         }
-      }}
+      }, isGroupExplicitlySelected)}
       className={cn(
         containerVariantClass,
         heightMode === "fill" && "min-h-[350px]",
@@ -134,15 +133,15 @@ export function TabGroupBlock(props: TabGroupBlockProps) {
       />
 
       {activeSection && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: droppable container body
-        <div
+        <section
+          aria-label="Tab content drop zone"
           onDragOver={handleBodyDragOver}
           onDragLeave={handleBodyDragLeave}
           onDrop={handleBodyDrop}
           className={cn("p-2.5 transition-colors", dropZone === "body" && "bg-primary/5")}
         >
           <CanvasSectionGrid section={activeSection} isNativeOver={dropZone === "body"} />
-        </div>
+        </section>
       )}
     </section>
   );

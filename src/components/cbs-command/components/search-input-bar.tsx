@@ -30,7 +30,7 @@ export function SearchInputBar({
       <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none z-20 hidden xs:flex">
         <Badge
           variant="secondary"
-          className="font-mono text-[10px] px-1.5 py-0.5 bg-muted/90 text-muted-foreground border border-border/40 shadow-none font-medium"
+          className="font-mono text-3xs px-1.5 py-0.5 bg-muted/90 text-muted-foreground border border-border/40 shadow-none font-medium"
         >
           {filteredCount}/{totalCount}
         </Badge>

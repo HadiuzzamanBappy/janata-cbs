@@ -65,7 +65,7 @@ export function ActionMoreMenu({
         />
         <DropdownMenuContent align="end" className="w-48 text-xs">
           <DropdownMenuGroup>
-            <DropdownMenuLabel className="text-[11px] text-muted-foreground font-mono">
+            <DropdownMenuLabel className="text-2xs text-muted-foreground font-mono">
               More operations
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

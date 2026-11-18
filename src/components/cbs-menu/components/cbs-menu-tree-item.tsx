@@ -120,7 +120,7 @@ export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenu
         data-cbs-node-id={node.id}
         data-cbs-link-handled="true"
         className={cn(
-          "flex items-center gap-1.5 px-2 py-1.5 rounded-sm text-[13px] font-normal cursor-pointer transition-all duration-150 ease-out group/item w-full text-left border-0 bg-transparent relative leading-snug focus:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+          "flex items-center gap-1.5 px-2 py-1.5 rounded-sm text-xs font-normal cursor-pointer transition-all duration-150 ease-out group/item w-full text-left border-0 bg-transparent relative leading-snug focus:outline-none focus-visible:ring-1 focus-visible:ring-ring",
           isActive
             ? "bg-accent/80 text-foreground font-medium shadow-2xs"
             : isChildActive
@@ -178,7 +178,7 @@ export function CbsMenuTreeItem({ node, openSettingsTab, clearSession }: CbsMenu
             data-cbs-label={nodeLabel}
             data-cbs-node-id={node.id}
             data-cbs-link-handled="true"
-            className="z-5000 flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-[13px] font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100 border-0 text-left"
+            className="z-5000 flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm text-xs font-normal whitespace-nowrap bg-accent/95 backdrop-blur-md text-foreground shadow-xl ring-1 ring-border/80 cursor-pointer pointer-events-auto leading-snug animate-in fade-in-0 duration-100 border-0 text-left"
           >
             {isFolder ? (
               <span className="size-4 flex items-center justify-center text-muted-foreground/80 shrink-0">

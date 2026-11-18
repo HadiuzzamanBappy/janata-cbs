@@ -120,7 +120,7 @@ export function AuditContainer({ auditData, className, variant = "card" }: Audit
       )}
     >
       <div className="flex items-center justify-between pb-1 border-b border-border/40">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <span className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground">
           Audit Trail & Record Information
         </span>
       </div>

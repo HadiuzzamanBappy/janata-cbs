@@ -43,7 +43,7 @@ export function RateWidget({
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
         )}
       />
-      <span className="absolute right-2 text-[11px] font-mono font-semibold text-muted-foreground select-none pointer-events-none">
+      <span className="absolute right-2 text-2xs font-mono font-semibold text-muted-foreground select-none pointer-events-none">
         {suffix}
       </span>
     </div>

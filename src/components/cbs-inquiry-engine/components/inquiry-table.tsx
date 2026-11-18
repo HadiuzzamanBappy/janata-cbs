@@ -19,7 +19,7 @@ export function InquiryEmptyState({
 }: InquiryEmptyStateProps) {
   return (
     <div className="flex-1 min-h-30 flex flex-col items-center justify-center p-3 text-center bg-muted/10">
-      <p className="text-[11px] text-muted-foreground font-mono">{message}</p>
+      <p className="text-2xs text-muted-foreground font-mono">{message}</p>
     </div>
   );
 }
@@ -109,7 +109,7 @@ export function InquiryTable({
             <InquiryEmptyState />
           ) : (
             <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full caption-bottom text-[11px]">
+              <table className="w-full caption-bottom text-2xs">
                 <InquiryTableHeader
                   isMultiRow={isMultiRow}
                   sortedRowNumbers={sortedRowNumbers}

@@ -49,7 +49,7 @@ export function SwitchWidget({
         </div>
         <span
           className={cn(
-            "text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold",
+            "text-3xs font-mono px-1.5 py-0.5 rounded border font-semibold",
             isChecked
               ? "bg-primary/10 text-primary border-primary/25"
               : "bg-muted text-muted-foreground border-border/40",

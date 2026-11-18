@@ -83,7 +83,7 @@ export function ActiveActions({
         commandPreview={baseCmd ? `${baseCmd} V ${cleanId}`.trim() : undefined}
         defaultTooltip="Validate Rules & Integrity (?✓)"
       >
-        <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
+        <span className="text-2xs font-mono leading-none tracking-tighter select-none font-bold">
           ?✓
         </span>
       </ActionBtn>
@@ -119,7 +119,7 @@ export function ActiveActions({
         commandPreview={baseCmd && cleanId ? `${baseCmd} A ${cleanId}` : undefined}
         defaultTooltip="Authorize Record (✓✓)"
       >
-        <span className="text-[11px] font-mono leading-none tracking-tighter select-none font-bold">
+        <span className="text-2xs font-mono leading-none tracking-tighter select-none font-bold">
           ✓✓
         </span>
       </ActionBtn>
@@ -132,7 +132,7 @@ export function ActiveActions({
         commandPreview={baseCmd && cleanId ? `${baseCmd} R ${cleanId}` : undefined}
         defaultTooltip="Authorize Reversal (✕✓)"
       >
-        <span className="text-[10px] font-mono leading-none tracking-tighter select-none font-bold">
+        <span className="text-3xs font-mono leading-none tracking-tighter select-none font-bold">
           ✕✓
         </span>
       </ActionBtn>

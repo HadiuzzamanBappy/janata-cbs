@@ -167,10 +167,10 @@ export function CbsJsonViewerTab({
           <JsonDiffView diffSummary={diffSummary} hasDiff={hasDiff} />
         ) : (
           /* Standard Formatted JSON */
-          <div className="flex-1 overflow-auto min-h-0 bg-muted/15 p-3 font-mono text-[11.5px] select-text transition-colors selection:bg-primary/20 selection:text-primary">
+          <div className="flex-1 overflow-auto min-h-0 bg-muted/15 p-3 font-mono text-xs select-text transition-colors selection:bg-primary/20 selection:text-primary">
             <div className="flex min-w-full">
               {/* Line numbers gutter */}
-              <div className="select-none text-right pr-3.5 text-muted-foreground/50 font-mono text-[11px] border-r border-border/60 mr-3.5 shrink-0">
+              <div className="select-none text-right pr-3.5 text-muted-foreground/50 font-mono text-2xs border-r border-border/60 mr-3.5 shrink-0">
                 {lines.map((line) => (
                   <div key={`gutter-${line.id}`} className="leading-5">
                     {line.num}

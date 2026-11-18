@@ -1,14 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { verifyUserRecordAccess } from "@/lib/cbs-access";
-import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
-import {
-  type ApiResponse,
-  cbsWirePayloadSchema,
-  type GrpcEnvelope,
-  isApiSuccess,
-} from "@/lib/data-schemas";
+import { type ApiResponse, cbsWirePayloadSchema, isApiSuccess } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
 import {
   autoInvalidateOnMutation,
@@ -17,6 +11,7 @@ import {
   resolveCacheDescriptor,
 } from "@/lib/infra-redis";
 import { CbsRequestType } from "@/types";
+import { buildGrpcEnvelope } from "../_lib/envelope";
 import { apiError, apiFail } from "../_lib/response";
 
 export const runtime = "nodejs";
@@ -57,7 +52,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
     }
 
-    const { token, userId, currUser } = session;
+    const { token, currUser } = session;
     const body = parsed.data;
 
     // 1. Domain Access Verification Gate (Maker-Checker & RIDASHL)
@@ -73,20 +68,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       ]);
     }
 
-    // 2. Canonical GrpcEnvelope Assembly
-    const envelope: GrpcEnvelope = {
-      servicePath: body.servicePath ?? "default",
-      requestType: body.requestType,
-      controlName: body.controlName ?? "",
-      branchCode: currUser.branchCode || serverConfig.centralBranch,
-      recordFunction: body.recordFunction ?? "",
-      recordId: body.recordId ?? "",
-      authLevel: body.authLevel ?? 1,
-      idempotencyKey: body.idempotencyKey,
-      userId,
-      clientId: serverConfig.grpc.clientId,
-      data: body.data ?? {},
-    };
+    // 2. Canonical GrpcEnvelope Assembly (branch and user come from the session)
+    const envelope = buildGrpcEnvelope(session, body);
 
     // 3. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {

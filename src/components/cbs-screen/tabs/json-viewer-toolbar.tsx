@@ -54,7 +54,7 @@ export function JsonViewerToolbar({
       <div className="flex items-center gap-1.5 shrink-0">
         <Badge
           variant="outline"
-          className="font-mono text-[10px] h-6 rounded-xs px-1.5 text-muted-foreground hidden sm:inline-flex"
+          className="font-mono text-3xs h-6 rounded-xs px-1.5 text-muted-foreground hidden sm:inline-flex"
         >
           {linesCount}L • {(sizeBytes / 1024).toFixed(1)}KB
         </Badge>
@@ -103,7 +103,7 @@ export function JsonViewerToolbar({
                   >
                     <GitCompare className="size-3.5 text-warning" />
                     {hasDiff && diffSummary && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-mono leading-none">
+                      <span className="inline-flex items-center gap-0.5 text-3xs font-mono leading-none">
                         {diffSummary.additions > 0 && (
                           <span className="text-success font-semibold">
                             +{diffSummary.additions}

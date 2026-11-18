@@ -115,10 +115,10 @@ export function RecordLookupBar({
           alignOffset={-4}
           className="w-56 max-h-56 overflow-auto text-xs p-1 shadow-lg border border-border/80 bg-popover"
         >
-          <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 mb-1 flex items-center justify-between">
+          <div className="px-2 py-1 text-3xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 mb-1 flex items-center justify-between">
             <span>Matching IDs ({matchingItems.length})</span>
             {loadingItems && (
-              <span className="animate-pulse text-[9px] lowercase font-normal">fetching...</span>
+              <span className="animate-pulse text-3xs lowercase font-normal">fetching...</span>
             )}
           </div>
           {loadingItems && matchingItems.length === 0 ? (

@@ -24,10 +24,10 @@ export function SearchResultsList({
         <div className="py-3 px-3 m-2 text-xs border border-destructive/30 bg-destructive/5 rounded-md flex items-start gap-2 text-destructive">
           <AlertCircle className="size-4 shrink-0 mt-0.5" />
           <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="font-semibold text-[11px] uppercase tracking-wide">
+            <span className="font-semibold text-2xs uppercase tracking-wide">
               Invalid Command Syntax
             </span>
-            <span className="text-muted-foreground text-[11px] leading-relaxed">{syntaxError}</span>
+            <span className="text-muted-foreground text-2xs leading-relaxed">{syntaxError}</span>
           </div>
         </div>
       ) : (
@@ -63,7 +63,7 @@ export function SearchResultsList({
               </div>
               <span className="font-medium text-xs truncate">Execute Command</span>
             </div>
-            <span className="ml-2 font-mono text-[10px] sm:text-[11px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20 truncate max-w-[55%]">
+            <span className="ml-2 font-mono text-3xs sm:text-2xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20 truncate max-w-[55%]">
               {rawCommandInput.toUpperCase()}
             </span>
           </CommandItem>

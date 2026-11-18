@@ -120,12 +120,12 @@ export function InquiryFilterBar({
         {/* 1:1 System Screen Card Container */}
         <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
           {/* Card Header: 1:1 with Model Config & Temenos Inquiry Criteria */}
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
+          <div className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Filter className="size-3 text-primary" />
               <span>Selection Criteria &bull; Search Filters</span>
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground">
+            <span className="text-3xs font-mono text-muted-foreground">
               {fields.length} Field(s)
             </span>
           </div>

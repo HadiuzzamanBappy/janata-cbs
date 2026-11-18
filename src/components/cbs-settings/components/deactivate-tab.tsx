@@ -81,7 +81,7 @@ export function DeactivateTab() {
 
         <form onSubmit={handleDeactivate} className="space-y-2.5 max-w-sm">
           <div className="space-y-1">
-            <Label className="text-[11px] font-medium text-foreground">
+            <Label className="text-2xs font-medium text-foreground">
               Deactivate Date <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -94,7 +94,7 @@ export function DeactivateTab() {
           </div>
 
           <div className="space-y-1">
-            <Label className="text-[11px] font-medium text-foreground">
+            <Label className="text-2xs font-medium text-foreground">
               Reactivation Date <span className="text-destructive">*</span>
             </Label>
             <Input

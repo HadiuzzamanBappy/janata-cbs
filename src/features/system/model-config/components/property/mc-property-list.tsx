@@ -175,7 +175,7 @@ export function McPropertyList({
                     {/* Sequence Number Badge */}
                     <span
                       className={cn(
-                        "font-mono text-[10px] px-1 py-0.5 rounded shrink-0",
+                        "font-mono text-3xs px-1 py-0.5 rounded shrink-0",
                         isSelected
                           ? "bg-primary/15 text-primary font-bold border border-primary/25"
                           : "bg-muted text-muted-foreground font-medium",
@@ -197,7 +197,7 @@ export function McPropertyList({
                         </span>
                         {prop.REQUIRED && (
                           <span
-                            className="text-destructive font-bold text-[10px] leading-none"
+                            className="text-destructive font-bold text-3xs leading-none"
                             title="Mandatory Column"
                           >
                             *
@@ -212,7 +212,7 @@ export function McPropertyList({
                     <Badge
                       variant="outline"
                       className={cn(
-                        "font-mono text-[10px] h-4.5 px-1.5 rounded uppercase tracking-wider",
+                        "font-mono text-3xs h-4.5 px-1.5 rounded uppercase tracking-wider",
                         isSelected
                           ? "border-primary/30 bg-primary/10 text-primary font-medium"
                           : "text-muted-foreground border-border/70",
@@ -265,7 +265,7 @@ export function McPropertyList({
                             const newSn = onAddSubField(prop.SN);
                             if (newSn) onSelectSN(newSn);
                           }}
-                          className="h-5 text-[10px] text-primary hover:text-primary hover:bg-primary/10 gap-1 px-1.5 w-full justify-start cursor-pointer font-medium"
+                          className="h-5 text-3xs text-primary hover:text-primary hover:bg-primary/10 gap-1 px-1.5 w-full justify-start cursor-pointer font-medium"
                         >
                           <Plus className="size-3" />
                           <span>Add Sub-Property</span>

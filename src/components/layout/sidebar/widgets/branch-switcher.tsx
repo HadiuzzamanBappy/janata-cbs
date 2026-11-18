@@ -153,7 +153,7 @@ export function BranchSwitcher({
               </div>
             ) : branchError ? (
               <div className="p-2 text-center text-xs space-y-1.5">
-                <div className="flex items-center justify-center gap-1 text-destructive font-medium text-[11px]">
+                <div className="flex items-center justify-center gap-1 text-destructive font-medium text-2xs">
                   <AlertCircle className="size-3.5 shrink-0" />
                   <span>Failed to load branches</span>
                 </div>
@@ -161,14 +161,14 @@ export function BranchSwitcher({
                   variant="outline"
                   size="xs"
                   onClick={() => loadBranches()}
-                  className="h-6 text-[11px] gap-1 w-full border-destructive/40 text-destructive hover:bg-destructive/10"
+                  className="h-6 text-2xs gap-1 w-full border-destructive/40 text-destructive hover:bg-destructive/10"
                 >
                   <RefreshCw className="size-2.5" />
                   <span>Retry</span>
                 </Button>
               </div>
             ) : filteredBranches.length === 0 ? (
-              <div className="py-2 text-center text-[11px] text-muted-foreground">
+              <div className="py-2 text-center text-2xs text-muted-foreground">
                 No branches found
               </div>
             ) : (
@@ -188,7 +188,7 @@ export function BranchSwitcher({
                     )}
                   >
                     <div className="flex items-center gap-1.5 min-w-0 truncate">
-                      <span className="font-mono text-[9px] text-muted-foreground bg-muted px-1 py-0.2 rounded-xs shrink-0">
+                      <span className="font-mono text-3xs text-muted-foreground bg-muted px-1 py-0.2 rounded-xs shrink-0">
                         {b.code}
                       </span>
                       <span className="truncate text-xs font-normal">{toTitleCase(b.name)}</span>

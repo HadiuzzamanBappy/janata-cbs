@@ -56,7 +56,7 @@ export function CheckboxWidget({
         />
         <span
           className={cn(
-            "text-[10px] font-mono px-1.5 py-0.5 rounded border font-semibold",
+            "text-3xs font-mono px-1.5 py-0.5 rounded border font-semibold",
             disabled
               ? isChecked
                 ? "bg-muted/70 text-muted-foreground border-border/80"

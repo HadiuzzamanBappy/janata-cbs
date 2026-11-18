@@ -185,7 +185,7 @@ export function TabStripItem(props: TabStripItemProps) {
           <Badge
             variant={isActive ? "default" : "secondary"}
             className={cn(
-              "h-4 min-w-4 px-1 rounded-xs text-[10px] font-mono flex items-center justify-center transition-opacity",
+              "h-4 min-w-4 px-1 rounded-xs text-3xs font-mono flex items-center justify-center transition-opacity",
               isActive
                 ? "bg-primary/15 text-primary border-transparent font-semibold"
                 : "opacity-70 border-transparent",
@@ -198,7 +198,7 @@ export function TabStripItem(props: TabStripItemProps) {
           {tab.containerConfig?.badge && (
             <span
               className={cn(
-                "inline-flex items-center px-1.5 py-0.2 text-[9px] font-mono rounded",
+                "inline-flex items-center px-1.5 py-0.2 text-3xs font-mono rounded",
                 tab.containerConfig.badgeVariant === "destructive"
                   ? "bg-destructive/10 text-destructive"
                   : tab.containerConfig.badgeVariant === "outline"

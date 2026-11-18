@@ -87,12 +87,12 @@ export function FieldPalette({
           <TabsList className="h-6.5 p-0.5 bg-muted/40 flex-1">
             <TabsTrigger
               value="variables"
-              className="h-5.5 px-2 text-[11px] gap-1 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-xs"
+              className="h-5.5 px-2 text-2xs gap-1 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-xs"
             >
               <Database className="size-3 text-primary shrink-0" />
               <span className="truncate">Variables</span>
               {resolvedProperties.length > 0 && (
-                <span className="text-[9px] font-mono opacity-70 shrink-0">
+                <span className="text-3xs font-mono opacity-70 shrink-0">
                   ({placedCount}/{resolvedProperties.length})
                 </span>
               )}
@@ -100,7 +100,7 @@ export function FieldPalette({
 
             <TabsTrigger
               value="containers"
-              className="h-5.5 px-2 text-[11px] gap-1 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-xs"
+              className="h-5.5 px-2 text-2xs gap-1 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-xs"
             >
               <Layers className="size-3 text-primary shrink-0" />
               <span className="truncate">Containers</span>
@@ -134,7 +134,7 @@ export function FieldPalette({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
-                className="h-7 pl-6.5 pr-5 text-[11px] bg-background/80 border-border/60 w-full rounded-md shadow-none"
+                className="h-7 pl-6.5 pr-5 text-2xs bg-background/80 border-border/60 w-full rounded-md shadow-none"
               />
               {searchQuery && (
                 <button
@@ -151,7 +151,7 @@ export function FieldPalette({
             <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as PaletteTypeFilter)}>
               <SelectTrigger
                 size="sm"
-                className="h-7 w-18 text-[10px] py-0 px-2 shrink-0 bg-background/80 border-border/60 font-mono shadow-none rounded-md [&_svg]:size-3"
+                className="h-7 w-18 text-3xs py-0 px-2 shrink-0 bg-background/80 border-border/60 font-mono shadow-none rounded-md [&_svg]:size-3"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -178,7 +178,7 @@ export function FieldPalette({
           {/* Variables List View */}
           <div className="flex-1 overflow-y-auto p-2">
             {loadingModel ? (
-              <div className="text-[10px] text-muted-foreground italic px-2 py-4 text-center font-mono">
+              <div className="text-3xs text-muted-foreground italic px-2 py-4 text-center font-mono">
                 Loading schema variables...
               </div>
             ) : paletteItems.length > 0 ? (
@@ -222,7 +222,7 @@ export function FieldPalette({
                 })}
               </div>
             ) : (
-              <div className="text-[10px] text-muted-foreground/60 italic px-2 py-6 text-center">
+              <div className="text-3xs text-muted-foreground/60 italic px-2 py-6 text-center">
                 {searchQuery
                   ? `No variables matching "${searchQuery}"`
                   : typeFilter === "unplaced"

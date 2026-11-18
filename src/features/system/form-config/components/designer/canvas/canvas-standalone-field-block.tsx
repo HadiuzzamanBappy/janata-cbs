@@ -13,6 +13,7 @@ import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
 import { CanvasFieldCard } from "./canvas-field-card";
+import { selectableProps } from "./selectable";
 
 export interface StandaloneFieldBlockProps {
   section: FormSection;
@@ -58,15 +59,13 @@ export function StandaloneFieldBlock(props: StandaloneFieldBlockProps) {
   const isSelected = selectedFieldId === fieldId;
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: canvas selectable standalone field
     <div
       ref={setNodeRef}
       style={style}
-      onClick={(e) => {
-        e.stopPropagation();
+      {...selectableProps(() => {
         onSelectSection(section.id);
         onSelectField(section.id, fieldId);
-      }}
+      }, isSelected)}
       className={cn(
         "relative rounded-md transition-all select-none first:mt-0 my-1 group",
         isDragging && "shadow-lg ring-2 ring-primary/40",

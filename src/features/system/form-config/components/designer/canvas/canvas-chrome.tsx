@@ -84,7 +84,7 @@ export function CanvasCompactBar(props: CanvasCompactBarProps = {}) {
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground select-none">
         <LayoutGrid className="size-3.5 text-muted-foreground/70" />
         <span className="font-semibold text-foreground text-xs">Canvas</span>
-        <span className="text-[11px] font-mono opacity-80">
+        <span className="text-2xs font-mono opacity-80">
           ({sectionsCount} {sectionsCount === 1 ? "sec" : "secs"}, {totalFieldsCount}{" "}
           {totalFieldsCount === 1 ? "field" : "fields"})
         </span>
@@ -200,7 +200,7 @@ export function BlockDragOverlay({ activeDragItem }: BlockDragOverlayProps) {
             {(activeDragItem.data as FormElement).LABEL ||
               (activeDragItem.data as FormElement).NAME}
           </span>
-          <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase ml-2 font-mono">
+          <Badge variant="outline" className="text-3xs h-3.5 px-1 uppercase ml-2 font-mono">
             {(activeDragItem.data as FormElement).TYPE}
           </Badge>
         </div>
@@ -209,7 +209,7 @@ export function BlockDragOverlay({ activeDragItem }: BlockDragOverlayProps) {
           <span className="truncate">
             {(activeDragItem.data as FormSection).title || "Container"}
           </span>
-          <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase font-mono">
+          <Badge variant="outline" className="text-3xs h-3.5 px-1 uppercase font-mono">
             {(activeDragItem.data as FormSection).containerType || "Card"}
           </Badge>
         </div>

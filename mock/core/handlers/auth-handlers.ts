@@ -1,7 +1,9 @@
 import "server-only";
 
 import { SC_BRANCH, SC_USER, type UserRecord } from "@mock/db";
+import type { ApiResponse, CbsWirePayload } from "@/lib/data-schemas";
 import type { GrpcResponse, LoginRequest } from "@/lib/infra-grpc/generated/service";
+import { errorResult, successResult } from "../response-factory";
 
 /**
  * Builds the dynamic runtime authentication response expected by auth-parser and session layer.
@@ -77,4 +79,24 @@ export async function handleLogin(
   }
 
   return authResponse;
+}
+
+/**
+ * Handles CPW (Change Password) against SC_USER: the current password must match, then the new
+ * password becomes the login secret and the first-login requirement is cleared.
+ */
+export function handleChangePassword(payload: CbsWirePayload & { userId?: string }): ApiResponse {
+  const userId = (payload.userId || "").trim().toUpperCase();
+  const user = Object.values(SC_USER).find((u) => u.userId.toUpperCase() === userId);
+  if (!user) return errorResult(401, "Unknown user for password change");
+
+  const { currPass, newPass } = (payload.data ?? {}) as { currPass?: string; newPass?: string };
+  if (!currPass || user.password !== currPass) {
+    return errorResult(422, "Current password is incorrect");
+  }
+  if (!newPass) return errorResult(400, "New password is required");
+
+  user.password = newPass;
+  user.initLogin = false;
+  return successResult(null, "Password changed successfully");
 }

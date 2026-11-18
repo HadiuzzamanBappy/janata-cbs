@@ -83,7 +83,7 @@ export function FilterItem({
       >
         <span
           className={cn(
-            "text-[10px] font-mono px-1 py-0.5 rounded shrink-0",
+            "text-3xs font-mono px-1 py-0.5 rounded shrink-0",
             isSelected
               ? "bg-primary/15 text-primary font-bold border border-primary/25"
               : "bg-muted text-muted-foreground font-medium",
@@ -106,7 +106,7 @@ export function FilterItem({
         </div>
 
         {hasError && (
-          <span className="text-destructive font-mono text-[9px] font-bold px-1 py-0.5 rounded bg-destructive/10 shrink-0">
+          <span className="text-destructive font-mono text-3xs font-bold px-1 py-0.5 rounded bg-destructive/10 shrink-0">
             {errorCount ? `${errorCount} ERR` : "ERR"}
           </span>
         )}
@@ -114,7 +114,7 @@ export function FilterItem({
         <Badge
           variant="outline"
           className={cn(
-            "text-[9px] font-mono px-1 py-0 h-4 shrink-0 uppercase",
+            "text-3xs font-mono px-1 py-0 h-4 shrink-0 uppercase",
             isSelected
               ? "border-primary/30 bg-primary/10 text-primary font-medium"
               : "border-border/60 text-muted-foreground",

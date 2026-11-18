@@ -79,10 +79,7 @@ export function NodeInspector({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <Badge
-            variant="outline"
-            className="text-[10px] font-mono h-4.5 px-1.5 shrink-0 uppercase"
-          >
+          <Badge variant="outline" className="text-3xs font-mono h-4.5 px-1.5 shrink-0 uppercase">
             {selectedNode.menuType || (isFolder ? "FOLDER" : "ITEM")}
           </Badge>
           <button

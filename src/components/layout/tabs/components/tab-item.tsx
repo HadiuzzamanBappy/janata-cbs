@@ -126,7 +126,7 @@ export function TabItem({
             <Badge
               variant={isActive ? "default" : "secondary"}
               className={cn(
-                "h-4 min-w-4 px-1 rounded-xs text-[10px] font-mono flex items-center justify-center transition-opacity",
+                "h-4 min-w-4 px-1 rounded-xs text-3xs font-mono flex items-center justify-center transition-opacity",
                 isActive
                   ? "bg-primary/15 text-primary border-transparent font-semibold"
                   : "opacity-70 border-transparent",

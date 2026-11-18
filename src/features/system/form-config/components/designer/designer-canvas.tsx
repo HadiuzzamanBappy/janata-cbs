@@ -228,7 +228,7 @@ export function DesignerCanvas(props: DesignerCanvasProps = {}) {
               <PanelLeft className="size-3.5" />
               <span>Palette</span>
             </Button>
-            <span className="text-[11px] font-mono text-muted-foreground">Empty Canvas</span>
+            <span className="text-2xs font-mono text-muted-foreground">Empty Canvas</span>
           </div>
         )}
         <EmptyCanvasSplash

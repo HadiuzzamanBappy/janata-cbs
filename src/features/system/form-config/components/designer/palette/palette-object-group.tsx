@@ -62,7 +62,7 @@ export function PaletteObjectGroup({
   return (
     <div
       className={cn(
-        "rounded border text-[11px] transition-all bg-card/60 shadow-2xs overflow-hidden",
+        "rounded border text-2xs transition-all bg-card/60 shadow-2xs overflow-hidden",
         isSelected
           ? "border-primary bg-primary/10 ring-1 ring-primary/40 font-semibold shadow-2xs"
           : isParentPlaced
@@ -71,8 +71,8 @@ export function PaletteObjectGroup({
       )}
     >
       {/* Object Group Header */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: draggable palette drag source */}
-      <div
+      <section
+        aria-label={`Drag ${parent.NAME} onto the canvas`}
         draggable={!disabled && !isParentPlaced}
         onDragStart={handleDragObjectField}
         className={cn(
@@ -97,12 +97,12 @@ export function PaletteObjectGroup({
 
           <Boxes className="size-3 text-primary shrink-0" />
 
-          <span className="text-[10px] text-muted-foreground shrink-0">#{parent.SN}</span>
+          <span className="text-3xs text-muted-foreground shrink-0">#{parent.SN}</span>
 
           <button
             type="button"
             onClick={() => onHighlightField?.(parent.NAME)}
-            className="font-medium text-foreground truncate cursor-pointer hover:underline text-left text-[11px]"
+            className="font-medium text-foreground truncate cursor-pointer hover:underline text-left text-2xs"
             title={`${parent.NAME} (${parent.STRUCTURE === "M" ? "Multi" : "Single"} Object)`}
           >
             {parent.NAME}
@@ -112,7 +112,7 @@ export function PaletteObjectGroup({
         <div className="flex items-center gap-1 shrink-0">
           <Badge
             variant="outline"
-            className="text-[9px] h-3.5 px-1 font-mono uppercase border-primary/40 text-primary bg-primary/10"
+            className="text-3xs h-3.5 px-1 font-mono uppercase border-primary/40 text-primary bg-primary/10"
           >
             {parent.STRUCTURE === "M" ? "M-Obj" : "S-Obj"}
           </Badge>
@@ -134,7 +134,7 @@ export function PaletteObjectGroup({
             <Pin className="size-3 text-primary fill-current rotate-45 shrink-0" />
           )}
         </div>
-      </div>
+      </section>
 
       {/* Sub-fields preview if expanded */}
       {!isCollapsed && childProperties.length > 0 && (
@@ -143,10 +143,10 @@ export function PaletteObjectGroup({
             return (
               <div
                 key={child.SN}
-                className="flex items-center justify-between text-[10px] px-1 py-0.5 rounded text-muted-foreground"
+                className="flex items-center justify-between text-3xs px-1 py-0.5 rounded text-muted-foreground"
               >
                 <span className="truncate">{formatNameToLabel(child.NAME)}</span>
-                <span className="font-mono text-[9px] opacity-70">{child.TYPE}</span>
+                <span className="font-mono text-3xs opacity-70">{child.TYPE}</span>
               </div>
             );
           })}

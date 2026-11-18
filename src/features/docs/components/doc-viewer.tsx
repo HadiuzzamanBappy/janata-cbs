@@ -68,7 +68,7 @@ export function DocViewer({ portal, slug }: DocViewerProps) {
               if (isInline) {
                 return (
                   <code
-                    className="bg-muted px-1 py-0.5 rounded-xs text-[11px] font-mono text-primary font-medium border border-border/60"
+                    className="bg-muted px-1 py-0.5 rounded-xs text-2xs font-mono text-primary font-medium border border-border/60"
                     {...props}
                   >
                     {children}

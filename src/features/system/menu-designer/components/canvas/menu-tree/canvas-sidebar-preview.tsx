@@ -10,9 +10,9 @@ export interface CanvasSidebarPreviewProps {
 export function CanvasSidebarPreview({ treeNodes }: CanvasSidebarPreviewProps) {
   return (
     <div className="max-w-md mx-auto py-2">
-      <div className="p-2 mb-2 rounded bg-muted/20 border border-border/50 text-[11px] text-muted-foreground flex items-center justify-between">
+      <div className="p-2 mb-2 rounded bg-muted/20 border border-border/50 text-2xs text-muted-foreground flex items-center justify-between">
         <span>Workbench Sidebar Layout Preview</span>
-        <span className="font-mono text-[10px] text-primary">Live Readout</span>
+        <span className="font-mono text-3xs text-primary">Live Readout</span>
       </div>
       <div className="rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-xs">
         <CbsMenuTree

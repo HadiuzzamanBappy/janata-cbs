@@ -25,10 +25,10 @@ export function InquiryPagination({
 
   return (
     <div
-      className={`flex items-center justify-between px-2 py-0.5 h-6.5 bg-card/60 border border-border/80 rounded text-[11px] select-none shadow-2xs ${className}`}
+      className={`flex items-center justify-between px-2 py-0.5 h-6.5 bg-card/60 border border-border/80 rounded text-2xs select-none shadow-2xs ${className}`}
     >
       {/* Total Counter */}
-      <div className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
+      <div className="flex items-center gap-1 font-mono text-3xs text-muted-foreground">
         <span>Showing</span>
         <span className="font-semibold text-foreground">
           {startItem}-{endItem}
@@ -41,7 +41,7 @@ export function InquiryPagination({
       {/* Navigation Controls */}
       <div className="flex items-center gap-1.5">
         {/* Fixed Rows Per Page (configured by Inquiry, non-editable) */}
-        <div className="flex items-center gap-1 font-mono text-[10px] text-muted-foreground border-r border-border/50 pr-1.5">
+        <div className="flex items-center gap-1 font-mono text-3xs text-muted-foreground border-r border-border/50 pr-1.5">
           <span>Rows:</span>
           <span className="font-semibold text-foreground">{pageSize}</span>
         </div>
@@ -69,7 +69,7 @@ export function InquiryPagination({
             <ChevronLeft className="size-2.5" />
           </Button>
 
-          <span className="text-[10px] font-mono px-1 text-muted-foreground">
+          <span className="text-3xs font-mono px-1 text-muted-foreground">
             {currentPage} / {totalPages}
           </span>
 

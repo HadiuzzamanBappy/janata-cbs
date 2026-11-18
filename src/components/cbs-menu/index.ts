@@ -10,5 +10,4 @@ export { useCbsMenu } from "./hooks/use-cbs-menu";
 export {
   hasActiveChild,
   isCommandMatch,
-  mapMenuItemToTreeNode,
 } from "./utils";

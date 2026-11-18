@@ -79,7 +79,7 @@ export function ColumnItem({
       >
         <span
           className={cn(
-            "text-[10px] font-mono px-1 py-0.5 rounded shrink-0",
+            "text-3xs font-mono px-1 py-0.5 rounded shrink-0",
             isSelected
               ? "bg-primary/15 text-primary font-bold border border-primary/25"
               : "bg-muted text-muted-foreground font-medium",
@@ -94,14 +94,14 @@ export function ColumnItem({
 
         <div className="flex items-center gap-1 shrink-0">
           {hasError && (
-            <span className="text-destructive font-mono text-[9px] font-bold px-1 py-0.5 rounded bg-destructive/10 shrink-0">
+            <span className="text-destructive font-mono text-3xs font-bold px-1 py-0.5 rounded bg-destructive/10 shrink-0">
               {errorCount ? `${errorCount} ERR` : "ERR"}
             </span>
           )}
           <Badge
             variant="outline"
             className={cn(
-              "text-[9px] font-mono px-1 py-0 h-4 uppercase",
+              "text-3xs font-mono px-1 py-0 h-4 uppercase",
               isSelected
                 ? "border-primary/30 bg-primary/10 text-primary font-medium"
                 : "border-border/60 text-muted-foreground",
@@ -109,7 +109,7 @@ export function ColumnItem({
           >
             {col.fieldType || "DC"}
           </Badge>
-          <span className="text-[9px] font-mono text-muted-foreground/60">
+          <span className="text-3xs font-mono text-muted-foreground/60">
             {lenPart || "20"}:{alignPart || "L"}
           </span>
         </div>

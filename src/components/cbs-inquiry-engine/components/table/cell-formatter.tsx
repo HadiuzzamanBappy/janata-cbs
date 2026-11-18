@@ -50,7 +50,7 @@ export function CellFormatter({
   routine,
 }: CellFormatterProps) {
   if (value === undefined || value === null || value === "") {
-    return <span className="text-muted-foreground/30 font-mono text-[10px]">-</span>;
+    return <span className="text-muted-foreground/30 font-mono text-3xs">-</span>;
   }
 
   const rawStr = String(value);
@@ -60,9 +60,9 @@ export function CellFormatter({
     case "currency": {
       const numVal =
         typeof value === "number" ? value : Number.parseFloat(strVal.replace(/[^0-9.-]+/g, ""));
-      if (Number.isNaN(numVal)) return <span className="font-mono text-[11px]">{strVal}</span>;
+      if (Number.isNaN(numVal)) return <span className="font-mono text-2xs">{strVal}</span>;
       return (
-        <span className="font-mono text-[11px] font-medium tabular-nums">
+        <span className="font-mono text-2xs font-medium tabular-nums">
           {formatCurrency(numVal, { currency: currencyCode || "BDT" })}
         </span>
       );
@@ -70,9 +70,9 @@ export function CellFormatter({
 
     case "number": {
       const numVal = typeof value === "number" ? value : Number.parseFloat(strVal);
-      if (Number.isNaN(numVal)) return <span className="font-mono text-[11px]">{strVal}</span>;
+      if (Number.isNaN(numVal)) return <span className="font-mono text-2xs">{strVal}</span>;
       return (
-        <span className="font-mono text-[11px] tabular-nums">
+        <span className="font-mono text-2xs tabular-nums">
           {numVal.toLocaleString(undefined, { maximumFractionDigits: 4 })}
         </span>
       );
@@ -80,20 +80,18 @@ export function CellFormatter({
 
     case "date": {
       if (/^\d{8}$/.test(strVal)) {
-        return (
-          <span className="font-mono text-[11px] tabular-nums">{formatValueDate(strVal)}</span>
-        );
+        return <span className="font-mono text-2xs tabular-nums">{formatValueDate(strVal)}</span>;
       }
       if (/^\d{4}-\d{2}-\d{2}$/.test(strVal)) {
         const [y, m, d] = strVal.split("-");
         const formatted = formatValueDate(`${y}${m}${d}`);
-        return <span className="font-mono text-[11px] tabular-nums">{formatted || strVal}</span>;
+        return <span className="font-mono text-2xs tabular-nums">{formatted || strVal}</span>;
       }
       const formatted = formatDateTime(strVal);
-      return <span className="font-mono text-[11px] tabular-nums">{formatted || strVal}</span>;
+      return <span className="font-mono text-2xs tabular-nums">{formatted || strVal}</span>;
     }
 
     default:
-      return <span className={isMono ? "font-mono text-[11px]" : "text-[11px]"}>{strVal}</span>;
+      return <span className={isMono ? "font-mono text-2xs" : "text-2xs"}>{strVal}</span>;
   }
 }

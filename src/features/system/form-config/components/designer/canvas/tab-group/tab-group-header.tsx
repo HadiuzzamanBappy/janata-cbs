@@ -126,13 +126,13 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
           </button>
         )}
 
-        <div className="flex items-center gap-1 shrink-0 mr-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        <div className="flex items-center gap-1 shrink-0 mr-1 text-3xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
           <Layers className="size-3 text-info" />
           <span>Tab Group</span>
         </div>
 
         {isHoveringHeader && (
-          <span className="text-[10px] font-semibold text-info bg-info/15 border border-info/50 rounded-full px-2 py-0.5 shrink-0 select-none mb-1.5">
+          <span className="text-3xs font-semibold text-info bg-info/15 border border-info/50 rounded-full px-2 py-0.5 shrink-0 select-none mb-1.5">
             + New tab here
           </span>
         )}

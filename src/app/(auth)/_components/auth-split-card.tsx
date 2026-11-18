@@ -43,7 +43,7 @@ export function AuthSplitCard({ currentDate, children }: AuthSplitCardProps) {
               <span className="font-bold text-base tracking-tight text-primary-foreground leading-none">
                 Janata Bank PLc.
               </span>
-              <span className="text-[11px] text-primary-foreground/80 font-mono mt-1">
+              <span className="text-2xs text-primary-foreground/80 font-mono mt-1">
                 Your committed partner in progress
               </span>
             </div>
@@ -59,7 +59,7 @@ export function AuthSplitCard({ currentDate, children }: AuthSplitCardProps) {
             {/* Voucher Date Badge */}
             <div className="pt-2">
               <div className="inline-flex flex-col rounded-md bg-primary-foreground/10 border border-primary-foreground/20 px-3.5 py-2.5 font-mono">
-                <span className="text-[10px] text-primary-foreground/70 uppercase tracking-wider">
+                <span className="text-3xs text-primary-foreground/70 uppercase tracking-wider">
                   Active Business Date
                 </span>
                 <span className="text-lg font-bold text-primary-foreground mt-0.5">
@@ -70,7 +70,7 @@ export function AuthSplitCard({ currentDate, children }: AuthSplitCardProps) {
           </div>
 
           {/* Bottom Footer */}
-          <p className="relative z-10 font-mono text-[11px] uppercase tracking-[0.18em] text-primary-foreground/70">
+          <p className="relative z-10 font-mono text-2xs uppercase tracking-[0.18em] text-primary-foreground/70">
             Core banking · Motijheel, Dhaka
           </p>
         </div>

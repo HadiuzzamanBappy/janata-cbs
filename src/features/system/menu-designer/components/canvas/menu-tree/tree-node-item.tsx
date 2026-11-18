@@ -261,7 +261,7 @@ export function TreeNodeItem({
         )}
 
         {isFolder && (
-          <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+          <span className="text-3xs font-mono text-muted-foreground shrink-0">
             ({node.children.length})
           </span>
         )}
@@ -269,7 +269,7 @@ export function TreeNodeItem({
         {node.command && (
           <Badge
             variant="outline"
-            className="h-4 px-1 text-[9px] font-mono uppercase bg-muted/40 text-muted-foreground border-border/60 shrink-0 max-w-44 truncate leading-none"
+            className="h-4 px-1 text-3xs font-mono uppercase bg-muted/40 text-muted-foreground border-border/60 shrink-0 max-w-44 truncate leading-none"
           >
             {node.command}
           </Badge>

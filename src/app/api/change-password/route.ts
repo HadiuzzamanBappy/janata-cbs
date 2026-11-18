@@ -1,8 +1,11 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { logger } from "@/lib/core-logger";
-import type { ApiResponse } from "@/lib/data-schemas";
-import { changePasswordSchema } from "@/lib/data-schemas";
+import { generateIdempotencyKey } from "@/lib/core-utils";
+import { type ApiResponse, changePasswordSchema, isApiSuccess } from "@/lib/data-schemas";
+import { dispatch } from "@/lib/infra-grpc";
 import { clearInitialLoginRequirement, getSession } from "@/lib/infra-redis";
+import { CbsRequestType } from "@/types";
+import { buildGrpcEnvelope } from "../_lib/envelope";
 import { apiError, apiFail, apiSuccess } from "../_lib/response";
 
 export const runtime = "nodejs";
@@ -10,6 +13,10 @@ export const dynamic = "force-dynamic";
 
 const pwdLogger = logger.withContext("AUTH_CHANGE_PASSWORD");
 
+/**
+ * Changes the signed-in user's password in the CBS core (CPW). Serves both the forced first-login
+ * change (the proxy is locked until it succeeds) and the voluntary change in Settings.
+ */
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const session = await getSession();
@@ -28,7 +35,20 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
     }
 
-    // Clear initial login requirement in active Redis session and delete restriction cookie
+    const envelope = buildGrpcEnvelope(session, {
+      requestType: CbsRequestType.CPW,
+      idempotencyKey: generateIdempotencyKey(),
+      data: { currPass: parsed.data.oldPassword, newPass: parsed.data.newPassword },
+    });
+    const res = await dispatch(envelope, session.token);
+
+    if (!isApiSuccess(res)) {
+      const message = res.message || "The core rejected the password change.";
+      pwdLogger.warn(`Password change rejected for user ${session.userId}: ${message}`);
+      return apiFail(message, Math.max(res.statusCode, 400), res.errors);
+    }
+
+    // Only after the core accepted the new password: lift the first-login lock
     await clearInitialLoginRequirement();
 
     pwdLogger.info(`Password successfully changed for user ${session.userId}`);

@@ -29,7 +29,7 @@ export function AmountWidget({
   return (
     <div className={cn("relative flex items-center min-w-0 w-full", className)}>
       {currencyPrefix && (
-        <span className="absolute left-2 text-[10px] font-mono text-muted-foreground select-none">
+        <span className="absolute left-2 text-3xs font-mono text-muted-foreground select-none">
           {currencyPrefix}
         </span>
       )}

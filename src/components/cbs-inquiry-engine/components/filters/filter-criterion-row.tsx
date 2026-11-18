@@ -59,7 +59,7 @@ export function FilterCriterionRow({
             </span>
           )}
         </span>
-        <span className="text-[9px] font-mono text-muted-foreground/60 hidden sm:inline">
+        <span className="text-3xs font-mono text-muted-foreground/60 hidden sm:inline">
           {field.selectFieldName}
         </span>
       </label>

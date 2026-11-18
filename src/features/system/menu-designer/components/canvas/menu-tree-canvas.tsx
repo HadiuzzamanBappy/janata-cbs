@@ -193,7 +193,7 @@ export function MenuTreeCanvas({
           <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-border/60 rounded-lg p-6 text-center text-muted-foreground">
             <Network className="size-8 mb-2 opacity-50" />
             <p className="text-xs font-medium text-foreground">Tree is currently empty</p>
-            <p className="text-[11px] max-w-xs mt-1">
+            <p className="text-2xs max-w-xs mt-1">
               Drag menu items or groups from the left catalog palette to organize your navigation
               hierarchy.
             </p>

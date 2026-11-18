@@ -55,10 +55,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
           <div className="flex items-center gap-1.5">
             <AlertTriangle className="size-3.5 text-destructive" />
             <span>Validation Checklist</span>
-            <Badge
-              variant="destructive"
-              className="text-[10px] h-4 px-1 rounded-xs font-mono ml-0.5"
-            >
+            <Badge variant="destructive" className="text-3xs h-4 px-1 rounded-xs font-mono ml-0.5">
               {errors.length}
             </Badge>
           </div>
@@ -70,7 +67,7 @@ export function CbsValidationChecklist<TTab extends string = string>({
               e.stopPropagation();
               jumpToError(errors[0]);
             }}
-            className="h-5 px-1.5 text-[10px] font-semibold shadow-none cursor-pointer"
+            className="h-5 px-1.5 text-3xs font-semibold shadow-none cursor-pointer"
           >
             Fix First →
           </Button>
@@ -86,15 +83,15 @@ export function CbsValidationChecklist<TTab extends string = string>({
               <div className="flex items-center gap-1.5 w-full">
                 <Badge
                   variant="outline"
-                  className="text-[9px] font-mono h-4 px-1 rounded-xs uppercase tracking-wider text-muted-foreground border-border/80"
+                  className="text-3xs font-mono h-4 px-1 rounded-xs uppercase tracking-wider text-muted-foreground border-border/80"
                 >
                   {err.tab}
                 </Badge>
-                <span className="font-semibold text-foreground text-[11px] truncate flex-1">
+                <span className="font-semibold text-foreground text-2xs truncate flex-1">
                   {err.fieldKey}
                 </span>
               </div>
-              <span className="text-[11px] text-destructive leading-tight">{err.message}</span>
+              <span className="text-2xs text-destructive leading-tight">{err.message}</span>
             </DropdownMenuItem>
           ))}
         </div>

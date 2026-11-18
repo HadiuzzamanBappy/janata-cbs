@@ -14,7 +14,7 @@ export function AppearanceTab() {
       <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border/50 shadow-xs">
         <div>
           <h4 className="font-medium text-xs text-foreground">Theme Mode</h4>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             Switch between light, dark, or system preference
           </p>
         </div>
@@ -25,7 +25,7 @@ export function AppearanceTab() {
       <div className="p-3 bg-background rounded-lg border border-border/50 shadow-xs space-y-2.5">
         <div>
           <h4 className="font-medium text-xs text-foreground">Brand Accent Color</h4>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             Select a primary color theme for buttons, active tabs, and focus indicators
           </p>
         </div>
@@ -49,7 +49,7 @@ export function AppearanceTab() {
               >
                 {accent === preset.id && <Check className="size-3 text-white" />}
               </div>
-              <span className="text-[11px] truncate text-left">{preset.name}</span>
+              <span className="text-2xs truncate text-left">{preset.name}</span>
             </button>
           ))}
         </div>

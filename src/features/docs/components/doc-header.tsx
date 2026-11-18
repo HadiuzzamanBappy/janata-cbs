@@ -50,7 +50,7 @@ export function DocHeader({
         {/* Left: Dynamic Breadcrumbs (Toggle & Search live cleanly on the Sidebar) */}
         <div className="flex items-center gap-1.5 min-w-0">
           <Breadcrumb>
-            <BreadcrumbList className="text-[11px]">
+            <BreadcrumbList className="text-2xs">
               <BreadcrumbItem>
                 <BreadcrumbLink
                   href={`/${portalSubFolder}`}

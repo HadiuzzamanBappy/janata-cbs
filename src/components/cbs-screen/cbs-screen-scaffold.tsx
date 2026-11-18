@@ -215,7 +215,7 @@ export function CbsScreenScaffold<TTab extends string = string>({
                           {errorCount > 0 && (
                             <Badge
                               variant="destructive"
-                              className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-xs shrink-0"
+                              className="ml-1 h-3.5 min-w-3.5 px-1 text-3xs rounded-xs shrink-0"
                             >
                               {errorCount}
                             </Badge>

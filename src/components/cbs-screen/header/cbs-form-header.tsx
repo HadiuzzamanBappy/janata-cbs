@@ -281,7 +281,7 @@ export function CbsFormHeader({
             />
           ) : (
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
+              <span className="font-mono text-2xs font-bold px-2 py-0.5 rounded-xs border border-border bg-background text-foreground shrink-0 shadow-2xs flex items-center gap-1.5">
                 <Lock className="size-3 text-muted-foreground" />
                 {inputVal.trim() ||
                   (mode === CbsRecordFunction.INPUT && !inputVal.trim()
@@ -290,14 +290,14 @@ export function CbsFormHeader({
                       ? `[${commandCode}]`
                       : "---")}
               </span>
-              <span className="text-[9px] font-mono px-1 py-0 rounded-xs bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
+              <span className="text-3xs font-mono px-1 py-0 rounded-xs bg-primary/10 text-primary border border-primary/20 shrink-0 font-medium">
                 {mode}
               </span>
             </div>
           )}
 
           {commandCode && (
-            <span className="text-[10px] font-mono text-muted-foreground uppercase ml-auto hidden sm:inline-block">
+            <span className="text-3xs font-mono text-muted-foreground uppercase ml-auto hidden sm:inline-block">
               {commandCode}
             </span>
           )}

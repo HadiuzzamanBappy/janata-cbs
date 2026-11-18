@@ -53,7 +53,7 @@ export function CanvasToolbar({
         >
           <span className="text-xs font-semibold text-foreground truncate">Hierarchy Canvas</span>
         </button>
-        <span className="text-[11px] text-muted-foreground font-mono shrink-0">({nodesCount})</span>
+        <span className="text-2xs text-muted-foreground font-mono shrink-0">({nodesCount})</span>
       </div>
 
       <div className="flex items-center gap-1.5 shrink-0">

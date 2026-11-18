@@ -143,8 +143,8 @@ export function FieldInspector({
       {/* 1. Widget Presentation Selector (Always Visible at Top of Inspector) */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] font-medium text-foreground">Widget Presentation</Label>
-          <span className="text-[10px] font-mono font-bold text-primary uppercase">
+          <Label className="text-2xs font-medium text-foreground">Widget Presentation</Label>
+          <span className="text-3xs font-mono font-bold text-primary uppercase">
             {currentWidget}
           </span>
         </div>
@@ -166,7 +166,7 @@ export function FieldInspector({
                     : WIDGET_DISPLAY_LABELS[w] || w
                 }
                 className={cn(
-                  "h-6 px-2 text-[10px] rounded transition-all duration-150 capitalize",
+                  "h-6 px-2 text-3xs rounded transition-all duration-150 capitalize",
                   isSelected &&
                     "bg-primary text-primary-foreground font-semibold shadow-2xs cursor-pointer",
                   isEligible &&
@@ -189,7 +189,7 @@ export function FieldInspector({
           type="button"
           onClick={() => setActiveTab("basics")}
           className={cn(
-            "flex-1 h-6 text-[11px] font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1",
+            "flex-1 h-6 text-2xs font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1",
             activeTab === "basics"
               ? "bg-background text-foreground shadow-2xs font-semibold"
               : "text-muted-foreground hover:text-foreground hover:bg-background/40",
@@ -202,7 +202,7 @@ export function FieldInspector({
           type="button"
           onClick={() => setActiveTab("widget")}
           className={cn(
-            "flex-1 h-6 text-[11px] font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1",
+            "flex-1 h-6 text-2xs font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1",
             activeTab === "widget"
               ? "bg-background text-foreground shadow-2xs font-semibold"
               : "text-muted-foreground hover:text-foreground hover:bg-background/40",
@@ -215,7 +215,7 @@ export function FieldInspector({
           type="button"
           onClick={() => setActiveTab("rules")}
           className={cn(
-            "flex-1 h-6 text-[11px] font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1",
+            "flex-1 h-6 text-2xs font-medium rounded-md transition-all cursor-pointer flex items-center justify-center gap-1",
             activeTab === "rules"
               ? "bg-background text-foreground shadow-2xs font-semibold"
               : "text-muted-foreground hover:text-foreground hover:bg-background/40",
@@ -264,7 +264,7 @@ export function FieldInspector({
               className="overflow-visible"
             />
           ) : (
-            <div className="text-[11px] text-muted-foreground/60 italic py-2">
+            <div className="text-2xs text-muted-foreground/60 italic py-2">
               Standard presentation with no additional configuration required.
             </div>
           )}

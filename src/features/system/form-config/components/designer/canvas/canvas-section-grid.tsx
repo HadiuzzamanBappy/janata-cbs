@@ -180,7 +180,7 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
                 {showHover ? "Release to drop field here" : emptyLabel || defaultEmptyText}
               </span>
             </div>
-            <p className="text-[11px] text-muted-foreground/80 mt-1">
+            <p className="text-2xs text-muted-foreground/80 mt-1">
               Drag variables from the left palette to place them inside
             </p>
           </button>
@@ -197,7 +197,7 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
               return (
                 <React.Fragment key={fieldId}>
                   {isDropTargetHere && (
-                    <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-[11px] font-medium animate-pulse shadow-xs">
+                    <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-2xs font-medium animate-pulse shadow-xs">
                       <Plus className="size-3.5" />
                       <span>Drop field here</span>
                     </div>
@@ -221,7 +221,7 @@ export function CanvasSectionGrid(props: CanvasSectionGridProps) {
             {/* Active Drop Placeholder Slot at End of Grid */}
             {showHover &&
               (dropInsertIndex === null || dropInsertIndex >= section.fields.length) && (
-                <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-[11px] font-medium animate-pulse shadow-xs">
+                <div className="border-2 border-dashed border-primary bg-primary/10 text-primary rounded-md h-9 flex items-center justify-center gap-1.5 text-2xs font-medium animate-pulse shadow-xs">
                   <Plus className="size-3.5" />
                   <span>Drop field here</span>
                 </div>

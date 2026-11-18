@@ -154,7 +154,7 @@ export function FieldRow({
           )}
 
           {indexSuffix !== undefined && (
-            <span className="shrink-0 font-mono text-[11px] text-muted-foreground/75 font-semibold">
+            <span className="shrink-0 font-mono text-2xs text-muted-foreground/75 font-semibold">
               .{indexSuffix}
             </span>
           )}

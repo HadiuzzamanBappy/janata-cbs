@@ -60,7 +60,7 @@ export function PaletteVariableItem({
       onDragStart={handleDragStart}
       onClick={handleClick}
       className={cn(
-        "w-full h-7 flex items-center justify-between px-2 rounded border text-[11px] transition-all text-left",
+        "w-full h-7 flex items-center justify-between px-2 rounded border text-2xs transition-all text-left",
         isSelected
           ? "border-primary bg-primary/10 ring-1 ring-primary/40 font-semibold shadow-2xs cursor-pointer"
           : isPlaced
@@ -81,8 +81,8 @@ export function PaletteVariableItem({
         ) : (
           <Plus className="size-3 text-muted-foreground shrink-0" />
         )}
-        <span className="text-[10px] text-muted-foreground shrink-0">#{property.SN}</span>
-        <span className="truncate text-[11px] font-medium text-foreground">{property.NAME}</span>
+        <span className="text-3xs text-muted-foreground shrink-0">#{property.SN}</span>
+        <span className="truncate text-2xs font-medium text-foreground">{property.NAME}</span>
         {isRequired && <span className="text-destructive font-bold text-xs shrink-0">*</span>}
       </div>
 
@@ -90,7 +90,7 @@ export function PaletteVariableItem({
         {isMulti && (
           <Badge
             variant="outline"
-            className="text-[8px] h-3.5 px-0.5 font-mono text-primary border-primary/40 bg-primary/5"
+            className="text-3xs h-3.5 px-0.5 font-mono text-primary border-primary/40 bg-primary/5"
             title="Multi-value property"
           >
             M
@@ -99,7 +99,7 @@ export function PaletteVariableItem({
         <Badge
           variant="outline"
           className={cn(
-            "text-[8px] h-3.5 px-1 font-mono uppercase",
+            "text-3xs h-3.5 px-1 font-mono uppercase",
             isSelected
               ? "text-primary border-primary/50 bg-primary/10 font-bold"
               : isPlaced

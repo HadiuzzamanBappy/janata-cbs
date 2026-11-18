@@ -11,11 +11,11 @@ export interface JsonDiffViewProps {
 export function JsonDiffView({ diffSummary, hasDiff }: JsonDiffViewProps) {
   if (!hasDiff) {
     return (
-      <div className="flex-1 overflow-auto min-h-0 bg-muted/10 font-mono text-[11.5px] select-text">
+      <div className="flex-1 overflow-auto min-h-0 bg-muted/10 font-mono text-xs select-text">
         <div className="h-full flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
           <GitCompare className="size-8 opacity-30 mb-2" />
           <div className="text-xs font-medium">No Changes Detected</div>
-          <div className="text-[11px] text-muted-foreground/75 mt-0.5">
+          <div className="text-2xs text-muted-foreground/75 mt-0.5">
             The working draft is identical to the baseline database record.
           </div>
         </div>
@@ -24,7 +24,7 @@ export function JsonDiffView({ diffSummary, hasDiff }: JsonDiffViewProps) {
   }
 
   return (
-    <div className="flex-1 overflow-auto min-h-0 bg-muted/10 font-mono text-[11.5px] select-text">
+    <div className="flex-1 overflow-auto min-h-0 bg-muted/10 font-mono text-xs select-text">
       <div className="min-w-full divide-y divide-border/20">
         {diffSummary.items.map((item) => {
           const isAdd = item.type === "insert";
@@ -44,12 +44,12 @@ export function JsonDiffView({ diffSummary, hasDiff }: JsonDiffViewProps) {
               )}
             >
               {/* Old Line Number Gutter */}
-              <div className="w-11 select-none text-right pr-2 text-[10.5px] font-mono text-muted-foreground/40 border-r border-border/40 shrink-0">
+              <div className="w-11 select-none text-right pr-2 text-3xs font-mono text-muted-foreground/40 border-r border-border/40 shrink-0">
                 {item.oldLineNumber ?? ""}
               </div>
 
               {/* New Line Number Gutter */}
-              <div className="w-11 select-none text-right pr-2 text-[10.5px] font-mono text-muted-foreground/40 border-r border-border/40 shrink-0">
+              <div className="w-11 select-none text-right pr-2 text-3xs font-mono text-muted-foreground/40 border-r border-border/40 shrink-0">
                 {item.newLineNumber ?? ""}
               </div>
 

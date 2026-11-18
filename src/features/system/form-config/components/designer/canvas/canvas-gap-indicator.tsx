@@ -97,7 +97,7 @@ export function CanvasGapIndicator({
         )}
       >
         {isHighlighted && (
-          <span className="absolute bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-full shadow-xs tracking-tight pointer-events-none">
+          <span className="absolute bg-primary text-primary-foreground text-3xs font-semibold px-2 py-0.5 rounded-full shadow-xs tracking-tight pointer-events-none">
             + Insert here
           </span>
         )}

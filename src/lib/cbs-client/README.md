@@ -24,7 +24,6 @@ It acts as the single boundary between the React presentation layer and the serv
    - **`cbs.formConfig`**: Dedicated form layout presentation builder (`GFC`, `SFC`) via `CONFIG.FORM`.
    - **`cbs.inquiryConfig`**: Dedicated inquiry table schema builder (`INQUIRY`).
    - **`cbs.inquiry`**: Dynamic tabular inquiry runtime query execution (`INQ`).
-   - **`cbs.userSecurity`**: Password change (`CPW`).
 
 ---
 

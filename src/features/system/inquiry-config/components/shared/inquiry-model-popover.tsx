@@ -81,10 +81,10 @@ export function InquiryModelPopover({
       <PopoverContent className="w-72 p-0 gap-0 overflow-hidden shadow-md" align="start">
         <div className="p-2 space-y-1.5 border-b border-border/60 bg-muted/10">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground font-mono">
+            <span className="text-3xs font-semibold uppercase tracking-wider text-muted-foreground font-mono">
               Model: {targetModel}
             </span>
-            <span className="text-[10px] font-mono text-muted-foreground">
+            <span className="text-3xs font-mono text-muted-foreground">
               {availableProps.length} fields
             </span>
           </div>
@@ -131,7 +131,7 @@ export function InquiryModelPopover({
                     <span className="font-mono text-xs font-medium block truncate group-hover:text-primary">
                       {prop.NAME}
                     </span>
-                    <span className="text-[10px] text-muted-foreground truncate block">
+                    <span className="text-3xs text-muted-foreground truncate block">
                       {formatNameToLabel(prop.NAME)}
                     </span>
                   </div>

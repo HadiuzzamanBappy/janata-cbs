@@ -118,7 +118,7 @@ export function TabGroupContainer({
               {tabErrorCount > 0 && (
                 <Badge
                   variant="destructive"
-                  className="ml-1 h-3.5 min-w-3.5 px-1 text-[9px] rounded-xs shrink-0"
+                  className="ml-1 h-3.5 min-w-3.5 px-1 text-3xs rounded-xs shrink-0"
                 >
                   {tabErrorCount}
                 </Badge>
@@ -126,7 +126,7 @@ export function TabGroupContainer({
               {config.badge && (
                 <span
                   className={cn(
-                    "inline-flex items-center px-1.5 py-0.2 text-[9px] font-mono rounded",
+                    "inline-flex items-center px-1.5 py-0.2 text-3xs font-mono rounded",
                     isPills && isActive
                       ? "bg-primary-foreground/20 text-primary-foreground"
                       : "bg-muted text-muted-foreground",

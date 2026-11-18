@@ -76,10 +76,10 @@ export function PaletteContainersList({ disabled, onAddSection }: PaletteContain
           >
             {preset.icon}
             <div className="flex flex-col truncate min-w-0 flex-1">
-              <span className="font-semibold text-foreground text-[10px] truncate leading-tight">
+              <span className="font-semibold text-foreground text-3xs truncate leading-tight">
                 + {preset.title}
               </span>
-              <span className="text-[9px] text-muted-foreground truncate leading-tight">
+              <span className="text-3xs text-muted-foreground truncate leading-tight">
                 {preset.subtitle}
               </span>
             </div>

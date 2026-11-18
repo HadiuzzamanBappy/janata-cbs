@@ -49,7 +49,7 @@ export function InquiryRowActions({
               </button>
             }
           />
-          <TooltipContent className="text-[11px] font-medium">
+          <TooltipContent className="text-2xs font-medium">
             Open: {executable || rawCmd}
           </TooltipContent>
         </Tooltip>
@@ -95,7 +95,7 @@ export function InquiryRowActions({
                 </button>
               }
             />
-            <TooltipContent className="text-[11px] font-medium">{cmd.cmdButton}</TooltipContent>
+            <TooltipContent className="text-2xs font-medium">{cmd.cmdButton}</TooltipContent>
           </Tooltip>
         );
       })}

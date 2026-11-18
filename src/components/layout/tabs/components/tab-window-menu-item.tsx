@@ -82,7 +82,7 @@ export function TabWindowMenuItem({
               <Badge
                 variant={isActive ? "default" : "secondary"}
                 className={cn(
-                  "h-4 min-w-4 px-1 rounded-xs text-[10px] font-mono flex items-center justify-center border-transparent shrink-0",
+                  "h-4 min-w-4 px-1 rounded-xs text-3xs font-mono flex items-center justify-center border-transparent shrink-0",
                   isActive ? "bg-primary/20 text-primary font-bold" : "opacity-70",
                 )}
               >

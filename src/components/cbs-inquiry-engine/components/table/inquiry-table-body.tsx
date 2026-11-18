@@ -59,12 +59,12 @@ export function InquiryTableBody({
             <tr
               key={rowKey}
               onDoubleClick={handleRowDoubleClick}
-              className={`h-6.5 hover:bg-primary/10 transition-colors border-b border-border/25 font-mono text-[11px] ${
+              className={`h-6.5 hover:bg-primary/10 transition-colors border-b border-border/25 font-mono text-2xs ${
                 isStriped ? "bg-muted/30" : "bg-transparent"
               }`}
             >
               {showSerial && (
-                <td className="w-8 text-center font-mono text-[10px] text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap">
+                <td className="w-8 text-center font-mono text-3xs text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap">
                   {serialNum}
                 </td>
               )}
@@ -106,7 +106,7 @@ export function InquiryTableBody({
                     role={isPassable ? "button" : undefined}
                     title={isPassable ? `Click to open / drill down (${col.label})` : undefined}
                     className={cn(
-                      "py-0.5 px-2 text-[11px] font-mono whitespace-nowrap leading-tight",
+                      "py-0.5 px-2 text-2xs font-mono whitespace-nowrap leading-tight",
                       col.align === "right"
                         ? "text-right"
                         : col.align === "center"
@@ -157,7 +157,7 @@ export function InquiryTableBody({
                   key={`${rowKey}-line-${rowNum}`}
                   onDoubleClick={handleRowDoubleClick}
                   className={cn(
-                    "h-6.5 hover:bg-primary/10 transition-colors font-mono text-[11px]",
+                    "h-6.5 hover:bg-primary/10 transition-colors font-mono text-2xs",
                     isStriped ? "bg-muted/25" : "bg-transparent",
                     isLast
                       ? "border-b border-border/70 shadow-2xs"
@@ -167,7 +167,7 @@ export function InquiryTableBody({
                   {isFirst && showSerial && (
                     <td
                       rowSpan={sortedRowNumbers.length}
-                      className="w-8 text-center font-mono text-[10px] text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap align-middle border-r border-border/25 font-semibold"
+                      className="w-8 text-center font-mono text-3xs text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap align-middle border-r border-border/25 font-semibold"
                     >
                       {serialNum}
                     </td>
@@ -218,7 +218,7 @@ export function InquiryTableBody({
                         role={isPassable ? "button" : undefined}
                         title={isPassable ? `Click to open (${col.label})` : undefined}
                         className={cn(
-                          "py-0.5 px-2 text-[11px] font-mono whitespace-nowrap leading-tight",
+                          "py-0.5 px-2 text-2xs font-mono whitespace-nowrap leading-tight",
                           !isFirst && "text-muted-foreground/85 bg-muted/10",
                           col.align === "right"
                             ? "text-right"
@@ -230,7 +230,7 @@ export function InquiryTableBody({
                         )}
                       >
                         {!isFirst && (
-                          <span className="text-[9px] font-sans font-medium text-muted-foreground/60 mr-1 not-italic">
+                          <span className="text-3xs font-sans font-medium text-muted-foreground/60 mr-1 not-italic">
                             {col.label}:
                           </span>
                         )}

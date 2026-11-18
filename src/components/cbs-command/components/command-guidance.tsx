@@ -17,12 +17,12 @@ export function CommandGuidance({
   onSelectOption,
 }: CommandGuidanceProps) {
   return (
-    <div className="px-3 py-1.5 border-b border-border/50 bg-muted/30 flex flex-col gap-1 text-[11px]">
+    <div className="px-3 py-1.5 border-b border-border/50 bg-muted/30 flex flex-col gap-1 text-2xs">
       <div className="flex items-center justify-between">
-        <span className="font-mono font-medium text-foreground text-[10px]">
+        <span className="font-mono font-medium text-foreground text-3xs">
           {guideInfo.appName} &lt;FUNCTION&gt; [ID]
         </span>
-        <span className="text-[10px] text-muted-foreground font-mono">
+        <span className="text-3xs text-muted-foreground font-mono">
           Permitted: {permittedRights.join("")}
         </span>
       </div>
@@ -37,7 +37,7 @@ export function CommandGuidance({
                 key={opt.code}
                 type="button"
                 onClick={() => onSelectOption(opt.code)}
-                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md font-mono text-[10px] border transition-colors cursor-pointer ${
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md font-mono text-3xs border transition-colors cursor-pointer ${
                   isSelected
                     ? "bg-primary text-primary-foreground border-primary font-bold shadow-2xs"
                     : "bg-background/80 hover:bg-accent border-border/60 text-foreground"
@@ -45,19 +45,19 @@ export function CommandGuidance({
                 title={`Select function ${opt.code} (${opt.label})`}
               >
                 <span className="font-bold">{opt.code}</span>
-                <span className="text-[9px] opacity-80">{opt.label.split(" ")[0]}</span>
+                <span className="text-3xs opacity-80">{opt.label.split(" ")[0]}</span>
               </button>
             );
           })}
         </div>
       ) : (
-        <span className="text-[10px] text-muted-foreground italic">
+        <span className="text-3xs text-muted-foreground italic">
           No function rights available on this application for your profile.
         </span>
       )}
 
       {guideInfo.typedFn && !hasRight(guideInfo.typedFn as CbsRecordFunction) && (
-        <div className="text-[10px] text-destructive font-medium mt-0.5 flex items-center gap-1">
+        <div className="text-3xs text-destructive font-medium mt-0.5 flex items-center gap-1">
           <span>⚠ Access Denied:</span>
           <span>You do not have '{guideInfo.typedFn}' function permission.</span>
         </div>

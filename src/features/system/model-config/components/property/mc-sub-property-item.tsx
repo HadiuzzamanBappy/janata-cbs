@@ -54,17 +54,17 @@ export function McSubPropertyItem({
         data-node-id={sub.SN}
         className="flex items-center gap-1.5 min-w-0 flex-1 text-left bg-transparent border-0 p-0 m-0 cursor-pointer focus:outline-none"
       >
-        <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-muted text-muted-foreground shrink-0">
+        <span className="font-mono text-3xs px-1 py-0.2 rounded bg-muted text-muted-foreground shrink-0">
           {sub.SN}
         </span>
-        <span className="text-[11px] truncate font-mono font-medium">
+        <span className="text-2xs truncate font-mono font-medium">
           {sub.NAME || "<Unnamed Subfield>"}
         </span>
       </button>
       <div className="flex items-center gap-1 shrink-0 ml-1">
         <Badge
           variant="outline"
-          className="font-mono text-[9px] h-4 px-1 rounded uppercase tracking-wider text-muted-foreground"
+          className="font-mono text-3xs h-4 px-1 rounded uppercase tracking-wider text-muted-foreground"
         >
           {subBadge}
         </Badge>

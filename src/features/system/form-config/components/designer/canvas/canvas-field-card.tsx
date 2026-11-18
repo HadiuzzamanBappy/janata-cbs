@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas";
 import { useOptionalDesignerContext } from "../context/designer-context";
+import { selectableProps } from "./selectable";
 
 export interface CanvasFieldCardProps {
   field: FormElement;
@@ -53,15 +54,11 @@ export function CanvasFieldCard({
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: interactive selectable canvas card
     <div
       ref={setNodeRef}
       style={style}
       data-field-card="true"
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}
+      {...selectableProps(onSelect, isSelected)}
       className={cn(
         "rounded-md border px-2.5 py-1.5 flex items-center justify-between text-xs transition-all bg-card/90 hover:border-primary/50 select-none",
         isSelected
@@ -102,7 +99,7 @@ export function CanvasFieldCard({
             )}
             {hasErrors && (
               <span
-                className="flex items-center gap-0.5 text-destructive text-[10px] font-semibold shrink-0"
+                className="flex items-center gap-0.5 text-destructive text-3xs font-semibold shrink-0"
                 title={fieldErrors.map((e) => e.message).join("\n")}
               >
                 <AlertTriangle className="size-3 text-destructive" />
@@ -110,16 +107,16 @@ export function CanvasFieldCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-muted-foreground font-mono min-w-0 overflow-hidden">
+          <div className="flex items-center gap-1.5 mt-0.5 text-3xs text-muted-foreground font-mono min-w-0 overflow-hidden">
             <span className="truncate max-w-30">{field.NAME}</span>
             <span className="shrink-0">&bull;</span>
-            <Badge variant="outline" className="text-[9px] h-3.5 px-1 uppercase shrink-0">
+            <Badge variant="outline" className="text-3xs h-3.5 px-1 uppercase shrink-0">
               {field.TYPE}
             </Badge>
             {field.WIDTH && (
               <Badge
                 variant="secondary"
-                className="text-[8px] h-3.5 px-1 font-mono uppercase shrink-0"
+                className="text-3xs h-3.5 px-1 font-mono uppercase shrink-0"
               >
                 {String(field.WIDTH)}
               </Badge>
@@ -127,7 +124,7 @@ export function CanvasFieldCard({
             {field.STRUCTURE === "M" && (
               <Badge
                 variant="outline"
-                className="text-[8px] h-3.5 px-1 text-info border-info/40 bg-info/5 font-mono shrink-0"
+                className="text-3xs h-3.5 px-1 text-info border-info/40 bg-info/5 font-mono shrink-0"
               >
                 MULTI
               </Badge>
@@ -135,7 +132,7 @@ export function CanvasFieldCard({
             {field.DISABLED && (
               <Badge
                 variant="outline"
-                className="text-[8px] h-3.5 px-1 text-muted-foreground border-border bg-muted/40 font-mono shrink-0"
+                className="text-3xs h-3.5 px-1 text-muted-foreground border-border bg-muted/40 font-mono shrink-0"
               >
                 DISABLED
               </Badge>

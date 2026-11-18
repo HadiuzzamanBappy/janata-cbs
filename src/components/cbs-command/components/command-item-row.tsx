@@ -42,12 +42,12 @@ export function CommandItemRow({ cmd, category, onSelect }: CommandItemRowProps)
         {distinctAliases.map((alias) => (
           <span
             key={alias}
-            className="font-mono text-[10px] sm:text-[11px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20 shrink-0"
+            className="font-mono text-3xs sm:text-2xs font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded-md border border-primary/20 shrink-0"
           >
             {alias}
           </span>
         ))}
-        <span className="font-mono text-[10px] sm:text-[11px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md border border-border/40 truncate">
+        <span className="font-mono text-3xs sm:text-2xs text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded-md border border-border/40 truncate">
           {cmd.command}
         </span>
       </div>

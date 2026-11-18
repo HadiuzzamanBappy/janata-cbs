@@ -24,6 +24,7 @@ import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { useDesignerContext } from "../context/designer-context";
 import { CanvasSectionGrid } from "./canvas-section-grid";
+import { selectableProps } from "./selectable";
 
 export interface CardContainerBlockProps {
   section: FormSection;
@@ -116,17 +117,15 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
     config.variant === "elevated" ? "shadow-sm" : bg === "none" || !isBordered ? "" : "shadow-2xs";
 
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: canvas selectable container
     <section
       data-canvas-card="true"
       aria-label={section.title || "Card Section"}
       ref={setNodeRef}
       style={style}
-      onClick={(e) => {
-        e.stopPropagation();
+      {...selectableProps(() => {
         onSelectSection(section.id);
         onSelectField(section.id, null);
-      }}
+      }, isSecSelected)}
       className={cn(
         "rounded-lg overflow-hidden transition-all relative first:mt-0 my-1",
         borderClass,
@@ -187,7 +186,7 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
               {hasErrors && (
                 <Badge
                   variant="destructive"
-                  className="text-[9px] h-3.5 px-1 rounded-xs font-mono ml-1 shrink-0"
+                  className="text-3xs h-3.5 px-1 rounded-xs font-mono ml-1 shrink-0"
                   title={sectionErrors.map((e) => e.message).join("\n")}
                 >
                   <AlertTriangle className="size-2.5 mr-0.5" />
@@ -196,7 +195,7 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
               )}
               {section.description && (
                 <span
-                  className="text-[11px] text-muted-foreground/60 font-normal truncate min-w-0"
+                  className="text-2xs text-muted-foreground/60 font-normal truncate min-w-0"
                   title={section.description}
                 >
                   &bull; {section.description}
@@ -204,14 +203,14 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
               )}
               <Badge
                 variant="outline"
-                className="text-[9px] h-3.5 px-1 font-mono uppercase text-muted-foreground shrink-0"
+                className="text-3xs h-3.5 px-1 font-mono uppercase text-muted-foreground shrink-0"
               >
                 {numCols} {numCols === 1 ? "COL" : "COLS"}
               </Badge>
               {config.badge && (
                 <span
                   className={cn(
-                    "inline-flex items-center px-1.5 py-0.2 text-[9px] font-medium rounded-full shrink-0 whitespace-nowrap",
+                    "inline-flex items-center px-1.5 py-0.2 text-3xs font-medium rounded-full shrink-0 whitespace-nowrap",
                     config.badgeVariant === "destructive"
                       ? "bg-destructive/10 text-destructive"
                       : config.badgeVariant === "outline"
@@ -274,7 +273,7 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
         /* Compact Designer Handle for Headerless Cards */
         <div
           className={cn(
-            "px-2 py-0.5 flex items-center justify-between text-[10px] text-muted-foreground/60 bg-muted/15 border-b border-border/30 select-none",
+            "px-2 py-0.5 flex items-center justify-between text-3xs text-muted-foreground/60 bg-muted/15 border-b border-border/30 select-none",
             isContainerExplicitlySelected && "bg-primary/5",
           )}
         >
@@ -290,12 +289,12 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
                 <GripVertical className="size-3" />
               </button>
             )}
-            <span className="text-[10px] italic text-muted-foreground/60 truncate">
+            <span className="text-3xs italic text-muted-foreground/60 truncate">
               {section.title || "Headerless Section"}
             </span>
             <Badge
               variant="outline"
-              className="text-[8px] h-3 px-1 font-mono uppercase text-muted-foreground/60 shrink-0"
+              className="text-3xs h-3.5 px-1 font-mono uppercase text-muted-foreground/60 shrink-0"
             >
               {numCols} {numCols === 1 ? "COL" : "COLS"}
             </Badge>

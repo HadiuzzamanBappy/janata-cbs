@@ -16,10 +16,10 @@ This plan runs strictly from dependency leaves to root. A phase may only change 
 | P0    | Governance & tooling                   | ✅ done     | `d84451f`                                     | ✅ passed                             | —                         |
 | P1    | L0 types & schemas                     | ✅ done     | `5571d59`                                     | ✅ passed (popup-draft fix folded in) | ✅ green (run in P3)      |
 | P2    | Parsers, utils, storage, logger        | ✅ done     | `594a4d0` (+ `decb0c4` `JsonArray` → `Array`) | ✅ passed                             | ✅ green (run in P3)      |
-| P3    | Wire client, proxy, gRPC, Redis, mock  | ✅ done     | `e20f691`                                     | ✅ passed                             | ✅ green 9/9 (2026-11-18) |
-| P4    | Command, access, screen, stores, hooks | ✅ done     | ⏳ uncommitted (owner commits)                | ⏳ pending                            | —                         |
-| P5    | UI primitives & tokens                 | ⏳ **next** | —                                             | —                                     | —                         |
-| P6    | Engines & feature modules              | ⏳          | —                                             | —                                     | —                         |
+| P3    | Wire client, proxy, gRPC, Redis, mock  | ✅ done     | `6b63473`                                     | ✅ passed                             | ✅ green 9/9 (2026-11-18) |
+| P4    | Command, access, screen, stores, hooks | ✅ done     | `48e5707`                                     | ✅ passed                             | —                         |
+| P5    | UI primitives & tokens                 | ✅ done     | ⏳ uncommitted (owner commits)                | ⏳ pending (incl. visual check)       | ⏳ CPW needs a live test  |
+| P6    | Engines & feature modules              | ⏳ **next** | —                                             | —                                     | —                         |
 | P7    | App, routing, route handlers           | ⏳          | —                                             | —                                     | required at exit          |
 
 ### How to resume a session
@@ -228,7 +228,7 @@ export const cbsStorage = {
 ## Phase 3 — Core & Infrastructure: Wire Factories, Proxy, gRPC, Redis, Mock
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-18), commit `e20f691`.** Results are in the [Phase 3 outcome](#phase-3-outcome) table below the exit gate.
+> **Status: ✅ complete (2026-11-18), commit `6b63473`.** Results are in the [Phase 3 outcome](#phase-3-outcome) table below the exit gate.
 
 **Scope:** [cbs-client/](../../../src/lib/cbs-client/) (968 lines), [infra-grpc/](../../../src/lib/infra-grpc/), [infra-redis/](../../../src/lib/infra-redis/) (702 lines), [core-config/](../../../src/lib/core-config/), [mock/](../../../mock/).
 
@@ -300,7 +300,7 @@ if (result.ok) { … }                                                 // no cat
 ## Phase 4 — Domain Logic & State: Command Gateway, RIDASHL, Stores, Hooks (L2–L3.5)
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-18), not yet committed.** Results are in the [Phase 4 outcome](#phase-4-outcome) table below the exit gate.
+> **Status: ✅ complete (2026-11-18), commit `48e5707`.** Results are in the [Phase 4 outcome](#phase-4-outcome) table below the exit gate.
 
 **Scope:** [cbs-access/](../../../src/lib/cbs-access/), [cbs-command/](../../../src/lib/cbs-command/) (911 lines), [cbs-screen/](../../../src/lib/cbs-screen/) (788 lines), [cbs-record/](../../../src/lib/cbs-record/), [store/](../../../src/store/) (700 lines), [hooks/](../../../src/hooks/) (402 lines).
 
@@ -364,7 +364,8 @@ export function createScopedStore<S>(name: string, init: (seed: Partial<S>) => S
 
 ## Phase 5 — UI Primitives & Design System (L4)
 
-> **Status: ⏳ next.**
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** Results are in the [Phase 5 outcome](#phase-5-outcome) table below the exit gate.
 
 **Scope:** [components/ui/](../../../src/components/ui/) (3,688 lines), [layout/](../../../src/components/layout/), [cbs-screen/](../../../src/components/cbs-screen/) (2,686 lines), [cbs-settings/](../../../src/components/cbs-settings/), [globals.css](../../../src/app/globals.css).
 
@@ -414,11 +415,24 @@ For F5-2, keep **one** `ChangePasswordForm` in L4 (`components/cbs-settings`), b
 
 ### Exit gate P5
 
-- [ ] 0 `text-[…px]` remain, and the skill table (`cbs-compact-ui-and-layout`) references the tokens.
-- [ ] There is a single `ChangePassword` implementation, and 0 `biome-ignore lint/a11y` remain.
-- [ ] Every primitive matches the P0-3 control height.
-- [ ] Visual check of the dashboard, a dynamic form and an inquiry at **1366×768 and 1920×1080**, in light and dark.
-- [ ] `pnpm typecheck` · `pnpm lint` · `verify:layers` · `verify:all` all green.
+- [x] 0 `text-[…px]` remain outside the vendored shadcn primitives (`grep -rE 'text-[[0-9.]+(px|rem)]' src | grep -v src/components/ui/`), and the skill table (`cbs-compact-ui-and-layout`) references the tokens.
+- [x] There is a single change-password form (`ChangePasswordForm`), and 0 `biome-ignore lint/a11y` remain.
+- [x] Every primitive matches the P0-3 control height (Input, Select and Button default are `h-8`; the only outlier, `DatePicker`, was dead and is deleted).
+- [ ] Visual check of the dashboard, a dynamic form and an inquiry at **1366×768 and 1920×1080**, in light and dark _(owner)_.
+- [x] `pnpm typecheck` · `pnpm lint` · `verify:layers` · `verify:all` all green, and `pnpm build` green.
+
+### Phase 5 outcome
+
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** Gates: lint 0 / 0, typecheck 0, `verify:layers` and `verify:all` 16/16, build green (the compiled CSS for `text-2xs`/`text-3xs` is `font-size` only, identical to the old arbitrary classes).
+
+| ID   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F5-1 | ✅ Two theme tokens in [globals.css](../../../src/app/globals.css) `@theme`: `text-2xs` (11px) and `text-3xs` (10px). A codemod replaced all 228 arbitrary sizes: 11px → `text-2xs` and 10px → `text-3xs` (176, pixel-identical); 9px/8px/10.5px → `text-3xs` (44, text grows to 10px, the one `h-3` badge became `h-3.5` so it fits); 11.5px/13px → `text-xs` (5; the 13px is the sidebar menu item, now 12px). **`src/components/ui/` is vendored shadcn and is left untouched** (owner rule), so the shadcn `text-[0.8rem]` in `button.tsx` and `calendar.tsx` stays. `cn` merges the tokens as font sizes (probe: `cn("text-xs","text-3xs")` → `text-3xs`). The UI skill table and a new "Type scale" rule use the tokens.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| F5-2 | ✅ **Security fix (owner decision: fix route + one form).** `/api/change-password` never called the core: it only cleared the first-login flag, so a first-login user entered the workbench while the old password stayed valid. It now sends `CPW` (`currPass`/`newPass`) to the core with the session and lifts the first-login lock only if the core accepts. The envelope is built by a new shared [`buildGrpcEnvelope`](../../../src/app/api/_lib/envelope.ts), also used by the proxy (branch and user always from the session). One [ChangePasswordForm](../../../src/components/cbs-settings/components/change-password-form.tsx) (rules checklist, show/hide, match indicator, `h-8`) serves both the `/change-password` page (adds redirect and sign-out) and Settings → Security (shows a success note). `useChangePassword` keeps only navigation. The client `CPW` payload `cbs.userSecurity` became dead and is deleted. The mock gained a `CPW` handler (`verify:mock` case 3, failed first). _This touched two L6 route handlers ahead of Phase 7, by owner decision._ **Not yet proven against the live core:** test with a test account. |
+| F5-3 | ✅ Deleted the dead `DatePicker` (a custom composition, not a shadcn component file; the shadcn `Calendar` primitive it used stays), `SettingsTabItem` and the identity function `mapMenuItemToTreeNode`. `cbs-form-header.tsx` (308 lines) is within the 350-line stretch for a cohesive component, so it was not split. `react-day-picker` is now an unused dependency; removing it from `package.json` is left to the owner.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| F5-4 | ✅ New [selectable.ts](../../../src/features/system/form-config/components/designer/canvas/selectable.ts) `selectableProps(onSelect, selected)` (a custom helper, so it lives beside its only users in the Form Config canvas, not in the shadcn `ui/` folder): `role="button"`, `tabIndex`, `aria-pressed`, click and Enter/Space selection (keys from nested controls are ignored, so dnd-kit keyboard sorting on inner handles still works). Used by the 4 click-to-select canvas blocks. The 2 native drag-and-drop elements became labelled `<section>`s. 0 `biome-ignore` remain.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| F5-5 | ✅ All form-control primitives already default to `h-8` (Input, Select, Button); their `sm`/`lg` sizes are intentional variants. The only `h-9` primitive was the dead `DatePicker`. Per-screen height overrides in features are Phase 6 scope.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ---
 

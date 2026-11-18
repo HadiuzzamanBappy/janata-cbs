@@ -72,14 +72,14 @@ export function InquiryActions({
               className="h-7 px-2 text-xs gap-1.5 border-border bg-background hover:bg-muted/50 text-foreground shrink-0"
             >
               <Briefcase className="size-3 text-primary shrink-0" />
-              <span className="text-[11px] font-medium">Export / Print</span>
+              <span className="text-2xs font-medium">Export / Print</span>
               <ChevronDown className="size-3 text-muted-foreground shrink-0" />
             </Button>
           }
         />
 
         <DropdownMenuContent align="start" sideOffset={4} className="w-44 text-xs shadow-lg">
-          <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground border-b border-border/40">
+          <div className="px-2 py-1 text-2xs font-semibold text-muted-foreground border-b border-border/40">
             Print & Output
           </div>
           <DropdownMenuItem onClick={onPrintLocal} className="cursor-pointer gap-2 py-1">
@@ -93,7 +93,7 @@ export function InquiryActions({
 
           <DropdownMenuSeparator />
 
-          <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground border-b border-border/40">
+          <div className="px-2 py-1 text-2xs font-semibold text-muted-foreground border-b border-border/40">
             Data Export
           </div>
           <DropdownMenuItem onClick={onExportCSV} className="cursor-pointer gap-2 py-1">

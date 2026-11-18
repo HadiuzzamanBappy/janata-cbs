@@ -106,7 +106,7 @@ export function TabMenuItems({
       >
         <Copy className="size-3.5" />
         <span>Duplicate Tab</span>
-        <ShortcutComponent className="text-[10px]">Ctrl+D</ShortcutComponent>
+        <ShortcutComponent className="text-3xs">Ctrl+D</ShortcutComponent>
       </ItemComponent>
 
       <ItemComponent
@@ -137,7 +137,7 @@ export function TabMenuItems({
       >
         <X className="size-3.5" />
         <span>Close Tab</span>
-        <ShortcutComponent className="text-[10px]">Ctrl+W</ShortcutComponent>
+        <ShortcutComponent className="text-3xs">Ctrl+W</ShortcutComponent>
       </ItemComponent>
 
       <ItemComponent

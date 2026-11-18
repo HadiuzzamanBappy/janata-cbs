@@ -20,15 +20,17 @@ Janata CBS serves professional bank tellers, branch managers, and back-office op
 
 Never use standard consumer web dimensions (e.g., `h-11`, `p-6`, `text-base`). Adhere strictly to the compact CBS density matrix:
 
-| Element Type                    | CBS Standard Classes                                            | Notes                                                 |
-| :------------------------------ | :-------------------------------------------------------------- | :---------------------------------------------------- |
-| **Form Inputs & Selects**       | `h-8 px-2.5 text-xs rounded-md`                                 | Compact banking height; avoids vertical ballooning.   |
-| **Field Labels**                | `text-[11px] font-medium text-muted-foreground`                 | Placed directly above or tightly aligned with fields. |
-| **Buttons (Primary/Secondary)** | `h-8 px-3 text-xs font-medium rounded-md`                       | Standard touch/click target for banking workflows.    |
-| **Icon CTA / Action Buttons**   | `size-7 sm:size-8 rounded-md shrink-0`                          | Icon size inside: `size-3.5` or `size-4`.             |
-| **Table Rows & Cells**          | `h-8 px-2.5 py-1 text-xs`                                       | High row density for multi-record accounting lists.   |
-| **Status Badges**               | `h-5 px-1.5 text-[10px] font-semibold tracking-wider font-mono` | E.g., `AU`, `UA`, `REV`, `DEL`, `HLD`.                |
-| **Form Card Sections**          | `p-3 sm:p-4 gap-3`                                              | Tight card padding with bounded vertical flow.        |
+| Element Type                    | CBS Standard Classes                                         | Notes                                                 |
+| :------------------------------ | :----------------------------------------------------------- | :---------------------------------------------------- |
+| **Form Inputs & Selects**       | `h-8 px-2.5 text-xs rounded-md`                              | Compact banking height; avoids vertical ballooning.   |
+| **Field Labels**                | `text-2xs font-medium text-muted-foreground`                 | Placed directly above or tightly aligned with fields. |
+| **Buttons (Primary/Secondary)** | `h-8 px-3 text-xs font-medium rounded-md`                    | Standard touch/click target for banking workflows.    |
+| **Icon CTA / Action Buttons**   | `size-7 sm:size-8 rounded-md shrink-0`                       | Icon size inside: `size-3.5` or `size-4`.             |
+| **Table Rows & Cells**          | `h-8 px-2.5 py-1 text-xs`                                    | High row density for multi-record accounting lists.   |
+| **Status Badges**               | `h-5 px-1.5 text-3xs font-semibold tracking-wider font-mono` | E.g., `AU`, `UA`, `REV`, `DEL`, `HLD`.                |
+| **Form Card Sections**          | `p-3 sm:p-4 gap-3`                                           | Tight card padding with bounded vertical flow.        |
+
+**Type scale:** below `text-xs` (12px) use only the theme tokens `text-2xs` (11px) and `text-3xs` (10px), defined in `globals.css` `@theme`. Never write arbitrary sizes such as `text-[9px]`: anything smaller than 10px is not legible on 1366×768 branch terminals. Exception: `src/components/ui/` holds the vendored shadcn primitives and is never edited by hand (re-add them with `pnpm ui:add`), so its own classes stay as shadcn ships them.
 
 ---
 
@@ -98,7 +100,7 @@ Never hardcode arbitrary hex codes (`#1e40af`) or Tailwind numbered colors (`bg-
 ```tsx
 // ✅ Correct (Semantic Tokens)
 <div className="bg-card text-card-foreground border border-border rounded-md shadow-xs">
-  <label className="text-[11px] font-medium text-muted-foreground">Account Title</label>
+  <label className="text-2xs font-medium text-muted-foreground">Account Title</label>
   <input className="h-8 bg-background border-input text-foreground focus:ring-ring" />
 </div>
 

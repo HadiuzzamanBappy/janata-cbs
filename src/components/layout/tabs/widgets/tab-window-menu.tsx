@@ -59,10 +59,10 @@ export function TabWindowMenu() {
           </div>
         )}
 
-        <div className="px-2.5 py-1.5 text-[10px] font-mono text-muted-foreground border-b border-border/60 uppercase tracking-wider bg-muted/30 flex items-center justify-between select-none">
+        <div className="px-2.5 py-1.5 text-3xs font-mono text-muted-foreground border-b border-border/60 uppercase tracking-wider bg-muted/30 flex items-center justify-between select-none">
           <span>Opened Windows ({tabs.length})</span>
           {!isSearching && tabs.length > 1 && (
-            <span className="text-[9px] text-muted-foreground/70 normal-case font-mono">
+            <span className="text-3xs text-muted-foreground/70 normal-case font-mono">
               Drag to reorder
             </span>
           )}

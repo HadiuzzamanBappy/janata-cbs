@@ -27,7 +27,7 @@ export function SidebarHeaderNav({ onOpenSearch }: SidebarHeaderNavProps) {
           <span className="font-semibold text-xs leading-tight truncate text-foreground">
             Janata Bank PLC.
           </span>
-          <span className="text-[10px] text-muted-foreground truncate leading-tight">
+          <span className="text-3xs text-muted-foreground truncate leading-tight">
             Core Banking Solution
           </span>
         </div>

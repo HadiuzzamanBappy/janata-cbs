@@ -30,7 +30,7 @@ export function ProfileTab() {
             </div>
             <div className="min-w-0">
               <h2 className="text-sm font-semibold tracking-tight truncate">{user.fullName}</h2>
-              <div className="flex items-center text-[11px] text-muted-foreground gap-1.5">
+              <div className="flex items-center text-2xs text-muted-foreground gap-1.5">
                 <span className="font-mono text-foreground font-medium">{user.userId}</span>
                 <span>&bull;</span>
                 <span
@@ -48,7 +48,7 @@ export function ProfileTab() {
           {Array.isArray(user.userRole) && user.userRole.length > 0 && (
             <div className="flex flex-wrap items-center justify-end gap-1 shrink-0">
               {user.userRole.map((role) => (
-                <Badge key={role} variant="secondary" className="font-mono text-[9px] px-1.5 py-0">
+                <Badge key={role} variant="secondary" className="font-mono text-3xs px-1.5 py-0">
                   {role}
                 </Badge>
               ))}
@@ -61,19 +61,19 @@ export function ProfileTab() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         {/* Branch Info */}
         <div className="bg-background rounded-lg border border-border/50 p-3 shadow-xs space-y-1">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-3xs font-semibold text-muted-foreground uppercase tracking-wider">
             <MapPin className="size-3 text-primary" />
             Branch
           </div>
           <div className="space-y-0.5">
             <p className="text-xs font-medium text-foreground truncate">{user.branchName}</p>
-            <p className="text-[11px] text-muted-foreground font-mono">Code: {user.branchCode}</p>
+            <p className="text-2xs text-muted-foreground font-mono">Code: {user.branchCode}</p>
           </div>
         </div>
 
         {/* Transaction Date */}
         <div className="bg-background rounded-lg border border-border/50 p-3 shadow-xs space-y-1">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-3xs font-semibold text-muted-foreground uppercase tracking-wider">
             <Calendar className="size-3 text-primary" />
             Business Date
           </div>
@@ -84,13 +84,13 @@ export function ProfileTab() {
 
         {/* Privileges & Access Rights */}
         <div className="bg-background rounded-lg border border-border/50 p-3 shadow-xs space-y-2 sm:col-span-2">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="flex items-center gap-1.5 text-3xs font-semibold text-muted-foreground uppercase tracking-wider">
             <Shield className="size-3 text-primary" />
             Access & Security
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
             <div className="flex flex-col gap-0.5 p-2 rounded-md bg-muted/20 border border-border/40">
-              <span className="text-muted-foreground text-[10px]">Accessibility</span>
+              <span className="text-muted-foreground text-3xs">Accessibility</span>
               <span className="font-mono font-medium text-foreground text-xs">
                 {Array.isArray(user.accessibility)
                   ? user.accessibility.join("")
@@ -99,14 +99,14 @@ export function ProfileTab() {
             </div>
 
             <div className="flex flex-col gap-0.5 p-2 rounded-md bg-muted/20 border border-border/40">
-              <span className="text-muted-foreground text-[10px]">Command Line</span>
+              <span className="text-muted-foreground text-3xs">Command Line</span>
               <span className="font-medium text-foreground text-xs">
                 {user.commandLine ? "Enabled" : "Disabled"}
               </span>
             </div>
 
             <div className="flex flex-col gap-0.5 p-2 rounded-md bg-muted/20 border border-border/40">
-              <span className="text-muted-foreground text-[10px]">Initial Login</span>
+              <span className="text-muted-foreground text-3xs">Initial Login</span>
               <span className="font-medium text-foreground text-xs">
                 {user.initLogin ? "Required" : "No"}
               </span>
@@ -116,10 +116,10 @@ export function ProfileTab() {
           {/* Accessibility Rights Badges */}
           {Array.isArray(user.accessibility) && user.accessibility.length > 0 && (
             <div className="pt-0.5 space-y-1">
-              <span className="text-[10px] text-muted-foreground">Function Rights:</span>
+              <span className="text-3xs text-muted-foreground">Function Rights:</span>
               <div className="flex flex-wrap gap-1">
                 {user.accessibility.map((right) => (
-                  <Badge key={right} variant="outline" className="font-mono text-[9px] px-1.5 py-0">
+                  <Badge key={right} variant="outline" className="font-mono text-3xs px-1.5 py-0">
                     {right}
                   </Badge>
                 ))}

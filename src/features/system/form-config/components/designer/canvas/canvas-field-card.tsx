@@ -3,11 +3,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { AlertTriangle, GripVertical, Minus } from "lucide-react";
-import type * as React from "react";
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { defaultWidthForLength } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { FormElement } from "@/lib/data-schemas";
+import { type FormElement, getDefaultWidgetForType, type PropertyType } from "@/lib/data-schemas";
 import { useOptionalDesignerContext } from "../context/designer-context";
 import { selectableProps } from "./selectable";
 
@@ -34,6 +35,49 @@ export function CanvasFieldCard({
   const ctx = useOptionalDesignerContext();
   const fieldErrors = ctx ? ctx.getFieldErrors(fieldId) : [];
   const hasErrors = fieldErrors.length > 0;
+
+  const matchedProp = React.useMemo(() => {
+    return ctx?.modelProperties?.find((p) => p.SN === field.SN || p.NAME === field.NAME);
+  }, [ctx?.modelProperties, field.SN, field.NAME]);
+
+  const overrides = React.useMemo(() => {
+    const list: {
+      key: string;
+      label: string;
+      variant?: "secondary" | "outline";
+      className?: string;
+    }[] = [];
+
+    // 1. Widget override
+    const physicalType = (matchedProp?.TYPE || field.TYPE || "String") as PropertyType;
+    const defaultWidget = getDefaultWidgetForType(physicalType);
+    if (field.WIDGET && field.WIDGET !== defaultWidget) {
+      list.push({ key: "widget", label: field.WIDGET.toUpperCase(), variant: "outline" });
+    }
+
+    // 2. Width override (only if explicitly changed from default width)
+    const defaultWidth = matchedProp ? defaultWidthForLength(matchedProp) : undefined;
+    if (field.WIDTH && defaultWidth && field.WIDTH !== defaultWidth) {
+      list.push({ key: "width", label: String(field.WIDTH).toUpperCase(), variant: "secondary" });
+    }
+
+    // 3. Disabled / Read-Only override
+    if (field.DISABLED) {
+      list.push({
+        key: "disabled",
+        label: "DISABLED",
+        variant: "outline",
+        className: "text-muted-foreground border-border bg-muted/40",
+      });
+    }
+
+    // 4. Structure override (e.g. Model is M, but form chose S)
+    if (matchedProp?.STRUCTURE === "M" && field.STRUCTURE === "S") {
+      list.push({ key: "structure", label: "SINGLE", variant: "outline" });
+    }
+
+    return list;
+  }, [field, matchedProp]);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: fieldId,
@@ -106,35 +150,16 @@ export function CanvasFieldCard({
             )}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5 text-3xs text-muted-foreground font-mono min-w-0 overflow-hidden">
-            <span className="truncate max-w-30">{field.NAME}</span>
-            <span className="shrink-0">&bull;</span>
-            <Badge variant="outline" className="text-3xs h-3.5 px-1 uppercase shrink-0">
-              {field.TYPE}
-            </Badge>
-            {field.WIDTH && (
+            <span className="truncate max-w-36">{field.NAME}</span>
+            {overrides.map((ov) => (
               <Badge
-                variant="secondary"
-                className="text-3xs h-3.5 px-1 font-mono uppercase shrink-0"
+                key={ov.key}
+                variant={ov.variant || "outline"}
+                className={cn("text-3xs h-3.5 px-1 font-mono uppercase shrink-0", ov.className)}
               >
-                {String(field.WIDTH)}
+                {ov.label}
               </Badge>
-            )}
-            {field.STRUCTURE === "M" && (
-              <Badge
-                variant="outline"
-                className="text-3xs h-3.5 px-1 text-info border-info/40 bg-info/5 font-mono shrink-0"
-              >
-                MULTI
-              </Badge>
-            )}
-            {field.DISABLED && (
-              <Badge
-                variant="outline"
-                className="text-3xs h-3.5 px-1 text-muted-foreground border-border bg-muted/40 font-mono shrink-0"
-              >
-                DISABLED
-              </Badge>
-            )}
+            ))}
           </div>
         </button>
       </div>

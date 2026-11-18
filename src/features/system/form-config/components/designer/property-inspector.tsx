@@ -7,7 +7,7 @@
 
 "use client";
 
-import { ArrowLeft, Settings, Type } from "lucide-react";
+import { ArrowLeft, Layers, LayoutList, Settings, Type } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
 import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
@@ -130,13 +130,20 @@ export function PropertyInspector(props: PropertyInspectorProps) {
         title: selectedField.LABEL || selectedField.NAME || "Field Configuration",
       }
     : selectedSection
-      ? {
-          icon: <Settings className="size-3.5 text-primary shrink-0" />,
-          title:
-            selectedSection.groupTitle ||
-            selectedSection.title ||
-            (selectedSection.containerType === "tab" ? "Tab Item" : "Card Container"),
-        }
+      ? selectedSection.containerType === "tab"
+        ? ctx?.tabScope === "container"
+          ? {
+              icon: <Layers className="size-3.5 text-info shrink-0" />,
+              title: selectedSection.groupTitle || "Tab Group Container",
+            }
+          : {
+              icon: <LayoutList className="size-3.5 text-primary shrink-0" />,
+              title: `${selectedSection.title || "Tab Item"} (Tab)`,
+            }
+        : {
+            icon: <Settings className="size-3.5 text-primary shrink-0" />,
+            title: selectedSection.title || "Card Container",
+          }
       : {
           icon: <Settings className="size-3.5 text-muted-foreground shrink-0" />,
           title: "Canvas Properties",
@@ -170,7 +177,7 @@ export function PropertyInspector(props: PropertyInspectorProps) {
       </div>
 
       {/* ── Direct Scrollable Properties Body ────── */}
-      <div className="flex-1 overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex-1 overflow-y-auto no-scrollbar scrollbar-none [&::-webkit-scrollbar]:hidden">
         {selectedField ? (
           <FieldInspector
             field={selectedField}

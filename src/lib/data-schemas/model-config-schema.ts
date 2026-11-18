@@ -19,7 +19,6 @@ export const CBS_PROPERTY_TYPE = {
   DATE: "Date",
   DATETIME: "DateTime",
   TIME: "Time",
-  /** Repeating group of nested sub-properties (`PROP`); stored with LENGTH 0. */
   ARRAY: "Array",
 } as const;
 
@@ -29,6 +28,60 @@ const propertyTypeSchema = z.enum(CBS_PROPERTY_TYPE);
 export const PROPERTY_TYPES = propertyTypeSchema.options;
 
 export type PropertyType = z.infer<typeof propertyTypeSchema>;
+
+/** Ordered list of column types allowed for nested sub-properties (excludes Array). */
+export const SUB_PROPERTY_TYPES: readonly PropertyType[] = PROPERTY_TYPES.filter(
+  (t) => t !== CBS_PROPERTY_TYPE.ARRAY,
+);
+
+/**
+ * Canonical physical storage lengths for fixed-size database column types.
+ * Types not listed here (String, Number) have variable lengths configured per column.
+ */
+export const FIXED_PROPERTY_LENGTHS: Readonly<Partial<Record<PropertyType, number>>> = {
+  Date: 10,
+  DateTime: 19,
+  Time: 8,
+  Boolean: 1,
+  Array: 0,
+};
+
+/** Default physical column lengths when not explicitly specified. */
+export const DEFAULT_PROPERTY_LENGTH = 50;
+export const DEFAULT_SUB_PROPERTY_LENGTH = 35;
+
+/**
+ * Resolves the canonical physical column length for a given column type.
+ * - Fixed-size types (Date, DateTime, Time, Boolean, Array) always return their exact physical length (e.g. Array -> 0).
+ * - Variable-size types (String, Number) parse positive lengths or fall back to `fallback`.
+ */
+export function resolvePhysicalLength(
+  type: PropertyType,
+  rawLength?: unknown,
+  fallback: number = DEFAULT_PROPERTY_LENGTH,
+): number {
+  const fixed = FIXED_PROPERTY_LENGTHS[type];
+  if (fixed !== undefined) return fixed;
+  const parsed = typeof rawLength === "string" ? Number.parseInt(rawLength, 10) : rawLength;
+  return typeof parsed === "number" && !Number.isNaN(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+/**
+ * Resolves effective field structure (Single "S" vs Multi "M"):
+ * - Boolean is always strictly Single ("S").
+ * - Physical DB Single ("S") can NEVER be widened to Multi ("M") on a form.
+ * - Physical DB Multi ("M") MAY be narrowed to Single ("S") by a form override.
+ */
+export function resolvePhysicalStructure(
+  type: PropertyType,
+  modelStructure?: "S" | "M",
+  formStructure?: "S" | "M",
+): "S" | "M" {
+  if (type === CBS_PROPERTY_TYPE.BOOLEAN) return "S";
+  if (modelStructure === "S") return "S";
+  if (modelStructure === "M") return formStructure === "S" ? "S" : "M";
+  return formStructure === "M" ? "M" : "S";
+}
 
 /* ========================================================================== */
 /* 2. BASE PHYSICAL FIELD SCHEMA (MODEL.CONFIG Pure Column DDL)               */
@@ -48,11 +101,17 @@ export const baseFieldSchema = z.looseObject({
   STRUCTURE: z
     .preprocess((val) => (typeof val === "string" ? val.toUpperCase() : val), z.enum(["S", "M"]))
     .default("S"),
-  LENGTH: z.coerce.number().default(50),
+  LENGTH: z.coerce.number().default(DEFAULT_PROPERTY_LENGTH),
   REQUIRED: z
     .union([z.boolean(), z.null()])
     .transform((v) => Boolean(v))
     .default(false)
+    .optional(),
+  MODELNAME: z
+    .string()
+    .trim()
+    .default("")
+    .transform((v) => v.toUpperCase())
     .optional(),
 });
 
@@ -63,6 +122,26 @@ export type ModelProperty = z.infer<typeof baseFieldSchema> & {
 export const modelPropertySchema: z.ZodType<ModelProperty> = baseFieldSchema.extend({
   PROP: z.lazy(() => z.array(modelPropertySchema)).optional(),
 });
+
+/**
+ * Canonical factory for creating a new ModelProperty draft with physical defaults.
+ * Centralizes default initialization so new generic property fields only need one update here.
+ */
+export function createModelProperty(
+  sn: string,
+  overrides: Partial<ModelProperty> = {},
+): ModelProperty {
+  return {
+    SN: sn,
+    NAME: "",
+    TYPE: "String",
+    STRUCTURE: "S",
+    LENGTH: DEFAULT_PROPERTY_LENGTH,
+    REQUIRED: false,
+    MODELNAME: "",
+    ...overrides,
+  };
+}
 
 /* ========================================================================== */
 /* 4. TABLE RECORD: MODEL CONFIG RECORD (MODEL.CONFIG)                        */
@@ -125,6 +204,65 @@ export const modelConfigRecordSchema = z
           });
         }
         seenNames.add(nameLower);
+      }
+
+      const modelName = (prop.MODELNAME || "").trim();
+      if (modelName) {
+        if (prop.TYPE !== CBS_PROPERTY_TYPE.STRING) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Property "${prop.NAME || `#${prop.SN}`}" cannot define MODELNAME. MODELNAME is supported only on String properties.`,
+            path: ["PROPERTIES", idx, "MODELNAME"],
+          });
+        }
+        if (!/^[A-Z0-9_.]+$/.test(modelName)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Property "${prop.NAME || `#${prop.SN}`}" has invalid MODELNAME "${modelName}". Must be alphanumeric uppercase with optional dots or underscores.`,
+            path: ["PROPERTIES", idx, "MODELNAME"],
+          });
+        }
+      }
+
+      if (Array.isArray(prop.PROP)) {
+        const seenSubNames = new Set<string>();
+        prop.PROP.forEach((sub, sIdx) => {
+          if (sub.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
+            ctx.addIssue({
+              code: "custom",
+              message: `Sub-property "${sub.NAME || `#${sub.SN}`}" cannot be of type Array. Nested arrays are not supported.`,
+              path: ["PROPERTIES", idx, "PROP", sIdx, "TYPE"],
+            });
+          }
+          const subModelName = (sub.MODELNAME || "").trim();
+          if (subModelName) {
+            if (sub.TYPE !== CBS_PROPERTY_TYPE.STRING) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Sub-property "${sub.NAME || `#${sub.SN}`}" cannot define MODELNAME. MODELNAME is supported only on String properties.`,
+                path: ["PROPERTIES", idx, "PROP", sIdx, "MODELNAME"],
+              });
+            }
+            if (!/^[A-Z0-9_.]+$/.test(subModelName)) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Sub-property "${sub.NAME || `#${sub.SN}`}" has invalid MODELNAME "${subModelName}". Must be alphanumeric uppercase with optional dots or underscores.`,
+                path: ["PROPERTIES", idx, "PROP", sIdx, "MODELNAME"],
+              });
+            }
+          }
+          const subNameLower = (sub.NAME || "").trim().toLowerCase();
+          if (subNameLower) {
+            if (seenSubNames.has(subNameLower)) {
+              ctx.addIssue({
+                code: "custom",
+                message: `Duplicate sub-property name "${sub.NAME}" in "${prop.NAME}". Each sub-property must have a unique name.`,
+                path: ["PROPERTIES", idx, "PROP", sIdx, "NAME"],
+              });
+            }
+            seenSubNames.add(subNameLower);
+          }
+        });
       }
     });
   });

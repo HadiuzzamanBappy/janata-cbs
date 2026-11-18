@@ -175,7 +175,9 @@ export function TabStripItem(props: TabStripItemProps) {
         isActive
           ? "bg-background text-foreground font-semibold rounded-t-sm z-20 border-t border-l border-r border-border/80 border-b-0 shadow-xs after:absolute after:top-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:rounded-t-sm -mb-px"
           : "text-muted-foreground hover:bg-background/50 hover:text-foreground rounded-t-sm border border-transparent",
-        isSelected && !isActive && "ring-1 ring-primary/50 text-foreground",
+        isSelected &&
+          context.tabScope === "item" &&
+          "ring-1 ring-primary border-primary text-foreground font-bold",
         isOverThisTab && "ring-2 ring-primary border-primary bg-primary/20 scale-102",
       )}
     >

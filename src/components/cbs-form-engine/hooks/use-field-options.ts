@@ -20,7 +20,10 @@ import { useModelLookup } from "./use-model-lookup";
  * @returns Resolved options array and asynchronous loading status.
  */
 export function useFieldOptions(field: FormElement) {
-  const param = field.PARAMETER as FormFieldParameter | undefined;
+  const modelName = (field.MODELNAME || "").trim();
+  const param =
+    (field.PARAMETER as FormFieldParameter | undefined) ??
+    (modelName ? { type: "M" as const, modelName, data: [] } : undefined);
   const { modelOptions, loading: modelLoading } = useModelLookup(param);
 
   const resolvedOptions: WidgetOption[] = useMemo(() => {

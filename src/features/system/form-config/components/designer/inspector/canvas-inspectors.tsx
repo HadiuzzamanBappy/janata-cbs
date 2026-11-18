@@ -7,16 +7,20 @@
 
 "use client";
 
+import { Layers, LayoutList } from "lucide-react";
 import * as React from "react";
 import { FormRenderer } from "@/components/cbs-form-engine";
 import { setFieldValue } from "@/lib/cbs-form-spec";
+import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import {
   CONTAINER_PROPERTIES_SECTION,
   ROOT_FORM_PROPERTIES_SECTION,
-  TAB_PROPERTIES_SECTIONS,
+  TAB_GROUP_PROPERTIES_SECTION,
+  TAB_ITEM_PROPERTIES_SECTION,
 } from "../../../fields/fc-canvas-fields";
+import { useOptionalDesignerContext } from "../context/designer-context";
 
 export interface RootCanvasInspectorProps {
   layout?: "horizontal" | "stacked";
@@ -81,8 +85,13 @@ export function ContainerInspector({
   disabled = false,
   errors = {},
 }: ContainerInspectorProps) {
+  const ctx = useOptionalDesignerContext();
+  const tabScope = ctx?.tabScope || "container";
+  const setTabScope = ctx?.setTabScope;
   const isTab = section.containerType === "tab";
-  const inspectorSections = isTab ? TAB_PROPERTIES_SECTIONS : [CONTAINER_PROPERTIES_SECTION];
+  const inspectorSections = isTab
+    ? [tabScope === "container" ? TAB_GROUP_PROPERTIES_SECTION : TAB_ITEM_PROPERTIES_SECTION]
+    : [CONTAINER_PROPERTIES_SECTION];
 
   // Normalized values: expands the variant preset (e.g. "ghost") into the atomic fields so the inspector switches show the effective state
   const normalizedValues = React.useMemo(() => {
@@ -90,8 +99,12 @@ export function ContainerInspector({
     const cfg = section.containerConfig || {};
     return {
       ...raw,
+      columns: section.columns ?? 1,
       containerConfig: {
         ...cfg,
+        tabVariant: cfg.tabVariant || "card",
+        heightMode: cfg.heightMode || "auto",
+        minHeight: cfg.minHeight ?? 350,
         showHeader: cfg.showHeader !== undefined ? cfg.showHeader : cfg.variant !== "ghost",
         bordered: cfg.bordered !== undefined ? cfg.bordered : cfg.variant !== "ghost",
         background:
@@ -118,6 +131,36 @@ export function ContainerInspector({
 
   return (
     <div className="p-3 select-none text-xs">
+      {isTab && (
+        <div className="flex items-center p-0.5 bg-muted/40 rounded-lg border border-border/70 mb-3 gap-0.5 select-none">
+          <button
+            type="button"
+            onClick={() => setTabScope?.("container")}
+            className={cn(
+              "flex-1 h-6 text-2xs font-medium rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer",
+              tabScope === "container"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/40",
+            )}
+          >
+            <Layers className="size-3 text-info" />
+            Tab Group
+          </button>
+          <button
+            type="button"
+            onClick={() => setTabScope?.("item")}
+            className={cn(
+              "flex-1 h-6 text-2xs font-medium rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer truncate px-1",
+              tabScope === "item"
+                ? "bg-background text-foreground shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/40",
+            )}
+          >
+            <LayoutList className="size-3 text-primary" />
+            <span className="truncate">Tab: {section.title || "Item"}</span>
+          </button>
+        </div>
+      )}
       <FormRenderer
         frmElements={{ sections: inspectorSections }}
         values={normalizedValues}
@@ -125,7 +168,7 @@ export function ContainerInspector({
         errors={errors}
         disabled={disabled}
         mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}
-        hideHeader={!isTab}
+        hideHeader
         layout="stacked"
         className="overflow-visible"
       />

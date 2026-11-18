@@ -58,6 +58,10 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
   const onRemoveSection = props.onRemoveSection ?? context.onRemoveSection;
   const disabled = props.disabled ?? context.disabled;
   const isHoveringHeader = dropZone === "header" && isCanvasDragging;
+  const isGroupContainerSelected =
+    Boolean(selectedSectionId) &&
+    tabSections.some((s) => s.id === selectedSectionId) &&
+    context.tabScope === "container";
   const [tabDragOverId, setTabDragOverId] = React.useState<string | null>(null);
   const tabHoverTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -126,10 +130,25 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
           </button>
         )}
 
-        <div className="flex items-center gap-1 shrink-0 mr-1 text-3xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectSection(activeTabId);
+            onSelectField(null, null);
+            context.setTabScope("container");
+          }}
+          className={cn(
+            "flex items-center gap-1 shrink-0 mr-1 text-3xs font-semibold uppercase tracking-wider mb-1.5 px-2 py-0.5 rounded transition-all cursor-pointer",
+            isGroupContainerSelected
+              ? "bg-primary text-primary-foreground shadow-2xs font-bold"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/80 bg-background/60 border border-border/60",
+          )}
+          title="Click to select Tab Group Container properties"
+        >
           <Layers className="size-3 text-info" />
           <span>Tab Group</span>
-        </div>
+        </button>
 
         {isHoveringHeader && (
           <span className="text-3xs font-semibold text-info bg-info/15 border border-info/50 rounded-full px-2 py-0.5 shrink-0 select-none mb-1.5">
@@ -161,6 +180,7 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
                   setActiveTabIdState(tab.id);
                   onSelectSection(tab.id);
                   onSelectField(null, null);
+                  context.setTabScope("item");
                 }}
                 onRemove={() => onRemoveSection(tab.id)}
                 onDragOverTab={(tabId) => {

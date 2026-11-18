@@ -10,6 +10,7 @@
 
 import { Info } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/core-utils";
 import { useFormLayout } from "../form-layout-context";
@@ -53,17 +54,16 @@ export function FieldRow({
   const isStacked = stacked ?? contextLayout === "stacked";
 
   // Tooltip only for enrichText:
-  // Desktop mode: tooltip is triggered on the underlined label text.
-  // Stacked/mobile mode: tooltip is triggered ONLY on the Info icon (label is plain).
+  // Desktop horizontal: tooltip is triggered on underlined label text.
+  // Mobile horizontal or Stacked mode: tooltip is triggered on the Info icon.
   const showTooltip = Boolean(enrichText && String(enrichText).trim().length > 0);
   const isDesktopTooltip = showTooltip && !isStacked;
-  const isIconTooltip = showTooltip && isStacked;
 
   const labelContent = (
     <span
       className={cn(
         "group/label inline-flex items-center min-w-0 max-w-full select-none outline-none",
-        isDesktopTooltip ? "cursor-help" : "",
+        isDesktopTooltip ? "sm:cursor-help" : "",
       )}
       title={error ? error : isDesktopTooltip ? undefined : label}
     >
@@ -71,10 +71,10 @@ export function FieldRow({
         className={cn(
           "truncate pb-0.5 transition-colors duration-150 ease-out",
           isDesktopTooltip && [
-            "border-b border-dotted",
+            "sm:border-b sm:border-dotted",
             error
-              ? "border-destructive/40 group-hover/label:border-destructive text-destructive font-semibold"
-              : "border-muted-foreground/25 group-hover/label:border-primary group-hover/label:text-foreground text-muted-foreground font-normal",
+              ? "sm:border-destructive/40 sm:group-hover/label:border-destructive text-destructive font-semibold"
+              : "sm:border-muted-foreground/25 sm:group-hover/label:border-primary sm:group-hover/label:text-foreground text-muted-foreground font-normal",
           ],
           !isDesktopTooltip &&
             (error ? "text-destructive font-semibold" : "text-muted-foreground font-normal"),
@@ -127,30 +127,34 @@ export function FieldRow({
             labelContent
           )}
 
-          {/* Stacked/Mobile Mode: Tooltip ONLY on the Info icon */}
-          {isIconTooltip && (
-            <Tooltip disableHoverablePopup>
-              <TooltipTrigger
+          {/* Stacked or Mobile View: Info icon with tap & click Popover */}
+          {showTooltip && (
+            <Popover>
+              <PopoverTrigger
+                openOnHover
                 delay={120}
-                closeDelay={0}
+                closeDelay={100}
                 render={
                   <button
                     type="button"
                     aria-label={`Help info for ${label}`}
-                    className="text-muted-foreground/60 hover:text-foreground inline-flex items-center p-0.5 rounded shrink-0 cursor-help focus:outline-none"
+                    className={cn(
+                      "text-muted-foreground/60 hover:text-foreground items-center p-0.5 rounded shrink-0 cursor-pointer focus:outline-none",
+                      isStacked ? "inline-flex" : "inline-flex sm:hidden",
+                    )}
                   >
                     <Info className="size-3 text-muted-foreground/70 hover:text-foreground transition-colors" />
                   </button>
                 }
               />
-              <TooltipContent
+              <PopoverContent
                 side="top"
                 align="center"
-                className="text-xs max-w-70 sm:max-w-xs z-50 shadow-md pointer-events-none"
+                className="z-50 w-auto max-w-70 sm:max-w-xs text-xs px-2.5 py-1.5 bg-foreground text-background rounded-md shadow-md border-0 pointer-events-auto"
               >
                 {String(enrichText)}
-              </TooltipContent>
-            </Tooltip>
+              </PopoverContent>
+            </Popover>
           )}
 
           {indexSuffix !== undefined && (
@@ -196,10 +200,7 @@ export function FieldRow({
       ) : (
         <div
           style={style}
-          className={cn(
-            "min-w-0 flex items-center w-full relative min-h-7",
-            isStacked ? "w-full" : inputClassName,
-          )}
+          className={cn("min-w-0 flex items-center relative min-h-7", inputClassName)}
         >
           {children}
         </div>

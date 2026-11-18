@@ -9,12 +9,16 @@
  */
 
 import { formatNameToLabel } from "@/lib/core-utils";
-import type {
-  FormConfigRecord,
-  FormElement,
-  FormSection,
-  ModelConfigRecord,
-  ModelProperty,
+import {
+  DEFAULT_SUB_PROPERTY_LENGTH,
+  type FormConfigRecord,
+  type FormElement,
+  type FormSection,
+  type ModelConfigRecord,
+  type ModelProperty,
+  type PropertyType,
+  resolvePhysicalLength,
+  resolvePhysicalStructure,
 } from "@/lib/data-schemas";
 import {
   defaultWidthForLength,
@@ -90,18 +94,39 @@ export function mergeFieldWithModelProp(
     }
   }
 
+  const physicalType = (modelProp.TYPE || field.TYPE || "String") as PropertyType;
+  const effectiveLength = resolvePhysicalLength(
+    physicalType,
+    modelProp.LENGTH ?? field.LENGTH,
+    DEFAULT_SUB_PROPERTY_LENGTH,
+  );
+  const effectiveStructure = resolvePhysicalStructure(
+    physicalType,
+    modelProp.STRUCTURE,
+    field.STRUCTURE,
+  );
+
+  const modelName = (modelProp.MODELNAME || field.MODELNAME || "").trim();
+  const effectiveParam =
+    field.PARAMETER ?? (modelName ? { type: "M" as const, modelName, data: [] } : undefined);
+
   return {
     ...field,
     // Database schema authority (physical integrity)
-    TYPE: modelProp.TYPE || field.TYPE || "String",
-    LENGTH: modelProp.LENGTH || field.LENGTH || 35,
-    STRUCTURE: modelProp.STRUCTURE || field.STRUCTURE || "S",
+    TYPE: physicalType,
+    LENGTH: effectiveLength,
+    STRUCTURE: effectiveStructure,
     REQUIRED: Boolean(modelProp.REQUIRED) || Boolean(field.REQUIRED),
 
     // Presentation layer attributes with sensible fallbacks
     LABEL: field.LABEL || formatNameToLabel(modelProp.NAME),
     WIDTH: field.WIDTH ?? defaultWidthForLength(modelProp),
-    WIDGET: resolveWidgetType(modelProp.TYPE, field.PARAMETER, field.WIDGET),
+    WIDGET: resolveWidgetType(modelProp.TYPE, effectiveParam, field.WIDGET, effectiveStructure, {
+      length: effectiveLength,
+      modelName,
+    }),
+    PARAMETER: effectiveParam,
+    ...(modelName ? { MODELNAME: modelName } : {}),
 
     ...(mergedSubProps && mergedSubProps.length > 0 ? { PROP: mergedSubProps } : {}),
   };

@@ -11,6 +11,7 @@
 import { formatNameToLabel } from "@/lib/core-utils";
 import {
   CBS_PROPERTY_TYPE,
+  DEFAULT_SUB_PROPERTY_LENGTH,
   type FormElement,
   type FormFieldParameter,
   type FormWidgetType,
@@ -19,6 +20,8 @@ import {
   type ModelProperty,
   type PropertyType,
   type PropertyWidth,
+  resolvePhysicalLength,
+  resolvePhysicalStructure,
   SEMANTIC_WIDTH_TOKENS,
   type SemanticWidthToken,
 } from "@/lib/data-schemas";
@@ -100,18 +103,28 @@ export function resolveWidgetType(
   type?: string,
   param?: FormFieldParameter,
   explicitWidget?: string,
+  structure: "S" | "M" = "S",
+  options?: { length?: number; modelName?: string },
 ): FormWidgetType {
   const normType = (type || "String").trim() as PropertyType;
-  const hasLookup = Boolean(
-    param &&
-      (param.type === "M" ||
-        param.type === "L" ||
-        (param.type === "O" && Array.isArray(param.data) && param.data.length > 0)),
-  );
+  const modelName = options?.modelName || param?.modelName;
+  const hasLookup =
+    Boolean(
+      param &&
+        (param.type === "M" ||
+          param.type === "L" ||
+          (param.type === "O" && Array.isArray(param.data) && param.data.length > 0)),
+    ) || Boolean(modelName?.trim());
 
   if (explicitWidget) {
     const w = explicitWidget.toLowerCase().trim() as FormWidgetType;
-    if (w && isWidgetCompatibleWithType(normType, w)) {
+    if (
+      w &&
+      isWidgetCompatibleWithType(normType, w, structure, {
+        length: options?.length,
+        modelName,
+      })
+    ) {
       if (hasLookup && w === "text") {
         return "select";
       }
@@ -172,9 +185,26 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
   const baseLabel = formatNameToLabel(p.NAME) || `Field #${snStr}`;
   const rawP = p as unknown as Record<string, unknown>;
   const rawParam = rawP.PARAMETER as Record<string, unknown> | undefined;
-  const param = normalizeParameter(rawParam);
+  let param = normalizeParameter(rawParam);
+  const modelName = (p.MODELNAME || (rawP.MODELNAME as string) || "").trim();
+
+  if (!param && modelName) {
+    param = {
+      type: "M",
+      modelName,
+      data: [],
+    };
+  }
+
+  const normType = (p.TYPE || "String") as PropertyType;
+  const normLength = resolvePhysicalLength(normType, p.LENGTH, DEFAULT_SUB_PROPERTY_LENGTH);
+  const normStructure = resolvePhysicalStructure(normType, p.STRUCTURE);
+
   const explicitWidget = rawP.WIDGET as string | undefined;
-  const effectiveWidget = resolveWidgetType(p.TYPE, param, explicitWidget);
+  const effectiveWidget = resolveWidgetType(p.TYPE, param, explicitWidget, normStructure, {
+    length: normLength,
+    modelName,
+  });
 
   const subProps = Array.isArray(p.PROP)
     ? p.PROP.map((sub, sIdx) => modelPropToFormElement(sub, sIdx))
@@ -184,14 +214,15 @@ export function modelPropToFormElement(p: ModelProperty, idx: number = 0): FormE
     SN: snStr,
     NAME: p.NAME || `field_${snStr}`,
     LABEL: baseLabel,
-    TYPE: p.TYPE || "String",
-    LENGTH: p.LENGTH ?? 35,
-    STRUCTURE: p.STRUCTURE || "S",
+    TYPE: normType,
+    LENGTH: normLength,
+    STRUCTURE: normStructure,
     REQUIRED: Boolean(p.REQUIRED),
     DISABLED: false,
     WIDTH: defaultWidthForLength(p),
     WIDGET: effectiveWidget,
     PARAMETER: param,
+    ...(modelName ? { MODELNAME: modelName } : {}),
     ...(subProps && subProps.length > 0 ? { PROP: subProps } : {}),
     VISIBLE_WHEN: rawP.VISIBLE_WHEN as FormElement["VISIBLE_WHEN"],
     DISABLED_WHEN: rawP.DISABLED_WHEN as FormElement["DISABLED_WHEN"],

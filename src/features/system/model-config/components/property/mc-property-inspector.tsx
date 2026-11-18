@@ -14,11 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ModelProperty } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
-import { PROPERTY_INSPECTOR_SECTIONS } from "../../fields/mc-property-fields";
+import { getPropertyInspectorSections } from "../../fields/mc-property-fields";
 import type { ModelValidationErrorItem } from "../../hooks/mc-validation";
 
 interface McPropertyInspectorProps {
   property?: ModelProperty;
+  isSubProperty?: boolean;
   isReadOnly: boolean;
   isCommitted?: boolean;
   validationErrors?: ModelValidationErrorItem[];
@@ -30,6 +31,7 @@ interface McPropertyInspectorProps {
 
 export function McPropertyInspector({
   property,
+  isSubProperty = false,
   isReadOnly,
   isCommitted = false,
   validationErrors = [],
@@ -38,6 +40,24 @@ export function McPropertyInspector({
   isSidebarOpen = false,
   showSidebarToggle = false,
 }: McPropertyInspectorProps) {
+  const inspectorSections = React.useMemo(() => {
+    const base = getPropertyInspectorSections(isSubProperty);
+    if (!isCommitted) return base;
+
+    return base.map((sec) => ({
+      ...sec,
+      fields: sec.fields.map((f) => {
+        if (f.NAME === "NAME" || f.NAME === "TYPE" || f.NAME === "STRUCTURE") {
+          return {
+            ...f,
+            DISABLED: true,
+            ENRICHTEXT: `${f.LABEL} is locked once committed to database.`,
+          };
+        }
+        return f;
+      }),
+    }));
+  }, [isSubProperty, isCommitted]);
   // Map external domain validation errors for this specific property
   const externalErrors = React.useMemo(() => {
     const map: Record<string, string> = {};
@@ -98,7 +118,7 @@ export function McPropertyInspector({
       <div className="flex-1 overflow-y-auto p-3">
         <div className="max-w-3xl space-y-3">
           <FormRenderer
-            frmElements={{ sections: PROPERTY_INSPECTOR_SECTIONS }}
+            frmElements={{ sections: inspectorSections }}
             values={property}
             onRecordChange={(next) => onUpdate(property.SN, next as ModelProperty)}
             externalErrors={externalErrors}

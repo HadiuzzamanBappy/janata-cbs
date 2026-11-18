@@ -44,15 +44,24 @@ export function TabGroupContainer({
   const currentActiveId = activeTabId || tabSections[0]?.id;
   const activeSection = tabSections.find((t) => t.id === currentActiveId) || tabSections[0];
 
-  // Visual config from active tab or first tab
-  const activeConfig = activeSection?.containerConfig || {};
+  // Visual config from active tab or any configured tab in the group
+  const activeConfig =
+    tabSections.find(
+      (t) =>
+        t.containerConfig?.tabVariant ||
+        t.containerConfig?.heightMode ||
+        t.containerConfig?.minHeight,
+    )?.containerConfig ||
+    activeSection?.containerConfig ||
+    {};
   const tabVariant = activeConfig.tabVariant || "card";
   const heightMode = activeConfig.heightMode || "auto";
-  const minHeightStyle = activeConfig.minHeight
-    ? typeof activeConfig.minHeight === "number"
-      ? `${activeConfig.minHeight}px`
-      : activeConfig.minHeight
-    : undefined;
+  const minHeightStyle =
+    heightMode === "fixed" && activeConfig.minHeight
+      ? typeof activeConfig.minHeight === "number"
+        ? `${activeConfig.minHeight}px`
+        : activeConfig.minHeight
+      : undefined;
 
   const containerVariantClass = {
     card: "rounded border border-border/80 bg-card/60 shadow-2xs",
@@ -61,9 +70,9 @@ export function TabGroupContainer({
   }[tabVariant];
 
   const containerHeightClass = {
-    auto: "",
-    fill: "flex-1 h-full min-h-0 flex flex-col",
-    fixed: "flex flex-col",
+    auto: "shrink-0",
+    fill: "flex-1 h-full min-h-[250px] flex flex-col",
+    fixed: "shrink-0 flex flex-col",
   }[heightMode];
 
   const headerClass = {
@@ -85,7 +94,7 @@ export function TabGroupContainer({
       )}
     >
       {/* Workbench TabBar Header */}
-      <div className={headerClass}>
+      <div className={cn(headerClass, "shrink-0")}>
         {tabSections.map((tab) => {
           const isActive = tab.id === currentActiveId;
           const config = tab.containerConfig || {};

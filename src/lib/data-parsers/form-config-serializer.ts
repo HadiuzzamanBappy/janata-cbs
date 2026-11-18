@@ -1,4 +1,12 @@
-import type { FormConfigRecord, FormElement, FormSection } from "@/lib/data-schemas";
+import {
+  DEFAULT_SUB_PROPERTY_LENGTH,
+  type FormConfigRecord,
+  type FormElement,
+  type FormSection,
+  type PropertyType,
+  resolvePhysicalLength,
+  resolvePhysicalStructure,
+} from "@/lib/data-schemas";
 
 /* -------------------------------------------------------------------------- */
 /* Outbound Database Serializers & Physical Form Sanitizers                   */
@@ -16,19 +24,20 @@ const SECTION_STRINGS = ["title", "description", "groupId", "groupTitle"] as con
 function sanitizeFormElement(field: FormElement): FormElement {
   const { id: _clientId, ...cleanField } = field as FormElement & { id?: string };
 
-  const rawLength =
-    typeof cleanField.LENGTH === "string"
-      ? Number.parseInt(cleanField.LENGTH, 10)
-      : cleanField.LENGTH;
-  const normLength =
-    typeof rawLength === "number" && !Number.isNaN(rawLength) && rawLength > 0 ? rawLength : 35;
+  const normType = (cleanField.TYPE || "String") as PropertyType;
+  const normLength = resolvePhysicalLength(
+    normType,
+    cleanField.LENGTH,
+    DEFAULT_SUB_PROPERTY_LENGTH,
+  );
+  const normStructure = resolvePhysicalStructure(normType, undefined, cleanField.STRUCTURE);
 
   const sanitized: Partial<FormElement> = {
     SN: String(cleanField.SN || "1").trim(),
     NAME: cleanField.NAME.trim(),
     LABEL: (cleanField.LABEL || cleanField.NAME).trim(),
-    TYPE: cleanField.TYPE || "String",
-    STRUCTURE: cleanField.STRUCTURE || "S",
+    TYPE: normType,
+    STRUCTURE: normStructure,
     LENGTH: normLength,
   };
 
@@ -36,6 +45,7 @@ function sanitizeFormElement(field: FormElement): FormElement {
   if (cleanField.DISABLED) sanitized.DISABLED = true;
   if (cleanField.WIDTH && cleanField.WIDTH !== "md") sanitized.WIDTH = cleanField.WIDTH;
   if (cleanField.WIDGET) sanitized.WIDGET = cleanField.WIDGET;
+  if (cleanField.MODELNAME) sanitized.MODELNAME = String(cleanField.MODELNAME).trim().toUpperCase();
 
   for (const key of TEXT_OVERRIDES) {
     const val = cleanField[key];

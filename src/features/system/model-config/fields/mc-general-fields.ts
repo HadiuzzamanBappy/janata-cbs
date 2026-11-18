@@ -29,7 +29,11 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         REQUIRED: true,
         WIDTH: "md",
         TRANSFORM: "stripWhitespace",
-        ENRICHTEXT: "Physical database table name storing the model records.",
+        DISABLED_WHEN: {
+          field: "auditData.recStatus",
+          operator: "truthy",
+        },
+        ENRICHTEXT: "Physical database table name (locked once created).",
       },
       {
         SN: "2",
@@ -40,7 +44,11 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 4,
         WIDTH: "xs",
         TRANSFORM: "uppercase",
-        ENRICHTEXT: "Two-letter CBS module prefix (e.g. SC, AC, CU).",
+        DISABLED_WHEN: {
+          field: "auditData.recStatus",
+          operator: "truthy",
+        },
+        ENRICHTEXT: "Two-letter CBS module prefix (e.g. SC, AC, CU; locked once created).",
       },
       {
         SN: "3",

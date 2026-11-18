@@ -72,19 +72,30 @@ export function TabGroupBlock(props: TabGroupBlockProps) {
     opacity: isDragging ? 0.35 : 1,
   };
 
-  const isGroupExplicitlySelected =
+  const isGroupContainerSelected =
     Boolean(selectedSectionId) &&
     tabSections.some((s) => s.id === selectedSectionId) &&
-    !selectedFieldId;
+    !selectedFieldId &&
+    context.tabScope === "container";
 
-  const config = activeSection?.containerConfig || {};
-  const tabVariant = config.tabVariant || "card";
-  const heightMode = config.heightMode || "auto";
-  const minHeightVal = config.minHeight
-    ? typeof config.minHeight === "number"
-      ? `${config.minHeight}px`
-      : config.minHeight
-    : undefined;
+  const groupConfig = React.useMemo(() => {
+    const configuredTab = tabSections.find(
+      (t) =>
+        t.containerConfig?.tabVariant ||
+        t.containerConfig?.heightMode ||
+        t.containerConfig?.minHeight,
+    );
+    return configuredTab?.containerConfig || activeSection?.containerConfig || {};
+  }, [tabSections, activeSection]);
+
+  const tabVariant = groupConfig.tabVariant || "card";
+  const heightMode = groupConfig.heightMode || "auto";
+  const minHeightVal =
+    heightMode === "fixed" && groupConfig.minHeight
+      ? typeof groupConfig.minHeight === "number"
+        ? `${groupConfig.minHeight}px`
+        : groupConfig.minHeight
+      : undefined;
 
   const containerVariantClass = {
     card: "rounded-lg border border-border/80 bg-card/60 shadow-2xs",
@@ -107,13 +118,14 @@ export function TabGroupBlock(props: TabGroupBlockProps) {
         if (activeSection) {
           onSelectSection(activeSection.id);
           onSelectField(activeSection.id, null);
+          context.setTabScope("container");
         }
-      }, isGroupExplicitlySelected)}
+      }, isGroupContainerSelected)}
       className={cn(
         containerVariantClass,
         heightMode === "fill" && "min-h-[350px]",
         "overflow-hidden transition-all relative first:mt-0 my-1",
-        isGroupExplicitlySelected && "border-primary/80 ring-1 ring-primary/30",
+        isGroupContainerSelected && "border-primary/80 ring-2 ring-primary/40",
         isDragging && "shadow-lg ring-2 ring-primary/40",
       )}
     >

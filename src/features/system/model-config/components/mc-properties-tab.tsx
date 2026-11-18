@@ -73,16 +73,16 @@ export function McPropertiesTab({
     }
   }, [properties, selectedSN, onControlledSelectSN]);
 
-  const selectedProperty = React.useMemo(() => {
-    if (!selectedSN) return undefined;
+  const { selectedProperty, isSubProperty } = React.useMemo(() => {
+    if (!selectedSN) return { selectedProperty: undefined, isSubProperty: false };
     for (const p of properties) {
-      if (p.SN === selectedSN) return p;
+      if (p.SN === selectedSN) return { selectedProperty: p, isSubProperty: false };
       if (p.PROP) {
         const sub = p.PROP.find((s) => s.SN === selectedSN);
-        if (sub) return sub;
+        if (sub) return { selectedProperty: sub, isSubProperty: true };
       }
     }
-    return undefined;
+    return { selectedProperty: undefined, isSubProperty: false };
   }, [properties, selectedSN]);
 
   return (
@@ -141,6 +141,7 @@ export function McPropertiesTab({
         {selectedProperty ? (
           <McPropertyInspector
             property={selectedProperty}
+            isSubProperty={isSubProperty}
             isReadOnly={isReadOnly}
             isCommitted={isFieldCommitted(selectedProperty.SN)}
             validationErrors={validationErrors}

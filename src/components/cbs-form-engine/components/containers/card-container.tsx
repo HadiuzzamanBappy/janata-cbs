@@ -88,7 +88,7 @@ export function CardContainer({
     }
 
     // 3. Ghost / transparent frameless containers
-    if ((bg === "none" && !isBordered && !shouldShowHeader) || config.variant === "ghost") {
+    if (!isBordered && bg === "none" && !shouldShowHeader) {
       return isViewMode ? "space-y-1.5" : "space-y-2";
     }
 

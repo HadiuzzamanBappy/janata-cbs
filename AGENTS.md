@@ -16,6 +16,8 @@ A production core-banking frontend + BFF: Next.js 16 (App Router), React 19, Tai
 
 - **Smallest safe change.** Fix what was asked; don't refactor around it. Justify every new file.
 - **Never commit or push** unless the owner asks. Leave changes in the working tree for review.
+- **Commit message**: one line, `type(scope):short lowercase summary` (no space after the colon), matching `git log`, for example `fix(auth):redis sessions safe rate limits and server checked branch`. No body, no `Co-Authored-By` or AI attribution trailer.
+- **Before amending or rewriting history**, check `git reflog`: the owner may have reset or committed in between. Never amend a commit you didn't make.
 - **Stop and ask** before touching a compatibility boundary (§1), weakening a security check, or changing a `verify:*` suite.
 - **Report honestly**: say what you verified, what you couldn't (for example, no live core), and what is left.
 

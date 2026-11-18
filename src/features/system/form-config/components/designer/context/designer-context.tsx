@@ -42,6 +42,7 @@ export function DesignerProvider({
 }: DesignerProviderProps) {
   const [isPaletteOpen, setIsPaletteOpen] = React.useState(false);
   const [isInspectorOpen, setIsInspectorOpen] = React.useState(false);
+  const [tabScope, setTabScope] = React.useState<"container" | "item">("item");
 
   const activeSection = React.useMemo(() => {
     if (selectedSectionId) {
@@ -200,6 +201,8 @@ export function DesignerProvider({
       selectedFieldId,
       activeSection,
       activeField,
+      tabScope,
+      setTabScope,
       usedFieldNames,
       disabled,
       validationErrors,
@@ -243,6 +246,8 @@ export function DesignerProvider({
       selectedFieldId,
       activeSection,
       activeField,
+      tabScope,
+      setTabScope,
       usedFieldNames,
       disabled,
       validationErrors,

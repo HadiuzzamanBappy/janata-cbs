@@ -58,14 +58,68 @@ export function getDefaultWidgetForType(type: PropertyType | string): FormWidget
   }
 }
 
+export interface WidgetEligibilityContext {
+  type: PropertyType | string;
+  structure?: "S" | "M";
+  length?: number;
+  modelName?: string;
+}
+
+/**
+ * Resolves compatible presentation widgets based on physical TYPE, STRUCTURE, LENGTH, and MODELNAME.
+ *
+ * Rules:
+ * 1. Model foreign key: strictly locked to 'select'.
+ * 2. checkbox-group: strictly requires Multi-Value ('M').
+ * 3. Single toggles (checkbox, switch, radio-group, segmented): strictly require Single ('S').
+ * 4. textarea: requires long text storage capacity (LENGTH >= 80).
+ */
+export function getCompatibleWidgets({
+  type,
+  structure = "S",
+  length,
+  modelName,
+}: WidgetEligibilityContext): FormWidgetType[] {
+  const normType = (type || "String").trim() as PropertyType;
+  const baseAllowed = COMPATIBLE_WIDGETS_FOR_TYPE[normType] || [];
+
+  // Foreign key model reference: locked exclusively to select
+  if (modelName?.trim()) {
+    return ["select"];
+  }
+
+  return baseAllowed.filter((w) => {
+    // 1. checkbox-group strictly requires Multi-Value ('M')
+    if (w === "checkbox-group") return structure === "M";
+
+    // 2. Single-choice toggles strictly require Single ('S')
+    if (w === "checkbox" || w === "switch" || w === "radio-group" || w === "segmented") {
+      return structure === "S";
+    }
+
+    // 3. Textarea requires long text capacity (LENGTH >= 80)
+    if (w === "textarea") {
+      return length === undefined || length >= 80;
+    }
+
+    return true;
+  });
+}
+
 export function isWidgetCompatibleWithType(
   type: PropertyType | string,
   widget: FormWidgetType | string,
+  structure: "S" | "M" = "S",
+  options?: { length?: number; modelName?: string },
 ): boolean {
-  const normType = (type || "String").trim() as PropertyType;
   const normWidget = (widget || "text").trim().toLowerCase() as FormWidgetType;
-  const allowed = COMPATIBLE_WIDGETS_FOR_TYPE[normType];
-  return !allowed || allowed.length === 0 || allowed.includes(normWidget);
+  const allowed = getCompatibleWidgets({
+    type,
+    structure,
+    length: options?.length,
+    modelName: options?.modelName,
+  });
+  return allowed.includes(normWidget);
 }
 
 /* ========================================================================== */

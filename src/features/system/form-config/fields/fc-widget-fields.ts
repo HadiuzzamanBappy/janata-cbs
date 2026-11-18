@@ -342,6 +342,23 @@ export const BOOLEAN_WIDGET_SECTION: FormSection = {
   ],
 };
 
+export const WIDGET_DISPLAY_LABELS: Record<string, string> = {
+  text: "Text",
+  textarea: "Textarea",
+  number: "Number",
+  amount: "Amount",
+  rate: "Rate",
+  date: "Date",
+  datetime: "Date & Time",
+  time: "Time",
+  select: "Select (Dropdown)",
+  "radio-group": "Radio Group",
+  segmented: "Segmented Bar",
+  switch: "Switch",
+  checkbox: "Checkbox",
+  "checkbox-group": "Checkbox Group",
+};
+
 /**
  * Returns contextual sub-section for widget rules.
  */

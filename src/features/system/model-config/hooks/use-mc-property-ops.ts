@@ -9,7 +9,13 @@
 "use client";
 
 import * as React from "react";
-import type { ModelConfigRecord, ModelProperty } from "@/lib/data-schemas";
+import {
+  createModelProperty,
+  DEFAULT_SUB_PROPERTY_LENGTH,
+  FIXED_PROPERTY_LENGTHS,
+  type ModelConfigRecord,
+  type ModelProperty,
+} from "@/lib/data-schemas";
 
 export function useMcPropertyOps(
   setFormData: React.Dispatch<React.SetStateAction<ModelConfigRecord>>,
@@ -37,14 +43,7 @@ export function useMcPropertyOps(
       }, 0);
       const nextSn = String(maxSn + 1);
       createdSn = nextSn;
-      const newField: ModelProperty = {
-        SN: nextSn,
-        NAME: "",
-        TYPE: "String",
-        STRUCTURE: "S",
-        LENGTH: 50,
-        REQUIRED: false,
-      };
+      const newField = createModelProperty(nextSn);
       return {
         ...prev,
         PROPERTIES: [...props, newField],
@@ -63,17 +62,13 @@ export function useMcPropertyOps(
           const nextSubIndex = currentChildren.length + 1;
           const nextSn = `${parentSn}_${nextSubIndex}`;
           createdSn = nextSn;
-          const newSubField: ModelProperty = {
-            SN: nextSn,
-            NAME: "",
-            TYPE: "String",
-            STRUCTURE: "S",
-            LENGTH: 35,
-            REQUIRED: false,
-          };
+          const newSubField = createModelProperty(nextSn, {
+            LENGTH: DEFAULT_SUB_PROPERTY_LENGTH,
+          });
           return {
             ...p,
             TYPE: "Array" as const,
+            LENGTH: FIXED_PROPERTY_LENGTHS.Array ?? 0,
             PROP: [...currentChildren, newSubField],
           };
         });
@@ -86,15 +81,25 @@ export function useMcPropertyOps(
 
   const updateField = React.useCallback(
     (sn: string, patch: Partial<ModelProperty>) => {
+      // Invariant: Committed properties cannot change NAME, TYPE, or STRUCTURE
+      const isCommitted = committedSnSet.has(sn);
+      const safePatch = isCommitted
+        ? Object.fromEntries(
+            Object.entries(patch).filter(
+              ([k]) => k !== "NAME" && k !== "TYPE" && k !== "STRUCTURE",
+            ),
+          )
+        : patch;
+
       setFormData((prev) => {
         const updated = (prev.PROPERTIES || []).map((p) => {
           if (p.SN === sn) {
-            return { ...p, ...patch };
+            return { ...p, ...safePatch };
           }
           if (p.PROP?.some((sub) => sub.SN === sn)) {
             return {
               ...p,
-              PROP: p.PROP.map((sub) => (sub.SN === sn ? { ...sub, ...patch } : sub)),
+              PROP: p.PROP.map((sub) => (sub.SN === sn ? { ...sub, ...safePatch } : sub)),
             };
           }
           return p;
@@ -102,7 +107,7 @@ export function useMcPropertyOps(
         return { ...prev, PROPERTIES: updated };
       });
     },
-    [setFormData],
+    [committedSnSet, setFormData],
   );
 
   const isFieldCommitted = React.useCallback(

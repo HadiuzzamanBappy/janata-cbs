@@ -91,6 +91,23 @@ export function FormRenderer({
     return validateValues(sections, values);
   }, [sections, values, autoValidate]);
 
+  // Check if any tab group is configured in "fill" (Fill Screen) mode
+  const hasFillBlock = React.useMemo(() => {
+    return blocks.some((b) => {
+      if (b.type === "tab-group") {
+        const cfg =
+          b.tabSections.find(
+            (t) =>
+              t.containerConfig?.heightMode ||
+              t.containerConfig?.tabVariant ||
+              t.containerConfig?.minHeight,
+          )?.containerConfig || b.tabSections[0]?.containerConfig;
+        return cfg?.heightMode === "fill";
+      }
+      return false;
+    });
+  }, [blocks]);
+
   // Unified error map: schema validation errors merged with external business/server errors
   const effectiveErrors = React.useMemo(() => {
     return { ...schemaErrors, ...errors, ...externalErrors };
@@ -142,21 +159,33 @@ export function FormRenderer({
 
   return (
     <FormLayoutContext.Provider value={layoutValue}>
-      <div className={cn("h-full w-full", className ? className : "overflow-y-auto pr-1")}>
-        <div className="w-full space-y-2">
+      <div
+        className={cn(
+          "h-full w-full",
+          className
+            ? className
+            : hasFillBlock
+              ? "flex flex-col overflow-hidden"
+              : "overflow-y-auto pr-1",
+        )}
+      >
+        <div
+          className={cn("w-full space-y-2", hasFillBlock && "flex-1 flex flex-col min-h-0 h-full")}
+        >
           {blocks.map((block) => {
             if (block.type === "single") {
               return (
-                <CardContainer
-                  key={block.section.id}
-                  section={block.section}
-                  values={values}
-                  onChange={handleFieldChange}
-                  errors={effectiveErrors}
-                  disabled={disabled}
-                  mode={mode}
-                  hideHeader={hideHeader}
-                />
+                <div key={block.section.id} className={hasFillBlock ? "shrink-0" : undefined}>
+                  <CardContainer
+                    section={block.section}
+                    values={values}
+                    onChange={handleFieldChange}
+                    errors={effectiveErrors}
+                    disabled={disabled}
+                    mode={mode}
+                    hideHeader={hideHeader}
+                  />
+                </div>
               );
             }
 
@@ -181,10 +210,12 @@ export function FormRenderer({
 
           {/* Constant Read-Only Audit Section below all form sections */}
           {showAuditSection && (
-            <AuditContainer
-              auditData={auditData ?? (values.auditData as AuditData)}
-              variant={auditVariant}
-            />
+            <div className={hasFillBlock ? "shrink-0" : undefined}>
+              <AuditContainer
+                auditData={auditData ?? (values.auditData as AuditData)}
+                variant={auditVariant}
+              />
+            </div>
           )}
         </div>
       </div>

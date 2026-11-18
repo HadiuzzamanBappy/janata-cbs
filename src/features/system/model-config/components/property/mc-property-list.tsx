@@ -209,6 +209,21 @@ export function McPropertyList({
 
                   {/* Right Side Badges & Delete Button */}
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                    {prop.MODELNAME && (
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "font-mono text-3xs h-4.5 px-1.5 rounded uppercase tracking-wider",
+                          isSelected
+                            ? "border-primary/40 bg-primary/20 text-primary font-bold"
+                            : "border-primary/30 bg-primary/5 text-primary",
+                        )}
+                        title={`References ${prop.MODELNAME}`}
+                      >
+                        Model
+                      </Badge>
+                    )}
+
                     <Badge
                       variant="outline"
                       className={cn(

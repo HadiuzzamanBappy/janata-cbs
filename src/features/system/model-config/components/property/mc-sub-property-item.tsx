@@ -62,6 +62,15 @@ export function McSubPropertyItem({
         </span>
       </button>
       <div className="flex items-center gap-1 shrink-0 ml-1">
+        {sub.MODELNAME && (
+          <Badge
+            variant="outline"
+            className="font-mono text-3xs h-4 px-1 rounded uppercase tracking-wider border-primary/30 bg-primary/5 text-primary"
+            title={`References ${sub.MODELNAME}`}
+          >
+            {sub.MODELNAME}
+          </Badge>
+        )}
         <Badge
           variant="outline"
           className="font-mono text-3xs h-4 px-1 rounded uppercase tracking-wider text-muted-foreground"

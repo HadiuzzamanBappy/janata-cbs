@@ -44,8 +44,12 @@ function ScalarFieldFactory({
   // Resolve options & widget configuration
   const { param, resolvedOptions, modelLoading } = useFieldOptions(field);
   const widget = useMemo(
-    () => resolveWidgetType(field.TYPE, param, field.WIDGET),
-    [field.TYPE, param, field.WIDGET],
+    () =>
+      resolveWidgetType(field.TYPE, param, field.WIDGET, (field.STRUCTURE as "S" | "M") || "S", {
+        length: field.LENGTH,
+        modelName: field.MODELNAME,
+      }),
+    [field.TYPE, param, field.WIDGET, field.STRUCTURE, field.LENGTH, field.MODELNAME],
   );
   const isMulti = field.STRUCTURE === "M" && widget !== "checkbox" && widget !== "checkbox-group";
   const inputWidthClass = useMemo(

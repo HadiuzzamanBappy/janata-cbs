@@ -75,7 +75,7 @@ export function FormPreview({
   }
 
   return (
-    <div className="h-full flex-1 overflow-y-auto pr-1">
+    <div className="h-full flex-1 flex flex-col min-h-0 overflow-hidden">
       <FormRenderer
         frmElements={effectiveFrmElements}
         values={formValues}

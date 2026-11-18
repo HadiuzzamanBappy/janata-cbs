@@ -285,8 +285,8 @@ export const TAB_GROUP_PROPERTIES_SECTION: FormSection = {
       DEFAULTVALUE: "350",
       VISIBLE_WHEN: {
         field: "containerConfig.heightMode",
-        operator: "neq",
-        value: "auto",
+        operator: "eq",
+        value: "fixed",
       },
       ENRICHTEXT: "Minimum container height in pixels.",
     },

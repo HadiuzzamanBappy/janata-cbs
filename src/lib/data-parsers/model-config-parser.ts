@@ -1,23 +1,17 @@
 import {
   CBS_PROPERTY_TYPE,
+  DEFAULT_PROPERTY_LENGTH,
   type ModelConfigRecord,
   type ModelProperty,
   PROPERTY_TYPES,
-  type PropertyType,
+  resolvePhysicalLength,
+  resolvePhysicalStructure,
 } from "@/lib/data-schemas";
 import { unwrapRecordsPayload } from "./protobuf-decoder";
 
 /* -------------------------------------------------------------------------- */
 /* Constants & Type Mappings                                                  */
 /* -------------------------------------------------------------------------- */
-
-const FIXED_TYPE_LENGTHS: Readonly<Partial<Record<PropertyType, number>>> = {
-  Date: 10,
-  DateTime: 19,
-  Time: 8,
-  Boolean: 1,
-  Array: 0,
-};
 
 const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
 
@@ -68,14 +62,8 @@ function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProper
   const normType = (
     VALID_PROPERTY_TYPES.has(rawType) ? rawType : "String"
   ) as ModelProperty["TYPE"];
-  const normStructure =
-    normType === CBS_PROPERTY_TYPE.BOOLEAN ? "S" : prop.STRUCTURE === "M" ? "M" : "S";
-
-  let normLength = FIXED_TYPE_LENGTHS[normType];
-  if (normLength === undefined) {
-    const rawLen = typeof prop.LENGTH === "string" ? Number.parseInt(prop.LENGTH, 10) : prop.LENGTH;
-    normLength = typeof rawLen === "number" && !Number.isNaN(rawLen) && rawLen > 0 ? rawLen : 50;
-  }
+  const normStructure = resolvePhysicalStructure(normType, prop.STRUCTURE);
+  const normLength = resolvePhysicalLength(normType, prop.LENGTH, DEFAULT_PROPERTY_LENGTH);
 
   const sanitized: ModelProperty = {
     SN: String(prop.SN || (index !== undefined ? index + 1 : "")).trim(),
@@ -84,10 +72,15 @@ function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProper
     STRUCTURE: normStructure,
     LENGTH: normLength,
     REQUIRED: Boolean(prop.REQUIRED),
+    MODELNAME: String(prop.MODELNAME || "")
+      .trim()
+      .toUpperCase(),
   };
 
-  if (normType === CBS_PROPERTY_TYPE.ARRAY && Array.isArray(prop.PROP) && prop.PROP.length > 0) {
-    sanitized.PROP = prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx));
+  if (normType === CBS_PROPERTY_TYPE.ARRAY) {
+    sanitized.PROP = Array.isArray(prop.PROP)
+      ? prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx))
+      : [];
   }
 
   return sanitized;

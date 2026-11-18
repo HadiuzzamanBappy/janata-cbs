@@ -8,6 +8,7 @@
 "use client";
 
 import * as React from "react";
+import { buildRenderBlocks } from "@/lib/cbs-form-spec";
 import { generateClientToken } from "@/lib/core-utils";
 import type {
   ContainerConfig,
@@ -49,17 +50,26 @@ export function useFcSectionOps(
               ? groupTitle || `Tab ${nextIndex}`
               : "";
 
+        const targetGroupId =
+          containerType === "tab" ? groupId || generateClientToken("tabgrp") : groupId;
+        const existingTabInGroup =
+          containerType === "tab" && targetGroupId
+            ? sections.find((s) => s.containerType === "tab" && s.groupId === targetGroupId)
+            : undefined;
+
         const newSection: FormSection = {
           id: newId,
           title: defaultTitle,
           containerType,
-          groupId: containerType === "tab" ? groupId || generateClientToken("tabgrp") : groupId,
+          groupId: targetGroupId,
           groupTitle:
             containerType === "tab" ? groupTitle || defaultTitle || `Tab ${nextIndex}` : groupTitle,
           columns: columns ?? 1,
           collapsible: false,
           isCollapsed: false,
-          containerConfig,
+          containerConfig: existingTabInGroup?.containerConfig
+            ? { ...existingTabInGroup.containerConfig, ...containerConfig }
+            : containerConfig,
           fields: initialFields,
         };
 
@@ -106,31 +116,57 @@ export function useFcSectionOps(
       setFormData((prev) => {
         const sections = prev.frmElements?.sections || [];
         const targetSec = sections.find((s) => s.id === id);
+        if (!targetSec) return prev;
+
+        const isTab = targetSec.containerType === "tab";
+        const blocks = isTab ? buildRenderBlocks(sections) : [];
+        const targetBlock = blocks.find(
+          (b) => b.type === "tab-group" && b.tabSections.some((s) => s.id === id),
+        );
+        const peerTabIds = new Set(
+          targetBlock && targetBlock.type === "tab-group"
+            ? targetBlock.tabSections.map((s) => s.id)
+            : targetSec.groupId
+              ? sections
+                  .filter((s) => s.containerType === "tab" && s.groupId === targetSec.groupId)
+                  .map((s) => s.id)
+              : [id],
+        );
+
+        const hasTabGroupConfigPatch = Boolean(
+          patch.containerConfig &&
+            (patch.containerConfig.tabVariant !== undefined ||
+              patch.containerConfig.heightMode !== undefined ||
+              patch.containerConfig.minHeight !== undefined),
+        );
 
         const updatedSections = sections.map((sec) => {
           if (sec.id === id) {
             return { ...sec, ...patch };
           }
-          if (
-            targetSec?.containerType === "tab" &&
-            sec.containerType === "tab" &&
-            sec.groupId &&
-            sec.groupId === targetSec.groupId
-          ) {
+          if (isTab && peerTabIds.has(sec.id)) {
+            let peerSec = sec;
             if (patch.groupId) {
-              return { ...sec, groupId: patch.groupId };
+              peerSec = { ...peerSec, groupId: patch.groupId };
             }
-            if (patch.containerConfig) {
-              return {
-                ...sec,
+            if (hasTabGroupConfigPatch && patch.containerConfig) {
+              peerSec = {
+                ...peerSec,
                 containerConfig: {
-                  ...sec.containerConfig,
-                  tabVariant: patch.containerConfig.tabVariant ?? sec.containerConfig?.tabVariant,
-                  heightMode: patch.containerConfig.heightMode ?? sec.containerConfig?.heightMode,
-                  minHeight: patch.containerConfig.minHeight ?? sec.containerConfig?.minHeight,
+                  ...peerSec.containerConfig,
+                  ...(patch.containerConfig.tabVariant !== undefined
+                    ? { tabVariant: patch.containerConfig.tabVariant }
+                    : {}),
+                  ...(patch.containerConfig.heightMode !== undefined
+                    ? { heightMode: patch.containerConfig.heightMode }
+                    : {}),
+                  ...(patch.containerConfig.minHeight !== undefined
+                    ? { minHeight: patch.containerConfig.minHeight }
+                    : {}),
                 },
               };
             }
+            return peerSec;
           }
           return sec;
         });

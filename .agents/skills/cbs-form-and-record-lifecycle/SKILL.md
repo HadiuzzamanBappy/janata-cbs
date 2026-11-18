@@ -56,7 +56,7 @@ This is `useFormMutations` (`src/features/operations/forms/hooks/use-form-mutati
 ## 5. Compatibility & UI
 
 - `WorkbenchTab.formData` / `baseline` and staged drafts are persisted in the browser: a compatibility boundary (`.agents/rules/00-core-pillars.md` §1).
-- Layout and density: the `cbs-compact-ui-and-layout` skill. Dates are formatted with `formatValueDate()` / `formatDateTime()`.
+- Layout and density: the `cbs-compact-ui-and-layout` skill. Dates are ISO inside the system and come only from `@/lib/core-utils` (`date.ts`): a loaded record passes through `normalizeRecordDates()` once, and dates are shown with `formatDate()` / `formatDateTime()`.
 
 ## 6. Verification
 

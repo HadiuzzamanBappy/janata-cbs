@@ -5,7 +5,7 @@
  * capability exposed by `@/lib/core-utils` with explicit Input and Output visualization:
  * 1. Tailwind Class Merger (cn: dedupes conflicting tailwind utilities)
  * 2. Currency Formatting (formatCurrency: BDT locale, decimals, accounting negative)
- * 3. CBS Value Date & Datetime (formatValueDate & formatDateTime: YYYYMMDD to human readable)
+ * 3. Dates (ISO contract: boundary conversion of legacy core formats, strict checks, bank-time display)
  * 4. Title Case with Acronyms (toTitleCase: preserves HO, PLC, ATM, BDT)
  * 5. Ephemeral UI Client Token (generateClientToken: format and prefix check)
  * 6. Document Export Utilities (CSV, HTML, XML byte encoding and safety)
@@ -23,10 +23,17 @@ import {
   exportToHtmlReport,
   exportToXml,
   formatCurrency,
+  formatDate,
   formatDateTime,
-  formatValueDate,
   generateClientToken,
   generateIdempotencyKey,
+  isIsoDate,
+  isIsoDateTime,
+  isoDateTimeToLocalInput,
+  normalizeAuditTimes,
+  todayIso,
+  toIsoDate,
+  toIsoDateTime,
   toTitleCase,
 } from "@/lib/core-utils";
 
@@ -93,23 +100,69 @@ async function runSuite() {
     accountingNegative === "(5,000.00 BDT)",
   );
 
-  // ── 3. Date Formatting ──
-  console.log("\n── 3. Date Formatting (formatValueDate & formatDateTime) ──");
-  const valueDate = formatValueDate("20261012");
+  // ── 3. Dates: ISO inside the system, legacy core formats converted at the boundary ──
+  console.log("\n── 3. Dates (ISO contract, boundary conversion, bank-time display) ──");
+  const inbound = {
+    compactDate: toIsoDate("20250101"),
+    isoDate: toIsoDate("2025-01-01"),
+    dateTimeInDateField: toIsoDate("2025-01-01T23:30:00Z"),
+    spacedDateTime: toIsoDateTime("2026-10-27 11:22:52"),
+    localDateTime: toIsoDateTime("2026-10-27T11:22"),
+    isoDateTime: toIsoDateTime("2026-10-27T05:22:52Z"),
+    notADate: toIsoDate("12345"),
+  };
   recordTest(
-    "3.1 Formats 8-digit CBS YYYYMMDD into human-readable date",
-    { input: "20261012" },
-    { formatted: valueDate },
-    valueDate.includes("12") && valueDate.includes("2026"),
+    "3.1 Inbound dates become ISO (legacy YYYYMMDD and spaced date-times included); other text untouched",
+    { compact: "20250101", spaced: "2026-10-27 11:22:52", local: "2026-10-27T11:22" },
+    inbound,
+    inbound.compactDate === "2025-01-01" &&
+      inbound.isoDate === "2025-01-01" &&
+      inbound.dateTimeInDateField === "2025-01-02" &&
+      inbound.spacedDateTime === "2026-10-27T11:22:52+06:00" &&
+      inbound.localDateTime === "2026-10-27T11:22:00+06:00" &&
+      inbound.isoDateTime === "2026-10-27T05:22:52Z" &&
+      inbound.notADate === "12345",
   );
 
-  const testDate = new Date("2026-11-02T14:30:00Z");
-  const formattedDateTime = formatDateTime(testDate);
+  const checks = {
+    isoDate: isIsoDate("2025-01-01"),
+    impossibleDay: isIsoDate("2026-02-30"),
+    compactIsNotIso: isIsoDate("20250101"),
+    offsetDateTime: isIsoDateTime("2026-10-27T11:22:52+06:00"),
+    noOffset: isIsoDateTime("2026-10-27T11:22:52"),
+  };
   recordTest(
-    "3.2 Formats Date object into standard transaction timestamp string",
-    { inputDate: "2026-11-02T14:30:00Z" },
-    { formatted: formattedDateTime },
-    Boolean(formattedDateTime && formattedDateTime.length > 10),
+    "3.2 isIsoDate / isIsoDateTime: strict ISO, real calendar days, date-times need an offset",
+    { checks: Object.keys(checks) },
+    checks,
+    checks.isoDate &&
+      !checks.impossibleDay &&
+      !checks.compactIsNotIso &&
+      checks.offsetDateTime &&
+      !checks.noOffset,
+  );
+
+  const audit = normalizeAuditTimes({
+    records: [
+      { recordId: "A1", auditData: { recInputTime: "2026-10-27 11:22:52", recAuthTime: "" } },
+    ],
+  });
+  const display = {
+    date: formatDate("2025-01-01"),
+    dateTime: formatDateTime("2026-10-27T05:22:52Z"),
+    localInput: isoDateTimeToLocalInput("2026-10-27T05:22:52Z"),
+    today: todayIso(),
+  };
+  recordTest(
+    "3.3 Audit times converted in place; display and inputs use bank time (Asia/Dhaka)",
+    { audit: "2026-10-27 11:22:52", utc: "2026-10-27T05:22:52Z" },
+    { audit: audit.records[0].auditData, display },
+    audit.records[0].auditData.recInputTime === "2026-10-27T11:22:52+06:00" &&
+      audit.records[0].auditData.recAuthTime === "" &&
+      display.date === "01 Jan 2025" &&
+      display.dateTime === "27 Oct 2026 11:22:52" &&
+      display.localInput === "2026-10-27T11:22:52" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(display.today),
   );
 
   // ── 4. Title Case with Acronyms ──

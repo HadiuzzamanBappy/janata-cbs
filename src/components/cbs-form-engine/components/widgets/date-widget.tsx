@@ -6,12 +6,13 @@
  * - Extends BaseWidgetProps.
  * - Supports date, datetime-local, and time input formats.
  * - Dual color scheme support (scheme-light dark:scheme-dark) for native picker dialogs.
+ * - Values are ISO. A date-time is shown in bank time and written back with its +06:00 offset.
  */
 
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/core-utils";
+import { cn, isoDateTimeToLocalInput, toIsoDateTime } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
 
 export interface DateWidgetProps extends BaseWidgetProps {
@@ -38,8 +39,10 @@ export function DateWidget({
         type={type}
         id={id}
         disabled={disabled}
-        value={strVal}
-        onChange={(e) => onChange(e.target.value)}
+        value={isDateTime ? isoDateTimeToLocalInput(strVal) : strVal}
+        onChange={(e) =>
+          onChange(isDateTime && e.target.value ? toIsoDateTime(e.target.value) : e.target.value)
+        }
         className={cn(
           "h-7 w-full rounded text-xs bg-background border-border/80 font-mono scheme-light dark:scheme-dark focus-visible:ring-0 focus-visible:border-foreground/50",
           error && "border-destructive focus-visible:border-destructive",

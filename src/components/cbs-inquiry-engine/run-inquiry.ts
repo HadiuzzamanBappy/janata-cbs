@@ -1,5 +1,6 @@
 import { cbs } from "@/lib/cbs-client";
-import { serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
+import { deriveInquiryColumnMeta, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
+import { toIsoTemporal } from "@/lib/core-utils";
 import {
   type FilterCriteriaMap,
   type InquiryConfigRecord,
@@ -52,5 +53,15 @@ export async function runInquiry(
   if (!isApiSuccess(res)) {
     throw new Error(res.message || `Core rejected inquiry on ${controller}`);
   }
-  return res.data ?? [];
+  // Inbound dates become ISO once, here, for the table, sorting and exports alike
+  const dateColumns = (config.INQDef || [])
+    .filter((col) => deriveInquiryColumnMeta(col).format === "date")
+    .map((col) => col.fieldName);
+  const rows = res.data ?? [];
+  if (dateColumns.length === 0) return rows;
+  return rows.map((row) => {
+    const next: InquiryRow = { ...row };
+    for (const name of dateColumns) next[name] = toIsoTemporal(next[name]);
+    return next;
+  });
 }

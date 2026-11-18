@@ -8,6 +8,7 @@
  * - 1:1 Schema fidelity with FieldValidationRule (matches, min, max, message, pattern).
  */
 
+import { isIsoDate, isIsoDateTime } from "@/lib/core-utils";
 import type {
   FieldValidationRule,
   FormConfigRecord,
@@ -19,20 +20,6 @@ import { getFieldValue } from "./path-utils";
 
 /** Plain decimal only: no exponent, hex, Infinity or thousands separators. */
 const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
-const ISO_DATE_PREFIX = /^(\d{4})-(\d{2})-(\d{2})/;
-
-/**
- * Dates are ISO only (`YYYY-MM-DD`, or ISO date-time), the CBS wire contract. Also rejects
- * impossible calendar days that Date.parse rolls over (e.g. 2026-02-30).
- */
-function isRealCalendarDate(value: string): boolean {
-  const parts = ISO_DATE_PREFIX.exec(value);
-  if (!parts || Number.isNaN(Date.parse(value))) return false;
-  const [year, month, day] = [Number(parts[1]), Number(parts[2]), Number(parts[3])];
-  const d = new Date(Date.UTC(year, month - 1, day));
-  return d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day;
-}
-
 const isScalar = (v: unknown): boolean => v === null || typeof v !== "object";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -94,7 +81,8 @@ export function validateSingleField(
   }
 
   const isNumeric = fieldType === "number" || fieldType === "amount" || fieldType === "rate";
-  const isDate = fieldType === "date" || fieldType === "datetime";
+  const isDate = fieldType === "date";
+  const isDateTime = fieldType === "datetime";
   const isTime = fieldType === "time";
 
   // 2. Numeric Type & Range Validation
@@ -118,10 +106,11 @@ export function validateSingleField(
     return null;
   }
 
-  // 3. Date Type Validation
-  if (isDate) {
-    if (typeof value === "string" && !isRealCalendarDate(value.trim())) {
-      return `${label} must be a valid date`;
+  // 3. Date / DateTime Validation: ISO only (YYYY-MM-DD; date-time with an offset), real days
+  if (isDate || isDateTime) {
+    const valid = isDate ? isIsoDate : isIsoDateTime;
+    if (typeof value === "string" && !valid(value.trim())) {
+      return `${label} must be a valid ${isDate ? "date" : "date and time"}`;
     }
     return null;
   }

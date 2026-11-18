@@ -10,7 +10,7 @@ A pure, side-effect-free standard library of common banking formatters, UI helpe
 src/lib/core-utils/
 ├── cn.ts           # Tailwind CSS classnames merge utility (clsx + tailwind-merge)
 ├── currency.ts     # Currency formatting with BDT defaults and accounting parenthetical negatives
-├── date.ts         # Julian / value date parser and ISO timestamp formatters
+├── date.ts         # The date/time contract: ISO checks, inbound conversion, bank-time display
 ├── export.ts       # CSV (with Excel UTF-8 BOM), HTML report, and XML table exporters
 ├── id.ts           # generateIdempotencyKey (UUIDv4 for mutations) and generateClientToken (short UI-only IDs)
 ├── index.ts        # Central public export barrel
@@ -32,14 +32,31 @@ formatCurrency(-5000, { accountingNegative: true }); // "(5,000.00 BDT)"
 formatCurrency(2500, { currency: "USD", decimals: 2 }); // "2,500.00 USD"
 ```
 
-### 2. Date Formatting (`formatValueDate`, `formatDateTime`)
+### 2. Dates and times (`date.ts`, the single source of truth)
+
+Inside the system a date is ISO `YYYY-MM-DD` and a date-time is ISO with an offset (`2026-10-27T11:22:52+06:00`). Bank time is `CBS_TIME_ZONE` (Asia/Dhaka, no daylight saving). Don't parse or format dates anywhere else.
 
 ```typescript
-import { formatValueDate, formatDateTime } from "@/lib/core-utils";
+import {
+  formatDate,
+  formatDateTime,
+  isIsoDate,
+  toIsoDate,
+  toIsoDateTime,
+  todayIso,
+} from "@/lib/core-utils";
 
-formatValueDate("20261012"); // "12 Oct 2026"
-formatDateTime(new Date()); // "02 Nov 2026 23:30:00"
+// Inbound only, once, at the boundary (proxy audit times, form record load, inquiry rows)
+toIsoDate("20250101"); // "2025-01-01"  (legacy core format)
+toIsoDateTime("2026-10-27 11:22:52"); // "2026-10-27T11:22:52+06:00"  (legacy core format)
+
+isIsoDate("2026-02-30"); // false: validation is strict ISO
+formatDate("2025-01-01"); // "01 Jan 2025"
+formatDateTime("2026-10-27T05:22:52Z"); // "27 Oct 2026 11:22:52" (bank time)
+todayIso(); // the bank's calendar day, never the UTC date
 ```
+
+`toIsoDate` / `toIsoDateTime` are the only code that knows the core's legacy formats (`YYYYMMDD`, `YYYY-MM-DD HH:mm:ss`). When the core sends ISO, delete their `LEGACY` branches and case 3.1's legacy inputs in `verify:utils`; nothing else changes.
 
 ### 3. Title Case with Acronyms (`toTitleCase`, `formatNameToLabel`)
 

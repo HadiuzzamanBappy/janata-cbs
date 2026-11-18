@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCurrency, formatDateTime, formatValueDate } from "@/lib/core-utils";
+import { formatCurrency, formatDateTime } from "@/lib/core-utils";
 
 export type CellFormatType = "text" | "currency" | "date" | "number";
 
@@ -79,16 +79,10 @@ export function CellFormatter({
     }
 
     case "date": {
-      if (/^\d{8}$/.test(strVal)) {
-        return <span className="font-mono text-2xs tabular-nums">{formatValueDate(strVal)}</span>;
-      }
-      if (/^\d{4}-\d{2}-\d{2}$/.test(strVal)) {
-        const [y, m, d] = strVal.split("-");
-        const formatted = formatValueDate(`${y}${m}${d}`);
-        return <span className="font-mono text-2xs tabular-nums">{formatted || strVal}</span>;
-      }
-      const formatted = formatDateTime(strVal);
-      return <span className="font-mono text-2xs tabular-nums">{formatted || strVal}</span>;
+      // Rows are ISO by now (runInquiry); formatDateTime shows a date or a timestamp
+      return (
+        <span className="font-mono text-2xs tabular-nums">{formatDateTime(strVal) || strVal}</span>
+      );
     }
 
     default:

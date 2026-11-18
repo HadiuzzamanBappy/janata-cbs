@@ -1,6 +1,7 @@
 import "server-only";
 
 import { SC_BRANCH, SC_USER, type UserRecord } from "@mock/db";
+import { todayIso } from "@/lib/core-utils";
 import type { ApiResponse, CbsWirePayload } from "@/lib/data-schemas";
 import type { GrpcResponse, LoginRequest } from "@/lib/infra-grpc/generated/service";
 import { errorResult, successResult } from "../response-factory";
@@ -12,7 +13,7 @@ import { errorResult, successResult } from "../response-factory";
 export function buildMockUserAuthResponse(user: UserRecord): GrpcResponse {
   const branch = SC_BRANCH[user.branchCode];
   const branchName = branch?.branchTitle?.trim() || user.branchName || "CENTRAL OFFICE, HO, DHAKA";
-  const txnDate = branch?.currTxnDate || new Date().toISOString().split("T")[0];
+  const txnDate = branch?.currTxnDate || todayIso();
 
   return {
     status: "SUCCESS",

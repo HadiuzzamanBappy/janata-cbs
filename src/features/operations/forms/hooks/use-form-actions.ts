@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
+import { normalizeRecordDates } from "@/lib/cbs-form-spec";
 import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
 import { type FormConfigRecord, isApiSuccess } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
@@ -58,10 +59,12 @@ export function useFormActions({
         );
 
         if (isApiSuccess(res) && res.data) {
+          // Inbound dates become ISO once, here, so the baseline and every later save are ISO
+          const record = normalizeRecordDates(schema, res.data);
           if (hydrate) {
-            hydrate(res.data);
+            hydrate(record);
           } else {
-            setValues(res.data);
+            setValues(record);
           }
           setScreenMode(modeToSet);
           if (cleanId !== searchRecordId) {

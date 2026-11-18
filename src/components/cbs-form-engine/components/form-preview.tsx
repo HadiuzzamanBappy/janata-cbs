@@ -86,9 +86,9 @@ export function FormPreview({
           recStatus: CbsRecordStatus.AU,
           recCurrNumber: 1,
           recInputter: "DEV.USER_01",
-          recInputTime: "2602121545",
+          recInputTime: "2026-02-12T15:45:00+06:00",
           recAuthorizer: "AUTH.USER_01",
-          recAuthTime: "2602121546",
+          recAuthTime: "2026-02-12T15:46:00+06:00",
           recBranchCode: "JB0001",
         }}
         showAuditSection

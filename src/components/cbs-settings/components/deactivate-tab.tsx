@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { todayIso } from "@/lib/core-utils";
 
 export function DeactivateTab() {
   const [loading, setLoading] = React.useState(false);
@@ -30,18 +31,13 @@ export function DeactivateTab() {
       return;
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const reactDate = new Date(reactivationDate);
-    const deactDate = new Date(deactivateDate);
-
-    if (reactDate <= today) {
+    // ISO dates (YYYY-MM-DD) compare correctly as text; "today" is the bank's calendar day
+    if (reactivationDate <= todayIso()) {
       setError("Reactivation date must be in the future.");
       return;
     }
 
-    if (reactDate <= deactDate) {
+    if (reactivationDate <= deactivateDate) {
       setError("Reactivation date must be after deactivation date.");
       return;
     }

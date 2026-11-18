@@ -53,6 +53,7 @@ The engine is partitioned into 7 decoupled, single-responsibility modules:
 | **[`layout-blocks.ts`](./layout-blocks.ts)**       | Contiguous tab clustering and container layout grouping                              | `buildRenderBlocks`, `getBlockGapSectionIndex`                                                                        |
 | **[`layout-grid.ts`](./layout-grid.ts)**           | 12-column responsive spans & compact banking input width caps                        | `TOKEN_TO_COL_SPAN`, `SEMANTIC_INPUT_WIDTH_CLASSES`, `getFieldColSpanClass`, `getGridColsClass`, `getInputWidthClass` |
 | **[`path-utils.ts`](./path-utils.ts)**             | Pure, immutable flat & dot-notated record accessors                                  | `getFieldValue`, `setFieldValue`, `deleteFieldValue`                                                                  |
+| **[`record-dates.ts`](./record-dates.ts)**         | Converts a loaded record's Date / DateTime fields to ISO, once, by field type        | `normalizeRecordDates`                                                                                                |
 
 ---
 
@@ -79,7 +80,7 @@ To maintain compact banking density and prevent inputs from stretching across ul
 1. **Mandatory Required Check**: Distinguishes missing values (`undefined`, `null`, `""`, empty arrays) from valid falsy values (`false`, `0`).
 2. **Physical Column Length**: Verifies string lengths against physical DDL column capacity (`ctx.length`).
 3. **Numeric Bounds & Digits**: Accepts plain decimals only (`-5`, `12.50`; not `1e3`, `0x10`, `Infinity`), then checks maximum physical digits and `validation.min` / `validation.max` thresholds.
-4. **Temporal Standards**: Dates are ISO only (`Date` / `DateTime`, the CBS wire contract): `20250101`, `01/05/2026` and impossible days such as `2026-02-30` are rejected; and 24-hour time strings (`HH:mm` or `HH:mm:ss`).
+4. **Temporal Standards**: `record-dates.ts` (`normalizeRecordDates`) converts a loaded record's Date / DateTime fields to ISO once. Dates are ISO only (`Date` / `DateTime`, the CBS wire contract): `20250101`, `01/05/2026` and impossible days such as `2026-02-30` are rejected; and 24-hour time strings (`HH:mm` or `HH:mm:ss`).
 5. **Pattern / Regex**: Safely evaluates custom `matches` regex patterns inside guarded blocks, returning author-defined `validation.message` strings.
 6. **Recursive Sub-Properties (`PROP`)**: Traverses nested object fields (e.g. `AUDIT_DETAILS.reviewer`) and table rows (e.g. `ITEMS.0.code`).
 7. **Multi-Value Items**: Each filled item of a multi-value (`M`) field meets the single-value rules above.

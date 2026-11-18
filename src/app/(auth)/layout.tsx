@@ -1,9 +1,10 @@
 import { ThemeToggle } from "@/components/cbs-settings";
+import { todayIso } from "@/lib/core-utils";
 import { SessionStoreProvider } from "@/store";
 import { AuthSplitCard } from "./_components/auth-split-card";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  const currentDate = new Date().toISOString().split("T")[0];
+  const currentDate = todayIso();
 
   return (
     <SessionStoreProvider>

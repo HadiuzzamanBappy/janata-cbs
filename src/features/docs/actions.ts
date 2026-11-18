@@ -2,7 +2,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { clientConfig } from "@/lib/core-config";
+import { formatDateTime } from "@/lib/core-utils";
 import { DEV_NAV_GROUPS, MANUAL_NAV_GROUPS } from "./config";
 import type { CompiledDocItem, PortalDocsBundle } from "./types";
 
@@ -53,10 +53,7 @@ export async function fetchAllPortalDocsAction(portalSubFolder: string): Promise
 
   return {
     portalTitle,
-    generatedAt: new Date().toLocaleString(clientConfig.format.dateLocale, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }),
+    generatedAt: formatDateTime(new Date()),
     items,
   };
 }

@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { ZodType } from "zod";
 import { verifyUserRecordAccess } from "@/lib/cbs-access";
 import { logger } from "@/lib/core-logger";
+import { normalizeAuditTimes } from "@/lib/core-utils";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import {
   type ApiResponse,
@@ -48,10 +49,12 @@ function saveDataSchemaFor(requestType: string, controlName?: string): ZodType |
  */
 function decodeResponse(requestType: string, res: ApiResponse): ApiResponse {
   if (!isApiSuccess(res) || !res.data) return res;
-  const data =
+  const decoded =
     requestType === CbsRequestType.INQ
       ? parseInquiryRecords(decodeProtobufValue(res.data))
       : decodeProtobufValue(res.data);
+  // Dates are ISO inside the system: audit timestamps are converted once, here
+  const data = normalizeAuditTimes(decoded);
   return { ...res, data };
 }
 

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { SC_MODEL_CONFIG } from "@mock/db";
+import { nowIsoDateTime } from "@/lib/core-utils";
 import type { ApiResponse, CbsWirePayload } from "@/lib/data-schemas";
 import { CbsControlTable } from "@/types";
 import { resolveTable } from "../database-router";
@@ -126,12 +127,12 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
               (payload.data?.recAuthorizer as string) ||
               (payload.data?.userId as string) ||
               "CHECKER",
-            recAuthTime: new Date().toISOString(),
+            recAuthTime: nowIsoDateTime(),
           }
         : {
             recInputter:
               (payload.data?.recInputter as string) || (payload.data?.userId as string) || "MAKER",
-            recInputTime: new Date().toISOString(),
+            recInputTime: nowIsoDateTime(),
           }),
     },
   };

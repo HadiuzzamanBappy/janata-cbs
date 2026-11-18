@@ -8,7 +8,7 @@
 
 "use client";
 
-import { cn, formatNameToLabel } from "@/lib/core-utils";
+import { cn, formatDateTime, formatNameToLabel } from "@/lib/core-utils";
 import type { AuditData } from "@/lib/data-schemas";
 import { CBS_RECORD_STATUS_DEFINITIONS, CbsRecordStatus } from "@/types";
 import { FieldRow } from "../fields/field-row";
@@ -74,6 +74,8 @@ const AUDIT_FIELD_SPECS: readonly AuditFieldSpec[] = [
   },
 ] as const;
 
+const TIME_KEYS: ReadonlySet<string> = new Set(["recInputTime", "recAuthTime"]);
+
 /**
  * AuditContainer: Fixed banking audit trailer container.
  * Displays maker-checker, authorization, timestamps, and revision details.
@@ -87,10 +89,10 @@ export function AuditContainer({ auditData, className, variant = "card" }: Audit
       {AUDIT_FIELD_SPECS.map(({ key, label: customLabel, enrichText, defaultFallback }) => {
         const label = customLabel || formatNameToLabel(key.replace(/^rec/, ""));
         const rawVal = audit[key];
-        const displayValue =
-          rawVal !== undefined && rawVal !== null && rawVal !== ""
-            ? String(rawVal)
-            : defaultFallback || "—";
+        const text = rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
+        // Audit times arrive as ISO (converted at the proxy); show them in bank time
+        const shown = TIME_KEYS.has(key) ? formatDateTime(text) : text;
+        const displayValue = shown || defaultFallback || "—";
 
         return (
           <FieldRow

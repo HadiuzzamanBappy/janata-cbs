@@ -27,6 +27,7 @@ import {
   getFieldValue,
   getGridColsClass,
   getInputWidthClass,
+  normalizeRecordDates,
   resolveWidgetType,
   setFieldValue,
   validateSingleField,
@@ -517,7 +518,11 @@ async function runSuite() {
   const isoOnly = ["20250101", "01/05/2026", "Jan 5 2026"].map((v) =>
     validateSingleField({ type: "Date", label: "Open Date" }, v),
   );
-  const isoDateTime = validateSingleField({ type: "DateTime", label: "At" }, "2026-01-01T10:00:00");
+  const isoDateTime = validateSingleField(
+    { type: "DateTime", label: "At" },
+    "2026-01-01T10:00:00+06:00",
+  );
+  const noOffset = validateSingleField({ type: "DateTime", label: "At" }, "2026-01-01T10:00:00");
   const padded = validateSingleField(
     { type: "String", label: "Swift Code", length: 11, validation: { pattern: "^[A-Z]{11}$" } },
     "JANBBDDHIMA ",
@@ -527,17 +532,78 @@ async function runSuite() {
     "JANBBDDHIMAX",
   );
   recordTest(
-    "4.14 Dates are ISO only (YYYYMMDD, slashes, words rejected); trailing-space padding is ignored",
+    "4.14 Dates are ISO only (YYYYMMDD, slashes, words, offset-less date-times rejected); padding ignored",
     {
       nonIso: ["20250101", "01/05/2026", "Jan 5 2026"],
       padded: "JANBBDDHIMA ",
       tooLong: "JANBBDDHIMAX",
     },
-    { isoOnly, isoDateTime, padded, tooLong },
+    { isoOnly, isoDateTime, noOffset, padded, tooLong },
     isoOnly.every((e) => e === "Open Date must be a valid date") &&
       isoDateTime === null &&
+      noOffset === "At must be a valid date and time" &&
       padded === null &&
       tooLong === "Swift Code cannot exceed 11 characters",
+  );
+
+  const loadedSpec = {
+    title: "T",
+    frmElements: {
+      sections: [
+        {
+          id: "s",
+          containerType: "card" as const,
+          fields: [
+            {
+              SN: "1",
+              NAME: "openDate",
+              TYPE: "Date" as const,
+              STRUCTURE: "S" as const,
+              LENGTH: 10,
+            },
+            {
+              SN: "2",
+              NAME: "postedAt",
+              TYPE: "DateTime" as const,
+              STRUCTURE: "S" as const,
+              LENGTH: 19,
+            },
+            { SN: "3", NAME: "refNo", TYPE: "String" as const, STRUCTURE: "S" as const, LENGTH: 8 },
+            {
+              SN: "4",
+              NAME: "rows",
+              TYPE: "Array" as const,
+              STRUCTURE: "M" as const,
+              LENGTH: 0,
+              PROP: [
+                {
+                  SN: "1",
+                  NAME: "valueDate",
+                  TYPE: "Date" as const,
+                  STRUCTURE: "S" as const,
+                  LENGTH: 10,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+  const loaded = normalizeRecordDates(loadedSpec, {
+    openDate: "20250101",
+    postedAt: "2026-10-27 11:22:52",
+    refNo: "20250101",
+    rows: [{ valueDate: "20250102" }],
+  });
+  recordTest(
+    "4.15 A loaded record's Date / DateTime fields (nested rows too) become ISO; other fields untouched",
+    { openDate: "20250101", postedAt: "2026-10-27 11:22:52", refNo: "20250101" },
+    loaded,
+    loaded.openDate === "2025-01-01" &&
+      loaded.postedAt === "2026-10-27T11:22:52+06:00" &&
+      loaded.refNo === "20250101" &&
+      (loaded.rows as Array<{ valueDate: string }>)[0].valueDate === "2025-01-02",
   );
 
   // ── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──

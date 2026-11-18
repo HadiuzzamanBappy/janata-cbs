@@ -2,6 +2,7 @@ import type { InquiryTabState } from "@/lib/data-schemas";
 import type { CbsScreenMode, CbsUserSecurityContext } from "@/types";
 import type { ParsedCommand } from "../types";
 
+/** @internal Exported only for scripts/verify. */
 export interface CommandTabPayload {
   readonly screenId: string;
   readonly menuNodeId?: string;

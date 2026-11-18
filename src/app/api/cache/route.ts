@@ -1,4 +1,5 @@
 import type { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import type { ApiResponse } from "@/lib/data-schemas";
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 
 const cacheLogger = logger.withContext("CACHE_API");
 
+/** Optional `?control=` filter: a control name such as `MODEL.CONFIG`; omitted means flush all. */
+const controlParamSchema = z.string().trim().min(1).max(64).optional();
+
 export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const secret = serverConfig.redis.invalidateToken;
@@ -20,7 +24,13 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<ApiResp
       return apiFail("Unauthorized: Invalid or missing cache invalidation token", 401);
     }
 
-    const control = request.nextUrl.searchParams.get("control") ?? undefined;
+    const parsedControl = controlParamSchema.safeParse(
+      request.nextUrl.searchParams.get("control") ?? undefined,
+    );
+    if (!parsedControl.success) {
+      return apiFail("Invalid 'control' parameter", 400);
+    }
+    const control = parsedControl.data;
     const removed = await invalidateCache(control);
     const clientIp = getClientIp(request);
 

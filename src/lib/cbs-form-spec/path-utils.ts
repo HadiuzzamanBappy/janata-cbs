@@ -107,6 +107,7 @@ export function setFieldValue<T extends Record<string, unknown>>(
  * @param record Source record state.
  * @param path Target property path to remove.
  * @returns Cloned record with target path removed.
+ * @internal Exported only for scripts/verify.
  */
 export function deleteFieldValue<T extends Record<string, unknown>>(record: T, path: string): T {
   if (!record || !path) return record;

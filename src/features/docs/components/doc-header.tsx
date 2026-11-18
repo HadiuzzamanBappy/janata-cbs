@@ -132,5 +132,3 @@ export function DocHeader({
     </>
   );
 }
-
-export { DocHeader as DevHeader };

@@ -23,6 +23,7 @@ export function buildDefaultCriteria(fields: readonly INQSelectField[] = []): Fi
 /**
  * Parses a CBS fixedSelection string (e.g. "STATUS EQ AU" or "RECORD.STATUS NE REVE, CATEGORY EQ 1001")
  * into InquiryCriteriaParam items.
+ * @internal Exported only for scripts/verify.
  */
 export function parseFixedSelectionToWire(fixedSelection?: string): InquiryCriteriaParam[] {
   if (!fixedSelection || fixedSelection.trim() === "") return [];

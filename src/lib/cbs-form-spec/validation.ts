@@ -33,6 +33,7 @@ export interface SingleFieldValidationContext {
  * @param ctx Field validation metadata (required, length, label, type, custom validation rule).
  * @param value Raw field value to test.
  * @returns Error message string if invalid, or null if valid.
+ * @internal Exported only for scripts/verify.
  */
 export function validateSingleField(
   ctx: SingleFieldValidationContext,

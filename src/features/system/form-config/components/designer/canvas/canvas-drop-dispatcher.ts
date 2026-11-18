@@ -13,11 +13,6 @@ import type {
 } from "@/lib/data-schemas";
 import type { AddSectionFn } from "./canvas-types";
 
-export interface CreateNewFieldOptions {
-  sections: FormSection[];
-  template: Partial<FormElement>;
-}
-
 /**
  * Creates a normalized FormElement from a partial template.
  */

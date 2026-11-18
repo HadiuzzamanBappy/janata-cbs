@@ -102,6 +102,7 @@ export type GrpcEnvelope = z.infer<typeof grpcEnvelopeSchema>;
 /* 6. Universal Core -> BFF -> Client API Response Envelope                  */
 /* -------------------------------------------------------------------------- */
 
+/** @internal Exported only for scripts/verify. */
 export const apiResponseSchema = z.object({
   status: apiStatusSchema,
   statusCode: z.number().int(),

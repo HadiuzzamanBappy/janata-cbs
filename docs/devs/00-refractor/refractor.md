@@ -11,16 +11,16 @@ This plan runs strictly from dependency leaves to root. A phase may only change 
 
 **Resume from here.** Update this table whenever a phase's exit gate passes and its commit lands.
 
-| Phase | Scope                                  | Status      | Commit                                        | Owner's manual test                   | Live `verify:api`         |
-| ----- | -------------------------------------- | ----------- | --------------------------------------------- | ------------------------------------- | ------------------------- |
-| P0    | Governance & tooling                   | ✅ done     | `d84451f`                                     | ✅ passed                             | —                         |
-| P1    | L0 types & schemas                     | ✅ done     | `5571d59`                                     | ✅ passed (popup-draft fix folded in) | ✅ green (run in P3)      |
-| P2    | Parsers, utils, storage, logger        | ✅ done     | `594a4d0` (+ `decb0c4` `JsonArray` → `Array`) | ✅ passed                             | ✅ green (run in P3)      |
-| P3    | Wire client, proxy, gRPC, Redis, mock  | ✅ done     | `6b63473`                                     | ✅ passed                             | ✅ green 9/9 (2026-11-18) |
-| P4    | Command, access, screen, stores, hooks | ✅ done     | `48e5707`                                     | ✅ passed                             | —                         |
-| P5    | UI primitives & tokens                 | ✅ done     | `56c3cb7`                                     | ✅ committed by owner                 | ⏳ CPW needs a live test  |
-| P6    | Engines & feature modules              | ✅ done     | ⏳ uncommitted (owner commits)                | ⏳ pending                            | —                         |
-| P7    | App, routing, route handlers           | ⏳ **next** | —                                             | —                                     | required at exit          |
+| Phase | Scope                                  | Status                              | Commit                                        | Owner's manual test                   | Live `verify:api`           |
+| ----- | -------------------------------------- | ----------------------------------- | --------------------------------------------- | ------------------------------------- | --------------------------- |
+| P0    | Governance & tooling                   | ✅ done                             | `d84451f`                                     | ✅ passed                             | —                           |
+| P1    | L0 types & schemas                     | ✅ done                             | `5571d59`                                     | ✅ passed (popup-draft fix folded in) | ✅ green (run in P3)        |
+| P2    | Parsers, utils, storage, logger        | ✅ done                             | `594a4d0` (+ `decb0c4` `JsonArray` → `Array`) | ✅ passed                             | ✅ green (run in P3)        |
+| P3    | Wire client, proxy, gRPC, Redis, mock  | ✅ done                             | `6b63473`                                     | ✅ passed                             | ✅ green 9/9 (2026-11-18)   |
+| P4    | Command, access, screen, stores, hooks | ✅ done                             | `48e5707`                                     | ✅ passed                             | —                           |
+| P5    | UI primitives & tokens                 | ✅ done                             | `56c3cb7`                                     | ✅ committed by owner                 | ⏳ CPW needs a live test    |
+| P6    | Engines & feature modules              | ✅ done                             | `b0a32ac`                                     | ✅ committed by owner                 | —                           |
+| P7    | App, routing, route handlers           | ✅ done (live `verify:api` pending) | ⏳ uncommitted (owner commits)                | ⏳ pending                            | ⏳ needs a valid test login |
 
 ### How to resume a session
 
@@ -439,7 +439,7 @@ For F5-2, keep **one** `ChangePasswordForm` in L4 (`components/cbs-settings`), b
 ## Phase 6 — Feature Modules & Engines (L4 engines + L5 features)
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-18), not yet committed.** F6-1 was skipped by owner decision; the rest are done or resolved. See the [Phase 6 outcome](#phase-6-outcome).
+> **Status: ✅ complete (2026-11-18), commit `b0a32ac`.** F6-1 was skipped by owner decision; the rest are done or resolved. See the [Phase 6 outcome](#phase-6-outcome).
 
 **Scope:** [cbs-form-engine/](../../../src/components/cbs-form-engine/) (3,438 lines), [cbs-inquiry-engine/](../../../src/components/cbs-inquiry-engine/) (1,642), [features/operations/](../../../src/features/operations/) (1,298), [features/system/](../../../src/features/system/) (**16,578**), [features/workbench/](../../../src/features/workbench/).
 
@@ -495,7 +495,7 @@ export function useInquiryExecution(schema: InquiryConfigRecord, controller: str
 ### Phase 6 outcome
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-18), not yet committed.** Gates: lint 0 / 0, typecheck 0, `verify:form-spec` 32, `verify:inquiry` 20, `verify:screen` 13, `verify:mock` 15, `verify:all` 16/16, build green. Diff so far: 13 files, about +100 / −128.
+> **Status: ✅ complete (2026-11-18).** Gates: lint 0 / 0, typecheck 0, `verify:form-spec` 32, `verify:inquiry` 20, `verify:screen` 13, `verify:mock` 15, `verify:all` 16/16, build green. Diff so far: 13 files, about +100 / −128.
 
 | ID   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -510,7 +510,8 @@ export function useInquiryExecution(schema: InquiryConfigRecord, controller: str
 
 ## Phase 7 — Root App, Routing & Route Handlers (L6)
 
-> **Status: ⏳ not started.**
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** Only the live `verify:api` run is outstanding (it needs a valid test login). See the [Phase 7 outcome](#phase-7-outcome).
 
 **Scope:** [src/app/](../../../src/app/) (1,269 lines), [src/proxy.ts](../../../src/proxy.ts).
 
@@ -542,10 +543,22 @@ const params = popupSearchParamsSchema.safeParse(Object.fromEntries(searchParams
 
 ### Exit gate P7 (final)
 
-- [ ] Every file in `src/app` is ≤ 120 lines and contains composition only.
-- [ ] Every `searchParams` and `params` read goes through a Zod schema.
-- [ ] `pnpm build` succeeds, and `pnpm typecheck` · `pnpm lint` · `pnpm verify:all` · `pnpm verify:api` are all green.
-- [ ] The Appendix A inventory is re-run: dead exports = 0, and test-only exports are either removed or marked `/** @internal */`.
+- [x] Every file in `src/app` is ≤ 120 lines and contains composition only (largest: `api/proxy/route.ts`, 114; `screen/[id]/page.tsx` 250 → 30).
+- [x] Every `searchParams` and `params` read goes through a Zod schema (popup URL, popup route segment, `/api/cache?control=`). The theme-cookie cast in `layout.tsx` is gone too.
+- [ ] `pnpm build` ✅ · `pnpm typecheck` ✅ · `pnpm lint` ✅ · `pnpm verify:all` ✅ (16/16) · **`pnpm verify:api` ⏳** (the default test login was rejected; it needs a valid `TEST_USERNAME`/`TEST_PASSWORD` in `.env.local`).
+- [x] The Appendix A inventory was re-run: **dead exports = 0** (15 deleted), and the **13 test-only exports are marked `/** @internal */`**.
+
+### Phase 7 outcome
+
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** Gates: lint 0 / 0, typecheck 0, `verify:schemas` 11, `verify:layers`, `verify:screen` 13, `verify:all` 16/16, build green. Live `verify:api` pending.
+
+| ID         | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F7-1       | ✅ The popup screen logic moved to [standalone-screen.tsx](../../../src/features/workbench/standalone-screen.tsx) (`StandaloneScreen`, exported from `@/features/workbench`). The route file is now composition only: validate the route segment, the client-mount gate, the store provider and Suspense.                                                                                                                                                                                                                                                                                                                                                                                           |
+| F7-2       | ✅ New L0 [screen-params-schema.ts](../../../src/lib/data-schemas/screen-params-schema.ts): `popupSearchParamsSchema` validates every popup URL value on its own (`.catch(undefined)`), so a tampered `mode`, `step` or `page` falls back to its default without discarding the rest. `popupRouteParamsSchema` validates `[id]` (invalid → `notFound()`). Both casts (`as CbsScreenMode`, `as CbsInquiryStep`) are gone. `/api/cache?control=` is validated as well (invalid → 400), and `layout.tsx` resolves the theme cookie by preset lookup instead of a cast. `verify:schemas` case added (failed first).                                                                                     |
+| F7-3       | ✅ Already met by Phases 3 and 5: the proxy route is session check → `safeParse` → access check → `buildGrpcEnvelope` → `getOrSet` (failures never cached) → invalidate → respond.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Appendix A | ✅ Re-run (static scan of every named export in `src/` and `mock/`, excluding vendored `ui/`, generated gRPC stubs and Next.js route exports). **Deleted 15 dead exports:** the leftover aliases `DevHeader`, `DevSearchDialog(Props)`, `DevSidebar(Props)`, `DesignerFieldCard(Props)`, `CanvasBlockFlow(Props)`, `InsertionIndicator(Props)`, the unused `CreateNewFieldOptions`, `FIELD_ANCHOR_SECTION`, `ACTION_INSPECTOR_SECTIONS` and `PopupSearchParams`. **Tagged 13 test-only exports `@internal`.** 246 exports are used only inside their own file (mostly component `*Props` and mock `_INAU/_HIS/_DEL` buckets); they are not dead and were left exported, by the minimal-change rule. |
 
 ---
 

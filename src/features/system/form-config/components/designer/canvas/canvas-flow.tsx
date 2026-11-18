@@ -42,8 +42,6 @@ export interface CanvasFlowProps {
   disabled?: boolean;
 }
 
-export type CanvasBlockFlowProps = CanvasFlowProps;
-
 /**
  * Universal Canvas Flow.
  * Renders the vertical, open flow of independent blocks (Standalone Fields,
@@ -139,5 +137,3 @@ export function CanvasFlow(props: CanvasFlowProps) {
     </div>
   );
 }
-
-export { CanvasFlow as CanvasBlockFlow };

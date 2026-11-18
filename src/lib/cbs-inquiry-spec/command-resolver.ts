@@ -39,6 +39,7 @@ export function resolveCommandTemplate(cmdTemplate: string, row: InquiryRow): st
 /**
  * Resolves the primary executable CBS command for an inquiry row.
  * Handles both standard INQCmd templates and internal dynamic row commands (cmdFromInternal).
+ * @internal Exported only for scripts/verify.
  */
 export function getPrimaryInquiryCommand(
   commands: INQCmd[] = [],

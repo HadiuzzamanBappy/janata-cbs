@@ -211,5 +211,3 @@ export function DocSidebar({
     </Sidebar>
   );
 }
-
-export { DocSidebar as DevSidebar, type DocSidebarProps as DevSidebarProps };

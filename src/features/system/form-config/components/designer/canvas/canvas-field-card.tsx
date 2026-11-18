@@ -21,8 +21,6 @@ export interface CanvasFieldCardProps {
   disabled?: boolean;
 }
 
-export type DesignerFieldCardProps = CanvasFieldCardProps;
-
 export function CanvasFieldCard({
   field,
   sectionId,
@@ -159,5 +157,3 @@ export function CanvasFieldCard({
     </div>
   );
 }
-
-export { CanvasFieldCard as DesignerFieldCard };

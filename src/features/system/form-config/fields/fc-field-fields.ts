@@ -9,51 +9,6 @@
 import type { FormSection } from "@/lib/data-schemas";
 
 /**
- * Physical Model Anchor Section specification for Field Inspector.
- * Rendered natively via FormRenderer in View mode (mode="S") without card wrappers.
- */
-export const FIELD_ANCHOR_SECTION: FormSection = {
-  id: "sec_physical_anchor",
-  containerType: "card",
-  containerConfig: { variant: "ghost" },
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "NAME",
-      LABEL: "Column Key",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 50,
-    },
-    {
-      SN: "2",
-      NAME: "SN",
-      LABEL: "Sequence (SN)",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 10,
-    },
-    {
-      SN: "3",
-      NAME: "PHYSICAL_TYPE",
-      LABEL: "Physical Type",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 20,
-    },
-    {
-      SN: "4",
-      NAME: "STRUCTURE",
-      LABEL: "Structure",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 20,
-    },
-  ],
-};
-
-/**
  * Standard Form Sections definition for Field Properties in the Inspector.
  * Uses Janata CBS FormEngine specifications.
  */

@@ -92,6 +92,7 @@ export const SEMANTIC_WIDTH_TOKENS = ["xs", "sm", "md", "lg", "xl", "xxl", "full
 const semanticWidthTokenSchema = z.enum(SEMANTIC_WIDTH_TOKENS);
 export type SemanticWidthToken = z.infer<typeof semanticWidthTokenSchema>;
 
+/** @internal Exported only for scripts/verify. */
 export const propertyWidthSchema = z.preprocess((val) => {
   if (typeof val === "string") {
     const s = val.toLowerCase().trim();

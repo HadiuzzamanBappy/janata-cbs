@@ -32,6 +32,7 @@ import {
  *
  * @param model Physical model configuration from backend core.
  * @returns Standard single-section card layout containing all model fields.
+ * @internal Exported only for scripts/verify.
  */
 export function buildFallbackSections(model: ModelConfigRecord): FormSection[] {
   const allProps = model.PROPERTIES || [];

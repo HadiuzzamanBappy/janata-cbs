@@ -24,6 +24,7 @@ import {
   loginSchema,
   menuTreeRecordSchema,
   modelConfigRecordSchema,
+  popupSearchParamsSchema,
 } from "@/lib/data-schemas";
 
 interface TestCase {
@@ -380,6 +381,37 @@ async function runSuite() {
       inqSchemaResult.data?.INQInfo.showBranchWise === true &&
       inqSchemaResult.data?.INQSelectField[0]?.selectFieldRequired === true &&
       inqSchemaResult.data?.INQDef[0]?.dataPassable === true,
+  );
+
+  // Popup URL parameters: a trust boundary. Valid values pass; a tampered value is dropped alone
+  const popupOk = popupSearchParamsSchema.safeParse({
+    tabId: "popup-ACCOUNT_1",
+    mode: "A",
+    recordId: "1001",
+    component: "INQUIRY_SCREEN",
+    step: "RESULTS",
+    page: "2",
+    pageSize: "25",
+  });
+  const popupTampered = popupSearchParamsSchema.safeParse({
+    mode: "DROP TABLE",
+    step: "<script>",
+    page: "abc",
+    recordId: "1001",
+  });
+  recordTest(
+    "Popup search params: valid values parse (page numbers coerced); a tampered field becomes undefined, the rest survive",
+    { valid: "mode=A&step=RESULTS&page=2", tampered: "mode=DROP TABLE&step=<script>&page=abc" },
+    { valid: popupOk.data, tampered: popupTampered.data },
+    popupOk.success &&
+      popupOk.data.mode === "A" &&
+      popupOk.data.page === 2 &&
+      popupOk.data.component === "INQUIRY_SCREEN" &&
+      popupTampered.success &&
+      popupTampered.data.mode === undefined &&
+      popupTampered.data.step === undefined &&
+      popupTampered.data.page === undefined &&
+      popupTampered.data.recordId === "1001",
   );
 
   // Final Summary

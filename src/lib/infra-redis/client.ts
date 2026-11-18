@@ -26,6 +26,7 @@ export function tripCircuit(): void {
   openUntil = Date.now() + COOLDOWN_MS;
 }
 
+/** @internal Exported only for scripts/verify. */
 export function resetCircuit(): void {
   openUntil = 0;
 }

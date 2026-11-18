@@ -5,7 +5,6 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   CBS_THEME_PRESETS,
-  type CbsThemeAccent,
   clientConfig,
   DEFAULT_THEME_ACCENT,
   THEME_COOKIE_NAME,
@@ -31,9 +30,8 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Read persisted theme cookie synchronously on the server (Zero FOUC, Zero Client Scripts)
   const cookieStore = await cookies();
-  const rawTheme = cookieStore.get(THEME_COOKIE_NAME)?.value as CbsThemeAccent | undefined;
-  const initialTheme =
-    rawTheme && CBS_THEME_PRESETS.some((p) => p.id === rawTheme) ? rawTheme : DEFAULT_THEME_ACCENT;
+  const rawTheme = cookieStore.get(THEME_COOKIE_NAME)?.value;
+  const initialTheme = CBS_THEME_PRESETS.find((p) => p.id === rawTheme)?.id ?? DEFAULT_THEME_ACCENT;
 
   return (
     <html

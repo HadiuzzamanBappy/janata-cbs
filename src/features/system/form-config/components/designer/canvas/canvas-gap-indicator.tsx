@@ -13,8 +13,6 @@ export interface CanvasGapIndicatorProps {
   disabled?: boolean;
 }
 
-export type InsertionIndicatorProps = CanvasGapIndicatorProps;
-
 /**
  * Universal Canvas Gap Indicator.
  * Renders a collapsed drop zone that expands into an active placement guide
@@ -105,5 +103,3 @@ export function CanvasGapIndicator({
     </section>
   );
 }
-
-export { CanvasGapIndicator as InsertionIndicator };

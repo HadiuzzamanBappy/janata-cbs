@@ -20,6 +20,7 @@ const SENSITIVE_KEY_PATTERNS = [
 
 /**
  * Checks if a key matches any known sensitive/credential patterns.
+ * @internal Exported only for scripts/verify.
  */
 export function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key));
@@ -31,6 +32,7 @@ export function isSensitiveKey(key: string): boolean {
 
 /**
  * Masks account numbers keeping only prefix and last 4 digits (e.g. "AC****1234").
+ * @internal Exported only for scripts/verify.
  */
 export function maskAccountNumber(val: string): string {
   const digits = val.replace(/\D/g, "");

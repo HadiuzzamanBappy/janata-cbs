@@ -13,6 +13,7 @@ export interface RecordBaseline<T extends Record<string, unknown> = Record<strin
 /**
  * Creates an immutable baseline snapshot of a record.
  * Uses native structuredClone to isolate from subsequent in-memory mutations.
+ * @internal Exported only for scripts/verify.
  */
 export function createBaseline<T extends Record<string, unknown>>(
   record: T | null | undefined,

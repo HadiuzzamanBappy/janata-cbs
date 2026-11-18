@@ -55,5 +55,3 @@ export function DocSearchDialog({
     </CommandDialog>
   );
 }
-
-export { DocSearchDialog as DevSearchDialog, type DocSearchDialogProps as DevSearchDialogProps };

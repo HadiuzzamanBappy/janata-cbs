@@ -19,6 +19,7 @@ const FINANCIAL_REQUEST_TYPES = new Set(serverConfig.grpc.financialTransactionTy
 
 /**
  * Returns true if the requestType matches a configured financial transaction code from env.
+ * @internal Exported only for scripts/verify.
  */
 export function isFinancialRequest(requestType: string): boolean {
   return FINANCIAL_REQUEST_TYPES.has(requestType.trim().toUpperCase());

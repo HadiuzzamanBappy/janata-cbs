@@ -84,5 +84,3 @@ export function getActionInspectorSections(targetModel = "ACCOUNT"): FormSection
     },
   ];
 }
-
-export const ACTION_INSPECTOR_SECTIONS: FormSection[] = getActionInspectorSections();

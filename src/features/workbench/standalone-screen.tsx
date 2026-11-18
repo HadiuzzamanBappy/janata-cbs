@@ -50,10 +50,7 @@ export function StandaloneScreen({ screenId }: { screenId: string }) {
         type === CBS_SCREEN_MESSAGE.SESSION_LOGOUT
       ) {
         setIsSessionExpired(true);
-      } else if (
-        type === CBS_SCREEN_MESSAGE.SESSION_RESTORED ||
-        type === CBS_SCREEN_MESSAGE.SESSION_LOGIN
-      ) {
+      } else if (type === CBS_SCREEN_MESSAGE.SESSION_RESTORED) {
         setIsSessionExpired(false);
       }
     };

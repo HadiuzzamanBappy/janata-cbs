@@ -74,6 +74,7 @@ Before you finish any change, run `pnpm lint:fix`, `pnpm typecheck` and `pnpm ve
 - [Project Roadmap](PROJECT_ROADMAP.md) — A guided path through the codebase, from first run to building a screen offline.
 - [Project Tree](PROJECT_TREE.md) — Annotated repository and `src/` layer structure.
 - [Architecture & Security Audit Checklist](ARCHITECTURE_AUDIT_CHECKLIST.md) — Checklist for security, single-source logic, layer discipline, dead code and simplicity.
+- [Production Operations](PRODUCTION_OPERATIONS.md) — Production settings, clearing the cache through `DELETE /api/cache`, Redis outages, unlocking a user, release checks.
 
 > [!NOTE]
 > To add a page, create `docs/devs/<path>.md`, then list it here and in `DEV_NAV_GROUPS` in `src/features/docs/config.ts`. Links between portal pages are written relative to `docs/devs/` (for example `PROJECT_TREE.md`). Name source files as code paths, because links to source files don't open inside the portal.

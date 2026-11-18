@@ -36,7 +36,7 @@ SC_INQUIRY_CONFIG (core / mock)            ← one record per inquiry: INQInfo, 
 ## Invariants
 
 1. **Filter order is fixed.** `serializeCriteriaToWire()` always emits, in this order: the branch filter (only when the caller passes a branch), the configured `fixedSelection`, then the operator's non-empty criteria. Blank values are dropped, and the operand defaults to `EQ`.
-2. **The branch comes from the caller, never from the config.** The engine passes the session branch only when `INQInfo.showBranchWise` is set (see `runInquiry` in the engine).
+2. **The branch comes from the session, never from the config.** The engine adds the branch filter (`INQUIRY_BRANCH_FIELD`) only when `INQInfo.showBranchWise` is set, and `/api/proxy` overwrites its value with the session's branch, so a value tampered with in the browser can't read another branch.
 3. **Row actions go through the command gateway.** Row commands are always run with `cbsCommand.execute`, never by routing directly, so aliases, RBAC and screen resolution apply to them exactly as they do to typed commands.
 4. **`@internal` exports** (`getPrimaryInquiryCommand`, `parseFixedSelectionToWire`) are public only so `scripts/verify` can test them. Don't use them in app code.
 

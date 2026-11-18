@@ -11,22 +11,21 @@ async function clearCache() {
   });
 
   try {
-    const pattern = `${prefix}:*`;
-    let cursor = "0";
+    // Spec and menu caches only: sessions (sess:, user:sess:) and rate limits (rl:) are kept,
+    // so clearing the cache never signs operators out.
+    const patterns = [`${prefix}:spec:*`, `${prefix}:menu:*`];
     let count = 0;
 
-    do {
-      const [nextCursor, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 200);
-      cursor = nextCursor;
-      if (keys.length > 0) {
-        const deleted = await redis.del(...keys);
-        count += deleted;
-      }
-    } while (cursor !== "0");
+    for (const pattern of patterns) {
+      let cursor = "0";
+      do {
+        const [nextCursor, keys] = await redis.scan(cursor, "MATCH", pattern, "COUNT", 200);
+        cursor = nextCursor;
+        if (keys.length > 0) count += await redis.del(...keys);
+      } while (cursor !== "0");
+    }
 
-    console.log(
-      `✓ Cache cleared successfully! Removed ${count} key(s) matching pattern "${pattern}".`,
-    );
+    console.log(`✓ Cache cleared: removed ${count} key(s) matching ${patterns.join(", ")}.`);
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error(`✕ Failed to clear Redis cache: ${errorMessage}`);

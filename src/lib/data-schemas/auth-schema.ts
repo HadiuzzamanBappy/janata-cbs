@@ -111,6 +111,5 @@ export type CurrentUser = z.infer<typeof currentUserSchema>;
 export const updateBranchSessionSchema = z
   .object({
     branchCode: z.string().trim().min(1, "Branch code is required"),
-    branchName: z.string().trim().min(1, "Branch name is required"),
   })
   .strict();

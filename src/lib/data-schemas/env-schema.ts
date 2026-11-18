@@ -50,7 +50,7 @@ export const envSchema = z
     REDIS_KEY_PREFIX: z.string().trim().default("cbs"),
     CACHE_ENABLED: booleanEnv(true),
     CACHE_COOLDOWN_MS: z.coerce.number().int().nonnegative().default(5000),
-    CACHE_INVALIDATE_TOKEN: z.string().trim().default("super-secret-cache-token"),
+    CACHE_INVALIDATE_TOKEN: z.string().trim().default(""),
     MENU_TTL_SECONDS: z.coerce.number().int().positive().default(600),
     SPEC_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 

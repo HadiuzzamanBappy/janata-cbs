@@ -1,76 +1,57 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { cbsAuth } from "@/lib/cbs-client";
+import {
+  CBS_SCREEN_MESSAGE,
+  clearAllWorkbenchDrafts,
+  postWorkbenchMessage,
+} from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
+import { cbsStorage } from "@/lib/core-utils";
 import type { CurrentUser } from "@/lib/data-schemas";
 
 export interface SessionState {
   user: CurrentUser | null;
+  /** Always the server session's branch (`user.branchCode`): set only from a server-confirmed user. */
   currentBranch: string | null;
   isAuthenticated: boolean;
   setSession: (user: CurrentUser) => void;
   clearSession: () => void;
-
   logout: () => Promise<void>;
-  setBranch: (branch: string) => void;
 }
 
 export type SessionStore = ReturnType<typeof createSessionStore>;
+
+const SIGNED_OUT = { user: null, currentBranch: null, isAuthenticated: false } as const;
 
 export const createSessionStore = () => {
   return createStore<SessionState>()(
     persist(
       (set) => ({
-        user: null,
-        currentBranch: null,
-        isAuthenticated: false,
+        ...SIGNED_OUT,
         setSession: (user) => {
-          set({ user, isAuthenticated: true });
-          if (typeof window !== "undefined") {
-            try {
-              const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
-              channel.postMessage({ type: "CBS_SESSION_RESTORED", payload: user });
-              channel.close();
-            } catch {
-              // Safe fallback
-            }
-          }
+          set({ user, currentBranch: user.branchCode, isAuthenticated: true });
+          postWorkbenchMessage({
+            type: CBS_SCREEN_MESSAGE.SESSION_RESTORED,
+            tabId: "global",
+            payload: user,
+          });
         },
-        clearSession: () => set({ user: null, isAuthenticated: false }),
+        clearSession: () => set(SIGNED_OUT),
         logout: async () => {
           try {
             await cbsAuth.logout();
           } catch (e) {
             logger.error("Logout failed", e, "SESSION_STORE");
           }
-          set({ user: null, isAuthenticated: false });
-
-          // Cross-window coordination: notify detached windows without wiping draft form data
-          if (typeof window !== "undefined") {
-            try {
-              const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
-              channel.postMessage({ type: "CBS_SESSION_LOGOUT" });
-              channel.postMessage({ type: "SESSION_LOGOUT" });
-              channel.close();
-            } catch {
-              // Ignore BroadcastChannel errors in non-supporting contexts
-            }
-            window.location.href = clientConfig.routes.login;
-          }
-        },
-        setBranch: (branch) => {
-          set({ currentBranch: branch });
-          // Broadcast branch change to detached popups
-          if (typeof window !== "undefined") {
-            try {
-              const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
-              channel.postMessage({ type: "BRANCH_CHANGED", branch });
-              channel.close();
-            } catch {
-              // Safe fallback
-            }
-          }
+          set(SIGNED_OUT);
+          // An explicit sign-out leaves the terminal: drop open tabs and staged drafts (they can
+          // hold customer data). An idle timeout keeps them so the same teller can resume.
+          cbsStorage.remove("session", clientConfig.storage.session.workbenchTabs);
+          clearAllWorkbenchDrafts();
+          postWorkbenchMessage({ type: CBS_SCREEN_MESSAGE.SESSION_LOGOUT, tabId: "global" });
+          if (typeof window !== "undefined") window.location.href = clientConfig.routes.login;
         },
       }),
       {

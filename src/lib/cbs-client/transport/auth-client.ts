@@ -46,10 +46,10 @@ export const cbsAuth = {
   },
 
   /**
-   * Synchronizes branch roaming context to Redis and cookies via `/api/session`.
+   * Switches the session branch via `/api/session`; the server validates the code against the core.
    */
-  updateBranch(branchCode: string, branchName: string): Promise<ApiResponse<unknown>> {
-    return postJson(clientConfig.routes.api.session, { branchCode, branchName });
+  updateBranch(branchCode: string): Promise<ApiResponse<unknown>> {
+    return postJson(clientConfig.routes.api.session, { branchCode });
   },
 
   /**

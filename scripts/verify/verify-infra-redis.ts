@@ -8,7 +8,7 @@
  * 4. Spec Auto-Invalidation on Mutation (FORM_CONFIG, MODEL_CONFIG, MENU_TREE)
  * 5. Read-Sequence Protection (GNI does NOT trigger cache eviction)
  * 6. Single-Flight Concurrency Deduplication (Collapses duplicate in-flight promises)
- * 7. Rate Limiter Fail-Open Protection (rateLimit handles circuit trips gracefully)
+ * 7. Rate Limiter (in-memory fallback during outages, reset on success) & availability vs absence
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-infra-redis.ts
@@ -69,6 +69,9 @@ async function runSuite() {
     autoInvalidateOnMutation,
     getOrSet,
     rateLimit,
+    clearRateLimit,
+    cacheRead,
+    SPEC_CACHE_PATTERNS,
   } = await import("@/lib/infra-redis");
   const { CbsControlTable, CbsRecordFunction, CbsRequestType } = await import("@/types");
   const { serverConfig } = await import("@/lib/core-config/server");
@@ -290,16 +293,49 @@ async function runSuite() {
   );
 
   // ---------------------------------------------------------------------------
-  // 6. Rate Limiter Fail-Open Protection
+  // 6. Rate Limiter: in-memory fallback while Redis is unavailable (never fails open)
   // ---------------------------------------------------------------------------
   tripCircuit();
-  const rlResult = await rateLimit("test:ip:user", 5, 60);
+  const rlHits = [];
+  for (let i = 0; i < 4; i++) rlHits.push(await rateLimit("test:user:A", 3, 60));
+  recordTest(
+    "15. Rate Limiter keeps limiting in memory when Redis is unavailable",
+    { key: "test:user:A", limit: 3, hits: 4, circuitOpen: true },
+    rlHits.map((r) => r.allowed),
+    rlHits[0].allowed && rlHits[2].allowed && !rlHits[3].allowed && rlHits[3].remaining === 0,
+  );
+
+  await clearRateLimit("test:user:A");
+  const afterClear = await rateLimit("test:user:A", 3, 60);
   resetCircuit();
   recordTest(
-    "15. Rate Limiter fails open gracefully when circuit is tripped",
-    { key: "test:ip:user", circuitOpen: true },
-    rlResult,
-    rlResult.allowed === true && rlResult.remaining === 5,
+    "16. clearRateLimit resets the window (successful login)",
+    { key: "test:user:A" },
+    afterClear,
+    afterClear.allowed && afterClear.remaining === 2,
+  );
+
+  // ---------------------------------------------------------------------------
+  // 7. Availability vs absence, and scoped cache clearing
+  // ---------------------------------------------------------------------------
+  tripCircuit();
+  const unavailable = await cacheRead("probe:any");
+  resetCircuit();
+  recordTest(
+    "17. cacheRead returns undefined (not null) when Redis is unavailable",
+    { circuitOpen: true },
+    { result: String(unavailable) },
+    unavailable === undefined,
+  );
+
+  const prefix = serverConfig.redis.keyPrefix;
+  recordTest(
+    "18. 'Clear all' targets only spec and menu keys, never sessions or rate limits",
+    { patterns: SPEC_CACHE_PATTERNS },
+    SPEC_CACHE_PATTERNS,
+    SPEC_CACHE_PATTERNS.length === 2 &&
+      SPEC_CACHE_PATTERNS.includes(`${prefix}:spec:*`) &&
+      SPEC_CACHE_PATTERNS.includes(`${prefix}:menu:*`),
   );
 
   // ---------------------------------------------------------------------------

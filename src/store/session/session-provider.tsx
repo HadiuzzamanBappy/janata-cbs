@@ -24,10 +24,7 @@ export function SessionStoreProvider({ children }: { children: ReactNode }) {
           .then((json) => {
             const user = json.data;
             if (isApiSuccess(json) && user) {
-              store.getState().setSession(user);
-              if (user.branchCode && !store.getState().currentBranch) {
-                store.getState().setBranch(user.branchCode);
-              }
+              store.getState().setSession(user); // also sets currentBranch from the session
             }
           })
           .catch((err) => logger.error("Failed to hydrate session", err, "SESSION_PROVIDER"))

@@ -2,7 +2,15 @@ import "server-only";
 
 import { serverConfig } from "@/lib/core-config/server";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType, isCbsMutationRequest } from "@/types";
-import { cacheDelete, cacheGet, cacheKey, cacheSet, circuitOpen } from "./client";
+import {
+  cacheDelete,
+  cacheGet,
+  cacheKey,
+  cacheSet,
+  circuitOpen,
+  deleteKeysMatching,
+  SPEC_CACHE_PATTERNS,
+} from "./client";
 
 /* -------------------------------------------------------------------------- */
 /* Declarative Domain Specification Policies                                  */
@@ -215,9 +223,9 @@ export async function invalidateCache(controlName?: string): Promise<number> {
       cacheKey(cacheKeys.menu(`${cleanCmd}*`)),
       cacheKey(cacheKeys.menu("user*")),
     ];
-    const counts = await Promise.all(patterns.map((p) => cacheDelete(p)));
-    return counts.reduce((sum, count) => sum + count, 0);
+    return deleteKeysMatching(patterns);
   }
 
-  return cacheDelete(cacheKey("*"));
+  // "All" means every spec and menu key, never sessions or rate-limit counters.
+  return deleteKeysMatching(SPEC_CACHE_PATTERNS);
 }

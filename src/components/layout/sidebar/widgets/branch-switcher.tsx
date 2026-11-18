@@ -18,6 +18,7 @@ import { toast } from "@/components/ui/toast";
 import { cbsAuth, cbsQueries } from "@/lib/cbs-client";
 import { clientConfig } from "@/lib/core-config";
 import { cn, toTitleCase } from "@/lib/core-utils";
+import { currentUserSchema, isApiSuccess } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 
 interface BranchSwitcherProps {
@@ -34,7 +35,8 @@ export function BranchSwitcher({
   const [open, setOpen] = React.useState(false);
   const [branchSearch, setBranchSearch] = React.useState("");
   const selectedItemRef = React.useRef<HTMLDivElement | null>(null);
-  const { currentBranch, setBranch, user } = useSessionStore();
+  const { currentBranch, setSession, user } = useSessionStore();
+  const [switching, setSwitching] = React.useState(false);
 
   const {
     data: branches = [],
@@ -82,21 +84,32 @@ export function BranchSwitcher({
     );
   }, [branchSearch, branches]);
 
+  // The server session decides the branch of every transaction, so the UI switches only after
+  // the server confirms, and shows the branch the server returns.
   const handleBranchSwitch = async (code: string, name: string) => {
-    // 1. Immediately update client store and cookie
-    setBranch(code);
-
-    toast.add({
-      title: "Branch Context Switched",
-      description: `Active session roaming changed to ${name} [${code}].`,
-      type: "success",
-    });
-
-    // 2. Synchronize to server session and Redis store
+    if (switching) return;
+    setSwitching(true);
     try {
-      await cbsAuth.updateBranch(code, name);
+      const res = await cbsAuth.updateBranch(code);
+      const confirmed = isApiSuccess(res) ? currentUserSchema.safeParse(res.data) : null;
+      if (!confirmed?.success) {
+        toast.add({
+          title: "Branch not switched",
+          description: res.message || `Could not switch to ${name} [${code}].`,
+          type: "error",
+        });
+        return;
+      }
+      setSession(confirmed.data);
+      toast.add({
+        title: "Branch Context Switched",
+        description: `Active session roaming changed to ${confirmed.data.branchName} [${confirmed.data.branchCode}].`,
+        type: "success",
+      });
     } catch {
-      // Graceful: client cookie and wire payload resolution still guarantee correct branch context
+      toast.add({ title: "Branch not switched", description: "Network error.", type: "error" });
+    } finally {
+      setSwitching(false);
     }
   };
 

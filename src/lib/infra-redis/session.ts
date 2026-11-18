@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import type { CurrentUser } from "@/lib/data-schemas";
-import { cacheDelete, cacheGet, cacheKey, cacheSet } from "./client";
+import { cacheDelete, cacheKey, cacheRead, cacheSet } from "./client";
 
 const sessionLogger = logger.withContext("SESSION");
 
@@ -49,13 +49,57 @@ const getSessionRedisKey = (id: string): string =>
 const getUserSessionRedisKey = (userId: string): string =>
   cacheKey(serverConfig.redis.cacheKeys.userSession(userId));
 
-const cookieOpts = (httpOnly = true, maxAge?: number) => ({
-  httpOnly,
+/*
+ * Storage rule: Redis is the source of truth whenever it is reachable, so a Redis miss means the
+ * session is gone (logged out, superseded or expired), even if another copy exists somewhere.
+ * Memory holds only what Redis couldn't store (cache disabled, or Redis down), and such an entry
+ * moves back to Redis on the first read after recovery.
+ */
+async function load<T>(redisKey: string, memory: Map<string, T>, id: string): Promise<T | null> {
+  const stored = await cacheRead<T>(redisKey);
+  if (stored === undefined) return memory.get(id) ?? null; // Redis disabled or unavailable
+  if (stored !== null) return stored;
+
+  const pending = memory.get(id); // written while Redis was unavailable
+  if (pending === undefined) return null;
+  if (await cacheSet(redisKey, pending, TTL_SECONDS)) memory.delete(id);
+  return pending;
+}
+
+async function save<T>(redisKey: string, memory: Map<string, T>, id: string, value: T) {
+  if (await cacheSet(redisKey, value, TTL_SECONDS)) {
+    memory.delete(id);
+    return;
+  }
+  memory.set(id, value);
+  pruneExpiredMemorySessions();
+}
+
+async function drop<T>(redisKey: string, memory: Map<string, T>, id: string): Promise<void> {
+  memory.delete(id);
+  await cacheDelete(redisKey);
+}
+
+/** Memory sessions are not swept by a Redis TTL, so expired ones are removed here. */
+function pruneExpiredMemorySessions(): void {
+  const cutoff = Date.now() - TTL_SECONDS * 1000;
+  for (const [id, session] of memoryStore) {
+    if (session.lastActiveAt < cutoff) {
+      memoryStore.delete(id);
+      if (memoryUserSessionStore.get(session.userId) === id) {
+        memoryUserSessionStore.delete(session.userId);
+      }
+    }
+  }
+}
+
+/** Options for the session cookies set below (HTTP-only). */
+const COOKIE_OPTS = {
+  httpOnly: true,
   secure: !serverConfig.isDev && serverConfig.useHttps,
   sameSite: "lax" as const,
   path: "/",
-  ...(maxAge !== undefined ? { maxAge } : {}),
-});
+};
 
 async function currentSessionId(): Promise<string | null> {
   try {
@@ -81,44 +125,35 @@ export async function createSession(
 
   // 1. Single Active Login: Invalidate any prior active session for this user across all devices
   const userKey = getUserSessionRedisKey(data.userId);
-  const existingSessionId =
-    (await cacheGet<string>(userKey)) ?? memoryUserSessionStore.get(data.userId);
+  const existingSessionId = await load(userKey, memoryUserSessionStore, data.userId);
 
   if (existingSessionId) {
     sessionLogger.info(
       `Revoking previous active session ${existingSessionId} for user ${data.userId} to enforce single login`,
     );
-    await cacheDelete(getSessionRedisKey(existingSessionId));
-    memoryStore.delete(existingSessionId);
+    await drop(getSessionRedisKey(existingSessionId), memoryStore, existingSessionId);
   }
 
   // Also clean up old session from current cookie if it differed
   if (oldId && oldId !== existingSessionId) {
-    await cacheDelete(getSessionRedisKey(oldId));
-    memoryStore.delete(oldId);
+    await drop(getSessionRedisKey(oldId), memoryStore, oldId);
   }
 
   const id = randomUUID();
   const now = Date.now();
   const payload: SessionData = { ...data, createdAt: now, lastActiveAt: now };
 
-  await cacheSet(getSessionRedisKey(id), payload, TTL_SECONDS);
-  memoryStore.set(id, payload);
+  await save(getSessionRedisKey(id), memoryStore, id, payload);
 
   // 2. Index this session as the user's active session
-  await cacheSet(userKey, id, TTL_SECONDS);
-  memoryUserSessionStore.set(data.userId, id);
+  await save(userKey, memoryUserSessionStore, data.userId, id);
 
   // Session cookie: omit maxAge so the cookie persists for the active browser session.
   // Redis TTL and session.lastActiveAt strictly govern the sliding inactivity window.
-  store.set(COOKIE_NAME, id, cookieOpts(true));
-
-  if (payload.currUser.branchCode) {
-    store.set(serverConfig.auth.branchCookie, payload.currUser.branchCode, cookieOpts(false));
-  }
+  store.set(COOKIE_NAME, id, COOKIE_OPTS);
 
   if (payload.currUser.initLogin) {
-    store.set(serverConfig.auth.initLoginCookie, "true", cookieOpts(true));
+    store.set(serverConfig.auth.initLoginCookie, "true", COOKIE_OPTS);
   } else {
     store.delete(serverConfig.auth.initLoginCookie);
   }
@@ -133,23 +168,19 @@ export async function getSession(): Promise<SessionData | null> {
   const id = await currentSessionId();
   if (!id) return null;
 
-  let session = await cacheGet<SessionData>(getSessionRedisKey(id));
-  if (!session) {
-    session = memoryStore.get(id) ?? null;
-  }
+  const sessionKey = getSessionRedisKey(id);
+  const session = await load(sessionKey, memoryStore, id);
   if (!session) return null;
 
   // Single Active Login Check: Ensure this session is still the active session for this user
   const userKey = getUserSessionRedisKey(session.userId);
-  const activeSessionId =
-    (await cacheGet<string>(userKey)) ?? memoryUserSessionStore.get(session.userId);
+  const activeSessionId = await load(userKey, memoryUserSessionStore, session.userId);
 
   if (activeSessionId && activeSessionId !== id) {
     sessionLogger.warn(
       `Session ${id} superseded: user ${session.userId} has logged in from another browser or device`,
     );
-    await cacheDelete(getSessionRedisKey(id));
-    memoryStore.delete(id);
+    await drop(sessionKey, memoryStore, id);
     return null;
   }
 
@@ -159,22 +190,18 @@ export async function getSession(): Promise<SessionData | null> {
   if (session.lastActiveAt && now - session.lastActiveAt > maxInactiveMs) {
     const timeoutMin = Math.floor(TTL_SECONDS / 60);
     sessionLogger.warn(`Session ${id} expired due to inactivity (> ${timeoutMin}m)`);
-    await cacheDelete(getSessionRedisKey(id));
-    memoryStore.delete(id);
+    await drop(sessionKey, memoryStore, id);
     if (activeSessionId === id) {
-      await cacheDelete(userKey);
-      memoryUserSessionStore.delete(session.userId);
+      await drop(userKey, memoryUserSessionStore, session.userId);
     }
     return null;
   }
 
   session.lastActiveAt = now;
-  await cacheSet(getSessionRedisKey(id), session, TTL_SECONDS);
-  memoryStore.set(id, session);
+  await save(sessionKey, memoryStore, id, session);
 
   // Refresh user session index TTL alongside active session
-  await cacheSet(userKey, id, TTL_SECONDS);
-  memoryUserSessionStore.set(session.userId, id);
+  await save(userKey, memoryUserSessionStore, session.userId, id);
 
   return session;
 }
@@ -206,13 +233,13 @@ export async function updateSession(patch: SessionPatch): Promise<SessionData | 
     currUser: patch.currUser ? { ...session.currUser, ...patch.currUser } : session.currUser,
   };
 
-  await cacheSet(getSessionRedisKey(id), next, TTL_SECONDS);
-  memoryStore.set(id, next);
+  await save(getSessionRedisKey(id), memoryStore, id, next);
   return next;
 }
 
 /**
- * Updates active user's branch code and branch name and synchronizes the branch cookie.
+ * Updates the active user's branch code and name in the session (the branch every proxied
+ * request is sent with).
  */
 export async function updateBranchCodeAndName(
   branchCode: string,
@@ -224,12 +251,6 @@ export async function updateBranchCodeAndName(
   const next = await updateSession({
     currUser: { ...session.currUser, branchCode, branchName },
   });
-
-  if (next?.currUser) {
-    const store = await cookies();
-    store.set(serverConfig.auth.branchCookie, branchCode, cookieOpts(false));
-  }
-
   return next?.currUser ?? null;
 }
 
@@ -248,25 +269,18 @@ export async function clearInitialLoginRequirement(): Promise<void> {
 export async function destroySession(): Promise<void> {
   const id = await currentSessionId();
   if (id) {
-    let session = await cacheGet<SessionData>(getSessionRedisKey(id));
-    if (!session) {
-      session = memoryStore.get(id) ?? null;
-    }
+    const sessionKey = getSessionRedisKey(id);
+    const session = await load(sessionKey, memoryStore, id);
     if (session?.userId) {
       const userKey = getUserSessionRedisKey(session.userId);
-      const activeSessionId =
-        (await cacheGet<string>(userKey)) ?? memoryUserSessionStore.get(session.userId);
-      if (activeSessionId === id) {
-        await cacheDelete(userKey);
-        memoryUserSessionStore.delete(session.userId);
+      if ((await load(userKey, memoryUserSessionStore, session.userId)) === id) {
+        await drop(userKey, memoryUserSessionStore, session.userId);
       }
     }
-    await cacheDelete(getSessionRedisKey(id));
-    memoryStore.delete(id);
+    await drop(sessionKey, memoryStore, id);
   }
 
   const store = await cookies();
   store.delete(COOKIE_NAME);
   store.delete(serverConfig.auth.initLoginCookie);
-  store.delete(serverConfig.auth.branchCookie);
 }

@@ -28,7 +28,6 @@ export const CBS_SCREEN_MESSAGE = {
   SESSION_LOGOUT: "CBS_SESSION_LOGOUT",
   SESSION_EXPIRED: "CBS_SESSION_EXPIRED",
   SESSION_RESTORED: "CBS_SESSION_RESTORED",
-  SESSION_LOGIN: "CBS_SESSION_LOGIN",
 } as const;
 
 /** Canonical popup tab ID — synchronized between page.tsx and popup openers */
@@ -106,6 +105,21 @@ export function getWorkbenchBus(): BroadcastChannel | null {
     busInstance = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
   }
   return busInstance;
+}
+
+/**
+ * Posts on a fresh channel, so listeners in this same window receive it too (a channel never
+ * delivers to itself, as `getWorkbenchBus()` would). Used for session events.
+ */
+export function postWorkbenchMessage(message: WorkbenchBusMessage): void {
+  if (typeof window === "undefined" || !("BroadcastChannel" in window)) return;
+  try {
+    const channel = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
+    channel.postMessage(message);
+    channel.close();
+  } catch {
+    // Listeners fall back to their own session checks
+  }
 }
 
 /**

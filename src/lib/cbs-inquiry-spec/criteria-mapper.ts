@@ -1,8 +1,9 @@
-import type {
-  FilterCriteriaMap,
-  INQSelectField,
-  InquiryCriteriaParam,
-  SelectionOperand,
+import {
+  type FilterCriteriaMap,
+  type INQSelectField,
+  INQUIRY_BRANCH_FIELD,
+  type InquiryCriteriaParam,
+  type SelectionOperand,
 } from "@/lib/data-schemas";
 
 /**
@@ -68,7 +69,7 @@ export function serializeCriteriaToWire(
   // 1. Append branch-wise segregation filter if active
   if (branchCode?.trim()) {
     result.push({
-      selectFieldName: "branchCode",
+      selectFieldName: INQUIRY_BRANCH_FIELD,
       selectFieldType: "text",
       selectFieldOperator: "EQ",
       selectFieldValue: branchCode.trim(),

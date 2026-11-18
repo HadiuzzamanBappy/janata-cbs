@@ -26,6 +26,21 @@ export const DEV_NAV_GROUPS: NavGroup[] = [
         href: "/devs/PROJECT_ROADMAP",
         keywords: ["roadmap", "onboarding", "walkthrough", "learning", "levels", "request path"],
       },
+      {
+        label: "Production Operations",
+        href: "/devs/PRODUCTION_OPERATIONS",
+        keywords: [
+          "production",
+          "cache",
+          "redis",
+          "clear",
+          "api",
+          "token",
+          "lockout",
+          "outage",
+          "deploy",
+        ],
+      },
     ],
   },
 ];

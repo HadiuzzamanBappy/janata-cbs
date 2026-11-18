@@ -1,6 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { clientConfig } from "@/lib/core-config";
-import { unwrapRecordsPayload } from "@/lib/data-parsers";
+import { parseBranchDirectory, unwrapRecordsPayload } from "@/lib/data-parsers";
 import {
   type ControlCommand,
   isApiSuccess,
@@ -42,34 +42,17 @@ export const lookupQueries = {
           throw new Error(res.message || "Failed to load branch directory");
         }
 
-        const rawRecords = unwrapRecordsPayload<{
-          recordId?: string;
-          branchTitle?: string;
-          branchType?: string;
-        }>(res.data);
-        const list = Array.isArray(rawRecords) ? rawRecords : [];
-
-        if (list.length === 0) {
+        const records = parseBranchDirectory(res.data);
+        if (records.length === 0) {
           throw new Error("No branch records found from core banking service");
         }
 
-        const mapped = list
-          .map((b) => {
-            const code = String(b.recordId ?? "").trim();
-            const name = String(b.branchTitle ?? code).trim() || code;
-            const isCentral =
-              code === clientConfig.centralBranch ||
-              code.replace(/\D/g, "") === clientConfig.centralBranch.replace(/\D/g, "");
-            const type = isCentral ? "Head Office" : String(b.branchType ?? "General").trim();
-            return { code, name, type };
-          })
-          .filter((b) => Boolean(b.code));
-
-        if (mapped.length === 0) {
-          throw new Error("Failed to parse branch directory records");
-        }
-
-        return mapped;
+        return records.map(({ code, name, branchType }) => {
+          const isCentral =
+            code === clientConfig.centralBranch ||
+            code.replace(/\D/g, "") === clientConfig.centralBranch.replace(/\D/g, "");
+          return { code, name, type: isCentral ? "Head Office" : branchType || "General" };
+        });
       },
     }),
 

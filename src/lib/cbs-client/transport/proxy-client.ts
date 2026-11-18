@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { notifyUser } from "@/lib/cbs-command";
+import { CBS_SCREEN_MESSAGE, postWorkbenchMessage } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import {
   type ApiResponse,
@@ -51,15 +52,7 @@ export async function sendCbsRequest<T = unknown>(
 
     if (res.status === 401) {
       if (typeof window !== "undefined") {
-        if ("BroadcastChannel" in window) {
-          try {
-            const bus = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
-            bus.postMessage({ type: "CBS_SESSION_EXPIRED", tabId: "global" });
-            bus.close();
-          } catch {
-            // Safe fallback
-          }
-        }
+        postWorkbenchMessage({ type: CBS_SCREEN_MESSAGE.SESSION_EXPIRED, tabId: "global" });
         const isPopup = window.location.pathname.startsWith(clientConfig.routes.screen);
         if (isPopup) {
           notifyError(

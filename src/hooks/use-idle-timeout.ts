@@ -11,6 +11,7 @@ import {
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { cbsStorage } from "@/lib/core-utils";
+import { useSessionStore } from "@/store";
 import { useActivityReporter } from "./use-activity-reporter";
 
 const STORAGE_KEY = clientConfig.storage.local.lastActivity;
@@ -27,6 +28,7 @@ export function useIdleTimeout({
   onLogout,
 }: UseIdleTimeoutOptions = {}) {
   const router = useRouter();
+  const clearSession = useSessionStore((s) => s.clearSession);
   const totalTimeoutMs = timeoutMinutes * 60 * 1000;
   const warningThresholdMs = Math.max(totalTimeoutMs - WARNING_BEFORE_LOGOUT_MS, 0);
 
@@ -46,6 +48,7 @@ export function useIdleTimeout({
       // Fail-safe cleanup
     } finally {
       clearClientSession();
+      clearSession(); // drop the signed-out user's profile and branch from this tab
       const bus = getWorkbenchBus();
       if (bus) {
         bus.postMessage({
@@ -56,7 +59,7 @@ export function useIdleTimeout({
       router.push(clientConfig.routes.login);
       router.refresh();
     }
-  }, [onLogout, router]);
+  }, [onLogout, router, clearSession]);
 
   const keepAlive = useCallback(async () => {
     const now = Date.now();

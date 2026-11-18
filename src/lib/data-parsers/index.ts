@@ -10,6 +10,7 @@
  */
 
 export * from "./auth-parser";
+export * from "./branch-parser";
 export * from "./form-config-parser";
 export * from "./form-config-serializer";
 export * from "./inquiry-config-parser";

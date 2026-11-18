@@ -65,9 +65,12 @@ export function getRedisClient(): Client | null {
     });
 
     client.on("ready", () => {
+      const recovered = client.__warned === true;
       client.__warned = false;
       openUntil = 0;
       redisLogger.info(`Redis connected successfully at ${serverConfig.redis.url}`);
+      // Config saved during the outage couldn't invalidate the spec cache: drop it on recovery.
+      if (recovered) void deleteKeysMatching(SPEC_CACHE_PATTERNS);
     });
 
     globalThis.__redisClient = client;
@@ -90,37 +93,46 @@ export function cacheKey(...parts: string[]): string {
   return [PREFIX, ...parts].join(":");
 }
 
+/** Spec and menu keys only: what "clear the cache" may delete (never sessions or rate limits). */
+export const SPEC_CACHE_PATTERNS: readonly string[] = [cacheKey("spec:*"), cacheKey("menu:*")];
+
 /**
- * Safe JSON retrieval with automatic circuit breaker gating.
+ * Reads a JSON key: the value, `null` when the key is absent, or `undefined` when Redis is
+ * disabled or unavailable. Callers that must not confuse "absent" with "down" use this.
  */
-export async function cacheGet<T>(key: string): Promise<T | null> {
-  if (circuitOpen()) return null;
+export async function cacheRead<T>(key: string): Promise<T | null | undefined> {
+  if (circuitOpen()) return undefined;
 
   const redis = getRedisClient();
-  if (!redis) return null;
+  if (!redis) return undefined;
 
   try {
     const raw = await redis.get(key);
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     tripCircuit();
-    return null;
+    return undefined;
   }
 }
 
-/**
- * Safe JSON persistence with automatic circuit breaker gating.
- */
-export async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promise<void> {
-  if (circuitOpen()) return;
+/** Safe JSON retrieval: `null` when absent or when Redis is unavailable. */
+export async function cacheGet<T>(key: string): Promise<T | null> {
+  return (await cacheRead<T>(key)) ?? null;
+}
+
+/** Safe JSON persistence. Returns `false` when Redis is disabled or the write failed. */
+export async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promise<boolean> {
+  if (circuitOpen()) return false;
 
   const redis = getRedisClient();
-  if (!redis) return;
+  if (!redis) return false;
 
   try {
     await redis.set(key, JSON.stringify(value), "EX", ttlSeconds);
+    return true;
   } catch {
     tripCircuit();
+    return false;
   }
 }
 
@@ -153,4 +165,10 @@ export async function cacheDelete(pattern: string): Promise<number> {
     tripCircuit();
     return 0;
   }
+}
+
+/** Deletes every key matching any of the patterns; returns how many were removed. */
+export async function deleteKeysMatching(patterns: readonly string[]): Promise<number> {
+  const counts = await Promise.all(patterns.map((p) => cacheDelete(p)));
+  return counts.reduce((sum, count) => sum + count, 0);
 }

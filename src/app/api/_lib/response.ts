@@ -26,6 +26,13 @@ export function apiSuccess<T>(
   );
 }
 
+/** 429 for a rate-limited action, with `Retry-After` so clients know when to retry. */
+export function apiTooManyRequests(what: string, resetSec: number): NextResponse<ApiResponse> {
+  return apiFail(`Too many ${what}. Try again in ${resetSec}s.`, 429, undefined, {
+    "Retry-After": String(resetSec),
+  });
+}
+
 export function apiFail(
   message: string,
   statusCode = 400,

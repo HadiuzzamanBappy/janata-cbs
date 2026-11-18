@@ -3,10 +3,15 @@ import { logger } from "@/lib/core-logger";
 import { generateIdempotencyKey } from "@/lib/core-utils";
 import { type ApiResponse, changePasswordSchema, isApiSuccess } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
-import { clearInitialLoginRequirement, getSession } from "@/lib/infra-redis";
+import {
+  clearInitialLoginRequirement,
+  clearRateLimit,
+  getSession,
+  rateLimit,
+} from "@/lib/infra-redis";
 import { CbsRequestType } from "@/types";
 import { buildGrpcEnvelope } from "../_lib/envelope";
-import { apiError, apiFail, apiSuccess } from "../_lib/response";
+import { apiError, apiFail, apiSuccess, apiTooManyRequests } from "../_lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +40,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       );
     }
 
+    // Limit current-password guesses from a signed-in session (an unattended terminal).
+    const limitKey = `cpw:${session.userId}`;
+    const { allowed, resetSec } = await rateLimit(limitKey);
+    if (!allowed) {
+      pwdLogger.warn(`Password change rate limit exceeded for user ${session.userId}`);
+      return apiTooManyRequests("password change attempts", resetSec);
+    }
+
     const envelope = buildGrpcEnvelope(session, {
       requestType: CbsRequestType.CPW,
       idempotencyKey: generateIdempotencyKey(),
@@ -49,6 +62,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     }
 
     // Only after the core accepted the new password: lift the first-login lock
+    await clearRateLimit(limitKey);
     await clearInitialLoginRequirement();
 
     pwdLogger.info(`Password successfully changed for user ${session.userId}`);

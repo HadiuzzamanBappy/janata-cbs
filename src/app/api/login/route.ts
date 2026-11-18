@@ -3,8 +3,8 @@ import { logger } from "@/lib/core-logger";
 import type { ApiResponse } from "@/lib/data-schemas";
 import { loginSchema } from "@/lib/data-schemas";
 import { loginUser } from "@/lib/infra-grpc";
-import { rateLimit } from "@/lib/infra-redis";
-import { apiError, apiFail, apiSuccess, getClientIp } from "../_lib/response";
+import { clearRateLimit, rateLimit } from "@/lib/infra-redis";
+import { apiError, apiFail, apiSuccess, apiTooManyRequests, getClientIp } from "../_lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,14 +27,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     const { username, password } = parsed.data;
     authLogger.info("Login attempt received", { username });
 
-    // Rate limiting: configured attempts per minute per IP + username
+    // Rate limit per sign-on name. Not per IP: X-Forwarded-For is client-controlled, so an
+    // IP-based key could be bypassed by sending a new fake IP on each attempt. IP is logged only.
     const ip = getClientIp(req);
-    const { allowed, resetSec } = await rateLimit(`login:${ip}:${username}`);
+    const limitKey = `login:${username.trim().toUpperCase()}`;
+    const { allowed, resetSec } = await rateLimit(limitKey);
     if (!allowed) {
       authLogger.warn(`Rate limit exceeded for login: ${username}`, { ip, resetSec });
-      return apiFail(`Too many login attempts. Try again in ${resetSec}s.`, 429, undefined, {
-        "Retry-After": String(resetSec),
-      });
+      return apiTooManyRequests("login attempts", resetSec);
     }
 
     const result = await loginUser({ username, password });
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       return apiFail(errMsg, statusCode, result.errors?.length ? result.errors : [errMsg]);
     }
 
+    await clearRateLimit(limitKey);
     authLogger.info(`Successful login for ${username}`, {
       userId: result.user.userId,
       branchCode: result.user.branchCode,

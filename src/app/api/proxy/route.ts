@@ -2,7 +2,13 @@ import { type NextRequest, NextResponse } from "next/server";
 import { verifyUserRecordAccess } from "@/lib/cbs-access";
 import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
-import { type ApiResponse, cbsWirePayloadSchema, isApiSuccess } from "@/lib/data-schemas";
+import {
+  type ApiResponse,
+  cbsWirePayloadSchema,
+  type GrpcEnvelope,
+  INQUIRY_BRANCH_FIELD,
+  isApiSuccess,
+} from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
 import {
   autoInvalidateOnMutation,
@@ -30,6 +36,21 @@ function decodeResponse(requestType: string, res: ApiResponse): ApiResponse {
       ? parseInquiryRecords(decodeProtobufValue(res.data))
       : decodeProtobufValue(res.data);
   return { ...res, data };
+}
+
+/**
+ * Branch-wise inquiries filter on `INQUIRY_BRANCH_FIELD`. The browser builds that filter, so it's
+ * pinned to the envelope's (session) branch here: a tampered filter can't read another branch.
+ */
+function pinInquiryBranch(envelope: GrpcEnvelope): GrpcEnvelope {
+  const queryString = envelope.data.queryString;
+  if (envelope.requestType !== CbsRequestType.INQ || !Array.isArray(queryString)) return envelope;
+  const pinned = queryString.map((c) =>
+    (c as { selectFieldName?: unknown })?.selectFieldName === INQUIRY_BRANCH_FIELD
+      ? { ...(c as object), selectFieldValue: envelope.branchCode }
+      : c,
+  );
+  return { ...envelope, data: { ...envelope.data, queryString: pinned } };
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
@@ -69,7 +90,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     }
 
     // 2. Canonical GrpcEnvelope Assembly (branch and user come from the session)
-    const envelope = buildGrpcEnvelope(session, body);
+    const envelope = pinInquiryBranch(buildGrpcEnvelope(session, body));
 
     // 3. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {

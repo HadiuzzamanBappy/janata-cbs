@@ -9,7 +9,6 @@ const APP_PREFIX = process.env.NEXT_PUBLIC_APP_KEY || "cbs";
 
 const COOKIES = {
   sid: `${APP_PREFIX}_sid`,
-  branch: `${APP_PREFIX}_branch`,
   initLogin: `${APP_PREFIX}_init_login`,
   themeAccent: `${APP_PREFIX}_theme_accent`,
 } as const;
@@ -26,12 +25,9 @@ export const clientConfig = {
 
   // 3. Authentication UI & Session Invariants
   auth: {
-    loginLimit: 3,
     rateLimitWindowSec: 60,
     cookieName: COOKIES.sid,
-    branchCookie: COOKIES.branch,
     initLoginCookie: COOKIES.initLogin,
-    minPasswordLength: 6,
   },
 
   // 3. Core Banking Presentation & Formatting Standards

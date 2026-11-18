@@ -111,6 +111,9 @@ export type InquiryConfigRecord = z.infer<typeof inquiryConfigRecordSchema>;
 /* 7. RUNTIME QUERY PROTOCOL SCHEMAS & TYPES                                  */
 /* ========================================================================== */
 
+/** Filter field of branch-wise inquiries. `/api/proxy` pins its value to the session's branch. */
+export const INQUIRY_BRANCH_FIELD = "branchCode";
+
 export interface InquiryCriteriaParam {
   selectFieldName: string;
   selectFieldType?: InquiryFieldType;

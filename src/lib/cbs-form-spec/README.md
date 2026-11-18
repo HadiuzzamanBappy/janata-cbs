@@ -79,7 +79,7 @@ To maintain compact banking density and prevent inputs from stretching across ul
 1. **Mandatory Required Check**: Distinguishes missing values (`undefined`, `null`, `""`, empty arrays) from valid falsy values (`false`, `0`).
 2. **Physical Column Length**: Verifies string lengths against physical DDL column capacity (`ctx.length`).
 3. **Numeric Bounds & Digits**: Accepts plain decimals only (`-5`, `12.50`; not `1e3`, `0x10`, `Infinity`), then checks maximum physical digits and `validation.min` / `validation.max` thresholds.
-4. **Temporal Standards**: Validates ISO dates (`Date` / `DateTime`), rejecting impossible calendar days such as `2026-02-30`, and 24-hour time strings (`HH:mm` or `HH:mm:ss`).
+4. **Temporal Standards**: Dates are ISO only (`Date` / `DateTime`, the CBS wire contract): `20250101`, `01/05/2026` and impossible days such as `2026-02-30` are rejected; and 24-hour time strings (`HH:mm` or `HH:mm:ss`).
 5. **Pattern / Regex**: Safely evaluates custom `matches` regex patterns inside guarded blocks, returning author-defined `validation.message` strings.
 6. **Recursive Sub-Properties (`PROP`)**: Traverses nested object fields (e.g. `AUDIT_DETAILS.reviewer`) and table rows (e.g. `ITEMS.0.code`).
 7. **Multi-Value Items**: Each filled item of a multi-value (`M`) field meets the single-value rules above.

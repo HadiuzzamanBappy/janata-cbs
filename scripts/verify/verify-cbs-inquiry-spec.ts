@@ -22,6 +22,7 @@ import {
   parseColumnCoordinates,
   parseColumnLength,
   resolveCommandTemplate,
+  rowCommandOf,
   serializeCriteriaToWire,
 } from "@/lib/cbs-inquiry-spec";
 import {
@@ -383,6 +384,19 @@ async function runSuite() {
       { commands, row: sampleRow, cmdFromInternal: true, cmdFieldName: "TXN_CMD" },
       internalPrimary,
       internalPrimary === "USER.MGT,AUTH A ACC-5001",
+    );
+
+    const listRow = {
+      ...sampleRow,
+      eventAction: [{ cmdFor: "BRANCH I recordId", cmdButton: "EDIT" }],
+    } as InquiryRow;
+    const listCommand = rowCommandOf(listRow, true, "eventAction");
+    const listPrimary = getPrimaryInquiryCommand(commands, listRow, true, "eventAction");
+    recordTest(
+      "7.3 A dynamic row command field that isn't text (the core's eventAction list) is never run; the View template is used",
+      { cmdFieldName: "eventAction", value: listRow.eventAction },
+      { listCommand, listPrimary },
+      listCommand === "" && listPrimary === "ACCOUNT S ACC-5001",
     );
   }
 

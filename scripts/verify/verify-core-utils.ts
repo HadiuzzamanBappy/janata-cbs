@@ -165,6 +165,64 @@ async function runSuite() {
     noCrash === true,
   );
 
+  // 6.2 Exported content is safe: captured through a stubbed browser download
+  const files: Blob[] = [];
+  const browser = globalThis as unknown as { window?: unknown; document?: unknown };
+  const realCreateObjectURL = URL.createObjectURL;
+  const realRevokeObjectURL = URL.revokeObjectURL;
+  browser.window = {};
+  browser.document = {
+    createElement: () => ({ setAttribute() {}, click() {} }),
+    body: { appendChild() {}, removeChild() {} },
+  };
+  URL.createObjectURL = (blob: Blob) => {
+    files.push(blob);
+    return "blob:test";
+  };
+  URL.revokeObjectURL = () => {};
+  try {
+    const hostileRows = [
+      {
+        title: "<img src=x onerror=alert(1)>",
+        note: '=HYPERLINK("http://x","pay")',
+        amount: "-5",
+        actions: [{ cmdFor: "BRANCH S recordId" }],
+      },
+    ];
+    const hostileCols = [
+      { key: "title", header: "Title" },
+      { key: "note", header: "Note" },
+      { key: "amount", header: "Amount" },
+      { key: "actions", header: "Actions" },
+    ];
+    exportToCsv("t", hostileCols, hostileRows);
+    exportToHtmlReport("t", hostileCols, hostileRows, { title: "Report <b>x</b>" });
+    exportToXml("t", hostileCols, hostileRows, { title: 'a"b', code: "X" });
+    const [csv, html, xml] = await Promise.all(files.map((f) => f.text()));
+    recordTest(
+      "6.2 Exports escape HTML/XML, neutralise CSV formulas, keep -5 a number, write nested values as JSON",
+      hostileRows[0],
+      {
+        csvRow: csv.split("\r\n")[1],
+        htmlHasTag: html.includes("<img "),
+        xmlRoot: xml.split("\n")[1],
+      },
+      csv.includes(`"'=HYPERLINK(""http://x"",""pay"")"`) &&
+        csv.includes('"-5"') &&
+        !csv.includes("[object Object]") &&
+        csv.includes("cmdFor") &&
+        !html.includes("<img ") &&
+        html.includes("&lt;img") &&
+        !html.includes("<b>x</b>") &&
+        xml.includes('title="a&quot;b"'),
+    );
+  } finally {
+    delete browser.window;
+    delete browser.document;
+    URL.createObjectURL = realCreateObjectURL;
+    URL.revokeObjectURL = realRevokeObjectURL;
+  }
+
   // ----------------------------------------------------------------------------
   // 7. Web Storage Gateway
   // ----------------------------------------------------------------------------

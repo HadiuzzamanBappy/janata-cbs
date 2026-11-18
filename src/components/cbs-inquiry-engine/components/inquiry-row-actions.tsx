@@ -2,7 +2,11 @@
 
 import { Eye, Pencil, Play, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { executeInquiryCommand, resolveCommandTemplate } from "@/lib/cbs-inquiry-spec";
+import {
+  executeInquiryCommand,
+  resolveCommandTemplate,
+  rowCommandOf,
+} from "@/lib/cbs-inquiry-spec";
 import type { INQCmd, InquiryRow } from "@/lib/data-schemas";
 
 export interface InquiryRowActionsProps {
@@ -18,12 +22,12 @@ export function InquiryRowActions({
   cmdFromInternal = false,
   cmdFieldName = "",
 }: InquiryRowActionsProps) {
-  const hasInternalCmd = Boolean(cmdFromInternal && cmdFieldName && row[cmdFieldName]);
+  const rawCmd = rowCommandOf(row, cmdFromInternal, cmdFieldName);
+  const hasInternalCmd = Boolean(rawCmd);
 
   if ((!commands || commands.length === 0) && !hasInternalCmd) return null;
 
   if (commands.length === 0 && hasInternalCmd) {
-    const rawCmd = String(row[cmdFieldName]).trim();
     const executable = resolveCommandTemplate(rawCmd, row);
 
     return (

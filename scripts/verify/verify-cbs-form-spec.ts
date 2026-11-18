@@ -514,6 +514,32 @@ async function runSuite() {
     impossibleDate === "Value Date must be a valid date" && leapDate === null,
   );
 
+  const isoOnly = ["20250101", "01/05/2026", "Jan 5 2026"].map((v) =>
+    validateSingleField({ type: "Date", label: "Open Date" }, v),
+  );
+  const isoDateTime = validateSingleField({ type: "DateTime", label: "At" }, "2026-01-01T10:00:00");
+  const padded = validateSingleField(
+    { type: "String", label: "Swift Code", length: 11, validation: { pattern: "^[A-Z]{11}$" } },
+    "JANBBDDHIMA ",
+  );
+  const tooLong = validateSingleField(
+    { type: "String", label: "Swift Code", length: 11 },
+    "JANBBDDHIMAX",
+  );
+  recordTest(
+    "4.14 Dates are ISO only (YYYYMMDD, slashes, words rejected); trailing-space padding is ignored",
+    {
+      nonIso: ["20250101", "01/05/2026", "Jan 5 2026"],
+      padded: "JANBBDDHIMA ",
+      tooLong: "JANBBDDHIMAX",
+    },
+    { isoOnly, isoDateTime, padded, tooLong },
+    isoOnly.every((e) => e === "Open Date must be a valid date") &&
+      isoDateTime === null &&
+      padded === null &&
+      tooLong === "Swift Code cannot exceed 11 characters",
+  );
+
   // ── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──
   console.log("\n── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──");
 

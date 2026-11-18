@@ -5,6 +5,19 @@ import { type INQCmd, INQUIRY_ID_TOKENS, type InquiryRow } from "@/lib/data-sche
 const COMMAND_HEAD_TOKENS = 2;
 
 /**
+ * The dynamic row command (`cmdFromInternal` + `cmdFieldName`): the row's value when it is text,
+ * otherwise "". A list or object (e.g. the core's `eventAction` array) is never run as a command.
+ */
+export function rowCommandOf(
+  row: InquiryRow,
+  cmdFromInternal: boolean,
+  cmdFieldName: string,
+): string {
+  const raw = cmdFromInternal && cmdFieldName ? row[cmdFieldName] : undefined;
+  return typeof raw === "string" ? raw.trim() : "";
+}
+
+/**
  * Resolves CBS command templates from INQCmds (e.g. "USER.MGT,NEW1 A recordId" or "ACCOUNT S @ID")
  * by dynamically interpolating row values before execution. Only the tokens after
  * `SCREEN FUNCTION` are row fields, so a column named like the screen can't rewrite the command.
@@ -53,11 +66,9 @@ export function getPrimaryInquiryCommand(
   cmdFromInternal = false,
   cmdFieldName = "",
 ): string {
-  if (cmdFromInternal && cmdFieldName && row[cmdFieldName]) {
-    const rawInternal = String(row[cmdFieldName]).trim();
-    if (rawInternal) {
-      return resolveCommandTemplate(rawInternal, row);
-    }
+  const rawInternal = rowCommandOf(row, cmdFromInternal, cmdFieldName);
+  if (rawInternal) {
+    return resolveCommandTemplate(rawInternal, row);
   }
 
   if (commands.length === 0) return "";
@@ -79,12 +90,10 @@ export function executeInquiryCommand(
   cmdFromInternal = false,
   cmdFieldName = "",
 ) {
-  if (cmdFromInternal && cmdFieldName && row[cmdFieldName]) {
-    const raw = String(row[cmdFieldName]).trim();
-    if (raw) {
-      cbsCommand.execute(resolveCommandTemplate(raw, row));
-      return;
-    }
+  const raw = rowCommandOf(row, cmdFromInternal, cmdFieldName);
+  if (raw) {
+    cbsCommand.execute(resolveCommandTemplate(raw, row));
+    return;
   }
 
   const executable = resolveCommandTemplate(command.cmdFor, row);

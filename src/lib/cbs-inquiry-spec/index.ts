@@ -17,6 +17,7 @@ export {
   executePrimaryInquiryCommand,
   getPrimaryInquiryCommand,
   resolveCommandTemplate,
+  rowCommandOf,
 } from "./command-resolver";
 export {
   INQUIRY_OPERAND_OPTIONS,

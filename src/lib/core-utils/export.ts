@@ -7,6 +7,36 @@ export interface ExportColumn<T = Record<string, unknown>> {
   header: string;
 }
 
+const MARKUP_ESCAPES: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+
+/** Escapes text for HTML / XML content and attribute values. */
+function escapeMarkup(value: string): string {
+  return value.replace(/[&<>"']/g, (ch) => MARKUP_ESCAPES[ch]);
+}
+
+/** A cell as text: empty for null / undefined, JSON for nested values (never "[object Object]"). */
+function cellText(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return typeof value === "object" ? JSON.stringify(value) : String(value);
+}
+
+const FORMULA_START = /^[=+\-@\t\r]/;
+const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
+
+/**
+ * Spreadsheets run a cell that starts with = + - @ as a formula. Such text gets a leading ' so it
+ * opens as text; plain numbers (e.g. -5) are left as they are.
+ */
+function csvSafe(text: string): string {
+  return FORMULA_START.test(text) && !PLAIN_NUMBER.test(text) ? `'${text}` : text;
+}
+
 function triggerBrowserDownload(blob: Blob, filename: string): void {
   if (typeof window === "undefined") return;
   const url = URL.createObjectURL(blob);
@@ -29,14 +59,13 @@ export function exportToCsv<T extends Record<string, unknown>>(
 ): void {
   if (typeof window === "undefined" || rows.length === 0) return;
 
-  const headerRow = columns.map((col) => `"${col.header.replace(/"/g, '""')}"`).join(",");
+  const headerRow = columns.map((col) => `"${csvSafe(col.header).replace(/"/g, '""')}"`).join(",");
 
   const bodyRows = rows.map((row) =>
     columns
       .map((col) => {
-        const val = row[col.key as keyof T];
-        if (val === null || val === undefined) return '""';
-        return `"${String(val).replace(/"/g, '""')}"`;
+        const text = csvSafe(cellText(row[col.key as keyof T]));
+        return `"${text.replace(/"/g, '""')}"`;
       })
       .join(","),
   );
@@ -57,11 +86,14 @@ export function exportToHtmlReport<T extends Record<string, unknown>>(
 ): void {
   if (typeof window === "undefined" || rows.length === 0) return;
 
-  const title = options?.title || filename;
-  const subtitle = options?.subtitle ? ` (${options.subtitle})` : "";
-  const tableHeaders = columns.map((c) => `<th>${c.header}</th>`).join("");
+  const title = escapeMarkup(options?.title || filename);
+  const subtitle = options?.subtitle ? ` (${escapeMarkup(options.subtitle)})` : "";
+  const tableHeaders = columns.map((c) => `<th>${escapeMarkup(c.header)}</th>`).join("");
   const tableBody = rows
-    .map((r) => `<tr>${columns.map((c) => `<td>${r[c.key as keyof T] ?? ""}</td>`).join("")}</tr>`)
+    .map(
+      (r) =>
+        `<tr>${columns.map((c) => `<td>${escapeMarkup(cellText(r[c.key as keyof T]))}</td>`).join("")}</tr>`,
+    )
     .join("");
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font-family:sans-serif;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#f4f4f4}</style></head><body><h2>${title}${subtitle}</h2><table><thead><tr>${tableHeaders}</tr></thead><tbody>${tableBody}</tbody></table></body></html>`;
@@ -83,18 +115,14 @@ export function exportToXml<T extends Record<string, unknown>>(
 
   const rootTag = options?.rootTag || "dataset";
   const recordTag = options?.recordTag || "record";
-  const codeAttr = options?.code ? ` code="${options.code}"` : "";
-  const titleAttr = options?.title ? ` title="${options.title}"` : "";
+  const codeAttr = options?.code ? ` code="${escapeMarkup(options.code)}"` : "";
+  const titleAttr = options?.title ? ` title="${escapeMarkup(options.title)}"` : "";
 
   const xmlRows = rows
     .map((r) => {
       const fields = columns
         .map((c) => {
-          const raw = r[c.key as keyof T] ?? "";
-          const escaped = String(raw)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
+          const escaped = escapeMarkup(cellText(r[c.key as keyof T]));
           return `    <${String(c.key)}>${escaped}</${String(c.key)}>`;
         })
         .join("\n");

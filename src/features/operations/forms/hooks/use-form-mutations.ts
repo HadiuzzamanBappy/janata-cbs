@@ -6,7 +6,12 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { computeDelta } from "@/lib/cbs-record";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
-import { type ApiResponse, type FormConfigRecord, isApiSuccess } from "@/lib/data-schemas";
+import {
+  type ApiResponse,
+  type AuditData,
+  type FormConfigRecord,
+  isApiSuccess,
+} from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus, type CbsScreenMode } from "@/types";
 
 export interface UseFormMutationsProps {
@@ -165,8 +170,9 @@ export function useFormMutations({
         return;
       }
 
-      const isLive =
-        values.RECORD_STATUS === CbsRecordStatus.AU || values.status === CbsRecordStatus.AU;
+      // Same source as the action bar's label: the core keeps the status in auditData.recStatus
+      const recStatus = (values.auditData as AuditData | undefined)?.recStatus;
+      const isLive = recStatus?.trim().toUpperCase() === CbsRecordStatus.AU;
       const payload = isLive
         ? cbs.model(modelCode).reverse(targetId)
         : cbs.model(modelCode).authorize(targetId);

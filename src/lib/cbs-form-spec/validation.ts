@@ -21,11 +21,13 @@ import { getFieldValue } from "./path-utils";
 const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
 const ISO_DATE_PREFIX = /^(\d{4})-(\d{2})-(\d{2})/;
 
-/** Rejects impossible calendar dates that Date.parse rolls over (e.g. 2026-02-30). */
+/**
+ * Dates are ISO only (`YYYY-MM-DD`, or ISO date-time), the CBS wire contract. Also rejects
+ * impossible calendar days that Date.parse rolls over (e.g. 2026-02-30).
+ */
 function isRealCalendarDate(value: string): boolean {
-  if (Number.isNaN(Date.parse(value))) return false;
   const parts = ISO_DATE_PREFIX.exec(value);
-  if (!parts) return true;
+  if (!parts || Number.isNaN(Date.parse(value))) return false;
   const [year, month, day] = [Number(parts[1]), Number(parts[2]), Number(parts[3])];
   const d = new Date(Date.UTC(year, month - 1, day));
   return d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day;
@@ -135,11 +137,14 @@ export function validateSingleField(
     return null;
   }
 
+  // The core pads fixed-width text with trailing spaces; they never count against the rules
+  const text = typeof value === "string" ? value.trimEnd() : null;
+
   // 5. Pattern / Regex Check (pattern or matches)
   const pattern = ctx.validation?.pattern || ctx.validation?.matches;
-  if (pattern && typeof value === "string") {
+  if (pattern && text !== null) {
     try {
-      if (!new RegExp(pattern).test(value))
+      if (!new RegExp(pattern).test(text))
         return ctx.validation?.message || `${label} format is invalid`;
     } catch {
       // Ignore invalid regex in user metadata
@@ -147,14 +152,14 @@ export function validateSingleField(
   }
 
   // 6. Text Length Validation (Min, Max, Physical Length)
-  if (typeof value === "string") {
-    if (ctx.validation?.min !== undefined && value.length < ctx.validation.min) {
+  if (text !== null) {
+    if (ctx.validation?.min !== undefined && text.length < ctx.validation.min) {
       return ctx.validation.message || `${label} must be at least ${ctx.validation.min} characters`;
     }
-    if (ctx.validation?.max !== undefined && value.length > ctx.validation.max) {
+    if (ctx.validation?.max !== undefined && text.length > ctx.validation.max) {
       return ctx.validation.message || `${label} cannot exceed ${ctx.validation.max} characters`;
     }
-    if (typeof ctx.length === "number" && ctx.length > 0 && value.length > ctx.length) {
+    if (typeof ctx.length === "number" && ctx.length > 0 && text.length > ctx.length) {
       return `${label} cannot exceed ${ctx.length} characters`;
     }
   }

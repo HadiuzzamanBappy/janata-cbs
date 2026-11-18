@@ -36,15 +36,7 @@ export function validateInquiryConfig(
 ): InquiryValidationErrorItem[] {
   const formData = sanitizeInquiryConfigRecord(draft);
   const issues: InquiryValidationErrorItem[] = [];
-  const seenKeys = new Set<string>();
-
-  const addIssue = (item: InquiryValidationErrorItem) => {
-    const dedupeKey = `${item.tab}:${item.fieldKey}:${item.message}`;
-    if (!seenKeys.has(dedupeKey)) {
-      seenKeys.add(dedupeKey);
-      issues.push(item);
-    }
-  };
+  const addIssue = (item: InquiryValidationErrorItem) => issues.push(item);
 
   // 1. Save rules
   const parseResult = inquiryConfigSaveSchema.safeParse(formData);

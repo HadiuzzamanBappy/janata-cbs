@@ -12,7 +12,8 @@ It enforces a strict security boundary (`import "server-only"`), maintains a laz
 src/lib/infra-grpc/
 ├── auth.ts         # loginUser / logoutUser: core login, then createSession / destroySession in @/lib/infra-redis
 ├── client.ts       # Channel pooling, TLS, 16 MB limit, RPC callers (loginProcess, financialProcess, nonFinancialProcess), status mapping
-├── dispatch.ts     # Pure gRPC dispatcher routing by servicePath with env-based financial detection
+├── dispatch.ts     # Routes by servicePath to the core or a microservice (gRPC or REST), financial detection
+├── rest-client.ts  # REST transport for http(s) services: same flat request as JSON POST, Bearer token
 ├── generated/      # Protobuf compiled TypeScript stubs (ts-proto) for GrpcServiceClient, GrpcRequest, GrpcResponse
 └── index.ts        # Server-only barrel export
 ```
@@ -86,7 +87,12 @@ const response = await dispatch(envelope, session.token);
 
 ### 2. Service Routing via `servicePath`
 
-The dispatcher extracts the first segment of `envelope.servicePath` (defaulting to `"default"`) and resolves the target gRPC address via `getServiceUrl()` in `src/lib/core-config/server.ts`.
+`dispatch()` resolves `envelope.servicePath` (trimmed, any case; empty = `default`) with `resolveService()` in `src/lib/core-config/server.ts`:
+
+- `default` is the core: gRPC at `GRPC_HOST`.
+- Any other name comes from `SERVICE_<NAME>_URL`. A `host:port` address is gRPC (same contract as the core). An `http(s)://` address is REST: `rest-client.ts` POSTs the same flat `GrpcRequest` plus `servicePath` as JSON to that exact URL, with `Authorization: Bearer <core token>` and the `GRPC_TIMEOUT_MS` deadline. The reply must be the CBS envelope.
+- An unregistered name fails with `503` (`Service "x" is not available`) and is never sent to the core. REST failures map to `503` (unreachable), `504` (timeout) and `502` (reply without a CBS envelope).
+- Login always goes to the core. Static mode (`DATA_SOURCE=static`) ignores `servicePath`. The routing table is logged once at start-up (`Services: default → grpc …, finxurm → rest http://…`).
 
 ### 3. Authentication & Session Management (`loginUser`, `logoutUser`)
 

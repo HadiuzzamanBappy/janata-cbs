@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { auditDataSchema } from "./common-schema";
+import { auditDataSchema, SERVICE_NAME_PATTERN } from "./common-schema";
 
 /* ========================================================================== */
 /* 1. PHYSICAL DATABASE COLUMN TYPES (Canonical 7 Core Types)                 */
@@ -274,7 +274,6 @@ export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
 /* ========================================================================== */
 
 const TABLE_NAME_PATTERN = /^[A-Z][A-Z0-9_.]*$/;
-const SERVICE_NAME_PATTERN = /^[A-Za-z0-9]+$/;
 const MODEL_ACCESS_CODES: readonly string[] = ["G", "B"];
 
 const isPositiveInteger = (v: unknown): boolean => Number.isInteger(Number(v)) && Number(v) > 0;

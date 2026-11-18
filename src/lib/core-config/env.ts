@@ -1,5 +1,5 @@
 import "server-only";
-import { type Env, envSchema } from "@/lib/data-schemas";
+import { type Env, envSchema, serviceEnvSchema } from "@/lib/data-schemas";
 
 export type { Env };
 export { envSchema };
@@ -22,9 +22,6 @@ export const env: Env = envSchema.parse({
   GRPC_FINANCIAL_TRANSACTION_TYPES: process.env.GRPC_FINANCIAL_TRANSACTION_TYPES,
   CLIENT_ID: process.env.CLIENT_ID,
 
-  SERVICE_CUSTOMER_BASE_URL: process.env.SERVICE_CUSTOMER_BASE_URL,
-  SERVICE_URM_BASE_URL: process.env.SERVICE_URM_BASE_URL,
-
   REDIS_URL: process.env.REDIS_URL,
   REDIS_KEY_PREFIX: process.env.REDIS_KEY_PREFIX,
   CACHE_ENABLED: process.env.CACHE_ENABLED,
@@ -36,4 +33,12 @@ export const env: Env = envSchema.parse({
   NEXT_PUBLIC_APP_KEY: process.env.NEXT_PUBLIC_APP_KEY,
   NEXT_PUBLIC_CENTRAL_BRANCH: process.env.NEXT_PUBLIC_CENTRAL_BRANCH,
   NEXT_PUBLIC_LOGOUT_TIME: process.env.NEXT_PUBLIC_LOGOUT_TIME,
+});
+
+/**
+ * Microservices from `SERVICE_<NAME>_URL` as `{ name (lowercase): address }`. Validated at
+ * start-up, so a misspelled or leftover `SERVICE_*` key stops the app instead of misrouting.
+ */
+export const serviceEnv: Readonly<Record<string, string>> = serviceEnvSchema.parse({
+  ...process.env, // a plain copy: Zod's record check rejects the process.env object itself
 });

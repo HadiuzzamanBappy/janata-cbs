@@ -60,6 +60,12 @@ const enforceMutationIdempotency = (
   }
 };
 
+/** The core's `servicePath`. Reserved: it always routes to `GRPC_HOST`. */
+export const DEFAULT_SERVICE = "default";
+
+/** A service name (jar name = DB `servicePath` = `SERVICE_<NAME>_URL`): letters and digits. */
+export const SERVICE_NAME_PATTERN = /^[A-Za-z0-9]+$/;
+
 export const cbsWirePayloadSchema = z
   .object({
     idempotencyKey: z.uuid("Idempotency key must be a valid UUID").optional(),
@@ -69,7 +75,14 @@ export const cbsWirePayloadSchema = z
     recordId: z.string().optional(),
     branchCode: z.string().optional(),
     authLevel: z.number().int().min(0).max(9).optional(),
-    servicePath: z.string().optional(),
+    servicePath: z
+      .string()
+      .trim()
+      .refine(
+        (v) => v === "" || SERVICE_NAME_PATTERN.test(v),
+        "Service path must be a service name",
+      )
+      .optional(),
     data: z.record(z.string(), z.unknown()).optional(),
   })
   .strict()
@@ -92,7 +105,7 @@ const grpcEnvelopeSchema = z
     branchCode: z.string().min(1),
     authLevel: z.number().int().min(0).max(9),
     userId: z.string().min(1),
-    servicePath: z.string().default("default"),
+    servicePath: z.string().default(DEFAULT_SERVICE),
     data: z.record(z.string(), z.unknown()).default({}),
   })
   .superRefine(enforceMutationIdempotency);

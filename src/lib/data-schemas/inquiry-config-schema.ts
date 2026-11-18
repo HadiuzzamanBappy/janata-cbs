@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { CbsInquiryStep } from "@/types";
-import { auditDataSchema } from "./common-schema";
+import { auditDataSchema, SERVICE_NAME_PATTERN } from "./common-schema";
 
 /* ========================================================================== */
 /* 1. SELECTION CRITERIA OPERANDS & FIELD TYPES                               */
@@ -206,7 +206,7 @@ function splitFixedStatements(input: string): string[] {
   return statements;
 }
 
-export interface ParsedFixedSelection {
+interface ParsedFixedSelection {
   readonly criteria: InquiryCriteriaParam[];
   /** Statements that aren't `field OPERAND value` with a known operand. */
   readonly invalid: string[];
@@ -243,7 +243,6 @@ export function parseFixedSelection(fixedSelection?: string): ParsedFixedSelecti
 
 /** Pattern-match operands only make sense on text filters. */
 const TEXT_ONLY_OPERANDS: ReadonlySet<SelectionOperand> = new Set(["CT", "SW", "EW", "LK"]);
-const SERVICE_NAME_PATTERN = /^[A-Za-z0-9]+$/;
 const ROW_COL_PATTERN = /^\d+,\d+$/;
 const FIELD_LENGTH_PATTERN = /^\d+,[LRC]$/;
 const PAGE_SIZE_PATTERN = /^[1-9]\d*$/;
@@ -314,7 +313,6 @@ export const inquiryConfigSaveSchema = inquiryConfigRecordSchema.superRefine((in
 
   if (inq.INQDef.length === 0) issue(["INQDef"], "At least one column must be configured");
   const seenColumns = new Set<string>();
-  const seenCells = new Set<string>();
   inq.INQDef.forEach((col, idx) => {
     const path = ["INQDef", idx];
     const name = col.fieldName.trim();
@@ -326,12 +324,10 @@ export const inquiryConfigSaveSchema = inquiryConfigRecordSchema.superRefine((in
     }
     seenColumns.add(name.toLowerCase());
     if (!col.fieldDisplay.trim()) issue([...path, "fieldDisplay"], "Display Header is required");
+    // Two columns may share a position: the core stores that, and the table keeps their order
     if (!ROW_COL_PATTERN.test(cell)) {
       issue([...path, "fieldRowCol"], `Position "${cell}" must be "row,column" (e.g. 1,2)`);
-    } else if (seenCells.has(cell)) {
-      issue([...path, "fieldRowCol"], `Position ${cell} is already used by another column`);
     }
-    seenCells.add(cell);
     if (!FIELD_LENGTH_PATTERN.test(col.fieldLength.trim())) {
       issue(
         [...path, "fieldLength"],

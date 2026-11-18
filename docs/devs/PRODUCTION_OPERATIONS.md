@@ -1,6 +1,6 @@
 # Production Operations
 
-What to configure before go-live, and what to do after it: clearing the spec cache through the API, handling a Redis outage, unlocking a user, and checking a release. Every command here exists in the repository; nothing on this page needs a code change.
+What to configure before go-live, and what to do after it: clearing the spec cache through the API, handling a Redis outage, unlocking a user, adding a microservice, and checking a release. Every command here exists in the repository; nothing on this page needs a code change.
 
 ---
 
@@ -18,6 +18,7 @@ Set these in the server environment (never commit real values):
 | `LOGIN_LIMIT`             | for example `5`                            | Failed sign-on attempts allowed per sign-on name per 60 s.                                                          |
 | `NEXT_PUBLIC_LOGOUT_TIME` | minutes, for example `10`                  | Idle sign-out; the server session lasts one minute longer.                                                          |
 | `LOG_LEVEL`               | `info` or `warn`                           | Logs are JSON lines on stdout / stderr in production; PII is masked.                                                |
+| `SERVICE_<NAME>_URL`      | one per microservice (see §6)              | Routes requests whose `servicePath` is NAME. Without it, those requests fail with `503`.                            |
 
 > [!IMPORTANT]
 > Run **one** instance if Redis is optional for you. With several instances behind a load balancer, Redis must be up: without it, sessions exist only in the instance that created them.
@@ -95,7 +96,31 @@ Repeated lockouts of the same sign-on name can mean someone is guessing that use
 
 ---
 
-## 6. Checking a release
+## 6. Adding a microservice
+
+A request goes to the service named by its `servicePath` (from the model, form or inquiry config). Empty or `default` is the core at `GRPC_HOST`. For any other service, set one line and restart:
+
+```env
+# NAME = jar name = DB servicePath (letters and digits, any case)
+SERVICE_FINXURM_URL=http://localhost:8282/finxurm/inq   # http(s)://  → REST: same flat request, JSON POST, Bearer token
+SERVICE_FINXLOAN_URL=localhost:8383                     # host:port   → gRPC: same contract as the core
+```
+
+At start-up the log shows the routing table: `[GRPC] Services: default → grpc 172.18.18.66:50055, finxurm → rest http://localhost:8282/finxurm/inq`.
+
+| Symptom                                                                                       | Cause                                                                            |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| The app doesn't start: `SERVICE_X is not recognised; use SERVICE_<NAME>_URL`                  | A leftover or misspelled key, for example the retired `SERVICE_URM_BASE_URL`     |
+| The app doesn't start: `must be host:port (gRPC) or a full http(s):// endpoint URL`           | A bad address, such as a missing port or scheme                                  |
+| Screen error `Service "finxurm" is not available` (503) and a `No route for service` log line | No `SERVICE_FINXURM_URL` line                                                    |
+| `Service "finxurm" is unreachable` (503) or `timed out` (504)                                 | The jar is down, or slower than `GRPC_TIMEOUT_MS`                                |
+| `returned HTTP … without a CBS response` (502)                                                | The jar answered, but not with the CBS envelope (`status`, `statusCode`, `data`) |
+
+Login always goes to the core. Spec reads (forms, models, inquiries) from a microservice are not cached.
+
+---
+
+## 7. Checking a release
 
 - Before deploying: `pnpm lint`, `pnpm typecheck`, `pnpm verify:all` and `pnpm build`.
 - Against a staging core, with the app running on that machine and dev dependencies installed: `pnpm verify:api`. It signs on with `TEST_USERNAME` / `TEST_PASSWORD`, calls the core directly, and probes `http://localhost:3000/api/proxy`.

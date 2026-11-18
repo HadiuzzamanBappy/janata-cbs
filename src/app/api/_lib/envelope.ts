@@ -1,5 +1,10 @@
 import { serverConfig } from "@/lib/core-config/server";
-import { type CbsWirePayload, type GrpcEnvelope, INQUIRY_BRANCH_FIELD } from "@/lib/data-schemas";
+import {
+  type CbsWirePayload,
+  DEFAULT_SERVICE,
+  type GrpcEnvelope,
+  INQUIRY_BRANCH_FIELD,
+} from "@/lib/data-schemas";
 import type { SessionData } from "@/lib/infra-redis";
 import { CbsRequestType } from "@/types";
 
@@ -11,7 +16,7 @@ type EnvelopeRequest = Pick<CbsWirePayload, "requestType"> & Partial<CbsWirePayl
  */
 export function buildGrpcEnvelope(session: SessionData, body: EnvelopeRequest): GrpcEnvelope {
   return {
-    servicePath: body.servicePath ?? "default",
+    servicePath: body.servicePath || DEFAULT_SERVICE,
     requestType: body.requestType,
     controlName: body.controlName ?? "",
     branchCode: session.currUser.branchCode || serverConfig.centralBranch,

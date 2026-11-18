@@ -147,6 +147,20 @@ async function runSuite() {
     missingControlDesc === null,
   );
 
+  const microserviceDesc = resolveCacheDescriptor({
+    requestType: CbsRequestType.GFC,
+    controlName: CbsControlTable.FORM_CONFIG,
+    recordFunction: CbsRecordFunction.SEE,
+    recordId: "ACCOUNT",
+    servicePath: "finxurm",
+  });
+  recordTest(
+    "4c. A microservice's spec read is never cached (spec keys carry no service)",
+    { servicePath: "finxurm", requestType: "GFC", recordId: "ACCOUNT" },
+    microserviceDesc,
+    microserviceDesc === null,
+  );
+
   const modelDesc = resolveCacheDescriptor({
     requestType: CbsRequestType.GMC,
     controlName: CbsControlTable.MODEL_CONFIG,

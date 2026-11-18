@@ -28,7 +28,7 @@ It imports only `zod` and `@/types`, and every consumer imports it through the b
 
 1. **Schema first, type derived.** Define the Zod schema and export `type X = z.infer<typeof xSchema>`. Never write the TypeScript type separately.
 2. **Validate at the boundary with `.safeParse()`**, and never cast external data (`as T`) instead.
-3. **The browser → proxy request is strict.** `cbsWirePayloadSchema` rejects unknown keys. Every mutation (`isCbsMutationRequest()` in `@/types`) must carry a UUID `idempotencyKey`. `servicePath` is optional; if it's missing, `dispatch()` sends to the `default` core service.
+3. **The browser → proxy request is strict.** `cbsWirePayloadSchema` rejects unknown keys. Every mutation (`isCbsMutationRequest()` in `@/types`) must carry a UUID `idempotencyKey`. `servicePath` is optional and must be a service name (letters and digits, never an address); if it's missing, `dispatch()` sends to the `default` core service.
 4. **One success check.** `status` is a strict enum (`apiStatusSchema`). Test responses with `isApiSuccess()`, never by comparing against `"SUCCESS"` by hand.
 5. **URL params degrade one field at a time.** Each popup URL field uses `.optional().catch(undefined)`, so one tampered value falls back to its default without throwing away the others. The dock message is the opposite: a bad payload is rejected whole.
 6. **Module-private by default.** Export only what another unit imports. Helpers used inside one file stay unexported.

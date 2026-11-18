@@ -4,7 +4,7 @@
  * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
  * capability exposed by `@/lib/infra-grpc` with explicit Input and Output visualization:
  * 1. Runtime Mode Check (isStaticMode: validates dataSource configuration)
- * 2. Downstream Gateway Routing (getService: default gRPC route vs custom microservices)
+ * 2. Service Routing (SERVICE_<NAME>_URL registry, REST round-trip, unknown / bad / down services)
  * 3. Financial Transaction Classification (financial vs non-financial pipeline)
  * 4. gRPC Protocol to HTTP Status Error Translation (standard mapping matrix)
  * 5. Inquiry Branch Pinning (pinInquiryBranch: branch criteria forced to EQ the session branch)
@@ -12,6 +12,9 @@
  * Usage:
  *   pnpm tsx scripts/verify/verify-infra-grpc.ts
  */
+
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 
 // Pre-empt server-only in require.cache for standalone Node test runner
 try {
@@ -28,8 +31,6 @@ try {
 } catch {
   // Ignore if not resolvable
 }
-
-export {};
 
 interface TestCase {
   title: string;
@@ -58,9 +59,60 @@ function recordTest(
   }
 }
 
+/** Local REST microservice: records what dispatch() sends; /finxurm/inq answers a CBS envelope. */
+async function startRestService(): Promise<{
+  base: string;
+  received: Array<{ url: string; auth: string; body: Record<string, unknown> }>;
+  close: () => void;
+}> {
+  const received: Array<{ url: string; auth: string; body: Record<string, unknown> }> = [];
+  const server = createServer((req, res) => {
+    let raw = "";
+    req.on("data", (chunk) => {
+      raw += chunk;
+    });
+    req.on("end", () => {
+      received.push({
+        url: req.url ?? "",
+        auth: req.headers.authorization ?? "",
+        body: JSON.parse(raw || "{}"),
+      });
+      if (req.url === "/finxurm/inq") {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(
+          JSON.stringify({
+            status: "SUCCESS",
+            statusCode: 200,
+            message: "ok",
+            errors: null,
+            idempotencyKey: null,
+            data: { records: [{ recordId: "UM1" }] },
+          }),
+        );
+      } else {
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Internal Server Error");
+      }
+    });
+  });
+  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const { port } = server.address() as AddressInfo;
+  return { base: `http://127.0.0.1:${port}`, received, close: () => server.close() };
+}
+
 async function runSuite() {
-  const { getService, serverConfig } = await import("@/lib/core-config/server");
-  const { grpcStatusToHttp, isFinancialRequest, isStaticMode } = await import("@/lib/infra-grpc");
+  // Service env must exist before core-config loads (it is read once, at start-up)
+  const rest = await startRestService();
+  process.env.DATA_SOURCE = "grpc";
+  process.env.SERVICE_FINXURM_URL = `${rest.base}/finxurm/inq`;
+  process.env.SERVICE_FINXLOAN_URL = "localhost:8383";
+  process.env.SERVICE_FINXBAD_URL = `${rest.base}/bad`;
+  process.env.SERVICE_FINXDOWN_URL = "http://127.0.0.1:1/finxdown/inq";
+
+  const { resolveService, serverConfig } = await import("@/lib/core-config/server");
+  const { dispatch, grpcStatusToHttp, isFinancialRequest, isStaticMode } = await import(
+    "@/lib/infra-grpc"
+  );
 
   console.log("\n================================================================================");
   console.log("             CBS GRPC INFRASTRUCTURE & DISPATCH VERIFICATION                   ");
@@ -79,22 +131,72 @@ async function runSuite() {
     isStatic === (serverConfig.dataSource === "static"),
   );
 
-  // ── 2. Downstream Gateway Service Routing ──
-  console.log("\n── 2. Downstream Gateway Routing (getService) ──");
-  const defaultRoute = getService("default");
+  // ── 2. Service Routing ──
+  console.log("\n── 2. Service Routing (resolveService, dispatch) ──");
+  const core = resolveService("");
   recordTest(
-    "2.1 Resolves default gRPC routing destination and protocol",
-    { servicePath: "default" },
-    { url: defaultRoute?.url, protocol: defaultRoute?.protocol },
-    Boolean(defaultRoute?.url) && defaultRoute?.protocol === "grpc",
+    "2.1 Empty or default servicePath routes to the core over gRPC at GRPC_HOST",
+    { servicePath: "" },
+    core,
+    core?.name === "default" && core.protocol === "grpc" && core.address === serverConfig.grpc.host,
   );
 
-  const unknownRoute = getService("unknown-service-path");
+  const urm = resolveService("FinXURM");
+  const loan = resolveService("finxloan");
   recordTest(
-    "2.2 Falls back safely to default route when requested servicePath is unknown",
-    { servicePath: "unknown-service-path" },
-    { url: unknownRoute?.url, protocol: unknownRoute?.protocol },
-    unknownRoute?.url === defaultRoute?.url,
+    "2.2 SERVICE_<NAME>_URL registers NAME (any case); the address picks the protocol",
+    { FinXURM: process.env.SERVICE_FINXURM_URL, finxloan: process.env.SERVICE_FINXLOAN_URL },
+    { urm, loan },
+    urm?.name === "finxurm" && urm.protocol === "rest" && loan?.protocol === "grpc",
+  );
+
+  const baseEnvelope = {
+    requestType: "INQ",
+    controlName: "USER.MGT",
+    recordFunction: "S",
+    recordId: "",
+    branchCode: "JB9999",
+    authLevel: 1,
+    userId: "U1",
+    clientId: "WEB-CLIENT",
+    data: { queryString: [], curPage: 1, perPage: 30 },
+  };
+  const unknown = await dispatch({ ...baseEnvelope, servicePath: "finxnone" }, "tok");
+  recordTest(
+    "2.3 An unregistered service fails with 503 and is never sent to the core",
+    { servicePath: "finxnone" },
+    { status: unknown.status, statusCode: unknown.statusCode, message: unknown.message },
+    resolveService("finxnone") === undefined &&
+      unknown.status === "FAIL" &&
+      unknown.statusCode === 503,
+  );
+
+  const viaRest = await dispatch({ ...baseEnvelope, servicePath: "finxurm" }, "tok");
+  const sent = rest.received.find((r) => r.url === "/finxurm/inq");
+  recordTest(
+    "2.4 REST service gets the same flat request + servicePath, Bearer token, at its exact URL",
+    { servicePath: "finxurm" },
+    { sent, reply: { status: viaRest.status, errors: viaRest.errors, data: viaRest.data } },
+    sent?.auth === "Bearer tok" &&
+      sent.body.servicePath === "finxurm" &&
+      sent.body.requestType === "INQ" &&
+      sent.body.userId === "U1" &&
+      viaRest.status === "SUCCESS" &&
+      Array.isArray(viaRest.errors) &&
+      viaRest.errors.length === 0,
+  );
+
+  const bad = await dispatch({ ...baseEnvelope, servicePath: "finxbad" }, "tok");
+  const down = await dispatch({ ...baseEnvelope, servicePath: "finxdown" }, "tok");
+  rest.close();
+  recordTest(
+    "2.5 A non-CBS reply fails with 502; an unreachable service fails with 503",
+    { finxbad: "HTTP 500 text", finxdown: "nothing listening" },
+    { bad: [bad.status, bad.statusCode], down: [down.status, down.statusCode] },
+    bad.status === "FAIL" &&
+      bad.statusCode === 502 &&
+      down.status === "FAIL" &&
+      down.statusCode === 503,
   );
 
   // ── 3. Financial Transaction Classification ──

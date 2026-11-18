@@ -1,7 +1,13 @@
 import "server-only";
 
 import { mockDispatch } from "@mock/core";
-import { getServiceUrl, serverConfig } from "@/lib/core-config/server";
+import {
+  resolveService,
+  SERVICE_PROTOCOL,
+  SERVICES,
+  serverConfig,
+  serviceNameOf,
+} from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import {
   type ApiResponse,
@@ -12,8 +18,27 @@ import {
 } from "@/lib/data-schemas";
 import { financialProcess, grpcStatusToHttp, isStaticMode, nonFinancialProcess } from "./client";
 import type { GrpcRequest } from "./generated/service";
+import { RestTransportError, restProcess, UPSTREAM_STATUS } from "./rest-client";
 
 const grpcLogger = logger.withContext("GRPC");
+
+if (!isStaticMode()) {
+  grpcLogger.info(
+    `Services: ${[...SERVICES.values()].map((s) => `${s.name} → ${s.protocol} ${s.address}`).join(", ")}`,
+  );
+}
+
+function failResponse(envelope: GrpcEnvelope, statusCode: number, message: string): ApiResponse {
+  return {
+    status: CBS_API_STATUS.FAIL,
+    statusCode,
+    message,
+    idempotencyKey: envelope.idempotencyKey ?? "",
+    errors: [message],
+    timestamp: new Date().toISOString(),
+    data: null,
+  };
+}
 
 const FINANCIAL_REQUEST_TYPES = new Set(serverConfig.grpc.financialTransactionTypes);
 
@@ -37,17 +62,31 @@ function resolveCoreStatus(rawStatus: string): ApiStatus {
 }
 
 /**
- * Dispatches a CBS wire envelope over gRPC (FinancialProcess or NonFinancialProcess),
- * or routes to mockDispatch when DATA_SOURCE is "static".
+ * Dispatches a CBS wire envelope to the service named by `servicePath` (empty = the core):
+ * gRPC (FinancialProcess / NonFinancialProcess) or REST (the same flat request as JSON POST),
+ * or to mockDispatch when DATA_SOURCE is "static". An unregistered service fails with 503 and is
+ * never sent to the core.
  */
 export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<ApiResponse> {
   if (isStaticMode()) {
     return mockDispatch(envelope);
   }
 
+  const service = resolveService(envelope.servicePath);
+  if (!service) {
+    const name = serviceNameOf(envelope.servicePath);
+    grpcLogger.error(`No route for service "${name}": set SERVICE_${name.toUpperCase()}_URL`, {
+      requestType: envelope.requestType,
+      controlName: envelope.controlName,
+    });
+    return failResponse(
+      envelope,
+      UPSTREAM_STATUS.UNAVAILABLE,
+      `Service "${name}" is not available`,
+    );
+  }
+
   try {
-    const serviceKey = envelope.servicePath?.split("/")[0] || "default";
-    const address = getServiceUrl(serviceKey);
     const isFinancial = isFinancialRequest(envelope.requestType);
 
     const req: GrpcRequest = {
@@ -64,13 +103,14 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
     };
 
     grpcLogger.debug(
-      `→ ${isFinancial ? "FIN" : "NONFIN"} ${req.requestType} ${req.controlName}`,
+      `→ ${service.name} ${service.protocol} ${isFinancial ? "FIN" : "NONFIN"} ${req.requestType} ${req.controlName}`,
       req,
     );
 
-    const res = isFinancial
-      ? await financialProcess(address, req, token)
-      : await nonFinancialProcess(address, req, token);
+    const res =
+      service.protocol === SERVICE_PROTOCOL.REST
+        ? await restProcess(service.address, { ...req, servicePath: service.name }, token)
+        : await (isFinancial ? financialProcess : nonFinancialProcess)(service.address, req, token);
 
     const status = resolveCoreStatus(res.status);
 
@@ -96,15 +136,14 @@ export async function dispatch(envelope: GrpcEnvelope, token: string): Promise<A
       data: res.data ?? null,
     };
   } catch (error: unknown) {
+    if (error instanceof RestTransportError) {
+      grpcLogger.error(error.message, {
+        requestType: envelope.requestType,
+        controlName: envelope.controlName,
+      });
+      return failResponse(envelope, error.status, error.message);
+    }
     const { status, message } = grpcStatusToHttp(error);
-    return {
-      status: CBS_API_STATUS.FAIL,
-      statusCode: status,
-      message,
-      idempotencyKey: envelope.idempotencyKey ?? "",
-      errors: [message],
-      timestamp: new Date().toISOString(),
-      data: null,
-    };
+    return failResponse(envelope, status, message);
   }
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_SERVICE } from "./common-schema";
 
 /**
  * Reusable environment boolean coercion helper.
@@ -41,11 +42,7 @@ export const envSchema = z
     GRPC_FINANCIAL_TRANSACTION_TYPES: z.string().trim().default("ATT,CTT,AFT"),
     CLIENT_ID: z.string().trim().default("WEB-CLIENT"),
 
-    // 4. Downstream Microservices (HTTP / REST)
-    SERVICE_CUSTOMER_BASE_URL: z.string().trim().default("http://localhost:8383"),
-    SERVICE_URM_BASE_URL: z.string().trim().default("http://localhost:8282"),
-
-    // 5. Caching Layer (Redis)
+    // 4. Caching Layer (Redis)
     REDIS_URL: z.string().trim().default("redis://127.0.0.1:6379"),
     REDIS_KEY_PREFIX: z.string().trim().default("cbs"),
     CACHE_ENABLED: booleanEnv(true),
@@ -54,7 +51,7 @@ export const envSchema = z
     MENU_TTL_SECONDS: z.coerce.number().int().positive().default(600),
     SPEC_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 
-    // 6. Client-exposed Config (Next.js Public Bundle)
+    // 5. Client-exposed Config (Next.js Public Bundle)
     NEXT_PUBLIC_APP_KEY: z.string().trim().default("cbs"),
     NEXT_PUBLIC_CENTRAL_BRANCH: z.string().trim().default("JB9999"),
     NEXT_PUBLIC_LOGOUT_TIME: z.coerce.number().int().positive().default(10),
@@ -80,3 +77,58 @@ export const envSchema = z
   });
 
 export type Env = z.infer<typeof envSchema>;
+
+/* -------------------------------------------------------------------------- */
+/* Microservice Registry (SERVICE_<NAME>_URL)                                 */
+/* -------------------------------------------------------------------------- */
+
+const SERVICE_ENV_PREFIX = "SERVICE_";
+const SERVICE_ENV_KEY = /^SERVICE_([A-Z0-9]+)_URL$/;
+const REST_ADDRESS = /^https?:\/\//i;
+const GRPC_ADDRESS = /^[\w.-]+:\d{1,5}$/;
+
+/** `http(s)://…` is a REST endpoint (POST to that exact URL); `host:port` is gRPC. */
+export function isRestServiceAddress(address: string): boolean {
+  return REST_ADDRESS.test(address);
+}
+
+/**
+ * Collects every `SERVICE_<NAME>_URL` into `{ name (lowercase): address }`. NAME is the jar name
+ * and the DB `servicePath`, so a new microservice is one env line. Start-up fails on any other
+ * `SERVICE_*` key (a leftover or misspelled variable), on `SERVICE_DEFAULT_URL` (the core is
+ * always `GRPC_HOST`), and on an address that is neither `host:port` nor an http(s) URL.
+ */
+export const serviceEnvSchema = z
+  .record(z.string(), z.string().optional())
+  .transform((vars, ctx) => {
+    const services: Record<string, string> = {};
+    for (const [key, raw] of Object.entries(vars)) {
+      if (!key.startsWith(SERVICE_ENV_PREFIX)) continue;
+      const name = SERVICE_ENV_KEY.exec(key)?.[1]?.toLowerCase();
+      const address = (raw ?? "").trim();
+      if (!name) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `${key} is not recognised; use SERVICE_<NAME>_URL`,
+        });
+      } else if (name === DEFAULT_SERVICE) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `${key} is reserved: the core is GRPC_HOST`,
+        });
+      } else if (
+        isRestServiceAddress(address) ? !URL.canParse(address) : !GRPC_ADDRESS.test(address)
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `${key} must be host:port (gRPC) or a full http(s):// endpoint URL (REST)`,
+        });
+      } else {
+        services[name] = address;
+      }
+    }
+    return services;
+  });

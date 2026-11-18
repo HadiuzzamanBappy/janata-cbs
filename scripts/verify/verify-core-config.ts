@@ -4,7 +4,7 @@
  * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
  * capability exposed by `@/lib/core-config` with explicit Input and Output visualization:
  * 1. Runtime Environment Permutations (Offline static vs Production gRPC)
- * 2. Downstream Microservice Gateway URL Resolution (getServiceUrl)
+ * 2. Microservice Registry (serviceEnvSchema: SERVICE_<NAME>_URL, wire servicePath names)
  * 3. Client Storage & Cookie Keys Invariants (clientConfig)
  *
  * Usage:
@@ -58,8 +58,7 @@ function recordTest(
 
 async function runSuite() {
   const { clientConfig } = await import("@/lib/core-config");
-  const { getServiceUrl } = await import("@/lib/core-config/server");
-  const { envSchema } = await import("@/lib/data-schemas");
+  const { cbsWirePayloadSchema, envSchema, serviceEnvSchema } = await import("@/lib/data-schemas");
 
   console.log("================================================================================");
   console.log("       CBS CORE CONFIGURATION VERIFICATION (@/lib/core-config)                  ");
@@ -94,13 +93,49 @@ async function runSuite() {
     envGrpc.success === true && envGrpc.data?.GRPC_HOST === "localhost:9090",
   );
 
-  // 3. Service Gateway Endpoint Resolution
-  const custServiceUrl = getServiceUrl("customer");
+  // 3. Microservice Registry (SERVICE_<NAME>_URL)
+  const registry = serviceEnvSchema.safeParse({
+    GRPC_HOST: "172.18.18.66:50055",
+    SERVICE_FINXURM_URL: " http://localhost:8282/finxurm/inq ",
+    SERVICE_FINXLOAN_URL: "localhost:8383",
+  });
   recordTest(
-    "3. Service Registry: Resolves downstream microservice endpoint URL",
-    { serviceKey: "customer" },
-    { resolvedUrl: custServiceUrl },
-    Boolean(custServiceUrl && custServiceUrl.length > 0),
+    "3.1 Service Registry: collects SERVICE_<NAME>_URL as lowercase names, ignores other keys",
+    {
+      SERVICE_FINXURM_URL: "http://localhost:8282/finxurm/inq",
+      SERVICE_FINXLOAN_URL: "localhost:8383",
+    },
+    registry.data,
+    JSON.stringify(registry.data) ===
+      JSON.stringify({ finxurm: "http://localhost:8282/finxurm/inq", finxloan: "localhost:8383" }),
+  );
+
+  const rejected = [
+    { SERVICE_URM_BASE_URL: "http://localhost:8282" },
+    { SERVICE_FINXURM_ULR: "localhost:8282" },
+    { SERVICE_DEFAULT_URL: "localhost:9090" },
+    { SERVICE_FINXURM_URL: "localhost" },
+    { SERVICE_FINXURM_URL: "http://" },
+  ].map((vars) => ({ vars, ok: serviceEnvSchema.safeParse(vars).success }));
+  recordTest(
+    "3.2 Service Registry: start-up fails on a retired or misspelled key, the reserved default, a bad address",
+    rejected.map((r) => r.vars),
+    rejected,
+    rejected.every((r) => !r.ok),
+  );
+
+  const wire = (servicePath: string) =>
+    cbsWirePayloadSchema.safeParse({ requestType: "INQ", servicePath }).success;
+  recordTest(
+    "3.3 Wire servicePath: a service name or empty; never an address",
+    ["finxurm", "", "/api/v1/data", "localhost:8282"],
+    {
+      finxurm: wire("finxurm"),
+      empty: wire(""),
+      path: wire("/api/v1/data"),
+      host: wire("localhost:8282"),
+    },
+    wire("finxurm") && wire("") && !wire("/api/v1/data") && !wire("localhost:8282"),
   );
 
   // 4. Client Storage Namespace Invariants

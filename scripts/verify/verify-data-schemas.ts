@@ -492,7 +492,12 @@ async function runSuite() {
       ],
       INQDef: [
         sampleInquiryWire.INQDef[0],
-        { ...sampleInquiryWire.INQDef[0], fieldName: "balance", fieldDisplay: "Balance" },
+        {
+          ...sampleInquiryWire.INQDef[0],
+          fieldName: "balance",
+          fieldDisplay: "Balance",
+          fieldRowCol: "x",
+        },
       ],
       INQCmds: [{ cmdFor: "ACCOUNT S missingField", cmdButton: "View" }],
     })
@@ -510,7 +515,7 @@ async function runSuite() {
     INQCmds: [{ cmdFor: "ACCOUNT S @ID", cmdButton: "View Account" }],
   });
   recordTest(
-    "10b. Inquiry Save Schema: page size, service name, fixed selection, operator by type, unique cells, RIDASHL commands on columns",
+    "10b. Inquiry Save Schema: page size, service name, fixed selection, operator by type, position format (shared allowed), RIDASHL commands on columns",
     { sampleCommand: sampleInquiryWire.INQCmds[0].cmdFor },
     { sampleSaveIssues, badInquiryIssues, cleanInquirySave: cleanInquirySave.success },
     JSON.stringify(sampleSaveIssues) === JSON.stringify(["INQCmds.0.cmdFor"]) &&

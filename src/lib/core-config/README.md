@@ -42,12 +42,12 @@ const maxTabs = clientConfig.workbench.maxOpenTabs; // 15
 Import from `@/lib/core-config/server`:
 
 ```typescript
-import { serverConfig, getServiceUrl } from "@/lib/core-config/server";
+import { resolveService, serverConfig } from "@/lib/core-config/server";
 
 // Access validated runtime secrets & infrastructure endpoints
 const grpcHost = serverConfig.grpc.host;
 const redisUrl = serverConfig.redis.url;
-const customerServiceUrl = getServiceUrl("customer");
+const urm = resolveService("finxurm"); // { name, address, protocol } or undefined
 ```
 
 `serverConfig` spreads `clientConfig`, so server code needs only this one import.
@@ -64,7 +64,7 @@ To keep the security boundary intact when adding new configurations, follow thes
 
 1. Add the variable and validation rules to `envSchema` in `src/lib/data-schemas/env-schema.ts`.
 2. Map it to `process.env.YOUR_VAR` in `src/lib/core-config/env.ts`.
-3. Expose it under the relevant category (`grpc`, `redis`, `services`) in `src/lib/core-config/server.ts`.
+3. Expose it under the relevant category (`grpc`, `redis`, `auth`) in `src/lib/core-config/server.ts`.
 
 ### Rule 2: Adding a Public Client Setting
 
@@ -80,16 +80,14 @@ To keep the security boundary intact when adding new configurations, follow thes
 
 ### Rule 3: Adding a Microservice Endpoint
 
-Add the endpoint entry to the `SERVICES` registry in `src/lib/core-config/server.ts`:
+No code change: add one env line, `SERVICE_<NAME>_URL`, where NAME is the jar name and the DB `servicePath`, then restart. `serviceEnvSchema` (`env-schema.ts`) collects every such key into `SERVICES`:
 
-```typescript
-export const SERVICES: Record<string, ServiceDef> = {
-  default: { url: env.GRPC_HOST, protocol: "grpc" },
-  customer: { url: env.SERVICE_CUSTOMER_BASE_URL, protocol: "grpc" },
-  urm: { url: env.SERVICE_URM_BASE_URL, protocol: "grpc" },
-  loan: { url: env.SERVICE_LOAN_BASE_URL, protocol: "grpc" }, // New service
-};
+```env
+SERVICE_FINXURM_URL=http://localhost:8282/finxurm/inq   # http(s):// → REST, POST to this exact URL
+SERVICE_FINXLOAN_URL=localhost:8383                     # host:port  → gRPC
 ```
+
+`default` is reserved for the core (`GRPC_HOST`). Start-up fails on any other `SERVICE_*` key, on `SERVICE_DEFAULT_URL` and on a bad address.
 
 ---
 

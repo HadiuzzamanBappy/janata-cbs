@@ -1,6 +1,7 @@
 import "server-only";
 
-import { serverConfig } from "@/lib/core-config/server";
+import { serverConfig, serviceNameOf } from "@/lib/core-config/server";
+import { DEFAULT_SERVICE } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType, isCbsMutationRequest } from "@/types";
 import {
   cacheDelete,
@@ -22,6 +23,7 @@ export interface CacheDescriptorTarget {
   recordFunction?: string | null;
   recordId?: string | null;
   userId?: string | null;
+  servicePath?: string | null;
 }
 
 interface SpecCachePolicy {
@@ -90,6 +92,9 @@ export function resolveCacheDescriptor(
 ): { key: string; ttl: number } | null {
   const reqType = (target.requestType || "").toUpperCase().trim();
   const recFunc = (target.recordFunction || "").toUpperCase().trim();
+
+  // 0. Spec keys carry no service, and spec tables live on the core: cache only the core's reads
+  if (serviceNameOf(target.servicePath) !== DEFAULT_SERVICE) return null;
 
   // 1. Invariant: Mutations, searches, and runtime query data are strictly non-cacheable
   if (

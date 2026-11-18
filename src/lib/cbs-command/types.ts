@@ -34,6 +34,7 @@ export interface ExecutionOptions {
   readonly title?: string;
   readonly screenMode?: CbsScreenMode;
   readonly recordId?: string;
+  /** Seed data for a workspace tab. Popups read a draft staged with `setWorkbenchDraft(tabId)`. */
   readonly formData?: Record<string, unknown>;
   readonly inquiryState?: InquiryTabState;
   readonly silent?: boolean;

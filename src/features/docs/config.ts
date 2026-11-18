@@ -29,6 +29,11 @@ export const DEV_NAV_GROUPS: NavGroup[] = [
         keywords: ["tree", "folder", "structure", "layers", "modules"],
       },
       {
+        label: "Architecture Audit Checklist",
+        href: "/devs/ARCHITECTURE_AUDIT_CHECKLIST",
+        keywords: ["audit", "checklist", "security", "modularity", "centralization", "four-eyes"],
+      },
+      {
         label: "Library Checklist",
         href: "/devs/LIB_CHECKLIST",
         keywords: ["lib", "checklist", "headless", "layers", "determinism", "size budget"],

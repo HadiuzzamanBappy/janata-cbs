@@ -1,53 +1,41 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
-import { useStore } from "zustand";
+import { createContext, type ReactNode, useEffect } from "react";
 import { registerCommandAdapter } from "@/lib/cbs-command";
-import { CBS_SCREEN_MESSAGE, getTabInstanceId } from "@/lib/cbs-screen";
+import {
+  CBS_SCREEN_MESSAGE,
+  clearAllWorkbenchDrafts,
+  clearWorkbenchDraft,
+  getTabInstanceId,
+} from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { cbsStorage } from "@/lib/core-utils";
+import { useLazyStore, useScopedStore } from "../scoped-store";
 import { useSessionStore } from "../session/session-provider";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
 
-let activeWorkbenchStore: WorkbenchStore | null = null;
+const WorkbenchStoreContext = createContext<WorkbenchStore | null>(null);
 
-export function getActiveWorkbenchStore(): WorkbenchStore | null {
-  return activeWorkbenchStore;
-}
-
-export const WorkbenchStoreContext = createContext<WorkbenchStore | null>(null);
-
-export interface WorkbenchStoreProviderProps {
-  children: ReactNode;
-}
-
-export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps) => {
-  const storeRef = useRef<WorkbenchStore | null>(null);
-  if (!storeRef.current) {
-    storeRef.current = createWorkbenchStore();
-    activeWorkbenchStore = storeRef.current;
-  }
+export function WorkbenchStoreProvider({ children }: { children: ReactNode }) {
+  const store = useLazyStore(createWorkbenchStore);
 
   // Operator isolation: keep tabs intact for same user re-auth, purge on user switch
   const currentUser = useSessionStore((state) => state.user);
 
   useEffect(() => {
     if (!currentUser?.userId || typeof window === "undefined") return;
-    const store = storeRef.current;
-    if (!store) return;
 
     const lastUser = cbsStorage.get("session", clientConfig.storage.session.lastWorkbenchUser);
     if (lastUser && lastUser !== currentUser.userId) {
-      // Different banking operator logged in: purge tabs to prevent cross-user data leakage
+      // Different banking operator logged in: purge tabs and staged popup drafts to prevent
+      // cross-user data leakage
       store.getState().closeAllTabs();
+      clearAllWorkbenchDrafts();
     }
     cbsStorage.set("session", clientConfig.storage.session.lastWorkbenchUser, currentUser.userId);
-  }, [currentUser?.userId]);
+  }, [currentUser?.userId, store]);
 
   useEffect(() => {
-    const store = storeRef.current;
-    if (!store) return;
-
     // Helper to verify if this browser tab is currently the active leader
     const isThisTabActive = () => {
       if (typeof window === "undefined") return true;
@@ -82,6 +70,7 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
         if (event.data?.type === CBS_SCREEN_MESSAGE.DOCK_TAB && event.data?.payload) {
           if (!isThisTabActive()) return;
           store.getState().addTab(event.data.payload);
+          clearWorkbenchDraft(event.data.tabId); // the opener's copy of this popup's hand-off
           window.focus();
         }
       };
@@ -99,23 +88,13 @@ export const WorkbenchStoreProvider = ({ children }: WorkbenchStoreProviderProps
       busUnsubscribe?.();
       unregisterAdapter?.();
     };
-  }, []);
+  }, [store]);
 
-  return (
-    <WorkbenchStoreContext.Provider value={storeRef.current}>
-      {children}
-    </WorkbenchStoreContext.Provider>
-  );
-};
+  return <WorkbenchStoreContext.Provider value={store}>{children}</WorkbenchStoreContext.Provider>;
+}
 
 export function useWorkbenchStore<T>(selector: (state: WorkbenchState) => T): T;
 export function useWorkbenchStore(): WorkbenchState;
-export function useWorkbenchStore<T>(selector?: (state: WorkbenchState) => T) {
-  const workbenchStoreContext = useContext(WorkbenchStoreContext);
-
-  if (!workbenchStoreContext) {
-    throw new Error(`useWorkbenchStore must be used within WorkbenchStoreProvider`);
-  }
-
-  return useStore(workbenchStoreContext, selector ?? ((state) => state as unknown as T));
+export function useWorkbenchStore(selector?: (state: WorkbenchState) => unknown): unknown {
+  return useScopedStore(WorkbenchStoreContext, "WorkbenchStore", selector);
 }

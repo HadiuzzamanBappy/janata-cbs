@@ -11,6 +11,7 @@
 import { Code, Eye, FileText, Palette } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
+import { isRecordEditable } from "@/lib/cbs-access";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenProps, CbsScreenTab } from "@/lib/cbs-screen";
 import { CBS_SCREEN_MODES, CbsControlTable, CbsRecordFunction, CbsRecordStatus } from "@/types";
@@ -67,7 +68,7 @@ export function SysFormConfig({ command, tabId }: CbsScreenProps) {
   } = useFormConfig(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<FormConfigTabKey>("general");
-  const isReadOnly = mode !== CbsRecordFunction.INPUT;
+  const isReadOnly = !isRecordEditable(mode);
 
   const tabs: CbsScreenTab<FormConfigTabKey>[] = React.useMemo(
     () => [

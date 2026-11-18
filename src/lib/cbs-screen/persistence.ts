@@ -48,22 +48,17 @@ export function resolveInitialScreenMode(
 }
 
 /**
- * Resolves initial form data from tab cache, safely validated via Zod schema if supplied.
+ * Resolves initial form data from the tab cache (remount, pop-out, dock or reload).
+ * A draft that passes the schema gets its defaults applied. A draft that fails it is the user's
+ * unsaved work in progress (commit rules, such as required fields, are checked on Commit), so it
+ * is kept as-is rather than replaced with the blank template.
  */
 export function resolveInitialFormData<TRecord>(
   tabFormData: unknown,
   schema: z.ZodType<TRecord> | undefined,
   initialData: TRecord,
 ): TRecord {
-  if (tabFormData && typeof tabFormData === "object") {
-    if (schema) {
-      const parseResult = schema.safeParse(tabFormData);
-      if (parseResult.success) {
-        return parseResult.data;
-      }
-    } else {
-      return tabFormData as TRecord;
-    }
-  }
-  return initialData;
+  if (!tabFormData || typeof tabFormData !== "object") return initialData;
+  const parsed = schema?.safeParse(tabFormData);
+  return parsed?.success ? parsed.data : (tabFormData as TRecord);
 }

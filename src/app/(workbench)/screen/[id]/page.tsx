@@ -4,6 +4,7 @@ import { Lock } from "lucide-react";
 import { useParams, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { ScreenLoader } from "@/features/workbench";
+import { useActivityReporter } from "@/hooks";
 import { cbsAuth } from "@/lib/cbs-client";
 import {
   broadcastDockTab,
@@ -81,31 +82,8 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
   const urlTabId = searchParams.get("tabId");
   const tabId = React.useMemo(() => urlTabId || makePopupTabId(screenId), [urlTabId, screenId]);
 
-  // Passive Activity Reporter: Throttled updates to localStorage keep the banking session alive
-  // across the master dashboard without displaying duplicate countdown dialogs in popups.
-  React.useEffect(() => {
-    let lastRecorded = Date.now();
-    const STORAGE_KEY = clientConfig.storage.local.lastActivity;
-
-    const handlePassiveActivity = () => {
-      const now = Date.now();
-      if (now - lastRecorded > 2000) {
-        lastRecorded = now;
-        cbsStorage.set("local", STORAGE_KEY, String(now));
-      }
-    };
-
-    const events = ["mousedown", "keydown", "touchstart", "wheel"];
-    for (const evt of events) {
-      window.addEventListener(evt, handlePassiveActivity, { passive: true });
-    }
-
-    return () => {
-      for (const evt of events) {
-        window.removeEventListener(evt, handlePassiveActivity);
-      }
-    };
-  }, []);
+  // Passive activity reporting keeps the main shell's idle timer alive (no countdown in popups)
+  useActivityReporter();
 
   // Hydrate popup tab state on initial mount from shared storage (supporting 150 - 1,000 fields)
   const isHydratedRef = React.useRef(false);
@@ -218,7 +196,8 @@ function StandaloneScreenContent({ rawId }: { rawId: string }) {
             Check Session & Refresh
           </button>
         </div>
-      ) : (
+      ) : !tabs.some((t) => t.id === tabId) ? null : (
+        // Mount the screen only once its tab exists: the screen reads the draft from the tab at mount
         <main className="flex-1 min-h-0 w-full overflow-hidden flex flex-col bg-background">
           <ScreenLoader
             command={

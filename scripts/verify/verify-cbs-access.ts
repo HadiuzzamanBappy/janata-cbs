@@ -18,8 +18,8 @@
  *   pnpm tsx scripts/verify/verify-cbs-access.ts
  */
 
-import { evaluateCbsAccess, hasAccessibilityRight } from "@/lib/cbs-access";
-import { CbsRecordFunction } from "@/types";
+import { evaluateCbsAccess, hasAccessibilityRight, isRecordEditable } from "@/lib/cbs-access";
+import { CBS_IDLE_MODE, CbsRecordFunction } from "@/types";
 
 interface TestCase {
   title: string;
@@ -258,6 +258,28 @@ recordTest(
   'hasAccessibilityRight(fullRights, "S") vs lacksList',
   { hasSee, lacksList },
   hasSee === true && lacksList === false,
+);
+
+// --- 10. isRecordEditable: designer field lock (fields are editable only in Input) ---
+console.log("\n── 10. isRecordEditable Designer Field Lock ──");
+const editableModes = [CBS_IDLE_MODE, ...Object.values(CbsRecordFunction)].filter(isRecordEditable);
+recordTest(
+  "10.1 isRecordEditable: Only Input ('I') mode unlocks designer fields",
+  "every CbsScreenMode",
+  { editableModes },
+  editableModes.length === 1 && editableModes[0] === CbsRecordFunction.INPUT,
+);
+
+const viewOnlyModes = [CBS_IDLE_MODE, ...Object.values(CbsRecordFunction)].filter(
+  (mode) => evaluateCbsAccess({ grantedRights: fullRights, mode }).isViewOnly,
+);
+recordTest(
+  "10.2 isViewOnly: Only See ('S') and Authorize ('A') lock the action bar's Commit/Validate/Hold",
+  "every CbsScreenMode",
+  { viewOnlyModes },
+  viewOnlyModes.length === 2 &&
+    viewOnlyModes.includes(CbsRecordFunction.SEE) &&
+    viewOnlyModes.includes(CbsRecordFunction.AUTHORIZE),
 );
 
 const passedTests = testCases.filter((t) => t.passed).length;

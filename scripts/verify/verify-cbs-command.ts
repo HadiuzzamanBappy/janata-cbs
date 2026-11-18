@@ -400,22 +400,25 @@ async function runSuite() {
   const originalWindow = (globalThis as unknown as Record<string, unknown>).window;
   const originalSessionStorage = (globalThis as unknown as Record<string, unknown>).sessionStorage;
   let openedUrl = "";
+  let stagedAtOpen = false;
+  const stagedDraftKey = clientConfig.storage.session.draft("popup_tab_50001");
+  const mockSessionStorage = {
+    setItem: (key: string, val: string) => mockStorage.set(key, val),
+    getItem: (key: string) => mockStorage.get(key) ?? null,
+    removeItem: (key: string) => mockStorage.delete(key),
+  };
 
   (globalThis as unknown as Record<string, unknown>).window = {
     open: (url: string) => {
       openedUrl = url;
+      // window.open copies the opener's sessionStorage into the popup at this moment
+      stagedAtOpen = mockStorage.get(stagedDraftKey)?.includes("stagedFlag") ?? false;
       return { focus: () => {} };
     },
-    sessionStorage: {
-      setItem: (key: string, val: string) => mockStorage.set(key, val),
-      getItem: (key: string) => mockStorage.get(key) ?? null,
-    },
+    sessionStorage: mockSessionStorage,
     dispatchEvent: () => true,
   };
-  (globalThis as unknown as Record<string, unknown>).sessionStorage = {
-    setItem: (key: string, val: string) => mockStorage.set(key, val),
-    getItem: (key: string) => mockStorage.get(key) ?? null,
-  };
+  (globalThis as unknown as Record<string, unknown>).sessionStorage = mockSessionStorage;
 
   try {
     // 9a: Workspace tab dispatch
@@ -424,31 +427,33 @@ async function runSuite() {
       formData: { title: "Corporate Account" },
     });
 
-    // 9b: Detached popup window & session staging
+    // 9b: Detached popup window. The caller (Pop Out) stages the draft with setWorkbenchDraft;
+    // the spawner must leave it in place until the popup docks.
+    mockStorage.set(stagedDraftKey, JSON.stringify({ stagedFlag: true }));
     cbsCommand.execute("ACCOUNT S 50001", {
       silent: true,
       target: "popup",
       tabId: "popup_tab_50001",
-      formData: { stagedFlag: true },
     });
 
-    const stagedDraftKey = clientConfig.storage.session.draft("popup_tab_50001");
-    const hasStagedData = mockStorage.get(stagedDraftKey)?.includes("stagedFlag") ?? false;
+    const keptAfterOpen = mockStorage.get(stagedDraftKey)?.includes("stagedFlag") ?? false;
 
     recordTest(
-      "9. Command Execution Router: Tab routing & detached window session staging",
+      "9. Command Execution Router: Tab routing; a staged popup draft is visible at window.open and kept until dock",
       { executeForm: "ACCOUNT I 50001", executePopup: "ACCOUNT S 50001" },
       {
         dispatchedTabsCount: dispatchedTabs.length,
         dispatchedScreenId: dispatchedTabs[0]?.screenId,
         popupOpenedUrl: openedUrl,
-        popupStagedStorage: hasStagedData,
+        stagedAtOpen,
+        keptAfterOpen,
       },
       dispatchedTabs.length === 1 &&
         dispatchedTabs[0]?.screenId === "ACCOUNT" &&
         dispatchedTabs[0]?.screenMode === "I" &&
         openedUrl.includes("/screen/ACCOUNT") &&
-        hasStagedData,
+        stagedAtOpen &&
+        keptAfterOpen,
     );
   } finally {
     teardownAdapter();

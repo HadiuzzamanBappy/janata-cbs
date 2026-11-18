@@ -41,6 +41,9 @@ export interface CbsAccessResult {
   /** True if the screen inputs should be disabled / read-only */
   readonly isReadOnly: boolean;
 
+  /** True in view-only modes (See, Authorize): the action bar disables Commit, Validate and Hold */
+  readonly isViewOnly: boolean;
+
   /** True if Maker and Checker are the same user (violating Four-Eyes principle) */
   readonly isFourEyesViolation: boolean;
 

@@ -37,10 +37,8 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
   const tabId = options?.tabId || `popup_${cleanApp}_${generateIdempotencyKey()}`;
   params.set("tabId", tabId);
 
-  // Store large payloads safely in session storage instead of fragile URLs
-  if (options?.formData && Object.keys(options.formData).length > 0) {
-    cbsStorage.writeJson("session", clientConfig.storage.session.draft(tabId), options.formData);
-  }
+  // Form drafts are staged by the caller with `setWorkbenchDraft` (cbs-screen) under this tabId.
+  // Criteria ride in session storage too, so large filters never travel in the URL.
   if (inquiry?.criteria && Object.keys(inquiry.criteria).length > 0) {
     cbsStorage.writeJson("session", clientConfig.storage.session.criteria(tabId), inquiry.criteria);
   }

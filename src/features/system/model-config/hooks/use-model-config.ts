@@ -10,6 +10,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
+import { isRecordEditable } from "@/lib/cbs-access";
 import { cbsQueries } from "@/lib/cbs-client";
 import type { ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
@@ -153,7 +154,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
   );
 
   React.useEffect(() => {
-    if (mode !== CbsRecordFunction.INPUT) setValidationErrors([]);
+    if (!isRecordEditable(mode)) setValidationErrors([]);
   }, [mode]);
 
   const hasLoadedInitialRef = React.useRef(false);

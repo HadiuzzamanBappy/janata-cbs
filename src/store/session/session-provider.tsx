@@ -1,37 +1,21 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
-import { useStore } from "zustand";
+import { createContext, type ReactNode, useEffect } from "react";
 import { cbsAuth } from "@/lib/cbs-client";
 import { registerCommandAdapter } from "@/lib/cbs-command";
 import { logger } from "@/lib/core-logger";
 import { isApiSuccess } from "@/lib/data-schemas";
+import { useLazyStore, useScopedStore } from "../scoped-store";
 import { createSessionStore, type SessionState, type SessionStore } from "./session-store";
 
-let activeSessionStore: SessionStore | null = null;
 let sessionFetchPromise: Promise<unknown> | null = null;
 
-export function getActiveSessionStore(): SessionStore | null {
-  return activeSessionStore;
-}
+const SessionStoreContext = createContext<SessionStore | null>(null);
 
-export const SessionStoreContext = createContext<SessionStore | null>(null);
-
-export interface SessionStoreProviderProps {
-  children: ReactNode;
-}
-
-export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) => {
-  const storeRef = useRef<SessionStore | null>(null);
-  if (!storeRef.current) {
-    storeRef.current = createSessionStore();
-    activeSessionStore = storeRef.current;
-  }
+export function SessionStoreProvider({ children }: { children: ReactNode }) {
+  const store = useLazyStore(createSessionStore);
 
   useEffect(() => {
-    const store = storeRef.current;
-    if (!store) return;
-
     // Universal session hydration across all windows & popups (deduplicated against React StrictMode & multiple mounts)
     if (!store.getState().user) {
       if (!sessionFetchPromise) {
@@ -56,21 +40,13 @@ export const SessionStoreProvider = ({ children }: SessionStoreProviderProps) =>
     return registerCommandAdapter({
       getCurrentUser: () => store.getState().user,
     });
-  }, []);
+  }, [store]);
 
-  return (
-    <SessionStoreContext.Provider value={storeRef.current}>{children}</SessionStoreContext.Provider>
-  );
-};
+  return <SessionStoreContext.Provider value={store}>{children}</SessionStoreContext.Provider>;
+}
 
 export function useSessionStore<T>(selector: (state: SessionState) => T): T;
 export function useSessionStore(): SessionState;
-export function useSessionStore<T>(selector?: (state: SessionState) => T) {
-  const sessionStoreContext = useContext(SessionStoreContext);
-
-  if (!sessionStoreContext) {
-    throw new Error(`useSessionStore must be used within SessionStoreProvider`);
-  }
-
-  return useStore(sessionStoreContext, selector ?? ((state) => state as unknown as T));
+export function useSessionStore(selector?: (state: SessionState) => unknown): unknown {
+  return useScopedStore(SessionStoreContext, "SessionStore", selector);
 }

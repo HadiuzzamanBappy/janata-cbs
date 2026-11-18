@@ -1,34 +1,18 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useRef } from "react";
-import { useStore } from "zustand";
+import { createContext, type ReactNode } from "react";
+import { useLazyStore, useScopedStore } from "../scoped-store";
 import { type AlertState, type AlertStore, createAlertStore } from "./alert-store";
 
-export const AlertStoreContext = createContext<AlertStore | null>(null);
+const AlertStoreContext = createContext<AlertStore | null>(null);
 
-export interface AlertStoreProviderProps {
-  children: ReactNode;
+export function AlertStoreProvider({ children }: { children: ReactNode }) {
+  const store = useLazyStore(createAlertStore);
+  return <AlertStoreContext.Provider value={store}>{children}</AlertStoreContext.Provider>;
 }
-
-export const AlertStoreProvider = ({ children }: AlertStoreProviderProps) => {
-  const storeRef = useRef<AlertStore | null>(null);
-  if (!storeRef.current) {
-    storeRef.current = createAlertStore();
-  }
-
-  return (
-    <AlertStoreContext.Provider value={storeRef.current}>{children}</AlertStoreContext.Provider>
-  );
-};
 
 export function useAlertStore<T>(selector: (state: AlertState) => T): T;
 export function useAlertStore(): AlertState;
-export function useAlertStore<T>(selector?: (state: AlertState) => T) {
-  const alertStoreContext = useContext(AlertStoreContext);
-
-  if (!alertStoreContext) {
-    throw new Error(`useAlertStore must be used within AlertStoreProvider`);
-  }
-
-  return useStore(alertStoreContext, selector ?? ((state) => state as unknown as T));
+export function useAlertStore(selector?: (state: AlertState) => unknown): unknown {
+  return useScopedStore(AlertStoreContext, "AlertStore", selector);
 }

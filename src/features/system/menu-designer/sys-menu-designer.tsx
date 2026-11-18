@@ -3,6 +3,7 @@
 import { FileCode, FileText, Network } from "lucide-react";
 import * as React from "react";
 import { CbsScreenScaffold } from "@/components/cbs-screen";
+import { isRecordEditable } from "@/lib/cbs-access";
 import { cbsCommand } from "@/lib/cbs-command";
 import type { CbsScreenTab, CbsScreenProps as ScreenProps } from "@/lib/cbs-screen";
 import { CBS_IDLE_MODE, CbsControlTable, CbsRecordFunction } from "@/types";
@@ -44,7 +45,7 @@ export function SysMenuDesigner({ command, tabId }: ScreenProps) {
   } = useMenuDesigner(initialId, tabId);
 
   const [activeTab, setActiveTab] = React.useState<MenuDesignerTabKey>("general");
-  const isReadOnly = mode !== CbsRecordFunction.INPUT;
+  const isReadOnly = !isRecordEditable(mode);
 
   const tabs: CbsScreenTab<MenuDesignerTabKey>[] = React.useMemo(
     () => [

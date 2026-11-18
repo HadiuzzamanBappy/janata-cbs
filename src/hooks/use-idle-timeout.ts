@@ -3,12 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cbsAuth } from "@/lib/cbs-client";
-import { CBS_SCREEN_MESSAGE, getWorkbenchBus, type WorkbenchBusMessage } from "@/lib/cbs-screen";
+import {
+  CBS_SCREEN_MESSAGE,
+  clearClientSession,
+  getWorkbenchBus,
+  type WorkbenchBusMessage,
+} from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { cbsStorage } from "@/lib/core-utils";
+import { useActivityReporter } from "./use-activity-reporter";
 
 const STORAGE_KEY = clientConfig.storage.local.lastActivity;
 const WARNING_BEFORE_LOGOUT_MS = clientConfig.storage.idleWarningWindowMs;
+const HEARTBEAT_INTERVAL_MS = 3 * 60 * 1000;
 
 interface UseIdleTimeoutOptions {
   timeoutMinutes?: number;
@@ -38,7 +45,7 @@ export function useIdleTimeout({
     } catch {
       // Fail-safe cleanup
     } finally {
-      cbsStorage.remove("local", STORAGE_KEY, clientConfig.storage.local.activeTabInstance);
+      clearClientSession();
       const bus = getWorkbenchBus();
       if (bus) {
         bus.postMessage({
@@ -63,38 +70,20 @@ export function useIdleTimeout({
     }
   }, []);
 
+  // Recorded activity closes the warning; a periodic heartbeat keeps the Redis session alive
+  const lastHeartbeatRef = useRef(Date.now());
+  useActivityReporter((now) => {
+    setIsWarningOpen(false);
+    if (now - lastHeartbeatRef.current > HEARTBEAT_INTERVAL_MS) {
+      lastHeartbeatRef.current = now;
+      cbsAuth.getSession().catch(() => {});
+    }
+  });
+
   useEffect(() => {
     // Initialize timestamp if missing
     if (!cbsStorage.get("local", STORAGE_KEY)) {
       cbsStorage.set("local", STORAGE_KEY, String(Date.now()));
-    }
-
-    let lastRecorded = Date.now();
-    let lastHeartbeat = Date.now();
-
-    // Throttled activity updater
-    const handleUserActivity = () => {
-      const now = Date.now();
-      // Throttle writes to localStorage (once every 2s)
-      if (now - lastRecorded > 2000) {
-        lastRecorded = now;
-        cbsStorage.set("local", STORAGE_KEY, String(now));
-        if (isWarningOpen) {
-          setIsWarningOpen(false);
-        }
-
-        // Periodic heartbeat: notify server/Redis session every 3 minutes if actively interacting
-        if (now - lastHeartbeat > 3 * 60 * 1000) {
-          lastHeartbeat = now;
-          cbsAuth.getSession().catch(() => {});
-        }
-      }
-    };
-
-    // User interaction listeners
-    const events = ["mousedown", "keydown", "scroll", "touchstart", "wheel"];
-    for (const evt of events) {
-      window.addEventListener(evt, handleUserActivity, { passive: true });
     }
 
     // Storage event for multi-tab synchronization
@@ -160,9 +149,6 @@ export function useIdleTimeout({
     }, 1000);
 
     return () => {
-      for (const evt of events) {
-        window.removeEventListener(evt, handleUserActivity);
-      }
       window.removeEventListener("storage", handleStorageChange);
       if (bus) {
         bus.removeEventListener("message", handleBusMessage);

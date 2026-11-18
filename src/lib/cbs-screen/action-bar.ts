@@ -74,7 +74,7 @@ export function resolveCbsActionBar({
   const isIdle = mode === CBS_IDLE_MODE;
   const isSee = mode === CbsRecordFunction.SEE;
   const isAuth = mode === CbsRecordFunction.AUTHORIZE;
-  const isReadOnly = isSee || isAuth;
+  const { isViewOnly } = access; // See/Authorize lock Commit/Validate/Hold (rule lives in cbs-access)
   const isCreate = mode === CbsRecordFunction.INPUT && !hasTargetId;
   const isEdit = mode === CbsRecordFunction.INPUT && hasTargetId;
 
@@ -103,24 +103,24 @@ export function resolveCbsActionBar({
       : undefined;
 
   // 4. Commit / Save (Check ✓)
-  const commitEnabled = Boolean(!isReadOnly && onSubmit && !submitting && access.canInput);
-  const commitReason = isReadOnly
+  const commitEnabled = Boolean(!isViewOnly && onSubmit && !submitting && access.canInput);
+  const commitReason = isViewOnly
     ? "Disabled in View mode (Read-Only)"
     : !access.canInput
       ? access.getDisableReason(CbsRecordFunction.INPUT) || "Requires Input ('I') permission"
       : undefined;
 
   // 5. Validate (?✓)
-  const validateEnabled = Boolean(!isReadOnly && onValidate && !submitting && access.canInput);
-  const validateReason = isReadOnly
+  const validateEnabled = Boolean(!isViewOnly && onValidate && !submitting && access.canInput);
+  const validateReason = isViewOnly
     ? "Disabled in View mode"
     : !access.canInput
       ? access.getDisableReason(CbsRecordFunction.INPUT) || "Requires Input ('I') permission"
       : undefined;
 
   // 6. Hold (❚❚)
-  const holdEnabled = Boolean(!isReadOnly && onHold && !submitting && access.canHold);
-  const holdReason = isReadOnly
+  const holdEnabled = Boolean(!isViewOnly && onHold && !submitting && access.canHold);
+  const holdReason = isViewOnly
     ? "Disabled in View mode"
     : !access.canHold
       ? access.getDisableReason(CbsRecordFunction.HOLD) ||

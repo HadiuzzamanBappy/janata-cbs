@@ -16,15 +16,20 @@
 
 import { z } from "zod";
 import {
+  clearAllWorkbenchDrafts,
+  clearWorkbenchDraft,
   getDefaultMoreActions,
   getTabInstanceId,
+  getWorkbenchDraft,
   makePopupTabId,
   mapZodIssuesToTabs,
   resolveInitialFormData,
   resolveInitialRecordId,
   resolveInitialScreenMode,
   resolveMoreActions,
+  setWorkbenchDraft,
 } from "@/lib/cbs-screen";
+import { clientConfig } from "@/lib/core-config";
 import { CbsRecordFunction } from "@/types";
 
 interface TestCase {
@@ -115,13 +120,19 @@ async function runSuite() {
     parsedValid.accountNo === "AC10001" && parsedValid.balance === 5000,
   );
 
-  const invalidData = { accountNo: "AC10001", balance: -50 }; // Fails min(0)
-  const parsedInvalid = resolveInitialFormData(invalidData, userSchema, initialFallback);
+  // An unsaved work-in-progress draft is often invalid by commit rules (e.g. a new model with an
+  // empty DESCRIPTION). It must survive a remount, pop-out or reload; Commit validates it later.
+  const wipDraft = { accountNo: "AC10001", balance: -50 }; // Fails min(0)
+  const parsedWip = resolveInitialFormData(wipDraft, userSchema, initialFallback);
+  const parsedMissing = resolveInitialFormData(undefined, userSchema, initialFallback);
   recordTest(
-    "3.2 Safely falls back to initial template when cached data fails Zod validation",
-    { invalidData },
-    { resolvedData: parsedInvalid },
-    parsedInvalid.accountNo === "" && parsedInvalid.balance === 0,
+    "3.2 Keeps an incomplete (commit-invalid) draft as-is; uses the template only when there is no draft",
+    { wipDraft, noDraft: undefined },
+    { resolvedWip: parsedWip, resolvedMissing: parsedMissing },
+    parsedWip.accountNo === "AC10001" &&
+      parsedWip.balance === -50 &&
+      parsedMissing.accountNo === "" &&
+      parsedMissing.balance === 0,
   );
 
   // ── 4. More Actions Resolution & Preset Inheritance ──
@@ -188,6 +199,94 @@ async function runSuite() {
     { env: "node" },
     { tabId: ssrTabId },
     ssrTabId === "",
+  );
+
+  // ── 8. Popup Draft Hand-off Lifecycle ──
+  console.log("\n── 8. Popup Draft Hand-off (setWorkbenchDraft / getWorkbenchDraft / clear) ──");
+  const handoff = new Map<string, string>();
+  const draftKey = clientConfig.storage.session.draft("popup_t8");
+  const criteriaKey = clientConfig.storage.session.criteria("popup_t8");
+  const globals = globalThis as unknown as Record<string, unknown>;
+  globals.window = {
+    sessionStorage: {
+      getItem: (k: string) => handoff.get(k) ?? null,
+      setItem: (k: string, v: string) => handoff.set(k, v),
+      removeItem: (k: string) => handoff.delete(k),
+    },
+  };
+
+  // A complex nested designer draft: form sections → fields, inquiry columns, model properties → PROP
+  const designerDraft = {
+    formId: "ACCOUNT,1.0.0",
+    frmElements: [{ id: "sec1", title: "General", fields: [{ name: "title", colSpan: 6 }] }],
+    INQSelectField: [{ fieldName: "branchCode", operand: "EQ", defaultValue: "" }],
+    PROPERTIES: [{ NAME: "jointHolders", TYPE: "Array", PROP: [{ NAME: "holderName" }] }],
+  };
+  let hydratedRead: unknown = null;
+  let fallbackRead: unknown = null;
+  try {
+    setWorkbenchDraft("popup_t8", designerDraft); // opener stages before window.open
+    handoff.set(criteriaKey, "{}");
+    hydratedRead = getWorkbenchDraft("popup_t8"); // popup first mount
+    fallbackRead = getWorkbenchDraft("popup_t8"); // still staged: a fallback if the tab is lost
+  } finally {
+    delete globals.window;
+  }
+  const expected = JSON.stringify(designerDraft);
+  recordTest(
+    "8.1 setWorkbenchDraft stages a nested designer draft intact; reading it does not consume it",
+    { draftKey, sections: 1, columns: 1, properties: "PROP[1]" },
+    { hydratedRead, fallbackRead },
+    JSON.stringify(hydratedRead) === expected && JSON.stringify(fallbackRead) === expected,
+  );
+
+  globals.window = {
+    sessionStorage: {
+      getItem: (k: string) => handoff.get(k) ?? null,
+      setItem: (k: string, v: string) => handoff.set(k, v),
+      removeItem: (k: string) => handoff.delete(k),
+    },
+  };
+  try {
+    clearWorkbenchDraft("popup_t8"); // the main shell received the dock
+  } finally {
+    delete globals.window;
+  }
+  recordTest(
+    "8.2 clearWorkbenchDraft (on dock) removes both the form draft and the inquiry criteria",
+    { keys: [draftKey, criteriaKey] },
+    { remaining: [...handoff.keys()] },
+    handoff.size === 0,
+  );
+
+  // Operator switch: the previous user's leftover popup hand-offs go; unrelated keys stay
+  const session = clientConfig.storage.session;
+  const leftover = new Map<string, string>([
+    [session.draft("popup_a"), "{}"],
+    [session.criteria("popup_b"), "{}"],
+    [session.workbenchTabs, "{}"],
+  ]);
+  globals.window = {
+    sessionStorage: {
+      get length() {
+        return leftover.size;
+      },
+      key: (i: number) => [...leftover.keys()][i] ?? null,
+      getItem: (k: string) => leftover.get(k) ?? null,
+      setItem: (k: string, v: string) => leftover.set(k, v),
+      removeItem: (k: string) => leftover.delete(k),
+    },
+  };
+  try {
+    clearAllWorkbenchDrafts();
+  } finally {
+    delete globals.window;
+  }
+  recordTest(
+    "8.3 clearAllWorkbenchDrafts (operator switch) removes every draft and criteria key, nothing else",
+    { keys: [session.draft("popup_a"), session.criteria("popup_b"), session.workbenchTabs] },
+    { remaining: [...leftover.keys()] },
+    leftover.size === 1 && leftover.has(session.workbenchTabs),
   );
 
   // Consolidated Summary

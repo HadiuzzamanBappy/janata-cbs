@@ -18,6 +18,7 @@ This application is an enterprise-grade Next.js App Router (React 19) frontend r
 ### 01. Engineering Reference
 
 - [Project Tree](PROJECT_TREE.md) — Annotated repository and `src/` layer structure.
+- [Architecture & Security Audit Checklist](ARCHITECTURE_AUDIT_CHECKLIST.md) — Master audit checklist for modularity, centralization, simplification, dead-code removal, and banking-grade security.
 - [Library Checklist](LIB_CHECKLIST.md) — Review checklist for `src/lib` modules: headless, unidirectional, deterministic, and within the size budget.
 - [Developer Study Plan](PROJECT_STUDY_PLAN.md) — Onboarding curriculum covering every language, library and pattern used in the repository.
 

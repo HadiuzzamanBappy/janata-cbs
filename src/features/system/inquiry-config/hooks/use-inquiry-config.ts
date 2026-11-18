@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
+import { isRecordEditable } from "@/lib/cbs-access";
 import { cbs } from "@/lib/cbs-client";
 import { parseInquiryConfig } from "@/lib/data-parsers";
 import { isApiSuccess } from "@/lib/data-schemas";
@@ -147,7 +148,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
 
   // Clear validation errors when switching away from edit mode
   React.useEffect(() => {
-    if (mode !== CbsRecordFunction.INPUT) {
+    if (!isRecordEditable(mode)) {
       setValidationErrors([]);
     }
   }, [mode]);

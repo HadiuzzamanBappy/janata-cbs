@@ -56,8 +56,8 @@ export interface WorkbenchBusMessage {
 // ============================================================================
 
 /**
- * Saves a tab's working draft (including 150+ to 1,000 fields) to shared session storage.
- * Bypasses URL character limits completely.
+ * Stages a popup's working draft (150+ to 1,000 fields) in session storage before `window.open`,
+ * which copies it into the popup, so large payloads never travel in the URL.
  */
 export function setWorkbenchDraft(tabId: string, data: Record<string, unknown>): void {
   if (typeof window === "undefined" || !tabId) return;
@@ -65,7 +65,8 @@ export function setWorkbenchDraft(tabId: string, data: Record<string, unknown>):
 }
 
 /**
- * Reads a tab's working draft from shared session storage.
+ * Reads a popup's working draft when the popup creates its tab. After that the tab (persisted by
+ * the workbench store) carries the draft across reloads; the staged copy stays as a fallback.
  */
 export function getWorkbenchDraft<T = Record<string, unknown>>(tabId: string): T | null {
   if (typeof window === "undefined" || !tabId) return null;
@@ -73,11 +74,22 @@ export function getWorkbenchDraft<T = Record<string, unknown>>(tabId: string): T
 }
 
 /**
- * Removes a stored working draft once docked or closed.
+ * Removes every staged popup hand-off in this browser tab. Called only when a different operator
+ * logs in, so the same user never loses work across a session timeout.
+ */
+export function clearAllWorkbenchDrafts(): void {
+  if (typeof window === "undefined") return;
+  const { draft, criteria } = clientConfig.storage.session;
+  cbsStorage.removeByPrefix("session", draft(""), criteria(""));
+}
+
+/**
+ * Removes a popup's staged hand-off (form draft and inquiry criteria) once the popup docks.
  */
 export function clearWorkbenchDraft(tabId: string): void {
   if (typeof window === "undefined" || !tabId) return;
-  cbsStorage.remove("session", clientConfig.storage.session.draft(tabId));
+  const { draft, criteria } = clientConfig.storage.session;
+  cbsStorage.remove("session", draft(tabId), criteria(tabId));
 }
 
 // ============================================================================
@@ -195,4 +207,13 @@ export function getTabInstanceId(): string {
   }
   cbsStorage.set("session", clientConfig.storage.session.tabInstanceId, newId);
   return newId;
+}
+
+/**
+ * Clears this browser's client-side session markers on logout: the shared idle timestamp
+ * (`lastActivity`, whose removal also signals peer tabs) and the single-tab ownership claim.
+ */
+export function clearClientSession(): void {
+  const { lastActivity, activeTabInstance } = clientConfig.storage.local;
+  cbsStorage.remove("local", lastActivity, activeTabInstance);
 }

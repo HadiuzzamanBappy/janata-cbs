@@ -39,7 +39,7 @@ src/lib/cbs-screen/
 
 - **`broadcastRecordMutation(control, recordId)`**: Broadcasts mutation events across tabs and detached popup windows whenever a record is created, amended, authorized, or deleted.
 - **`useRecordMutationSubscriber(callback, controlFilter?)`**: Stabilized hook (powered by `useRef`) that subscribes to mutation broadcasts, triggering background refetches when related records update in another tab.
-- **`setWorkbenchDraft` / `getWorkbenchDraft` / `clearWorkbenchDraft`**: Shared session storage draft engine enabling 150+ to 1,000+ field forms to be transferred into detached popup windows without exceeding browser URL limits.
+- **`setWorkbenchDraft` / `getWorkbenchDraft` / `clearWorkbenchDraft`**: Popup draft hand-off for 150+ to 1,000+ field forms. Pop Out stages the draft with `setWorkbenchDraft(popupTabId)` before `window.open` copies session storage into the popup. The popup reads it with `getWorkbenchDraft` when it creates its tab (the persisted tab then carries it across reloads; the staged copy stays as a fallback), and the main shell calls `clearWorkbenchDraft` when the popup docks (draft and inquiry criteria).
 - **`broadcastDockTab` / `CBS_SCREEN_EVENT` / `CBS_SCREEN_MESSAGE`**: Cross-window docking bridge between the main shell and detached browser windows via `BroadcastChannel`.
 - **`makePopupTabId(screenId)`**: Canonical popup tab identifier ensuring deterministic hydration between opener and window.
 

@@ -26,6 +26,7 @@ src/lib/cbs-access/
    - `verifyUserRecordAccess(user, recordFunction)`: Server-side capability gate for API route handlers (e.g. `/api/proxy`). Validates that the active user possesses the required capability before executing controlled actions (`I`, `A`, `D`, `R`, `H`).
 2. **`record-guard.ts`**:
    - `evaluateCbsAccess(context)`: Single, pure source of truth for resolving rights and evaluating capabilities against active record status (`UA`, `AU`, `NEW`, `HLD`), screen mode (`IDLE`, `I`, `S`, etc.), and Four-Eyes Maker-Checker rules.
+   - `isRecordEditable(mode)`: Designer field lock. Fields are editable only in Input (`I`) mode; every other mode, `IDLE` included, is read-only.
 3. **`types.ts`**:
    - `CbsAccessContext`: Single unified evaluation input interface.
    - `CbsAccessResult`: Computed boolean capabilities, read-only flags, and tooltip explanation generators.
@@ -64,6 +65,7 @@ Every core banking user profile is assigned a subset of standard function codes:
 - Form read-only lock (`isReadOnly = true`) is automatically enforced when:
   - Active mode is View or Non-Input: `"S"`, `"H"`, `"A"`, `"D"`, `"R"`.
   - Or the user profile lacks the `"I"` (Input) capability right.
+- Action-bar view lock (`isViewOnly = true`) applies only in `"S"` and `"A"`: Commit, Validate and Hold are disabled there and stay available in the other active modes.
 
 ### 3. State Transition Guards
 

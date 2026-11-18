@@ -3,6 +3,8 @@
 import { Copy, ExternalLink, X, XCircle, XSquare } from "lucide-react";
 import { Fragment } from "react";
 import { cbsCommand } from "@/lib/cbs-command";
+import { makePopupTabId, setWorkbenchDraft } from "@/lib/cbs-screen";
+import { generateIdempotencyKey } from "@/lib/core-utils";
 import { useAlertStore, useWorkbenchStore } from "@/store";
 import type { TabMenuActionProps } from "../types";
 import { isTabDirty, promptCloseTab } from "../utils";
@@ -66,13 +68,17 @@ export function TabMenuItems({
   };
 
   const handlePopOut = () => {
-    cbsCommand.execute(tab.screenId ?? tab.id, {
+    const screenId = tab.screenId ?? tab.id;
+    const popupTabId = `${makePopupTabId(screenId)}_${generateIdempotencyKey()}`;
+    // Only unsaved edits travel; a clean tab reloads the fresh record in the popup
+    if (tab.isDirty && tab.formData) setWorkbenchDraft(popupTabId, tab.formData);
+    cbsCommand.execute(screenId, {
       title: tab.title,
       target: "popup",
+      tabId: popupTabId,
       screenMode: tab.screenMode,
       recordId: tab.searchRecordId,
       inquiryState: tab.inquiryState,
-      formData: tab.isDirty ? tab.formData : undefined,
     });
     removeTab(tab.id);
   };

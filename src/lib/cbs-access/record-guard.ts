@@ -1,5 +1,13 @@
-import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus } from "@/types";
+import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus, type CbsScreenMode } from "@/types";
 import type { CbsAccessContext, CbsAccessResult } from "./types";
+
+/**
+ * Designer field lock: a record's fields are editable only in Input ('I') mode.
+ * In every other mode (Idle, See, Authorize, Hold, Delete, Reverse) the form is read-only.
+ */
+export function isRecordEditable(mode: CbsScreenMode): boolean {
+  return mode === CbsRecordFunction.INPUT;
+}
 
 /**
  * Pure, deterministic banking capability evaluator.
@@ -66,6 +74,9 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
     mode === CbsRecordFunction.REVERSE ||
     !canInput;
 
+  // 9. View-Only: See and Authorize lock the action bar's Commit/Validate/Hold (other modes keep them)
+  const isViewOnly = mode === CbsRecordFunction.SEE || mode === CbsRecordFunction.AUTHORIZE;
+
   const getDisableReason = (action: CbsRecordFunction): string | null => {
     if (!hasRight(action)) {
       return `Access Denied: Missing '${action}' capability in user profile.`;
@@ -115,6 +126,7 @@ export function evaluateCbsAccess(context: CbsAccessContext = {}): CbsAccessResu
     canReverse,
     canList,
     isReadOnly,
+    isViewOnly,
     isFourEyesViolation,
     getDisableReason,
     grantedRights,

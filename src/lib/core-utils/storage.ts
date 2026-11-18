@@ -50,6 +50,21 @@ export const cbsStorage = {
     }
   },
 
+  /** Removes every key that starts with one of the given prefixes. */
+  removeByPrefix(area: CbsStorageArea, ...prefixes: string[]): void {
+    const store = resolveArea(area);
+    if (!store) return;
+    try {
+      const keys = Array.from({ length: store.length }, (_, i) => store.key(i));
+      const matches = keys.filter(
+        (key): key is string => key !== null && prefixes.some((p) => key.startsWith(p)),
+      );
+      cbsStorage.remove(area, ...matches);
+    } catch {
+      // Enumeration of inaccessible storage is a no-op
+    }
+  },
+
   /** Reads and JSON-parses a value; with a schema, returns null unless it validates. */
   readJson<T>(area: CbsStorageArea, key: string, schema?: z.ZodType<T>): T | null {
     const raw = cbsStorage.get(area, key);

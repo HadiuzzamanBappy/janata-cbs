@@ -36,8 +36,9 @@ In an enterprise banking system, data corruption and security breaches originate
 - [ ] **Strict Segregation of Duties**: A user whose `userId` matches the transaction's `recordInputter` or who authored the current working draft can **never** authorize that same transaction.
 - [ ] **Centralized Logic**: Four-Eyes validation must exclusively evaluate through `@/lib/cbs-access` (`evaluateCbsAccess`).
 - [ ] **UI Explanations**: When authorization is locked due to Four-Eyes, surface an explicit `<Tooltip>`: _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_
-- [ ] **Dual-Gate Verification**: Even if a compromised client toggles a disabled button in DevTools, the backend proxy (`/api/proxy`) must reject the authorization with HTTP 403 / Domain Access Error.
-
+- [ ] **Dual-Gate Verification**: Even if a compromised client toggles a disabled button in DevTools, the authorization must be rejected on the server.
+  > [!IMPORTANT]
+  > **Not met by this app today.** `/api/proxy` rejects a missing **right** with 403 (`verifyUserRecordAccess`), but it never loads the record, so it can't compare the user with the inputter. The offline mock doesn't check either. Until a proxy-side check exists (for `AUT`: load the record's inputter and compare it with the session user before dispatch), server-side Four-Eyes depends on the Java core.
 ### 1.3 Strict Server-Side Boundary (`"server-only"`)
 
 - [ ] **Driver Isolation**: Packages dealing with transport and databases (`@grpc/grpc-js`, `ioredis`, internal network endpoints, secrets) must remain strictly server-side and import `"server-only"`.
@@ -81,18 +82,7 @@ Whenever domain logic is duplicated, branches drift, inconsistencies arise, and 
 
 ## 3. Modularity & Layer Discipline
 
-The repository enforces a strict unidirectional downward architecture:
-
-```text
-L6: App Router (src/app)
- └── L5: Features (src/features)
-      └── L4: Components & Engines (src/components)
-           └── L3.5: Client Stores & Contexts (src/store, src/hooks)
-                └── L3: Business Logic (src/lib/cbs-*)
-                     └── L2: Pure Infra & Parsers (src/lib/data-parsers, infra-*)
-                          └── L1: Pure Utilities (src/lib/core-utils, core-logger)
-                               └── L0: Types & Schemas (src/types, data-schemas)
-```
+Imports only point downward. The layer ranks live in one place: the `LAYERS` table in `scripts/verify/verify-layers.ts`, explained in `.agents/rules/01-architecture-layers.md`. A file may import only its own rank or lower.
 
 ### 3.1 Invariant Rules
 
@@ -136,8 +126,7 @@ Complex, heavily nested code obscures bugs. Prefer simple, declarative, readable
 
 ### 5.1 File Size Budgets
 
-- [ ] **Components**: $\le 300$ lines (stretch up to $350$ only for highly cohesive presentation blocks).
-- [ ] **Hooks, Stores, Helpers**: $\le 250$ lines (stretch up to $280$ for comprehensive domain rules).
+- [ ] **Within budget**: every changed file is within the size budget in `AGENTS.md` §1 (separate limits for components and for hooks, stores and helpers).
 - [ ] **Decomposition Rule**: If a file exceeds budget, split along natural domain lines (e.g., separate canvas renderers from inspector forms).
 
 ### 5.2 Single-Pass Processing (No Redundant Passes)
@@ -149,35 +138,13 @@ Complex, heavily nested code obscures bugs. Prefer simple, declarative, readable
 ### 5.3 Deterministic Types & Zero Casts
 
 - [ ] **No Type Escapes**: Banish `as unknown as T` casts. If types diverge, update the canonical Zod schema in L0 (`data-schemas`) and re-derive TypeScript types via `z.infer`.
-- [ ] **Standardized Store Factory**: Use generic scoped store factories (`createScopedStore`) instead of repeating 40 lines of context + `useRef` boilerplate in every provider.
+- [ ] **Standardized Store Helpers**: Use the shared scoped-store hooks in `src/store/scoped-store.ts` (`useLazyStore`, `useScopedStore`) instead of repeating context + `useRef` boilerplate in every provider.
 
 ---
 
 ## 6. Automated Audit Command Suite
 
-Run this full suite before declaring any feature or refactoring phase complete:
-
-```bash
-# 1. Code Style, Formatting & Hygiene (Zero warnings/errors)
-pnpm lint:fix
-
-# 2. Strict Type Check (Zero TypeScript errors)
-pnpm typecheck
-
-# 3. Layer Boundary & Architectural Invariants
-pnpm verify:layers
-
-# 4. Domain & Security Verification Suites
-pnpm verify:access       # Maker-Checker (Four-Eyes) & RIDASHL rights
-pnpm verify:screen       # Popup state, action bar & workbench draft lifecycle
-pnpm verify:command      # Terminal grammar, RBAC & navigation
-pnpm verify:client       # Wire client, transport & error handling
-pnpm verify:schemas      # Zod validation contracts
-pnpm verify:logger       # PII redaction & structured log engine
-
-# 5. Full Offline Suite
-pnpm verify:all
-```
+Run the quality gates in `AGENTS.md` §1 (`pnpm lint:fix`, `pnpm typecheck`, `pnpm verify:all`) before declaring any feature or refactoring phase complete. The full `verify:*` list is in `AGENTS.md` §2. For this checklist, the security-relevant suites are `verify:access` (RIDASHL and Four-Eyes rules), `verify:layers` (layers and the server boundary), `verify:schemas` (boundary validation) and `verify:logger` (PII redaction).
 
 ---
 

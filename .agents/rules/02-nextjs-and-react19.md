@@ -7,12 +7,12 @@ Next.js dynamically-evaluated parameters and request contexts are asynchronous P
 - **Cookies & Headers:** ALWAYS `await` them:
 
   ```ts
-  // CORRECT
+  // CORRECT (the cookie name comes from config, never a literal)
   const cookieStore = await cookies();
-  const token = cookieStore.get("cbs_token")?.value;
+  const sessionId = cookieStore.get(serverConfig.auth.cookieName)?.value;
 
   // INCORRECT - fatal runtime error
-  const token = cookies().get("cbs_token")?.value;
+  const sessionId = cookies().get(serverConfig.auth.cookieName)?.value;
   ```
 - **Page Props (`params` & `searchParams`):**
 
@@ -27,17 +27,10 @@ Next.js dynamically-evaluated parameters and request contexts are asynchronous P
   }
   ```
 
-## 2. React 19 JSX & Script Rules
+## 2. Inline scripts & raw HTML
 
-- **No Raw Script Tags:** React 19 prohibits inserting plain string children inside `<script>` elements during client hydration. Always use `dangerouslySetInnerHTML`.
-
-  ```tsx
-  <script
-    dangerouslySetInnerHTML={{
-      __html: `try{var s=localStorage.getItem('theme');...}catch(e){}`,
-    }}
-  />
-  ```
+- **Don't add inline `<script>` tags.** The theme is handled by `next-themes` (`ThemeProvider` in `src/app/layout.tsx`), and nothing else needs one.
+- **`dangerouslySetInnerHTML` is a security review item.** It's allowed only for a static, hard-coded string. Never interpolate record data, user input or core responses into it: that's an XSS hole in a banking app. Render data as React children instead.
 
 ## 3. Server Components by Default & Boundary Pruning
 

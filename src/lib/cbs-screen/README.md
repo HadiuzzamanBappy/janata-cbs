@@ -25,7 +25,8 @@ src/lib/cbs-screen/
 
 ### 1. Action Bar Capabilities (`action-bar.ts` & `more-actions.ts`)
 
-- **`resolveCbsActionBar`**: Pure resolver (callers pass `access` from `useCbsAccess()`) that computes `enabled` and `reason` for all 11 action bar buttons (`Commit`, `Validate`, `Hold`, `Delete`, `Authorize`, `Reverse`, `Process`, `Amend`, `View`, `PerformAction`, `ReturnToSearch`).
+- **`resolveCbsActionBar`**: Pure resolver (callers pass `access` from `useCbsAccess()`) that computes `{ enabled, reason }` for all 11 action bar buttons (`CbsActionBarCapabilities`). Idle state: `amend`, `view`, `performAction`. Active state: `commit`, `validate`, `hold`, `delete`, `authorize`, `reverse`, `process`, `returnToSearch`.
+- **`getDefaultMoreActions` / `resolveMoreActions`**: the "More operations" menu (Copy, Paste, Search from live / unauth / history, Show history record), extended per screen through `moreActions`.
 - Automatically factors in `submitting` state, active screen mode (`IDLE`, `I`, `S`, `A`), and user entitlements via `access.getDisableReason(func)`.
 - Eliminates hardcoded strings and legacy rights by binding strictly to `CbsRecordFunction` (`@/types`).
 
@@ -40,8 +41,10 @@ src/lib/cbs-screen/
 - **`broadcastRecordMutation(control, recordId)`**: Broadcasts mutation events across tabs and detached popup windows whenever a record is created, amended, authorized, or deleted.
 - **`useRecordMutationSubscriber(callback, controlFilter?)`**: Stabilized hook (powered by `useRef`) that subscribes to mutation broadcasts, triggering background refetches when related records update in another tab.
 - **`setWorkbenchDraft` / `getWorkbenchDraft` / `clearWorkbenchDraft`**: Popup draft hand-off for 150+ to 1,000+ field forms. Pop Out stages the draft with `setWorkbenchDraft(popupTabId)` before `window.open` copies session storage into the popup. The popup reads it with `getWorkbenchDraft` when it creates its tab (the persisted tab then carries it across reloads; the staged copy stays as a fallback), and the main shell calls `clearWorkbenchDraft` when the popup docks (draft and inquiry criteria).
-- **`broadcastDockTab` / `CBS_SCREEN_EVENT` / `CBS_SCREEN_MESSAGE`**: Cross-window docking bridge between the main shell and detached browser windows via `BroadcastChannel`.
+- **`broadcastDockTab` / `CBS_SCREEN_EVENT` / `CBS_SCREEN_MESSAGE`**: Cross-window docking bridge between the main shell and detached browser windows via `BroadcastChannel`. The shell validates every dock payload with `dockTabPayloadSchema` (`@/lib/data-schemas`) before adding the tab, and ignores malformed messages.
 - **`makePopupTabId(screenId)`**: Canonical popup tab identifier ensuring deterministic hydration between opener and window.
+- **`getWorkbenchBus()`**: the shared `BroadcastChannel` (or `null` when the browser has none). **`clearAllWorkbenchDrafts()`** purges every staged draft when a different operator signs on.
+- **`getTabInstanceId()`** / **`clearClientSession()`**: this browser tab's instance ID for the one-active-tab rule, and the sign-out cleanup of the idle timestamp and tab ownership claim.
 
 ### 4. Validation & Focus Utilities (`validation.ts`)
 
@@ -108,8 +111,7 @@ async function onSaveSuccess(control: string, recordId: string) {
 
 // In another tab or inquiry screen:
 export function AccountInquiryScreen() {
-  useRecordMutationSubscriber((event) => {
-    console.log(`Record #${event.recordId} updated in ${event.control}. Refetching grid...`);
+  useRecordMutationSubscriber(() => {
     refetchInquiryGrid();
   }, "ACCOUNT"); // Optional control filter
 }
@@ -157,7 +159,7 @@ export function ModelConfigScreen({ command, tabId }: CbsScreenProps) {
 
 ## 🔒 Architectural State: Scalable or Sealed?
 
-- **Action Engine (`actions.ts`): SEALED**  
+- **Action Engine (`action-bar.ts`): SEALED**  
   The button state matrix for CBS operations (`IDLE`, `I`, `S`, `A`) is fully deterministic and complete.
 - **Persistence Resolution (`persistence.ts`): SEALED**  
   Precedence rules for URL, tab store, and session drafts are canonical.
@@ -172,13 +174,6 @@ export function ModelConfigScreen({ command, tabId }: CbsScreenProps) {
 
 ## 🧪 Verification
 
-Run the master verification suites to ensure all contracts remain 100% compliant:
-
 ```bash
-# Run all CBS master verification test suites
-pnpm verify:all
-
-# Strict typechecking & linting
-pnpm typecheck
-pnpm lint:fix
+pnpm verify:screen
 ```

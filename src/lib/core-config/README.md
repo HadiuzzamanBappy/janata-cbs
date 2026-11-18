@@ -14,7 +14,7 @@ src/lib/core-config/
 ├── env.ts       # Validated server environment variables via Zod ('server-only')
 ├── server.ts    # Composed server configuration, gRPC settings, and service registry (serverConfig)
 ├── theme.ts     # Centralized banking theme & accent presets
-└── index.ts     # Default entrypoint: re-exports clientConfig for UI components
+└── index.ts     # Default entrypoint: re-exports client.ts and theme.ts (never env.ts or server.ts)
 ```
 
 ---
@@ -50,7 +50,9 @@ const redisUrl = serverConfig.redis.url;
 const customerServiceUrl = getServiceUrl("customer");
 ```
 
-> **Security Guard:** If a client component attempts to import from `@/lib/core-config/server`, the Next.js compiler will automatically fail the build.
+`serverConfig` spreads `clientConfig`, so server code needs only this one import.
+
+> **Security guard:** `server.ts` and `env.ts` start with `import "server-only"`, so a client import fails the build, and `pnpm verify:layers` rejects any `"use client"` file that imports `@/lib/core-config/server`.
 
 ---
 

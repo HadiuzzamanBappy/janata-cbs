@@ -4,102 +4,57 @@ name: cbs-client-wire-protocol
 description: Use this skill when communicating between the frontend and backend, calling the /api/proxy endpoint, fetching dynamic GMC schemas, running inquiry queries, or executing record transactions.
 ---
 
-# CBS Client Wire Protocol & Proxy Gateway Runbook
+# CBS Client Wire Protocol & Proxy Runbook
 
-## Overview
-
-Janata CBS adheres strictly to the **Backend-For-Frontend (BFF)** pattern. The browser client **NEVER** communicates directly with Java gRPC backends, databases, or Redis caches. All communication routes through the Next.js API proxy (`/api/proxy`) using the canonical wire request factories in `src/lib/cbs-client`.
+The browser never talks to gRPC, Redis or a database. Every banking request is a `CbsWirePayload` built by a factory in `@/lib/cbs-client` and `POST`ed to `/api/proxy`. Reference docs: `src/lib/cbs-client/README.md` (client), `src/lib/infra-grpc/README.md` and `src/lib/infra-redis/README.md` (server).
 
 ---
 
-## 1. Wire Request Factories (`src/lib/cbs-client`)
+## 1. Reading
 
-Always use the typed factory functions to construct outgoing wire payloads:
+```typescript
+import { cbs, cbsQueries } from "@/lib/cbs-client";
+import { isApiSuccess } from "@/lib/data-schemas";
 
-```ts
-import {
-  buildGetRecordRequest,
-  buildPutRecordRequest,
-  buildAuthorizeRecordRequest,
-  buildInquiryRequest,
-  buildGrlLookupRequest,
-  cbsClient,
-} from "@/lib/cbs-client";
+// One-off read
+const res = await cbs.send(cbs.model("ACCOUNT").get("1001"), { silent: true });
+if (isApiSuccess(res)) {
+  // res.data: already decoded by /api/proxy
+}
 
-// 1. Fetching a Form Record (GET, SEE)
-const getPayload = buildGetRecordRequest({
-  application: "ACCOUNT",
-  recordId: "10001",
-});
-const response = await cbsClient.send(getPayload);
+// Read-mostly data in components: TanStack Query options
+const { data: branches } = useQuery(cbsQueries.branch.list());
+```
 
-// 2. Committing a Record (PUT, INPUT)
-const putPayload = buildPutRecordRequest({
-  application: "ACCOUNT",
-  recordId: "10001",
-  data: updatedFields,
-});
+- Factories: `cbs.model(control)` (`get`, `list`, `searchIds`, `getNewId`, `save`, `authorize`, `delete`, `hold`, `reverse`), the pre-bound `cbs.branch`, `cbs.control`, `cbs.menu` and `cbs.inquiryConfig`, plus `cbs.menuTree`, `cbs.modelConfig`, `cbs.formConfig` and `cbs.inquiry.executeQuery()`.
+- Control names come from `CbsControlTable` in `@/types` (`CONFIG.FORM`, `MODEL.CONFIG`, `INQUIRY`, `MENU.TREE`, …).
+- Pass `responseSchema` to validate `data` on the client, and `signal` to cancel.
+- Inquiries go through `runInquiry()` in `@/components/cbs-inquiry-engine`, which builds the filters from the inquiry config. Don't build a `queryString` by hand.
 
-// 3. Authorizing a Record (AUT, AUTHORIZE)
-const authPayload = buildAuthorizeRecordRequest({
-  application: "ACCOUNT",
-  recordId: "10001",
-});
+## 2. Writing (mutations)
 
-// 4. Executing an Inquiry (INQ, SEE)
-const inqPayload = buildInquiryRequest({
-  inquirySpec: "GET.EMP.INFO",
-  criteria: { BRANCH_CODE: { value: "JB0001", operand: "EQ" } },
+```typescript
+const { sendMutation } = useIdempotentSend(); // @/components/cbs-screen
+
+await sendMutation(cbs.model("CUSTOMER").save(changedFields, { recordId }), {
+  successMessage: "Customer record saved",
 });
 ```
 
----
+- **Every mutation** (`isCbsMutationRequest()`: `PUT`, `AUT`, `DEL`, `HLD`, `REV`, `SMC`, `SFC`, …) needs a UUIDv4 `idempotencyKey`. `sendMutation()` adds it, reuses it when an unchanged payload is retried after a network or 5xx failure, and rotates it after a definite result. Calling `cbs.send()` directly with a mutation **fails validation**.
+- Send only changed fields on an amend (`computeDelta()` from `@/lib/cbs-record`; see the form lifecycle skill).
+- After a successful mutation, call `broadcastRecordMutation(control, recordId)` from `@/lib/cbs-screen` so other tabs and popups refresh.
 
-## 2. Server Boundary Rules (`import "server-only"`)
+## 3. Errors
 
-The backend dispatchers and gRPC clients live exclusively on the server side:
+`cbs.send()` raises **one** toast per failure (through `notifyUser`). Don't toast the same error again in a hook; pass `silent: true` if you handle it yourself. A 401 broadcasts `CBS_SESSION_EXPIRED` and sends the main window to sign-on.
 
-- **Server-Only Modules:** Any file inside `src/lib/infra-grpc/`, `src/lib/infra-redis/`, or `src/proxy.ts` must declare:
+## 4. Server side
 
-  ```ts
-  import "server-only";
-  ```
-- **Prohibited Client Imports:** Client files (`"use client"`) must NEVER import:
-  - `@grpc/grpc-js`
-  - `@bufbuild/protobuf`
-  - `ts-proto` generated stubs
-  - `ioredis`
-  - Node.js native modules (`fs`, `net`, `crypto` outside Web Crypto)
+- The proxy's steps are in `AGENTS.md` §4. The parts that matter on the client: the schema is strict (unknown keys are rejected), user and branch always come from the session, the proxy checks rights but **not** Four-Eyes, and failed responses are never cached.
+- A new route or Server Action validates its input with a `data-schemas` schema, checks the session itself, and replies with `apiSuccess` / `apiFail` / `apiError` (`src/app/api/_lib/response.ts`).
+- The wire contract (`proto/service.proto`, request types, control and field names) is a production compatibility boundary (`.agents/rules/00-core-pillars.md` §1). Regenerate stubs with `pnpm proto:gen`.
 
----
+## 5. Verification
 
-## 3. Zod Boundary Validation
-
-Never pass raw client payloads to backend dispatchers without validating them first:
-
-- All incoming requests must be parsed against Zod schemas in `src/lib/data-schemas/`.
-- Use `safeParse()` and handle validation failures before invoking the gRPC dispatcher:
-
-  ```ts
-  const validation = requestSchema.safeParse(body);
-  if (!validation.success) {
-    return NextResponse.json(
-      { error: "VALIDATION_FAILED", details: validation.error.format() },
-      { status: 400 }
-    );
-  }
-  ```
-
----
-
-## 4. Verification & Testing
-
-Whenever you change wire factories, proxy logic, or backend dispatchers, run:
-
-```bash
-pnpm verify:client
-pnpm verify:grpc
-pnpm verify:parsers
-```
-
-All wire factory tests must report `[PASS]` before finalizing changes.
+`verify:client`, `verify:grpc`, `verify:parsers`, `verify:redis`, plus `verify:api` against a live core before shipping wire changes.

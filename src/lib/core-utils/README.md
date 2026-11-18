@@ -12,10 +12,10 @@ src/lib/core-utils/
 ├── currency.ts     # Currency formatting with BDT defaults and accounting parenthetical negatives
 ├── date.ts         # Julian / value date parser and ISO timestamp formatters
 ├── export.ts       # CSV (with Excel UTF-8 BOM), HTML report, and XML table exporters
-├── id.ts           # Ephemeral UI token generator (generateClientToken)
+├── id.ts           # generateIdempotencyKey (UUIDv4 for mutations) and generateClientToken (short UI-only IDs)
 ├── index.ts        # Central public export barrel
 ├── storage.ts      # cbsStorage: the only Web Storage gateway (SSR-safe, JSON + Zod validated)
-└── string.ts       # Title Case string formatter with banking acronym preservation
+└── string.ts       # toTitleCase (keeps banking acronyms) and formatNameToLabel ("nomineeNid" → "Nominee NID")
 ```
 
 ---
@@ -38,17 +38,22 @@ formatCurrency(2500, { currency: "USD", decimals: 2 }); // "2,500.00 USD"
 import { formatValueDate, formatDateTime } from "@/lib/core-utils";
 
 formatValueDate("20261012"); // "12 Oct 2026"
-formatDateTime(new Date()); // "02-Nov-2026 23:30:00"
+formatDateTime(new Date()); // "02 Nov 2026 23:30:00"
 ```
 
-### 3. Title Case with Acronyms (`toTitleCase`)
+### 3. Title Case with Acronyms (`toTitleCase`, `formatNameToLabel`)
 
 ```typescript
-import { toTitleCase } from "@/lib/core-utils";
+import { formatNameToLabel, toTitleCase } from "@/lib/core-utils";
 
 toTitleCase("BRANCH HO MANAGER"); // "Branch HO Manager" (HO preserved)
 toTitleCase("CUSTOMER PLC ATM"); // "Customer PLC ATM"
+formatNameToLabel("nomineeNid"); // "Nominee NID"
 ```
+
+### IDs (`generateIdempotencyKey`, `generateClientToken`)
+
+`generateIdempotencyKey()` returns a UUIDv4 for mutation requests; it falls back to a non-crypto generator outside secure contexts (plain HTTP on an IP address). `generateClientToken(prefix)` returns a short ID such as `id_1a2b3c4d` for UI-only items that are never sent to the core as record IDs.
 
 ### 4. Document & Table Exports (`exportToCsv`, `exportToHtmlReport`, `exportToXml`)
 
@@ -70,6 +75,7 @@ exportToXml("accounts", columns, rows);
 
 The only module allowed to call `localStorage` / `sessionStorage`. Every call is SSR-safe and
 absorbs quota, privacy-mode and disabled-storage errors, so callers never write `try/catch`.
+Methods: `get`, `set`, `remove`, `removeByPrefix`, `readJson`, `writeJson`.
 
 ```typescript
 import { cbsStorage } from "@/lib/core-utils";
@@ -89,5 +95,4 @@ const criteria = cbsStorage.readJson("session", key, filterCriteriaMapSchema);
 
 ```bash
 pnpm verify:utils
-pnpm verify:all
 ```

@@ -6,95 +6,77 @@ description: Use this skill when adding new screens, registering screen aliases,
 
 # CBS Command Gateway & Navigation Runbook
 
-## Overview
-
-In Janata CBS, screen navigation does **NOT** use standard Next.js `<Link>` tags or `router.push()`. Navigating via URLs destroys active form draft sessions and tab state. All screen opening and function dispatching is handled through the **CBS Command Gateway** (`cbsCommand.execute()`).
+Every banking screen opens from a **command string** through `cbsCommand.execute()`. Changing the URL would lose the open tabs and drafts, so `<Link href="/screen/...">` and `router.push()` are never used to switch screens. They're used only for sign-on redirects and the docs portal. Reference: `src/lib/cbs-command/README.md`.
 
 ---
 
-## 1. Navigating Between Screens
-
-### The Invariant
-
-> **NEVER use `<Link href="/screen/...">` or `router.push()` to switch or open banking screens.**
-
-### The Correct Command Dispatch
-
-Use `cbsCommand.execute()` or the `data-cbs-command` DOM attribute:
+## 1. Opening a screen
 
 ```tsx
 import { cbsCommand } from "@/lib/cbs-command";
 
-// Programmatic execution
-cbsCommand.execute("ACCOUNT I 10001", { title: "Account 10001" });
+cbsCommand.execute("ACCOUNT I 1001"); // workspace tab
+cbsCommand.execute("CUSTOMER S 9001", { target: "popup" }); // detached window
+const parsed = cbsCommand.parse("ACCOUNT,1.0.0 I 1001"); // no side effects (previews, autocomplete)
 
-// Declarative DOM button execution (handled by global delegation in WorkbenchShell)
+// Declarative: WorkbenchShell delegates clicks on any element with data-cbs-command
 <button data-cbs-command="SC.MENU.DESIGN" data-cbs-label="Menu Designer">
-  Open Menu Designer
+  Menu Designer
 </button>;
 ```
 
----
+`execute()` shows parse and permission errors to the user itself, unless `{ silent: true }` is passed.
 
-## 2. Command Syntax Standards
+## 2. Grammar (what `cbsCommand.parse()` returns)
 
-The Command Gateway supports standard core-banking shorthand and canonical aliases:
+| Command                                                      | Result                                                                     |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `ACCOUNT`                                                    | mode `IDLE` (record search)                                                |
+| `ACCOUNT,`                                                   | mode `IDLE`, `authLevel: 0` (zero-auth entry)                              |
+| `CUSTOMER,KYC`                                               | version `KYC`                                                              |
+| `ACCOUNT 1001`                                               | record `1001`, mode `S`                                                    |
+| `ACCOUNT S\|I\|A\|D\|R\|H 1001`                              | that function's mode                                                       |
+| `ACCOUNT L`                                                  | function `L`, mode `IDLE`                                                  |
+| `INQ GET.EMP.INFO` / `INQ S …` / `INQUIRY …`                 | inquiry, mode `S`                                                          |
+| `MD`, `MC`, `FC`, `IC`                                       | `SC.MENU.DESIGN`, `SC.MODEL.CONFIG`, `SC.FORM.CONFIG`, `SC.INQUIRY.CONFIG` |
+| `SETTINGS`, `SETTINGS:<tab>`, `PROFILE`, `THEME`, `SECURITY` | settings dialog (`profile`, `appearance`, `security`)                      |
 
-1. **Base Application Navigation:**
-   - `"USER"` → Opens blank USER form in SEE mode.
-2. **Auto-Authorize Comma Shorthand:**
-   - `"USER,"` → Opens USER in auto-authorize mode.
-3. **Explicit Record & Function Lookup:**
-   - `"USER 1001"` → Fetches record 1001 in default mode.
-   - `"USER I 1001"` → Fetches record 1001 in INPUT mode.
-   - `"USER S 1001"` → Fetches record 1001 in SEE (read-only) mode.
-4. **Inquiry Queries:**
-   - `"INQ GET.EMP.INFO"` → Opens the inquiry results viewer.
-5. **Canonical System Aliases:**
-   - `"MD"` → Resolves to `SC.MENU.DESIGN`
-   - `"UG"` → Resolves to `SC.USER.GROUP`
-   - `"MC"` → Resolves to `SC.MODEL.CONFIG`
-   - `"RB"` → Resolves to `SC.REPORT.BUILDER`
-   - `"MNU"` → Resolves to `SC.MENU`
-6. **Quick Actions:**
-   - `"DARK"` → Toggles dark mode.
-   - `"LOGOUT"` → Triggers session sign-off.
+There are no `DARK`, `LOGOUT` or other "quick action" commands: unknown words parse as form screens. The security check (`validateSecurityPermissions`) requires a signed-in user, rejects users with `commandLine === false`, and requires the RIDASHL right for any function code.
 
----
+## 3. Which component renders a command
 
-## 3. Registering New Screens (`src/features/workbench/registry.tsx`)
+`resolveScreen()` in `src/features/workbench/registry.tsx` resolves the alias, then picks, in order: a `BESPOKE_SCREENS` entry → `OpsInquiry` for an `INQ`/`INQUIRY` prefix → `OpsForm` for everything else. **Form and inquiry screens need no code**: they come from the core's Model, Form and Inquiry config (offline: `mock/db`).
 
-When adding a custom screen component:
+## 4. Adding a bespoke screen (system or admin tools only)
 
-1. Register its canonical command key in `BESPOKE_SCREENS` inside `src/features/workbench/registry.tsx`:
+1. Build the screen in `src/features/system/<name>/`. Export it from the feature's `index.ts` as a `CbsScreenComponent` (props `CbsScreenProps` from `@/lib/cbs-screen`), rendered with `CbsScreenScaffold`.
+2. Add its command to `MASTER_COMMAND_DEFINITIONS` in `src/lib/cbs-command/registry/catalog.ts` (`command`, `title`, `aliases`, `controlAction: "SCREEN"`, `controlType: "FORM"`).
+3. Register the canonical command key in `BESPOKE_SCREENS`:
 
    ```tsx
-   const BESPOKE_SCREENS: Record<string, ScreenComponent> = {
-     "SC.MENU": SysMenuCatalog,
-     "SC.MY_NEW_TOOL": MyNewToolComponent,
+   const BESPOKE_SCREENS: Record<string, CbsScreenComponent> = {
+     "SC.MENU.DESIGN": SysMenuDesigner,
+     "SC.MY.TOOL": SysMyTool, // new
    };
    ```
-2. The `resolveScreen()` engine will automatically handle aliasing, inquiry routing, and dynamic GMC form fallbacks.
+4. Add grammar or alias cases to `scripts/verify/verify-cbs-command.ts`.
 
----
+Aliases from the core's control and menu records are registered at runtime (`cbsCommand.registerAliases`, from the search palette), so they need no code.
 
-## 4. Dual Workspace Contract (`panel` vs `window` mode)
+> [!IMPORTANT]
+> Command strings and aliases are operator-facing: people type them from memory, and menus store them. Renaming or removing one is a **compatibility change** (`.agents/rules/00-core-pillars.md` §1). Flag it to the owner first.
 
-- **Internal Tabs (`panel` mode):**
-  - Rendered inside the main dashboard workbench.
-  - Tabs are managed in-memory via `WorkbenchStore`.
-- **Detached Windows (`window` mode):**
-  - Rendered via `window.open()` as autonomous instances under `/screen/[id]`.
-  - Communicates cross-window updates using `BroadcastChannel(clientConfig.storage.broadcast.workbenchBus)`.
+## 5. Tabs and popups
 
----
+Panel and window modes are described in `AGENTS.md` §4. A popup docks back with `broadcastDockTab()`, and the shell validates the message with `dockTabPayloadSchema`.
 
-## 5. Verification & Testing
+## 6. Hotkeys
 
-Whenever you modify command parsing, aliases, or screen routing, run:
+Use `useCbsHotkeys` (screen keys: `F2` new, `F5` commit, `F6` hold, `F7` validate, `F8` authorize, `F10` delete, `Esc` return; ignored while a dialog is open) and `useHotkeys` (`Ctrl+K` palette) from `@/lib/cbs-hotkeys`. Never add raw `keydown` listeners in screens.
+
+## 7. Verification
 
 ```bash
 pnpm verify:command
+pnpm verify:screen
 ```
-
-Ensure all 20 command gateway test cases pass cleanly.

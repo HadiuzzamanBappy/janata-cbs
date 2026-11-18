@@ -91,7 +91,12 @@ Log level priorities, streaming stdout handling, and browser-safe formatting are
 If new sensitive fields or account prefixes are introduced by the banking system:
 
 - **Adding Sensitive Keys:** Add regex pattern to `SENSITIVE_KEY_PATTERNS` in `redact.ts`.
-- **Adding Account Prefixes:** Update the prefix pattern (e.g. `AC|SB|CD|FD|LN`) in `redact.ts:59`.
+- **Adding Account Prefixes:** Update the prefix pattern (`AC|SB|CD|FD|LN`) in `redactSensitiveData()` in `redact.ts`.
+
+`isSensitiveKey()` and `maskAccountNumber()` are exported too, for code that has to mask a value outside a log call.
+
+> [!IMPORTANT]
+> This module is the only place allowed to call `console.*`. Everywhere else, use `logger`.
 
 ---
 

@@ -9,45 +9,22 @@
     "ignoreUnknown": true,
     "includes": [
       "**",
-      "!**/.next",
-      "!**/out",
-      "!**/build",
-      "!**/coverage",
-      "!**/dist",
-      "!**/node_modules",
       "!**/*.css",
-      "!**/next-env.d.ts",
       "!**/src/components/ui",
       "!**/src/hooks/use-mobile.ts",
       "!**/src/lib/infra-grpc/generated",
-      "!**/public",
       "!**/mock/db/.rawResponse"
     ]
   },
   "formatter": {
-    "enabled": true,
-    "formatWithErrors": false,
-    "attributePosition": "auto",
     "indentStyle": "space",
-    "indentWidth": 2,
-    "lineEnding": "lf",
     "lineWidth": 100
   },
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
-  },
   "linter": {
-    "enabled": true,
     "rules": {
-      "preset": "recommended",
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole": "off",
-        "noDocumentCookie": "off"
+        "noConsole": "error"
       }
     }
   },
@@ -214,12 +191,26 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/lib/core-logger/**", "scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/store/theme/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noDocumentCookie": "off"
+          }
+        }
+      }
     }
-  ],
-  "css": {
-    "parser": {
-      "cssModules": true,
-      "tailwindDirectives": true
-    }
-  }
+  ]
 }

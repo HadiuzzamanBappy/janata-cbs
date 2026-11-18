@@ -10,7 +10,7 @@ It enforces a strict security boundary (`import "server-only"`), maintains a laz
 
 ```text
 src/lib/infra-grpc/
-├── auth.ts         # User authentication & session management (loginUser, logoutUser)
+├── auth.ts         # loginUser / logoutUser: core login, then createSession / destroySession in @/lib/infra-redis
 ├── client.ts       # Channel pooling, TLS, 16 MB limit, RPC callers (loginProcess, financialProcess, nonFinancialProcess), status mapping
 ├── dispatch.ts     # Pure gRPC dispatcher routing by servicePath with env-based financial detection
 ├── generated/      # Protobuf compiled TypeScript stubs (ts-proto) for GrpcServiceClient, GrpcRequest, GrpcResponse
@@ -47,7 +47,12 @@ Client Request via /api/proxy (HTTP JSON)
        TLS / Insecure, Keepalive (60s/20s), 16 MB max payload, Deadline
                  │
                  ▼
-     [ 4. Standard Response Envelope ]
+     [ 4. resolveCoreStatus() ]
+     The core's status string is checked against apiStatusSchema; an unknown value is logged
+     at error level and returned as ERROR, never as success
+                 │
+                 ▼
+     [ 5. Standard Response Envelope ]
      ApiResponse<T> (Unified JSON with status, statusCode, data)
 ```
 
@@ -69,28 +74,14 @@ Client Request via /api/proxy (HTTP JSON)
 
 ### 1. Dispatching a Banking Transaction via `dispatch()`
 
-Used inside Next.js API routes (e.g. `/api/proxy`):
+Used inside Next.js API routes (e.g. `/api/proxy`). Never build the envelope by hand: `buildGrpcEnvelope()` in `src/app/api/_lib/envelope.ts` fills `clientId`, `userId` and `branchCode` from the server session, so the browser can't supply them.
 
 ```typescript
 import { dispatch } from "@/lib/infra-grpc";
-import type { GrpcEnvelope } from "@/lib/data-schemas";
+import { buildGrpcEnvelope } from "../_lib/envelope";
 
-const envelope: GrpcEnvelope = {
-  idempotencyKey: "550e8400-e29b-41d4-a716-446655440000",
-  servicePath: "default",
-  requestType: "PUT",
-  controlName: "ACCOUNT",
-  recordFunction: "I",
-  recordId: "10000001",
-  branchCode: "JB0001",
-  authLevel: 1,
-  userId: "TELLER01",
-  data: {
-    accountTitle: "Janata Corporate A/C",
-  },
-};
-
-const response = await dispatch(envelope, token);
+const envelope = buildGrpcEnvelope(session, body); // body: the validated cbsWirePayload
+const response = await dispatch(envelope, session.token);
 ```
 
 ### 2. Service Routing via `servicePath`

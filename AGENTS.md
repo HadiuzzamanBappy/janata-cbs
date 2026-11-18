@@ -10,130 +10,79 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # Janata CBS Workbench — Agent Guide
 
-Janata CBS is an enterprise core banking frontend/BFF built with **Next.js 16 (App Router)**, **React 19**, **Tailwind CSS v4**, and **Biome**. It communicates with the Java banking core exclusively through a server-side gRPC proxy (`/api/proxy`); the browser never touches gRPC, Redis, or internal databases directly.
+A production core-banking frontend + BFF: Next.js 16 (App Router), React 19, Tailwind v4, Biome, Zustand, TanStack Query, Zod. The browser reaches the Java core only through `/api/proxy`, never gRPC or Redis.
 
----
+## 0. How to work here
 
-## 1. Quality Gates (Mandatory Before Completing Tasks)
+- **Smallest safe change.** Fix what was asked; don't refactor around it. Justify every new file.
+- **Never commit or push** unless the owner asks. Leave changes in the working tree for review.
+- **Stop and ask** before touching a compatibility boundary (§1), weakening a security check, or changing a `verify:*` suite.
+- **Report honestly**: say what you verified, what you couldn't (for example, no live core), and what is left.
 
-Every code change must pass these checks with zero errors:
+## 1. Quality gates (every task)
 
-```bash
-pnpm lint:fix        # Biome formatting and lint fixes
-pnpm typecheck       # TypeScript strict compilation check (tsc --noEmit)
-pnpm verify:all      # Standalone CBS domain invariant test suite
-```
-_Never commit code with type errors, linter warnings, or failing verification suites._
+`pnpm lint:fix`, `pnpm typecheck` and `pnpm verify:all` (or the `verify:*` suite for each module you changed). All must be clean. There is no CI, so these gates are the only check before production.
 
-### 1.1 Pre-Edit File Checklist
+Before saving any file:
 
-Before saving edits to any file, ensure:
+- **DRY**: delegate to `src/lib` (access → `@/lib/cbs-access`, dirty → `@/lib/cbs-record`, hotkeys → `@/lib/cbs-hotkeys`).
+- **Zero legacy in code**: no shims, deprecated aliases or dual params (`?id=`).
+- **No dead code**: delete unused exports, imports, props, branches and files in the same change.
+- **Logging**: `logger` from `@/lib/core-logger` (it masks PII), never `console.*`. Biome's `noConsole` enforces this; only `core-logger` and `scripts/` are exempt.
+- **Production compatibility**: persisted browser data (`WorkbenchTab`, session, popup drafts), the core wire contract (`proto/service.proto`, request types, control and field names) and operator-facing commands, aliases and `/screen/...` URLs must stay compatible or ship a migration. **Flag any change to them to the owner.**
+- **No magic strings**: enums from `@/types` (`CbsRecordFunction`, `CbsRecordStatus`, `CbsRequestType`, `CbsControlTable`, `CBS_SCREEN_MODES`, `CBS_IDLE_MODE`); routes and keys from `clientConfig`.
+- **No fake IDs**: never `Date.now()`; record IDs come from input or the core (`GNI`).
+- **Size budget**: components ≤ 300 lines (350 if cohesive); hooks, helpers and stores ≤ 250 (280). Split along real responsibilities only.
 
-- [ ] **DRY Check**: No duplicate logic (e.g., `isReadOnly` delegates to `@/lib/cbs-access`).
-- [ ] **Zero Legacy**: No backward-compatibility shims, legacy query params (`?id=`), or deprecated aliases.
-- [ ] **Zero Magic Strings**: Mode strings and action codes use `CbsRecordFunction.*` and `CBS_SCREEN_MODES`.
-- [ ] **No Fake IDs**: No `Date.now()` timestamp ID generation.
-- [ ] **Size Budget**: Components $\le 300$ lines (stretch up to $350$ when cohesive), hooks/helpers/stores $\le 250$ lines (stretch up to $280$ for comprehensive domain rules before decomposing). Avoid premature micro-fragmentation.
-
----
-
-## 2. Command Reference
-
-### Development & Build
+## 2. Commands
 
 ```bash
-pnpm dev              # Start local development server
-pnpm build            # Production build
-pnpm lint:fix         # Auto-format and lint code with Biome
-pnpm typecheck        # Full TypeScript compiler check
-pnpm proto:gen        # Regenerate gRPC stubs from .proto definitions
-pnpm ui:add <name>    # Add a base component primitive
+pnpm dev                # dev server
+pnpm build              # production build
+pnpm lint               # Biome check only (no writes)
+pnpm lint:fix           # Biome format + safe fixes
+pnpm typecheck          # tsc --noEmit
+pnpm proto:gen          # regenerate src/lib/infra-grpc/generated/ (never hand-edit)
+pnpm ui:add <name>      # add a shadcn/Base UI primitive (never hand-edit src/components/ui/)
+pnpm cache:clear        # flush the Redis cache
+pnpm cache:inspect      # list cached keys
+pnpm fixture:clean      # normalize a mock/db/.rawResponse sample
 ```
 
-### Domain Verification Harnesses (`scripts/verify/`)
+Verification suites are standalone `tsx` scripts in `scripts/verify/` (not Jest/Vitest; no per-case filter). Run one directly with `pnpm exec tsx scripts/verify/<file>.ts`.
 
-These are standalone `tsx` verification scripts (not Jest/Vitest). Run the suite matching the area you modified:
+| Suite              | Covers                                                | Suite            | Covers                                                                            |
+| ------------------ | ----------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------- |
+| `verify:all`       | the 16 below (no `api`); shows output only on failure | `verify:layers`  | ranks, barrels, client/server boundary (strict, no allowlist)                     |
+| `verify:access`    | RIDASHL, Four-Eyes                                    | `verify:command` | grammar, aliases, RBAC                                                            |
+| `verify:client`    | payload factories                                     | `verify:record`  | deltas, dirty state                                                               |
+| `verify:form-spec` | form compiler                                         | `verify:inquiry` | inquiry spec                                                                      |
+| `verify:schemas`   | Zod contracts                                         | `verify:parsers` | wire parsers                                                                      |
+| `verify:config`    | env, services                                         | `verify:logger`  | PII redaction                                                                     |
+| `verify:utils`     | formatters, storage, IDs                              | `verify:grpc`    | gRPC gateway                                                                      |
+| `verify:redis`     | cache, sessions                                       | `verify:mock`    | offline core                                                                      |
+| `verify:screen`    | screen, popups                                        | `verify:api`     | **live** core + dev server (`DATA_SOURCE=grpc`); run before shipping wire changes |
 
-```bash
-pnpm verify:all       # Runs all 16 offline sub-suites sequentially (excludes verify:api)
-pnpm verify:layers    # Layer inversions, barrel bypasses, client/server boundary (strict)
-pnpm verify:access    # RIDASHL rights + Four-Eyes maker-checker
-pnpm verify:command   # Terminal command grammar, aliases, RBAC
-pnpm verify:client    # Wire request factories & payload contracts
-pnpm verify:record    # Record delta mutations & status transitions
-pnpm verify:form-spec # GMC form schema specifications & compiler
-pnpm verify:inquiry   # CBS inquiry specifications & compiler
-pnpm verify:schemas   # Zod domain schemas & validation contracts
-pnpm verify:parsers   # CBS wire data parsers & serializers
-pnpm verify:config    # Env runtime config matrix & service registry
-pnpm verify:logger    # Banking-grade logger & PII redaction engine
-pnpm verify:utils     # Currency, account-masking, date formatters
-pnpm verify:grpc      # Infra gRPC protocol & gateway
-pnpm verify:redis     # Infra Redis & specification caching engine
-pnpm verify:mock      # In-memory mock core engine & dispatch
-pnpm verify:screen    # CBS screen architecture & capabilities
-pnpm verify:api       # Live CBS core proxy & dispatch API (needs DATA_SOURCE=grpc + running dev server)
-```
+## 3. Invariants
 
-### Cache & Tools
+1. **Layers**: `app → features → components → hooks → store → lib/cbs-*, core-utils → lib/infra-*, core-config, core-logger, data-parsers → types, data-schemas`. Defined in `LAYERS` (`scripts/verify/verify-layers.ts`). `src/lib` never imports store, hooks, components, features or app; it notifies upward via `registerCommandAdapter` / `notifyUser`. Import units only through `index.ts` (or `server.ts`); some barrels are at sub-feature level (`@/features/operations/forms`).
+2. **Server boundary**: `infra-*`, `core-config/server.ts`, `env.ts` and `src/proxy.ts` are `server-only`. Validate everything from outside (route bodies, Server Action args, URL params, cross-window messages) with `data-schemas` + `.safeParse()`. Server Actions are public endpoints.
+3. **Four-Eyes**: the inputter never authorizes their own record. Enforced **only in the UI** (`evaluateCbsAccess`); the proxy checks rights, not Four-Eyes. Show the reason in a `<Tooltip>`, and never weaken the UI check.
+4. **Navigation**: screens open only via `cbsCommand.execute("…")` or `data-cbs-command`, never `<Link href="/screen/…">` or `router.push()`.
+5. **Mutations**: through `useIdempotentSend().sendMutation()` (adds the required UUIDv4 key). One toast per failure, raised by `cbs.send()`.
+6. **Styling**: semantic tokens only (`bg-primary`, `border-border`), no numbered colours; `h-8 text-xs`, 12-column grid, `font-mono` amounts and IDs; `cn()` for classes.
+7. **Next.js 16**: `cookies()`, `headers()`, `params` and `searchParams` are Promises; `await` them.
 
-```bash
-pnpm cache:clear      # Flush Redis cache (scripts/cache/cache-clear.ts)
-pnpm cache:inspect    # Inspect Redis cache keys
-pnpm fixture:clean    # Normalize mock data fixtures
-```
+## 4. Architecture map
 
----
+- **Runtime modes** (`.env.local` from `.env.example`): `DATA_SOURCE=static` + `CACHE_ENABLED=false` runs offline against `mock/` (`@mock/core`, `@mock/db`; add a table + handler for new offline screens, then `verify:mock`). `DATA_SOURCE=grpc` + `CACHE_ENABLED=true` uses `GRPC_HOST` + `REDIS_URL`.
+- **Request path**: `cbs.send(payload)` → `POST /api/proxy`. The proxy: session (401 / 403 on `initLogin`) → `cbsWirePayloadSchema.safeParse` → `verifyUserRecordAccess` (rights, 403) → `buildGrpcEnvelope` (user, branch from the session) → cache (`resolveCacheDescriptor` → `getOrSet`) → `dispatch()` (gRPC, or mock) → decode once → `autoInvalidateOnMutation`. Other routes: `login`, `logout`, `session`, `change-password`, `cache` (token-guarded). `src/proxy.ts` is the session guard and lets `/screen/*` through for the popup lock screen.
+- **Screens**: `resolveScreen()` (`src/features/workbench/registry.tsx`): alias → `BESPOKE_SCREENS` → `INQ` prefix → `OpsInquiry` → otherwise `OpsForm`. Forms and inquiries come from the core's config (`MODEL.CONFIG`, `CONFIG.FORM`, `INQUIRY`), compiled by `lib/cbs-form-spec` / `lib/cbs-inquiry-spec` and drawn by the `cbs-*-engine` components. Fix rendering in the compiler or engine, never per screen. A bespoke screen needs `MASTER_COMMAND_DEFINITIONS` + `BESPOKE_SCREENS`.
+- **Workbench**: `panel` mode = tabs in `WorkbenchShell` at `/dashboard`; `window` mode = popups at `/screen/[id]`, rebuilt from URL + staged draft, synced over `BroadcastChannel` (`CBS_SCREEN_MESSAGE`). Only the main shell runs the idle watcher.
+- **Stores**: `session`, `workbench`, `alert` (Zustand, per provider) via `CbsAppStoreProvider`, mounted in `WorkbenchShell` and each popup. The theme is next-themes, in `app/layout.tsx`.
+- **Docs**: `docs/devs` and `docs/manual` render at `/devs` and `/manual`. Update them when behaviour changes. Each `src/lib` unit and engine has a README.
 
-## 3. Core Architectural Invariants
+## 5. Rules & skills (read when the task touches the area)
 
-1. **Unidirectional Layer Hierarchy:**
-   Dependencies flow strictly one way. Lower layers must **never** import from higher layers:
-
-   ```text
-   app ──> features ──> components ──> store ──> lib/cbs-* ──> lib/infra-* ──> types & data-schemas
-   ```
-
-   `src/lib` must **NEVER** import from `@/store`, `@/components`, `@/features`, or `@/app`. Upward notifications use the Adapter Bus (`registerCommandAdapter`).
-
-2. **Strict Server Boundary (`"server-only"`):**
-   Backend drivers (`@grpc/grpc-js`, `ioredis`) live on the server only. The client reaches the backend strictly through `/api/proxy` via request factories in `@/lib/cbs-client`. All boundary payloads must be validated with Zod `.safeParse()`.
-
-3. **Four-Eyes Principle (Maker-Checker):**
-   A user who inputted or modified a transaction (`Maker`) can **never** authorize that same transaction (`Checker`). Block authorization in UI with a clear `<Tooltip>` explanation.
-
-4. **Zero Magic Strings:**
-   - Routes come from `clientConfig.routes` (in `@/lib/core-config`).
-   - Action codes and statuses come from canonical enums (`@/types/cbs`).
-   - User identity and active branch resolve dynamically from `useSessionStore`.
-
-5. **Screen Navigation via Command Gateway:**
-   Never use `<Link href="/screen/...">` or `router.push()` to switch banking screens. Use `cbsCommand.execute("COMMAND ...")`.
-
-6. **Styling with Semantic Tokens:**
-   Use Tailwind v4 semantic classes (`bg-primary`, `text-muted-foreground`, `border-border`). Never hardcode numbered colors (`bg-blue-600`). Forms use the 12-column grid with compact banking density (`h-8 text-xs`, monospace financial values).
-
-7. **Next.js 16 Asynchronous APIs:**
-   `cookies()`, `headers()`, `params`, and `searchParams` are async Promises and must be `await`ed.
-
----
-
-## 4. Deep-Dive Rules & Skills Index
-
-When working in specific domain areas, refer to the focused runbooks in `.agents/`:
-
-- **Rules (`.agents/rules/`):**
-  - [00-core-pillars.md](file:///.agents/rules/00-core-pillars.md) — The 9 core engineering invariants.
-  - [01-architecture-layers.md](file:///.agents/rules/01-architecture-layers.md) — Layer import boundaries and rules.
-  - [02-nextjs-and-react19.md](file:///.agents/rules/02-nextjs-and-react19.md) — Next.js 16 App Router & React 19 standards.
-  - [03-cbs-domain-security.md](file:///.agents/rules/03-cbs-domain-security.md) — RIDASHL access model & Four-Eyes matrix.
-  - [04-styling-and-tokens.md](file:///.agents/rules/04-styling-and-tokens.md) — Semantic design tokens & layout guidelines.
-
-- **Skills (`.agents/skills/`):**
-  - `cbs-access-control` — RIDASHL capability evaluation and button states.
-  - `cbs-client-wire-protocol` — BFF proxy client and wire request factories.
-  - `cbs-command-and-navigation` — Command syntax, screen aliases, and bespoke screen registration.
-  - `cbs-compact-ui-and-layout` — High-density, minimal CBS UI conventions, 12-column grids, and multi-monitor resolution consistency (1366x768 to 1920x1080).
-  - `cbs-form-and-record-lifecycle` — Two-tier form state (prevent keystroke thrashing) & delta payloads.
-  - `cbs-verification-suite` — Test runbook and regression triage.
-  - `documentation-authoring` — Architecture docs and end-user manual authoring standards.
+- `.agents/rules/`: `00-core-pillars` (invariants, compatibility boundaries) · `01-architecture-layers` (ranks, barrels, boundary) · `02-nextjs-and-react19` · `03-cbs-domain-security` (validation, RIDASHL, Four-Eyes) · `04-styling-and-tokens`.
+- `.agents/skills/`: `cbs-access-control` · `cbs-client-wire-protocol` · `cbs-command-and-navigation` · `cbs-compact-ui-and-layout` · `cbs-form-and-record-lifecycle` · `cbs-verification-suite` · `documentation-authoring`.

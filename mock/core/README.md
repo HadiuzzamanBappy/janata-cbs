@@ -1,157 +1,75 @@
 # 🧪 CBS Mock Core (`@mock/core`)
 
-In-memory Core Banking protocol simulator for offline development (`DATA_SOURCE="static"` or `MOCK_CBS="true"`). Provides zero-socket simulation with strict wire parity to live gRPC endpoints and `/api/proxy` responses.
+An in-memory stand-in for the Java core, used when `DATA_SOURCE=static` (set `CACHE_ENABLED=false` too, for a setup with no dependencies). It answers the same request types the real core does, with the same response envelope, so the app runs with no gRPC, Redis or network. Data comes from the tables in [`@mock/db`](../db/README.md).
+
+It is server-only (`import "server-only"`). The browser never imports it: client code only calls `/api/proxy` and the auth routes.
 
 ---
 
-## 🔎 How Mock Core & Mock DB Are Invoked in the Architecture
+## 🔎 Where it's called
 
-**Key Architectural Invariant**:
-The browser / client **never** imports or executes `@mock/core` or `@mock/db` directly. Client code (in `src/features/*`, `src/components/*`, and `@/lib/cbs-client`) only calls standard HTTP endpoints like `/api/proxy` and `/api/login`.
+`isStaticMode()` (`src/lib/infra-grpc/client.ts`) returns `true` when `serverConfig.dataSource === "static"`. Then:
 
-Mock Core operates exclusively on the **Server side** (`"server-only"`):
+| Caller (`src/lib/infra-grpc`)                                 | Goes to                                            |
+| ------------------------------------------------------------- | -------------------------------------------------- |
+| `dispatch()` in `dispatch.ts` (every `/api/proxy` request)    | `mockDispatch(envelope)`                           |
+| `loginProcess()` in `client.ts` (`/api/login`)                | `handleLogin(req)`, checked against `SC_USER`      |
+| `financialProcess()` / `nonFinancialProcess()` in `client.ts` | `mockProcess(req)`, which returns a `GrpcResponse` |
 
-```text
-Browser Client (sendCbsRequest / useLogin)
-          │
-          │ HTTP fetch (POST)
-          ▼
-Next.js API Route (/api/proxy or /api/login)
-          │
-          ▼
-Server-side Dispatcher (@/lib/infra-grpc)
-  ├─ If serverConfig.dataSource === "static" (or isStaticMode())
-  │    └─► @mock/core (mockDispatch / handleLogin / mockProcess)
-  │             └─► @mock/core/database-router (resolves table)
-  │                      └─► @mock/db/* (in-memory fixtures)
-  │
-  └─ Else (live gRPC core connection)
-       └─► @grpc/grpc-js client
-```
-
-### Exact Call Sites in the Codebase
-
-1. **`/api/proxy` → `dispatch()` (`src/lib/infra-grpc/dispatch.ts:145`)**:
-
-   ```typescript
-   if (isStaticMode()) {
-     return mockDispatch(envelope); // Calls mock/core to simulate CBS execution
-   }
-   ```
-2. **`/api/login` → `loginUser()` → `loginProcess()` (`src/lib/infra-grpc/client.ts`)**:
-
-   ```typescript
-   if (isStaticMode()) {
-     return handleLogin(req); // Authenticates against mock/db/SC_USER
-   }
-   ```
-3. **gRPC Transport Fallback → `financialProcess()` / `nonFinancialProcess()` (`src/lib/infra-grpc/client.ts`)**:
-
-   ```typescript
-   if (isStaticMode()) {
-     return mockProcess(req); // Simulates unary gRPC responses
-   }
-   ```
-4. **Verification Harness (`scripts/verify/verify-mock-core.ts`)**:
-   Runs 13 standalone checks verifying database routing, protocol verbs, and envelopes.
+`mockDispatch()` and `mockProcess()` both route the request through `getMockProxyResponse()`.
 
 ---
 
-## 📦 Directory Map
+## 🎯 Request routing (`getMockProxyResponse`)
+
+Checked in this order by `requestType` (upper-cased):
+
+| Request type                                                                                     | Handler                | File                   | Behaviour                                                                              |
+| ------------------------------------------------------------------------------------------------ | ---------------------- | ---------------------- | -------------------------------------------------------------------------------------- |
+| `CPW`                                                                                            | `handleChangePassword` | `auth-handlers.ts`     | Changes the password in the mock user tables                                           |
+| `GUM`, `GCM`                                                                                     | `handleGetMenu`        | `menu-handlers.ts`     | The menu tree (`SC_MENU_TREE`)                                                         |
+| `GMC`                                                                                            | `handleGetModelConfig` | `model-handlers.ts`    | A model from `SC_MODEL_CONFIG`                                                         |
+| `GFC`                                                                                            | `handleGetFormConfig`  | `model-handlers.ts`    | A form layout from `SC_FORM_CONFIG`, with its model                                    |
+| `INQ`                                                                                            | `handleInquiry`        | `inquiry-handlers.ts`  | Runs an inquiry from `SC_INQUIRY_CONFIG` against its target table                      |
+| `GNI`                                                                                            | `handleNextId`         | `mutation-handlers.ts` | Next record ID (the model's ID rule, or a user-prefixed draft ID)                      |
+| `SBI`, `RIL`                                                                                     | `handleSearchById`     | `query-handlers.ts`    | Matching record IDs only (wildcards allowed)                                           |
+| `GRL`, `GCQ`, `GMV`, `GGL`                                                                       | `handleRecordList`     | `query-handlers.ts`    | Records of a table                                                                     |
+| `GET`, `GRV`, `S`, `SEE`, or record function `S`                                                 | `handleSeeRecord`      | `query-handlers.ts`    | One record, live or historical                                                         |
+| `PUT`, `AUT`, `DEL`, `HLD`, `REV`, `TRV`, `SMC`, `AMC`, `SFC`, `SMR`, `DTR`, `ATT`, `CTT`, `AFT` | `handleMutation`       | `mutation-handlers.ts` | Writes the record with its new status (for example `PUT` → `UA`, `AUT` / `AMC` → `AU`) |
+| anything else                                                                                    | `notFoundResult`       | `response-factory.ts`  | Not found                                                                              |
+
+Login doesn't go through this table: `loginProcess()` calls `handleLogin()` directly.
+
+> [!IMPORTANT]
+> The mock does **not** enforce Four-Eyes. `AUT` authorizes any record, and the stored `recInputter` comes from the request data. To test maker-checker blocking offline, use the UI (sign on as the inputter), not direct requests.
+
+---
+
+## 📦 Files
 
 ```text
 mock/core/
-├── database-router.ts        # Resolves controlName to physical tables via SC_MODEL_CONFIG
-├── response-factory.ts       # Standardized envelopes (okResult, errorResult, notFoundResult, toGrpcResponse)
-├── handlers/                 # Domain protocol handlers partitioned by CBS verb
-│   ├── auth-handlers.ts      # Operator authentication & session minting (SC_USER)
-│   ├── inquiry-handlers.ts   # INQ (Dynamic tabular inquiry executions & filters)
-│   ├── menu-handlers.ts      # GUM, GCM (User navigation menu tree from MENU.TREE)
-│   ├── model-handlers.ts     # GMC, GFC (Metamodels & dynamic form presentations)
-│   ├── mutation-handlers.ts  # PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, SMR, DTR, ATT, CTT, AFT, GNI
-│   ├── query-handlers.ts     # GET, S, SEE, GRV, GRL, GCQ, GMV, GGL, SBI, RIL
-│   └── index.ts              # Handlers barrel export
-└── index.ts                  # Public entry: handleLogin, mockProcess, mockDispatch, getMockProxyResponse
+├── index.ts               # getMockProxyResponse, mockDispatch, mockProcess (+ re-exported handlers)
+├── database-router.ts     # resolveTable(controlName): finds a table by control, model key or PREFIX_TABLENAME
+├── response-factory.ts    # successResult, notFoundResult, errorResult, toGrpcResponse
+└── handlers/              # auth, inquiry, menu, model, mutation and query handlers (+ index.ts)
 ```
 
----
-
-## 🎯 Supported Protocol Verbs & Handler Mapping
-
-Requests dispatch dynamically by `requestType` to modular domain handlers:
-
-| Verb(s)                                          | Category              | Handler File           | Implementation           | Target Source / Behavior                                 |
-| :----------------------------------------------- | :-------------------- | :--------------------- | :----------------------- | :------------------------------------------------------- |
-| **`LOGIN`**                                      | Operator Auth         | `auth-handlers.ts`     | `handleLogin()`          | `SC_USER` verification & session token generation        |
-| **`GUM`**, **`GCM`**                             | Navigation Menu       | `menu-handlers.ts`     | `handleGetMenu()`        | Resolves `MENU.TREE` hierarchy                           |
-| **`GMC`**                                        | Metamodel Spec        | `model-handlers.ts`    | `handleGetModelConfig()` | Target model schema in `SC_MODEL_CONFIG`                 |
-| **`GFC`**                                        | Form Layout           | `model-handlers.ts`    | `handleGetFormConfig()`  | Target form presentation in `SC_FORM_CONFIG`             |
-| **`INQ`**                                        | Dynamic Inquiry       | `inquiry-handlers.ts`  | `handleInquiry()`        | `SC_INQUIRY_CONFIG` + Target Table query                 |
-| **`GNI`**                                        | Sequence / Draft ID   | `mutation-handlers.ts` | `handleNextId()`         | Model `IDDEF` or user-prefixed draft ID generation       |
-| **`SBI`**, **`RIL`**                             | Key / ID List Search  | `query-handlers.ts`    | `handleSearchById()`     | Target Table `getIdList()` with wildcard match           |
-| **`GRL`**, **`GCQ`**, **`GMV`**, **`GGL`**       | Record Collections    | `query-handlers.ts`    | `handleRecordList()`     | Target Table `getList()`                                 |
-| **`GET`**, **`S`**, **`SEE`**, **`GRV`**         | Read Record           | `query-handlers.ts`    | `handleSeeRecord()`      | Target Table `LIVE` or historical record snapshot        |
-| **`PUT`**, **`SMC`**, **`SFC`**, **`SMR`**       | Save Draft (Maker)    | `mutation-handlers.ts` | `handleMutation()`       | Writes pending record with `recStatus: "UA"`             |
-| **`AUT`**, **`AMC`**                             | Authorize (Checker)   | `mutation-handlers.ts` | `handleMutation()`       | Validates Maker-Checker rule, writes `recStatus: "AU"`   |
-| **`DEL`**, **`HLD`**, **`REV`**, **`TRV`**, etc. | Lifecycle Transitions | `mutation-handlers.ts` | `handleMutation()`       | Updates record status to `"DEL"`, `"HLD"`, `"REV"`, etc. |
+`resolveTable()` returns an accessor bundle: `LIVE`, `table` (all version buckets), `getList(version?)` and `getIdList(pattern?, version?)`.
 
 ---
 
-## 🗄️ Database Resolution (`database-router.ts`)
+## ➕ Extending
 
-Translates client `controlName` into physical table accessors via `SC_MODEL_CONFIG`:
-
-```typescript
-import { resolveTable } from "@mock/core/database-router";
-
-// Resolves control alias "CONFIG.FORM" or model "ACCOUNT" to underlying database fixture
-const table = resolveTable("CONFIG.FORM"); // Resolves to SC_FORM_CONFIG
-
-if (table) {
-  const records = table.getList("LIVE"); // Array of live records
-  const ids = table.getIdList("AC*"); // Matching record keys
-  const liveRec = table.LIVE["ACCOUNT,1.0.0"];
-}
-```
-
----
-
-## 🚀 Execution & Entrypoints
-
-### 1. `mockDispatch(payload)`
-
-Invoked by the server-side dispatcher (`src/lib/infra-grpc/dispatch.ts`) when `/api/proxy` receives a request under `DATA_SOURCE="static"`. It parses the wire envelope and routes to `getMockProxyResponse`.
-
-### 2. `handleLogin(req)`
-
-Invoked by `loginProcess()` (`src/lib/infra-grpc/client.ts`) when `/api/login` authenticates an operator under static mode.
-
-### 3. `mockProcess(req)`
-
-Invoked by `financialProcess()` / `nonFinancialProcess()` (`src/lib/infra-grpc/client.ts`) to return protobuf-compatible `GrpcResponse` objects for unary gRPC calls.
-
----
-
-## ➕ Scaling: Adding Verbs or Tables
-
-1. **Add a Table**:
-   - Create `mock/db/<PREFIX>_<TABLENAME>.ts` implementing the table interface.
-   - Register it in `mock/db/index.ts` under `CBS_PHYSICAL_TABLES`.
-   - Define its metamodel mapping in `mock/db/SC_MODEL_CONFIG.ts`.
-   - The database router automatically resolves and serves the table.
-
-2. **Add or Extend a Protocol Verb**:
-   - Implement the business logic in the corresponding handler under `mock/core/handlers/` (`query-handlers.ts`, `mutation-handlers.ts`, etc.).
-   - Route the verb in `mock/core/index.ts` within `getMockProxyResponse()`.
+- **A new table:** see "Adding a table" in [`@mock/db`](../db/README.md). The router finds it automatically.
+- **A new request type:** add its handler under `handlers/`, export it from `handlers/index.ts`, and route it in `getMockProxyResponse()`. Add a case to `scripts/verify/verify-mock-core.ts`.
 
 ---
 
 ## 🧪 Verification
 
 ```bash
-# Run in-memory mock core verification suite (validates all 13 core capabilities)
 pnpm verify:mock
-
-# Run all 12 CBS domain verification suites
-pnpm verify:all
 ```
+
+Its checks include table resolution, login, the menu tree, ID allocation, ID search, single-record reads, the `PUT` → `UA` lifecycle and the full `mockProcess` gRPC envelope.

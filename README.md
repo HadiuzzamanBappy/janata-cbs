@@ -72,7 +72,7 @@ src/
 ├── components/            # cbs-command, cbs-form-engine, cbs-inquiry-engine, cbs-menu, cbs-screen, cbs-settings,
 │                          # feedback, layout, ui (shadcn/Base UI primitives)
 ├── hooks/                 # Global hooks (idle timeout, single tab, container width, access)
-├── store/                 # Zustand stores: alert, session, theme, workbench (+ root-provider)
+├── store/                 # Zustand stores: alert, session, workbench (+ root-provider); theme provider
 ├── lib/                   # cbs-* domain libraries, core-* config/logger/utils, data-parsers, data-schemas,
 │                          # infra-grpc & infra-redis ("server-only")
 ├── types/                 # Canonical contracts: access, protocol, screen, status
@@ -87,14 +87,17 @@ src/
 
 - Node.js (v20+)
 - [pnpm](https://pnpm.io/)
-- A running Java Core Banking backend (or enable static mock fallback)
-- Redis (optional for local dev, recommended for production caching)
+- A running Java Core Banking backend, or the offline simulator (`DATA_SOURCE=static`)
+- Redis (optional locally; in production it holds sessions and the spec cache, and login rate limiting only works while Redis is up)
 
 ### Installation & Execution
 
 ```bash
 # Install dependencies
 pnpm install
+
+# Configure: offline = DATA_SOURCE=static + CACHE_ENABLED=false; live = DATA_SOURCE=grpc + GRPC_HOST + REDIS_URL
+cp .env.example .env.local
 
 # Run the development server
 pnpm dev
@@ -114,7 +117,7 @@ pnpm verify:access      # Run a single suite; the full list is in AGENTS.md §2
 pnpm verify:api         # Live core + running dev server required (not part of verify:all)
 ```
 
-The complete list of suites, one per library, is in [AGENTS.md §2](AGENTS.md#2-command-reference).
+The complete list of suites, one per library, is in [AGENTS.md §2](AGENTS.md#2-commands).
 
 ---
 

@@ -1,91 +1,37 @@
-# 00: Core Engineering Invariants & Banking Pillars
+# 00: Core Pillars
 
-All generated code in Janata CBS must conform strictly to these core engineering invariants:
+The gates, invariants and architecture map are in `AGENTS.md`. This file holds the detail behind them. The system runs in **production** for bank operators: breaking an open session, a stored draft or the core contract is an incident.
 
-## 1. Unidirectional Dependency Rule (No Layer Inversion)
+## 1. Compatibility boundaries
 
-$$\text{Level 6 (App)} \longrightarrow \text{Level 5 (Features)} \longrightarrow \text{Level 4 (Components)} \longrightarrow \text{Level 3 (Store)} \longrightarrow \text{Level 2 (Client Lib)} \longrightarrow \text{Level 1 (Core/Infra)} \longrightarrow \text{Level 0 (Contracts)}$$
+Zero legacy applies **inside the code**: no shims, deprecated aliases, fallback wrappers, dual params or obsolete types. Update every call site in the same change. Three things outlive a deploy and must stay compatible or ship a one-time migration. **Flag any change to them to the owner before merging:**
 
-- A lower level must **NEVER** import from a higher level.
-- Specifically: `src/lib` must **NEVER** import from `@/store`, `@/components`, `@/features`, or `@/app`.
-- Upward notifications from `src/lib` to application state MUST use the adapter bus (`registerCommandAdapter`).
+1. **Persisted browser data**: shapes written through `cbsStorage` and the persisted stores (`WorkbenchTab.formData` / `baseline`, session state, staged popup drafts).
+2. **Core wire contract**: `proto/service.proto`, request types, control names, record field names.
+3. **Operator-facing addresses**: command strings and aliases (`MD`, `ACCOUNT I 1001`), menu commands, `/screen/...` URLs.
 
-## 2. Zero Magic Strings & Centralized Registry
+## 2. Domain rules
 
-- **Zero Inline Paths**: Never hardcode route strings like `"/api/login"`. Use `clientConfig.routes` (in `@/lib/core-config`).
-- **Zero Raw Action Codes**: Never use raw string literals like `"S"`, `"I"`, `"AU"`, or `"NEW"`. Always use canonical enums from `@/types/cbs` or `@/lib/cbs-access` / `@/lib/cbs-record`.
-- **Zero Hardcoded Context**: Active branch codes, user credentials, and session tokens must resolve dynamically from `useSessionStore`.
-- **Storage Invariants**: All keys for `localStorage`, `sessionStorage`, or cookies must be declared in `clientConfig.storage` or `clientConfig.auth`.
+- **Four-Eyes**: the record's inputter never authorizes it. Enforced only in the UI (`evaluateCbsAccess`); `/api/proxy` checks rights only (`verifyUserRecordAccess`). Never claim or assume server-side Four-Eyes.
+- **Append-only schema**: a committed Model Config property is never deleted; only properties added in the current draft may be removed (`removeDraftField`).
+- **RIDASHL**: every action button's state comes from `useCbsAccess()` / `resolveCbsActionBar()`.
+- **1:1 data**: in-memory state matches the wire shape (`PROP: [...]` stays a recursive tree, with no flattening).
+- **Cross-window messages** use `CBS_SCREEN_MESSAGE` names and are validated on receipt.
+- **Storage keys** are declared in `clientConfig.storage` / `clientConfig.auth` and accessed only through `cbsStorage`.
 
-## 3. Server/Client Isolation Boundary
+## 3. Form state
 
-- Backend infrastructure drivers (`@grpc/grpc-js`, `ioredis`, internal services) must remain sealed behind `import "server-only"`.
-- The browser client **NEVER** speaks gRPC directly. It communicates exclusively via Next.js Route Handlers (`/api/...`) or Server Actions with strict Zod validation at the boundary.
+Keystrokes never re-render the workbench. Tier 1 is the form engine's kernel store (`FieldAtom` subscribes per field). Tier 2: `useCbsPersistence` writes `formData` and `isDirty` to the tab, debounced by 400 ms.
 
-## 4. Dual Workspace Contract (Tabs vs. Detached Popups)
+## 4. Naming & UI
 
-- **Internal Tabs (`panel` mode)**: Managed by `WorkbenchStore` in-memory. Switching tabs is instantaneous and preserves form draft state.
-- **Detached Windows (`window` mode)**: When popped out via `window.open()`, the popup runs as an autonomous Next.js screen instance under `src/app/(workbench)/screen/[id]/page.tsx`.
-- **Cross-Window Synchronization**: Record mutations broadcast via `BroadcastChannel(clientConfig.storage.broadcast.workbenchBus)` to refresh open parent tabs without conflict.
+- Files and folders `kebab-case`; components and types `PascalCase` (types `readonly`); constants and enums `UPPER_SNAKE_CASE`; config singletons `camelCase`; hooks `use*`.
+- No filler text: clear labels, tooltips or the validation drawer for help, keyboard-first (F-keys, command gateway), no layout shift. Details: the `cbs-compact-ui-and-layout` skill.
 
-## 5. High-Performance Form State (No Keystroke Thrashing)
+## 5. Refactoring checklist (any file you touch)
 
-- Banking screens contain 50+ dynamic fields. Keystrokes must **never** trigger global Zustand re-renders.
-- **Two-Tier Form State**:
-  1. **Tier 1 (Local Component State)**: Fast, local field editing via local state or form hook refs.
-  2. **Tier 2 (Global Tab Store Sync)**: The tab store only receives **debounced snapshots (400ms)** or **blur events**, plus a lightweight boolean `isDirty: true`.
-
-## 6. Zero Dead Code, Zero Legacy Shims & 1:1 WYSIWYG Data
-
-- **No Backward Compatibility Burden**: The app is not in production. Do **NOT** keep deprecated shims, legacy aliasing, fallback adapter wrappers, or obsolete types. Update all call sites cleanly.
-- **1:1 WYSIWYG Fidelity**: In-memory state and wire data structures match 1:1 (`PROP: [...]` true recursive tree, no artificial flattening/re-nesting).
-- **Zero Dead Code**: Delete unused imports, orphaned types, unreachable branches, and abandoned utility files immediately.
-- **Strict Naming**: Files/folders in `kebab-case`, components/types in `PascalCase` (types sealed with `readonly`), primitives/enums in `UPPER_SNAKE_CASE`, config singletons in `camelCase` (`clientConfig`, `serverConfig`), hooks prefixed with `use`.
-- **File Lengths**: Keep standard leaf components focused (≤300 lines where feasible); large enterprise screens, designer canvases, and metamodel dictionaries are permitted to be larger when cohesive.
-
-## 7. Core Banking Security & Domain Rules
-
-- **Four-Eyes Principle (Maker-Checker)**: A record inputter (`Maker`) can NEVER authorize their own record (`Checker !== Maker`).
-- **Append-Only Schema Evolution**: Committed properties in the database can never be deleted; they can only be marked `STATUS: "ARCHIVED"`. Only uncommitted draft properties may be deleted.
-- **Banking Entitlements (`RIDASHL`)**: Always verify user capabilities via `useCbsAccess()` before rendering action buttons.
-- **Command Gateway**: Screen navigation occurs exclusively via `cbsCommand.execute("COMMAND ...")`, never via raw `<Link>` or `router.push()`.
-
-## 8. High-Density Zero-Fluff UI
-
-- **Eliminate Clutter**: No marketing taglines, verbose helper paragraphs, or redundant secondary labels.
-- **Self-Explanatory Layouts**: Clear domain labels, sensible grouping, 12-column grid hierarchy, compact controls (`h-8 text-xs`, IDs/dates in `font-mono`).
-- **Tooltips for Assistance**: Use compact icon tooltips (`<Tooltip>`) or the validation drawer—never static canvas filler.
-
-## 9. Tri-Experience Optimization & Zero Breakage (UX / DX / AX)
-
-- **UX**: Keyboard-first interaction (F-keys, command gateway, tab indexing), zero layout shifts.
-- **DX**: Pure TypeScript with zero `any`, unidirectional layers, Biome compliance (`pnpm lint:fix`).
-- **AX (Agent Experience)**: Deterministic contracts, schema-driven metadata (`MODEL.CONFIG` / `FORM.CONFIG`), and explicit type boundaries.
-- **Zero Breakage**: All verification suites (`pnpm verify:all`, `pnpm typecheck`) must pass cleanly after every task.
-
-## 10. Universal File Revision & Refactoring Checklist
-
-Whenever reviewing, refactoring, or editing ANY file in the codebase, you MUST apply this 5-point test before completing the task:
-
-1. **Zero Duplicate Logic (DRY & Headless Core Delegation)**:
-   - Does this file compute logic that already exists in `@/lib`?
-   - **Access & Permissions**: NEVER calculate `isReadOnly` or `maker !== checker` inline. Delegate 100% to `access.isReadOnly` from `@/lib/cbs-access`.
-   - **Dirty Detection**: NEVER write manual JSON equality diffs. Delegate to `evaluateDirty` from `@/lib/cbs-record`.
-   - **Hotkeys**: NEVER attach manual `window.addEventListener("keydown")`. Use `useCbsHotkeys`.
-
-2. **Zero Legacy Baggage & Dead Fallbacks**:
-   - The application is NOT in production. Do NOT keep backward-compatibility polyfills, legacy query params (e.g. `?id=` fallback when `recordId` is canonical), obsolete aliases, or unused props.
-   - If an alias is obsolete (e.g. `admin-tabs` -> `system`), rename it across all call sites immediately.
-
-3. **Zero Magic Strings & Centralized Enums**:
-   - NEVER hardcode mode strings (`"I"`, `"S"`, `"IDLE"`), action codes, or arrays of modes like `Set(["IDLE", "S", ...])`.
-   - Always import canonical enums and sets: `CBS_SCREEN_MODES`, `CbsRecordFunction.INPUT`, `CbsRecordStatus`.
-
-4. **Zero Client-Side ID Invention (Golden Rule 5)**:
-   - NEVER fabricate IDs with timestamps (e.g., `NEW.${Date.now()}`).
-   - New record creation is strictly input-driven or sequence-allocated via the core backend (`GNI`). If sequence allocation fails and no candidate ID is provided, return empty string `""`.
-
-5. **Flexible File Budget Compliance (Rule 2)**:
-   - Presentation components: Target **$\le 300$ lines** (flexible stretch up to **350 lines** when cohesive).
-   - Custom hooks, persistence, and pure helpers: Target **$\le 250$ lines** (flexible stretch up to **280 lines** for comprehensive domain logic and rule engines).
-   - Avoid artificial line squeezing or premature micro-fragmentation; decompose only when a file contains distinct, separable responsibilities.
+1. **No duplicate logic**: never compute `isReadOnly` or maker ≠ checker inline (`@/lib/cbs-access`), never diff records by hand (`evaluateDirty` / `computeDelta`), never add raw `keydown` listeners (`useCbsHotkeys` / `useHotkeys`).
+2. **No legacy or dead code**: remove shims, unused exports, imports, props, branches and files in the same change, except the boundaries in §1.
+3. **No magic strings**: modes, codes and sets of modes come from `@/types`.
+4. **No invented IDs**: record IDs from input or `GNI`; if allocation fails with no candidate, return `""`. UI-only keys use `generateClientToken()` and are never sent as record IDs.
+5. **Size budget** as in `AGENTS.md` §1. Split only along real responsibilities.

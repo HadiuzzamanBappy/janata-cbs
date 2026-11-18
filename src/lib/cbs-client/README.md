@@ -1,163 +1,76 @@
-# 🌐 CBS Micro-Client (`@/lib/cbs-client`)
+# 🌐 CBS Client (`@/lib/cbs-client`)
 
-A universal, type-safe client gateway and wire payload factory for the **Janata Core Banking Workbench**.
-
-It acts as the single boundary between the React presentation layer and the server-side proxy (`/api/proxy`). It provides pre-flight schema validation, automatic toast alerts, session expiration detection (401), and standardized factories for all core banking operations.
+Layer L2: the browser's only way to reach the core. Every banking request is built by a payload factory and sent with `cbs.send()` to `POST /api/proxy`. Screens that read data use the TanStack Query options in `cbsQueries`, and sign-on, session and password calls go through `cbsAuth`. No component calls `fetch()` itself.
 
 ---
 
-## 📦 What It Contains
+## 📦 Parts
 
-1. **`cbs.send` (`transport/proxy-client.ts`)**:
-   - Type-safe HTTP fetch client dispatching payloads through `/api/proxy`.
-   - Pre-flight validation against `cbsWirePayloadSchema` (requires valid UUIDv4 `idempotencyKey` on all mutation verbs via `useIdempotentSend()`, leaving reads key-free).
-   - Automatic UI toast notifications for Success, Warning, and Banking Rule Rejections via `handleCbsResponseSemantics`.
-   - Supports `AbortSignal` for request cancellation and runtime Zod `responseSchema` validation.
+| Export                                        | File                        | What it is                                                                                                                                                                                                                                                                                                                          |
+| --------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cbs.send(payload, options?)`                 | `transport/proxy-client.ts` | Validates the payload against `cbsWirePayloadSchema`, `POST`s it to `/api/proxy`, optionally validates `data` with `responseSchema`, and raises the toast.                                                                                                                                                                          |
+| `cbs.model(control)` and the pre-bound tables | `payloads/`                 | Payload factories. `cbs.model(control)` gives `get`, `list`, `searchIds`, `getNewId`, `save`, `authorize`, `delete`, `hold` and `reverse`. Pre-bound: `cbs.branch`, `cbs.control`, `cbs.menu`, `cbs.inquiryConfig`, plus the special builders `cbs.menuTree`, `cbs.modelConfig`, `cbs.formConfig` and `cbs.inquiry.executeQuery()`. |
+| `cbsQueries`                                  | `queries/`                  | TanStack Query v5 `queryOptions` for read-mostly data: branch list, menus, menu tree, controls, model lookups, and the Model / Form / Inquiry config schemas. Each sets its own `queryKey` and `staleTime`.                                                                                                                         |
+| `cbsAuth`                                     | `transport/auth-client.ts`  | `login`, `changePassword`, `getSession`, `updateBranch`, `logout`. These call the dedicated `/api/*` auth routes, not `/api/proxy`.                                                                                                                                                                                                 |
 
-2. **Payload Factories (`payloads/`)**:
-   - **`cbs.model(controlName)`**: Universal factory providing standard banking operations (`get`, `list`, `searchIds`, `getNewId`, `save`, `authorize`, `delete`, `hold`, `reverse`).
-   - **`cbs.branch`**: Pre-bound model for the branch catalog (`SC_BRANCH`).
-   - **`cbs.control`**: Pre-bound model for the command catalog (`SC_CONTROL`).
-   - **`cbs.menu`**: Pre-bound model for the menu catalog (`SC_MENU`).
-   - **`cbs.menuTree`**: Pre-bound model for hierarchical navigation trees (`SC_MENU_TREE` via `GUM`).
-   - **`cbs.modelConfig`**: Dedicated metamodel builder (`GMC`, `SMC`, `AMC`) via `MODEL.CONFIG`.
-   - **`cbs.formConfig`**: Dedicated form layout presentation builder (`GFC`, `SFC`) via `CONFIG.FORM`.
-   - **`cbs.inquiryConfig`**: Dedicated inquiry table schema builder (`INQUIRY`).
-   - **`cbs.inquiry`**: Dynamic tabular inquiry runtime query execution (`INQ`).
+`SendCbsOptions`: `silent`, `successTitle`, `successMessage`, `errorMessage`, `signal` (`AbortSignal`), `responseSchema`.
 
 ---
 
-## 🚀 How to Use
+## 🔒 Rules
 
-### 1. Unified Model Operations via `cbs.model`
+1. **Mutations go through `useIdempotentSend()`** (`src/components/cbs-screen/hooks/use-idempotent-send.ts`). Its `sendMutation()` attaches a UUIDv4 `idempotencyKey`, reuses the same key when an unchanged payload is retried after a network or 5xx failure, and rotates the key after a definite result. Calling `cbs.send()` directly with a mutation (`save`, `authorize`, `delete`, `hold`, `reverse`) fails validation, because the key is required.
+2. **One toast per failure, raised here.** `cbs.send()` reports errors through `notifyUser` (the command gateway's notification adapter). Callers don't toast the same error again; pass `silent: true` to handle it yourself.
+3. **Session expiry is handled once.** A 401 broadcasts `CBS_SESSION_EXPIRED` to every window. The main window then goes to the sign-on page, and a popup shows a message instead.
+4. **Use the canonical control names** from `CbsControlTable` in `@/types` (for example `CONFIG.FORM`, `MODEL.CONFIG`, `INQUIRY`, `MENU.TREE`), never hand-typed strings.
 
-Any dynamic operational table (`CUSTOMER`, `ACCOUNT`, `TELLER`, `LOAN`, etc.) uses the universal model factory:
+---
+
+## 🚀 Usage
+
+Reading:
 
 ```typescript
 import { cbs } from "@/lib/cbs-client";
 import { isApiSuccess } from "@/lib/data-schemas";
 
-// Read an Account record ('GET')
-const response = await cbs.send(cbs.model("ACCOUNT").get("10000001"), {
-  successTitle: "Account Loaded",
-});
-
-if (isApiSuccess(response)) {
-  console.log("Account data:", response.data);
+const res = await cbs.send(cbs.model("ACCOUNT").get("1001"), { silent: true });
+if (isApiSuccess(res)) {
+  // res.data is already decoded by /api/proxy
 }
-
-// Search IDs for lookups ('SBI')
-const searchRes = await cbs.send(cbs.model("CUSTOMER").searchIds({ recordId: "90" }), {
-  silent: true,
-});
-
-// Allocate next sequence ID ('GNI')
-const newIdRes = await cbs.send(cbs.model("ACCOUNT").getNewId());
 ```
 
-### 2. Save, Authorize, or Reverse Under Maker-Checker
+Writing (inside a component or hook):
 
 ```typescript
-import { cbs } from "@/lib/cbs-client";
+const { sendMutation } = useIdempotentSend();
 
-// Save / Commit Record ('PUT')
-await cbs.send(
-  cbs.model("CUSTOMER").save({ name: "John Doe", sector: "RETAIL" }, { recordId: "CUST-9901" }),
-  {
-    successMessage: "Customer record saved successfully",
-  },
-);
-
-// Authorize pending record ('AUT')
-await cbs.send(cbs.model("CUSTOMER").authorize("CUST-9901"), {
-  successMessage: "Customer record authorized successfully",
+await sendMutation(cbs.model("CUSTOMER").save(formData, { recordId }), {
+  successMessage: "Customer record saved",
 });
-
-// Reverse live record ('REV')
-await cbs.send(cbs.model("CUSTOMER").reverse("CUST-9901"), {
-  successMessage: "Transaction reversed",
-});
+await sendMutation(cbs.model("CUSTOMER").authorize(recordId));
 ```
 
-### 3. Dynamic Inquiries with Filter Criteria
+Query data in a component:
 
 ```typescript
-import { cbs } from "@/lib/cbs-client";
+import { useQuery } from "@tanstack/react-query";
+import { cbsQueries } from "@/lib/cbs-client";
 
-const response = await cbs.send(
-  cbs.inquiry.executeQuery("GET.BRANCH.TXNS", {
-    curPage: 1,
-    perPage: 25,
-    queryString: [
-      {
-        selectFieldName: "BRANCH_CODE",
-        selectFieldOperator: "EQ",
-        selectFieldValue: "0101",
-      },
-    ],
-  }),
-);
+const { data: branches } = useQuery(cbsQueries.branch.list());
 ```
 
-### 4. Well-Known System Tables (Zero Hardcoding)
-
-Use pre-bound instances for fixed core tables without hardcoding strings:
-
-```typescript
-import { cbs } from "@/lib/cbs-client";
-
-// Fetch branch directory for switcher
-const branches = await cbs.send(cbs.branch.list(), { silent: true });
-
-// Fetch main user navigation tree (via GUM requestType)
-const menuTree = await cbs.send(cbs.menuTree.get(), { silent: true });
-```
+Inquiries are sent by `runInquiry()` in `@/components/cbs-inquiry-engine`, which builds `cbs.inquiry.executeQuery()` from the inquiry config. Don't build the inquiry `queryString` by hand.
 
 ---
 
-## 🔒 Architectural State: Scalable or Sealed?
+## ➕ A new table
 
-### 1. Transport Layer (`transport/proxy-client.ts`): **SEALED**
-
-The transport mechanics are complete and finalized:
-
-- Client-to-proxy wire routing (`/api/proxy`).
-- Pre-flight Zod validation.
-- Standard HTTP status code and error toast handling.
-- `AbortSignal` and session expiration handling (401).
-  **You do not need to modify or touch this transport layer.**
-
----
-
-### 2. Payload Registration (`index.ts`): **SCALABLE**
-
-When your core banking system introduces a new banking table or model, you **never** write new HTTP endpoints, fetch wrappers, or custom CRUD functions.
-
-You simply call:
-
-```typescript
-cbs.model("YOUR_NEW_TABLE").get(id);
-cbs.model("YOUR_NEW_TABLE").save(data);
-cbs.model("YOUR_NEW_TABLE").authorize(id);
-```
-
-Or if it's a permanent core system table, register it in `index.ts` with `CbsControlTable`:
-
-```typescript
-import { CbsControlTable } from "@/types";
-import { createModelPayloads } from "./payloads/base-model";
-
-export const cbs = {
-  // ...existing models
-  loanProduct: createModelPayloads(CbsControlTable.LOAN_PRODUCT),
-} as const;
-```
+Nothing to add: `cbs.model("NEW.TABLE")` already supports every standard operation. Pre-bind a table in `index.ts` only if it is a permanent system table. In that case, add its name to `CbsControlTable` in `@/types` first.
 
 ---
 
 ## 🧪 Verification
-
-Run the dedicated test suite:
 
 ```bash
 pnpm verify:client

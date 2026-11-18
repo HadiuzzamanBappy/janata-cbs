@@ -6,8 +6,8 @@ A minimal, 1-operation-per-key keyboard shortcut engine for the **Janata Core Ba
 
 ## 📦 What It Contains
 
-1. **`useCbsHotkeys`**: Minimal screen function keys (`F2`, `F5`–`F8`, `F10`, `Esc`), wired inside [`CbsScreenScaffold`](file:///d:/Work/React/cbs/janata-cbs/src/components/cbs-screen/cbs-screen-scaffold.tsx).
-2. **`useHotkeys`**: App-wide combo hook (`ctrl+k` / `Cmd+K`), wired in [`AppSidebar`](file:///d:/Work/React/cbs/janata-cbs/src/components/layout/app-sidebar.tsx).
+1. **`useCbsHotkeys`**: Minimal screen function keys (`F2`, `F5`–`F8`, `F10`, `Esc`), wired inside [`CbsScreenScaffold`](../../components/cbs-screen/cbs-screen-scaffold.tsx).
+2. **`useHotkeys`**: App-wide combo hook (`ctrl+k` / `Cmd+K`), wired in [`AppSidebar`](../../components/layout/app-sidebar.tsx).
 
 ---
 

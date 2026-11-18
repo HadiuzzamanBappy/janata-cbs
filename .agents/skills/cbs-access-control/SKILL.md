@@ -4,94 +4,77 @@ name: cbs-access-control
 description: Use this skill when implementing or modifying screens, action bars, buttons, or workflows that require banking entitlements (RIDASHL), Four-Eyes (Maker-Checker) authorization checks, or clearance level restrictions.
 ---
 
-# CBS Access Control & Four-Eyes Principle Runbook
+# CBS Access Control & Four-Eyes Runbook
 
-## Overview
-
-Janata CBS uses a strict core-banking access control engine based on the **`RIDASHL`** capability profile and the **Four-Eyes (Maker-Checker)** security boundary. This runbook details how to check permissions, enforce dual-control rules, and avoid authorization violations.
+Every decision about what a user may do with a record comes from **one** evaluator: `evaluateCbsAccess()` in `@/lib/cbs-access`. Components read it through `useCbsAccess()` in `@/hooks`. Full rule table: `src/lib/cbs-access/README.md`. If a doc and `record-guard.ts` ever disagree, the code wins and the doc is fixed.
 
 ---
 
-## 1. The RIDASHL Capability Model
+## 1. RIDASHL
 
-User rights are defined by a 7-character string where each character represents a distinct transactional function:
+| Code | Label (`CBS_FUNCTION_DEFINITIONS` in `@/types`) | Allowed when                                       |
+| :--: | ----------------------------------------------- | -------------------------------------------------- |
+| `R`  | Reverse                                         | record is `AU`                                     |
+| `I`  | Insert / Update                                 | always (the form is read-only without it)          |
+| `D`  | Delete                                          | record is `UA`, `NEW` or has no status yet         |
+| `A`  | Authorize                                       | record is `UA` **and** the user isn't its inputter |
+| `S`  | See / View                                      | always                                             |
+| `H`  | Hold / Park                                     | record isn't `AU` (needs `H` **or** `I`)           |
+| `L`  | List / Directory                                | always                                             |
 
-|  Code   | Function  | Meaning in Banking Context                                 |
-| :-----: | :-------- | :--------------------------------------------------------- |
-| **`R`** | Reverse   | Reversing an authorized, live transaction (`AU`)           |
-| **`I`** | Input     | Creating a new record or modifying a pending draft (Maker) |
-| **`D`** | Delete    | Deleting an unauthorized pending record (`UA`)             |
-| **`A`** | Authorize | Approving a pending record into the live ledger (Checker)  |
-| **`S`** | See       | Viewing full record data (Read-Only)                       |
-| **`H`** | Hold      | Placing a pending transaction on temporary hold            |
-| **`L`** | List      | Querying directory catalogs and summary lists (GRL)        |
+`D`, `H`, `A` and `R` are never available in `IDLE` mode. The user's rights are `user.accessibility` (an array of codes) from the session.
 
-### Checking Permissions in React Components
+---
 
-Use the domain hook `useCbsAccess` from `@/lib/cbs-access`:
+## 2. Using it in a component
 
 ```tsx
-import { useCbsAccess } from "@/lib/cbs-access";
+import { useCbsAccess } from "@/hooks";
+import { CbsRecordFunction } from "@/types";
 
-export function TransactionActionBar({ record }: { record: CbsRecord }) {
-  const { canSee, canInput, canAuthorize, canDelete, canReverse, hasFunctionRight } =
-    useCbsAccess(record);
+const access = useCbsAccess({
+  recordStatus: record?.auditData?.recStatus, // CbsRecordStatus.UA, AU, …
+  recordInputter: record?.auditData?.recInputter,
+  mode, // CbsScreenMode
+});
 
-  return (
-    <div className="flex items-center gap-2">
-      {canInput && <Button>Edit Record</Button>}
-      {canAuthorize && <Button>Authorize</Button>}
-      {canDelete && <Button variant="destructive">Delete</Button>}
-    </div>
-  );
-}
+<ActionBtn
+  enabled={access.canAuthorize}
+  reason={access.getDisableReason(CbsRecordFunction.AUTHORIZE) ?? undefined}
+  defaultTooltip="Authorize Record (✓✓)"
+  onClick={onAuthorize}
+>
+  <CheckCheck className="size-3.5" />
+</ActionBtn>;
 ```
 
----
-
-## 2. Four-Eyes Principle (Maker-Checker Enforcement)
-
-### The Invariant
-
-> **A teller who inputted or last modified a transaction (Maker) can NEVER authorize the same transaction (Checker).**
-
-### Implementation Rules
-
-1. Compare the active user's identity (`session.user.tellerId` or `session.user.username`) with `record.inputter`:
-   - If `record.inputter === activeUser.tellerId`, the user is the **Maker**.
-   - `canAuthorize` MUST evaluate to `false`.
-2. Do **NOT** hide the Authorize button completely unless the user lacks the `'A'` function right. If the user has `'A'` but is blocked by the Four-Eyes rule:
-   - Render the button as **disabled** (`disabled={true}`).
-   - Wrap it in a `<Tooltip>` explaining the exact restriction:
-     `"Four-Eyes restriction: You cannot authorize a record inputted by your own user ID."`
+- On a normal screen you don't call the hook yourself: `CbsScreenScaffold` evaluates access from its `auditContext` prop (`recStatus`, `recInputter`) and the current `mode`. Pass the record's `auditData` as `auditContext`.
+- The user comes from the session store automatically; pass `user` only in tests or server code.
+- Screen header buttons get their state from `resolveCbsActionBar()` in `@/lib/cbs-screen`, which already consumes `access`. Use it instead of re-deriving button states.
+- Use `access.isReadOnly` to lock the form and `access.isViewOnly` (modes `S`, `A`) for Commit / Validate / Hold. Never recompute either inline.
 
 ---
 
-## 3. Record Status & Function Matrix
+## 3. Four-Eyes (Maker-Checker)
 
-Functions are strictly gated by the record's current lifecycle status:
+> **The record's inputter can NEVER authorize that same record.**
 
-- **Pending / Unauthorized (`UA`):**
-  - Editable via `I`
-  - Deletable via `D`
-  - Authorizable via `A` (if not the Maker)
-  - Holdable via `H`
-- **Live / Authorized (`AU`):**
-  - Cannot be edited directly (`I` blocked)
-  - Cannot be deleted (`D` blocked; must be reversed instead)
-  - Cannot be authorized again (`A` blocked)
-  - Reversible via `R`
-- **Reversed (`REV`):**
-  - Read-only historical record (`S` only)
+- `isFourEyesViolation` is `userId === recordInputter` (trimmed, case-insensitive), and it forces `canAuthorize = false`.
+- Keep the Authorize button **visible but disabled**, with `getDisableReason(CbsRecordFunction.AUTHORIZE)` as its tooltip. The text is: _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_ Hide the button only when the user lacks `A`.
+- **Enforced only in the UI.** `/api/proxy` calls `verifyUserRecordAccess(currUser, recordFunction)`, which returns 403 if the user lacks the **right** for `I`, `A`, `D`, `R` or `H`. It does not load the record, so it can't detect a Four-Eyes violation, and the offline mock doesn't either. Never remove or weaken the UI check, and never claim server-side Four-Eyes in docs or code comments.
 
 ---
 
-## 4. Verification & Testing
+## 4. Rules
 
-Whenever you modify any permission-related logic, button rendering, or access rules, you MUST run the dedicated test suite:
+- Never compare user and inputter, or compute read-only state, outside `@/lib/cbs-access`.
+- Never use raw codes (`"A"`, `"UA"`): use `CbsRecordFunction` and `CbsRecordStatus` from `@/types`.
+- A new right or status rule belongs in `record-guard.ts`, with a case in `scripts/verify/verify-cbs-access.ts`.
+
+---
+
+## 5. Verification
 
 ```bash
 pnpm verify:access
 ```
-
-Ensure all 28 access control and RIDASHL test cases pass with 100% success before committing.

@@ -10,6 +10,7 @@ import {
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { cbsStorage } from "@/lib/core-utils";
+import { dockTabPayloadSchema } from "@/lib/data-schemas";
 import { useLazyStore, useScopedStore } from "../scoped-store";
 import { useSessionStore } from "../session/session-provider";
 import { createWorkbenchStore, type WorkbenchState, type WorkbenchStore } from "./workbench-store";
@@ -51,13 +52,18 @@ export function WorkbenchStoreProvider({ children }: { children: ReactNode }) {
       return true;
     };
 
+    /** Docks a popup's tab after validating the untrusted cross-window payload. */
+    const dockTab = (payload: unknown): boolean => {
+      const parsed = dockTabPayloadSchema.safeParse(payload);
+      if (!parsed.success || !isThisTabActive()) return false;
+      store.getState().addTab(parsed.data);
+      window.focus();
+      return true;
+    };
+
     const handleMessage = (e: MessageEvent) => {
       if (typeof window !== "undefined" && e.origin !== window.location.origin) return;
-      if (e.data?.type === CBS_SCREEN_MESSAGE.DOCK_TAB && e.data?.payload) {
-        if (!isThisTabActive()) return;
-        store.getState().addTab(e.data.payload);
-        window.focus();
-      }
+      if (e.data?.type === CBS_SCREEN_MESSAGE.DOCK_TAB) dockTab(e.data.payload);
     };
 
     window.addEventListener("message", handleMessage);
@@ -67,11 +73,9 @@ export function WorkbenchStoreProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined" && "BroadcastChannel" in window) {
       const bus = new BroadcastChannel(clientConfig.storage.broadcast.workbenchBus);
       bus.onmessage = (event) => {
-        if (event.data?.type === CBS_SCREEN_MESSAGE.DOCK_TAB && event.data?.payload) {
-          if (!isThisTabActive()) return;
-          store.getState().addTab(event.data.payload);
-          clearWorkbenchDraft(event.data.tabId); // the opener's copy of this popup's hand-off
-          window.focus();
+        const { type, tabId, payload } = event.data ?? {};
+        if (type === CBS_SCREEN_MESSAGE.DOCK_TAB && dockTab(payload) && typeof tabId === "string") {
+          clearWorkbenchDraft(tabId); // the opener's copy of this popup's hand-off
         }
       };
       busUnsubscribe = () => bus.close();

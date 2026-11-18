@@ -10,8 +10,10 @@
   ```
 - **Client Communication**: Client code interacts with backend systems strictly through:
   1. The API proxy (`/api/proxy` via `src/lib/cbs-client`)
-  2. Next.js Server Actions with internal Zod validation
-- **Zod Validation Boundary**: All incoming wire payloads crossing route handlers or actions must be validated using schemas in `src/lib/data-schemas/` using `.safeParse()`.
+  2. The auth routes (`/api/login`, `/api/logout`, `/api/session`, `/api/change-password`) via `cbsAuth`
+  3. Next.js Server Actions. **A Server Action is a public POST endpoint:** validate every argument with Zod, and check the session before returning anything non-public.
+- **Zod Validation Boundary**: Everything entering from outside (route bodies, Server Action arguments, URL params, `BroadcastChannel` / `postMessage` messages) must be validated with a schema from `src/lib/data-schemas/` using `.safeParse()`.
+- **No client-supplied paths**: never join a client-supplied string (route slug, action argument) into a filesystem path without validating it against an allowlist first.
 
 ## 2. Banking Entitlement Engine (`RIDASHL`)
 
@@ -30,17 +32,14 @@ Always check capabilities via `useCbsAccess()` or `src/lib/cbs-access` before re
 ## 3. Four-Eyes Principle (Maker-Checker Enforcement)
 
 - **Non-Negotiable Rule**: A record inputter (`Maker`) can NEVER authorize their own record (`Checker !== Maker`).
-- When an unauthorized record (`UA`) is viewed:
-  - If `record.authoriser === currentTeller` or maker matches the active user, authorization is strictly blocked.
-  - Disable the Authorize action button and show an explicit tooltip explaining the restriction.
+- The check is `evaluateCbsAccess()` in `@/lib/cbs-access`: the user ID is compared with the record's **inputter** (trimmed, case-insensitive), and on a match `isFourEyesViolation` is `true` and `canAuthorize` is `false`.
+- Keep the Authorize button visible but disabled, with the reason from `getDisableReason(CbsRecordFunction.AUTHORIZE)` in its tooltip: _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_
+- **Where it is enforced**: only in the UI. `/api/proxy` rejects a missing **right** with 403 (`verifyUserRecordAccess`) but doesn't load the record, so it can't compare the user with the inputter. The offline mock doesn't check either. Never weaken the UI check on the assumption that the server will catch it.
 
 ## 4. CBS Command Gateway
 
-- **No Direct `<Link>` to Screens**: Never use `<Link href="/screen/...">` or `router.push()` to navigate between CBS transaction screens. Navigation must trigger `cbsCommand.execute("COMMAND ...")`.
-- Canonical aliases resolve through `cbsCommand.resolveAlias()` (`@/lib/cbs-command`) (e.g. `MD` → `SC.MENU.DESIGN`).
+Navigation rules are in `AGENTS.md` §3 and the `cbs-command-and-navigation` skill. Security-relevant points:
 
-## 5. Multi-Instance Tab / Window Contract
-
-- Internal tabs run in-memory via `WorkbenchStore`.
-- Popped-out windows run under `src/app/(workbench)/screen/[id]/page.tsx`.
-- Cross-window record actions (Authorize, Delete, Save) broadcast on `BroadcastChannel(clientConfig.storage.broadcast.workbenchBus)` to trigger background parent tab re-fetches.
+- Commands go through `validateSecurityPermissions()`: a signed-in user is required, `commandLine === false` blocks typed commands, and a function code requires that RIDASHL right.
+- Cross-window messages (dock, record mutation, session events) are untrusted input. Validate them with a schema before acting on them (`dockTabPayloadSchema`).
+- On sign-on by a **different** operator, the workbench closes all tabs and purges staged drafts. Never remove that purge: it keeps one user's data from showing for another.

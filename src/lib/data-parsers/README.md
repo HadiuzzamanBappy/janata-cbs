@@ -1,192 +1,79 @@
 # 🔄 CBS Wire Data Parsers & Serializers (`@/lib/data-parsers`)
 
-The centralized data translation, wire-decoding, and serialization (SerDe) library for the **Janata Core Banking Workbench**.
-
-It transforms raw, low-level Google Protobuf wire structs (`string_value`, `struct_value`, `list_value`, nested fields) into clean, strongly typed domain records validated against `data-schemas`, and provides co-located sanitizers to serialize client records back to wire-clean JSON for persistence.
+Layer L1: turns what the core sends into typed domain records (checked against `@/lib/data-schemas`), and turns records edited in the designers back into clean JSON for saving. It has no React and no I/O.
 
 ---
 
-## 📦 What It Contains
+## 📦 Files
+
+| File                           | Direction | Contents                                                                                                                                                                               |
+| ------------------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `protobuf-decoder.ts`          | in        | `decodeProtobufValue()` unwraps Protobuf `Value` / `Struct` / `ListValue` into plain JSON. `unwrapRecordsPayload()` pulls the list out of `data.records`, `data.list` or a bare array. |
+| `auth-parser.ts`               | in        | `parseAuthWirePayload()`: login response → `CurrentUser` + token (used by `infra-grpc/auth.ts`)                                                                                        |
+| `inquiry-rows-parser.ts`       | in        | `parseInquiryRecords()`: INQ result set → `InquiryRow[]`. Runs **only** in `/api/proxy`.                                                                                               |
+| `form-config-parser.ts`        | in        | `parseGfcResponse()`: form-config response → `ModelConfigRecord` + `FormConfigRecord`                                                                                                  |
+| `form-config-serializer.ts`    | out       | `sanitizeFormConfigRecord()`                                                                                                                                                           |
+| `inquiry-config-parser.ts`     | in        | `parseInquiryConfig()`, including the core's SN-keyed records                                                                                                                          |
+| `inquiry-config-serializer.ts` | out       | `sanitizeInquiryConfigRecord()`                                                                                                                                                        |
+| `model-config-parser.ts`       | in + out  | `extractModelConfigRecord()` (finds the model record in a response, or `null`) and `sanitizeModelConfigRecord()`                                                                       |
+| `menu-designer-parser.ts`      | in + out  | `parseMNU()` (sidebar menus), `parseMenuTreeRecord()` and `sanitizeMenuTreeRecord()`                                                                                                   |
+
+---
+
+## ⚙️ Where each stage runs
 
 ```text
-src/lib/data-parsers/
-├── protobuf-decoder.ts       # Universal Protobuf wire normalizer & response envelope unwrapper
-├── auth-parser.ts            # Parses login/auth responses into typed CurrentUser models and session tokens
-├── form-config-parser.ts     # Parses GFC responses into ModelConfigRecord + FormConfigRecord
-├── form-config-serializer.ts # Sanitizes FormConfigRecord (elements, sections, routines) for persistence
-├── inquiry-config-parser.ts  # Parses inquiry definitions (incl. core SN-keyed records)
-├── inquiry-config-serializer.ts # Sanitizes InquiryConfigRecord (criteria, columns, commands) for persistence
-├── inquiry-rows-parser.ts    # Parses INQ result sets into InquiryRow[] (runs in the BFF proxy only)
-├── menu-designer-parser.ts   # Parses GUM navigation menus (parseMNU) and visual trees (SC_MENU_TREE)
-├── model-config-parser.ts    # Parses GMC responses & ModelConfigRecord; sanitizes model properties and model configs
-└── index.ts                  # Public barrel export
+core response ──► decodeProtobufValue()      server only, once: /api/proxy (+ parseInquiryRecords for INQ), and login
+                         │
+                         ▼  plain JSON reaches the browser
+                  unwrapRecordsPayload() + *-parser.ts    client or server: map keys, apply defaults, safeParse
+                         │
+                         ▼
+                  typed record (ModelConfigRecord, FormConfigRecord, …)
+
+designer state ──► sanitize*Record()          before a save: drop client-only IDs and default values
+                         │
+                         ▼
+                  clean JSON ──► /api/proxy
 ```
 
 ---
 
-## ⚙️ The Bidirectional SerDe Pipeline
+## 🔒 Rules
 
-Every wire payload flows symmetrically through two distinct directions:
-
-```text
-               INBOUND (Read / Fetch)
-             Raw gRPC / Wire Response
-                        │
-                        ▼
-┌──────────────────────────────────────────────┐
-│ 1. DECODER STAGE (protobuf-decoder.ts)       │
-│ • Unwraps Protobuf primitives:               │
-│   string_value, number_value,                │
-│   bool_value, null_value                     │
-│ • Recursively normalizes:                    │
-│   list_value -> Array                        │
-│   struct_value -> Object                     │
-│   fields -> Dictionary                       │
-│ • Unwraps response envelopes                 │
-│   (data.records, data.list)                  │
-└───────────────────────┬──────────────────────┘
-                        │ Plain JavaScript Object / Array
-                        ▼
-┌──────────────────────────────────────────────┐
-│ 2. PARSER STAGE (*-parser.ts)                │
-│ • Maps wire attributes to domain keys        │
-│ • Normalizes dates, booleans, and nulls       │
-│ • Enforces fallback invariants               │
-│ • Validates against data-schemas             │
-└───────────────────────┬──────────────────────┘
-                        │
-                        ▼
-          Strongly-Typed Domain Model
-      (e.g. ModelConfigRecord, FormConfigRecord)
-
-────────────────────────────────────────────────
-
-               OUTBOUND (Save / Commit)
-              Client State (React Forms)
-                        │
-                        ▼
-┌──────────────────────────────────────────────┐
-│ 3. SANITIZER STAGE (sanitize*Record)         │
-│ • Strips client-only IDs (f_..., tab_...)    │
-│ • Omits default falsy flags & empty overrides│
-│ • Compresses sparse JSON for wire efficiency │
-│ • Validates against target wire schemas      │
-└───────────────────────┬──────────────────────┘
-                        │
-                        ▼
-            Wire-Clean Persistence JSON
-                 (to /api/proxy)
-```
+1. **Decode once, on the server.** `decodeProtobufValue()` is called only in `/api/proxy` and in the login parser. Client-side parsers receive decoded data and must never decode again. Decoding twice is not safe: a real record attribute named `fields` would be flattened.
+2. **Parsers report failure, they don't throw.** `parseGfcResponse()`, `parseInquiryConfig()`, `parseMNU()` and `parseMenuTreeRecord()` return `{ success: true, data }` or `{ success: false, error }`, and validate with `safeParse` against their schema.
+3. **Sanitizers are total: `(record: T) => T`.** Callers never write `sanitize(x) || x`. Sanitizers remove client-only IDs (such as `f_…` and `tab_…`) and default values, so they never reach the core.
+4. **One file per domain**, holding both the parser and the sanitizer. Split it into `<domain>-parser.ts` and `<domain>-serializer.ts` only when it grows past the helper size budget in `AGENTS.md`, or when the parts run in different places (that's why `inquiry-rows-parser.ts` is separate). Callers import from the barrel, so a split never affects them.
 
 ---
 
-## 🚀 How to Use
-
-### 1. Decoding Low-Level Protobuf Structs (server only, once per response)
-
-`decodeProtobufValue` runs in exactly two places: the BFF proxy (`/api/proxy`, every core
-response, INQ rows also go through `parseInquiryRecords` there) and `parseAuthWirePayload`
-(login). Responses reach the browser already decoded, so client-side parsers never decode again.
-Re-decoding is not idempotent: a genuine record attribute named `fields` would be flattened.
+## 🚀 Usage
 
 ```typescript
-import { decodeProtobufValue, unwrapRecordsPayload } from "@/lib/data-parsers";
+import { parseGfcResponse, sanitizeFormConfigRecord } from "@/lib/data-parsers";
 
-// Server: converts { string_value: "Janata Bank" } -> "Janata Bank"
-const cleanData = decodeProtobufValue(rawProtobufObject);
-
-// Anywhere: extracts items from data.records, data.list, or a direct array of decoded data
-const items = unwrapRecordsPayload<RawRecord>(cleanData);
-```
-
----
-
-### 2. Inbound Wire Parsing
-
-Used across BFF route handlers and query hooks:
-
-```typescript
-import { parseGfcResponse, parseInquiryConfig, parseMNU } from "@/lib/data-parsers";
-
-// Combined GFC Form & Model Response:
-const gfcResult = parseGfcResponse(rawResponse);
-if (gfcResult.success) {
-  console.log("Model:", gfcResult.data.model.TABLENAME);
-  console.log("Form:", gfcResult.data.form?.title);
+const result = parseGfcResponse(response); // response.data is already decoded by /api/proxy
+if (result.success) {
+  const { model, form } = result.data;
 }
 
-// Sidebar Navigation Tree ('GUM'):
-const menuResult = parseMNU(rawMenuResponse);
-if (menuResult.success) {
-  console.log("Menu Items:", menuResult.data.length);
-}
+const payload = sanitizeFormConfigRecord(draftForm); // clean JSON, ready to save
 ```
 
 ---
 
-### 3. Outbound Record Sanitization (Pre-Commit)
+## ➕ Adding a domain
 
-Used in feature mutation hooks before sending updates to `/api/proxy`. Every
-`sanitize*Record` is total — `(record: T) => T` — so callers never need `sanitize(x) || x`:
-
-```typescript
-import {
-  sanitizeFormConfigRecord,
-  sanitizeModelConfigRecord,
-  sanitizeInquiryConfigRecord,
-} from "@/lib/data-parsers";
-
-// Prepare sparse, clean JSON for persistence:
-const wireReadyForm = sanitizeFormConfigRecord(dirtyFormState);
-const wireReadyModel = sanitizeModelConfigRecord(dirtyModelState);
-```
-
----
-
-## 🛡️ Edge Cases Handled
-
-1. **Protobuf Value Polymorphism:**
-   Seamlessly extracts primitives whether represented as direct JSON types or protobuf envelope objects (`{ string_value: "..." }`).
-2. **Missing Wire Fields & Safe Defaults:**
-   Extracts database attributes safely without throwing `TypeError: Cannot read properties of undefined`.
-3. **Circular Reference & Array Recursion Safety:**
-   `decodeProtobufValue` handles deeply nested lists and sub-structs recursively.
-4. **Sparse Persistence Serialization:**
-   Sanitizers ensure that client-generated identifiers (such as temporary React IDs) and default values are never written to the core banking ledger tables.
-
----
-
-## 🔒 Architectural State: Scalable or Sealed?
-
-### 1. Decoder Engine (`protobuf-decoder.ts`): **SEALED**
-
-Protobuf `Value`, `ListValue`, and `Struct` unwrapping mechanics are complete and finalized.
-
-### 2. Domain Parsers & Sanitizers: **SCALABLE**
-
-When creating a new domain schema (e.g. `loan-schema.ts`), pair it with a parser and sanitizer:
-
-1. Create `src/lib/data-parsers/loan-parser.ts`.
-2. Use `unwrapRecordsPayload` on the (already decoded) payload — never `decodeProtobufValue`.
-3. Implement `parseLoanRecord` and `sanitizeLoanRecord`.
-4. Export from `index.ts`.
-
-**When to split a domain file.** Keep one `<domain>-parser.ts` (inbound parse + outbound
-sanitizer together) by default. Split into `<domain>-parser.ts` (inbound) and
-`<domain>-serializer.ts` (outbound `sanitize*`) only when either holds:
-
-- the file exceeds the helper size budget (250 lines; 280 stretch), or
-- its parts run in different places (e.g. `inquiry-rows-parser.ts` runs only in the BFF proxy).
-
-Form and inquiry are split; auth, model and menu stay single-file because they are small.
-Callers always import from the `@/lib/data-parsers` barrel, so a split never touches them.
+1. Add its schema to `@/lib/data-schemas`.
+2. Create `<domain>-parser.ts`. Use `unwrapRecordsPayload()` on the already-decoded payload (never `decodeProtobufValue()`), then `safeParse` against the schema.
+3. If the domain is saved from the UI, add a total `sanitize<Domain>Record()` next to the parser.
+4. Export the file from `index.ts` and add a case to `scripts/verify/verify-data-parsers.ts`.
 
 ---
 
 ## 🧪 Verification
 
-Run the verification suite confirming wire parsers and mock fixtures:
-
 ```bash
-pnpm verify:all
+pnpm verify:parsers
 ```

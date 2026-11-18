@@ -1,4 +1,4 @@
-﻿---
+---
 
 name: cbs-form-and-record-lifecycle
 description: Use this skill when building or refactoring dynamic GMC forms, form fields, record state mutations, delta calculations, or form submit and commit flows.
@@ -6,84 +6,62 @@ description: Use this skill when building or refactoring dynamic GMC forms, form
 
 # CBS Form & Record Lifecycle Runbook
 
-## Overview
-
-Janata CBS renders high-density banking forms dynamically using metadata models (`GMC` schemas) sent from the Java backend. Banking forms often contain 50–100 fields with live validations. To maintain high performance and ledger integrity, follow the strict guidelines below.
+Banking forms are never hand-coded. The core sends a **Model Config** (data schema) and a **Form Config** (layout); `compileFormSpec()` in `@/lib/cbs-form-spec` joins them, and `FormRenderer` in `@/components/cbs-form-engine` draws the result. If a form renders wrong, fix the compiler or the engine, never one screen. References: `src/lib/cbs-form-spec/README.md`, `src/components/cbs-form-engine/README.md`, `src/lib/cbs-record/README.md`.
 
 ---
 
-## 1. Two-Tier Form State Architecture (Prevent Keystroke Thrashing)
+## 1. Two-tier state (no keystroke thrashing)
 
-### The Anti-Pattern
+1. **Tier 1, field level**: `FormKernelProvider` holds the form's values. Each `FieldAtom` subscribes to its own field through `useFormKernel(selector)`, so a keystroke re-renders one field.
+2. **Tier 2, tab level**: `useCbsPersistence` (`@/components/cbs-screen`) keeps the screen's `formData` and writes `formData` and `isDirty` to the workbench tab **debounced by 400 ms**. It also writes on `hydrate`, `rebaseline` and `reset`.
+3. Never write to the workbench store per keystroke, and never add a new Zustand store for form data.
 
-NEVER dispatch keystrokes or individual character inputs directly to the global Zustand `WorkbenchStore`. Doing so forces all open tabs, sidebars, and parent shells to re-render 60+ times per field input.
+`isDirty` comes from `evaluateDirty(baseline, formData)` in `@/lib/cbs-record`, so reverting an edit makes the form clean again.
 
-### The Correct Two-Tier Architecture
+## 2. Change pipeline
 
-1. **Tier 1 (Local Component State):**
-   - Inputs maintain their own local state via React local state or uncontrolled `ref` buffers.
-   - Keystrokes are completely isolated to the active input element.
-2. **Tier 2 (Tab Store Synchronization):**
-   - The global tab store (`formData` in `WorkbenchStore`) is synchronized ONLY via:
-     - A **debounced update (400ms)**, or
-     - On input blur (`onBlur`), or
-     - Explicit action triggers (e.g. Save Draft, Validate, Next Section).
-   - Set `isDirty: true` on the active tab only when local data deviates from the initial fetched record.
+`FormRenderer` runs, for each change: the field's `TRANSFORM` → its `CASCADE` patch → its `ON_CHANGE` rule. It calls `onChange(key, value)` for every field it sets, then emits the full next values once through `onRecordChange`. Visibility rules (`VISIBLE_WHEN` / `HIDDEN_WHEN`) are evaluated by `FieldGrid`. Add new behaviour to these rule types (`field-rules.ts`), not to a screen.
 
----
+## 3. Saving
 
-## 2. Delta Mutation Engine (`src/lib/cbs-record`)
+```typescript
+import { computeDelta } from "@/lib/cbs-record";
 
-When saving or modifying a record, core banking backends do not accept whole-record overwrites. They require **delta payloads** (only the fields that actually changed).
+const { sendMutation } = useIdempotentSend();
 
-### Delta Calculation Workflow
+const delta =
+  screenMode === CbsRecordFunction.INPUT && Object.keys(baseSnapshot).length > 0
+    ? computeDelta(baseSnapshot, values).modifiedFields // amend: changed fields only
+    : values; // new record: everything
+const commitData = Object.keys(delta).length > 0 ? delta : values;
 
-```ts
-import { computeRecordDelta } from "@/lib/cbs-record";
-
-// Compute dirty delta between pristine fetched record and current form state
-const delta = computeRecordDelta({
-  originalRecord: pristineData,
-  currentRecord: formValues,
-});
-
-if (delta.hasChanges) {
-  // Commit payload with only changed fields
-  await cbsClient.commitRecord({
-    application: "ACCOUNT",
-    recordId: "10001",
-    delta: delta.mutations,
-  });
-}
+await executeTransaction(targetId, () =>
+  sendMutation(cbs.model(modelCode).save(commitData, { recordId: targetId })),
+); // on success: broadcastRecordMutation(modelCode, targetId), reset, back to IDLE
 ```
 
----
+This is `useFormMutations` (`src/features/operations/forms/hooks/use-form-mutations.ts`). Reuse it rather than writing another save path.
 
-## 3. High-Density Form UI Guidelines
+- Validate before saving with `validateValues(spec, values)` from `@/lib/cbs-form-spec`, and surface the errors in the validation checklist (`focusFormField` jumps to the field).
+- After a successful operational save, `useFormMutations` broadcasts the mutation, resets the form and returns to `IDLE`. Designer screens that stay on the record (for example `use-fc-actions.ts`) call `rebaseline()` instead, so the saved values become the new baseline.
+- Record IDs come from the operator or from the core (`getNewId()` / `GNI`), never from a timestamp.
 
-Banking operators enter massive volumes of data daily. Standard web spacing slows them down.
+## 4. Lifecycle
 
-- **Input Heights:** All input controls (`Input`, `Select`, `Combobox`, `DatePicker`) must use compact `h-8` sizing with `text-xs`.
-- **12-Column Responsive Layout:** Always utilize the 12-column grid:
+`PUT` → `UA` (pending) → `AUT` → `AU` (live); `HLD` → held; `DEL` removes an unauthorized record; `REV` reverses a live one. Which actions are allowed when is decided by `@/lib/cbs-access` (see the access-control skill).
 
-  ```tsx
-  <div className="grid grid-cols-12 gap-x-3 gap-y-2">
-    <div className="col-span-12 sm:col-span-6 lg:col-span-4">
-      {/* Field Control */}
-    </div>
-  </div>
-  ```
-- **Monospace Financial Fields:** Account numbers, SWIFT/routing numbers, interest rates, and currency values must use `font-mono`.
-- **Date Formatting:** Dates must follow the CBS standard format (`YYYYMMDD` or `YYYY-MM-DD`) and format through `formatValueDate()` from `@/lib/core-utils`.
+> [!WARNING]
+> Offline (`DATA_SOURCE=static`), the mock writes every mutation straight into `LIVE` and never fills history or the deleted bucket (`mock/db/README.md`). Don't treat offline behaviour as proof of the real lifecycle.
 
----
+## 5. Compatibility & UI
 
-## 4. Verification & Testing
+- `WorkbenchTab.formData` / `baseline` and staged drafts are persisted in the browser: a compatibility boundary (`.agents/rules/00-core-pillars.md` §1).
+- Layout and density: the `cbs-compact-ui-and-layout` skill. Dates are formatted with `formatValueDate()` / `formatDateTime()`.
 
-Whenever you modify form delta calculations, field mapping, or record lifecycle states, run:
+## 6. Verification
 
 ```bash
+pnpm verify:form-spec
 pnpm verify:record
+pnpm verify:screen
 ```
-
-Ensure all tests pass cleanly before proceeding.

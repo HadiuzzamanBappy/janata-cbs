@@ -6,13 +6,7 @@ description: Use this skill when designing, authoring, or refactoring user inter
 
 # CBS Compact UI & Responsive Layout Design Runbook
 
-## Overview
-
-Janata CBS serves professional bank tellers, branch managers, and back-office operators. The user interface must be:
-
-- **Minimalist & Clean:** Fast, distraction-free, zero flashy animations, flat borders, subtle surface elevations.
-- **High-Density & Compact:** Financial operators process high volumes of data; padding, row heights, and font sizes must optimize screen real estate without clutter.
-- **Consistent Across Monitors:** Whether displayed on legacy branch screens (**1366×768** / **1280×720**) or modern high-res workstation displays (**1920×1080 (FHD)** / **1440p** / multi-window popouts), layout structure, alignment, and readability must remain rock-solid without unintended wrapping or horizontal overflow.
+Operators process high volumes on everything from 1366×768 branch terminals to 1920×1080+ workstations and popped-out windows. The UI is flat, dense and distraction-free, and must never wrap or overflow horizontally.
 
 ---
 
@@ -50,13 +44,13 @@ Branch workstations operate across a wide spectrum of monitor hardware and pop-u
 Screen layouts must never allow the entire browser page to scroll away from the action header or status bar.
 
 - Use `h-full flex flex-col overflow-hidden` on the screen container.
-- Keep the `CbsFormHeader` or `CbsInquiryHeader` sticky/fixed at the top.
+- `CbsScreenScaffold` already keeps the header fixed; don't add another one.
 - Wrap form bodies or data tables in an explicit `flex-1 overflow-y-auto` viewport.
 - This ensures operators at **768px vertical height** can always access action buttons (`Submit`, `Authorize`, `Reverse`, `Search`) without scrolling to the bottom.
 
 ### Invariant 2: Predictable 12-Column Responsive Form Grids
 
-Every form must use the standard 12-column grid system (`grid grid-cols-12 gap-3`):
+Engine-rendered forms already take their widths from the field config (`TOKEN_TO_COL_SPAN` in `@/lib/cbs-form-spec`), so never add `col-span` classes to them. For **hand-built** layouts (designers, dialogs), use the 12-column grid (`grid grid-cols-12 gap-3`):
 
 - **Full-width fields (Descriptions, textareas, notes):**
   `col-span-12`
@@ -93,62 +87,15 @@ Accounting and core banking data require strict visual precision:
 
 ---
 
-## 4. Semantic Color Tokens (OKLCH Only)
+## 4. Colour tokens
 
-Never hardcode arbitrary hex codes (`#1e40af`) or Tailwind numbered colors (`bg-blue-600`, `text-zinc-900`, `border-gray-200`). Style strictly with semantic CSS variables defined in `globals.css`:
-
-```tsx
-// ✅ Correct (Semantic Tokens)
-<div className="bg-card text-card-foreground border border-border rounded-md shadow-xs">
-  <label className="text-2xs font-medium text-muted-foreground">Account Title</label>
-  <input className="h-8 bg-background border-input text-foreground focus:ring-ring" />
-</div>
-
-// ❌ Forbidden (Hardcoded Colors & Huge Padding)
-<div className="bg-white text-gray-900 border border-gray-300 p-8 rounded-2xl shadow-xl">
-  <label className="text-base text-gray-600">Account Title</label>
-  <input className="h-12 bg-white border-blue-500 text-black" />
-</div>
-```
+Semantic classes only (`bg-card`, `text-muted-foreground`, `border-border`, `ring-ring`, status `text-success` / `warning` / `info` / `destructive`). Never hex codes or numbered colours (`bg-blue-600`, `text-gray-900`). Full rules: `.agents/rules/04-styling-and-tokens.md`.
 
 ---
 
-## 5. Universal Screen Scaffold Pattern
+## 5. Screen scaffold
 
-All banking screens must render through the canonical `CbsScreenScaffold` from `@/components/cbs-screen`:
-
-```tsx
-import { CbsScreenScaffold } from "@/components/cbs-screen";
-import { CbsRecordFunction } from "@/types";
-
-export function TransactionScreen({ command, tabId }: ScreenProps) {
-  return (
-    <CbsScreenScaffold
-      title="Customer Account Maintenance"
-      commandCode="ACCOUNT"
-      recordId={recordId}
-      mode={currentMode}
-      isDirty={isDirty}
-      submitting={submitting}
-      tabs={[
-        {
-          id: "general",
-          label: "General Info",
-          content: <GeneralInfoTab />,
-        },
-        {
-          id: "limits",
-          label: "Overdraft Limits",
-          content: <LimitsTab />,
-        },
-      ]}
-      onSubmit={handleSubmit}
-      onAuthorizeReverse={handleAuthorize}
-      onDelete={handleDelete}
-    />
-  );
-}
-```
+Every banking screen renders through `CbsScreenScaffold` (`@/components/cbs-screen`). Pass `title`, `commandCode`, `recordId`, `mode`, `isDirty`, `submitting`, `auditContext` (the record's `auditData`, which drives access) and `tabs` (`{ id, label, content }[]`), plus the action handlers (`onSubmit`, `onValidate`, `onHold`, `onDelete`, `onAuthorizeReverse`, …). The scaffold owns the header, action bar, hotkeys and scroll area, so never rebuild them in a screen.
 
 ---
 

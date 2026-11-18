@@ -4,105 +4,33 @@ name: cbs-verification-suite
 description: Use this skill when validating code changes, diagnosing regressions, running banking rule tests, or checking layer dependencies and contracts before finalizing a task.
 ---
 
-# CBS Verification & Testing Runbook
+# CBS Verification & Triage Runbook
 
-## Overview
+The suite list and what each one covers live in `AGENTS.md` §2. This runbook covers **which** suites to run and **how to triage** a failure.
 
-Janata CBS maintains an automated verification test harness ensuring banking rules, security models, wire contracts, and utility functions never regress. Always run these test suites to validate your code.
+## 1. Which suites
 
----
+| You changed                            | Run                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------- |
+| any import or a new file               | `verify:layers`                                                                 |
+| `lib/cbs-access`, action bars          | `verify:access`, `verify:screen`                                                |
+| commands, aliases, the registry        | `verify:command`                                                                |
+| `lib/cbs-client`, the proxy, `infra-*` | `verify:client`, `verify:grpc`, `verify:redis`, `verify:parsers` + `verify:api` |
+| forms, specs, deltas                   | `verify:form-spec`, `verify:record`                                             |
+| inquiries                              | `verify:inquiry`                                                                |
+| `mock/`                                | `verify:mock`                                                                   |
 
-## 1. Master Verification Runner
+Always finish with `pnpm lint:fix`, `pnpm typecheck` and `pnpm verify:all`.
 
-To run the complete verification suite across all domain modules:
+## 2. Triage
 
-```bash
-pnpm verify:all
-```
+1. Read the failing case in `scripts/verify/verify-*.ts` (run it alone: `pnpm exec tsx scripts/verify/<file>.ts`).
+2. Typical causes: an upward or deep import; a missing enum or schema field in `src/lib/data-schemas`; a rule changed in one place but not its single home.
+3. Fix the implementation. Change a suite only when the product contract was intentionally changed, and say so.
 
-This sequentially executes all 16 offline verification sub-suites (see `scripts/verify/verify-all.ts`):
+## 3. Green is not production proof
 
-1. `CBS Access Control & RIDASHL Capabilities` (`@/lib/cbs-access`)
-2. `Form Delta Mutation Engine` (`@/lib/cbs-record`)
-3. `CBS Form Spec & Compiler Engine` (`@/lib/cbs-form-spec`)
-4. `CBS Command Gateway & Alias Parser` (`@/lib/cbs-command`)
-5. `CBS Client Wire Protocol & Payload Factories` (`@/lib/cbs-client`)
-6. `CBS Wire Data Parsers & Serializers` (`@/lib/data-parsers`)
-7. `CBS Domain Schemas` (`@/lib/data-schemas`)
-8. `CBS Core Configuration & Environments` (`@/lib/core-config`)
-9. `CBS Core Logger & PII Redaction` (`@/lib/core-logger`)
-10. `Core Banking Utilities & Localization` (`@/lib/core-utils`)
-11. `Infra gRPC Protocol & Gateway` (`@/lib/infra-grpc`)
-12. `Infra Redis & Spec Caching Engine` (`@/lib/infra-redis`)
-13. `In-Memory Mock Core Engine & Database` (`@mock/db` & `@mock/core`)
-14. `CBS Screen Architecture & Capabilities` (`@/lib/cbs-screen`)
-15. `CBS Inquiry Spec & Compiler Engine` (`@/lib/cbs-inquiry-spec`)
-16. `Architectural Layer & Barrel Boundaries` (`src/**`, strict: any violation fails)
+The offline suites run against the mock, which simplifies the lifecycle (every mutation goes to `LIVE`) and doesn't enforce Four-Eyes. Before shipping wire, session or proxy changes, also:
 
-`pnpm verify:api` (live backend probe) is intentionally **excluded**. It requires a reachable gRPC core
-(`DATA_SOURCE=grpc`) and a running dev server for the `/api/proxy` probe.
-
----
-
-## 2. Granular Diagnostic Commands
-
-When working on a specific feature, run the targeted test to quickly verify your changes:
-
-| Command                 | Target Scope      | Key Things Verified                                             |
-| :---------------------- | :---------------- | :-------------------------------------------------------------- |
-| `pnpm verify:access`    | Access & Security | RIDASHL functions, Four-Eyes principle, Maker-Checker blocking  |
-| `pnpm verify:record`    | Record & Forms    | Delta calculation, dirty mutations, UA/AU lifecycle             |
-| `pnpm verify:form-spec` | Dynamic Form Spec | GMC form schemas, field types, validation rules                 |
-| `pnpm verify:command`   | Command Gateway   | Syntax parsing, comma auto-auth (`USER,`), aliases (`MD`, `UG`) |
-| `pnpm verify:client`    | Wire Protocol     | Payload factories (`GET`, `PUT`, `AUT`, `INQ`, `GRL`)           |
-| `pnpm verify:utils`     | Core Utils        | Currency formatting (`BDT`), masking (`****`), value dates      |
-| `pnpm verify:schemas`   | Domain Schemas    | Zod domain validation contracts and auth rules                  |
-| `pnpm verify:config`    | Core Config       | Environment matrix permutations, runtime configs, services      |
-| `pnpm verify:logger`    | Core Logger       | Account number masking, sensitive keys, deep PII redaction      |
-| `pnpm verify:parsers`   | Wire Parsers      | Protobuf decoding, auth/GFC/inquiry/menu payload sanitizers     |
-| `pnpm verify:grpc`      | Infra gRPC        | Static mode, service routing, financial txn split, status map   |
-| `pnpm verify:redis`     | Infra Redis       | Key namespacing, circuit breaker, spec cache & invalidation     |
-| `pnpm verify:mock`      | Mock Database     | In-memory core dispatch, login, and process paths               |
-| `pnpm verify:screen`    | Screen Arch       | Initial record/mode/form resolution, more-actions, popup IDs    |
-| `pnpm verify:inquiry`   | Inquiry Spec      | Criteria serialization, column geometry, command interpolation  |
-| `pnpm verify:layers`    | Architecture      | Layer inversions, barrel bypasses, client/server boundary       |
-| `pnpm verify:api`       | Live Backend      | Live gRPC core + `/api/proxy` probe (not in `verify:all`)       |
-
----
-
-## 3. TypeScript & Linter Verification
-
-Before concluding any development task:
-
-1. **Verify TypeScript Strictness:**
-
-   ```bash
-   pnpm typecheck
-   ```
-
-   Must pass with zero errors (`tsc --noEmit` exit code 0). Never ignore types or use `any`.
-
-2. **Verify Biome Formatting & Lints:**
-
-   ```bash
-   pnpm lint
-   ```
-
-   Or auto-fix via:
-
-   ```bash
-   pnpm lint:fix
-   ```
-
----
-
-## 4. Failure Triage Runbook
-
-If a verification test fails:
-
-1. Read the exact test failure output (the test files are in `scripts/verify/verify-*.ts`).
-2. Identify whether the regression is due to:
-   - A broken layer boundary (e.g. importing a higher layer into `src/lib/`).
-   - A missing enum mapping or schema mismatch in `src/lib/data-schemas/`.
-   - A Four-Eyes rule bypass.
-3. Fix the underlying implementation without altering the test harness unless the product contract was intentionally updated.
+- run `pnpm verify:api` against a live core (`DATA_SOURCE=grpc` + a running dev server);
+- test by hand: pop out → dock, and sign on as the inputter → Authorize is disabled with the Four-Eyes tooltip.

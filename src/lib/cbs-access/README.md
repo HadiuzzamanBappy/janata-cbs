@@ -1,171 +1,94 @@
 # 🔐 CBS Access Control & Capabilities (`@/lib/cbs-access`)
 
-A deterministic, headless banking entitlement and compliance evaluation library for the **Janata Core Banking Workbench**.
+Layer L2: the pure rules that decide what a user may do with a record, from their **RIDASHL** rights, the record's status, the screen mode and the **Four-Eyes** (maker-checker) principle. It has no React and no store, so the same code runs in the UI, in `/api/proxy` and in `scripts/verify`.
 
-It enforces standard Core Banking **RIDASHL** function entitlements, record lifecycle integrity, and the **Four-Eyes Principle (Maker-Checker)** across all screens, action buttons, command validations, and server API boundaries.
-
-> [!NOTE]
-> `@/lib/cbs-access` is a **pure TypeScript library** (zero React/Zustand imports). It runs identically in server route handlers, verification scripts, and client adapters.
-> The reactive React hook for UI components lives in [`@/hooks/use-cbs-access`](file:///d:/Work/React/cbs/janata-cbs/src/hooks/use-cbs-access.ts).
+The React wrapper is `useCbsAccess()` in `src/hooks/use-cbs-access.ts`. It fills the user from `useSessionStore` and memoizes the result.
 
 ---
 
-## 📦 What It Contains
+## 📦 Files
 
-```text
-src/lib/cbs-access/
-├── accessibility.ts   # Server-side capability gate (verifyUserRecordAccess) & rights helper (hasAccessibilityRight)
-├── record-guard.ts    # Pure capability evaluator (evaluateCbsAccess) combining status, mode, and Four-Eyes
-├── types.ts           # Unified CbsAccessContext and CbsAccessResult interfaces
-├── README.md          # Domain documentation
-└── index.ts           # Barrel export
-```
-
-1. **`accessibility.ts`**:
-   - `hasAccessibilityRight(granted, required)`: Checks if a given function code exists in the user's rights array.
-   - `verifyUserRecordAccess(user, recordFunction)`: Server-side capability gate for API route handlers (e.g. `/api/proxy`). Validates that the active user possesses the required capability before executing controlled actions (`I`, `A`, `D`, `R`, `H`).
-2. **`record-guard.ts`**:
-   - `evaluateCbsAccess(context)`: Single, pure source of truth for resolving rights and evaluating capabilities against active record status (`UA`, `AU`, `NEW`, `HLD`), screen mode (`IDLE`, `I`, `S`, etc.), and Four-Eyes Maker-Checker rules.
-   - `isRecordEditable(mode)`: Designer field lock. Fields are editable only in Input (`I`) mode; every other mode, `IDLE` included, is read-only.
-3. **`types.ts`**:
-   - `CbsAccessContext`: Single unified evaluation input interface.
-   - `CbsAccessResult`: Computed boolean capabilities, read-only flags, and tooltip explanation generators.
+| File               | Exports                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `record-guard.ts`  | `evaluateCbsAccess(context)`: the single evaluator. `isRecordEditable(mode)`: a designer field is editable only in Input (`I`) mode. |
+| `accessibility.ts` | `verifyUserRecordAccess(user, recordFunction)`: the server-side rights gate. `hasAccessibilityRight(granted, required)`.             |
+| `types.ts`         | `CbsAccessContext` (input) and `CbsAccessResult` (output)                                                                            |
 
 ---
 
-## 🏛️ RIDASHL Entitlement Standard
+## 🏛️ Rules evaluated by `evaluateCbsAccess()`
 
-Every core banking user profile is assigned a subset of standard function codes:
+| Capability     | Needs right    | And the record must be                                                 | Never in `IDLE` |
+| -------------- | -------------- | ---------------------------------------------------------------------- | --------------- |
+| `canSee`       | `S`            | —                                                                      |                 |
+| `canInput`     | `I`            | —                                                                      |                 |
+| `canDelete`    | `D`            | `UA`, `NEW` or no status yet (an `AU` record is reversed, not deleted) | ✓               |
+| `canHold`      | `H` **or** `I` | anything except `AU`                                                   | ✓               |
+| `canAuthorize` | `A`            | `UA`, **and** the user is not the record's inputter                    | ✓               |
+| `canReverse`   | `R`            | `AU`                                                                   | ✓               |
+| `canList`      | `L`            | —                                                                      |                 |
 
-| Code    | Name                    | Action Capability                    | State & Lifecycle Invariants                                                      |
-| :------ | :---------------------- | :----------------------------------- | :-------------------------------------------------------------------------------- |
-| **`R`** | **Reverse**             | Reverse a live committed transaction | Record status must be authorized (`AU`). Blocked in `IDLE` mode.                  |
-| **`I`** | **Input / Maker**       | Create records and edit drafts       | Allowed on uncommitted / editable drafts. If missing, forces `isReadOnly = true`. |
-| **`D`** | **Delete**              | Delete uncommitted draft             | Only permitted on uncommitted drafts (`UA` or `NEW`); strictly blocked on `AU`.   |
-| **`A`** | **Authorize / Checker** | Authorize pending transaction        | Pending (`UA`) only; **Strictly blocked if Maker === Checker (Four-Eyes)**.       |
-| **`S`** | **See**                 | View and inspect record details      | Read-only inspection; non-mutating.                                               |
-| **`H`** | **History / Hold**      | Place draft on hold                  | Allowed on uncommitted/pending drafts (`cleanStatus !== "AU"`).                   |
-| **`L`** | **List**                | Query directories & inquiry tables   | Read-only listing and searching (`canList`).                                      |
+Flags:
 
----
+- **`isFourEyesViolation`**: the user ID equals the record's inputter (compared trimmed and case-insensitive). It forces `canAuthorize = false`.
+- **`isReadOnly`**: the form is locked in modes `S`, `H`, `A`, `D` and `R`, and whenever the user lacks `I`.
+- **`isViewOnly`**: modes `S` and `A` only. The action bar disables Commit, Validate and Hold there.
 
-## 🛡️ Core Banking Invariants Enforced
+`getDisableReason(fn)` returns the sentence to show when an action is disabled, or `null` if it's enabled. For Four-Eyes it returns:
 
-### 1. Four-Eyes Principle (Maker-Checker)
-
-- Evaluated as: `userId && recordInputter && userId.trim().toUpperCase() === recordInputter.trim().toUpperCase()`.
-- When violated:
-  - `isFourEyesViolation = true`
-  - `canAuthorize = false`
-  - `getDisableReason("A")` returns:
-    > _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_
-### 2. Operational Screen Modes & Read-Only Locks
-
-- In **`IDLE`** mode: Action buttons (`canDelete`, `canHold`, `canAuthorize`, `canReverse`) are disabled until an active record is loaded.
-- Form read-only lock (`isReadOnly = true`) is automatically enforced when:
-  - Active mode is View or Non-Input: `"S"`, `"H"`, `"A"`, `"D"`, `"R"`.
-  - Or the user profile lacks the `"I"` (Input) capability right.
-- Action-bar view lock (`isViewOnly = true`) applies only in `"S"` and `"A"`: Commit, Validate and Hold are disabled there and stay available in the other active modes.
-
-### 3. State Transition Guards
-
-- **Live Records (`AU`)**: Cannot be deleted (`canDelete = false`); must use Reverse (`R`).
-- **Pending Records (`UA`)**: Cannot be reversed (`canReverse = false`); must be authorized or held.
+> _"Four-Eyes Compliance: The Maker/Inputter cannot authorize their own transaction."_
 
 ---
 
-## 🚀 How to Use
+## 🛡️ What the server checks
 
-### 1. Server-Side Route Guard (`verifyUserRecordAccess`)
+`/api/proxy` calls `verifyUserRecordAccess(currUser, body.recordFunction)` before every dispatch. For the controlled functions (`CBS_CONTROLLED_FUNCTIONS`: `I`, `A`, `D`, `R`, `H`), it rejects the request with **403** if the session user lacks that right. Other functions pass through.
 
-Used at server boundaries such as `/api/proxy/route.ts` to reject unauthorized mutation attempts before dispatch:
+> [!IMPORTANT]
+> The server gate checks **rights only**. Four-Eyes and record-status rules are enforced in the UI by `evaluateCbsAccess()`. The proxy does not load the record, so it can't compare the user with the inputter. Server-side maker-checker enforcement depends on the Java core.
 
-```typescript
-import { verifyUserRecordAccess } from "@/lib/cbs-access";
+---
 
-// Inside Next.js API Route Handler:
-const accessViolation = verifyUserRecordAccess(currUser, body.recordFunction);
+## 🚀 Usage
 
-if (accessViolation) {
-  return apiFail(accessViolation.message, 403, [
-    `User ${currUser.userId} lacks capability '${accessViolation.funcCode}'`,
-  ]);
-}
-```
-
-### 2. Pure Evaluation in Services or Tests (`evaluateCbsAccess`)
-
-Used for offline evaluation, unit testing, or CLI validation scripts:
-
-```typescript
-import { evaluateCbsAccess } from "@/lib/cbs-access";
-
-const access = evaluateCbsAccess({
-  userId: "CHECKER01",
-  recordInputter: "MAKER01", // Different user -> Four-Eyes passes
-  recordStatus: "UA", // Pending approval
-  mode: "I",
-  grantedRights: ["R", "I", "D", "A", "S", "H", "L"],
-});
-
-console.log(access.canAuthorize); // true
-console.log(access.isFourEyesViolation); // false
-console.log(access.canReverse); // false (record must be 'AU' to reverse)
-```
-
-### 3. In React Components via Hook (`useCbsAccess` from `@/hooks`)
-
-Inside screen scaffolds, headers, and action bars:
+In components, through the hook (this is what `src/lib/cbs-screen/action-bar.ts` and the screen header consume):
 
 ```tsx
 import { useCbsAccess } from "@/hooks";
+import { CbsRecordFunction } from "@/types";
 
-export function ScreenActionBar({ currentRecord, screenMode }) {
-  const {
-    canInput,
-    canAuthorize,
-    canDelete,
-    canReverse,
-    isReadOnly,
-    isFourEyesViolation,
-    getDisableReason,
-  } = useCbsAccess({
-    recordStatus: currentRecord?.recStatus, // "UA", "AU", "NEW"
-    recordInputter: currentRecord?.recInputter, // Maker user ID
-    mode: screenMode, // "I", "S", "A", etc.
-  });
+const access = useCbsAccess({ recordStatus, recordInputter, mode });
 
-  return (
-    <div className="flex items-center gap-2">
-      <button disabled={!canInput || isReadOnly} title={getDisableReason("I") ?? undefined}>
-        Save Draft
-      </button>
+// ActionBtn (src/components/cbs-screen/header/action-btn.tsx) shows `reason` in a Tooltip when disabled
+<ActionBtn
+  enabled={access.canAuthorize}
+  reason={access.getDisableReason(CbsRecordFunction.AUTHORIZE) ?? undefined}
+  defaultTooltip="Authorize Record (✓✓)"
+  onClick={onAuthorize}
+>
+  <CheckCheck className="size-3.5" />
+</ActionBtn>;
+```
 
-      <button disabled={!canAuthorize} title={getDisableReason("A") ?? undefined}>
-        Authorize
-      </button>
+Without React (route handlers, verification scripts):
 
-      <button disabled={!canDelete} title={getDisableReason("D") ?? undefined}>
-        Delete
-      </button>
+```typescript
+import { evaluateCbsAccess } from "@/lib/cbs-access";
+import { CbsRecordFunction, CbsRecordStatus } from "@/types";
 
-      <button disabled={!canReverse} title={getDisableReason("R") ?? undefined}>
-        Reverse
-      </button>
-
-      {isFourEyesViolation && (
-        <span className="text-xs text-amber-600">Four-Eyes: Maker cannot authorize own record</span>
-      )}
-    </div>
-  );
-}
+const access = evaluateCbsAccess({
+  userId: "CHECKER01",
+  recordInputter: "MAKER01",
+  recordStatus: CbsRecordStatus.UA,
+  mode: CbsRecordFunction.AUTHORIZE,
+  grantedRights: Object.values(CbsRecordFunction),
+});
+// access.canAuthorize === true, access.isFourEyesViolation === false
 ```
 
 ---
 
 ## 🧪 Verification
-
-Validate all domain security and Four-Eyes capability invariants:
 
 ```bash
 pnpm verify:access

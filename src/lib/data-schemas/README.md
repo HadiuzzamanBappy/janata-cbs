@@ -1,127 +1,72 @@
 # 📐 CBS Data Schemas (`@/lib/data-schemas`)
 
-The centralized Zod validation and TypeScript type-contract library for the **Janata Core Banking Workbench**.
+Layer L0: the Zod schemas for everything that crosses a trust boundary (browser → proxy, proxy → core, URL → popup, window → window, environment → server), plus the configuration records the core sends (Model, Form, Inquiry and Menu config). Each TypeScript type is derived from its schema with `z.infer`, so there is no hand-written duplicate type to drift.
 
-It serves as the **Single Source of Truth** for all data entering or leaving the system: wire request envelopes, dynamic form configurations, inquiry specifications, user session models, and runtime environment validation.
-
----
-
-## 📦 What It Contains
-
-```text
-src/lib/data-schemas/
-├── auth-schema.ts          # Login credentials, session token contracts, CurrentUser profile & branch update
-├── common-schema.ts        # Universal wire request envelope (cbsWirePayloadSchema), audit models, and API response envelope
-├── control-schema.ts       # System commands, alias mappings, and control table catalog models (SC_CONTROL)
-├── env-schema.ts           # Runtime environment and secrets validation (envSchema)
-├── form-config-schema.ts   # Form Designer Canvas layout, widget compatibility & FormConfigRecord contracts (CONFIG.FORM)
-├── form-engine-schema.ts   # Dynamic form runtime schema generator & field validator definitions
-├── inquiry-config-schema.ts# Visual inquiry designer configurations (columns, filters, actions) & runtime row types (INQUIRY)
-├── menu-designer-schema.ts # Consolidated menu definitions: flat catalog (SC_MENU) & visual navigation tree (SC_MENU_TREE)
-├── model-config-schema.ts  # Dynamic Model Builder & schema configuration models (MODEL.CONFIG)
-└── index.ts                # Public barrel export
-```
+It imports only `zod` and `@/types`, and every consumer imports it through the barrel: `@/lib/data-schemas`.
 
 ---
 
-## 🏛️ Schema Architecture: Wire vs. Domain
+## 📦 Files
 
-Every banking entity has two layers defined within its schema file:
-
-1. **Zod Runtime Schema (Validation)**: Executes runtime `.parse()` or `.safeParse()` to reject malformed wire payloads immediately.
-2. **TypeScript Static Type (Compile-Time)**: Inferred automatically via `z.infer<typeof schema>` to guarantee complete end-to-end type safety without redundant type declarations.
+| File                       | Contents                                                                                                                                                                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `common-schema.ts`         | API status (`CBS_API_STATUS`, `isApiSuccess()`), audit trail (`auditDataSchema`), the browser → proxy request (`cbsWirePayloadSchema`), the proxy → core envelope, and the response envelope (`apiResponseSchema`) |
+| `auth-schema.ts`           | Login and change-password input (`MIN_PASSWORD_LENGTH` = 8), the session user (`currentUserSchema`) and branch switching                                                                                           |
+| `env-schema.ts`            | Server environment (`envSchema`), parsed once in `src/lib/core-config/env.ts`                                                                                                                                      |
+| `control-schema.ts`        | `SC_CONTROL` command records (`ControlCommand`, `ControlType`)                                                                                                                                                     |
+| `model-config-schema.ts`   | Model Config records (control `MODEL.CONFIG`, edited in the `SC.MODEL.CONFIG` designer): the data schema of a screen, and its property types                                                                       |
+| `form-engine-schema.ts`    | Form elements, sections and containers, field rules (validation, visibility, cascade) and width tokens                                                                                                             |
+| `form-widget-schema.ts`    | Widget types, the property-type ↔ widget compatibility matrix, and widget configs                                                                                                                                  |
+| `form-config-schema.ts`    | Form Config records (control `CONFIG.FORM`, edited in the `SC.FORM.CONFIG` designer) and the form-config response                                                                                                  |
+| `inquiry-config-schema.ts` | Inquiry Config records (columns, filters, commands), filter criteria and inquiry result rows                                                                                                                       |
+| `menu-designer-schema.ts`  | Menu items and the menu tree (`SC_MENU`, `SC_MENU_TREE`)                                                                                                                                                           |
+| `screen-params-schema.ts`  | Popup URL params (`popupSearchParamsSchema`, `popupRouteParamsSchema`) and the popup → shell dock message (`dockTabPayloadSchema`)                                                                                 |
 
 ---
 
-## 🚀 How to Use
+## 🔒 Rules
 
-### 1. Pre-Flight Wire Payload Validation (`cbsWirePayloadSchema`)
+1. **Schema first, type derived.** Define the Zod schema and export `type X = z.infer<typeof xSchema>`. Never write the TypeScript type separately.
+2. **Validate at the boundary with `.safeParse()`**, and never cast external data (`as T`) instead.
+3. **The browser → proxy request is strict.** `cbsWirePayloadSchema` rejects unknown keys. Every mutation (`isCbsMutationRequest()` in `@/types`) must carry a UUID `idempotencyKey`. `servicePath` is optional; if it's missing, `dispatch()` sends to the `default` core service.
+4. **One success check.** `status` is a strict enum (`apiStatusSchema`). Test responses with `isApiSuccess()`, never by comparing against `"SUCCESS"` by hand.
+5. **URL params degrade one field at a time.** Each popup URL field uses `.optional().catch(undefined)`, so one tampered value falls back to its default without throwing away the others. The dock message is the opposite: a bad payload is rejected whole.
+6. **Module-private by default.** Export only what another unit imports. Helpers used inside one file stay unexported.
 
-Used in the HTTP client (`proxy-client.ts`) and API routes to ensure requests match the wire protocol before dispatching:
+---
+
+## 🚀 Usage
+
+Types for components and hooks:
 
 ```typescript
-import { cbsWirePayloadSchema } from "@/lib/data-schemas";
-
-const result = cbsWirePayloadSchema.safeParse({
-  requestType: "PUT",
-  controlName: "ACCOUNT",
-  recordFunction: "I",
-  recordId: "10000001",
-  data: { accountTitle: "Corporate Account" },
-  // servicePath defaults automatically to "default" (primary gRPC core)
-});
-
-if (!result.success) {
-  console.error("Invalid Wire Request:", result.error.issues);
-}
+import type { FormConfigRecord, InquiryConfigRecord, MenuTreeRecord } from "@/lib/data-schemas";
 ```
 
----
-
-### 2. Consuming Inferred Types in UI Components
-
-Always import domain and wire contracts directly from `@/lib/data-schemas`:
+Validating untrusted input (from `src/store/workbench/workbench-provider.tsx`):
 
 ```typescript
-import type {
-  ApiResponse,
-  CurrentUser,
-  FormConfigRecord,
-  FormElement,
-  InquiryConfigRecord,
-  MenuItem,
-  MenuTreeRecord,
-  ModelConfigRecord,
-} from "@/lib/data-schemas";
+import { dockTabPayloadSchema } from "@/lib/data-schemas";
 
-interface MenuTreeViewerProps {
-  tree: MenuTreeRecord;
-  onSelectNode: (node: MenuItem) => void;
-}
+const parsed = dockTabPayloadSchema.safeParse(message.payload);
+if (!parsed.success) return; // ignore a malformed cross-window message
+store.getState().addTab(parsed.data);
 ```
+
+You don't validate requests yourself. `cbs.send()` in `@/lib/cbs-client` checks the payload against `cbsWirePayloadSchema` before sending, and `/api/proxy` checks it again on the server.
 
 ---
 
-### 3. Environment Fail-Fast Validation (`envSchema`)
+## ➕ Adding a schema
 
-```typescript
-import { envSchema } from "@/lib/data-schemas";
-
-// Automatically parsed at server startup in src/lib/core-config/server.ts
-const validEnv = envSchema.parse(process.env);
-```
-
----
-
-## 🔒 Architectural State: Scalable or Sealed?
-
-### 1. Common Wire Envelopes (`common-schema.ts`, `env-schema.ts`): **SEALED**
-
-`cbsWirePayloadSchema`, `apiResponseSchema`, and `auditDataSchema` define the fundamental core banking wire protocol. They are finalized.
-
-### 2. Domain Entity Schemas: **SCALABLE**
-
-When the banking backend introduces a new table or screen model (e.g. `loan-schema.ts`):
-
-1. Define the Zod schema:
-
-   ```typescript
-   export const loanRecordSchema = z.object({
-     recordId: z.string(),
-     accountNo: z.string(),
-     principalAmount: z.number(),
-     interestRate: z.number(),
-   });
-   export type LoanRecord = z.infer<typeof loanRecordSchema>;
-   ```
-2. Re-export in `index.ts`.
-3. Create the corresponding parser in `src/lib/data-parsers/loan-parser.ts`.
+1. Add the schema and its `z.infer` type to the file for its domain, or to a new `<domain>-schema.ts`.
+2. Export the file from `index.ts`.
+3. If the core sends the record in a raw form, add its parser to `@/lib/data-parsers`.
+4. Add a case to `scripts/verify/verify-data-schemas.ts`.
 
 ---
 
 ## 🧪 Verification
-
-Run the schema and environment verification suite:
 
 ```bash
 pnpm verify:schemas

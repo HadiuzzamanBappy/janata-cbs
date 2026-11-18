@@ -8,7 +8,7 @@ It powers the Dual-Tier Form State architecture by computing minimal mutation pa
 
 ## 📦 What It Contains
 
-The library provides 4 focused modules with zero React UI dependencies:
+Five pure functions in three files (`baseline.ts`, `delta-engine.ts`, `line-diff.ts`), with the `CbsDeltaPatch` result type (`modifiedFields`, `originalFields`, `dirtyKeys`, `isDirty`) in `types.ts`. No React dependencies:
 
 1. **`createBaseline(record, ignoredKeys?)`**:
    Creates an immutable, deep-cloned snapshot (`RecordBaseline<T>`) using native `structuredClone`.
@@ -70,33 +70,38 @@ let baseline = createBaseline(accountRecord, ["lastUpdated", "auditData"]);
 
 // Evaluate dirty state
 const patch = evaluateDirty(baseline, workingDraft);
-console.log(patch.isDirty); // true if user edited any monitored field
-console.log(patch.dirtyKeys); // ["accountTitle"]
-console.log(patch.modifiedFields); // { accountTitle: "New Title" }
+// patch.isDirty === true, patch.dirtyKeys === ["accountTitle"],
+// patch.modifiedFields === { accountTitle: "New Title" }
 
-// Reverting restores clean state automatically
+// Reverting an edit makes the record clean again
 const revertedDraft = { ...workingDraft, accountTitle: "Original Title" };
-console.log(evaluateDirty(baseline, revertedDraft).isDirty); // false
+evaluateDirty(baseline, revertedDraft).isDirty; // false
 
-// Post-save reset
+// After a successful save, the saved values become the new baseline
 baseline = rebaseline(workingDraft, ["lastUpdated", "auditData"]);
-console.log(evaluateDirty(baseline, workingDraft).isDirty); // false
+evaluateDirty(baseline, workingDraft).isDirty; // false
 ```
 
 ---
 
 ### 2. Computing Wire Delta Payloads
 
+This is how `useFormMutations` (`src/features/operations/forms/hooks/use-form-mutations.ts`) builds a save:
+
 ```typescript
 import { computeDelta } from "@/lib/cbs-record";
 
-const delta = computeDelta(initialValues, formValues, ["auditData"]);
+// Input mode on an existing record: send only the changed fields
+const delta =
+  screenMode === CbsRecordFunction.INPUT && Object.keys(baseSnapshot).length > 0
+    ? computeDelta(baseSnapshot, values).modifiedFields
+    : values;
+const commitData = Object.keys(delta).length > 0 ? delta : values; // nothing changed: send everything
 
-if (delta.isDirty) {
-  // Transmit only changed fields
-  await cbs.send(cbs.model("ACCOUNT").save("AC10001", delta.modifiedFields));
-}
+await sendMutation(cbs.model(modelCode).save(commitData, { recordId: targetId }));
 ```
+
+A new record, or a save where nothing changed, sends the full values. Mutations always go through `sendMutation()` from `useIdempotentSend()` (see `@/lib/cbs-client`).
 
 ---
 
@@ -106,7 +111,7 @@ if (delta.isDirty) {
 import { computeLineDiff } from "@/lib/cbs-record";
 
 const diff = computeLineDiff(baselineJsonString, currentJsonString);
-console.log(diff.additions, diff.deletions, diff.items);
+// diff: { additions, deletions, items: LineDiffItem[] }
 ```
 
 ---
@@ -116,9 +121,5 @@ console.log(diff.additions, diff.deletions, diff.items);
 Run the dedicated test suite:
 
 ```bash
-# Run isolated Record Delta Engine unit tests
 pnpm verify:record
-
-# Run all CBS master verification suites
-pnpm verify:all
 ```

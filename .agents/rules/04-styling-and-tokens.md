@@ -11,14 +11,14 @@
 
 ## 2. Dynamic Accent Switching
 
-- Active tabs (`bg-primary/15 text-primary border-primary`), active sidebar indicators, and focus rings (`ring-ring`) MUST resolve dynamically through `var(--primary)` to support theme accent changes without code edits.
+- Active tabs (`bg-primary/15 text-primary`), active sidebar indicators, and focus rings (`ring-ring`) MUST resolve dynamically through `var(--primary)` to support theme accent changes without code edits.
 
 ## 3. Base UI & Component Patterns
 
 - Use Base UI primitives and `src/components/ui/` components directly (`Input`, `Select`, `Button`, `Dialog`, `Table`, `Badge`, `Alert`).
 - **Trigger Pattern:** In Base UI components, use `render={<Component />}` rather than `asChild` to preserve exact TypeScript prop types.
-- **CTA Uniformity:** Action buttons and topbar icon buttons must use consistent styling:
-  `size-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 hover:bg-primary/20 transition`
+- **CTA Uniformity:** Screen header actions always use `ActionBtn` (`src/components/cbs-screen/header/action-btn.tsx`): an icon button (`h-7 w-9`) whose `defaultTooltip` names the action and whose `reason` explains why it's disabled. Never hand-style a screen action button.
+- **Vendored primitives:** `src/components/ui/` is shadcn / Base UI as shipped. Don't hand-edit it; re-add a primitive with `pnpm ui:add <name>`.
 
 ## 4. Class Merging & Layout Density
 

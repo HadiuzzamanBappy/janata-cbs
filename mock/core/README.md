@@ -21,7 +21,7 @@ Next.js API Route (/api/proxy or /api/login)
           ▼
 Server-side Dispatcher (@/lib/infra-grpc)
   ├─ If serverConfig.dataSource === "static" (or isStaticMode())
-  │    └─► @mock/core (mockDispatch / mockLogin / mockProcess)
+  │    └─► @mock/core (mockDispatch / handleLogin / mockProcess)
   │             └─► @mock/core/database-router (resolves table)
   │                      └─► @mock/db/* (in-memory fixtures)
   │
@@ -42,7 +42,7 @@ Server-side Dispatcher (@/lib/infra-grpc)
 
    ```typescript
    if (isStaticMode()) {
-     return mockLogin(req); // Authenticates against mock/db/SC_USER
+     return handleLogin(req); // Authenticates against mock/db/SC_USER
    }
    ```
 3. **gRPC Transport Fallback → `financialProcess()` / `nonFinancialProcess()` (`src/lib/infra-grpc/client.ts`)**:
@@ -71,7 +71,7 @@ mock/core/
 │   ├── mutation-handlers.ts  # PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, SMR, DTR, ATT, CTT, AFT, GNI
 │   ├── query-handlers.ts     # GET, S, SEE, GRV, GRL, GCQ, GMV, GGL, SBI, RIL
 │   └── index.ts              # Handlers barrel export
-└── index.ts                  # Public entry: mockLogin, mockProcess, mockDispatch, getMockProxyResponse
+└── index.ts                  # Public entry: handleLogin, mockProcess, mockDispatch, getMockProxyResponse
 ```
 
 ---
@@ -80,20 +80,20 @@ mock/core/
 
 Requests dispatch dynamically by `requestType` to modular domain handlers:
 
-| Verb(s)                                          | Category              | Handler File           | Implementation                  | Target Source / Behavior                                 |
-| :----------------------------------------------- | :-------------------- | :--------------------- | :------------------------------ | :------------------------------------------------------- |
-| **`LOGIN`**                                      | Operator Auth         | `auth-handlers.ts`     | `mockLogin()` / `handleLogin()` | `SC_USER` verification & session token generation        |
-| **`GUM`**, **`GCM`**                             | Navigation Menu       | `menu-handlers.ts`     | `handleGetMenu()`               | Resolves `MENU.TREE` hierarchy                           |
-| **`GMC`**                                        | Metamodel Spec        | `model-handlers.ts`    | `handleGetModelConfig()`        | Target model schema in `SC_MODEL_CONFIG`                 |
-| **`GFC`**                                        | Form Layout           | `model-handlers.ts`    | `handleGetFormConfig()`         | Target form presentation in `SC_FORM_CONFIG`             |
-| **`INQ`**                                        | Dynamic Inquiry       | `inquiry-handlers.ts`  | `handleInquiry()`               | `SC_INQUIRY_CONFIG` + Target Table query                 |
-| **`GNI`**                                        | Sequence / Draft ID   | `mutation-handlers.ts` | `handleNextId()`                | Model `IDDEF` or user-prefixed draft ID generation       |
-| **`SBI`**, **`RIL`**                             | Key / ID List Search  | `query-handlers.ts`    | `handleSearchById()`            | Target Table `getIdList()` with wildcard match           |
-| **`GRL`**, **`GCQ`**, **`GMV`**, **`GGL`**       | Record Collections    | `query-handlers.ts`    | `handleRecordList()`            | Target Table `getList()`                                 |
-| **`GET`**, **`S`**, **`SEE`**, **`GRV`**         | Read Record           | `query-handlers.ts`    | `handleSeeRecord()`             | Target Table `LIVE` or historical record snapshot        |
-| **`PUT`**, **`SMC`**, **`SFC`**, **`SMR`**       | Save Draft (Maker)    | `mutation-handlers.ts` | `handleMutation()`              | Writes pending record with `recStatus: "UA"`             |
-| **`AUT`**, **`AMC`**                             | Authorize (Checker)   | `mutation-handlers.ts` | `handleMutation()`              | Validates Maker-Checker rule, writes `recStatus: "AU"`   |
-| **`DEL`**, **`HLD`**, **`REV`**, **`TRV`**, etc. | Lifecycle Transitions | `mutation-handlers.ts` | `handleMutation()`              | Updates record status to `"DEL"`, `"HLD"`, `"REV"`, etc. |
+| Verb(s)                                          | Category              | Handler File           | Implementation           | Target Source / Behavior                                 |
+| :----------------------------------------------- | :-------------------- | :--------------------- | :----------------------- | :------------------------------------------------------- |
+| **`LOGIN`**                                      | Operator Auth         | `auth-handlers.ts`     | `handleLogin()`          | `SC_USER` verification & session token generation        |
+| **`GUM`**, **`GCM`**                             | Navigation Menu       | `menu-handlers.ts`     | `handleGetMenu()`        | Resolves `MENU.TREE` hierarchy                           |
+| **`GMC`**                                        | Metamodel Spec        | `model-handlers.ts`    | `handleGetModelConfig()` | Target model schema in `SC_MODEL_CONFIG`                 |
+| **`GFC`**                                        | Form Layout           | `model-handlers.ts`    | `handleGetFormConfig()`  | Target form presentation in `SC_FORM_CONFIG`             |
+| **`INQ`**                                        | Dynamic Inquiry       | `inquiry-handlers.ts`  | `handleInquiry()`        | `SC_INQUIRY_CONFIG` + Target Table query                 |
+| **`GNI`**                                        | Sequence / Draft ID   | `mutation-handlers.ts` | `handleNextId()`         | Model `IDDEF` or user-prefixed draft ID generation       |
+| **`SBI`**, **`RIL`**                             | Key / ID List Search  | `query-handlers.ts`    | `handleSearchById()`     | Target Table `getIdList()` with wildcard match           |
+| **`GRL`**, **`GCQ`**, **`GMV`**, **`GGL`**       | Record Collections    | `query-handlers.ts`    | `handleRecordList()`     | Target Table `getList()`                                 |
+| **`GET`**, **`S`**, **`SEE`**, **`GRV`**         | Read Record           | `query-handlers.ts`    | `handleSeeRecord()`      | Target Table `LIVE` or historical record snapshot        |
+| **`PUT`**, **`SMC`**, **`SFC`**, **`SMR`**       | Save Draft (Maker)    | `mutation-handlers.ts` | `handleMutation()`       | Writes pending record with `recStatus: "UA"`             |
+| **`AUT`**, **`AMC`**                             | Authorize (Checker)   | `mutation-handlers.ts` | `handleMutation()`       | Validates Maker-Checker rule, writes `recStatus: "AU"`   |
+| **`DEL`**, **`HLD`**, **`REV`**, **`TRV`**, etc. | Lifecycle Transitions | `mutation-handlers.ts` | `handleMutation()`       | Updates record status to `"DEL"`, `"HLD"`, `"REV"`, etc. |
 
 ---
 
@@ -122,7 +122,7 @@ if (table) {
 
 Invoked by the server-side dispatcher (`src/lib/infra-grpc/dispatch.ts`) when `/api/proxy` receives a request under `DATA_SOURCE="static"`. It parses the wire envelope and routes to `getMockProxyResponse`.
 
-### 2. `mockLogin(req)`
+### 2. `handleLogin(req)`
 
 Invoked by `loginProcess()` (`src/lib/infra-grpc/client.ts`) when `/api/login` authenticates an operator under static mode.
 

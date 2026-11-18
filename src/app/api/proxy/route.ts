@@ -5,9 +5,9 @@ import { logger } from "@/lib/core-logger";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import {
   type ApiResponse,
-  CBS_API_STATUS,
   cbsWirePayloadSchema,
   type GrpcEnvelope,
+  isApiSuccess,
 } from "@/lib/data-schemas";
 import { dispatch } from "@/lib/infra-grpc";
 import {
@@ -29,7 +29,7 @@ const proxyLogger = logger.withContext("PROXY_API");
  * is protobuf-decoded. Cached entries hold the decoded form, so cache hits skip this step.
  */
 function decodeResponse(requestType: string, res: ApiResponse): ApiResponse {
-  if (res.status !== CBS_API_STATUS.SUCCESS || !res.data) return res;
+  if (!isApiSuccess(res) || !res.data) return res;
   const data =
     requestType === CbsRequestType.INQ
       ? parseInquiryRecords(decodeProtobufValue(res.data))
@@ -93,26 +93,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       const cacheDesc = resolveCacheDescriptor(envelope);
       const dispatchDecoded = async () =>
         decodeResponse(envelope.requestType, await dispatch(envelope, token));
-      let failedResponse: ApiResponse | null = null;
 
+      // One dispatch per miss: concurrent callers share its result, and failures are never cached.
       const response = cacheDesc
-        ? ((await getOrSet(
-            cacheDesc.key,
-            async () => {
-              const res = await dispatchDecoded();
-              if (res.status !== CBS_API_STATUS.SUCCESS) {
-                failedResponse = res;
-                return null;
-              }
-              return res;
-            },
-            cacheDesc.ttl,
-          )) ??
-          failedResponse ??
-          (await dispatchDecoded()))
+        ? await getOrSet(cacheDesc.key, dispatchDecoded, cacheDesc.ttl, isApiSuccess)
         : await dispatchDecoded();
 
-      if (response.status === CBS_API_STATUS.SUCCESS) {
+      if (isApiSuccess(response)) {
         await autoInvalidateOnMutation(envelope);
         return NextResponse.json(response, { status: 200 });
       }

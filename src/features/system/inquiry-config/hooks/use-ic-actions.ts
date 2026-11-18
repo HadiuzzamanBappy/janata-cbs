@@ -87,18 +87,8 @@ export function useIcActions({
           return true;
         }
 
-        toast.add({
-          title: "Operation Failed",
-          description: res.message || "Backend rejected the operation.",
-          type: "error",
-        });
-        return false;
-      } catch (err: unknown) {
-        toast.add({
-          title: "Error",
-          description: err instanceof Error ? err.message : "Failed to submit inquiry record",
-          type: "error",
-        });
+        return false; // the transport already notified the user
+      } catch {
         return false;
       } finally {
         setSubmitting(false);

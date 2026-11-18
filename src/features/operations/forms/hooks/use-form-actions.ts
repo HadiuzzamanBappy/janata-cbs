@@ -4,7 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { useRecordMutationSubscriber } from "@/lib/cbs-screen";
-import type { FormConfigRecord } from "@/lib/data-schemas";
+import { type FormConfigRecord, isApiSuccess } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 
 export interface UseFormActionsProps {
@@ -57,7 +57,7 @@ export function useFormActions({
           { silent: true },
         );
 
-        if (res.status === "SUCCESS" && res.data) {
+        if (isApiSuccess(res) && res.data) {
           if (hydrate) {
             hydrate(res.data);
           } else {

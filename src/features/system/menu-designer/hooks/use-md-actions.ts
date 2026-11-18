@@ -3,10 +3,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useIdempotentSend } from "@/components/cbs-screen";
-import { toast } from "@/components/ui/toast";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { sanitizeMenuTreeRecord } from "@/lib/data-parsers";
-import type { MenuDesignerValidationError, MenuTreeRecord } from "@/lib/data-schemas";
+import {
+  isApiSuccess,
+  type MenuDesignerValidationError,
+  type MenuTreeRecord,
+} from "@/lib/data-schemas";
 
 export interface UseMdActionsOptions {
   formData: MenuTreeRecord;
@@ -40,7 +43,7 @@ export function useMdActions({
     try {
       const wireData = sanitizeMenuTreeRecord(formData);
       const json = await sendMutation(
-        cbs.menuTree.save(wireData as unknown as Record<string, unknown>, {
+        cbs.menuTree.save(wireData, {
           recordId: formData.recordId || recordId,
         }),
         {
@@ -49,7 +52,7 @@ export function useMdActions({
         },
       );
 
-      if (json.status === "SUCCESS") {
+      if (isApiSuccess(json)) {
         rebaseline();
         await invalidateMenuCaches();
         setValidationErrors([]);
@@ -57,13 +60,8 @@ export function useMdActions({
         return true;
       }
       return false;
-    } catch (err: unknown) {
-      toast.add({
-        title: "Error",
-        description: err instanceof Error ? err.message : "Failed to save hierarchy",
-        type: "error",
-      });
-      return false;
+    } catch {
+      return false; // the transport already notified the user
     } finally {
       setSubmitting(false);
     }
@@ -86,20 +84,15 @@ export function useMdActions({
         successTitle: "Navigation Tree Authorized",
         successMessage: `Authorized live menu tree #${recordId}`,
       });
-      if (json.status === "SUCCESS") {
+      if (isApiSuccess(json)) {
         rebaseline();
         await invalidateMenuCaches();
         reset();
         return true;
       }
       return false;
-    } catch (err: unknown) {
-      toast.add({
-        title: "Authorization Error",
-        description: err instanceof Error ? err.message : "Authorization failed",
-        type: "error",
-      });
-      return false;
+    } catch {
+      return false; // the transport already notified the user
     } finally {
       setSubmitting(false);
     }

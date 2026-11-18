@@ -1,8 +1,12 @@
 import type { z } from "zod";
 import { notifyUser } from "@/lib/cbs-command";
 import { clientConfig } from "@/lib/core-config";
-import type { ApiResponse } from "@/lib/data-schemas";
-import { type CbsWirePayload, cbsWirePayloadSchema } from "@/lib/data-schemas";
+import {
+  type ApiResponse,
+  type CbsWirePayload,
+  cbsWirePayloadSchema,
+  isApiSuccess,
+} from "@/lib/data-schemas";
 import { handleCbsResponseSemantics } from "./response-handler";
 
 export interface SendCbsOptions<T = unknown> {
@@ -73,7 +77,7 @@ export async function sendCbsRequest<T = unknown>(
     const json = (await res.json()) as ApiResponse<T>;
 
     // Optional response schema validation
-    if (res.ok && json.status === "SUCCESS" && options?.responseSchema && json.data !== undefined) {
+    if (res.ok && isApiSuccess(json) && options?.responseSchema && json.data !== undefined) {
       const validated = options.responseSchema.safeParse(json.data);
       if (!validated.success) {
         const schemaErrorMsg =
@@ -87,9 +91,11 @@ export async function sendCbsRequest<T = unknown>(
 
     return json;
   } catch (err: unknown) {
+    // Aborts are silent; UNAUTHORIZED and schema errors were already notified above.
     const isExpectedBailout =
       (err instanceof DOMException && err.name === "AbortError") ||
-      (err instanceof Error && err.message === "UNAUTHORIZED");
+      (err instanceof Error &&
+        (err.message === "UNAUTHORIZED" || err.message.startsWith("RESPONSE_SCHEMA_ERROR")));
 
     if (isExpectedBailout) {
       throw err;

@@ -212,5 +212,3 @@ export const UM_USER_MGT_TABLE: CbsVersionedTable<UmUserMgtRecord> = {
   HIS: UM_USER_MGT_HIS,
   DEL: UM_USER_MGT_DEL,
 };
-
-export const UM_USER_MGT_LIST: UmUserMgtRecord[] = Object.values(UM_USER_MGT);

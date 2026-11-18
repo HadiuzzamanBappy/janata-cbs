@@ -74,24 +74,17 @@ Resolution occurs dynamically via `getVersionedTable(controlName)` or the `CBS_D
 
 ---
 
-## 🔍 4. Querying (`queryCbsDatabase`)
+## 🔍 4. Querying (`getVersionedTable`)
 
-IDs are clean bare strings without associate suffixes. Version defaults to `"LIVE"`.
+IDs are clean bare strings without associate suffixes. Mock handlers read tables through `resolveTable()` in [database-router.ts](../core/database-router.ts), which wraps `getVersionedTable()`:
 
 ```typescript
-import { queryCbsDatabase } from "@mock/db";
+import { getVersionedTable } from "@mock/db";
 
-// Standard Entity (LIVE)
-const account = queryCbsDatabase("ACCOUNT", "AC1001");
-
-// Form Spec with Composite Key (LIVE)
-const formLayout = queryCbsDatabase("CONFIG.FORM", "ACCOUNT,1.0.0");
-
-// Maker's Pending Draft (INAU)
-const draft = queryCbsDatabase("ACCOUNT", "AC1001", "INAU");
-
-// Historical Audit Snapshots (HIS -> returns array T[])
-const history = queryCbsDatabase("ACCOUNT", "AC1001", "HIS");
+const accounts = getVersionedTable("ACCOUNT");
+const live = accounts?.LIVE["AC1001"]; // authorised record
+const draft = accounts?.INAU["AC1001"]; // maker's pending draft
+const history = accounts?.HIS["AC1001"]; // historical snapshots
 ```
 
 ---
@@ -134,7 +127,7 @@ mock/db/
 ├── UM_USERS.ts             # User profiles
 ├── rawResponse/            # Real-world server response samples for reference
 ├── types.ts                # CbsVersionedTable & lookup contracts
-└── index.ts                # CBS_PHYSICAL_TABLES, CBS_DATABASE proxy & queryCbsDatabase
+└── index.ts                # CBS_PHYSICAL_TABLES, CBS_DATABASE proxy & getVersionedTable
 ```
 
 - **Invariant 1**: Client UI code never imports from `@mock/db` (runtime access is through `@mock/core` on the server).

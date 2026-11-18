@@ -8,7 +8,8 @@
  * 3. cbs.modelConfig, cbs.formConfig, cbs.inquiryConfig - Meta-config protocol overrides
  * 4. cbs.inquiry - Runtime inquiry query execution (INQ)
  * 5. cbs.userSecurity - Security credential mutations (CPW)
- * 6. cbs.send - Universal transport dispatcher (pre-flight validation, HTTP dispatch, 401 handling, cancellation)
+ * 6. cbs.send - Universal transport dispatcher (pre-flight validation, HTTP dispatch, 401 handling, cancellation,
+ *    single notification per failure)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-client.ts
@@ -16,6 +17,7 @@
 
 import { z } from "zod";
 import { cbs } from "@/lib/cbs-client";
+import { registerCommandAdapter } from "@/lib/cbs-command";
 import type { CbsWirePayload } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 
@@ -389,6 +391,36 @@ async function runSuite() {
       "AbortSignal.abort()",
       { caught: abortCaught, errorName: abortName },
       abortCaught && abortName === "AbortError",
+    );
+
+    // E. Each failure notifies the user exactly once (no second "Network Error" toast)
+    const notifications: string[] = [];
+    const unregister = registerCommandAdapter({ notify: (n) => notifications.push(n.title) });
+    const sendAndCount = async (options: { responseSchema?: z.ZodType<unknown> } = {}) => {
+      notifications.length = 0;
+      try {
+        await cbs.send(account.get("101"), options);
+      } catch {
+        // expected: the transport rethrows after notifying
+      }
+      return [...notifications];
+    };
+
+    globalThis.fetch = async () => {
+      throw new TypeError("fetch failed");
+    };
+    const networkToasts = await sendAndCount();
+
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ status: "SUCCESS", data: { id: 101 } }), { status: 200 });
+    const schemaToasts = await sendAndCount({ responseSchema: testSchema });
+    unregister();
+
+    recordTest(
+      "6.6 cbs.send: A network failure or schema mismatch notifies exactly once",
+      "fetch throws TypeError; then a 200 reply that fails responseSchema",
+      { networkToasts, schemaToasts },
+      networkToasts.length === 1 && schemaToasts.length === 1,
     );
   } finally {
     globalThis.fetch = originalFetch;

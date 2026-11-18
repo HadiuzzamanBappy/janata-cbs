@@ -6,7 +6,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { computeDelta } from "@/lib/cbs-record";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
-import type { FormConfigRecord } from "@/lib/data-schemas";
+import { type ApiResponse, type FormConfigRecord, isApiSuccess } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, CbsRecordStatus, type CbsScreenMode } from "@/types";
 
 export interface UseFormMutationsProps {
@@ -45,13 +45,13 @@ export function useFormMutations({
   const executeTransaction = React.useCallback(
     async (
       targetId: string,
-      operation: () => Promise<{ status?: string }>,
+      operation: () => Promise<ApiResponse>,
       options: { resetOnSuccess?: boolean } = { resetOnSuccess: true },
     ) => {
       setSubmitting(true);
       try {
         const json = await operation();
-        if (json?.status === "SUCCESS") {
+        if (isApiSuccess(json)) {
           broadcastRecordMutation(modelCode, targetId);
           if (options.resetOnSuccess) {
             resetForm(initialValues);

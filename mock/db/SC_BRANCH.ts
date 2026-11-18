@@ -196,5 +196,3 @@ export const SC_BRANCH_TABLE: CbsVersionedTable<BranchRecord> = {
   HIS: SC_BRANCH_HIS,
   DEL: SC_BRANCH_DEL,
 };
-
-export const SC_BRANCH_LIST: BranchRecord[] = Object.values(SC_BRANCH);

@@ -1,4 +1,4 @@
-import type { CbsWirePayload } from "@/lib/data-schemas";
+import type { CbsWirePayload, MenuTreeRecord } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
 import { createModelPayloads, type ModelOptions } from "./base-model";
 
@@ -6,7 +6,7 @@ import { createModelPayloads, type ModelOptions } from "./base-model";
 /* Menu Tree Payload Builder (Specialized Wire Protocol: GUM)                */
 /* -------------------------------------------------------------------------- */
 
-const baseMenuTree = createModelPayloads(CbsControlTable.MENU_TREE);
+const baseMenuTree = createModelPayloads<MenuTreeRecord>(CbsControlTable.MENU_TREE);
 
 /**
  * Specialized payload factory for Hierarchical Navigation Trees (`MENU.TREE`).

@@ -11,7 +11,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { parseGfcResponse } from "@/lib/data-parsers";
-import type { ModelConfigRecord } from "@/lib/data-schemas";
+import { isApiSuccess, type ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type FormConfigValidationError, validateFormConfig } from "./fc-validation";
 import { useFcActions } from "./use-fc-actions";
@@ -78,7 +78,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
       setLoading(true);
       try {
         const res = await cbs.send<Record<string, unknown>>(cbs.formConfig.get(cleanId));
-        if (res.status === "SUCCESS" && res.data) {
+        if (isApiSuccess(res) && res.data) {
           setRawRecord(res.data);
           const parsed = parseGfcResponse(res.data);
           if (parsed.success) {

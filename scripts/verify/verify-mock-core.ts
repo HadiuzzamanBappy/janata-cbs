@@ -38,7 +38,7 @@ try {
 export {};
 
 async function runSuite() {
-  const { getMockProxyResponse, mockLogin, mockProcess } = await import("@mock/core");
+  const { getMockProxyResponse, handleLogin, mockProcess } = await import("@mock/core");
   const { resolveTable } = await import("@mock/core/database-router");
   const { CbsControlTable } = await import("@/types");
 
@@ -94,16 +94,16 @@ async function runSuite() {
 
     // 2. Operator Authentication & Session Minting (Strict username + password)
     const loginInput = { clientId: "WEB-CLIENT", username: "ZZ028459", password: "password123" };
-    const authRes = await mockLogin(loginInput);
+    const authRes = await handleLogin(loginInput);
     const authData = authRes.data as Record<string, unknown> | undefined;
 
     // Negative tests: wrong password and missing password must fail with 401
-    const wrongPassRes = await mockLogin({
+    const wrongPassRes = await handleLogin({
       clientId: "WEB-CLIENT",
       username: "ZZ028459",
       password: "wrong_password",
     });
-    const noPassRes = await mockLogin({
+    const noPassRes = await handleLogin({
       clientId: "WEB-CLIENT",
       username: "ZZ028459",
       password: "",

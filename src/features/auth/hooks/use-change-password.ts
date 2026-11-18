@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { cbsAuth } from "@/lib/cbs-client";
 import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
-import type { ApiResponse } from "@/lib/data-schemas";
-import { type ChangePasswordInput, changePasswordSchema } from "@/lib/data-schemas";
+import { type ChangePasswordInput, changePasswordSchema, isApiSuccess } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 
 export function useChangePassword() {
@@ -33,24 +33,10 @@ export function useChangePassword() {
       setLoading(true);
 
       try {
-        // 2. Fetch using centralized config route
-        const res = await fetch(clientConfig.routes.api.changePassword, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            oldPassword: parseResult.data.oldPassword,
-            newPassword: parseResult.data.newPassword,
-            confirmPassword: parseResult.data.confirmPassword,
-          }),
-        });
+        // 2. Submit through the auth transport
+        const data = await cbsAuth.changePassword(parseResult.data);
 
-        const data: ApiResponse = await res.json().catch(() => ({
-          status: "ERROR",
-          statusCode: 500,
-          timestamp: new Date().toISOString(),
-        }));
-
-        if (!res.ok || (data.status && data.status !== "SUCCESS")) {
+        if (!isApiSuccess(data)) {
           const message = data.message || "Failed to update password";
           setError(message);
           return false;
@@ -79,7 +65,7 @@ export function useChangePassword() {
   const cancelToLogin = React.useCallback(async () => {
     setCanceling(true);
     try {
-      await fetch(clientConfig.routes.api.logout, { method: "POST" });
+      await cbsAuth.logout();
     } catch (err: unknown) {
       logger.error("Logout during change-password cancel failed", err, "AUTH_FEATURE");
     } finally {

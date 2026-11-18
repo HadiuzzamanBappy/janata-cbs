@@ -231,5 +231,3 @@ export const AC_ACCOUNT_TABLE: CbsVersionedTable<AccountRecord> = {
   HIS: AC_ACCOUNT_HIS,
   DEL: AC_ACCOUNT_DEL,
 };
-
-export const AC_ACCOUNT_LIST: AccountRecord[] = Object.values(AC_ACCOUNT);

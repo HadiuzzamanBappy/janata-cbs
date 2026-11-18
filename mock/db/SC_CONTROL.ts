@@ -125,5 +125,3 @@ export const SC_CONTROL_TABLE: CbsVersionedTable<RawControlRecord> = {
   HIS: SC_CONTROL_HIS,
   DEL: SC_CONTROL_DEL,
 };
-
-export const SC_CONTROL_LIST: RawControlRecord[] = Object.values(SC_CONTROL);

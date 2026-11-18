@@ -1345,5 +1345,3 @@ export const SC_INQUIRY_CONFIG_TABLE: CbsVersionedTable<InquiryConfigRecord> = {
   HIS: SC_INQUIRY_CONFIG_HIS,
   DEL: SC_INQUIRY_CONFIG_DEL,
 };
-
-export const SC_INQUIRY_CONFIG_LIST: InquiryConfigRecord[] = Object.values(SC_INQUIRY_CONFIG);

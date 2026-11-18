@@ -3,7 +3,12 @@ import "server-only";
 import { serverConfig } from "@/lib/core-config/server";
 import { logger } from "@/lib/core-logger";
 import { parseAuthWirePayload } from "@/lib/data-parsers";
-import { type CurrentUser, currentUserSchema, type LoginInput } from "@/lib/data-schemas";
+import {
+  type CurrentUser,
+  currentUserSchema,
+  isApiSuccess,
+  type LoginInput,
+} from "@/lib/data-schemas";
 import { createSession, destroySession } from "@/lib/infra-redis";
 import { grpcStatusToHttp, loginProcess } from "./client";
 import type { GrpcResponse } from "./generated/service";
@@ -41,7 +46,7 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
     };
   }
 
-  if (res.status !== "SUCCESS" || (res.statusCode !== 200 && res.statusCode !== 0)) {
+  if (!isApiSuccess(res) || (res.statusCode !== 200 && res.statusCode !== 0)) {
     const failureStatus = res.statusCode && res.statusCode !== 200 ? res.statusCode : 401;
     log.warn(
       `Login failed for user "${input.username}" (${failureStatus}): ${res.message || "Invalid credentials"}`,

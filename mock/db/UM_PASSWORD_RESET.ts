@@ -135,5 +135,3 @@ export const UM_PASSWORD_RESET_TABLE: CbsVersionedTable<UmPasswordResetRecord> =
   HIS: UM_PASSWORD_RESET_HIS,
   DEL: UM_PASSWORD_RESET_DEL,
 };
-
-export const UM_PASSWORD_RESET_LIST: UmPasswordResetRecord[] = Object.values(UM_PASSWORD_RESET);

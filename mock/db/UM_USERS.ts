@@ -200,5 +200,3 @@ export const UM_USERS_TABLE: CbsVersionedTable<UmUsersRecord> = {
   HIS: UM_USERS_HIS,
   DEL: UM_USERS_DEL,
 };
-
-export const UM_USERS_LIST: UmUsersRecord[] = Object.values(UM_USERS);

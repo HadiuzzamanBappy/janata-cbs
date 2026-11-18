@@ -14,7 +14,7 @@ import { useIdempotentSend } from "@/components/cbs-screen";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeFormConfigRecord } from "@/lib/data-parsers";
-import type { CbsWirePayload, FormConfigRecord } from "@/lib/data-schemas";
+import { type CbsWirePayload, type FormConfigRecord, isApiSuccess } from "@/lib/data-schemas";
 import { CbsControlTable } from "@/types";
 
 export interface UseFcActionsParams {
@@ -61,7 +61,7 @@ export function useFcActions({
           successTitle: options.successTitle,
           successMessage: options.successMessage,
         });
-        if (res.status === "SUCCESS") {
+        if (isApiSuccess(res)) {
           const syncId = (options.targetId || recordId).trim().toUpperCase();
           if (syncId) {
             broadcastRecordMutation(CbsControlTable.FORM_CONFIG, syncId);

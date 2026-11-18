@@ -92,15 +92,6 @@ export const serverConfig = {
   },
 } as const;
 
-export type ServerConfig = typeof serverConfig;
-
-/**
- * Retrieves the full service endpoint registry.
- */
-export function getServices(): Record<string, ServiceDef> {
-  return SERVICES;
-}
-
 /**
  * Retrieves configuration for a specific downstream service key.
  * Falls back to 'default' if the requested key is not registered.

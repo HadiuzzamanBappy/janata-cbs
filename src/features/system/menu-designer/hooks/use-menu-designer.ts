@@ -6,6 +6,7 @@ import { cbs } from "@/lib/cbs-client";
 import { generateIdempotencyKey } from "@/lib/core-utils";
 import { parseMenuTreeRecord } from "@/lib/data-parsers";
 import {
+  isApiSuccess,
   type MenuDesignerValidationError,
   type MenuItem,
   menuTreeRecordSchema,
@@ -61,7 +62,7 @@ export function useMenuDesigner(initialId?: string, tabId?: string) {
         const json = await cbs.send<unknown>(cbs.menuTree.get(idToFetch), {
           silent: true,
         });
-        if (json.status === "SUCCESS" && json.data) {
+        if (isApiSuccess(json) && json.data) {
           setRawRecord(json.data);
           const res = parseMenuTreeRecord(json.data);
           if (res.success) {

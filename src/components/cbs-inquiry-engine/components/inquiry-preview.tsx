@@ -13,6 +13,7 @@ import {
   type InquiryConfigRecord,
   type InquiryRow,
   inquiryRowListSchema,
+  isApiSuccess,
 } from "@/lib/data-schemas";
 import { CBS_INQUIRY_STEP, type CbsInquiryStep } from "@/types";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
@@ -88,7 +89,7 @@ export function InquiryPreview({
           { silent: true, signal, responseSchema: inquiryRowListSchema },
         );
 
-        if (queryRes.status !== "SUCCESS") {
+        if (!isApiSuccess(queryRes)) {
           throw new Error(queryRes.message || `Core rejected inquiry on ${targetController}`);
         }
 

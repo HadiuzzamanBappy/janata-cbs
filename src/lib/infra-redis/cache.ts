@@ -166,7 +166,7 @@ const inflight = new Map<string, Promise<unknown>>();
 /**
  * Collapses concurrent requests for the same key into a single underlying fetch execution.
  */
-export function singleFlight<T>(key: string, run: () => Promise<T>): Promise<T> {
+function singleFlight<T>(key: string, run: () => Promise<T>): Promise<T> {
   const pending = inflight.get(key) as Promise<T> | undefined;
   if (pending) return pending;
 
@@ -177,11 +177,14 @@ export function singleFlight<T>(key: string, run: () => Promise<T>): Promise<T> 
 
 /**
  * Gets a cached item by key or executes the fetcher function on miss / circuit trip.
+ * Concurrent misses share one fetch and all receive its result; only results that pass
+ * `shouldCache` are stored, so failures are returned but never cached.
  */
 export async function getOrSet<T>(
   key: string,
   fetcher: () => Promise<T>,
   ttlSeconds: number = serverConfig.redis.defaultTtlSeconds,
+  shouldCache: (value: T) => boolean = (value) => value != null,
 ): Promise<T> {
   const fullKey = cacheKey(key);
 
@@ -192,7 +195,7 @@ export async function getOrSet<T>(
 
   return singleFlight(fullKey, async () => {
     const freshData = await fetcher();
-    if (serverConfig.redis.enabled && !circuitOpen() && freshData != null) {
+    if (serverConfig.redis.enabled && !circuitOpen() && shouldCache(freshData)) {
       await cacheSet(fullKey, freshData, ttlSeconds);
     }
     return freshData;

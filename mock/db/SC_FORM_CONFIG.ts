@@ -505,5 +505,3 @@ export const SC_FORM_CONFIG_TABLE: CbsVersionedTable<FormConfigRecord> = {
   HIS: SC_FORM_CONFIG_HIS,
   DEL: SC_FORM_CONFIG_DEL,
 };
-
-export const SC_FORM_CONFIG_LIST: FormConfigRecord[] = Object.values(SC_FORM_CONFIG);

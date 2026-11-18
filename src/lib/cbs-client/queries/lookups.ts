@@ -1,12 +1,13 @@
 import { queryOptions } from "@tanstack/react-query";
 import { clientConfig } from "@/lib/core-config";
 import { unwrapRecordsPayload } from "@/lib/data-parsers";
-import type {
-  ControlCommand,
-  MenuAction,
-  MenuCatalogActionItem,
-  MenuType,
-  ModelProperty,
+import {
+  type ControlCommand,
+  isApiSuccess,
+  type MenuAction,
+  type MenuCatalogActionItem,
+  type MenuType,
+  type ModelProperty,
 } from "@/lib/data-schemas";
 import { CbsControlTable } from "@/types";
 import { createModelPayloads } from "../payloads/base-model";
@@ -37,7 +38,7 @@ export const lookupQueries = {
       staleTime: 10 * 60 * 1000,
       queryFn: async () => {
         const res = await sendCbsRequest<unknown>(branchPayloads.list(), { silent: true });
-        if (res.status !== "SUCCESS") {
+        if (!isApiSuccess(res)) {
           throw new Error(res.message || "Failed to load branch directory");
         }
 
@@ -83,7 +84,7 @@ export const lookupQueries = {
           createModelPayloads(cleanModel).list(),
           { silent: true },
         );
-        if (res.status === "SUCCESS") {
+        if (isApiSuccess(res)) {
           const resData = res.data;
           const rawList: unknown[] = Array.isArray(resData)
             ? resData
@@ -106,7 +107,7 @@ export const lookupQueries = {
       staleTime: 5 * 60 * 1000,
       queryFn: async () => {
         const res = await sendCbsRequest<unknown>(menuPayloads.list(), { silent: true });
-        if (res.status !== "SUCCESS") {
+        if (!isApiSuccess(res)) {
           throw new Error(res.message || "Failed to load MENU catalog");
         }
         if (!res.data) return [];
@@ -130,7 +131,7 @@ export const lookupQueries = {
       staleTime: 5 * 60 * 1000,
       queryFn: async () => {
         const res = await sendCbsRequest<unknown>(controlPayloads.list(), { silent: true });
-        if (res.status !== "SUCCESS") {
+        if (!isApiSuccess(res)) {
           return [];
         }
         if (!res.data) return [];

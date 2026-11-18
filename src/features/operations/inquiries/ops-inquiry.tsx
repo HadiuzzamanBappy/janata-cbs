@@ -8,7 +8,7 @@ import { cbs } from "@/lib/cbs-client";
 import { buildDefaultCriteria, serializeCriteriaToWire } from "@/lib/cbs-inquiry-spec";
 import type { CbsScreenProps } from "@/lib/cbs-screen";
 import { logger } from "@/lib/core-logger";
-import { type FilterCriteriaMap, inquiryRowListSchema } from "@/lib/data-schemas";
+import { type FilterCriteriaMap, inquiryRowListSchema, isApiSuccess } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 import { CBS_INQUIRY_STEP } from "@/types";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
@@ -72,7 +72,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
           { silent: true, responseSchema: inquiryRowListSchema },
         );
 
-        if (queryRes.status !== "SUCCESS") {
+        if (!isApiSuccess(queryRes)) {
           toast.add({
             title: "Query Failed",
             description: queryRes.message || `Core rejected inquiry on ${targetControl}`,

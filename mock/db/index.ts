@@ -29,7 +29,7 @@ import { SC_MENU_TABLE } from "./SC_MENU";
 import { SC_MENU_TREE_TABLE } from "./SC_MENU_TREE";
 import { SC_MODEL_CONFIG, SC_MODEL_CONFIG_TABLE } from "./SC_MODEL_CONFIG";
 import { SC_USER_TABLE } from "./SC_USER";
-import { type CbsTableVersion, type CbsVersionedTable, queryVersionedRecord } from "./types";
+import type { CbsVersionedTable } from "./types";
 import { UM_PASSWORD_RESET_TABLE } from "./UM_PASSWORD_RESET";
 import { UM_USER_MGT_TABLE } from "./UM_USER_MGT";
 import { UM_USERS_TABLE } from "./UM_USERS";
@@ -115,17 +115,3 @@ export const CBS_DATABASE = new Proxy(
     },
   },
 );
-
-/**
- * Universal Database Query Helper:
- * Queries any CBS table by control/model name and record ID, supporting versioning.
- */
-export function queryCbsDatabase<T = Record<string, unknown>>(
-  controlName: string,
-  recordId: string,
-  version: CbsTableVersion = "LIVE",
-): T | T[] | null {
-  const table = getVersionedTable<T>(controlName);
-  if (!table) return null;
-  return queryVersionedRecord(table, recordId, version);
-}

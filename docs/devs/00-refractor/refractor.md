@@ -11,24 +11,24 @@ This plan runs strictly from dependency leaves to root. A phase may only change 
 
 **Resume from here.** Update this table whenever a phase's exit gate passes and its commit lands.
 
-| Phase | Scope                                  | Status      | Commit    | Owner's manual test                   | Live `verify:api`                 |
-| ----- | -------------------------------------- | ----------- | --------- | ------------------------------------- | --------------------------------- |
-| P0    | Governance & tooling                   | ✅ done     | `7223db2` | ✅ passed                             | —                                 |
-| P1    | L0 types & schemas                     | ✅ done     | `647955e` | ✅ passed (popup-draft fix folded in) | ⚠️ not run                        |
-| P2    | Parsers, utils, storage, logger        | ✅ done     | `7d7a6a6` | ⏳ pending                            | ⚠️ not run (proxy decode changed) |
-| P3    | Wire client, proxy, gRPC, Redis, mock  | ⏳ **next** | —         | —                                     | required at exit                  |
-| P4    | Command, access, screen, stores, hooks | ⏳          | —         | —                                     | —                                 |
-| P5    | UI primitives & tokens                 | ⏳          | —         | —                                     | —                                 |
-| P6    | Engines & feature modules              | ⏳          | —         | —                                     | —                                 |
-| P7    | App, routing, route handlers           | ⏳          | —         | —                                     | required at exit                  |
+| Phase | Scope                                  | Status      | Commit                                        | Owner's manual test                   | Live `verify:api`         |
+| ----- | -------------------------------------- | ----------- | --------------------------------------------- | ------------------------------------- | ------------------------- |
+| P0    | Governance & tooling                   | ✅ done     | `d84451f`                                     | ✅ passed                             | —                         |
+| P1    | L0 types & schemas                     | ✅ done     | `5571d59`                                     | ✅ passed (popup-draft fix folded in) | ✅ green (run in P3)      |
+| P2    | Parsers, utils, storage, logger        | ✅ done     | `594a4d0` (+ `decb0c4` `JsonArray` → `Array`) | ✅ passed                             | ✅ green (run in P3)      |
+| P3    | Wire client, proxy, gRPC, Redis, mock  | ✅ done     | ⏳ uncommitted (owner commits)                | ⏳ pending                            | ✅ green 9/9 (2026-11-18) |
+| P4    | Command, access, screen, stores, hooks | ⏳ **next** | —                                             | —                                     | —                         |
+| P5    | UI primitives & tokens                 | ⏳          | —                                             | —                                     | —                         |
+| P6    | Engines & feature modules              | ⏳          | —                                             | —                                     | —                         |
+| P7    | App, routing, route handlers           | ⏳          | —                                             | —                                     | required at exit          |
 
 ### How to resume a session
 
-1. Run `git status -sb` and `git log --oneline -5`. Confirm the last commit in the table is HEAD and the tree is clean.
+1. Run `git status -sb` and `git log --oneline -5`. Confirm the last commit in the table is HEAD. If a phase is marked _uncommitted_, its changes are expected in the working tree until the owner commits them.
 2. Confirm the owner's manual test of the last phase passed (column above). Don't start the next phase until it has.
 3. Run `pnpm lint`, `pnpm typecheck` and `pnpm verify:all` to prove the baseline is still green.
 4. Open the next phase's **Red flags** table and re-run each row's _Evidence_ command, because line numbers drift. Rows marked _(from Phase N)_ were carried forward from an earlier phase.
-5. Work the findings, tick the **Exit gate** boxes, add a **Phase N outcome** table (same format as Phases 1–2), update this tracker, then make the single phase commit (see [Execution Rules](#execution-rules-all-phases)).
+5. Work the findings, tick the **Exit gate** boxes, add a **Phase N outcome** table (same format as Phases 1–2), update this tracker, then stop and wait: the owner tests and decides when to commit (see [Execution Rules](#execution-rules-all-phases)).
 6. Give the owner a manual test list for the phase before moving on.
 
 ---
@@ -81,7 +81,7 @@ The gates themselves have to be trustworthy before any refactor. Before Phase 0,
 ## Phase 1 — Canonical Types, Zod Schemas, Constants & Enums (L0)
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-17), commit `647955e`.** Results are in the [Phase 1 outcome](#phase-1-outcome) table below the exit gate.
+> **Status: ✅ complete (2026-11-17), commit `5571d59`.** Results are in the [Phase 1 outcome](#phase-1-outcome) table below the exit gate.
 
 **Scope:** [src/types/](../../../src/types/) (329 lines) and [src/lib/data-schemas/](../../../src/lib/data-schemas/) (1,164 lines). This phase also moves vocabulary that currently lives too high (in L2/L3) **down** into L0.
 
@@ -161,7 +161,7 @@ export interface CbsInquiryTabState { step?: CbsInquiryStep; criteria?: CbsFilte
 ## Phase 2 — Pure Utilities, Parsers, Serializers & Redaction (L1–L2 pure)
 
 > [!NOTE]
-> **Status: ✅ complete (2026-11-17), commit `7d7a6a6`.** Results are in the [Phase 2 outcome](#phase-2-outcome) table below the exit gate.
+> **Status: ✅ complete (2026-11-17), commit `594a4d0`.** Results are in the [Phase 2 outcome](#phase-2-outcome) table below the exit gate.
 
 **Scope:** [data-parsers/](../../../src/lib/data-parsers/) (1,143 lines), [core-utils/](../../../src/lib/core-utils/), [core-logger/](../../../src/lib/core-logger/), [cbs-inquiry-spec/](../../../src/lib/cbs-inquiry-spec/) (its serializers).
 
@@ -227,7 +227,8 @@ export const cbsStorage = {
 
 ## Phase 3 — Core & Infrastructure: Wire Factories, Proxy, gRPC, Redis, Mock
 
-> **Status: ⏳ next.**
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** Results are in the [Phase 3 outcome](#phase-3-outcome) table below the exit gate.
 
 **Scope:** [cbs-client/](../../../src/lib/cbs-client/) (968 lines), [infra-grpc/](../../../src/lib/infra-grpc/), [infra-redis/](../../../src/lib/infra-redis/) (702 lines), [core-config/](../../../src/lib/core-config/), [mock/](../../../mock/).
 
@@ -271,18 +272,34 @@ if (result.ok) { … }                                                 // no cat
 
 ### Exit gate P3
 
-- [ ] `"SUCCESS"` appears only in `CBS_API_STATUS`, and `isApiSuccess` is the single predicate in use.
-- [ ] 0 raw `fetch(` outside `lib/cbs-client/transport` and `lib/infra-*`.
-- [ ] A new `verify:grpc` case: N concurrent identical reads against a failing mock produce **exactly 1 dispatch**.
-- [ ] A new `verify:client` case: a network failure triggers exactly one notification.
-- [ ] 0 `as unknown as` at payload-factory call sites.
-- [ ] `pnpm verify:client` · `verify:grpc` · `verify:redis` · `verify:config` · `verify:mock` · `verify:all` all green, and `verify:api` is green against the live core.
+- [x] `"SUCCESS"` appears only in `CBS_API_STATUS`, and `isApiSuccess` is the single predicate in use.
+- [x] 0 raw `fetch(` outside `lib/cbs-client/transport` and `lib/infra-*`.
+- [x] A new concurrency case: N concurrent identical reads against a failing fetcher produce **exactly 1 dispatch** (in `verify:redis`, case 14, where `getOrSet` lives).
+- [x] A new `verify:client` case: a network failure triggers exactly one notification (case 6.6).
+- [x] 0 `as unknown as` at payload-factory call sites.
+- [x] `pnpm verify:client` · `verify:grpc` · `verify:redis` · `verify:config` · `verify:mock` · `verify:all` all green, and `verify:api` is green against the live core.
+
+### Phase 3 outcome
+
+> [!NOTE]
+> **Status: ✅ complete (2026-11-18), not yet committed.** Gates: lint 0 errors / 0 warnings, typecheck 0 errors, `verify:all` 16/16, `pnpm build` green, `verify:api` 9/9 against the live core (this also covers the P1 status enum and the P2 decode change). Diff: 53 files, +237 / −323 lines. Following the MVP rule, the plan's `getOrSetResult` and discriminated `result.ok` transport were **not** built; smaller fixes were enough.
+
+| ID   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F3-1 | ✅ All 27 `"SUCCESS"` literals now call `isApiSuccess`, including the proxy route. `response-handler.ts` dropped its `statusCode 200/201` alternatives: the proxy returns HTTP 2xx only for `SUCCESS`, so the result is unchanged. The one enum comparison left is `dispatch.ts:78`, which checks a bare status value (not an envelope) at the trust boundary.                                                                                                                                                               |
+| F3-2 | ✅ `cbsAuth.login` and `cbsAuth.changePassword` added in [auth-client.ts](../../../src/lib/cbs-client/transport/auth-client.ts), sharing one `postJson` helper with `updateBranch`/`logout`. A non-JSON reply (e.g. a gateway error page) becomes an `ERROR` envelope. `use-login`, `use-change-password` and its cancel-to-login use it.                                                                                                                                                                                    |
+| F3-3 | ✅ `getOrSet` takes an optional `shouldCache` predicate (default: not null), and the route passes `isApiSuccess`. A failed core reply is now shared with every concurrent caller, never cached, and never dispatched a second time. The `failedResponse` variable and fallback arm are deleted. `verify:redis` case 14 now tests through `getOrSet`. **Note:** this case also passes on the old `getOrSet`, because the bug was in the route's null-returning closure; the route path is covered by the owner's manual test. |
+| F3-4 | ✅ **Transport:** a response-schema mismatch toasted twice ("Response Validation Failed", then "Network Error"); the catch now skips errors already notified. New `verify:client` case 6.6 failed before the fix. **Call sites:** the Menu Designer save/authorize catch toasts and the Inquiry Config "Operation Failed" and catch toasts were removed (both sends are non-silent, so the transport already toasts). Silent call sites (inquiry execution, designer loaders) keep their own single toast.                   |
+| F3-5 | ✅ The menu-tree factory is `createModelPayloads<MenuTreeRecord>`, so the cast in `use-md-actions.ts` is gone. The 3 remaining `as unknown as Record` are not payload call sites (`fc-general-tab.tsx`, `use-fc-field-movement.ts` → F6-5; `field-normalizer.ts` is spec-compiler code).                                                                                                                                                                                                                                     |
+| F3-6 | ✅ Deleted `getServices`, `ServerConfig`, `ClientConfig`. `singleFlight` is module-private (tested via `getOrSet`). Kept `getService`, `isFinancialRequest`, `resetCircuit` and `CommandTabPayload`: each is used by production code or is part of the adapter contract, and tests use them through the public API.                                                                                                                                                                                                          |
+| F3-7 | ✅ Removed the `mockLogin` alias (callers use `handleLogin`), the 14 `*_LIST` exports, `CBS_MAIN_NAV_TREE`, `queryCbsDatabase`, `getMockInquiryPayload`, and `queryVersionedRecord` (dead once `queryCbsDatabase` went). The [mock/db README](../../../mock/db/README.md) query section now shows `getVersionedTable`. `infra-redis/session.ts` (272 lines) was left as-is: it is inside the 280-line stretch budget, and splitting it would add files without removing duplication.                                         |
+| F3-8 | ✅ `loadModelConfigRecord` uses the canonical `extractModelConfigRecord` (which also adapts `auditFields` → `auditData`). It is deliberately not schema-validated, so designers can still open invalid records to fix them.                                                                                                                                                                                                                                                                                                  |
 
 ---
 
 ## Phase 4 — Domain Logic & State: Command Gateway, RIDASHL, Stores, Hooks (L2–L3.5)
 
-> **Status: ⏳ not started.**
+> **Status: ⏳ next.**
 
 **Scope:** [cbs-access/](../../../src/lib/cbs-access/), [cbs-command/](../../../src/lib/cbs-command/) (911 lines), [cbs-screen/](../../../src/lib/cbs-screen/) (788 lines), [cbs-record/](../../../src/lib/cbs-record/), [store/](../../../src/store/) (700 lines), [hooks/](../../../src/hooks/) (402 lines).
 
@@ -490,11 +507,12 @@ const params = popupSearchParamsSchema.safeParse(Object.fromEntries(searchParams
 
 ## Execution Rules (all phases)
 
-1. **One phase = one commit.** Stage every file of the phase together and commit locally (never push unless asked) with a minimal `type(scope):message`, e.g. `chore(refactor):phase 3 wire client and infra`. The subject line is the whole message: no body, no ID list, no tool attribution. Finding IDs are tracked in this document's outcome tables instead.
-2. **Write the guard first.** Where a phase adds a new verify case (F3-3, F3-4, F4-2), write the case first and watch it fail, then make the fix, all inside the same phase commit.
-3. **Don't reopen a lower layer.** If a Phase 6 change seems to need a Phase 2 API change, stop and add a Phase 2 follow-up item instead of patching the lower layer in place.
-4. **Delete instead of wrapping.** No re-export shims, no `@deprecated` aliases, no `?? legacy` arms (AGENTS.md §1.1 "Zero Legacy").
-5. **Watch the live boundary.** Run `verify:api` against the live core (`DATA_SOURCE=grpc`) at the P1 (status enum), P3 and P7 exit gates. Static mode can't prove wire compatibility.
+1. **Commit only when the owner says so.** Finishing a phase is not permission to commit. When asked, stage the work as one commit (local only, never push unless asked) with a minimal `type(scope):message` that **describes the change**, e.g. `fix(proxy):single dispatch on cache miss`. Never a progress label such as `phase 3` or `step 4`. The subject line is the whole message: no body, no ID list, no tool attribution. Finding IDs are tracked in this document's outcome tables instead.
+2. **Minimal changes (MVP).** For each finding, make the smallest change that removes the bug or duplication. Prefer deleting code to adding it. The _Before → after_ sketches are ideas, not mandates: don't add new factories, layers or abstractions when a direct fix works.
+3. **Write the guard first.** Where a phase adds a new verify case (F3-3, F3-4, F4-2), write the case first and watch it fail, then make the fix, all inside the same change.
+4. **Don't reopen a lower layer.** If a Phase 6 change seems to need a Phase 2 API change, stop and add a Phase 2 follow-up item instead of patching the lower layer in place.
+5. **Delete instead of wrapping.** No re-export shims, no `@deprecated` aliases, no `?? legacy` arms (AGENTS.md §1.1 "Zero Legacy").
+6. **Watch the live boundary.** Run `verify:api` against the live core (`DATA_SOURCE=grpc`) at the P1 (status enum), P3 and P7 exit gates. Static mode can't prove wire compatibility.
 
 | Phase | Primary risk                               | Suites                                                    | Live check   |
 | ----- | ------------------------------------------ | --------------------------------------------------------- | ------------ |

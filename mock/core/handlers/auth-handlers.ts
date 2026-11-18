@@ -78,6 +78,3 @@ export async function handleLogin(
 
   return authResponse;
 }
-
-/** Legacy alias for backwards compatibility across tests */
-export const mockLogin = handleLogin;

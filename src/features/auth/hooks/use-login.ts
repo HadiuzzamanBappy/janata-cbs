@@ -2,16 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import { cbsAuth } from "@/lib/cbs-client";
 import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
 import { cbsStorage } from "@/lib/core-utils";
-import {
-  type ApiResponse,
-  type CurrentUser,
-  isApiSuccess,
-  type LoginInput,
-  loginSchema,
-} from "@/lib/data-schemas";
+import { type CurrentUser, isApiSuccess, type LoginInput, loginSchema } from "@/lib/data-schemas";
 import { useSessionStore } from "@/store";
 
 export function useLogin() {
@@ -36,16 +31,10 @@ export function useLogin() {
       setLoading(true);
 
       try {
-        // 2. Fetch using centralized config route
-        const res = await fetch(clientConfig.routes.api.login, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(parseResult.data),
-        });
+        // 2. Authenticate through the auth transport
+        const data = await cbsAuth.login(parseResult.data);
 
-        const data = (await res.json().catch(() => ({}))) as ApiResponse<CurrentUser>;
-
-        if (!res.ok || !isApiSuccess(data)) {
+        if (!isApiSuccess(data)) {
           const message =
             data.message || data.errors?.[0] || "Authentication failed. Please check credentials.";
           setError(message);

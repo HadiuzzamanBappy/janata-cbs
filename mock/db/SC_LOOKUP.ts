@@ -116,5 +116,3 @@ export const SC_LOOKUP_TABLE: CbsVersionedTable<LookupRecord> = {
   HIS: SC_LOOKUP_HIS,
   DEL: SC_LOOKUP_DEL,
 };
-
-export const SC_LOOKUP_LIST: LookupRecord[] = Object.values(SC_LOOKUP);

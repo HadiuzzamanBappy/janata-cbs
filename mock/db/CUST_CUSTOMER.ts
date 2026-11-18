@@ -194,5 +194,3 @@ export const CUST_CUSTOMER_TABLE: CbsVersionedTable<CustomerRecord> = {
   HIS: CUST_CUSTOMER_HIS,
   DEL: CUST_CUSTOMER_DEL,
 };
-
-export const CUST_CUSTOMER_LIST: CustomerRecord[] = Object.values(CUST_CUSTOMER);

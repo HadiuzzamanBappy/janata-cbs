@@ -1,5 +1,5 @@
 import { type CbsNotification, notifyUser } from "@/lib/cbs-command";
-import type { ApiResponse } from "@/lib/data-schemas";
+import { type ApiResponse, isApiSuccess } from "@/lib/data-schemas";
 
 export interface ResponseHandlerOptions {
   readonly silent?: boolean;
@@ -17,12 +17,7 @@ export function handleCbsResponseSemantics<T>(
   options?: ResponseHandlerOptions,
   recordId?: string,
 ): void {
-  const isSuccess =
-    httpStatus >= 200 &&
-    httpStatus < 300 &&
-    (json.status === "SUCCESS" || json.statusCode === 200 || json.statusCode === 201);
-
-  if (isSuccess) {
+  if (httpStatus >= 200 && httpStatus < 300 && isApiSuccess(json)) {
     if (options?.successMessage && !options.silent) {
       notifyUser({
         title: options.successTitle || (json.statusCode === 201 ? "Created" : "Success"),

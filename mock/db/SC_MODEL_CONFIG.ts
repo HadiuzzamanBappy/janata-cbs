@@ -1875,5 +1875,3 @@ export const SC_MODEL_CONFIG_TABLE: CbsVersionedTable<ModelConfigRecord> = {
   HIS: SC_MODEL_CONFIG_HIS,
   DEL: SC_MODEL_CONFIG_DEL,
 };
-
-export const SC_MODEL_CONFIG_LIST: ModelConfigRecord[] = Object.values(SC_MODEL_CONFIG);

@@ -6,7 +6,6 @@ import { CbsRecordFunction, CbsRequestType } from "@/types";
 import {
   buildMockUserAuthResponse,
   getMockFormPayload,
-  getMockInquiryPayload,
   getMockMenuPayload,
   getMockUserResponse,
   handleGetFormConfig,
@@ -19,20 +18,17 @@ import {
   handleRecordList,
   handleSearchById,
   handleSeeRecord,
-  mockLogin,
 } from "./handlers";
 import { notFoundResult, toGrpcResponse } from "./response-factory";
 
 export {
   buildMockUserAuthResponse,
   getMockFormPayload,
-  getMockInquiryPayload,
   getMockMenuPayload,
   getMockUserResponse,
   handleGetMenu,
   handleLogin,
   handleSearchById,
-  mockLogin,
 };
 
 /**

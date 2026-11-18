@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cbs } from "@/lib/cbs-client";
-import { changePasswordSchema } from "@/lib/data-schemas";
+import { changePasswordSchema, isApiSuccess } from "@/lib/data-schemas";
 
 export function ChangePassword() {
   const { sendMutation } = useIdempotentSend();
@@ -50,7 +50,7 @@ export function ChangePassword() {
         { silent: true },
       );
 
-      if (res.status === "SUCCESS") {
+      if (isApiSuccess(res)) {
         setPassSuccess("Password successfully changed!");
         setOldPassword("");
         setNewPassword("");

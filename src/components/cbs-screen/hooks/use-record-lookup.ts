@@ -5,6 +5,7 @@ import { cbs } from "@/lib/cbs-client";
 import type { RecordLookupItem } from "@/lib/cbs-screen";
 import { logger } from "@/lib/core-logger";
 import { unwrapRecordsPayload } from "@/lib/data-parsers";
+import { isApiSuccess } from "@/lib/data-schemas";
 
 /**
  * Universal hook for dynamic SBI record ID lookups and GNI sequence allocation.
@@ -46,7 +47,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
         const payload = cbs.model(cleanControl).searchIds({ recordId: query?.trim() });
         const res = await cbs.send<unknown>(payload, { silent: true });
 
-        if (res.status === "SUCCESS" && res.data) {
+        if (isApiSuccess(res) && res.data) {
           const raw = unwrapRecordsPayload<unknown>(res.data);
           const list =
             Array.isArray(raw) && raw.length > 0 ? raw : Array.isArray(res.data) ? res.data : [];
@@ -97,7 +98,7 @@ export function useRecordLookup(controlName?: string, staticItems?: RecordLookup
         const payload = cbs.model(cleanControl).getNewId({ recordId: cleanCandidate || undefined });
         const res = await cbs.send<{ recordId?: string; id?: string }>(payload, { silent: true });
 
-        if (res.status === "SUCCESS" && res.data) {
+        if (isApiSuccess(res) && res.data) {
           const allocatedId = String(res.data.recordId || res.data.id || "").trim();
           if (allocatedId) {
             return allocatedId;

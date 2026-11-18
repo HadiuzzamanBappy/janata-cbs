@@ -67,7 +67,7 @@ async function runSuite() {
     resetCircuit,
     resolveCacheDescriptor,
     autoInvalidateOnMutation,
-    singleFlight,
+    getOrSet,
     rateLimit,
   } = await import("@/lib/infra-redis");
   const { CbsControlTable, CbsRecordFunction, CbsRequestType } = await import("@/types");
@@ -266,26 +266,27 @@ async function runSuite() {
   );
 
   // ---------------------------------------------------------------------------
-  // 5. Single-Flight Concurrency Deduplication
+  // 5. Read-Through Concurrency: one dispatch per miss, failures shared but never cached
   // ---------------------------------------------------------------------------
   let fetchCount = 0;
-  const mockFetch = async () => {
+  const failingFetch = async () => {
     fetchCount++;
     await new Promise((resolve) => setTimeout(resolve, 50));
-    return { compiled: true, count: fetchCount };
+    return { status: "FAIL", count: fetchCount };
   };
+  const isOk = (r: { status: string }) => r.status === "SUCCESS";
 
-  const [res1, res2, res3] = await Promise.all([
-    singleFlight("test:singleflight:key", mockFetch),
-    singleFlight("test:singleflight:key", mockFetch),
-    singleFlight("test:singleflight:key", mockFetch),
-  ]);
+  tripCircuit(); // bypass Redis so only the in-process single-flight is exercised
+  const results = await Promise.all(
+    [1, 2, 3].map(() => getOrSet("test:getorset:failing", failingFetch, 60, isOk)),
+  );
+  resetCircuit();
 
   recordTest(
-    "14. Single-flight collapses 3 concurrent requests into 1 execution",
-    { requests: 3, fetchCount },
-    { res1, res2, res3, totalFetches: fetchCount },
-    fetchCount === 1 && res1.count === 1 && res2.count === 1 && res3.count === 1,
+    "14. getOrSet: 3 concurrent misses against a failing core produce exactly 1 dispatch",
+    { requests: 3 },
+    { results, totalFetches: fetchCount },
+    fetchCount === 1 && results.every((r) => r.status === "FAIL" && r.count === 1),
   );
 
   // ---------------------------------------------------------------------------

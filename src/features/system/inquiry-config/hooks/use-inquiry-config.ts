@@ -4,6 +4,7 @@ import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { cbs } from "@/lib/cbs-client";
 import { parseInquiryConfig } from "@/lib/data-parsers";
+import { isApiSuccess } from "@/lib/data-schemas";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type InquiryValidationErrorItem, validateInquiryConfig } from "./ic-validation";
 import { useIcActionOps } from "./use-ic-action-ops";
@@ -75,7 +76,7 @@ export function useInquiryConfig(initialId?: string, tabId?: string) {
           silent: true,
         });
 
-        if (res.status === "SUCCESS" && res.data) {
+        if (isApiSuccess(res) && res.data) {
           const parsed = parseInquiryConfig(res.data);
           if (!parsed.success) {
             toast.add({

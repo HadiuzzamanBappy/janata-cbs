@@ -15,7 +15,7 @@ import { toast } from "@/components/ui/toast";
 import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { broadcastRecordMutation } from "@/lib/cbs-screen";
 import { sanitizeModelConfigRecord } from "@/lib/data-parsers";
-import type { CbsWirePayload, ModelConfigRecord } from "@/lib/data-schemas";
+import { type CbsWirePayload, isApiSuccess, type ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type ModelValidationErrorItem, validateModelConfig } from "./mc-validation";
 
@@ -59,7 +59,7 @@ export function useMcActions({
           successTitle: options.successTitle,
           successMessage: options.successMessage,
         });
-        if (json.status === "SUCCESS") {
+        if (isApiSuccess(json)) {
           const syncId = (options.targetId || recordId).trim().toUpperCase();
           if (syncId) {
             broadcastRecordMutation(CbsControlTable.MODEL_CONFIG, syncId);

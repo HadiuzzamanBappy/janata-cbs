@@ -112,7 +112,7 @@ When `serverConfig.dataSource === "static"`, `isStaticMode()` returns `true`:
 
 - `dispatch()` routes to `mockDispatch()`
 - `financialProcess()` / `nonFinancialProcess()` route to `mockProcess()`
-- `loginProcess()` routes to `mockLogin()`
+- `loginProcess()` routes to `handleLogin()`
 
 ---
 

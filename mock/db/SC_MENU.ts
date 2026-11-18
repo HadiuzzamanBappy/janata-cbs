@@ -521,5 +521,3 @@ export const SC_MENU_TABLE: CbsVersionedTable<MenuRecord> = {
   HIS: SC_MENU_HIS,
   DEL: SC_MENU_DEL,
 };
-
-export const SC_MENU_LIST: MenuRecord[] = Object.values(SC_MENU_LIVE);

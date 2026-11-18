@@ -83,5 +83,3 @@ export const clientConfig = {
     idleWarningWindowMs: 60 * 1000, // 60s warning before timeout
   },
 };
-
-export type ClientConfig = typeof clientConfig;

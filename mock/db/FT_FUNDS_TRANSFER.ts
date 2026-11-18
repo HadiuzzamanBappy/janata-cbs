@@ -155,5 +155,3 @@ export const FT_FUNDS_TRANSFER_TABLE: CbsVersionedTable<FundsTransferRecord> = {
   HIS: FT_FUNDS_TRANSFER_HIS,
   DEL: FT_FUNDS_TRANSFER_DEL,
 };
-
-export const FT_FUNDS_TRANSFER_LIST: FundsTransferRecord[] = Object.values(FT_FUNDS_TRANSFER);

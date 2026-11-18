@@ -1,11 +1,17 @@
 import { queryOptions } from "@tanstack/react-query";
 import { compileFormSpec } from "@/lib/cbs-form-spec";
-import { parseGfcResponse, parseInquiryConfig, parseMNU } from "@/lib/data-parsers";
-import type {
-  FormConfigRecord,
-  InquiryConfigRecord,
-  MenuItem,
-  ModelConfigRecord,
+import {
+  extractModelConfigRecord,
+  parseGfcResponse,
+  parseInquiryConfig,
+  parseMNU,
+} from "@/lib/data-parsers";
+import {
+  type FormConfigRecord,
+  type InquiryConfigRecord,
+  isApiSuccess,
+  type MenuItem,
+  type ModelConfigRecord,
 } from "@/lib/data-schemas";
 import { CbsControlTable } from "@/types";
 import { createModelPayloads } from "../payloads/base-model";
@@ -31,15 +37,13 @@ const inquiryConfigPayloads = createModelPayloads(CbsControlTable.INQUIRY_CONFIG
  */
 export async function loadModelConfigRecord(modelId: string): Promise<ModelConfigRecord> {
   const cleanId = modelId.split("$")[0].split(",")[0].trim().toUpperCase();
-  const res = await sendCbsRequest<{ record?: ModelConfigRecord } | ModelConfigRecord>(
-    modelConfigPayloads.get(cleanId),
-    { silent: true },
-  );
-  if (res.status !== "SUCCESS" || !res.data) {
+  const res = await sendCbsRequest<unknown>(modelConfigPayloads.get(cleanId), { silent: true });
+  const record = isApiSuccess(res) ? extractModelConfigRecord(res.data) : null;
+  if (!record) {
     throw new Error(res.message || `Failed to load MODEL.CONFIG for "${cleanId}"`);
   }
-  const raw = res.data as { record?: ModelConfigRecord } | ModelConfigRecord;
-  return ("record" in raw && raw.record ? raw.record : raw) as ModelConfigRecord;
+  // Not schema-validated on purpose: designers must be able to open invalid records to fix them.
+  return record as ModelConfigRecord;
 }
 
 /**
@@ -52,7 +56,7 @@ export const schemaQueries = {
       staleTime: 5 * 60 * 1000,
       queryFn: async () => {
         const res = await sendCbsRequest<unknown>(menuTreePayloads.get(), { silent: true });
-        if (res.status !== "SUCCESS") {
+        if (!isApiSuccess(res)) {
           throw new Error(res.message || "Failed to load navigation menu tree");
         }
         if (!res.data) return [];
@@ -88,7 +92,7 @@ export const schemaQueries = {
               formConfigPayloads.get(cleanCmd),
               { silent: true },
             );
-            if (formRes.status === "SUCCESS" && formRes.data) {
+            if (isApiSuccess(formRes) && formRes.data) {
               const parsed = parseGfcResponse(formRes.data);
               if (parsed.success && parsed.data.form?.frmElements) {
                 const { model, form } = parsed.data;
@@ -135,7 +139,7 @@ export const schemaQueries = {
         const res = await sendCbsRequest<unknown>(inquiryConfigPayloads.get(cleanCmd), {
           silent: true,
         });
-        if (res.status !== "SUCCESS" || !res.data) {
+        if (!isApiSuccess(res) || !res.data) {
           throw new Error(res.message || `Failed to fetch inquiry schema for "${cleanCmd}"`);
         }
         const parsedRecord = parseInquiryConfig(res.data);

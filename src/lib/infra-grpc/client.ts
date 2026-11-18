@@ -7,7 +7,7 @@ import {
   Metadata,
   type ServiceError,
 } from "@grpc/grpc-js";
-import { mockLogin, mockProcess } from "@mock/core";
+import { handleLogin, mockProcess } from "@mock/core";
 import { serverConfig } from "@/lib/core-config/server";
 import {
   type GrpcRequest,
@@ -104,7 +104,7 @@ function invokeProcessRpc(
  */
 export function loginProcess(req: LoginRequest): Promise<GrpcResponse> {
   if (isStaticMode()) {
-    return mockLogin(req);
+    return handleLogin(req);
   }
 
   const client = getClient(serverConfig.grpc.host);

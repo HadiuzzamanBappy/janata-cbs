@@ -115,6 +115,19 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
       },
       {
         SN: "7",
+        NAME: "AUTHLEVEL",
+        LABEL: "Authorization Level",
+        TYPE: "Number",
+        STRUCTURE: "S",
+        LENGTH: 2,
+        REQUIRED: true,
+        WIDTH: "xs",
+        DEFAULTVALUE: "1",
+        ENRICHTEXT:
+          "Number of Maker-Checker authorization levels a record needs (0 = no authorization).",
+      },
+      {
+        SN: "8",
         NAME: "_DEVBY",
         LABEL: "Developed By",
         TYPE: "String",
@@ -124,7 +137,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Developer username who authored or modified this schema.",
       },
       {
-        SN: "8",
+        SN: "9",
         NAME: "_DEVDATE",
         LABEL: "Development Date",
         TYPE: "Date",
@@ -142,7 +155,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
     columns: 1,
     fields: [
       {
-        SN: "9",
+        SN: "10",
         NAME: "USERDEFINEID",
         LABEL: "User Define Id",
         TYPE: "Boolean",
@@ -152,7 +165,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Allows operators to manually provide custom record IDs during creation.",
       },
       {
-        SN: "10",
+        SN: "11",
         NAME: "IDROUTINE",
         LABEL: "ID Routine",
         TYPE: "String",
@@ -166,7 +179,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Custom server routine hook executed to generate record IDs.",
       },
       {
-        SN: "11",
+        SN: "12",
         NAME: "IDDEF.IDPREFIX",
         LABEL: "ID Prefix",
         TYPE: "String",
@@ -180,7 +193,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Constant prefix prepended to all generated IDs.",
       },
       {
-        SN: "12",
+        SN: "13",
         NAME: "IDDEF.idPatternSelect",
         LABEL: "Select Id Pattern",
         TYPE: "String",
@@ -209,7 +222,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Select token patterns (Prefix, Julian Date, Sequence) to construct IDs.",
       },
       {
-        SN: "13",
+        SN: "14",
         NAME: "IDDEF.IDPATTERN",
         LABEL: "Id Pattern",
         TYPE: "String",
@@ -220,7 +233,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Compiled composite format pattern string for ID generation.",
       },
       {
-        SN: "14",
+        SN: "15",
         NAME: "IDDEF.SEQUENCELENGTH",
         LABEL: "Id Length",
         TYPE: "Number",
@@ -234,7 +247,7 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         ENRICHTEXT: "Fixed digit length for sequence numbering.",
       },
       {
-        SN: "15",
+        SN: "16",
         NAME: "IDDEF.SEQUENCERESET",
         LABEL: "Reset Sequence",
         TYPE: "Boolean",
@@ -255,16 +268,6 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
     containerType: "card",
     columns: 1,
     fields: [
-      {
-        SN: "16",
-        NAME: "AUTHORIZE",
-        LABEL: "Authorization",
-        TYPE: "Boolean",
-        STRUCTURE: "S",
-        LENGTH: 1,
-        WIDGET: "checkbox",
-        ENRICHTEXT: "Enforces Four-Eyes Maker-Checker authorization workflow for records.",
-      },
       {
         SN: "17",
         NAME: "READONLY",

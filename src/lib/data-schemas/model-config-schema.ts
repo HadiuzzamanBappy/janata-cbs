@@ -166,7 +166,10 @@ export const modelConfigRecordSchema = z
     READONLY: z.boolean().default(false),
     SEARCHABLE: z.boolean().default(false),
     ASSOCIATES: z.array(z.string()).default([]),
-    AUTHORIZE: z.boolean().default(false),
+    /** Authorization levels a record needs; 0 = no authorization. Empty falls back to 1. */
+    AUTHLEVEL: z
+      .preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional())
+      .default(1),
     SERVICEPATH: z.string().min(1, "Service Path is required"),
     IDDEF: idDefSchema
       .nullable()
@@ -319,6 +322,13 @@ export const modelConfigSaveSchema = modelConfigRecordSchema.superRefine((data, 
       code: "custom",
       message: "Service Path must be a service name: letters and digits (e.g. default, finxurm).",
       path: ["SERVICEPATH"],
+    });
+  }
+  if (!Number.isInteger(data.AUTHLEVEL) || data.AUTHLEVEL < 0) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Authorization Level must be a whole number of 0 or more (0 = no authorization).",
+      path: ["AUTHLEVEL"],
     });
   }
   const sequenceLength = data.IDDEF.SEQUENCELENGTH;

@@ -7,22 +7,16 @@ import {
   type MenuAction,
   type MenuCatalogActionItem,
   type MenuType,
-  type ModelProperty,
 } from "@/lib/data-schemas";
 import { CbsControlTable } from "@/types";
 import { createModelPayloads } from "../payloads/base-model";
 import { sendCbsRequest } from "../transport/proxy-client";
-import { loadModelConfigRecord } from "./schemas";
 
 export interface BranchDirectoryItem {
   code: string;
   name: string;
   type: string;
 }
-
-export type ModelLookupPayload =
-  | { kind: "records"; rows: unknown[] }
-  | { kind: "metamodel"; properties: ModelProperty[] };
 
 const branchPayloads = createModelPayloads(CbsControlTable.BRANCH);
 const menuPayloads = createModelPayloads(CbsControlTable.MENU);
@@ -56,30 +50,21 @@ export const lookupQueries = {
       },
     }),
 
+  /** GRL rows of the referenced model; a failed or empty list yields no options. */
   modelLookup: (controlName: CbsControlTable | string) => {
     const cleanModel = (controlName || "").trim().toUpperCase();
-    return queryOptions<ModelLookupPayload>({
+    return queryOptions<unknown[]>({
       queryKey: ["cbs", "model-lookup", cleanModel] as const,
       enabled: Boolean(cleanModel),
       staleTime: 2 * 60 * 1000,
       queryFn: async () => {
-        const res = await sendCbsRequest<unknown[] | { items?: unknown[] }>(
-          createModelPayloads(cleanModel).list(),
-          { silent: true },
-        );
-        if (isApiSuccess(res)) {
-          const resData = res.data;
-          const rawList: unknown[] = Array.isArray(resData)
-            ? resData
-            : Array.isArray((resData as { items?: unknown[] })?.items)
-              ? ((resData as { items: unknown[] }).items ?? [])
-              : [];
-          if (rawList.length > 0) {
-            return { kind: "records", rows: rawList };
-          }
+        const res = await sendCbsRequest<unknown>(createModelPayloads(cleanModel).list(), {
+          silent: true,
+        });
+        if (!isApiSuccess(res)) {
+          throw new Error(res.message || `Failed to load ${cleanModel} lookup`);
         }
-        const metaRecord = await loadModelConfigRecord(cleanModel);
-        return { kind: "metamodel", properties: metaRecord.PROPERTIES || [] };
+        return unwrapRecordsPayload(res.data);
       },
     });
   },

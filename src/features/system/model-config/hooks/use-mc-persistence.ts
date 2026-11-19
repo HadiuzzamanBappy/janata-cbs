@@ -19,7 +19,7 @@ export const INITIAL_MODEL: ModelConfigRecord = {
   ACCESS: "",
   SEARCHABLE: false,
   READONLY: false,
-  AUTHORIZE: false,
+  AUTHLEVEL: 1,
   ASSOCIATES: [],
   _DEVBY: "",
   _DEVDATE: "",

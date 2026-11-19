@@ -72,7 +72,7 @@ const testModel: ModelConfigRecord = {
   SEARCHABLE: true,
   USERDEFINEID: false,
   READONLY: false,
-  AUTHORIZE: true,
+  AUTHLEVEL: 1,
   ASSOCIATES: [],
   _DEVBY: "SYSTEM",
   _DEVDATE: "2026-10-20",

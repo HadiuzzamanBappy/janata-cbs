@@ -13,7 +13,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: false,
+    AUTHLEVEL: 0,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "SC",
@@ -94,7 +94,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: false,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: false,
+    AUTHLEVEL: 0,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "SC",
@@ -151,7 +151,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: false,
+    AUTHLEVEL: 0,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "",
@@ -224,7 +224,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: false,
+    AUTHLEVEL: 0,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "",
@@ -289,7 +289,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "UNA", "DEL"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "JB",
@@ -452,7 +452,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "ZZ",
@@ -523,7 +523,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     ACCESS: "G",
     READONLY: false,
     SEARCHABLE: true,
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     ASSOCIATES: ["HIS", "UNA", "DEL"],
     _DEVBY: "AVIJIT SAHA",
     _DEVDATE: "2026-01-19",
@@ -750,7 +750,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: false,
     ASSOCIATES: ["HIS", "UNA", "DEL"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "finxurm",
     IDDEF: {
       IDPREFIX: "UM",
@@ -1043,7 +1043,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: false,
     ASSOCIATES: ["UNA"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "finxurm",
     IDDEF: {
       IDPREFIX: "PR",
@@ -1132,7 +1132,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "BAL"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "AC",
@@ -1309,7 +1309,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "KYC"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "CU",
@@ -1468,7 +1468,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     SERVICEPATH: "default",
 
     ACCESS: "G",
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
@@ -1619,7 +1619,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "GET.",
@@ -1716,7 +1716,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "",
@@ -1813,7 +1813,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     READONLY: false,
     SEARCHABLE: true,
     ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHORIZE: true,
+    AUTHLEVEL: 1,
     SERVICEPATH: "default",
     IDDEF: {
       IDPREFIX: "",

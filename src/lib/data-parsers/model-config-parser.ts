@@ -15,13 +15,7 @@ import { unwrapRecordsPayload } from "./protobuf-decoder";
 
 const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
 
-const BOOLEAN_FLAGS = [
-  "USERDEFINEID",
-  "READONLY",
-  "SEARCHABLE",
-  "AUTHORIZE",
-  "FIELDBASED",
-] as const;
+const BOOLEAN_FLAGS = ["USERDEFINEID", "READONLY", "SEARCHABLE", "FIELDBASED"] as const;
 
 /* -------------------------------------------------------------------------- */
 /* Inbound Wire Response Parser                                               */
@@ -56,6 +50,8 @@ export function extractModelConfigRecord(rawPayload: unknown): Record<string, un
 
 /**
  * Sanitizes a ModelProperty for MODEL.CONFIG: enforces physical invariants and purges UI noise.
+ * `PROP` is a generic column on every property: Array keeps its sanitized sub-properties,
+ * every other type writes `[]`.
  */
 function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProperty {
   const rawType = prop.TYPE;
@@ -75,13 +71,11 @@ function sanitizeModelProperty(prop: ModelProperty, index?: number): ModelProper
     MODELNAME: String(prop.MODELNAME || "")
       .trim()
       .toUpperCase(),
+    PROP:
+      normType === CBS_PROPERTY_TYPE.ARRAY && Array.isArray(prop.PROP)
+        ? prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx))
+        : [],
   };
-
-  if (normType === CBS_PROPERTY_TYPE.ARRAY) {
-    sanitized.PROP = Array.isArray(prop.PROP)
-      ? prop.PROP.map((sub, sIdx) => sanitizeModelProperty(sub, sIdx))
-      : [];
-  }
 
   return sanitized;
 }
@@ -93,11 +87,15 @@ export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfi
   const rawAccess = String(record.ACCESS || "G")
     .trim()
     .toUpperCase();
+  // The designer passes raw form state, where a cleared Number input is "".
+  const rawAuthLevel: unknown = record.AUTHLEVEL;
   const result: Partial<ModelConfigRecord> = {
     TABLENAME: String(record.TABLENAME || "").trim(),
     DESCRIPTION: String(record.DESCRIPTION || record.TABLENAME || "").trim(),
     ACCESS: rawAccess.startsWith("B") ? "B" : "G",
     SERVICEPATH: String(record.SERVICEPATH || "").trim(),
+    // Always written: 0 is a real value (no authorization), not an omitted flag.
+    AUTHLEVEL: rawAuthLevel === "" || rawAuthLevel == null ? 1 : Number(rawAuthLevel),
   };
 
   if (record.PREFIX?.trim()) result.PREFIX = record.PREFIX.trim();

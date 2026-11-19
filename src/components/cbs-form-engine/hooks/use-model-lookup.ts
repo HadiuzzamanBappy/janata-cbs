@@ -28,30 +28,17 @@ export function useModelLookup(param: FormFieldParameter | undefined) {
     (param?.type === "M" || param?.type === "L") && Boolean(param.modelName?.trim());
   const cleanModel = isModelLookup ? (param?.modelName || "").trim().toUpperCase() : "";
 
-  const { data: payload, isLoading: loading } = useQuery(cbsQueries.model(cleanModel).lookup());
+  const { data: rows, isLoading: loading } = useQuery(cbsQueries.model(cleanModel).lookup());
 
   const modelOptions = React.useMemo<WidgetOption[]>(() => {
-    if (!isModelLookup || !payload) return [];
+    if (!isModelLookup || !rows) return [];
 
-    if (payload.kind === "metamodel") {
-      return payload.properties
-        .map((p) => {
-          const codeVal = p.NAME || p.SN;
-          const labelVal = p.LABEL || p.NAME;
-          return {
-            code: String(codeVal ?? ""),
-            label: String(labelVal ?? codeVal ?? ""),
-          };
-        })
-        .filter((o) => Boolean(o.code));
-    }
-
-    let filtered = payload.rows;
+    let filtered = rows;
     if (param?.condition) {
       const match = param.condition.trim().match(/^(\w+)\s*(===|==)\s*['"]([^'"]+)['"]$/i);
       if (match) {
         const [, fieldKey, , expectedVal] = match;
-        filtered = payload.rows.filter((item) => {
+        filtered = rows.filter((item) => {
           const rec = item as Record<string, unknown>;
           const actual =
             rec[fieldKey] ?? rec[fieldKey.toLowerCase()] ?? rec[fieldKey.toUpperCase()];
@@ -83,7 +70,7 @@ export function useModelLookup(param: FormFieldParameter | undefined) {
       .filter((o) => Boolean(o.code));
   }, [
     isModelLookup,
-    payload,
+    rows,
     param?.condition,
     param?.codeField,
     param?.reference,

@@ -38,5 +38,5 @@ The rules it applies (columns, filter serialization, command templates) live in 
 
 ## Rules
 
-- The inquiry status vocabulary comes from `@/lib/cbs-inquiry-spec` (`STANDARD_BANKING_STATUS_OPTIONS`). Don't build status lists by hand here.
+- Inquiry filter inputs run purely from configuration (`INQSelectField`), taking their initial value and placeholder directly from `selectFieldValue`.
 - Row clicks and row action menus run commands through `executeInquiryCommand` / `executePrimaryInquiryCommand`, never through `router.push`.

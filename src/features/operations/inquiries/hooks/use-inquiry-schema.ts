@@ -11,6 +11,7 @@ export function useInquirySchema(command: string) {
   const { data, isLoading, error, refetch } = useQuery(cbsQueries.inquiryConfig.schema(cleanCmd));
 
   return {
+    entryName: cleanCmd,
     schema: data ?? null,
     loading: isLoading,
     error: error instanceof Error ? error.message : error ? String(error) : null,

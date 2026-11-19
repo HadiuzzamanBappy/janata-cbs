@@ -148,6 +148,7 @@ export function InquiryPreview({
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === CBS_INQUIRY_STEP.SELECTION ? (
           <InquiryFilterBar
+            inquiryName={config.INQInfo?.description || config.INQInfo?.controllerName}
             fields={config.INQSelectField || []}
             criteria={criteria}
             onCriteriaChange={setCriteria}

@@ -9,6 +9,7 @@ import { FilterCriterionRow } from "./filters/filter-criterion-row";
 
 export interface InquiryFilterBarProps {
   fields: INQSelectField[];
+  inquiryName?: string;
   criteria?: FilterCriteriaMap;
   onCriteriaChange?: (criteria: FilterCriteriaMap) => void;
   onSearch: (criteria: FilterCriteriaMap) => void;
@@ -18,6 +19,7 @@ export interface InquiryFilterBarProps {
 
 export function InquiryFilterBar({
   fields,
+  inquiryName,
   criteria: controlledCriteria,
   onCriteriaChange,
   onSearch,
@@ -150,26 +152,38 @@ export function InquiryFilterBar({
             })}
 
             {/* Action Bar */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleClear}
-                disabled={loading}
-                className="h-7 text-xs px-2.5 rounded"
-              >
-                Clear
-              </Button>
-              <Button
-                type="submit"
-                size="sm"
-                disabled={loading}
-                className="h-7 text-xs px-3 font-semibold gap-1.5 rounded"
-              >
-                <Search className="size-3" />
-                <span>Find / Execute</span>
-              </Button>
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
+              <div className="flex items-center gap-1.5 min-w-0">
+                {inquiryName && (
+                  <span
+                    className="text-xs font-mono text-muted-foreground truncate select-none"
+                    title={inquiryName}
+                  >
+                    {inquiryName}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClear}
+                  disabled={loading}
+                  className="h-7 text-xs px-2.5 rounded"
+                >
+                  Clear
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={loading}
+                  className="h-7 text-xs px-3 font-semibold gap-1.5 rounded"
+                >
+                  <Search className="size-3" />
+                  <span>Find / Execute</span>
+                </Button>
+              </div>
             </div>
           </form>
         </div>

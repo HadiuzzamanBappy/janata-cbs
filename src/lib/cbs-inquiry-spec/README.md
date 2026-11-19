@@ -29,7 +29,7 @@ SC_INQUIRY_CONFIG (core / mock)            ← one record per inquiry: INQInfo, 
 | `column-compiler.ts`  | Parses and formats the core's column strings: length + alignment (`"20,L"`) and grid position (`"1,2"`). `deriveInquiryColumnMeta()` turns one `INQDef` into display metadata, using only the config (no guessing from field names).                                                                |
 | `criteria-mapper.ts`  | `buildDefaultCriteria()` builds the empty filter state. `serializeCriteriaToWire()` builds the request filters in a fixed order (see below). It parses `INQInfo.fixedSelection` with `parseFixedSelection()` from `@/lib/data-schemas` and throws on an invalid statement.                          |
 | `command-resolver.ts` | Fills a row's values into `INQCmd.cmdFor` templates (only the tokens after `SCREEN FUNCTION`) and hands the result to `cbsCommand.execute`. Supports commands stored on the row itself (`cmdFromInternal` + `cmdFieldName`). `executePrimaryInquiryCommand()` is what a double-click on a row runs. |
-| `constants.ts`        | The operand list (`EQ`, `GT`, `LT`, `GE`, `LE`, `RG`, `CT`, `SW`, `EW`, `NE`, `LK`) and the record-status filter options, which come from `CBS_RECORD_STATUS_DEFINITIONS` (`NEW` is left out because the core never stores it).                                                                     |
+| `constants.ts`        | The operand list (`EQ`, `GT`, `LT`, `GE`, `LE`, `RG`, `CT`, `SW`, `EW`, `NE`, `LK`).                                                                                                                                                                                                                |
 
 ---
 

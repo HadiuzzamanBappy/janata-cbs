@@ -16,7 +16,12 @@ import {
 } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { cbsStorage } from "@/lib/core-utils";
-import { filterCriteriaMapSchema, isApiSuccess, popupSearchParamsSchema } from "@/lib/data-schemas";
+import {
+  type CurrentUser,
+  filterCriteriaMapSchema,
+  isApiSuccess,
+  popupSearchParamsSchema,
+} from "@/lib/data-schemas";
 import { useSessionStore, useWorkbenchStore } from "@/store";
 import { CBS_IDLE_MODE, CBS_SCREEN_COMPONENTS } from "@/types";
 import { ScreenLoader } from "./loader";
@@ -35,7 +40,7 @@ export function StandaloneScreen({ screenId }: { screenId: string }) {
     [searchParams],
   );
   const { tabs, addTab } = useWorkbenchStore();
-  const { user } = useSessionStore();
+  const { user, clearSession, setSession } = useSessionStore();
   const [isSessionExpired, setIsSessionExpired] = React.useState(false);
 
   // Cross-window session coordination for detached popup screens
@@ -50,14 +55,18 @@ export function StandaloneScreen({ screenId }: { screenId: string }) {
         type === CBS_SCREEN_MESSAGE.SESSION_LOGOUT
       ) {
         setIsSessionExpired(true);
+        clearSession();
       } else if (type === CBS_SCREEN_MESSAGE.SESSION_RESTORED) {
         setIsSessionExpired(false);
+        if (event.data?.payload) {
+          setSession(event.data.payload as CurrentUser);
+        }
       }
     };
 
     bus.addEventListener("message", handleMessage);
     return () => bus.removeEventListener("message", handleMessage);
-  }, []);
+  }, [clearSession, setSession]);
 
   // Clear expired state whenever user is restored or active in store
   React.useEffect(() => {
@@ -73,12 +82,14 @@ export function StandaloneScreen({ screenId }: { screenId: string }) {
       .then((res) => {
         if (!isApiSuccess(res) || !res.data) {
           setIsSessionExpired(true);
+          clearSession();
         }
       })
       .catch(() => {
         setIsSessionExpired(true);
+        clearSession();
       });
-  }, []);
+  }, [clearSession]);
 
   // Read clean tabId passed from popup dispatcher or fallback to canonical ID
   const tabId = url.tabId || makePopupTabId(screenId);
@@ -167,9 +178,8 @@ export function StandaloneScreen({ screenId }: { screenId: string }) {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-background text-foreground antialiased select-none">
-      {/* Screen Canvas Container: Shows lock screen on unauthenticated fresh load, or keeps form visible if user has active draft */}
-      {isSessionExpired &&
-      !tabs.some((t) => t.id === tabId && t.formData && Object.keys(t.formData).length > 0) ? (
+      {/* Screen Canvas Container: Shows lock screen whenever session is inactive or timed out */}
+      {isSessionExpired ? (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-muted/10">
           <div className="size-12 rounded-full bg-warning/10 text-warning flex items-center justify-center mb-3">
             <Lock className="size-6" />

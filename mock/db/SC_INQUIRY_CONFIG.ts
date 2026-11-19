@@ -1055,7 +1055,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       },
       {
         selectFieldName: "accountType",
-        selectFieldType: "select",
+        selectFieldType: "text",
         selectFieldOperator: "EQ",
         selectFieldOperatorFixed: "",
         selectFieldDisplay: "Account Type",
@@ -1082,7 +1082,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       },
       {
         selectFieldName: "status",
-        selectFieldType: "select",
+        selectFieldType: "text",
         selectFieldOperator: "EQ",
         selectFieldOperatorFixed: "",
         selectFieldDisplay: "Account Status",
@@ -1231,7 +1231,7 @@ export const SC_INQUIRY_CONFIG: Record<string, InquiryConfigRecord> = {
       },
       {
         selectFieldName: "status",
-        selectFieldType: "select",
+        selectFieldType: "text",
         selectFieldOperator: "EQ",
         selectFieldOperatorFixed: "",
         selectFieldDisplay: "Status",

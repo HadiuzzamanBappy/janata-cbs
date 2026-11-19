@@ -16,7 +16,7 @@ import { useInquirySchema } from "./hooks/use-inquiry-schema";
 import { useInquiryState } from "./hooks/use-inquiry-state";
 
 export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
-  const { schema, loading, error, refetch } = useInquirySchema(command);
+  const { schema, entryName, loading, error, refetch } = useInquirySchema(command);
   const currentBranch = useSessionStore((s) => s.currentBranch || s.user?.branchCode);
 
   const {
@@ -136,6 +136,7 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === CBS_INQUIRY_STEP.SELECTION ? (
           <InquiryFilterBar
+            inquiryName={entryName}
             fields={schema.INQSelectField}
             criteria={currentCriteria}
             onCriteriaChange={setCurrentCriteria}

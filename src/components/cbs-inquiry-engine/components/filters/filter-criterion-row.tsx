@@ -6,11 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  INQUIRY_OPERAND_OPTIONS,
-  STANDARD_BANKING_STATUS_OPTIONS,
-  STANDARD_BOOLEAN_FILTER_OPTIONS,
-} from "@/lib/cbs-inquiry-spec";
+import { INQUIRY_OPERAND_OPTIONS } from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
 import type { FilterCriterion, INQSelectField, SelectionOperand } from "@/lib/data-schemas";
 
@@ -22,17 +18,6 @@ export interface FilterCriterionRowProps {
   onOperandChange: (fieldName: string, op: SelectionOperand) => void;
 }
 
-function resolveSelectOptions(fieldName: string): Array<{ value: string; label: string }> {
-  const norm = fieldName.toLowerCase();
-  if (norm.includes("status")) {
-    return STANDARD_BANKING_STATUS_OPTIONS;
-  }
-  if (norm.includes("flag") || norm.includes("active") || norm.includes("enabled")) {
-    return STANDARD_BOOLEAN_FILTER_OPTIONS;
-  }
-  return STANDARD_BANKING_STATUS_OPTIONS;
-}
-
 export function FilterCriterionRow({
   field,
   criterion,
@@ -41,27 +26,21 @@ export function FilterCriterionRow({
   onOperandChange,
 }: FilterCriterionRowProps) {
   const isRequired = Boolean(field.selectFieldRequired);
-  const isSelectType = field.selectFieldType === "select";
-  const selectOptions = isSelectType ? resolveSelectOptions(field.selectFieldName) : [];
 
   return (
     <div className="flex items-center gap-2">
-      {/* Left Label (w-40) + fieldName */}
+      {/* Left Label */}
       <label
         htmlFor={`inq-filter-${field.selectFieldName}`}
-        className="w-40 shrink-0 text-xs font-medium text-muted-foreground flex items-center justify-between pr-1 select-none"
+        title={field.selectFieldDisplay}
+        className="w-40 sm:w-44 shrink-0 text-xs font-medium text-muted-foreground flex items-center gap-1 select-none"
       >
-        <span className="truncate flex items-center gap-0.5">
-          <span>{field.selectFieldDisplay}</span>
-          {isRequired && (
-            <span className="text-destructive font-bold text-xs" title="Required Filter">
-              *
-            </span>
-          )}
-        </span>
-        <span className="text-3xs font-mono text-muted-foreground/60 hidden sm:inline">
-          {field.selectFieldName}
-        </span>
+        <span className="truncate">{field.selectFieldDisplay}</span>
+        {isRequired && (
+          <span className="text-destructive font-bold text-xs shrink-0" title="Required Filter">
+            *
+          </span>
+        )}
       </label>
 
       <span className="text-muted-foreground/60 font-mono text-xs shrink-0">:</span>
@@ -69,76 +48,56 @@ export function FilterCriterionRow({
       <div className="flex-1 flex items-center gap-1.5 min-w-0">
         {/* Operand Selector: Compact h-7 font-mono */}
         <Select
-          value={criterion.operand}
+          value={criterion.operand || "EQ"}
           disabled={Boolean(field.selectFieldOperatorFixed)}
           onValueChange={(val: string | null) =>
             onOperandChange(field.selectFieldName, (val ?? "EQ") as SelectionOperand)
           }
         >
-          <SelectTrigger className="h-7 w-22 text-xs font-mono px-2 shrink-0 bg-background border-border/80 rounded">
-            <SelectValue />
+          <SelectTrigger
+            size="sm"
+            className="h-7 w-20 text-xs font-mono px-2 py-0 shrink-0 bg-background border-border/80 rounded focus-visible:ring-0 focus-visible:border-foreground/50"
+          >
+            <SelectValue>{(val: string | null) => val || criterion.operand || "EQ"}</SelectValue>
           </SelectTrigger>
-          <SelectContent className="text-xs font-mono min-w-28">
+          <SelectContent
+            align="start"
+            alignItemWithTrigger={false}
+            className="text-xs font-mono w-auto min-w-60"
+          >
             {INQUIRY_OPERAND_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.badge} ({opt.label})
+              <SelectItem key={opt.value} value={opt.value} className="text-xs font-mono">
+                <span className="font-semibold text-primary">{opt.badge}</span>
+                <span className="text-muted-foreground">({opt.label})</span>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* Value Input: Contextual based on selectFieldType */}
-        {isSelectType ? (
-          <Select
-            value={criterion.value || "ALL"}
-            onValueChange={(val: string | null) =>
-              onValueChange(field.selectFieldName, val === "ALL" ? "" : (val ?? ""))
-            }
-          >
-            <SelectTrigger
-              id={`inq-filter-${field.selectFieldName}`}
-              className={cn(
-                "h-7 text-xs font-mono bg-background border-border/80 rounded flex-1",
-                hasError && "border-destructive focus-visible:ring-destructive/30",
-              )}
-            >
-              <SelectValue placeholder="All" />
-            </SelectTrigger>
-            <SelectContent className="text-xs font-mono">
-              <SelectItem value="ALL">All</SelectItem>
-              {selectOptions
-                .filter((o) => o.value !== "")
-                .map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <Input
-            id={`inq-filter-${field.selectFieldName}`}
-            type={
-              field.selectFieldType === "number"
-                ? "number"
-                : field.selectFieldType === "date"
-                  ? "date"
-                  : "text"
-            }
-            placeholder={
-              field.selectFieldType === "date"
-                ? "YYYY-MM-DD"
-                : `e.g. ${field.selectFieldDisplay}...`
-            }
-            value={criterion.value}
-            required={isRequired}
-            onChange={(e) => onValueChange(field.selectFieldName, e.target.value)}
-            className={cn(
-              "h-7 text-xs font-mono bg-background border-border/80 rounded flex-1",
-              hasError && "border-destructive focus-visible:ring-destructive/30",
-            )}
-          />
-        )}
+        {/* Value Input: Config-driven placeholder & input type */}
+        <Input
+          id={`inq-filter-${field.selectFieldName}`}
+          type={
+            field.selectFieldType === "number"
+              ? "number"
+              : field.selectFieldType === "date"
+                ? "date"
+                : "text"
+          }
+          placeholder={
+            field.selectFieldType === "date"
+              ? "YYYY-MM-DD"
+              : field.selectFieldValue || `e.g. ${field.selectFieldDisplay}...`
+          }
+          value={criterion.value}
+          required={isRequired}
+          onChange={(e) => onValueChange(field.selectFieldName, e.target.value)}
+          className={cn(
+            "h-7 text-xs font-mono bg-background border-border/80 rounded flex-1 focus-visible:ring-0 focus-visible:border-foreground/50",
+            field.selectFieldType === "date" && "scheme-light dark:scheme-dark",
+            hasError && "border-destructive focus-visible:border-destructive",
+          )}
+        />
       </div>
     </div>
   );

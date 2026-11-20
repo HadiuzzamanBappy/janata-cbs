@@ -10,6 +10,7 @@ import { defaultWidthForLength } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import { type FormElement, getDefaultWidgetForType, type PropertyType } from "@/lib/data-schemas";
 import { useOptionalDesignerContext } from "../context/designer-context";
+import { CanvasObjectFields } from "./canvas-object-fields";
 import { selectableProps } from "./selectable";
 
 export interface CanvasFieldCardProps {
@@ -102,7 +103,7 @@ export function CanvasFieldCard({
       data-field-card="true"
       {...selectableProps(onSelect, isSelected)}
       className={cn(
-        "rounded-md border px-2.5 py-1.5 flex items-center justify-between text-xs transition-all bg-card/90 hover:border-primary/50 select-none",
+        "rounded-md border px-2.5 py-1.5 text-xs transition-all bg-card/90 hover:border-primary/50 select-none",
         isSelected
           ? hasErrors
             ? "border-destructive ring-1 ring-destructive/40 bg-destructive/10 shadow-xs"
@@ -114,71 +115,76 @@ export function CanvasFieldCard({
         className,
       )}
     >
-      <div className="flex items-center gap-1.5 min-w-0 flex-1">
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          onClick={(e) => e.stopPropagation()}
-          className="cursor-grab text-muted-foreground/50 hover:text-foreground shrink-0 p-0.5"
-          aria-label="Reorder field"
-        >
-          <GripVertical className="size-3" />
-        </button>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+            className="cursor-grab text-muted-foreground/50 hover:text-foreground shrink-0 p-0.5"
+            aria-label="Reorder field"
+          >
+            <GripVertical className="size-3" />
+          </button>
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect();
-          }}
-          className="min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
-        >
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="font-semibold text-foreground truncate">{field.LABEL}</span>
-            {field.REQUIRED && (
-              <span className="text-destructive font-bold text-xs shrink-0">*</span>
-            )}
-            {hasErrors && (
-              <span
-                className="flex items-center gap-0.5 text-destructive text-3xs font-semibold shrink-0"
-                title={fieldErrors.map((e) => e.message).join("\n")}
-              >
-                <AlertTriangle className="size-3 text-destructive" />
-                <span>{fieldErrors.length}</span>
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 mt-0.5 text-3xs text-muted-foreground font-mono min-w-0 overflow-hidden">
-            <span className="truncate max-w-36">{field.NAME}</span>
-            {overrides.map((ov) => (
-              <Badge
-                key={ov.key}
-                variant={ov.variant || "outline"}
-                className={cn("text-3xs h-3.5 px-1 font-mono uppercase shrink-0", ov.className)}
-              >
-                {ov.label}
-              </Badge>
-            ))}
-          </div>
-        </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect();
+            }}
+            className="min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
+          >
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="font-semibold text-foreground truncate">{field.LABEL}</span>
+              {field.REQUIRED && (
+                <span className="text-destructive font-bold text-xs shrink-0">*</span>
+              )}
+              {hasErrors && (
+                <span
+                  className="flex items-center gap-0.5 text-destructive text-3xs font-semibold shrink-0"
+                  title={fieldErrors.map((e) => e.message).join("\n")}
+                >
+                  <AlertTriangle className="size-3 text-destructive" />
+                  <span>{fieldErrors.length}</span>
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5 text-3xs text-muted-foreground font-mono min-w-0 overflow-hidden">
+              <span className="truncate max-w-36">{field.NAME}</span>
+              {overrides.map((ov) => (
+                <Badge
+                  key={ov.key}
+                  variant={ov.variant || "outline"}
+                  className={cn("text-3xs h-3.5 px-1 font-mono uppercase shrink-0", ov.className)}
+                >
+                  {ov.label}
+                </Badge>
+              ))}
+            </div>
+          </button>
+        </div>
+
+        {!disabled && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+            className="size-5 p-0 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
+            title={`Remove field ${field.LABEL}`}
+          >
+            <Minus className="size-3.5 stroke-[2.5]" />
+          </Button>
+        )}
       </div>
 
-      {!disabled && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-          className="size-5 p-0 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 rounded cursor-pointer"
-          title={`Remove field ${field.LABEL}`}
-        >
-          <Minus className="size-3.5 stroke-[2.5]" />
-        </Button>
-      )}
+      {/* Object group: its inner fields, each configurable on its own */}
+      <CanvasObjectFields parent={field} sectionId={sectionId} disabled={disabled} />
     </div>
   );
 }

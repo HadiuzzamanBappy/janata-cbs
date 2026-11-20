@@ -57,11 +57,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               REQUIRED: true,
               WIDTH: "md",
               ENRICHTEXT: "Unique 9-digit Core Banking Customer Information File (CIF)",
-              TEXT_CONFIG: {
-                textTransform: "uppercase",
-                maskPattern: "",
-                autoTrim: true,
-              },
+              TRANSFORM: "uppercase",
             },
             {
               SN: "3",
@@ -163,10 +159,8 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               DEFAULTVALUE: "25000",
               ENRICHTEXT: "Minimum mandatory initial deposit credited at account opening",
               NUMBER_CONFIG: {
-                isCurrency: true,
                 currencyCode: "BDT",
                 decimals: 2,
-                allowNegative: false,
               },
             },
           ],
@@ -191,7 +185,6 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDTH: "sm",
               DEFAULTVALUE: "Y",
               BOOLEAN_CONFIG: {
-                widgetStyle: "switch",
                 trueValue: "Y",
                 falseValue: "N",
                 activeLabel: "Enabled",
@@ -209,7 +202,6 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               WIDTH: "sm",
               DEFAULTVALUE: "Y",
               BOOLEAN_CONFIG: {
-                widgetStyle: "switch",
                 trueValue: "Y",
                 falseValue: "N",
                 activeLabel: "Enabled",
@@ -252,11 +244,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               STRUCTURE: "S",
               REQUIRED: true,
               WIDTH: "md",
-              TEXT_CONFIG: {
-                textTransform: "uppercase",
-                maskPattern: "",
-                autoTrim: true,
-              },
+              TRANSFORM: "uppercase",
             },
             {
               SN: "2",
@@ -306,11 +294,7 @@ export const SC_FORM_CONFIG: Record<string, FormConfigRecord> = {
               STRUCTURE: "S",
               REQUIRED: true,
               WIDTH: "md",
-              TEXT_CONFIG: {
-                textTransform: "uppercase",
-                maskPattern: "",
-                autoTrim: true,
-              },
+              TRANSFORM: "uppercase",
             },
             {
               SN: "2",

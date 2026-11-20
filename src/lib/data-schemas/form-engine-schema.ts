@@ -29,7 +29,7 @@ export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;
 
 const formOnChangeRuleSchema = z.looseObject({
   target: z.string().min(1, "Target field key is required"),
-  action: z.enum(["join", "copy", "clear", "uppercase", "lowercase", "custom"]).default("copy"),
+  action: z.enum(["join", "copy", "clear", "uppercase", "lowercase"]).default("copy"),
   delimiter: z.string().default("#").optional(),
 });
 
@@ -42,12 +42,12 @@ const fieldCascadeRuleSchema = z.looseObject({
 });
 export type FieldCascadeRule = z.infer<typeof fieldCascadeRuleSchema>;
 
+/** `min` / `max`: the value range for numeric fields, the length range for text fields. */
 const fieldValidationRuleSchema = z.looseObject({
   matches: z.string().optional(),
   message: z.string().optional(),
   min: z.number().optional(),
   max: z.number().optional(),
-  pattern: z.string().optional(),
 });
 export type FieldValidationRule = z.infer<typeof fieldValidationRuleSchema>;
 
@@ -114,7 +114,6 @@ export const baseFormElementSchema = baseFieldSchema.extend({
   FIXEDVALUE: z.string().default("").optional(),
   PARAMETER: formFieldParameterSchema.optional(),
   VISIBLE_WHEN: fieldVisibilityConditionSchema.optional(),
-  HIDDEN_WHEN: fieldVisibilityConditionSchema.optional(),
   DISABLED_WHEN: fieldVisibilityConditionSchema.optional(),
   ...formWidgetShape,
   ON_CHANGE: formOnChangeRuleSchema.optional(),
@@ -166,9 +165,6 @@ export const containerConfigSchema = z.object({
 
   badge: z.string().optional(),
   badgeVariant: z.enum(["default", "secondary", "outline", "destructive"]).optional(),
-  icon: z.string().optional(),
-  accentColor: z.string().optional(),
-  customClass: z.string().optional(),
 });
 export type ContainerConfig = z.infer<typeof containerConfigSchema>;
 
@@ -198,7 +194,6 @@ export const formSectionSchema = z.object({
 export type FormSection = z.infer<typeof formSectionSchema>;
 
 export const formElementsContainerSchema = z.object({
-  columns: z.number().min(1).max(4).default(1).optional(),
   layout: z.enum(["horizontal", "stacked"]).default("horizontal").optional(),
   density: z.enum(["compact", "normal", "spacious"]).default("compact").optional(),
   sections: z.array(formSectionSchema).default([]),

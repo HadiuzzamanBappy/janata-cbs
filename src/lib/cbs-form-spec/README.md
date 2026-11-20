@@ -84,7 +84,10 @@ To maintain compact banking density and prevent inputs from stretching across ul
 5. **Pattern / Regex**: Safely evaluates custom `matches` regex patterns inside guarded blocks, returning author-defined `validation.message` strings.
 6. **Recursive Sub-Properties (`PROP`)**: Traverses nested object fields (e.g. `AUDIT_DETAILS.reviewer`) and table rows (e.g. `ITEMS.0.code`).
 7. **Multi-Value Items**: Each filled item of a multi-value (`M`) field meets the single-value rules above.
-8. **Hidden Fields Skipped**: A field hidden by `VISIBLE_WHEN` / `HIDDEN_WHEN` (the same check `FieldGrid` uses) is not validated, so a required field the operator can't see never blocks a save.
+8. **Hidden Fields Skipped**: A field hidden by `VISIBLE_WHEN` (the same check `FieldGrid` uses) is not validated, so a required field the operator can't see never blocks a save.
+9. **Widget Constraints**: `resolveFieldDecimals` (`NUMBER_CONFIG` / `RATE_CONFIG` `decimals`) caps decimal places, and `resolveFieldDateRange` turns `DATE_CONFIG` offsets (whole days from today in bank time) into an ISO range. The date widget uses the same range for its picker limits.
+
+Field rules (`field-rules.ts`): `TRANSFORM` runs on each change except `trim`, which the text widgets apply on blur (`isLiveTransform`). `CASCADE` applies every rule whose `when` matches. `ON_CHANGE` copies, clears, joins or re-cases into its target. `in` / `notIn` accept an array or a comma-separated string. `isBooleanOn` / `toBooleanValue` read and write `BOOLEAN_CONFIG` wire values (else `true` / `false`).
 
 ---
 
@@ -125,7 +128,7 @@ const errors = validateValues(compiledSpec, draftValues);
 ```typescript
 import { evaluateFieldCondition, evaluateFieldCascade } from "@/lib/cbs-form-spec";
 
-// Check interactive visibility condition (e.g. VISIBLE_WHEN / HIDDEN_WHEN)
+// Check interactive visibility condition (VISIBLE_WHEN / DISABLED_WHEN)
 const isVisible = evaluateFieldCondition(field.VISIBLE_WHEN, formValues);
 
 // Trigger cascading defaults upon field modification

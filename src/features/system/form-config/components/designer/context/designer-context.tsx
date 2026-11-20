@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import type { FormElement } from "@/lib/data-schemas";
+import { findFieldDeep } from "../../../hooks/fc-field-tree";
 import { createNewFieldFromTemplate, dispatchPaletteDrop } from "../canvas/canvas-drop-dispatcher";
 import type { DesignerContextValue, DesignerProviderProps } from "./designer-context-types";
 
@@ -44,27 +45,21 @@ export function DesignerProvider({
   const [isInspectorOpen, setIsInspectorOpen] = React.useState(false);
   const [tabScope, setTabScope] = React.useState<"container" | "item">("item");
 
+  // The selected field may be an inner field of an object group (fc-field-tree)
+  const activeLocation = React.useMemo(
+    () => findFieldDeep(sections, selectedFieldId),
+    [sections, selectedFieldId],
+  );
+
   const activeSection = React.useMemo(() => {
     if (selectedSectionId) {
       return sections.find((s) => s.id === selectedSectionId) || null;
     }
-    if (selectedFieldId) {
-      return (
-        sections.find((s) =>
-          (s.fields || []).some((f) => f.SN === selectedFieldId || f.NAME === selectedFieldId),
-        ) || null
-      );
-    }
-    return null;
-  }, [sections, selectedSectionId, selectedFieldId]);
+    return activeLocation?.section ?? null;
+  }, [sections, selectedSectionId, activeLocation]);
 
-  const activeField = React.useMemo(() => {
-    return (
-      sections
-        .flatMap((s) => s.fields || [])
-        .find((f) => f.SN === selectedFieldId || f.NAME === selectedFieldId) || null
-    );
-  }, [sections, selectedFieldId]);
+  const activeField = activeLocation?.field ?? null;
+  const activeParentField = activeLocation?.parent ?? null;
 
   const usedFieldNames = React.useMemo(() => {
     return new Set(sections.flatMap((s) => (s.fields || []).map((f) => f.NAME)));
@@ -201,6 +196,7 @@ export function DesignerProvider({
       selectedFieldId,
       activeSection,
       activeField,
+      activeParentField,
       tabScope,
       setTabScope,
       usedFieldNames,
@@ -246,6 +242,7 @@ export function DesignerProvider({
       selectedFieldId,
       activeSection,
       activeField,
+      activeParentField,
       tabScope,
       setTabScope,
       usedFieldNames,

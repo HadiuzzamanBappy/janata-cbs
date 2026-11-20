@@ -11,12 +11,14 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { isBooleanOn, toBooleanValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
+import type { BooleanWidgetConfig } from "@/lib/data-schemas";
 import type { BaseWidgetProps } from "../../types";
 
 export interface CheckboxWidgetProps extends BaseWidgetProps {
-  activeLabel?: string;
-  inactiveLabel?: string;
+  /** Labels and on / off wire values (BOOLEAN_CONFIG). */
+  config?: BooleanWidgetConfig;
 }
 
 export function CheckboxWidget({
@@ -26,10 +28,11 @@ export function CheckboxWidget({
   onChange,
   disabled = false,
   className,
-  activeLabel = "Yes",
-  inactiveLabel = "No",
+  config,
 }: CheckboxWidgetProps) {
-  const isChecked = Boolean(value);
+  const isChecked = isBooleanOn(value, config);
+  const activeLabel = config?.activeLabel || "Yes";
+  const inactiveLabel = config?.inactiveLabel || "No";
 
   return (
     <div className={cn("flex items-center gap-2 max-w-md flex-1", className)}>
@@ -44,7 +47,7 @@ export function CheckboxWidget({
           id={id}
           checked={isChecked}
           disabled={disabled}
-          onCheckedChange={(val: boolean) => onChange(Boolean(val))}
+          onCheckedChange={(val: boolean) => onChange(toBooleanValue(Boolean(val), config))}
           className={cn(
             "rounded",
             "dark:data-checked:text-primary-foreground",

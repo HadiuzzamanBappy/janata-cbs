@@ -4,19 +4,20 @@
  *
  * Core Invariants:
  * - Extends BaseWidgetProps.
- * - Supports TextWidgetConfig (uppercase/lowercase transformation, autoTrim on blur).
+ * - Casing and whitespace come from the field's TRANSFORM (applied by FormRenderer); `trim`
+ *   is applied here on blur so the operator can type spaces between words.
  * - Compact banking typography (h-7, text-xs, monospace for numbers).
  */
 
 import type { ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
-import type { TextWidgetConfig } from "@/lib/data-schemas";
 import type { BaseWidgetProps } from "../../types";
 
 export interface TextWidgetProps extends BaseWidgetProps {
   type?: "text" | "number";
-  config?: TextWidgetConfig;
+  /** Trims leading and trailing whitespace when the input loses focus (TRANSFORM `trim`). */
+  trimOnBlur?: boolean;
 }
 
 export function TextWidget({
@@ -29,30 +30,16 @@ export function TextWidget({
   placeholder,
   className,
   type = "text",
-  config,
+  trimOnBlur = false,
 }: TextWidgetProps) {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    let raw = e.target.value;
-    if (type === "number") {
-      onChange(raw === "" ? "" : Number(raw));
-      return;
-    }
-
-    if (config?.textTransform === "uppercase") {
-      raw = raw.toUpperCase();
-    } else if (config?.textTransform === "lowercase") {
-      raw = raw.toLowerCase();
-    }
-
-    onChange(raw);
+    const raw = e.target.value;
+    onChange(type === "number" ? (raw === "" ? "" : Number(raw)) : raw);
   };
 
   const handleBlur = () => {
-    if (config?.autoTrim && typeof value === "string") {
-      const trimmed = value.trim();
-      if (trimmed !== value) {
-        onChange(trimmed);
-      }
+    if (trimOnBlur && typeof value === "string" && value.trim() !== value) {
+      onChange(value.trim());
     }
   };
 
@@ -69,8 +56,6 @@ export function TextWidget({
         className={cn(
           "h-7 text-xs bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50",
           type === "number" && "font-mono",
-          config?.textTransform === "uppercase" && "uppercase",
-          config?.textTransform === "lowercase" && "lowercase",
           error && "border-destructive focus-visible:border-destructive",
           disabled &&
             "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",

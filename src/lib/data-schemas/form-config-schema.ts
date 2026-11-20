@@ -176,61 +176,126 @@ export const formConfigSaveSchema = formConfigRecordSchema.superRefine((form, ct
         seenFieldNames.set(lowerName, secDisplay);
       }
 
-      if (!field.LABEL?.trim())
-        issue([...fieldPath, "LABEL"], `Field "${display}" Label is required`);
-
-      for (const key of ["VISIBLE_WHEN", "HIDDEN_WHEN", "DISABLED_WHEN"] as const) {
-        const condition = field[key];
-        if (!condition) continue;
-        for (const target of conditionTargets(condition)) {
-          if (!isKnownTarget(target)) {
-            issue(
-              [...fieldPath, key, "field"],
-              `Field "${display}" ${key} points at unknown field "${target}"`,
-            );
-          }
-        }
-      }
-
-      const onChangeTarget = field.ON_CHANGE?.target;
-      if (onChangeTarget && !isKnownTarget(onChangeTarget)) {
-        issue(
-          [...fieldPath, "ON_CHANGE", "target"],
-          `Field "${display}" ON_CHANGE points at unknown field "${onChangeTarget}"`,
-        );
-      }
-
-      const options =
-        field.PARAMETER?.type === "O" || !field.PARAMETER ? (field.PARAMETER?.data ?? []) : null;
-      if (
-        CHOICE_WIDGETS.has(field.WIDGET ?? "") &&
-        field.TYPE !== "Boolean" &&
-        !field.MODELNAME?.trim() &&
-        options !== null &&
-        options.length === 0
-      ) {
-        issue(
-          [...fieldPath, "PARAMETER"],
-          `Field "${display}" uses ${field.WIDGET} but has no options`,
-        );
-      }
-
-      const rule = field.VALIDATION;
-      if (rule?.min !== undefined && rule.max !== undefined && rule.min > rule.max) {
-        issue(
-          [...fieldPath, "VALIDATION", "min"],
-          `Field "${display}" minimum (${rule.min}) is greater than its maximum (${rule.max})`,
-        );
-      }
-      for (const key of ["pattern", "matches"] as const) {
-        const pattern = rule?.[key];
-        if (pattern && !isValidRegex(pattern)) {
-          issue(
-            [...fieldPath, "VALIDATION", key],
-            `Field "${display}" ${key} is not a valid regular expression`,
-          );
-        }
-      }
+      checkFieldRules(field, fieldPath, display, issue, isKnownTarget);
+      checkInnerFields(field, fieldPath, display, issue, isKnownTarget);
     });
   });
 });
+
+type IssueFn = (path: (string | number)[], message: string) => void;
+
+/**
+ * Inner fields of an object group (`PROP`): the group keeps at least one, names are unique
+ * within it, and each inner field meets the same rules as a top-level field.
+ */
+function checkInnerFields(
+  group: FormField,
+  groupPath: (string | number)[],
+  groupDisplay: string,
+  issue: IssueFn,
+  isKnownTarget: (target: string) => boolean,
+): void {
+  const inner = group.PROP;
+  if (!inner) return;
+  if (inner.length === 0) {
+    issue([...groupPath, "PROP"], `Object group "${groupDisplay}" needs at least one field`);
+    return;
+  }
+  const seen = new Set<string>();
+  inner.forEach((child, idx) => {
+    const childPath = [...groupPath, "PROP", idx];
+    const name = child.NAME.trim();
+    const display = `${groupDisplay}.${name || `#${idx + 1}`}`;
+    const lower = name.toLowerCase();
+    if (lower && seen.has(lower)) {
+      issue([...childPath, "NAME"], `Duplicate field "${name}" in object group "${groupDisplay}"`);
+    }
+    seen.add(lower);
+    checkFieldRules(child, childPath, display, issue, isKnownTarget);
+    checkInnerFields(child, childPath, display, issue, isKnownTarget);
+  });
+}
+
+/** Save rules of one field (top-level or inner): label, rule targets, options and ranges. */
+function checkFieldRules(
+  field: FormField,
+  fieldPath: (string | number)[],
+  display: string,
+  issue: IssueFn,
+  isKnownTarget: (target: string) => boolean,
+): void {
+  if (!field.LABEL?.trim()) issue([...fieldPath, "LABEL"], `Field "${display}" Label is required`);
+
+  for (const key of ["VISIBLE_WHEN", "DISABLED_WHEN"] as const) {
+    const condition = field[key];
+    if (!condition) continue;
+    for (const target of conditionTargets(condition)) {
+      if (!isKnownTarget(target)) {
+        issue(
+          [...fieldPath, key, "field"],
+          `Field "${display}" ${key} points at unknown field "${target}"`,
+        );
+      }
+    }
+  }
+
+  const onChangeTarget = field.ON_CHANGE?.target;
+  if (onChangeTarget && !isKnownTarget(onChangeTarget)) {
+    issue(
+      [...fieldPath, "ON_CHANGE", "target"],
+      `Field "${display}" ON_CHANGE points at unknown field "${onChangeTarget}"`,
+    );
+  }
+
+  (field.CASCADE ?? []).forEach((rule, rIdx) => {
+    for (const target of Object.keys(rule.set ?? {})) {
+      if (!isKnownTarget(target)) {
+        issue(
+          [...fieldPath, "CASCADE", rIdx, "set"],
+          `Field "${display}" CASCADE sets unknown field "${target}"`,
+        );
+      }
+    }
+  });
+
+  const dateRange = field.DATE_CONFIG;
+  if (
+    dateRange?.minDateOffset !== undefined &&
+    dateRange.maxDateOffset !== undefined &&
+    dateRange.minDateOffset > dateRange.maxDateOffset
+  ) {
+    issue(
+      [...fieldPath, "DATE_CONFIG", "minDateOffset"],
+      `Field "${display}" earliest date offset is after its latest date offset`,
+    );
+  }
+
+  const options =
+    field.PARAMETER?.type === "O" || !field.PARAMETER ? (field.PARAMETER?.data ?? []) : null;
+  if (
+    CHOICE_WIDGETS.has(field.WIDGET ?? "") &&
+    field.TYPE !== "Boolean" &&
+    !field.MODELNAME?.trim() &&
+    options !== null &&
+    options.length === 0
+  ) {
+    issue(
+      [...fieldPath, "PARAMETER"],
+      `Field "${display}" uses ${field.WIDGET} but has no options`,
+    );
+  }
+
+  const rule = field.VALIDATION;
+  if (rule?.min !== undefined && rule.max !== undefined && rule.min > rule.max) {
+    issue(
+      [...fieldPath, "VALIDATION", "min"],
+      `Field "${display}" minimum (${rule.min}) is greater than its maximum (${rule.max})`,
+    );
+  }
+  if (rule?.matches && !isValidRegex(rule.matches)) {
+    issue(
+      [...fieldPath, "VALIDATION", "matches"],
+      `Field "${display}" pattern is not a valid regular expression`,
+    );
+  }
+}

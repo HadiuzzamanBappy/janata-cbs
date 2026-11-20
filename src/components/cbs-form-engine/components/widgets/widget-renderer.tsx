@@ -8,6 +8,7 @@
  * - Handles specialized widget variants (e.g. segmented radio group, multiline date/time).
  */
 
+import { resolveFieldDateRange } from "@/lib/cbs-form-spec";
 import type { WidgetRendererProps } from "../../types";
 import { AmountWidget } from "./amount-widget";
 import { CheckboxGroupWidget } from "./checkbox-group-widget";
@@ -42,6 +43,8 @@ export function renderFieldWidget({
   modelLoading,
   effectiveLabel,
 }: WidgetRendererProps) {
+  const trimOnBlur = field.TRANSFORM === "trim";
+  const dateRange = resolveFieldDateRange(field);
   switch (widget) {
     case "select":
     case "combobox":
@@ -72,12 +75,15 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           type={widget === "datetime" ? "datetime-local" : widget === "time" ? "time" : "date"}
+          minDate={dateRange.min}
+          maxDate={dateRange.max}
         />
       );
     case "textarea":
       return (
         <TextareaWidget
           id={rowId}
+          trimOnBlur={trimOnBlur}
           fieldKey={fieldKey}
           value={value}
           onChange={onChange}
@@ -94,8 +100,7 @@ export function renderFieldWidget({
           value={value}
           onChange={onChange}
           disabled={isReadOnly}
-          activeLabel={field.BOOLEAN_CONFIG?.activeLabel}
-          inactiveLabel={field.BOOLEAN_CONFIG?.inactiveLabel}
+          config={field.BOOLEAN_CONFIG}
         />
       );
     case "radio":
@@ -132,8 +137,7 @@ export function renderFieldWidget({
           value={value}
           onChange={onChange}
           disabled={isReadOnly}
-          activeLabel={field.BOOLEAN_CONFIG?.activeLabel}
-          inactiveLabel={field.BOOLEAN_CONFIG?.inactiveLabel}
+          config={field.BOOLEAN_CONFIG}
         />
       );
     case "checkbox-group":
@@ -197,7 +201,7 @@ export function renderFieldWidget({
           disabled={isReadOnly}
           error={error}
           placeholder={placeholder}
-          config={field.TEXT_CONFIG}
+          trimOnBlur={trimOnBlur}
         />
       );
   }

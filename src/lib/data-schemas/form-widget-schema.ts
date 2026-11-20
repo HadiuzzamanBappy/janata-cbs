@@ -126,44 +126,47 @@ export function isWidgetCompatibleWithType(
 /* 3. WIDGET-SPECIFIC CONFIGURATION SCHEMAS                                   */
 /* ========================================================================== */
 
-const textWidgetConfigSchema = z.object({
-  textTransform: z.enum(["uppercase", "lowercase", "none"]).default("uppercase"),
-  maskPattern: z.string().default(""),
-  autoTrim: z.boolean().default(true),
-});
-export type TextWidgetConfig = z.infer<typeof textWidgetConfigSchema>;
+// Every setting here is honoured by the form engine. Value ranges live in VALIDATION.min / max and
+// text shaping in TRANSFORM, so nothing is configured in two places.
 
+/** `number` and `amount`: decimal places allowed (validated) and the amount's currency badge. */
 const numberWidgetConfigSchema = z.object({
-  isCurrency: z.boolean().default(false),
-  currencyCode: z.string().default(""),
-  decimals: z.number().default(2),
-  allowNegative: z.boolean().default(false),
-  minValue: z.number().optional(),
-  maxValue: z.number().optional(),
+  currencyCode: z.string().optional(),
+  decimals: z.number().int().min(0).max(8).optional(),
 });
 
+/** `rate`: decimal places allowed (validated) and the suffix badge (default `%`). */
 const rateWidgetConfigSchema = z.object({
-  decimals: z.number().default(4),
-  allowNegative: z.boolean().default(false),
-  minValue: z.number().optional(),
-  maxValue: z.number().optional(),
-  suffix: z.string().default("%"),
+  decimals: z.number().int().min(0).max(8).optional(),
+  suffix: z.string().optional(),
 });
 
+/**
+ * A day offset. Layouts saved before offsets were numbers stored them as strings ("" or "-30"),
+ * so a stored string is read as its number and "" as unset.
+ */
+const dayOffsetSchema = z.preprocess(
+  (v) => (v === "" || v === null ? undefined : typeof v === "string" ? Number(v) : v),
+  z.number().int().optional(),
+);
+
+/** `date` / `datetime`: allowed range in whole days from today (negative = past). */
 const dateWidgetConfigSchema = z.object({
-  datePattern: z.enum(["YYYY-MM-DD", "DD/MM/YYYY", "DD-MMM-YYYY"]).default("YYYY-MM-DD"),
-  minDateOffset: z.string().default(""),
-  maxDateOffset: z.string().default(""),
-  disableHolidays: z.boolean().default(false),
+  minDateOffset: dayOffsetSchema,
+  maxDateOffset: dayOffsetSchema,
 });
 
+/**
+ * `switch` / `checkbox`: badge labels, and the values written for on / off. Wire values are for
+ * String columns (e.g. `Y` / `N`); unset, the field stores `true` / `false`.
+ */
 const booleanWidgetConfigSchema = z.object({
-  widgetStyle: z.enum(["switch", "checkbox"]).default("switch"),
-  trueValue: z.string().default("Y"),
-  falseValue: z.string().default("N"),
-  activeLabel: z.string().default("Enabled"),
-  inactiveLabel: z.string().default("Disabled"),
+  activeLabel: z.string().optional(),
+  inactiveLabel: z.string().optional(),
+  trueValue: z.string().optional(),
+  falseValue: z.string().optional(),
 });
+export type BooleanWidgetConfig = z.infer<typeof booleanWidgetConfigSchema>;
 
 /* ========================================================================== */
 /* 4. FORM ELEMENT WIDGET FIELDS (spread into formElementSchema)              */
@@ -172,7 +175,6 @@ const booleanWidgetConfigSchema = z.object({
 /** Widget selection and per-widget configuration fields of a form element. */
 export const formWidgetShape = {
   WIDGET: formWidgetTypeSchema.optional(),
-  TEXT_CONFIG: textWidgetConfigSchema.optional(),
   NUMBER_CONFIG: numberWidgetConfigSchema.optional(),
   RATE_CONFIG: rateWidgetConfigSchema.optional(),
   DATE_CONFIG: dateWidgetConfigSchema.optional(),

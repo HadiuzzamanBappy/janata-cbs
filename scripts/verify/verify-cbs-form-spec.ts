@@ -8,11 +8,20 @@
  * 3. Custom Layout Compilation & Model Rules Merging (compileFormSpec: preserves layout, enforces model constraints)
  * 4. Headless Value Validation (validateValues: required, numeric/digits, date, length, clean state,
  *    hidden fields, multi-value items, plain numbers, real calendar dates)
+ * 10. Designer settings honoured by the engine (decimals, date offsets, ON_CHANGE, in / notIn lists,
+ *    cascades, boolean wire values, trim on blur, root layout)
+ * 11. Object groups: inner-field spec lookup by value key, and the designer's field tree
+ *    (find / update / remove inner fields, model match by SN)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-form-spec.ts
  */
 
+import {
+  findFieldDeep,
+  findModelPropDeep,
+  updateFieldDeep,
+} from "@/features/system/form-config/hooks/fc-field-tree";
 import {
   applyFieldTransform,
   buildRenderBlocks,
@@ -22,17 +31,24 @@ import {
   deriveSemanticWidth,
   evaluateFieldCascade,
   evaluateFieldCondition,
+  evaluateOnChangeRule,
+  findFieldSpecByKey,
   getBlockGapSectionIndex,
   getFieldColSpanClass,
   getFieldValue,
   getGridColsClass,
   getInputWidthClass,
+  isBooleanOn,
+  isLiveTransform,
   normalizeRecordDates,
+  resolveFieldDateRange,
   resolveWidgetType,
   setFieldValue,
+  toBooleanValue,
   validateSingleField,
   validateValues,
 } from "@/lib/cbs-form-spec";
+import { offsetIsoDate, todayIso } from "@/lib/core-utils";
 import type { FormConfigRecord, ModelConfigRecord } from "@/lib/data-schemas";
 
 interface TestCase {
@@ -278,8 +294,8 @@ async function runSuite() {
               TRANSFORM: "uppercase",
               CASCADE: [{ when: "SAVINGS", set: { balance: 500 } }],
               ON_CHANGE: { target: "accountTitle", action: "copy" },
-              HIDDEN_WHEN: { field: "USERDEFINEID", operator: "truthy" },
-              RATE_CONFIG: { decimals: 4, allowNegative: false, suffix: "%" },
+              DISABLED_WHEN: { field: "USERDEFINEID", operator: "truthy" },
+              RATE_CONFIG: { decimals: 4, suffix: "%" },
             },
           ],
         },
@@ -289,19 +305,19 @@ async function runSuite() {
   const compiledAdv = compileFormSpec(testModel, advancedLayout);
   const advField = compiledAdv.frmElements.sections[0]?.fields[0];
   recordTest(
-    "3.2 Preserves all advanced FormElement properties (CASCADE, TRANSFORM, RATE_CONFIG, ON_CHANGE, HIDDEN_WHEN)",
+    "3.2 Preserves all advanced FormElement properties (CASCADE, TRANSFORM, RATE_CONFIG, ON_CHANGE, DISABLED_WHEN)",
     { fieldName: "accountNumber" },
     {
       transform: advField?.TRANSFORM,
       hasCascade: Boolean(advField?.CASCADE),
       hasOnChange: Boolean(advField?.ON_CHANGE),
-      hasHiddenWhen: Boolean(advField?.HIDDEN_WHEN),
+      hasDisabledWhen: Boolean(advField?.DISABLED_WHEN),
       hasRateConfig: Boolean(advField?.RATE_CONFIG),
     },
     advField?.TRANSFORM === "uppercase" &&
       Array.isArray(advField?.CASCADE) &&
       advField?.ON_CHANGE?.target === "accountTitle" &&
-      advField?.HIDDEN_WHEN !== undefined &&
+      advField?.DISABLED_WHEN !== undefined &&
       advField?.RATE_CONFIG?.suffix === "%",
   );
 
@@ -524,7 +540,7 @@ async function runSuite() {
   );
   const noOffset = validateSingleField({ type: "DateTime", label: "At" }, "2026-01-01T10:00:00");
   const padded = validateSingleField(
-    { type: "String", label: "Swift Code", length: 11, validation: { pattern: "^[A-Z]{11}$" } },
+    { type: "String", label: "Swift Code", length: 11, validation: { matches: "^[A-Z]{11}$" } },
     "JANBBDDHIMA ",
   );
   const tooLong = validateSingleField(
@@ -656,9 +672,9 @@ async function runSuite() {
     { USERDEFINEID: true },
   );
   recordTest(
-    "5.4 Evaluates HIDDEN_WHEN / truthy condition accurately",
+    "5.4 Evaluates truthy condition accurately",
     { USERDEFINEID: true },
-    { isHidden: condHiddenPass },
+    { result: condHiddenPass },
     condHiddenPass === true,
   );
 
@@ -814,6 +830,293 @@ async function runSuite() {
     },
     getFieldValue(deletedRecord, "CUSTOMER.profile.name") === undefined &&
       getFieldValue(addedArrayElem, "CUSTOMER.profile.name") === "John Smith",
+  );
+
+  // ── 10. Designer Settings Honoured by the Engine (FORM.CONFIG 1:1) ──
+  console.log("\n── 10. Designer Settings Honoured by the Engine ──");
+
+  const dec = {
+    ok: validateSingleField({ type: "Number", label: "Amt", decimals: 2 }, "10.25"),
+    tooMany: validateSingleField({ type: "Number", label: "Amt", decimals: 2 }, "10.255"),
+    whole: validateSingleField({ type: "Number", label: "Qty", decimals: 0 }, "3.5"),
+  };
+  recordTest(
+    "10.1 Enforces NUMBER_CONFIG / RATE_CONFIG decimal places",
+    { decimals: [2, 2, 0], values: ["10.25", "10.255", "3.5"] },
+    dec,
+    dec.ok === null &&
+      dec.tooMany === "Amt allows at most 2 decimal places" &&
+      dec.whole === "Qty must be a whole number",
+  );
+
+  const range = resolveFieldDateRange({
+    NAME: "valueDate",
+    TYPE: "Date",
+    DATE_CONFIG: { minDateOffset: -2, maxDateOffset: 0 },
+  } as never);
+  const dateRule = {
+    range,
+    before: validateSingleField(
+      { type: "Date", label: "Value Date", dateRange: range },
+      offsetIsoDate(-3),
+    ),
+    inside: validateSingleField(
+      { type: "Date", label: "Value Date", dateRange: range },
+      offsetIsoDate(-1),
+    ),
+    dateTimeAfter: validateSingleField(
+      { type: "DateTime", label: "At", dateRange: range },
+      `${offsetIsoDate(1)}T09:00:00+06:00`,
+    ),
+  };
+  recordTest(
+    "10.2 Turns DATE_CONFIG day offsets into an ISO range and validates the calendar day",
+    { minDateOffset: -2, maxDateOffset: 0 },
+    dateRule,
+    range.min === offsetIsoDate(-2) &&
+      range.max === todayIso() &&
+      dateRule.before === `Value Date cannot be before ${offsetIsoDate(-2)}` &&
+      dateRule.inside === null &&
+      dateRule.dateTimeAfter === `At cannot be after ${todayIso()}`,
+  );
+
+  const onChange = {
+    copy: evaluateOnChangeRule("copy", "ABC"),
+    clear: evaluateOnChangeRule("clear", "ABC"),
+    join: evaluateOnChangeRule("join", ["A", "", "B"], "-"),
+  };
+  recordTest(
+    "10.3 ON_CHANGE copies, clears and joins into the target",
+    { value: "ABC", list: ["A", "", "B"] },
+    onChange,
+    onChange.copy === "ABC" && onChange.clear === "" && onChange.join === "A-B",
+  );
+
+  const lists = {
+    inComma: evaluateFieldCondition(
+      { field: "type", operator: "in", value: "SAV, CUR" },
+      { type: "CUR" },
+    ),
+    notInComma: evaluateFieldCondition(
+      { field: "type", operator: "notIn", value: "SAV,CUR" },
+      { type: "FD" },
+    ),
+    inArray: evaluateFieldCondition(
+      { field: "type", operator: "in", value: ["SAV"] },
+      { type: "CUR" },
+    ),
+  };
+  recordTest(
+    "10.4 in / notIn accept the designer's comma-separated list or an array",
+    { inComma: "SAV, CUR", notInComma: "SAV,CUR", inArray: ["SAV"] },
+    lists,
+    lists.inComma === true && lists.notInComma === true && lists.inArray === false,
+  );
+
+  const merged = evaluateFieldCascade(
+    [
+      { when: "SAV", set: { rate: 3.5 } },
+      { when: ["SAV", "FD"], set: { term: 12 } },
+      { when: "CUR", set: { rate: 0 } },
+    ],
+    "SAV",
+  );
+  recordTest(
+    "10.5 CASCADE applies every matching rule (one designer row each)",
+    { value: "SAV" },
+    merged,
+    merged?.rate === 3.5 && merged?.term === 12 && Object.keys(merged ?? {}).length === 2,
+  );
+
+  const yn = { trueValue: "Y", falseValue: "N" };
+  const bool = {
+    onY: isBooleanOn("Y", yn),
+    onN: isBooleanOn("N", yn),
+    plainN: isBooleanOn("N"),
+    wireOn: toBooleanValue(true, yn),
+    wireOff: toBooleanValue(false, yn),
+    plainOn: toBooleanValue(true),
+  };
+  recordTest(
+    "10.6 BOOLEAN_CONFIG wire values are read and written (else true / false)",
+    { config: yn },
+    bool,
+    bool.onY &&
+      !bool.onN &&
+      !bool.plainN &&
+      bool.wireOn === "Y" &&
+      bool.wireOff === "N" &&
+      bool.plainOn === true,
+  );
+
+  recordTest(
+    "10.7 TRANSFORM trim waits for blur; case and no-spaces apply as typed",
+    { transforms: ["trim", "uppercase", "stripWhitespace", "none"] },
+    {
+      trim: isLiveTransform("trim"),
+      uppercase: isLiveTransform("uppercase"),
+      stripWhitespace: isLiveTransform("stripWhitespace"),
+      none: isLiveTransform("none"),
+    },
+    !isLiveTransform("trim") &&
+      isLiveTransform("uppercase") &&
+      isLiveTransform("stripWhitespace") &&
+      !isLiveTransform("none"),
+  );
+
+  const stackedSpec = compileFormSpec(testModel, {
+    title: "Stacked",
+    frmElements: {
+      layout: "stacked",
+      sections: [{ id: "sec_s", containerType: "card", fields: [] }],
+    },
+  } as FormConfigRecord);
+  recordTest(
+    "10.8 Compiled form keeps the designer's root layout (horizontal / stacked)",
+    { layout: "stacked" },
+    { layout: stackedSpec.frmElements.layout },
+    stackedSpec.frmElements.layout === "stacked",
+  );
+
+  const fieldErrors = validateValues(
+    [
+      {
+        id: "sec_v",
+        containerType: "card",
+        fields: [
+          {
+            SN: "1",
+            NAME: "amt",
+            TYPE: "Number",
+            STRUCTURE: "S",
+            LENGTH: 15,
+            NUMBER_CONFIG: { decimals: 2 },
+          },
+          {
+            SN: "2",
+            NAME: "due",
+            TYPE: "Date",
+            STRUCTURE: "S",
+            LENGTH: 10,
+            DATE_CONFIG: { maxDateOffset: 0 },
+          },
+        ],
+      },
+    ],
+    { amt: "1.234", due: offsetIsoDate(1) },
+  );
+  recordTest(
+    "10.9 validateValues applies a field's decimals and date range from its settings",
+    { amt: "1.234", due: "tomorrow" },
+    fieldErrors,
+    Boolean(fieldErrors.amt) && Boolean(fieldErrors.due),
+  );
+
+  // ── 11. Object Groups: Inner Fields (engine lookup + designer tree) ──
+  console.log("\n── 11. Object Groups: Inner Fields ──");
+
+  const groupSections = [
+    {
+      id: "sec_g",
+      containerType: "card" as const,
+      fields: [
+        { SN: "1", NAME: "code", TYPE: "String" as const, STRUCTURE: "S" as const, LENGTH: 5 },
+        {
+          SN: "5",
+          NAME: "addr",
+          TYPE: "Array" as const,
+          STRUCTURE: "S" as const,
+          LENGTH: 0,
+          PROP: [
+            {
+              SN: "5_1",
+              NAME: "code",
+              TYPE: "String" as const,
+              STRUCTURE: "S" as const,
+              LENGTH: 5,
+            },
+            {
+              SN: "5_2",
+              NAME: "city",
+              TYPE: "String" as const,
+              STRUCTURE: "S" as const,
+              LENGTH: 30,
+              TRANSFORM: "uppercase" as const,
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
+  const specs = {
+    top: findFieldSpecByKey(groupSections, "code")?.SN,
+    single: findFieldSpecByKey(groupSections, "addr.city")?.TRANSFORM,
+    repeatingRow: findFieldSpecByKey(groupSections, "addr.0.city")?.SN,
+    missing: findFieldSpecByKey(groupSections, "addr.nope"),
+  };
+  recordTest(
+    "11.1 findFieldSpecByKey resolves top-level, inner and repeating-row keys (so inner TRANSFORM / CASCADE / ON_CHANGE run)",
+    { keys: ["code", "addr.city", "addr.0.city", "addr.nope"] },
+    specs,
+    specs.top === "1" &&
+      specs.single === "uppercase" &&
+      specs.repeatingRow === "5_2" &&
+      specs.missing === undefined,
+  );
+
+  const located = findFieldDeep(groupSections, "5_2");
+  recordTest(
+    "11.2 Designer finds an inner field by SN, with its group; a bare NAME still means the top-level field",
+    { ids: ["5_2", "code"] },
+    {
+      inner: located?.field.NAME,
+      parent: located?.parent?.NAME,
+      path: located?.path,
+      byName: findFieldDeep(groupSections, "code")?.field.SN,
+    },
+    located?.field.NAME === "city" &&
+      located?.parent?.NAME === "addr" &&
+      JSON.stringify(located?.path) === "[1,1]" &&
+      findFieldDeep(groupSections, "code")?.field.SN === "1",
+  );
+
+  const relabelled = updateFieldDeep(groupSections, "5_2", (f) => ({ ...f, LABEL: "Town" }));
+  const pruned = updateFieldDeep(groupSections, "5_1", () => null);
+  recordTest(
+    "11.3 Designer updates and removes inner fields immutably, leaving other fields untouched",
+    { update: "5_2 → LABEL Town", remove: "5_1" },
+    {
+      innerLabel: relabelled[0].fields[1].PROP?.[1].LABEL,
+      topLabel: relabelled[0].fields[0].LABEL,
+      innerAfterRemove: pruned[0].fields[1].PROP?.map((f) => f.NAME),
+      sourceUnchanged: groupSections[0].fields[1].PROP?.length,
+    },
+    relabelled[0].fields[1].PROP?.[1].LABEL === "Town" &&
+      relabelled[0].fields[0].LABEL === undefined &&
+      JSON.stringify(pruned[0].fields[1].PROP?.map((f) => f.NAME)) === '["city"]' &&
+      groupSections[0].fields[1].PROP?.length === 2,
+  );
+
+  const innerModelProp = findModelPropDeep(
+    [
+      { SN: "1", NAME: "city", TYPE: "String", STRUCTURE: "S", LENGTH: 10 },
+      {
+        SN: "5",
+        NAME: "addr",
+        TYPE: "Array",
+        STRUCTURE: "S",
+        LENGTH: 0,
+        PROP: [{ SN: "5_2", NAME: "city", TYPE: "String", STRUCTURE: "S", LENGTH: 30 }],
+      },
+    ] as ModelConfigRecord["PROPERTIES"],
+    { SN: "5_2", NAME: "city" },
+  );
+  recordTest(
+    "11.4 Inspector matches an inner field to its own model property (by SN, not a same-named top-level one)",
+    { field: { SN: "5_2", NAME: "city" } },
+    { matchedSn: innerModelProp?.SN, length: innerModelProp?.LENGTH },
+    innerModelProp?.SN === "5_2" && innerModelProp?.LENGTH === 30,
   );
 
   // Consolidated Summary

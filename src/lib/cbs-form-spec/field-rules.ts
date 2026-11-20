@@ -9,6 +9,7 @@
  */
 
 import type {
+  BooleanWidgetConfig,
   FieldCascadeRule,
   FieldTransform,
   FieldVisibilityCondition,
@@ -26,7 +27,8 @@ import { getFieldValue } from "./path-utils";
  * - "stripWhitespace": Removes all spaces and linebreaks.
  * - "uppercase": Converts alphabetic characters to uppercase.
  * - "lowercase": Converts alphabetic characters to lowercase.
- * - "trim": Trims leading and trailing whitespace.
+ * - "trim": Trims leading and trailing whitespace. Text widgets apply it on blur, not per
+ *   keystroke (see `isLiveTransform`), so the operator can type a space between words.
  *
  * @param transform Transform identifier configured on the field.
  * @param val Raw user input value.
@@ -54,12 +56,51 @@ export function applyFieldTransform(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Boolean Wire Values (BOOLEAN_CONFIG.trueValue / falseValue)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TRUTHY_TOKENS = new Set(["true", "1", "y", "yes"]);
+
+/** Whether a stored value means "on": the configured true value, else true / 1 / Y / yes. */
+export function isBooleanOn(value: unknown, config?: BooleanWidgetConfig | null): boolean {
+  if (config?.trueValue) return String(value ?? "") === config.trueValue;
+  if (typeof value === "boolean") return value;
+  return TRUTHY_TOKENS.has(
+    String(value ?? "")
+      .trim()
+      .toLowerCase(),
+  );
+}
+
+/** The value stored for on / off: the configured wire values, else `true` / `false`. */
+export function toBooleanValue(on: boolean, config?: BooleanWidgetConfig | null): unknown {
+  if (on) return config?.trueValue || true;
+  return config?.falseValue || false;
+}
+
+/** True when the transform runs on every change; `trim` waits for blur. */
+export function isLiveTransform(transform: FieldTransform | undefined | null): boolean {
+  return Boolean(transform) && transform !== "none" && transform !== "trim";
+}
+
+/** `in` / `notIn` list: an array, or a comma-separated string as the designer stores it. */
+function toConditionList(expected: unknown): unknown[] {
+  if (Array.isArray(expected)) return expected;
+  if (expected === undefined || expected === null || expected === "") return [];
+  return String(expected)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Reactive Cascading Defaults
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Evaluates cascading field mutations triggered when a source field value changes.
- * Matches `val` against rule `when` triggers (supporting exact scalar or array inclusion).
+ * Every rule whose `when` matches `val` (exact scalar, or one of an array) contributes its `set`;
+ * a later rule wins on the same target.
  *
  * @param cascadeRules List of cascade definitions configured on the field.
  * @param val Current value of the source field.
@@ -69,24 +110,16 @@ export function evaluateFieldCascade(
   cascadeRules: FieldCascadeRule[] | undefined | null,
   val: unknown,
 ): Record<string, unknown> | null {
-  if (!cascadeRules || !Array.isArray(cascadeRules) || cascadeRules.length === 0) {
-    return null;
-  }
+  if (!Array.isArray(cascadeRules) || cascadeRules.length === 0) return null;
 
+  const matches = (item: unknown) => item === val || String(item ?? "") === String(val ?? "");
+  const patch: Record<string, unknown> = {};
   for (const rule of cascadeRules) {
     if (!rule?.set) continue;
-    const whenVal = rule.when;
-
-    if (Array.isArray(whenVal)) {
-      if (whenVal.some((item) => item === val || String(item) === String(val ?? ""))) {
-        return rule.set;
-      }
-    } else if (whenVal === val || String(whenVal ?? "") === String(val ?? "")) {
-      return rule.set;
-    }
+    const hit = Array.isArray(rule.when) ? rule.when.some(matches) : matches(rule.when);
+    if (hit) Object.assign(patch, rule.set);
   }
-
-  return null;
+  return Object.keys(patch).length > 0 ? patch : null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -94,7 +127,7 @@ export function evaluateFieldCascade(
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Evaluates dynamic conditions (VISIBLE_WHEN, DISABLED_WHEN, HIDDEN_WHEN)
+ * Evaluates dynamic conditions (VISIBLE_WHEN, DISABLED_WHEN)
  * against the current form values state.
  *
  * Supported operators:
@@ -136,18 +169,14 @@ export function evaluateFieldCondition(
         return targetVal === expected || String(targetVal ?? "") === String(expected ?? "");
       case "neq":
         return targetVal !== expected && String(targetVal ?? "") !== String(expected ?? "");
-      case "in": {
-        if (!Array.isArray(expected)) return false;
-        return expected.some(
+      case "in":
+        return toConditionList(expected).some(
           (item) => item === targetVal || String(item) === String(targetVal ?? ""),
         );
-      }
-      case "notIn": {
-        if (!Array.isArray(expected)) return true;
-        return !expected.some(
+      case "notIn":
+        return !toConditionList(expected).some(
           (item) => item === targetVal || String(item) === String(targetVal ?? ""),
         );
-      }
       case "gt":
         return Number(targetVal) > Number(expected);
       case "lt":
@@ -173,9 +202,11 @@ export function evaluateFieldCondition(
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Evaluates specialized ON_CHANGE actions (e.g. joining array items or text casing).
+ * Evaluates the ON_CHANGE action: the value written to the target field.
+ * "copy" copies, "clear" empties the target, "join" joins array items, and the case actions
+ * copy in upper or lower case.
  *
- * @param action Action identifier (e.g. "join", "uppercase", "lowercase").
+ * @param action Action identifier ("copy", "clear", "join", "uppercase", "lowercase").
  * @param val Current field value.
  * @param delimiter Delimiter string used when joining array elements (default: "#").
  * @returns Resulting transformed value.
@@ -185,6 +216,9 @@ export function evaluateOnChangeRule(
   val: unknown,
   delimiter: string = "#",
 ): unknown {
+  if (action === "clear") {
+    return "";
+  }
   if (action === "join") {
     return Array.isArray(val) ? val.filter(Boolean).join(delimiter) : String(val ?? "");
   }

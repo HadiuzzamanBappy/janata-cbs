@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas";
+import { findFieldDeep } from "../../hooks/fc-field-tree";
 import { useOptionalDesignerContext } from "./context/designer-context";
 import { PaletteContainersList } from "./palette/palette-containers-list";
 import { PaletteObjectGroup } from "./palette/palette-object-group";
@@ -217,6 +218,12 @@ export function FieldPalette({
                       onToggleCollapse={toggleGroupCollapse}
                       onAddField={handleSafeAddField}
                       onHighlightField={onHighlightField}
+                      placedObject={
+                        ctx
+                          ? findFieldDeep(ctx.sections, item.parent.SN || item.parent.NAME)?.field
+                          : undefined
+                      }
+                      onUpdatePlacedObject={ctx?.onUpdateField}
                     />
                   );
                 })}

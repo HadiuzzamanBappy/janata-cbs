@@ -11,7 +11,12 @@
 import { Minus, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { getInputWidthClass, resolveWidgetType } from "@/lib/cbs-form-spec";
+import {
+  getInputWidthClass,
+  isBooleanOn,
+  resolveWidgetType,
+  toBooleanValue,
+} from "@/lib/cbs-form-spec";
 import { formatCurrency, formatNameToLabel } from "@/lib/core-utils";
 import { CBS_PROPERTY_TYPE } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
@@ -35,7 +40,9 @@ function ScalarFieldFactory({
 }: UnifiedFieldFactoryProps) {
   const isInputMode = mode === CbsRecordFunction.INPUT;
   const isViewMode = !isInputMode;
-  const isReadOnly = disabled || field.DISABLED || isViewMode;
+  // A fixed value is a constant: always applied in input mode and never editable
+  const fixedValue = field.FIXEDVALUE?.trim() ? field.FIXEDVALUE : undefined;
+  const isReadOnly = disabled || field.DISABLED || Boolean(fixedValue) || isViewMode;
   const effectiveLabel =
     labelOverride ?? (field.LABEL?.trim() ? field.LABEL.trim() : formatNameToLabel(field.NAME));
   const fieldKey = field.NAME;
@@ -58,27 +65,29 @@ function ScalarFieldFactory({
   );
   const effectiveEnrichText = field.ENRICHTEXT || undefined;
 
-  // Resolve default value from field configuration if no value is set
-  const rawDefault = field.DEFAULTVALUE ?? field.FIXEDVALUE;
+  const isBooleanWidget =
+    field.TYPE === CBS_PROPERTY_TYPE.BOOLEAN ||
+    ((widget === "switch" || widget === "checkbox") && resolvedOptions.length === 0);
+
+  // Resolve the initial value: the fixed value wins over the default
+  const rawDefault = fixedValue ?? (field.DEFAULTVALUE || undefined);
   const effectiveDefault = useMemo(() => {
-    if (rawDefault === undefined || rawDefault === null || rawDefault === "") {
-      return undefined;
+    if (rawDefault === undefined || rawDefault === "") return undefined;
+    if (isBooleanWidget) {
+      return toBooleanValue(isBooleanOn(rawDefault, field.BOOLEAN_CONFIG), field.BOOLEAN_CONFIG);
     }
-    const normType = (field.TYPE || "").toLowerCase();
-    if (normType === "number") {
+    if ((field.TYPE || "").toLowerCase() === "number") {
       const n = Number(rawDefault);
       return Number.isNaN(n) ? rawDefault : n;
     }
-    if (normType === "boolean") {
-      const lower = String(rawDefault).toLowerCase().trim();
-      return lower === "true" || lower === "1" || lower === "y";
-    }
     return rawDefault;
-  }, [rawDefault, field.TYPE]);
+  }, [rawDefault, field.TYPE, isBooleanWidget, field.BOOLEAN_CONFIG]);
 
-  // Use DEFAULTVALUE only on initial mount when value is strictly undefined or null (never when user cleared to "")
-  const effectiveValue =
-    value !== undefined && value !== null
+  // In input mode a fixed value always shows; a default only fills a value that was never set
+  const showsFixed = isInputMode && effectiveDefault !== undefined && fixedValue !== undefined;
+  const effectiveValue = showsFixed
+    ? effectiveDefault
+    : value !== undefined && value !== null
       ? value
       : isInputMode && effectiveDefault !== undefined
         ? effectiveDefault
@@ -86,19 +95,20 @@ function ScalarFieldFactory({
 
   const placeholder = typeof rawDefault === "string" ? rawDefault : undefined;
 
-  // Auto-populate form kernel state with default value on creation when no value was provided
+  // Write the initial value to the record: a default once (never after the user cleared it to ""),
+  // a fixed value whenever the record holds something else
   const hasAppliedDefault = useRef(false);
   useEffect(() => {
-    if (
-      isInputMode &&
-      !hasAppliedDefault.current &&
-      (value === undefined || value === null) &&
-      effectiveDefault !== undefined
-    ) {
+    if (!isInputMode || effectiveDefault === undefined) return;
+    if (showsFixed) {
+      if (value !== effectiveDefault) onChange(fieldKey, effectiveDefault);
+      return;
+    }
+    if (!hasAppliedDefault.current && (value === undefined || value === null)) {
       hasAppliedDefault.current = true;
       onChange(fieldKey, effectiveDefault);
     }
-  }, [isInputMode, value, effectiveDefault, fieldKey, onChange]);
+  }, [isInputMode, showsFixed, value, effectiveDefault, fieldKey, onChange]);
 
   // Manage multi-value array states
   const { itemIds, arrayValues, handleArrayChange, handleAddArrayItem, handleRemoveArrayItem } =
@@ -124,10 +134,8 @@ function ScalarFieldFactory({
         const suf = field.RATE_CONFIG?.suffix ?? "%";
         return Number.isNaN(num) ? `${String(val)}${suf}` : `${num.toFixed(dec)}${suf}`;
       }
-      if (field.TYPE === CBS_PROPERTY_TYPE.BOOLEAN) {
-        const lower = String(val).toLowerCase().trim();
-        const isTrue = lower === "true" || lower === "y" || lower === "1";
-        return isTrue
+      if (isBooleanWidget) {
+        return isBooleanOn(val, field.BOOLEAN_CONFIG)
           ? field.BOOLEAN_CONFIG?.activeLabel || "Yes"
           : field.BOOLEAN_CONFIG?.inactiveLabel || "No";
       }
@@ -138,7 +146,7 @@ function ScalarFieldFactory({
       resolvedOptions,
       widget,
       field.WIDGET,
-      field.TYPE,
+      isBooleanWidget,
       field.NUMBER_CONFIG,
       field.RATE_CONFIG,
       field.BOOLEAN_CONFIG,

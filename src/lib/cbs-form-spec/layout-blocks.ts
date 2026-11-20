@@ -8,7 +8,7 @@
  * - Pure layout calculation with zero DOM or UI framework dependencies.
  */
 
-import type { FormSection } from "@/lib/data-schemas";
+import type { FormElement, FormSection } from "@/lib/data-schemas";
 
 /**
  * Union type representing an isolated section or an aggregated tab cluster.
@@ -28,6 +28,25 @@ export type RenderBlock =
  * @param sections List of form sections from the compiled specification.
  * @returns Array of clustered RenderBlocks ready for layout orchestration.
  */
+/**
+ * The field spec behind a value key: a top-level `NAME`, or an inner field of an object group
+ * (`ADDRESS.city`, or `ITEMS.0.code` for a repeating set; numeric segments are row indexes).
+ */
+export function findFieldSpecByKey(sections: FormSection[], key: string): FormElement | undefined {
+  const fields = sections.flatMap((s) => s.fields ?? []);
+  const direct = fields.find((f) => f.NAME === key);
+  if (direct) return direct;
+
+  const [head, ...rest] = key.split(".");
+  let current = fields.find((f) => f.NAME === head);
+  for (const segment of rest) {
+    if (!current) return undefined;
+    if (/^\d+$/.test(segment)) continue;
+    current = (current.PROP ?? []).find((f) => f.NAME === segment);
+  }
+  return current;
+}
+
 export function buildRenderBlocks(sections: FormSection[]): RenderBlock[] {
   const blocks: RenderBlock[] = [];
 

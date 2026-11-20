@@ -97,7 +97,6 @@ export function CardContainer({
     if (isAccordionCollapsed) {
       return cn(
         "rounded border border-transparent bg-muted/20 hover:bg-muted/35 px-2.5 py-1.5 transition-colors cursor-pointer",
-        config.customClass,
       );
     }
 
@@ -131,7 +130,7 @@ export function CardContainer({
       spacious: "p-4 space-y-3",
     }[effectiveDensity];
 
-    return cn("rounded", borderClass, bgClass, shadowClass, densityClasses, config.customClass);
+    return cn("rounded", borderClass, bgClass, shadowClass, densityClasses);
   };
 
   return (

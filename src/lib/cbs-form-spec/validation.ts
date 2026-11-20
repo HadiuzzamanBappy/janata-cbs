@@ -5,10 +5,11 @@
  * Core Invariants:
  * - Pure headless validation evaluating mandatory required fields, physical lengths, and formats.
  * - Recursively traverses nested object hierarchies (`PROP`) producing dot-notated error maps.
- * - 1:1 Schema fidelity with FieldValidationRule (matches, min, max, message, pattern).
+ * - 1:1 Schema fidelity with FieldValidationRule (matches, min, max, message) and the widget
+ *   settings that constrain a value (number / rate decimals, date offsets).
  */
 
-import { isIsoDate, isIsoDateTime } from "@/lib/core-utils";
+import { isIsoDate, isIsoDateTime, offsetIsoDate } from "@/lib/core-utils";
 import type {
   FieldValidationRule,
   FormConfigRecord,
@@ -22,6 +23,20 @@ import { getFieldValue } from "./path-utils";
 const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
 const isScalar = (v: unknown): boolean => v === null || typeof v !== "object";
 
+/** Decimal places a numeric field allows: `RATE_CONFIG` for a rate, else `NUMBER_CONFIG`. */
+export function resolveFieldDecimals(field: FormElement): number | undefined {
+  return field.WIDGET === "rate" ? field.RATE_CONFIG?.decimals : field.NUMBER_CONFIG?.decimals;
+}
+
+/** Allowed ISO date range from `DATE_CONFIG` offsets (whole days from today in bank time). */
+export function resolveFieldDateRange(field: FormElement): { min?: string; max?: string } {
+  const range = field.DATE_CONFIG;
+  return {
+    min: range?.minDateOffset !== undefined ? offsetIsoDate(range.minDateOffset) : undefined,
+    max: range?.maxDateOffset !== undefined ? offsetIsoDate(range.maxDateOffset) : undefined,
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Single Field Validation
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,6 +46,10 @@ export interface SingleFieldValidationContext {
   label?: string;
   type?: string;
   validation?: FieldValidationRule;
+  /** Maximum decimal places of a numeric value. */
+  decimals?: number;
+  /** Allowed ISO date range (inclusive) of a date or date-time value. */
+  dateRange?: { min?: string; max?: string };
 }
 
 /**
@@ -97,6 +116,14 @@ export function validateSingleField(
       const digits = String(Math.abs(num)).replace(".", "");
       if (digits.length > ctx.length) return `${label} cannot exceed ${ctx.length} digits`;
     }
+    if (ctx.decimals !== undefined) {
+      const fraction = String(value).trim().split(".")[1] ?? "";
+      if (fraction.length > ctx.decimals) {
+        return ctx.decimals === 0
+          ? `${label} must be a whole number`
+          : `${label} allows at most ${ctx.decimals} decimal places`;
+      }
+    }
     if (ctx.validation?.min !== undefined && num < ctx.validation.min) {
       return ctx.validation.message || `${label} must be at least ${ctx.validation.min}`;
     }
@@ -111,6 +138,14 @@ export function validateSingleField(
     const valid = isDate ? isIsoDate : isIsoDateTime;
     if (typeof value === "string" && !valid(value.trim())) {
       return `${label} must be a valid ${isDate ? "date" : "date and time"}`;
+    }
+    // ISO dates compare as strings; a date-time is checked by its calendar day
+    const day = String(value).trim().slice(0, 10);
+    if (ctx.dateRange?.min && day < ctx.dateRange.min) {
+      return `${label} cannot be before ${ctx.dateRange.min}`;
+    }
+    if (ctx.dateRange?.max && day > ctx.dateRange.max) {
+      return `${label} cannot be after ${ctx.dateRange.max}`;
     }
     return null;
   }
@@ -129,8 +164,8 @@ export function validateSingleField(
   // The core pads fixed-width text with trailing spaces; they never count against the rules
   const text = typeof value === "string" ? value.trimEnd() : null;
 
-  // 5. Pattern / Regex Check (pattern or matches)
-  const pattern = ctx.validation?.pattern || ctx.validation?.matches;
+  // 5. Pattern / Regex Check
+  const pattern = ctx.validation?.matches;
   if (pattern && text !== null) {
     try {
       if (!new RegExp(pattern).test(text))
@@ -181,7 +216,6 @@ export function validateFormFields(
 
     // A field the screen hides (same conditions as FieldGrid) can't be filled, so it isn't checked
     if (field.VISIBLE_WHEN && !evaluateFieldCondition(field.VISIBLE_WHEN, currentValues)) continue;
-    if (field.HIDDEN_WHEN && evaluateFieldCondition(field.HIDDEN_WHEN, currentValues)) continue;
 
     const val = getFieldValue(currentValues, fieldKey);
     const err = validateSingleField(
@@ -191,6 +225,8 @@ export function validateFormFields(
         label: field.LABEL || field.NAME,
         type: field.TYPE,
         validation: field.VALIDATION,
+        decimals: resolveFieldDecimals(field),
+        dateRange: resolveFieldDateRange(field),
       },
       val,
     );

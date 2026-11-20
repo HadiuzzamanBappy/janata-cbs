@@ -13,6 +13,8 @@ import type { BaseWidgetProps } from "../../types";
 
 export interface TextareaWidgetProps extends BaseWidgetProps {
   rows?: number;
+  /** Trims leading and trailing whitespace when the input loses focus (TRANSFORM `trim`). */
+  trimOnBlur?: boolean;
 }
 
 export function TextareaWidget({
@@ -25,6 +27,7 @@ export function TextareaWidget({
   placeholder,
   className,
   rows = 2,
+  trimOnBlur = false,
 }: TextareaWidgetProps) {
   return (
     <div className={cn("w-full flex-1", className)}>
@@ -35,6 +38,11 @@ export function TextareaWidget({
         placeholder={placeholder}
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={() => {
+          if (trimOnBlur && typeof value === "string" && value.trim() !== value) {
+            onChange(value.trim());
+          }
+        }}
         className={cn(
           "w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-0 focus-visible:border-foreground/50 min-h-14 resize-y",
           error && "border-destructive focus-visible:border-destructive",

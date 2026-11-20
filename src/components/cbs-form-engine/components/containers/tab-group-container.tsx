@@ -86,12 +86,7 @@ export function TabGroupContainer({
   return (
     <div
       style={minHeightStyle ? { minHeight: minHeightStyle } : undefined}
-      className={cn(
-        containerVariantClass,
-        containerHeightClass,
-        "overflow-hidden",
-        activeConfig.customClass,
-      )}
+      className={cn(containerVariantClass, containerHeightClass, "overflow-hidden")}
     >
       {/* Workbench TabBar Header */}
       <div className={cn(headerClass, "shrink-0")}>

@@ -100,6 +100,12 @@ export function todayIso(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: CBS_TIME_ZONE }).format(new Date());
 }
 
+/** Today in bank time shifted by whole days (negative = past), as ISO `YYYY-MM-DD`. */
+export function offsetIsoDate(days: number): string {
+  const [y, m, d] = todayIso().split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
 /** Now in bank time, as ISO date-time with the +06:00 offset. */
 export function nowIsoDateTime(): string {
   return toIsoDateTime(isoDateTimeToLocalInput(new Date().toISOString())) as string;

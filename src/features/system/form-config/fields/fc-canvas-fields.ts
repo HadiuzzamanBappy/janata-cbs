@@ -52,6 +52,7 @@ export const ROOT_FORM_PROPERTIES_SECTION: FormSection = {
         data: [
           { code: "compact", label: "Compact" },
           { code: "normal", label: "Normal" },
+          { code: "spacious", label: "Spacious" },
         ],
       },
       ENRICHTEXT: "Default row spacing and input height across all form containers.",
@@ -121,13 +122,63 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
       WIDTH: "full",
       DEFAULTVALUE: "false",
       BOOLEAN_CONFIG: {
-        widgetStyle: "switch",
-        trueValue: "true",
-        falseValue: "false",
         activeLabel: "Yes",
         inactiveLabel: "No",
       },
       ENRICHTEXT: "Allows operators to collapse and expand this section.",
+    },
+    {
+      SN: "4b",
+      NAME: "isCollapsed",
+      LABEL: "Start Collapsed",
+      TYPE: "Boolean",
+      STRUCTURE: "S",
+      LENGTH: 1,
+      WIDGET: "switch",
+      WIDTH: "full",
+      BOOLEAN_CONFIG: { activeLabel: "Yes", inactiveLabel: "No" },
+      ENRICHTEXT: "The card opens collapsed; the operator expands it when needed.",
+      VISIBLE_WHEN: { field: "collapsible", operator: "truthy" },
+    },
+    {
+      SN: "4c",
+      NAME: "containerConfig.variant",
+      LABEL: "Card Style",
+      TYPE: "String",
+      STRUCTURE: "S",
+      LENGTH: 10,
+      WIDGET: "select",
+      WIDTH: "full",
+      PARAMETER: {
+        type: "O",
+        data: [
+          { code: "default", label: "Default" },
+          { code: "subtle", label: "Subtle (tinted)" },
+          { code: "bordered", label: "Bordered" },
+          { code: "elevated", label: "Elevated (shadow)" },
+          { code: "ghost", label: "Ghost (frameless)" },
+        ],
+      },
+      ENRICHTEXT: "Preset for header, border and background. The three settings below override it.",
+    },
+    {
+      SN: "4d",
+      NAME: "containerConfig.density",
+      LABEL: "Card Density",
+      TYPE: "String",
+      STRUCTURE: "S",
+      LENGTH: 10,
+      WIDGET: "segmented",
+      WIDTH: "full",
+      PARAMETER: {
+        type: "O",
+        data: [
+          { code: "compact", label: "Compact" },
+          { code: "normal", label: "Normal" },
+          { code: "spacious", label: "Spacious" },
+        ],
+      },
+      ENRICHTEXT: "Padding inside this card. Empty follows the form's density.",
     },
     {
       SN: "5",
@@ -138,15 +189,11 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "switch",
       WIDTH: "full",
-      DEFAULTVALUE: "true",
       BOOLEAN_CONFIG: {
-        widgetStyle: "switch",
-        trueValue: "true",
-        falseValue: "false",
         activeLabel: "Yes",
         inactiveLabel: "No",
       },
-      ENRICHTEXT: "Display header toolbar with title and badges.",
+      ENRICHTEXT: "Display header toolbar with title and badges. Unset follows the card style.",
     },
     {
       SN: "6",
@@ -157,15 +204,11 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
       LENGTH: 1,
       WIDGET: "switch",
       WIDTH: "full",
-      DEFAULTVALUE: "true",
       BOOLEAN_CONFIG: {
-        widgetStyle: "switch",
-        trueValue: "true",
-        falseValue: "false",
         activeLabel: "Yes",
         inactiveLabel: "No",
       },
-      ENRICHTEXT: "Display perimeter boundary border around the card.",
+      ENRICHTEXT: "Display a border around the card. Unset follows the card style.",
     },
     {
       SN: "7",
@@ -176,7 +219,6 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
       LENGTH: 10,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "regular",
       PARAMETER: {
         type: "O",
         data: [
@@ -186,7 +228,7 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
         ],
       },
       ENRICHTEXT:
-        "Card fill background: regular surface, subtle muted tint, or none (transparent).",
+        "Card fill: regular surface, subtle tint, or none (transparent). Unset follows the card style.",
     },
     {
       SN: "8",
@@ -207,7 +249,6 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
       LENGTH: 15,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "default",
       PARAMETER: {
         type: "O",
         data: [
@@ -240,7 +281,6 @@ export const TAB_GROUP_PROPERTIES_SECTION: FormSection = {
       LENGTH: 15,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "card",
       PARAMETER: {
         type: "O",
         data: [
@@ -261,7 +301,6 @@ export const TAB_GROUP_PROPERTIES_SECTION: FormSection = {
       LENGTH: 10,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "auto",
       PARAMETER: {
         type: "O",
         data: [
@@ -363,7 +402,6 @@ export const TAB_ITEM_PROPERTIES_SECTION: FormSection = {
       LENGTH: 15,
       WIDGET: "segmented",
       WIDTH: "full",
-      DEFAULTVALUE: "default",
       PARAMETER: {
         type: "O",
         data: [

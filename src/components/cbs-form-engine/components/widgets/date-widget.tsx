@@ -17,6 +17,9 @@ import type { BaseWidgetProps } from "../../types";
 
 export interface DateWidgetProps extends BaseWidgetProps {
   type?: "date" | "datetime-local" | "time";
+  /** Allowed ISO date range (DATE_CONFIG offsets); validation enforces the same range. */
+  minDate?: string;
+  maxDate?: string;
 }
 
 export function DateWidget({
@@ -28,10 +31,15 @@ export function DateWidget({
   error,
   className,
   type = "date",
+  minDate,
+  maxDate,
 }: DateWidgetProps) {
   const strVal = String(value ?? "");
   const isDateTime = type === "datetime-local";
   const isTime = type === "time";
+  // A date-time input takes `YYYY-MM-DDTHH:mm` bounds: the whole first and last day are allowed
+  const minBound = minDate && (isDateTime ? `${minDate}T00:00` : minDate);
+  const maxBound = maxDate && (isDateTime ? `${maxDate}T23:59` : maxDate);
 
   return (
     <div className={cn("flex items-center gap-1.5 flex-1 w-full min-w-0 max-w-full", className)}>
@@ -39,6 +47,8 @@ export function DateWidget({
         type={type}
         id={id}
         disabled={disabled}
+        min={isTime ? undefined : minBound || undefined}
+        max={isTime ? undefined : maxBound || undefined}
         value={isDateTime ? isoDateTimeToLocalInput(strVal) : strVal}
         onChange={(e) =>
           onChange(isDateTime && e.target.value ? toIsoDateTime(e.target.value) : e.target.value)

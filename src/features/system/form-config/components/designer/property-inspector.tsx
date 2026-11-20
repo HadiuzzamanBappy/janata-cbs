@@ -11,6 +11,7 @@ import { ArrowLeft, Layers, LayoutList, Settings, Type } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/core-utils";
 import type { FormElement, FormSection, ModelProperty } from "@/lib/data-schemas";
+import { findFieldDeep, findModelPropDeep } from "../../hooks/fc-field-tree";
 import { useOptionalDesignerContext } from "./context/designer-context";
 import { ContainerInspector, RootCanvasInspector } from "./inspector/canvas-inspectors";
 import { FieldInspector } from "./inspector/field-inspector";
@@ -68,17 +69,19 @@ export function PropertyInspector(props: PropertyInspectorProps) {
     [props.onUpdateField, ctx, selectedField],
   );
 
-  // Parent container lookup for hierarchical back navigation
+  // Parent container lookup for hierarchical back navigation (inner fields included)
   const parentContainer = React.useMemo(() => {
-    if (!selectedField) return null;
-    return (
-      ctx?.sections.find((s) =>
-        (s.fields || []).some((f) => f.SN === selectedField.SN || f.NAME === selectedField.NAME),
-      ) || null
-    );
-  }, [selectedField, ctx?.sections]);
+    if (!selectedField || !ctx) return null;
+    return findFieldDeep(ctx.sections, selectedField.SN || selectedField.NAME)?.section ?? null;
+  }, [selectedField, ctx]);
+  const parentObjectField = ctx?.activeParentField ?? null;
 
   const handleBack = React.useCallback(() => {
+    // An inner field steps back to its object group
+    if (parentObjectField) {
+      ctx?.onSelectField(parentObjectField.SN || parentObjectField.NAME);
+      return;
+    }
     if (
       selectedField &&
       parentContainer &&
@@ -91,14 +94,11 @@ export function PropertyInspector(props: PropertyInspectorProps) {
       ctx?.onSelectField(null);
       props.onDeselectField?.();
     }
-  }, [selectedField, parentContainer, ctx, props.onDeselectField]);
+  }, [selectedField, parentContainer, parentObjectField, ctx, props.onDeselectField]);
 
   const matchedModelProp = React.useMemo(() => {
     if (!selectedField) return null;
-    return (
-      modelProperties.find((p) => p.SN === selectedField.SN || p.NAME === selectedField.NAME) ||
-      null
-    );
+    return findModelPropDeep(modelProperties, selectedField);
   }, [modelProperties, selectedField]);
 
   const baseType = resolveBaseType(matchedModelProp?.TYPE || selectedField?.TYPE);
@@ -127,7 +127,7 @@ export function PropertyInspector(props: PropertyInspectorProps) {
   const header = selectedField
     ? {
         icon: <Type className="size-3.5 text-primary shrink-0" />,
-        title: selectedField.LABEL || selectedField.NAME || "Field Configuration",
+        title: `${parentObjectField ? `${parentObjectField.LABEL || parentObjectField.NAME} › ` : ""}${selectedField.LABEL || selectedField.NAME || "Field Configuration"}`,
       }
     : selectedSection
       ? selectedSection.containerType === "tab"

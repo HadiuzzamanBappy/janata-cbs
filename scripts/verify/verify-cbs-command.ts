@@ -184,7 +184,7 @@ async function runSuite() {
       commaVersionFunc.application === "ACCOUNT" &&
       commaVersionFunc.version === "VIP" &&
       commaVersionFunc.authLevel === 0 &&
-      commaFormConfig.application === "SC.FORM.CONFIG" &&
+      commaFormConfig.application === "FORM.CONFIG" &&
       commaFormConfig.authLevel === 0 &&
       standardLookup.screenMode === "S" &&
       versionNamedI.application === "USERS" &&
@@ -291,7 +291,7 @@ async function runSuite() {
     "6. Command Alias Resolution: Shorthand alias to canonical screen key & title",
     aliasInput,
     { resolvedTarget, screenTitle },
-    resolvedTarget === "SC.MENU.DESIGN" && screenTitle === "Menu Hierarchy",
+    resolvedTarget === "MENU.DESIGN" && screenTitle === "Menu Hierarchy",
   );
 
   // ----------------------------------------------------------------------------

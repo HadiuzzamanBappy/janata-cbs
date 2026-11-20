@@ -23,6 +23,8 @@ export interface DesignerContextValue {
   selectedFieldId: string | null;
   activeSection: FormSection | null;
   activeField: FormElement | null;
+  /** The object group holding the active field, when the active field is an inner field. */
+  activeParentField: FormElement | null;
   tabScope: "container" | "item";
   setTabScope: (scope: "container" | "item") => void;
   usedFieldNames: Set<string>;

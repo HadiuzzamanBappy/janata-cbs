@@ -54,12 +54,20 @@ function mapZodIssuesToFcValidationErrors(
     const secDisplay =
       section?.title?.trim() || (sIdx >= 0 ? `Section #${sIdx + 1}` : "Form Designer");
     const fIdx = path[3] === "fields" && typeof path[4] === "number" ? path[4] : -1;
-    const field = fIdx >= 0 ? section?.fields?.[fIdx] : undefined;
+    let field = fIdx >= 0 ? section?.fields?.[fIdx] : undefined;
+    // Descend into object groups: `...fields.2.PROP.1.LABEL` targets inner field 1
+    let keyStart = 5;
+    while (field && path[keyStart] === "PROP" && typeof path[keyStart + 1] === "number") {
+      field = field.PROP?.[path[keyStart + 1] as number];
+      keyStart += 2;
+    }
 
     return {
       id: `formDesigner-${path.join(".")}-${idx}`,
       tab: "formDesigner",
-      fieldKey: field ? path.slice(5).join(".") || "NAME" : path.slice(3).join(".") || "sections",
+      fieldKey: field
+        ? path.slice(keyStart).join(".") || "NAME"
+        : path.slice(3).join(".") || "sections",
       sectionId: section?.id,
       fieldId: field ? fieldIdOf(field, fIdx) : undefined,
       message: `${secDisplay}: ${issue.message}`,

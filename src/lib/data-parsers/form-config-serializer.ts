@@ -69,7 +69,6 @@ function sanitizeFormElement(field: FormElement): FormElement {
     if (v.message?.trim()) cleanVal.message = v.message.trim();
     if (typeof v.min === "number") cleanVal.min = v.min;
     if (typeof v.max === "number") cleanVal.max = v.max;
-    if (v.pattern?.trim()) cleanVal.pattern = v.pattern.trim();
     if (Object.keys(cleanVal).length > 0) {
       sanitized.VALIDATION = cleanVal as typeof v;
     }
@@ -105,14 +104,12 @@ function sanitizeFormElement(field: FormElement): FormElement {
     }
   }
 
-  if (cleanField.TEXT_CONFIG) sanitized.TEXT_CONFIG = cleanField.TEXT_CONFIG;
   if (cleanField.NUMBER_CONFIG) sanitized.NUMBER_CONFIG = cleanField.NUMBER_CONFIG;
   if (cleanField.RATE_CONFIG) sanitized.RATE_CONFIG = cleanField.RATE_CONFIG;
   if (cleanField.DATE_CONFIG) sanitized.DATE_CONFIG = cleanField.DATE_CONFIG;
   if (cleanField.BOOLEAN_CONFIG) sanitized.BOOLEAN_CONFIG = cleanField.BOOLEAN_CONFIG;
 
   if (cleanField.VISIBLE_WHEN) sanitized.VISIBLE_WHEN = cleanField.VISIBLE_WHEN;
-  if (cleanField.HIDDEN_WHEN) sanitized.HIDDEN_WHEN = cleanField.HIDDEN_WHEN;
   if (cleanField.DISABLED_WHEN) sanitized.DISABLED_WHEN = cleanField.DISABLED_WHEN;
   if (cleanField.TRANSFORM) sanitized.TRANSFORM = cleanField.TRANSFORM;
   if (Array.isArray(cleanField.CASCADE) && cleanField.CASCADE.length > 0) {
@@ -179,7 +176,6 @@ export function sanitizeFormConfigRecord(record: FormConfigRecord): FormConfigRe
 
   if (record.frmElements?.sections) {
     result.frmElements = {
-      ...(record.frmElements.columns ? { columns: record.frmElements.columns } : {}),
       ...(record.frmElements.layout ? { layout: record.frmElements.layout } : {}),
       ...(record.frmElements.density ? { density: record.frmElements.density } : {}),
       sections: record.frmElements.sections.map(sanitizeFormSection),

@@ -24,18 +24,14 @@ import {
   type PropertyType,
 } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
-import {
-  FIELD_ADVANCED_RULES_SECTION,
-  FIELD_CONDITIONS_SECTION,
-  FIELD_GENERAL_PROPERTIES_SECTION,
-  FIELD_ON_CHANGE_SECTION,
-  FIELD_VISIBILITY_SECTION,
-} from "../../../fields/fc-field-fields";
+import { FIELD_GENERAL_PROPERTIES_SECTION } from "../../../fields/fc-field-fields";
 import {
   getContextualWidgetSection,
   WIDGET_DISPLAY_LABELS,
 } from "../../../fields/fc-widget-fields";
+import { useDesignerContext } from "../context/designer-context";
 import { InspectorLookupConfig } from "./inspector-lookup-config";
+import { useFieldRuleView } from "./use-field-rule-view";
 
 export interface FieldInspectorProps {
   field: FormElement;
@@ -117,8 +113,18 @@ export function FieldInspector({
     [hasModel, modelName, fieldStructure, fieldLength, physicalType],
   );
 
+  const { sections } = useDesignerContext();
+  const { ruleSections, ruleValues, toRulePatch } = useFieldRuleView(field, sections);
+
   const handleFieldPropertyChange = React.useCallback(
-    (fieldKey: string, value: unknown) => {
+    (fieldKey: string, rawValue: unknown) => {
+      // A cleared input removes the setting, so an empty number never reaches the schema as ""
+      const value = rawValue === "" ? undefined : rawValue;
+      const rulePatch = toRulePatch(fieldKey, value);
+      if (rulePatch) {
+        onUpdateField(rulePatch);
+        return;
+      }
       // Invariant: Physical Single column in DB can never be changed to Multi on form
       if (fieldKey === "STRUCTURE" && value === "M" && matchedModelProp?.STRUCTURE !== "M") {
         return;
@@ -141,7 +147,7 @@ export function FieldInspector({
       const updated = setFieldValue(field as Record<string, unknown>, fieldKey, value);
       onUpdateField(updated as Partial<FormElement>);
     },
-    [field, onUpdateField, matchedModelProp, isDbRequired, hasModel],
+    [field, onUpdateField, matchedModelProp, isDbRequired, hasModel, toRulePatch],
   );
 
   const generalPropertiesSection = React.useMemo(() => {
@@ -187,16 +193,6 @@ export function FieldInspector({
     currentWidget === "radio-group" ||
     currentWidget === "segmented" ||
     currentWidget === "checkbox-group";
-
-  const rulesSections = React.useMemo(
-    () => [
-      FIELD_ADVANCED_RULES_SECTION,
-      FIELD_VISIBILITY_SECTION,
-      FIELD_CONDITIONS_SECTION,
-      FIELD_ON_CHANGE_SECTION,
-    ],
-    [],
-  );
 
   return (
     <div className="space-y-3 p-3 select-none text-xs">
@@ -348,8 +344,8 @@ export function FieldInspector({
       {activeTab === "rules" && (
         <div className="space-y-4 pt-1">
           <FormRenderer
-            frmElements={{ sections: rulesSections }}
-            values={field as Record<string, unknown>}
+            frmElements={{ sections: ruleSections }}
+            values={ruleValues}
             onChange={handleFieldPropertyChange}
             disabled={disabled}
             mode={disabled ? CbsRecordFunction.SEE : CbsRecordFunction.INPUT}

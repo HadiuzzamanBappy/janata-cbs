@@ -11,7 +11,7 @@ FormKernelProvider          scoped Zustand store for one form (values, errors, t
  └─ FormRenderer            groups sections into blocks; applies TRANSFORM, CASCADE and ON_CHANGE on every change
      ├─ CardContainer       a section as a card (collapsible)
      └─ TabGroupContainer   adjacent tab sections as one tab bar
-         └─ FieldGrid       12-column grid; evaluates VISIBLE_WHEN / HIDDEN_WHEN
+         └─ FieldGrid       12-column grid; evaluates VISIBLE_WHEN, DISABLED_WHEN, DISABLED and FIXEDVALUE
              └─ FieldAtom   subscribes to ONE field's value, error, visibility and readOnly
                  └─ UnifiedFieldFactory   scalar → FieldRow + WidgetRenderer; PROP object or repeating set → ObjectField
 AuditContainer              maker-checker trailer: inputter, authorizer, times, revision
@@ -22,7 +22,7 @@ AuditContainer              maker-checker trailer: inputter, authorizer, times, 
 ## ⚡ Why typing stays fast
 
 1. **Per-field subscription.** `FieldAtom` reads its slice with `useFormKernel(selector)` (for example `getFieldValue(s.values, fieldKey)`), so typing in one field re-renders only that field, even on 100+ field forms.
-2. **One change pipeline.** `FormRenderer.handleFieldChange()` applies the field's `TRANSFORM`, then its `CASCADE` patch, then its `ON_CHANGE` rule, calling `onChange(key, value)` for each field it sets. It then emits the complete next values once, through `onRecordChange` (or `onValuesChange`).
+2. **One change pipeline.** `FormRenderer.handleFieldChange()` applies the field's `TRANSFORM` (`trim` waits for blur), then its `CASCADE` patch, then its `ON_CHANGE` rule, calling `onChange(key, value)` for each field it sets. It then emits the complete next values once, through `onRecordChange` (or `onValuesChange`).
 3. **The screen owns the record.** The caller keeps the record (for `OpsForm`, on the workbench tab via `useCbsPersistence`). Dirty tracking and the delta sent on save come from `@/lib/cbs-record`. Rights and Four-Eyes are decided by `@/lib/cbs-access` in the action bar, not by this engine.
 
 ---

@@ -16,6 +16,9 @@ export interface PaletteObjectGroupProps {
   onToggleCollapse: (sn: string) => void;
   onAddField: (template: Partial<FormElement>) => void;
   onHighlightField?: (fieldName: string) => void;
+  /** The group as placed on the canvas, if it is; its missing inner fields can be put back. */
+  placedObject?: FormElement;
+  onUpdatePlacedObject?: (fieldId: string, patch: Partial<FormElement>) => void;
 }
 
 export function PaletteObjectGroup({
@@ -28,6 +31,8 @@ export function PaletteObjectGroup({
   onToggleCollapse,
   onAddField,
   onHighlightField,
+  placedObject,
+  onUpdatePlacedObject,
 }: PaletteObjectGroupProps) {
   const isParentPlaced = usedFieldNames.has(parent.NAME);
   const childSubFields: FormElement[] = childProperties.map((child, idx) => ({
@@ -57,6 +62,15 @@ export function PaletteObjectGroup({
 
   const handleAddObjectField = () => {
     onAddField(objectFieldElement);
+  };
+
+  // Inner fields removed from the placed group, which can be added back to it
+  const placedInnerNames = new Set((placedObject?.PROP ?? []).map((f) => f.NAME));
+  const restoreInnerField = (sub: FormElement) => {
+    if (!placedObject || !onUpdatePlacedObject) return;
+    onUpdatePlacedObject(String(placedObject.SN || placedObject.NAME), {
+      PROP: [...(placedObject.PROP ?? []), sub],
+    });
   };
 
   return (
@@ -139,14 +153,30 @@ export function PaletteObjectGroup({
       {/* Sub-fields preview if expanded */}
       {!isCollapsed && childProperties.length > 0 && (
         <div className="border-t border-border/40 bg-muted/10 p-1.5 space-y-1">
-          {childProperties.map((child) => {
+          {childProperties.map((child, idx) => {
+            const canRestore =
+              Boolean(placedObject) && !disabled && !placedInnerNames.has(child.NAME);
             return (
               <div
                 key={child.SN}
-                className="flex items-center justify-between text-3xs px-1 py-0.5 rounded text-muted-foreground"
+                className="flex items-center justify-between gap-1 text-3xs px-1 py-0.5 rounded text-muted-foreground"
               >
                 <span className="truncate">{formatNameToLabel(child.NAME)}</span>
-                <span className="font-mono text-3xs opacity-70">{child.TYPE}</span>
+                <span className="flex items-center gap-1 shrink-0">
+                  <span className="font-mono text-3xs opacity-70">{child.TYPE}</span>
+                  {canRestore && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => restoreInnerField(childSubFields[idx])}
+                      className="size-4 p-0 text-primary hover:bg-primary/20 rounded cursor-pointer"
+                      title={`Add ${child.NAME} back to ${parent.NAME}`}
+                    >
+                      <Plus className="size-3" />
+                    </Button>
+                  )}
+                </span>
               </div>
             );
           })}

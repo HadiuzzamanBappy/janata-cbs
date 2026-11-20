@@ -9,7 +9,8 @@
 
 import * as React from "react";
 import type { FormConfigRecord, FormElement } from "@/lib/data-schemas";
-import { isMatchingField, useFcFieldMovement } from "./use-fc-field-movement";
+import { updateFieldDeep } from "./fc-field-tree";
+import { useFcFieldMovement } from "./use-fc-field-movement";
 
 export function useFcFieldOps(
   setFormData: React.Dispatch<React.SetStateAction<FormConfigRecord>>,
@@ -89,24 +90,17 @@ export function useFcFieldOps(
 
   const updateField = React.useCallback(
     (fieldId: string, patch: Partial<FormElement>) => {
-      setFormData((prev) => {
-        const sections = prev.frmElements?.sections || [];
-
-        const updatedSections = sections.map((sec) => ({
-          ...sec,
-          fields: (sec.fields || []).map((f) =>
-            isMatchingField(f, fieldId) ? { ...f, ...patch } : f,
-          ),
-        }));
-
-        return {
-          ...prev,
-          frmElements: {
-            ...prev.frmElements,
-            sections: updatedSections,
-          },
-        };
-      });
+      // Reaches inner fields of object groups too (fc-field-tree)
+      setFormData((prev) => ({
+        ...prev,
+        frmElements: {
+          ...prev.frmElements,
+          sections: updateFieldDeep(prev.frmElements?.sections || [], fieldId, (f) => ({
+            ...f,
+            ...patch,
+          })),
+        },
+      }));
     },
     [setFormData],
   );
@@ -114,12 +108,11 @@ export function useFcFieldOps(
   const removeField = React.useCallback(
     (fieldId: string) => {
       setFormData((prev) => {
-        const sections = prev.frmElements?.sections || [];
-
-        const updatedSections = sections.map((sec) => ({
-          ...sec,
-          fields: (sec.fields || []).filter((f) => !isMatchingField(f, fieldId)),
-        }));
+        const updatedSections = updateFieldDeep(
+          prev.frmElements?.sections || [],
+          fieldId,
+          () => null,
+        );
 
         return {
           ...prev,

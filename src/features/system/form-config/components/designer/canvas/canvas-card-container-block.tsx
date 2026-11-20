@@ -131,7 +131,6 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
         borderClass,
         bgClass,
         shadowClass,
-        config.customClass,
         isContainerExplicitlySelected && "border-primary/80 ring-1 ring-primary/30",
         isDragging && "shadow-lg ring-2 ring-primary/40",
       )}

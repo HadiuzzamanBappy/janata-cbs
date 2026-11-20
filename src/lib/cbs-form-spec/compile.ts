@@ -163,7 +163,6 @@ export function compileFormSpec(
         rtnAfterAuth: [],
       },
       frmElements: {
-        columns: 1,
         density: "compact",
         sections: buildFallbackSections(model),
       },
@@ -189,7 +188,7 @@ export function compileFormSpec(
     title: layout.title || model.DESCRIPTION || modelCode,
     description: layout.description || model.DESCRIPTION || modelCode,
     frmElements: {
-      ...(layout.frmElements.columns ? { columns: layout.frmElements.columns } : {}),
+      ...(layout.frmElements.layout ? { layout: layout.frmElements.layout } : {}),
       ...(layout.frmElements.density ? { density: layout.frmElements.density } : {}),
       sections: cleanSections,
     },

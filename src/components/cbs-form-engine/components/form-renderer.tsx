@@ -14,12 +14,14 @@ import {
   buildRenderBlocks,
   evaluateFieldCascade,
   evaluateOnChangeRule,
+  findFieldSpecByKey,
   getFieldValue,
+  isLiveTransform,
   setFieldValue,
   validateValues,
 } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
-import type { AuditData, FormElement } from "@/lib/data-schemas";
+import type { AuditData } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import type { FormRendererProps } from "../types";
 import { AuditContainer } from "./containers/audit-container";
@@ -115,15 +117,13 @@ export function FormRenderer({
 
   // Handle field change with TRANSFORM, CASCADE, and ON_CHANGE
   const handleFieldChange = (key: string, rawVal: unknown) => {
-    // 1. Locate the field spec
-    let fieldSpec: FormElement | undefined;
-    for (const sec of sections) {
-      fieldSpec = (sec.fields || []).find((f) => f.NAME === key);
-      if (fieldSpec) break;
-    }
+    // 1. Locate the field spec (inner fields of object groups included)
+    const fieldSpec = findFieldSpecByKey(sections, key);
 
-    // 2. Apply field value transform if configured
-    const val = fieldSpec?.TRANSFORM ? applyFieldTransform(fieldSpec.TRANSFORM, rawVal) : rawVal;
+    // 2. Apply the field transform (trim waits for blur, in the text widgets)
+    const val = isLiveTransform(fieldSpec?.TRANSFORM)
+      ? applyFieldTransform(fieldSpec?.TRANSFORM, rawVal)
+      : rawVal;
 
     let nextValues = setFieldValue(values, key, val);
     onChange?.(key, val);

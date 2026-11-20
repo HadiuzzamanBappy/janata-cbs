@@ -1,7 +1,6 @@
 /**
  * @fileoverview Field presentation, anchor, and reactive rules specifications for FORM.CONFIG.
- * Defines schemas for Physical DB Anchors, General Field Properties, Advanced Validation,
- * Reactive Automation (ON_CHANGE), and Conditional Logic (DISABLED_WHEN).
+ * General field properties (Basics tab). Rules-tab specs live in `fc-rule-fields.ts`.
  *
  * @module features/system/form-config/fields/fc-field-fields
  */
@@ -48,9 +47,6 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       WIDTH: "full",
       DEFAULTVALUE: "false",
       BOOLEAN_CONFIG: {
-        widgetStyle: "switch",
-        trueValue: "true",
-        falseValue: "false",
         activeLabel: "Mandatory",
         inactiveLabel: "Optional",
       },
@@ -102,9 +98,6 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       WIDTH: "full",
       DEFAULTVALUE: "false",
       BOOLEAN_CONFIG: {
-        widgetStyle: "switch",
-        trueValue: "true",
-        falseValue: "false",
         activeLabel: "Disabled",
         inactiveLabel: "Editable",
       },
@@ -128,7 +121,8 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       STRUCTURE: "S",
       LENGTH: 60,
       WIDTH: "full",
-      ENRICHTEXT: "Pre-filled default populated for new records.",
+      ENRICHTEXT: "Pre-filled for new records; the operator can change it.",
+      VISIBLE_WHEN: { field: "FIXEDVALUE", operator: "falsy" },
     },
     {
       SN: "8",
@@ -138,238 +132,7 @@ export const FIELD_GENERAL_PROPERTIES_SECTION: FormSection = {
       STRUCTURE: "S",
       LENGTH: 60,
       WIDTH: "full",
-      ENRICHTEXT: "Immutable constant locked by the server (cannot be modified by user).",
-    },
-  ],
-};
-
-/**
- * Advanced Field Rules & Transforms
- */
-export const FIELD_ADVANCED_RULES_SECTION: FormSection = {
-  id: "sec_field_advanced_rules",
-  title: "Validation & Transforms",
-  containerType: "card",
-  containerConfig: { variant: "subtle", showHeader: true, bordered: true },
-  collapsible: true,
-  isCollapsed: true,
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "TRANSFORM",
-      LABEL: "Input Transformation",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 20,
-      WIDGET: "segmented",
-      WIDTH: "full",
-      DEFAULTVALUE: "none",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "none", label: "None" },
-          { code: "uppercase", label: "UPPER" },
-          { code: "lowercase", label: "lower" },
-          { code: "trim", label: "Trim" },
-          { code: "stripWhitespace", label: "Strip Space" },
-        ],
-      },
-      ENRICHTEXT: "Automatic string sanitizer executed before saving value.",
-    },
-    {
-      SN: "2",
-      NAME: "VALIDATION.matches",
-      LABEL: "Regex Validation Pattern",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 80,
-      WIDTH: "full",
-      ENRICHTEXT: "Regular expression constraint (e.g. ^[A-Z]{3}$, ^\\d{10}$).",
-    },
-    {
-      SN: "3",
-      NAME: "VALIDATION.message",
-      LABEL: "Custom Error Message",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 100,
-      WIDTH: "full",
-      ENRICHTEXT: "Custom error shown when regex or constraint fails.",
-    },
-  ],
-};
-
-/**
- * Reactive Automation Rules (ON_CHANGE)
- */
-export const FIELD_ON_CHANGE_SECTION: FormSection = {
-  id: "sec_field_on_change",
-  title: "Field Automation (On Change)",
-  containerType: "card",
-  containerConfig: { variant: "subtle", showHeader: true, bordered: true },
-  collapsible: true,
-  isCollapsed: true,
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "ON_CHANGE.target",
-      LABEL: "Target Destination Field",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 50,
-      WIDTH: "full",
-      ENRICHTEXT: "Target field updated reactively when this field changes.",
-    },
-    {
-      SN: "2",
-      NAME: "ON_CHANGE.action",
-      LABEL: "Automated Action",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 20,
-      WIDGET: "segmented",
-      WIDTH: "full",
-      DEFAULTVALUE: "copy",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "copy", label: "Copy" },
-          { code: "join", label: "Join" },
-          { code: "clear", label: "Clear" },
-          { code: "uppercase", label: "UPPER" },
-          { code: "lowercase", label: "lower" },
-        ],
-      },
-      ENRICHTEXT: "Action performed on target field.",
-    },
-    {
-      SN: "3",
-      NAME: "ON_CHANGE.delimiter",
-      LABEL: "Join Delimiter",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 5,
-      WIDTH: "xs",
-      DEFAULTVALUE: "#",
-      ENRICHTEXT: "Delimiter character when joining values (default '#').",
-    },
-  ],
-};
-
-/**
- * Conditional Visibility (VISIBLE_WHEN)
- */
-export const FIELD_VISIBILITY_SECTION: FormSection = {
-  id: "sec_field_visibility",
-  title: "Conditional Visibility (Visible When)",
-  containerType: "card",
-  containerConfig: { variant: "subtle", showHeader: true, bordered: true },
-  collapsible: true,
-  isCollapsed: true,
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "VISIBLE_WHEN.field",
-      LABEL: "Depends On Field",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 50,
-      WIDTH: "full",
-      ENRICHTEXT: "Field name whose value controls this field's visibility.",
-    },
-    {
-      SN: "2",
-      NAME: "VISIBLE_WHEN.operator",
-      LABEL: "Comparison Operator",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 15,
-      WIDGET: "segmented",
-      WIDTH: "full",
-      DEFAULTVALUE: "eq",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "eq", label: "==" },
-          { code: "neq", label: "!=" },
-          { code: "truthy", label: "Truthy" },
-          { code: "falsy", label: "Falsy" },
-          { code: "gt", label: ">" },
-          { code: "lt", label: "<" },
-        ],
-      },
-      ENRICHTEXT: "Comparison operation against dependency value.",
-    },
-    {
-      SN: "3",
-      NAME: "VISIBLE_WHEN.value",
-      LABEL: "Match Value",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 50,
-      WIDTH: "full",
-      ENRICHTEXT: "Expected value that triggers visibility.",
-    },
-  ],
-};
-
-/**
- * Conditional Dependencies (DISABLED_WHEN)
- */
-export const FIELD_CONDITIONS_SECTION: FormSection = {
-  id: "sec_field_conditions",
-  title: "Conditional State (Disabled When)",
-  containerType: "card",
-  containerConfig: { variant: "subtle", showHeader: true, bordered: true },
-  collapsible: true,
-  isCollapsed: true,
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "DISABLED_WHEN.field",
-      LABEL: "Depends On Field",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 50,
-      WIDTH: "full",
-      ENRICHTEXT: "Field name whose value controls this field's disabled state.",
-    },
-    {
-      SN: "2",
-      NAME: "DISABLED_WHEN.operator",
-      LABEL: "Comparison Operator",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 15,
-      WIDGET: "segmented",
-      WIDTH: "full",
-      DEFAULTVALUE: "eq",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "eq", label: "==" },
-          { code: "neq", label: "!=" },
-          { code: "truthy", label: "Truthy" },
-          { code: "falsy", label: "Falsy" },
-          { code: "gt", label: ">" },
-          { code: "lt", label: "<" },
-        ],
-      },
-      ENRICHTEXT: "Comparison operation against dependency value.",
-    },
-    {
-      SN: "3",
-      NAME: "DISABLED_WHEN.value",
-      LABEL: "Match Value",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 50,
-      WIDTH: "full",
-      ENRICHTEXT: "Expected value that triggers the condition.",
+      ENRICHTEXT: "Always written on input and shown read-only. Replaces the default value.",
     },
   ],
 };

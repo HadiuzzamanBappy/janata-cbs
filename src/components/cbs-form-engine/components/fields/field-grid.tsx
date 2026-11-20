@@ -4,7 +4,7 @@
  *
  * Core Invariants:
  * - Arranges section fields across responsive Tailwind multi-column layouts.
- * - Evaluates reactive visibility (VISIBLE_WHEN, HIDDEN_WHEN) and disabled conditions (DISABLED_WHEN).
+ * - Evaluates reactive visibility (VISIBLE_WHEN) and disabled conditions (DISABLED_WHEN, DISABLED, FIXEDVALUE).
  * - Delegates grid classes and cell spans to getGridColsClass and getFieldColSpanClass.
  */
 
@@ -53,18 +53,16 @@ export function FieldGrid({
       )}
     >
       {section.fields.map((field, idx) => {
-        // 1. Evaluate reactive visibility & hidden conditions
+        // 1. Evaluate reactive visibility
         if (field.VISIBLE_WHEN && !evaluateFieldCondition(field.VISIBLE_WHEN, values)) {
           return null;
         }
-        if (field.HIDDEN_WHEN && evaluateFieldCondition(field.HIDDEN_WHEN, values)) {
-          return null;
-        }
 
-        // 2. Evaluate reactive disabled condition
+        // 2. Evaluate reactive disabled condition (a fixed value is never editable)
         const isFieldDisabled =
           disabled ||
           Boolean(field.DISABLED) ||
+          Boolean(field.FIXEDVALUE) ||
           (field.DISABLED_WHEN ? evaluateFieldCondition(field.DISABLED_WHEN, values) : false);
 
         return (

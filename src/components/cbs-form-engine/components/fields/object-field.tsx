@@ -13,7 +13,7 @@
 import { Minus, Plus } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { getFieldColSpanClass, getFieldValue } from "@/lib/cbs-form-spec";
+import { evaluateFieldCondition, getFieldColSpanClass, getFieldValue } from "@/lib/cbs-form-spec";
 import { formatNameToLabel } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
@@ -49,6 +49,15 @@ export function ObjectField({
   const isInputMode = mode === CbsRecordFunction.INPUT;
   const isReadOnly = disabled || !isInputMode;
   const subFields = (field.PROP || []) as FormElement[];
+
+  // Inner fields honour their own rules, evaluated against the whole record (as in FieldGrid)
+  const isChildVisible = (child: FormElement) =>
+    !child.VISIBLE_WHEN || evaluateFieldCondition(child.VISIBLE_WHEN, values);
+  const isChildDisabled = (child: FormElement) =>
+    isReadOnly ||
+    Boolean(child.DISABLED) ||
+    Boolean(child.FIXEDVALUE) ||
+    (child.DISABLED_WHEN ? evaluateFieldCondition(child.DISABLED_WHEN, values) : false);
 
   // Retrieve array value using pure dot-path accessor
   const currentArray = useMemo(() => {
@@ -125,6 +134,7 @@ export function ObjectField({
         {/* Sub-Fields */}
         <div className="space-y-2">
           {subFields.map((child) => {
+            if (!isChildVisible(child)) return null;
             const fieldPath = `${groupKey}.${child.NAME}`;
             const boundChild: FormElement = {
               ...child,
@@ -137,14 +147,14 @@ export function ObjectField({
                 className={getFieldColSpanClass(1, child.WIDTH, child.LENGTH, child.TYPE)}
               >
                 {hasKernel ? (
-                  <FieldAtom field={boundChild} disabled={isReadOnly} mode={mode} />
+                  <FieldAtom field={boundChild} disabled={isChildDisabled(child)} mode={mode} />
                 ) : (
                   <UnifiedFieldFactory
                     field={boundChild}
                     value={getFieldValue(values, fieldPath)}
                     onChange={onChange}
                     error={errors[fieldPath]}
-                    disabled={isReadOnly}
+                    disabled={isChildDisabled(child)}
                     mode={mode}
                     allValues={values}
                     errors={errors}
@@ -228,6 +238,7 @@ export function ObjectField({
             {/* Sub-Fields for this Set */}
             <div className="space-y-2">
               {subFields.map((child) => {
+                if (!isChildVisible(child)) return null;
                 const fieldPath = `${groupKey}.${setIdx}.${child.NAME}`;
                 const boundChild: FormElement = {
                   ...child,
@@ -241,14 +252,14 @@ export function ObjectField({
                     className={getFieldColSpanClass(1, child.WIDTH, child.LENGTH, child.TYPE)}
                   >
                     {hasKernel ? (
-                      <FieldAtom field={boundChild} disabled={isReadOnly} mode={mode} />
+                      <FieldAtom field={boundChild} disabled={isChildDisabled(child)} mode={mode} />
                     ) : (
                       <UnifiedFieldFactory
                         field={boundChild}
                         value={getFieldValue(values, fieldPath)}
                         onChange={onChange}
                         error={errors[fieldPath]}
-                        disabled={isReadOnly}
+                        disabled={isChildDisabled(child)}
                         mode={mode}
                         allValues={values}
                         errors={errors}

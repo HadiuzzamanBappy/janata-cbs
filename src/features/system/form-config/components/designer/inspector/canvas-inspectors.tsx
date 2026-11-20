@@ -49,7 +49,7 @@ export function RootCanvasInspector({
         });
       } else if (fieldKey === "density") {
         onUpdateFormConfig({
-          density: (value as "compact" | "normal") || "compact",
+          density: (value as "compact" | "normal" | "spacious") || "compact",
         });
       }
     },
@@ -116,7 +116,9 @@ export function ContainerInspector({
 
   const handleSectionPropertyChange = React.useCallback(
     (fieldKey: string, value: unknown) => {
-      const finalVal = fieldKey === "columns" ? Number(value) || 1 : value;
+      // A cleared input removes the setting, so the card falls back to its style preset
+      const finalVal =
+        fieldKey === "columns" ? Number(value) || 1 : value === "" ? undefined : value;
       let updated = setFieldValue(section as Record<string, unknown>, fieldKey, finalVal);
       if (isTab && fieldKey === "title") {
         updated = {

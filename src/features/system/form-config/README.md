@@ -44,17 +44,34 @@ Drag and drop uses `@dnd-kit`. Designer state is shared through `components/desi
 
 ## Widgets
 
-A layout can use the 14 widget types in `FORM_WIDGET_TYPES` (`@/lib/data-schemas`):
+**The designer and the form engine match 1:1.** Every setting the inspector offers changes what operators see or what is saved, and every engine rule worth authoring has an inspector input. A setting lives in one place only: value ranges are `VALIDATION.min` / `max`, text shaping is `TRANSFORM`.
 
-| Widget                                                 | Settings object  | Settings                                                                                       |
-| ------------------------------------------------------ | ---------------- | ---------------------------------------------------------------------------------------------- |
-| `text`, `textarea`                                     | `TEXT_CONFIG`    | `textTransform`, `maskPattern`, `autoTrim`                                                     |
-| `number`, `amount`                                     | `NUMBER_CONFIG`  | `isCurrency`, `currencyCode`, `decimals`, `allowNegative`, `minValue`, `maxValue`              |
-| `rate`                                                 | `RATE_CONFIG`    | `decimals`, `allowNegative`, `minValue`, `maxValue`, `suffix` (default `%`)                    |
-| `date`, `datetime`                                     | `DATE_CONFIG`    | `datePattern`, `minDateOffset`, `maxDateOffset`, `disableHolidays`                             |
-| `time`                                                 | —                | —                                                                                              |
-| `switch`, `checkbox`                                   | `BOOLEAN_CONFIG` | `widgetStyle`, `trueValue` / `falseValue` (default `Y` / `N`), `activeLabel` / `inactiveLabel` |
-| `select`, `radio-group`, `segmented`, `checkbox-group` | `PARAMETER`      | fixed options (`O`), model lookup (`M`), local catalog (`L`)                                   |
+A layout can use the 14 widget types in `FORM_WIDGET_TYPES` (`@/lib/data-schemas`). Widget settings (inspector **Widget** tab, `fields/fc-widget-fields.ts`):
+
+| Widget                                                 | Settings                                                                                                     | Engine effect                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `number`, `amount`                                     | `NUMBER_CONFIG.decimals`, `currencyCode` (amount badge, default BDT), `VALIDATION.min` / `max`               | Decimals and range validated; amount badge and format |
+| `rate`                                                 | `RATE_CONFIG.decimals`, `suffix` (default `%`), `VALIDATION.min` / `max`                                     | Decimals and range validated; suffix badge            |
+| `date`, `datetime`                                     | `DATE_CONFIG.minDateOffset` / `maxDateOffset` (whole days from today in bank time)                           | Picker limits and validation                          |
+| `switch`, `checkbox`                                   | `BOOLEAN_CONFIG.activeLabel` / `inactiveLabel`, and for String columns `trueValue` / `falseValue` (e.g. Y/N) | Badge text; value stored (else `true` / `false`)      |
+| `select`, `radio-group`, `segmented`, `checkbox-group` | `PARAMETER`: fixed options (`O`), model lookup (`M`), local catalog (`L`)                                    | Option source                                         |
+| `text`, `textarea`, `time`                             | none (text uses the Rules tab)                                                                               | —                                                     |
+
+Basics tab: label, width, required, read-only, help tooltip, **default value** (filled once on new records) and **fixed value** (always written on input, shown read-only; replaces the default).
+
+Rules tab (`fields/fc-rule-fields.ts`, rows converted by `fields/fc-rule-adapters.ts`, bound in `inspector/use-field-rule-view.ts`):
+
+| Card          | Stored as                      | Engine effect                                                                  |
+| ------------- | ------------------------------ | ------------------------------------------------------------------------------ |
+| Validation    | `TRANSFORM`, `VALIDATION`      | Case / no-spaces as typed, trim on blur; pattern; length range for text fields |
+| Visible When  | `VISIBLE_WHEN` (`and` / `or`)  | Field hidden and not validated while the conditions fail                       |
+| Disabled When | `DISABLED_WHEN` (`and` / `or`) | Field read-only while the conditions hold                                      |
+| Cascade       | `CASCADE`                      | Setting this field to a value sets other fields (every matching row applies)   |
+| On Change     | `ON_CHANGE`                    | Copy, clear, join or re-case into the target field                             |
+
+Field pickers list only the fields placed on the form. Inspector specs carry no `DEFAULTVALUE` for settings, because opening the inspector must never write into the layout.
+
+**Object groups** (model `Array` properties with `PROP`) drop onto the canvas with all their inner fields, listed inside the group's card (`canvas/canvas-object-fields.tsx`). An inner field is selected, configured (same inspector: label, widget, width, rules), reordered or removed like any field; the palette puts a removed one back. Lookups go through `hooks/fc-field-tree.ts` (inner fields are identified by `SN`). At runtime `ObjectField` evaluates each inner field's `VISIBLE_WHEN` / `DISABLED_WHEN`, and `FormRenderer` finds its `TRANSFORM` / `CASCADE` / `ON_CHANGE` by value key (`findFieldSpecByKey`: `ADDRESS.city`, `ITEMS.0.code`).
 
 Which widgets a field may use depends on its model type. That rule lives in one place, `COMPATIBLE_WIDGETS_FOR_TYPE` in `form-widget-schema.ts`, and `resolveWidgetType()` in `@/lib/cbs-form-spec` ignores an incompatible choice.
 

@@ -1,346 +1,140 @@
 /**
- * @fileoverview Contextual widget presentation specifications for FORM.CONFIG.
- * Defines type-specific rule forms for text, number, rate, date, and boolean widgets.
+ * @fileoverview Contextual widget settings for FORM.CONFIG: one section per widget family.
+ * Every setting here is honoured by the form engine (`@/components/cbs-form-engine`,
+ * `@/lib/cbs-form-spec`). Value ranges are `VALIDATION.min` / `max`; text shaping is the
+ * field's TRANSFORM (Rules tab), so nothing is configured in two places.
+ *
+ * Inspector specs set no DEFAULTVALUE: opening the inspector must never write settings into
+ * the field. The engine's fallback is stated in each tooltip instead.
  *
  * @module features/system/form-config/fields/fc-widget-fields
  */
 
-import type { FormSection, FormWidgetType } from "@/lib/data-schemas";
+import type { FieldVisibilityCondition, FormElement, FormSection } from "@/lib/data-schemas";
 
-/**
- * Text & Textarea Presentation Rules
- */
-export const TEXT_WIDGET_SECTION: FormSection = {
-  id: "sec_text_widget_rules",
-  containerType: "card",
-  containerConfig: { variant: "ghost" },
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "TEXT_CONFIG.textTransform",
-      LABEL: "Text Transform",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 10,
-      WIDGET: "segmented",
-      WIDTH: "full",
-      DEFAULTVALUE: "uppercase",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "uppercase", label: "UPPER" },
-          { code: "lowercase", label: "lower" },
-          { code: "none", label: "None" },
-        ],
-      },
-      ENRICHTEXT: "Auto-casing rule enforced on input.",
-    },
-    {
-      SN: "2",
-      NAME: "TEXT_CONFIG.maskPattern",
-      LABEL: "Input Mask Pattern",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 30,
-      WIDTH: "full",
-      ENRICHTEXT: "e.g. 9999-9999-9999, SWIFT, AAA-999",
-    },
-    {
-      SN: "3",
-      NAME: "TEXT_CONFIG.autoTrim",
-      LABEL: "Auto-Trim Whitespace",
-      TYPE: "Boolean",
-      STRUCTURE: "S",
-      LENGTH: 1,
-      WIDGET: "switch",
-      WIDTH: "full",
-      DEFAULTVALUE: "true",
-      ENRICHTEXT: "Automatically strips leading and trailing spaces.",
-    },
-  ],
+function textSetting(
+  sn: string,
+  name: string,
+  label: string,
+  enrich: string,
+  length = 20,
+  visibleWhen?: FieldVisibilityCondition,
+): FormElement {
+  return {
+    SN: sn,
+    NAME: name,
+    LABEL: label,
+    TYPE: "String",
+    STRUCTURE: "S",
+    LENGTH: length,
+    WIDTH: "full",
+    ENRICHTEXT: enrich,
+    ...(visibleWhen ? { VISIBLE_WHEN: visibleWhen } : {}),
+  };
+}
+
+function numberSetting(sn: string, name: string, label: string, enrich: string): FormElement {
+  return {
+    SN: sn,
+    NAME: name,
+    LABEL: label,
+    TYPE: "Number",
+    STRUCTURE: "S",
+    LENGTH: 15,
+    WIDTH: "sm",
+    ENRICHTEXT: enrich,
+  };
+}
+
+function settingsSection(id: string, fields: FormElement[]): FormSection {
+  return { id, containerType: "card", containerConfig: { variant: "ghost" }, columns: 1, fields };
+}
+
+/** Shown only for String columns: a Boolean column always stores true / false. */
+const STRING_COLUMN_ONLY: FieldVisibilityCondition = {
+  field: "TYPE",
+  operator: "eq",
+  value: "String",
 };
 
-/**
- * Number & Amount Presentation Rules
- */
-export const NUMBER_WIDGET_SECTION: FormSection = {
-  id: "sec_number_widget_rules",
-  containerType: "card",
-  containerConfig: { variant: "ghost" },
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "NUMBER_CONFIG.isCurrency",
-      LABEL: "Format as Currency",
-      TYPE: "Boolean",
-      STRUCTURE: "S",
-      LENGTH: 1,
-      WIDGET: "switch",
-      WIDTH: "full",
-      DEFAULTVALUE: "false",
-      ENRICHTEXT: "Renders standard financial comma-separated amount display.",
-    },
-    {
-      SN: "2",
-      NAME: "NUMBER_CONFIG.currencyCode",
-      LABEL: "Currency Prefix",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 5,
-      WIDTH: "sm",
-      DEFAULTVALUE: "BDT",
-      ENRICHTEXT: "Currency code prefix (e.g. BDT, USD, EUR).",
-    },
-    {
-      SN: "3",
-      NAME: "NUMBER_CONFIG.decimals",
-      LABEL: "Decimals Precision",
-      TYPE: "Number",
-      STRUCTURE: "S",
-      LENGTH: 2,
-      WIDTH: "sm",
-      DEFAULTVALUE: "2",
-      ENRICHTEXT: "Number of fractional decimal digits.",
-    },
-    {
-      SN: "4",
-      NAME: "NUMBER_CONFIG.allowNegative",
-      LABEL: "Allow Negative Numbers",
-      TYPE: "Boolean",
-      STRUCTURE: "S",
-      LENGTH: 1,
-      WIDGET: "switch",
-      WIDTH: "full",
-      DEFAULTVALUE: "false",
-      ENRICHTEXT: "Allows negative balances or debits.",
-    },
-    {
-      SN: "5",
-      NAME: "NUMBER_CONFIG.minValue",
-      LABEL: "Minimum Allowed Value",
-      TYPE: "Number",
-      STRUCTURE: "S",
-      LENGTH: 15,
-      WIDTH: "md",
-      ENRICHTEXT: "Hard lower numerical boundary limit.",
-    },
-    {
-      SN: "6",
-      NAME: "NUMBER_CONFIG.maxValue",
-      LABEL: "Maximum Allowed Value",
-      TYPE: "Number",
-      STRUCTURE: "S",
-      LENGTH: 15,
-      WIDTH: "md",
-      ENRICHTEXT: "Hard upper numerical boundary limit.",
-    },
-  ],
-};
+const valueRange = (minSn: string, maxSn: string): FormElement[] => [
+  numberSetting(minSn, "VALIDATION.min", "Minimum Value", "Lowest accepted value (inclusive)."),
+  numberSetting(maxSn, "VALIDATION.max", "Maximum Value", "Highest accepted value (inclusive)."),
+];
 
-/**
- * Rate Presentation Rules
- */
-export const RATE_WIDGET_SECTION: FormSection = {
-  id: "sec_rate_widget_rules",
-  containerType: "card",
-  containerConfig: { variant: "ghost" },
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "RATE_CONFIG.decimals",
-      LABEL: "Rate Decimals",
-      TYPE: "Number",
-      STRUCTURE: "S",
-      LENGTH: 2,
-      WIDTH: "sm",
-      DEFAULTVALUE: "4",
-      ENRICHTEXT: "Precision digits for interest or exchange rates.",
-    },
-    {
-      SN: "2",
-      NAME: "RATE_CONFIG.suffix",
-      LABEL: "Rate Suffix",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 5,
-      WIDTH: "sm",
-      DEFAULTVALUE: "%",
-      ENRICHTEXT: "Display suffix (e.g. %, bps).",
-    },
-    {
-      SN: "3",
-      NAME: "RATE_CONFIG.allowNegative",
-      LABEL: "Allow Negative Rate",
-      TYPE: "Boolean",
-      STRUCTURE: "S",
-      LENGTH: 1,
-      WIDGET: "switch",
-      WIDTH: "full",
-      DEFAULTVALUE: "false",
-    },
-    {
-      SN: "4",
-      NAME: "RATE_CONFIG.minValue",
-      LABEL: "Minimum Rate",
-      TYPE: "Number",
-      STRUCTURE: "S",
-      LENGTH: 8,
-      WIDTH: "sm",
-      ENRICHTEXT: "Lower limit for rate input.",
-    },
-    {
-      SN: "5",
-      NAME: "RATE_CONFIG.maxValue",
-      LABEL: "Maximum Rate",
-      TYPE: "Number",
-      STRUCTURE: "S",
-      LENGTH: 8,
-      WIDTH: "sm",
-      ENRICHTEXT: "Upper limit for rate input.",
-    },
-  ],
-};
+/** `number` and `amount`. */
+const NUMBER_WIDGET_SECTION = settingsSection("sec_number_widget_rules", [
+  textSetting(
+    "1",
+    "NUMBER_CONFIG.currencyCode",
+    "Currency Badge",
+    "Currency shown before the amount (default BDT).",
+    5,
+    { field: "WIDGET", operator: "eq", value: "amount" },
+  ),
+  numberSetting(
+    "2",
+    "NUMBER_CONFIG.decimals",
+    "Decimal Places",
+    "Maximum decimal places accepted (0 = whole numbers). Amounts display with 2 when unset.",
+  ),
+  ...valueRange("3", "4"),
+]);
 
-/**
- * Date Presentation Rules
- */
-export const DATE_WIDGET_SECTION: FormSection = {
-  id: "sec_date_widget_rules",
-  containerType: "card",
-  containerConfig: { variant: "ghost" },
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "DATE_CONFIG.datePattern",
-      LABEL: "Date Format",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 15,
-      WIDGET: "segmented",
-      WIDTH: "full",
-      DEFAULTVALUE: "YYYY-MM-DD",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "YYYY-MM-DD", label: "YYYY-MM-DD" },
-          { code: "DD/MM/YYYY", label: "DD/MM/YYYY" },
-          { code: "DD-MMM-YYYY", label: "DD-MMM-YYYY" },
-        ],
-      },
-    },
-    {
-      SN: "2",
-      NAME: "DATE_CONFIG.minDateOffset",
-      LABEL: "Min Date Offset",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 10,
-      WIDTH: "sm",
-      ENRICHTEXT: "Relative offset from today (e.g. -30d, -1y).",
-    },
-    {
-      SN: "3",
-      NAME: "DATE_CONFIG.maxDateOffset",
-      LABEL: "Max Date Offset",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 10,
-      WIDTH: "sm",
-      ENRICHTEXT: "Relative offset from today (e.g. +30d, +1y).",
-    },
-    {
-      SN: "4",
-      NAME: "DATE_CONFIG.disableHolidays",
-      LABEL: "Exclude Bank Holidays",
-      TYPE: "Boolean",
-      STRUCTURE: "S",
-      LENGTH: 1,
-      WIDGET: "switch",
-      WIDTH: "full",
-      DEFAULTVALUE: "false",
-      ENRICHTEXT: "Blocks non-clearing bank calendar holidays.",
-    },
-  ],
-};
+/** `rate`. */
+const RATE_WIDGET_SECTION = settingsSection("sec_rate_widget_rules", [
+  numberSetting(
+    "1",
+    "RATE_CONFIG.decimals",
+    "Decimal Places",
+    "Maximum decimal places accepted. Rates display with 4 when unset.",
+  ),
+  textSetting("2", "RATE_CONFIG.suffix", "Suffix Badge", "Shown after the value (default %).", 5),
+  ...valueRange("3", "4"),
+]);
 
-/**
- * Boolean Presentation Rules
- */
-export const BOOLEAN_WIDGET_SECTION: FormSection = {
-  id: "sec_boolean_widget_rules",
-  containerType: "card",
-  containerConfig: { variant: "ghost" },
-  columns: 1,
-  fields: [
-    {
-      SN: "1",
-      NAME: "BOOLEAN_CONFIG.widgetStyle",
-      LABEL: "Control Style",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 10,
-      WIDGET: "segmented",
-      WIDTH: "full",
-      DEFAULTVALUE: "switch",
-      PARAMETER: {
-        type: "O",
-        data: [
-          { code: "switch", label: "Switch" },
-          { code: "checkbox", label: "Checkbox" },
-        ],
-      },
-      ENRICHTEXT: "Visual presentation toggle style on form scanline.",
-    },
-    {
-      SN: "2",
-      NAME: "BOOLEAN_CONFIG.activeLabel",
-      LABEL: "Active State Label",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 30,
-      WIDTH: "full",
-      DEFAULTVALUE: "Enabled",
-      ENRICHTEXT: "Label rendered when value is true (e.g. Enabled, Active, Yes).",
-    },
-    {
-      SN: "3",
-      NAME: "BOOLEAN_CONFIG.inactiveLabel",
-      LABEL: "Inactive State Label",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 30,
-      WIDTH: "full",
-      DEFAULTVALUE: "Disabled",
-      ENRICHTEXT: "Label rendered when value is false (e.g. Disabled, Inactive, No).",
-    },
-    {
-      SN: "4",
-      NAME: "BOOLEAN_CONFIG.trueValue",
-      LABEL: "True Wire Value",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 10,
-      WIDTH: "sm",
-      DEFAULTVALUE: "Y",
-      ENRICHTEXT: "Serialized value sent to backend core when checked (default 'Y').",
-    },
-    {
-      SN: "5",
-      NAME: "BOOLEAN_CONFIG.falseValue",
-      LABEL: "False Wire Value",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 10,
-      WIDTH: "sm",
-      DEFAULTVALUE: "N",
-      ENRICHTEXT: "Serialized value sent to backend core when unchecked (default 'N').",
-    },
-  ],
-};
+/** `date` and `datetime`: the range applies to the calendar day. */
+const DATE_WIDGET_SECTION = settingsSection("sec_date_widget_rules", [
+  numberSetting(
+    "1",
+    "DATE_CONFIG.minDateOffset",
+    "Earliest Date (days from today)",
+    "0 = today, -30 = thirty days ago. The picker and validation both enforce it.",
+  ),
+  numberSetting(
+    "2",
+    "DATE_CONFIG.maxDateOffset",
+    "Latest Date (days from today)",
+    "0 = today, 365 = one year ahead. Leave empty for no limit.",
+  ),
+]);
+
+/** `switch` and single `checkbox`. */
+const BOOLEAN_WIDGET_SECTION = settingsSection("sec_boolean_widget_rules", [
+  textSetting("1", "BOOLEAN_CONFIG.activeLabel", "On Label", "Badge text when on (default Yes)."),
+  textSetting(
+    "2",
+    "BOOLEAN_CONFIG.inactiveLabel",
+    "Off Label",
+    "Badge text when off (default No).",
+  ),
+  textSetting(
+    "3",
+    "BOOLEAN_CONFIG.trueValue",
+    "Stored Value When On",
+    "Value written to the String column when on (e.g. Y). Empty stores true.",
+    10,
+    STRING_COLUMN_ONLY,
+  ),
+  textSetting(
+    "4",
+    "BOOLEAN_CONFIG.falseValue",
+    "Stored Value When Off",
+    "Value written to the String column when off (e.g. N). Empty stores false.",
+    10,
+    STRING_COLUMN_ONLY,
+  ),
+]);
 
 export const WIDGET_DISPLAY_LABELS: Record<string, string> = {
   text: "Text",
@@ -360,13 +154,11 @@ export const WIDGET_DISPLAY_LABELS: Record<string, string> = {
 };
 
 /**
- * Returns contextual sub-section for widget rules.
+ * The settings section for a widget, or null when the widget has none (text and textarea are
+ * shaped by TRANSFORM and the pattern / length rules in the Rules tab; time has no settings).
  */
-export function getContextualWidgetSection(widget: FormWidgetType): FormSection | null {
+export function getContextualWidgetSection(widget: string): FormSection | null {
   switch (widget) {
-    case "text":
-    case "textarea":
-      return TEXT_WIDGET_SECTION;
     case "amount":
     case "number":
       return NUMBER_WIDGET_SECTION;
@@ -374,7 +166,6 @@ export function getContextualWidgetSection(widget: FormWidgetType): FormSection 
       return RATE_WIDGET_SECTION;
     case "date":
     case "datetime":
-    case "time":
       return DATE_WIDGET_SECTION;
     case "switch":
     case "checkbox":

@@ -239,7 +239,9 @@ async function runSuite() {
                 NAME: "status",
                 WIDGET: "radio-group",
                 VISIBLE_WHEN: { field: "missingField", operator: "eq", value: "X" },
-                VALIDATION: { min: 9, max: 1, pattern: "([A-Z" },
+                CASCADE: [{ when: "A", set: { ghostField: 1 } }],
+                DATE_CONFIG: { minDateOffset: 5, maxDateOffset: 1 },
+                VALIDATION: { min: 9, max: 1, matches: "([A-Z" },
               },
             ],
           },
@@ -250,9 +252,11 @@ async function runSuite() {
   const expectedFormIssues = [
     "frmElements.sections.1.id",
     "frmElements.sections.1.fields.0.VISIBLE_WHEN.field",
+    "frmElements.sections.1.fields.0.CASCADE.0.set",
+    "frmElements.sections.1.fields.0.DATE_CONFIG.minDateOffset",
     "frmElements.sections.1.fields.0.PARAMETER",
     "frmElements.sections.1.fields.0.VALIDATION.min",
-    "frmElements.sections.1.fields.0.VALIDATION.pattern",
+    "frmElements.sections.1.fields.0.VALIDATION.matches",
   ];
   const cleanFormSave = formConfigSaveSchema.safeParse(sampleForm);
   const ghostConfig = formConfigRecordSchema.parse({
@@ -262,12 +266,103 @@ async function runSuite() {
     },
   }).frmElements.sections[0].containerConfig;
   recordTest(
-    "5b. Form Save Schema: unique section ids, known condition targets, options, min ≤ max, valid regex; ghost keeps its preset",
+    "5b. Form Save Schema: unique section ids, known condition and cascade targets, date range order, options, min ≤ max, valid regex; ghost keeps its preset",
     { sections: 2, ghost: { variant: "ghost" } },
     { badFormIssues, cleanFormSave: cleanFormSave.success, ghostConfig },
     JSON.stringify(badFormIssues) === JSON.stringify(expectedFormIssues) &&
       cleanFormSave.success &&
       JSON.stringify(ghostConfig) === JSON.stringify({ variant: "ghost" }),
+  );
+
+  // 5c. Untitled cards save, tabs need a title, legacy date offsets still load
+  const untitledCard = formConfigSaveSchema.safeParse({
+    ...sampleForm,
+    frmElements: { sections: [{ ...sampleForm.frmElements.sections[0], title: "" }] },
+  });
+  const untitledTabIssues = formConfigSaveSchema
+    .safeParse({
+      ...sampleForm,
+      frmElements: {
+        sections: [{ ...sampleForm.frmElements.sections[0], title: "", containerType: "tab" }],
+      },
+    })
+    .error?.issues.map((i) => i.path.join("."));
+  const legacyDateConfig = formConfigRecordSchema.parse({
+    ...sampleForm,
+    frmElements: {
+      sections: [
+        {
+          ...sampleForm.frmElements.sections[0],
+          fields: [{ ...mainField, DATE_CONFIG: { minDateOffset: "", maxDateOffset: "-3" } }],
+        },
+      ],
+    },
+  }).frmElements.sections[0].fields[0].DATE_CONFIG;
+  recordTest(
+    "5c. Form Save Schema: untitled card saves, untitled tab is rejected; stored string date offsets read as numbers",
+    { card: "untitled", tab: "untitled", legacyOffsets: { min: "", max: "-3" } },
+    { untitledCard: untitledCard.success, untitledTabIssues, legacyDateConfig },
+    untitledCard.success &&
+      JSON.stringify(untitledTabIssues) === JSON.stringify(["frmElements.sections.0.title"]) &&
+      legacyDateConfig?.minDateOffset === undefined &&
+      legacyDateConfig?.maxDateOffset === -3,
+  );
+
+  // 5d. Object groups: inner fields meet the same save rules, unique within their group
+  const objectGroupIssues = formConfigSaveSchema
+    .safeParse({
+      ...sampleForm,
+      frmElements: {
+        sections: [
+          {
+            ...sampleForm.frmElements.sections[0],
+            fields: [
+              mainField,
+              {
+                ...mainField,
+                SN: "9",
+                NAME: "address",
+                LABEL: "Address",
+                TYPE: "Array",
+                PROP: [
+                  { ...mainField, SN: "9_1", NAME: "city", LABEL: "" },
+                  { ...mainField, SN: "9_2", NAME: "city", LABEL: "City Again" },
+                  {
+                    ...mainField,
+                    SN: "9_3",
+                    NAME: "zip",
+                    LABEL: "Zip",
+                    VALIDATION: { matches: "([0-9" },
+                    CASCADE: [{ when: "X", set: { ghostField: 1 } }],
+                  },
+                ],
+              },
+              {
+                ...mainField,
+                SN: "10",
+                NAME: "emptyGroup",
+                LABEL: "Empty",
+                TYPE: "Array",
+                PROP: [],
+              },
+            ],
+          },
+        ],
+      },
+    })
+    .error?.issues.map((i) => i.path.join("."));
+  const expectedObjectGroupIssues = [
+    "frmElements.sections.0.fields.1.PROP.0.LABEL",
+    "frmElements.sections.0.fields.1.PROP.1.NAME",
+    "frmElements.sections.0.fields.1.PROP.2.CASCADE.0.set",
+    "frmElements.sections.0.fields.1.PROP.2.VALIDATION.matches",
+    "frmElements.sections.0.fields.2.PROP",
+  ];
+  recordTest(
+    "5d. Form Save Schema: object-group inner fields need a label, unique names, valid rules; a group keeps one field",
+    { group: "address", inner: ["city", "city", "zip"], emptyGroup: "emptyGroup" },
+    { objectGroupIssues },
+    JSON.stringify(objectGroupIssues) === JSON.stringify(expectedObjectGroupIssues),
   );
 
   // 6. Navigation Menu Hierarchy Schema Contract

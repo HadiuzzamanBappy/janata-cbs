@@ -20,7 +20,7 @@ Banking forms are never hand-coded. The core sends a **Model Config** (data sche
 
 ## 2. Change pipeline
 
-`FormRenderer` runs, for each change: the field's `TRANSFORM` → its `CASCADE` patch → its `ON_CHANGE` rule. It calls `onChange(key, value)` for every field it sets, then emits the full next values once through `onRecordChange`. Visibility rules (`VISIBLE_WHEN` / `HIDDEN_WHEN`) are evaluated by `FieldGrid`. Add new behaviour to these rule types (`field-rules.ts`), not to a screen.
+`FormRenderer` runs, for each change: the field's `TRANSFORM` → its `CASCADE` patch → its `ON_CHANGE` rule. It calls `onChange(key, value)` for every field it sets, then emits the full next values once through `onRecordChange`. Visibility and disabled rules (`VISIBLE_WHEN` / `DISABLED_WHEN`) are evaluated by `FieldGrid`. Every setting the FORM.CONFIG inspector offers must have an engine effect, and the reverse (see `src/features/system/form-config/README.md`). Add new behaviour to these rule types (`field-rules.ts`), not to a screen.
 
 ## 3. Saving
 

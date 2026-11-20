@@ -274,7 +274,6 @@ export function UnifiedFieldFactory(props: UnifiedFieldFactoryProps) {
         errors={props.errors}
         disabled={props.disabled}
         mode={props.mode}
-        hasKernel={props.hasKernel}
       />
     );
   }

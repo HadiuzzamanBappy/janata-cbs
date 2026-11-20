@@ -19,7 +19,7 @@ export interface SessionData {
   lastActiveAt: number;
 }
 
-export type SessionPatch = Partial<Omit<SessionData, "createdAt" | "currUser">> & {
+type SessionPatch = Partial<Omit<SessionData, "createdAt" | "currUser">> & {
   currUser?: Partial<CurrentUser>;
 };
 
@@ -219,7 +219,7 @@ export async function getFromSession<K extends keyof SessionData>(
 /**
  * Patches the existing active session while preserving remaining TTL.
  */
-export async function updateSession(patch: SessionPatch): Promise<SessionData | null> {
+async function updateSession(patch: SessionPatch): Promise<SessionData | null> {
   const id = await currentSessionId();
   if (!id) return null;
 

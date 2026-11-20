@@ -9,8 +9,6 @@ import { ModelConfigNotFoundError, SCHEMA_ROOT_KEYS, schemaQueries } from "./que
 import { cbsAuth } from "./transport/auth-client";
 import { type SendCbsOptions, sendCbsRequest } from "./transport/proxy-client";
 
-export type { BranchDirectoryItem } from "./queries/lookups";
-export type { ResolvedFormSchemaData } from "./queries/schemas";
 export type { SendCbsOptions };
 export { cbsAuth, ModelConfigNotFoundError };
 
@@ -77,5 +75,3 @@ export const cbs = {
   // Query & security engines
   inquiry: inquiryPayloads,
 } as const;
-
-export default cbs;

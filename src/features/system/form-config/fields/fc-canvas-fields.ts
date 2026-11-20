@@ -414,8 +414,3 @@ export const TAB_ITEM_PROPERTIES_SECTION: FormSection = {
     },
   ],
 };
-
-export const TAB_PROPERTIES_SECTIONS: FormSection[] = [
-  TAB_GROUP_PROPERTIES_SECTION,
-  TAB_ITEM_PROPERTIES_SECTION,
-];

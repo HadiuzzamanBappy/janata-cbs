@@ -1,3 +1,2 @@
 export { FormSkeleton } from "./components/form-skeleton";
-export { OpsForm, type OpsFormProps } from "./ops-form";
-export type { DynamicFormProps } from "./types";
+export { OpsForm } from "./ops-form";

@@ -68,16 +68,6 @@ export interface UnifiedFieldFactoryProps {
   actionBeforeColon?: ReactNode;
   allValues?: Record<string, unknown>;
   errors?: Record<string, string>;
-  hasKernel?: boolean;
-}
-
-export interface FieldAtomProps {
-  field: FormElement;
-  mode?: CbsScreenMode;
-  disabled?: boolean;
-  labelOverride?: string;
-  labelSuffix?: ReactNode;
-  actionBeforeColon?: ReactNode;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -11,18 +11,6 @@ import { auditDataSchema } from "./common-schema";
 import { formElementsContainerSchema } from "./form-engine-schema";
 import { modelConfigRecordSchema } from "./model-config-schema";
 
-// Re-export layout nodes for convenience
-export {
-  type ContainerConfig,
-  containerConfigSchema,
-  type FormContainerType,
-  type FormElementsContainer,
-  type FormSection,
-  formContainerTypeSchema,
-  formElementsContainerSchema,
-  formSectionSchema,
-} from "./form-engine-schema";
-
 /* ========================================================================== */
 /* 1. ROUTINE HOOKS CONTRACT                                                  */
 /* ========================================================================== */
@@ -66,7 +54,6 @@ export type FormConfigRecord = z.infer<typeof formConfigRecordSchema>;
 export const gfcResponseSchema = modelConfigRecordSchema.extend({
   FORMCONTROL: z.union([formConfigRecordSchema, z.record(z.string(), z.any())]).default({}),
 });
-export type GfcResponse = z.infer<typeof gfcResponseSchema>;
 
 /* ========================================================================== */
 /* 4. SAVE RULES (SFC): what may be written to CONFIG.FORM                    */

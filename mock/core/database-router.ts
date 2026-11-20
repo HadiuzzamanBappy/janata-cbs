@@ -19,7 +19,7 @@ export interface ResolvedTable {
 
 /**
  * Resolves a logical CBS Control Name (e.g. "ACCOUNT") or physical name ("AC_ACCOUNT")
- * to its canonical table in CBS_DATABASE, returning an accessor bundle for queries.
+ * to its canonical mock table, returning an accessor bundle for queries.
  */
 export function resolveTable(controlName: string): ResolvedTable | null {
   if (!controlName) return null;

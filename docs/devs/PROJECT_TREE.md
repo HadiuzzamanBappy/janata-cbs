@@ -21,7 +21,7 @@ app → features → components → hooks → store → lib/cbs-*, core-utils �
    - Direct Redis (`ioredis`), gRPC (`@grpc/grpc-js`), and environment secrets live exclusively in server route handlers (`src/app/api/` and `src/lib/infra-*`).
    - Browser client interacts exclusively via the typed BFF proxy (`/api/proxy` via `@/lib/cbs-client`).
 3. **Core Subsystem Anchors:**
-   - **Form Engine (`src/components/cbs-form-engine`):** Headless 2-tier state kernel (`form-kernel-store.ts`) separating draft typing from record diffing. Supports arbitrary root layout ordering (independent fields, card containers, tab groups in any order).
+   - **Form Engine (`src/components/cbs-form-engine`):** Renders compiled form specs; form values stay with the screen (`useCbsPersistence`). Supports arbitrary root layout ordering (independent fields, card containers, tab groups in any order).
    - **Inquiry Engine (`src/components/cbs-inquiry-engine`):** Config-driven filter bar, result table, client-side paging and sorting, and row commands. Export (CSV, HTML, XML) and print live in the inquiry header (`src/components/cbs-screen/header`).
    - **Visual Designers (`src/features/system/*`):** Drag-and-drop form canvas (`form-config`), query designer (`inquiry-config`), metamodel dictionary (`model-config`), and navigation tree hierarchy builder (`menu-designer`).
 
@@ -86,10 +86,9 @@ janata-cbs/
     ├── components/                            # Reusable UI Primitives & CBS Scaffolding
     │   ├── cbs-command/                       # Global Command Gateway Bar (Ctrl+K, grammar parser, navigation modal)
     │   ├── cbs-form-engine/                   # Headless Dynamic Form Presentation Engine (FormRenderer, FormPreview)
-    │   │   ├── components/                    # form-renderer, field-atom, field-grid, field-row, object-field
+    │   │   ├── components/                    # form-renderer, field-grid, field-row, object-field
     │   │   │   ├── containers/                # Grouping layout containers (card-container, tab-group-container)
     │   │   │   └── widgets/                   # High-density typed inputs (amount, date, rate, select, text, etc.)
-    │   │   ├── store/                         # Headless 2-tier state kernel (form-kernel-store.ts)
     │   │   └── hooks/                         # use-field-options, use-model-lookup, use-multi-value
     │   ├── cbs-inquiry-engine/                # Inquiry rendering (InquiryTable, InquiryFilterBar) + runInquiry()
     │   │   ├── components/                    # inquiry-table, inquiry-filter-bar, pagination, row actions
@@ -182,7 +181,7 @@ janata-cbs/
 | **Access Rights & Four-Eyes** | `src/lib/cbs-access/`                                       | Pure TS evaluation of RIDASHL capabilities and Maker $\neq$ Checker rule. |
 | **Command Gateway**           | `src/components/cbs-command/`, `src/lib/cbs-command/`       | Terminal syntax parser, aliases, and screen navigation router.            |
 | **BFF Wire Client**           | `src/lib/cbs-client/`, `src/app/api/proxy/`                 | Typed request payload factories dispatched strictly via `/api/proxy`.     |
-| **Form Engine Kernel**        | `src/components/cbs-form-engine/`, `src/lib/cbs-form-spec/` | Zero-lag 150–1000 field rendering with 2-tier state & 12-col grid.        |
+| **Form Engine**               | `src/components/cbs-form-engine/`, `src/lib/cbs-form-spec/` | Spec-driven rendering on a 12-col grid; values stay with the screen.      |
 | **Record Delta Mutations**    | `src/lib/cbs-record/`                                       | Baseline snapshot vs modified state diffing for touch-only commits.       |
 | **Inquiry Engine**            | `src/components/cbs-inquiry-engine/`                        | Inquiry execution, filtering, paging and row commands.                    |
 | **Visual Form Designer**      | `src/features/system/form-config/`                          | Visual DnD layout builder supporting root fields, cards, and tab groups.  |

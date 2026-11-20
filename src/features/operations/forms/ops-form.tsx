@@ -24,7 +24,7 @@ export type OpsFormProps = DynamicFormProps & {
 
 /**
  * Operational Form Shell (OpsForm).
- * Coordinates CbsScreenScaffold with FormKernelProvider and FormRenderer.
+ * Coordinates CbsScreenScaffold with FormRenderer.
  * 100% Lean, Zero dead/legacy code, Zero magic strings.
  */
 export function OpsForm({

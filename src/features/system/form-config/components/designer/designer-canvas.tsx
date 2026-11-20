@@ -24,7 +24,7 @@ import type { DesignerCanvasProps } from "./canvas/canvas-types";
 import { useCanvasDrag } from "./canvas/use-canvas-drag";
 import { useDesignerContext } from "./context/designer-context";
 
-export type { AddSectionFn, DesignerCanvasProps } from "./canvas/canvas-types";
+export type { DesignerCanvasProps } from "./canvas/canvas-types";
 
 /**
  * DesignerCanvas: Core visual drag-and-drop workspace for CBS Form Designer.

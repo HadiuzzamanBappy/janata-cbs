@@ -4,10 +4,6 @@ import type { ApiResponse, CbsWirePayload, GrpcEnvelope } from "@/lib/data-schem
 import type { GrpcRequest, GrpcResponse } from "@/lib/infra-grpc/generated/service";
 import { CbsRecordFunction, CbsRequestType } from "@/types";
 import {
-  buildMockUserAuthResponse,
-  getMockFormPayload,
-  getMockMenuPayload,
-  getMockUserResponse,
   handleChangePassword,
   handleGetFormConfig,
   handleGetMenu,
@@ -22,15 +18,7 @@ import {
 } from "./handlers";
 import { notFoundResult, toGrpcResponse } from "./response-factory";
 
-export {
-  buildMockUserAuthResponse,
-  getMockFormPayload,
-  getMockMenuPayload,
-  getMockUserResponse,
-  handleGetMenu,
-  handleLogin,
-  handleSearchById,
-};
+export { handleGetMenu, handleLogin, handleSearchById };
 
 /**
  * Handles offline static CRUD and inquiry responses for the `/api/proxy` endpoint.

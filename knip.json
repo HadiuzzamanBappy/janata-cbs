@@ -1,0 +1,7 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["src/components/ui/**", "src/lib/infra-grpc/generated/**"],
+  "ignoreBinaries": ["protoc"],
+  "ignoreDependencies": ["ts-proto", "react-day-picker"],
+  "ignoreExportsUsedInFile": true
+}

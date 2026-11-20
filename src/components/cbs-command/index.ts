@@ -4,4 +4,3 @@
 
 export { AppSearch } from "./app-search";
 export { SearchFooterHelp } from "./components/search-footer-help";
-export type { GlobalSearchProps } from "./types";

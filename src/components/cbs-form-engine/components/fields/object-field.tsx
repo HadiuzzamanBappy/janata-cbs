@@ -18,7 +18,6 @@ import { formatNameToLabel } from "@/lib/core-utils";
 import type { FormElement } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { useFormLayout } from "../form-layout-context";
-import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";
 
 export interface ObjectFieldProps {
@@ -28,7 +27,6 @@ export interface ObjectFieldProps {
   errors?: Record<string, string>;
   disabled?: boolean;
   mode?: CbsScreenMode;
-  hasKernel?: boolean;
 }
 
 export function ObjectField({
@@ -38,7 +36,6 @@ export function ObjectField({
   errors = {},
   disabled = false,
   mode = CbsRecordFunction.INPUT,
-  hasKernel = false,
 }: ObjectFieldProps) {
   const { layout } = useFormLayout();
   const isStacked = layout === "stacked";
@@ -146,21 +143,16 @@ export function ObjectField({
                 key={child.SN || child.NAME}
                 className={getFieldColSpanClass(1, child.WIDTH, child.LENGTH, child.TYPE)}
               >
-                {hasKernel ? (
-                  <FieldAtom field={boundChild} disabled={isChildDisabled(child)} mode={mode} />
-                ) : (
-                  <UnifiedFieldFactory
-                    field={boundChild}
-                    value={getFieldValue(values, fieldPath)}
-                    onChange={onChange}
-                    error={errors[fieldPath]}
-                    disabled={isChildDisabled(child)}
-                    mode={mode}
-                    allValues={values}
-                    errors={errors}
-                    hasKernel={false}
-                  />
-                )}
+                <UnifiedFieldFactory
+                  field={boundChild}
+                  value={getFieldValue(values, fieldPath)}
+                  onChange={onChange}
+                  error={errors[fieldPath]}
+                  disabled={isChildDisabled(child)}
+                  mode={mode}
+                  allValues={values}
+                  errors={errors}
+                />
               </div>
             );
           })}
@@ -251,21 +243,16 @@ export function ObjectField({
                     key={boundChild.SN || boundChild.NAME}
                     className={getFieldColSpanClass(1, child.WIDTH, child.LENGTH, child.TYPE)}
                   >
-                    {hasKernel ? (
-                      <FieldAtom field={boundChild} disabled={isChildDisabled(child)} mode={mode} />
-                    ) : (
-                      <UnifiedFieldFactory
-                        field={boundChild}
-                        value={getFieldValue(values, fieldPath)}
-                        onChange={onChange}
-                        error={errors[fieldPath]}
-                        disabled={isChildDisabled(child)}
-                        mode={mode}
-                        allValues={values}
-                        errors={errors}
-                        hasKernel={false}
-                      />
-                    )}
+                    <UnifiedFieldFactory
+                      field={boundChild}
+                      value={getFieldValue(values, fieldPath)}
+                      onChange={onChange}
+                      error={errors[fieldPath]}
+                      disabled={isChildDisabled(child)}
+                      mode={mode}
+                      allValues={values}
+                      errors={errors}
+                    />
                   </div>
                 );
               })}

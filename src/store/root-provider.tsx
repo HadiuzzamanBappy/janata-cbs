@@ -42,5 +42,3 @@ export function CbsAppStoreProvider({ children }: CbsAppStoreProviderProps) {
     </QueryClientProvider>
   );
 }
-
-export default CbsAppStoreProvider;

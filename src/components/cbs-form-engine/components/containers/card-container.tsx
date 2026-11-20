@@ -9,10 +9,9 @@
 "use client";
 
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/core-utils";
 import { CbsRecordFunction } from "@/types";
-import { FormKernelContext } from "../../store/form-kernel-provider";
 import type { SectionCardProps } from "../../types";
 import { FieldGrid } from "../fields/field-grid";
 import { useFormLayout } from "../form-layout-context";
@@ -33,7 +32,6 @@ export function CardContainer({
   mode = CbsRecordFunction.INPUT,
   hideHeader = false,
 }: CardContainerProps) {
-  const hasKernel = Boolean(useContext(FormKernelContext));
   const { density: rootDensity } = useFormLayout();
   const isCollapsible = Boolean(section.collapsible);
   const [collapsed, setCollapsed] = useState<boolean>(
@@ -239,7 +237,6 @@ export function CardContainer({
           disabled={disabled}
           mode={mode}
           numCols={numCols}
-          hasKernel={hasKernel}
         />
       )}
     </div>

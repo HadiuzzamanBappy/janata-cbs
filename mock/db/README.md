@@ -47,7 +47,7 @@ The form-layout model key is `CONFIG.FORM` (`CbsControlTable.FORM_CONFIG`), stor
 
 ## 🔍 Resolution (`getVersionedTable`)
 
-`getVersionedTable(name)` (and the `CBS_DATABASE` proxy, which calls it) finds a table in this order:
+`getVersionedTable(name)` finds a table in this order:
 
 1. A physical name in `CBS_PHYSICAL_TABLES` (`SC_FORM_CONFIG`).
 2. A model in `SC_MODEL_CONFIG`, by key, by `TABLENAME`, or by `PREFIX_TABLENAME`. The first `.` may also be read as `_`. The model's `PREFIX` + `TABLENAME` names the physical table (`CONFIG.FORM` → `SC_FORM_CONFIG`).
@@ -86,4 +86,4 @@ The updated record is always written to `LIVE` under its ID. On `AU`, any `INAU`
 
 - `.rawResponse/`: real core responses kept as reference samples. `pnpm fixture:clean [path]` normalizes one into fixture form (default `grpc/GRL-Branch`).
 - `types.ts`: `CbsVersionedTable`, `CbsTableVersion` and the lookup types.
-- `index.ts`: `CBS_PHYSICAL_TABLES`, `getVersionedTable`, `CBS_DATABASE`.
+- `index.ts`: `CBS_PHYSICAL_TABLES`, `getVersionedTable`.

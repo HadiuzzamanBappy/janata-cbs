@@ -263,7 +263,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "17": {
     label: "Model Config",
-    command: "SC.MODEL.CONFIG",
+    command: "MODEL.CONFIG",
     menuType: "FORM",
     menuAction: "SCREEN",
     auditData: {
@@ -278,7 +278,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "18": {
     label: "Form Config",
-    command: "SC.FORM.CONFIG",
+    command: "FORM.CONFIG",
     menuType: "FORM",
     menuAction: "SCREEN",
     auditData: {
@@ -293,7 +293,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "19": {
     label: "Inquiry Config",
-    command: "SC.INQUIRY.CONFIG",
+    command: "INQUIRY.CONFIG",
     menuType: "FORM",
     menuAction: "SCREEN",
     auditData: {
@@ -308,7 +308,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "20": {
     label: "Menu Designer",
-    command: "SC.MENU.DESIGN",
+    command: "MENU.DESIGN",
     menuType: "FORM",
     menuAction: "SCREEN",
     auditData: {

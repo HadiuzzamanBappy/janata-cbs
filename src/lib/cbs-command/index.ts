@@ -2,23 +2,15 @@ import { parseCbsCommand, registerCommandHandler } from "./engine/grammar";
 import { validateSecurityPermissions } from "./engine/validator";
 import {
   type CbsNotification,
-  type CbsNotificationType,
-  type CommandAdapter,
   type CommandTabPayload,
-  getCommandAdapter,
   notifyUser,
   registerCommandAdapter,
 } from "./executor/adapter";
 import { executeCbsCommand } from "./executor/terminal";
 import { registerDynamicAliases, resolveCommandAlias, resolveCommandTitle } from "./registry/alias";
 import { extractMenuCommands, getMasterCommands } from "./registry/catalog";
-import type {
-  CommandHandler,
-  CommandValidationResult,
-  ExecutionOptions,
-  ParsedCommand,
-} from "./types";
-import { CBS_SETTINGS_EVENT, CBS_SETTINGS_TABS } from "./types";
+import type { CommandHandler, ExecutionOptions, ParsedCommand } from "./types";
+import { CBS_SETTINGS_EVENT } from "./types";
 
 /**
  * Universal CBS Command Gateway facade.
@@ -40,22 +32,11 @@ export const cbsCommand = {
   getCommands: getMasterCommands,
 };
 
-export type {
-  CbsNotification,
-  CbsNotificationType,
-  CommandAdapter,
-  CommandHandler,
-  CommandTabPayload,
-  CommandValidationResult,
-  ExecutionOptions,
-  ParsedCommand,
-};
+export type { CbsNotification, CommandHandler, CommandTabPayload, ExecutionOptions, ParsedCommand };
 
 export {
   CBS_SETTINGS_EVENT,
-  CBS_SETTINGS_TABS,
   extractMenuCommands,
-  getCommandAdapter,
   getMasterCommands,
   notifyUser,
   registerCommandAdapter,

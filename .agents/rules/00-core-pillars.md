@@ -21,7 +21,7 @@ Zero legacy applies **inside the code**: no shims, deprecated aliases, fallback 
 
 ## 3. Form state
 
-Keystrokes never re-render the workbench. Tier 1 is the form engine's kernel store (`FieldAtom` subscribes per field). Tier 2: `useCbsPersistence` writes `formData` and `isDirty` to the tab, debounced by 400 ms.
+Keystrokes never re-render the workbench. Form values live in one place: `useCbsPersistence` holds `formData` for the screen, so a keystroke re-renders the form only, and it writes `formData` and `isDirty` to the tab debounced by 400 ms.
 
 ## 4. Naming & UI
 
@@ -30,8 +30,9 @@ Keystrokes never re-render the workbench. Tier 1 is the form engine's kernel sto
 
 ## 5. Refactoring checklist (any file you touch)
 
+The rules are in `AGENTS.md` §1 (DRY, zero legacy, dead code, magic strings, IDs, size budget). This adds the detail:
+
 1. **No duplicate logic**: never compute `isReadOnly` or maker ≠ checker inline (`@/lib/cbs-access`), never diff records by hand (`evaluateDirty` / `computeDelta`), never add raw `keydown` listeners (`useCbsHotkeys` / `useHotkeys`).
-2. **No legacy or dead code**: remove shims, unused exports, imports, props, branches and files in the same change, except the boundaries in §1.
-3. **No magic strings**: modes, codes and sets of modes come from `@/types`.
-4. **No invented IDs**: record IDs from input or `GNI`; if allocation fails with no candidate, return `""`. UI-only keys use `generateClientToken()` and are never sent as record IDs.
-5. **Size budget** as in `AGENTS.md` §1. Split only along real responsibilities.
+2. **Zero legacy stops at §1**: the compatibility boundaries above are the only exception. There, old shapes stay readable or get a one-time migration.
+3. **Magic strings** include sets of modes: build them from `@/types` enums, not inline arrays.
+4. **IDs**: if `GNI` allocation fails with no candidate, return `""`. UI-only keys use `generateClientToken()` and are never sent as record IDs.

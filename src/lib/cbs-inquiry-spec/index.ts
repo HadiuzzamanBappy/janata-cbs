@@ -6,8 +6,6 @@ export {
   deriveInquiryColumnMeta,
   formatColumnCoordinates,
   formatColumnLength,
-  type ParsedColumnCoordinates,
-  type ParsedColumnLength,
   parseColumnCoordinates,
   parseColumnLength,
 } from "./column-compiler";
@@ -19,10 +17,7 @@ export {
   resolveCommandTemplate,
   rowCommandOf,
 } from "./command-resolver";
-export {
-  INQUIRY_OPERAND_OPTIONS,
-  type InquiryOperandOption,
-} from "./constants";
+export { INQUIRY_OPERAND_OPTIONS } from "./constants";
 // Criteria Mapper & Wire Serialization
 export {
   buildDefaultCriteria,

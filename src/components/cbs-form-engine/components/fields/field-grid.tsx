@@ -17,7 +17,6 @@ import {
 import { cn } from "@/lib/core-utils";
 import type { FormSection } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
-import { FieldAtom } from "./field-atom";
 import { UnifiedFieldFactory } from "./field-factory";
 
 export interface FieldGridProps {
@@ -28,7 +27,6 @@ export interface FieldGridProps {
   disabled?: boolean;
   mode?: CbsScreenMode;
   numCols: number;
-  hasKernel: boolean;
 }
 
 export function FieldGrid({
@@ -39,7 +37,6 @@ export function FieldGrid({
   disabled = false,
   mode = CbsRecordFunction.INPUT,
   numCols,
-  hasKernel,
 }: FieldGridProps) {
   const effectiveCols = numCols || section.columns || 1;
   const isViewMode = mode !== CbsRecordFunction.INPUT;
@@ -70,21 +67,16 @@ export function FieldGrid({
             key={field.NAME || `${field.SN || "field"}-${idx}`}
             className={getFieldColSpanClass(effectiveCols, field.WIDTH, field.LENGTH, field.TYPE)}
           >
-            {hasKernel ? (
-              <FieldAtom field={field} disabled={isFieldDisabled} mode={mode} />
-            ) : (
-              <UnifiedFieldFactory
-                field={field}
-                value={getFieldValue(values, field.NAME)}
-                onChange={onChange}
-                error={errors[field.NAME]}
-                disabled={isFieldDisabled}
-                mode={mode}
-                allValues={values}
-                errors={errors}
-                hasKernel={false}
-              />
-            )}
+            <UnifiedFieldFactory
+              field={field}
+              value={getFieldValue(values, field.NAME)}
+              onChange={onChange}
+              error={errors[field.NAME]}
+              disabled={isFieldDisabled}
+              mode={mode}
+              allValues={values}
+              errors={errors}
+            />
           </div>
         );
       })}

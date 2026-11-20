@@ -51,7 +51,7 @@ Janata Core Banking operates **strictly at the Presentation/Frontend Layer** of 
 - **Language**: [TypeScript](https://www.typescriptlang.org/) (Strict Mode)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) + OKLCH Design Tokens + [shadcn/ui](https://ui.shadcn.com/) / [@base-ui/react](https://base-ui.com/)
 - **State Management**: [Zustand](https://zustand-demo.pmnd.rs/) (Session, Workbench, Alerts)
-- **RPC & Data Transport**: `@grpc/grpc-js`, `@grpc/proto-loader`, `@bufbuild/protobuf`
+- **RPC & Data Transport**: `@grpc/grpc-js`, `@bufbuild/protobuf`
 - **Validation**: [Zod](https://zod.dev/)
 - **Caching & Sessions**: [ioredis](https://github.com/redis/ioredis) (with resilient fallback circuit breakers)
 - **Code Quality**: [Biome](https://biomejs.dev/)

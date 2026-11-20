@@ -10,10 +10,10 @@ Banking forms are never hand-coded. The core sends a **Model Config** (data sche
 
 ---
 
-## 1. Two-tier state (no keystroke thrashing)
+## 1. Form state (no keystroke thrashing)
 
-1. **Tier 1, field level**: `FormKernelProvider` holds the form's values. Each `FieldAtom` subscribes to its own field through `useFormKernel(selector)`, so a keystroke re-renders one field.
-2. **Tier 2, tab level**: `useCbsPersistence` (`@/components/cbs-screen`) keeps the screen's `formData` and writes `formData` and `isDirty` to the workbench tab **debounced by 400 ms**. It also writes on `hydrate`, `rebaseline` and `reset`.
+1. **One store**: `useCbsPersistence` (`@/components/cbs-screen`) holds the screen's `formData`. A keystroke re-renders the form, never the workbench.
+2. **Tab writes are debounced**: it writes `formData` and `isDirty` to the workbench tab **debounced by 400 ms**, and also on `hydrate`, `rebaseline` and `reset`.
 3. Never write to the workbench store per keystroke, and never add a new Zustand store for form data.
 
 `isDirty` comes from `evaluateDirty(baseline, formData)` in `@/lib/cbs-record`, so reverting an edit makes the form clean again.

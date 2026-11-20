@@ -97,21 +97,3 @@ export function getVersionedTable<T = Record<string, unknown>>(
   // If not present in model config or physical tables, do not assume -> return null
   return null;
 }
-
-/**
- * Universal In-Memory Database Registry for CBS Offline / Mock Operations.
- * Dynamically resolves any canonical model name or physical table name via SC_MODEL_CONFIG.
- */
-export const CBS_DATABASE = new Proxy(
-  CBS_PHYSICAL_TABLES as unknown as Record<string, CbsVersionedTable<Record<string, unknown>>>,
-  {
-    get(_target, prop: string | symbol) {
-      if (typeof prop !== "string") return undefined;
-      return getVersionedTable(prop);
-    },
-    has(_target, prop: string | symbol) {
-      if (typeof prop !== "string") return false;
-      return getVersionedTable(prop) !== null;
-    },
-  },
-);

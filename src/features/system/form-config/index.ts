@@ -5,5 +5,4 @@
  * @module features/system/form-config
  */
 
-export { useFormConfig } from "./hooks/use-form-config";
 export { SysFormConfig } from "./sys-form-config";

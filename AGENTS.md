@@ -14,7 +14,13 @@ A production core-banking frontend + BFF: Next.js 16 (App Router), React 19, Tai
 
 ## 0. How to work here
 
-- **Smallest safe change.** Fix what was asked; don't refactor around it. Justify every new file.
+- **Smallest safe change.** Fix what was asked; don't refactor around it. Justify every new file. Before writing:
+  1. **Does it need to exist?** Skip anything not asked for, and name what you skipped in one line.
+  2. **Map the reach**: grep every caller of what you touch, plus fixtures, `mock/`, config, docs and the three compatibility boundaries (§1).
+  3. **Reuse before writing**: an existing `src/lib` unit or component, then the platform, then an installed dependency. Never add a dependency for a few lines.
+  4. **Fix the root cause once**, in shared code (the compiler, engine or `src/lib` unit), never per caller or per screen.
+  5. **Moved or merged code keeps its validation and error handling.**
+  6. **New logic that isn't trivial gets a test**: propose a case for the matching `verify:*` suite (suites need the owner, see below), never an ad-hoc assert or a new test framework.
 - **Never commit or push** unless the owner asks. Leave changes in the working tree for review.
 - **Commit message**: one line, `type(scope):short lowercase summary` (no space after the colon), matching `git log`, for example `fix(auth):redis sessions safe rate limits and server checked branch`. No body, no `Co-Authored-By` or AI attribution trailer.
 - **Before amending or rewriting history**, check `git reflog`: the owner may have reset or committed in between. Never amend a commit you didn't make.
@@ -49,6 +55,7 @@ pnpm ui:add <name>      # add a shadcn/Base UI primitive (never hand-edit src/co
 pnpm cache:clear        # flush the Redis cache
 pnpm cache:inspect      # list cached keys
 pnpm fixture:clean      # normalize a mock/db/.rawResponse sample
+pnpm knip               # unused files, exports and dependencies (Knip)
 ```
 
 Verification suites are standalone `tsx` scripts in `scripts/verify/` (not Jest/Vitest; no per-case filter). Run one directly with `pnpm exec tsx scripts/verify/<file>.ts`.

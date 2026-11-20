@@ -20,8 +20,9 @@ interface McPropertiesTabProps {
   properties: ModelProperty[];
   isReadOnly: boolean;
   isFieldCommitted: (sn: string) => boolean;
-  selectedSN?: string | null;
-  onSelectSN?: (sn: string) => void;
+  /** Selected property SN, owned by the screen. */
+  selectedSN: string | null;
+  onSelectSN: (sn: string | null) => void;
   validationErrors?: ModelValidationErrorItem[];
   onAddField: () => string;
   onAddSubField?: (parentSn: string) => string;
@@ -33,8 +34,8 @@ export function McPropertiesTab({
   properties,
   isReadOnly,
   isFieldCommitted,
-  selectedSN: controlledSN,
-  onSelectSN: onControlledSelectSN,
+  selectedSN,
+  onSelectSN,
   validationErrors = [],
   onAddField,
   onAddSubField,
@@ -42,36 +43,27 @@ export function McPropertiesTab({
   onRemoveField,
 }: McPropertiesTabProps) {
   const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(860);
-  const [internalSN, setInternalSN] = React.useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
-  const selectedSN = controlledSN !== undefined ? controlledSN : internalSN;
   const handleSelectSN = (sn: string) => {
-    if (onControlledSelectSN) onControlledSelectSN(sn);
-    setInternalSN(sn);
+    onSelectSN(sn);
     // When in compact mode (offcanvas drawer), auto-close when a column is selected
     if (isCompact) {
       setIsSidebarOpen(false);
     }
   };
 
-  // Keep selectedSN valid
+  // Keep the selection valid: fall back to the first property, or none when the list is empty
   React.useEffect(() => {
     if (properties.length === 0) {
-      if (onControlledSelectSN) onControlledSelectSN("");
-      setInternalSN(null);
+      if (selectedSN !== null) onSelectSN(null);
       return;
     }
-
     const currentExists = selectedSN
       ? properties.some((p) => p.SN === selectedSN || p.PROP?.some((sub) => sub.SN === selectedSN))
       : false;
-    if (!currentExists && properties.length > 0) {
-      const fallbackSN = properties[0].SN;
-      if (onControlledSelectSN) onControlledSelectSN(fallbackSN);
-      setInternalSN(fallbackSN);
-    }
-  }, [properties, selectedSN, onControlledSelectSN]);
+    if (!currentExists) onSelectSN(properties[0].SN);
+  }, [properties, selectedSN, onSelectSN]);
 
   const { selectedProperty, isSubProperty } = React.useMemo(() => {
     if (!selectedSN) return { selectedProperty: undefined, isSubProperty: false };

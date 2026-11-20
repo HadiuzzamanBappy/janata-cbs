@@ -7,6 +7,7 @@ import {
   parseMNU,
 } from "@/lib/data-parsers";
 import {
+  CBS_API_STATUS,
   type FormConfigRecord,
   type InquiryConfigRecord,
   isApiSuccess,
@@ -35,12 +36,21 @@ const inquiryConfigPayloads = createModelPayloads(CbsControlTable.INQUIRY_CONFIG
 /**
  * Fetches and unwraps a single MODEL.CONFIG metamodel record ('GMC').
  */
+/**
+ * The core answered that the model does not exist (an empty success, or RECORD_NOT_FOUND / 404).
+ * Any other failure is a plain Error, so a designer never mistakes an outage for a new model.
+ */
+export class ModelConfigNotFoundError extends Error {}
+
 export async function loadModelConfigRecord(modelId: string): Promise<ModelConfigRecord> {
   const cleanId = modelId.split("$")[0].split(",")[0].trim().toUpperCase();
   const res = await sendCbsRequest<unknown>(modelConfigPayloads.get(cleanId), { silent: true });
   const record = isApiSuccess(res) ? extractModelConfigRecord(res.data) : null;
   if (!record) {
-    throw new Error(res.message || `Failed to load MODEL.CONFIG for "${cleanId}"`);
+    const message = res.message || `Failed to load MODEL.CONFIG for "${cleanId}"`;
+    const notFound =
+      isApiSuccess(res) || res.status === CBS_API_STATUS.RECORD_NOT_FOUND || res.statusCode === 404;
+    throw notFound ? new ModelConfigNotFoundError(message) : new Error(message);
   }
   // Not schema-validated on purpose: designers must be able to open invalid records to fix them.
   return record as ModelConfigRecord;

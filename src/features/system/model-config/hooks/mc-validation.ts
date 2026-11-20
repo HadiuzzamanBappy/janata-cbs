@@ -32,7 +32,8 @@ function mapZodIssuesToValidationErrors(
     const path = issue.path;
     let tab: ModelConfigTabKey = "general";
     let sn: string | undefined;
-    let fieldKey = String(path[path.length - 1] || "unknown");
+    // General-tab keys are the full form path (IDDEF.SEQUENCELENGTH), so the field highlights
+    let fieldKey = path.join(".") || "unknown";
 
     if (path[0] === "PROPERTIES") {
       tab = "properties";

@@ -10,6 +10,7 @@
 
 import {
   DEFAULT_PROPERTY_LENGTH,
+  DEFAULT_SUB_PROPERTY_LENGTH,
   FIXED_PROPERTY_LENGTHS,
   type FormSection,
   PROPERTY_TYPES,
@@ -53,7 +54,6 @@ export function getPropertyInspectorSections(isSubProperty: boolean = false): Fo
           STRUCTURE: "S",
           LENGTH: 20,
           WIDGET: "segmented",
-          DEFAULTVALUE: "String",
           PARAMETER: {
             type: "O",
             data: allowedTypes.map((t) => ({ code: t, label: t })),
@@ -71,8 +71,15 @@ export function getPropertyInspectorSections(isSubProperty: boolean = false): Fo
               when: "Time",
               set: { LENGTH: FIXED_PROPERTY_LENGTHS.Time, PROP: undefined, MODELNAME: "" },
             },
-            { when: "Number", set: { LENGTH: 15, PROP: undefined, MODELNAME: "" } },
-            { when: "String", set: { LENGTH: DEFAULT_PROPERTY_LENGTH, PROP: undefined } },
+            // String and Number keep MODELNAME (the only types that may reference a model)
+            { when: "Number", set: { LENGTH: 15, PROP: undefined } },
+            {
+              when: "String",
+              set: {
+                LENGTH: isSubProperty ? DEFAULT_SUB_PROPERTY_LENGTH : DEFAULT_PROPERTY_LENGTH,
+                PROP: undefined,
+              },
+            },
             {
               when: "Boolean",
               set: {
@@ -99,7 +106,6 @@ export function getPropertyInspectorSections(isSubProperty: boolean = false): Fo
           STRUCTURE: "S",
           LENGTH: 5,
           WIDGET: "segmented",
-          DEFAULTVALUE: "S",
           PARAMETER: {
             type: "O",
             data: [
@@ -123,7 +129,6 @@ export function getPropertyInspectorSections(isSubProperty: boolean = false): Fo
           STRUCTURE: "S",
           LENGTH: 4,
           WIDTH: "xs",
-          DEFAULTVALUE: String(DEFAULT_PROPERTY_LENGTH),
           DISABLED_WHEN: {
             field: "TYPE",
             operator: "in",
@@ -157,13 +162,14 @@ export function getPropertyInspectorSections(isSubProperty: boolean = false): Fo
             modelName: "MODEL.CONFIG",
             data: [],
           },
+          // Designer-UI limit only: a model reference makes sense on a String or Number column
           DISABLED_WHEN: {
             field: "TYPE",
-            operator: "neq",
-            value: "String",
+            operator: "notIn",
+            value: "String,Number",
           },
           ENRICHTEXT:
-            "Target CBS model/table for lookup (e.g. CUSTOMER, BRANCH, CURRENCY). Select from registered models or type a table name.",
+            "Target CBS model/table for lookup (e.g. CUSTOMER, BRANCH, CURRENCY). Available for String and Number columns.",
         },
       ],
     },

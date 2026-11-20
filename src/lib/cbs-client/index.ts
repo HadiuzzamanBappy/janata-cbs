@@ -5,14 +5,14 @@ import { inquiryPayloads } from "./payloads/inquiry";
 import { menuTreePayloads } from "./payloads/menu-tree";
 import { modelConfigPayloads } from "./payloads/model-config";
 import { lookupQueries } from "./queries/lookups";
-import { SCHEMA_ROOT_KEYS, schemaQueries } from "./queries/schemas";
+import { ModelConfigNotFoundError, SCHEMA_ROOT_KEYS, schemaQueries } from "./queries/schemas";
 import { cbsAuth } from "./transport/auth-client";
 import { type SendCbsOptions, sendCbsRequest } from "./transport/proxy-client";
 
 export type { BranchDirectoryItem } from "./queries/lookups";
 export type { ResolvedFormSchemaData } from "./queries/schemas";
 export type { SendCbsOptions };
-export { cbsAuth };
+export { cbsAuth, ModelConfigNotFoundError };
 
 /**
  * Unified TanStack v5 queryOptions facade:

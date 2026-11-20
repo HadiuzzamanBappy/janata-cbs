@@ -188,6 +188,44 @@ async function runSuite() {
       !emptySave.success,
   );
 
+  // 4c. Property rules are save rules; reads and drafts stay lenient. MODELNAME on Number is valid
+  // (String / Number is a designer-UI limit, not a save rule)
+  const propertyRuleModel = {
+    ...sampleModel,
+    ACCESS: "G",
+    SERVICEPATH: "default",
+    PROPERTIES: [
+      { SN: "1", NAME: "branchCode", TYPE: "Number", LENGTH: 4, MODELNAME: "BRANCH" },
+      { SN: "2", NAME: "branchCode", TYPE: "String", LENGTH: 10 },
+      {
+        SN: "3",
+        NAME: "items",
+        TYPE: "Array",
+        LENGTH: 0,
+        PROP: [
+          { SN: "3_1", NAME: "code", TYPE: "String", LENGTH: 5, MODELNAME: "BAD NAME" },
+          { SN: "3_2", NAME: "code", TYPE: "Array", LENGTH: 0 },
+        ],
+      },
+    ],
+  };
+  const propertyReadOk = modelConfigRecordSchema.safeParse(propertyRuleModel).success;
+  const propertySaveIssues = modelConfigSaveSchema
+    .safeParse(propertyRuleModel)
+    .error?.issues.map((i) => i.path.join("."));
+  const expectedPropertyIssues = [
+    "PROPERTIES.1.NAME",
+    "PROPERTIES.2.PROP.0.MODELNAME",
+    "PROPERTIES.2.PROP.1.NAME",
+    "PROPERTIES.2.PROP.1.TYPE",
+  ];
+  recordTest(
+    "4c. Model property rules: unique names, MODELNAME format, no nested Array on save; reads stay lenient; Number may reference a model",
+    { properties: ["branchCode (Number → BRANCH)", "branchCode", "items[code, code(Array)]"] },
+    { propertyReadOk, propertySaveIssues },
+    propertyReadOk && JSON.stringify(propertySaveIssues) === JSON.stringify(expectedPropertyIssues),
+  );
+
   // 5. Versioned Form Presentation Specification Contract
   const sampleForm = {
     title: "Test Form",

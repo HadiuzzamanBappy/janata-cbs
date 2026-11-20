@@ -12,7 +12,6 @@ import * as React from "react";
 import {
   createModelProperty,
   DEFAULT_SUB_PROPERTY_LENGTH,
-  FIXED_PROPERTY_LENGTHS,
   type ModelConfigRecord,
   type ModelProperty,
 } from "@/lib/data-schemas";
@@ -59,18 +58,18 @@ export function useMcPropertyOps(
         const props = (prev.PROPERTIES || []).map((p) => {
           if (p.SN !== parentSn) return p;
           const currentChildren = p.PROP || [];
-          const nextSubIndex = currentChildren.length + 1;
-          const nextSn = `${parentSn}_${nextSubIndex}`;
+          // Next after the highest suffix: a count would reuse an SN after a draft delete
+          const maxSuffix = currentChildren.reduce((max, sub) => {
+            const num = Number.parseInt(sub.SN.split("_").pop() ?? "", 10);
+            return !Number.isNaN(num) && num > max ? num : max;
+          }, 0);
+          const nextSn = `${parentSn}_${maxSuffix + 1}`;
           createdSn = nextSn;
           const newSubField = createModelProperty(nextSn, {
             LENGTH: DEFAULT_SUB_PROPERTY_LENGTH,
           });
-          return {
-            ...p,
-            TYPE: "Array" as const,
-            LENGTH: FIXED_PROPERTY_LENGTHS.Array ?? 0,
-            PROP: [...currentChildren, newSubField],
-          };
+          // Sub-properties are only offered on Array properties, so the parent type is unchanged
+          return { ...p, PROP: [...currentChildren, newSubField] };
         });
         return { ...prev, PROPERTIES: props };
       });

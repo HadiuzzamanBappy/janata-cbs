@@ -38,12 +38,21 @@ export function McGeneralTab({
     return map;
   }, [validationErrors]);
 
+  // The pattern checkboxes are a UI helper over IDPATTERN ("PF#IS"): show the stored tokens as
+  // ticked, so editing them extends the saved pattern instead of starting from nothing
+  const values = React.useMemo(() => {
+    const idDef = formData.IDDEF as ModelConfigRecord["IDDEF"] & { idPatternSelect?: string[] };
+    if (idDef.idPatternSelect) return formData;
+    const tokens = (idDef.IDPATTERN || "").split("#").filter(Boolean);
+    return { ...formData, IDDEF: { ...idDef, idPatternSelect: tokens } };
+  }, [formData]);
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-4xl space-y-3">
         <FormRenderer
           frmElements={{ sections: MODEL_CONFIG_SECTIONS }}
-          values={formData}
+          values={values}
           onRecordChange={(next) => setFormData(next as ModelConfigRecord)}
           externalErrors={errorMap}
           disabled={isReadOnly}

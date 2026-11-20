@@ -71,7 +71,6 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 100,
         REQUIRED: true,
         WIDTH: "sm",
-        DEFAULTVALUE: "default",
         ENRICHTEXT:
           "Service that owns this table: default (the core) or a microservice name such as finxurm.",
       },
@@ -84,7 +83,6 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 1,
         REQUIRED: true,
         WIDGET: "radio-group",
-        DEFAULTVALUE: "G",
         PARAMETER: {
           type: "O",
           data: [
@@ -122,7 +120,6 @@ export const MODEL_CONFIG_SECTIONS: FormSection[] = [
         LENGTH: 2,
         REQUIRED: true,
         WIDTH: "xs",
-        DEFAULTVALUE: "1",
         ENRICHTEXT:
           "Number of Maker-Checker authorization levels a record needs (0 = no authorization).",
       },

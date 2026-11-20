@@ -11,7 +11,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
 import { isRecordEditable } from "@/lib/cbs-access";
-import { cbsQueries } from "@/lib/cbs-client";
+import { cbsQueries, ModelConfigNotFoundError } from "@/lib/cbs-client";
 import type { ModelConfigRecord } from "@/lib/data-schemas";
 import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type ModelValidationErrorItem, validateModelConfig } from "./mc-validation";
@@ -28,11 +28,9 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     formData,
     setFormData,
     hydrate,
-    rebaseline,
     reset,
     baseline,
     isDirty,
-    dirtyKeys,
     resolvedInitialId,
     resolvedInitialMode,
   } = useModelConfigPersistence(initialId, tabId);
@@ -105,8 +103,18 @@ export function useModelConfig(initialId?: string, tabId?: string) {
           return;
         }
         if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
-      } catch {
-        if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
+      } catch (err) {
+        // Only a model the core says doesn't exist becomes a new draft. Any other failure keeps
+        // the screen as it is: a blank draft saved over an existing model would drop its columns.
+        if (err instanceof ModelConfigNotFoundError) {
+          if (targetMode === CbsRecordFunction.INPUT) initDraft(cleanId);
+          return;
+        }
+        toast.add({
+          title: "Model Could Not Be Loaded",
+          description: err instanceof Error ? err.message : `Failed to load #${cleanId}`,
+          type: "error",
+        });
       } finally {
         setLoading(false);
       }
@@ -139,9 +147,7 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     recordId,
     setSubmitting,
     setValidationErrors,
-    rebaseline,
     resetToIdle,
-    markAsCommitted,
     fetchRecord,
   });
 
@@ -169,13 +175,11 @@ export function useModelConfig(initialId?: string, tabId?: string) {
     recordId,
     setRecordId,
     mode,
-    setMode,
     formData,
     setFormData,
     baseline,
     rawRecord,
     isDirty,
-    dirtyKeys,
     loading,
     submitting,
     fetchRecord,

@@ -154,121 +154,44 @@ const idDefSchema = z.object({
   IDPATTERN: z.string().default(""),
 });
 
-export const modelConfigRecordSchema = z
-  .looseObject({
-    _DEVBY: z.string().default(""),
-    _DEVDATE: z.string().default(""),
-    DESCRIPTION: z.string().min(1, "Description is required"),
-    PREFIX: z.string().default(""),
-    TABLENAME: z.string().min(1, "Table Name is required"),
-    USERDEFINEID: z.boolean().default(false),
-    ACCESS: z.string().min(1, "Table Type (Global / Branch) is required"),
-    READONLY: z.boolean().default(false),
-    SEARCHABLE: z.boolean().default(false),
-    ASSOCIATES: z.array(z.string()).default([]),
-    /** Authorization levels a record needs; 0 = no authorization. Empty falls back to 1. */
-    AUTHLEVEL: z
-      .preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional())
-      .default(1),
-    SERVICEPATH: z.string().min(1, "Service Path is required"),
-    IDDEF: idDefSchema
-      .nullable()
-      .transform(
-        (val) =>
-          val ?? {
-            IDPREFIX: "",
-            SEQUENCELENGTH: "",
-            SEQUENCERESET: false,
-            IDPATTERN: "",
-          },
-      )
-      .default({
-        IDPREFIX: "",
-        SEQUENCELENGTH: "",
-        SEQUENCERESET: false,
-        IDPATTERN: "",
-      }),
-    PROPERTIES: z.array(modelPropertySchema).default([]),
-    IDROUTINE: z.string().default("").optional(),
-    FIELDBASED: z.boolean().default(false).optional(),
-    auditData: auditDataSchema.optional(),
-  })
-  .superRefine((data, ctx) => {
-    const seenNames = new Set<string>();
-
-    data.PROPERTIES.forEach((prop, idx) => {
-      const nameLower = (prop.NAME || "").trim().toLowerCase();
-      if (nameLower) {
-        if (seenNames.has(nameLower)) {
-          ctx.addIssue({
-            code: "custom",
-            message: `Duplicate column name "${prop.NAME}". Each property must have a unique name.`,
-            path: ["PROPERTIES", idx, "NAME"],
-          });
-        }
-        seenNames.add(nameLower);
-      }
-
-      const modelName = (prop.MODELNAME || "").trim();
-      if (modelName) {
-        if (prop.TYPE !== CBS_PROPERTY_TYPE.STRING) {
-          ctx.addIssue({
-            code: "custom",
-            message: `Property "${prop.NAME || `#${prop.SN}`}" cannot define MODELNAME. MODELNAME is supported only on String properties.`,
-            path: ["PROPERTIES", idx, "MODELNAME"],
-          });
-        }
-        if (!/^[A-Z0-9_.]+$/.test(modelName)) {
-          ctx.addIssue({
-            code: "custom",
-            message: `Property "${prop.NAME || `#${prop.SN}`}" has invalid MODELNAME "${modelName}". Must be alphanumeric uppercase with optional dots or underscores.`,
-            path: ["PROPERTIES", idx, "MODELNAME"],
-          });
-        }
-      }
-
-      if (Array.isArray(prop.PROP)) {
-        const seenSubNames = new Set<string>();
-        prop.PROP.forEach((sub, sIdx) => {
-          if (sub.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
-            ctx.addIssue({
-              code: "custom",
-              message: `Sub-property "${sub.NAME || `#${sub.SN}`}" cannot be of type Array. Nested arrays are not supported.`,
-              path: ["PROPERTIES", idx, "PROP", sIdx, "TYPE"],
-            });
-          }
-          const subModelName = (sub.MODELNAME || "").trim();
-          if (subModelName) {
-            if (sub.TYPE !== CBS_PROPERTY_TYPE.STRING) {
-              ctx.addIssue({
-                code: "custom",
-                message: `Sub-property "${sub.NAME || `#${sub.SN}`}" cannot define MODELNAME. MODELNAME is supported only on String properties.`,
-                path: ["PROPERTIES", idx, "PROP", sIdx, "MODELNAME"],
-              });
-            }
-            if (!/^[A-Z0-9_.]+$/.test(subModelName)) {
-              ctx.addIssue({
-                code: "custom",
-                message: `Sub-property "${sub.NAME || `#${sub.SN}`}" has invalid MODELNAME "${subModelName}". Must be alphanumeric uppercase with optional dots or underscores.`,
-                path: ["PROPERTIES", idx, "PROP", sIdx, "MODELNAME"],
-              });
-            }
-          }
-          const subNameLower = (sub.NAME || "").trim().toLowerCase();
-          if (subNameLower) {
-            if (seenSubNames.has(subNameLower)) {
-              ctx.addIssue({
-                code: "custom",
-                message: `Duplicate sub-property name "${sub.NAME}" in "${prop.NAME}". Each sub-property must have a unique name.`,
-                path: ["PROPERTIES", idx, "PROP", sIdx, "NAME"],
-              });
-            }
-            seenSubNames.add(subNameLower);
-          }
-        });
-      }
-    });
-  });
+export const modelConfigRecordSchema = z.looseObject({
+  _DEVBY: z.string().default(""),
+  _DEVDATE: z.string().default(""),
+  DESCRIPTION: z.string().min(1, "Description is required"),
+  PREFIX: z.string().default(""),
+  TABLENAME: z.string().min(1, "Table Name is required"),
+  USERDEFINEID: z.boolean().default(false),
+  ACCESS: z.string().min(1, "Table Type (Global / Branch) is required"),
+  READONLY: z.boolean().default(false),
+  SEARCHABLE: z.boolean().default(false),
+  ASSOCIATES: z.array(z.string()).default([]),
+  /** Authorization levels a record needs; 0 = no authorization. Empty falls back to 1. */
+  AUTHLEVEL: z
+    .preprocess((v) => (v === "" || v === null ? undefined : v), z.coerce.number().optional())
+    .default(1),
+  SERVICEPATH: z.string().min(1, "Service Path is required"),
+  IDDEF: idDefSchema
+    .nullable()
+    .transform(
+      (val) =>
+        val ?? {
+          IDPREFIX: "",
+          SEQUENCELENGTH: "",
+          SEQUENCERESET: false,
+          IDPATTERN: "",
+        },
+    )
+    .default({
+      IDPREFIX: "",
+      SEQUENCELENGTH: "",
+      SEQUENCERESET: false,
+      IDPATTERN: "",
+    }),
+  PROPERTIES: z.array(modelPropertySchema).default([]),
+  IDROUTINE: z.string().default("").optional(),
+  FIELDBASED: z.boolean().default(false).optional(),
+  auditData: auditDataSchema.optional(),
+});
 
 export type ModelConfigRecord = z.infer<typeof modelConfigRecordSchema>;
 
@@ -281,19 +204,59 @@ const MODEL_ACCESS_CODES: readonly string[] = ["G", "B"];
 
 const isPositiveInteger = (v: unknown): boolean => Number.isInteger(Number(v)) && Number(v) > 0;
 
-/** Variable-length columns (String, Number) need a positive length. */
-function checkPropertyLength(
-  prop: ModelProperty,
-  path: (string | number)[],
+const MODEL_NAME_PATTERN = /^[A-Z0-9_.]+$/;
+
+/**
+ * Save rules of a property list (top-level columns, or an Array's sub-properties): unique names,
+ * a positive length on variable-length columns, a well-formed MODELNAME, no nested Array.
+ * Which types may carry a MODELNAME (String, Number) is a designer-UI limit, not a save rule.
+ */
+function checkProperties(
+  props: ModelProperty[],
+  basePath: (string | number)[],
   ctx: z.RefinementCtx,
+  parentName?: string,
 ): void {
-  if (FIXED_PROPERTY_LENGTHS[prop.TYPE] === undefined && !isPositiveInteger(prop.LENGTH)) {
-    ctx.addIssue({
-      code: "custom",
-      message: `Property "${prop.NAME || `#${prop.SN}`}" needs a length greater than 0.`,
-      path: [...path, "LENGTH"],
-    });
-  }
+  const seen = new Set<string>();
+  props.forEach((prop, idx) => {
+    const path = [...basePath, idx];
+    const label = prop.NAME || `#${prop.SN}`;
+    const issue = (key: string, message: string) =>
+      ctx.addIssue({ code: "custom", message, path: [...path, key] });
+
+    const lower = (prop.NAME || "").trim().toLowerCase();
+    if (lower && seen.has(lower)) {
+      issue(
+        "NAME",
+        parentName
+          ? `Duplicate sub-property name "${prop.NAME}" in "${parentName}".`
+          : `Duplicate column name "${prop.NAME}". Each property must have a unique name.`,
+      );
+    }
+    seen.add(lower);
+
+    if (FIXED_PROPERTY_LENGTHS[prop.TYPE] === undefined && !isPositiveInteger(prop.LENGTH)) {
+      issue("LENGTH", `Property "${label}" needs a length greater than 0.`);
+    }
+
+    const modelName = (prop.MODELNAME || "").trim();
+    if (modelName && !MODEL_NAME_PATTERN.test(modelName)) {
+      issue(
+        "MODELNAME",
+        `Property "${label}" has invalid MODELNAME "${modelName}". Use uppercase letters, digits, dots or underscores.`,
+      );
+    }
+
+    if (parentName && prop.TYPE === CBS_PROPERTY_TYPE.ARRAY) {
+      issue(
+        "TYPE",
+        `Sub-property "${label}" cannot be of type Array. Nested arrays are not supported.`,
+      );
+    }
+    if (!parentName && prop.PROP?.length) {
+      checkProperties(prop.PROP, [...path, "PROP"], ctx, prop.NAME || `#${prop.SN}`);
+    }
+  });
 }
 
 /**
@@ -346,10 +309,5 @@ export const modelConfigSaveSchema = modelConfigRecordSchema.superRefine((data, 
       path: ["PROPERTIES"],
     });
   }
-  data.PROPERTIES.forEach((prop, idx) => {
-    checkPropertyLength(prop, ["PROPERTIES", idx], ctx);
-    prop.PROP?.forEach((sub, sIdx) => {
-      checkPropertyLength(sub, ["PROPERTIES", idx, "PROP", sIdx], ctx);
-    });
-  });
+  checkProperties(data.PROPERTIES, ["PROPERTIES"], ctx);
 });

@@ -24,9 +24,7 @@ export interface UseMcActionsParams {
   recordId: string;
   setSubmitting: (val: boolean) => void;
   setValidationErrors: (errors: ModelValidationErrorItem[]) => void;
-  rebaseline: () => void;
   resetToIdle: () => void;
-  markAsCommitted: (properties: ModelConfigRecord["PROPERTIES"]) => void;
   fetchRecord: (id: string, mode?: CbsScreenMode) => Promise<void>;
 }
 
@@ -35,9 +33,7 @@ export function useMcActions({
   recordId,
   setSubmitting,
   setValidationErrors,
-  rebaseline,
   resetToIdle,
-  markAsCommitted,
   fetchRecord,
 }: UseMcActionsParams) {
   const { sendMutation } = useIdempotentSend();
@@ -104,22 +100,10 @@ export function useMcActions({
         targetId,
         successTitle: "Model Saved",
         successMessage: `Saved schema #${targetId} to MODEL.CONFIG`,
-        onSuccess: () => {
-          rebaseline();
-          markAsCommitted(cleanData.PROPERTIES || []);
-          resetToIdle();
-        },
+        onSuccess: () => resetToIdle(),
       },
     );
-  }, [
-    executeMutation,
-    formData,
-    markAsCommitted,
-    rebaseline,
-    recordId,
-    resetToIdle,
-    setValidationErrors,
-  ]);
+  }, [executeMutation, formData, recordId, resetToIdle, setValidationErrors]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;

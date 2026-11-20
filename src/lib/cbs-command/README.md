@@ -32,7 +32,7 @@ These results come from `cbsCommand.parse()`:
 | Command                                                          | Result                                                                                        |
 | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `ACCOUNT`                                                        | form `ACCOUNT`, mode `IDLE` (record search)                                                   |
-| `ACCOUNT,`                                                       | mode `IDLE`, `authLevel: 0` (zero-auth entry: a trailing comma)                               |
+| `ACCOUNT,`                                                       | mode `IDLE`, `authLevel: 0` (zero-auth entry: a trailing comma; see below)                    |
 | `CUSTOMER,KYC`                                                   | version `KYC` of the `CUSTOMER` screen                                                        |
 | `ACCOUNT 1001`                                                   | record `1001` in mode `S` (a record with no function opens read-only)                         |
 | `ACCOUNT S 1001` / `I` / `A` / `D` / `R` / `H`                   | record `1001` in that function's mode                                                         |
@@ -42,6 +42,14 @@ These results come from `cbsCommand.parse()`:
 | `MD`, `MC`, `FC`, `IC`                                           | `SC.MENU.DESIGN`, `SC.MODEL.CONFIG`, `SC.FORM.CONFIG`, `SC.INQUIRY.CONFIG`                    |
 | `SETTINGS`, `SETTINGS:SECURITY`, `PROFILE`, `THEME`, `SECURITY`  | settings dialog on that tab (`profile`, `appearance`, `security`)                             |
 | `ACCOUNT X 1`                                                    | invalid: `Unrecognized function code "X". Valid CBS function codes are: S, I, D, A, R, H, L.` |
+
+**Zero-auth (level 0)** works the same on every screen, bespoke or dynamic, tab or popup. The comma stays in the screen ID (`FC,` → `FORM.CONFIG,`, `/screen/FORM.CONFIG,`), so the command is the only place it is stored:
+
+1. `cbsCommand.parse(command).authLevel` is the only parse.
+2. `ScreenLoader` wraps every screen in `CbsAuthLevelProvider` (`@/components/cbs-screen`).
+3. `useIdempotentSend().sendMutation()` stamps that `authLevel` on every mutation, and `CbsFormHeader` shows the warning-coloured `,` marker. Screens never read or pass the level themselves.
+
+The core decides what level 0 means for the request. The offline mock saves straight to `AU`.
 
 The function codes are case-insensitive. Aliases come from `MASTER_COMMAND_DEFINITIONS` in `registry/catalog.ts`, plus the menu commands registered at runtime (`registerDynamicAliases`).
 
@@ -54,6 +62,7 @@ The function codes are case-insensitive. Aliases come from `MASTER_COMMAND_DEFIN
 3. With no signed-in user, the command is rejected.
 4. A user whose profile has `commandLine === false` can't run typed commands.
 5. A command with a function code needs that RIDASHL right (`hasAccessibilityRight`). A command without one, such as `ACCOUNT`, passes. The screen's own action bar then applies the record-level rules from `@/lib/cbs-access`.
+6. A zero-auth command (trailing comma) also needs the Authorize (`A`) right, because the save authorizes in the same step. `/api/proxy` enforces the same rule on every level-0 mutation (`verifyZeroAuthAccess`).
 
 ---
 

@@ -103,6 +103,7 @@ export function useFcSectionOps(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };
@@ -174,6 +175,7 @@ export function useFcSectionOps(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };
@@ -215,6 +217,7 @@ export function useFcSectionOps(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };
@@ -253,6 +256,7 @@ export function useFcSectionOps(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };

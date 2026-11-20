@@ -91,9 +91,16 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
     AFT: { label: "executed", code: "AU" },
   };
 
-  const { label, code } = statusMap[reqType] || {
-    label: "saved",
-    code: "UA",
+  const transition = statusMap[reqType] || { label: "saved", code: "UA" };
+  // Zero-auth (authLevel 0, trailing-comma screen): the save is authorized in the same step
+  const isZeroAuthSave = payload.authLevel === 0 && transition.code === "UA";
+  const { label, code } = isZeroAuthSave
+    ? { label: "saved and authorized", code: "AU" }
+    : transition;
+  const inputStamp = {
+    recInputter:
+      (payload.data?.recInputter as string) || (payload.data?.userId as string) || "MAKER",
+    recInputTime: nowIsoDateTime(),
   };
 
   const targetId =
@@ -123,17 +130,14 @@ export function handleMutation(payload: CbsWirePayload): ApiResponse {
       recBranchCode: payload.branchCode || currentAudit.recBranchCode,
       ...(code === "AU"
         ? {
+            ...(isZeroAuthSave ? inputStamp : {}),
             recAuthorizer:
               (payload.data?.recAuthorizer as string) ||
               (payload.data?.userId as string) ||
               "CHECKER",
             recAuthTime: nowIsoDateTime(),
           }
-        : {
-            recInputter:
-              (payload.data?.recInputter as string) || (payload.data?.userId as string) || "MAKER",
-            recInputTime: nowIsoDateTime(),
-          }),
+        : inputStamp),
     },
   };
 

@@ -19,7 +19,7 @@ Layer L2: the browser's only way to reach the core. Every banking request is bui
 
 ## 🔒 Rules
 
-1. **Mutations go through `useIdempotentSend()`** (`src/components/cbs-screen/hooks/use-idempotent-send.ts`). Its `sendMutation()` attaches a UUIDv4 `idempotencyKey`, reuses the same key when an unchanged payload is retried after a network or 5xx failure, and rotates the key after a definite result. Calling `cbs.send()` directly with a mutation (`save`, `authorize`, `delete`, `hold`, `reverse`) fails validation, because the key is required.
+1. **Mutations go through `useIdempotentSend()`** (`src/components/cbs-screen/hooks/use-idempotent-send.ts`). Its `sendMutation()` attaches a UUIDv4 `idempotencyKey`, reuses the same key when an unchanged payload is retried after a network or 5xx failure, and rotates the key after a definite result. It also stamps the screen's `authLevel` (`useCbsAuthLevel()`, see the zero-auth row in `@/lib/cbs-command`), so no screen sets it by hand. Calling `cbs.send()` directly with a mutation (`save`, `authorize`, `delete`, `hold`, `reverse`) fails validation, because the key is required.
 2. **One toast per failure, raised here.** `cbs.send()` reports errors through `notifyUser` (the command gateway's notification adapter). Callers don't toast the same error again; pass `silent: true` to handle it yourself.
 3. **Session expiry is handled once.** A 401 broadcasts `CBS_SESSION_EXPIRED` to every window. The main window then goes to the sign-on page, and a popup shows a message instead.
 4. **Use the canonical control names** from `CbsControlTable` in `@/types` (for example `CONFIG.FORM`, `MODEL.CONFIG`, `INQUIRY`, `MENU.TREE`), never hand-typed strings.

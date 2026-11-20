@@ -23,7 +23,6 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
   params.set("component", component);
   if (mode) params.set("mode", mode);
   if (recordId) params.set("recordId", recordId);
-  if (parsed.authLevel !== undefined) params.set("authLevel", String(parsed.authLevel));
 
   const inquiry = options?.inquiryState;
   if (inquiry?.step) params.set("step", inquiry.step);

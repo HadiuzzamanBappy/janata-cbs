@@ -2,7 +2,7 @@
 
 import { AlertCircle } from "lucide-react";
 import * as React from "react";
-import { SystemSkeleton } from "@/components/cbs-screen";
+import { CbsAuthLevelProvider, SystemSkeleton } from "@/components/cbs-screen";
 import { FormSkeleton } from "@/features/operations/forms";
 import { InquirySkeleton } from "@/features/operations/inquiries";
 import { logger } from "@/lib/core-logger";
@@ -85,9 +85,11 @@ export function ScreenLoader({
       className={`w-full h-full min-h-0 flex flex-col flex-1 ${className}`}
     >
       <ScreenErrorBoundary command={command}>
-        <React.Suspense fallback={FallbackSkeleton}>
-          <ScreenComponent command={command} tabId={tabId} />
-        </React.Suspense>
+        <CbsAuthLevelProvider command={command}>
+          <React.Suspense fallback={FallbackSkeleton}>
+            <ScreenComponent command={command} tabId={tabId} />
+          </React.Suspense>
+        </CbsAuthLevelProvider>
       </ScreenErrorBoundary>
     </div>
   );

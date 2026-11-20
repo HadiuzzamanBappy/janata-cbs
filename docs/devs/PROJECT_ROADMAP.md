@@ -103,7 +103,7 @@ Every unit is imported through its `index.ts` (or `server.ts` for server-only co
 This is the most important level. Read the files in the order a request travels:
 
 1. `src/lib/cbs-client/` (`payloads/` → `transport/proxy-client.ts`): the browser builds a typed request and `POST`s it to `/api/proxy`. Failures toast exactly once, here.
-2. `src/app/api/proxy/route.ts`: session check (401 / 403) → Zod check of the body → server-side rights check (`verifyUserRecordAccess`) → envelope built from the session → cache → dispatch → decode once.
+2. `src/app/api/proxy/route.ts`: session check (401 / 403) → Zod check of the body → server-side rights check (`verifyUserRecordAccess`, plus `verifyZeroAuthAccess` for level-0 mutations) → envelope built from the session → cache → dispatch → decode once.
 3. `src/lib/cbs-access/`: the RIDASHL and Four-Eyes rules. The UI uses all of them; the proxy checks rights only, because it never loads the record it would need to compare the user with the inputter. Read the "What the server checks" section of its README.
 4. `src/lib/infra-redis/cache.ts`: read-through cache, and invalidation after a successful mutation.
 5. `src/lib/infra-grpc/dispatch.ts` → `client.ts`: gRPC to the core in live mode, the in-memory simulator in static mode.

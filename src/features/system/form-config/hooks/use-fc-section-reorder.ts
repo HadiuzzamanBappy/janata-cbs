@@ -59,6 +59,7 @@ export function useFcSectionReorder(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: newSections,
           },
         };

@@ -15,10 +15,10 @@ import type { CbsScreenComponent } from "@/lib/cbs-screen";
  * (e.g. MD, IC, FC, MC) are automatically resolved via `resolveCommandAlias`.
  */
 const BESPOKE_SCREENS: Record<string, CbsScreenComponent> = {
-  "SC.MENU.DESIGN": SysMenuDesigner,
-  "SC.MODEL.CONFIG": SysModelConfig,
-  "SC.FORM.CONFIG": SysFormConfig,
-  "SC.INQUIRY.CONFIG": SysInquiryConfig,
+  "MENU.DESIGN": SysMenuDesigner,
+  "MODEL.CONFIG": SysModelConfig,
+  "FORM.CONFIG": SysFormConfig,
+  "INQUIRY.CONFIG": SysInquiryConfig,
 };
 
 /**

@@ -2,28 +2,28 @@ import type { ControlCommand, ControlType, MenuItem } from "@/lib/data-schemas";
 
 export const MASTER_COMMAND_DEFINITIONS: readonly ControlCommand[] = [
   {
-    command: "SC.MENU.DESIGN",
+    command: "MENU.DESIGN",
     title: "Menu Hierarchy",
-    aliases: ["MD"],
+    aliases: ["MD", "SC.MENU.DESIGN"],
     controlAction: "SCREEN",
     controlType: "FORM",
   },
   {
-    command: "SC.MODEL.CONFIG",
+    command: "MODEL.CONFIG",
     title: "Model Config",
     aliases: ["MC", "SC.MODEL.BUILDER"],
     controlAction: "SCREEN",
     controlType: "FORM",
   },
   {
-    command: "SC.FORM.CONFIG",
+    command: "FORM.CONFIG",
     title: "Form Design",
     aliases: ["FC", "SC.FORM.BUILDER"],
     controlAction: "SCREEN",
     controlType: "FORM",
   },
   {
-    command: "SC.INQUIRY.CONFIG",
+    command: "INQUIRY.CONFIG",
     title: "Inquiry Design",
     aliases: ["IC", "SC.INQUIRY"],
     controlAction: "SCREEN",

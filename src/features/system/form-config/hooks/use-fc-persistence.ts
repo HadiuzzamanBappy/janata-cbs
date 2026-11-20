@@ -10,25 +10,11 @@
 import { useCbsPersistence } from "@/components/cbs-screen";
 import { type FormConfigRecord, formConfigRecordSchema } from "@/lib/data-schemas";
 
-export const INITIAL_FORM_CONFIG: FormConfigRecord = {
-  title: "",
-  description: "",
-  authNumber: 1,
-  frmRoutine: {
-    rtnValidate: [],
-    rtnBeforeAuth: [],
-    rtnAfterAuth: [],
-  },
-  frmElements: {
-    sections: [],
-  },
-};
-
 /**
  * Creates a fresh, empty form layout draft for self-entry.
  * No synthetic titles, descriptions, or dummy sections are pre-filled.
  */
-export function createInitialDraft(_cleanId?: string): FormConfigRecord {
+export function createInitialDraft(): FormConfigRecord {
   return {
     title: "",
     description: "",
@@ -44,11 +30,14 @@ export function createInitialDraft(_cleanId?: string): FormConfigRecord {
   };
 }
 
+/** Stable idle value, so the persistence layer sees the same reference on every render. */
+const EMPTY_FORM_CONFIG = createInitialDraft();
+
 export function useFormConfigPersistence(initialId?: string, tabId?: string) {
   return useCbsPersistence<FormConfigRecord>({
     initialId,
     tabId,
-    initialData: INITIAL_FORM_CONFIG,
+    initialData: EMPTY_FORM_CONFIG,
     schema: formConfigRecordSchema,
   });
 }

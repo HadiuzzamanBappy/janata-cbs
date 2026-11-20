@@ -1,5 +1,5 @@
 import { hasAccessibilityRight } from "@/lib/cbs-access";
-import { CBS_FUNCTION_DEFINITIONS, type CbsUserSecurityContext } from "@/types";
+import { CBS_FUNCTION_DEFINITIONS, CbsRecordFunction, type CbsUserSecurityContext } from "@/types";
 import type { CommandValidationResult, ParsedCommand } from "../types";
 
 /**
@@ -45,6 +45,19 @@ export function validateSecurityPermissions(
       allowed: false,
       reason: `Permission Denied: User lacks ${funcName} rights for application ${command.application}.`,
       requiredRight: command.functionCode,
+    };
+  }
+
+  // 6. Zero-auth (trailing comma) authorizes in the same step, so it needs the Authorize right too.
+  // `/api/proxy` enforces the same rule (`verifyZeroAuthAccess`) on every level-0 mutation.
+  if (
+    command.authLevel === 0 &&
+    !hasAccessibilityRight(user.accessibility, CbsRecordFunction.AUTHORIZE)
+  ) {
+    return {
+      allowed: false,
+      reason: `Permission Denied: Zero-auth entry (${command.application},) requires Authorize rights.`,
+      requiredRight: CbsRecordFunction.AUTHORIZE,
     };
   }
 

@@ -19,7 +19,6 @@ export interface WorkbenchTab {
   isDirty?: boolean; // True only when the user has actually edited/typed changes
   screenMode?: CbsScreenMode;
   searchRecordId?: string;
-  authLevel?: number; // Authorization level: 0 for auto-auth (comma entry), 1+ for multi-level
   inquiryState?: InquiryTabState;
 }
 

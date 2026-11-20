@@ -1,4 +1,5 @@
 // Root barrel export for all CBS Screen scaffolding, headers, tabs, states, and hooks
+export * from "./cbs-auth-level";
 export * from "./cbs-screen-scaffold";
 
 // Header sub-components

@@ -12,7 +12,6 @@ export interface CommandTabPayload {
   readonly searchRecordId?: string;
   readonly inquiryState?: InquiryTabState;
   readonly formData?: Record<string, unknown>;
-  readonly authLevel?: number;
 }
 
 export type CbsNotificationType = "success" | "info" | "warning" | "error";

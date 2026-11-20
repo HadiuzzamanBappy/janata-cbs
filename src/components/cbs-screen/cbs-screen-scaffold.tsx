@@ -24,7 +24,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
   title,
   commandCode,
   recordId = "",
-  authLevel,
   mode = CBS_IDLE_MODE,
 
   // 2. State & Audit Context
@@ -115,15 +114,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
     },
   });
 
-  const isZeroAuth =
-    authLevel === 0 ||
-    commandCode?.endsWith(",") ||
-    commandCode?.includes(", ") ||
-    commandCode?.includes(",I ") ||
-    commandCode?.includes(",A ") ||
-    commandCode?.includes(",S ");
-  const effectiveAuthLevel = isZeroAuth ? 0 : (authLevel ?? 1);
-
   // ===========================================================================
   // 4. PRESENTATION CANVAS (Header, Body, and Guard Dialog)
   // ===========================================================================
@@ -152,7 +142,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
           title={title}
           commandCode={commandCode}
           recordId={recordId}
-          authLevel={effectiveAuthLevel}
           onRecordIdChange={(newId) => onRecordIdChange?.(newId.toUpperCase())}
           onRecordSearch={handleGuardedRecordSearch}
           onCreateNew={handleGuardedCreateNew}

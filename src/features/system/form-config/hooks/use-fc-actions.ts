@@ -20,7 +20,8 @@ import { CbsControlTable } from "@/types";
 export interface UseFcActionsParams {
   formData: FormConfigRecord;
   recordId: string;
-  handleValidate: () => boolean;
+  /** Shows validation issues; returns true when the draft may be saved. */
+  validateBeforeSave: () => boolean;
   rebaseline: () => void;
   reset: () => void;
   resetToIdle?: () => void;
@@ -30,7 +31,7 @@ export interface UseFcActionsParams {
 export function useFcActions({
   formData,
   recordId,
-  handleValidate,
+  validateBeforeSave,
   rebaseline,
   reset,
   resetToIdle,
@@ -87,7 +88,7 @@ export function useFcActions({
   );
 
   const handleSubmit = React.useCallback(async () => {
-    if (!handleValidate()) return;
+    if (!validateBeforeSave()) return;
     const targetId = (recordId || "").trim().toUpperCase();
     const cleanFormData = sanitizeFormConfigRecord(formData);
 
@@ -96,7 +97,7 @@ export function useFcActions({
       successMessage: `Form ${targetId || "configuration"} successfully saved`,
       targetId,
     });
-  }, [executeMutation, formData, handleValidate, recordId]);
+  }, [executeMutation, formData, recordId, validateBeforeSave]);
 
   const handleAuthorize = React.useCallback(async () => {
     if (!recordId) return;

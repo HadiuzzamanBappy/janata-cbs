@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { ZodType } from "zod";
-import { verifyUserRecordAccess } from "@/lib/cbs-access";
+import { verifyUserRecordAccess, verifyZeroAuthAccess } from "@/lib/cbs-access";
 import { logger } from "@/lib/core-logger";
 import { normalizeAuditTimes } from "@/lib/core-utils";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
@@ -81,8 +81,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     const { token, currUser } = session;
     const body = parsed.data;
 
-    // 1. Domain Access Verification Gate (Maker-Checker & RIDASHL)
-    const accessViolation = verifyUserRecordAccess(currUser, body.recordFunction);
+    // 1. Domain Access Verification Gate (RIDASHL, plus 'A' for a zero-auth mutation)
+    const accessViolation =
+      verifyUserRecordAccess(currUser, body.recordFunction) ??
+      verifyZeroAuthAccess(currUser, body.requestType, body.authLevel);
     if (accessViolation) {
       proxyLogger.warn(`Access Denied: ${accessViolation.message}`, {
         controlName: body.controlName,

@@ -8,6 +8,7 @@ import type { CbsScreenValidationError, MoreActionItem, RecordLookupItem } from 
 import { CBS_SCREEN_EVENT, resolveMoreActions } from "@/lib/cbs-screen";
 import { logger } from "@/lib/core-logger";
 import { CBS_IDLE_MODE, CbsRecordFunction, type CbsScreenMode } from "@/types";
+import { useCbsAuthLevel } from "../cbs-auth-level";
 import { useRecordLookup } from "../hooks/use-record-lookup";
 import { ActionBtn } from "./action-btn";
 import { ActionMoreMenu } from "./action-more-menu";
@@ -20,7 +21,6 @@ export interface CbsFormHeaderProps {
   title: string;
   commandCode?: string;
   recordId?: string;
-  authLevel?: number;
   onRecordIdChange?: (id: string) => void;
   onRecordSearch?: (id: string) => void;
   onReset?: () => void;
@@ -55,7 +55,6 @@ export function CbsFormHeader({
   title,
   commandCode,
   recordId = "",
-  authLevel,
   onRecordIdChange,
   onRecordSearch,
   onReset,
@@ -81,6 +80,7 @@ export function CbsFormHeader({
   onSelectValidationTab,
   className = "",
 }: CbsFormHeaderProps) {
+  const authLevel = useCbsAuthLevel();
   const [inputVal, setInputVal] = React.useState(recordId);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [hasSearched, setHasSearched] = React.useState(false);
@@ -247,12 +247,7 @@ export function CbsFormHeader({
         <div className="flex flex-wrap items-center gap-2 px-2.5 py-1 text-xs bg-muted/20">
           <span className="font-semibold text-foreground/90 text-xs tracking-tight shrink-0 whitespace-nowrap flex items-center">
             {title}
-            {(authLevel === 0 ||
-              commandCode?.endsWith(",") ||
-              commandCode?.includes(", ") ||
-              commandCode?.includes(",I ") ||
-              commandCode?.includes(",A ") ||
-              commandCode?.includes(",S ")) && (
+            {authLevel === 0 && (
               <span
                 className="font-mono text-sm font-extrabold text-warning leading-none select-none ml-0.5"
                 title="Zero-Auth Variant (Level 0)"

@@ -16,15 +16,10 @@ import { CbsRecordFunction, type CbsScreenMode } from "@/types";
 import { type FormConfigValidationError, validateFormConfig } from "./fc-validation";
 import { useFcActions } from "./use-fc-actions";
 import { useFcFieldOps } from "./use-fc-field-ops";
-import {
-  createInitialDraft,
-  INITIAL_FORM_CONFIG,
-  useFormConfigPersistence,
-} from "./use-fc-persistence";
+import { createInitialDraft, useFormConfigPersistence } from "./use-fc-persistence";
 import { useFcSectionOps } from "./use-fc-section-ops";
 
 export type { FormConfigValidationError };
-export { INITIAL_FORM_CONFIG };
 
 export function useFormConfig(initialId?: string, tabId?: string) {
   const {
@@ -47,8 +42,8 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   const [submitting, setSubmitting] = React.useState<boolean>(false);
   const [selectedSectionId, setSelectedSectionId] = React.useState<string | null>(null);
   const [selectedFieldId, setSelectedFieldId] = React.useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = React.useState<FormConfigValidationError[]>([]);
   const [targetModelRecord, setTargetModelRecord] = React.useState<ModelConfigRecord | null>(null);
+  const [validationErrors, setValidationErrors] = React.useState<FormConfigValidationError[]>([]);
   const [rawRecord, setRawRecord] = React.useState<unknown>(undefined);
 
   const sectionOps = useFcSectionOps(setFormData, setSelectedSectionId, setSelectedFieldId);
@@ -56,8 +51,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
 
   const initDraft = React.useCallback(
     (cleanId: string) => {
-      const draft = createInitialDraft(cleanId);
-      hydrate(draft);
+      hydrate(createInitialDraft());
       setMode(CbsRecordFunction.INPUT);
       setSelectedSectionId(null);
       setSelectedFieldId(null);
@@ -94,6 +88,16 @@ export function useFormConfig(initialId?: string, tabId?: string) {
               return;
             }
 
+            // A stored layout that fails to parse must never be replaced by a blank draft
+            if (!isNew) {
+              toast.add({
+                title: "Form Config Unreadable",
+                description: `Stored layout for #${cleanId} could not be parsed.`,
+                type: "error",
+              });
+              return;
+            }
+
             // 2. New Form Config (FORMCONTROL is {}): initialize clean empty draft
             if (targetMode === CbsRecordFunction.INPUT) {
               initDraft(cleanId);
@@ -106,9 +110,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
           initDraft(cleanId);
         }
       } catch {
-        if (targetMode === CbsRecordFunction.INPUT) {
-          initDraft(cleanId);
-        }
+        // cbs.send already raised the toast; keep the current draft rather than a blank one
       } finally {
         setLoading(false);
       }
@@ -116,24 +118,29 @@ export function useFormConfig(initialId?: string, tabId?: string) {
     [hydrate, initDraft, setMode, setRecordId],
   );
 
-  const handleValidate = React.useCallback(() => {
+  /** Shows the checklist and warns on issues. Returns true when the draft is valid. */
+  const runValidation = React.useCallback(() => {
     const issues = validateFormConfig(formData, targetModelRecord);
     setValidationErrors(issues);
-    if (issues.length > 0) {
+    const issueCount = issues.length;
+    if (issueCount > 0) {
       toast.add({
         title: "Validation Failed",
-        description: `${issues.length} issue(s) detected`,
+        description: `${issueCount} issue(s) detected`,
         type: "warning",
       });
-      return false;
     }
+    return issueCount === 0;
+  }, [formData, targetModelRecord]);
+
+  const handleValidate = React.useCallback(() => {
+    if (!runValidation()) return;
     toast.add({
       title: "Validation Passed",
       description: "Form layout configuration is completely valid",
       type: "success",
     });
-    return true;
-  }, [formData, targetModelRecord]);
+  }, [runValidation]);
 
   const resetToIdle = React.useCallback(() => {
     setSelectedSectionId(null);
@@ -147,7 +154,7 @@ export function useFormConfig(initialId?: string, tabId?: string) {
   const actions = useFcActions({
     formData,
     recordId,
-    handleValidate,
+    validateBeforeSave: runValidation,
     rebaseline,
     reset,
     resetToIdle,

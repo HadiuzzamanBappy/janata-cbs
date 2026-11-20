@@ -67,7 +67,8 @@ export function parseGfcResponse(
     data: {
       model,
       form,
-      isNew: form === null,
+      // A stored layout that fails to parse is not new: treating it as new would let a blank draft overwrite it
+      isNew: !hasExistingLayout,
     },
   };
 }

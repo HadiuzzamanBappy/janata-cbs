@@ -150,7 +150,10 @@ export const formConfigSaveSchema = formConfigRecordSchema.superRefine((form, ct
     const secPath = ["frmElements", "sections", sIdx];
     const secDisplay = section.title?.trim() || `Section #${sIdx + 1}`;
 
-    if (!section.title?.trim()) issue([...secPath, "title"], "Section Title is required");
+    // Cards may be untitled (standalone fields, ghost cards); a tab needs a label for its strip
+    if (section.containerType === "tab" && !section.title?.trim()) {
+      issue([...secPath, "title"], "Tab Title is required");
+    }
     if (seenSectionIds.has(section.id)) {
       issue([...secPath, "id"], `Section ID "${section.id}" is used by another section`);
     }

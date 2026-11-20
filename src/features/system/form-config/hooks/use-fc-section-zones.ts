@@ -26,6 +26,7 @@ export function useFcSectionZones(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: sections.map((sec, idx) => {
               if (sec.id !== sectionId) return sec;
               if (targetType === "tab") {
@@ -61,6 +62,7 @@ export function useFcSectionZones(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: sections.map((sec) => {
               if (sec.containerType === "tab" && sec.groupId === sourceGroupId) {
                 return {

@@ -8,11 +8,11 @@ The React wrapper is `useCbsAccess()` in `src/hooks/use-cbs-access.ts`. It fills
 
 ## 📦 Files
 
-| File               | Exports                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `record-guard.ts`  | `evaluateCbsAccess(context)`: the single evaluator. `isRecordEditable(mode)`: a designer field is editable only in Input (`I`) mode. |
-| `accessibility.ts` | `verifyUserRecordAccess(user, recordFunction)`: the server-side rights gate. `hasAccessibilityRight(granted, required)`.             |
-| `types.ts`         | `CbsAccessContext` (input) and `CbsAccessResult` (output)                                                                            |
+| File               | Exports                                                                                                                                                                                                           |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `record-guard.ts`  | `evaluateCbsAccess(context)`: the single evaluator. `isRecordEditable(mode)`: a designer field is editable only in Input (`I`) mode.                                                                              |
+| `accessibility.ts` | `verifyUserRecordAccess(user, recordFunction)`: the server-side rights gate. `verifyZeroAuthAccess(user, requestType, authLevel)`: a level-0 mutation also needs `A`. `hasAccessibilityRight(granted, required)`. |
+| `types.ts`         | `CbsAccessContext` (input) and `CbsAccessResult` (output)                                                                                                                                                         |
 
 ---
 
@@ -43,6 +43,8 @@ Flags:
 ## 🛡️ What the server checks
 
 `/api/proxy` calls `verifyUserRecordAccess(currUser, body.recordFunction)` before every dispatch. For the controlled functions (`CBS_CONTROLLED_FUNCTIONS`: `I`, `A`, `D`, `R`, `H`), it rejects the request with **403** if the session user lacks that right. Other functions pass through.
+
+It then calls `verifyZeroAuthAccess(currUser, body.requestType, body.authLevel)`. A mutation sent at `authLevel: 0` (a zero-auth, trailing-comma screen) authorizes the record in the same step, so the user must also hold `A`, or the request gets **403**. The command gateway applies the same rule before a comma screen opens (`validateSecurityPermissions`), so the operator is told at once rather than at save.
 
 > [!IMPORTANT]
 > The server gate checks **rights only**. Four-Eyes and record-status rules are enforced in the UI by `evaluateCbsAccess()`. The proxy does not load the record, so it can't compare the user with the inputter. Server-side maker-checker enforcement depends on the Java core.

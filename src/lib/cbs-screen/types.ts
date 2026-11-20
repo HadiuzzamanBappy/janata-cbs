@@ -55,7 +55,6 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   title: string;
   commandCode: string;
   recordId?: string;
-  authLevel?: number;
   mode?: CbsScreenMode;
   isDirty?: boolean;
   auditContext?: AuditData;

@@ -78,7 +78,6 @@ export function executeCbsCommand(rawInput: string, options?: ExecutionOptions):
       searchRecordId: targetRecordId,
       inquiryState: parsed.type === "INQUIRY" ? options?.inquiryState : undefined,
       formData: options?.formData,
-      authLevel: parsed.authLevel,
     });
   }
 

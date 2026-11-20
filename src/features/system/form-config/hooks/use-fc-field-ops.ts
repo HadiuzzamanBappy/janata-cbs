@@ -78,6 +78,7 @@ export function useFcFieldOps(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };
@@ -101,6 +102,7 @@ export function useFcFieldOps(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };
@@ -122,6 +124,7 @@ export function useFcFieldOps(
         return {
           ...prev,
           frmElements: {
+            ...prev.frmElements,
             sections: updatedSections,
           },
         };

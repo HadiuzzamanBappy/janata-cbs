@@ -44,7 +44,7 @@ AuditContainer              maker-checker trailer: inputter, authorizer, times, 
 |               | `hooks/use-multi-value.ts`                      | Rows of a repeating set, keyed with `generateClientToken("mv")`                                     |
 | Widgets       | `components/widgets/widget-renderer.tsx`        | Dispatches a `FormWidgetType` to a widget                                                           |
 
-`WidgetRenderer` handles these widget types: `text`, `number`, `textarea`, `amount`, `rate`, `date` / `datetime` / `time`, `select` / `combobox`, `switch`, `checkbox`, `checkbox-group`, and `radio` / `radio-group` / `segmented`. Every widget uses the compact density (`h-8 text-xs`) and semantic tokens. Amounts are monospace and right-aligned.
+`WidgetRenderer` handles these widget types: `text`, `number`, `textarea`, `amount`, `rate`, `date` / `datetime` / `time`, `select` / `combobox`, `switch`, `checkbox`, `checkbox-group`, and `radio` / `radio-group` / `segmented`. Every widget uses the compact density (`h-8 text-xs`) and semantic tokens. Amounts are monospace and right-aligned. Font size, weight and the disabled look come only from `components/widgets/widget-styles.ts`, so change them there, never per widget.
 
 ---
 

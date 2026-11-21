@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn, isoDateTimeToLocalInput, toIsoDateTime } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
+import { WIDGET_DISABLED_FIELD, WIDGET_TEXT } from "./widget-styles";
 
 export interface DateWidgetProps extends BaseWidgetProps {
   type?: "date" | "datetime-local" | "time";
@@ -54,10 +55,9 @@ export function DateWidget({
           onChange(isDateTime && e.target.value ? toIsoDateTime(e.target.value) : e.target.value)
         }
         className={cn(
-          "h-7 w-full rounded text-xs bg-background border-border/80 font-mono scheme-light dark:scheme-dark focus-visible:ring-0 focus-visible:border-foreground/50",
+          `h-7 w-full rounded ${WIDGET_TEXT} bg-background border-border/80 font-mono scheme-light dark:scheme-dark focus-visible:ring-0 focus-visible:border-foreground/50`,
           error && "border-destructive focus-visible:border-destructive",
-          disabled &&
-            "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium text-foreground",
+          disabled && WIDGET_DISABLED_FIELD,
         )}
       />
       {Boolean(strVal) && !disabled && (

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps, WidgetOption } from "../../types";
+import { WIDGET_DISABLED_CHOICE, WIDGET_TEXT, WIDGET_TEXT_SELECTED } from "./widget-styles";
 
 export interface RadioWidgetProps extends BaseWidgetProps {
   options: WidgetOption[];
@@ -56,11 +57,11 @@ export function RadioWidget({
               disabled={disabled}
               onClick={() => onChange(opt.code)}
               className={cn(
-                "px-2.5 py-0.5 text-xs rounded transition-all cursor-pointer font-medium border-0",
+                `px-2.5 py-0.5 ${WIDGET_TEXT} rounded transition-all cursor-pointer border-0`,
                 isSelected
-                  ? "bg-primary text-primary-foreground shadow-2xs font-semibold"
+                  ? `bg-primary text-primary-foreground shadow-2xs ${WIDGET_TEXT_SELECTED}`
                   : "text-muted-foreground hover:text-foreground hover:bg-background/50 bg-transparent",
-                disabled && "cursor-default opacity-80",
+                disabled && WIDGET_DISABLED_CHOICE,
               )}
             >
               {opt.label}
@@ -102,9 +103,9 @@ export function RadioWidget({
             <Label
               htmlFor={radioId}
               className={cn(
-                "text-xs font-medium cursor-pointer select-none",
-                isSelected ? "text-foreground font-semibold" : "text-muted-foreground",
-                disabled && "cursor-default opacity-85",
+                `${WIDGET_TEXT} cursor-pointer select-none`,
+                isSelected ? `text-foreground ${WIDGET_TEXT_SELECTED}` : "text-muted-foreground",
+                disabled && WIDGET_DISABLED_CHOICE,
               )}
             >
               {opt.label}

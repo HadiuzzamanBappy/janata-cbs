@@ -13,6 +13,7 @@ import type { ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
+import { WIDGET_DISABLED_FIELD, WIDGET_TEXT } from "./widget-styles";
 
 export interface TextWidgetProps extends BaseWidgetProps {
   type?: "text" | "number";
@@ -54,11 +55,10 @@ export function TextWidget({
         onChange={handleChange}
         onBlur={handleBlur}
         className={cn(
-          "h-7 text-xs bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50",
+          `h-7 ${WIDGET_TEXT} bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50`,
           type === "number" && "font-mono",
           error && "border-destructive focus-visible:border-destructive",
-          disabled &&
-            "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
+          disabled && WIDGET_DISABLED_FIELD,
         )}
       />
     </div>

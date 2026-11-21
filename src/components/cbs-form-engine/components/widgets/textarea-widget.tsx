@@ -10,6 +10,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
+import { WIDGET_DISABLED_FIELD, WIDGET_TEXT } from "./widget-styles";
 
 export interface TextareaWidgetProps extends BaseWidgetProps {
   rows?: number;
@@ -44,10 +45,9 @@ export function TextareaWidget({
           }
         }}
         className={cn(
-          "w-full text-xs bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-0 focus-visible:border-foreground/50 min-h-14 resize-y",
+          `w-full ${WIDGET_TEXT} bg-background rounded border-border/80 p-2 font-sans focus-visible:ring-0 focus-visible:border-foreground/50 min-h-14 resize-y`,
           error && "border-destructive focus-visible:border-destructive",
-          disabled &&
-            "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
+          disabled && WIDGET_DISABLED_FIELD,
         )}
       />
     </div>

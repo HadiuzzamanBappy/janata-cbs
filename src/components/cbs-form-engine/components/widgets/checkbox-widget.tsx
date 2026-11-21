@@ -15,6 +15,7 @@ import { isBooleanOn, toBooleanValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { BooleanWidgetConfig } from "@/lib/data-schemas";
 import type { BaseWidgetProps } from "../../types";
+import { WIDGET_TAG } from "./widget-styles";
 
 export interface CheckboxWidgetProps extends BaseWidgetProps {
   /** Labels and on / off wire values (BOOLEAN_CONFIG). */
@@ -53,13 +54,13 @@ export function CheckboxWidget({
             "dark:data-checked:text-primary-foreground",
             disabled &&
               (isChecked
-                ? "!bg-muted/70 !border-border !text-muted-foreground"
-                : "!bg-input/40 !border-border/60"),
+                ? "bg-muted/70! border-border! text-muted-foreground!"
+                : "bg-input/40! border-border/60!"),
           )}
         />
         <span
           className={cn(
-            "text-3xs font-mono px-1.5 py-0.5 rounded border font-semibold",
+            `${WIDGET_TAG} px-1.5 py-0.5 rounded border`,
             disabled
               ? isChecked
                 ? "bg-muted/70 text-muted-foreground border-border/80"

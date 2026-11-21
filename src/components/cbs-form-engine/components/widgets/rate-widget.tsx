@@ -10,6 +10,7 @@
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
+import { WIDGET_DISABLED_FIELD, WIDGET_TAG, WIDGET_TEXT } from "./widget-styles";
 
 export interface RateWidgetProps extends BaseWidgetProps {
   suffix?: string;
@@ -37,13 +38,14 @@ export function RateWidget({
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-7 text-xs font-mono bg-background rounded border-border/80 w-full pr-6 focus-visible:ring-0 focus-visible:border-foreground/50",
+          `h-7 ${WIDGET_TEXT} font-mono bg-background rounded border-border/80 w-full pr-6 focus-visible:ring-0 focus-visible:border-foreground/50`,
           error && "border-destructive focus-visible:border-destructive",
-          disabled &&
-            "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
+          disabled && WIDGET_DISABLED_FIELD,
         )}
       />
-      <span className="absolute right-2 text-2xs font-mono font-semibold text-muted-foreground select-none pointer-events-none">
+      <span
+        className={`absolute right-2 ${WIDGET_TAG} text-muted-foreground select-none pointer-events-none`}
+      >
         {suffix}
       </span>
     </div>

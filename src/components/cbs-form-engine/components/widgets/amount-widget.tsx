@@ -10,6 +10,7 @@
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps } from "../../types";
+import { WIDGET_DISABLED_FIELD, WIDGET_TAG, WIDGET_TEXT } from "./widget-styles";
 
 export interface AmountWidgetProps extends BaseWidgetProps {
   currencyPrefix?: string;
@@ -29,7 +30,7 @@ export function AmountWidget({
   return (
     <div className={cn("relative flex items-center min-w-0 w-full", className)}>
       {currencyPrefix && (
-        <span className="absolute left-2 text-3xs font-mono text-muted-foreground select-none">
+        <span className={`absolute left-2 ${WIDGET_TAG} text-muted-foreground select-none`}>
           {currencyPrefix}
         </span>
       )}
@@ -41,11 +42,10 @@ export function AmountWidget({
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "h-7 text-xs font-mono bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50",
+          `h-7 ${WIDGET_TEXT} font-mono bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50`,
           currencyPrefix && "pl-9",
           error && "border-destructive focus-visible:border-destructive",
-          disabled &&
-            "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
+          disabled && WIDGET_DISABLED_FIELD,
         )}
       />
     </div>

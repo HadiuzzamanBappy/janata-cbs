@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps, WidgetOption } from "../../types";
+import { WIDGET_DISABLED_FIELD, WIDGET_TEXT, WIDGET_TEXT_SELECTED } from "./widget-styles";
 
 export interface SelectWidgetProps extends BaseWidgetProps {
   options: WidgetOption[];
@@ -83,10 +84,9 @@ export function SelectWidget({
           value={strVal}
           onChange={handleTextChange}
           className={cn(
-            "h-7 text-xs font-mono bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50",
+            `h-7 ${WIDGET_TEXT} font-mono bg-background rounded border-border/80 w-full focus-visible:ring-0 focus-visible:border-foreground/50`,
             error && "border-destructive focus-visible:border-destructive bg-destructive/5",
-            disabled &&
-              "disabled:opacity-90 disabled:cursor-default disabled:bg-muted/15 font-medium",
+            disabled && WIDGET_DISABLED_FIELD,
           )}
         />
       </div>
@@ -120,15 +120,19 @@ export function SelectWidget({
           side="bottom"
           align="end"
           sideOffset={4}
-          className="min-w-44 max-w-72 w-auto max-h-56 overflow-y-auto text-xs p-1 shadow-lg border border-border/80 bg-popover z-50 font-sans"
+          className={`min-w-44 max-w-72 w-auto max-h-56 overflow-y-auto ${WIDGET_TEXT} p-1 shadow-lg border border-border/80 bg-popover z-50 font-sans`}
         >
           {loading ? (
-            <div className="p-3 text-center text-xs text-muted-foreground font-mono flex items-center justify-center gap-1.5">
+            <div
+              className={`p-3 text-center ${WIDGET_TEXT} text-muted-foreground font-mono flex items-center justify-center gap-1.5`}
+            >
               <Loader2 className="size-3.5 animate-spin text-primary" />
               <span>Fetching options...</span>
             </div>
           ) : options.length === 0 ? (
-            <div className="p-3 text-center text-xs text-muted-foreground font-mono italic">
+            <div
+              className={`p-3 text-center ${WIDGET_TEXT} text-muted-foreground font-mono italic`}
+            >
               No options available
             </div>
           ) : (
@@ -142,8 +146,8 @@ export function SelectWidget({
                   key={opt.code}
                   onClick={() => handleSelectOption(opt.code)}
                   className={cn(
-                    "text-xs py-1.5 px-2 cursor-pointer flex items-center leading-snug whitespace-normal wrap-break-word",
-                    isSelected && "bg-primary/10 text-primary font-semibold",
+                    `${WIDGET_TEXT} py-1.5 px-2 cursor-pointer flex items-center leading-snug whitespace-normal wrap-break-word`,
+                    isSelected && `bg-primary/10 text-primary ${WIDGET_TEXT_SELECTED}`,
                   )}
                 >
                   <span>{displayLabel}</span>

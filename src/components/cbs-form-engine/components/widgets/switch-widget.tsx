@@ -11,6 +11,7 @@ import { isBooleanOn, toBooleanValue } from "@/lib/cbs-form-spec";
 import { cn } from "@/lib/core-utils";
 import type { BooleanWidgetConfig } from "@/lib/data-schemas";
 import type { BaseWidgetProps } from "../../types";
+import { WIDGET_DISABLED_CHOICE, WIDGET_TAG } from "./widget-styles";
 
 export interface SwitchWidgetProps extends BaseWidgetProps {
   /** Labels and on / off wire values (BOOLEAN_CONFIG). */
@@ -36,7 +37,7 @@ export function SwitchWidget({
         htmlFor={id}
         className={cn(
           "relative inline-flex items-center gap-2 select-none",
-          disabled ? "cursor-default opacity-85" : "cursor-pointer",
+          disabled ? WIDGET_DISABLED_CHOICE : "cursor-pointer",
         )}
       >
         <div className="relative inline-flex items-center">
@@ -48,11 +49,11 @@ export function SwitchWidget({
             onChange={(e) => onChange(toBooleanValue(e.target.checked, config))}
             className="sr-only peer"
           />
-          <div className="w-8 h-4 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-primary-foreground after:border-border after:border after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-primary peer-disabled:opacity-60 peer-disabled:cursor-default" />
+          <div className="w-8 h-4 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-primary-foreground after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-primary-foreground after:border-border after:border after:rounded-full after:h-3 after:w-3.5 after:transition-all peer-checked:bg-primary peer-disabled:cursor-not-allowed" />
         </div>
         <span
           className={cn(
-            "text-3xs font-mono px-1.5 py-0.5 rounded border font-semibold",
+            `${WIDGET_TAG} px-1.5 py-0.5 rounded border`,
             isChecked
               ? "bg-primary/10 text-primary border-primary/25"
               : "bg-muted text-muted-foreground border-border/40",

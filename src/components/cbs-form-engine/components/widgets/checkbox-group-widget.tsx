@@ -13,6 +13,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/core-utils";
 import type { BaseWidgetProps, WidgetOption } from "../../types";
+import { WIDGET_DISABLED_CHOICE, WIDGET_TEXT, WIDGET_TEXT_SELECTED } from "./widget-styles";
 
 export interface CheckboxGroupWidgetProps extends BaseWidgetProps {
   options: WidgetOption[];
@@ -45,13 +46,13 @@ export function CheckboxGroupWidget({
             <label
               key={opt.code}
               className={cn(
-                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs cursor-pointer transition-colors select-none",
+                `inline-flex items-center gap-1.5 px-2 py-0.5 rounded border ${WIDGET_TEXT} cursor-pointer transition-colors select-none`,
                 isChecked
                   ? disabled
-                    ? "border-muted-foreground/30 bg-muted/60 text-muted-foreground font-medium"
-                    : "border-primary bg-primary/10 text-primary font-medium"
+                    ? `border-muted-foreground/30 bg-muted/60 text-muted-foreground ${WIDGET_TEXT_SELECTED}`
+                    : `border-primary bg-primary/10 text-primary ${WIDGET_TEXT_SELECTED}`
                   : "border-border/80 bg-background text-muted-foreground hover:border-foreground/40",
-                disabled && "opacity-60 cursor-not-allowed",
+                disabled && WIDGET_DISABLED_CHOICE,
               )}
             >
               <input
@@ -93,13 +94,13 @@ export function CheckboxGroupWidget({
                 "dark:data-checked:text-primary-foreground",
                 disabled &&
                   (isChecked
-                    ? "!bg-muted/70 !border-border !text-muted-foreground"
-                    : "!bg-input/40 !border-border/60"),
+                    ? "bg-muted/70! border-border! text-muted-foreground!"
+                    : "bg-input/40! border-border/60!"),
               )}
             />
             <span
               className={cn(
-                "text-xs font-mono font-normal transition-colors",
+                `${WIDGET_TEXT} font-mono transition-colors`,
                 disabled ? "text-muted-foreground/85" : "text-foreground",
               )}
             >

@@ -6,8 +6,12 @@ import { normalizeAuditTimes } from "@/lib/core-utils";
 import { decodeProtobufValue, parseInquiryRecords } from "@/lib/data-parsers";
 import {
   type ApiResponse,
+  type CbsWirePayload,
   cbsWirePayloadSchema,
   formConfigSaveSchema,
+  type GrpcEnvelope,
+  INQUIRY_MAX_ROWS,
+  type InquiryResult,
   inquiryConfigSaveSchema,
   isApiSuccess,
   modelConfigSaveSchema,
@@ -19,8 +23,9 @@ import {
   getSession,
   resolveCacheDescriptor,
 } from "@/lib/infra-redis";
-import { CbsControlTable, CbsRequestType } from "@/types";
-import { buildGrpcEnvelope, pinInquiryBranch } from "../_lib/envelope";
+import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
+import { buildGrpcEnvelope } from "../_lib/envelope";
+import { resolveInquiryEnvelope } from "../_lib/inquiry";
 import { apiError, apiFail } from "../_lib/response";
 
 export const runtime = "nodejs";
@@ -38,24 +43,33 @@ const SAVE_DATA_SCHEMAS: Readonly<Partial<Record<string, ZodType>>> = {
   [`${CbsRequestType.PUT}:${CbsControlTable.INQUIRY_CONFIG}`]: inquiryConfigSaveSchema,
 };
 
-function saveDataSchemaFor(requestType: string, controlName?: string): ZodType | undefined {
-  const control = (controlName ?? "").trim().toUpperCase();
-  return SAVE_DATA_SCHEMAS[requestType] ?? SAVE_DATA_SCHEMAS[`${requestType}:${control}`];
+/** Authorize, Delete and Reverse act on the stored record and carry no definition to check. */
+const NO_DEFINITION_FUNCTIONS: ReadonlySet<string> = new Set([
+  CbsRecordFunction.AUTHORIZE,
+  CbsRecordFunction.DELETE,
+  CbsRecordFunction.REVERSE,
+]);
+
+function saveDataSchemaFor(body: CbsWirePayload): ZodType | undefined {
+  if (NO_DEFINITION_FUNCTIONS.has((body.recordFunction ?? "").trim().toUpperCase())) return;
+  const control = (body.controlName ?? "").trim().toUpperCase();
+  return SAVE_DATA_SCHEMAS[body.requestType] ?? SAVE_DATA_SCHEMAS[`${body.requestType}:${control}`];
 }
 
 /**
- * Single decode point for core payloads: INQ results become InquiryRow[], everything else
- * is protobuf-decoded. Cached entries hold the decoded form, so cache hits skip this step.
+ * Single decode point for core payloads: INQ results become an `InquiryResult` (at most
+ * `INQUIRY_MAX_ROWS` rows plus the matched total), everything else is protobuf-decoded.
+ * Cached entries hold the decoded form, so cache hits skip this step.
  */
 function decodeResponse(requestType: string, res: ApiResponse): ApiResponse {
-  if (!isApiSuccess(res) || !res.data) return res;
-  const decoded =
-    requestType === CbsRequestType.INQ
-      ? parseInquiryRecords(decodeProtobufValue(res.data))
-      : decodeProtobufValue(res.data);
+  if (!isApiSuccess(res)) return res;
   // Dates are ISO inside the system: audit timestamps are converted once, here
-  const data = normalizeAuditTimes(decoded);
-  return { ...res, data };
+  const decoded = res.data ? normalizeAuditTimes(decodeProtobufValue(res.data)) : undefined;
+  if (requestType !== CbsRequestType.INQ)
+    return decoded === undefined ? res : { ...res, data: decoded };
+  const rows = parseInquiryRecords(decoded);
+  const result: InquiryResult = { rows: rows.slice(0, INQUIRY_MAX_ROWS), total: rows.length };
+  return { ...res, data: result };
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>> {
@@ -83,7 +97,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
 
     // 1. Domain Access Verification Gate (RIDASHL, plus 'A' for a zero-auth mutation)
     const accessViolation =
-      verifyUserRecordAccess(currUser, body.recordFunction) ??
+      verifyUserRecordAccess(currUser, body.requestType, body.recordFunction) ??
       verifyZeroAuthAccess(currUser, body.requestType, body.authLevel);
     if (accessViolation) {
       proxyLogger.warn(`Access Denied: ${accessViolation.message}`, {
@@ -97,7 +111,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     }
 
     // 2. Config save rules (the same schema the designer screen checks before sending)
-    const dataCheck = saveDataSchemaFor(body.requestType, body.controlName)?.safeParse(body.data);
+    const dataCheck = saveDataSchemaFor(body)?.safeParse(body.data);
     if (dataCheck && !dataCheck.success) {
       return apiFail(
         dataCheck.error.issues[0]?.message || "Invalid configuration record",
@@ -107,18 +121,35 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     }
 
     // 3. Canonical GrpcEnvelope Assembly (branch and user come from the session)
-    const envelope = pinInquiryBranch(buildGrpcEnvelope(session, body));
+    const requested = buildGrpcEnvelope(session, body);
 
     // 4. Dispatch with Read-Through Redis Caching (responses are decoded exactly once)
     try {
-      const cacheDesc = resolveCacheDescriptor(envelope);
-      const dispatchDecoded = async () =>
-        decodeResponse(envelope.requestType, await dispatch(envelope, token));
-
       // One dispatch per miss: concurrent callers share its result, and failures are never cached.
-      const response = cacheDesc
-        ? await getOrSet(cacheDesc.key, dispatchDecoded, cacheDesc.ttl, isApiSuccess)
-        : await dispatchDecoded();
+      const dispatchCached = (target: GrpcEnvelope): Promise<ApiResponse> => {
+        const cacheDesc = resolveCacheDescriptor(target);
+        const dispatchDecoded = async () =>
+          decodeResponse(target.requestType, await dispatch(target, token));
+        return cacheDesc
+          ? getOrSet(cacheDesc.key, dispatchDecoded, cacheDesc.ttl, isApiSuccess)
+          : dispatchDecoded();
+      };
+
+      // An inquiry runs only as its saved definition says (controller, fixed selection, branch)
+      let envelope = requested;
+      if (requested.requestType === CbsRequestType.INQ) {
+        const resolved = await resolveInquiryEnvelope(requested, dispatchCached);
+        if (!resolved.ok) {
+          proxyLogger.warn(`Inquiry refused: ${resolved.message}`, {
+            recordId: requested.recordId,
+            userId: currUser.userId,
+          });
+          return apiFail(resolved.message, resolved.status);
+        }
+        envelope = resolved.envelope;
+      }
+
+      const response = await dispatchCached(envelope);
 
       if (isApiSuccess(response)) {
         await autoInvalidateOnMutation(envelope);

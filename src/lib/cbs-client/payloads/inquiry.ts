@@ -1,25 +1,23 @@
-import type { CbsWirePayload, InquiryExecuteOptions } from "@/lib/data-schemas";
+import type { CbsWirePayload, InquiryOperatorCriterion } from "@/lib/data-schemas";
 import { CbsRecordFunction, CbsRequestType } from "@/types";
 
 /**
- * Pure runtime inquiry executor payload builder.
- * Table definition maintenance (get, list, save) is handled by `cbs.inquiryConfig`.
+ * Runtime inquiry payload builder. Table definition maintenance (get, list, save) is handled by
+ * `cbs.inquiryConfig`.
  */
 export const inquiryPayloads = {
   /**
-   * Execute tabular runtime inquiry query ('INQ').
+   * Run a saved inquiry ('INQ'). The browser names the inquiry (its INQUIRY record ID) and sends
+   * the operator's filter values; `/api/proxy` resolves the controller, service, fixed selection,
+   * branch and row cap from the saved definition.
    */
-  executeQuery: (controlName: string, options: InquiryExecuteOptions = {}): CbsWirePayload => ({
-    servicePath: options.servicePath,
+  executeQuery: (
+    inquiryId: string,
+    queryString: readonly InquiryOperatorCriterion[] = [],
+  ): CbsWirePayload => ({
     requestType: CbsRequestType.INQ,
-    controlName: controlName.trim().toUpperCase(),
     recordFunction: CbsRecordFunction.SEE,
-    recordId: "",
-    data: {
-      queryString: options.queryString || [],
-      curPage: options.curPage || 1,
-      perPage: options.perPage || 1000,
-      ...(options.inqType ? { inqType: options.inqType } : {}),
-    },
+    recordId: inquiryId.trim().toUpperCase(),
+    data: { queryString: [...queryString] },
   }),
 };

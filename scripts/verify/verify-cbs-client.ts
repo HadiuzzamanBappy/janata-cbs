@@ -244,26 +244,19 @@ async function runSuite() {
 
   // --- 4. Runtime Inquiries (cbs.inquiry) ---
   console.log("\n── 4. Runtime Inquiries (cbs.inquiry) ──");
-  const inqRun = cbs.inquiry.executeQuery("GET.TXNS", {
-    curPage: 1,
-    perPage: 50,
-    queryString: [
-      {
-        selectFieldName: "CURRENCY",
-        selectFieldOperator: "EQ",
-        selectFieldValue: "BDT",
-      },
-    ],
-  });
+  const inqRun = cbs.inquiry.executeQuery(" get.txns ", [
+    { selectFieldName: "CURRENCY", selectFieldOperator: "EQ", selectFieldValue: "BDT" },
+  ]);
   recordTest(
-    "4.1 cbs.inquiry.executeQuery: Builds INQ tabular execution envelope",
-    'cbs.inquiry.executeQuery("GET.TXNS", { curPage: 1, perPage: 50, queryString: [...] })',
+    "4.1 cbs.inquiry.executeQuery: names the saved inquiry (recordId) and sends only the operator's filters",
+    'cbs.inquiry.executeQuery(" get.txns ", [CURRENCY EQ BDT])',
     inqRun,
     inqRun.requestType === CbsRequestType.INQ &&
-      inqRun.controlName === "GET.TXNS" &&
-      (inqRun.data as Record<string, unknown>)?.curPage === 1 &&
-      (inqRun.data as Record<string, unknown>)?.perPage === 50 &&
-      Array.isArray((inqRun.data as Record<string, unknown>)?.queryString),
+      inqRun.recordId === "GET.TXNS" &&
+      inqRun.controlName === undefined &&
+      inqRun.servicePath === undefined &&
+      JSON.stringify(Object.keys(inqRun.data ?? {})) === JSON.stringify(["queryString"]) &&
+      Array.isArray(inqRun.data?.queryString),
   );
 
   // --- 6. Universal Transport Dispatcher (cbs.send) ---

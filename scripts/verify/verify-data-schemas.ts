@@ -22,6 +22,8 @@ import {
   formElementSchema,
   inquiryConfigRecordSchema,
   inquiryConfigSaveSchema,
+  inquiryResultSchema,
+  inquiryRunDataSchema,
   isWidgetCompatibleWithType,
   loginSchema,
   menuTreeRecordSchema,
@@ -656,6 +658,95 @@ async function runSuite() {
       cleanInquirySave.success,
   );
 
+  // 10c. Rules that keep a saved inquiry from widening: branch, fixed fields, locked operand, extra keys
+  const widenIssues = inquiryConfigSaveSchema
+    .safeParse({
+      ...sampleInquiryWire,
+      INQInfo: {
+        ...sampleInquiryWire.INQInfo,
+        fixedSelection: "branchCode EQ JB0099; accountType EQ SB; name NE O'Brien",
+      },
+      INQSelectField: [
+        { ...sampleInquiryWire.INQSelectField[0], selectFieldOperatorFixed: "NE" },
+        {
+          ...sampleInquiryWire.INQSelectField[0],
+          selectFieldName: "accountType",
+          selectFieldDisplay: "Type",
+        },
+        {
+          ...sampleInquiryWire.INQSelectField[0],
+          selectFieldName: "branchCode",
+          selectFieldDisplay: "Branch",
+        },
+        {
+          ...sampleInquiryWire.INQSelectField[0],
+          selectFieldName: "a b",
+          selectFieldDisplay: "Bad",
+        },
+      ],
+      INQCmds: [{ cmdFor: "ACCOUNT S @ID", cmdButton: "View Account" }],
+    })
+    .error?.issues.map((i) => i.path.join("."));
+  const smuggled = inquiryConfigSaveSchema.safeParse({
+    ...sampleInquiryWire,
+    INQCmds: [{ cmdFor: "ACCOUNT S @ID", cmdButton: "View Account" }],
+    record: { INQCmds: [{ cmdFor: "USERS I @ID", cmdButton: "Smuggled" }] },
+  });
+  recordTest(
+    "10c. Inquiry Save Schema: no branch in a branch-wise fixed selection or filters, no filter on a fixed field, locked operand = operator, clean keys, no unknown top-level keys",
+    "branch-wise inquiry with fixed branchCode, a fixed accountType filter, a branchCode filter, locked NE ≠ EQ, 'a b', a smuggled 'record'",
+    widenIssues,
+    JSON.stringify(widenIssues) ===
+      JSON.stringify([
+        "INQInfo.fixedSelection",
+        "INQInfo.fixedSelection",
+        "INQSelectField.0.selectFieldOperatorFixed",
+        "INQSelectField.1.selectFieldName",
+        "INQSelectField.2.selectFieldName",
+        "INQSelectField.3.selectFieldName",
+      ]) &&
+      !smuggled.success &&
+      smuggled.error.issues.some((i) => i.code === "unrecognized_keys"),
+  );
+
+  // 10d. INQ request data: the browser sends filter values only, in a strict shape
+  const runOk = inquiryRunDataSchema.safeParse({
+    queryString: [
+      { selectFieldName: " accountNumber ", selectFieldOperator: "EQ", selectFieldValue: "1001" },
+    ],
+  });
+  const runBad = [
+    { queryString: [], perPage: 1000000 },
+    { queryString: "branchCode EQ JB0002" },
+    { queryString: [{ selectFieldName: "a;b", selectFieldOperator: "EQ", selectFieldValue: "1" }] },
+    { queryString: [{ selectFieldName: "x", selectFieldOperator: "XX", selectFieldValue: "1" }] },
+    { queryString: [{ selectFieldName: "x", selectFieldOperator: "EQ", selectFieldValue: "  " }] },
+    {
+      queryString: [
+        {
+          selectFieldName: "x",
+          selectFieldOperator: "EQ",
+          selectFieldValue: "1",
+          selectFieldType: "text",
+        },
+      ],
+    },
+  ].map((data) => inquiryRunDataSchema.safeParse(data).success);
+  const result = inquiryResultSchema.safeParse({ rows: [{ recordId: "", NAME: "A" }], total: 7 });
+  recordTest(
+    "10d. INQ data is strict (filters only: no paging, no type, known operands, clean names, a value); results carry rows and the matched total",
+    {
+      ok: "accountNumber EQ 1001",
+      bad: ["perPage", "string query", "a;b", "XX", "blank", "selectFieldType"],
+    },
+    { ok: runOk.data, bad: runBad, result: result.success },
+    runOk.success &&
+      runOk.data.queryString[0].selectFieldName === "accountNumber" &&
+      runBad.every((passed) => !passed) &&
+      result.success &&
+      result.data.total === 7,
+  );
+
   // Popup URL parameters: a trust boundary. Valid values pass; a tampered value is dropped alone
   const popupOk = popupSearchParamsSchema.safeParse({
     tabId: "popup-ACCOUNT_1",
@@ -664,7 +755,6 @@ async function runSuite() {
     component: "INQUIRY_SCREEN",
     step: "RESULTS",
     page: "2",
-    pageSize: "25",
   });
   const popupTampered = popupSearchParamsSchema.safeParse({
     mode: "DROP TABLE",

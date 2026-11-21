@@ -90,7 +90,7 @@ janata-cbs/
     │   │   │   ├── containers/                # Grouping layout containers (card-container, tab-group-container)
     │   │   │   └── widgets/                   # High-density typed inputs (amount, date, rate, select, text, etc.)
     │   │   └── hooks/                         # use-field-options, use-model-lookup, use-multi-value
-    │   ├── cbs-inquiry-engine/                # Inquiry rendering (InquiryTable, InquiryFilterBar) + runInquiry()
+    │   ├── cbs-inquiry-engine/                # Inquiry rendering (InquiryTable, InquiryFilterBar, InquiryPreview) + useInquiryRunner()
     │   │   ├── components/                    # inquiry-table, inquiry-filter-bar, pagination, row actions
     │   │   └── hooks/                         # use-inquiry-pagination, use-inquiry-sort
     │   ├── cbs-menu/                          # Universal UI Navigation Menu Renderer (CbsMenuTree, CbsMenuTreeItem)

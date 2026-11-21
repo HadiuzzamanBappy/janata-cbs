@@ -5,28 +5,23 @@ import { unwrapRecordsPayload } from "./protobuf-decoder";
 /* Dataset Rows Parser (for runtime tabular inquiry queries)                  */
 /* -------------------------------------------------------------------------- */
 
+function keyOf(value: unknown): string {
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return "";
+}
+
 /**
- * Unpacks tabular records from a decoded INQ response payload into a typed InquiryRow array.
+ * Unpacks tabular records from a decoded INQ response payload into InquiryRow[]. `recordId` is
+ * the row's own key (`recordId`, else `id`), or "" when the core sent none: a key is never
+ * invented, so `@ID` commands can't open a record that doesn't exist.
  * Runs once, in the BFF proxy; clients receive the rows and only validate them.
  */
 export function parseInquiryRecords(rawPayload: unknown): InquiryRow[] {
   if (!rawPayload) return [];
 
-  const records = unwrapRecordsPayload<Record<string, unknown>>(rawPayload);
-  return records.map((item, idx) => {
-    const rawId = item.id ?? item.recordId ?? item.txnReference ?? item.accountNumber;
-    const cleanId =
-      rawId !== undefined && rawId !== null && String(rawId).trim() !== ""
-        ? String(rawId).trim()
-        : `row_${idx + 1}`;
-
-    return {
-      ...item,
-      id: cleanId,
-      recordId:
-        typeof item.recordId === "string" && item.recordId.trim() !== ""
-          ? item.recordId.trim()
-          : cleanId,
-    };
-  });
+  return unwrapRecordsPayload<Record<string, unknown>>(rawPayload).map((item) => ({
+    ...item,
+    recordId: keyOf(item.recordId) || keyOf(item.id),
+  }));
 }

@@ -8,6 +8,8 @@
  *    `hooks`, `components/<x>` and `features/<x>` (or `features/<group>/<x>`).
  * 3. Client Boundary ("use client" files never import server-only drivers/modules)
  * 4. Server Sealing (every `lib/infra-grpc` & `lib/infra-redis` module starts with "server-only")
+ * 5. Shared Boundary (`lib/cbs-*`, `core-utils`, `data-schemas`, `data-parsers` never import
+ *    server-only modules, so no client import chain can reach them)
  *
  * Strict: any finding fails the suite. There is no allowlist, so fix the import instead.
  *
@@ -42,11 +44,21 @@ const LAYERS: ReadonlyArray<readonly [prefix: string, rank: number, label: strin
 
 const SERVER_SPECIFIERS = [
   /^@\/lib\/infra-(grpc|redis)/,
-  /^@\/lib\/core-config\/server/,
+  /^@\/lib\/core-config\/(server|env)/,
   /^@grpc\//,
   /^ioredis$/,
 ];
 const SEALED_DIRS = ["lib/infra-grpc/", "lib/infra-redis/"] as const;
+/**
+ * Units that run in the browser and on the server alike. They never import server code, so a
+ * client file can only reach server code by importing it directly (which rule 3 catches).
+ */
+const SHARED_DIRS = [
+  "lib/cbs-",
+  "lib/core-utils/",
+  "lib/data-schemas/",
+  "lib/data-parsers/",
+] as const;
 const STATIC_ASSET_RE = /\.(png|jpe?g|gif|webp|svg|ico|avif)$/;
 
 function toPosix(p: string): string {
@@ -125,6 +137,7 @@ function audit(): string[] {
     const code = stripComments(raw);
     const fromLayer = layerOf(src);
     const isClient = /^\s*['"]use client['"]/.test(raw);
+    const isShared = SHARED_DIRS.some((d) => src.startsWith(d));
 
     if (SEALED_DIRS.some((d) => src.startsWith(d)) && !/import\s+['"]server-only['"]/.test(code)) {
       found.add(`server-sealing: ${src}`);
@@ -133,6 +146,9 @@ function audit(): string[] {
     for (const spec of extractSpecifiers(code)) {
       if (isClient && SERVER_SPECIFIERS.some((re) => re.test(spec))) {
         found.add(`client-boundary: ${src} -> ${spec}`);
+      }
+      if (isShared && SERVER_SPECIFIERS.some((re) => re.test(spec))) {
+        found.add(`shared-boundary: ${src} -> ${spec}`);
       }
       const target = resolveTarget(spec, file);
       // Static assets (e.g. Next metadata files like `@/app/icon.png`) are bundler-hashed file

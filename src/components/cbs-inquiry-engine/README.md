@@ -1,8 +1,8 @@
 # CBS Inquiry Engine (`@/components/cbs-inquiry-engine`)
 
-The React side of inquiry screens: the filter bar, the result table, pagination and row actions, plus `runInquiry()`, the one function that sends an inquiry to the core. It renders whatever an `InquiryConfigRecord` describes, so no inquiry has screen-specific code.
+The React side of inquiry screens: the filter bar, the result table with its pagination and row actions, the designer's live preview, and `useInquiryRunner()`, which runs an inquiry. It renders whatever an `InquiryConfigRecord` describes, so no inquiry has screen-specific code.
 
-The rules it applies (columns, filter serialization, command templates) live in [`@/lib/cbs-inquiry-spec`](../../lib/cbs-inquiry-spec/README.md). This barrel re-exports that library, so feature code imports both from `@/components/cbs-inquiry-engine`.
+The rules it applies (columns, filters, commands, sorting) live in [`@/lib/cbs-inquiry-spec`](../../lib/cbs-inquiry-spec/README.md). This barrel re-exports that library, so feature code imports both from `@/components/cbs-inquiry-engine`.
 
 ---
 
@@ -17,26 +17,27 @@ The rules it applies (columns, filter serialization, command templates) live in 
 
 ## Contents
 
-| Part           | Exports                                                                                                                             |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Execution      | `runInquiry(config, criteria, { branchCode, perPage, signal })`                                                                     |
-| Filters        | `InquiryFilterBar`, `FilterCriterionRow`                                                                                            |
-| Table          | `InquiryTable`, `InquiryEmptyState`, `InquiryTableHeader`, `ColumnHeader`, `InquiryTableBody`, `CellFormatter`, `InquiryPagination` |
-| Rows & preview | `InquiryRowActions`, `InquiryPreview`                                                                                               |
-| Hooks          | `useInquiryPagination`, `useInquirySort` (client-side paging and sorting of the returned rows)                                      |
+| Part      | Exports                                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Execution | `useInquiryRunner(inquiryId, config)` → `{ run(criteria), running }` (`run-inquiry.ts` holds the single request)         |
+| Filters   | `InquiryFilterBar` (controlled: `criteria` + `onCriteriaChange`)                                                         |
+| Table     | `InquiryTable` (controlled: `page` + `onPageChange`, `sort` + `onSortChange`); header, body, cells and pagination inside |
+| Preview   | `InquiryPreview` (the designer's draft layout over the saved inquiry's data)                                             |
 
 ---
 
-## `runInquiry()` contract
+## Running an inquiry
 
-1. Sends to `INQInfo.controllerName`, **never** to the command text the operator typed. If the controller is missing, it throws and tells the operator to set it in the Inquiry Designer.
-2. Builds the filters with `serializeCriteriaToWire()`. It passes the session branch only when `INQInfo.showBranchWise` is set.
-3. Sends through `cbs.send(cbs.inquiry.executeQuery(…))` with `silent: true` and `responseSchema: inquiryRowListSchema`. Rows arrive already parsed by `/api/proxy` (parsed once on the server), and the client only validates them.
-4. If the core rejects the request, it throws the core's message. **Callers own the loading state and the toast**, so a failure is shown exactly once.
+1. `run(criteria)` sends `cbs.inquiry.executeQuery(inquiryId, serializeCriteriaToWire(criteria, fields))` with `silent: true` and `responseSchema: inquiryResultSchema`. The proxy resolves everything else from the saved inquiry (see the spec README). Date columns become ISO once, on arrival.
+2. **One query at a time.** A new run aborts the one in flight, and an unmount aborts the last, so a late response never replaces a newer one. `running` disables Find and Refresh.
+3. **One toast per run**, raised by the runner: the matched count (a warning when the `INQUIRY_MAX_ROWS` cap trimmed the result), or the failure. An abort is silent.
+4. The outcome is `ok` (with `{ rows, total }`), `failed` or `aborted`. The operator screen reruns a tab saved on its results once on mount (refresh, popup, dock-back), retrying only an aborted run.
 
 ---
 
 ## Rules
 
-- Inquiry filter inputs run purely from configuration (`INQSelectField`), taking their initial value and placeholder directly from `selectFieldValue`.
-- Row clicks and row action menus run commands through `executeInquiryCommand` / `executePrimaryInquiryCommand`, never through `router.push`.
+- **Paging**: by `INQInfo.perpageItem` when `showPagination` is on, and always above `INQUIRY_UNPAGED_MAX_ROWS` rows. Sorting covers the whole result and resets to page 1; exports use the same order.
+- **Row actions**: `resolveRowActions()` gives each button its command and function code. A button is disabled, with the reason in its tooltip, when the row can't fill the command or when `evaluateCbsAccess` denies the function (rights, Four-Eyes on `A`, and status rules when the row carries `auditData.recStatus`). Commands run through `cbsCommand.execute`, never `router.push`.
+- **Filters** offer only the operands valid for the field type, keep a locked operand, and mark required filters (checked again by the proxy).
+- **Preview**: the query is always the saved, live inquiry. When the draft differs (unsaved, or not authorized) the preview says so; save and authorize to preview changes to the target, fixed selection or filters.

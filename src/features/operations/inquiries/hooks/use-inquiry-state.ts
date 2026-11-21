@@ -2,139 +2,67 @@
 
 import * as React from "react";
 import { buildDefaultCriteria } from "@/lib/cbs-inquiry-spec";
-import type { FilterCriteriaMap, InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
+import type { FilterCriteriaMap, InquiryConfigRecord, InquiryTabState } from "@/lib/data-schemas";
 import { useWorkbenchStore } from "@/store";
 import { CBS_INQUIRY_STEP, type CbsInquiryStep } from "@/types";
 
 export interface UseInquiryStateOptions {
   tabId?: string;
-  schema: InquiryConfigRecord | null;
+  schema: InquiryConfigRecord;
 }
 
+/**
+ * The inquiry screen's step, criteria and page, persisted on the workbench tab so a refresh, a
+ * popup or a dock-back restores them. The tab's saved state is read once, at mount (the schema is
+ * loaded by then); each change is merged into the store's current value, so changes made in the
+ * same tick never overwrite each other.
+ */
 export function useInquiryState({ tabId, schema }: UseInquiryStateOptions) {
-  const { tabs, updateTabState } = useWorkbenchStore();
-  const currentTab = tabs.find((t) => t.id === tabId);
+  const saved = useWorkbenchStore((s) =>
+    tabId ? s.tabs.find((t) => t.id === tabId)?.inquiryState : undefined,
+  );
+  const updateInquiryState = useWorkbenchStore((s) => s.updateInquiryState);
 
-  // 1. Initial Step: Persisted tab state or CBS_INQUIRY_STEP.SELECTION
-  const initialStep = currentTab?.inquiryState?.step || CBS_INQUIRY_STEP.SELECTION;
+  const [step, setStepState] = React.useState<CbsInquiryStep>(
+    () => saved?.step ?? CBS_INQUIRY_STEP.SELECTION,
+  );
+  const [criteria, setCriteriaState] = React.useState<FilterCriteriaMap>(() =>
+    saved?.criteria && Object.keys(saved.criteria).length > 0
+      ? saved.criteria
+      : buildDefaultCriteria(schema.INQSelectField),
+  );
+  const [page, setPageState] = React.useState(() => saved?.currentPage ?? 1);
 
-  // 2. Initial Criteria: Persisted tab criteria or default from schema
-  const initialCriteria = React.useMemo((): FilterCriteriaMap => {
-    if (
-      currentTab?.inquiryState?.criteria &&
-      Object.keys(currentTab.inquiryState.criteria).length > 0
-    ) {
-      return currentTab.inquiryState.criteria;
-    }
-    return buildDefaultCriteria(schema?.INQSelectField);
-  }, [currentTab?.inquiryState?.criteria, schema?.INQSelectField]);
-
-  // 3. Initial Current Page: Persisted tab page or 1
-  const initialPage = currentTab?.inquiryState?.currentPage || 1;
-
-  // 4. Initial Page Size: Persisted tab size or schema perpageItem or 30
-  const initialPageSize = React.useMemo(() => {
-    if (currentTab?.inquiryState?.pageSize) return currentTab.inquiryState.pageSize;
-    const schemaPerPage = Number(schema?.INQInfo?.perpageItem);
-    if (!Number.isNaN(schemaPerPage) && schemaPerPage > 0) {
-      return schemaPerPage;
-    }
-    return 30;
-  }, [currentTab?.inquiryState?.pageSize, schema?.INQInfo?.perpageItem]);
-
-  const [step, setStepState] = React.useState<CbsInquiryStep>(initialStep);
-  const [filteredRows, setFilteredRows] = React.useState<InquiryRow[]>([]);
-  const [currentPage, setCurrentPageState] = React.useState(initialPage);
-  const [pageSize, setPageSizeState] = React.useState(initialPageSize);
-  const [currentCriteria, setCurrentCriteriaState] =
-    React.useState<FilterCriteriaMap>(initialCriteria);
+  const persist = React.useCallback(
+    (patch: InquiryTabState) => {
+      if (tabId) updateInquiryState(tabId, patch);
+    },
+    [tabId, updateInquiryState],
+  );
 
   const setStep = React.useCallback(
-    (newStep: CbsInquiryStep) => {
-      setStepState(newStep);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, {
-          inquiryState: {
-            ...currentTab?.inquiryState,
-            step: newStep,
-          },
-        });
-      }
+    (next: CbsInquiryStep) => {
+      setStepState(next);
+      persist({ step: next });
     },
-    [tabId, updateTabState, currentTab?.inquiryState],
+    [persist],
   );
 
-  const setCurrentPage = React.useCallback(
-    (page: number) => {
-      setCurrentPageState(page);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, {
-          inquiryState: {
-            ...currentTab?.inquiryState,
-            currentPage: page,
-          },
-        });
-      }
+  const setCriteria = React.useCallback(
+    (next: FilterCriteriaMap) => {
+      setCriteriaState(next);
+      persist({ criteria: next });
     },
-    [tabId, updateTabState, currentTab?.inquiryState],
+    [persist],
   );
 
-  const setPageSize = React.useCallback(
-    (size: number) => {
-      setPageSizeState(size);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, {
-          inquiryState: {
-            ...currentTab?.inquiryState,
-            pageSize: size,
-          },
-        });
-      }
+  const setPage = React.useCallback(
+    (next: number) => {
+      setPageState(next);
+      persist({ currentPage: next });
     },
-    [tabId, updateTabState, currentTab?.inquiryState],
+    [persist],
   );
 
-  const setCurrentCriteria = React.useCallback(
-    (crit: FilterCriteriaMap) => {
-      setCurrentCriteriaState(crit);
-      if (tabId && typeof updateTabState === "function") {
-        updateTabState(tabId, {
-          inquiryState: {
-            ...currentTab?.inquiryState,
-            criteria: crit,
-          },
-        });
-      }
-    },
-    [tabId, updateTabState, currentTab?.inquiryState],
-  );
-
-  // Sync criteria when schema loads if not already configured in tab
-  const isInitializedRef = React.useRef(false);
-  React.useEffect(() => {
-    if (!schema || isInitializedRef.current) return;
-    isInitializedRef.current = true;
-
-    const hasPersistedCriteria =
-      currentTab?.inquiryState?.criteria &&
-      Object.keys(currentTab.inquiryState.criteria).length > 0;
-
-    if (!hasPersistedCriteria) {
-      const defaults = buildDefaultCriteria(schema.INQSelectField);
-      setCurrentCriteriaState(defaults);
-    }
-  }, [schema, currentTab?.inquiryState?.criteria]);
-
-  return {
-    step,
-    setStep,
-    filteredRows,
-    setFilteredRows,
-    currentPage,
-    setCurrentPage,
-    pageSize,
-    setPageSize,
-    currentCriteria,
-    setCurrentCriteria,
-  };
+  return { step, setStep, criteria, setCriteria, page, setPage };
 }

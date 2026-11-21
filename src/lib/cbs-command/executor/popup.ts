@@ -29,9 +29,6 @@ export function spawnDetachedPopupWindow(parsed: ParsedCommand, options?: Execut
   if (inquiry?.currentPage && inquiry.currentPage > 1) {
     params.set("page", String(inquiry.currentPage));
   }
-  if (inquiry?.pageSize && inquiry.pageSize !== 10) {
-    params.set("pageSize", String(inquiry.pageSize));
-  }
   const cleanApp = parsed.application.replace(/[^a-zA-Z0-9]/g, "_");
   const tabId = options?.tabId || `popup_${cleanApp}_${generateIdempotencyKey()}`;
   params.set("tabId", tabId);

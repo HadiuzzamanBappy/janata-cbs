@@ -36,9 +36,9 @@ src/store/
 
 ### Workbench (`useWorkbenchStore`)
 
-| State                                    | Actions                                                                                                                                                                |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tabs` (`WorkbenchTab[]`), `activeTabId` | `addTab`, `removeTab`, `setActiveTab`, `closeAllTabs`, `closeOthers`, `closeToRight`, `duplicateTab`, `reorderTabs`, `updateFormData`, `setTabDirty`, `updateTabState` |
+| State                                    | Actions                                                                                                                                                                                                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tabs` (`WorkbenchTab[]`), `activeTabId` | `addTab`, `removeTab`, `setActiveTab`, `closeAllTabs`, `closeOthers`, `closeToRight`, `duplicateTab`, `reorderTabs`, `updateFormData`, `setTabDirty`, `updateTabState`, `updateInquiryState` (merges into the tab's inquiry state from the current value) |
 
 - Capped at `clientConfig.workbench.maxOpenTabs` (default 15, `NEXT_PUBLIC_MAX_OPEN_TABS`).
 - Persisted to `sessionStorage` through `partialize`, so only serializable tab data is stored.

@@ -126,7 +126,6 @@ export function StandaloneScreen({ screenId }: { screenId: string }) {
           step: url.step,
           criteria,
           currentPage: url.page,
-          pageSize: url.pageSize,
         },
       });
     }

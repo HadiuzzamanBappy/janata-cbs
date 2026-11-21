@@ -2,158 +2,150 @@
 
 import * as React from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { deriveInquiryColumnMeta } from "@/lib/cbs-inquiry-spec";
-import type { INQCmd, INQDef, InquiryRow } from "@/lib/data-schemas";
-import { useInquiryPagination } from "../hooks/use-inquiry-pagination";
-import { useInquirySort } from "../hooks/use-inquiry-sort";
+import {
+  type DerivedColumnMeta,
+  deriveInquiryColumnMeta,
+  INQUIRY_UNPAGED_MAX_ROWS,
+  type InquirySort,
+  inquiryPageSize,
+  nextInquirySort,
+  sortInquiryRows,
+} from "@/lib/cbs-inquiry-spec";
+import { cn } from "@/lib/core-utils";
+import type { INQCmd, INQDef, INQInfo, InquiryRow } from "@/lib/data-schemas";
+import { useSessionStore } from "@/store";
 import { InquiryPagination } from "./table/inquiry-pagination";
 import { InquiryTableBody } from "./table/inquiry-table-body";
 import { InquiryTableHeader } from "./table/inquiry-table-header";
 
-export interface InquiryEmptyStateProps {
-  message?: string;
+/** Column lines of a (possibly multi-line) record: line numbers in order, each line's columns. */
+export interface InquiryTableLayout {
+  readonly columns: readonly DerivedColumnMeta[];
+  readonly lines: ReadonlyArray<{ readonly line: number; readonly columns: DerivedColumnMeta[] }>;
+  readonly isMultiRow: boolean;
+  readonly maxColumns: number;
 }
 
-export function InquiryEmptyState({
-  message = "No matching records found.",
-}: InquiryEmptyStateProps) {
-  return (
-    <div className="flex-1 min-h-30 flex flex-col items-center justify-center p-3 text-center bg-muted/10">
-      <p className="text-2xs text-muted-foreground font-mono">{message}</p>
-    </div>
-  );
+function buildLayout(defs: readonly INQDef[]): InquiryTableLayout {
+  const columns = defs
+    .map(deriveInquiryColumnMeta)
+    .sort((a, b) => (a.row !== b.row ? a.row - b.row : a.order - b.order));
+  const byLine = new Map<number, DerivedColumnMeta[]>();
+  for (const col of columns) byLine.set(col.row, [...(byLine.get(col.row) ?? []), col]);
+  const lines = [...byLine.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([line, cols]) => ({ line, columns: cols }));
+  return {
+    columns,
+    lines,
+    isMultiRow: lines.length > 1,
+    maxColumns: Math.max(1, ...lines.map((l) => l.columns.length)),
+  };
 }
+
+export type InquiryTableInfo = Pick<
+  INQInfo,
+  "showSerial" | "showPagination" | "perpageItem" | "cmdFromInternal" | "cmdFieldName"
+>;
 
 export interface InquiryTableProps {
-  columns: INQDef[];
-  rows: InquiryRow[];
-  commands?: INQCmd[];
-  pageSize?: number;
-  onPageSizeChange?: (size: number) => void;
-  currentPage?: number;
-  onPageChange?: (page: number) => void;
-  totalRows?: number;
-  showSerial?: boolean;
-  showPagination?: boolean;
-  cmdFromInternal?: boolean;
-  cmdFieldName?: string;
+  columns: readonly INQDef[];
+  rows: readonly InquiryRow[];
+  commands: readonly INQCmd[];
+  info: InquiryTableInfo;
+  /** 1-based page, owned by the screen (persisted with the tab). */
+  page: number;
+  onPageChange: (page: number) => void;
+  sort: InquirySort | null;
+  onSortChange: (sort: InquirySort | null) => void;
   className?: string;
 }
 
-export function InquiryTable({
+/**
+ * The result grid of an inquiry: columns, alignment and multi-line records from `INQDef`, row
+ * actions from `INQCmds`, client-side sorting, and paging by `perpageItem`. Paging is on when the
+ * inquiry asks for it, and always above `INQUIRY_UNPAGED_MAX_ROWS` rows.
+ */
+export const InquiryTable = React.memo(function InquiryTable({
   columns,
   rows,
-  commands = [],
-  pageSize: controlledPageSize,
-  onPageSizeChange,
-  currentPage: controlledPage,
+  commands,
+  info,
+  page,
   onPageChange,
-  totalRows,
-  showSerial = true,
-  showPagination = true,
-  cmdFromInternal = false,
-  cmdFieldName = "",
-  className = "",
+  sort,
+  onSortChange,
+  className,
 }: InquiryTableProps) {
-  // 1. Derive presentation metadata from canonical INQDef wire spec
-  const columnMetas = React.useMemo(() => {
-    return (columns || [])
-      .map((col: INQDef) => deriveInquiryColumnMeta(col))
-      .sort((a, b) => (a.row !== b.row ? a.row - b.row : a.order - b.order));
-  }, [columns]);
+  const user = useSessionStore((s) => s.user);
+  const layout = React.useMemo(() => buildLayout(columns), [columns]);
+  const sortedRows = React.useMemo(
+    () => sortInquiryRows(rows, sort, layout.columns),
+    [rows, sort, layout.columns],
+  );
 
-  // 2. Multi-row grouping layout calculation (e.g. 1,1 vs 2,1)
-  const { isMultiRow, sortedRowNumbers, rowsMap, maxColsInAnyRow } = React.useMemo(() => {
-    const map = new Map<number, typeof columnMetas>();
-    for (const col of columnMetas) {
-      const list = map.get(col.row) || [];
-      list.push(col);
-      map.set(col.row, list);
-    }
-    for (const list of map.values()) {
-      list.sort((a, b) => a.order - b.order);
-    }
-    const rowNums = Array.from(map.keys()).sort((a, b) => a - b);
-    const maxCols = Math.max(...Array.from(map.values()).map((list) => list.length), 1);
-    return {
-      isMultiRow: rowNums.length > 1,
-      sortedRowNumbers: rowNums,
-      rowsMap: map,
-      maxColsInAnyRow: maxCols,
-    };
-  }, [columnMetas]);
+  const pageSize = inquiryPageSize(info);
+  const paged = info.showPagination || rows.length > INQUIRY_UNPAGED_MAX_ROWS;
+  const totalPages = paged ? Math.max(1, Math.ceil(rows.length / pageSize)) : 1;
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const offset = paged ? (currentPage - 1) * pageSize : 0;
+  const pageRows = React.useMemo(
+    () => (paged ? sortedRows.slice(offset, offset + pageSize) : sortedRows),
+    [paged, sortedRows, offset, pageSize],
+  );
 
-  // 3. Client-side sort state
-  const { sortState, handleSort, sortedRows } = useInquirySort(rows);
+  const handleSort = React.useCallback(
+    (column: string) => {
+      onSortChange(nextInquirySort(sort, column));
+      onPageChange(1);
+    },
+    [sort, onSortChange, onPageChange],
+  );
 
-  // 4. Pagination calculation
-  const { currentPage, pageSize, totalPages, totalCount, handlePageChange, paginatedRows } =
-    useInquiryPagination({
-      rows: sortedRows,
-      controlledPageSize,
-      onPageSizeChange,
-      controlledPage,
-      onPageChange,
-      totalRows,
-    });
-
-  const displayRows = showPagination ? paginatedRows : sortedRows;
-  const showActionsColumn = commands.length > 0 || Boolean(cmdFromInternal && cmdFieldName);
+  const showActions = commands.length > 0 || Boolean(info.cmdFromInternal && info.cmdFieldName);
 
   return (
     <TooltipProvider delay={150}>
-      <div className={`flex-1 flex flex-col min-h-0 overflow-hidden pr-1 gap-1 ${className}`}>
-        {/* Table Container: rounded, border-border/80, bg-card/60, shadow-2xs matching system layout */}
+      <div className={cn("flex-1 flex flex-col min-h-0 overflow-hidden pr-1 gap-1", className)}>
         <div className="flex-1 min-h-0 overflow-auto rounded border border-border/80 bg-card/60 shadow-2xs flex flex-col">
           {rows.length === 0 ? (
-            <InquiryEmptyState />
-          ) : (
-            <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full caption-bottom text-2xs">
-                <InquiryTableHeader
-                  isMultiRow={isMultiRow}
-                  sortedRowNumbers={sortedRowNumbers}
-                  rowsMap={rowsMap}
-                  maxColsInAnyRow={maxColsInAnyRow}
-                  columnMetas={columnMetas}
-                  showSerial={showSerial}
-                  showActionsColumn={showActionsColumn}
-                  sortColumn={sortState?.column}
-                  sortDirection={sortState?.direction}
-                  onSort={handleSort}
-                />
-                <InquiryTableBody
-                  rows={displayRows}
-                  isMultiRow={isMultiRow}
-                  sortedRowNumbers={sortedRowNumbers}
-                  rowsMap={rowsMap}
-                  maxColsInAnyRow={maxColsInAnyRow}
-                  columnMetas={columnMetas}
-                  commands={commands}
-                  showSerial={showSerial}
-                  showActionsColumn={showActionsColumn}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                  showPagination={showPagination}
-                  cmdFromInternal={cmdFromInternal}
-                  cmdFieldName={cmdFieldName}
-                />
-              </table>
+            <div className="flex-1 min-h-30 flex items-center justify-center p-3 bg-muted/10">
+              <p className="text-2xs text-muted-foreground font-mono">No matching records found.</p>
             </div>
+          ) : (
+            <table className="w-full caption-bottom text-2xs">
+              <InquiryTableHeader
+                layout={layout}
+                showSerial={info.showSerial}
+                showActions={showActions}
+                sort={sort}
+                onSort={handleSort}
+              />
+              <InquiryTableBody
+                rows={pageRows}
+                offset={offset}
+                layout={layout}
+                commands={commands}
+                showSerial={info.showSerial}
+                showActions={showActions}
+                cmdFromInternal={info.cmdFromInternal}
+                cmdFieldName={info.cmdFieldName}
+                user={user}
+              />
+            </table>
           )}
         </div>
 
-        {/* Pagination Bar */}
-        {showPagination && (
+        {paged && rows.length > 0 && (
           <InquiryPagination
             currentPage={currentPage}
             totalPages={totalPages}
             pageSize={pageSize}
-            totalCount={totalCount}
-            onPageChange={handlePageChange}
+            totalCount={rows.length}
+            onPageChange={onPageChange}
           />
         )}
       </div>
     </TooltipProvider>
   );
-}
+});

@@ -1,101 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { InquiryFilterBar, InquiryTable, runInquiry } from "@/components/cbs-inquiry-engine";
+import { InquiryFilterBar, InquiryTable, useInquiryRunner } from "@/components/cbs-inquiry-engine";
 import { CbsErrorState, CbsScreenScaffold } from "@/components/cbs-screen";
-import { toast } from "@/components/ui/toast";
-import { buildDefaultCriteria } from "@/lib/cbs-inquiry-spec";
+import type { InquirySort } from "@/lib/cbs-inquiry-spec";
 import type { CbsScreenProps } from "@/lib/cbs-screen";
-import { logger } from "@/lib/core-logger";
-import type { FilterCriteriaMap } from "@/lib/data-schemas";
-import { useSessionStore } from "@/store";
+import type { FilterCriteriaMap, InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
 import { CBS_INQUIRY_STEP } from "@/types";
 import { InquirySkeleton } from "./components/inquiry-skeleton";
 import { useInquiryActions } from "./hooks/use-inquiry-actions";
 import { useInquirySchema } from "./hooks/use-inquiry-schema";
 import { useInquiryState } from "./hooks/use-inquiry-state";
 
-export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
+/** The operator's inquiry screen (`INQ <NAME>`): loads the saved inquiry, then runs it. */
+export function OpsInquiry({ command, tabId, className }: CbsScreenProps) {
   const { schema, entryName, loading, error, refetch } = useInquirySchema(command);
-  const currentBranch = useSessionStore((s) => s.currentBranch || s.user?.branchCode);
 
-  const {
-    step,
-    setStep,
-    filteredRows,
-    setFilteredRows,
-    currentPage,
-    setCurrentPage,
-    pageSize,
-    setPageSize,
-    currentCriteria,
-    setCurrentCriteria,
-  } = useInquiryState({ schema, tabId });
-
-  const commandCode = schema?.INQInfo?.controllerName || command;
-  const title = schema?.INQInfo?.description || commandCode;
-
-  const handleFilterSearch = React.useCallback(
-    async (criteria: FilterCriteriaMap) => {
-      if (!schema) return;
-
-      const isPaginationEnabled = schema.INQInfo?.showPagination !== false;
-      try {
-        const dataset = await runInquiry(schema, criteria, {
-          branchCode: currentBranch,
-          perPage: isPaginationEnabled ? pageSize || 30 : 1000,
-        });
-
-        setCurrentCriteria(criteria);
-        setFilteredRows(dataset);
-        setCurrentPage(1);
-        setStep(CBS_INQUIRY_STEP.RESULTS);
-
-        toast.add({
-          title: "Query Executed",
-          description: `Matched ${dataset.length} record(s)`,
-          type: "info",
-        });
-      } catch (err) {
-        logger.warn("Dynamic inquiry query failed", err, "INQUIRY");
-        toast.add({
-          title: "Query Failed",
-          description: err instanceof Error ? err.message : "Backend query failed",
-          type: "destructive",
-        });
-      }
-    },
-    [schema, currentBranch, pageSize, setCurrentCriteria, setFilteredRows, setCurrentPage, setStep],
-  );
-
-  const { handleExportCSV, handleExportHTML, handleExportXML, handleRefresh } = useInquiryActions({
-    schema,
-    filteredRows,
-    onRefreshQuery: () => handleFilterSearch(currentCriteria),
-  });
-
-  // Re-fetch dataset automatically if step was restored as CBS_INQUIRY_STEP.RESULTS (e.g. after page refresh or popup open)
-  const isAutoRestoredRef = React.useRef(false);
-  React.useEffect(() => {
-    if (!schema || isAutoRestoredRef.current) return;
-    if (step === CBS_INQUIRY_STEP.RESULTS && filteredRows.length === 0) {
-      isAutoRestoredRef.current = true;
-      handleFilterSearch(currentCriteria);
-    }
-  }, [schema, step, filteredRows.length, currentCriteria, handleFilterSearch]);
-
-  const handleResetFilters = () => {
-    if (!schema) return;
-    const initialCriteria = buildDefaultCriteria(schema.INQSelectField);
-    setCurrentCriteria(initialCriteria);
-    setFilteredRows([]);
-    setCurrentPage(1);
-  };
-
-  if (loading) {
-    return <InquirySkeleton />;
-  }
-
+  if (loading) return <InquirySkeleton />;
   if (error || !schema) {
     return (
       <CbsErrorState
@@ -107,55 +28,107 @@ export function OpsInquiry({ command, tabId, className = "" }: CbsScreenProps) {
       />
     );
   }
+  return (
+    <OpsInquiryBody
+      key={entryName}
+      inquiryId={entryName}
+      schema={schema}
+      tabId={tabId}
+      className={className}
+    />
+  );
+}
 
+interface OpsInquiryBodyProps {
+  inquiryId: string;
+  schema: InquiryConfigRecord;
+  tabId?: string;
+  className?: string;
+}
+
+function OpsInquiryBody({ inquiryId, schema, tabId, className }: OpsInquiryBodyProps) {
+  const { step, setStep, criteria, setCriteria, page, setPage } = useInquiryState({
+    tabId,
+    schema,
+  });
+  const [rows, setRows] = React.useState<InquiryRow[]>([]);
+  const [sort, setSort] = React.useState<InquirySort | null>(null);
+  const { run, running } = useInquiryRunner(inquiryId, schema);
+
+  /** Runs the query; `restore` keeps the page (a refresh or a restored tab), a new search starts over. */
+  const search = React.useCallback(
+    async (searchCriteria: FilterCriteriaMap, restore: boolean) => {
+      const outcome = await run(searchCriteria);
+      if (outcome.status !== "ok") return outcome.status;
+      setCriteria(searchCriteria);
+      setRows(outcome.result.rows);
+      if (!restore) {
+        setPage(1);
+        setSort(null);
+      }
+      setStep(CBS_INQUIRY_STEP.RESULTS);
+      return outcome.status;
+    },
+    [run, setCriteria, setPage, setStep],
+  );
+
+  // A tab saved on its results (refresh, popup, dock-back) reruns its last query once, and an
+  // inquiry without filters runs straight away. Only an aborted run (a StrictMode remount) is
+  // retried; after success or failure the operator drives the screen.
+  const pendingRunRef = React.useRef(
+    step === CBS_INQUIRY_STEP.RESULTS || schema.INQSelectField.length === 0,
+  );
+  React.useEffect(() => {
+    if (!pendingRunRef.current) return;
+    void search(criteria, true).then((status) => {
+      if (status !== "aborted") pendingRunRef.current = false;
+    });
+  }, [search, criteria]);
+
+  const { handleExportCSV, handleExportHTML, handleExportXML } = useInquiryActions({
+    schema,
+    rows,
+    sort,
+  });
+
+  const info = schema.INQInfo;
   return (
     <CbsScreenScaffold
-      title={title}
-      commandCode={commandCode}
+      title={info.description || inquiryId}
+      commandCode={info.controllerName || inquiryId}
       variant="inquiry"
       inquiryStep={step}
       onInquiryBackToSelection={() => setStep(CBS_INQUIRY_STEP.SELECTION)}
-      onInquiryRefresh={handleRefresh}
+      onInquiryRefresh={running ? undefined : () => void search(criteria, true)}
       onInquiryPrintLocal={() => window.print()}
-      onInquiryPrintServer={() => {
-        const rptTarget = schema.INQInfo?.rptControllerName || commandCode;
-        toast.add({
-          title: "Server Report Spooled",
-          description: `Spool job created for ${rptTarget} (controller: ${commandCode})`,
-          type: "info",
-        });
-      }}
       onInquiryExportCSV={handleExportCSV}
       onInquiryExportHTML={handleExportHTML}
       onInquiryExportXML={handleExportXML}
       className={className}
     >
-      {schema.INQInfo?.pageOrientation === "Landscape" && (
-        <style>{`@media print { @page { size: landscape; } }`}</style>
+      {info.pageOrientation === "Landscape" && (
+        <style>{"@media print { @page { size: landscape; } }"}</style>
       )}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === CBS_INQUIRY_STEP.SELECTION ? (
           <InquiryFilterBar
-            inquiryName={entryName}
+            inquiryName={inquiryId}
             fields={schema.INQSelectField}
-            criteria={currentCriteria}
-            onCriteriaChange={setCurrentCriteria}
-            onSearch={handleFilterSearch}
-            onReset={handleResetFilters}
+            criteria={criteria}
+            onCriteriaChange={setCriteria}
+            onSearch={(searchCriteria) => void search(searchCriteria, false)}
+            loading={running}
           />
         ) : (
           <InquiryTable
             columns={schema.INQDef}
+            rows={rows}
             commands={schema.INQCmds}
-            rows={filteredRows}
-            pageSize={pageSize}
-            onPageSizeChange={setPageSize}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-            showSerial={schema.INQInfo.showSerial}
-            showPagination={schema.INQInfo.showPagination}
-            cmdFromInternal={schema.INQInfo.cmdFromInternal}
-            cmdFieldName={schema.INQInfo.cmdFieldName}
+            info={info}
+            page={page}
+            onPageChange={setPage}
+            sort={sort}
+            onSortChange={setSort}
           />
         )}
       </div>

@@ -29,7 +29,7 @@ const { data: branches } = useQuery(cbsQueries.branch.list());
 - Factories: `cbs.model(control)` (`get`, `list`, `searchIds`, `getNewId`, `save`, `authorize`, `delete`, `hold`, `reverse`), the pre-bound `cbs.branch`, `cbs.control`, `cbs.menu` and `cbs.inquiryConfig`, plus `cbs.menuTree`, `cbs.modelConfig`, `cbs.formConfig` and `cbs.inquiry.executeQuery()`.
 - Control names come from `CbsControlTable` in `@/types` (`CONFIG.FORM`, `MODEL.CONFIG`, `INQUIRY`, `MENU.TREE`, …).
 - Pass `responseSchema` to validate `data` on the client, and `signal` to cancel.
-- Inquiries go through `runInquiry()` in `@/components/cbs-inquiry-engine`, which builds the filters from the inquiry config. Don't build a `queryString` by hand.
+- Inquiries go through `useInquiryRunner()` in `@/components/cbs-inquiry-engine`. The browser sends the inquiry ID and the operator's filter values only; `/api/proxy` (`resolveInquiryEnvelope`) takes the controller, service, fixed selection and branch pin from the saved inquiry and refuses anything else. Don't build a `queryString` by hand.
 
 ## 2. Writing (mutations)
 

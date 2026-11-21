@@ -8,11 +8,11 @@ The React wrapper is `useCbsAccess()` in `src/hooks/use-cbs-access.ts`. It fills
 
 ## 📦 Files
 
-| File               | Exports                                                                                                                                                                                                           |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `record-guard.ts`  | `evaluateCbsAccess(context)`: the single evaluator. `isRecordEditable(mode)`: a designer field is editable only in Input (`I`) mode.                                                                              |
-| `accessibility.ts` | `verifyUserRecordAccess(user, recordFunction)`: the server-side rights gate. `verifyZeroAuthAccess(user, requestType, authLevel)`: a level-0 mutation also needs `A`. `hasAccessibilityRight(granted, required)`. |
-| `types.ts`         | `CbsAccessContext` (input) and `CbsAccessResult` (output)                                                                                                                                                         |
+| File               | Exports                                                                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `record-guard.ts`  | `evaluateCbsAccess(context)`: the single evaluator. `isRecordEditable(mode)`: a designer field is editable only in Input (`I`) mode.                                                                                           |
+| `accessibility.ts` | `verifyUserRecordAccess(user, requestType, recordFunction)`: the server-side rights gate. `verifyZeroAuthAccess(user, requestType, authLevel)`: a level-0 mutation also needs `A`. `hasAccessibilityRight(granted, required)`. |
+| `types.ts`         | `CbsAccessContext` (input) and `CbsAccessResult` (output)                                                                                                                                                                      |
 
 ---
 
@@ -42,7 +42,13 @@ Flags:
 
 ## 🛡️ What the server checks
 
-`/api/proxy` calls `verifyUserRecordAccess(currUser, body.recordFunction)` before every dispatch. For the controlled functions (`CBS_CONTROLLED_FUNCTIONS`: `I`, `A`, `D`, `R`, `H`), it rejects the request with **403** if the session user lacks that right. Other functions pass through.
+`/api/proxy` calls `verifyUserRecordAccess(currUser, body.requestType, body.recordFunction)` before every dispatch. The request needs every right it implies, and gets **403** if the session user lacks one:
+
+- the controlled function it sends (`CBS_CONTROLLED_FUNCTIONS`: `I`, `A`, `D`, `R`, `H`);
+- the right its verb carries by itself: `AUT`/`AMC` need `A`, `DEL` needs `D`, `REV`/`TRV` need `R`, `HLD` needs `H`, whatever function is sent;
+- `I` for any other mutation that names no controlled function, so leaving `recordFunction` out (or sending `S` with a `PUT`) never skips the check.
+
+Reads (`GET`, `INQ` with `S`) need no controlled right.
 
 It then calls `verifyZeroAuthAccess(currUser, body.requestType, body.authLevel)`. A mutation sent at `authLevel: 0` (a zero-auth, trailing-comma screen) authorizes the record in the same step, so the user must also hold `A`, or the request gets **403**. The command gateway applies the same rule before a comma screen opens (`validateSecurityPermissions`), so the operator is told at once rather than at save.
 

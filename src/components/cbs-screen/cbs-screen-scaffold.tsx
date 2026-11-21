@@ -59,7 +59,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
   onInquiryBackToSelection,
   onInquiryRefresh,
   onInquiryPrintLocal,
-  onInquiryPrintServer,
   onInquiryExportCSV,
   onInquiryExportHTML,
   onInquiryExportXML,
@@ -130,7 +129,6 @@ export function CbsScreenScaffold<TTab extends string = string>({
             onBackToSelection={onInquiryBackToSelection}
             onRefresh={onInquiryRefresh}
             onPrintLocal={onInquiryPrintLocal}
-            onPrintServer={onInquiryPrintServer}
             onExportCSV={onInquiryExportCSV}
             onExportHTML={onInquiryExportHTML}
             onExportXML={onInquiryExportXML}

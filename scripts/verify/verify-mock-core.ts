@@ -229,20 +229,45 @@ async function runSuite() {
       formRes.status === "SUCCESS" && formOut.targetModel === "ACCOUNT",
     );
 
-    // 7a. Tabular Inquiry Rows (INQ)
-    const inqInput = { requestType: "INQ", controlName: "GET.EMP.INFO" };
-    const inqRes = getMockProxyResponse("INQ", "GET.EMP.INFO");
-    const inqData = inqRes.data as Array<Record<string, unknown>> | undefined;
-    const inqOut = {
-      status: inqRes.status,
-      rowsCount: inqData?.length,
-      firstRowSample: inqData?.[0] ? { id: inqData[0].userId, name: inqData[0].fullName } : null,
-    };
+    // 7a. Tabular Inquiry Rows (INQ): the proxy sends the resolved controller and the full filter
+    const inqRes = getMockProxyResponse("INQ", "USER");
+    const inqData = (inqRes.data as Array<Record<string, unknown>> | undefined) ?? [];
+    const branch = String(inqData[0]?.branchCode ?? "");
+    const runFiltered = (queryString: unknown[]) =>
+      (getMockProxyResponse("INQ", "USER", "", { queryString }).data as unknown[] | undefined) ??
+      [];
+    const pinned = runFiltered([
+      {
+        selectFieldName: "branchCode",
+        selectFieldType: "text",
+        selectFieldOperator: "EQ",
+        selectFieldValue: branch,
+      },
+    ]) as Array<Record<string, unknown>>;
+    const nowhere = runFiltered([
+      {
+        selectFieldName: "branchCode",
+        selectFieldType: "text",
+        selectFieldOperator: "EQ",
+        selectFieldValue: "NO.BRANCH",
+      },
+    ]);
+    const unknownTable = getMockProxyResponse("INQ", "GET.EMP.INFO");
     recordTest(
-      "7a. Tabular Inquiry Rows (INQ)",
-      inqInput,
-      inqOut,
-      inqRes.status === "SUCCESS" && Boolean(inqData && inqData.length > 0),
+      "7a. Tabular Inquiry Rows (INQ): rows of the controller table, filtered by queryString (branch pin applied); an inquiry ID is not a table",
+      { controlName: "USER", filters: [`branchCode EQ ${branch}`, "branchCode EQ NO.BRANCH"] },
+      {
+        all: inqData.length,
+        pinned: pinned.length,
+        nowhere: nowhere.length,
+        inquiryIdAsTable: unknownTable.status,
+      },
+      inqRes.status === "SUCCESS" &&
+        inqData.length > 0 &&
+        pinned.length > 0 &&
+        pinned.every((r) => r.branchCode === branch) &&
+        nowhere.length === 0 &&
+        unknownTable.status === "RECORD_NOT_FOUND",
     );
 
     // 7b. Inquiry Definition Retrieval (S INQUIRY GET.ACCOUNT)

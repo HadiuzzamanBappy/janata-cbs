@@ -11,12 +11,14 @@ export interface ParsedColumnCoordinates {
   col: number;
 }
 
+export type ColumnFormat = "text" | "currency" | "date" | "number";
+
 export interface DerivedColumnMeta {
   id: string;
   label: string;
   align: "left" | "right" | "center";
   width: string;
-  format: "text" | "currency" | "date" | "number";
+  format: ColumnFormat;
   isMono: boolean;
   row: number;
   order: number;
@@ -25,12 +27,14 @@ export interface DerivedColumnMeta {
 }
 
 /**
- * Parses a CBS column length & alignment specifier (e.g. "20,L" or "150,R").
+ * Parses a CBS column length & alignment specifier (e.g. "20,L" or "150,R"). A length that isn't
+ * a positive whole number falls back to 20.
  */
 export function parseColumnLength(fieldLength?: string): ParsedColumnLength {
   const [lenPart, alignPart] = (fieldLength || "20,L").split(",");
-  const length = Number.parseInt(lenPart?.trim() || "20", 10) || 20;
-  const rawAlign = (alignPart?.trim().toUpperCase() || "L") as "L" | "R" | "C";
+  const parsed = Number.parseInt(lenPart?.trim() || "20", 10);
+  const length = parsed > 0 ? parsed : 20;
+  const rawAlign = alignPart?.trim().toUpperCase() || "L";
   const alignCode: "L" | "R" | "C" = rawAlign === "R" || rawAlign === "C" ? rawAlign : "L";
   const align: "left" | "right" | "center" =
     alignCode === "R" ? "right" : alignCode === "C" ? "center" : "left";
@@ -42,7 +46,7 @@ export function parseColumnLength(fieldLength?: string): ParsedColumnLength {
  * Formats column length and alignment code into CBS wire format (e.g. "20,L").
  */
 export function formatColumnLength(length: number, alignCode: "L" | "R" | "C" = "L"): string {
-  const cleanLen = Math.max(1, Number(length) || 20);
+  const cleanLen = Math.max(1, Math.trunc(Number(length)) || 20);
   const cleanAlign = alignCode === "R" || alignCode === "C" ? alignCode : "L";
   return `${cleanLen},${cleanAlign}`;
 }
@@ -61,43 +65,46 @@ export function parseColumnCoordinates(fieldRowCol?: string): ParsedColumnCoordi
  * Formats grid row and column into CBS wire coordinate format (e.g. "1,2").
  */
 export function formatColumnCoordinates(row: number, col: number): string {
-  const cleanRow = Math.max(1, Number(row) || 1);
-  const cleanCol = Math.max(1, Number(col) || 1);
+  const cleanRow = Math.max(1, Math.trunc(Number(row)) || 1);
+  const cleanCol = Math.max(1, Math.trunc(Number(col)) || 1);
   return `${cleanRow},${cleanCol}`;
 }
 
 /**
- * Compiles a canonical CBS INQDef wire spec into presentation metadata for UI tables.
- * Follows the CBS inquiry configuration strictly as the source of truth without magic name guessing.
+ * The display format a column's conversion routine (`fieldFunc`) asks for, matched on whole routine
+ * tokens (`DATE.CONVERT` → date, `AMT` → currency). Without one, a right-aligned column is a
+ * number. Date is checked first, so `CURRDATE` is a date, not an amount.
+ */
+function formatOf(fieldFunc: string, alignCode: ParsedColumnLength["alignCode"]): ColumnFormat {
+  const func = fieldFunc.trim().toUpperCase();
+  const tokens = func.split(/[^A-Z]+/).filter(Boolean);
+  if (func === "D" || tokens.some((t) => t.endsWith("DATE"))) return "date";
+  if (tokens.some((t) => t === "AMT" || t === "AMOUNT" || t.startsWith("CURR"))) return "currency";
+  return alignCode === "R" ? "number" : "text";
+}
+
+/**
+ * Compiles a canonical CBS INQDef wire spec into presentation metadata for UI tables, from the
+ * config only (no guessing from field names). Amounts and numbers are always right-aligned; they,
+ * dates and centered codes are monospaced.
  */
 export function deriveInquiryColumnMeta(col: INQDef): DerivedColumnMeta {
-  const { length, alignCode, align } = parseColumnLength(col.fieldLength);
+  const { length, alignCode, align: configuredAlign } = parseColumnLength(col.fieldLength);
   const { row, col: order } = parseColumnCoordinates(col.fieldRowCol);
-
-  // Map CBS conversion routines strictly based on explicit fieldFunc or numeric alignment
-  const funcUpper = col.fieldFunc?.toUpperCase().trim() || "";
-
-  let format: "text" | "currency" | "date" | "number" = "text";
-  if (funcUpper.includes("AMT") || funcUpper.includes("CURR")) {
-    format = "currency";
-  } else if (funcUpper.includes("DATE") || funcUpper === "D") {
-    format = "date";
-  } else if (alignCode === "R") {
-    format = "number";
-  }
-
-  const isMono = align === "right" || align === "center";
+  const format = formatOf(col.fieldFunc, alignCode);
+  const isNumeric = format === "currency" || format === "number";
+  const align = isNumeric ? "right" : configuredAlign;
 
   return {
     id: col.fieldName,
-    label: col.fieldDisplay,
+    label: col.fieldDisplay.trim() || col.fieldName,
     align,
     width: `${Math.max(length * 9, 80)}px`,
     format,
-    isMono,
+    isMono: isNumeric || format === "date" || align === "center",
     row,
     order,
-    canPass: Boolean(col.dataPassable),
-    routine: col.fieldFunc?.trim() || undefined,
+    canPass: col.dataPassable,
+    routine: col.fieldFunc.trim() || undefined,
   };
 }

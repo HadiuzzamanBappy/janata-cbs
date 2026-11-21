@@ -2,7 +2,7 @@ import "server-only";
 
 import { SC_MODEL_CONFIG } from "@mock/db";
 import { nowIsoDateTime } from "@/lib/core-utils";
-import type { ApiResponse, CbsWirePayload } from "@/lib/data-schemas";
+import type { ApiResponse, CbsWirePayload, GrpcEnvelope } from "@/lib/data-schemas";
 import { CbsControlTable } from "@/types";
 import { resolveTable } from "../database-router";
 import { errorResult, successResult } from "../response-factory";
@@ -72,7 +72,10 @@ export function handleNextId(payload: CbsWirePayload): ApiResponse {
  * Handles Mutations (PUT, AUT, DEL, HLD, REV, TRV, SMC, AMC, SFC, ATT, CTT, AFT)
  * with consistent dual-control audit status transitions.
  */
-export function handleMutation(payload: CbsWirePayload): ApiResponse {
+/** Mutations reach the mock as the proxy's envelope, which carries the session branch. */
+export function handleMutation(
+  payload: CbsWirePayload & Partial<Pick<GrpcEnvelope, "branchCode">>,
+): ApiResponse {
   const reqType = (payload.requestType || "").trim().toUpperCase();
   const statusMap: Record<string, { label: string; code: string }> = {
     AUT: { label: "authorized", code: "AU" },

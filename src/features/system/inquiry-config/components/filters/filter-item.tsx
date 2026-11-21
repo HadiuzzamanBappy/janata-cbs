@@ -4,7 +4,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { INQUIRY_OPERAND_OPTIONS } from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
 import type { INQSelectField } from "@/lib/data-schemas";
 
@@ -42,11 +41,6 @@ export function FilterItem({
     opacity: isDragging ? 0.35 : 1,
     zIndex: isDragging ? 40 : undefined,
   };
-
-  const operandBadge =
-    INQUIRY_OPERAND_OPTIONS.find((o) => o.value === field.selectFieldOperator)?.badge ||
-    field.selectFieldOperator ||
-    "EQ";
 
   return (
     <div
@@ -120,7 +114,7 @@ export function FilterItem({
               : "border-border/60 text-muted-foreground",
           )}
         >
-          {operandBadge}
+          {field.selectFieldOperator}
         </Badge>
       </button>
 

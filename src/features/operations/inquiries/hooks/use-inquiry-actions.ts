@@ -1,85 +1,52 @@
 import * as React from "react";
 import { toast } from "@/components/ui/toast";
+import { deriveInquiryColumnMeta, type InquirySort, sortInquiryRows } from "@/lib/cbs-inquiry-spec";
 import { type ExportColumn, exportToCsv, exportToHtmlReport, exportToXml } from "@/lib/core-utils";
 import type { InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
 
 export interface UseInquiryActionsProps {
-  schema: InquiryConfigRecord | null;
-  filteredRows: InquiryRow[];
-  onRefreshQuery?: () => Promise<void> | void;
+  schema: InquiryConfigRecord;
+  rows: readonly InquiryRow[];
+  sort: InquirySort | null;
 }
 
-export function useInquiryActions({
-  schema,
-  filteredRows,
-  onRefreshQuery,
-}: UseInquiryActionsProps) {
-  const getExportColumns = React.useCallback((): ExportColumn<InquiryRow>[] => {
-    if (!schema?.INQDef) return [];
-    return schema.INQDef.map((col) => ({
-      key: col.fieldName,
-      header: col.fieldDisplay || col.fieldName,
+function done(title: string, description: string) {
+  toast.add({ title, description, type: "success" });
+}
+
+/** CSV, HTML and XML exports of the result, in the order the table shows it. */
+export function useInquiryActions({ schema, rows, sort }: UseInquiryActionsProps) {
+  const exportData = React.useCallback(() => {
+    const metas = schema.INQDef.map(deriveInquiryColumnMeta);
+    const columns: ExportColumn<InquiryRow>[] = metas.map((col) => ({
+      key: col.id,
+      header: col.label,
     }));
-  }, [schema]);
+    const name = schema.INQInfo.controllerName || "inquiry";
+    const title = schema.INQInfo.description || name;
+    return { columns, rows: sortInquiryRows(rows, sort, metas), name, title };
+  }, [schema, rows, sort]);
 
   const handleExportCSV = React.useCallback(() => {
-    if (!schema || filteredRows.length === 0) return;
-    const filename = schema.INQInfo?.controllerName || "inquiry";
-    exportToCsv(filename, getExportColumns(), filteredRows);
-    toast.add({
-      title: "Export Completed",
-      description: `Exported ${filteredRows.length} rows to CSV`,
-      type: "success",
-    });
-  }, [schema, filteredRows, getExportColumns]);
+    if (rows.length === 0) return;
+    const { columns, rows: ordered, name } = exportData();
+    exportToCsv(name, columns, ordered);
+    done("Export Completed", `Exported ${ordered.length} rows to CSV`);
+  }, [rows.length, exportData]);
 
   const handleExportHTML = React.useCallback(() => {
-    if (!schema || filteredRows.length === 0) return;
-    const filename = schema.INQInfo?.controllerName || "inquiry";
-    const title = schema.INQInfo?.description || filename;
-    exportToHtmlReport(filename, getExportColumns(), filteredRows, {
-      title,
-      subtitle: schema.INQInfo?.controllerName,
-    });
-    toast.add({
-      title: "HTML Export Completed",
-      description: `Saved HTML report with ${filteredRows.length} records`,
-      type: "success",
-    });
-  }, [schema, filteredRows, getExportColumns]);
+    if (rows.length === 0) return;
+    const { columns, rows: ordered, name, title } = exportData();
+    exportToHtmlReport(name, columns, ordered, { title, subtitle: name });
+    done("HTML Export Completed", `Saved HTML report with ${ordered.length} records`);
+  }, [rows.length, exportData]);
 
   const handleExportXML = React.useCallback(() => {
-    if (!schema || filteredRows.length === 0) return;
-    const filename = schema.INQInfo?.controllerName || "inquiry";
-    const title = schema.INQInfo?.description || filename;
-    exportToXml(filename, getExportColumns(), filteredRows, {
-      title,
-      code: schema.INQInfo?.controllerName,
-    });
-    toast.add({
-      title: "XML Export Completed",
-      description: `Saved XML report with ${filteredRows.length} records`,
-      type: "success",
-    });
-  }, [schema, filteredRows, getExportColumns]);
+    if (rows.length === 0) return;
+    const { columns, rows: ordered, name, title } = exportData();
+    exportToXml(name, columns, ordered, { title, code: name });
+    done("XML Export Completed", `Saved XML report with ${ordered.length} records`);
+  }, [rows.length, exportData]);
 
-  const handleRefresh = React.useCallback(async () => {
-    if (!schema) return;
-    if (onRefreshQuery) {
-      await onRefreshQuery();
-      return;
-    }
-    toast.add({
-      title: "Refreshed",
-      description: `Inquiry records refreshed for ${schema.INQInfo?.description || schema.INQInfo?.controllerName || "inquiry"}`,
-      type: "info",
-    });
-  }, [schema, onRefreshQuery]);
-
-  return {
-    handleExportCSV,
-    handleExportHTML,
-    handleExportXML,
-    handleRefresh,
-  };
+  return { handleExportCSV, handleExportHTML, handleExportXML };
 }

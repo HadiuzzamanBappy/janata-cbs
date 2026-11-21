@@ -352,17 +352,21 @@ async function runSuite() {
     data: {
       records: [
         { id: "TXN101", AMOUNT: 5000, STATUS: "POSTED" },
-        { id: "TXN102", AMOUNT: 12000, STATUS: "PENDING" },
+        { recordId: " TXN102 ", id: "X", AMOUNT: 12000, STATUS: "PENDING" },
+        { recordId: 2003, STATUS: "POSTED" },
+        { accountNumber: "1001", txnReference: "FT1", STATUS: "NO KEY" },
       ],
     },
   };
   const parsedInquiry = parseInquiryRecords(rawInquiryWire);
 
   recordTest(
-    "7. Inquiry Records Parser: Normalizes tabular row items into typed InquiryRow list",
-    { rawRecordsCount: rawInquiryWire.data.records.length },
-    { parsedCount: parsedInquiry.length, firstId: parsedInquiry[0]?.id },
-    parsedInquiry.length === 2 && parsedInquiry[0]?.id === "TXN101",
+    "7. Inquiry Records Parser: recordId is the row's own key (recordId, else id) or empty: never invented or guessed from other fields",
+    rawInquiryWire.data.records,
+    parsedInquiry.map((r) => r.recordId),
+    JSON.stringify(parsedInquiry.map((r) => r.recordId)) ===
+      JSON.stringify(["TXN101", "TXN102", "2003", ""]) &&
+      parsedInquiry[3]?.accountNumber === "1001",
   );
 
   // ----------------------------------------------------------------------------

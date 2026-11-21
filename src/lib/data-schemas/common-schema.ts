@@ -69,11 +69,10 @@ export const SERVICE_NAME_PATTERN = /^[A-Za-z0-9]+$/;
 export const cbsWirePayloadSchema = z
   .object({
     idempotencyKey: z.uuid("Idempotency key must be a valid UUID").optional(),
-    requestType: z.string().min(1, "Request type is required"),
+    requestType: z.string().trim().toUpperCase().min(1, "Request type is required"),
     controlName: z.string().optional(),
     recordFunction: z.string().optional(),
     recordId: z.string().optional(),
-    branchCode: z.string().optional(),
     authLevel: z.number().int().min(0).max(9).optional(),
     servicePath: z
       .string()

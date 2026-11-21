@@ -60,7 +60,7 @@ import { cbsQueries } from "@/lib/cbs-client";
 const { data: branches } = useQuery(cbsQueries.branch.list());
 ```
 
-Inquiries are sent by `runInquiry()` in `@/components/cbs-inquiry-engine`, which builds `cbs.inquiry.executeQuery()` from the inquiry config. Don't build the inquiry `queryString` by hand.
+Inquiries are run by `useInquiryRunner()` in `@/components/cbs-inquiry-engine`. `cbs.inquiry.executeQuery(inquiryId, filters)` sends only the inquiry ID and the operator's filter values; `/api/proxy` builds the rest of the query from the saved inquiry. Don't build a `queryString` by hand.
 
 ---
 

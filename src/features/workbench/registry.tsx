@@ -6,7 +6,7 @@ import { SysFormConfig } from "@/features/system/form-config";
 import { SysInquiryConfig } from "@/features/system/inquiry-config";
 import { SysMenuDesigner } from "@/features/system/menu-designer";
 import { SysModelConfig } from "@/features/system/model-config";
-import { resolveCommandAlias } from "@/lib/cbs-command";
+import { cbsCommand, resolveCommandAlias } from "@/lib/cbs-command";
 import type { CbsScreenComponent } from "@/lib/cbs-screen";
 
 /**
@@ -21,20 +21,28 @@ const BESPOKE_SCREENS: Record<string, CbsScreenComponent> = {
   "INQUIRY.CONFIG": SysInquiryConfig,
 };
 
-/**
- * Extracts and cleans the primary command token from raw input strings.
- */
-export function extractCleanCommand(command: string): string {
-  const decoded = decodeURIComponent(command || "");
-  return decoded.split(",")[0].trim().toUpperCase();
+/** A command as typed: URL-decoded when it came from a `/screen/...` URL (a stray `%` is kept). */
+function decodeCommand(command: string): string {
+  try {
+    return decodeURIComponent(command || "");
+  } catch {
+    return command || "";
+  }
 }
 
 /**
- * Determines whether a command targets an Inquiry screen.
+ * Extracts and cleans the primary command token from raw input strings.
+ */
+function extractCleanCommand(command: string): string {
+  return decodeCommand(command).split(",")[0].trim().toUpperCase();
+}
+
+/**
+ * Determines whether a command targets an Inquiry screen (`INQ <NAME>` / `INQUIRY <NAME>`), by
+ * the command grammar itself, so a model such as `INQUIRY.LOG` stays a form.
  */
 export function isInquiryCommand(command: string): boolean {
-  const cleanCmd = extractCleanCommand(command);
-  return cleanCmd.startsWith("INQ ") || cleanCmd.startsWith("INQUIRY");
+  return cbsCommand.parse(decodeCommand(command)).type === "INQUIRY";
 }
 
 /**

@@ -24,7 +24,6 @@ export interface InquiryActionsProps {
   onBackToSelection?: () => void;
   onRefresh?: () => void;
   onPrintLocal?: () => void;
-  onPrintServer?: () => void;
   onExportCSV?: () => void;
   onExportHTML?: () => void;
   onExportXML?: () => void;
@@ -38,7 +37,6 @@ export function InquiryActions({
   onBackToSelection,
   onRefresh,
   onPrintLocal,
-  onPrintServer,
   onExportCSV,
   onExportHTML,
   onExportXML,
@@ -85,10 +83,6 @@ export function InquiryActions({
           <DropdownMenuItem onClick={onPrintLocal} className="cursor-pointer gap-2 py-1">
             <Printer className="size-3 text-muted-foreground" />
             <span>Print Locally</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onPrintServer} className="cursor-pointer gap-2 py-1">
-            <Printer className="size-3 text-muted-foreground" />
-            <span>Print to Server</span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

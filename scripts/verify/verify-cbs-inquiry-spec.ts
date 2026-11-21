@@ -2,34 +2,48 @@
  * Automated Verification Suite for CBS Inquiry Specification & Compiler (@/lib/cbs-inquiry-spec)
  *
  * Deterministic & Transparent Verification of Core Inquiry Specification Subsystems:
- * 1. Criteria Mapping & Wire Serialization (serializeCriteriaToWire, operands, defaults)
- * 2. Fixed Selection Expression Parsing (parseFixedSelection)
- * 3. Multi-Line Grid Coordinate Geometry (parseColumnCoordinates, formatting)
- * 4. Field Length & Alignment Specifiers (parseColumnLength, formatting)
+ * 1. Fixed Selection Expression Parsing (parseFixedSelection)
+ * 2. Operator Filters on the Wire (serializeCriteriaToWire, buildDefaultCriteria)
+ * 3. Server Query Composition (composeInquiryQuery: order, branch pin, refusals)
+ * 4. Grid Coordinates & Column Length Specifiers
  * 5. Presentation Column Metadata Derivation (deriveInquiryColumnMeta)
- * 6. Command Template Interpolation (@ID, recordId, field tokens)
- * 7. Internal Command & Action Resolution (cmdFromInternal, getPrimaryInquiryCommand)
+ * 6. Command Template Interpolation (resolveCommandTemplate, fail-closed tokens)
+ * 7. Row Actions & Primary Command (resolveRowActions, primaryRowCommand, rowCommandOf)
+ * 8. Row Sorting (sortInquiryRows, nextInquirySort)
+ * 9. Operand Options & Page Size (INQUIRY_OPERAND_OPTIONS, operandOptionsFor, inquiryPageSize)
  *
  * Usage:
  *   pnpm exec tsx scripts/verify/verify-cbs-inquiry-spec.ts
  */
 
 import {
+  buildDefaultCriteria,
+  composeInquiryQuery,
   deriveInquiryColumnMeta,
   formatColumnCoordinates,
   formatColumnLength,
-  getPrimaryInquiryCommand,
+  INQUIRY_OPERAND_OPTIONS,
+  inquiryPageSize,
+  nextInquirySort,
+  operandOptionsFor,
   parseColumnCoordinates,
   parseColumnLength,
+  primaryRowCommand,
   resolveCommandTemplate,
+  resolveRowActions,
   rowCommandOf,
   serializeCriteriaToWire,
+  sortInquiryRows,
 } from "@/lib/cbs-inquiry-spec";
 import {
   type INQCmd,
   type INQDef,
   type INQSelectField,
+  INQUIRY_OPERANDS,
+  type InquiryConfigRecord,
+  type InquiryCriteriaParam,
   type InquiryRow,
+  inquiryConfigRecordSchema,
   parseFixedSelection,
 } from "@/lib/data-schemas";
 
@@ -60,6 +74,39 @@ function recordTest(
   }
 }
 
+const wire = (params: readonly InquiryCriteriaParam[]) =>
+  params
+    .map((c) => `${c.selectFieldName} ${c.selectFieldOperator} ${c.selectFieldValue}`)
+    .join("; ");
+
+const field = (over: Partial<INQSelectField>): INQSelectField => ({
+  selectFieldName: "",
+  selectFieldDisplay: "",
+  selectFieldType: "text",
+  selectFieldOperator: "EQ",
+  selectFieldOperatorFixed: "",
+  selectFieldValue: "",
+  selectFieldRequired: false,
+  ...over,
+});
+
+const column = (over: Partial<INQDef>): INQDef => ({
+  fieldName: "COL",
+  fieldDisplay: "Col",
+  fieldType: "DC",
+  fieldFunc: "",
+  fieldRowCol: "1,1",
+  fieldLength: "20,L",
+  dataPassable: false,
+  ...over,
+});
+
+const inquiry = (info: Record<string, unknown>, fields: INQSelectField[]): InquiryConfigRecord =>
+  inquiryConfigRecordSchema.parse({
+    INQInfo: { controllerName: "ACCOUNT", ...info },
+    INQSelectField: fields,
+  });
+
 async function runSuite() {
   console.log("\n================================================================================");
   console.log("             CBS INQUIRY SPECIFICATION & COMPILER VERIFICATION                  ");
@@ -67,7 +114,9 @@ async function runSuite() {
   console.log(
     " Architecture : Pure Headless Inquiry Specification Engine (@/lib/cbs-inquiry-spec)",
   );
-  console.log(" Domain Focus : Criteria, Fixed Selection, Grid Layout, Formatters & Commands");
+  console.log(
+    " Domain Focus : Fixed Selection, Filters, Query Composition, Layout, Commands, Sort",
+  );
   console.log("================================================================================");
 
   // ── 1. Fixed Selection Expression Parsing ──
@@ -78,10 +127,7 @@ async function runSuite() {
       "1.1 Single fixed selection parsed into canonical InquiryCriteriaParam",
       "STATUS EQ AU",
       singleStmt,
-      singleStmt.length === 1 &&
-        singleStmt[0].selectFieldName === "STATUS" &&
-        singleStmt[0].selectFieldOperator === "EQ" &&
-        singleStmt[0].selectFieldValue === "AU",
+      singleStmt.length === 1 && wire(singleStmt) === "STATUS EQ AU",
     );
 
     const multiStmt = parseFixedSelection("RECORD.STATUS NE 'REVE', CATEGORY EQ 1001").criteria;
@@ -89,314 +135,490 @@ async function runSuite() {
       "1.2 Comma-delimited statements with quotes parsed cleanly",
       "RECORD.STATUS NE 'REVE', CATEGORY EQ 1001",
       multiStmt,
-      multiStmt.length === 2 &&
-        multiStmt[0].selectFieldName === "RECORD.STATUS" &&
-        multiStmt[0].selectFieldOperator === "NE" &&
-        multiStmt[0].selectFieldValue === "REVE" &&
-        multiStmt[1].selectFieldName === "CATEGORY" &&
-        multiStmt[1].selectFieldValue === "1001",
+      wire(multiStmt) === "RECORD.STATUS NE REVE; CATEGORY EQ 1001",
     );
 
-    const emptyStmt = parseFixedSelection("").criteria;
+    const emptyStmt = parseFixedSelection("   ");
     recordTest(
-      "1.3 Empty or whitespace fixedSelection returns empty array",
-      "",
+      "1.3 Empty or whitespace fixedSelection returns no criteria and nothing invalid",
+      "   ",
       emptyStmt,
-      Array.isArray(emptyStmt) && emptyStmt.length === 0,
+      emptyStmt.criteria.length === 0 && emptyStmt.invalid.length === 0,
     );
 
     const quoted = parseFixedSelection('remarks EQ "a,b"; recStatus XX AU; broken');
-    let refused = "";
-    try {
-      serializeCriteriaToWire({}, [], "recStatus XX AU");
-    } catch (error) {
-      refused = (error as Error).message;
-    }
     recordTest(
-      "1.4 Quoted commas stay in the value; bad statements are reported and the query refuses to run",
+      "1.4 Quoted commas stay in the value; bad statements are reported, never dropped",
       'remarks EQ "a,b"; recStatus XX AU; broken',
-      { criteria: quoted.criteria, invalid: quoted.invalid, refused },
+      quoted,
       quoted.criteria.length === 1 &&
         quoted.criteria[0].selectFieldValue === "a,b" &&
-        JSON.stringify(quoted.invalid) === JSON.stringify(["recStatus XX AU", "broken"]) &&
-        refused.includes("recStatus XX AU"),
+        JSON.stringify(quoted.invalid) === JSON.stringify(["recStatus XX AU", "broken"]),
+    );
+
+    const open = parseFixedSelection('remarks EQ "a, STATUS EQ AU');
+    recordTest(
+      "1.5 An unterminated quote is invalid, so the statements after it are never swallowed",
+      'remarks EQ "a, STATUS EQ AU',
+      open,
+      open.criteria.length === 0 && open.invalid.length === 1,
+    );
+
+    const apostrophe = parseFixedSelection("name NE O'Brien; recStatus EQ AU");
+    const quotedName = parseFixedSelection(`name EQ "O'Brien"; recStatus EQ AU`);
+    recordTest(
+      "1.6 A bare apostrophe can't widen the inquiry; quoting the value keeps both conditions",
+      { bare: "name NE O'Brien; recStatus EQ AU", quoted: `name EQ "O'Brien"; recStatus EQ AU` },
+      { bare: apostrophe, quoted: quotedName.criteria },
+      apostrophe.invalid.length > 0 &&
+        !apostrophe.criteria.some((c) => c.selectFieldName === "name") &&
+        wire(quotedName.criteria) === "name EQ O'Brien; recStatus EQ AU",
+    );
+
+    const semi = parseFixedSelection(" ; remarks EQ 'x;y'; STATUS eq AU ;;");
+    recordTest(
+      "1.7 Quoted ';' is kept, a lower-case operand is normalized, empty statements are skipped",
+      " ; remarks EQ 'x;y'; STATUS eq AU ;;",
+      semi,
+      semi.invalid.length === 0 && wire(semi.criteria) === "remarks EQ x;y; STATUS EQ AU",
+    );
+
+    const bad = parseFixedSelection(`a LIKE 1; b >= 2; X ; DROP; d EQ 'x' 'y'; c EQ "it"s"`);
+    recordTest(
+      "1.8 Unknown or 4-letter operands, symbols, bare words and stray inner quotes are all invalid",
+      `a LIKE 1; b >= 2; X ; DROP; d EQ 'x' 'y'; c EQ "it"s"`,
+      bad,
+      bad.criteria.length === 0 && bad.invalid.length === 6,
     );
   }
 
-  // ── 2. Criteria Mapping & Wire Serialization ──
-  console.log("\n── 2. Criteria Mapping & Wire Serialization (serializeCriteriaToWire) ──");
+  // ── 2. Operator Filters on the Wire ──
+  console.log("\n── 2. Operator Filters on the Wire (serializeCriteriaToWire) ──");
+  const fields: INQSelectField[] = [
+    field({ selectFieldName: "ACCOUNT.NO", selectFieldDisplay: "Account Number" }),
+    field({
+      selectFieldName: "STATUS",
+      selectFieldDisplay: "Status",
+      selectFieldType: "select",
+      selectFieldValue: "AU",
+      selectFieldOperatorFixed: "EQ",
+      selectFieldRequired: true,
+    }),
+    field({ selectFieldName: "OPENED", selectFieldDisplay: "Opened", selectFieldType: "date" }),
+  ];
   {
-    const fields: INQSelectField[] = [
+    const sent = serializeCriteriaToWire(
       {
-        selectFieldName: "ACCOUNT.NO",
-        selectFieldDisplay: "Account Number",
-        selectFieldType: "text",
-        selectFieldValue: "",
-        selectFieldOperator: "EQ",
-        selectFieldOperatorFixed: "",
-        selectFieldRequired: false,
+        STATUS: { value: " AU ", operand: "NE" },
+        "ACCOUNT.NO": { value: "1002345", operand: "LK" },
+        OPENED: { value: "   ", operand: "GE" },
+        GHOST: { value: "1", operand: "GT" },
       },
-      {
-        selectFieldName: "STATUS",
-        selectFieldDisplay: "Status",
-        selectFieldType: "select",
-        selectFieldValue: "AU",
-        selectFieldOperator: "EQ",
-        selectFieldOperatorFixed: "EQ",
-        selectFieldRequired: true,
-      },
+      fields,
+    );
+    recordTest(
+      "2.1 Config order, values trimmed, blanks and unknown keys dropped, a locked operand kept",
+      { STATUS: "NE ' AU '", "ACCOUNT.NO": "LK", OPENED: "blank", GHOST: "not a filter" },
+      sent,
+      JSON.stringify(sent) ===
+        JSON.stringify([
+          { selectFieldName: "ACCOUNT.NO", selectFieldOperator: "LK", selectFieldValue: "1002345" },
+          { selectFieldName: "STATUS", selectFieldOperator: "EQ", selectFieldValue: "AU" },
+        ]),
+    );
+
+    const defaults = buildDefaultCriteria([...fields, field({ selectFieldName: "  " })]);
+    recordTest(
+      "2.2 Default criteria come from the config; a filter without a name is skipped",
+      fields.map((f) => f.selectFieldName),
+      defaults,
+      Object.keys(defaults).join() === "ACCOUNT.NO,STATUS,OPENED" &&
+        defaults.STATUS.value === "AU" &&
+        defaults.STATUS.operand === "EQ",
+    );
+  }
+
+  // ── 3. Server Query Composition ──
+  console.log("\n── 3. Server Query Composition (composeInquiryQuery) ──");
+  {
+    const branchWise = inquiry(
+      { showBranchWise: true, fixedSelection: "BRANCH.TYPE EQ URBAN" },
+      fields,
+    );
+    const composed = composeInquiryQuery(
+      branchWise,
+      [
+        { selectFieldName: "account.no", selectFieldOperator: "LK", selectFieldValue: "1002345" },
+        { selectFieldName: "STATUS", selectFieldOperator: "EQ", selectFieldValue: "AU" },
+      ],
+      " JB0012 ",
+    );
+    recordTest(
+      "3.1 Branch pin, then fixed selection, then the operator's filters (canonical names, config types)",
+      { showBranchWise: true, fixed: "BRANCH.TYPE EQ URBAN", session: " JB0012 " },
+      composed,
+      composed.ok &&
+        wire(composed.queryString) ===
+          "branchCode EQ JB0012; BRANCH.TYPE EQ URBAN; ACCOUNT.NO LK 1002345; STATUS EQ AU" &&
+        composed.queryString[3].selectFieldType === "select",
+    );
+
+    const global = composeInquiryQuery(
+      inquiry({}, [field({ selectFieldName: "branchCode", selectFieldDisplay: "Branch" })]),
+      [{ selectFieldName: "branchCode", selectFieldOperator: "EQ", selectFieldValue: "JB0099" }],
+      "JB0012",
+    );
+    recordTest(
+      "3.2 An inquiry that isn't branch-wise adds no pin, and a branch filter is an ordinary filter",
+      { showBranchWise: false, filter: "branchCode EQ JB0099" },
+      global,
+      global.ok && wire(global.queryString) === "branchCode EQ JB0099",
+    );
+
+    const required = [
+      { selectFieldName: "STATUS", selectFieldOperator: "EQ" as const, selectFieldValue: "AU" },
     ];
-
-    const criteria = {
-      "ACCOUNT.NO": { value: "1002345", operand: "LK" as const },
-      STATUS: { value: "AU", operand: "EQ" as const },
+    const refusals = {
+      unknown: composeInquiryQuery(
+        branchWise,
+        [
+          ...required,
+          { selectFieldName: "SALARY", selectFieldOperator: "GT", selectFieldValue: "0" },
+        ],
+        "JB0012",
+      ),
+      twice: composeInquiryQuery(branchWise, [...required, ...required], "JB0012"),
+      fixedField: composeInquiryQuery(
+        inquiry({ fixedSelection: "STATUS EQ AU" }, fields),
+        required,
+        "JB0012",
+      ),
+      branchField: composeInquiryQuery(
+        inquiry({ showBranchWise: true }, [...fields, field({ selectFieldName: "branchCode" })]),
+        [
+          ...required,
+          { selectFieldName: "branchCode", selectFieldOperator: "EQ", selectFieldValue: "JB0099" },
+        ],
+        "JB0012",
+      ),
+      lockedOperand: composeInquiryQuery(
+        branchWise,
+        [{ ...required[0], selectFieldOperator: "NE" }],
+        "JB0012",
+      ),
+      patternOnDate: composeInquiryQuery(
+        branchWise,
+        [
+          ...required,
+          { selectFieldName: "OPENED", selectFieldOperator: "CT", selectFieldValue: "2026" },
+        ],
+        "JB0012",
+      ),
+      requiredMissing: composeInquiryQuery(branchWise, [], "JB0012"),
+      invalidFixed: composeInquiryQuery(
+        inquiry({ fixedSelection: 'recStatus EQ "AU' }, fields),
+        required,
+        "JB0012",
+      ),
+      fixedBranch: composeInquiryQuery(
+        inquiry({ showBranchWise: true, fixedSelection: "branchCode EQ JB0099" }, fields),
+        required,
+        "JB0012",
+      ),
+      noSessionBranch: composeInquiryQuery(branchWise, required, "  "),
     };
-
-    const wireParams = serializeCriteriaToWire(criteria, fields, "BRANCH.TYPE EQ URBAN", "0012");
-
     recordTest(
-      "2.1 Injects branchCode, fixed selections, and UI criteria into serialized wire array",
-      { criteria, fixedSelection: "BRANCH.TYPE EQ URBAN", branchCode: "0012" },
-      wireParams,
-      wireParams.length === 4 &&
-        wireParams[0].selectFieldName === "branchCode" &&
-        wireParams[0].selectFieldValue === "0012" &&
-        wireParams[1].selectFieldName === "BRANCH.TYPE" &&
-        wireParams[1].selectFieldValue === "URBAN" &&
-        wireParams[2].selectFieldName === "ACCOUNT.NO" &&
-        wireParams[2].selectFieldOperator === "LK" &&
-        wireParams[2].selectFieldValue === "1002345" &&
-        wireParams[3].selectFieldName === "STATUS" &&
-        wireParams[3].selectFieldValue === "AU",
-    );
-
-    const emptyCriteriaResult = serializeCriteriaToWire({}, fields);
-    recordTest(
-      "2.2 Omit empty criteria from serialized payload",
-      {},
-      emptyCriteriaResult,
-      emptyCriteriaResult.length === 0,
+      "3.3 Anything that could widen the result is refused, never dropped",
+      Object.keys(refusals),
+      Object.fromEntries(Object.entries(refusals).map(([k, r]) => [k, r.ok ? "RAN" : r.error])),
+      Object.values(refusals).every((r) => !r.ok),
     );
   }
 
-  // ── 3. Grid Coordinates & Multi-Line Parsing ──
-  console.log("\n── 3. Grid Coordinates & Geometry (parseColumnCoordinates) ──");
+  // ── 4. Grid Coordinates & Column Length Specifiers ──
+  console.log(
+    "\n── 4. Grid Coordinates & Column Length (parseColumnCoordinates, parseColumnLength) ──",
+  );
   {
-    const parsedCoords = parseColumnCoordinates("2,5");
+    const coords = [
+      parseColumnCoordinates("2,5"),
+      parseColumnCoordinates(undefined),
+      parseColumnCoordinates("0,-3"),
+    ];
     recordTest(
-      "3.1 Parses comma-separated row,col coordinate string",
-      "2,5",
-      parsedCoords,
-      parsedCoords.row === 2 && parsedCoords.col === 5,
+      "4.1 Coordinates parse, default to 1,1, and never go below 1",
+      ["2,5", undefined, "0,-3"],
+      coords,
+      coords.map((c) => `${c.row},${c.col}`).join(" ") === "2,5 1,1 1,1" &&
+        formatColumnCoordinates(3.7, 4) === "3,4",
     );
 
-    const fallbackCoords = parseColumnCoordinates(undefined);
+    const lengths = ["25,L", "15,R", "10,C", "-5,X", "abc"].map(parseColumnLength);
     recordTest(
-      "3.2 Fallback to 1,1 on undefined coordinate specifier",
-      undefined,
-      fallbackCoords,
-      fallbackCoords.row === 1 && fallbackCoords.col === 1,
-    );
-
-    const formattedCoords = formatColumnCoordinates(3, 4);
-    recordTest(
-      "3.3 Formats coordinate pair into canonical wire representation",
-      { row: 3, col: 4 },
-      formattedCoords,
-      formattedCoords === "3,4",
-    );
-  }
-
-  // ── 4. Column Length & Alignment Specifiers ──
-  console.log("\n── 4. Column Length & Alignment Specifiers (parseColumnLength) ──");
-  {
-    const leftCol = parseColumnLength("25,L");
-    recordTest(
-      "4.1 Parses Left-aligned length specifier (25,L)",
-      "25,L",
-      leftCol,
-      leftCol.length === 25 && leftCol.alignCode === "L" && leftCol.align === "left",
-    );
-
-    const rightCol = parseColumnLength("15,R");
-    recordTest(
-      "4.2 Parses Right-aligned length specifier (15,R)",
-      "15,R",
-      rightCol,
-      rightCol.length === 15 && rightCol.alignCode === "R" && rightCol.align === "right",
-    );
-
-    const centerCol = parseColumnLength("10,C");
-    recordTest(
-      "4.3 Parses Center-aligned length specifier (10,C)",
-      "10,C",
-      centerCol,
-      centerCol.length === 10 && centerCol.alignCode === "C" && centerCol.align === "center",
-    );
-
-    const formattedLen = formatColumnLength(35, "R");
-    recordTest(
-      "4.4 Formats length and alignment to canonical wire string (35,R)",
-      { length: 35, alignCode: "R" },
-      formattedLen,
-      formattedLen === "35,R",
+      "4.2 Length and alignment parse; a non-positive or bad length falls back to 20,L",
+      ["25,L", "15,R", "10,C", "-5,X", "abc"],
+      lengths,
+      lengths.map((l) => `${l.length},${l.alignCode}`).join(" ") === "25,L 15,R 10,C 20,L 20,L" &&
+        formatColumnLength(35, "R") === "35,R" &&
+        formatColumnLength(2.5) === "2,L",
     );
   }
 
   // ── 5. Presentation Column Metadata Derivation ──
   console.log("\n── 5. Presentation Column Metadata Derivation (deriveInquiryColumnMeta) ──");
   {
-    const currencyCol: INQDef = {
-      fieldName: "WORKING.BALANCE",
-      fieldDisplay: "Working Balance",
-      fieldType: "number",
-      fieldRowCol: "1,3",
-      fieldLength: "20,R",
-      fieldFunc: "AMT",
-      dataPassable: false,
-    };
-    const derivedCurrency = deriveInquiryColumnMeta(currencyCol);
+    const currency = deriveInquiryColumnMeta(column({ fieldLength: "20,L", fieldFunc: "AMT" }));
     recordTest(
-      "5.1 Derives currency format and monospace styling from AMT routine",
-      currencyCol,
-      derivedCurrency,
-      derivedCurrency.format === "currency" &&
-        derivedCurrency.align === "right" &&
-        derivedCurrency.isMono === true &&
-        derivedCurrency.canPass === false,
+      "5.1 An amount column is currency, right-aligned and monospaced even when configured left",
+      "AMT, 20,L",
+      currency,
+      currency.format === "currency" && currency.align === "right" && currency.isMono,
     );
 
-    const passableCol: INQDef = {
-      fieldName: "CUSTOMER.ID",
-      fieldDisplay: "Customer Number",
-      fieldType: "text",
-      fieldRowCol: "1,1",
-      fieldLength: "12,L",
-      fieldFunc: "",
-      dataPassable: true,
-    };
-    const derivedPassable = deriveInquiryColumnMeta(passableCol);
+    const passable = deriveInquiryColumnMeta(column({ fieldLength: "12,L", dataPassable: true }));
     recordTest(
-      "5.2 Correctly extracts passable drilldown flag and coordinates",
-      passableCol,
-      derivedPassable,
-      derivedPassable.canPass === true &&
-        derivedPassable.row === 1 &&
-        derivedPassable.order === 1 &&
-        derivedPassable.width === `${12 * 9}px`,
+      "5.2 Passable drill-down flag, coordinates and width",
+      "12,L passable",
+      passable,
+      passable.canPass && passable.row === 1 && passable.order === 1 && passable.width === "108px",
     );
 
-    const statusCol: INQDef = {
-      fieldName: "RECORD.STATUS",
-      fieldDisplay: "Status",
-      fieldType: "text",
-      fieldRowCol: "2,1",
-      fieldLength: "8,C",
-      fieldFunc: "",
-      dataPassable: false,
-    };
-    const derivedStatus = deriveInquiryColumnMeta(statusCol);
+    const formats = ["DATE.CONVERT", "CURRDATE", "D", "CURRENCY", "SUBSTRING,1,4", ""].map(
+      (fieldFunc) => deriveInquiryColumnMeta(column({ fieldFunc, fieldLength: "10,R" })).format,
+    );
     recordTest(
-      "5.3 Status field defaults to clean text format with row 2 center coordinates",
-      statusCol,
-      derivedStatus,
-      derivedStatus.format === "text" &&
-        derivedStatus.row === 2 &&
-        derivedStatus.align === "center",
+      "5.3 Routines match whole tokens and date wins (CURRDATE is a date); no routine + R is a number",
+      ["DATE.CONVERT", "CURRDATE", "D", "CURRENCY", "SUBSTRING,1,4", ""],
+      formats,
+      formats.join() === "date,date,date,currency,number,number",
+    );
+
+    const status = deriveInquiryColumnMeta(
+      column({ fieldDisplay: "  ", fieldRowCol: "2,1", fieldLength: "8,C" }),
+    );
+    recordTest(
+      "5.4 A centered code column is monospaced; an empty header falls back to the field name",
+      "COL, '  ', 2,1, 8,C",
+      status,
+      status.format === "text" &&
+        status.align === "center" &&
+        status.isMono &&
+        status.label === "COL",
     );
   }
 
   // ── 6. Command Template Interpolation ──
   console.log("\n── 6. Command Template Interpolation (resolveCommandTemplate) ──");
+  const sampleRow: InquiryRow = {
+    recordId: "REC-9001",
+    ACCOUNT_NUMBER: "1002345001",
+    BRANCH_CODE: "0012",
+    AMOUNT: 2500,
+    NAME: "Abdul Karim",
+    TAGS: ["A", "B"],
+    BLANK: "  ",
+  };
   {
-    const sampleRow: InquiryRow = {
-      id: "REC-9001",
-      recordId: "REC-9001",
-      ACCOUNT_NUMBER: "1002345001",
-      BRANCH_CODE: "0012",
-      TXN_CMD: "TELLER,LC.DEP I 1002345001",
+    const templates = {
+      id: resolveCommandTemplate("ACCOUNT,SEE S @ID", sampleRow),
+      field: resolveCommandTemplate("FUNDS.TRANSFER,INP I ACCOUNT_NUMBER", sampleRow),
+      multi: resolveCommandTemplate("BRANCH.REVIEW S BRANCH_CODE @id", sampleRow),
+      number: resolveCommandTemplate("TXN S AMOUNT", sampleRow),
+      caseless: resolveCommandTemplate("ACCOUNT S account_number", sampleRow),
     };
-
-    const interpolatedId = resolveCommandTemplate("ACCOUNT,SEE S @ID", sampleRow);
     recordTest(
-      "6.1 Interpolates canonical CBS @ID alias token",
-      { template: "ACCOUNT,SEE S @ID", row: sampleRow },
-      interpolatedId,
-      interpolatedId === "ACCOUNT,SEE S REC-9001",
-    );
-
-    const interpolatedField = resolveCommandTemplate(
-      "FUNDS.TRANSFER,INP I ACCOUNT_NUMBER",
+      "6.1 @ID, named fields, several tokens, numbers and a case-insensitive fallback are interpolated",
       sampleRow,
-    );
-    recordTest(
-      "6.2 Interpolates exact named field token from row data",
-      { template: "FUNDS.TRANSFER,INP I ACCOUNT_NUMBER", row: sampleRow },
-      interpolatedField,
-      interpolatedField === "FUNDS.TRANSFER,INP I 1002345001",
-    );
-
-    const interpolatedMulti = resolveCommandTemplate("BRANCH.REVIEW S BRANCH_CODE @ID", sampleRow);
-    recordTest(
-      "6.3 Interpolates multiple tokens in a single command template",
-      { template: "BRANCH.REVIEW S BRANCH_CODE @ID", row: sampleRow },
-      interpolatedMulti,
-      interpolatedMulti === "BRANCH.REVIEW S 0012 REC-9001",
+      templates,
+      templates.id === "ACCOUNT,SEE S REC-9001" &&
+        templates.field === "FUNDS.TRANSFER,INP I 1002345001" &&
+        templates.multi === "BRANCH.REVIEW S 0012 REC-9001" &&
+        templates.number === "TXN S 2500" &&
+        templates.caseless === "ACCOUNT S 1002345001",
     );
 
-    const headRow = { ...sampleRow, USERS: "HIJACK", I: "X" } as InquiryRow;
-    const headSafe = resolveCommandTemplate("USERS I recordId", headRow);
+    const headSafe = resolveCommandTemplate("USERS I recordId", {
+      ...sampleRow,
+      USERS: "HIJACK",
+      I: "X",
+    });
     recordTest(
-      "6.4 Screen and function tokens are never replaced by same-named row columns",
+      "6.2 Screen and function tokens are never replaced by same-named row columns",
       { template: "USERS I recordId", row: { USERS: "HIJACK", I: "X" } },
       headSafe,
       headSafe === "USERS I REC-9001",
     );
+
+    const closed = {
+      prototype: resolveCommandTemplate("ACCOUNT S constructor", sampleRow),
+      missing: resolveCommandTemplate("ACCOUNT S missingField", sampleRow),
+      blank: resolveCommandTemplate("ACCOUNT S BLANK", sampleRow),
+      spaces: resolveCommandTemplate("CUSTOMER S NAME", sampleRow),
+      list: resolveCommandTemplate("ACCOUNT S TAGS", sampleRow),
+      noKey: resolveCommandTemplate("ACCOUNT S @ID", { recordId: "" }),
+      malformed: resolveCommandTemplate("ACCOUNT VIEW @ID", sampleRow),
+    };
+    recordTest(
+      '6.3 Fails closed (""): prototype keys, missing/blank/spaced/list values, a row without a key, a non-RIDASHL function',
+      Object.keys(closed),
+      closed,
+      Object.values(closed).every((v) => v === ""),
+    );
   }
 
-  // ── 7. Internal Commands & Primary Action Resolution ──
-  console.log(
-    "\n── 7. Internal Commands & Primary Action Resolution (getPrimaryInquiryCommand) ──",
-  );
+  // ── 7. Row Actions & Primary Command ──
+  console.log("\n── 7. Row Actions & Primary Command (resolveRowActions, primaryRowCommand) ──");
   {
-    const sampleRow: InquiryRow = {
-      id: "ACC-5001",
-      recordId: "ACC-5001",
-      TXN_CMD: "USER.MGT,AUTH A ACC-5001",
-    };
-
+    const row: InquiryRow = { recordId: "ACC-5001", TXN_CMD: "USER.MGT,AUTH  A ACC-5001" };
     const commands: INQCmd[] = [
-      { cmdButton: "View", cmdFor: "ACCOUNT S @ID" },
       { cmdButton: "Edit", cmdFor: "ACCOUNT I @ID" },
+      { cmdButton: "View", cmdFor: "ACCOUNT S @ID" },
+      { cmdButton: "Work", cmdFor: "" },
     ];
 
-    const standardPrimary = getPrimaryInquiryCommand(commands, sampleRow);
     recordTest(
-      "7.1 Resolves standard primary command from View/See action template",
-      { commands, row: sampleRow },
-      standardPrimary,
-      standardPrimary === "ACCOUNT S ACC-5001",
+      "7.1 The primary command is the first See (S) button, whatever the labels say",
+      commands,
+      primaryRowCommand(commands, row, false, ""),
+      primaryRowCommand(commands, row, false, "") === "ACCOUNT S ACC-5001",
     );
 
-    const internalPrimary = getPrimaryInquiryCommand(commands, sampleRow, true, "TXN_CMD");
     recordTest(
-      "7.2 Preempts template with internal dynamic row command when cmdFromInternal is true",
-      { commands, row: sampleRow, cmdFromInternal: true, cmdFieldName: "TXN_CMD" },
-      internalPrimary,
-      internalPrimary === "USER.MGT,AUTH A ACC-5001",
+      "7.2 With a dynamic row command, double-click runs the row's own command (as sent, spaces normalized)",
+      { cmdFromInternal: true, cmdFieldName: "TXN_CMD" },
+      primaryRowCommand(commands, row, true, "TXN_CMD"),
+      primaryRowCommand(commands, row, true, "TXN_CMD") === "USER.MGT,AUTH A ACC-5001",
+    );
+
+    const actions = resolveRowActions(commands, row, true, "TXN_CMD");
+    recordTest(
+      "7.3 Each button runs its own cmdFor; only a button without one runs the row command; the function decides the right",
+      commands,
+      actions,
+      actions.map((a) => `${a.label}=${a.command}|${a.func}`).join(", ") ===
+        "Edit=ACCOUNT I ACC-5001|I, View=ACCOUNT S ACC-5001|S, Work=USER.MGT,AUTH A ACC-5001|A",
+    );
+
+    const openOnly = resolveRowActions([], row, true, "TXN_CMD");
+    const none = resolveRowActions([], { ...row, TXN_CMD: "not a command" }, true, "TXN_CMD");
+    recordTest(
+      "7.4 Without buttons the row command is a single Open action; a malformed row command offers nothing",
+      { buttons: [], rowCommand: ["USER.MGT,AUTH A ACC-5001", "not a command"] },
+      { openOnly, none },
+      openOnly.length === 1 &&
+        openOnly[0].label === "Open" &&
+        openOnly[0].func === "A" &&
+        none.length === 0,
     );
 
     const listRow = {
-      ...sampleRow,
+      ...row,
       eventAction: [{ cmdFor: "BRANCH I recordId", cmdButton: "EDIT" }],
     } as InquiryRow;
-    const listCommand = rowCommandOf(listRow, true, "eventAction");
-    const listPrimary = getPrimaryInquiryCommand(commands, listRow, true, "eventAction");
     recordTest(
-      "7.3 A dynamic row command field that isn't text (the core's eventAction list) is never run; the View template is used",
+      "7.5 A dynamic row command field that isn't text (the core's eventAction list) is never run",
       { cmdFieldName: "eventAction", value: listRow.eventAction },
-      { listCommand, listPrimary },
-      listCommand === "" && listPrimary === "ACCOUNT S ACC-5001",
+      {
+        rowCommand: rowCommandOf(listRow, true, "eventAction"),
+        primary: primaryRowCommand(commands, listRow, true, "eventAction"),
+      },
+      rowCommandOf(listRow, true, "eventAction") === "" &&
+        primaryRowCommand(commands, listRow, true, "eventAction") === "ACCOUNT S ACC-5001",
+    );
+  }
+
+  // ── 8. Row Sorting ──
+  console.log("\n── 8. Row Sorting (sortInquiryRows, nextInquirySort) ──");
+  {
+    const metas = [
+      deriveInquiryColumnMeta(column({ fieldName: "AMT", fieldFunc: "AMT" })),
+      deriveInquiryColumnMeta(column({ fieldName: "NAME" })),
+      deriveInquiryColumnMeta(column({ fieldName: "OPENED", fieldFunc: "DATE.CONVERT" })),
+    ];
+    const rows: InquiryRow[] = ["10.25", "-5.00", "1,234.50", "", "999.00", "10.5", "3"].map(
+      (AMT, i) => ({
+        recordId: `R${i}`,
+        AMT,
+        NAME: ["b", "A", "a", "c", "B", "x", "y"][i],
+        OPENED: [
+          "2026-01-10",
+          "2026-01-03",
+          "2025-12-31",
+          "2026-02-01",
+          "2026-01-03",
+          "",
+          "2024-06-30",
+        ][i],
+      }),
+    );
+    const byAmount = sortInquiryRows(rows, { column: "AMT", direction: "asc" }, metas).map(
+      (r) => r.AMT,
+    );
+    const byAmountDesc = sortInquiryRows(rows, { column: "AMT", direction: "desc" }, metas).map(
+      (r) => r.AMT,
+    );
+    recordTest(
+      "8.1 Amounts sort as numbers (thousands separators, decimals, negatives); empty cells last both ways",
+      rows.map((r) => r.AMT),
+      { asc: byAmount, desc: byAmountDesc },
+      byAmount.join("|") === "-5.00|3|10.25|10.5|999.00|1,234.50|" &&
+        byAmountDesc.join("|") === "1,234.50|999.00|10.5|10.25|3|-5.00|",
+    );
+
+    const byName = sortInquiryRows(rows, { column: "NAME", direction: "asc" }, metas).map(
+      (r) => r.recordId,
+    );
+    const byDate = sortInquiryRows(rows, { column: "OPENED", direction: "asc" }, metas).map(
+      (r) => r.OPENED,
+    );
+    recordTest(
+      "8.2 Text ignores case and keeps equal rows in order (stable); ISO dates sort chronologically",
+      { names: rows.map((r) => r.NAME), dates: rows.map((r) => r.OPENED) },
+      { byName, byDate },
+      byName.slice(0, 4).join() === "R1,R2,R0,R4" &&
+        byDate.join("|") === "2024-06-30|2025-12-31|2026-01-03|2026-01-03|2026-01-10|2026-02-01|",
+    );
+
+    const cycle = [
+      nextInquirySort(null, "AMT"),
+      nextInquirySort({ column: "AMT", direction: "asc" }, "AMT"),
+      nextInquirySort({ column: "AMT", direction: "desc" }, "AMT"),
+      nextInquirySort({ column: "AMT", direction: "desc" }, "NAME"),
+    ];
+    recordTest(
+      "8.3 A header click cycles ascending → descending → unsorted; another column starts ascending",
+      "AMT ×3, then NAME",
+      cycle,
+      cycle[0]?.direction === "asc" &&
+        cycle[1]?.direction === "desc" &&
+        cycle[2] === null &&
+        cycle[3]?.column === "NAME" &&
+        cycle[3]?.direction === "asc",
+    );
+  }
+
+  // ── 9. Operand Options & Page Size ──
+  console.log("\n── 9. Operand Options & Page Size (INQUIRY_OPERAND_OPTIONS, inquiryPageSize) ──");
+  {
+    const optionValues = INQUIRY_OPERAND_OPTIONS.map((o) => o.value);
+    const dateOps = operandOptionsFor("date").map((o) => o.value);
+    recordTest(
+      "9.1 The operand list matches the core's operands exactly; pattern operands are offered on text only",
+      { operands: INQUIRY_OPERANDS, date: dateOps },
+      optionValues,
+      [...optionValues].sort().join() === [...INQUIRY_OPERANDS].sort().join() &&
+        operandOptionsFor("text").length === INQUIRY_OPERANDS.length &&
+        !dateOps.some((v) => ["CT", "SW", "EW", "LK"].includes(v)),
+    );
+
+    const sizes = ["50", "0", "-3", "2.5", "abc", ""].map((perpageItem) =>
+      inquiryPageSize({ perpageItem }),
+    );
+    recordTest(
+      "9.2 Page size is perpageItem when it is a positive whole number, otherwise 30",
+      ["50", "0", "-3", "2.5", "abc", ""],
+      sizes,
+      sizes.join() === "50,30,30,30,30,30",
     );
   }
 

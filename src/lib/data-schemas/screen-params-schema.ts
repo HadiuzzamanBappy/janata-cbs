@@ -18,7 +18,6 @@ export const popupSearchParamsSchema = z.object({
   component: urlValue(z.enum(CBS_SCREEN_COMPONENTS)),
   step: urlValue(z.enum(CBS_INQUIRY_STEP)),
   page: urlValue(z.coerce.number().int().positive()),
-  pageSize: urlValue(z.coerce.number().int().positive()),
 });
 
 /**
@@ -40,7 +39,6 @@ export const dockTabPayloadSchema = z.object({
       step: z.enum(CBS_INQUIRY_STEP).optional(),
       criteria: filterCriteriaMapSchema.optional(),
       currentPage: z.number().int().positive().optional(),
-      pageSize: z.number().int().positive().optional(),
     })
     .optional(),
 });

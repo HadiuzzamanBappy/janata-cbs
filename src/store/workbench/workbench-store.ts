@@ -40,6 +40,8 @@ export interface WorkbenchState {
   updateFormData: (tabId: string, data: Record<string, unknown>) => void;
   setTabDirty: (tabId: string, isDirty: boolean) => void;
   updateTabState: (tabId: string, patch: Partial<WorkbenchTab>) => void;
+  /** Merges into the tab's inquiry state from the store's current value (never a stale copy). */
+  updateInquiryState: (tabId: string, patch: InquiryTabState) => void;
   reorderTabs: (sourceIndex: number, destinationIndex: number) => void;
 }
 
@@ -171,6 +173,12 @@ export const createWorkbenchStore = () => {
         updateTabState: (tabId, patch) =>
           set((state) => ({
             tabs: state.tabs.map((tab) => (tab.id === tabId ? { ...tab, ...patch } : tab)),
+          })),
+        updateInquiryState: (tabId, patch) =>
+          set((state) => ({
+            tabs: state.tabs.map((tab) =>
+              tab.id === tabId ? { ...tab, inquiryState: { ...tab.inquiryState, ...patch } } : tab,
+            ),
           })),
         reorderTabs: (sourceIndex, destinationIndex) =>
           set((state) => {

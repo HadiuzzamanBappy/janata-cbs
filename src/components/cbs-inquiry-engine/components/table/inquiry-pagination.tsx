@@ -9,7 +9,6 @@ export interface InquiryPaginationProps {
   pageSize: number;
   totalCount: number;
   onPageChange: (page: number) => void;
-  className?: string;
 }
 
 export function InquiryPagination({
@@ -18,15 +17,12 @@ export function InquiryPagination({
   pageSize,
   totalCount,
   onPageChange,
-  className = "",
 }: InquiryPaginationProps) {
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalCount);
 
   return (
-    <div
-      className={`flex items-center justify-between px-2 py-0.5 h-6.5 bg-card/60 border border-border/80 rounded text-2xs select-none shadow-2xs ${className}`}
-    >
+    <div className="flex items-center justify-between px-2 py-0.5 h-6.5 bg-card/60 border border-border/80 rounded text-2xs select-none shadow-2xs">
       {/* Total Counter */}
       <div className="flex items-center gap-1 font-mono text-3xs text-muted-foreground">
         <span>Showing</span>

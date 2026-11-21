@@ -1,271 +1,184 @@
 import * as React from "react";
-import { type DerivedColumnMeta, executePrimaryInquiryCommand } from "@/lib/cbs-inquiry-spec";
+import { cbsCommand } from "@/lib/cbs-command";
+import {
+  type DerivedColumnMeta,
+  primaryRowCommand,
+  resolveRowActions,
+} from "@/lib/cbs-inquiry-spec";
 import { cn } from "@/lib/core-utils";
 import type { INQCmd, InquiryRow } from "@/lib/data-schemas";
+import type { CbsUserSecurityContext } from "@/types";
 import { InquiryRowActions } from "../inquiry-row-actions";
+import type { InquiryTableLayout } from "../inquiry-table";
 import { CellFormatter } from "./cell-formatter";
+import { ALIGN_CLASS } from "./inquiry-table-header";
 
-export interface InquiryTableBodyProps {
-  rows: InquiryRow[];
-  isMultiRow: boolean;
-  sortedRowNumbers: number[];
-  rowsMap: Map<number, DerivedColumnMeta[]>;
-  maxColsInAnyRow: number;
-  columnMetas: DerivedColumnMeta[];
-  commands: INQCmd[];
-  showSerial: boolean;
-  showActionsColumn: boolean;
-  currentPage: number;
-  pageSize: number;
-  showPagination: boolean;
-  cmdFromInternal?: boolean;
-  cmdFieldName?: string;
+interface InquiryCellProps {
+  col: DerivedColumnMeta;
+  row: InquiryRow;
+  primaryCommand: string;
+  colSpan?: number;
+  /** Second and later lines of a multi-line record show the column label inline. */
+  showLabel: boolean;
 }
 
-export function InquiryTableBody({
-  rows,
-  isMultiRow,
-  sortedRowNumbers,
-  rowsMap,
-  maxColsInAnyRow,
-  columnMetas,
+function InquiryCell({ col, row, primaryCommand, colSpan, showLabel }: InquiryCellProps) {
+  const passable = col.canPass && Boolean(primaryCommand);
+  const open = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    cbsCommand.execute(primaryCommand);
+  };
+  return (
+    <td
+      colSpan={colSpan}
+      onClick={passable ? open : undefined}
+      onKeyDown={
+        passable
+          ? (e) => {
+              if (e.key !== "Enter" && e.key !== " ") return;
+              e.preventDefault();
+              open(e);
+            }
+          : undefined
+      }
+      tabIndex={passable ? 0 : undefined}
+      role={passable ? "button" : undefined}
+      title={passable ? `Open ${primaryCommand}` : undefined}
+      className={cn(
+        "py-0.5 px-2 text-2xs whitespace-nowrap leading-tight",
+        ALIGN_CLASS[col.align],
+        showLabel && "text-muted-foreground/85 bg-muted/10",
+        passable && "cursor-pointer text-primary hover:underline hover:text-primary/80 font-medium",
+      )}
+    >
+      {showLabel && (
+        <span className="text-3xs font-medium text-muted-foreground/60 mr-1">{col.label}:</span>
+      )}
+      <CellFormatter
+        value={row[col.id]}
+        format={col.format}
+        isMono={col.isMono}
+        routine={col.routine}
+      />
+    </td>
+  );
+}
+
+interface InquiryRecordProps {
+  row: InquiryRow;
+  serial: number;
+  striped: boolean;
+  layout: InquiryTableLayout;
+  commands: readonly INQCmd[];
+  showSerial: boolean;
+  showActions: boolean;
+  cmdFromInternal: boolean;
+  cmdFieldName: string;
+  user: CbsUserSecurityContext | null;
+}
+
+/** One record: a table row, or one row per line for a multi-line layout. Re-renders only when its props change. */
+const InquiryRecord = React.memo(function InquiryRecord({
+  row,
+  serial,
+  striped,
+  layout,
   commands,
   showSerial,
-  showActionsColumn,
-  currentPage,
-  pageSize,
-  showPagination,
-  cmdFromInternal = false,
-  cmdFieldName = "",
-}: InquiryTableBodyProps) {
+  showActions,
+  cmdFromInternal,
+  cmdFieldName,
+  user,
+}: InquiryRecordProps) {
+  const primaryCommand = primaryRowCommand(commands, row, cmdFromInternal, cmdFieldName);
+  const actions = showActions
+    ? resolveRowActions(commands, row, cmdFromInternal, cmdFieldName)
+    : [];
+  const onDoubleClick = primaryCommand ? () => cbsCommand.execute(primaryCommand) : undefined;
+  const lineCount = layout.lines.length;
+  const multi = layout.isMultiRow;
+
+  return layout.lines.map(({ line, columns }, lineIdx) => {
+    const isFirst = lineIdx === 0;
+    return (
+      <tr
+        key={line}
+        onDoubleClick={onDoubleClick}
+        className={cn(
+          "h-6.5 hover:bg-primary/10 transition-colors",
+          striped ? "bg-muted/30" : "bg-transparent",
+          !multi && "border-b border-border/25",
+          multi && lineIdx === lineCount - 1 && "border-b border-border/70 shadow-2xs",
+          multi && lineIdx < lineCount - 1 && "border-b border-dashed border-border/25",
+        )}
+      >
+        {isFirst && showSerial && (
+          <td
+            rowSpan={lineCount}
+            className={cn(
+              "w-8 text-center font-mono text-3xs text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap",
+              multi && "align-middle border-r border-border/25 font-semibold",
+            )}
+          >
+            {serial}
+          </td>
+        )}
+        {columns.map((col, colIdx) => {
+          const isLast = colIdx === columns.length - 1;
+          return (
+            <InquiryCell
+              key={col.id}
+              col={col}
+              row={row}
+              primaryCommand={primaryCommand}
+              showLabel={!isFirst}
+              colSpan={
+                isLast && columns.length < layout.maxColumns
+                  ? layout.maxColumns - columns.length + 1
+                  : undefined
+              }
+            />
+          );
+        })}
+        {isFirst && showActions && (
+          <td
+            rowSpan={lineCount}
+            className={cn(
+              "w-14 px-1 py-0.5 text-center sticky right-0 backdrop-blur-xs border-l border-border/25 whitespace-nowrap",
+              multi && "align-middle",
+              striped ? "bg-muted/95" : "bg-card/95",
+            )}
+          >
+            <InquiryRowActions actions={actions} row={row} user={user} />
+          </td>
+        )}
+      </tr>
+    );
+  });
+});
+
+export interface InquiryTableBodyProps {
+  rows: readonly InquiryRow[];
+  /** Index of the first row in the whole result, for serial numbers. */
+  offset: number;
+  layout: InquiryTableLayout;
+  commands: readonly INQCmd[];
+  showSerial: boolean;
+  showActions: boolean;
+  cmdFromInternal: boolean;
+  cmdFieldName: string;
+  user: CbsUserSecurityContext | null;
+}
+
+export function InquiryTableBody({ rows, offset, ...shared }: InquiryTableBodyProps) {
   return (
     <tbody className="[&_tr:last-child]:border-0">
-      {rows.map((row, rowIdx) => {
-        const serialNum = showPagination ? (currentPage - 1) * pageSize + rowIdx + 1 : rowIdx + 1;
-        const rowKey =
-          typeof row.id === "string" && row.id.length > 0
-            ? row.id
-            : typeof row.recordId === "string" && row.recordId.length > 0
-              ? row.recordId
-              : `inq-row-${serialNum}`;
-        const isStriped = rowIdx % 2 === 1;
-
-        const handleRowDoubleClick = () => {
-          executePrimaryInquiryCommand(commands, row, cmdFromInternal, cmdFieldName);
-        };
-
-        if (!isMultiRow) {
-          return (
-            <tr
-              key={rowKey}
-              onDoubleClick={handleRowDoubleClick}
-              className={`h-6.5 hover:bg-primary/10 transition-colors border-b border-border/25 font-mono text-2xs ${
-                isStriped ? "bg-muted/30" : "bg-transparent"
-              }`}
-            >
-              {showSerial && (
-                <td className="w-8 text-center font-mono text-3xs text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap">
-                  {serialNum}
-                </td>
-              )}
-              {columnMetas.map((col) => {
-                const isPassable = col.canPass;
-                return (
-                  <td
-                    key={col.id}
-                    onClick={
-                      isPassable
-                        ? (e) => {
-                            e.stopPropagation();
-                            executePrimaryInquiryCommand(
-                              commands,
-                              row,
-                              cmdFromInternal,
-                              cmdFieldName,
-                            );
-                          }
-                        : undefined
-                    }
-                    onKeyDown={
-                      isPassable
-                        ? (e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              executePrimaryInquiryCommand(
-                                commands,
-                                row,
-                                cmdFromInternal,
-                                cmdFieldName,
-                              );
-                            }
-                          }
-                        : undefined
-                    }
-                    tabIndex={isPassable ? 0 : undefined}
-                    role={isPassable ? "button" : undefined}
-                    title={isPassable ? `Click to open / drill down (${col.label})` : undefined}
-                    className={cn(
-                      "py-0.5 px-2 text-2xs font-mono whitespace-nowrap leading-tight",
-                      col.align === "right"
-                        ? "text-right"
-                        : col.align === "center"
-                          ? "text-center"
-                          : "text-left",
-                      isPassable &&
-                        "cursor-pointer text-primary hover:underline hover:text-primary/80 font-medium",
-                    )}
-                  >
-                    <CellFormatter
-                      value={row[col.id]}
-                      format={col.format}
-                      isMono={col.isMono}
-                      routine={col.routine}
-                    />
-                  </td>
-                );
-              })}
-
-              {showActionsColumn && (
-                <td
-                  className={`w-14 px-1 py-0.5 text-center sticky right-0 backdrop-blur-xs border-l border-border/25 whitespace-nowrap ${
-                    isStriped ? "bg-muted/95" : "bg-card/95"
-                  }`}
-                >
-                  <InquiryRowActions
-                    commands={commands}
-                    row={row}
-                    cmdFromInternal={cmdFromInternal}
-                    cmdFieldName={cmdFieldName}
-                  />
-                </td>
-              )}
-            </tr>
-          );
-        }
-
-        // Multi-line Stacked Record
-        return (
-          <React.Fragment key={rowKey}>
-            {sortedRowNumbers.map((rowNum, rIdx) => {
-              const rowCols = rowsMap.get(rowNum) || [];
-              const isFirst = rIdx === 0;
-              const isLast = rIdx === sortedRowNumbers.length - 1;
-
-              return (
-                <tr
-                  key={`${rowKey}-line-${rowNum}`}
-                  onDoubleClick={handleRowDoubleClick}
-                  className={cn(
-                    "h-6.5 hover:bg-primary/10 transition-colors font-mono text-2xs",
-                    isStriped ? "bg-muted/25" : "bg-transparent",
-                    isLast
-                      ? "border-b border-border/70 shadow-2xs"
-                      : "border-b border-dashed border-border/25",
-                  )}
-                >
-                  {isFirst && showSerial && (
-                    <td
-                      rowSpan={sortedRowNumbers.length}
-                      className="w-8 text-center font-mono text-3xs text-muted-foreground/60 py-0.5 px-1 whitespace-nowrap align-middle border-r border-border/25 font-semibold"
-                    >
-                      {serialNum}
-                    </td>
-                  )}
-
-                  {rowCols.map((col, cIdx) => {
-                    const isLastCol = cIdx === rowCols.length - 1;
-                    const colSpan =
-                      isLastCol && rowCols.length < maxColsInAnyRow
-                        ? maxColsInAnyRow - rowCols.length + 1
-                        : undefined;
-                    const isPassable = col.canPass;
-
-                    return (
-                      <td
-                        key={col.id}
-                        colSpan={colSpan}
-                        onClick={
-                          isPassable
-                            ? (e) => {
-                                e.stopPropagation();
-                                executePrimaryInquiryCommand(
-                                  commands,
-                                  row,
-                                  cmdFromInternal,
-                                  cmdFieldName,
-                                );
-                              }
-                            : undefined
-                        }
-                        onKeyDown={
-                          isPassable
-                            ? (e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  executePrimaryInquiryCommand(
-                                    commands,
-                                    row,
-                                    cmdFromInternal,
-                                    cmdFieldName,
-                                  );
-                                }
-                              }
-                            : undefined
-                        }
-                        tabIndex={isPassable ? 0 : undefined}
-                        role={isPassable ? "button" : undefined}
-                        title={isPassable ? `Click to open (${col.label})` : undefined}
-                        className={cn(
-                          "py-0.5 px-2 text-2xs font-mono whitespace-nowrap leading-tight",
-                          !isFirst && "text-muted-foreground/85 bg-muted/10",
-                          col.align === "right"
-                            ? "text-right"
-                            : col.align === "center"
-                              ? "text-center"
-                              : "text-left",
-                          isPassable &&
-                            "cursor-pointer text-primary hover:underline hover:text-primary/80 font-medium",
-                        )}
-                      >
-                        {!isFirst && (
-                          <span className="text-3xs font-sans font-medium text-muted-foreground/60 mr-1 not-italic">
-                            {col.label}:
-                          </span>
-                        )}
-                        <CellFormatter
-                          value={row[col.id]}
-                          format={col.format}
-                          isMono={col.isMono}
-                          routine={col.routine}
-                        />
-                      </td>
-                    );
-                  })}
-
-                  {isFirst && showActionsColumn && (
-                    <td
-                      rowSpan={sortedRowNumbers.length}
-                      className={cn(
-                        "w-14 px-1 py-0.5 text-center sticky right-0 backdrop-blur-xs border-l border-border/25 whitespace-nowrap align-middle",
-                        isStriped ? "bg-muted/95" : "bg-card/95",
-                      )}
-                    >
-                      <InquiryRowActions
-                        commands={commands}
-                        row={row}
-                        cmdFromInternal={cmdFromInternal}
-                        cmdFieldName={cmdFieldName}
-                      />
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </React.Fragment>
-        );
-      })}
+      {rows.map((row, idx) => (
+        // A row's position is its identity: the core may send rows without a key, or repeat one
+        <React.Fragment key={`${offset + idx}:${row.recordId}`}>
+          <InquiryRecord row={row} serial={offset + idx + 1} striped={idx % 2 === 1} {...shared} />
+        </React.Fragment>
+      ))}
     </tbody>
   );
 }

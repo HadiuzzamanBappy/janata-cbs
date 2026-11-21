@@ -24,7 +24,6 @@ export function CbsInquiryHeader({
   onBackToSelection,
   onRefresh,
   onPrintLocal,
-  onPrintServer,
   onExportCSV,
   onExportHTML,
   onExportXML,
@@ -46,7 +45,6 @@ export function CbsInquiryHeader({
             onBackToSelection={onBackToSelection}
             onRefresh={onRefresh}
             onPrintLocal={onPrintLocal}
-            onPrintServer={onPrintServer}
             onExportCSV={onExportCSV}
             onExportHTML={onExportHTML}
             onExportXML={onExportXML}

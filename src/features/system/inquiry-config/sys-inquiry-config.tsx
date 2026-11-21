@@ -123,7 +123,7 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
         id: "preview",
         label: "Live Preview",
         icon: <Eye className="size-3 text-muted-foreground" />,
-        content: <IcPreviewTab formData={formData} />,
+        content: <IcPreviewTab inquiryId={recordId} formData={formData} isDirty={isDirty} />,
       },
       {
         id: "json",
@@ -133,6 +133,8 @@ export function SysInquiryConfig({ command, tabId }: CbsScreenProps) {
       },
     ],
     [
+      recordId,
+      isDirty,
       formData,
       baseline,
       rawRecord,

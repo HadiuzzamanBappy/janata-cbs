@@ -247,37 +247,129 @@ async function runSuite() {
     );
   }
 
-  // ── 5. Inquiry Branch Pinning (pinInquiryBranch: the envelope sent to the core) ──
-  console.log("\n── 5. Inquiry Branch Pinning (pinInquiryBranch) ──");
-  const { pinInquiryBranch } = await import("../../src/app/api/_lib/envelope");
-  const tampered = pinInquiryBranch({
+  // ── 5. Inquiry Resolution (resolveInquiryEnvelope: the INQ envelope sent to the core) ──
+  console.log("\n── 5. Inquiry Resolution (resolveInquiryEnvelope) ──");
+  const { resolveInquiryEnvelope } = await import("../../src/app/api/_lib/inquiry");
+  const definition = {
+    INQInfo: {
+      controllerName: "users",
+      description: "Branch users",
+      showBranchWise: true,
+      fixedSelection: 'recStatus EQ "AU"',
+      inqServicePath: "finxurm",
+      inqType: "DFT",
+    },
+    INQSelectField: [
+      {
+        selectFieldName: "userType",
+        selectFieldDisplay: "Type",
+        selectFieldOperator: "EQ",
+        selectFieldOperatorFixed: "EQ",
+      },
+      { selectFieldName: "fullName", selectFieldDisplay: "Name", selectFieldOperator: "CT" },
+    ],
+    INQDef: [{ fieldName: "userId", fieldDisplay: "User" }],
+  };
+  const loaded: Array<Record<string, unknown>> = [];
+  const loader = async (target: Record<string, unknown>) => {
+    loaded.push(target);
+    return { status: "SUCCESS" as const, statusCode: 200, data: definition, timestamp: "" };
+  };
+  const inqRequest = (data: Record<string, unknown>, recordId = "get.users") => ({
     servicePath: "default",
     requestType: "INQ",
     controlName: "ACCOUNT",
     branchCode: "JB0001",
     recordFunction: "S",
-    recordId: "",
+    recordId,
     authLevel: 1,
     userId: "U1",
     clientId: "WEB",
-    data: {
+    data,
+  });
+
+  const resolved = await resolveInquiryEnvelope(
+    inqRequest({
       queryString: [
-        { selectFieldName: "branchCode", selectFieldOperator: "NE", selectFieldValue: "JB0001" },
-        { selectFieldName: "BranchCode", selectFieldOperator: "CT", selectFieldValue: "" },
-        { selectFieldName: "accountType", selectFieldOperator: "EQ", selectFieldValue: "SB" },
+        { selectFieldName: "fullName", selectFieldOperator: "CT", selectFieldValue: " ali " },
       ],
-    },
-  }).data.queryString as Array<Record<string, string>>;
+    }),
+    loader,
+  );
+  const sentQuery = resolved.ok
+    ? (resolved.envelope.data.queryString as Array<Record<string, string>>)
+    : [];
   recordTest(
-    "5.1 Every branchCode criterion (any case, any operator) becomes EQ the session branch",
-    { session: "JB0001", sent: ["branchCode NE JB0001", "BranchCode CT ''", "accountType EQ SB"] },
-    tampered,
-    tampered[0].selectFieldOperator === "EQ" &&
-      tampered[0].selectFieldValue === "JB0001" &&
-      tampered[1].selectFieldName === "branchCode" &&
-      tampered[1].selectFieldOperator === "EQ" &&
-      tampered[1].selectFieldValue === "JB0001" &&
-      tampered[2].selectFieldValue === "SB",
+    "5.1 The envelope comes from the saved inquiry: controller, service, branch pin, fixed selection, operator filter, row cap",
+    { browser: "recordId get.users, controlName ACCOUNT (ignored), fullName CT ' ali '" },
+    resolved,
+    resolved.ok &&
+      loaded[0]?.requestType === "GET" &&
+      loaded[0]?.controlName === "INQUIRY" &&
+      loaded[0]?.recordId === "GET.USERS" &&
+      loaded[0]?.servicePath === "default" &&
+      resolved.envelope.controlName === "USERS" &&
+      resolved.envelope.servicePath === "finxurm" &&
+      resolved.envelope.recordId === "" &&
+      resolved.envelope.data.perPage === 5000 &&
+      resolved.envelope.data.curPage === 1 &&
+      sentQuery
+        .map((c) => `${c.selectFieldName} ${c.selectFieldOperator} ${c.selectFieldValue}`)
+        .join("; ") === "branchCode EQ JB0001; recStatus EQ AU; fullName CT ali",
+  );
+
+  const refusals = await Promise.all(
+    [
+      {
+        queryString: [
+          { selectFieldName: "branchCode", selectFieldOperator: "NE", selectFieldValue: "JB0001" },
+        ],
+      },
+      {
+        queryString: [
+          { selectFieldName: "recStatus", selectFieldOperator: "EQ", selectFieldValue: "INAU" },
+        ],
+      },
+      {
+        queryString: [
+          { selectFieldName: "userType", selectFieldOperator: "NE", selectFieldValue: "A" },
+        ],
+      },
+      {
+        queryString: [
+          { selectFieldName: "salary", selectFieldOperator: "GT", selectFieldValue: "0" },
+        ],
+      },
+      { queryString: [], perPage: 1000000 },
+      { queryString: "branchCode EQ JB0002" },
+    ].map((data) => resolveInquiryEnvelope(inqRequest(data), loader)),
+  );
+  recordTest(
+    "5.2 Tampering is refused with 400, never forwarded: branch filter, fixed field, locked operator, unknown field, own paging, non-array query",
+    [
+      "branchCode NE",
+      "recStatus EQ INAU",
+      "userType NE (locked EQ)",
+      "salary GT",
+      "perPage 1e6",
+      "queryString string",
+    ],
+    refusals.map((r) => (r.ok ? "FORWARDED" : `${r.status} ${r.message}`)),
+    refusals.every((r) => !r.ok && r.status === 400),
+  );
+
+  const noId = await resolveInquiryEnvelope(inqRequest({ queryString: [] }, " "), loader);
+  const missing = await resolveInquiryEnvelope(inqRequest({ queryString: [] }), async () => ({
+    status: "RECORD_NOT_FOUND" as const,
+    statusCode: 404,
+    message: "No inquiry GET.USERS",
+    timestamp: "",
+  }));
+  recordTest(
+    "5.3 No inquiry ID is a 400; an inquiry the core doesn't have is refused with the core's status",
+    { noId: "recordId ' '", missing: "RECORD_NOT_FOUND 404" },
+    { noId, missing },
+    !noId.ok && noId.status === 400 && !missing.ok && missing.status === 404,
   );
 
   // Consolidated Summary

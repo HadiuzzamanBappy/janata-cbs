@@ -1,137 +1,73 @@
 "use client";
 
-import { ArrowLeft, Table } from "lucide-react";
+import { ArrowLeft, Info, Table } from "lucide-react";
 import * as React from "react";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
-import { buildDefaultCriteria } from "@/lib/cbs-inquiry-spec";
-import { logger } from "@/lib/core-logger";
+import { buildDefaultCriteria, type InquirySort } from "@/lib/cbs-inquiry-spec";
 import type { FilterCriteriaMap, InquiryConfigRecord, InquiryRow } from "@/lib/data-schemas";
-import { useSessionStore } from "@/store";
 import { CBS_INQUIRY_STEP, type CbsInquiryStep } from "@/types";
-import { runInquiry } from "../run-inquiry";
+import { useInquiryRunner } from "../hooks/use-inquiry-runner";
 import { InquiryFilterBar } from "./inquiry-filter-bar";
 import { InquiryTable } from "./inquiry-table";
 
 export interface InquiryPreviewProps {
+  /** The INQUIRY record ID whose saved definition the preview runs. */
+  inquiryId: string;
+  /** The designer's draft: its filters, columns and actions shape the preview. */
   config: InquiryConfigRecord;
-  emptyTitle?: string;
-  emptyDescription?: string;
-  className?: string;
+  /** True when the draft isn't the live definition (unsaved or not yet authorized). */
+  draftDiffers: boolean;
 }
 
 /**
- * Single, authoritative, shared inquiry preview and live simulation component.
- * Used by INQUIRY.CONFIG and custom inquiry inspectors.
- * Simulates real query dispatch while maintaining isolated preview state.
+ * Live preview inside the Inquiry Designer. The layout (filters, columns, row actions) follows the
+ * draft, but the query is the saved, live inquiry `inquiryId` as `/api/proxy` resolves it: a draft
+ * can't choose a table, fixed selection or branch scope, so the preview never shows data the
+ * saved inquiry wouldn't.
  */
-export function InquiryPreview({
-  config,
-  emptyTitle = "No Columns or Criteria Defined",
-  emptyDescription = "This inquiry has no display columns or filter criteria configured yet. Switch to the Selection Criteria or Columns & Actions tab to add fields.",
-  className = "",
-}: InquiryPreviewProps) {
-  const hasFilters = Boolean(config.INQSelectField && config.INQSelectField.length > 0);
-  const hasColumns = Boolean(config.INQDef && config.INQDef.length > 0);
-  const hasConfiguration = hasFilters || hasColumns;
-
-  const [step, setStep] = React.useState<CbsInquiryStep>(
-    hasFilters ? CBS_INQUIRY_STEP.SELECTION : CBS_INQUIRY_STEP.RESULTS,
+export function InquiryPreview({ inquiryId, config, draftDiffers }: InquiryPreviewProps) {
+  const fields = config.INQSelectField;
+  const [step, setStep] = React.useState<CbsInquiryStep>(CBS_INQUIRY_STEP.SELECTION);
+  const [criteria, setCriteria] = React.useState<FilterCriteriaMap>(() =>
+    buildDefaultCriteria(fields),
   );
   const [rows, setRows] = React.useState<InquiryRow[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [criteria, setCriteria] = React.useState<FilterCriteriaMap>({});
+  const [page, setPage] = React.useState(1);
+  const [sort, setSort] = React.useState<InquirySort | null>(null);
+  const { run, running } = useInquiryRunner(inquiryId, config);
 
-  const targetController = config.INQInfo?.controllerName?.trim() || "";
-  const currentBranch = useSessionStore((s) => s.currentBranch || s.user?.branchCode);
-
-  // Initialize criteria from select fields
+  // A changed filter set restarts the criteria from its defaults
   React.useEffect(() => {
-    setCriteria(buildDefaultCriteria(config.INQSelectField));
-    setStep(hasFilters ? CBS_INQUIRY_STEP.SELECTION : CBS_INQUIRY_STEP.RESULTS);
-  }, [config.INQSelectField, hasFilters]);
+    setCriteria(buildDefaultCriteria(fields));
+    setStep(CBS_INQUIRY_STEP.SELECTION);
+  }, [fields]);
 
-  // Execute live backend query simulation
-  const executeQuery = React.useCallback(
-    async (critMap: FilterCriteriaMap, signal?: AbortSignal) => {
-      if (!targetController) {
-        toast.add({
-          title: "No Target Controller",
-          description: "Set the Target Table / Controller on the General tab to preview.",
-          type: "warning",
-        });
-        setRows([]);
-        return;
-      }
-      setLoading(true);
-
-      try {
-        const dataset = await runInquiry(config, critMap, {
-          branchCode: currentBranch,
-          perPage: Number(config.INQInfo?.perpageItem) || 1000,
-          signal,
-        });
-        setRows(dataset);
-        setStep(CBS_INQUIRY_STEP.RESULTS);
-        toast.add({
-          title: "Simulation Executed",
-          description: `Loaded ${dataset.length} record(s)`,
-          type: "info",
-        });
-      } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") {
-          return;
-        }
-        logger.warn("Inquiry simulation failed", err, "INQUIRY_PREVIEW");
-        toast.add({
-          title: "Simulation Query Failed",
-          description: err instanceof Error ? err.message : "Backend query failed",
-          type: "destructive",
-        });
-        setRows([]);
-        setStep(CBS_INQUIRY_STEP.RESULTS);
-      } finally {
-        if (!signal?.aborted) {
-          setLoading(false);
-        }
-      }
-    },
-    [targetController, config, currentBranch],
-  );
-
-  // Auto-fetch if columns exist, no selection filters exist, and on RESULTS step
-  React.useEffect(() => {
-    if (!hasColumns || hasFilters || step !== CBS_INQUIRY_STEP.RESULTS) return;
-    const controller = new AbortController();
-    executeQuery({}, controller.signal);
-    return () => controller.abort();
-  }, [hasColumns, hasFilters, step, executeQuery]);
-
-  const handleFilterSearch = (searchCrit: FilterCriteriaMap) => {
-    setCriteria(searchCrit);
-    executeQuery(searchCrit);
+  const handleSearch = async (searchCriteria: FilterCriteriaMap) => {
+    const outcome = await run(searchCriteria);
+    if (outcome.status !== "ok") return;
+    setRows(outcome.result.rows);
+    setPage(1);
+    setSort(null);
+    setStep(CBS_INQUIRY_STEP.RESULTS);
   };
 
-  const handleResetFilters = () => {
-    setCriteria(buildDefaultCriteria(config.INQSelectField));
-    setRows([]);
-  };
-
-  if (!hasConfiguration) {
+  if (config.INQDef.length === 0 && fields.length === 0) {
     return (
       <div className="h-full w-full flex-1">
-        <EmptyState icon={Table} title={emptyTitle} description={emptyDescription} />
+        <EmptyState
+          icon={Table}
+          title="No Columns or Criteria Defined"
+          description="This inquiry has no display columns or filter criteria configured yet. Switch to the Filters or Columns tab to add fields."
+        />
       </div>
     );
   }
 
-  const pageSize = Number(config.INQInfo?.perpageItem || 30) || 30;
-
   return (
-    <div className={`h-full flex flex-col min-h-0 overflow-hidden pr-1 ${className}`}>
-      {step === CBS_INQUIRY_STEP.RESULTS && hasFilters && (
-        <div className="shrink-0 pb-1.5 flex items-center">
+    <div className="h-full flex flex-col min-h-0 overflow-hidden pr-1 gap-1.5">
+      <div className="shrink-0 flex items-center gap-2 min-h-6">
+        {step === CBS_INQUIRY_STEP.RESULTS && (
           <Button
             type="button"
             variant="ghost"
@@ -142,30 +78,37 @@ export function InquiryPreview({
             <ArrowLeft className="size-3" />
             <span>Selection Criteria</span>
           </Button>
-        </div>
-      )}
+        )}
+        {(draftDiffers || !inquiryId) && (
+          <p className="flex items-center gap-1 text-2xs text-muted-foreground">
+            <Info className="size-3 shrink-0" />
+            {inquiryId
+              ? `Runs the live definition of ${inquiryId}. Save and authorize to preview changes to the target, fixed selection or filters.`
+              : "Enter the inquiry ID to run a live preview."}
+          </p>
+        )}
+      </div>
 
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {step === CBS_INQUIRY_STEP.SELECTION ? (
           <InquiryFilterBar
-            inquiryName={config.INQInfo?.description || config.INQInfo?.controllerName}
-            fields={config.INQSelectField || []}
+            inquiryName={config.INQInfo.description || inquiryId}
+            fields={fields}
             criteria={criteria}
             onCriteriaChange={setCriteria}
-            onSearch={handleFilterSearch}
-            onReset={handleResetFilters}
-            loading={loading}
+            onSearch={handleSearch}
+            loading={running || !inquiryId}
           />
         ) : (
           <InquiryTable
-            columns={config.INQDef || []}
+            columns={config.INQDef}
             rows={rows}
-            commands={config.INQCmds || []}
-            pageSize={pageSize}
-            showSerial={config.INQInfo?.showSerial}
-            showPagination={config.INQInfo?.showPagination}
-            cmdFromInternal={config.INQInfo?.cmdFromInternal}
-            cmdFieldName={config.INQInfo?.cmdFieldName}
+            commands={config.INQCmds}
+            info={config.INQInfo}
+            page={page}
+            onPageChange={setPage}
+            sort={sort}
+            onSortChange={setSort}
           />
         )}
       </div>

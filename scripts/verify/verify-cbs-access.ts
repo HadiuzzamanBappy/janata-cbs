@@ -18,7 +18,12 @@
  *   pnpm tsx scripts/verify/verify-cbs-access.ts
  */
 
-import { evaluateCbsAccess, hasAccessibilityRight, isRecordEditable } from "@/lib/cbs-access";
+import {
+  evaluateCbsAccess,
+  hasAccessibilityRight,
+  isRecordEditable,
+  verifyUserRecordAccess,
+} from "@/lib/cbs-access";
 import { CBS_IDLE_MODE, CbsRecordFunction } from "@/types";
 
 interface TestCase {
@@ -280,6 +285,49 @@ recordTest(
   viewOnlyModes.length === 2 &&
     viewOnlyModes.includes(CbsRecordFunction.SEE) &&
     viewOnlyModes.includes(CbsRecordFunction.AUTHORIZE),
+);
+
+// --- 11. verifyUserRecordAccess: the proxy's server-side rights gate ---
+console.log("\n── 11. verifyUserRecordAccess Server Rights Gate ──");
+const inputter = { userId: "MAKER", accessibility: ["S", "I", "L"] };
+const gate = (requestType: string, recordFunction?: string) =>
+  verifyUserRecordAccess(inputter, requestType, recordFunction)?.funcCode ?? "allowed";
+const gateCases = {
+  "PUT I": gate("PUT", "I"),
+  "PUT (no function)": gate("PUT"),
+  "PUT S": gate("PUT", "S"),
+  "AUT A": gate("AUT", "A"),
+  "AUT I": gate("AUT", "I"),
+  "HLD (no function)": gate("HLD"),
+  "PUT d": gate("PUT", " d "),
+  "INQ S": gate("INQ", "S"),
+  "GET S": gate("GET", "S"),
+};
+recordTest(
+  "11.1 A mutation always needs a right: a missing or non-controlled function needs 'I', and a verb's own right ('A' for AUT) can't be bypassed by the function sent",
+  { user: inputter, requests: Object.keys(gateCases) },
+  gateCases,
+  JSON.stringify(gateCases) ===
+    JSON.stringify({
+      "PUT I": "allowed",
+      "PUT (no function)": "allowed",
+      "PUT S": "allowed",
+      "AUT A": "A",
+      "AUT I": "A",
+      "HLD (no function)": "H",
+      "PUT d": "D",
+      "INQ S": "allowed",
+      "GET S": "allowed",
+    }),
+);
+
+const viewer = { userId: "VIEWER", accessibility: ["S", "L"] };
+const viewerPut = verifyUserRecordAccess(viewer, "PUT");
+recordTest(
+  "11.2 A see-only user can't mutate by leaving recordFunction out",
+  { user: viewer, request: "PUT without recordFunction" },
+  viewerPut,
+  viewerPut?.funcCode === CbsRecordFunction.INPUT,
 );
 
 const passedTests = testCases.filter((t) => t.passed).length;

@@ -1,16 +1,20 @@
 "use client";
 
-import { formatCurrency, formatDateTime } from "@/lib/core-utils";
-
-export type CellFormatType = "text" | "currency" | "date" | "number";
+import type { ColumnFormat } from "@/lib/cbs-inquiry-spec";
+import { clientConfig } from "@/lib/core-config";
+import { cn, formatCurrency, formatDateTime } from "@/lib/core-utils";
 
 export interface CellFormatterProps {
   value: unknown;
-  format?: CellFormatType;
-  currencyCode?: string;
-  isMono?: boolean;
+  format: ColumnFormat;
+  isMono: boolean;
   routine?: string;
 }
+
+/** One formatter for every number cell, in the system locale (not the browser's). */
+const numberFormat = new Intl.NumberFormat(clientConfig.format.locale, {
+  maximumFractionDigits: 4,
+});
 
 function applyRoutineTransformation(val: string, routine?: string): string {
   if (!routine) return val;
@@ -42,50 +46,37 @@ function applyRoutineTransformation(val: string, routine?: string): string {
   return val;
 }
 
-export function CellFormatter({
-  value,
-  format = "text",
-  currencyCode,
-  isMono = true,
-  routine,
-}: CellFormatterProps) {
+function toNumber(value: unknown, text: string): number {
+  return typeof value === "number" ? value : Number.parseFloat(text.replace(/,/g, ""));
+}
+
+export function CellFormatter({ value, format, isMono, routine }: CellFormatterProps) {
   if (value === undefined || value === null || value === "") {
     return <span className="text-muted-foreground/30 font-mono text-3xs">-</span>;
   }
 
-  const rawStr = String(value);
-  const strVal = routine ? applyRoutineTransformation(rawStr, routine) : rawStr;
+  const strVal = applyRoutineTransformation(String(value), routine);
+  const mono = cn("text-2xs", isMono && "font-mono tabular-nums");
 
   switch (format) {
     case "currency": {
-      const numVal =
-        typeof value === "number" ? value : Number.parseFloat(strVal.replace(/[^0-9.-]+/g, ""));
-      if (Number.isNaN(numVal)) return <span className="font-mono text-2xs">{strVal}</span>;
-      return (
-        <span className="font-mono text-2xs font-medium tabular-nums">
-          {formatCurrency(numVal, { currency: currencyCode || "BDT" })}
-        </span>
-      );
+      const numVal = toNumber(value, strVal);
+      if (Number.isNaN(numVal)) return <span className={mono}>{strVal}</span>;
+      return <span className={cn(mono, "font-medium")}>{formatCurrency(numVal)}</span>;
     }
 
     case "number": {
-      const numVal = typeof value === "number" ? value : Number.parseFloat(strVal);
-      if (Number.isNaN(numVal)) return <span className="font-mono text-2xs">{strVal}</span>;
+      const numVal = toNumber(value, strVal);
       return (
-        <span className="font-mono text-2xs tabular-nums">
-          {numVal.toLocaleString(undefined, { maximumFractionDigits: 4 })}
-        </span>
+        <span className={mono}>{Number.isNaN(numVal) ? strVal : numberFormat.format(numVal)}</span>
       );
     }
 
-    case "date": {
+    case "date":
       // Rows are ISO by now (runInquiry); formatDateTime shows a date or a timestamp
-      return (
-        <span className="font-mono text-2xs tabular-nums">{formatDateTime(strVal) || strVal}</span>
-      );
-    }
+      return <span className={mono}>{formatDateTime(strVal) || strVal}</span>;
 
     default:
-      return <span className={isMono ? "font-mono text-2xs" : "text-2xs"}>{strVal}</span>;
+      return <span className={mono}>{strVal}</span>;
   }
 }

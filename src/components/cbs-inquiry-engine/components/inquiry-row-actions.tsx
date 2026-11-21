@@ -2,104 +2,92 @@
 
 import { Eye, Pencil, Play, ShieldCheck } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  executeInquiryCommand,
-  resolveCommandTemplate,
-  rowCommandOf,
-} from "@/lib/cbs-inquiry-spec";
-import type { INQCmd, InquiryRow } from "@/lib/data-schemas";
+import { evaluateCbsAccess } from "@/lib/cbs-access";
+import { cbsCommand } from "@/lib/cbs-command";
+import type { InquiryRowAction } from "@/lib/cbs-inquiry-spec";
+import { cn } from "@/lib/core-utils";
+import { auditDataSchema, type InquiryRow } from "@/lib/data-schemas";
+import { CbsRecordFunction, type CbsUserSecurityContext } from "@/types";
 
-export interface InquiryRowActionsProps {
-  commands: INQCmd[];
-  row: InquiryRow;
-  cmdFromInternal?: boolean;
-  cmdFieldName?: string;
+const FUNCTION_ICONS: Partial<Record<CbsRecordFunction, typeof Eye>> = {
+  [CbsRecordFunction.SEE]: Eye,
+  [CbsRecordFunction.INPUT]: Pencil,
+  [CbsRecordFunction.AUTHORIZE]: ShieldCheck,
+};
+
+/**
+ * Why an action can't run for this row, or null. Rights and Four-Eyes come from
+ * `evaluateCbsAccess`; the record-status rules apply only when the row carries its status.
+ */
+function disableReason(
+  action: InquiryRowAction,
+  row: InquiryRow,
+  user: CbsUserSecurityContext | null,
+): string | null {
+  if (!action.command) return "This row has no value for the command's fields";
+  if (!action.func) return null;
+  const audit = auditDataSchema.safeParse(row.auditData);
+  const recordStatus = audit.success ? audit.data.recStatus : undefined;
+  const access = evaluateCbsAccess({
+    user,
+    recordStatus,
+    recordInputter: audit.success ? audit.data.recInputter : undefined,
+    mode: action.func,
+  });
+  if (recordStatus) return access.getDisableReason(action.func);
+  if (!access.hasFunctionRight(action.func)) {
+    return `Access Denied: Missing '${action.func}' capability in user profile.`;
+  }
+  return action.func === CbsRecordFunction.AUTHORIZE && access.isFourEyesViolation
+    ? access.getDisableReason(action.func)
+    : null;
 }
 
-export function InquiryRowActions({
-  commands,
-  row,
-  cmdFromInternal = false,
-  cmdFieldName = "",
-}: InquiryRowActionsProps) {
-  const rawCmd = rowCommandOf(row, cmdFromInternal, cmdFieldName);
-  const hasInternalCmd = Boolean(rawCmd);
+export interface InquiryRowActionsProps {
+  actions: readonly InquiryRowAction[];
+  row: InquiryRow;
+  user: CbsUserSecurityContext | null;
+}
 
-  if ((!commands || commands.length === 0) && !hasInternalCmd) return null;
-
-  if (commands.length === 0 && hasInternalCmd) {
-    const executable = resolveCommandTemplate(rawCmd, row);
-
-    return (
-      <div className="flex items-center gap-0.5 justify-center">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <button
-                type="button"
-                onClick={() =>
-                  executeInquiryCommand(
-                    { cmdButton: "Open", cmdFor: rawCmd },
-                    row,
-                    cmdFromInternal,
-                    cmdFieldName,
-                  )
-                }
-                data-cbs-command={executable}
-                data-cbs-link-handled="true"
-                className="inline-flex items-center justify-center size-5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
-              >
-                <Play className="size-2.5 text-primary" />
-              </button>
-            }
-          />
-          <TooltipContent className="text-2xs font-medium">
-            Open: {executable || rawCmd}
-          </TooltipContent>
-        </Tooltip>
-      </div>
-    );
-  }
-
+export function InquiryRowActions({ actions, row, user }: InquiryRowActionsProps) {
+  if (actions.length === 0) return null;
   return (
     <div className="flex items-center gap-0.5 justify-center">
-      {commands.map((cmd) => {
-        const btnLower = cmd.cmdButton.toLowerCase();
-        const isView =
-          btnLower.includes("view") || btnLower.includes("see") || btnLower.includes("show");
-        const isEdit =
-          btnLower.includes("edit") || btnLower.includes("input") || btnLower.includes("modify");
-        const isAuth =
-          btnLower.includes("auth") || btnLower.includes("check") || btnLower.includes("approve");
-
-        const icon = isView ? (
-          <Eye className="size-2.5" />
-        ) : isEdit ? (
-          <Pencil className="size-2.5" />
-        ) : isAuth ? (
-          <ShieldCheck className="size-2.5 text-warning" />
-        ) : (
-          <Play className="size-2.5" />
-        );
-
-        const executable = resolveCommandTemplate(cmd.cmdFor, row);
-
+      {actions.map((action, idx) => {
+        const reason = disableReason(action, row, user);
+        const Icon = (action.func && FUNCTION_ICONS[action.func]) || Play;
         return (
-          <Tooltip key={`${cmd.cmdButton}:${cmd.cmdFor}`}>
+          <Tooltip key={`${idx}:${action.label}`}>
             <TooltipTrigger
               render={
                 <button
                   type="button"
-                  onClick={() => executeInquiryCommand(cmd, row, cmdFromInternal, cmdFieldName)}
-                  data-cbs-command={executable}
+                  aria-label={action.label}
+                  aria-disabled={Boolean(reason)}
+                  onClick={() => {
+                    if (!reason) cbsCommand.execute(action.command);
+                  }}
+                  data-cbs-command={reason ? undefined : action.command}
                   data-cbs-link-handled="true"
-                  className="inline-flex items-center justify-center size-5 rounded hover:bg-primary/15 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                  className={cn(
+                    "inline-flex items-center justify-center size-5 rounded text-muted-foreground transition-colors",
+                    reason
+                      ? "opacity-40 cursor-not-allowed"
+                      : "cursor-pointer hover:bg-primary/15 hover:text-primary",
+                  )}
                 >
-                  {icon}
+                  <Icon
+                    className={cn(
+                      "size-2.5",
+                      action.func === CbsRecordFunction.AUTHORIZE && "text-warning",
+                    )}
+                  />
                 </button>
               }
             />
-            <TooltipContent className="text-2xs font-medium">{cmd.cmdButton}</TooltipContent>
+            <TooltipContent className="text-2xs font-medium">
+              {reason ? `${action.label}: ${reason}` : `${action.label}: ${action.command}`}
+            </TooltipContent>
           </Tooltip>
         );
       })}

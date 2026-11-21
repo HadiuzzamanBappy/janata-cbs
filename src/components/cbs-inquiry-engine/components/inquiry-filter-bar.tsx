@@ -8,120 +8,73 @@ import type { FilterCriteriaMap, INQSelectField, SelectionOperand } from "@/lib/
 import { FilterCriterionRow } from "./filters/filter-criterion-row";
 
 export interface InquiryFilterBarProps {
-  fields: INQSelectField[];
-  inquiryName?: string;
-  criteria?: FilterCriteriaMap;
-  onCriteriaChange?: (criteria: FilterCriteriaMap) => void;
+  fields: readonly INQSelectField[];
+  inquiryName: string;
+  criteria: FilterCriteriaMap;
+  onCriteriaChange: (criteria: FilterCriteriaMap) => void;
   onSearch: (criteria: FilterCriteriaMap) => void;
-  onReset: () => void;
-  loading?: boolean;
+  loading: boolean;
 }
 
+/** The criteria step of an inquiry: one row per configured filter, then Clear and Find. */
 export function InquiryFilterBar({
   fields,
   inquiryName,
-  criteria: controlledCriteria,
+  criteria,
   onCriteriaChange,
   onSearch,
-  onReset,
-  loading = false,
+  loading,
 }: InquiryFilterBarProps) {
-  const [missingFields, setMissingFields] = React.useState<Set<string>>(new Set());
-  const [internalCriteria, setInternalCriteria] = React.useState<FilterCriteriaMap>(() => {
-    const initial: FilterCriteriaMap = {};
-    for (const f of fields) {
-      initial[f.selectFieldName] = {
-        value: f.selectFieldValue || "",
-        operand: (f.selectFieldOperator as SelectionOperand) || "EQ",
-      };
-    }
-    return initial;
-  });
+  const [missingFields, setMissingFields] = React.useState<ReadonlySet<string>>(new Set());
 
-  const criteria = controlledCriteria ?? internalCriteria;
+  const criterionOf = (field: INQSelectField) =>
+    criteria[field.selectFieldName] ?? {
+      value: field.selectFieldValue,
+      operand: field.selectFieldOperator,
+    };
 
-  const updateCriteria = (updater: (prev: FilterCriteriaMap) => FilterCriteriaMap) => {
-    const next = updater(criteria);
-    if (!controlledCriteria) {
-      setInternalCriteria(next);
+  const handleValueChange = (field: INQSelectField, value: string) => {
+    if (value.trim() && missingFields.has(field.selectFieldName)) {
+      setMissingFields((prev) => new Set([...prev].filter((n) => n !== field.selectFieldName)));
     }
-    if (onCriteriaChange) {
-      onCriteriaChange(next);
-    }
+    onCriteriaChange({ ...criteria, [field.selectFieldName]: { ...criterionOf(field), value } });
   };
 
-  const handleValueChange = (fieldName: string, val: string) => {
-    if (missingFields.has(fieldName) && val.trim() !== "") {
-      setMissingFields((prev) => {
-        const next = new Set(prev);
-        next.delete(fieldName);
-        return next;
-      });
-    }
-    updateCriteria((prev) => ({
-      ...prev,
-      [fieldName]: { ...(prev[fieldName] || { operand: "EQ" }), value: val },
-    }));
-  };
-
-  const handleOperandChange = (fieldName: string, op: SelectionOperand) => {
-    updateCriteria((prev) => ({
-      ...prev,
-      [fieldName]: { ...(prev[fieldName] || { value: "" }), operand: op },
-    }));
+  const handleOperandChange = (field: INQSelectField, operand: SelectionOperand) => {
+    onCriteriaChange({ ...criteria, [field.selectFieldName]: { ...criterionOf(field), operand } });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validate mandatory selection fields
-    const emptyRequired = fields.filter((f) => {
-      if (!f.selectFieldRequired) return false;
-      const val = criteria[f.selectFieldName]?.value;
-      return val === undefined || val === null || String(val).trim() === "";
-    });
-
+    const emptyRequired = fields.filter(
+      (f) => f.selectFieldRequired && !criterionOf(f).value.trim(),
+    );
     if (emptyRequired.length > 0) {
       setMissingFields(new Set(emptyRequired.map((f) => f.selectFieldName)));
-      const names = emptyRequired.map((f) => f.selectFieldDisplay || f.selectFieldName).join(", ");
       toast.add({
         title: "Required Filter Missing",
-        description: `Please enter a value for: ${names}`,
+        description: `Please enter a value for: ${emptyRequired.map((f) => f.selectFieldDisplay || f.selectFieldName).join(", ")}`,
         type: "destructive",
       });
       return;
     }
-
     setMissingFields(new Set());
     onSearch(criteria);
   };
 
+  /** Empties every value; each operand returns to its configured one. */
   const handleClear = () => {
     setMissingFields(new Set());
     const cleared: FilterCriteriaMap = {};
-    for (const f of fields) {
-      cleared[f.selectFieldName] = {
-        value: "",
-        operand: (f.selectFieldOperator as SelectionOperand) || "EQ",
-      };
-    }
-    if (!controlledCriteria) {
-      setInternalCriteria(cleared);
-    }
-    if (onCriteriaChange) {
-      onCriteriaChange(cleared);
-    }
-    onReset();
+    for (const f of fields)
+      cleared[f.selectFieldName] = { value: "", operand: f.selectFieldOperator };
+    onCriteriaChange(cleared);
   };
-
-  if (!fields || fields.length === 0) return null;
 
   return (
     <div className="h-full overflow-y-auto pr-1 flex flex-col items-center">
       <div className="w-full max-w-3xl space-y-3">
-        {/* 1:1 System Screen Card Container */}
         <div className="rounded border border-border/80 bg-card/60 p-3 shadow-2xs space-y-2.5">
-          {/* Card Header: 1:1 with Model Config & Temenos Inquiry Criteria */}
           <div className="text-2xs font-semibold uppercase tracking-wider text-muted-foreground pb-1.5 border-b border-border/60 flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Filter className="size-3 text-primary" />
@@ -132,37 +85,30 @@ export function InquiryFilterBar({
             </span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-2 text-xs">
-            {fields.map((field) => {
-              const current = criteria[field.selectFieldName] || {
-                value: field.selectFieldValue || "",
-                operand: (field.selectFieldOperator as SelectionOperand) || "EQ",
-              };
+          <form onSubmit={handleSubmit} noValidate className="space-y-2 text-xs">
+            {fields.length === 0 && (
+              <p className="text-2xs text-muted-foreground">
+                This inquiry has no filters: Find runs it as configured.
+              </p>
+            )}
+            {fields.map((field) => (
+              <FilterCriterionRow
+                key={field.selectFieldName}
+                field={field}
+                criterion={criterionOf(field)}
+                hasError={missingFields.has(field.selectFieldName)}
+                onValueChange={handleValueChange}
+                onOperandChange={handleOperandChange}
+              />
+            ))}
 
-              return (
-                <FilterCriterionRow
-                  key={field.selectFieldName}
-                  field={field}
-                  criterion={current}
-                  hasError={missingFields.has(field.selectFieldName)}
-                  onValueChange={handleValueChange}
-                  onOperandChange={handleOperandChange}
-                />
-              );
-            })}
-
-            {/* Action Bar */}
             <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
-              <div className="flex items-center gap-1.5 min-w-0">
-                {inquiryName && (
-                  <span
-                    className="text-xs font-mono text-muted-foreground truncate select-none"
-                    title={inquiryName}
-                  >
-                    {inquiryName}
-                  </span>
-                )}
-              </div>
+              <span
+                className="text-xs font-mono text-muted-foreground truncate select-none min-w-0"
+                title={inquiryName}
+              >
+                {inquiryName}
+              </span>
               <div className="flex items-center gap-2 shrink-0">
                 <Button
                   type="button"
@@ -181,7 +127,7 @@ export function InquiryFilterBar({
                   className="h-7 text-xs px-3 font-semibold gap-1.5 rounded"
                 >
                   <Search className="size-3" />
-                  <span>Find / Execute</span>
+                  <span>{loading ? "Running…" : "Find / Execute"}</span>
                 </Button>
               </div>
             </div>

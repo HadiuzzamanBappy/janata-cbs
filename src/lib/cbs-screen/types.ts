@@ -81,7 +81,6 @@ export interface CbsScreenScaffoldProps<TTab extends string = string> {
   onInquiryBackToSelection?: () => void;
   onInquiryRefresh?: () => void;
   onInquiryPrintLocal?: () => void;
-  onInquiryPrintServer?: () => void;
   onInquiryExportCSV?: () => void;
   onInquiryExportHTML?: () => void;
   onInquiryExportXML?: () => void;

@@ -16,6 +16,7 @@ export * from "./form-config-schema";
 export * from "./form-engine-schema";
 export * from "./form-widget-schema";
 export * from "./inquiry-config-schema";
+export * from "./inquiry-save-schema";
 export * from "./menu-designer-schema";
 export * from "./model-config-schema";
 export * from "./screen-params-schema";

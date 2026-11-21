@@ -101,7 +101,7 @@ export const SC_MENU_TREE: Record<string, MenuTreeRecord> = {
                     id: "n_1793857791123_1",
                     menuId: 5,
                     label: "Password Reset",
-                    command: "PASSWORD.RESET,NEW N",
+                    command: "PASSWORD.RESET,NEW",
                     menuType: "FORM",
                     menuAction: "SCREEN",
                     isVisible: true,

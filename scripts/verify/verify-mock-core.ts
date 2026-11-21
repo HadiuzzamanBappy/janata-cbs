@@ -176,8 +176,8 @@ async function runSuite() {
     );
 
     // 4b. Form Configuration (when form layout version passed via GFC)
-    const gfcFormInput = { requestType: "GFC", controlName: "ACCOUNT,1.0.0" };
-    const gfcFormRes = getMockProxyResponse("GFC", "ACCOUNT,1.0.0");
+    const gfcFormInput = { requestType: "GFC", controlName: "USER,1.0.0" };
+    const gfcFormRes = getMockProxyResponse("GFC", "USER,1.0.0");
     const gfcFormData = gfcFormRes.data as Record<string, unknown> | undefined;
     const formControl = gfcFormData?.FORMCONTROL as Record<string, unknown> | undefined;
     recordTest(
@@ -212,8 +212,8 @@ async function runSuite() {
     );
 
     // 6. Versioned Presentation Configuration (CONFIG.FORM S Mode)
-    const formInput = { requestType: "S", controlName: "CONFIG.FORM", recordId: "ACCOUNT,1.0.0" };
-    const formRes = getMockProxyResponse("S", "CONFIG.FORM", "ACCOUNT,1.0.0");
+    const formInput = { requestType: "S", controlName: "CONFIG.FORM", recordId: "USER,1.0.0" };
+    const formRes = getMockProxyResponse("S", "CONFIG.FORM", "USER,1.0.0");
     const formData = formRes.data as Record<string, unknown> | undefined;
     const formOut = {
       recordId: formData?.recordId,
@@ -226,7 +226,7 @@ async function runSuite() {
       "6. Versioned Presentation Configuration (CONFIG.FORM in S mode)",
       formInput,
       formOut,
-      formRes.status === "SUCCESS" && formOut.targetModel === "ACCOUNT",
+      formRes.status === "SUCCESS" && formOut.targetModel === "USER",
     );
 
     // 7a. Tabular Inquiry Rows (INQ): the proxy sends the resolved controller and the full filter

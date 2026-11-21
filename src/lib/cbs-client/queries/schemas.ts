@@ -88,53 +88,41 @@ export const schemaQueries = {
     });
   },
 
+  /**
+   * An operational form is a CONFIG.FORM entry, read only by GFC (the core sends its model with it).
+   * `ACCOUNT` and `ACCOUNT,` read the entry "ACCOUNT"; `ACCOUNT,1.0.0` reads that version.
+   * No entry means no form: nothing is built from the model alone.
+   */
   formConfigSchema: (command: string) => {
-    const cleanCmd = command ? command.trim().toUpperCase() : "";
+    const [app = "", version = ""] = (command || "")
+      .trim()
+      .toUpperCase()
+      .split(",")
+      .map((part) => part.trim());
+    const formId = version ? `${app},${version}` : app;
     return queryOptions<ResolvedFormSchemaData>({
-      queryKey: [...SCHEMA_ROOT_KEYS.formConfig, cleanCmd] as const,
-      enabled: Boolean(cleanCmd),
+      queryKey: [...SCHEMA_ROOT_KEYS.formConfig, formId] as const,
+      enabled: Boolean(formId),
       staleTime: 5 * 60 * 1000,
       queryFn: async () => {
-        if (cleanCmd.includes(",")) {
-          const [app, version] = cleanCmd.split(",");
-          if (version?.trim()) {
-            const formRes = await sendCbsRequest<Record<string, unknown>>(
-              formConfigPayloads.get(cleanCmd),
-              { silent: true },
-            );
-            if (isApiSuccess(formRes) && formRes.data) {
-              const parsed = parseGfcResponse(formRes.data);
-              if (parsed.success && parsed.data.form?.frmElements) {
-                const { model, form } = parsed.data;
-                return { schema: model ? compileFormSpec(model, form) : form, modelRecord: model };
-              }
-              const rawData = formRes.data;
-              const formConfig = (rawData.frmElements ? rawData : null) as FormConfigRecord | null;
-              if (formConfig?.frmElements) {
-                let model: ModelConfigRecord | null = null;
-                try {
-                  model = await loadModelConfigRecord(String(app || cleanCmd));
-                } catch {
-                  // Standalone form without model
-                }
-                return {
-                  schema: model ? compileFormSpec(model, formConfig) : formConfig,
-                  modelRecord: model,
-                };
-              }
-            }
-            throw new Error(
-              `Version "${cleanCmd}" does not exist in FORM.CONFIG. Please verify the version or create it in Form Design.`,
-            );
-          }
+        const res = await sendCbsRequest<Record<string, unknown>>(formConfigPayloads.get(formId), {
+          silent: true,
+        });
+        if (!isApiSuccess(res)) {
+          throw new Error(res.message || `Failed to load form "${formId}" from CONFIG.FORM`);
         }
-
-        const baseModel = cleanCmd.split(",")[0].trim();
-        const model = await loadModelConfigRecord(baseModel);
-        if ("PROPERTIES" in model) {
-          return { schema: compileFormSpec(model, null), modelRecord: model };
+        const parsed = res.data ? parseGfcResponse(res.data) : null;
+        if (!parsed?.success) {
+          throw new Error(`Form "${formId}" response from CONFIG.FORM is empty or invalid`);
         }
-        throw new Error(`No data model schema registered in MODEL.CONFIG for "${baseModel}"`);
+        const { model, form, isNew } = parsed.data;
+        if (!isNew && !form) {
+          throw new Error(`Form "${formId}" in CONFIG.FORM could not be read`);
+        }
+        if (!form?.frmElements.sections.length) {
+          throw new Error(`No form "${formId}" in CONFIG.FORM. Create it in Form Design (FC).`);
+        }
+        return { schema: compileFormSpec(model, form), modelRecord: model };
       },
     });
   },

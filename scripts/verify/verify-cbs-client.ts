@@ -8,14 +8,14 @@
  * 3. cbs.modelConfig, cbs.formConfig, cbs.inquiryConfig - Meta-config protocol overrides
  * 4. cbs.inquiry - Runtime inquiry query execution (INQ)
  * 6. cbs.send - Universal transport dispatcher (pre-flight validation, HTTP dispatch, 401 handling, cancellation,
- *    single notification per failure)
+ *    single notification per failure), and form loading (one GFC per form, no model-only form)
  *
  * Usage:
  *   pnpm tsx scripts/verify/verify-cbs-client.ts
  */
 
 import { z } from "zod";
-import { cbs } from "@/lib/cbs-client";
+import { cbs, cbsQueries } from "@/lib/cbs-client";
 import { registerCommandAdapter } from "@/lib/cbs-command";
 import type { CbsWirePayload } from "@/lib/data-schemas";
 import { CbsControlTable, CbsRecordFunction, CbsRequestType } from "@/types";
@@ -403,6 +403,71 @@ async function runSuite() {
       "fetch throws TypeError; then a 200 reply that fails responseSchema",
       { networkToasts, schemaToasts },
       networkToasts.length === 1 && schemaToasts.length === 1,
+    );
+
+    // F. An operational form is a CONFIG.FORM entry read only by GFC: never GMC, never a model-only form
+    const gfcModel = {
+      TABLENAME: "ACCOUNT",
+      DESCRIPTION: "Account",
+      ACCESS: "B",
+      SERVICEPATH: "default",
+      PROPERTIES: [{ SN: "1", NAME: "accountTitle", TYPE: "String", STRUCTURE: "S", LENGTH: 50 }],
+    };
+    const gfcLayout = {
+      title: "Account Maintenance",
+      frmElements: {
+        sections: [
+          {
+            id: "sec_1",
+            containerType: "card",
+            fields: [{ SN: "1", NAME: "accountTitle", LABEL: "Account Title" }],
+          },
+        ],
+      },
+    };
+    const runFormQuery = async (command: string, reply: Record<string, unknown>) => {
+      const sent: Array<{ requestType: unknown; recordId: unknown }> = [];
+      globalThis.fetch = async (_url, init) => {
+        const body = JSON.parse(String(init?.body || "{}")) as Record<string, unknown>;
+        sent.push({ requestType: body.requestType, recordId: body.recordId });
+        return new Response(JSON.stringify(reply), { status: 200 });
+      };
+      // The query ignores its context, so it runs without a QueryClient
+      const query = cbsQueries.formConfig.schema(command).queryFn as unknown as () => Promise<{
+        schema: { title?: string } | null;
+      }>;
+      try {
+        const data = await query();
+        return { sent, title: data.schema?.title, error: "" };
+      } catch (err: unknown) {
+        return { sent, title: undefined, error: err instanceof Error ? err.message : String(err) };
+      }
+    };
+    const withLayout = { status: "SUCCESS", data: { ...gfcModel, FORMCONTROL: gfcLayout } };
+    const withoutLayout = { status: "SUCCESS", data: { ...gfcModel, FORMCONTROL: {} } };
+
+    const versioned = await runFormQuery("ACCOUNT,1.0.0", withLayout);
+    const bare = await runFormQuery("ACCOUNT", withLayout);
+    const trailingComma = await runFormQuery("ACCOUNT,", withLayout);
+    const noEntry = await runFormQuery("ACCOUNT", withoutLayout);
+    const notFound = await runFormQuery("NOPE", {
+      status: "RECORD_NOT_FOUND",
+      message: "Form specification for NOPE not found",
+    });
+    const onlyGfc = (r: { sent: Array<{ requestType: unknown }> }) =>
+      r.sent.length === 1 && r.sent[0].requestType === CbsRequestType.GFC;
+    recordTest(
+      "6.7 cbsQueries.formConfig.schema: One GFC per form; no entry fails with no GMC and no model-only form",
+      ["ACCOUNT,1.0.0", "ACCOUNT", "ACCOUNT,", "ACCOUNT (empty FORMCONTROL)", "NOPE (not found)"],
+      { versioned, bare, trailingComma, noEntry, notFound },
+      [versioned, bare, trailingComma, noEntry, notFound].every(onlyGfc) &&
+        versioned.sent[0].recordId === "ACCOUNT,1.0.0" &&
+        bare.sent[0].recordId === "ACCOUNT" &&
+        trailingComma.sent[0].recordId === "ACCOUNT" &&
+        versioned.title === "Account Maintenance" &&
+        bare.title === "Account Maintenance" &&
+        noEntry.error === 'No form "ACCOUNT" in CONFIG.FORM. Create it in Form Design (FC).' &&
+        notFound.error === "Form specification for NOPE not found",
     );
   } finally {
     globalThis.fetch = originalFetch;

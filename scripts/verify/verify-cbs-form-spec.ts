@@ -4,10 +4,10 @@
  * Compact, Deterministic & Transparent: Tests a single focused example of EVERY
  * capability exposed by `@/lib/cbs-form-spec` with explicit Input and Output visualization:
  * 1. Semantic Width Mapping (defaultWidthForLength: xs, sm, md, lg, full)
- * 2. Fallback Layout Compilation (buildFallbackSections: 12-col card layout when no custom layout)
+ * 2. Model Preview Layout (buildFallbackSections: one card of every model field; MODEL.CONFIG preview only)
  * 3. Custom Layout Compilation & Model Rules Merging (compileFormSpec: preserves layout, enforces model constraints)
  * 4. Headless Value Validation (validateValues: required, numeric/digits, date, length, clean state,
- *    hidden fields, multi-value items, plain numbers, real calendar dates)
+ *    hidden fields, multi-value items, plain numbers, real calendar dates, repeating sets with no rows)
  * 10. Designer settings honoured by the engine (decimals, date offsets, ON_CHANGE, in / notIn lists,
  *    cascades, boolean wire values, trim on blur, root layout)
  * 11. Object groups: inner-field spec lookup by value key, and the designer's field tree
@@ -620,6 +620,45 @@ async function runSuite() {
       loaded.postedAt === "2026-10-27T11:22:52+06:00" &&
       loaded.refNo === "20250101" &&
       (loaded.rows as Array<{ valueDate: string }>)[0].valueDate === "2025-01-02",
+  );
+
+  const repeatingSection = [
+    {
+      id: "sec_rows",
+      containerType: "card" as const,
+      fields: [
+        {
+          SN: "1",
+          NAME: "nominees",
+          TYPE: "Array" as const,
+          STRUCTURE: "M" as const,
+          LENGTH: 0,
+          PROP: [
+            {
+              SN: "1_1",
+              NAME: "nomineeName",
+              LABEL: "Nominee Name",
+              TYPE: "String" as const,
+              STRUCTURE: "S" as const,
+              LENGTH: 100,
+              REQUIRED: true,
+            },
+          ],
+        },
+      ],
+    },
+  ];
+  const noRowErrors = validateValues(repeatingSection, {});
+  const emptyRowErrors = validateValues(repeatingSection, { nominees: [{ nomineeName: "A" }, {}] });
+  const filledRowErrors = validateValues(repeatingSection, { nominees: [{ nomineeName: "A" }] });
+  recordTest(
+    "4.16 An optional repeating set with no rows has no inner errors; each started row is checked",
+    { none: {}, secondRowEmpty: [{ nomineeName: "A" }, {}], filled: [{ nomineeName: "A" }] },
+    { noRowErrors, emptyRowErrors, filledRowErrors },
+    Object.keys(noRowErrors).length === 0 &&
+      emptyRowErrors["nominees.1.nomineeName"] === "Nominee Name is required" &&
+      Object.keys(emptyRowErrors).length === 1 &&
+      Object.keys(filledRowErrors).length === 0,
   );
 
   // ── 5. Reactive Field Condition Evaluation (evaluateFieldCondition) ──

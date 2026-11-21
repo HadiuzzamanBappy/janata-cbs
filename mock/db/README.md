@@ -30,7 +30,7 @@ Records are keyed by their bare ID (`AC1001`), never with an `_INAU` or `$NAU` s
 | `FT_FUNDS_TRANSFER` | `FUNDS.TRANSFER`              | `FT260001`                                                    |
 | `SC_BRANCH`         | `BRANCH`                      | `JB0001`                                                      |
 | `SC_CONTROL`        | `CONTROL`                     | `ACCOUNT`, `BRANCH` (command names)                           |
-| `SC_FORM_CONFIG`    | `CONFIG.FORM`                 | `ACCOUNT,1.0.0` (`<MODEL>,<VERSION>`)                         |
+| `SC_FORM_CONFIG`    | `CONFIG.FORM`                 | `ACCOUNT` (`<MODEL>`), `USER,1.0.0` (`<MODEL>,<VERSION>`)     |
 | `SC_INQUIRY_CONFIG` | `INQUIRY`                     | `GET.BRANCH`, `GET.EMP.INFO`                                  |
 | `SC_LOOKUP`         | `LOOKUP`                      | `TITLE.MR`, `TITLE.MRS`                                       |
 | `SC_MENU`           | `MENU`                        | `1`, `2`                                                      |

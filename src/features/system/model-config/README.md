@@ -1,6 +1,6 @@
 # SC.MODEL.CONFIG — Model Config (Data Dictionary)
 
-The bespoke `SC.MODEL.CONFIG` screen (aliases `MC`, `SC.MODEL.BUILDER`) edits Model Config records (control `MODEL.CONFIG`). A model is the data schema of a banking screen: its table (`PREFIX` + `TABLENAME`), ID rules, flags and properties (columns). Form layouts in `SC.FORM.CONFIG` can only arrange properties that a model defines. When no layout exists, `@/lib/cbs-form-spec` builds a fallback form from the model alone.
+The bespoke `SC.MODEL.CONFIG` screen (aliases `MC`, `SC.MODEL.BUILDER`) edits Model Config records (control `MODEL.CONFIG`). A model is the data schema of a banking screen: its table (`PREFIX` + `TABLENAME`), ID rules, flags and properties (columns). Form layouts in `SC.FORM.CONFIG` can only arrange properties that a model defines. An operational screen opens only from a Form Config entry (GFC); a model with no entry has no form. The Preview tab still shows the model's fields as one card.
 
 ---
 

@@ -241,7 +241,8 @@ export function validateFormFields(
             validateFormFields(field.PROP as FormElement[], currentValues, `${fieldKey}.${idx}`),
           );
         });
-      } else {
+      } else if (field.STRUCTURE !== "M") {
+        // A single object group always has its inner fields; a repeating set with no rows has none
         Object.assign(errors, validateFormFields(field.PROP, currentValues, fieldKey));
       }
     }

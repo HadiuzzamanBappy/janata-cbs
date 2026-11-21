@@ -34,7 +34,7 @@ It bridges backend data schemas defined in **Model Config** (`SC.MODEL.CONFIG`) 
 ```
 
 1. **Model Schema Authority**: `ModelConfigRecord` is the sole source of truth for physical data schemas (`TYPE`, `LENGTH`, `STRUCTURE`, `REQUIRED`). The visual presentation form cannot invent physical database columns.
-2. **Deterministic Fallback**: When no visual layout exists, `compileFormSpec(model)` automatically synthesizes an immediately usable 12-column responsive fallback form.
+2. **Model preview only**: `compileFormSpec(model)` with no layout lays out every model field in one card. Only the MODEL.CONFIG preview uses it; an operational screen needs a CONFIG.FORM entry (`formConfigSchema` in `@/lib/cbs-client` fails when there is none).
 3. **Pure Execution**: Zero React UI dependencies, zero DOM assumptions, zero side-effects. Executes identically on Node.js server routes, browser clients, and CLI verification test suites.
 4. **Fix rendering here, not per screen**: if a form renders wrong, the fix belongs in this compiler or in the form engine, never in an individual screen.
 
@@ -99,7 +99,7 @@ Field rules (`field-rules.ts`): `TRANSFORM` runs on each change except `trim`, w
 import { compileFormSpec } from "@/lib/cbs-form-spec";
 import type { ModelConfigRecord, FormConfigRecord } from "@/lib/data-schemas";
 
-// Case A: Fallback compilation (When model has no custom designer layout)
+// Case A: Model preview (MODEL.CONFIG Preview tab; operational screens always have a layout)
 const fallbackSpec = compileFormSpec(modelRecord);
 // fallbackSpec.frmElements.sections: one responsive card section
 

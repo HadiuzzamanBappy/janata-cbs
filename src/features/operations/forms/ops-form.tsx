@@ -110,7 +110,7 @@ export function OpsForm({
     return (
       <CbsErrorState
         title="Failed to Resolve Form Specification"
-        message={error || `No data model registered for command "${command}"`}
+        message={error || `No form for command "${command}" in CONFIG.FORM`}
         command={command}
         onRetry={refetch}
       />

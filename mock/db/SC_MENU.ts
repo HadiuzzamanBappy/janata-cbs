@@ -83,7 +83,7 @@ export const SC_MENU_LIVE: Record<string, MenuRecord> = {
   },
   "5": {
     label: "Password Reset",
-    command: "PASSWORD.RESET,NEW N",
+    command: "PASSWORD.RESET,NEW",
     menuType: "FORM",
     menuAction: "SCREEN",
     auditData: {

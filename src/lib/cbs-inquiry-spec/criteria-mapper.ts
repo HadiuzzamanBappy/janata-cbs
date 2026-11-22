@@ -47,6 +47,7 @@ export function serializeCriteriaToWire(
       selectFieldName: name,
       selectFieldOperator: effectiveOperand(field, crit.operand),
       selectFieldValue: value,
+      [name]: value,
     });
   }
   return result;
@@ -115,6 +116,7 @@ export function composeInquiryQuery(
       selectFieldType: field.selectFieldType,
       selectFieldOperator: crit.selectFieldOperator,
       selectFieldValue: crit.selectFieldValue.trim(),
+      [field.selectFieldName.trim()]: crit.selectFieldValue.trim(),
     });
   }
 

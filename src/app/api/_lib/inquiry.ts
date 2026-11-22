@@ -1,10 +1,9 @@
-import { composeInquiryQuery } from "@/lib/cbs-inquiry-spec";
+import { composeInquiryQuery, inquiryPageSize } from "@/lib/cbs-inquiry-spec";
 import { parseInquiryConfig } from "@/lib/data-parsers";
 import {
   type ApiResponse,
   DEFAULT_SERVICE,
   type GrpcEnvelope,
-  INQUIRY_MAX_ROWS,
   inquiryRunDataSchema,
   isApiSuccess,
   SERVICE_NAME_PATTERN,
@@ -83,7 +82,7 @@ export async function resolveInquiryEnvelope(
       data: {
         queryString: query.queryString,
         curPage: 1,
-        perPage: INQUIRY_MAX_ROWS,
+        perPage: inquiryPageSize(info),
         inqType: info.inqType,
       },
     },

@@ -1,14 +1,9 @@
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createStore } from "zustand/vanilla";
 import { cbsAuth } from "@/lib/cbs-client";
-import {
-  CBS_SCREEN_MESSAGE,
-  clearAllWorkbenchDrafts,
-  postWorkbenchMessage,
-} from "@/lib/cbs-screen";
+import { CBS_SCREEN_MESSAGE, postWorkbenchMessage } from "@/lib/cbs-screen";
 import { clientConfig } from "@/lib/core-config";
 import { logger } from "@/lib/core-logger";
-import { cbsStorage } from "@/lib/core-utils";
 import type { CurrentUser } from "@/lib/data-schemas";
 
 export interface SessionState {
@@ -46,10 +41,8 @@ export const createSessionStore = () => {
             logger.error("Logout failed", e, "SESSION_STORE");
           }
           set(SIGNED_OUT);
-          // An explicit sign-out leaves the terminal: drop open tabs and staged drafts (they can
-          // hold customer data). An idle timeout keeps them so the same teller can resume.
-          cbsStorage.remove("session", clientConfig.storage.session.workbenchTabs);
-          clearAllWorkbenchDrafts();
+          // Tabs and staged drafts survive sign-out so the same operator can resume; the
+          // workbench provider purges them when a different operator signs on.
           postWorkbenchMessage({ type: CBS_SCREEN_MESSAGE.SESSION_LOGOUT, tabId: "global" });
           if (typeof window !== "undefined") window.location.href = clientConfig.routes.login;
         },

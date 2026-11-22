@@ -222,8 +222,8 @@ async function runSuite() {
       sent,
       JSON.stringify(sent) ===
         JSON.stringify([
-          { selectFieldName: "ACCOUNT.NO", selectFieldOperator: "LK", selectFieldValue: "1002345" },
-          { selectFieldName: "STATUS", selectFieldOperator: "EQ", selectFieldValue: "AU" },
+          { selectFieldName: "ACCOUNT.NO", selectFieldOperator: "LK", selectFieldValue: "1002345", "ACCOUNT.NO": "1002345" },
+          { selectFieldName: "STATUS", selectFieldOperator: "EQ", selectFieldValue: "AU", STATUS: "AU" },
         ]),
     );
 

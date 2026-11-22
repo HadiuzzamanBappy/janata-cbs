@@ -31,7 +31,7 @@ src/store/
 
 - Persisted to `sessionStorage`, so closing the browser ends the working session.
 - `SessionStoreProvider` loads the user from `/api/session` (`cbsAuth.getSession()`) when the store has none, and registers `getCurrentUser` with the command gateway.
-- `logout()` (the Sign Out buttons) calls `cbsAuth.logout()`, clears the client session **and the open tabs and staged drafts**, broadcasts the logout and goes to the sign-on page. The idle timeout clears the client session but keeps tabs and drafts, so the same teller can resume; a different operator signing on purges them.
+- `logout()` (the Sign Out buttons) calls `cbsAuth.logout()`, clears the client session, broadcasts the logout and goes to the sign-on page. Sign-out and the idle timeout both keep the open tabs and staged drafts, so the same teller can resume; a different operator signing on purges them.
 - `currentBranch` is always the server session's branch: `setSession()` sets it from `user.branchCode`, and the branch switcher calls `setSession()` only with the user `POST /api/session` returns (the server checks the code against the core's branch directory). Never set the branch on the client alone: the proxy sends the session's branch on every request, and branch-wise inquiries use `currentBranch` as their filter.
 
 ### Workbench (`useWorkbenchStore`)

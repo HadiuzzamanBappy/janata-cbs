@@ -19,12 +19,12 @@ import { useModelLookup } from "./use-model-lookup";
  * @param field FormElement containing optional PARAMETER configuration.
  * @returns Resolved options array and asynchronous loading status.
  */
-export function useFieldOptions(field: FormElement) {
+export function useFieldOptions(field: FormElement, enabled: boolean = true) {
   const modelName = (field.MODELNAME || "").trim();
   const param =
     (field.PARAMETER as FormFieldParameter | undefined) ??
     (modelName ? { type: "M" as const, modelName, data: [] } : undefined);
-  const { modelOptions, loading: modelLoading } = useModelLookup(param);
+  const { modelOptions, loading: modelLoading, refetch } = useModelLookup(param, enabled);
 
   const resolvedOptions: WidgetOption[] = useMemo(() => {
     const pType = param?.type;
@@ -48,5 +48,6 @@ export function useFieldOptions(field: FormElement) {
     param,
     resolvedOptions,
     modelLoading,
+    refetch,
   };
 }

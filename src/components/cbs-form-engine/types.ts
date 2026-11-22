@@ -50,6 +50,7 @@ export interface WidgetRendererProps {
   resolvedOptions: WidgetOption[];
   modelLoading: boolean;
   effectiveLabel: string;
+  onFetchOptions?: () => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

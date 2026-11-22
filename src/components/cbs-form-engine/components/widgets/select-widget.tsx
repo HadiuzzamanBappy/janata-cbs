@@ -29,6 +29,7 @@ export interface SelectWidgetProps extends BaseWidgetProps {
   loading?: boolean;
   isNumeric?: boolean;
   label?: string;
+  onFetchOptions?: () => void;
 }
 
 export function SelectWidget({
@@ -44,8 +45,16 @@ export function SelectWidget({
   loading = false,
   isNumeric = false,
   label: _label,
+  onFetchOptions,
 }: SelectWidgetProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open && onFetchOptions) {
+      onFetchOptions();
+    }
+  };
   const strVal = String(value ?? "");
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +101,7 @@ export function SelectWidget({
       </div>
 
       {/* 2. Dropdown Action Button beside it */}
-      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger
           render={
             <Button

@@ -9,7 +9,7 @@
  */
 
 import { Minus, Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   getInputWidthClass,
@@ -49,7 +49,12 @@ function ScalarFieldFactory({
   const elementId = `elem_${field.SN}_${field.NAME}`;
 
   // Resolve options & widget configuration
-  const { param, resolvedOptions, modelLoading } = useFieldOptions(field);
+  const [shouldFetchLookup, setShouldFetchLookup] = useState(false);
+  const { param, resolvedOptions, modelLoading, refetch } = useFieldOptions(field, shouldFetchLookup);
+  const handleFetchLookup = useCallback(() => {
+    setShouldFetchLookup(true);
+    refetch();
+  }, [refetch]);
   const widget = useMemo(
     () =>
       resolveWidgetType(field.TYPE, param, field.WIDGET, (field.STRUCTURE as "S" | "M") || "S", {
@@ -181,6 +186,7 @@ function ScalarFieldFactory({
       resolvedOptions,
       modelLoading,
       effectiveLabel,
+      onFetchOptions: handleFetchLookup,
     });
   };
 

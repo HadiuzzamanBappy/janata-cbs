@@ -23,12 +23,18 @@ import type { WidgetOption } from "../types";
  * @param param Lookup parameter configuration from field specification.
  * @returns Array of resolved lookup options and query loading state.
  */
-export function useModelLookup(param: FormFieldParameter | undefined) {
+export function useModelLookup(
+  param: FormFieldParameter | undefined,
+  enabled: boolean = true,
+) {
   const isModelLookup =
     (param?.type === "M" || param?.type === "L") && Boolean(param.modelName?.trim());
   const cleanModel = isModelLookup ? (param?.modelName || "").trim().toUpperCase() : "";
 
-  const { data: rows, isLoading: loading } = useQuery(cbsQueries.model(cleanModel).lookup());
+  const { data: rows, isLoading: loading, refetch } = useQuery({
+    ...cbsQueries.model(cleanModel).lookup(),
+    enabled: isModelLookup && enabled,
+  });
 
   const modelOptions = React.useMemo<WidgetOption[]>(() => {
     if (!isModelLookup || !rows) return [];
@@ -77,5 +83,5 @@ export function useModelLookup(param: FormFieldParameter | undefined) {
     param?.displayField,
   ]);
 
-  return { modelOptions, loading };
+  return { modelOptions, loading, refetch };
 }

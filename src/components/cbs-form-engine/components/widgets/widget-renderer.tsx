@@ -42,6 +42,7 @@ export function renderFieldWidget({
   resolvedOptions,
   modelLoading,
   effectiveLabel,
+  onFetchOptions,
 }: WidgetRendererProps) {
   const trimOnBlur = field.TRANSFORM === "trim";
   const dateRange = resolveFieldDateRange(field);
@@ -61,6 +62,7 @@ export function renderFieldWidget({
           loading={modelLoading}
           isNumeric={field.TYPE.toLowerCase() === "number"}
           label={effectiveLabel}
+          onFetchOptions={onFetchOptions}
         />
       );
     case "date":

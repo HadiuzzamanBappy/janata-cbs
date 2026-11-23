@@ -100,12 +100,7 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
         ? "border border-border/40"
         : "border border-border/80";
 
-  const bgClass =
-    bg === "none"
-      ? "bg-card/10"
-      : bg === "subtle"
-        ? "bg-muted/20"
-        : "bg-card/60";
+  const bgClass = bg === "none" ? "bg-card/10" : bg === "subtle" ? "bg-muted/20" : "bg-card/60";
 
   const shadowClass = bg === "none" || !isBordered ? "" : "shadow-2xs";
 

@@ -63,8 +63,7 @@ export function CardContainer({
 
   // Resolve header visibility (hideHeader prop, then config.showHeader, then whether section has a title/badge)
   const shouldShowHeader =
-    !hideHeader &&
-    (config.showHeader !== undefined ? config.showHeader : hasHeader);
+    !hideHeader && (config.showHeader !== undefined ? config.showHeader : hasHeader);
 
   const effectiveDensity = config.density || rootDensity || "compact";
 
@@ -100,11 +99,7 @@ export function CardContainer({
         : "border border-border/80";
 
     const bgClass =
-      bg === "none"
-        ? "bg-transparent"
-        : bg === "subtle"
-          ? "bg-muted/20"
-          : "bg-card/60";
+      bg === "none" ? "bg-transparent" : bg === "subtle" ? "bg-muted/20" : "bg-card/60";
 
     const shadowClass = bg === "none" || !isBordered ? "" : "shadow-2xs";
 

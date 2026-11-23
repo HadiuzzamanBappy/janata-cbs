@@ -160,7 +160,13 @@ async function runSuite() {
       ...sampleModel,
       TABLENAME: "test table",
       PROPERTIES: [{ NAME: "amount", TYPE: "Number", LENGTH: 0 }],
-      IDDEF: { IDPREFIX: "TT", SEQUENCELENGTH: "abc", SEQUENCERESET: false, SEQRESETPERIOD: "", IDPATTERN: "" },
+      IDDEF: {
+        IDPREFIX: "TT",
+        SEQUENCELENGTH: "abc",
+        SEQUENCERESET: false,
+        SEQRESETPERIOD: "",
+        IDPATTERN: "",
+      },
     })
     .error?.issues.map((i) => i.path.join("."));
   const expectedSaveIssues = [

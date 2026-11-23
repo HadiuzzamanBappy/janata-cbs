@@ -124,7 +124,10 @@ export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfi
         IDPREFIX: String(IDPREFIX || "").trim(),
         SEQUENCELENGTH: SEQUENCELENGTH || "",
         SEQUENCERESET: Boolean(SEQUENCERESET),
-        SEQRESETPERIOD: (String(SEQRESETPERIOD || "").trim().toUpperCase() as "D" | "M" | "Y") || "",
+        SEQRESETPERIOD:
+          (String(SEQRESETPERIOD || "")
+            .trim()
+            .toUpperCase() as "D" | "M" | "Y") || "",
         IDPATTERN: String(IDPATTERN || "").trim(),
       };
     }

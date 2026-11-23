@@ -155,15 +155,14 @@ export interface InquiryCriteriaParam {
 }
 
 /** One of the operator's filter values, as the browser sends it. Name, type and lock come from the config. */
-const inquiryOperatorCriterionSchema = z
-  .looseObject({
-    selectFieldName: z
-      .string()
-      .trim()
-      .regex(INQUIRY_FIELD_NAME_PATTERN, "Filter field names are letters, digits, _ and ."),
-    selectFieldOperator: selectionOperandSchema,
-    selectFieldValue: z.string().trim().min(1, "A filter value is required"),
-  });
+const inquiryOperatorCriterionSchema = z.looseObject({
+  selectFieldName: z
+    .string()
+    .trim()
+    .regex(INQUIRY_FIELD_NAME_PATTERN, "Filter field names are letters, digits, _ and ."),
+  selectFieldOperator: selectionOperandSchema,
+  selectFieldValue: z.string().trim().min(1, "A filter value is required"),
+});
 
 export type InquiryOperatorCriterion = z.infer<typeof inquiryOperatorCriterionSchema>;
 

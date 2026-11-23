@@ -27,7 +27,11 @@ export function useFieldOptions(field: FormElement, enabled: boolean = true) {
   const isDynamic = Boolean(
     (param?.type === "M" || param?.type === "L") && param?.modelName?.trim(),
   );
-  const { modelOptions, loading: modelLoading, refetch } = useModelLookup(param, isDynamic && enabled);
+  const {
+    modelOptions,
+    loading: modelLoading,
+    refetch,
+  } = useModelLookup(param, isDynamic && enabled);
 
   const resolvedOptions: WidgetOption[] = useMemo(() => {
     const pType = param?.type;

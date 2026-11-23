@@ -211,71 +211,67 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     },
   },
   LOOKUP: {
-    "_DEVBY": "MA032990",
-    "_DEVDATE": "2026-11-22",
-    "TABLENAME": "LOOKUP",
-    "DESCRIPTION": "LOOKUP TABLE",
-    "PREFIX": "SC",
-    "USERDEFINEID": false,
-    "ACCESS": "G",
-    "ASSOCIATES": [
-        "UNA",
-        "HIS",
-        "DEL"
-    ],
-    "SERVICEPATH": "default",
-    "READONLY": false,
-    "SEARCHABLE": false,
-    "AUTHLEVEL": 1,
-    "IDDEF": {
-        "IDPREFIX": "",
-        "SEQUENCELENGTH": "0",
-        "SEQUENCERESET": false,
-        "SEQRESETPERIOD": "",
-        "IDPATTERN": ""
+    _DEVBY: "MA032990",
+    _DEVDATE: "2026-11-22",
+    TABLENAME: "LOOKUP",
+    DESCRIPTION: "LOOKUP TABLE",
+    PREFIX: "SC",
+    USERDEFINEID: false,
+    ACCESS: "G",
+    ASSOCIATES: ["UNA", "HIS", "DEL"],
+    SERVICEPATH: "default",
+    READONLY: false,
+    SEARCHABLE: false,
+    AUTHLEVEL: 1,
+    IDDEF: {
+      IDPREFIX: "",
+      SEQUENCELENGTH: "0",
+      SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
+      IDPATTERN: "",
     },
-    "PROPERTIES": [
-        {
-            "NAME": "listArra",
-            "LABEL": "List Arra",
-            "TYPE": "Array",
-            "LENGTH": 1,
-            "STRUCTURE": "M",
-            "REQUIRED": false,
-            "MODELNAME": "",
-            "PROP": [
-                {
-                    "NAME": "itemCode",
-                    "TYPE": "String",
-                    "LENGTH": 20,
-                    "STRUCTURE": "S",
-                    "REQUIRED": false,
-                    "MODELNAME": "",
-                    "SN": "1_1"
-                },
-                {
-                    "NAME": "itemLabel",
-                    "TYPE": "String",
-                    "LENGTH": 65,
-                    "STRUCTURE": "S",
-                    "REQUIRED": false,
-                    "MODELNAME": "",
-                    "SN": "1_2"
-                },
-                {
-                    "NAME": "isActive",
-                    "TYPE": "Boolean",
-                    "LENGTH": 5,
-                    "STRUCTURE": "S",
-                    "REQUIRED": false,
-                    "MODELNAME": "",
-                    "SN": "1_3"
-                }
-            ],
-            "SN": "1"
-        }
-    ]
-},
+    PROPERTIES: [
+      {
+        NAME: "listArra",
+        LABEL: "List Arra",
+        TYPE: "Array",
+        LENGTH: 1,
+        STRUCTURE: "M",
+        REQUIRED: false,
+        MODELNAME: "",
+        PROP: [
+          {
+            NAME: "itemCode",
+            TYPE: "String",
+            LENGTH: 20,
+            STRUCTURE: "S",
+            REQUIRED: false,
+            MODELNAME: "",
+            SN: "1_1",
+          },
+          {
+            NAME: "itemLabel",
+            TYPE: "String",
+            LENGTH: 65,
+            STRUCTURE: "S",
+            REQUIRED: false,
+            MODELNAME: "",
+            SN: "1_2",
+          },
+          {
+            NAME: "isActive",
+            TYPE: "Boolean",
+            LENGTH: 5,
+            STRUCTURE: "S",
+            REQUIRED: false,
+            MODELNAME: "",
+            SN: "1_3",
+          },
+        ],
+        SN: "1",
+      },
+    ],
+  },
   BRANCH: {
     _DEVBY: "MD. IMRAN HASAN",
     _DEVDATE: "2025-06-18",

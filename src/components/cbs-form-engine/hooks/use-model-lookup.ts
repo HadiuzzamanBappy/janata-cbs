@@ -23,10 +23,7 @@ import type { WidgetOption } from "../types";
  * @param param Lookup parameter configuration from field specification.
  * @returns Array of resolved lookup options and query loading state.
  */
-export function useModelLookup(
-  param: FormFieldParameter | undefined,
-  enabled: boolean = true,
-) {
+export function useModelLookup(param: FormFieldParameter | undefined, enabled: boolean = true) {
   const isModelLookup =
     (param?.type === "M" || param?.type === "L") && Boolean(param.modelName?.trim());
   const cleanModel = isModelLookup ? (param?.modelName || "").trim().toUpperCase() : "";
@@ -40,7 +37,10 @@ export function useModelLookup(
   const loading = isModelLookup ? query.isLoading : false;
   const refetch = isModelLookup
     ? query.refetch
-    : () => Promise.resolve({ data: undefined, error: null } as unknown as ReturnType<typeof query.refetch>);
+    : () =>
+        Promise.resolve({ data: undefined, error: null } as unknown as ReturnType<
+          typeof query.refetch
+        >);
 
   const modelOptions = React.useMemo<WidgetOption[]>(() => {
     if (!isModelLookup || !rows) return [];

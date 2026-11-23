@@ -108,7 +108,8 @@ export function ContainerInspector({
         showHeader:
           cfg.showHeader !== undefined
             ? cfg.showHeader
-            : Boolean(section.title?.trim() || section.collapsible || cfg.badge) && cfg.variant !== "ghost",
+            : Boolean(section.title?.trim() || section.collapsible || cfg.badge) &&
+              cfg.variant !== "ghost",
         bordered: cfg.bordered !== undefined ? cfg.bordered : cfg.variant !== "ghost",
         background:
           cfg.background ??

@@ -206,8 +206,7 @@ export const CONTAINER_PROPERTIES_SECTION: FormSection = {
           { code: "none", label: "None" },
         ],
       },
-      ENRICHTEXT:
-        "Card fill: regular surface, subtle tint, or none (transparent).",
+      ENRICHTEXT: "Card fill: regular surface, subtle tint, or none (transparent).",
     },
     {
       SN: "8",

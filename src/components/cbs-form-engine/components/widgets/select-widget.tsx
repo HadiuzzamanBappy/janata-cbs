@@ -88,13 +88,12 @@ export function SelectWidget({
   const showSearch = options.length > 10;
 
   const filteredOptions = React.useMemo(() => {
-    if (!showSearch || !searchQuery.trim())
-      return options;
+    if (!showSearch || !searchQuery.trim()) return options;
     const query = searchQuery.trim().toLowerCase();
     return options.filter((opt) => {
       const target = (opt.code + opt.label).toLowerCase();
       return target.includes(query);
-    })
+    });
   }, [searchQuery, options, showSearch]);
 
   return (

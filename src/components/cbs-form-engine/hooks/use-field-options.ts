@@ -25,7 +25,8 @@ export function useFieldOptions(field: FormElement, enabled: boolean = true) {
     (field.PARAMETER as FormFieldParameter | undefined) ??
     (modelName ? { type: "M" as const, modelName, data: [] } : undefined);
   const isDynamic = Boolean(
-    (param?.type === "M" || param?.type === "L") && param?.modelName?.trim(),
+    (param?.type === "M" || param?.type === "A") &&
+      Boolean(param?.modelName?.trim() || param?.recordId?.trim()),
   );
   const {
     modelOptions,
@@ -37,7 +38,7 @@ export function useFieldOptions(field: FormElement, enabled: boolean = true) {
     const pType = param?.type;
     const pData = param?.data;
 
-    if (pType === "M" || pType === "L") {
+    if (pType === "M" || pType === "A") {
       return modelOptions;
     }
 

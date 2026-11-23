@@ -8,7 +8,7 @@
 import type { FormSection } from "@/lib/data-schemas";
 
 /**
- * Standard Form Section definition for Dropdown Source Selector (Modes O, M, L).
+ * Standard Form Section definition for Dropdown Source Selector (Modes O, M, A, L).
  */
 export const DROPDOWN_SOURCE_SELECTOR_SECTION: FormSection = {
   id: "sec_dropdown_source",
@@ -30,8 +30,8 @@ export const DROPDOWN_SOURCE_SELECTOR_SECTION: FormSection = {
         type: "O",
         data: [
           { code: "O", label: "Static List" },
-          { code: "M", label: "Model" },
-          { code: "L", label: "Local" },
+          { code: "M", label: "Model Table" },
+          { code: "A", label: "Category / Array" },
         ],
       },
     },
@@ -137,25 +137,15 @@ export const DROPDOWN_LOOKUP_SECTION: FormSection = {
       WIDTH: "full",
       ENRICHTEXT: "Optional filter expression to limit records (e.g. status == 'ACTIVE').",
     },
-    {
-      SN: "5",
-      NAME: "PARAMETER.reference",
-      LABEL: "Reference Field",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 50,
-      WIDTH: "full",
-      ENRICHTEXT: "Optional reference or foreign key link field in the model.",
-    },
   ],
 };
 
 /**
- * Standard Form Section definition for Local CBS Catalog Lookup (Mode L).
- * Defines local table/reference lookup fields as pure JSON.
+ * Standard Form Section definition for Category / Nested Array Lookup (Mode A).
+ * Defines categorized catalog (e.g. SC_LOOKUP) and nested child array lookups.
  */
-export const DROPDOWN_LOCAL_SECTION: FormSection = {
-  id: "sec_dropdown_local",
+export const DROPDOWN_ARRAY_SECTION: FormSection = {
+  id: "sec_dropdown_array",
   title: "",
   containerType: "card",
   containerConfig: { variant: "ghost" },
@@ -163,34 +153,58 @@ export const DROPDOWN_LOCAL_SECTION: FormSection = {
   fields: [
     {
       SN: "1",
-      NAME: "PARAMETER.reference",
-      LABEL: "Local Catalog / Reference Table",
+      NAME: "PARAMETER.modelName",
+      LABEL: "Target Catalog / Model",
+      TYPE: "String",
+      STRUCTURE: "S",
+      LENGTH: 35,
+      DEFAULTVALUE: "LOOKUP",
+      WIDTH: "full",
+      ENRICHTEXT: "Target catalog or model containing the category (defaults to LOOKUP).",
+    },
+    {
+      SN: "2",
+      NAME: "PARAMETER.recordId",
+      LABEL: "Category / Record ID",
       TYPE: "String",
       STRUCTURE: "S",
       LENGTH: 50,
       REQUIRED: true,
       WIDTH: "full",
-      ENRICHTEXT: "Name of the local CBS lookup catalog or system reference table.",
-    },
-    {
-      SN: "2",
-      NAME: "PARAMETER.codeField",
-      LABEL: "Code / Value Key",
-      TYPE: "String",
-      STRUCTURE: "S",
-      LENGTH: 35,
-      WIDTH: "full",
-      ENRICHTEXT: "Key in local table to store as the value.",
+      ENRICHTEXT: "Identifier of the category or record to unwrap (e.g. GENDER, MARITAL_STATUS).",
     },
     {
       SN: "3",
+      NAME: "PARAMETER.arrayField",
+      LABEL: "Array Field Name",
+      TYPE: "String",
+      STRUCTURE: "S",
+      LENGTH: 35,
+      DEFAULTVALUE: "itemArray",
+      WIDTH: "full",
+      ENRICHTEXT: "Property inside the record containing option items (defaults to itemArray).",
+    },
+    {
+      SN: "4",
+      NAME: "PARAMETER.codeField",
+      LABEL: "Item Code Key",
+      TYPE: "String",
+      STRUCTURE: "S",
+      LENGTH: 35,
+      DEFAULTVALUE: "itemCode",
+      WIDTH: "full",
+      ENRICHTEXT: "Key inside each array item to store as value (defaults to itemCode).",
+    },
+    {
+      SN: "5",
       NAME: "PARAMETER.displayField",
-      LABEL: "Display Text Key",
+      LABEL: "Item Display Key",
       TYPE: "String",
       STRUCTURE: "S",
       LENGTH: 50,
+      DEFAULTVALUE: "itemLabel",
       WIDTH: "full",
-      ENRICHTEXT: "Key in local table to render as the human-readable label.",
+      ENRICHTEXT: "Key inside each array item to render as label (defaults to itemLabel).",
     },
   ],
 };

@@ -42,7 +42,7 @@ export function McPropertiesTab({
   onUpdateField,
   onRemoveField,
 }: McPropertiesTabProps) {
-  const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(860);
+  const { ref: containerRef, isCompact } = useContainerWidth<HTMLDivElement>(960);
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   const handleSelectSN = (sn: string) => {
@@ -96,8 +96,10 @@ export function McPropertiesTab({
           {/* Offcanvas Drawer */}
           <div
             className={cn(
-              "absolute inset-y-0 left-0 z-30 w-72 sm:w-80 shadow-2xl transition-transform duration-200 ease-in-out bg-card flex flex-col",
-              isSidebarOpen ? "translate-x-0" : "-translate-x-full pointer-events-none",
+              "absolute inset-y-0 left-0 z-30 w-72 sm:w-80 shadow-2xl transition-all duration-200 ease-in-out bg-card flex flex-col overflow-hidden",
+              isSidebarOpen
+                ? "translate-x-0 opacity-100 visible"
+                : "-translate-x-full opacity-0 invisible pointer-events-none",
             )}
           >
             <McPropertyList

@@ -83,7 +83,7 @@ export function McPropertyInspector({
               variant="ghost"
               size="icon-xs"
               onClick={onToggleSidebar}
-              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5"
+              className="size-7 text-muted-foreground hover:text-foreground shrink-0 mr-0.5 cursor-pointer"
               title={isSidebarOpen ? "Hide Columns" : "Show Columns"}
             >
               <PanelLeft className="size-3.5" />

@@ -76,17 +76,19 @@ function sanitizeFormElement(field: FormElement): FormElement {
 
   const p = cleanField.PARAMETER;
   const pType = String(p?.type ?? "").toUpperCase();
-  const modelName = String(p?.modelName ?? "").trim();
-  if (pType === "M" && modelName) {
+  const rawModel = String(p?.modelName ?? "").trim() || (pType === "A" ? "LOOKUP" : "");
+  if ((pType === "M" || pType === "A") && rawModel) {
     const codeStr = String(p?.codeField ?? "").trim();
-    const refStr = String(p?.reference ?? "").trim();
     const dispStr = String(p?.displayField ?? "").trim();
     const condStr = String(p?.condition ?? "").trim();
+    const recIdStr = String(p?.recordId ?? "").trim();
+    const arrFieldStr = String(p?.arrayField ?? "").trim();
     sanitized.PARAMETER = {
-      type: "M",
-      modelName,
+      type: pType as "M" | "A",
+      modelName: rawModel,
       data: [],
-      ...(refStr ? { reference: refStr } : {}),
+      ...(recIdStr ? { recordId: recIdStr } : {}),
+      ...(arrFieldStr ? { arrayField: arrFieldStr } : {}),
       ...(dispStr ? { displayField: dispStr } : {}),
       ...(condStr ? { condition: condStr } : {}),
       ...(codeStr ? { codeField: codeStr } : {}),

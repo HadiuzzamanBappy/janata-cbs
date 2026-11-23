@@ -112,7 +112,7 @@ export function resolveWidgetType(
     Boolean(
       param &&
         (param.type === "M" ||
-          param.type === "L" ||
+          param.type === "A" ||
           (param.type === "O" && Array.isArray(param.data) && param.data.length > 0)),
     ) || Boolean(modelName?.trim());
 
@@ -159,16 +159,17 @@ export function normalizeParameter(raw?: Record<string, unknown> | null): FormEl
   });
 
   const rawType = String(raw.type ?? "O").toUpperCase();
-  const normalizedType = (rawType === "M" || rawType === "L" ? rawType : "O") as "O" | "M" | "L";
+  const normalizedType = (rawType === "M" || rawType === "A" ? rawType : "O") as "O" | "M" | "A";
 
   return {
     type: normalizedType,
     data: normalizedData,
     ...(raw.modelName ? { modelName: String(raw.modelName) } : {}),
+    ...(raw.recordId ? { recordId: String(raw.recordId) } : {}),
+    ...(raw.arrayField ? { arrayField: String(raw.arrayField) } : {}),
     ...(raw.codeField ? { codeField: String(raw.codeField) } : {}),
     ...(raw.displayField ? { displayField: String(raw.displayField) } : {}),
     ...(raw.condition ? { condition: String(raw.condition) } : {}),
-    ...(raw.reference ? { reference: String(raw.reference) } : {}),
   };
 }
 

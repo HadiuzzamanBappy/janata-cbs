@@ -73,7 +73,7 @@ export function McPropertyList({
   return (
     <div
       className={cn(
-        "w-80 sm:w-96 border-r border-border/70 flex flex-col bg-muted/10 shrink-0 min-h-0",
+        "w-72 sm:w-80 border-r border-border/70 flex flex-col bg-card shrink-0 min-h-0 overflow-hidden",
         className,
       )}
     >

@@ -24,3 +24,17 @@
 
 - Always combine conditional class names using `cn()` from `@/lib/core-utils` (`clsx` + `tailwind-merge`).
 - Forms use the 12-column grid system (`col-span-12`, `sm:col-span-6`, etc.) with compact density (`h-8 text-xs`, IDs/dates in `font-mono`).
+
+## 5. Banking Typography & Numeric Alignment
+
+- **Tabular Figures:** All monetary amounts, balances, exchange rates, and transaction IDs must use `font-mono` and `tabular-nums` (`font-variant-numeric: tabular-nums`) for strict vertical alignment.
+- **Sanctioned Micro-Type Scale:** Below `text-xs` (12px), use only the sanctioned theme tokens defined in `globals.css`:
+  - `text-2xs` (11px): Field labels, compact table cells.
+  - `text-3xs` (10px): Status badges, metadata.
+  - Arbitrary pixel text (`text-[9px]`, `text-[11px]`) is strictly forbidden (unreadable on 768px branch terminals).
+
+## 6. Viewport Ergonomics & Layout Invariants
+
+- **Fixed Header & Bounded Scroll:** Outer screen scaffolds must use `h-full flex flex-col overflow-hidden`. The action header stays pinned; only the form or table body scrolls (`flex-1 overflow-y-auto`). The overall browser window must never scroll.
+- **Zero Layout Shift (CLS = 0):** Error states must not expand or push adjacent grid columns. Errors render via fixed containers, tooltips, or the validation drawer.
+- **High-Contrast Focus:** All interactive controls (inputs, buttons, selects, checkboxes) must display `focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none` for rapid, error-free keyboard navigation.

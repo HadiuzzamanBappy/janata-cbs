@@ -147,7 +147,6 @@ export function TabGroupHeader(props: TabGroupHeaderProps) {
           title="Click to select Tab Group Container properties"
         >
           <Layers className="size-3 text-info" />
-          <span>Tab Group</span>
         </button>
 
         {isHoveringHeader && (

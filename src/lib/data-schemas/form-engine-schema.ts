@@ -12,13 +12,14 @@ const parameterOptionItemSchema = z.object({
 });
 
 const formFieldParameterSchema = z.looseObject({
-  type: z.enum(["O", "M", "L"]).default("O"),
+  type: z.enum(["O", "M", "A"]).default("O"),
   data: z.array(parameterOptionItemSchema).default([]),
   modelName: z.string().default("").optional(),
+  recordId: z.string().default("").optional(),
+  arrayField: z.string().default("").optional(),
   codeField: z.union([z.string(), z.number()]).default("").optional(),
   displayField: z.string().default("").optional(),
   condition: z.string().default("").optional(),
-  reference: z.string().default("").optional(),
 });
 
 export type FormFieldParameter = z.infer<typeof formFieldParameterSchema>;

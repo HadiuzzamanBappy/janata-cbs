@@ -13,15 +13,19 @@ Zero legacy applies **inside the code**: no shims, deprecated aliases, fallback 
 ## 2. Domain rules
 
 - **Four-Eyes**: the record's inputter never authorizes it. Enforced only in the UI (`evaluateCbsAccess`); `/api/proxy` checks rights only (`verifyUserRecordAccess`). Never claim or assume server-side Four-Eyes.
+- **Mutation Idempotency**: every state-changing mutation must use `useIdempotentSend().sendMutation()` with a UUIDv4 key to eliminate double-posting and double-debit risks.
 - **Append-only schema**: a committed Model Config property is never deleted; only properties added in the current draft may be removed (`removeDraftField`).
 - **RIDASHL**: every action button's state comes from `useCbsAccess()` / `resolveCbsActionBar()`.
 - **1:1 data**: in-memory state matches the wire shape (`PROP: [...]` stays a recursive tree, with no flattening).
-- **Cross-window messages** use `CBS_SCREEN_MESSAGE` names and are validated on receipt.
+- **Tab Blast Radius**: every tab is wrapped in an isolated error boundary; a crash in one dynamic screen spec must never bring down sibling tabs or the workbench shell.
+- **Cross-window messages** use `CBS_SCREEN_MESSAGE` names and are validated on receipt. An opener window never purges a staged draft until the detached window confirms receipt or re-docks.
 - **Storage keys** are declared in `clientConfig.storage` / `clientConfig.auth` and accessed only through `cbsStorage`.
 
 ## 3. Form state
 
-Keystrokes never re-render the workbench. Form values live in one place: `useCbsPersistence` holds `formData` for the screen, so a keystroke re-renders the form only, and it writes `formData` and `isDirty` to the tab debounced by 400 ms.
+- **Keystroke Decoupling**: Keystrokes never re-render the workbench. Form values live in one place: `useCbsPersistence` holds `formData` for the screen, so a keystroke re-renders the form only, and it writes `formData` and `isDirty` to the tab debounced by 400 ms.
+- **Immutable State**: Never mutate record state or nested objects in-place. All updates must be immutable to preserve Zustand selector memoization and `diffRecord` delta tracking.
+- **Hydration Safety**: Browser storage (`cbsStorage`) and window APIs are accessed only after mount (client-only), ensuring zero Next.js SSR hydration mismatches. Infrastructure modules (`@grpc/*`, `ioredis`) remain sealed behind `"server-only"`.
 
 ## 4. Naming & UI
 

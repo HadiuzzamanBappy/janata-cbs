@@ -31,17 +31,17 @@ export const SC_LOOKUP: Record<string, LookupRecord> = {
       {
         itemCode: "M",
         itemLabel: "MALE",
-        isActive: false,
+        isActive: true,
       },
       {
         itemCode: "F",
         itemLabel: "FEMALE",
-        isActive: false,
+        isActive: true,
       },
       {
         itemCode: "T",
         itemLabel: "THIRD GENDER",
-        isActive: false,
+        isActive: true,
       },
     ],
   },

@@ -232,8 +232,8 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     },
     PROPERTIES: [
       {
-        NAME: "listArra",
-        LABEL: "List Arra",
+        NAME: "itemArray",
+        LABEL: "Item Array",
         TYPE: "Array",
         LENGTH: 1,
         STRUCTURE: "M",

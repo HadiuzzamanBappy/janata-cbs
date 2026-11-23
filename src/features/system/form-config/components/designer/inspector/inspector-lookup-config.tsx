@@ -14,7 +14,7 @@ import { setFieldValue } from "@/lib/cbs-form-spec";
 import type { FormElement } from "@/lib/data-schemas";
 import { CbsRecordFunction } from "@/types";
 import {
-  DROPDOWN_LOCAL_SECTION,
+  DROPDOWN_ARRAY_SECTION,
   DROPDOWN_LOOKUP_SECTION,
   DROPDOWN_OPTIONS_SECTION,
   DROPDOWN_SOURCE_SELECTOR_SECTION,
@@ -51,7 +51,24 @@ export function InspectorLookupConfig({
         if (fieldKey === "PARAMETER.type" && value !== "M") return;
         if (fieldKey === "PARAMETER.modelName" && value !== cleanModel) return;
       }
-      const updated = setFieldValue(selectedField as Record<string, unknown>, fieldKey, value);
+      let updated = setFieldValue(selectedField as Record<string, unknown>, fieldKey, value);
+
+      // Smart defaults when switching to Category / Array Mode A
+      if (fieldKey === "PARAMETER.type" && value === "A") {
+        const p = (updated.PARAMETER || {}) as Record<string, unknown>;
+        updated = {
+          ...updated,
+          PARAMETER: {
+            ...p,
+            type: "A",
+            modelName: p.modelName || "LOOKUP",
+            arrayField: p.arrayField || "itemArray",
+            codeField: p.codeField || "itemCode",
+            displayField: p.displayField || "itemLabel",
+          },
+        };
+      }
+
       onUpdateField({
         PARAMETER: updated.PARAMETER as FormElement["PARAMETER"],
       });
@@ -89,26 +106,41 @@ export function InspectorLookupConfig({
     }
     return paramType === "O"
       ? DROPDOWN_OPTIONS_SECTION
-      : paramType === "L"
-        ? DROPDOWN_LOCAL_SECTION
+      : paramType === "A"
+        ? DROPDOWN_ARRAY_SECTION
         : DROPDOWN_LOOKUP_SECTION;
   }, [hasModel, paramType, cleanModel]);
 
   const effectiveValues = React.useMemo(() => {
-    if (!hasModel) return selectedField as Record<string, unknown>;
     const currentParam = (selectedField.PARAMETER || {}) as Record<string, unknown>;
-    if (currentParam.type === "M" && currentParam.modelName === cleanModel) {
-      return selectedField as Record<string, unknown>;
+    if (hasModel) {
+      if (currentParam.type === "M" && currentParam.modelName === cleanModel) {
+        return selectedField as Record<string, unknown>;
+      }
+      return {
+        ...selectedField,
+        PARAMETER: {
+          ...currentParam,
+          type: "M",
+          modelName: cleanModel,
+        },
+      };
     }
-    return {
-      ...selectedField,
-      PARAMETER: {
-        ...currentParam,
-        type: "M",
-        modelName: cleanModel,
-      },
-    };
-  }, [selectedField, hasModel, cleanModel]);
+    if (paramType === "A") {
+      return {
+        ...selectedField,
+        PARAMETER: {
+          modelName: "LOOKUP",
+          arrayField: "itemArray",
+          codeField: "itemCode",
+          displayField: "itemLabel",
+          ...currentParam,
+          type: "A",
+        },
+      };
+    }
+    return selectedField as Record<string, unknown>;
+  }, [selectedField, hasModel, cleanModel, paramType]);
 
   return (
     <div className="space-y-2">

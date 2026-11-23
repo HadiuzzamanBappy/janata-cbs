@@ -28,10 +28,9 @@ export const INITIAL_MODEL: ModelConfigRecord = {
     IDPATTERN: "",
     SEQUENCELENGTH: "",
     SEQUENCERESET: false,
+    SEQRESETPERIOD: "",
   },
   PROPERTIES: [],
-  IDROUTINE: "",
-  FIELDBASED: false,
 };
 
 export function useModelConfigPersistence(initialId?: string, tabId?: string) {

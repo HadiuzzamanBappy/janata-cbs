@@ -10,7 +10,7 @@
 
 "use client";
 
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, Search } from "lucide-react";
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,9 +48,13 @@ export function SelectWidget({
   onFetchOptions,
 }: SelectWidgetProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
+    if (!open) {
+      setSearchQuery("");
+    }
     if (open && onFetchOptions) {
       onFetchOptions();
     }
@@ -80,6 +84,18 @@ export function SelectWidget({
     }
     setIsOpen(false);
   };
+
+  const showSearch = options.length > 10;
+
+  const filteredOptions = React.useMemo(() => {
+    if (!showSearch || !searchQuery.trim())
+      return options;
+    const query = searchQuery.trim().toLowerCase();
+    return options.filter((opt) => {
+      const target = (opt.code + opt.label).toLowerCase();
+      return target.includes(query);
+    })
+  }, [searchQuery, options, showSearch]);
 
   return (
     <div className={cn("flex items-center gap-1.5 min-w-0 max-w-full w-full", className)}>
@@ -131,6 +147,22 @@ export function SelectWidget({
           sideOffset={4}
           className={`min-w-44 max-w-72 w-auto max-h-56 overflow-y-auto ${WIDGET_TEXT} p-1 shadow-lg border border-border/80 bg-popover z-50 font-sans`}
         >
+          {showSearch && !loading && (
+            <div className="sticky top-0 bg-popover z-10 border-b border-border/10">
+              <div className="relative flex items-center">
+                <Search className="size-3 text-muted-foreground absolute left-2 pointer-events-none" />
+                <Input
+                  type="text"
+                  placeholder="Filter options..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="h-6 w-full pl-6 pr-2 text-2xs bg-background rounded border-border/80 focus-visible:ring-0"
+                  autoFocus
+                />
+              </div>
+            </div>
+          )}
           {loading ? (
             <div
               className={`p-3 text-center ${WIDGET_TEXT} text-muted-foreground font-mono flex items-center justify-center gap-1.5`}
@@ -138,14 +170,14 @@ export function SelectWidget({
               <Loader2 className="size-3.5 animate-spin text-primary" />
               <span>Fetching options...</span>
             </div>
-          ) : options.length === 0 ? (
+          ) : filteredOptions.length === 0 ? (
             <div
               className={`p-3 text-center ${WIDGET_TEXT} text-muted-foreground font-mono italic`}
             >
               No options available
             </div>
           ) : (
-            options.map((opt) => {
+            filteredOptions.map((opt) => {
               const displayLabel = opt.label || opt.code;
               const isSelected =
                 opt.code.toLowerCase() === strVal.toLowerCase() ||

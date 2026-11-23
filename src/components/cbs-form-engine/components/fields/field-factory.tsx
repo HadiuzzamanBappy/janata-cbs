@@ -50,11 +50,15 @@ function ScalarFieldFactory({
 
   // Resolve options & widget configuration
   const [shouldFetchLookup, setShouldFetchLookup] = useState(false);
-  const { param, resolvedOptions, modelLoading, refetch } = useFieldOptions(field, shouldFetchLookup);
+  const { param, resolvedOptions, modelLoading, refetch, isDynamic } = useFieldOptions(
+    field,
+    shouldFetchLookup,
+  );
   const handleFetchLookup = useCallback(() => {
+    if (!isDynamic) return;
     setShouldFetchLookup(true);
     refetch();
-  }, [refetch]);
+  }, [isDynamic, refetch]);
   const widget = useMemo(
     () =>
       resolveWidgetType(field.TYPE, param, field.WIDGET, (field.STRUCTURE as "S" | "M") || "S", {
@@ -186,7 +190,7 @@ function ScalarFieldFactory({
       resolvedOptions,
       modelLoading,
       effectiveLabel,
-      onFetchOptions: handleFetchLookup,
+      onFetchOptions: isDynamic ? handleFetchLookup : undefined,
     });
   };
 

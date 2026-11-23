@@ -31,10 +31,16 @@ export function useModelLookup(
     (param?.type === "M" || param?.type === "L") && Boolean(param.modelName?.trim());
   const cleanModel = isModelLookup ? (param?.modelName || "").trim().toUpperCase() : "";
 
-  const { data: rows, isLoading: loading, refetch } = useQuery({
+  const query = useQuery({
     ...cbsQueries.model(cleanModel).lookup(),
     enabled: isModelLookup && enabled,
   });
+
+  const rows = isModelLookup ? query.data : undefined;
+  const loading = isModelLookup ? query.isLoading : false;
+  const refetch = isModelLookup
+    ? query.refetch
+    : () => Promise.resolve({ data: undefined, error: null } as unknown as ReturnType<typeof query.refetch>);
 
   const modelOptions = React.useMemo<WidgetOption[]>(() => {
     if (!isModelLookup || !rows) return [];

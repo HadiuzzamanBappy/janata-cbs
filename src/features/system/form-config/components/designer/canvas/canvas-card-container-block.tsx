@@ -83,38 +83,31 @@ export function CardContainerBlock(props: CardContainerBlockProps) {
   const sectionErrors = context.getSectionErrors(section.id);
   const hasErrors = sectionErrors.length > 0;
 
-  const bg =
-    config.background ??
-    (config.variant === "ghost" ? "none" : config.variant === "subtle" ? "subtle" : "regular");
+  const bg = config.background ?? "regular";
 
-  const isBordered = config.bordered !== undefined ? config.bordered : config.variant !== "ghost";
+  const isBordered = config.bordered !== undefined ? config.bordered : true;
 
   const shouldShowHeader =
     config.showHeader !== undefined
       ? config.showHeader
-      : Boolean(section.title || section.collapsible || config.badge) && config.variant !== "ghost";
+      : Boolean(section.title || section.collapsible || config.badge);
 
   const borderClass = hasErrors
     ? "border border-destructive/60"
     : !isBordered
       ? "border border-dashed border-border/40"
-      : config.variant === "bordered"
-        ? "border-2 border-border"
-        : config.variant === "subtle" || bg === "subtle"
-          ? "border border-border/40"
-          : "border border-border/80";
+      : bg === "subtle"
+        ? "border border-border/40"
+        : "border border-border/80";
 
   const bgClass =
     bg === "none"
       ? "bg-card/10"
       : bg === "subtle"
         ? "bg-muted/20"
-        : config.variant === "bordered"
-          ? "bg-card"
-          : "bg-card/60";
+        : "bg-card/60";
 
-  const shadowClass =
-    config.variant === "elevated" ? "shadow-sm" : bg === "none" || !isBordered ? "" : "shadow-2xs";
+  const shadowClass = bg === "none" || !isBordered ? "" : "shadow-2xs";
 
   return (
     <section

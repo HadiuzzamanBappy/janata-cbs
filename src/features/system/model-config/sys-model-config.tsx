@@ -161,24 +161,6 @@ export function SysModelConfig({ command, tabId }: CbsScreenProps) {
       activeTab={activeTab}
       onActiveTabChange={setActiveTab}
       validationErrors={validationErrors}
-      moreActions={[
-        {
-          label: "Export Model Schema JSON",
-          command: "EXP.MODEL.JSON",
-          onClick: () => {
-            const blob = new Blob([JSON.stringify(formData, null, 2)], {
-              type: "application/json",
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${formData.TABLENAME || "model"}.config.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-          },
-          requiredRight: CbsRecordFunction.SEE,
-        },
-      ]}
     />
   );
 }

@@ -220,7 +220,7 @@ export function McPropertyList({
                         )}
                         title={`References ${prop.MODELNAME}`}
                       >
-                        Model
+                        {prop.MODELNAME}
                       </Badge>
                     )}
 

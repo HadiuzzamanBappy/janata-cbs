@@ -24,7 +24,10 @@ export function useFieldOptions(field: FormElement, enabled: boolean = true) {
   const param =
     (field.PARAMETER as FormFieldParameter | undefined) ??
     (modelName ? { type: "M" as const, modelName, data: [] } : undefined);
-  const { modelOptions, loading: modelLoading, refetch } = useModelLookup(param, enabled);
+  const isDynamic = Boolean(
+    (param?.type === "M" || param?.type === "L") && param?.modelName?.trim(),
+  );
+  const { modelOptions, loading: modelLoading, refetch } = useModelLookup(param, isDynamic && enabled);
 
   const resolvedOptions: WidgetOption[] = useMemo(() => {
     const pType = param?.type;
@@ -47,7 +50,8 @@ export function useFieldOptions(field: FormElement, enabled: boolean = true) {
   return {
     param,
     resolvedOptions,
-    modelLoading,
+    modelLoading: isDynamic ? modelLoading : false,
     refetch,
+    isDynamic,
   };
 }

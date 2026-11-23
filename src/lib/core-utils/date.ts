@@ -17,11 +17,6 @@ const ISO_DATE_TIME = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(:\d{2}(\.\d{1,9})?)?(Z
 /** ISO date-time with no offset (what an `<input type="datetime-local">` emits). */
 const LOCAL_DATE_TIME = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(:\d{2})?$/;
 
-// LEGACY (temporary): formats the core sends today. Delete with the two branches below once
-// the core sends ISO. Nothing outside this file may know these formats.
-const LEGACY_COMPACT_DATE = /^(\d{4})(\d{2})(\d{2})$/;
-const LEGACY_SPACED_DATE_TIME = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})(:\d{2})?$/;
-
 const isString = (v: unknown): v is string => typeof v === "string";
 
 /** A real calendar day (rejects 2026-02-30, which Date.parse rolls over to March). */
@@ -43,7 +38,7 @@ export function isIsoDateTime(value: string): boolean {
 }
 
 /**
- * Inbound date → ISO `YYYY-MM-DD`. Accepts ISO, and (legacy) the core's compact `YYYYMMDD`.
+ * Inbound date → ISO `YYYY-MM-DD`. Accepts ISO date or ISO date-time.
  * Anything else is returned unchanged, so validation can report it.
  */
 export function toIsoDate(value: unknown): unknown {
@@ -52,20 +47,18 @@ export function toIsoDate(value: unknown): unknown {
   if (ISO_DATE.test(text)) return text;
   // An ISO date-time in a date field keeps its bank-time calendar day
   if (isIsoDateTime(text)) return isoDateTimeToLocalInput(text).slice(0, 10);
-  const legacy = LEGACY_COMPACT_DATE.exec(text);
-  if (legacy) return `${legacy[1]}-${legacy[2]}-${legacy[3]}`;
   return value;
 }
 
 /**
- * Inbound date-time → ISO with an offset. A time with no offset is bank time (+06:00).
- * Accepts ISO, and (legacy) the core's `YYYY-MM-DD HH:mm:ss`. Anything else is unchanged.
+ * Inbound date-time → ISO with an offset. A browser local input time with no offset gets bank time (+06:00).
+ * Valid ISO date-time is preserved. Anything else is returned unchanged.
  */
 export function toIsoDateTime(value: unknown): unknown {
   if (!isString(value)) return value;
   const text = value.trim();
   if (ISO_DATE_TIME.test(text)) return text;
-  const local = LOCAL_DATE_TIME.exec(text) ?? LEGACY_SPACED_DATE_TIME.exec(text);
+  const local = LOCAL_DATE_TIME.exec(text);
   if (local) return `${local[1]}T${local[2]}${local[3] ?? ":00"}${CBS_UTC_OFFSET}`;
   return value;
 }

@@ -47,8 +47,8 @@ import {
 } from "@/lib/core-utils";
 
 // Inbound only, once, at the boundary (proxy audit times, form record load, inquiry rows)
-toIsoDate("20250101"); // "2025-01-01"  (legacy core format)
-toIsoDateTime("2026-10-27 11:22:52"); // "2026-10-27T11:22:52+06:00"  (legacy core format)
+toIsoDate("2025-01-01"); // "2025-01-01"
+toIsoDateTime("2026-10-27T11:22:52+06:00"); // "2026-10-27T11:22:52+06:00"
 
 isIsoDate("2026-02-30"); // false: validation is strict ISO
 formatDate("2025-01-01"); // "01 Jan 2025"

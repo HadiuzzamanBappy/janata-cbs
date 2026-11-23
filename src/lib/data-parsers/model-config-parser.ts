@@ -15,7 +15,7 @@ import { unwrapRecordsPayload } from "./protobuf-decoder";
 
 const VALID_PROPERTY_TYPES = new Set<string>(PROPERTY_TYPES);
 
-const BOOLEAN_FLAGS = ["USERDEFINEID", "READONLY", "SEARCHABLE", "FIELDBASED"] as const;
+const BOOLEAN_FLAGS = ["USERDEFINEID", "READONLY", "SEARCHABLE"] as const;
 
 /* -------------------------------------------------------------------------- */
 /* Inbound Wire Response Parser                                               */
@@ -110,15 +110,21 @@ export function sanitizeModelConfigRecord(record: ModelConfigRecord): ModelConfi
 
   if (record._DEVBY?.trim()) result._DEVBY = record._DEVBY.trim();
   if (record._DEVDATE?.trim()) result._DEVDATE = record._DEVDATE.trim();
-  if (record.IDROUTINE?.trim()) result.IDROUTINE = record.IDROUTINE.trim();
 
   if (record.IDDEF) {
-    const { IDPREFIX, SEQUENCELENGTH, SEQUENCERESET, IDPATTERN } = record.IDDEF;
-    if (IDPREFIX?.trim() || SEQUENCELENGTH || SEQUENCERESET || IDPATTERN?.trim()) {
+    const { IDPREFIX, SEQUENCELENGTH, SEQUENCERESET, SEQRESETPERIOD, IDPATTERN } = record.IDDEF;
+    if (
+      IDPREFIX?.trim() ||
+      SEQUENCELENGTH ||
+      SEQUENCERESET ||
+      SEQRESETPERIOD?.trim() ||
+      IDPATTERN?.trim()
+    ) {
       result.IDDEF = {
         IDPREFIX: String(IDPREFIX || "").trim(),
         SEQUENCELENGTH: SEQUENCELENGTH || "",
         SEQUENCERESET: Boolean(SEQUENCERESET),
+        SEQRESETPERIOD: (String(SEQRESETPERIOD || "").trim().toUpperCase() as "D" | "M" | "Y") || "",
         IDPATTERN: String(IDPATTERN || "").trim(),
       };
     }

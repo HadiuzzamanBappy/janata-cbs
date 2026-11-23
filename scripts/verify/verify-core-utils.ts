@@ -100,8 +100,8 @@ async function runSuite() {
     accountingNegative === "(5,000.00 BDT)",
   );
 
-  // ── 3. Dates: ISO inside the system, legacy core formats converted at the boundary ──
-  console.log("\n── 3. Dates (ISO contract, boundary conversion, bank-time display) ──");
+  // ── 3. Dates: ISO inside the system, non-ISO returned unchanged ──
+  console.log("\n── 3. Dates (ISO contract, non-ISO untouched, bank-time display) ──");
   const inbound = {
     compactDate: toIsoDate("20250101"),
     isoDate: toIsoDate("2025-01-01"),
@@ -112,13 +112,13 @@ async function runSuite() {
     notADate: toIsoDate("12345"),
   };
   recordTest(
-    "3.1 Inbound dates become ISO (legacy YYYYMMDD and spaced date-times included); other text untouched",
+    "3.1 Inbound dates preserve ISO (browser local input gets offset); non-ISO text untouched",
     { compact: "20250101", spaced: "2026-10-27 11:22:52", local: "2026-10-27T11:22" },
     inbound,
-    inbound.compactDate === "2025-01-01" &&
+    inbound.compactDate === "20250101" &&
       inbound.isoDate === "2025-01-01" &&
       inbound.dateTimeInDateField === "2025-01-02" &&
-      inbound.spacedDateTime === "2026-10-27T11:22:52+06:00" &&
+      inbound.spacedDateTime === "2026-10-27 11:22:52" &&
       inbound.localDateTime === "2026-10-27T11:22:00+06:00" &&
       inbound.isoDateTime === "2026-10-27T05:22:52Z" &&
       inbound.notADate === "12345",
@@ -144,7 +144,10 @@ async function runSuite() {
 
   const audit = normalizeAuditTimes({
     records: [
-      { recordId: "A1", auditData: { recInputTime: "2026-10-27 11:22:52", recAuthTime: "" } },
+      {
+        recordId: "A1",
+        auditData: { recInputTime: "2026-10-27T11:22:52+06:00", recAuthTime: "" },
+      },
     ],
   });
   const display = {
@@ -154,8 +157,8 @@ async function runSuite() {
     today: todayIso(),
   };
   recordTest(
-    "3.3 Audit times converted in place; display and inputs use bank time (Asia/Dhaka)",
-    { audit: "2026-10-27 11:22:52", utc: "2026-10-27T05:22:52Z" },
+    "3.3 Audit times preserved in place; display and inputs use bank time (Asia/Dhaka)",
+    { audit: "2026-10-27T11:22:52+06:00", utc: "2026-10-27T05:22:52Z" },
     { audit: audit.records[0].auditData, display },
     audit.records[0].auditData.recInputTime === "2026-10-27T11:22:52+06:00" &&
       audit.records[0].auditData.recAuthTime === "" &&

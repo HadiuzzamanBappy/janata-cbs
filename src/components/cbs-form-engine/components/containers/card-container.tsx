@@ -43,33 +43,28 @@ export function CardContainer({
   const config = section.containerConfig || {};
   const hasHeader = Boolean(section.title?.trim() || isCollapsible || config.badge);
 
-  // Check if this section is an explicit card container (titled, multi-field, collapsible, or explicitly bordered)
+  // Check if this section is an explicit card container (titled, multi-field, collapsible, or explicitly bordered/styled)
   const isExplicitContainer = Boolean(
     hasHeader ||
       config.showHeader ||
       config.bordered === true ||
       config.background === "subtle" ||
-      config.variant === "bordered" ||
-      config.variant === "subtle" ||
-      config.variant === "elevated" ||
       (section.fields && section.fields.length > 1),
   );
 
   // Check if embedded inside a Tab Group (via hideHeader or containerType === "tab")
   const isEmbeddedTab = hideHeader || section.containerType === "tab";
 
-  // Resolve background (explicit background wins, else the variant preset decides)
-  const bg =
-    config.background ??
-    (config.variant === "ghost" ? "none" : config.variant === "subtle" ? "subtle" : "regular");
+  // Resolve background (explicit background wins, defaults to "regular")
+  const bg = config.background ?? "regular";
 
-  // Resolve border (explicit bordered wins, else the variant preset decides)
-  const isBordered = config.bordered !== undefined ? config.bordered : config.variant !== "ghost";
+  // Resolve border (explicit bordered wins, defaults to true)
+  const isBordered = config.bordered !== undefined ? config.bordered : true;
 
-  // Resolve header visibility (hideHeader prop, then config.showHeader, then the variant preset)
+  // Resolve header visibility (hideHeader prop, then config.showHeader, then whether section has a title/badge)
   const shouldShowHeader =
     !hideHeader &&
-    (config.showHeader !== undefined ? config.showHeader : hasHeader && config.variant !== "ghost");
+    (config.showHeader !== undefined ? config.showHeader : hasHeader);
 
   const effectiveDensity = config.density || rootDensity || "compact";
 
@@ -85,7 +80,7 @@ export function CardContainer({
       return isViewMode ? "space-y-1.5" : "space-y-2";
     }
 
-    // 3. Ghost / transparent frameless containers
+    // 3. Transparent frameless containers
     if (!isBordered && bg === "none" && !shouldShowHeader) {
       return isViewMode ? "space-y-1.5" : "space-y-2";
     }
@@ -100,27 +95,18 @@ export function CardContainer({
 
     const borderClass = !isBordered
       ? "border-transparent"
-      : config.variant === "bordered"
-        ? "border-2 border-border"
-        : config.variant === "subtle" || bg === "subtle"
-          ? "border border-border/60"
-          : "border border-border/80";
+      : bg === "subtle"
+        ? "border border-border/60"
+        : "border border-border/80";
 
     const bgClass =
       bg === "none"
         ? "bg-transparent"
         : bg === "subtle"
           ? "bg-muted/20"
-          : config.variant === "bordered"
-            ? "bg-card"
-            : "bg-card/60";
+          : "bg-card/60";
 
-    const shadowClass =
-      config.variant === "elevated"
-        ? "shadow-sm"
-        : bg === "none" || !isBordered
-          ? ""
-          : "shadow-2xs";
+    const shadowClass = bg === "none" || !isBordered ? "" : "shadow-2xs";
 
     const densityClasses = {
       compact: isViewMode ? "px-2.5 py-1.5 space-y-1.5" : "p-2.5 space-y-2",

@@ -151,6 +151,7 @@ const idDefSchema = z.object({
   IDPREFIX: z.string().default(""),
   SEQUENCELENGTH: z.union([z.number(), z.string()]).default("").optional(),
   SEQUENCERESET: z.boolean().default(false),
+  SEQRESETPERIOD: z.enum(["D", "M", "Y", ""]).default("").optional(),
   IDPATTERN: z.string().default(""),
 });
 
@@ -178,6 +179,7 @@ export const modelConfigRecordSchema = z.looseObject({
           IDPREFIX: "",
           SEQUENCELENGTH: "",
           SEQUENCERESET: false,
+          SEQRESETPERIOD: "",
           IDPATTERN: "",
         },
     )
@@ -185,11 +187,10 @@ export const modelConfigRecordSchema = z.looseObject({
       IDPREFIX: "",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     }),
   PROPERTIES: z.array(modelPropertySchema).default([]),
-  IDROUTINE: z.string().default("").optional(),
-  FIELDBASED: z.boolean().default(false).optional(),
   auditData: auditDataSchema.optional(),
 });
 

@@ -105,7 +105,10 @@ export function ContainerInspector({
         tabVariant: cfg.tabVariant || "card",
         heightMode: cfg.heightMode || "auto",
         minHeight: cfg.minHeight ?? 350,
-        showHeader: cfg.showHeader !== undefined ? cfg.showHeader : cfg.variant !== "ghost",
+        showHeader:
+          cfg.showHeader !== undefined
+            ? cfg.showHeader
+            : Boolean(section.title?.trim() || section.collapsible || cfg.badge) && cfg.variant !== "ghost",
         bordered: cfg.bordered !== undefined ? cfg.bordered : cfg.variant !== "ghost",
         background:
           cfg.background ??

@@ -92,13 +92,12 @@ const testModel: ModelConfigRecord = {
   ASSOCIATES: [],
   _DEVBY: "SYSTEM",
   _DEVDATE: "2026-10-20",
-  IDROUTINE: "",
-  FIELDBASED: false,
   IDDEF: {
     IDPREFIX: "AC",
     IDPATTERN: "AC{YYYY}{SEQ:6}",
     SEQUENCELENGTH: 6,
     SEQUENCERESET: false,
+    SEQRESETPERIOD: "",
   },
   PROPERTIES: [
     {
@@ -607,14 +606,14 @@ async function runSuite() {
     },
   };
   const loaded = normalizeRecordDates(loadedSpec, {
-    openDate: "20250101",
-    postedAt: "2026-10-27 11:22:52",
+    openDate: "2025-01-01",
+    postedAt: "2026-10-27T11:22:52+06:00",
     refNo: "20250101",
-    rows: [{ valueDate: "20250102" }],
+    rows: [{ valueDate: "2025-01-02" }],
   });
   recordTest(
-    "4.15 A loaded record's Date / DateTime fields (nested rows too) become ISO; other fields untouched",
-    { openDate: "20250101", postedAt: "2026-10-27 11:22:52", refNo: "20250101" },
+    "4.15 A loaded record's Date / DateTime fields (nested rows too) preserve ISO; other fields untouched",
+    { openDate: "2025-01-01", postedAt: "2026-10-27T11:22:52+06:00", refNo: "20250101" },
     loaded,
     loaded.openDate === "2025-01-01" &&
       loaded.postedAt === "2026-10-27T11:22:52+06:00" &&

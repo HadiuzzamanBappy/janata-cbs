@@ -19,6 +19,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "SC",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     },
     PROPERTIES: [
@@ -71,8 +72,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: false,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -100,6 +99,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "SC",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     },
     PROPERTIES: [
@@ -128,8 +128,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: true,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 5,
@@ -157,6 +155,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     },
     PROPERTIES: [
@@ -201,8 +200,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: true,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -214,70 +211,71 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
     },
   },
   LOOKUP: {
-    _DEVBY: "SYSTEM",
-    _DEVDATE: "2026-01-01",
-    DESCRIPTION: "Centralized System Lookups",
-    PREFIX: "SC",
-    TABLENAME: "LOOKUP",
-    USERDEFINEID: true,
-    ACCESS: "G",
-    READONLY: false,
-    SEARCHABLE: true,
-    ASSOCIATES: ["HIS", "DEL", "UNA"],
-    AUTHLEVEL: 0,
-    SERVICEPATH: "default",
-    IDDEF: {
-      IDPREFIX: "",
-      SEQUENCELENGTH: "",
-      SEQUENCERESET: false,
-      IDPATTERN: "",
-    },
-    PROPERTIES: [
-      {
-        SN: "1",
-        NAME: "category",
-        TYPE: "String",
-        STRUCTURE: "S",
-        LENGTH: 50,
-        REQUIRED: true,
-      },
-      {
-        SN: "2",
-        NAME: "lookupCode",
-        TYPE: "String",
-        STRUCTURE: "S",
-        LENGTH: 35,
-        REQUIRED: true,
-      },
-      {
-        SN: "3",
-        NAME: "description",
-        TYPE: "String",
-        STRUCTURE: "S",
-        LENGTH: 100,
-        REQUIRED: true,
-      },
-      {
-        SN: "4",
-        NAME: "status",
-        TYPE: "String",
-        STRUCTURE: "S",
-        LENGTH: 15,
-        REQUIRED: false,
-      },
+    "_DEVBY": "MA032990",
+    "_DEVDATE": "2026-11-22",
+    "TABLENAME": "LOOKUP",
+    "DESCRIPTION": "LOOKUP TABLE",
+    "PREFIX": "SC",
+    "USERDEFINEID": false,
+    "ACCESS": "G",
+    "ASSOCIATES": [
+        "UNA",
+        "HIS",
+        "DEL"
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
-    auditData: {
-      recStatus: "AU",
-      recCurrNumber: 1,
-      recInputter: "SYSTEM",
-      recInputTime: "2025-09-04 00:00:00",
-      recAuthorizer: "SYSTEM",
-      recAuthTime: "2025-09-04 00:05:00",
-      recBranchCode: "JB9999",
+    "SERVICEPATH": "default",
+    "READONLY": false,
+    "SEARCHABLE": false,
+    "AUTHLEVEL": 1,
+    "IDDEF": {
+        "IDPREFIX": "",
+        "SEQUENCELENGTH": "0",
+        "SEQUENCERESET": false,
+        "SEQRESETPERIOD": "",
+        "IDPATTERN": ""
     },
-  },
+    "PROPERTIES": [
+        {
+            "NAME": "listArra",
+            "LABEL": "List Arra",
+            "TYPE": "Array",
+            "LENGTH": 1,
+            "STRUCTURE": "M",
+            "REQUIRED": false,
+            "MODELNAME": "",
+            "PROP": [
+                {
+                    "NAME": "itemCode",
+                    "TYPE": "String",
+                    "LENGTH": 20,
+                    "STRUCTURE": "S",
+                    "REQUIRED": false,
+                    "MODELNAME": "",
+                    "SN": "1_1"
+                },
+                {
+                    "NAME": "itemLabel",
+                    "TYPE": "String",
+                    "LENGTH": 65,
+                    "STRUCTURE": "S",
+                    "REQUIRED": false,
+                    "MODELNAME": "",
+                    "SN": "1_2"
+                },
+                {
+                    "NAME": "isActive",
+                    "TYPE": "Boolean",
+                    "LENGTH": 5,
+                    "STRUCTURE": "S",
+                    "REQUIRED": false,
+                    "MODELNAME": "",
+                    "SN": "1_3"
+                }
+            ],
+            "SN": "1"
+        }
+    ]
+},
   BRANCH: {
     _DEVBY: "MD. IMRAN HASAN",
     _DEVDATE: "2025-06-18",
@@ -295,6 +293,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "JB",
       SEQUENCELENGTH: 4,
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "JB{SEQ:4}",
     },
     PROPERTIES: [
@@ -429,8 +428,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: false,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 15,
@@ -458,6 +455,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "ZZ",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     },
     PROPERTIES: [
@@ -502,8 +500,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: false,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -532,9 +528,8 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPATTERN: "",
       SEQUENCELENGTH: 10,
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
     },
-    FIELDBASED: false,
-    IDROUTINE: "",
     PROPERTIES: [
       {
         SN: "1",
@@ -756,6 +751,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "UM",
       SEQUENCELENGTH: "5",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "PF#JD#BS",
     },
     PROPERTIES: [
@@ -1021,7 +1017,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         ],
       },
     ],
-    IDROUTINE: "",
     auditData: {
       recStatus: "AU",
       recCurrNumber: 2,
@@ -1049,6 +1044,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "PR",
       SEQUENCELENGTH: 5,
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "PR#JD#BS",
     },
     PROPERTIES: [
@@ -1138,6 +1134,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "AC",
       SEQUENCELENGTH: 4,
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "PF#IS",
     },
     PROPERTIES: [
@@ -1530,8 +1527,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         ],
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 2,
@@ -1559,6 +1554,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "CUST",
       SEQUENCELENGTH: 4,
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "PF#IS",
     },
     PROPERTIES: [
@@ -1866,8 +1862,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         ],
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 2,
@@ -1895,6 +1889,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "FT",
       SEQUENCELENGTH: 6,
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "PF#IS",
     },
     PROPERTIES: [
@@ -2156,8 +2151,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         ],
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 2,
@@ -2185,6 +2178,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "GET.",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     },
     PROPERTIES: [
@@ -2253,8 +2247,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: false,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -2282,6 +2274,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     },
     PROPERTIES: [
@@ -2350,8 +2343,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: false,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
@@ -2379,6 +2370,7 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
       IDPREFIX: "",
       SEQUENCELENGTH: "",
       SEQUENCERESET: false,
+      SEQRESETPERIOD: "",
       IDPATTERN: "",
     },
     PROPERTIES: [
@@ -2407,8 +2399,6 @@ export const SC_MODEL_CONFIG: Record<string, ModelConfigRecord> = {
         REQUIRED: false,
       },
     ],
-    IDROUTINE: "",
-    FIELDBASED: false,
     auditData: {
       recStatus: "AU",
       recCurrNumber: 1,
